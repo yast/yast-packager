@@ -10,7 +10,13 @@
  */
 
 {
-    UI::OpenDialog(`opt(`defaultsize), `PackageSelector(`id(`selector) ));
+    import "StorageDevices";
+
+    string floppyDevice = StorageDevices::FloppyDevice;
+    
+    UI::OpenDialog(`opt(`defaultsize), `PackageSelector( `id(`selector),
+							 floppyDevice )
+		   );
 
     Pkg::SaveState();
 
