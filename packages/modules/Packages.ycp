@@ -68,7 +68,7 @@ Select which desktop to install.</p>
 	list<string> packages = [];
 
 	// check for PCMCIA and add package
-	if (Arch::has_pcmcia)
+	if (Arch::has_pcmcia ())
 	{
 	    packages = add (packages, "pcmcia");
 	    packages = add (packages, "scpm");
@@ -76,7 +76,7 @@ Select which desktop to install.</p>
 	}
 
 	// check for aboot or milo on alpha and add package
-	if (Arch::alpha)
+	if (Arch::alpha ())
 	{
 	    string loader_type = Bootloader::getLoaderType ();
 
@@ -91,22 +91,22 @@ Select which desktop to install.</p>
 	}
 
 	// remove unneeded / add needed packages for ppc
-	if (Arch::ppc)
+	if (Arch::ppc ())
 	{
-	    if (Arch::board_iseries)
+	    if (Arch::board_iseries ())
 	    {
 		packages = add (packages, "ibmsis");
 		packages = add (packages, "scsi");
 		packages = add (packages, "iprutils");
 	    }
 
-	    if (Arch::board_mac)
+	    if (Arch::board_mac ())
 	    {
 		packages = add (packages, "mouseemu");
 	    }
 
-	    if (Arch::board_mac_new
-		|| Arch::board_mac_old)
+	    if (Arch::board_mac_new ()
+		|| Arch::board_mac_old ())
 	    {
 		string pmac_board = "";
 		list<map> pmac_compatible = (list<map>) SCR::Read(.probe.cpu);
@@ -129,14 +129,14 @@ Select which desktop to install.</p>
 		packages = add (packages, "sudo");
 	    }
 
-	    if (Arch::ppc64 && Arch::board_chrp)
+	    if (Arch::ppc64 () && Arch::board_chrp ())
 	    {
 		packages = add (packages, "ppc64-utils");
 		packages = add (packages, "iprutils");
 	    }
 	}
 
-	if (Arch::ia64)
+	if (Arch::ia64 ())
 	{
 	    // install fpswa if the firmware has an older version
 	    if (SCR::Execute(.target.bash, "/sbin/fpswa_check_version") != 0)
@@ -146,7 +146,7 @@ Select which desktop to install.</p>
 	}
 
 	// add numactl on x86_64 with SMP
-	if (Arch::has_smp && Arch::x86_64)
+	if (Arch::has_smp () && Arch::x86_64 ())
 	{
 	    packages = add (packages, "numactl");
 	}
@@ -206,7 +206,7 @@ Select which desktop to install.</p>
      */
     define list<string> javaPackages ()
     {
-	if (!Arch::alpha)
+	if (!Arch::alpha ())
 	    return [];
 
 	list<string> packages = [];
@@ -739,7 +739,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
     define void add_information_about_suboptimal_distribution (list& output)
     {
 	// this depends on the kernel
-	if (Arch::i386)
+	if (Arch::i386 ())
 	{
 	    string tmp = (string) SCR::Read(.proc.cpuinfo.value."0"."flags");
 	    list flags = (size (tmp) > 0) ? splitstring (tmp, " ") : [];
