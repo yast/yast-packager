@@ -105,8 +105,7 @@
      * @param extra_dir append path to original URL
      * @return string new Source URL
      */
-    global string installInf2Url (string extra_dir)
-    {
+    global string installInf2Url (string extra_dir) {
 	string options = "";
         map url_tokens =  $[];
 
@@ -196,9 +195,16 @@
 	if (serverdir != nil && serverdir != "")
         {
             string fs = "";
-            if (instmode == "ftp" && findfirstof(serverdir, "/") == 0) {
-                // ftp://foo/%2fbar is /bar on foo 
-                fs = "%2f" + substring(serverdir,1,size(serverdir));
+            if (instmode == "ftp" ) {
+                // ftp://foo/%2fbar is %2fbar on foo  (relative)
+                // ftp://foo/bar is bar on foo (absolute)
+                // ftp://foo//bar is /bar on foo (relative)
+               if (substring(serverdir,0,1) ==  "/" ) {
+                    fs = "%2f" + substring(serverdir,1,size(serverdir));
+               } else {
+                   fs = serverdir;
+               }
+
             } else if (instmode == "smb" && (share != nil) && (share != "")) {
                 fs = share + "/" +  serverdir;
             } else {
