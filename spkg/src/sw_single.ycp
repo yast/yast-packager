@@ -71,6 +71,7 @@
    //
    // returns	`done		all done
    //		`failed		package not found
+   //		`next
    //		`found_medium	found CD1
    //		`found_descr	found local package descr
    //		`unknown_descr	found nothing
@@ -78,14 +79,16 @@
 
    define CheckWhichPackages (list arg_list) ``{
 
-	if (size (arg_list) < 1)
-	    return `unknown_descr;
+	string postfix = "";
 
-	// if sw_single is called with argument "beginner" or with a package list or package name
-	// -> skip inst_source (if possible)
+	if (size (arg_list) > 0)
+	{
+	    // if sw_single is called with argument "beginner" or with a package list or package name
+	    // -> skip inst_source (if possible)
 
-	string postfix =  substring (select (arg_list, 0), size (select (arg_list, 0)) - 4 );
-	y2debug("SW_SINGLE: POSTFIX: %1", postfix );
+	    string postfix =  substring (select (arg_list, 0), size (select (arg_list, 0)) - 4 );
+	    y2debug("SW_SINGLE: POSTFIX: %1", postfix );
+	}
 
 	// if sw_single is called with an absolute package-pathname, there is no need to
 	// mount the source medium or check SuSE version or depemdendies
@@ -115,11 +118,11 @@
 	{
 	    // initialize InstMedia from running system
 
-	    InstMedia::initializeInstMedia ([]);
+	    InstMedia::initializeInstMedia ($[]);
 
-	    // don't show popup "Please insert CD 1"
+	    // is CD1 inserted / available ?
 
-	    if (MediaUI::ChangeMedium ( 1, false))
+	    if (InstMedia::MountMedium ( 1 ) == 0)
 		return `found_medium;
 
 	    // try to get local information (common.pkd, du.dir, ...)
@@ -161,6 +164,8 @@ do this.</P>");
 
     msg_beginner = msg_str11 + msg_str12 + msg_str21;
     msg_expert = msg_str13 + msg_str21;
+
+    string wrong_media_msg = _("Please make sure the installation medium is correct.");
 
     string language = UI::GetLanguage(true);
 
@@ -209,16 +214,59 @@ do this.</P>");
 
     symbol descr_result = `next;
 
-    if ( size( arg_list ) > 0 )
+    descr_result = CheckWhichPackages (arg_list);
+    y2milestone ("sw_single.ycp descr_result %1", descr_result);
+
+    if ((descr_result == `done)
+	|| (descr_result == `failed))
     {
-	descr_result = CheckWhichPackages();
-	if ((descr_result == `done)
-	    || (descr_result == `failed))
-	    id = -1;				// done
-	else if ((descr_result == `found_medium)
-		 || (descr_result == `found_descr)) 
-	    id = 1;				// dont ask for source
+	dialog_id = -1;				// done
     }
+    else if ( descr_result == `found_medium )	// found CD1
+    {
+
+	descrPath = InstMedia::GetInstPath();
+	infopath = descrPath + "/setup/descr";
+	dudir    = descrPath + "/setup/du/du.dir";
+	if (MediaUI::ChangeMedium(1, false))	// check release data
+	{
+	    dialog_id = 1;				// dont ask for source
+	}
+	else
+	{
+	    dialog_id = 0;
+	}
+
+    }
+    else if ( descr_result == `found_descr )	// found local descr
+    {
+	descrPath = Installation::descrdestdir + "/suse";
+	infopath = descrPath + "/setup/descr";
+	dudir    = descrPath + "/setup/du/du.dir";
+	dialog_id = 1;				// dont ask for source
+    }
+    else if ( descr_result == `unknown_descr )	// found NO descr
+    {
+	UI::MessagePopup (wrong_media_msg);
+	dialog_id = 0;
+    }
+    else if ( Installation::test_mode )
+    {
+	infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
+	dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
+    }
+
+    if (dialog_id == 1)		// found something
+    {
+	InstMedia::gatherReleaseData ();	// get installed product info
+
+	if (InstMedia::release_no == 0)		// no installed info found
+	{
+	    UI::MessagePopup (_("No product/version information available on system."));
+	}
+    }
+
+    y2milestone("SW_SINGLE infopath: %1", infopath );
 
     if ( !Installation::test_mode )
     {
@@ -236,23 +284,10 @@ do this.</P>");
 
 	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
 
-	    if ( descr_result == `found_medium )
-	    {
-		instPath = GetInstPath();
-		infopath = instPath + "/setup/descr";
-		dudir    = instPath + "/setup/du/du.dir";
-	    }
-	    else if ( Installation::test_mode )
-	    {
-		infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
-		dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
-	    }
-	    y2debug("SW_SINGLE infopath: %1", infopath );
-
 	    map pkginitmap = $["common.pkd":"common.pkd",
-				"packageinfopath":infopath,
-				"language":language,
 				"dudir":dudir,
+				"language":language,
+				"packageinfopath":infopath,
 				"partition":part_input,
 				"rootpath":Installation::destdir,
 				"yastpath":Installation::yastdir,
@@ -291,9 +326,7 @@ must NOT be older than the version of your installed system.\n");
 			lookup( version_map, "updateVersion","" ));
 		y2debug( "SW_SINGLE: %1", versions );
 
-		string msg2 = _("Please make sure the installation medium is correct.");
-
-		UI::MessagePopup(msg1 + versions + msg2);
+		UI::MessagePopup(msg1 + versions + wrong_media_msg);
 
 		// continue with inst_source
 		dialog_id = 0;
