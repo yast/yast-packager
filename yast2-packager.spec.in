@@ -1,0 +1,44 @@
+@HEADER-COMMENT@
+
+# neededforbuild  autoconf automake yast2-devtools dejagnu expect tcl gperf gpp libgpp libtool libxcrypt libxcrypt-devel yast2-core yast2-core-devel yast2-testsuite
+
+@HEADER@
+Provides:	libpkg
+Obsoletes:	libpkg
+
+Summary:	-
+
+%description
+-
+
+@HEADER-DEVEL@
+Summary:	-
+Provides:	libpkg:/usr/lib/YaST2/include/PKG.h
+%description devel
+-
+
+@PREP@
+
+@BUILD-SCRIPT@
+
+@INSTALL-SCRIPT@
+
+@CLEAN@
+
+%files
+%defattr(-,root,root)
+
+# libpkg
+
+%{_libdir}/libpkg.so.*
+%doc @docdir@
+
+# client-packager
+
+@plugindir@/*.la
+
+# packages
+
+@yncludedir@
+@clientdir@/*.ycp
+@moduledir@/*.ycp

@@ -1,0 +1,1690 @@
+/**
+ * File:	inst_sw_single.ycp
+ * Package:	Package selection
+ * Authors:	Gabriele Strattner <gs@suse.de>
+ *
+ * Purpose:
+ *
+ * Called with `single:
+ * Provides a list of package groups (or sets) on the left and the
+ * corresponding packages on the right.
+ * A Table Widget is filled with the packages. The selected packages
+ * are marked with "X". By clicking on a line in the table the user
+ * can select or deselect the package.
+ * Automatically selected packages are marked with an "a".
+ * The needed disk space is checked and displayed with every user input.
+ *
+ * Called with `pay:
+ * Provides one set (pay) on the left and all pay packages on the right.
+ *
+ * Called with `post_install:
+ * Call of inst_sw_single in installed system.
+ * Meaning of the statuis flags:
+ * "i": already installed package
+ * "X": additional installation of an uninstalled package
+ *        or install an already installed package again
+ * "d": delete this package
+ *
+ * Called with `update:
+ * In Update Mode there are 3 package sets: Installed packages without
+ * need of an update, packages to update and packages to be checked manually.
+ * Marks are: "u" Update, "i" installed and "m" manually.
+ *
+ *
+ * $Id$
+ */
+
+{
+
+  textdomain "packages";
+
+  import "Arch";
+  import "Installation";
+  import "Wizard";
+  import "PackagesUI";
+  import "Packages";
+  import "Update";
+  import "Storage";
+  import "Mode";
+  import "SpaceCalculation";
+  import "PackageSelectionIO";
+
+  include "ui/common_popups.ycp";
+  include "ui/common_messages.ycp";
+  include "ui/common_functions.ycp";
+
+  include "packages/packageHandle.ycp";
+
+  any     ret = nil;
+  boolean retval = false;
+
+  string  current_set = "";	// currently selected set
+  string  current_pac = "";	// currently selected package
+  map	  set_pacs = $[];	// all packages belonging to selected set
+  map	  upd_pacs = $[];	// update package list
+  map	  search_result = $[];	// store result of package search
+
+  boolean initial_checked = false;	// existing package conflicts are solved
+  boolean space_warning_shown = false;
+
+  boolean deps_exist = false;	// unresolved dependencies exist
+  boolean show_groups = true;	// flag: showing list with package sets or group tags
+
+  string descr_all = "zall";	// short description for all packages
+  string descr_search = "z??";  // short description for result of package search
+  string default_set = "Amusements/Games/3D/Other"; // first package list when entering dialog
+  string pay_set = "pay";	// set commercial packages
+
+  string INSTALLED = "i";
+  string UPDATE    = "u";
+  string MANUALLY    = "m";
+  string DELETE	     = "d";
+
+  boolean update_mode = false;
+  boolean pay_mode = false;
+  boolean single_mode = false;
+  boolean post_mode = false;
+
+  list search_list = [""];	// list of search strings
+
+  list ignores = [];		// list of obsolete dependencies which have to be ignored
+
+  // Checking first Argument
+  if ( Args(0) == `single )
+  {
+      single_mode = true;
+  }
+  else if ( Args(0) == `pay )
+  {
+      default_set = pay_set;
+      show_groups = false;
+      pay_mode = true;
+  }
+  else if ( Args(0) == `post_install )
+  {
+      post_mode = true;
+  }
+  else if ( Args(0) == `update )
+  {
+      default_set = MANUALLY;
+      update_mode = true;
+  }
+  else
+  {
+      y2error("called with wrong argument: %1", Args(0));
+      return ret;
+  }
+
+
+  map set_descr =
+      $[
+	// We need a short (about 25 characters) description for all following sets
+	// ( Linux Base System to List of all Packages ).
+	//
+	// Linux Base System (You need it!)
+	"a":	_("Linux Base System"),
+	// Programs that don't need X
+	"ap":	_("Programs without X"),
+	// ApplixWare Office
+	"aplx": _("ApplixWare Office"),
+	// Extreme Linux (Beowulf)
+	"beo": _("Extreme Linux (Beowulf)"),
+	//  Tools provided by Compaq
+	"compaq": _("Compaq tools"),
+	// Development (C, C++, Lisp, etc.)
+	"d":	_("Development (e.g., C++, Lisp)"),
+	// Documentation
+	"doc":  _("Documentation"),
+	//  Emacs
+	"e":  _("Emacs"),
+	// Emulators
+	"emu": _("Emulators"),
+	// Games and more
+	"fun": _("Games and more"),
+	// GNOME - GNU Network Object Model Environment
+	"gnm": _("GNOME"),
+	// All about graphics
+	"gra": _("All about graphics"),
+	//  Amateur Radio (AX.25, CW, Logs, etc.)
+	"ham": _("Amateur Radio (e.g., AX.25)"),
+	// Korean packages
+	"han": _("Korean packages"),
+	// installable kernel packages
+	"images": _("Installable kernels"),
+	// Japanese packages
+	"j": _("Japanese packages"),
+	// KDE 2 Desktop
+	"k2de": _("KDE 2 Desktop"),
+	// K Desktop Environment
+	"kde": _("K Desktop Environment"),
+	// installable kernels
+	"ker": _("Kernel packages"),
+	// KDE applications
+	"kpa": _("KDE applications"),
+	// Network-Support (TCP/IP, UUCP, Mail, News)
+	"n":	_("Network (TCP/IP, etc.)"),
+	// Commercial Software
+	"pay": _("Commercial software"),
+	// Perl modules
+	"perl": _("Perl modules"),
+	// Security related software
+	"sec": _("Security"),
+	// Components for an SGML system
+	"sgm":  _("SGML components"),
+	// Sound related software
+	"snd": _("Sound-related Software"),
+	// Spell checking utilities and databases
+	"spl":  _("Dictionaries"),
+	// Star Office
+	"star": _("StarOffice"),
+	// SuSE internal Software
+	"suse":  _("SuSE Internal Software"),
+	// Tcl/Tk/TclX, Tcl-Language and Tk-Toolkit for X
+	"tcl":  _("Tcl/Tk/TclX"),
+	// TeX/LaTeX and applications
+	"tex":  _("TeX/LaTeX applications"),
+	// Base X Window System - XFree86\tm 3.3
+	"x":	 _("X Window System[tm]"),
+	// 3D software for X11 and console
+	"x3d": _("3D software"),
+	// X Applications
+	"xap": _("X applications"),
+	// Development under X11
+	"xdev": _("Development under X11"),
+	// Several X Servers (XFree86\tm 3.3 and other)
+	"xsrv": _("X Servers (XFree86[tm])"),
+	// XView (OpenLook, Applications)
+	"xv":	_("XView (OpenLook)"),
+	// Window Manager and Desktop
+	"xwm":  _("Window Managers"),
+	// YaST2 Components
+	"yast":  _("YaST2 Components"),
+	// Additional packages for SuSE Fire Wall
+	"zfw" : _("SuSE Firewall"),
+	//Additional packets for SuSE Linux IMAP Server
+	"zima":  _("SuSE IMAP Server"),
+	// Source packages
+	"zq":	 _("Source packages"),
+	// contains binary rpms that install below /usr/src/kernel-modules
+	"zkm":	 _("Kernel module sources"),
+	// All packages
+	"zall" : _("All packages"),
+	// result of package search
+	"z??" : _("Search results")
+      ];
+
+
+  /*-------------------------------------------------------------------------
+   * BEGIN Locale functions
+   *-----------------------------------------------------------------------*/
+
+    //
+    // Search Popup
+    //
+
+    global define DisplaySearch( ) ``{
+
+	map ret_map = $[];
+	// helptext in popup Searching for packages
+	string search_help = _("<p>Enter a keyword for your package search.
+It is possible to enter only parts of a package name,
+for example, to search for all 3D packages with \"3d\".<br>
+If you are looking for a term in a package description, click
+the appropriate check box.
+The result of the search is stored in set \"z??\".
+</p>
+
+");
+
+	UI::OpenDialog( `opt ( `decorated ),
+			`HBox(`VSpacing(13),
+			      `HWeight( 3, `RichText(search_help) ),
+			      `HWeight( 4,
+					`VBox(`HSpacing(36),
+					      // headline search popup
+					      `Heading( _("Searching for packages")),
+					      `VSpacing(0.4),
+					      `HBox(
+						    `HSpacing(0.2),
+						    // label for inputfield search keyword, term, phrase
+						    `Frame( _("Enter a search phrase"),
+							    `VBox(`HBox(`HSpacing(0.8),
+									`ComboBox(`id(`search), `opt(`editable,`hstretch), "", search_list ),
+									`HSpacing(0.8)
+									),
+								  `VSpacing(0.6),
+								  // label checkbox search package descriptions (please keep it short)
+								  `Left(`CheckBox(`id(`descr), _("include &descriptions in search") ,  false)),
+								  // label checkbox ignore upper/lower case
+								  `Left(`CheckBox(`id(`case), _("&ignore case") ,  true)),
+								  `VSpacing(0.6)
+								  )
+							    ),
+						    `HSpacing(0.2)
+						    ),
+					      `VSpacing(0.9),
+					      `HBox(
+						    `PushButton( `id(`ok_search), `opt(`default), _("&Search")),
+						    `PushButton( `id(`cancel_search), CloseButtonLabel() )
+						    )
+					      )
+					)
+			      )
+			);
+
+	UI::SetFocus(`id(`search));
+
+	any r = UI::UserInput();
+
+	boolean ignore = false;
+	boolean descr = false;
+
+	string search_str = "";
+
+	if ( r == `ok_search )
+	{
+	    descr  = UI::QueryWidget( `id(`descr), `Value );
+	    ignore = UI::QueryWidget( `id(`case), `Value );
+	    search_str = WFM::CutBlanks( UI::QueryWidget( `id(`search), `Value) );
+	    y2debug("SEARCH: %1", search_str );
+	    search_list = add( search_list, search_str );
+	    ret_map = add(ret_map, "pkg_only", !descr );
+	    ret_map = add(ret_map, "ignore_case", !ignore );
+	    ret_map = add(ret_map, "search_str", search_str );
+	    ret_map = add(ret_map, "doit", true );
+	}
+	else
+	{
+	    ret_map = add(ret_map, "doit", false );
+	}
+
+	UI::CloseDialog();
+	return ret_map;
+    };
+
+    //
+    // Get packages belonging to selected "set" and create input for Table Widget
+    //
+    // map set_pacs:
+    // $["aaa_base":["SuSE Linux Basispaket", "X", "45.34 MB", "2.3.1" ], "aaa_dir":["SuSE Linux Verzeichnisstruktur", "a", ...], ...
+    //         key : value    0                1
+    // Create table input, e.g.
+    // [ `item( `id("aaa_base"), "X", "aaa_base", "SuSE Linux base package", "45.34 MB", "2.3.1-11.04.2001" ), ... ]
+
+    global define CreatePacTable( string set ) ``{
+
+	list table_input = [];
+
+	if ( !update_mode )
+	{
+	    set_pacs = $[];
+
+	    if ( set == descr_all )		// get list of all packages
+	    {
+		set_pacs = SCR::Read(.package.packageList);
+	    }
+	    else if ( set == descr_search )
+	    {
+		set_pacs = search_result;		// search already done
+	    }
+	    else
+	    {
+		set_pacs = SCR::Read(.package.hierarchyInformation, $["branch":set, "rpmgroup":show_groups]);
+	    }
+
+	    table_input = maplist( `key, `value,
+				   set_pacs,
+				   ``(`item(`id(key), select(value,1,""), key, format_size_text(select(value,2,"")*1024), select(value,0,""), select(value,3,""))) );
+	}
+	else
+	{
+	    if ( set != "unmaintained" )
+	    {
+		maplist( `key, `value,  upd_pacs,
+			 ``({
+			     // get packages of selected set (show packages with status "d" in list "i")
+			     if ( select (value, 0, "" ) == set
+				  || ( set == INSTALLED && select (value, 0, "" ) == DELETE ) )
+			     {
+				 table_input = add(table_input, `item(`id(key), select(value, 0, ""), key, select(value,1, ""), select(value,2, ""), select(value,3, "")));
+			     }
+			 })
+			 );
+	    }
+	    else
+	    {
+		// show all unmaintained packages
+		foreach ( `pac, Update::unmaintained_list, ``{
+		    list pac_info = lookup( upd_pacs, pac, [] );
+		    table_input = add(table_input, `item(`id(pac), select(pac_info, 0, ""), pac, select(pac_info,1, ""), select(pac_info,2, ""), select(pac_info,3, "")));
+		});
+	    }
+	}
+
+	return ( table_input );
+    };
+
+    //
+    // Update single lines in table
+    //
+
+    global define UpdateTable( string set ) ``{
+	map local_pacs = $[];
+
+        // Get list of packages belonging to selected set with new status information
+
+	if ( set == descr_all )		// all packages are shown
+	{
+	    local_pacs = SCR::Read(.package.packageList);
+	}
+	else if ( set == descr_search ) // search result
+	{
+	    maplist( `pac, `value, search_result,
+		    ``({
+			string status =  SCR::Read(.package.packageStatus, pac );
+			list value_list = lookup( search_result, pac, [] );
+
+			// package        description,          status,         size,			 version
+			list new_list = [ select(value_list, 0, ""), status, select(value_list, 2, 0 ), select(value_list, 3, "") ];
+			search_result = add( search_result, pac, new_list );
+		    })
+		    );
+	    local_pacs = search_result;
+	}
+	else				// a package set or group is shown
+	{
+	    local_pacs = SCR::Read(.package.hierarchyInformation, $["branch":set, "rpmgroup":show_groups]);
+	}
+
+	// map set_pacs:
+	// $["aaa_base":["SuSE Linux Basispaket", "X", 45, "0.369-17" ], "aaa_dir":["SuSE Linux Verz.", "a", 34, "0.8.1-387"], ...
+	//         key : value    0                1
+
+	list old_value = [];
+
+	maplist( `key, `value, local_pacs, ``({
+
+	    old_value = lookup( set_pacs, key, [] );
+	    if ( (size (old_value) > 1) && (select( old_value, 1, "" ) != select(value, 1, "")) )
+	    {
+		y2debug( "Update line: %1", old_value );
+		UI::ChangeWidget(`id(`pac_table), `Item( key, 0 ), sformat("%1", select(value, 1, "")) );
+	    } } ) );
+
+	set_pacs = local_pacs;	// save new status info
+    };
+
+    //
+    // Create input for table partition info
+    //
+
+    global define CreatePartTable( ) ``{
+
+	// get partition list from SpaceCalculation module - do not call
+	// GetPartionInfo() which calls 'df'
+	list partition = SpaceCalculation::GetPartitionList( );
+	list part_info = SCR::Read(.package.diskSpace, partition );
+
+	list part_input = [];
+
+	foreach( `part, part_info,
+		 ``{
+	    string part_name = "";
+
+	    if ( lookup( part, "name", "" ) == "/" )
+	    {
+		part_name = lookup( part, "name", "" );
+	    }
+	    else
+	    {
+		part_name = sformat( "/%1", lookup( part, "name", "" ) );
+	    }
+	    integer free_space   = lookup( part, "free", 0 );
+
+	    term a = `item(`id(part_name), part_name, size_text( free_space*1024) );
+
+	    part_input = add( part_input, a );
+	} );
+
+	return( part_input );
+    };
+
+  /*-------------------------------------------------------------------------
+   * END Locale functions
+   *-----------------------------------------------------------------------*/
+
+
+  if ( update_mode )
+  {
+      textdomain "update";
+      UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating update packages. One moment please...")));
+
+      // Creating update list
+      list upd_list = SCR::Read(.package.updatePackageNames );
+      list man_list = Update::manuall_update_list;
+      map whole_map = SCR:: Read(.package.packageList);
+
+      string tmpfile = SCR::Read(.target.tmpdir) + "/allpackages";
+      SCR::Write(.target.ycp, tmpfile, whole_map );
+
+      tmpfile = SCR::Read(.target.tmpdir) + "/upd_list";
+      SCR::Write(.target.ycp, tmpfile, upd_list );
+      
+      foreach( `key, `packageList, whole_map,
+	       ``{
+	  list version_list =  SCR::Read(.package.packageVersion, key);
+	  if ( version_list == [] )
+	  {
+	      version_list = add(version_list, "--");
+	      version_list = add(version_list, "99.99.9999");
+	      version_list = add(version_list, "--");
+	      version_list = add(version_list, "99.99.9999");
+	  }
+
+	  if ( contains( upd_list, key ) )
+	  {
+	      // selected for update
+	      upd_pacs = add ( upd_pacs, key, [UPDATE,
+					      select(version_list,0,""),
+					      select(version_list,2,""),
+					      select(packageList,0,"")] );
+	  }
+	  else if ( contains( man_list, key ) )
+	  {
+	      // manual selection needed
+	      upd_pacs = add ( upd_pacs, key, [MANUALLY,
+					      select(version_list,0,""),
+					      select(version_list,2,""),
+					      select(packageList,0,"")] );
+	  }
+	  else if ( select( packageList, 1, "" ) == INSTALLED
+		    || select( packageList, 1, "" ) == DELETE )
+	  {
+	      // only installed
+	      upd_pacs = add ( upd_pacs, key, [select( packageList, 1, "" ),
+					      select(version_list,0,""),
+					      select(version_list,2,""),
+					      select(packageList,0,"")] );
+	  }
+      });
+
+      UI::CloseDialog();
+      textdomain "packages";
+      y2debug( "UPDATE_PACS: %1", upd_pacs );
+  }
+
+  // This part is obsolete:
+  // list of partitions is obtained in constructor of SpaceCalculation
+  //
+  //  if ( single_mode || pay_mode )
+  //  {
+  //      partition = get_partition_info( targetMap, true );
+  //  }
+  //  else
+  //  {
+  //      partition = Args(2);
+  //  }
+
+  // initialize used space at begin of installation
+  SpaceCalculation::GetRequSpace( true );
+
+
+  //
+  // OpenDialog with set "a" for Single, set "pay" for Pay Selection or
+  // set "m" in Update mode
+  //
+  current_set = default_set;
+
+  list set_input = [];
+  list group_input = [];
+
+  if ( single_mode || post_mode )
+  {
+      map all_sets  = SCR::Read(.package.hierarchyInformation,
+				$["branch":"", "rpmgroup": false]);
+      all_sets = add( all_sets, descr_all, [] );	// add "zall"
+      all_sets = add( all_sets, descr_search, [] );     // add "z??"
+      foreach( `set, `value, all_sets,
+	       ``{
+	  term a = `item(`id(set), set, lookup( set_descr, set, "" ) );
+	  if ( lookup( set_descr, set, "" ) == "" )
+	  {
+	      y2error( "Missing description for serie: %1 (provide description in inst_sw_single.ycp)", set );
+	  }
+	  set_input = add( set_input, a );
+      } );
+
+      map all_groups =  SCR::Read(.package.hierarchyInformation,
+				  $["branch":"", "rpmgroup": true]);
+
+      all_groups = add( all_groups, descr_all, [] );	// add "zall"
+      all_groups = add( all_groups, descr_search, [] ); // add "z??"
+
+      textdomain "rpm-groups";
+
+      foreach( `group, `value, all_groups, ``{
+
+	  string grouptag_translated = "";
+	  list groupsplit = splitstring( group, "/" );
+
+	  integer n = 1;
+	  foreach ( `split, groupsplit, ``{
+	      locale to_translate = split;
+	      string translated = eval(to_translate);
+
+	      if ( translated  == "" || translated == nil )
+		  grouptag_translated = grouptag_translated + group;
+	      else
+		  grouptag_translated = grouptag_translated + translated;
+	      if ( n < size(groupsplit) )
+		  grouptag_translated = grouptag_translated + "/";
+	      n = n+1;
+	  });
+
+	  term a = `item(`id(group), grouptag_translated );
+	  group_input = add( group_input, a );
+      });
+
+      textdomain "packages";
+
+  }
+  else if ( pay_mode )
+  {
+      term a = `item(`id(current_set), current_set, lookup( set_descr, current_set, "" ) );
+      set_input = add( set_input, a );
+  }
+
+  // create partition table
+
+  list part_input = CreatePartTable( );
+
+  string headline = "";
+
+  // Descriptions of lists for dialog Update follow.
+  // list1:  packages which must be manually checked
+  string manual_descr = _("<p>These packages need a manual decision
+whether to perform the update or not. The packages are marked with \"m\".
+Double click a line in the list to select the respective package for update (the status
+will change to \"u\").</p>");
+
+  string update_descr = "";
+  //  list2/part1: containing packages selected for update
+  string update_descr1 = _("<p>The list shows all packages automatically
+selected for update as well as packages manually
+selected for update. These are marked with \"u\". ");
+  //  list2/part2: containing packages selected for update
+  string update_descr2 = _("To delete a package, double-click it.
+This changes the mark to \"d\" (if the package is not installed
+the status changes to \"i\" which means: don't do an update.) ");
+ //  list2/part3: containing packages selected for update
+  string update_descr3 = _("To cancel the update of a specific package,
+double-click it again.  This changes the mark to \"i\" which means:
+retain the currently installed package.</p> ");
+   update_descr = update_descr1 + update_descr2 + update_descr3;
+
+  // list 3: packages don't need an update
+  string installed_descr = _("<p>A newer version of this package is not available,
+so it is not possible to update it.
+To reinstall it anyway, double-click it, changing the status to \"u\". The package
+must be available on the installation medium to reinstall it (i.e. \"New
+version\" must not be empty.)
+To delete a package, double-click it again. This changes the mark to \"d\".
+</p>
+");
+  // list 4: packages supposed to be deleted
+  string delete_descr = _("<p>The list shows all packages no longer maintained.
+They are marked with \"d\" (delete) or \"i\" (installed), depending on
+your decision in the previous dialog.
+Double-click a line to change the status.
+</p>");
+
+  // The short description of the package set e.g. "dev", "x".
+  // Please keep it short, it's a column header ( up to 6 chars )
+  term set_header = `header( _("Set"),
+			     // more column headers
+			     _("Description") );
+  term pac_header = `header( `Center ("   "), _("Package"), `Right(_("Size") ), _("Description"), _("Version") );
+  term group_header =  `header( _("Group") );
+
+  if ( single_mode )
+  {
+      // title of dialog Package Selection used in case of new installation
+      headline = _("Advanced Package Selection");
+  }
+  else if ( pay_mode )
+  {
+      // title of dialog Package Selection which shows the commercial packages
+      headline = _("Commercial Package Selection");
+  }
+  else if ( post_mode )
+  {
+      // title of dialog Package Selection used in case of post installation
+      // german title was "Auswahl einzelner Pakete"
+      headline = _("Package Selection");
+  }
+  else if ( update_mode )
+  {
+      // title dialog Update
+      headline = _("Select packages to update");
+      set_header = `header( "   ", _("Description") );
+      pac_header = `header( `Center ("   "), _("Package"), `Right(_("Old version") ), `Right(_("New version") ), _("Description") );
+  }
+
+  term set_table = `Empty();
+  string set_headline = "";
+
+  if ( !pay_mode)
+  {
+      set_table = `VBox(`ReplacePoint(`id(`replace_table),
+				      `Table( `id(`set_table),
+					      `opt(`notify, `immediate, `hvstretch),
+					      group_header,
+					      group_input		) ),
+			// please keep it short (up to 20 characters)
+			`CheckBox( `id(`group), `opt(`notify ), _("Show &package sets")),
+			`VSpacing(0.4)
+			);
+      // headline selection box package groups
+      // (the box isn't wide, please keep it short (up to 20 characters)
+      set_headline =  _("Select a group");
+  }
+  else
+  {
+      set_table = `VBox(`ReplacePoint(`id(`replace_table),
+				      `Table( `id(`set_table),
+					      `opt(`notify, `immediate, `hvstretch),
+					      set_header,
+					      set_input		) ),
+			`VSpacing(0.8)
+			);
+      // headline selection box package sets
+      // (the box isn't wide, please keep it short (up to 20 characters)
+      set_headline =  _("Select a set");
+  }
+
+
+  if ( !update_mode )
+  {
+      term labels = `Empty ();
+      map display_info = UI::GetDisplayInfo ();
+      if (display_info["TextMode"]:false)
+      {
+	  // Yet another kludge: provide keyboard shortcuts for
+	  // the group and package tables. Labels can't do it
+	  // so we use RadioButtons. #14737.
+	  labels = `RadioButtonGroup (
+	      `HBox(
+		  `HSpacing(1),
+		  `HWeight( 30, `Left( `RadioButton ( `id(`set_label), `opt (`notify), set_headline ) ) ),
+		  // headline selection box packages belonging to selected set (up to 60 characters)
+		  `HWeight( 70, `Left( `RadioButton ( `id(`pac_label), `opt (`notify), _("Select or deselect a package with double-click") ) ) ),
+		  `HSpacing(1)
+		  )
+	      );
+      }
+      else
+      {
+	  labels = `HBox(
+	      `HSpacing(1),
+	      `HWeight( 30, `Left( `Label ( `id(`set_label), set_headline ) ) ),
+		  // headline selection box packages belonging to selected set (up to 60 characters)
+	      `HWeight( 70, `Left( `Label ( `id(`pac_label), _("Select or deselect a package with double-click") ) ) ),
+	      `HSpacing(1)
+	      );
+      }
+
+      UI::OpenDialog(`opt(`defaultsize),
+		      `VBox( `ReplacePoint( `id(`image) ,`Image(`suseheader, "SuSE") ),
+			     `VSpacing(0.2),
+			     `HBox(`HSpacing(1),
+				   `Left( `Heading(headline) )),
+			     labels,
+			     `HBox(
+				   `HWeight( 30, `VBox( `VWeight( 5, set_table
+								  ),
+							`VWeight( 2, `Table( `id(`part_table), `opt(`hvstretch),
+									     `header( _("Partition"), _("Free space")),
+									     part_input )
+								  ),
+							`Left ( `Label(`id(`req_space), `opt (`hstretch), _("Required: ")
+								       )
+								)
+							)
+					     ),
+				   `HWeight( 70, `VBox(
+						       `VWeight( 1, `Table( `id(`pac_table), `opt(`notify, `hvstretch ),
+									    pac_header,
+									    CreatePacTable( default_set ) )
+								 ),
+						       `HBox(
+							     `HWeight(1, `PushButton(`id(`apply), `opt(`default), _("S&elect/Deselect") ) ),
+							     `HWeight(1, `PushButton(`id(`descr), _("&Description") ) ),
+							     `HWeight(1, `PushButton(`id(`search), _("&Search") ) ),
+							     `HWeight(1, `MenuButton(`id(`extras), _("E&xtras"),
+										 // menu entry: save or load package selections from hard disk or floppy
+										 [ `item(`id(`saveload), _("&Save or load settings")),
+										 // menu entry: select all packages from the list
+										 `item(`id(`selectall), _("Se&lect all")),
+										 // menu entry: deselect all selected packages
+										 `item(`id(`deselectall), _("Desele&ct all")),
+										 // menu entry: delete all packages from the list
+										 `item(`id(`deleteall), _("Dele&te all")),
+										 // menu entry: do not delete the packages
+										 `item(`id(`dontdelete), _("D&o not delete any")),
+										 // menu entry: replace all packages (reinstallation)
+										 `item(`id(`replaceall), _("&Replace all")),
+										 // menu entry: do not replace the packages
+										 `item(`id(`dontreplace), _("Do &not replace any")),
+										 // menu entry: delete all packages instead of replace them
+										 `item(`id(`deletereplace), _("Delete instead of re&place")),
+										 // menu entry: replace all packages instead of delete them
+										 `item(`id(`replacedelete), _("Rep&lace instead of delete")),
+										 // menu entry: do the dependency check
+										 `item(`id(`checkdeps), _("&Check dependencies"))
+										 ]))
+							     ),
+						       `HBox(
+							     `HWeight(1, `PushButton(`id(`single_help), HelpButtonLabel() )),
+							     `HStretch(),
+							     `HWeight(1, `PushButton(`id(`cancel_single), CancelButtonLabel() )),
+							     `HStretch(),
+							     `HWeight(1,`PushButton(`id(`ok), OKButtonLabel() ))
+							     )
+						       )
+					     )
+				   ),
+			     `VSpacing(0.2)
+			     )
+		      );
+
+      UI::ChangeWidget(`id(`req_space), `Value, sformat(_("Required: %1"), SpaceCalculation::GetRequSpace( false )));
+
+  }
+  else
+  {
+      boolean m_button = true;
+      boolean u_button = false;
+      boolean i_button = false;
+      boolean d_button = false;
+
+      string help_descr = manual_descr;;
+      list table_input = CreatePacTable( MANUALLY );
+
+      if ( table_input == [] )
+      {
+	  // show all unmaintained packages
+	  if ( Update::unmaintained_list != [] )
+	  {
+	      table_input = CreatePacTable( "unmaintained" );
+	      m_button = false;
+	      d_button = true;
+	      current_set = "unmaintained";
+	      help_descr = delete_descr;
+	  }
+	  else
+	  {
+	      table_input = CreatePacTable( UPDATE );
+	      m_button = false;
+	      u_button = true;
+	      help_descr = update_descr;
+	      current_set = UPDATE;
+	  }
+	  if ( table_input == [] )
+	  {
+	      table_input = CreatePacTable( INSTALLED );
+	      m_button = false;
+	      i_button = true;
+	      current_set = INSTALLED;
+	      help_descr = installed_descr;
+	  }
+      }
+
+
+      UI::OpenDialog(`opt(`defaultsize),
+		      `VBox( `ReplacePoint( `id(`image) ,`Image(`suseheader, "SuSE") ),
+			     `VSpacing(0.2),
+			     `HBox(`HSpacing(1),
+				   `Left( `Heading(headline) )),
+			     `VWeight( 25,
+				       `HBox(
+					     `HSpacing(0.5),
+					     // marking a frame with 3 buttons representing 3 lists of packages
+					     `Frame (_("Classification of packages"),
+						     `HBox( `HWeight( 35, `RadioButtonGroup(`id(`upd),
+											    `VBox(
+												  `Left(`RadioButton(`id(`manually),`opt(`notify),
+														     // user has to decide manually
+														     _("&Manual selection"), m_button) ),
+												  `Left(`RadioButton(`id(`update),`opt(`notify),
+														     // packages are supposed to be updated
+														     _("Selected for &Update"),  u_button) ),
+												  `Left(`RadioButton(`id(`installed),`opt(`notify),
+														     // packages will not be updated
+														     _("&No Update") ,  i_button) ),
+												  `Left(`RadioButton(`id(`delete),`opt(`notify),
+														     // packages are not maintained
+														     _("Unmain&tained") ,  d_button) )
+												  )
+											    )
+								      ),
+							    `HWeight( 65, `VBox(`RichText(`id(`descr), help_descr ),
+										`VSpacing(1.5)
+										)
+								      ),
+							    `HSpacing(0.1)
+
+							    )
+						     ),
+					     `HSpacing(0.5)
+					     )
+				       ),
+			     `VSpacing(0.1),
+			     `VWeight( 80, `VBox( `HBox( `HSpacing(0.3),
+							 `Table( `id(`pac_table), `opt(`notify, `hvstretch),
+							  pac_header,
+							  table_input ),
+							 `HSpacing(0.3)
+							 ),
+						  `HBox(
+							`Left( `PushButton(`id(`descr), `opt(`default), _("&Description"))),
+							`Left( `PushButton(`id(`apply), _("&Apply"))),
+							`Left( `PushButton(`id(`apply_all), _("U&pdate all"))),
+							`HStretch(),
+							`Right( `PushButton(`id(`check), _("Check &Installation")))
+							),
+						  `HBox(
+							`HWeight(1, `PushButton(`id(`single_help), HelpButtonLabel() )),
+							`HStretch(),
+							`HWeight(1, `PushButton(`id(`cancel_single), CancelButtonLabel() )),
+							`HStretch(),
+							`HWeight(1,`PushButton(`id(`ok), OKButtonLabel() ))
+							)
+						  )
+				       )
+			     )
+		      );
+
+      if ( current_set != MANUALLY )
+	  UI::ChangeWidget( `id(`apply_all), `Enabled, false);
+  }
+
+  //
+  // save state solver and dependencies in case of `cancel
+  //
+  retval = SCR::Execute(.package.saveState, nil );
+  y2debug( "SCR::Execute(.package.saveState): %1", retval );
+
+  //
+  // Check dependencies ( maybe there are some unresolved dependencies )
+  //
+  if ( post_mode || update_mode ||
+       (!post_mode && SCR::Read(.package.isSingleSelected)) )
+  {
+      if ( !update_mode )
+      {
+	  SolveDependencies( true, current_pac );	// true: check ADD dependencies also
+
+	  // Update disk space information
+	  list new_part_input = CreatePartTable( );
+	  UI::ChangeWidget(`id(`part_table), `Items, new_part_input);
+
+	  UI::ChangeWidget(`id(`req_space), `Value, sformat(_("Required: %1"), SpaceCalculation::GetRequSpace( false )));
+
+	  // Update single lines in table widgets ( new status )
+	  UpdateTable( current_set );
+      }
+      else
+      {
+	   SolveDependencies( false, current_pac );	// false: don't show ADD deps in update_mode
+      }
+  }
+
+
+  if ( Args(1) == `only_check )
+  {
+      UI::CloseDialog();
+
+      // Delete saved information in package agent
+      retval = SCR::Execute(.package.deleteOldState, nil);
+      return `ok;
+  }
+
+  while (true)
+  {
+      boolean show_wrn = false;
+
+      ret = UI::UserInput();
+
+      if ( ret == `set_table )
+      {
+	  term	set_line = `item();
+	  list	new_input = [];
+
+	  // Get selected set
+	  current_set = UI::QueryWidget(`id(`set_table), `CurrentItem);
+
+	  new_input = CreatePacTable( current_set );
+
+	  UI::ChangeWidget(`id(`pac_table), `Items, new_input);
+
+      }
+      else if ( ret == `set_label )
+      {
+	  // Clear the radio button.
+	  // (the event only arrives when it really is a radio button)
+	  // No, it will not trigger another UserInput
+	  // (at least in this version of UI; this is a hack anyway)
+	  UI::ChangeWidget (`id (`set_label), `Value, false);
+	  UI::SetFocus (`id (`set_table));
+      }
+      else if ( ret == `pac_label )
+      {
+	  UI::ChangeWidget (`id (`pac_label), `Value, false);
+	  UI::SetFocus (`id (`pac_table));
+      }
+      else if ( ret ==  `manually ||  ret == `installed || ret == `update || ret == `delete )
+      {
+	  if ( ret == `manually )
+	  {
+	      current_set = MANUALLY;
+	      UI::ChangeWidget( `id(`descr), `Value, manual_descr );
+	      UI::ChangeWidget( `id(`apply_all), `Enabled, true);
+	  }
+	  else if ( ret == `installed )
+	  {
+	      current_set = INSTALLED;
+	      UI::ChangeWidget( `id(`descr), `Value, installed_descr );
+	      UI::ChangeWidget( `id(`apply_all), `Enabled, false);
+	  }
+	  else if ( ret == `update )
+	  {
+	      current_set = UPDATE;
+	      UI::ChangeWidget( `id(`descr), `Value, update_descr );
+	      UI::ChangeWidget( `id(`apply_all), `Enabled, false);
+	  }
+	  else if ( ret == `delete )
+	  {
+	      // show list of unmaintained packages
+	      current_set = "unmaintained";
+	      UI::ChangeWidget( `id(`descr), `Value, delete_descr );
+	      UI::ChangeWidget( `id(`apply_all), `Enabled, false);
+	  }
+
+	  list new_input = CreatePacTable( current_set );
+
+	  UI::ChangeWidget(`id(`pac_table), `Items, new_input);
+
+      }
+      else if ( ret == `pac_table || ret == `apply )
+      {
+	  // Get information about selected line (package)
+	  any id = UI::QueryWidget(`id(`pac_table), `CurrentItem);
+
+	  term  table_line = UI::QueryWidget(`id(`pac_table), `Item(id));
+	  string cache_pkg_type = select (table_line, 1, "");
+	  current_pac = select( table_line, 2, "" );
+	  y2debug( "inst_sw_single Currently selected line: %1", table_line );
+
+	  // check dependencies BEFORE informing package agent (inform user about existing conflicts)
+	  if (!initial_checked )
+	  {
+	      SolveDependencies( false, current_pac );	// don't check or show ADD deps
+	  }
+
+	  if ( cache_pkg_type == "X" )
+	  {
+
+	      DeselectPac( current_pac );
+
+	      string status =  SCR::Read(.package.packageStatus, current_pac );
+	      if ( ( status == "i" || status == "u" || status == "m" ) &&
+		   !update_mode )
+	      {
+		  // package marked to delete
+		  DeletePac(current_pac);
+	      }
+	  }
+	  else if ( cache_pkg_type == "a")
+	  {
+	      any r = DisplayAddPopup( current_pac );
+	      y2debug( "DisplayAddPopup returns: %1", r );
+
+	      if ( r == true )
+	      {
+		  any r = SCR::Execute(.package.deleteAdditionalDependencies, current_pac );
+		  y2debug( "SCR::Execute(.package.deleteAdditionalDependencies %1, %2", current_pac, r );
+
+		  DeselectPac( current_pac );
+	      }
+	  }
+	  else if ( ( cache_pkg_type == "i" ) && update_mode )
+	  {
+	      // mark this package for update
+	      UpdatePac(current_pac, true);
+	  }
+	  else if (cache_pkg_type == "m" )
+	  {
+	      // mark this package for update
+	      UpdatePac(current_pac, true);
+
+	  }
+	  else if (cache_pkg_type == "d" )
+	  {
+	      // inform pkginfo: let it installed
+	      SCR::Execute(.package.deselectDelete, current_pac );
+	      y2debug( "SCR::Execute(.package.deselectDelete %1", current_pac );
+
+	      if ( update_mode )
+	      {
+		  if (haskey (upd_pacs, current_pac))
+		  {
+		      UI::ChangeWidget(`id(`pac_table), `Item( current_pac, 0 ), "i");
+		      list value = lookup (upd_pacs, current_pac, []);
+		      upd_pacs = add (upd_pacs, current_pac, [INSTALLED,
+							    select(value, 1, ""),
+							    select(value, 2, ""),
+							    select(value, 3, "")]);
+		  }
+	      }
+	  }
+	  else if ( cache_pkg_type == "u" )
+	  {
+	      // only change status to "d" if the package is installed at all (i.e. the old version is available)
+	      if ( select (table_line, 3, "") != "not known" )
+	      {
+		  // do not update this package but delete the package
+		  NoUpdatePac(current_pac);
+	      }
+	      else
+	      {
+		  // do not update (i.e. do not install) the package
+		  SCR::Execute(.package.deselectUpdate, current_pac );
+		  y2debug( "SCR::Execute(.package.deselectUpdate %)1", current_pac );
+		  // set status to "i" in update map
+		  if (haskey (upd_pacs, current_pac))
+		  {
+		      UI::ChangeWidget(`id(`pac_table), `Item( current_pac, 0 ), "i");
+		      list value = lookup (upd_pacs, current_pac, []);
+		      upd_pacs = add (upd_pacs, current_pac, [INSTALLED,
+							      select(value, 1, ""),
+							      select(value, 2, ""),
+							      select(value, 3, "")]);
+		  }
+	      }
+	  }
+	  else
+	  {
+	      // select package for installation
+	      SelectPac( current_pac );
+	      show_wrn = true;
+	  }
+
+	  // Get dependencies from pkginfo + display popup OR / XOR dependencies.
+	  if ( SCR::Read(.package.isSingleSelected ))
+	  {
+	      CheckDependencies( false, current_pac );	// do not show AND deps
+	  }
+
+	  if ( !update_mode )
+	  {
+	      // Update disk space information
+	      list new_part_input = CreatePartTable( );
+	      UI::ChangeWidget(`id(`part_table), `Items, new_part_input);
+
+	      UI::ChangeWidget(`id(`req_space), `Value, sformat(_("Required: %1"), SpaceCalculation::GetRequSpace( false )));
+
+	      if ( show_wrn )
+	      {
+		  // Warning message if free space < 0 only if user has selected a package
+		  SpaceCalculation::ShowPartitionWarning( );
+		  show_wrn = false;
+	      }
+
+	      // Update single lines in table widgets ( new status )
+	      UpdateTable( current_set );
+	  }
+      }
+      else if (ret == `search)
+      {
+	  map ret_map = DisplaySearch( );
+
+	  if ( lookup( ret_map, "doit", false ) )
+	  {
+	      search_result = SCR::Execute(.package.searchPackage,
+					   $[ "searchmask": lookup(ret_map, "search_str", ""),
+					    "onlyName": lookup(ret_map, "pkg_only", true),
+					    "casesensitive": lookup(ret_map, "ignore_case", false) ] );
+	      y2debug( "SEARCH RESULT: %1", search_result );
+
+	      UI::ChangeWidget(`id(`set_table), `CurrentItem, descr_search);
+	      current_set = descr_search;
+
+	      list new_input = CreatePacTable( current_set );
+
+	      UI::ChangeWidget(`id(`pac_table), `Items, new_input);
+
+	      if ( size( search_result ) == 0 )
+	      {
+		  // Message popup after package search came up without any matching result
+		  UI::MessagePopup( _("No matches found.") );
+	      }
+	  }
+      }
+      else if (ret == `group)
+      {
+	  if (!show_groups)
+	  {
+	      show_groups = true;
+	      UI::ReplaceWidget( `id(`replace_table),
+				  `Table( `id(`set_table),
+					  `opt(`notify, `immediate, `hvstretch),
+					  group_header,
+					  group_input)
+		  );
+	      UI::ChangeWidget(`id(`set_table), `CurrentItem, default_set);
+	      UI::ChangeWidget(`id(`pac_table), `Items, CreatePacTable( default_set ) );
+	      current_set = default_set;
+	  }
+	  else
+	  {
+	      show_groups = false;
+	      UI::ReplaceWidget( `id(`replace_table),
+				  `Table( `id(`set_table),
+					  `opt(`notify, `immediate, `hvstretch),
+					  set_header,
+					  set_input)
+		  );
+	      UI::ChangeWidget(`id(`set_table), `CurrentItem, "a");
+	      UI::ChangeWidget(`id(`pac_table), `Items, CreatePacTable( "a" ) );
+	      current_set = "a";
+	  }
+      }
+      else if (ret == `check)
+      {
+	  any ok = CheckDependencies( true, current_pac );	// show AND deps
+	  if (ok)
+	  {
+	      string msg = "";
+	      if (!deps_exist )
+	      {
+		  msg = _("Everything looks fine with your installation.
+All required packages are installed and
+there are no package conflicts.");
+	      }
+	      else
+	      {
+		msg = _("No additional dependencies found.
+If you want to check your installation again,
+enter the YaST2 Menu, Install/Remove packages
+after doing the UPDATE.");
+	      }
+	      UI::MessagePopup(msg);
+	  }
+
+      }
+      else if (ret == `single_help)
+      {
+	  term help = `id();
+
+	  // helptext is split into components which are added to get the different text
+	  // for single / pay / post install / update package selection
+	  // help part1
+	  string help_part1 = _("<p>
+This dialog is divided into two sections:
+
+on the left is a list with all available <b>package
+groups</b> and information about disk space. On the
+right is a list with <b>every package</b>
+belonging to the selected group.
+</p>
+");
+	  // help part2
+	  string help_part2 = _("<p>
+With your basic selection <i>Minimal</i>, <i>Default</i>,
+or <i>All packages</i> and your choice from the
+categories, such as <i>Multimedia</i> and <i>Games</i>,
+a number of packages are already preselected.
+You now have the opportunity to make your
+own decision about the installation or removal of particular
+packages.
+YaST2 will show the total <b>required space</b>
+for all selected packages and the
+<b>free</b> space on every partition with
+each change.
+</p>
+");
+	  // help part3
+	  string help_part3 = _("<p>
+How it works:
+</p>
+<p>
+<tt>1.</tt> Select a package set from the list on
+the left and YaST2 will show the corresponding
+packages with status information:
+</p>
+<p>
+<b>X</b> : package is selected for installation
+</p>
+<p>
+<b>_</b> : package is not selected
+</p>
+<p>
+<b>a</b> : YaST2 has automatically selected this
+	   package because another selected package
+	   depends on it
+</p>
+");
+
+	  // help part4
+	  string help_part4 = _("<p>
+<tt>2.</tt> To select an additional package for
+installation, double-click the corresponding line in the package
+list. You can also remove a selected package from the
+installation list.
+YaST2 will always check the dependencies, which means that
+all compulsory packages will be automatically marked with
+'<b>a</b>'.
+</p>
+");
+	  // help part5 of 6
+	  string help_part5 = _("<p>
+<tt>3.</tt> For some packages, you need at least one of
+several other packages. In this case, choose
+from a list in the <em>Additional package required</em> pop-up.
+The package shown in the pop-up might
+not be the selected one, but a package automatically
+selected for installation.<br>
+Some packages cannot be installed together. They
+are shown in <em>Package conflict</em> pop-ups and you
+can decide whether or not to install the package.
+</p>
+");
+	  // help part 6 of 6
+	  string help_part6 = _("<p>
+For a detailed description of each package,
+press <b>Description</b>.
+<b>Cancel</b> returns to
+the <b>Detailed Software Selection</b> without saving
+any of your changes. <b>OK</b> will save your
+new selection.
+</p>
+");
+
+	  if ( single_mode )
+	  {
+	      string help_single = help_part1 + help_part2 + help_part3 + help_part4 + help_part5 + help_part6;
+
+	      help = `RichText( help_single );
+	      // title for popup with helptext
+	      string help_title = _("Advanced Package Selection Help");
+
+	      PackagesUI::DisplayHelpMsg( help_title, help, `none, 20 );
+	  }
+	  else if ( pay_mode )
+	  {
+	      // additional help pay selection
+	      string help_part11 = _("<p>
+Here you can choose which commercial packages you want to be
+installed.
+</p>
+<p>
+Warning: Not all packages are full-featured versions, some require a
+registration or license, some are time-limited.
+</p>
+<p>
+You can select or deselect a package by clicking on its corresponding line.
+</p>
+<p> The packages are shown with status information:
+</p>
+<p>
+<b>X</b> : package is selected for installation
+</p>
+<p>
+<b>_</b> : package is not selected
+</p>
+<p>
+<b>a</b> : YaST2 has automatically selected this
+	   package because another selected package
+	   depends on it
+</p>
+");
+	      string help_pay = help_part11 + help_part4 + help_part6;
+	      help = `RichText( help_pay );
+
+	      // title for popup with help text
+	      string help_title = _("Commercial Package Selection Help");
+	      PackagesUI::DisplayHelpMsg( help_title, help, `none, 20 );
+
+	  }
+	  else if ( post_mode )
+	  {
+	      // additional help for post install
+	      string help_part12 = _("<p>
+You have the possibility to install additional
+packages or to delete installed ones.
+Please be careful when deleting packages and always
+pay attention to <em>Warning</em> popups.
+Do not remove packages of the Linux Base System ( set 'a' ).
+</p>");
+	      // additional help for post install
+	      string help_part31 = _("<p>
+<b>i</b> : package is installed
+</p>
+<p>
+<b>d</b> : package will be deleted
+</p>");
+
+	      // addition help for post install
+	      string help_part32 = _("<p>
+Selecting an already installed package marks it
+for reinstallation. The status information is:
+</p>
+<p>
+<b>X</b> : install this package again
+</p>
+");
+	      // additional help for post install
+	      string help_part41 = _("<p>
+<tt>2.</tt> To select an unmarked package for
+installation, double-click the corresponding line or
+select the line and use the <b>Apply</b> button or
+shortcut. YaST2 will automatically select
+additional needed packages.
+You can also remove already installed packages
+from your system (they will be marked for
+deletion).
+</p>
+");
+
+	      // additional help for post install
+	      string help_part61 = _("<p>
+For a detailed description of each package
+press <b>Description</b>.
+<b>Cancel</b> returns to
+the <b>Detailed Software Selection</b> without saving
+any of your changes. <b>OK</b> will save your
+new selection.
+");
+
+	      string help_post = help_part1 + help_part12 + help_part3 + help_part31 + help_part32 + help_part41 + help_part5 + help_part61;
+
+	      help = `RichText( help_post );
+	      // title for popup with help text
+	      string help_title = _("Package Selection Help");
+	      PackagesUI::DisplayHelpMsg( help_title, help, `none, 20 );
+
+	  }
+	  else if ( update_mode )
+	  {
+	      // additional help for update
+	      string help_part13 = _("<p>
+YaST2 Advanced Update Selection shows three lists of packages.
+</p>
+<p>
+<b>\"m\"</b>: these packages should be checked manually
+regarding update. Double-click once to
+change the status to \"u\" (update the package),
+double-click again to get status \"i\" (retain the installed one).
+</p>
+");
+	      string help_part14 = _("<p>
+<b>\"u\"</b>: all packages automatically selected for update
+(newer version is available) and packages for which it was
+manually decided to do the update.
+</p>
+<p>
+<b>\"i\"</b>: contains installed packages which
+don't need to be updated (already up to date) and
+packages for which a newer version is not available.
+</p>
+");
+	      string help_part62 = _("<p>
+Press <b>Cancel</b> to exit the dialog without
+saving any of your choices. <b>OK</b> will start the update.
+</p>
+");
+
+	      string help_update = help_part13 + help_part14 + help_part62;
+
+	      help = `RichText( help_update );
+	      // title for popup with help text
+	      string help_title = _("Select Packages to Update Help");
+	      PackagesUI::DisplayHelpMsg( help_title, help, `none, 20 );
+
+	  }
+      }
+      else if (ret == `descr)
+      {
+	  any sel_pac = UI::QueryWidget(`id(`pac_table), `CurrentItem);
+
+	  if (sel_pac != nil)
+	  {
+	      string long_descr =  SCR::Read(.package.longDesc, sel_pac );
+	      if ( long_descr == "" )
+	      {
+		  long_descr = sformat( _("A detailed description for package
+\"%1\" is not available."), sel_pac );
+	      }
+	      string notify_descr = SCR::Read(.package.notifyDesc, sel_pac );
+	      string wrn_descr    = SCR::Read(.package.delDesc, sel_pac );
+
+	      string description = "";
+	      list version_list =  SCR::Read(.package.packageVersion, sel_pac );
+
+	      /* package description */
+	      string descr = sformat(_("<b>Description:</b> %1"), long_descr);
+
+	      /* package license */
+	      string copyright = sformat(_("<b>License:</b> %1"), UI::Recode(Installation::encoding, "UTF-8", SCR::Read(.package.copyright, sel_pac )));
+
+	      /* package authors */
+	      string authors = UI::Recode(Installation::encoding, "UTF-8", SCR::Read(.package.author, sel_pac ));
+
+	      // authors is a list of "\n" separated names
+	      // split this list and re-created with ", " separators
+	      list splitted_authors = splitstring (authors, "\n");
+	      authors = mergestring (splitted_authors, ", ");
+
+	      if ( update_mode )
+	      {
+		  string old_version = sformat(_("Old version: %1, %2"), select( version_list, 0, ""), select( version_list, 1, "" ));
+		  string new_version = sformat(_("New version: %1, %2"), select( version_list, 2, ""), select( version_list, 3, "" ));
+		  description = sformat("<p> %1 </p> <p> %2 </p> <p> %3 </p> <p> %4 </p>",  copyright, old_version, new_version, descr);
+	      }
+	      else if ( post_mode )
+	      {
+		  string version = sformat(_("Version: %1, %2"), select( version_list, 2, ""), select( version_list, 3, "" ));
+		  string broken = BreakingPackages( sel_pac, false );
+		  if ( broken != "" )
+		  {
+		      broken = sformat(_("<b>Required by:</b> %1"), broken);
+		      description = sformat("<p> %1 </p> <p> %2 </P> <p> %3</p> <p> %4 </p>",  copyright, version, broken, descr);
+		  }
+		  else
+		  {
+		      description = sformat("<p> %1 </p> <p> %2 </P> <p> %3 </p>", copyright, version, descr);
+		  }
+	      }
+	      else
+	      {
+		  term  table_line = UI::QueryWidget(`id(`pac_table), `Item(sel_pac));
+		  string version = sformat(_("<b>Version:</b> %1"), select( table_line, 5, "" ));
+		  description = sformat("<p> %1 </p> <p> %2 <p> <p> %3 </p>", copyright, version, descr );
+	      }
+
+	      if ( notify_descr != "" )
+	      {
+		  description = description + sformat("<p><b>%1</b>: %2</p>", NotifyMsg(), notify_descr);
+	      }
+
+	      if ( wrn_descr != "" )
+	      {
+		  description = description + sformat("<p><b>%1</b>: %2</p>", WarningMsg(), wrn_descr);
+	      }
+
+	      /* package authors */
+	      description = description + sformat(_("<p><b>Authors:</b> %1</p>"), authors);
+
+	      PackagesUI::DisplayHelpMsg( sel_pac, `RichText( description ), `none, 12 );
+	  }
+      }
+      else if (ret == `saveload)
+      {
+	  // Saving or loading package selections
+	  list	new_input = [];
+
+	  PackageSelectionIO::SaveLoadSelection();
+	  current_set = UI::QueryWidget(`id(`set_table), `CurrentItem);
+
+	  new_input = CreatePacTable( current_set );
+
+	  UI::ChangeWidget(`id(`pac_table), `Items, new_input);
+
+      }
+      else if (ret == `selectall)
+      {
+	  y2milestone( "Selecting all packages from: %1", current_set );
+	  SelectAllPackages( current_set );
+      }
+      else if (ret == `deselectall)
+      {
+	  y2milestone( "Deselecting all packages from: %1", current_set );
+	  DeselectAllPackages( current_set );
+      }
+      else if (ret == `deleteall)
+      {
+	  y2milestone( "Deleting all packages from: %1", current_set );
+	  DeleteAllPackages( current_set );
+      }
+      else if (ret == `dontdelete)
+      {
+	  y2milestone( "Not deleting packages from: %1", current_set );
+	  DeselectDeleteAllPackages( current_set );
+      }
+        else if (ret == `replaceall)
+      {
+	  y2milestone( "Replacing all packages from: %1", current_set );
+	  ReplaceAllPackages( current_set );
+      }
+      else if (ret == `dontreplace)
+      {
+	  y2milestone( "Not replacing packages from: %1", current_set );
+	  DeselectAllPackages( current_set );
+      }
+       else if (ret == `deletereplace)
+      {
+	  y2milestone( "Delete packages marked to be replaced: %1", current_set );
+	  DeleteReplacePackages( current_set );
+      }
+      else if (ret == `replacedelete)
+      {
+	  y2milestone( "Replace packages marked to be deleted: %1", current_set );
+	  ReplaceDeletePackages( current_set );
+      }
+      else if (ret == `checkdeps)
+      {
+	  CheckDependencies( true,		// show AND dependencies
+			     "" );		// no certain package is selected
+      }
+      else if (ret == `apply_all &&  current_set == MANUALLY )
+      {
+	  // Button Apply All is used in update_mode, but only available for list "Manual selection"
+	  list manual_pacs = CreatePacTable( current_set );
+
+	  // mark all packages for update
+	  list update_list = maplist( `pac_item, manual_pacs, ``( select(pac_item, 2, "")) );
+
+	  any r = SCR::Execute(.package.selectUpdateList, update_list );
+	  y2debug("SCR::Execute(.package.selectUpdateList: %1", r );
+
+	  if ( r )
+	  {
+	      foreach( `pac_item, manual_pacs, ``{
+		  UpdatePac( select(pac_item, 2, ""), false );
+	      });
+	  }
+
+	  CheckDependencies( false, current_pac );
+      }
+      else if (ret == `cancel_single)
+      {
+	  if ( SCR::Read(.package.isSingleSelected ) )
+	  {
+	      // Warning popup if user pressed Cancel
+	      string yesorno = _("Your individual selection of packages and all of
+your choices will be lost when exiting with Cancel!\n
+Do you really want to exit?");
+
+	      any r = UI::AnyQuestionPopup( WarningMsg(), yesorno, YesButtonLabel(), NoButtonLabel(), `focus_no );
+	      if ( r == true )
+	      {
+		  retval = SCR::Execute(.package.restoreState, nil );
+		  y2debug( "SCR::Execute(.package.restoreState: %1", retval );
+		  break;
+	      }
+	  }
+	  else
+	  {
+	      break;
+	  }
+      }
+      else if ( ret == `ok )
+      {
+	  // All information about the package selection is available in package agent -
+	  // there is no need to store the selection elsewhere
+
+	  // write updateMap
+	  if ( update_mode )
+	  {
+	      // update package of packages which need a manual selection
+	      Update::manuall_update_list = [];
+
+	      maplist( `key, `value, upd_pacs,
+		       ``({
+			   if ( value == "m" )
+			   {
+			       Update::manuall_update_list = add ( Update::manuall_update_list,
+								   key );
+			   }
+		       })
+		       );
+	  }
+
+	  // Check again dependencies and disk space
+	  if ( SCR::Read(.package.isSingleSelected) )
+	  {
+	      CheckDependencies( false, current_pac );	// don't show AND deps
+
+	      boolean space_ok = true;
+	      y2debug("isInstallSelected(): %1", SCR::Read(.package.isInstallSelected));
+
+	      if ( SCR::Read(.package.isInstallSelected) )
+	      {
+		  // check only if there are "X" or "a" files - NOT if there are only packages selected for deletion
+		  space_ok = !SpaceCalculation::ShowPartitionWarning( );
+	      }
+	      if ( post_mode && !space_ok )
+	      {
+		  // installation would start at once in post_mode -> dont leave inst_sw_single
+		  continue;
+	      }
+	      // update_mode: leave inst_sw_single because there is no possibility to deselect a package
+	      // single_mode/pay_mode: disk space is checked again in inst_sw_select
+	  }
+	  break;
+      }
+
+  }
+
+  UI::CloseDialog();
+
+  // Delete saved information in pkginfo
+  retval = SCR::Execute(.package.deleteOldState, nil);
+
+  y2debug( "Return inst_sw_single: %1", ret );
+
+  return ret;
+
+}
+
+

@@ -1,0 +1,85 @@
+#
+# run a tests file
+#
+proc data-run { file data } {
+
+  set path [split $file "/"]
+  set filename [lindex $path [expr [llength $path]-1]]
+  set path [split $data "/"]
+  set dataname [lindex $path [expr [llength $path]-1]]
+
+  # extract basename and check extension
+
+  set fsplit [split $filename "."]
+  set dsplit [split $dataname "."]
+
+  set filebase [lindex $fsplit 0]
+  set database [lindex $dsplit 0]
+
+  # setup filenames
+
+  # $src is the name of the original testfile with absolute path
+  # tests/$filename is the name of the original testfile with relative path,
+  #                 relative to the testsuite directory 
+  set file_input  "tests/$filename"
+  set data_input  "data/$dataname"
+
+  set stdout_name "tests/$filebase.$database.out"
+  set stderr_name "tests/$filebase.$database.err"
+  set log_name    "tests/$filebase.$database.log"
+  set tmpout_name "tmp.out.$filebase.$database"
+  set tmperr_name "tmp.err.$filebase.$database"
+  set tmplog_name "tmp.log.$filebase.$database"
+
+  puts "Running '$filebase'/'$database'..."
+
+  # run the test
+
+  set result ""
+  set oops [catch { set result [exec "tests/runtest.sh" "$file_input" "(\"$data_input\")" "$tmpout_name" "$tmperr_name" ] } catched]
+
+  if {$oops != 0} {
+    fail "test case failed for $filebase.$database: $catched"
+    return
+  }
+
+  # check return code from runycp
+
+  if {$result != ""} {
+    warning "Compilation of $filebase.$database results in '$result'"
+    return
+  }
+
+  # check stdout
+
+  if {[diff $stdout_name "tmp.out.$filebase.$database"] != 1} {
+    fail "Wrong stdout for $filebase.$database"
+    return
+  }
+
+  # check stderr
+
+  if {[diff $stderr_name "tmp.err.$filebase.$database"] != 1} {
+    fail "Wrong stderr for $filebase.$database"
+    return
+  }
+
+  # ok, all is fine
+
+  pass $filebase.$database
+
+  return
+}
+
+proc tests-run { srcdir file } {
+
+  set datanames [glob $srcdir/data/*.ycp]
+
+  # foreach datafile, call data-run
+
+  foreach data $datanames { data-run $file $data }
+
+  return
+
+}
+

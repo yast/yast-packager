@@ -1,0 +1,19 @@
+[Interpreter] tests/InstMedia.ycp:5 Loading YCP module ../../../modules/Arch.ycp
+[Interpreter] tests/InstMedia.ycp:6 Loading YCP module ../../../modules/Installation.ycp
+[YCP] ../../../modules/Installation.ycp:124 ERROR: unknown option data/dvd.ycp
+[Interpreter] tests/InstMedia.ycp:7 Loading YCP module ../InstMedia.ycp
+[YCP] tests/InstMedia.ycp:9 running InstMedia check
+[YCP] tests/InstMedia.ycp:18 reading data/dvd.ycp
+[YCP] ../InstMedia.ycp:508 InstMedia::mediadevices  ["/dev/sr1"]
+[YCP] ../InstMedia.ycp:509 InstMedia::cd_current  0
+[YCP] ../InstMedia.ycp:510 InstMedia::mediaMap  $[]
+[YCP] ../InstMedia.ycp:511 InstMedia::bootmode DVD
+[YCP] ../InstMedia.ycp:512 InstMedia::mediatype 1
+[YCP] ../InstMedia.ycp:513 InstMedia::medianame DVD
+[YCP] ../InstMedia.ycp:514 InstMedia::smb_device 
+[YCP] ../InstMedia.ycp:515 InstMedia::smb_options 
+[YCP] ../InstMedia.ycp:516 InstMedia::boot_src  /dev/sr1
+[YCP] ../InstMedia.ycp:517 InstMedia::remountable  true
+[YCP] ../InstMedia.ycp:518 InstMedia::release_no 0
+[YCP] ../InstMedia.ycp:519 InstMedia::product 
+[liby2] genericfrontend.cc(main):346 YaST2 final end

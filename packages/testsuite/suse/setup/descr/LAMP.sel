@@ -1,0 +1,63 @@
+# SuSE-Linux-Package-Selection 2.1 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Mar 26 17:46:22 UTC 2002
+
+Version: 2.1
+
+Name: LAMP
+
+Label: Simple Webserver
+Label.cs: Jednoduchý webový server
+Label.de: Einfacher Webserver
+Label.en: Simple Webserver
+Label.es: Servidor Web
+Label.fr: Serveur Web simple
+Label.gl: Simple Webserver
+Label.hu: Egyszerű webszerver
+Label.it: Webserver semplice
+Label.ja: 単純な WWW サーバー
+Label.lt: Simple Webserver
+Label.nl: Simpele webserver
+Label.pt: Simple Webserver
+Label.sv: Simple Webserver
+Label.tr: Simple Webserver
+
+Category: addon
+
+Visible: true
+
+Toinstall:
+apache
+comanche
+curl
+expat
+freetype2
+gd
+gmp
+imap-devel
+itcl
+libiodbc
+libjpeg
+libmcal
+libmcrypt
+libpng
+libtiff
+libtool
+libxml2
+mm
+mod_php4
+mod_php4-core
+mod_ssl
+mysql
+mysql-client
+mysql-shared
+openldap2-client
+phpdoc
+postgresql-libs
+sablot
+t1lib
+tcl
+tk
+ucdsnmp
+xshared
+Llatsniot:
+

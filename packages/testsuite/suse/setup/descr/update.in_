@@ -1,0 +1,100 @@
+# suse/setup/update.in_ -- (c) 1996 SuSE GmbH
+# Irgenwas halt, Kommentar wird eh ignoriert.
+#
+         
+# Eine Zeile fuer jeden Ort, an dem kein Link angelegt werden
+# darf (absoluter Pfad ohne fuehrenden '/').
+# Wenn's keinen gibt, kann man auch die beiden Label weglassen.  
+#
+Prohibited:
+usr/X11R6/lib/X11
+Detibihorp:
+
+
+Notarx:
+@PKG@ mmcore
+usr/X11R6/lib/X11/config/Imake.rules
+usr/X11R6/lib/X11/config/Motif.rules
+usr/X11R6/lib/X11/config/Motif.tmpl
+usr/X11R6/lib/X11/config/Project.tmpl
+usr/X11R6/lib/X11/config/linux.cf
+var/X11R6/lib/config/Imake.rules
+var/X11R6/lib/config/Motif.rules
+var/X11R6/lib/config/Motif.tmpl
+var/X11R6/lib/config/Project.tmpl
+var/X11R6/lib/config/linux.cf
+./usr/X11R6/lib/X11/config/Imake.rules
+./usr/X11R6/lib/X11/config/Motif.rules
+./usr/X11R6/lib/X11/config/Motif.tmpl
+./usr/X11R6/lib/X11/config/Project.tmpl
+./usr/X11R6/lib/X11/config/linux.cf
+./var/X11R6/lib/config/Imake.rules
+./var/X11R6/lib/config/Motif.rules
+./var/X11R6/lib/config/Motif.tmpl
+./var/X11R6/lib/config/Project.tmpl
+./var/X11R6/lib/config/linux.cf
+@PKG@ mmcore1
+usr/X11R6/lib/X11/config/Imake.rules
+usr/X11R6/lib/X11/config/Motif.rules
+usr/X11R6/lib/X11/config/Motif.tmpl
+usr/X11R6/lib/X11/config/Project.tmpl
+usr/X11R6/lib/X11/config/linux.cf
+var/X11R6/lib/config/Imake.rules
+var/X11R6/lib/config/Motif.rules
+var/X11R6/lib/config/Motif.tmpl
+var/X11R6/lib/config/Project.tmpl
+var/X11R6/lib/config/linux.cf
+./usr/X11R6/lib/X11/config/Imake.rules
+./usr/X11R6/lib/X11/config/Motif.rules
+./usr/X11R6/lib/X11/config/Motif.tmpl
+./usr/X11R6/lib/X11/config/Project.tmpl
+./usr/X11R6/lib/X11/config/linux.cf
+./var/X11R6/lib/config/Imake.rules
+./var/X11R6/lib/config/Motif.rules
+./var/X11R6/lib/config/Motif.tmpl
+./var/X11R6/lib/config/Project.tmpl
+./var/X11R6/lib/config/linux.cf
+@PKG@ mmcore2
+usr/X11R6/lib/X11/config/Imake.rules
+usr/X11R6/lib/X11/config/Motif.rules
+usr/X11R6/lib/X11/config/Motif.tmpl
+usr/X11R6/lib/X11/config/Project.tmpl
+usr/X11R6/lib/X11/config/linux.cf
+var/X11R6/lib/config/Imake.rules
+var/X11R6/lib/config/Motif.rules
+var/X11R6/lib/config/Motif.tmpl
+var/X11R6/lib/config/Project.tmpl
+var/X11R6/lib/config/linux.cf
+./usr/X11R6/lib/X11/config/Imake.rules
+./usr/X11R6/lib/X11/config/Motif.rules
+./usr/X11R6/lib/X11/config/Motif.tmpl
+./usr/X11R6/lib/X11/config/Project.tmpl
+./usr/X11R6/lib/X11/config/linux.cf
+./var/X11R6/lib/config/Imake.rules
+./var/X11R6/lib/config/Motif.rules
+./var/X11R6/lib/config/Motif.tmpl
+./var/X11R6/lib/config/Project.tmpl
+./var/X11R6/lib/config/linux.cf
+Xraton:
+
+Nobackup:
+/var/lib/news/history
+/etc/ld.so.cache
+/var/spool/atjobs/.SEQ
+Pukcabon:
+
+# default fuer Pakete einspielen -> Quelle FTP
+DefaultSrcPatchFTP:    ftp.suse.com:/pub/suse/i386/update/8.0
+
+# default fuer Pakete einspielen -> Quelle Installationsmedium
+DefaultSrcPatchMedium: patches
+
+# default fuer Installationsmedium FTP (also nicht suse_update
+# sondern die URL unter der die Distribution verfuegbar sein wird)
+
+DefaultInstsrcFTP:      
+ftp.suse.com:/pub/suse/i386/current
+ftp.gwdg.de:/pub/linux/suse/i386/current
+ftp-suse.ruf.uni-freiburg.de:/pub/suse/i386/current
+PTFCrstsniTluafed:
+

@@ -1,0 +1,1481 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                         "/usr/share/sgml/db41xml/docbookx.dtd"
+[
+<!ENTITY version "0.01">
+<!ENTITY megacopy "MEGACOPYRIGHT &copy;&reg;">
+]>
+
+<book>
+
+  <bookinfo>
+    <title>SuSE Package Management</title>
+    <subtitle>Specification and Implementation</subtitle>
+    <author>
+       <firstname>Klaus</firstname>
+       <surname>Kämpf</surname>
+    </author>
+    <copyright><year>2002</year><holder>SuSE Linux AG</holder></copyright>
+    <legalnotice>
+      <para>This document is meant for SuSE internal use only.
+</para>
+    </legalnotice>
+    <abstract>
+      <para>All about package handling in SuSE Linux beyond 8.0
+</para>
+    </abstract>
+  </bookinfo>
+
+
+
+<chapter><title>Motivation</title>
+
+<para>
+The multi-vendor character of 'UnitedLinux' requires the split of
+the single vendor installation media we now have, to a "base media"
+(containing the basic UnitedLinux system) and "product media"
+(containing the product, i.e. an email server application).
+</para>
+<para>
+YaST must be able to handle both medias and resolve (package)
+dependencies between them.
+</para>
+<para>
+This document describes the requirements and implementation
+details of the package handling toolset implemented for
+UnitedLinux.
+</para>
+
+</chapter>
+
+<chapter>
+<title>Requirements</title>
+
+<section><title>2.1 General</title>
+
+<para>
+Handling package dependency resolving across multiple package sources
+is quite complex. Since dependency resolving is performed online while
+the user is viewing/selecting/deselcting packages, it must be reasonably
+fast. This in turn requires memory.
+</para>
+<para>
+Current dependency resolvers (SuSE YaST2, Caldera PHI) require a similar
+amount of resources (ca 15 MB with YaST2 an 2500 package, ca 20 MB with
+PHI and 3500 packages).
+</para>
+<para>
+Dramatic improvements can only be achieved by reducing the number of
+packages (and dependencies).
+</para>
+<para>
+Combining a set of packages to a selection and then computing selection
+dependencies is a possible solution. By handling selections similar
+to packages (selections have a name, a version, and dependencies), the
+same algorithms and similar user interfaces can be used.
+Combining selections to distributions (which equal installation sources)
+are a logical consequence.
+</para>
+<para>
+This all leads to the following:
+<itemizedlist>
+<listitem><para>A set of bytes make a file
+</para></listitem>
+<listitem><para>A set of files make a package
+</para></listitem>
+<listitem><para>A set of packages make a selection
+</para></listitem>
+<listitem><para>A set of selections make a distribution
+</para></listitem>
+</itemizedlist>
+[This leads to having selections as .rpm files and let rpm do all
+the work in finding dependencies. However the selections are only
+a package suggestion and rpms dependencies are too weak to handle
+all cases. Having a selection database besides a package database
+would be a good thing.]
+</para>
+</section>
+
+<section><title>2.2 User Interface</title>
+
+<para>
+The package management must be usable by command line, by a text (curses)
+interface, and by a graphical (X11) frontend.
+Detailed functional requirements (use-cases) are listed below.
+</para>
+
+</section>
+<section><title>2.3 Installation Media</title>
+
+<para>
+The concept of separated base and product CDs can be extended to a
+variety of medias (CD, FTP, NFS, HTTP, ...) and contents (patch CD,
+maintenance web server, network installation server, etc.)
+</para>
+<para>
+Each media is named an <emphasis>Installation Source</emphasis>, since it's independant
+from it's physical representation (CD, DVD, Network, ...).
+</para>
+
+<para>
+Such an installation source must contain
+<itemizedlist>
+  <listitem><para>A media identifier
+	To cleary (re-)identify a (known) medium
+  </para></listitem>
+  <listitem><para>A content description
+	To show the user media information
+  </para></listitem>
+  <listitem><para>Further information (Vendor, Version, License, Architecture, ...)
+	As a more detailed media description for the user.
+  </para></listitem>
+  <listitem><para>Selections
+	As a means to reduce complexity as mentioned above.
+  </para></listitem>
+  <listitem><para>Packages
+	The installable data.
+  </para></listitem>
+</itemizedlist>
+</para>
+
+<para> 
+In addition to that, an installation source should contain:
+</para>
+
+
+<itemizedlist>
+<listitem><para>
+Package descriptions - technical data as well as textual descriptions for
+all packages - as a cache for instant access to that information which
+otherwise may be accessible only at a remote location with considerable access
+times. 
+</para></listitem>
+</itemizedlist>
+
+
+<para>
+Integrating separate 'package sources' into the installer and doing
+cross-media dependency resolving does have a lot of advantages:
+<itemizedlist>
+<listitem><para>Close interaction with SuSE installer
+</para></listitem>
+<listitem><para>Distributed installation (CD, DVD, NFS, ...)
+</para></listitem>
+<listitem><para>Abstracting from physical medium
+</para></listitem>
+<listitem><para>Overlaying package sources eases (online) updates or architecture
+  specific packages (i.e. i686 optimized)
+</para></listitem>
+<listitem><para>an installation source might not be available (i.e. network
+  server down)
+</para></listitem>
+<listitem><para>an installation source might be provided by a different
+  vendor (not SuSE)
+</para></listitem>
+<listitem><para>an installation source might be unreliable (bad MD5)
+</para></listitem>
+<listitem><para>cost of accessing an  installation source
+</para></listitem>
+</itemizedlist>
+</para>
+
+<para>
+If an installation media cannot be accessed, the user must have
+the possibility of changing the media (i.e. ftp server, nfs path)
+temporarely.
+</para>
+
+</section>
+<section><title>2.4 Installation Target</title>
+
+<para>
+All package handling is always based on a single installation target,
+the system being administered.
+The target might be remote from the package management, esp. considering
+embedded systems with limited resources for a full dependency handling.
+</para>
+<para>
+Further requirements are:
+<itemizedlist>
+<listitem><para>Keep system consitent all the time.
+</para></listitem>
+<listitem><para>Install package from any source.
+</para></listitem>
+<listitem><para>Switch installation sources dynamically.
+</para></listitem>
+<listitem><para>Control RPM parameters (i.e. --oldpackage, --excludedocs)
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>2.5 Dependency Solving</title>
+
+<para>
+The current package handling is based on the package name only and does not
+take the package version into account. This binds vendor packages 
+to a specific distribution.
+</para>
+<para>
+The multiple installation media concept introduces new solver
+requirements since multiple sources can provide the same package (name)
+with identical or different versions, dependencies, architectures.
+This introduces a new level of complexity, as the package name
+is no longer the only differentiating criterium for the solver.
+Esp. dependencies (and conflicts) between different installation media
+must be handled.
+</para>
+<para>
+Having more detailed package dependencies opens up a new set of
+packaging possibilities:
+<itemizedlist>
+<listitem><para>a package might be provided in several versions, user can choose
+  'best' package (matching his application)
+</para></listitem>
+<listitem><para>easier up/downgrade of packages
+</para></listitem>
+<listitem><para>easier handling of patches (incl. removal of patches)
+</para></listitem>
+<listitem><para>Control dependency solving (i.e. switch it off)
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>2.6 Selections</title>
+
+<para>
+Selections are a means to reduce dependency complexity and to
+group packages to functional blocks, thereby making it easier
+to the customer to choose the right setup.
+Selections are package list which contain including (to be added)
+and excluding (to be removed) packages.
+Selections also define dependencies (requirements, conflicts). By
+adding version information also update complexity can be reduced.
+</para>
+
+</section>
+<section><title>2.7 Packages</title>
+
+<para>
+A package is the smallest entity handled by the package management.
+Packages consist of
+<itemizedlist>
+<listitem><para>A name
+</para></listitem>
+<listitem><para>A version
+</para></listitem> 
+<listitem><para>An architecture
+</para></listitem> 
+<listitem><para>Dependencies
+</para></listitem>
+<listitem><para>Files
+</para></listitem>
+<listitem><para>Attributes (Label, Size, Group Tag, ...)
+</para></listitem> 
+</itemizedlist>
+</para>
+
+<remark>see also ~sh/y2-proto/sw-single/sw-single-spec.txt </remark>
+
+</section>
+<section><title>2.8 Patches</title>
+
+<para>
+Patches describe changes to be made to a system.
+A patch consists of
+<itemizedlist>
+<listitem><para>A name
+</para></listitem>
+<listitem><para>A version
+</para></listitem> 
+<listitem><para>An architecture
+</para></listitem> 
+<listitem><para>Dependencies
+</para></listitem>
+<listitem><para>Attributes
+</para></listitem> 
+<listitem><para>Text, Packages, Scripts
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>2.9 Update</title>
+
+<para>
+Things to consider for an update are:
+<itemizedlist>
+<listitem><para>A functionality (Requires-Tag) might be provided by several
+packages. Decide which one to choose.
+</para></listitem>
+<listitem><para>Package renames
+</para></listitem>
+<listitem><para>Package splits
+</para></listitem>
+<listitem><para>Package drops
+</para></listitem>
+<listitem><para>Package unknown (foreign package) with dependencies
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+</chapter>
+
+<chapter><title>Use Cases</title>
+
+<section><title>3.1 Installation media</title>
+
+<para>
+Installation media functions are:
+<itemizedlist>
+<listitem><para>List known media
+</para></listitem>
+<listitem><para>Add a new media
+</para></listitem>
+<listitem><para>Edit a media entry
+e.g. Server changed, login changed, ranking
+</para></listitem>
+<listitem><para>Check media
+MD5 sums, integrety checks
+</para></listitem>
+<listitem><para>Delete a media
+</para></listitem>
+<listitem><para>Temporarely disable/enable a media
+</para></listitem>
+<listitem><para>View media information
+(Content, Selections, Packages, etc.)
+</para></listitem>
+</itemizedlist>
+</para>
+
+
+</section>
+<section><title>3.2 Selections</title>
+
+<para>
+Selection based functions are:
+<itemizedlist>
+<listitem><para>View selection
+Files, Dependencies, Attributes
+</para></listitem>
+<listitem><para>Show installed selections (0...100%)
+</para></listitem>
+<listitem><para>Add selection
+</para></listitem>
+<listitem><para>Delete selection
+</para></listitem>
+<listitem><para>Create/Save selection
+</para></listitem>
+<listitem><para>Load selection
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>3.3 Packages</title>
+
+<para>
+Package based functions are:
+<itemizedlist>
+<listitem><para>View package
+Author, License, Files, Provides, Requires, Conflicts, Label, Version,
+ Architecture
+</para></listitem>
+<listitem><para>Add package
+with/without immediate dependency/size checking
+</para></listitem>
+<listitem><para>Delete package
+with/without immediate dependency/size checking
+</para></listitem>
+</itemizedlist>
+</para>
+
+
+</section>
+<section><title>3.4 Dependency Solving</title>
+
+<para>
+Solver use cases are:
+<itemizedlist>
+<listitem><para>What-if view
+</para></listitem>
+<listitem><para>Or dependencies
+multiple packages providing the same requirement
+</para></listitem>
+<listitem><para>Conflict handling
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>3.5 Packages</title>
+
+<para>
+Package based functions are:
+<itemizedlist>
+<listitem><para>Package info in selected language
+</para></listitem>
+<listitem><para>Query for packages
+</para></listitem>
+<listitem><para>Select package
+</para></listitem>
+<listitem><para>Deselect package
+</para></listitem>
+<listitem><para>Remove package
+</para></listitem>
+<listitem><para>Update package
+</para></listitem>
+<listitem><para>View package information
+Label, Files, Size, Dependencies, Architecture, Installation Source, Vendor
+</para></listitem>
+</itemizedlist>
+</para>
+<para>
+Further package related use cases see <ulink url="#UserInterface">User Interface</ulink> chapter.
+</para>
+
+</section>
+<section><title>3.6 Patches</title>
+
+<para>
+Patch based functions are:
+<itemizedlist>
+<listitem><para>List installed patches
+</para></listitem>
+<listitem><para>Check if patch applies
+</para></listitem>
+<listitem><para>Check if patch installed
+</para></listitem>
+<listitem><para>Check patch dependencies
+</para></listitem>
+<listitem><para>Delete patch
+</para></listitem>
+<listitem><para>Update patch
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+</chapter>
+<chapter><title>User Interface</title>
+<para>Written by <ulink url="mailto:sh@suse.de">Stefan Hundhammer</ulink></para>
+
+<section><title>4.1 Views</title>
+<para>
+The user can dynamically switch between those views:
+<itemizedlist>
+<listitem><para>Add-on selections view (devlopment, multimedia, games, ...)
+  The user can add or remove any number of them.
+</para></listitem>
+<listitem><para>RPM group tags view
+  The RPM group tags are displayed as a tree.
+  The corresponding packages are displayed as a list when a leaf in that tree
+  is selected.
+</para></listitem>
+<listitem><para>Package search view
+  Search form like in current YaST2:
+  Search for pkg name, in pkg descriptions
+</para></listitem>
+</itemizedlist>
+</para>
+<para>
+The old base selections are just a special case of the system base plus
+some predefined add-on selections, so there will be no exactly-one-out-of-n
+choice of base selections (formerly "default", "default+office", "minimal",
+etc.).
+</para>
+
+
+</section>
+<section><title>4.2 Package list</title>
+<para>
+In most views (at least for the RPM group tags view and for the pkg search
+view) a list of packages is displayed:
+</para>
+<para>
+For each pkg, the following fields are displayed in the list:
+<itemizedlist>
+  <listitem><para>pkg selection status
+    <itemizedlist>
+      <listitem><para>for fresh installation:
+      <itemizedlist>
+	<listitem><para>[ ] not selected
+	</para></listitem>
+	<listitem><para>[x] manually selected
+	</para></listitem>
+	<listitem><para>[a] automatically selected because of dependencies
+	</para></listitem>
+      </itemizedlist>
+    </para></listitem>
+    <listitem><para>
+    for update:
+      <itemizedlist>
+	<listitem><para>[ ] currently not installed, will not be installed
+	</para></listitem>
+	<listitem><para>[i] installed, keep that version
+	</para></listitem>
+	<listitem><para>[u] update to newer version
+	</para></listitem>
+	<listitem><para>[d] delete
+	</para></listitem>
+	<listitem><para>[r] pkg renamed - the user cannot select this state. This is for cases
+        where a new pkg (whith a new name) replaced an existing one.
+	</para></listitem>
+      </itemizedlist>
+    </para></listitem>
+    </itemizedlist>
+    </para>
+  </listitem>
+  <listitem><para>pkg versions - at least current (if pkg already installed) and preferred.
+  The installation sources may contain any number of instances of the same
+  pkg. The backend automatically selects the "preferred" version according to
+  the installation source ranking.
+  </para></listitem>
+</itemizedlist>
+</para>
+<para>
+Other pkg attributes like:</para>
+<itemizedlist>
+<listitem><para>pkg name</para></listitem>
+<listitem><para>pkg size</para></listitem>
+<listitem><para>pkg short description</para></listitem>
+</itemizedlist>
+<para>
+and maybe more.
+</para>
+
+
+</section>
+<section><title>4.3 Package details</title>
+
+<para>
+If screen space permits, detailed information about the current pkg is
+displayed. If screen space is limited, the same information is displayed upon
+user request (button press / key press).
+</para>
+<para>
+In the simplest version, all the information in those views corresponds to the
+"preferred" version of the current pkg. Advanced (optional) versions may allow
+to switch from one version to another.
+</para>
+<para>
+
+Pkg details views:
+<itemizedlist>
+<listitem><para>Pkg long description. Both plain text and (simple - QSimpleRichText) HTML are
+  supported. If the user interface supports displaying images, images are
+  supported, too (screen shots etc.).
+</para></listitem>
+<listitem><para>Technical data
+  The data "rpm -qi" provides (minus the pkg long description), e.g.
+  pkg name, version, license, home page, source RPM, buld date, ...
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>4.4 Actions</title>
+
+<para>
+<itemizedlist>
+<listitem><para>Cycle pkg selectionmultiple clicks may be required to
+  switch from the curent state to the one desired
+</para></listitem>
+<listitem><para>Show pkg details description (if not already present on screen)
+</para></listitem>
+
+<listitem><para>Start pkg search (if pkg search view is selected)
+  <itemizedlist>
+  <listitem><para>search for pkg name
+</para></listitem>
+  <listitem><para>full-text search in pkg description
+</para></listitem>
+  <listitem><para>toggle case sensitive search
+</para></listitem>
+  </itemizedlist>
+</para></listitem>
+<listitem><para>Save / load settings
+</para></listitem>
+
+<listitem><para>Toggle immediate dependency check
+</para></listitem>
+
+<listitem><para>Check dependencies
+</para></listitem>
+
+
+<listitem><para>Advanced (optional):
+<itemizedlist>
+<listitem><para>Select all
+</para></listitem>
+<listitem><para>Deselect all
+</para></listitem>
+<listitem><para>Delete all
+</para></listitem>
+<listitem><para>Delete nothing
+</para></listitem>
+<listitem><para>Replace all
+</para></listitem>
+<listitem><para>Replace nothing
+</para></listitem>
+<listitem><para>Don't replace anything, delete instead
+</para></listitem>
+<listitem><para>Replace, don't delete
+</para></listitem>
+</itemizedlist>
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>4.5 Add-on Features 1 - Recommended</title>
+
+<para>
+<itemizedlist>
+<listitem><para>New selection status for each pkg: "taboo"
+
+  This excludes a pkg from automatic selection via dependencies - dependency
+  conflict warnings will be issued instead. This way a user could make sure he
+  doesn't get a specific package under any circumstances, in particular not
+  through the back door via automatic dependency solving. Many sysadmins might
+  be grateful for that: Set "xlibs" to "taboo" and make sure the new server
+  doesn't get any part of X or KDE installed.
+  <emphasis>
+  ma+lnussel say:
+  This is easy to implement in the backend if the requirement is included in
+  the basic design.
+
+  sh: For the frontend, it's trivial.
+  </emphasis>
+</para></listitem>
+<listitem><para>New pkg status "don't touch"for pkgs the user doesn't want to be updated
+  or deleted in any case, such as pkgs he builds manually or gets from some
+  other source.
+</para></listitem>
+<listitem><para>New view for current pkg: Conflicts
+
+  Displays a list of pkgs this pkg conflicts with.
+</para></listitem>
+<listitem><para>New view for current pkg: Requires
+
+  Displays a flat list of pkgs required by the current pkg along with
+  indications which of those are already automatically selected anyway and
+  which ones would be added by adding this pkg - plus the accumulated size of
+  those new pkgs.
+</para></listitem>
+<listitem><para>New view for current pkg: Required by
+
+  Displays a flat list of pkgs that require this pkg.
+</para></listitem>
+</itemizedlist>
+</para>
+
+
+</section>
+<section><title>4.6 Add-on Features 2 - Very useful</title>
+
+<para>
+<itemizedlist>
+<listitem><para>New view for current pkg: File list
+
+  Displays a list of files this pkg contains (rpm -qpl).
+  This might require the installation medium the RPM is on to be inserted.
+</para></listitem>
+
+
+<listitem><para>Tools for direct status change without cycling through all possible values.
+
+  The Qt UI should get tool buttons like in paint programs GIMP, CorelDraw
+  etc. that directly set the pkg state to a defined value. The mouse cursor
+  will change to indicate that - e.g. an arrow with a trash can to mark pkgs
+  for deletion with one click etc.
+
+  The NCurses UI should get one-character shortcuts to do the same - e.g. "i"
+  for "install", "d" for delete etc.
+
+  Cycling through all possible values more often than not sets intermediate
+  states which cause unnecessary problems.
+</para></listitem>
+
+<listitem><para>Context menu for directly setting the pkg status
+</para></listitem>
+
+<listitem><para>Qt UI: Tool tips (balloon help) for different versions of the same pkg
+  Display more info than just "V7.32" in column "CD" - e.g.
+<screen width="80">
+	V 7.32 from SuSE Firewall Update CD
+	283k
+</screen>
+</para></listitem>
+
+<listitem><para>What if... - shows list of pkgs that will be installed, deleted, updated
+</para></listitem>
+</itemizedlist>
+</para>
+
+
+</section>
+<section><title>4.7 Add-on Features 3 - Useful</title>
+
+<para>
+<itemizedlist>
+<listitem><para>New view for current pkg: Versions per installation source
+
+  Improved summary of all instances of the current pkg on all available
+  installation sources, e.g.
+<screen width="80">
+	       V 7.32 SuSE Firewall Update CD	- 283k
+	       V 7.30 SuSE Firewall CD		- 257k
+	       V 6.0  UBL 1.0 Base CD		- 180k
+</screen>
+</para></listitem>
+
+<listitem><para>New view for pkg list: Supported MIME types
+
+  Instead of the RPM group tags, display known MIME types and list pkgs that
+  can handle the selected ones: Which pkgs support .png, which support MS Word
+  .doc etc.
+
+  The information is there - SuSE-WM already uses it.
+</para></listitem>
+
+
+<listitem><para>New view for pkg list: Supported hardware
+
+  Similar to above: Which pkgs support CD recorders, sound cards etc.
+</para></listitem>
+
+
+<listitem><para>Save status of SW selection window: Current view etc.
+</para></listitem>
+
+
+<listitem><para>Pkg view: Replaced / obsoleted pkgs
+  Show a list of pkgs that are replaced by other pkgs.
+</para></listitem>
+
+
+<listitem><para>New view for pkg list: Licenses
+  (suggested by ke on [research] on 2002-05-22)
+  View packages by license type: GPL, BSD, ...
+  
+  Maybe this should rather be a filter that works on top of other views.
+  Otherwise we'd get too many pkgs in each category: Most pkgs (70%? 80%?) are GPL.
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>4.8 Add-on Features 4 - Nice to have</title>
+
+<para>
+<itemizedlist>
+<listitem><para>New view for current pkg: Change log
+
+  Displays this pkg's change log.
+  This might require the installation medium the RPM is on to be inserted.
+</para></listitem>
+
+<listitem><para>Icons in the pkg list to indicate the type of pkg (system, X, KDE, ...)
+
+  The PDB team (Vladimir Nadvornik) say this info could automatically be
+  generated from existing pkg dependencies (which pkgs are linked against KDE
+  libs etc).
+</para></listitem>
+
+
+<listitem><para>Support for hyperlinks into the WWW from within the pkg description
+</para></listitem>
+
+
+<listitem><para>User Selections on Floppy: Users who usually add a few packages to one of the
+  ready-made selections should be able to save those add-on selections to
+  floppy so they don't forget them for future installations ("I always add 'xv'
+  and 'selfhtml' to the 'default + office' selection).
+</para></listitem>
+
+
+<listitem><para>Support for run time dependencies: Some YaST2 modules require installation of
+  additional packages only on invocation. This is typical for YaST2 config
+  modules for special hardware (scanner, TV card etc.) - only when that
+  hardware is being configured it makes sense to actually have the related
+  software. RPM supports only hard requirements, thus YaST2 needs to do that.
+</para></listitem>
+
+
+<listitem><para>Reminder list: Let the user add pkgs he wants to explore at some later time
+  put on a list that he will se on his desktop after the installation. This is
+  useful whenever a user sees a pkg he doesn't know yet during pkg selection -
+  people often install pkgs they find interesting, yet forget to really check
+  them out some day. We have so many useful pkgs on our distribution that don't
+  get the attention they'd deserve - this would be an add-on value for the end
+  user for very little cost for us.
+</para></listitem>
+
+
+<listitem><para>Installation history view: Display the last n pkgs installed or pkgs
+  installed since a specific date.
+  (suggestion cfischer)
+</para></listitem>
+
+<listitem><para>Verify RPM (in installed system)
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>4.9 Package Keywords</title>
+
+<para>
+Packages should get keywords to characterize them so advanced queries could be
+possible.
+
+Examples:
+<itemizedlist>
+<listitem><para>KMail:
+- KDE app
+- X app
+- mail client
+- network
+</para></listitem>
+<listitem><para>
+Emacs:
+- X app
+- console app
+- editor
+</para></listitem>
+<listitem><para>
+File utilities (ls, cp, ...):
+- base system
+- system utilities
+- shell program
+</para></listitem>
+</itemizedlist>
+</para>
+<para>
+Sample queries:
+- Search ("KDE app" or "X app") and "mail client"
+</para>
+<para>
+Problem: This requires constant work for either all pkg maintainers or some
+responsible person who takes care of that.
+</para>
+
+
+</section>
+<section><title>4.10 Ideas for the future</title>
+
+<para>
+- Advanced multimedia support for the pkg description: Sound and video clips
+
+- msvec: Count of pkgs of each category / of pkgs total
+
+- msvec: Select / deselect entire categories
+</para>
+
+<section><title>4.10.1 Package Ratings</title>
+
+<para>
+We have dozens of mail clients, dozens of editors etc. to choose from.
+</para>
+<para>
+Packages should get a rating by other users (how?) or by the SuSE team to
+support selecting one out of many similar packages (which mailer? which
+editor?).
+</para>
+<para>
+This might become a very political issue and it involves continued work to keep
+it up-to-date, but the suggestion itself is now 2.5 years old and nothing has
+happened since. YaST2 should at least provide the basic infrastructure to
+support something like that.
+</para>
+<para>
+Ratings could include:
+</para>
+<itemizedlist>
+<listitem><para>Feature set</para></listitem>
+<listitem><para>Stability</para></listitem>
+<listitem><para>Innovation</para></listitem>
+<listitem><para>Completeness</para></listitem>
+<listitem><para>Actively maintained</para></listitem>
+<listitem><para>Performance</para></listitem>
+<listitem><para>Resource consumption</para></listitem>
+<listitem><para>Suitability for console environment</para></listitem>
+<listitem><para>Suitability for X desktop environment</para></listitem>
+<listitem><para>Suitability for newbies vs. experts</para></listitem>
+</itemizedlist>
+
+<para>
+Ratings should age to reflect the fact that they are gradually becoming
+obsolete unless updated.
+</para>
+</section>
+
+<section><title>4.10.2 Application View vs. Packages View</title>
+
+<para>
+Currently, there are the old SuSE package series and the RPM group tags, and
+the old SuSE package series will be dropped.
+</para>
+
+<para>
+The RPM group tags are only one view on the overal set of packages.
+</para>
+
+<para>
+Average users see many more packages than they are really interested in: They
+frequently neither care for base packages that they need to install anywhere
+nor are they interested in subpackages. YaST2 for example has 180+ subpackages,
+yet it is one single logical package to most users.
+</para>
+
+<para>
+Experienced users, however, may really want to see all packages.
+</para>
+
+<para>
+Conclusion: We should offer multiple views on the overal set of packages. The
+user should be able to switch views easily (e.g. click on another tab in the
+GUI).
+</para>
+
+</section>
+
+<section><title>4.10.3 Application Categories</title>
+
+<para>
+Display pkg list as tree, divided by user-visible categories, e.g.:
+</para>
+
+<para>
+<screen width="80">
+Mail Clients
+[ ] KMail
+[ ] Pine
+[ ] Mutt
+...
+Editors
+[ ] KWrite
+[ ] Emacs
+[ ] Vim
+...
+</screen>
+</para>
+
+</section>
+
+<section><title>4.10.4 User Package Preferences by Type</title>
+
+<para>
+The user should be able to adjust package selections to personal preferences,
+e.g.:
+</para>
+<para>
+GNOME -> Xlib -> KDE -> console
+</para>
+<para>
+"I want a GNOME mailer. If there is none, give me an Xlib based mailer. If
+there is none, a KDE based mailer. ..."
+</para>
+
+</section>
+
+</section>
+<section><title>4.11 Package attributes</title>
+
+<para>
+Attributes already available either from RPM or from the PDB:
+
+
+[Required]	pkg name
+[Required]	selection / installation status
+[Required]	version (including build no.)
+[Required]	installation source
+[Required]	architecture
+[Required]	requires
+[Required]	provides
+[Required]	conflicts
+[Required]	obsoletes
+</para>
+<para>
+[Required]	short description
+[Required]	installation size
+[Required]	RPM size
+[Required]	license
+[Required]	RPM group tags
+</para>
+<para>
+[Required]	long description
+[Required]	long description type (HTML / plain text)
+</para>
+<para>
+[Recommended]	file list
+</para>
+<para>
+[Recommended]	installation date (including time)
+[Recommended]	source RPM name
+[Recommended]	build host
+[Recommended]	build date (including time)
+[Recommended]	authors
+[Recommended]	distribution
+[Recommended]	relocations
+</para>
+<para>
+[Recommended]	MIME types supported		(from PDB - for SuSE-WM)
+[Recommended]	(special) hardware required	(from PDB)
+[Recommended]	(special) hardware supported	(from PDB)
+</para>
+<para>
+[Useful]	change log
+</para>
+<para>
+
+
+Attributes that are not available yet, but could be generated automatically:
+</para>
+<para>
+[Useful]	(basic) pkg keywords (X, KDE, ...) - generated from 'ldd'
+[Useful]	run time dependencies
+[Useful]	suggested pkgs
+</para>
+<para>
+
+
+Attributes that are not available yet for which the information is
+expensive to collect:
+</para>
+<para>
+[Nice]		advanced keywords (system, network, ... + X, KDE, ...)
+[Nice]		ratings:
+		- feature set
+		- stability
+		- completeness
+		- actively maintained
+		- performance
+		- resource consumption
+		- suitability for console environment
+		- suitability for X desktop environment
+		- suitability for newbies
+		- suitability for experts
+		
+
+Other attributes not available yet that require (moderate) manual work:
+
+[Nice]		 video clip
+[Nice]		 sound
+</para>
+</section>
+</chapter>
+
+<chapter><title>Functional View</title>
+
+<section><title>5.1 Abstract functional blocks</title>
+
+<para>
+By abstracting from a (physical) medium to a general 'installation source',
+(<emphasis>InstSrc</emphasis>) handling different installation sources like 'CD', 'NFS', 'local harddisk', etc.
+can be generalized.
+The different installation sources are handled by a installation source
+manager (<emphasis>InstSrcMgr</emphasis>).
+For selections, packages, and patches, the installation source is just
+an additional attribute and does not add to dependency complexity.
+</para>
+<para>
+Every system has a single installation target (<emphasis>InstTarget</emphasis>), usually a mounted directory
+(with an rpm database). The installation target is automatically also an
+installation source 'providing' (already installed) packages to the
+dependency solver.
+</para>
+<para>
+The dependency solver has access to the installation source manager which
+can be queried for data. The different installation sources are handled
+transparently by the installation source manager. The solver does not
+have any knowledge about the sources.
+The solver is controlled from outside (user interface) and can use
+callbacks/return codes to handle resolving dependencies
+(conflicts, or-dependencies, etc.).
+</para>
+	  <mediaobject>
+	    <imageobject>
+	      <!-- Formate OK: PNG -->
+	      <imagedata fileref="./block_diagram.png" depth="30" scalefit="1"/>
+	    </imageobject>
+	    <caption>
+	      <para>
+		A picture of the book cover.
+	      </para>
+	    </caption>
+	  </mediaobject>
+</section>
+
+<section><title>5.2 Installation Source</title>
+
+<para>
+An installation source has general information (data about the source)
+and detailed information (data about packages) transparently.
+It's up to the implementation how to handle this data, e.g. by storing
+cache files for offline access or retrieving packages for detailed
+data.
+Splitting the general and detailed information part also on the
+implementation side leads to a 'package provider' function (<emphasis>PkgProv</emphasis>).
+Since
+this is also needed during package installation (in order to actually
+get the package onto the target system), it is implemented as
+a separate function block.
+
+An installation source contains
+<itemizedlist>
+<listitem><para>name
+</para></listitem>
+<listitem><para>version
+</para></listitem>
+<listitem><para>architecture
+</para></listitem>
+<listitem><para>dependencies (requires, provides, conflicts, recommends, suggests)
+  e.g Product 'email server 3.1' needs 'basic system 8.1'.
+</para></listitem>
+<listitem><para>label (descriptive text, in various languages)
+</para></listitem>
+<listitem><para>language (if package is language specific)
+</para></listitem>
+<listitem><para>vendor
+</para></listitem>
+<listitem><para>flags (internal usage)
+</para></listitem>
+<listitem><para>medium (type of medium, like cd, ftp, etc.)
+</para></listitem>
+<listitem><para>ID-Code
+</para></listitem>
+<listitem><para>cache file
+</para></listitem>
+<listitem><para>MD5 sum (for the cache file) ?
+</para></listitem>
+<listitem><para>GPG signature
+</para></listitem>
+</itemizedlist>
+</para>
+
+<para>
+An installation source instance is created for every known
+installation media. The target system is also regarded as an installation
+media.
+</para>
+
+</section>
+<section><title>5.3 Installation Target</title>
+
+<para>
+The package management handles a single installation target. Besides the
+above mentioned installation source block, an installation target contains
+a package provider block (getting the package onto the target) and a package
+installer block (i.e. actually calling rpm). For each needed installation
+target, one package provider is needed.
+The notion of 'package' as used above is a bit misleading since the
+data to be installed on a target might be a package (currently rpm based)
+or a patch. Both need different installer functionalities.
+</para>
+<para>
+The installation target provides the following functions
+<itemizedlist>
+<listitem><para>install package
+</para></listitem>
+<listitem><para>set install flags (i.e. --excludedocs)
+</para></listitem>
+<listitem><para>delete package
+</para></listitem>
+<listitem><para>set delete flags
+</para></listitem>
+<listitem><para>rebuilddb
+</para></listitem>
+<listitem><para>verify
+</para></listitem>
+</itemizedlist>
+</para>
+
+<para>
+These are basically the functions 'rpm' is providing on a command
+line level.
+</para>
+
+</section>
+<section><title>5.4 Dependency Solving</title>
+
+<para>
+The solver gets a list of installed and a list of requested (selected)
+packages and resolves conflicts.
+The solver should be general enough to also handle selections and
+patches which are represented by similar data.
+</para>
+
+<para>
+Solver actions are triggered by the user interface.
+</para>
+
+</section>
+<section><title>5.5 Selections</title>
+
+<para>
+A selection is a set of packages and described by the following attributes
+</para>
+<para>
+<itemizedlist>
+<listitem><para>name</para></listitem>
+<listitem><para>version</para></listitem>
+<listitem><para>architecture (if selection applies to specific architectures)</para></listitem>
+<listitem><para>dependencies (requires, provides, conflicts, recommends, suggests)</para></listitem>
+<listitem><para>label (descriptive text, in various languages)</para></listitem>
+<listitem><para>language (if selection is language specific)</para></listitem>
+<listitem><para>vendor</para></listitem>
+<listitem><para>flags (internal usage)</para></listitem>
+<listitem><para>MD5 sum</para></listitem>
+<listitem><para>GPG signature</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>5.6 Packages</title>
+
+<para>
+A package is a set of files and described by the following attributes
+<itemizedlist>
+<listitem><para>name
+</para></listitem>
+<listitem><para>version
+</para></listitem>
+<listitem><para>architecture
+</para></listitem>
+<listitem><para>dependencies (requires, provides, conflicts, recommends, suggests)
+</para></listitem>
+<listitem><para>label (descriptive text, in various languages)
+</para></listitem>
+<listitem><para>language (if package is language specific)
+</para></listitem>
+<listitem><para>vendor
+</para></listitem>
+<listitem><para>flags (internal usage)
+</para></listitem>
+<listitem><para>MD5 sum (immediately before package installation, cant do this across
+  ftp).
+</para></listitem>
+<listitem><para>GPG signature
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>5.7 Patches</title>
+
+<para>
+A patch is a set of system changes described by the following attributes
+<itemizedlist>
+<listitem><para>name
+</para></listitem>
+<listitem><para>version
+</para></listitem>
+<listitem><para>architecture
+</para></listitem>
+<listitem><para>dependencies (requires, provides, conflicts, recommends, suggests)
+</para></listitem>
+<listitem><para>label (descriptive text, in various languages)
+</para></listitem>
+<listitem><para>vendor
+</para></listitem>
+<listitem><para>flags (internal usage)
+</para></listitem>
+<listitem><para>MD5 sum
+</para></listitem>
+<listitem><para>GPG signature
+</para></listitem>
+<listitem><para>Set of Text, Script, or packages in any combination.
+</para></listitem>
+</itemizedlist>
+</para>
+</section>
+</chapter>
+
+<chapter><title>Implementation</title>
+
+<para>
+<itemizedlist>
+<listitem><para>installation sources provide selections (set of packages) and
+  packages.
+</para></listitem>
+<listitem><para>installation source has unique ID and 'cache file' which is
+  stored at registration time to identify the source
+</para></listitem>
+<listitem><para>Pre-Require flags might be used to order packages during installation
+</para></listitem>
+<listitem><para>Package list on installation media determines installation order.
+Still a number of packages (currently called ELF packs) must be pre-installed
+by force. Possibly using a .tar.bz2 could be feasible (-> autobuild team)
+</para></listitem>
+<listitem><para>Autobuild needs a solver to determine how to spread packages across
+  multiple CDs
+</para></listitem>
+<listitem><para>Selections have dependencies and versions, so the same code can be
+  used for selections and packages
+</para></listitem>
+<listitem><para>Update server (YOU) can be implemented as an installation source (with
+  a high priority).
+</para></listitem>
+</itemizedlist>
+</para>
+
+<section><title>5.8 Installation Source</title>
+<para>
+- how to identify an installation source (setup/descr/info, update.inf)
+
+A package source is represented in a piece of code (c++ object) with
+a common frontend (interface) and a source (media) specific backend.
+
+The following functionality should be provided
+<itemizedlist>
+<listitem><para>init package source (kind of source, ranking, status, ...)
+</para></listitem>
+<listitem><para>query package source (all attributes from III.3)
+</para></listitem>
+<listitem><para>query selection (provided by package source)
+</para></listitem>
+<listitem><para>query package (provided by package source)
+</para></listitem>
+</itemizedlist>
+</para>
+
+<para>
+A package source interface handles only information about selections
+and packages, but not the package contents itself.
+Transferring the package contents (installing the package) is done
+directly on the target system, usually by mounting a package source
+media or calling ftp.</para>
+<para>
+The <emphasis>package provider</emphasis> is reponsible for providing a package in a way
+accessible by the package drain (the target system).
+</para>
+<para>
+A possible dataflow could be as possible
+<itemizedlist>
+<listitem><para>package source provides a set of selections/packages
+</para></listitem>
+<listitem><para>dependency solver computes a list of packages to be installed
+</para></listitem>
+<listitem><para>control unit loops through this list and calls the package
+  source (manager) to provide a package for access, the result
+  of such an access command is a URL for package access.
+  (i.e. file:/var/adm/mount/suse/a1/aaa_base-8.1-42.i386.rpm)
+</para></listitem>
+<listitem><para>control unit calls package drain with the provided URL
+</para></listitem>
+<listitem><para>package drain tries to access and install the package
+</para></listitem>
+</itemizedlist>
+</para>
+
+<para>
+If a package URL can't be accessed, an error code is returned by
+the package drain. There are three classes of errors, fatal,
+retryable, and dontcare. Fatal errors denoted failed package
+installation, i.e. due to media failures.
+Retryable errors are passed to the package source and could
+be used to initiate change of physical medium (please insert
+CD x) and a retry of the package access.
+Dontcare errors could be used to suppress warnings if the user
+deliberately ignored dependency errors.
+</para>
+
+</section>
+<section><title>5.9 Package Provider</title>
+
+<para>
+The package provider retrieves a package to a (local) directory
+x
+</para>
+</section>
+
+<section><title>5.10 Installation Source Manager</title>
+<para>
+A package source manager eases the handling of multiple package
+sources. It basically provides the same interface as a normal
+package source, as it also provides selections and packages.
+
+Additionally it provides functions to
+<itemizedlist>
+<listitem><para>add</para></listitem>
+<listitem><para>delete</para></listitem>
+<listitem><para>query</para></listitem>
+</itemizedlist>
+package sources.
+</para>
+
+<para>
+For the dependency solver, it could be easiest to hide different
+package sources in package attributes and let the package source
+manager provide package with different attributes (name, version,
+architecture, vendor, package source)
+</para>
+</section>
+
+<section><title>5.11 Installation Target</title>
+<para></para>
+</section>
+<section><title>Dependency Solver</title>
+<para></para>
+</section>
+</chapter>
+
+<glossary><title>Glossary</title>
+<para>
+This is a short list of names used in this document
+</para>
+<glossdiv>
+<glossentry><glossterm>Dependency</glossterm>
+<glossdef><para>
+Package or selection attributes defining inter-package (-selection)
+requirements.
+</para></glossdef>
+</glossentry>
+
+<glossentry><glossterm>Installation Media</glossterm>
+<glossdef><para>
+Source for selections, packages, and patches.
+</para></glossdef>
+</glossentry>
+
+<glossentry><glossterm>Installation Source (InstSrc)</glossterm>
+<glossdef><para>
+Implementation for installation media access.
+</para></glossdef>
+</glossentry>
+
+<glossentry><glossterm>Installation Source Manager (InstSrcMgr)</glossterm>
+<glossdef><para>
+Combines multiple installation sources to a single
+one to make installation sources transparent to the solver.
+</para></glossdef>
+</glossentry>
+
+<glossentry><glossterm>Installation Target (InstTarget)</glossterm>
+<glossdef><para>
+Implementation to install packages or patches onto the
+target system. Uses the package provider to 'physically'
+to make the data accessible.
+</para></glossdef>
+</glossentry>
+
+<glossentry><glossterm>Package Provider (PkgProv)</glossterm>
+Makes packages accessible to the InstSrc or InstTarget.
+<glossdef><para>
+</para></glossdef>
+</glossentry>
+
+<glossentry><glossterm>Solver</glossterm>
+<glossdef><para>
+Computes a final list of packages by resolving dependencies.
+</para></glossdef>
+</glossdiv>
+</glossary>
+
+<footnote>Written by <ulink url="mailto:kkaempf@suse.de">Klaus Kämpf</ulink>
+with help from Michael Andres, Stefan Hundhammer, Ludwig Nussel, and others.</footnote>
+</book>

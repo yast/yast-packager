@@ -1,0 +1,380 @@
+/**
+ * Module: 		inst_rpmcopy.ycp
+ *
+ * Authors:		Mathias Kettner <kettner@suse.de>
+ *			Klaus Kaempf <kkaempf@suse.de> (initial)
+ *			Stefan Hundhammer <sh@suse.de> (slide show)
+ *
+ * Purpose:
+ * Install all the RPM packages the user has selected.
+ * Show installation dialogue. Show progress bars.
+ * Request medium change from user.
+ *
+ * Packages module :	
+ *			"installed"
+ *
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packages";
+
+    import "Arch";
+    import "AutoInstall";
+    import "Report";
+    import "Mode";
+    import "Installation";
+    import "Version";
+    import "Language";
+    
+    import "SpaceCalculation";
+    import "PackageInstallation";
+    import "InstMedia";
+    import "MediaUI";
+    import "Packages";
+
+    import "SlideShow";  
+    import "Wizard";
+
+    include "showlog_defines.ycp";
+    include "ui/common_popups.ycp";
+
+    boolean packager_called = false;		// is there any package installed/deleted
+                                                // (only used if Mode::normal is set)
+
+
+   
+    //----------------------------------------------------------------------
+    //				     MAIN
+    //----------------------------------------------------------------------
+
+    string tmpdir	= SCR::Read(.target.tmpdir);
+    string language	= Language::language;
+
+    any 	ret 		= nil;	// return value module packager
+    list 	rpm_list 	= [];
+    list 	descr_list 	= [];
+
+    SlideShow::SetLanguage( language );
+    SlideShow::OpenSlideShowDialog();
+
+    if (size(Args()) >= 3 )
+    {
+	// third argument can be a package name or a list of packages
+	if ( is(Args(2), string) )
+	{
+	    rpm_list = add( rpm_list, Args(2) );
+	}
+	else if ( is(Args(2), list) )
+	{
+	    rpm_list = Args(2);
+	}
+
+	if (size(Args()) == 4 )
+	{
+	   // forth argument is a list of package descriptions
+	   if ( is(Args(3), list) )
+	    {
+		descr_list = Args(3);
+	    }
+	}
+    }
+
+    if ( Mode::cont && !Mode::normal )
+    {
+	// initialize the package agent in continue mode
+	Packages::Init( true );
+	Packages::Restore();
+    }
+
+    if ( Mode::installMap == nil
+	 || size ( Mode::installMap ) == 0 )
+    {
+	// only for security reasons - installMap should be set
+	map installMap = SCR::Read (.target.ycp,
+				    ["/var/lib/YaST2/installmap.ycp", $[]]);
+	InstMedia::initializeInstMedia (installMap);
+    }
+    else
+    {
+	InstMedia::initializeInstMedia (Mode::installMap);
+    }
+
+    // List of all packages to install
+    list install_list = [];
+
+    // List of all packages to delete
+    list delete_list = SCR::Read(.package.deleteSet);
+    y2debug("delete_packages: %1", delete_list);
+
+    // delete unwanted packages BEFORE installing new ones
+    if ( delete_list != [] && delete_list != nil )
+    {
+	packager_called = true;
+	
+	ret = PackageInstallation::DeletePackages( delete_list );
+
+	if (ret == `cancel)
+	{
+	    return `abort;
+	}
+	else if (ret == `error)
+	{
+	    Report::Error( sformat(_("Error: These packages are not deleted: %1"),
+				   PackageInstallation::error_packages) );
+	    y2debug( "Error list: %1", PackageInstallation::error_packages );
+	}
+	else  if (ret != `ok)
+	{
+	    Report::Error( _("The packager returned an unknown code") );
+	}
+    }
+    
+    if ( Mode::cont )
+    {
+        SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
+	// y2debug("Starting second part of package installation");
+    }
+    else if (Mode::initial)
+    {
+	// y2debug("Starting first part of package installation");
+
+	// Make sure, Medium 1 is inserted
+	if ( InstMedia::release_no == 0 )
+	{
+	    // y2debug ("Request first Medium");
+	    if (!PackageInstallation::ChangeMediumWrapper ( 1, true ))
+	    {
+		y2error ("First Medium not available. Aborting");
+		return `abort;
+	    }
+	    // y2debug ("Read release data");
+	    if (!InstMedia::gatherReleaseData ())
+	    {
+		y2error ("No release data on first Medium available. Aborting");
+		return `abort;
+	    }
+	}	
+
+	// y2debug ("Initialize packer to %1", Installation::destdir);
+	// Initialize the target system.
+	CallModule("packager", [nil, `init, `root(Installation::destdir)]);
+
+	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log");
+    }
+
+    // Now that we know how many packages to install, we can show the dialog
+
+    integer packages_installed = 0;
+
+    if ( !Mode::initial)
+    {
+	// get the number of already installed packages
+	packages_installed = Packages::installed; 
+    }
+
+    // y2debug("%1 packages have been installed", packages_installed);
+
+    if ( rpm_list != [] )
+    {
+	y2milestone( "Installing RPM_LIST: %1", rpm_list );
+
+	list package_list = [];
+	integer counter = 0;
+
+	foreach( `rpm, rpm_list,
+	``{
+	    list package_info = [];
+	    package_info = add(package_info, rpm );
+
+	    if ( size ( descr_list ) > counter )
+	    {
+		package_info = add (package_info, descr_list[counter]:"" );
+	    }
+	    else
+	    {
+		package_info = add (package_info, "description" );
+	    }
+	    package_info = add (package_info, 1 );
+	    package_info = add (package_info, false );
+	    package_list = add (package_list, package_info);
+	    counter = counter + 1;
+	});
+
+	ret = PackageInstallation::InstallPackages( package_list, // package_list (including absolut pathnames)
+						    "",		  // source path
+						    false,	  // not installing base packages
+						    0 );	  // number of already installed packages
+
+	if (ret == `cancel)
+	{
+	    return `abort;
+	}
+	else if (ret != `error &&
+		 ret != `ok)
+	{
+	    Report::Error( _("The packager returned an unknown code") );
+	}
+
+        // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
+        UI::CloseDialog();
+
+	return `next;
+    }
+
+    if (Mode::initial)
+    {
+	// First install the base system. This has to be done with the %pre
+	// and %post scripts handled separately and not by rpm, because
+	// without a minimal system being installed no scripts can be executed
+	// chroot in the new system.  We filter the pacdesc list and extract
+	// only the base packages, and only those that are contained in our
+	// package selection. This filtered list we convert into a list
+	// containing only the package filename and the label in the current
+	// language.
+
+	// Base packages must be on Medium1
+	install_list = SCR::Read(.package.installSetCD, 1);
+
+
+	list base_packages = filter(`v, install_list, ``(v[3]:false && v[2]:0 == 1));
+	// y2debug("Base packages ( on Medium1 ): %1", base_packages);
+
+	ret = PackageInstallation::InstallPackages( base_packages,		// base system
+						    InstMedia::GetInstPath(),	// source of installation
+						    true,			// installing the base system
+						    0 );			// number of packages installed
+
+	packages_installed = packages_installed + size(base_packages);
+
+	if (ret == `cancel) return `abort;
+	if (ret == `diskfull) break;
+	else if (ret != `error
+		 && ret != `ok)
+	{
+	    Report::Error( _("The packager returned an unknown code") );
+	}
+	
+	// write a fake mtab to the target system since some %post scripts might need it
+	string mtabname = "/etc/mtab";
+	if (Mode::initial)
+	{
+	    string mtab = WFM::Read(.local.string, mtabname);
+	    SCR::Write(.target.string, tmpdir + "/mtab", mtab);
+	    SCR::Execute (.target.bash, "/bin/cat "
+			+ tmpdir + "/mtab"
+			+ " | /bin/sed \"s: " + Installation::destdir
+			+ "/: /:\"| /bin/sed \"s: " + Installation::destdir
+			+ ": /:\" > " + Installation::destdir + mtabname);
+	}
+    }
+
+    SlideShow::InitPkgData();
+
+    // Install the software from Medium1 to Mediummax, but not the already
+    // installed base packages.
+    // This part is also used for installation in running system (Mode::cont, Mode::normal)
+    
+    integer maxnumbercds = 10;
+    integer current_cd_no = 1;
+
+    if (Mode::initial)
+    {
+	maxnumbercds = 1; // only the first CD will be installed
+    }
+    else if (Mode::cont && !Mode::normal)
+    {
+	current_cd_no = 2; // continue with second CD but only in continue mode
+    }
+    // else
+    // Mode::normal means start with first CD
+	
+    while (current_cd_no <= maxnumbercds)
+    {
+	boolean go_on = true;
+
+	list this_cd_packages = SCR::Read (.package.installSetCD, current_cd_no);
+	
+	// Autoinstall: Add non-SuSE packages
+	if (Mode::autoinst && Mode::initial)
+	{
+	   this_cd_packages  = union(this_cd_packages, AutoInstall::install_list);
+	}
+
+	// Filter out basepackages
+	if ( current_cd_no == 1 && Mode::initial )
+	{
+	    this_cd_packages = filter(`v, this_cd_packages, ``(!(v[3]:false && (v[2]:0 == 1))));
+	}
+	
+	// y2debug("this_cd_packages: %1", this_cd_packages);
+
+	if (this_cd_packages != [])
+	{
+	    go_on = PackageInstallation::ChangeMediumWrapper ( current_cd_no, true );
+	    if ( !go_on )		// skip medium
+	    {
+		// logging not installed packages
+		foreach ( `package, this_cd_packages,
+		``{
+		    string packageName = package[0]:"";
+		    integer pos = findfirstof ( packageName, "/" );
+		    packageName = substring ( packageName, pos+1, size(packageName) -pos -5 );
+		    SCR::Execute (.target.bash, "/bin/echo NOT installing "+packageName+" >>"+
+				  Installation::destdir + "/var/log/y2logRPMShort" );
+		});
+
+		current_cd_no = current_cd_no + 1;
+		continue;
+	    }
+
+	    packager_called = true;
+
+	    ret = PackageInstallation::InstallPackages( this_cd_packages,
+							InstMedia::GetInstPath(),
+							false,		// not installing the base system
+							packages_installed );
+	    
+	    packages_installed = packages_installed + size(this_cd_packages);
+
+	    if (ret == `cancel) 	return `abort;
+	    if (ret == `diskfull)   	break;
+	    else if (ret != `error &&
+		     ret != `ok) Report::Error( _("The packager returned an unknown code") );
+	}
+
+	// break on first round with Mediums
+	if (Mode::initial
+	    && InstMedia::splitted
+	    && !Mode::test )
+	    break;
+
+	current_cd_no = current_cd_no + 1;
+    }
+
+
+    if ( Mode::initial )
+    {
+	Packages::installed= packages_installed;
+    }
+    else
+    {
+	// Everything done, remove that thing.
+	
+	// don't remove it - keep it for debugging 
+	// SCR::Execute (.target.remove, Installation::yast2dir + "/pacs_to_install");
+	// SCR::Execute (.target.remove, Installation::yast2dir + "/package_counter.ycp");	
+    }
+
+    SCR::Execute(.package.closeMedium);    
+    InstMedia::UnmountMedium();
+
+    // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
+    UI::CloseDialog();
+
+    if ( Mode::normal && !packager_called )
+	return `finish;
+    else
+	return `next;
+}

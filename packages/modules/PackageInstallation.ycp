@@ -1,0 +1,271 @@
+/**
+ * Module: 		PackageInstallation.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>	
+ *
+ * Purpose: 		
+ *
+ *
+ * $Id$
+ */
+
+{
+
+    module "PackageInstallation";
+
+    import "Arch";
+    import "AutoInstall";
+    import "Report";
+    import "Mode";
+    import "Installation";
+    import "Version";
+    import "SpaceCalculation";
+    import "InstMedia";
+    import "MediaUI";
+    import "Packages";
+    import "SlideShow";  
+
+    import "Wizard";
+
+    include "showlog_defines.ycp";
+    include "ui/common_popups.ycp";
+
+    include "packages/installationCallback.ycp";
+    
+    textdomain "packages";    
+
+     
+    boolean shutup = false;			// show the disk space warning popup only once
+
+
+    /**
+     * 	global variables
+     */
+    global list error_packages = [];		// list of packages which are not installed (or deleted) correctly
+
+    
+    /**
+     * Constructor()
+     * @return void;
+     *
+     */
+    global define void PackageInstallation() ``{
+	return;
+    }
+
+
+    /**
+     *	Return: `error		-> global list 'error_packages' contains packages which are not deleted
+     *          `ok		-> everything ok
+     *		`cancel		-> user wants to stop the installation
+     *		nil		-> invalid argument
+    **/
+    global define symbol DeletePackages( list delete_list ) ``{
+
+	symbol ret = `ok; 
+
+	// Reset variables
+	shutup = false;
+	error_packages = [];
+	
+	if ( delete_list == [] || delete_list == nil )
+	    return nil;
+    
+	SlideShow::UpdateAllCdProgress( true );		// true: deleting
+
+	if ( !Mode::test )
+	{
+	    ret = CallModule("packager", ["CyclicDeletePkgCallback",
+					  `remove(InstMedia::GetInstPath(), delete_list),
+					  `root(Installation::destdir),
+					  `number(0)]); // number of packages already deleted=0
+	}
+	else
+	{
+	    ret = FakePackager( delete_list,
+				InstMedia::GetInstPath(),
+				true );			// deleting packages
+	}
+
+	y2debug( "DeletePackages: CallModule(packager, ...) returns: %1", ret );
+	
+	SlideShow::UpdateAllCdProgress( false );	// false: no longer deleting
+
+	return ret;
+    };
+	    
+    /**
+     *	Return: `error		-> global list 'error_packages' contains packages which are not installed correctly
+     *          `ok		-> everything ok
+     *		`cancel		-> user wants to stop the installation
+     *		nil		-> invalid argument
+     **/
+    global define symbol InstallPackages( list install_list,
+					  string source_path,
+					  boolean base_system,
+					  integer packages_installed ) ``{
+
+	symbol ret = `ok; 
+
+	// Reset variables
+	shutup = false;
+	error_packages = [];
+	
+	if ( install_list == [] || install_list == nil )
+	    return nil;
+    
+
+	if ( Mode::test )
+	{
+	    ret = FakePackager( install_list,
+				InstMedia::GetInstPath(),
+				false );		// not deleting packages
+	    return ret;
+	}
+
+	SlideShow::StartTimer();
+
+	if ( base_system )
+	{
+	    // scripts are installed manually if installing the base system
+	    ret = CallModule("packager", ["CyclicInstallPkgCallback",
+					  `add(source_path, install_list),
+					  `root(Installation::destdir),
+					  `manual_scripts,	
+					  `number(packages_installed)]);
+	}
+	else
+	{
+	    ret = CallModule("packager", ["CyclicInstallPkgCallback",
+					  `add(source_path, install_list),
+					  `root(Installation::destdir),
+					  `number(packages_installed)]);	
+		
+	}
+
+	SlideShow::StopTimer();
+	
+	y2debug( "InstallPackages: CallModule(packager, ...) returns: %1", ret );
+	
+	return ret;
+    };
+
+    
+    /**
+     * Wrapper function for ChangeMedium: Update statistics along with the
+     * (optional) real Medium change popup.
+     * @param cd_no Number of the Medium to request (from 1 on)
+     * @param show_popup false: no popup, only check for presence of this Medium
+     * @return boolean - passed trough from ChangeMedium (true: OK, false: abort)
+     **/
+    global define boolean ChangeMediumWrapper( integer cd_no, boolean show_popup ) ``{
+	// y2debug( "Requesting Medium #%1", cd_no );
+
+	boolean ret = true;
+
+	if ( cd_no > 1 )
+	{
+	    // release the common.pkd
+	    SCR::Execute(.package.closeMedium);
+	}
+	
+	if ( ! Mode::test )
+	{
+	    ret = MediaUI::ChangeMedium( cd_no, show_popup );
+	}
+	else // Mode::test - do some fake
+	{
+	    ret = true;
+
+	    if ( show_popup )
+	    {
+		// No translation, this is for testing only
+		ret = UI::ContinueCancelPopup( sformat( "%1 #%2 requested (test mode).\n\n"			+
+							"You don't really need a %1 - this is just a fake.\n"	+
+							"You can safely just hit 'Continue'.\n"
+							, InstMedia::medianame, cd_no ) );
+	    }
+	}
+	
+	if ( ret )
+	{
+	    SlideShow::SetCurrentCdNo( cd_no );
+	}
+	SlideShow::UpdateAllCdProgress( false );
+	// y2debug( "ChangeMediumWrapper returning with %1", ret );
+
+	return ret;
+    };
+
+
+
+    //
+    // Fake progress bars for Mode::test
+    //
+    global define symbol FakePackager(  list packages, string inst_source, boolean deleting ) ``{
+	integer disk_usage = 20;
+	integer disk_capacity = 10000;
+	any ret = nil;
+	integer number = 0;
+
+	y2debug( "FakePackager - handling %1 packages", size( packages ) );
+
+	foreach( `pac, packages, ``{
+	    //y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
+
+	    string pkg_name	= pac[0]:"";
+
+	    integer pkg_size 	= SlideShow::GetPackageSize( select(pac, 0, "") );
+	    integer bytes_installed = 0;
+
+	    if ( pkg_size < 0 )
+	    {
+		// pkginfo doesn't know anything about the kernel RPM, so its
+		// size can't be obtained, e.g. pkg_size is -1. To make up for
+		// this, let's assume a negative starting size to keep things
+		// going for a while (this is test_mode only, anyway).
+		bytes_installed = -857 * 1024;
+	    }
+
+	    while  ( bytes_installed < pkg_size && ret != `cancel && ret != `diskfull )
+	    {
+		integer percent = ( 100 * bytes_installed ) / pkg_size;
+		if ( deleting )
+		{
+		    ret = UI::CyclicDeletePkgCallback( pkg_name,
+						       pac[1]:"",
+						       percent,
+						       number,
+						       disk_usage,
+						       disk_capacity,
+						       false );	// error
+		}
+		else
+		{
+		    ret = UI::CyclicInstallPkgCallback( pkg_name,
+							pac[1]:"",
+							percent,
+							number,
+							disk_usage,
+							disk_capacity,
+							false );	// error
+		}
+		sleep ( 300 ); // millisec
+		bytes_installed = bytes_installed + 300 * 1024;
+	    }
+	    disk_usage = disk_usage+1;
+	    number = number+1;
+
+	} );
+
+	if	( ret == `cancel || ret == `abort )	ret = `cancel;
+	else if ( ret == `diskfull )			ret = `diskfull;
+	else						ret = `ok;
+
+	y2debug( "FakePackager returning with %1", ret );
+	return ret;
+    };
+
+
+
+}

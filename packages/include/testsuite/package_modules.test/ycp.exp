@@ -1,0 +1,12 @@
+#
+# ycp.exp
+# 'main' file for all ycp tests
+#
+
+# get all files matching tests/*.ycp
+
+set filenames [glob $srcdir/tests/*.ycp]
+
+# foreach file, call tests-run (from testsuite/lib)
+
+foreach file $filenames { tests-run $srcdir $file }
