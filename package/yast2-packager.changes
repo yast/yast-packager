@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 28 16:41:21 CEST 2003 - arvin@suse.de
+
+- run inst_rpmcopy during update after reboot
+
+-------------------------------------------------------------------
 Tue Aug 26 14:44:16 CEST 2003 - msvec@suse.cz
 
 - add a proper error reporting (#29325)
