@@ -32,8 +32,8 @@
     global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
     global integer	max_time_per_cd		= 7200;	// const - seconds to cut off predicted time (it's bogus anyway)
     global integer	next_recalc_time	= -1;
-    global integer 	current_src_no 		= 1;	// 1..n
-    global integer 	current_cd_no 		= 1;	// 1..n
+    global integer 	current_src_no 		= -1;	// 1..n
+    global integer 	current_cd_no 		= -1;	// 1..n
     global integer	total_cd_count		= 0;
     global boolean	unit_is_seconds		= false;	// begin with package sizes
     global integer	bytes_per_second	= 1;
@@ -53,14 +53,14 @@
     global boolean	init_pkg_data_complete	= false;
     global boolean	widgets_created		= false;
     global boolean	cd_statistics_created	= false;
-    global boolean	enable_slide_show_cache	= nil;
+    boolean		user_switched_to_details = false;
 
 
 
     /**
      * Constructor
      **/
-    global define void SlideShow()
+    global void SlideShow()
     {
 	y2milestone ( "SlideShow constructor" );
 	next_recalc_time	= time();
@@ -70,7 +70,7 @@
     /**
      * Start the internal (global) timer.
      **/
-    global define void StartTimer()
+    global void StartTimer()
     {
 	start_time = time();
     }
@@ -79,7 +79,7 @@
     /**
      * Reset the internal (global) timer.
      **/
-    global define void ResetTimer()
+    global void ResetTimer()
     {
 	start_time = time();
     }
@@ -88,7 +88,7 @@
     /**
      * Stop the internal (global) timer and account elapsed time.
      **/
-    global define void StopTimer()
+    global void StopTimer()
     {
 	if ( start_time < 0 )
 	{
@@ -111,7 +111,7 @@
      * necessary.
      * @return number as two-digit string
      **/
-    define string FormatTwoDigits( integer x )
+    string FormatTwoDigits( integer x )
     {
 	string str = sformat( "%1", x );
 	return size( str ) < 2 ? "0" + str : str;
@@ -124,7 +124,7 @@
      * @param unit_is_seconds true if 'remaining' are seconds, false if bytes
      * @return string human readable remaining time or byte / kB/ MB size
      **/
-    define string FormatRemaining( integer remaining, boolean unit_is_seconds )
+    string FormatRemaining( integer remaining, boolean unit_is_seconds )
     {
 	if ( remaining <  0 )
 	{
@@ -159,7 +159,7 @@
      * @param pkg_size		package size in bytes
      * @return RichText string that can be put into RichText widget
      **/
-    define string FormatPackageDescription( string 	pkg_name,
+    string FormatPackageDescription( string 	pkg_name,
 					    string 	pkg_description,
 					    integer 	pkg_size,
 					    boolean	deleting )
@@ -211,7 +211,7 @@
      * This is a low level function; use the corresponding high level
      * function, if possible: SlideShowLoadSlide()
      **/
-    global define void SetImageUI( byteblock imagedata )
+    global void SetImageUI( byteblock imagedata )
     {
 	if (imagedata == nil)
 	{
@@ -229,7 +229,7 @@
      * Get a list of available slides (images) for the slide show.
      * @return list slides
      **/
-    define list<string> GetSlideList()
+    list<string> getSlideList()
     {
 	list<string> slide_list = (list<string>) SCR::Read (.target.dir, slide_pic_path);
 
@@ -266,56 +266,57 @@
      * Check if the slide show is available. This must be called before trying
      * to access any slides; some late initialization is done here. 
      **/
-    global define boolean EnableSlideShow()
+    global boolean checkForSlides()
     {
-	if ( enable_slide_show_cache == nil )
-	{
-	    enable_slide_show_cache = false;
+	slides = [];
 	
-	    // FIXME: ugly hack
-	    map tmp1 = (map) WFM::Read (.local.stat, slide_base_path);
-	    if (!tmp1["isdir"]:false)
+	// FIXME: ugly hack
+	map tmp1 = (map) WFM::Read (.local.stat, slide_base_path);
+	if (!tmp1["isdir"]:false)
+	{
+	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+	}
+
+	if ( Mode::test )
+	{
+	    y2debug( "Test mode" );
+	    slide_base_path 	= "/suse/sh/fake-cd1/suse/setup/slide";
+	    initial_recalc_delay	= 10;
+	    recalc_interval		= 15;
+	    slide_min_interval	= 5;
+	}
+
+
+	if ( Mode::initial || Mode::cont )
+	{
+	    map disp = UI::GetDisplayInfo();
+
+	    if (disp != nil		// This shouldn't happen, but who knows?
+		&& disp["HasImageSupport"]:false
+		&& disp["DefaultWidth"]:-1	>= 800
+		&& disp["DefaultHeight"]:-1	>= 600
+		&& disp["Depth"]:-1		>= 8  )
 	    {
-		slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+		// y2debug( "Display OK for slide show: %1", disp );
+
+		slide_pic_path	= slide_base_path + "/pic";
+		slide_txt_path	= slide_base_path + "/txt";
+		slides		= getSlideList();
 	    }
-
-	    if ( Mode::test )
+	    else
 	    {
-		y2debug( "Test mode" );
-		slide_base_path 	= "/suse/sh/fake-cd1/suse/setup/slide";
-		initial_recalc_delay	= 10;
-		recalc_interval		= 15;
-		slide_min_interval	= 5;
-	    }
-
-
-	    if ( Mode::initial || Mode::cont )
-	    {
-		map disp = UI::GetDisplayInfo();
-
-		if (disp != nil		// This shouldn't happen, but who knows?
-		    && disp["HasImageSupport"]:false
-		    && disp["DefaultWidth"]:-1	>= 800
-		    && disp["DefaultHeight"]:-1	>= 600
-		    && disp["Depth"]:-1		>= 8  )
-		{
-		    // y2debug( "Display OK for slide show: %1", disp );
-
-		    slide_pic_path	= slide_base_path + "/pic";
-		    slide_txt_path	= slide_base_path + "/txt";
-		    slides		= GetSlideList();
-		    enable_slide_show_cache = size( slides ) > 0;
-		}
-		else
-		{
-		    y2warning( "Disabling slide show - insufficient display capabilities: %1", disp );
-		}
+		y2warning( "Disabling slide show - insufficient display capabilities: %1", disp );
 	    }
 	}
 
-	return enable_slide_show_cache;
+	
     }
 
+
+    boolean haveSlides()
+    {
+	return size( slides ) > 0;
+    }
 
 
     /**
@@ -323,7 +324,7 @@
      * @param image_file_name file name + path of the image file (PNG etc.)
      * @return true if OK, false if error
      **/
-    define boolean LoadSlideImage( string image_file_name )
+    boolean LoadSlideImage( string image_file_name )
     {
 	byteblock image_data = (byteblock) SCR::Read (.target.byte, [image_file_name, #[]] );
 
@@ -345,7 +346,7 @@
      * Set the slide show text.
      * @param text
      **/
-    define void SetSlideText( string text )
+    void SetSlideText( string text )
     {
 	UI::ChangeWidget(`id(`description), `Value, text );
     }
@@ -357,7 +358,7 @@
      * @param text_file_name file name + path of the text file (rich text / HTML)
      * @return true if OK, false if error
      **/
-    define boolean LoadSlideText( string text_file_name )
+    boolean LoadSlideText( string text_file_name )
     {
 	string text = (string) SCR::Read (.target.string, [text_file_name, ""] );
 
@@ -381,7 +382,7 @@
      * @param pkg_name name of the package without path and ".rpm" extension
      * @return version string
      **/
-    global define string StripReleaseNo( string pkg_name )
+    global string StripReleaseNo( string pkg_name )
     {
 	integer build_no_pos = findlastof (pkg_name, "-" );	// find trailing build no.
 
@@ -399,7 +400,7 @@
      * set media type "CD" or "DVD"
      *
      */
-    global define void SetMediaType (string mediatype)
+    global void SetMediaType (string mediatype)
     {
 	media_type = mediatype;
     }
@@ -407,7 +408,7 @@
     /**
      *
      */
-    global define void setSlideDir (string dir)
+    global void setSlideDir (string dir)
     {
 	slide_base_path = dir;
 
@@ -425,7 +426,7 @@
      * running, so this cannot be reliably done from the constructor in all
      * cases.
      **/
-    global define void InitPkgData()
+    global void InitPkgData()
     {
 	if ( init_pkg_data_complete )
 	{
@@ -468,7 +469,7 @@
      * @param silent	don't complain in log file
      * @return 		true if OK, false if any error
      **/
-    define boolean SanityCheck( boolean silent )
+    boolean SanityCheck( boolean silent )
     {
 	if ( ! init_pkg_data_complete )
 	{
@@ -487,7 +488,7 @@
      * package providal start
      *
      */
-    global define void SlideProvideStart (string pkg_name)
+    global void SlideProvideStart (string pkg_name)
     {
 	if ( ! SanityCheck( false ) )	return;
 	if ( !showing_details )		return;
@@ -495,23 +496,11 @@
 
     }
 
-    /**
-     * Set the current source and CD number. Must be called for each CD change.
-     * src_no : 1...n
-     * cd_no: 1...n
-     **/
-    global define void SetCurrentCdNo( integer src_no, integer cd_no )
-    {
-	y2milestone ("SetCurrentCdNo(%1,%2)", src_no, cd_no);
-	current_src_no = src_no;
-	current_cd_no  = cd_no;
-    }
-
 
     /**
      * Set the curent language. Must be called once during initialization.
      **/
-    global define void SetLanguage( string new_language )
+    global void SetLanguage( string new_language )
     {
 	language = new_language;
     }
@@ -522,7 +511,7 @@
      * Update internal bookkeeping: subtract size of one package from the
      * global list of remaining sizes per CD
      **/
-    define void SubtractPackageSize( integer pkg_size )
+    void SubtractPackageSize( integer pkg_size )
     {
 	integer remaining = remaining_sizes_per_cd [ current_src_no-1, current_cd_no-1 ]: 1;
 	remaining = remaining - pkg_size;
@@ -545,7 +534,7 @@
      * @param src_no number of the installation source (from 0 on)
      * @param cd_no number of the CD within that installation source (from 0 on)
      **/
-    define string CdProgressId( integer src_no, integer cd_no )
+    string CdProgressId( integer src_no, integer cd_no )
     {
 	return sformat( "Src %1 CD %2", src_no, cd_no );
     }
@@ -560,7 +549,7 @@
      * @param force_recalc force recalculation even if timeout not reached yet
      * @return true if recalculated, false if not
      **/
-    define boolean RecalcRemainingTimes( boolean force_recalc )
+    boolean RecalcRemainingTimes( boolean force_recalc )
     {
 	if ( ! force_recalc
 	    && time() < next_recalc_time )
@@ -713,7 +702,7 @@
      *
      * @return term widget description for the CD statistics
      **/
-    define term CdStatisticsWidgets( list<list <integer> > cd_remaining, integer current_src, integer current_cd,
+    term CdStatisticsWidgets( list<list <integer> > cd_remaining, integer current_src, integer current_cd,
 				     boolean unit_is_seconds, boolean deleting )
     {
 	y2debug ("CdStatisticsWidgets(%1,%2,%3, ...)", cd_remaining, current_src, current_cd);
@@ -796,7 +785,7 @@
     /**
      * Replace the widgets for the CD statistics. Vital after each CD change.
      **/
-    define void ReplaceCdStatistics( list<list<integer> > cd_remaining, integer current_src, integer current_cd,
+    void ReplaceCdStatistics( list<list<integer> > cd_remaining, integer current_src, integer current_cd,
 				     boolean unit_is_seconds, boolean deleting )
     {
 	UI::ReplaceWidget( `id(`rep_cd_statistics),
@@ -811,7 +800,7 @@
      *
      * @param deleting Flag: deleting or installing packages?
      **/
-    global define void UpdateAllCdProgress( boolean deleting )
+    global void UpdateAllCdProgress( boolean deleting )
     {
 	if ( ! SanityCheck( true ) )	return;
 	if ( ! widgets_created )	return;
@@ -850,7 +839,7 @@
      * Update progress widgets for the current CD: Label and ProgressBar.
      * Use global statistics variables for that.
      **/
-    global define void UpdateCurrentCdProgress()
+    global void UpdateCurrentCdProgress()
     {
 	if ( ! SanityCheck( false ) ) return;
 
@@ -928,7 +917,7 @@
      * Switch unit to seconds if necessary and recalc everything accordingly.
      * @return true if just switched from sizes to seconds, false otherwise
      **/
-    define boolean SwitchToSecondsIfNecessary()
+    boolean SwitchToSecondsIfNecessary()
     {
 	if (unit_is_seconds
 	    || time() < start_time + initial_recalc_delay )
@@ -947,7 +936,7 @@
      * Load a slide image + text.
      * @param slide_no number of slide to load
      **/
-    define void LoadSlide (integer slide_no)
+    void LoadSlide (integer slide_no)
     {
 	if ( slide_no > size( slides ) )
 	{
@@ -984,7 +973,7 @@
      * Check if the current slide needs to be changed and do that if
      * necessary.
      **/
-    define void ChangeSlideIfNecessary()
+    void ChangeSlideIfNecessary()
     {
 	if (current_slide_no + 1 < size( slides )
 	    && time() > slide_start_time + slide_interval )
@@ -1003,7 +992,7 @@
      * @param pkg_description	package description
      * @param deleting		Flag: deleting (true) or installing (false) package?
      **/
-    global define void SlideDisplayStart (string 	pkg_name,
+    global void SlideDisplayStart (string 	pkg_name,
 					  string 	pkg_description,
 					  integer	pkg_size,
 					  boolean	deleting	)
@@ -1088,7 +1077,7 @@
      *
      * @param pkg_percent	package percentage
      **/
-    global define void SlideDisplayProgress (integer pkg_percent)
+    global void SlideDisplayProgress (integer pkg_percent)
     {
 	if ( ! SanityCheck( false ) )	return;
 
@@ -1102,7 +1091,7 @@
      * Return a term to create the usual wizard buttons.
      * @return term widget description for the wizard buttons
      **/
-    define term WizardButtons()
+    term WizardButtons()
     {
 	return `HBox(
 		     `PushButton(`id(`back),  Label::BackButton() ),
@@ -1120,7 +1109,7 @@
      * Open the slide show base dialog with empty work area (placeholder for
      * the image) and CD statistics.
      **/
-    define void OpenSlideShowBaseDialog()
+    void OpenSlideShowBaseDialog()
     {
 	showing_details = false;
 	UI::OpenDialog( `opt(`defaultsize),
@@ -1176,7 +1165,7 @@
     /**
      * Switch from the 'details' view to the 'slide show' view.
      **/
-    global define void SwitchToSlideShowView()
+    global void SwitchToSlideShowView()
     {
 	showing_details = false;
 	// PushButton that switches from slide show to technical installation
@@ -1193,20 +1182,14 @@
     /**
      * Switch from the 'slide show' view to the 'details' view.
      **/
-    global define void SwitchToDetailsView()
+    global void SwitchToDetailsView()
     {
 	showing_details = true;
 
-	if ( EnableSlideShow() )
-	{
-	    // PushButton that switches from technical installation details to slide show
-	    UI::ReplaceWidget(`id(`rep_toggle_view), `PushButton(`id(`slide_show_view), _("&Slide Show...") ) );
-	    UI::SetFocus(`id(`slide_show_view) );
-	}
-	else	// No slide show available
-	{
-	    UI::ReplaceWidget(`id(`rep_toggle_view), `Empty() );
-	}
+	// PushButton that switches from technical installation details to slide show
+	UI::ReplaceWidget(`id(`rep_toggle_view), `PushButton(`id(`slide_show_view), _("&Slide Show...") ) );
+	UI::SetFocus(`id(`slide_show_view) );
+	UI::ChangeWidget(`slide_show_view, `Enabled,haveSlides() );
 
 	UI::ReplaceWidget(`id(`rep_text_area), `LogView(`id(`inst_log),
 							// Headline above installation log with package name + short description for each package
@@ -1236,18 +1219,56 @@
     }
 
 
+    /**
+     * Set the current source and CD number. Must be called for each CD change.
+     * src_no : 1...n
+     * cd_no: 1...n
+     **/
+    global void SetCurrentCdNo( integer src_no, integer cd_no )
+    {
+	checkForSlides();
+	    
+	if ( haveSlides() )
+	{
+	    if ( ! user_switched_to_details ) // Don't override explicit user request!
+	    {
+		if ( src_no != current_src_no || cd_no != current_cd_no ) // Avoid flicker
+		{
+		    SwitchToSlideShowView();
+		    LoadSlide(0);
+		}
+	    }
+	}
+	else
+	{
+	    if ( ! showing_details )
+		SwitchToDetailsView();
+	    
+	    current_slide_no = 0;
+	}
+
+	if ( UI::WidgetExists(`slide_show_view ) )
+	    UI::ChangeWidget(`slide_show_view, `Enabled, haveSlides() );
+	
+	y2milestone ("SetCurrentCdNo(%1,%2)", src_no, cd_no);
+	current_src_no = src_no;
+	current_cd_no  = cd_no;
+    }
+
 
     /**
      * Process (slide show) button press.
      **/
-    global define void ProcessButtonPress( any button )
+    global void ProcessButtonPress( any button )
     {
 	if ( button == `details_view && ! showing_details )
 	{
+	    user_switched_to_details = true;
 	    SwitchToDetailsView();
 	}
 	else if ( button == `slide_show_view && showing_details )
 	{
+	    user_switched_to_details = false;
 	    SwitchToSlideShowView();
 	    LoadSlide (current_slide_no);
 	}
@@ -1258,7 +1279,7 @@
      * Install callbacks for slideshow. Should be in SlideShowCallbacks but
      * that doesn't work at the moment.
      */
-    global define void InstallSlideShowCallbacks()
+    global void InstallSlideShowCallbacks()
     {
 
 	y2milestone ( "InstallSlideShowCallbacks" );
@@ -1279,7 +1300,7 @@
      * Remove callbacks for slideshow. Should be in SlideShowCallbacks but
      * that doesn't work at the moment.
      */
-    global define void RemoveSlideShowCallbacks()
+    global void RemoveSlideShowCallbacks()
     {
 
 	y2milestone ( "RemoveSlideShowCallbacks" );
@@ -1299,20 +1320,17 @@
     /**
      * Open the slide show dialog.
      **/
-    global define void OpenSlideShowDialog()
+    global void OpenSlideShowDialog()
     {
 	InstallSlideShowCallbacks();
 
 	OpenSlideShowBaseDialog();
+	checkForSlides();
 
-	if ( EnableSlideShow() )
-	{
+	if ( haveSlides() )
 	    LoadSlide (0);
-	}
 	else
-	{
 	    SwitchToDetailsView();
-	}
 
 	UpdateAllCdProgress( false );	// false: not deleting
     }
@@ -1321,7 +1339,7 @@
     /**
      * Close the slide show dialog.
      **/
-    global define void CloseSlideShowDialog()
+    global void CloseSlideShowDialog()
     {
 	UI::CloseDialog();
 
