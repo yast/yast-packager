@@ -537,7 +537,7 @@ Packages from this media cannot be installed."), orderdir),
 		    return false;
 		});
 
-                string servicepack_metadata = "/tmp/servicepack.tar.gz";
+                string servicepack_metadata = "/servicepack.tar.gz";
                 boolean servicepack_available = false;
                 if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
                 {
