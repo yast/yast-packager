@@ -40,7 +40,7 @@
     */
    global define void StartInstall (string name, string summary, integer installsize, boolean is_delete)
    ``{
-	DisplayStartInstall ( name, summary, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
+	DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
 	return;
    }
 
@@ -101,6 +101,7 @@
      **/
     global define symbol DisplayStartInstall ( string  pkg_name,
 					    string  pkg_description,
+					    integer pkg_size,
 					    integer disk_usage,
 					    integer disk_capacity,
 					    boolean deleting )
@@ -108,7 +109,7 @@
 
 	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
 
-	SlideShow::SlideDisplayStart ( pkg_name, pkg_description, deleting );
+	SlideShow::SlideDisplayStart ( pkg_name, pkg_description, pkg_size, deleting );
 
 	integer how_much = (disk_usage * 100) / disk_capacity;
 
