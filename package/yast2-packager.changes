@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 12 15:13:58 CET 2004 - sh@suse.de
+
+- Fixed bug #34973: No slide show
+  Now doing late initialization to overcome initialization dependencies 
+
+-------------------------------------------------------------------
 Wed Mar 10 01:53:14 CET 2004 - sh@suse.de
 
 - V 2.9.23
