@@ -12,39 +12,53 @@
   string architecture = SCR(`Read(.probe.architecture));
   user_settings = add (user_settings, "architecture", architecture );
 
-  string msg_str = "";
+  _debug( "SW_SINGLE called with Args(0): ", Args(0) );
+  string msg_beginner = "";
+  string msg_expert = "";
   
-  string msg_str11 =   UI(_( "<P>Launch this module to install additional packages or
+  string msg_str11 =   UI(_( "<p>Launch this module to install additional packages or
 remove installed ones.
 For installing commercial software also launch this module and select
 set 'pay' from list of package sets.
-</P>" ));
-  string msg_str12 = UI(_( "<p>Please insert <b>CD 1</b> for CD installation.<br>
-Data required for installation over network or from harddisk
-will be asked in separate dialog." ));
+</p>" ));
+
+  string msg_str12 = UI(_( "<p>Please insert <b>CD 1</b> before proceeding.</p>"
+			   ));
+
+  string msg_str13 = UI(_("<p>Launch this module if you want to choose the
+source of installation. It is possible to install packages from CD,
+via network or from harddisk. 
+</p>" ) );
   
-  string msg_str2 = UI(_( "<P>You need to be logged in as <i>root</i> in order to
+  string msg_str21 = UI(_( "<P>You need to be logged in as <i>root</i> in order to
 do this.</P>"));
 
-  if ( architecture != "s390" )
-  {
-      msg_str = msg_str11 + msg_str12 + msg_str2;
-  }
-  else
-  {
-      msg_str = msg_str11 + msg_str2;
-  }
+
+  msg_beginner = msg_str11 + msg_str12 + msg_str21;
+  msg_expert = msg_str13 + msg_str21;
   
   // Menuentry for the YaST2 menu
   if (Args() == [ "get_menuentry" ]) 
+  {
       return [ 
 	      "sw_single", $[
-			     "menuentry"    : UI(_("Install/Remove packages")),
-			     "arguments"    : [ ],
-			     "widget"       : `RichText(msg_str),
+			     "menuentry"    : UI(_("Install/Remove software")),
+			     "arguments"    : ["beginner"],
+			     "widget"       : `RichText(msg_beginner),
 			     "codefragment" : nil ]
       ];
-
+  }
+  else if (Args() == [ "get_menuexpert" ])
+  {
+      return [
+	      "sw_single", $[
+			     "menuentry"    : UI(_("Choose source of installation")),
+			     "arguments"    : [],
+			     "widget"       : `RichText(msg_expert),
+			     "codefragment" : nil ]
+      ];
+  }
+  
   UI(``{
       /**
        * Create a typical installation wizard dialog.
@@ -238,11 +252,6 @@ do this.</P>"));
 
   });
 
-  // map user_settings contains:
-  // - install_info -> module inst_rpmcopy
-  // - delete_info  -> module inst_rpmcopy
-  // - continue_mode -> module inst_rpmcopy
-  // - language -> module inst_rpmcopy
   
   string language = UI( `GetLanguage() );
 
@@ -284,9 +293,10 @@ do this.</P>"));
   installMap = add (installMap, "cdrom", "cdrom" );
   user_settings = add( user_settings, "installMap", installMap );
 
-  // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
-  // user_settings = add(user_settings, "test_mode", true );
-  // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
+  if (size(Args()) > 0 && Args(0) == .test)
+  {
+      user_settings = add(user_settings, "test_mode", true );
+  }
   
   //
   // Get informations for initialisation of PKGINFO server
@@ -340,26 +350,27 @@ do this.</P>"));
 
   integer id = 0;
   any result = `next;
-  boolean going_forward = true;
+
+  _debug("ARGS(0): ", Args(0) );
+  boolean skip_source = false;
   
-  // if CD 1 is already inserted, skip module inst_source
-  if ( lookup( ChangeCD( 1, architecture, false ), "success", false ) || size(Args() ) > 0 )
+  // do not call inst_source if sw_single is called with Arg "beginner" or pathname
+  if ( size( Args() ) > 0 && Args(0) == "beginner" )
   {
+      skip_source = true;
       id = id + 1;
   }
 
-  // TODO: evtl. anderes Popup bei Abort
   while ((id >= 0) && (id < size (dialog))) {
 
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
       {
 	  // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
-	  map resMap = ChangeCD( 1, architecture, true);
-	  boolean go_on = lookup ( resMap, "success", false );
+	  boolean go_on  = ChangeCD( 1, true);
 
 	  if ( !go_on )
 	  {
-	      // quit dialog
+	      // quit dialog (CD 1 cannot be skipped)
 	      UI( `CloseDialog() );      
 	      return `cancel;
 	  }
@@ -375,7 +386,8 @@ do this.</P>"));
 						  "partition":part_input, "rootpath":"/",
 						  "yastpath":"/var/lib/YaST",
 						  "update":true,
-						  "memoptimized":true]
+						  "memoptimized":true,
+						  "forceInit":true]		// force initialisation
 						 ));
 
 	  UI(`CloseDialog());	  
@@ -384,7 +396,7 @@ do this.</P>"));
 
           // There could be a list of packages which have to be installed.
 	  // ( Defined in an ascii-file, which path is given via argument. )
-	  if ( size(Args() ) > 0 )
+	  if ( size(Args() ) > 0 && Args(0) != "beginner" )
 	  {
 	      string pathname = Args(0);
 
@@ -496,7 +508,6 @@ do this.</P>"));
       }
       else if (result == `auto)
       {
-	  // inst_source returns `auto if there is already inserted a CD -> go to inst_sw_single
 	  // inst_suseconfig returns `auto -> last module, dialog loop ends
 	  id = id + 1;			
       }
@@ -528,11 +539,22 @@ do this.</P>"));
 	      id = id+3;
 	  }
       }
-      else if (result == `back || result == `cancel_single )
+      else if (result == `back)
       {
-	  going_forward = false;
 	  id = id - 1;
       }
+      else if (result == `cancel_single)
+      {
+	  if ( !skip_source )
+	  {
+	      id = id - 1; 
+	  }
+	  else
+	  {
+	      id = id - 2;
+	  }
+      }
+      
   }
 
   UI(`CloseDialog());
