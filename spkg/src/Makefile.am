@@ -5,7 +5,7 @@
 modulesdir = $(YAST2DIR)/clients
 menudir = $(YAST2DIR)/menuentries
 
-modules_SCRIPTS =
+modules_SCRIPTS = sw_single.ycp
 
 menu_SCRIPTS = menuentry_sw_single.ycp
 
