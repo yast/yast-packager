@@ -42,19 +42,6 @@
      */
     global list error_packages = [];		// list of packages which are not installed (or deleted) correctly
 
-
-    /**
-     * progress callback
-     * !!! must be in same namespace (== module) as the call
-     * to Pkg::TargetInstall() !!!
-     */
-
-    global define void progressCallback (integer percent)
-    ``{
-	y2milestone ("progressCallback");
-	return CyclicUpdateCallback( "package", "description", percent, 1, 10, 100, false, false);
-    }
-
     /**
      * Constructor()
      * @return void;
@@ -164,7 +151,9 @@
 	}
 
 	y2milestone ("Pkg::SetProgressCallback");
-	Pkg::SetProgressCallback ("progressCallback");
+	Pkg::SetProgressCallback ("CallbackDisplayProgress");
+
+	SlideShow::UpdateAllCdProgress (false);
 
 	boolean correct_media = true;			// FIXME
 	boolean skip_media = false;
@@ -226,12 +215,19 @@
 	    if (location != nil)
 	    {
 		y2milestone ("Installing %1", pkgname);
+
+		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
+
 		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
 		if (localpath != nil)
 		{
+		    // this does the progress callback !
 		    boolean ok = Pkg::TargetInstall (localpath);
 		    if (!ok)
+		    {
+			CallbackDisplayError (pkgname);
 			error_packages = add (error_packages, pkgname);
+		    }
 		    else
 			ret = ret + 1;
 		    y2milestone ("install %1", ok);
@@ -274,7 +270,7 @@
 		other_media_nr = other_media_packages[other_media_pos,0]:0;
 		if (other_media_nr > media_number)
 		{
-		    remaining_packages = add (remaining_packages, [other_media_nr, other_media_packages[other_media_pos,1]:""])
+		    remaining_packages = add (remaining_packages, [other_media_nr, other_media_packages[other_media_pos,1]:""]);
 		}
 		other_media_pos = other_media_pos + 1;
 	    }

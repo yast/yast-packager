@@ -319,6 +319,21 @@
 
 
     /**
+     * SetBaseSelection (string base name)
+     */
+
+    global define boolean SetBaseSelection (string basename)
+    ``{
+	list base_selections = Pkg::GetSelections (`selected, "base");
+	string current_base_selection = base_selections[0]:"";
+	if (current_base_selection != "")
+	{
+	    Pkg::ClearSelection (current_base_selection);
+	}
+	Pkg::SetSelection (basename);
+    }
+
+    /**
      * Proposal()
      * Make a proposal for package selection
      * @return map for the API proposal;
@@ -350,6 +365,7 @@
 	// start with base selections
 
 	y2milestone ("checking selected selection");
+
 	list base_selections = Pkg::GetSelections (`selected, "base");
 	string selected_base_selection = base_selections[0]:"";
 
@@ -373,12 +389,11 @@
 		selected_base_selection = available_base_selections[counter]:"";
 
 		y2milestone ("Checking space for %1", selected_base_selection);
-		Pkg::SetSelection (selected_base_selection);
+		SetBaseSelection (selected_base_selection);
 
 		if ( !SpaceCalculation::CheckDiskSize() )
 		{
 		    // does not fit --> trying next
-		    Pkg::ClearSelection (selected_base_selection);
 		    counter = counter +1;
 		}
 		else
