@@ -253,6 +253,11 @@ do this.</P>"));
 
   });
 
+  define fileFound( string pathname ) ``{
+
+        string fileCommand = "test -f " + pathname;
+	return ( SCR(`Execute( .shell, fileCommand )) == 0 );
+  };
   
   string language = UI( `GetLanguage() );
 
@@ -321,40 +326,63 @@ do this.</P>"));
 
   boolean skip_source = false;
   
-  // do not call inst_source if sw_single is called with Arg "beginner" or Arg = file with package list
+  // sw_single is called with argument "beginner" or with a package list or package name
+  // -> skip inst_source (if possible)
+  
   if ( size( Args() ) > 0 )
   {
-      if ( Args(0) == "beginner" )
-      {
-	  boolean go_on = ChangeCD( 1, false);
+      boolean go_on = ChangeCD( 1, false);
 	  
-	  if ( !go_on )
-	  {
-	      any ret = UI(`ContinueCancel(_("No access to source media used on previous installation.
+      if ( !go_on )
+      {
+	  any ret = UI(`ContinueCancel(_("No access to source media used on previous installation.
 Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 
-	      if ( ret )		// choose new installation source
+	  if ( ret )		// choose new installation source
+	  {
+	      skip_source = false;
+	      id = 0;
+	  }
+	  else			// exit the installation dialog
+	  {
+	      UI(`CloseDialog() );
+	      return `cancel;
+	  }
+      }
+      else			// mount ok on previos media -> skip inst_source
+      {
+	  string postfix =  substring( Args(0), size(Args(0))-4 );
+	  _debug("POSTFIX: ", postfix );
+	  
+	  if ( Args(0) != "beginner" && postfix == ".rpm" )
+	  {
+	      if ( fileFound( Args(0) ) )
 	      {
-		  skip_source = false;
-		  id = 0;
+		  // prepare for inst_rpmcopy !!!
+		  map installMap = $[];
+		  installMap = add(installMap, "bootmode", "Harddisk" );
+		  user_settings = add(user_settings, "continue_mode", true );
+		  user_settings = add(user_settings, "installMap", installMap );
+		  list install_info = [];
+		  // TODO: this_cd_packages: " [["fun2/xtartan.rpm", "xtartan ", 3, false]] 
+		  install_info = add(install_info, Args(0) );
+		  Write("/var/lib/YaST2/pacs_to_install.ycp", install_info);
+
+		  id = id + 2;
 	      }
-	      else			// exit the installation dialog
+	      else
 	      {
-		  UI(`CloseDialog() );
-		  return `cancel;
+		 string message = sformat (UI(_("Package %1 not found.")), Args(0) );
+		 UI(`DisplayMessage(message));  
+		 return `cancel;
 	      }
 	  }
-	  else				// mount ok on previos media -> skip inst_source
+	  else
 	  {
 	      skip_source = true;
 	      id = id + 1;
 	  }
       }
-      else
-      {
-	  skip_source = true;		// sw_single called with package list
-	  id = id + 1;
-      }   
   }
   
   while ((id >= 0) && (id < size (dialog))) {
@@ -405,48 +433,40 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 	      UI(`DisplayMessage(_("The version of SuSE distribution on source media
 must NOT be older than the installed one.
 Please insert actual CD or specify path of actual sources.")));
-	      version_ok = false;
-	  }
-	  else
-	  {
-	      version_ok = true;
+
+	      // continue with inst_source
+	      id = 0;
+	      continue;
 	  }
 
-          // There could be a list of packages which have to be installed.
-	  // ( Defined in an ascii-file, which path is given via argument. )
+          // There could be a list of packages (defined in an ascii-file) or a package name
+	  
 	  if ( size(Args() ) > 0 && Args(0) != "beginner" )
 	  {
 	      string pathname = Args(0);
-
 	      map|any installMap = $[];
 	      
-	      string fileCommand = "test -f " + pathname;
-	      boolean file_found = (Shell(fileCommand) == 0);
-
-	      if ( !file_found )
+	      if ( !fileFound(pathname) )
 	      {
 		  // It could be a single package which have to be installed.
 		  list install_list = [];
 		  install_list = add ( install_list, Args(0) );
 		  installMap = add ( installMap, "install", install_list );
-		  y2log ( .milestone, "sw_single", 1,
-			  sformat ( "package %1 will be installed", Args(0) ));
+		  y2log ( .milestone, "sw_single", 1, sformat ( "package %1 will be installed", Args(0) ));
 	      }
 	      else
 	      {
-		  y2log ( .milestone, "sw_single", 1,
-			  sformat ( "Reading file %1", pathname ) );
+		  y2log ( .milestone, "sw_single", 1, sformat ( "Reading file %1", pathname ) );
 		  installMap = Read ( pathname );
 	      }
-	      y2log ( .milestone, "sw_single", 2,
-		      sformat ( "installMap: %1", installMap ) );
+	      y2log ( .milestone, "sw_single", 2, sformat ( "installMap: %1", installMap ) );
       
 
 	      if ( installMap == nil || size ( installMap ) == 0 )
 	      {
 		  string message = UI(_("Error while reading onfiguration-file."));
 		  UI(`DisplayMessage(message));
-		  ret_single = `cancel;
+		  return `cancel;
 	      }
 	      else
 	      {
@@ -454,12 +474,9 @@ Please insert actual CD or specify path of actual sources.")));
 		  list deleteList = lookup ( installMap, "delete", [] );
 		  boolean userInput = lookup ( installMap, "userInput", false );
 
-		  y2log ( .milestone, "sw_single)", 2,
-			  sformat ( "installList: %1", installList ) );
-		  y2log ( .milestone, "sw_single)", 2,
-			  sformat ( "deleteList: %1", deleteList ) );
-		  y2log ( .milestone, "sw_single)", 2,
-			  sformat ( "userInput: %1", userInput ) );
+		  y2log ( .milestone, "sw_single)", 2, sformat ( "installList: %1", installList ) );
+		  y2log ( .milestone, "sw_single)", 2, sformat ( "deleteList: %1", deleteList ) );
+		  y2log ( .milestone, "sw_single)", 2, sformat ( "userInput: %1", userInput ) );
 
 	  
 		  foreach( `package, installList, ``{
@@ -504,19 +521,13 @@ Please insert actual CD or specify path of actual sources.")));
 		  }
 	      }
 	  }
-	  else if ( version_ok )
+	  else
 	  {
 	      // Calling inst_sw_single
 	      result = CallFunction( `inst_sw_single( `post_install,
 						      `not_only_checked,
 						      part_input ) );
 
-	  }
-	  else
-	  {
-	      // continue with inst_source
-	      id = 0;
-	      continue;
 	  }
       }
       else
