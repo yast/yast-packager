@@ -21,3 +21,4 @@ Exec=/sbin/yast2 checkmedia
 
 Name=Media Check
 GenericName=Verify CD/DVD Media Integrity
+X-KDE-SubstituteUID=true

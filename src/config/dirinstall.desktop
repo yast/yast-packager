@@ -21,3 +21,4 @@ Exec=/sbin/yast2 dirinstall
 
 Name=Installation into Directory
 GenericName=Install System into a Directory
+X-KDE-SubstituteUID=true
