@@ -2,6 +2,8 @@
 Thu Mar 24 13:21:55 CET 2005 - jsrain@suse.cz
 
 - display size of downloaded packages (#74012)
+- warn user and enter single package selection if after setting
+  base selection caused a conflict (#72423)
 
 -------------------------------------------------------------------
 Mon Mar 14 17:50:30 CET 2005 - nashif@suse.de

@@ -31,6 +31,10 @@
 
     include "partitioning/partition_defines.ycp";
 
+/**
+ * True if base selection change causes need to resolve packages conflict
+ */
+boolean need_resolve_conflicts = false;
 
     // ------------------------------------------------------------------------
 
@@ -306,7 +310,7 @@ You will lose that selection if you change the basic selection.");
 
 	    // add additional (internal) packages, like kernel etc.
 	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
-	    Pkg::PkgSolve(false);
+	    need_resolve_conflicts = ! Pkg::PkgSolve(false);
 
 	    string msg = "";
 
@@ -324,6 +328,13 @@ You will lose that selection if you change the basic selection.");
 	    wrn_msg	= "";
 	    UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
 
+	}
+
+	if (ret == `next && need_resolve_conflicts)
+	{
+	    // message popup
+	    Popup::Message (_("There are package conflict which cannot be resolved automatically."));
+	    ret = `details;
 	}
 
 	// call the package selection dialog
