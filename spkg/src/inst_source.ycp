@@ -209,7 +209,7 @@ into one directory.
     // help, continued
     help_text = help_text + _("<p>
 <b>Network</b> installation requires a working network connection.
-Configure YaST2's \"Network/Base\" module first,
+Configure YaST2's \"Network Devices\" module first,
 if required.  Specify the directory where the packages from
 the first CD are located, such as /data1/<b>CD1</b>.
 Only the base path is
