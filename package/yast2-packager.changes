@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 28 17:16:33 CET 2005 - lslezak@suse.cz
+
+- checkmedia - UI fixes: header layout fixed, improved help text,
+  disabled progress bar, use Close button instead of OK (#66642)
+- 2.11.30
+
+-------------------------------------------------------------------
 Sat Feb 26 16:40:38 CET 2005 - nashif@suse.de
 
 - Added missing import

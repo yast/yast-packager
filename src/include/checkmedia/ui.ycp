@@ -51,6 +51,7 @@ define list<term> CDdevices(string preferred) {
 
 define void SetButtonState(boolean running) {
     UI::ChangeWidget(`id(`stop), `Enabled, running);
+    UI::ChangeWidget(`id(`progress), `Enabled, running);
     UI::ChangeWidget(`id(`next), `Enabled, !running);
     UI::ChangeWidget(`id(`start), `Enabled, !running);
     UI::ChangeWidget(`id(`back), `Enabled, !running);
@@ -271,60 +272,78 @@ define void RequireFirstMedium() {
  */
 define symbol MainDialog () {
 
+    // set wizard buttons at first
+    if (!CheckMedia::forced_start)
+    {
+	Wizard::SetNextButton(`next, Label::CloseButton());
+    }
+
+    // set buttons according to mode
+    if (!Stage::initial())
+    {
+	// remove Back button - workflow has only one dialog
+	Wizard::HideBackButton();
+	// remove Abort button - it's useless
+	Wizard::HideAbortButton();
+    }
+
     // umount CD drives (only in the first stage)
     map<string,string> unmountedCD = UnmountCD();
 
     // dialog header
     string caption = _("Media Check");
 
-    // help text - media check (header) 1/6
+    // help text - media check (header) 1/7
     string help = _("<P><B>Media Check</B></P>") +
-    // help text - media check 2/6
+    // help text - media check 2/7
 _("<P>When you have a problem with
 installation and are using a CD or DVD installation medium, you should check
 whether the medium could be broken.</P>
 ") +
 
-    // help text - media check 3/6
-_("<P>Select a drive, insert a medium into the drive, and press <B>Start</B>
+    // help text - media check 3/7
+_("<P>Select a drive, insert a medium into the drive, and press <B>Start Check</B>
 to perform the check. The check can take several minutes depending on
 speed of the drive and size of the medium. The check verifies the MD5 checksum.</P>
 ") +
 
-    // help text - media check 4/6
+    // help text - media check 4/7
 _("<P>If the check of the medium fails, you should not continue the installation.
 It may fail or you may lose your data. You should replace the broken
 medium.</P>
 ") +
 
-    // help text - media check 5/6
+    // help text - media check 5/7
+_("After the check you can insert the next medium and start the procedure again.
+The order of the media is irrelevant.") +
+
+    // help text - media check 6/7
 _("<P><B>Note:</B> You cannot change the medium if it is used by the system. If
 it happens during installation then start manual installation and select media
 verification item in the menu.</P> ") +
 
-    // help text - media check 6/6
+    // help text - media check 7/6
 _("<P>If you burn the media yourselves <B>pad</B> option in a recording software
 should be used. It avoids read errors at the end of media during the check.</P>");
 
 // advice check of the media
-string label = _("It is recommended to check all installation media
-to avoid installation problems.");
+string label = _("It is recommended to check all installation media to avoid installation problems.");
 
     term contents = `VBox(
 	// combobox label
-	CheckMedia::forced_start ? `VBox(`Label(label), `VSpacing(0.6)) : `Empty(),
+	CheckMedia::forced_start ? `VBox(`Left(`Label(label)), `VSpacing(0.6)) : `Empty(),
 	// combo box
 	`Left(`ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive))),
 	`VSpacing(0.4),
 	// widget label
-	`LogView(`id(`log), _("R&esult"), 12, 0),
+	`LogView(`id(`log), _("S&tatus Information"), 12, 0),
 	`VSpacing(0.4),
 	// progress bar label
 	`ProgressBar(`id(`progress), _("Progress")),
 	`VSpacing(1),
 	`HBox(
 	    // push button label
-	    `PushButton(`id(`start), _("&Start")),
+	    `PushButton(`id(`start), _("&Start Check")),
 	    `HSpacing(2),
 	    // push button label
 	    `PushButton(`id(`stop), _("S&top"))
@@ -337,21 +356,6 @@ to avoid installation problems.");
 	help,
 	true, true
     );
-
-    if (!CheckMedia::forced_start)
-    {
-	Wizard::SetNextButton(`next, Label::OKButton());
-    }
-
-    // set buttons according to mode
-    if (!Stage::initial())
-    {
-	// remove Back button - workflow has only one dialog
-	Wizard::HideBackButton();
-	// remove Abort button - it's useless
-	Wizard::HideAbortButton();
-    }
-
 
     symbol ret = nil;
     while (true)
@@ -470,7 +474,7 @@ to avoid installation problems.");
 		}
 
 		// add empty line between outputs
-		UI::ChangeWidget(`id(`log), `LastLine, "\n\n");
+		UI::ChangeWidget(`id(`log), `LastLine, "\n\n\n");
 		// set zero progress
 		UI::ChangeWidget(`id(`progress), `Value, 0);
 	    }
