@@ -501,13 +501,24 @@
     }
 
 
-    global define void StopRebuildDB () ``{
+    global define void StopRebuildDB (integer error_value, string error_text) ``{
+
+	if (error_value != 0)
+	{
+	    // error message, %1 is the cause for the error
+	    Popup::Error (sformat (_("Rebuilding of package database failed:
+%1"), error_text));
+	}
+
 	UI::CloseDialog ();
     }
 
 
-    global define string NotifyRebuildDB () ``{
-	return "fixme";
+    global define void NotifyRebuildDB (string error_text) ``{
+
+	Popup::Error (sformat (_("Error rebuilding database:
+%1"), error_text));
+
     }
 
 
@@ -516,7 +527,6 @@
 	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
 	Pkg::CallbackStopRebuildDb ("PackageCallbacks::StopRebuildDB");
 	Pkg::CallbackNotifyRebuildDb ("PackageCallbacks::NotifyRebuildDB");
-	return;
     }
 
 
@@ -562,9 +572,7 @@
 	{
 	    // error message, %1 is the cause for the error
 	    Popup::Error (sformat (_("Conversion of package database failed:
-%1
-"),
-				   error_text));
+%1"), error_text));
 	}
 
 	UI::CloseDialog ();
