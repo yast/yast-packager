@@ -564,14 +564,11 @@
 	    import "PackageCallbacks";
 	    import "SlideShowCallbacks";
 
-	    // This text should be translated after 8.0.
-	    // Currently this error should only occured while developping.
+	    // an error message
 	    string errortext = _("Error while initializing package descriptions.
 Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastError();
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1, false);
 	}
-
-	return;
     }
 
     /**
