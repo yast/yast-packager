@@ -106,6 +106,7 @@
 	    // $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
 	    list mounts = SCR::Read (.proc.mounts);
 	    y2milestone ("mounts %1", mounts);
+	    list directories = [];
 	    list partitions = [];
 	    foreach (`mpoint, mounts,
 	    ``{
@@ -119,10 +120,13 @@
 		    {
 			integer used = Pkg::TargetUsed (name);
 			partitions = add (partitions, $["name" : name, "free" : capacity-used, "used" : used]);
+			directories = add (directories, name);
 		    }
 		}
 	    });
+	    Pkg::TargetDUInit (directories);
 	    y2milestone ("partitions: %1", partitions);
+	    y2milestone ("directories: %1", directories);
 	    return partitions;
 
 	} // !Mode::initial
@@ -133,6 +137,7 @@
 	    targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
 	}
 
+	list directories = [];
 	list(map) target_partitions = [];
 	integer spare_percentage  = 14;   // percentage of free spare space on every partition
 	integer min_spare 	= 2048; // minimum free space ( 2 MB )
@@ -184,10 +189,8 @@
 		    {
 			target_partitions = add ( target_partitions, $["name":part["mount"]:"",
 									"used":0,
-									"free":free_size,
-									"format":part["format"]:false,
-									"region":part["region"]:[],
-									"used_fs":part["used_fs"]:`unknown ] );
+									"free":free_size);
+			directories = add (directories, part["mount"]:"");
 		    }
 		    else
 		    {
@@ -205,18 +208,18 @@
 
 			target_partitions = add ( target_partitions, $["name":part_name,
 									"used":0,
-									"free":free_size,
-									"format":part["format"]:false,
-									"region":part["region"]:[],
-									"used_fs":part["used_fs"]:`unknown ] );
+									"free":free_size);
+			directories = add (directories, part_name);
 		    }
 
 		}
 	    }
 	} ); // foreach (`part)
-        } ); // foreach (`disk)
+	} ); // foreach (`disk)
 
-	y2debug( "get_partition_info: %1", target_partitions );
+	y2milestone( "get_partition_info: %1", target_partitions );
+	y2milestone( "get_partition_info: %1", directories);
+	Pkg::TargetDUInit (directories);
 
 	return ( target_partitions );
     };
