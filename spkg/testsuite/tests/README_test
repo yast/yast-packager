@@ -26,7 +26,10 @@ Command line:
 -> 3d_chess wird installiert, xroach, tuxeyes werden gelöscht
  
 > /sbin/yast2 sw_single \(\"jpilot\"\)
+-> jpilot + AND deps werden installiert
 
+> /sbin/yast2 sw_single  \"/usr/local_src/yast2/modules/y2c_spkg/testsuite/gnuchess.rpm\"
+-> gnuchess wird ohne dependency check installiert
 
 make check test cases:
 ++++++++++++++++++++++
