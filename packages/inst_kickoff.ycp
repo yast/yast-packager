@@ -253,11 +253,9 @@
 
 	    if (!one_active)
 	    {
-		map driver = drivers[0]:$[];
-		list <string> modules = driver["modules"]:[];
-
-		if (modules[0]:"" != "")
-		    ModuleLoading::Load (modules[0]:"", "", "Linux", "",
+		string name = drivers[0, "modules", 0, 0]:"";
+		if (name != "")
+		    ModuleLoading::Load (name, "", "Linux", "",
 					 Mode::manual, true);
 	    }
 	});
