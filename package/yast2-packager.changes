@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  2 18:28:13 CEST 2004 - sh@suse.de
+
+- V 2.10.10
+- Added package counter to slide show details table 
+
+-------------------------------------------------------------------
 Mon Aug 30 18:28:56 CEST 2004 - arvin@suse.de
 
 - add nongpl kernel package during installation (bug #44394)
