@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb  9 19:59:44 CET 2005 - nashif@suse.de
+
+- Do not run remove_junk when updating on running system
+
+-------------------------------------------------------------------
 Wed Feb  9 13:50:49 CET 2005 - kkaempf@suse.de
 
 - drop installation of fixed list of packages when PCMCIA is
