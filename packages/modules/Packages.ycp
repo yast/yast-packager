@@ -188,7 +188,7 @@ Select which desktop you would like to install.</p>");
 	{
 	    packages = add (packages, "tightvnc");
 	    packages = add (packages, "yast2-qt");
-	    packages = add (packages, "XFree86");
+	    packages = add (packages, "xorg-x11");
 	}
 
 	if (Mode::braille)
@@ -302,7 +302,7 @@ Select which desktop you would like to install.</p>");
             install_list = add(install_list, the_kernel );
         }
 
-	if (Pkg::IsSelected("XFree86"))
+	if (Pkg::IsSelected("xorg-x11"))
 	{
 	    install_list = (list<string>) union (install_list, graphicPackages ());
 	}
