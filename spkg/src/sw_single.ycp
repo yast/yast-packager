@@ -89,34 +89,39 @@
 
 	string first_arg = "";
 
-	if ( size (arg_list) > 0 )
+	if (size (arg_list) > 0)
 	{
 	    first_arg = arg_list[0]:"";
 	}
 
-	if ( regexpmatch (first_arg, "\\.rpm$") )		// package name given
+	/*
+	 * If the first argument is a package ending with .rpm call Pkg::TargetInstall for
+	 * each arg.
+	 */
+	if (regexpmatch (first_arg, "\\.rpm$"))		// package name given
 	{
             // if sw_single is called with an absolute package-pathname, there is no need to
 	    // mount the source medium or check SuSE version or dependencies
 
-	    if ( SCR::Read(.target.size, first_arg) > 0 )
-	    {
+	    foreach (`package, arg_list,
+	    ``{
+		if (SCR::Read (.target.size, package) > 0)
+		{
+		    y2milestone ("SW_SINGLE: installing %1", package);
+		    Pkg::TargetInstall (package);
+		}
+		else
+		{
+		    string message = sformat (_("Package %1 was not found on the medium."), package);
+		    y2error ("SW_SINGLE: Package %1 was not found on the medium", package);
+		    UI::MessagePopup (message);
+		    return `failed;
+		}
+	    });
 
-		y2milestone( "SW_SINGLE: installing  %1", first_arg );
-		Pkg::TargetInstall (first_arg);
-
-		// package is installed without paying attention to SuSE dependencies
-		// don't call SuSEConfig -> dialog loop ends
-		return `done;
-	    }
-	    else
-	    {
-		string message = sformat (_("Package %1 was not found on the medium."), select(arg_list, 0,"") );
-		y2error( "SW_SINGLE: Package %1 was not found on the medium", select(arg_list, 0,"") );
-		UI::MessagePopup(message);
-
-		return `failed;
-	    }
+	    // package is installed without paying attention to SuSE dependencies
+	    // don't call SuSEConfig -> dialog loop ends
+	    return `done;
 	}
 	else if (first_arg != "")		// firstarg given, but not *.rpm
 	{
