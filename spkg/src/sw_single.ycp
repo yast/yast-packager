@@ -23,6 +23,11 @@ do this.</P>"))),
 			     `codefragment : nil ]
       ];
 
+  // Include Popups, etc. ...
+  Include (`ui_inst_setup());
+  // Close installation dialog -> open inst_sw_single (see below) 
+  UI(`CloseDialog());
+  
   // mount CD 
   define MyChangeCD(integer cdnum) ``{
 
@@ -48,101 +53,6 @@ do this.</P>"))),
 	}
     };
 
-  UI(``{
-      define DisplayMessage(string message) ``{
-          // ok pushbutton: confirm the dialog
-          OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `PushButton(`opt(`default), _("&OK")),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-          UserInput();
-          CloseDialog();
-      };
-  });
-
-  //
-  // Popups must be defined here for inst_sw_single and inst_rpmcopy because
-  // modules are not called in installation.ycp
-  //
-  UI(``{
-      define YesOrNo(any message, string yes_button_message, string no_button_message) ``{
-          OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `HBox(
-				       `PushButton(`id(`yes), `opt(`default), yes_button_message),
-				       `HSpacing(2),
-				       `PushButton( no_button_message )
-				       ),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-          any ret = UserInput();
-          CloseDialog();
-          return (ret == `yes);
-      };
-            
-      define ContinueCancel(string message,
-			    string continue_button_message,
-			    string cancel_button_message ) ``{
-	  OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `HBox(
-				       `PushButton(`id(`continue), `opt(`default),continue_button_message),
-				       `HSpacing(2),
-				       `PushButton(`id(`cancel),   cancel_button_message)
-				       ),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-        any r = UserInput();
-        CloseDialog();
-        return ( r == `continue );
-      };
-      
-      define size_text (integer bytes) ``{
-	  float whole = tofloat (bytes) / 1024.0;
-	  // KiloByte abbreviated
-	  string unit = _("KB");
-	  if (whole > 1024.0)
-	  {
-	      whole = whole / 1024.0;
-	      // MegaByte abbreviated
-	      unit = _("MB");
-	      if (whole > 1024.0)
-	      {
-		  whole = whole / 1024.0;
-		  // GigaByte abbreviated
-		  unit = _("GB");
-	      }
-	  }
-	  return tostring (whole, 2) + " " + unit;
-      };
-  });
-
-  
   // map user_settings contains:
   // - install_info -> module inst_rpmcopy
   // - delete_info  -> module inst_rpmcopy
@@ -205,7 +115,7 @@ do this.</P>"))),
 
   list partition = [];
 
-    // get information about diskspace ( used / free on every partition )
+  // get information about diskspace ( used/free space on every partition )
   partition = SCR( `Read(.run.df ) );
   
   _debug ( "DF DF DF: ", partition );
