@@ -464,7 +464,7 @@ Please insert actual CD or specify path of actual sources.")));
 
 	      if ( installMap == nil || size ( installMap ) == 0 )
 	      {
-		  string message = UI(_("Error while reading onfiguration-file."));
+		  string message = UI(_("Error while reading configuration-file."));
 		  UI(`DisplayMessage(message));
 		  return `cancel;
 	      }
