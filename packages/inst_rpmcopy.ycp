@@ -128,33 +128,8 @@
     if ( size (rpm_list) > 0)
     {
 	y2milestone( "Installing RPM_LIST: %1", rpm_list );
-
-	list package_list = [];
-	integer counter = 0;
-
-	foreach( `rpm, rpm_list,
-	``{
-	    list package_info = [];
-	    package_info = add(package_info, rpm );
-
-	    if ( size ( descr_list ) > counter )
-	    {
-		package_info = add (package_info, descr_list[counter]:"" );
-	    }
-	    else
-	    {
-		package_info = add (package_info, "description" );
-	    }
-	    package_info = add (package_info, 1 );
-	    package_info = add (package_info, false );
-	    package_list = add (package_list, package_info);
-	    counter = counter + 1;
-	});
-
-	ret = PackageInstallation::InstallPackages( package_list, // package_list (including absolut pathnames)
-						    "",		  // source path
-						    false,	  // not installing base packages
-						    0 );	  // number of already installed packages
+	Pkg::DoProvide (rpm_list);
+	ret = PackageInstallation::CommitPackages ( 0, 0);
 
 	if (ret == `cancel)
 	{
@@ -202,11 +177,11 @@
 
     if (!Mode::initial)
     {
-	list remaining_packages = SCR::Read (.target.ycp, "/var/lib/YaST2/remaining_packages", []);
-	if (remaining_packages == nil)
-	    remaining_packages = [];
-	y2milestone ("%1 packages remaining", size (remaining_packages));
-	foreach (`pkg, remaining_packages,
+	list remaining = SCR::Read (.target.ycp, "/var/lib/YaST2/remaining", []);
+	if (remaining == nil)
+	    remaining = [];
+	y2milestone ("%1 packages remaining", size (remaining));
+	foreach (`pkg, remaining,
 	``{
 	    Pkg::DoProvide (pkg);
 	});
@@ -246,33 +221,32 @@
     {
 	boolean go_on = true;
 
-	ret = PackageInstallation::InstallPackages( current_cd_no,			// media nr
-						    packages_installed );		// number of packages installed
+	// returns [ err-installed, err-deleted ]
+	list commit_result = PackageInstallation::CommitPackages( current_cd_no, packages_installed );
 
-	if (size (error_packages) > 0)
+	integer count = commit_result[0]:0;
+	packages_installed = packages_installed + count;
+	y2milestone ("%1 packages installed", count);
+
+	list failed = commit_result[1]:[];
+	if (size (failed) > 0)
 	{
-	    list failed_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", []);
-	    if (failed_packages == nil)
-		failed_packages = [];
-	    failed_packages = union (failed_packages, error_packages);
-	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed_packages);
-	    ret = -ret;
+	    y2milestone ("failed: %1", failed);
+	    list previous_failed = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", []);
+	    if (size (previous_failed) > 0)
+		failed = union (previous_failed, failed);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed);
+	}
+	list remaining = commit_result[2]:[];
+	if (size (remaining) > 0)
+	{
+	    y2milestone ("remaining: %1", remaining);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining", remaining);
 	}
 
 	packager_called = true;
+
 	// FIXME diskfull, abort/cancel
-	if (ret > 0)
-	{
-	    y2milestone ("%1 packages installed ok", ret);
-	    packages_installed = packages_installed + ret;
-	}
-	else if (ret < 0)
-	{
-	    y2milestone ("%1 packages installed ok", -ret);
-	    y2milestone ("%1 packages failed: %2", size (PackageInstallation::error_packages), PackageInstallation::error_packages);
-	    Report::Error( sformat ("Failed: %1", PackageInstallation::error_packages));
-	    packages_installed = packages_installed - ret;
-	}
 
 	// break on first round with Mediums
 	if (Mode::initial && !Mode::test )
@@ -281,18 +255,7 @@
 	current_cd_no = current_cd_no + 1;
     }
 
-    if ( Mode::initial )
-    {
-	Packages::installed = packages_installed;
-    }
-    else
-    {
-	// Everything done, remove that thing.
-
-	// don't remove it - keep it for debugging
-	// SCR::Execute (.target.remove, Installation::yast2dir + "/pacs_to_install");
-	// SCR::Execute (.target.remove, Installation::yast2dir + "/package_counter.ycp");
-    }
+    Packages::installed = packages_installed;
 
     // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
     UI::CloseDialog();
