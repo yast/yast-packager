@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 22 11:25:17 CEST 2003 - arvin@suse.de
+
+- skip inst_rpmcopy for update
+
+-------------------------------------------------------------------
 Thu Aug 21 17:42:30 CEST 2003 - nashif@suse.de
 
 - Install post-package from CD1 in autoinst mode
