@@ -17,6 +17,7 @@
     import "InstURL";
     import "Kernel";
     import "Mode";
+    import "Language";
     import "Product";
     import "Report";
     import "SlideShow";
@@ -34,8 +35,6 @@
     global map<integer,integer> theSourceOrder = $[];		// installation order
 
     // Local variables
-
-    string tmpdir	= (string) SCR::Read(.target.tmpdir);
 
     boolean init_called = false;
 
@@ -328,13 +327,14 @@
 
 	y2milestone ("Initialize Package Manager: %1", log_url);
 
-	    // The packagemaneger uses the language for both user interface
-	    // as well as default system locale. When updating, I would like to only
-	    // set the language for the user interface and the packagemaneger
-	    // should know himself the already installed system languages.
+	// Set languages for packagemanager. Always set the UI language. Set
+	// language for additional packages only in Mode::initial.
 
-	import "Language";
 	Pkg::SetLocale (Language::language);
+
+	if (Mode::initial)
+	    Pkg::SetAdditionalLocales ([Language::language]);
+
 
 	if (Mode::initial)
 	{

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 25 18:36:29 CET 2004 - arvin@suse.de
+
+- improved setting of locales of packagemanager
+
+-------------------------------------------------------------------
 Wed Feb 25 18:04:51 CET 2004 - arvin@suse.de
 
 - fixed update mode (bug #34994 and #35007)
