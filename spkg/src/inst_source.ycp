@@ -6,7 +6,6 @@
  * Purpose:
  * Adding, removing and prioritizing of installation sources for packagemanager.
  *
- * $Id$
  */
 
 {
@@ -26,20 +25,24 @@
 
     integer numSources = 0;
 
+    list<map<string,any> > sourceStatesIn = [];
+    list<map<string,any> > sourceStatesOut = [];
+
     /**
         Create a table item from a map as returned by the InstSrcManager agent.
         @param source The map describing the source as returned form the agent.
         @return An item suitable for addition to a Table.
     */
-    define term createItem( integer source ) ``{
-        map generalData = Pkg::SourceGeneralData( source );
-        map productData = Pkg::SourceProductData( source );
+    define term createItem( integer index, map source ) ``{
+        integer id = source[ "SrcId" ]:0;
+        map generalData = Pkg::SourceGeneralData( id );
+        map productData = Pkg::SourceProductData( id );
         term item = `item(
-			  `id( source ),
+			  `id( index ),
 			  // corresponds to the "Enable/Disable" button
-			  lookup( generalData, "enabled", true ) ? _("On") : _("Off"),
-			  lookup( productData, "label", "unknown" ),
-			  lookup( generalData, "url", "" )
+			  source[ "enabled" ]:true ? _("On") : _("Off"),
+			  productData[ "label" ]:"unknown",
+			  generalData[ "url" ]:""
 			  );
         return item;
     }
@@ -48,15 +51,13 @@
      * Fill sources table with entries from the InstSrcManager agent.
      */
     define void fillTable() ``{
-        list<integer> sources = Pkg::SourceGetCurrent ( false );
-
         list items = [];
 
-        numSources = size( sources );
+        numSources = size( sourceStatesOut );
 
         integer i = 0;
         while ( i < numSources ) {
-            items = add( items, createItem( select( sources, i, nil ) ) );
+            items = add( items, createItem( i, sourceStatesOut[ i ]:$[] ) );
             i = i + 1;
         }
 
@@ -74,9 +75,9 @@
 				 `VSpacing( 0.2 )
 				 )
 			   );
-            integer id = Pkg::SourceCreate( url, "" );
+            list<integer> newSources = Pkg::SourceScan( url, "" );
             UI::CloseDialog();
-            if ( id == nil )
+            if ( size( newSources ) == 0  )
             {
                 string _msg1 = sformat( _("Unable to create installation source
 from URL '%1'."), url );
@@ -96,18 +97,17 @@ from URL '%1'."), url );
             }
             else
             {
+                foreach( integer id, newSources, ``{
+                    map sourceState = $[ "SrcId": id, "enabled": true ];
+                    sourceStatesOut = add( sourceStatesOut, sourceState ); 
+                } );
                 return `ok;
             }
         }
     }
 
-    define boolean deleteSource( integer id ) ``{
-        if ( Pkg::SourceDelete( id ) ) {
-	    return true;
-        } else {
-            Popup::Error( _("Error deleting source.") );
-            return false;
-        }
+    define void deleteSource( integer index ) ``{
+        sourceStatesOut = remove( sourceStatesOut, index );
     }
 
     list items = [];
@@ -198,13 +198,16 @@ on the NFS server.
 ");
 
     Wizard::CreateDialog();
-    Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::CloseButton()));
+    Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::FinishButton()));
     Wizard::SetContents(title, contents, help_text, false, true);
-    Wizard::ReplaceAbortButton( `Empty() );
     Wizard::ReplaceBackButton( `Empty() );
 
     Pkg::SourceStartManager( false );
     Pkg::SourceStartCache ( false );
+
+    sourceStatesIn = Pkg::SourceEditGet();
+
+    sourceStatesOut = sourceStatesIn;
 
     fillTable();
 
@@ -213,6 +216,8 @@ on the NFS server.
     integer current = -1;
 
     string url = "";
+
+    boolean exit = false;
 
     repeat {
 
@@ -266,19 +271,50 @@ on the NFS server.
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
 	}
+        else if ( input == `next )
+        {
+          boolean success = Pkg::SourceEditSet( sourceStatesOut );
+          if ( !success ) {
+                string _msg1 = _("Unable to save changes to installation source
+configuration.");
+                string err = Pkg::LastErrorId();
+                string _msg2 = _("Details:") + "\n" + Pkg::LastError();
+                _msg2 = _msg2 + "\nTry again?";
+
+                boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+                if ( !tryagain ) exit = true;
+          } else {
+            exit = true;
+          }
+        }
+        else if ( input == `abort )
+        {
+          string headline = _("Abort Installation Source Configuration");
+          string msg = _("Do you want to abort the installation source configuration?
+This means that all changes are lost.");
+          if ( Popup::YesNoHeadline( headline, msg ) ) {
+            exit = true;
+            Pkg::SourceEditSet( sourceStatesIn );
+          }
+        }
         else
         {
             current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
 
-            term idterm = select( (term) UI::QueryWidget( `id( `table ), `Item( current ) ), 0, `id(-1) );
-            integer id = select( idterm, 0, 0 );
+            y2debug( "Current item: %1", current );
+
+            map sourceState = sourceStatesOut[ current ]:$[];
+            integer id = sourceState[ "SrcId" ]:-1;
+            
+            if ( id < 0 ) {
+              y2internal( "Unable to determine source id" );
+              continue;
+            }
 
             if ( input == `replace )
             {
                 map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
-
-                y2internal( "URL: %1", url );
 
                 do {
                     url = editUrl( url );
@@ -290,45 +326,45 @@ on the NFS server.
                     }
                 } while ( createResult == `again );
             }
-			else if ( input == `refresh )
+	    else if ( input == `refresh )
             {
                 map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
 
-                y2internal( "URL: %1", url );
-
                 do {
                     // url = editUrl( url );
                     if ( size( url ) == 0 ) break;
-					deleteSource( current );
+                    deleteSource( current );
                     createResult = createSource( url );
                     if ( createResult == `ok ) {
-						fillTable();
+			fillTable();
                     }
                 } while ( createResult == `again );
             }
-
             else if ( input == `delete )
             {
                 if ( Popup::YesNo( _("Delete selected installation source from list?") ) )
                 {
-                    if ( deleteSource( current ) ) fillTable();
+                    deleteSource( current );
+                    fillTable();
                 }
             }
             else if ( input == `enable )
             {
-                map generalData = Pkg::SourceGeneralData( id );
-                boolean state = lookup( generalData, "enabled", true );
+                boolean state = sourceState[ "enabled" ]:true;
                 state = !state;
 		// corresponds to the "Enable/Disable" button
                 string newstate = ( state ? _("On") : _("Off") );
                 UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
-                Pkg::SourceSetEnabled( id, state );
+                sourceState[ "enabled" ] = state;
+                sourceStatesOut[ current ] = sourceState;
             }
             else if ( input == `up )
             {
                 if ( current > 0 ) {
-                    Pkg::SourceRaisePriority( id );
+                    map tmpState = sourceStatesOut[ current ]:$[];
+                    sourceStatesOut[ current ] = sourceStatesOut[ current - 1 ]:$[];
+                    sourceStatesOut[ current - 1 ] = tmpState;
                     current = current - 1;
                 }
                 fillTable();
@@ -336,18 +372,18 @@ on the NFS server.
             else if ( input == `down )
             {
                 if ( current < numSources - 1 ) {
-                    Pkg::SourceLowerPriority( id );
+                    map tmpState = sourceStatesOut[ current ]:$[];
+                    sourceStatesOut[ current ] = sourceStatesOut[ current + 1 ]:$[];
+                    sourceStatesOut[ current + 1 ] = tmpState;
                     current = current + 1;
                 }
                 fillTable();
             }
         }
 
-    } until ( input == `abort || input == `next || input == `back );
+    } until ( exit );
 
     UI::CloseDialog();
-
-    Pkg::SourceSaveRanks();
 
     y2debug( "Return: %1", input );
 

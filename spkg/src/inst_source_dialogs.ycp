@@ -260,7 +260,7 @@
                         `VBox(
                             `Left( `CheckBox( `id( `anonymous ),
                                               `opt( `notify ), _("&Anonymous"),
-                                              size( user ) != 0 ) ),
+                                              size( user ) == 0 ) ),
                             `HBox(
                                 `TextEntry( `id( `username ), _("&User Name"),
                                             user )

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 20 15:25:39 CET 2004 - cschum@suse.de
+
+- Add support for canceling changes in the installation source
+  configuration.
+
+-------------------------------------------------------------------
 Thu Feb 19 18:26:27 CET 2004 - kkaempf@suse.de
 
 - drop "cpufreqd" and "apmd" on all platforms, now "powersave"
