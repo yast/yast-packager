@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jul 26 12:15:00 CEST 2002 - ms@suse.de
+
+- changed use of X11 module. The X11 module does no longer exist
+  to provide the information of "having X11" installed (have_x11) the
+  module X11Version is used
+
+-------------------------------------------------------------------
 Tue Jul 16 13:07:56 CEST 2002 - arvin@suse.de
 
 - include rpm groups names for translation
