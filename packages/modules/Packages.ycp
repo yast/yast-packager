@@ -320,7 +320,6 @@
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
 
 	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'", force_reset, reinit, Language::language);
-	Pkg::SetLocale (Language::language);
 
 	if ( force_reset )
 	{
@@ -538,6 +537,13 @@
 	}
 
 	y2milestone ("Initialize Package Manager: %1", log_url);
+
+	    // The packagemaneger uses the language for both user interface
+	    // as well as default system locale. When updating, I would like to only
+	    // set the language for the user interface and the packagemaneger
+	    // should know himself the already installed system languages.
+
+	Pkg::SetLocale (Language::language);
 
 	if (Mode::initial)
 	{

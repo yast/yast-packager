@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 11 18:00:00 CEST 2003 - kkaempf@suse.de
+
+- move Pkg::SetLocale() to Packages::Init() (#30438)
+
+-------------------------------------------------------------------
 Tue Sep  9 13:06:55 CEST 2003 - kkaempf@suse.de
 
 - install 'cpufreqd' on laptops and
