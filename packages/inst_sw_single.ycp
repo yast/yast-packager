@@ -90,28 +90,28 @@
   list ignores = [];		// list of obsolete dependencies which have to be ignored
 
   // Checking first Argument
-  if ( Args(0) == `single )
+  if ( WFM::Args(0) == `single )
   {
       single_mode = true;
   }
-  else if ( Args(0) == `pay )
+  else if ( WFM::Args(0) == `pay )
   {
       default_set = pay_set;
       show_groups = false;
       pay_mode = true;
   }
-  else if ( Args(0) == `post_install )
+  else if ( WFM::Args(0) == `post_install )
   {
       post_mode = true;
   }
-  else if ( Args(0) == `update )
+  else if ( WFM::Args(0) == `update )
   {
       default_set = MANUALLY;
       update_mode = true;
   }
   else
   {
-      y2error("called with wrong argument: %1", Args(0));
+      y2error("called with wrong argument: %1", WFM::Args(0));
       return ret;
   }
 
@@ -469,7 +469,7 @@ The result of the search is stored in set \"z??\".
 
       tmpfile = SCR::Read(.target.tmpdir) + "/upd_list";
       SCR::Write(.target.ycp, tmpfile, upd_list );
-      
+
       foreach( `key, `packageList, whole_map,
 	       ``{
 	  list version_list =  SCR::Read(.package.packageVersion, key);
@@ -522,7 +522,7 @@ The result of the search is stored in set \"z??\".
   //  }
   //  else
   //  {
-  //      partition = Args(2);
+  //      partition = WFM::Args(2);
   //  }
 
   // initialize used space at begin of installation
@@ -940,7 +940,7 @@ Double-click a line to change the status.
   }
 
 
-  if ( Args(1) == `only_check )
+  if ( WFM::Args(1) == `only_check )
   {
       UI::CloseDialog();
 

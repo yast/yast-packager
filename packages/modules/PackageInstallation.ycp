@@ -1,9 +1,9 @@
 /**
  * Module: 		PackageInstallation.ycp
  *
- * Authors:		Gabriele Strattner <gs@suse.de>	
+ * Authors:		Gabriele Strattner <gs@suse.de>
  *
- * Purpose: 		
+ * Purpose:
  *
  *
  * $Id$
@@ -23,7 +23,7 @@
     import "InstMedia";
     import "MediaUI";
     import "Packages";
-    import "SlideShow";  
+    import "SlideShow";
 
     import "Wizard";
 
@@ -31,10 +31,10 @@
     include "ui/common_popups.ycp";
 
     include "packages/installationCallback.ycp";
-    
-    textdomain "packages";    
 
-     
+    textdomain "packages";
+
+
     boolean shutup = false;			// show the disk space warning popup only once
 
 
@@ -43,7 +43,7 @@
      */
     global list error_packages = [];		// list of packages which are not installed (or deleted) correctly
 
-    
+
     /**
      * Constructor()
      * @return void;
@@ -62,20 +62,20 @@
     **/
     global define symbol DeletePackages( list delete_list ) ``{
 
-	symbol ret = `ok; 
+	symbol ret = `ok;
 
 	// Reset variables
 	shutup = false;
 	error_packages = [];
-	
+
 	if ( delete_list == [] || delete_list == nil )
 	    return nil;
-    
+
 	SlideShow::UpdateAllCdProgress( true );		// true: deleting
 
 	if ( !Mode::test )
 	{
-	    ret = CallModule("packager", ["CyclicDeletePkgCallback",
+	    ret = WFM::CallModule("packager", ["CyclicDeletePkgCallback",
 					  `remove(InstMedia::GetInstPath(), delete_list),
 					  `root(Installation::destdir),
 					  `number(0)]); // number of packages already deleted=0
@@ -87,13 +87,13 @@
 				true );			// deleting packages
 	}
 
-	y2debug( "DeletePackages: CallModule(packager, ...) returns: %1", ret );
-	
+	y2debug( "DeletePackages: WFM::CallModule(packager, ...) returns: %1", ret );
+
 	SlideShow::UpdateAllCdProgress( false );	// false: no longer deleting
 
 	return ret;
     };
-	    
+
     /**
      *	Return: `error		-> global list 'error_packages' contains packages which are not installed correctly
      *          `ok		-> everything ok
@@ -105,15 +105,15 @@
 					  boolean base_system,
 					  integer packages_installed ) ``{
 
-	symbol ret = `ok; 
+	symbol ret = `ok;
 
 	// Reset variables
 	shutup = false;
 	error_packages = [];
-	
+
 	if ( install_list == [] || install_list == nil )
 	    return nil;
-    
+
 
 	if ( Mode::test )
 	{
@@ -128,29 +128,29 @@
 	if ( base_system )
 	{
 	    // scripts are installed manually if installing the base system
-	    ret = CallModule("packager", ["CyclicInstallPkgCallback",
+	    ret = WFM::CallModule("packager", ["CyclicInstallPkgCallback",
 					  `add(source_path, install_list),
 					  `root(Installation::destdir),
-					  `manual_scripts,	
+					  `manual_scripts,
 					  `number(packages_installed)]);
 	}
 	else
 	{
-	    ret = CallModule("packager", ["CyclicInstallPkgCallback",
+	    ret = WFM::CallModule("packager", ["CyclicInstallPkgCallback",
 					  `add(source_path, install_list),
 					  `root(Installation::destdir),
-					  `number(packages_installed)]);	
-		
+					  `number(packages_installed)]);
+
 	}
 
 	SlideShow::StopTimer();
-	
-	y2debug( "InstallPackages: CallModule(packager, ...) returns: %1", ret );
-	
+
+	y2debug( "InstallPackages: WFM::CallModule(packager, ...) returns: %1", ret );
+
 	return ret;
     };
 
-    
+
     /**
      * Wrapper function for ChangeMedium: Update statistics along with the
      * (optional) real Medium change popup.
@@ -168,7 +168,7 @@
 	    // release the common.pkd
 	    SCR::Execute(.package.closeMedium);
 	}
-	
+
 	if ( ! Mode::test )
 	{
 	    ret = MediaUI::ChangeMedium( cd_no, show_popup );
@@ -186,7 +186,7 @@
 							, InstMedia::medianame, cd_no ) );
 	    }
 	}
-	
+
 	if ( ret )
 	{
 	    SlideShow::SetCurrentCdNo( cd_no );

@@ -31,7 +31,7 @@
     import "Packages";
     import "PackagesUI";
     import "SpaceCalculation";
-    
+
     import "InstMedia";
 
     import "Wizard";
@@ -53,9 +53,9 @@
     // help text
     string helptext = _("<p>
 The SuSE Linux <b>Default</b> system is a good software
-selection for most users. You will not need to insert all of the CDs that 
+selection for most users. You will not need to insert all of the CDs that
 come with SuSE Linux for this selection. Additional software from the
-other CDs can always be installed later. 
+other CDs can always be installed later.
 </p>
 ");
 
@@ -79,7 +79,7 @@ dedicated server systems that do not need a graphical desktop, or for
 systems that are short on disk space or memory.
 </p>
 ");
- 
+
    // help text, continued
     helptext = helptext + _("<p>
 With the <b>Minimum graphical system</b>, install the SuSE Linux
@@ -88,7 +88,7 @@ Interface (GUI).
 You can then work with a simple graphical desktop
 (with 'window maker' as the window manager). </p>
 ");
-    
+
     // help text, continued
     // helptext = helptext + _("<p>
     // The selection <b>All packages</b> includes every software package that comes
@@ -114,7 +114,7 @@ To make a more precise selection of software to install, select
 			    // Intermediate contents of the software selection screen
 			    `HVCenter(`Label(
 			    _("This product has a fixed software selection which cannot be changed"))),
-			    helptext, Args(0),Args(1));
+			    helptext, WFM::Args(0), WFM::Args(1));
         any ret = Wizard::UserInput();
 	Wizard::CloseDialog();
 	y2milestone("product cd return %1",ret);
@@ -125,7 +125,7 @@ To make a more precise selection of software to install, select
 	Wizard::SetContents(title,
 			    // Intermediate contents of the software selection screen
 			    `HVCenter(`Label(_("Reading package database..."))),
-			    helptext, Args(0),Args(1));
+			    helptext, WFM::Args(0), WFM::Args(1));
     }
 
     // ------------------------------------------------------------------------
@@ -170,7 +170,7 @@ To make a more precise selection of software to install, select
     });
 
     string wrn_msg = "";
-    
+
     // Checking: already selected addons or single selection?
     if ( SCR::Read(.package.isSingleSelected ) )
     {
@@ -207,7 +207,7 @@ You will lose that selection if you change the basic selection.");
 				    )
 			      );
 
-    Wizard::SetContents(title, contents, helptext, Args(0),Args(1));
+    Wizard::SetContents(title, contents, helptext, WFM::Args(0), WFM::Args(1));
 
     // get all packages to install
     list package_list = Packages::ComputeInstallList ();
@@ -234,8 +234,8 @@ You will lose that selection if you change the basic selection.");
                 break;
 
         ret = Wizard::UserInput();
-	
-	if ( ret == `abort && CallFunction(`inst_confirm_abort(`painless) ) )
+
+	if ( ret == `abort && WFM::CallFunction(`inst_confirm_abort(`painless) ) )
 	    return `abort;
 
         // Add the selection of the basic group
@@ -278,8 +278,8 @@ You will lose that selection if you change the basic selection.");
 		SCR::Execute(.package.setSourceInstallation, Packages::install_sources );
 
 		wrn_msg	= "";
-		UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );		
-		
+		UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
+
 		// goto size-calculation
 		continue;
 	    }
@@ -303,18 +303,18 @@ You will lose that selection if you change the basic selection.");
 
 	     while ( details_ret == `again )
 	     {
-	         details_ret = CallFunction( `inst_sw_details( true, true ) );
+	         details_ret = WFM::CallFunction( `inst_sw_details( true, true ) );
   	     }
 
  	     if ( details_ret == `next )
 	     {
 	         ret = `next;
-		 break;		 
+		 break;
 	     }
 	     else if ( details_ret == `cancel )
 	     {
 	         ret = `cancel;
-		 break;		 
+		 break;
 	     }
 	     else if ( details_ret == `back )
 	     {
@@ -333,7 +333,7 @@ You will lose that selection if you change the basic selection.");
 		 wrn_msg = _("\
 You have already chosen software from \"Detailed selection\".\n\
 You will lose that selection if you change the basic selection.");
-		 UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );				 
+		 UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
 	     }
         }
 

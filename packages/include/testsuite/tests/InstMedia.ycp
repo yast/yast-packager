@@ -8,13 +8,13 @@
 
     y2milestone ("running InstMedia check");
 
-    integer arg_count = size(Args());
+    integer arg_count = size(WFM::Args());
     if (arg_count < 1)
     {
 	return "Bad arguments for InstMedia check";
     }
 
-    string installmapfile = Args(0);
+    string installmapfile = WFM::Args(0);
     y2milestone ("reading %1", installmapfile);
 
     map installmap = WFM::Read(.local.ycp, installmapfile);

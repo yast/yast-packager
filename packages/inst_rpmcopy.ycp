@@ -59,24 +59,24 @@
     SlideShow::SetLanguage( language );
     SlideShow::OpenSlideShowDialog();
 
-    if (size(Args()) >= 3 )
+    if (size(WFM::Args()) >= 3 )
     {
 	// third argument can be a package name or a list of packages
-	if ( is(Args(2), string) )
+	if ( is(WFM::Args(2), string) )
 	{
-	    rpm_list = add( rpm_list, Args(2) );
+	    rpm_list = add( rpm_list, WFM::Args(2) );
 	}
-	else if ( is(Args(2), list) )
+	else if ( is(WFM::Args(2), list) )
 	{
-	    rpm_list = Args(2);
+	    rpm_list = WFM::Args(2);
 	}
 
-	if (size(Args()) == 4 )
+	if (size(WFM::Args()) == 4 )
 	{
 	   // forth argument is a list of package descriptions
-	   if ( is(Args(3), list) )
+	   if ( is(WFM::Args(3), list) )
 	    {
-		descr_list = Args(3);
+		descr_list = WFM::Args(3);
 	    }
 	}
     }
@@ -159,7 +159,7 @@
 
 	// y2debug ("Initialize packer to %1", Installation::destdir);
 	// Initialize the target system.
-	CallModule("packager", [nil, `init, `root(Installation::destdir)]);
+	WFM::CallModule("packager", [nil, `init, `root(Installation::destdir)]);
 
 	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
     }
