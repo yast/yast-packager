@@ -637,6 +637,11 @@ on the NFS server.
 
     UI::CloseDialog();
 
+    if ( input == `next ) {
+        y2debug( "Save source list." );
+        Pkg::SourceSaveList();
+    }
+
     y2debug( "Return: %1", input );
 
     return input;
