@@ -614,10 +614,7 @@ must NOT be older than the installed one.\n"));
   UI(`CloseDialog());
   
   // umount CD (safety reasons)
- if ( IsRemountable() )
- {
-     SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
- }
+  SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
   
   return `next;
 }
