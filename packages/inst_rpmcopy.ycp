@@ -96,6 +96,11 @@
 	// create new rpmdb
 
 	Pkg::TargetInit (Installation::destdir, true);
+	SCR::Execute(.target.mkdir, Installation::destdir+"/etc");
+
+	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir+"/etc");
+	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir+"/etc");
     }
     else
     {
