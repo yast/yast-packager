@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 10 13:59:08 CET 2005 - lslezak@suse.cz
+
+- checkmedia - updated help texts, added read check, translate
+  output from checkmedia
+- 2.11.17
+
+-------------------------------------------------------------------
 Wed Feb  9 19:59:44 CET 2005 - nashif@suse.de
 
 - Do not run remove_junk when updating on running system

@@ -68,17 +68,41 @@ define list<string> TranslateInfo(list<string> info) {
 		string val = String::CutBlanks(parts[1]:"");
 
 		map<string,string> trasmap = $[
-		    // CD identification
+		    // %1 = CD identification
 		    "app" : _("Identification: %1"),
-		    // medium, e.g. CD1,CD2...
+		    // %1 medium number, e.g. CD1,CD2...
 		    "media" : _("Medium: %1"),
-		    // medium size
+		    // %1 = size of the medium
 		    "size" : _("Size: %1"),
-		    // MD5 hash value
-		    "md5" : _("MD5: %1"),
-		    // Result of the check
-		    "check" : _("Check: %1")
+		    // %1 = MD5 hash value
+		    "md5" : _("Expected MD5: %1"),
+		    // %1 = result of the check
+		    "check" : _("Result: %1"),
+		    // error message
+		    "not an iso" : _("The drive doesn't contain an ISO image.")
 		];
+
+		if (key == "check")
+		{
+		    // try to translate result string
+		    if (val == "md5sum ok")
+		    {
+			// result of the check - success
+			val = _("OK");
+		    }
+		    else
+		    {
+			// translate failed message
+			string wrongMD5 = regexpsub(val, "md5sum wrong \\((.*)\\)", "\\1");
+
+			if (wrongMD5 != nil)
+			{
+			    // result of the check - failed, %1 is the real MD5 sum
+			    val = sformat(_("Failed (MD5: %1)"), wrongMD5);
+			    y2internal("computedMD5: %1", wrongMD5);
+			}
+		    }
+		}
 
 		string newstr = trasmap[key]:"";
 
@@ -92,6 +116,8 @@ define list<string> TranslateInfo(list<string> info) {
 	);
     }
 
+    y2milestone("Translated info: %1", ret);
+
     return ret;
 }
 
@@ -103,31 +129,37 @@ define symbol MainDialog () {
     // dialog header
     string caption = _("Media Check");
 
-    // help text - media check (header) 1/5
+    // help text - media check (header) 1/6
     string help = _("<P><B>Media Check</B></P>") +
-    // help text - media check 2/5
+    // help text - media check 2/6
 _("<P>When you have a problem with
 installation and are using a CD or DVD installation medium, you should check
 whether the medium could be broken.</P>
 ") +
 
-    // help text - media check 3/5
+    // help text - media check 3/6
 _("<P>Select a drive, insert a medium into the drive, and press <B>Start</B>
 to perform the check. The check can take several minutes depending on
 speed of the drive and size of the medium. The check verifies the MD5 checksum.</P>
 ") +
 
-    // help text - media check 4/5
+    // help text - media check 4/6
 _("<P>If the check of the medium fails, you should not continue the installation.
 It may fail or you may lose your data. You should replace the broken
 medium.</P>
 ") +
 
-    // help text - media check 5/5
+    // help text - media check 5/6
 _("<P><B>Note:</B> You cannot change the medium if it is used by the system. If
-it happens during installation, use <B>Verify Installation CD-ROM or DVD</B>
-in the main menu in linuxrc.</P>
-");
+it happens during installation then start manual installation and select media
+verification item in the menu.</P> ") +
+
+    // help text - media check 6/6
+_("If you burn the media yourselves <B>pad</B> option in a recording software
+should be used. It avoids read errors at the end of media during the check.");
+
+// advice check of the media
+string label = _("Check of the installation media is highly recommended.");
 
     term contents = `VBox(
 	// combobox label
@@ -210,61 +242,72 @@ in the main menu in linuxrc.</P>
 		y2milestone("starting media check at drive %1", selecteddrive);
 		// progress message, %1 is CD device name (e.g. /dev/hdc)
 		UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
-		CheckMedia::Start(selecteddrive);
 
-		boolean loop = true;
-		boolean aborted = false;
-		while(loop)
+		// try to read one byte from the medium
+		integer res = (integer)SCR::Execute(.target.bash, sformat("/usr/bin/head -c 1 %1 > /dev/null", selecteddrive));
+		if (res != 0)
 		{
-		    CheckMedia::Process();
+		    // error message: the medium cannot be read or no medium in the drive; %1 = drive, e.g. /dev/hdc
+		    UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Cannot read medium in the drive %1."), selecteddrive));
+		}
+		else
+		{
+		    CheckMedia::Start(selecteddrive);
 
-		    integer progress = CheckMedia::Progress();
-		    list<string> data = CheckMedia::Info();
-
-		    if (data != nil && size(data) > 0)
+		    boolean loop = true;
+		    boolean aborted = false;
+		    while(loop)
 		    {
-			data = TranslateInfo(data);
+			CheckMedia::Process();
 
-			// add new output to the log view
-			string info = mergestring(data, "\n") + "\n";
-			UI::ChangeWidget(`id(`log), `LastLine, info);
-		    }
+			integer progress = CheckMedia::Progress();
+			list<string> data = CheckMedia::Info();
 
-		    if (progress > 0)
-		    {
-			UI::ChangeWidget(`id(`progress), `Value, progress);
-		    }
+			if (data != nil && size(data) > 0)
+			{
+			    data = TranslateInfo(data);
 
-		    symbol ui = (symbol)UI::PollInput();
+			    // add new output to the log view
+			    string info = mergestring(data, "\n") + "\n";
+			    UI::ChangeWidget(`id(`log), `LastLine, info);
+			}
 
-		    loop = CheckMedia::Running();
+			if (progress > 0)
+			{
+			    UI::ChangeWidget(`id(`progress), `Value, progress);
+			}
 
-		    if (ui == `stop || ui == `cancel)
-		    {
-			CheckMedia::Stop();
-			loop = false;
-			aborted = true;
+			symbol ui = (symbol)UI::PollInput();
 
-		    }
-		    else if (ui == `abort)
-		    {
-			if (Popup::ConfirmAbort(`painless))
+			loop = CheckMedia::Running();
+
+			if (ui == `stop || ui == `cancel)
 			{
 			    CheckMedia::Stop();
-			    return `abort;
+			    loop = false;
+			    aborted = true;
+
 			}
+			else if (ui == `abort)
+			{
+			    if (Popup::ConfirmAbort(`painless))
+			    {
+				CheckMedia::Stop();
+				return `abort;
+			    }
+			}
+
+			// sleep for a while
+			sleep(200);
 		    }
 
-		    // sleep for a while
-		    sleep(200);
-		}
+		    SetButtonState(false);
 
-		SetButtonState(false);
-
-		if (aborted)
-		{
-		    // the check was aborted
-		    UI::ChangeWidget(`id(`log), `LastLine, _("Aborted"));
+		    if (aborted)
+		    {
+			// the check was aborted
+			UI::ChangeWidget(`id(`log), `LastLine, _("Aborted"));
+		    }
 		}
 
 		// add empty line between outputs
