@@ -1,1 +1,1 @@
-rpm-groups libpkg agent-package agent-targetpkg client-packager packages spkg
+rpm-groups libpkg agent-package agent-targetpkg client-packager packages spkg scripts

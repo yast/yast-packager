@@ -32,7 +32,7 @@ Summary:	-
 %files
 %defattr(-,root,root)
 %{_libdir}/libpkg.so.*
-@bindir@/create_update_inf
+@ybindir@/create_update_inf
 @yncludedir@
 @clientdir@/*.ycp
 @moduledir@/*.ycp
