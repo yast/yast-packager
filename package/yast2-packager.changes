@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 10 13:28:47 CET 2003 - mvidner@suse.de
+
+- [Rr]equire.ycp: fixed package installation after YOU (#24744).
+- 2.7.19
+
+-------------------------------------------------------------------
 Sat Mar 08 21:31:03 CET 2003 - arvin@suse.de
 
 - added missing include statements (bug #24881)
