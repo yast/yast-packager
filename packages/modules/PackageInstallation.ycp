@@ -156,18 +156,6 @@
 	    return ret;
 	}
 
-	if (media_number > 1)
-	{
-	    correct_media = PackageInstallation::ChangeMediumWrapper ( media_number, true );
-	}
-
-	// exit here if all packages were skipped
-	if (!correct_media)
-	{
-	    y2error ("Not correct media #%1 found", media_number);
-	    return ret;
-	}
-
 	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
@@ -187,6 +175,27 @@
 	    }
 	    else
 	    {
+		if (!correct_media)
+		{
+		    correct_media = PackageInstallation::ChangeMediumWrapper ( media_number, true );
+		    // exit here if all packages were skipped
+		    if (!correct_media)
+		    {
+			while (Pkg::PkgMediaNr (pkgname) == media_number)
+			{
+			    ret = ret - 1;
+			    pkgname = Pkg::PkgNextInstall();
+			    if (pkgname == nil
+				|| pkgname == "")
+			    {
+				break;
+			    }
+			}
+			y2error ("Not correct media #%1 found", media_number);
+			return ret;
+		    }
+		}
+
 		string location = Pkg::PkgLocation (pkgname);
 		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
 		CallbackDisplayProgress (0);
