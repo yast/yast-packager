@@ -78,12 +78,15 @@
 	}
     }
 
+    // start target, create new rpmdb if none is existing
+    // FIXME error checking is missing all around here, initialization could actually fail!
+    Pkg::TargetInit (Installation::destdir, true);
+
     if (Mode::initial
 	&& !Mode::update)
     {
-	// create new rpmdb
+	// created new rpmdb
 
-	Pkg::TargetInit (Installation::destdir, true);
 	SCR::Execute(.target.mkdir, Installation::destdir+"/etc");
 	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
 
@@ -94,18 +97,9 @@
     }
     else if (Mode::cont)
     {
-	// FIXME error checking is missing all around here, initialization could actually fail!
-	Pkg::TargetInit (Installation::destdir, false);
 	// initialize the package agent in continue mode
 	Packages::Init( true );
         SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
-    }
-    else	// run-time
-    {
-	// use existing rpmdb
-
-	Pkg::TargetInit (Installation::destdir, false);
-
     }
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
