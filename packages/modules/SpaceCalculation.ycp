@@ -135,8 +135,7 @@
 	}
 
 	list(map) target_partitions = [];
-	integer spare_percentage  = 14;   // percentage of free spare space on every partition
-	integer min_spare 	= 2048 * 1024; // minimum free space ( 2 MB )
+	integer min_spare 	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
 
 	foreach( `disk, `diskinfo, targets,
 	``{
@@ -146,7 +145,6 @@
 	    foreach( `part, part_info,
 	    ``{
 		integer free_size = 0;
-		integer spare_size = 0;
 
 	    if (part["mount"]:nil != nil
 		&& substring( part["mount"]:"", 0, 1 ) == "/" )
@@ -171,13 +169,7 @@
 			free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1024);
 		    }
 
-		    spare_size = (free_size*spare_percentage)/100;
-
-		    if ( spare_size < min_spare )
-		    {
-			spare_size = min_spare;
-		    }
-		    free_size = free_size - spare_size;
+		    free_size = free_size - min_spae;
 
 		    y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
 		    if ( !remove_slash)
@@ -234,8 +226,8 @@
     ``{
 
 	list partition = [];
-	integer min_spare = 2048 * 1024;		// 2 MB
-	integer max_spare = 1048576 * 1024;		// 1 GB
+	integer min_spare = 5 * 1024* 1024;		// 5 MB
+	integer max_spare = 1024 * 1024 * 1024;		// 1 GB
 
 	string target = Installation::destdir;
 
