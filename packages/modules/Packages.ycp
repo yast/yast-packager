@@ -227,6 +227,29 @@ Select which desktop you would like to install.</p>");
     }
 
 
+    /**
+     * Compute language dependant packages
+     * @return list(string)
+     */
+    define list<string> languagePackages ()
+    ``{
+	list<string> packages = [];
+
+	// add yast2-trans-$locale
+	string main_locale = Pkg::GetLocale();
+	string transpac = "yast2-trans-";
+	packages = add (packages, transpac + substring (main_locale, 0, 2));
+
+	// add yast2-trans-$additional_locale for every additional locale
+
+	list<string> additional_locales = Pkg::GetAdditionalLocales();
+	foreach (string add_locale, additional_locales, {
+	    packages = add (packages, transpac + substring (add_locale, 0, 2));
+	});
+	return packages;
+    }
+
+
     /*-----------------------------------------------------------------------
      * GLOBAL FUNCTIONS
      *-----------------------------------------------------------------------*/
@@ -288,6 +311,8 @@ Select which desktop you would like to install.</p>");
 	{
 	    install_list = (list<string>) union (install_list, javaPackages ());
 	}
+
+	install_list = (list<string>) union (install_list, languagePackages ());
 
 	// and the most flexible enhancement for other products
 	if (ProductFeatures::packages_transmogrify != "")
