@@ -73,8 +73,8 @@
 	    arg_n = arg_n - 1;
 	}
 
-	y2debug("Testmode %1, Testpopup %2", Mode::test, test_popup );
-	y2milestone("ARGLIST %1", arg_list);
+	y2milestone( "SW_SINGLE: arguments %1, beginner mode: %2",
+		     arg_list, beginner_mode );
 
 	return arg_list;
 
@@ -96,8 +96,8 @@
 
    define CheckWhichPackages (list arg_list) ``{
 
-	// if sw_single is called with argument "beginner" or with a package list or package name
-	// -> skip inst_source (if possible)
+	// if sw_single is called with a list of packages or a package name
+	// set beginner mode and try to mount source medium 
 
 	string first_arg = "";
 	string postfix = "";
@@ -111,13 +111,14 @@
 	else
 	    return `next;	// no packages given.
 
-	y2milestone("SW_SINGLE: POSTFIX: %1", postfix );
 
 	// if sw_single is called with an absolute package-pathname, there is no need to
 	// mount the source medium or check SuSE version or depemdendies
 
 	if ( postfix == ".rpm" )		// package name given
 	{
+	    y2milestone( "SW_SINGLE: installing  %1", first_arg );
+
 	    // does packge exist ?
 	    if ( SCR::Read(.target.size, first_arg) > 0 )
 	    {
@@ -139,7 +140,7 @@
 	}
 	else		// no package file  given, try to mount source medium
 	{
-	    y2milestone ("args %1", Args());
+	    y2milestone ("SW_SINGLE: args %1", Args());
 
 	    // initialize InstMedia from running system
 
@@ -228,7 +229,9 @@ do this.</P>
     any result = `next;
 
     // assume package information already on destination
-
+    // TODO: pathes are not used any longer here to initialize package agent -
+    //       Packages::Init does the work
+    
     string descrPath = Installation::descrdestdir + "/suse";
     string infopath  = descrPath + "/setup/descr";
     string dudir     = descrPath + "/setup/du/du.dir";
@@ -242,7 +245,7 @@ do this.</P>
     symbol descr_result = `next;
 
     descr_result = CheckWhichPackages (arg_list);
-    y2milestone ("sw_single.ycp descr_result %1", descr_result);
+    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", descr_result);
 
     if ((descr_result == `done)
 	|| (descr_result == `failed))
@@ -316,8 +319,6 @@ do this.</P>
 	}
     }
 
-    y2milestone("SW_SINGLE infopath: %1", infopath );
-
     if ( !Mode::test )
     {
 	// removing old logging
@@ -332,6 +333,12 @@ do this.</P>
 
 	    boolean version_ok = false;
 
+	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
+
+	    // Initialize the package agent
+	    Packages::Init( true );
+
+	    UI::CloseDialog();
 	    map version_map = $[];
 
 	    if ( !Mode::test )
@@ -353,9 +360,9 @@ do this.</P>
 must NOT be older than the version of your installed system.\n");
 
 		string versions = sformat( _("Installed version: %1\n"),
-			lookup( version_map, "installedVersion","" ))
-			+ sformat( _("Version on source medium: %1\n\n"),
-			lookup( version_map, "updateVersion","" ));
+					   lookup( version_map, "installedVersion","" ))
+		    + sformat( _("Version on source medium: %1\n\n"),
+			       lookup( version_map, "updateVersion","" ));
 		y2debug( "SW_SINGLE: %1", versions );
 
 		UI::MessagePopup(msg1 + versions + wrong_media_msg);
@@ -402,13 +409,13 @@ must NOT be older than the version of your installed system.\n");
 		    y2milestone("SW_SINGLE userInput: %1", userInput );
 
 		    foreach( `package, installList,
-		    ``{
+			     ``{
 			any r = SCR::Execute( .package.selectInstall,"xv", false);
 			y2debug( ".package.selectInstall: %1", package );
 		    });
 
 		    foreach( `package, deleteList,
-		    ``{
+			     ``{
 			any r = SCR::Execute(.package.selectDelete, package);
 			y2debug( ".package.selectDelete: %1", package );
 		    });
