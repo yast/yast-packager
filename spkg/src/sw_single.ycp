@@ -20,7 +20,7 @@
     import "PackageCallbacks";
     import "SlideShow";
     import "SlideShowCallbacks";
-
+    import "Kernel";
     import "Wizard";
     import "Popup";
 
@@ -80,8 +80,8 @@
     //		`unknown_descr	found nothing
     //
 
-   define symbol CheckWhichPackages (list<string> arg_list) ``{
-
+   define symbol CheckWhichPackages (list<string> arg_list)
+   {
        y2milestone ("CheckWhichPackages (%1)", arg_list);
        // if sw_single is called with a list of packages or a package name
 
@@ -105,7 +105,7 @@
 
 	   SlideShow::InitPkgData();	// keep SlideShow quiet
 
-	   foreach (string package, arg_list, ``{
+	   foreach (string package, arg_list, {
 	       if (SCR::Read (.target.size, package) > 0)
 	       {
 		   y2milestone ("SW_SINGLE: installing %1", package);
@@ -207,7 +207,7 @@
 	   else
 	   {
 	       foreach (string package, packagelist,		// Yes: install them
-			``{
+	       {
 		   if (!Pkg::PkgInstall (package))			// select package for installation
 		   {
 		       // oops, package not found ?
@@ -250,18 +250,9 @@
 		   || anyToDelete))
 	   {
 	       // prepare "you must boot" popup in inst_suseconfig
+	       Kernel::set_inform_about_kernel_change (oldvmlinuzsize != newvmlinuzsize);
 
-	       import "Kernel";
-	       if (oldvmlinuzsize != newvmlinuzsize)
-	       {
-		   Kernel::switched = true;
-	       }
-	       else
-	       {
-		   Kernel::switched = false;
-	       }
-
-	       result = (symbol)WFM::CallFunction( "inst_suseconfig", [false, false]);
+	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [false, false]);
 	   }
        }
    } while ( ask && Popup::AnyQuestion( Popup::NoHeadline(),
