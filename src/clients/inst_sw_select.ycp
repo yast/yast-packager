@@ -54,7 +54,7 @@
 	any ret = `again;
 	while ( ret == `again )
 	{
-	    ret = WFM::CallFunction( "inst_packages", [ true, true ] );
+	    ret = WFM::CallFunction( "inst_packages", [] );
 
 	    if ( ret == `accept )
 		ret = `next;
@@ -290,6 +290,14 @@ You will lose that selection if you change the basic selection.");
 	    boolean ret = Pkg::SetSelection( base_selection );
 
 	    y2milestone ( "Selecting '%1' returns: %2", base_selection, ret );
+	    y2milestone ( "All selected addon selections: %1", Pkg::GetSelections(`selected, "") );
+
+
+            list<string> other_selections = Packages::ComputeSystemSelectionList();
+            foreach(string sel, other_selections, ``{
+                    if (!Pkg::SetSelection(sel))
+                        y2error("Error setting selection: %1", sel);
+                    });
 
 	    ret = Pkg::ActivateSelections();
 	    y2milestone ("Pkg::ActivateSelections() returns %1", ret);
@@ -330,7 +338,7 @@ You will lose that selection if you change the basic selection.");
 
 	    while ( ret == `again )
 	    {
-		ret = WFM::CallFunction( "inst_packages", [ true, true ] );
+		ret = WFM::CallFunction( "inst_packages", [] );
 
 		if ( ret == `accept )
 		{
