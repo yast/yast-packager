@@ -292,7 +292,7 @@
 	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
 	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
 
-	if (!Mode::initial)
+	if (!Mode::initial && !Mode::config)
 	{
 	    // popup when initializing the package manager
 	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
