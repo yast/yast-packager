@@ -65,7 +65,7 @@
     }
 
     // calling inst_proposal
-    symbol ret = `again;
+    ret = `again;
     while (ret == `again)
     {
         ret = (symbol) WFM::CallFunction ("inst_proposal", [true, true, `dirinstall]);
