@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  6 21:11:50 CEST 2002 - kkaempf@suse.de
+
+- prepare for handling of multiple sources (cschum@suse.de)
+- 2.6.28
+
+-------------------------------------------------------------------
 Fri Sep  6 10:53:01 CEST 2002 - kkaempf@suse.de
 
 - report failed packages properly (#19022)
