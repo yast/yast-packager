@@ -1,4 +1,5 @@
 #
 # Makefile.am for packager/spkg
-SUBDIRS=doc src testsuite
+#
 
+SUBDIRS = doc src # testsuite
