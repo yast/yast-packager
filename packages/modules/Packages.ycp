@@ -411,8 +411,15 @@
 			// media.1
 
 			datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/media.1");
-			WFM::Execute (.local.mkdir, localdir+"/media.1");
-			WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " + localdir+"/media.1");
+			if (datadir != nil)
+			{
+			    WFM::Execute (.local.mkdir, localdir+"/media.1");
+			    WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " + localdir+"/media.1");
+			}
+			else
+			{
+			    y2warning ("media doesn't provide %1", orderdir + "/media.1");
+			}
 
 			// content
 
