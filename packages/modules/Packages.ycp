@@ -30,9 +30,9 @@
     global string metadir = "/yast-install";
     global boolean metadir_used = false;	// true if meta data and inst-sys is in ramdisk
 
-    global list theSources = [];		// id codes of sources in priority order
-    global list theSourceDirectories = [];	// product directories on sources
-    global map<integer,integer> theSourceOrder = $[];		// installation order
+    global list<integer> theSources = [];		// id codes of sources in priority order
+    global list<string> theSourceDirectories = [];	// product directories on sources
+    global map<integer,integer> theSourceOrder = $[];	// installation order
 
     // Local variables
 
@@ -94,7 +94,7 @@
 		|| Arch::board_mac_old)
 	    {
 		string pmac_board = "";
-		list pmac_compatible = (list) SCR::Read(.probe.cpu);
+		list<map> pmac_compatible = (list<map>) SCR::Read(.probe.cpu);
 		foreach (map pmac_compatible_tmp, pmac_compatible,
 		``{
 		    pmac_board = pmac_compatible_tmp["system"]:"";
@@ -364,14 +364,14 @@
 		}
 
 		string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
-		map instordermap = $[];	// instorder : product dir, ...
+		map<integer, string > instordermap = $[];	// instorder : product dir, ...
 		if (instorderfile != nil)
 		{
 		    y2milestone ("instorder file '%1'", instorderfile);
 		    string instorderdata = (string) WFM::Read (.local.string, [instorderfile, ""]);
 
 		    integer instorder = 1;
-		    list instorderlist = splitstring (instorderdata, "\n");
+		    list<string> instorderlist = splitstring (instorderdata, "\n");
 		    foreach (string instorderline, instorderlist,
 		    ``{
 			if ((instorderline != "")
@@ -393,7 +393,7 @@
 
 		// setup meta data dir
 
-		list orderlist = splitstring (orderdata, "\n");
+		list<string> orderlist = splitstring (orderdata, "\n");
 
 		WFM::Execute (.local.mkdir, metadir);
 		foreach (string orderline, orderlist,				// copy all data to ramdisk
@@ -401,7 +401,7 @@
 		    if ((orderline != "")
 			&& (substring (orderline, 0, 1) != "#"))
 		    {
-			list sourcelist = splitstring (orderline, " \t\n");
+			list<string> sourcelist = splitstring (orderline, " \t\n");
 			string orderdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"/";
 
@@ -432,7 +432,7 @@
 
 			WFM::Execute (.local.bash, "/bin/grep DESCRDIR " + localdir + "/content > /tmp/descrdir");
 			string descrline = (string) WFM::Read (.local.string, "/tmp/descrdir");
-			list descrsplit = splitstring (descrline, " \t\n");
+			list<string> descrsplit = splitstring (descrline, " \t\n");
 			string descrdir = descrsplit[1]:"";
 			if (size (descrdir) > 0)
 			{
@@ -479,7 +479,7 @@
 		    if ((orderline != "")
 			&& (substring (orderline, 0, 1) != "#"))
 		    {
-			list sourcelist = splitstring (orderline, " \t\n");
+			list<string> sourcelist = splitstring (orderline, " \t\n");
 			string orderdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"";
 
@@ -614,7 +614,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	list base_selections = Pkg::GetSelections (`selected, "base");
 	string selected_base_selection = base_selections[0]:"";
 
-	list selected_addon_selections = Pkg::GetSelections (`selected, "");
+	list<string> selected_addon_selections = Pkg::GetSelections (`selected, "");
 	y2milestone ("selected base is %1, addon is %2", selected_base_selection, selected_addon_selections);
 
 	// when coming from the update branch to the install branch, we might already have

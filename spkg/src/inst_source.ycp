@@ -98,7 +98,7 @@ from URL '%1'."), url );
             else
             {
                 foreach( integer id, newSources, ``{
-                    map sourceState = $[ "SrcId": id, "enabled": true ];
+                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
                 } );
                 return `ok;
@@ -303,7 +303,7 @@ All changes will be lost.");
 
             y2debug( "Current item: %1", current );
 
-            map sourceState = sourceStatesOut[ current ]:$[];
+            map<string, any> sourceState = sourceStatesOut[ current ]:$[];
             integer id = sourceState[ "SrcId" ]:-1;
             
             if ( id < 0 ) {
@@ -362,7 +362,7 @@ All changes will be lost.");
             else if ( input == `up )
             {
                 if ( current > 0 ) {
-                    map tmpState = sourceStatesOut[ current ]:$[];
+                    map<string, any> tmpState = sourceStatesOut[ current ]:$[];
                     sourceStatesOut[ current ] = sourceStatesOut[ current - 1 ]:$[];
                     sourceStatesOut[ current - 1 ] = tmpState;
                     current = current - 1;
@@ -372,7 +372,7 @@ All changes will be lost.");
             else if ( input == `down )
             {
                 if ( current < numSources - 1 ) {
-                    map tmpState = sourceStatesOut[ current ]:$[];
+                    map<string, any> tmpState = sourceStatesOut[ current ]:$[];
                     sourceStatesOut[ current ] = sourceStatesOut[ current + 1 ]:$[];
                     sourceStatesOut[ current + 1 ] = tmpState;
                     current = current + 1;

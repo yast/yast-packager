@@ -60,11 +60,11 @@
 	    }
 	    else if (is (WFM::Args(arg_n), string))
 	    {
-		arg_list = add (arg_list, WFM::Args(arg_n));
+		arg_list = add (arg_list, tostring (WFM::Args(arg_n)));
 	    }
 	    else if (is (WFM::Args(arg_n), list))
 	    {
-		foreach (any arg, (list) WFM::Args(arg_n), ``{ arg_list = add (arg_list, arg);});
+		foreach (any arg, (list)WFM::Args(arg_n), ``{ arg_list = add (arg_list, tostring (arg));});
 	    }
 	    arg_n = arg_n - 1;
 	}

@@ -55,17 +55,17 @@
      */
     global define list EvaluateFreeSpace (integer spare_percentage) ``{
 
-	list partition = [];
+	list<map<string, string> > partition = [];
 	integer min_spare = 1 * 1024* 1024;		// 1 MB
 	integer max_spare = 1024 * 1024 * 1024;		// 1 GB
 
 	string target = Installation::destdir;
 
 	// get information about diskspace ( used/free space on every partition )
-	partition = (list)SCR::Read(.run.df);
+	partition = (list<map<string, string> >)SCR::Read(.run.df);
 
 	// filter out headline and other invalid entries
-	partition = filter( map part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
+	partition = filter( map<string, string> part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
 	list<map<any,any> > part_input = [];
@@ -171,10 +171,10 @@
 	{
 	    // read /proc/mounts as a list of maps
 	    // $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
-	    list mounts = (list) SCR::Read (.proc.mounts);
+	    list<map<string, any> > mounts = (list<map<string, any> >) SCR::Read (.proc.mounts);
 	    y2milestone ("mounts %1", mounts);
 
-	    list<map> partitions = [];
+	    list<map<string, any> > partitions = [];
 	    foreach (map mpoint, mounts,
 		     ``{
 		string name = mpoint["file"]:"";
@@ -196,19 +196,19 @@
 
 	} // !Mode::initial
 
-	map targets = Storage::GetTargetMap();
+	map<string, map<string, any> > targets = Storage::GetTargetMap();
 	if ( Mode::test )
 	{
-	    targets = (map) SCR::Read(.target.yast2, "test_target_map.ycp");
+	    targets = (map<string, map<string, any> >) SCR::Read(.target.yast2, "test_target_map.ycp");
 	}
 
 	list<map> target_partitions = [];
 	integer min_spare	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
 
-	foreach( string disk, map diskinfo, targets,
+	foreach( string disk, map<string, any> diskinfo, targets,
 		 ``{
 
-	    list part_info = diskinfo["partitions"]:[];
+	    list<map> part_info = diskinfo["partitions"]:[];
 
 	    foreach( map part, part_info,
 		     ``{
@@ -326,9 +326,9 @@
      * $["name" : string, "free" : integer, "used" : integer ]
      *
      */
-    global define list CheckCurrentSpace (list current_partitions) ``{
+    global define list CheckCurrentSpace (list<map> current_partitions) ``{
 
-	list output = [];
+	list<map> output = [];
 
 	foreach (map par, current_partitions, ``{
 	    map outdata = $[];

@@ -40,11 +40,11 @@
   DUMP( "TEST 2: argument test_input2 -> install 3d_chess, delete  tuxeyes/xroach, userInput false" );
   TEST( `sw_single(.test, "test_input2"), [read_map, $[], exec_map], $[] );
 
-  map exec_map = $["target": $["bash": 1 ]];
+  exec_map = $["target": $["bash": 1 ]];
   DUMP( "TEST 3: argument is package jpilot (depAND: pilot-link)" );
   TEST( `sw_single(.test, "jpilot"), [read_map, $[], exec_map], $[] );
 
-  map exec_map = $["target": $["bash": 0 ]];
+  exec_map = $["target": $["bash": 0 ]];
   DUMP( "TEST 4: argument path/package.rpm, which means install package without checking deps" );
   TEST( `sw_single(.test, "./gnuchess.rpm"), [read_map, $[], exec_map], $[] );
 

@@ -31,7 +31,7 @@
             DirInstall::runme_at_boot = false;
 	}
 
-	list tmp = [];
+	list<string> tmp = [];
 
 	// Proposal for uml installation
 	tmp = add (tmp, sformat (_("Target Directory: %1"), DirInstall::target));
