@@ -12,6 +12,7 @@
     import "Popup";
     import "Wizard";
     import "Packages";
+    import "String";
 
 
     list source_list = [];
@@ -19,15 +20,15 @@
     integer num = size (Packages::theSources);
     if (num <= 0)
     {
-	y2error ("Screwed source");
+	y2error ("Invalid source");
     }
     else
     {
 	foreach (integer i, Packages::theSources, {
 	    map new_product = Pkg::SourceProductData (i);
 	    source_list = add (source_list,
-			       `item (`id (i), new_product["productname"]:"?",
-				      new_product["productversion"]:"?"));
+			       `item (`id (i),String::Pad( new_product["productname"]:_("Unknown"), 10 ),
+				      new_product["productversion"]:_("Unknown")));
 	});
     }
 

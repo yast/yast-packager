@@ -1,0 +1,6 @@
+{
+    import "InstURL";
+    string url = InstURL::installInf2Url("iblad");
+    string log_url = InstURL::HidePassword(url);
+    y2milestone("%1", log_url );
+}

@@ -23,9 +23,9 @@ import "Label";
 import "Summary";
 import "Message";
 import "HTML";
-import "SLP";
 import "Arch";
 import "Mode";
+import "Stage";
 
 
 
@@ -103,6 +103,19 @@ global boolean ReadSources()
     return true;
 }
 
+global list<map> ReadSLPSources() {
+    import "SLP";
+    list<map> _slp_sources = SLP::FindSrvs("service:install.suse", "");
+    _slp_sources = maplist (map s, _slp_sources, ``{
+               s["attr"] = SLP::GetAttrMap(s["srvurl"]:"");
+               return s;
+            });
+
+    _slp_sources = filter(map s , _slp_sources, 
+            ``(issubstring(s["attr","machine"]:"", Arch::architecture())));
+
+    return _slp_sources;
+}
 
 /**
  * Read all source-manager settings
@@ -153,14 +166,7 @@ global boolean Read() {
     /* Progress finished */
     Progress::NextStage();
 
-    slp_sources = SLP::FindSrvs("service:install.suse", "");
-    slp_sources = maplist (map s, slp_sources, ``{
-               s["attr"] = SLP::GetAttrMap(s["srvurl"]:"");
-               return s;
-            });
-
-    slp_sources = filter(map s , slp_sources, 
-            ``(issubstring(s["attr","machine"]:"", Arch::architecture())));
+    slp_sources = ReadSLPSources();
     
     y2debug ("slp sources: %1", slp_sources);
 
@@ -265,6 +271,89 @@ global map Export () {
 
 
 
+
+global boolean CreateLocalMetaData ( 
+        integer SrcId, 
+        string metaDir,
+        string slidedir,
+        string descrDir, 
+        string prodDir) {
+
+    boolean  all_sources_ok=true;
+    string localdir = metaDir+"/"+descrDir;
+    WFM::Execute (.local.mkdir, localdir);
+    y2debug("created local dir : %1", localdir );
+    string datadir = Pkg::SourceProvideDir (SrcId, 1, descrDir+"/media.1");
+    if (datadir != nil)
+    {
+        WFM::Execute (.local.mkdir, localdir+"/media.1");
+        WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " + localdir+"/media.1");
+    }
+    else
+    {
+        y2error ("media doesn't provide %1", descrDir + "/media.1");
+        if (Popup::AnyQuestion (
+                    //	Popup::NoHeadline(),
+                    _("Reading Media Description Failed"),
+                    sformat (
+                        _("Cannot read media description for %1.
+                            Packages from this media cannot be installed."), descrDir),
+                    Label::IgnoreButton (),
+                    Label::AbortButton (),
+                    `cancel))
+        {
+            return false;
+        }
+        else
+        {
+            all_sources_ok = false;
+        }
+    }
+
+    // content file
+    datadir = Pkg::SourceProvideFile (SrcId, 1, descrDir+"/content");
+    WFM::Execute (.local.bash, "/bin/cp " + datadir + " " + localdir + "/content");
+
+    // DESCRDIR
+    WFM::Execute (.local.bash, "/bin/grep DESCRDIR " + localdir + "/content > /tmp/descrdir");
+    string descrline = (string) WFM::Read (.local.string, "/tmp/descrdir");
+    list<string> descrsplit = splitstring (descrline, " \t\n");
+    string _descrdir = descrsplit[1]:"";
+    if (size (_descrdir) > 0)
+    {
+        y2milestone ("descrdir %1", _descrdir);
+        WFM::Execute (.local.mkdir, localdir+"/"+_descrdir);
+        datadir = Pkg::SourceProvideDir (SrcId, 1, descrDir+"/"+_descrdir);
+        if (datadir != nil)
+        {
+            WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " +localdir+"/"+_descrdir);
+        } else {
+            y2error("Error providing %1", _descrdir );
+        }
+    }
+
+    if (size (_descrdir) > 5)
+    {
+        string tmp = substring (_descrdir, 0, size (_descrdir) - 5) + "slide";
+        y2milestone("slide dir: %1", tmp );
+        WFM::Execute (.local.mkdir, localdir+"/"+tmp);
+        // FIXME: SourceProvideDir can't handle dirs with subdirs
+        datadir = Pkg::SourceProvideDir (SrcId, 1, descrDir+"/"+tmp);
+        // datadir = "/var/adm/YaST/InstSrcManager/IS_CACHE_0x00000001/MEDIA" + orderdir+"/"+tmp;
+        y2milestone ("tmp=%1, datadir=%2", tmp, datadir);
+        if (datadir != nil)
+        {
+            y2milestone ("copy slide show %1 %2", datadir, slidedir);
+            WFM::Execute (.local.bash, "/bin/cp -r " + datadir + "/* " + slidedir);
+            WFM::Execute (.local.bash, "/bin/rmdir " + slidedir);
+        }
+    }
+
+    return all_sources_ok;
+
+}
+
+
 /**
  * Parse the order file
  * Used also to parse instorder file
@@ -279,7 +368,9 @@ global define list<list<string> > ParseOrderFile (string orderfile) {
 	y2error ("Can't read '%1'", orderfile);
 	return nil;
     }
+    // get lines
     list<string> orderlist = splitstring (orderdata, "\n\r");
+    // filter empty lines
     orderlist = filter (string s, orderlist, {return s != "";});
     list<list<string> > ret = maplist (string line, orderlist, {
 	list<string> lineitems = splitstring (line, " \t\n");
@@ -363,6 +454,21 @@ global define integer getSourceId( string url ) {
     return id;
 }
 
+
+
+
+
+
+/**
+ * Gather Source Metadata
+ */
+global define map SourceData(integer source) ``{
+    map g =  Pkg::SourceGeneralData( source );
+    y2milestone("generalData: %1", g);
+    map p =  Pkg::SourceProductData( source );
+    y2milestone("productData: %1", p);
+    return ((map)union(g,p));
+}
 
 /**
  * Create a Source from an URL

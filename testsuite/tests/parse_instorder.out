@@ -1,0 +1,6 @@
+Read	.target.tmpdir "/tmp"
+Return	$[1:"/SUSE-SLES-Version-9/CD1", 2:"/SUSE-CORE-Version-9/CD1"]
+Return	$[1:"/SUSE-SLES-Version-9/CD1", 2:"/SUSE-CORE-Version-9/CD1"]
+Return	$[1:"/SUSE-SLES-Version-9/CD1", 2:"/SUSE-CORE-Version-9/CD1"]
+Return	$[1:"/SUSE-SLES-Version-9/CD1", 2:"/SUSE-CORE-Version-9/CD1"]
+Return	$[1:"/SUSE-SLES-Version-9/CD1", 2:"/SUSE-CORE-Version-9/CD1"]
