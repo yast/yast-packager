@@ -496,8 +496,7 @@
 	}
 
 	// collect mountpoint:device as map to get a sorted list
-
-	string language = Language::language;
+	
 	boolean retval = false;
 
 	//
