@@ -1,12 +1,14 @@
 -------------------------------------------------------------------
 Sun Sep  8 23:08:32 CEST 2002 - kkaempf@suse.de
 
-- 
+- pass correct locale to packagemanager
+- filter /etc/install.inf entries, linuxrc bug workaround
+- 2.6.31
 
 -------------------------------------------------------------------
 Sat Sep  7 14:12:06 CEST 2002 - kkaempf@suse.de
 
-- adapt medie change api
+- adapt media change api
 - 2.6.30
 
 -------------------------------------------------------------------
