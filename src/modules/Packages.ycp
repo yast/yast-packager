@@ -866,7 +866,10 @@ ask your system administrator.
 	    choosen_base_selection = "";
 
 	// re-set space calculation
+	y2milestone ("Resetting space calculation");
 	SpaceCalculation::GetPartitionInfo();
+	boolean disk_space_sufficient = SpaceCalculation::CheckDiskSize();
+	y2milestone ("Disk space sufficient: %1", disk_space_sufficient);
 
 	// remember if we must re-do the proposal.
 	// If not, there's no need to activate any selections !
@@ -874,7 +877,7 @@ ask your system administrator.
 
 	if (ProductFeatures::base_selection_choice == `fixed)
 	{
-	    if (!SpaceCalculation::CheckDiskSize())
+	    if (! disk_space_sufficient)
 	    {
 		ret = add( ret, "warning", _("Disk Space Exhausted") );
 		ret = add( ret, "warning_level", `blocker );
@@ -882,7 +885,7 @@ ask your system administrator.
 	}
 	else if (ProductFeatures::base_selection_choice == `auto)
 	{
-	    if (redo_proposal || !SpaceCalculation::CheckDiskSize())
+	    if (redo_proposal || ! disk_space_sufficient)
 	    {
 		// make a new proposal or change a proposal,
 		// if it does not fit on the disk anymore
