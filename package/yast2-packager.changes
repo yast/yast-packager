@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 29 19:56:16 CEST 2004 - nashif@suse.de
+
+- Remove Mode::live_eval
+
+-------------------------------------------------------------------
 Wed Jul 14 10:06:38 CEST 2004 - jsrain@suse.cz
 
 - report missing media properly (#42553)
