@@ -162,14 +162,15 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 		    pmac_board = pmac_compatible_tmp["system"]:"";
 		});
 
-		// install pmud on PowerBooks and iMacs
+		// install pbbuttonsd on PowerBooks and iMacs
 		if (issubstring (pmac_board, "PowerBook")
 		    || issubstring (pmac_board, "PowerMac2,1")
 		    || issubstring (pmac_board, "PowerMac2,2")
 		    || issubstring (pmac_board, "PowerMac4,1")
 		    || issubstring (pmac_board, "iMac,1"))
 		{
-		    packages = add (packages, "pmud");
+		    packages = add (packages, "pbbuttonsd");
+		    packages = add (packages, "powerprefs");
 		}
 
 		// mol is fun, and needs root access to kmem
