@@ -26,6 +26,7 @@
     import "PackageInstallation";
     import "Packages";
     import "SlideShow";
+    import "SlideShowCallbacks";
     import "AutoinstSoftware";
 
 
