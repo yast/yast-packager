@@ -185,9 +185,9 @@
 
 
     /**
-     * CallbackDisplayProgress percent
+     * CallbackProgressPackage percent
      **/
-    global symbol CallbackDisplayProgress( integer pkg_percent )
+    global symbol CallbackProgressPackage ( integer pkg_percent )
     {
 	HandleInput();
 	SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
