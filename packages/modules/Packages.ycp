@@ -122,6 +122,11 @@
 		packages = add (packages, "ppc64-utils");
 		packages = add (packages, "iprutils");
 	    }
+
+	    if (Arch::board_prep)
+	    {
+		packages = add (packages, "iprutils");
+	    }
 	}
 
 	if (Arch::ia64)
