@@ -6,7 +6,7 @@
 # please send bugfixes or comments to @MAINTAINER@
 #
 
-# neededforbuild  autoconf automake ydoc
+# neededforbuild  autoconf automake ydoc ycpdoc
 
 Vendor:       SuSE GmbH, Nuernberg, Germany
 Distribution: SuSE Linux 6.4 (i386)
