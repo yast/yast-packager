@@ -21,7 +21,7 @@ Icon = software.png
 Helptext = _("Install additional software package or remove installed packages.")
 
 ; arguments, seperated by space
-Arguments =  beginner
+Arguments =
 
 ; whether root privileges are required to run this module
 RequiresRoot = true
