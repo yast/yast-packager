@@ -77,18 +77,15 @@
 	}
 	} // is_network
 
-	if ((instmode == "hd")
-	    || is_network)
-	{
 	string serverdir = SCR::Read (.etc.install_inf.Serverdir);
-	if ((serverdir != nil) && (serverdir != ""))
+	if (((instmode == "hd") || is_network)				// if serverdir needed
+	    && ((serverdir != nil) && (serverdir != "")))		// and is valid
 	{
 	    url = url + serverdir;
 	}
 	else
 	{
 	    url = url + "/";
-	}
 	}
 
 	if (is_network)
