@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  3 12:31:02 CET 2005 - jsrain@suse.cz
+
+- added xen-dirinstall client
+
+-------------------------------------------------------------------
 Wed Mar  2 17:52:44 CET 2005 - sh@suse.de
 
 - Renamed some icons in .desktop files (name clashes)

@@ -3,7 +3,8 @@
 controldir = $(yast2dir)/control
 
 control_DATA = \
-	dirinstall.xml 
+	dirinstall.xml 			\
+	xen-dirinstall.xml
 
 desktop_DATA = $(wildcard *.desktop)
 EXTRA_DIST = $(desktop_DATA) $(control_DATA)
