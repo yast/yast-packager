@@ -125,10 +125,13 @@
 	    Pkg::PkgInstall (pkg);
 	});
 	Pkg::PkgSolve();
-	PackageInstallation::CommitPackages (0, 0);
+	list commit_result = PackageInstallation::CommitPackages (0, 0);
 
         // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
         UI::CloseDialog();
+
+	if (commit_result[0]:0 < 0)
+	    return `abort;
 
 	return `next;
     }
@@ -196,6 +199,7 @@
     }
 
 
+    symbol result = `next;
     // else
     // Mode::normal means start with first CD
 
@@ -233,7 +237,11 @@
 
 	packager_called = true;
 
-	// FIXME diskfull, abort/cancel
+	if (count < 0)					// aborted by user
+	{
+	    result = `abort;
+	    break;
+	}
 
 	// break on first round with Mediums
 	if (Mode::initial && !Mode::test )
@@ -247,6 +255,6 @@
 
     if ( Mode::normal && !packager_called )
 	return `finish;
-    else
-	return `next;
+
+    return result;
 }

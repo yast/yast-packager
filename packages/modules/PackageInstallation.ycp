@@ -45,7 +45,7 @@
 
     /**
      *  commitPackages marked for deletion or installation
-     *	Return: [ list errors, list remaining ]
+     *	Return: [ int successful, list failed, list remaining, list srcremaining ]
      *
      **/
     global define list CommitPackages (integer media_number,
@@ -74,7 +74,7 @@
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
-	// returns [ int successful, list failed, list remaining ]
+	// returns [ int successful, list failed, list remaining, list srcremaining ]
 	list commit_result = Pkg::PkgCommit (media_number);
 
 	SlideShow::StopTimer();
