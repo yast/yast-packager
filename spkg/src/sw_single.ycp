@@ -69,6 +69,10 @@ do this.</P>"))),
       };
   });
 
+  //
+  // Popups must be defined here for modules inst_sw_single and inst_rpmcopy because
+  // installation.ycp is not available in running system
+  //
   UI(``{
       define YesOrNo(any message, string yes_button_message, string no_button_message) ``{
           OpenDialog(
@@ -92,11 +96,32 @@ do this.</P>"))),
           CloseDialog();
           return (ret == `yes);
       };
-  });
-  
-    // Return a pretty description of a byte count, with two fraction digits
-    // and using KB, MB or GB as unit as appropriate.
-  UI(``{
+            
+      define ContinueCancel(string message,
+			    string continue_button_message,
+			    string cancel_button_message ) ``{
+	  OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `HBox(
+				       `PushButton(`id(`continue), `opt(`default),continue_button_message),
+				       `HSpacing(2),
+				       `PushButton(`id(`cancel),   cancel_button_message)
+				       ),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+        any r = UserInput();
+        CloseDialog();
+        return ( r == `continue );
+      };
+      
       define size_text (integer bytes) ``{
 	  float whole = tofloat (bytes) / 1024.0;
 	  // KiloByte abbreviated
@@ -239,5 +264,8 @@ do this.</P>"))),
 	}
   }
 
+  // umount CD
+  Shell ("/bin/umount /var/adm/mount");
+  
   return `next;
 }
