@@ -249,19 +249,6 @@
 	ret = PackageInstallation::InstallPackages( current_cd_no,			// media nr
 						    packages_installed );		// number of packages installed
 
-	if (media_number == 1)
-	{
-	    while ((pkgname != nil)
-		    && (pkgname != ""))
-	    {
-		remaining_nr = Pkg::PkgMediaNr (pkgname);
-		remaining_packages = add (remaining_packages, [remaining_nr, pkgname]);
-		pkgname = Pkg::PkgNextInstall();
-	    }
-	    y2milestone ("%1 packages on other media", size (remaining_packages));
-	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining_packages", remaining_packages);
-	}
-
 	if (size (error_packages) > 0)
 	{
 	    list failed_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", []);
