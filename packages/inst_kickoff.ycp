@@ -43,8 +43,12 @@
      */
     define void remove_stuff () ``{
 
-	// remove old junk, script in in yast2-update
+	// remove old junk, script is in yast2-update
 	SCR::Execute (.target.bash, Directory::ybindir + "/remove_junk " +
+		      Installation::destdir);
+
+	// remove old junk from GNOME, script is in yast2-update
+	SCR::Execute (.target.bash, Directory::ybindir + "/gnome-preinstall " +
 		      Installation::destdir);
 
 	// possibly remove /usr/share/info/dir
