@@ -1,8 +1,13 @@
 -------------------------------------------------------------------
+Mon Sep 08 15:55:27 CEST 2003 - arvin@suse.de
+
+- sync rpm database
+
+-------------------------------------------------------------------
 Fri Sep  5 16:59:20 CEST 2003 - sh@suse.de
 
 - V 2.8.18
-- Fixed bug #30151: Start pkg mgr in search mode by default 
+- Fixed bug #30151: Start pkg mgr in search mode by default
 
 -------------------------------------------------------------------
 Thu Sep 04 17:47:53 CEST 2003 - arvin@suse.de

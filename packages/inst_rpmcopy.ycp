@@ -206,7 +206,7 @@
 	// one more compatibility feature to old YaST, post-packages
 	// Simply install a list of package after initial installation (only
 	// makes sense with nfs installatons)
-    current_cd_no = 1;
+	current_cd_no = 1;
     }
     else if (Mode::cont && !Mode::normal)
     {
@@ -269,6 +269,9 @@
 
 	current_cd_no = current_cd_no + 1;
     }
+
+    // sync package manager FIXME
+    Pkg::PkgCommit (9999);
 
     // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
     UI::CloseDialog();
