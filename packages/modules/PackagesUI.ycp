@@ -32,10 +32,14 @@
 	    dia_opt =  `opt ( `decorated, `infocolor );
 	}
 
+	symbol header = `Empty();
+	if ( headline != "" )
+	    header = `Left(`Heading( headline ));
+
 	UI::OpenDialog( dia_opt,
 		    `HBox( `VSpacing(vdim),
 			   `VBox (`HSpacing(50),
-				  `Left(`Heading( headline )),
+				  header,
 				  `VSpacing(0.2),
 				  helptext,	// e.g. `Richtext()
 				  `PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )

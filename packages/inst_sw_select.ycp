@@ -280,9 +280,9 @@ You will lose that selection if you change the basic selection.");
 
 	    if ( msg != "" )
 	    {
-		string nty_title = NotifyMsg();
 		term msg_text = `RichText( "<p>" + base_selection + "</p>" + "<p>" + msg + "</p>" );
-		PackagesUI::DisplayHelpMsg( nty_title, msg_text, `none, 10 );
+		PackagesUI::DisplayHelpMsg( "", // headline
+					    msg_text, `none, 10 );
 	    }
 
 	    // reset the warning: you have already choosen ...
