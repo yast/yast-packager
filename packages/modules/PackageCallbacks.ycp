@@ -187,13 +187,12 @@
 			  + "/var/log/YaST2/y2logRPM > " + infopath);
 	    string info = reason + "\n---\n" + SCR::Read (.target.string, [infopath, "-?-"]);
 
-	    // error popup during package installation, %1 is a numeric
-	    // value (number of failed packages)
-	    string message = sformat (_("Installation failed for %1 packages."), _package_name);
+	    // error popup during package installation, %1 is the name of the package
+	    string message = sformat (_("Installation of package %1 failed."), _package_name);
 
-	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
-	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
-	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
+	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()),
+				     `PushButton(`id(`retry), Label::RetryButton()),
+				     `PushButton(`id(`ignore), Label::IgnoreButton()));
 
 	    if ( showLongInfo )
 	    {
