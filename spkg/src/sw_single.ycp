@@ -387,10 +387,27 @@ do this.</P>"));
 	  if ( size(Args() ) > 0 )
 	  {
 	      string pathname = Args(0);
-	      y2log ( .milestone, "sw_single", 1,
-		      sformat ( "Reading file %1", pathname ) );
 
-	      map|any installMap = Read ( pathname );
+	      map|any installMap = $[];
+	      
+	      string fileCommand = "test -f " + pathname;
+	      boolean file_found = (Shell(fileCommand) == 0);
+
+	      if ( !file_found )
+	      {
+		  // It could be a single package which have to be installed.
+		  list install_list = [];
+		  install_list = add ( install_list, Args(0) );
+		  installMap = add ( installMap, "install", install_list );
+		  y2log ( .milestone, "sw_single", 1,
+		      sformat ( "package %1 will be installed", Args(0) ));
+	      }
+	      else
+	      {
+		  y2log ( .milestone, "sw_single", 1,
+		      sformat ( "Reading file %1", pathname ) );
+		  installMap = Read ( pathname );
+	      }
 	      y2log ( .milestone, "sw_single", 2,
 		      sformat ( "installMap: %1", installMap ) );
       
@@ -448,6 +465,11 @@ do this.</P>"));
 			  result = CallFunction( `inst_sw_single( `post_install,
 								  `only_check,
 								  part_input) );
+		      }
+		      else
+		      {
+			  // install anyway
+			  result = `ok;
 		      }
 		  }
 	      }
