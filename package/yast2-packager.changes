@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 19 15:50:06 CET 2005 - jsrain@suse.cz
+
+- removed unneeded import
+
+-------------------------------------------------------------------
 Tue Jan 11 09:21:05 CET 2005 - jsrain@suse.cz
 
 - improve checks if base selection was changed (#37726)
