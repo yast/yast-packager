@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 22 14:41:10 CEST 2003 - lnussel@suse.de
+
+- add code for installing into a directory
+
+-------------------------------------------------------------------
 Fri Aug 22 11:25:17 CEST 2003 - arvin@suse.de
 
 - skip inst_rpmcopy for update
