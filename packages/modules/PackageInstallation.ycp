@@ -3,10 +3,6 @@
  *
  * Authors:		Gabriele Strattner <gs@suse.de>
  *
- * Purpose:
- *
- *
- * $Id$
  */
 
 {
@@ -125,7 +121,7 @@
 	{
 	    SlideShow::SetCurrentCdNo (1, media_number);
 	}
-	SlideShow::UpdateAllCdProgress (false);
+	SlideShow::UpdateAllCdProgress ();
 	SlideShow::StartTimer();
 
 	// returns [ int successful, list failed, list remaining, list srcremaining ]

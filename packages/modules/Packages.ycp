@@ -464,7 +464,7 @@ Select which desktop you would like to install.</p>");
 		map productmap = Pkg::SourceProductData (initial_source);
 		string datadir = productmap["datadir"]:"suse";
 		string slidedir = metadir + "/" + datadir + "/setup/slide";
-		SlideShow::setSlideDir (slidedir);
+		SlideShow::SetSlideDir (slidedir);
 
 		// setup meta data dir
 
