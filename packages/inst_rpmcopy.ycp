@@ -34,7 +34,6 @@
     Pkg::SetLocale (Language::language);
 
     SlideShow::SetLanguage (Language::language);
-    SlideShow::OpenSlideShowDialog ();
 
     // start target, create new rpmdb if none is existing
     // FIXME error checking is missing all around here, initialization could actually fail!
@@ -45,6 +44,8 @@
 	// initialize the package agent in continue mode
 	Packages::Init( true );
     }
+
+    SlideShow::OpenSlideShowDialog ();
 
     Pkg::TargetLogfile (Installation::destdir + "/var/log/YaST2/y2logRPM");
 
