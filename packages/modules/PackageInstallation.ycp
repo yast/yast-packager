@@ -89,13 +89,32 @@
 	if (size (errpacks) > 0)
 	{
 	    // some packages failed installation
+
+	    any retAsk = `no_log;
+
 	    string message = sformat(_("%1 packages returned an error.\nDo you want to see the log file ?"), size (errpacks));
 	    if ( UI::AnyQuestionPopup( NoHeadline(), message, YesButtonLabel(), NoButtonLabel(), `focus_no))
 	    {
-		string text = SCR::Read (.target.string, Installation::destdir+"/var/log/YaST2/y2logRPM");
-		UI::DisplayLogFile (text, `yes_short);
+		retAsk = `yes_short;
 	    }
-	}
+
+	    while ( retAsk != `no_log )
+	    {
+		string text = "";
+
+		if ( retAsk == `yes_short )
+		{
+		    text = mergestring (errpacks, "\n");
+		}
+		if ( retAsk == `yes_long )
+		{
+		    text = SCR::Read (.target.string, "/var/log/YaST2/y2logRPM");
+		}
+
+		retAsk = UI::DisplayLogFile( text, retAsk );
+    	    }
+
+	}  // errpacks
 	return commit_result;
     };
 
