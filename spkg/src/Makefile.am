@@ -14,7 +14,7 @@ desktop_DATA =			\
 	sw_single.desktop	\
 	sw_source.desktop
 
-ynclude_DATA = require.ycp inst_source_dialogs.ycp
+ynclude_DATA = inst_source_dialogs.ycp
 
 module_DATA = Require.ycp
 
