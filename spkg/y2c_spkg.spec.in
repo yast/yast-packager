@@ -13,7 +13,7 @@ Distribution: SuSE Linux 6.4 (i386)
 Name:         @RPMNAME@
 Release:      1
 Copyright:    (c) 2000 SuSE GmbH
-Group:        unsorted
+Group:        System Environment/YaST
 Requires:	y2t_spkg
 BuildArchitectures: noarch
 
