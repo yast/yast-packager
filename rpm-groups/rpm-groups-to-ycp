@@ -71,15 +71,16 @@ foreach $tag ( sort keys %tags )
     my $comment = $tags{ $tag };
     my @comment_lines = split( "\n", $comment );
 
-    if ( $#comment_lines > 5 )  # limit comment to 5 lines
+    if ( $#comment_lines > 4 )  # limit comment to 5 lines
     {
-        $#comment_lines = 5;    # cut array size
+        $#comment_lines = 4;    # cut array size
         $comment = join( "\n", @comment_lines ) . "\n    // ...\n";
     }
 
-    $comment .= "    // (All packages)\n"   if ( $comment =~ /zall/ );
-    $comment .= "    // (Search result)\n"  if ( $comment =~ /z\?\?/ );
+    $comment .= "    // means \"All packages\"\n"   if ( $comment =~ /zall/ );
+    $comment .= "    // means \"Search result\"\n"  if ( $comment =~ /z\?\?/ );
 
+    print YCP "    // substring of a rpm group, e.g.:\n";
     print YCP $comment;
 
     print YCP "    s = _(\"$tag\");\n";
