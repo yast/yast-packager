@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 23 17:51:49 CET 2004 - kkaempf@suse.de
+
+- Fix "progress done" popup (#36783)
+- 2.9.32
+
+-------------------------------------------------------------------
 Tue Mar 23 14:38:34 CET 2004 - arvin@suse.de
 
 - handle installation from name-based virtual hosts (bug #34452)
