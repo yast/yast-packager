@@ -52,7 +52,7 @@
 	y2milestone ("change (err %1, now %2, want %3)", error, current, wanted);
 	string message = sformat ("Please insert media #%1", wanted);
 	string info = sformat ("Found media #%1 (code %2)", current, error);
-	any ret = MediaUI::ChangeMediumPopup (message, info)
+	any ret = MediaUI::ChangeMediumPopup (message, info);
 	if (ret == `continue)
 	    return 0;
 	return -1;
@@ -182,8 +182,8 @@
 	y2milestone ("Pkg::SetProgressCallback");
 	Pkg::SetProgressCallback ("CallbackDisplayProgress");
 
-	Pkg::SourceSetMediaChangeCallback(source, "changeMedium");
-	Pkg::SourceSetMediaErrorCallback(source, "errorMedium");
+	Pkg::SourceSetMediaChangeCallback (Packages::theSource, "changeMedium");
+	Pkg::SourceSetMediaErrorCallback (Packages::theSource, "errorMedium");
 
 	SlideShow::UpdateAllCdProgress (false);
 
