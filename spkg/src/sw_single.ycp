@@ -21,7 +21,7 @@
     import "InstMedia";
     import "Mode";
     Mode::normal = true;	// system is already installed
-
+                                // (used in constructor of Packages)
     import "MediaUI";
     import "Packages";
 
@@ -209,13 +209,9 @@ do this.</P>
     //
     // Get informations for initialisation of package agent
     //
-
-    list part_input = [];
-
-    // percentage of spare space
-    part_input = SpaceCalculation::GetPartitionInfo( );
-
-    y2debug( "SW_SINGLE: partition input: %1", part_input );
+    // 8.0: Initialisation is done inside constructor of the package agent.
+    //	    The installation mode is set to Mode::nornal.
+    //
 
     /*
      * main dialog loop
@@ -336,31 +332,11 @@ do this.</P>
 
 	    boolean version_ok = false;
 
-	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
-
-	    /*
-	    map pkginitmap = $["common.pkd":"common.pkd",
-				"dudir":dudir,
-				"language":language,
-				"packageinfopath":infopath,
-				"partition":part_input,
-				"rootpath":Installation::destdir,
-				"yastpath":Installation::yastdir,
-				"update":true,
-				"memoptimized":true,
-				"forceInit":true];		// force initialisation
-
-	    retval = SCR::Execute(.package.setEnvironment, pkginitmap);
-	    y2debug( "Return  package.setEnvironment(%1) %2", pkginitmap, retval);
-	    */
-	    
-	    UI::CloseDialog();
-
 	    map version_map = $[];
 
 	    if ( !Mode::test )
 	    {
-		version_map = Execute (.package.compareSuSEVersions, "");
+		version_map = SCR::Execute (.package.compareSuSEVersions, "");
 	    }
 	    else if ( test_popup )
 	    {
@@ -450,8 +426,7 @@ must NOT be older than the version of your installed system.\n");
 		    if ( userInput == true )
 		    {
 			result = CallFunction( `inst_sw_single( `post_install,
-							      `not_only_checked,
-							      part_input ) );
+								`not_only_checked ) );
 		    }
 		    else
 		    {
@@ -462,8 +437,7 @@ must NOT be older than the version of your installed system.\n");
 			    // There is an unresolved dependency -> call
 			    // single-package-selection to solve it.
 			    result = CallFunction( `inst_sw_single( `post_install,
-								  `only_check,
-								  part_input) );
+								    `only_check ) );
 			}
 			else
 			{
@@ -477,8 +451,7 @@ must NOT be older than the version of your installed system.\n");
 	    {
 		// Calling inst_sw_single
 		result = CallFunction( `inst_sw_single( `post_install,
-						      `not_only_checked,
-						      part_input ) );
+							`not_only_checked ) );
 	    }
 	}
 	else
