@@ -312,6 +312,13 @@
 	list selected_addon_selections = Pkg::GetSelections (`selected, "");
 	y2milestone ("selected base is %1, addon is %2", selected_base_selection, selected_addon_selections);
 
+	// when coming from the update branch to the install branch, we might already have
+	// a choosen_base_selection but no selection in the package manager
+	// this will trigger the redo_proposal below
+
+	if (selected_base_selection == "")
+	    choosen_base_selection = "";
+
 	// re-set space calculation
 	SpaceCalculation::GetPartitionInfo();
 
