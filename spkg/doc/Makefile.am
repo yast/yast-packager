@@ -4,7 +4,6 @@
 
 SUBDIRS = autodocs
 
-docdir = @DOCDIR@
 htmldir = $(docdir)
 
 html_DATA = y2c_spkg.html
