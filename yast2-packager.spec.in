@@ -27,8 +27,10 @@ Summary:	-
 %files
 %defattr(-,root,root)
 %dir @yncludedir@/checkmedia
+%dir @yncludedir@/dirinstall
 @yncludedir@/inst_source_dialogs.ycp
 @yncludedir@/checkmedia/*
+@yncludedir@/dirinstall/*
 @clientdir@/*.ycp
 @moduledir@/*
 @desktopdir@/*.desktop
