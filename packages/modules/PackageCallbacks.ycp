@@ -26,12 +26,8 @@
    ``{
 	if (remote)
 	{
-	    term providebox = `HBox (`HStretch(),
-				     `VBox( `Label(`id(`package), name ),
-				     `VSpacing(),
-				     `HBox(`ProgressBar(`id(`progress), " ", 100, 0 )),
-				     `HStretch()
-				  ));
+	    term providebox = `HBox(`HStretch(), `HSpacing(40), `ProgressBar(`id(`progress), name, 100, 0 ));
+
 	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
 	}
