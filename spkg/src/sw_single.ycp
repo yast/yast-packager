@@ -201,7 +201,17 @@
 	    ``{
 		Pkg::PkgInstall (package);
 	    });
-	    result = `next;
+	    if (Pkg::PkgSolve ())				// Solve dependencies
+	    {
+		result = `next;					// go-on if no conflicts
+	    }
+	    else
+	    {
+		result = WFM::CallFunction( `inst_packages ());	// Ask user if conflicts
+		y2milestone ("inst_packages returns %1", result);
+		if (result == `accept)
+		    result = `next;
+	    }
 	}
     }
 
