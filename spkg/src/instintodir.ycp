@@ -90,7 +90,7 @@
 
       if(SCR::Read (.target.size, Installation::destdir+"/usr/sbin/chpasswd") > 0)
       {
-	boolean ret = Popup::YesNo(_("Set root password to \\n?"));
+	boolean ret = Popup::YesNo(_("Leave root password empty?"));
 	if(ret == true)
 	{
 	  SCR::Execute(.target.bash,"echo root: | /usr/bin/chroot "+Installation::destdir+" /usr/sbin/chpasswd");
