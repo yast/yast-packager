@@ -3,6 +3,7 @@ Fri Feb 18 11:27:20 CET 2005 - jsrain@suse.cz
 
 - import Product.ycp in inst_software in order to correctly replace
   the &product; macro in helps (#46247)
+- 2.11.25
 
 -------------------------------------------------------------------
 Thu Feb 17 18:31:02 CET 2005 - nashif@suse.de
