@@ -40,7 +40,7 @@
     // check test_popup
     // test_mode is checked for in Installation constructor
 
-    global define list<string> CheckArguments () ``{
+    define list<string> CheckArguments () ``{
 
 	integer arg_n = size (WFM::Args()) - 1;
 
