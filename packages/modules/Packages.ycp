@@ -524,6 +524,7 @@ Select which desktop to install.</p>
 			&& (substring (orderline, 0, 1) != "#"))
 		    {
 			list<string> sourcelist = splitstring (orderline, " \t\n");
+
                         // just in case more spaces are used as delimiter,
                         // remove all remaining spaces from the list
                         //
@@ -532,7 +533,7 @@ Select which desktop to install.</p>
 			string orderdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"/";
 
-			string localdir = "/yast-install/"+orderdir;
+			string localdir = metadir+"/"+orderdir;
 			WFM::Execute (.local.mkdir, localdir);
 
 			y2milestone ("Filling %1", localdir);
@@ -612,7 +613,7 @@ Packages from this media cannot be installed."), orderdir),
 
                 if (servicepack_available)
                 {
-                    string localdir = "/yast-install/Service-Pack/CD1";
+                    string localdir = metadir + "/Service-Pack/CD1";
                     WFM::Execute (.local.mkdir, localdir);
                     y2milestone ("Filling %1", localdir);
                     WFM::Execute(.local.bash, "tar -zxvf " +
@@ -638,7 +639,7 @@ Packages from this media cannot be installed."), orderdir),
                 if (servicepack_available)
                 {
 
-                    string meta_url = "dir:///yast-install/Service-Pack/CD1";
+                    string meta_url = "dir://"+metadir+"/Service-Pack/CD1";
                     string pkgdir = "/";
                     string orderdir = "/Service-Pack/CD1";
                     integer order_source = Pkg::SourceCreate (meta_url, "");		// create and enable source
@@ -678,7 +679,7 @@ Packages from this media cannot be installed."), orderdir),
 			string orderdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"";
 
-			string meta_url = "dir:///yast-install/" + orderdir;
+			string meta_url = "dir://"+metadir+"/" + orderdir;
 			integer order_source = Pkg::SourceCreate (meta_url, "");		// create and enable source
 			y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
 			if (order_source != nil)

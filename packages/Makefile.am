@@ -9,6 +9,7 @@ client_DATA =					\
 	inst_rpmcopy.ycp			\
 	inst_sw_select.ycp			\
 	inst_media.ycp				\
+	inst_mediacopy.ycp				\
 	inst_packages.ycp			\
 	media_proposal.ycp			\
 	software_proposal.ycp
