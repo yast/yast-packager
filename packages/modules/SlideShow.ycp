@@ -211,7 +211,8 @@
      * This is a low level function; use the corresponding high level
      * function, if possible: SlideShowLoadSlide()
      **/
-    global define void SetImageUI( byteblock imagedata ) ``{
+    global define void SetImageUI( byteblock imagedata )
+    {
 	if (imagedata == nil)
 	{
 	    y2warning ( "SetImageUI(): Invalid image" );
@@ -1257,7 +1258,8 @@
      * Install callbacks for slideshow. Should be in SlideShowCallbacks but
      * that doesn't work at the moment.
      */
-    global define void InstallSlideShowCallbacks() ``{
+    global define void InstallSlideShowCallbacks()
+    {
 
 	y2milestone ( "InstallSlideShowCallbacks" );
 
@@ -1277,7 +1279,8 @@
      * Remove callbacks for slideshow. Should be in SlideShowCallbacks but
      * that doesn't work at the moment.
      */
-    global define void RemoveSlideShowCallbacks() ``{
+    global define void RemoveSlideShowCallbacks()
+    {
 
 	y2milestone ( "RemoveSlideShowCallbacks" );
 
