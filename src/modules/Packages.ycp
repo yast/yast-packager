@@ -219,18 +219,19 @@ Select which desktop to install.</p>
     define list<string> languagePackages ()
     {
 	list<string> packages = [];
-
-	// add yast2-trans-$locale
-	string main_locale = Pkg::GetLocale();
+	list<string> locales = Pkg::GetAdditionalLocales();
+	locales = prepend (locales, Pkg::GetLocale());
 	string transpac = "yast2-trans-";
-	packages = add (packages, transpac + substring (main_locale, 0, 2));
 
-	// add yast2-trans-$additional_locale for every additional locale
-
-	list<string> additional_locales = Pkg::GetAdditionalLocales();
-	foreach (string add_locale, additional_locales, {
-	    packages = add (packages, transpac + substring (add_locale, 0, 2));
+	foreach (string loc, locales, {
+	    if (Pkg::IsAvailable (transpac + loc))
+		packages = add (packages, transpac + loc);
+	    else if (Pkg::IsAvailable (transpac + substring (loc, 0, 2)))
+		packages = add (packages, transpac + substring (loc, 0, 2));
+	    else
+		y2warning ("No locale package found for %1", loc);
 	});
+	y2milestone ("Language packages: %1", packages);
 	return packages;
     }
 
@@ -814,14 +815,14 @@ ask your system administrator.
 
     global string CountSizeToBeInstalled () {
         integer sz = 0;
-	if (Mode::installation ())
+	if (! Mode::installation ())
 	{
 	    list<string> packages = Pkg::GetPackages (`selected, true);
 	    foreach (string p, packages, {
 		sz = sz + Pkg::PkgSize (p);
 	    });
 	}
-	else
+	else // in case of fresh installation, disk is initially empty
 	{
 	    map<string,list> du = Pkg::TargetGetDU ();
 	    foreach (string mp, list usages, du, {
