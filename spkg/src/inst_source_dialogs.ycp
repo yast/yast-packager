@@ -327,9 +327,9 @@
 
             if ( input == `browse )
             {
-                any result = UI::AskForExistingDirectory( "/", _("Select Directory") );
+                string result = PopupDir( "/tmp" );
                 y2debug("file popup result: %1",result);
-                if ( result != nil )
+                if ( result != "" )
                 {
                     UI::ChangeWidget( `id( `dir ), `Value, result );
                 }
