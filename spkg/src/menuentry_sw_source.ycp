@@ -36,17 +36,7 @@ packages with this module.
       ////////////////////////////////////////////////////////////////////////////////
       // explanation in YaST2 Control Center                                         //
       `helptext     : UI(_("Choose the source for installation or removal of software packages.
-It is possible to install packages from CD, via the network, or from hard disk.
-
-Project-Id-Version: YaST2
-POT-Creation-Date: 2001-09-28 15:57:59+0200
-PO-Revision-Date: 2000-11-22 17:23+01:00
-Last-Translator: Jay Migliacio <jam@suse.com>
-Language-Team: English_US <i18n@suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8-bit
-")),
+It is possible to install packages from CD, via the network, or from hard disk.")),
    
       ////////////////////////////////////////////////////////////////////////////////
       // leaf nil, experts only ;-)
