@@ -10,6 +10,11 @@ Mon Feb 28 17:16:33 CET 2005 - lslezak@suse.cz
    disabled progress bar, use Close button instead of OK (#66642)
  
 -------------------------------------------------------------------
+Wed Mar  2 09:19:03 CET 2005 - jsrain@suse.cz
+
+- provide visual feedback before initializing package manager
+
+-------------------------------------------------------------------
 Wed Feb 23 14:50:02 CET 2005 - jsrain@suse.cz
 
 - fixed comments for translators
