@@ -1,0 +1,20 @@
+/**
+ * Module: 		inst_packages.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>
+ *
+ * Purpose:
+ * Show the package installation dialogue.
+ *
+ * $Id$
+ */
+
+{
+
+    UI(``{
+	OpenDialog(`opt(`defaultsize), `PackageSelector(`id(`selector) ));
+	RunPkgSelection(`id(`selector) );
+	CloseDialog();
+    });
+
+}

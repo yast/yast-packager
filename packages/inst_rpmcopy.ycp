@@ -81,111 +81,28 @@
 	}
     }
 
-    if ( Mode::cont && !Mode::normal )
+    if ( Mode::cont
+	 && !Mode::normal )
     {
 	// initialize the package agent in continue mode
 	Packages::Init( true );
 	Packages::Restore();
-    }
-
-    // FIXME: temporary workaround
-    {
-	string instmode = SCR::Read (.etc.install_inf.InstMode);
-	if (instmode == nil) instmode = "cd";
-	string cdrom = SCR::Read (.etc.install_inf.Cdrom);
-	if (cdrom == nil) cdrom = "cdrom";
-	string server = SCR::Read (.etc.install_inf.Server);
-	if (server == nil) server = "";
-	string serverdir = SCR::Read (.etc.install_inf.Serverdir);
-	if (serverdir == nil) serverdir = "";
-	string username = SCR::Read (.etc.install_inf.Username);
-	if (username == nil) username = "";
-	string password = SCR::Read (.etc.install_inf.Password);
-	if (password == nil) password = "";
-	string workdomain = SCR::Read (.etc.install_inf.WorkDomain);
-	if (workdomain == nil) workdomain = "";
-	string proxy = SCR::Read (.etc.install_inf.Proxy);
-	if (proxy == nil) proxy = "";
-	string proxyport = SCR::Read (.etc.install_inf.ProxyPort);
-	if (proxyport == nil) proxyport = "";
-	string proxyproto = SCR::Read (.etc.install_inf.ProxyProto);
-	if (proxyproto == nil) proxyproto = "";
-
-	map tmp = $[ "instmode" : instmode,
-		     "cdrom" : cdrom,
-		     "server" : server,
-		     "serverdir" : serverdir,
-		     "username" : username,
-		     "password" : password,
-		     "workdomain" : workdomain,
-		     "proxy" : proxy,
-		     "proxyport" : proxyport,
-		     "proxyproto" : proxyproto
-		];
-	InstMedia::initializeInstMedia (tmp);
-    }
-
-    // List of all packages to install
-    list install_list = [];
-
-    // List of all packages to delete
-    list delete_list = SCR::Read(.package.deleteSet);
-    y2debug("delete_packages: %1", delete_list);
-
-    // delete unwanted packages BEFORE installing new ones
-    if ( delete_list != [] && delete_list != nil )
-    {
-	packager_called = true;
-
-	ret = PackageInstallation::DeletePackages( delete_list );
-
-	if (ret == `cancel)
-	{
-	    return `abort;
-	}
-	else if (ret == `error)
-	{
-	    Report::Error( sformat(_("Error: These packages are not deleted: %1"),
-				   PackageInstallation::error_packages) );
-	    y2debug( "Error list: %1", PackageInstallation::error_packages );
-	}
-	else  if (ret != `ok)
-	{
-	    Report::Error( _("The packager returned an unknown code") );
-	}
-    }
-
-    if ( Mode::cont )
-    {
         SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
-	// y2debug("Starting second part of package installation");
     }
-    else if (Mode::initial)
+
+    if (Mode::initial
+	&& !Mode::update)
     {
-	// y2debug("Starting first part of package installation");
+	// create new rpmdb
 
-	// Make sure, Medium 1 is inserted
-	if ( InstMedia::release_no == 0 )
-	{
-	    // y2debug ("Request first Medium");
-	    if (!PackageInstallation::ChangeMediumWrapper ( 1, true ))
-	    {
-		y2error ("First Medium not available. Aborting");
-		return `abort;
-	    }
-	    // y2debug ("Read release data");
-	    if (!InstMedia::gatherReleaseData ())
-	    {
-		y2error ("No release data on first Medium available. Aborting");
-		return `abort;
-	    }
-	}
-
-	// y2debug ("Initialize packer to %1", Installation::destdir);
-	// Initialize the target system.
-	WFM::CallModule("packager", [nil, `init, `root(Installation::destdir)]);
-
+	Pkg::TargetInit (Installation::destdir, true);
 	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
+    }
+    else
+    {
+	// use existing rpmdb
+
+	Pkg::TargetInit (Installation::destdir, false);
     }
 
     // Now that we know how many packages to install, we can show the dialog
@@ -258,11 +175,9 @@
 	// containing only the package filename and the label in the current
 	// language.
 
-	// Base packages must be on Medium1
-	install_list = SCR::Read(.package.installSetCD, 1);
+	// FIXME Solver
+	list base_packages = [];
 
-
-	list base_packages = filter(`v, install_list, ``(v[3]:false && v[2]:0 == 1));
 	// y2debug("Base packages ( on Medium1 ): %1", base_packages);
 
 	ret = PackageInstallation::InstallPackages( base_packages,		// base system
@@ -318,7 +233,8 @@
     {
 	boolean go_on = true;
 
-	list this_cd_packages = SCR::Read (.package.installSetCD, current_cd_no);
+	// FIXME, packages current CD
+	list this_cd_packages = [];
 
 	if  (Mode::autoinst && Mode::cont)
 	{
@@ -390,7 +306,6 @@
 	// SCR::Execute (.target.remove, Installation::yast2dir + "/package_counter.ycp");
     }
 
-    SCR::Execute(.package.closeMedium);
     InstMedia::UnmountMedium();
 
     // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)

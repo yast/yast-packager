@@ -1,7 +1,0 @@
-{
-  y2internal (">>%1<<", Write( .backupPath, "/somewhere" ) );
-  y2internal (">>%1<<", Write( .dbTargetPath, "/somewhere" ) );
-  y2internal (">>%1<<", Read( .dbPath ) );
-  y2internal (">>%1<<", Write( .dbTargetPath, "/" ) );
-  y2internal (">>%1<<", Read( .dbPath ) );
-}

@@ -1,4 +1,0 @@
-(true)
-(false)
-($["ADD":["bzip", "compat", "db", "glibc", "ncurses", "readline", "textutils", "gfxboot", "popt", "pdksh"], "CONFLICT":[], "OBSOLETE":[], "REQUIRE":[$["packages":["sendmail", "postfix", "smail", "sendmail-tls"], "tag":"smtp_daemon"], $["packages":["vim", "nvi", "elvis", "vim-alpha", "nvi-m17n"], "tag":"vi_clone"]]])
-(["bash", "bc", "groff", "ps", "tcsh", "db2pe"])
