@@ -12,8 +12,7 @@
  */
 
 {
-
-    textdomain "sw_single";
+    textdomain "packager";
 
     include "ui/common_messages.ycp";
 

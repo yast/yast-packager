@@ -18,7 +18,7 @@
  */
 
 {
-    textdomain "packages";
+    textdomain "packager";
 
     import "Arch";
     import "AutoInstall";

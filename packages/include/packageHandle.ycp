@@ -12,13 +12,12 @@
  */
 
 {
-
     import "PackagesUI";
 
-    textdomain "packages";
+    textdomain "packager";
 
     //
-    // Update all informations 
+    // Update all informations
     //
 
     global define UpdatePackageData( string package_set ) ``{
@@ -26,7 +25,7 @@
 	// Update disk space information
 	list new_part_input = CreatePartTable( );
 	UI::ChangeWidget(`id(`part_table), `Items, new_part_input);
-	  
+
 	UI::ChangeWidget(`id(`req_space), `Value, sformat(_("Required: %1"), SpaceCalculation::GetRequSpace( false )));
 
 	CheckDependencies( false,	// don't show AND dependencies
@@ -57,10 +56,10 @@
 	    packages = SCR::Read(.package.hierarchyInformation, $["branch":package_set, "rpmgroup":show_groups]);
 	}
 	y2debug("All packages of set %1: %2", package_set, packages );
-	
+
 	return packages;
     };
-    
+
     //
     // Select all packages
     //
@@ -70,7 +69,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "")
@@ -80,7 +79,7 @@
 	});
 
 	UpdatePackageData( package_set );
-	
+
         // Warning message if free space < 0
 	SpaceCalculation::ShowPartitionWarning( );
 
@@ -95,7 +94,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "i")
@@ -116,7 +115,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "X")
@@ -137,7 +136,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "i" )
@@ -158,7 +157,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "X" )
@@ -172,7 +171,7 @@
 	    }
 	});
 
-	UpdatePackageData( package_set );	
+	UpdatePackageData( package_set );
     };
 
     //
@@ -184,7 +183,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "d" )
@@ -199,11 +198,11 @@
 	});
 
 	UpdatePackageData( package_set );
-	
+
         // Warning message if free space < 0
 	SpaceCalculation::ShowPartitionWarning( );
     };
-    
+
     //
     // DeselectDelete all packages
     //
@@ -213,7 +212,7 @@
 	// set global variables
 	set_pacs = GetSetPackages( package_set );
 	current_pac = "";
-	
+
 	foreach ( `pac, `value, set_pacs, ``{
 	    string status =  SCR::Read(.package.packageStatus, pac );
 	    if ( status == "d" )
@@ -223,11 +222,11 @@
 	});
 
 	UpdatePackageData( package_set );
-	
+
         // Warning message if free space < 0
 	SpaceCalculation::ShowPartitionWarning( );
     };
-    
+
     //
     // Select a package
     //
@@ -278,7 +277,7 @@
     global define DeletePac( string package ) ``{
 	string msg = "";
 	boolean ret = true;
-	
+
 	any r = SCR::Execute(.package.selectDelete, package );
 	y2debug( "SCR::Execute(.package.selectDelete: %1", package );
 
@@ -316,7 +315,7 @@
 		SCR::Execute(.package.deleteAdditionalDependencies, package );
 	    }
 	}
-	
+
 	return ret;
     };
 
@@ -369,7 +368,7 @@
 	    r = SCR::Execute(.package.selectUpdate, package );
 	    y2debug( "SCR::Execute(.package.selectUpdate: %1 %2", package, r );
 	}
-	
+
 	maplist ( `pac, `value,  upd_pacs, ``({
 	    if ( pac == package )
 	    {
@@ -491,7 +490,7 @@ or have YaST2 display the package dependencies.
 	}
     };
 
-    
+
     //
     // Get dependencies from pkginfo + display popup ADD / REQUIRE / CONFLICT / OBSOLETE dependencies.
     //
@@ -557,7 +556,7 @@ because other packages will not work without them."),
 		obsoletes   = lookup( pac_depends, "OBSOLETE", [] );
 	    }
 	}
-	
+
 	while ( or_depends != [] )
 	{
 	    or_exist = true;
@@ -566,7 +565,7 @@ because other packages will not work without them."),
 
 	    list pac_list = lookup( first_dep, "packages", [] );
 	    pac_list = sort( pac_list );
-	      
+
 	    string tag_name = lookup( first_dep, "tag", "" );
 
 	    list or_list = [];
@@ -606,7 +605,7 @@ Select one from the list below."),
 						"",
 						or_list,
 						true );		// check single
-	    
+
 	    // DisplayPackageList returns selected package(s)
 	    if ( ret_list != [] )
 	    {
@@ -628,7 +627,7 @@ Select one from the list below."),
 	    or_depends  = lookup( pac_depends, "REQUIRE", [] );
 	    xor_depends = lookup( pac_depends, "CONFLICT", [] );
 	    obsoletes   = lookup( pac_depends, "OBSOLETE", [] );
-		
+
 	};
 
 	while ( xor_depends != [] )
@@ -700,11 +699,11 @@ Select one from the list below."),
 
 	    xor_depends = lookup( pac_depends, "CONFLICT", [] );
 	    obsoletes   = lookup( pac_depends, "OBSOLETE", [] );
-		
+
 	};
 
 	list obs_depends = GetNewObsoletes( obsoletes );
-	
+
 	while ( obs_depends != [] )
 	{
 	    string pac_name = "";
@@ -780,7 +779,7 @@ Select one from the list below."),
 	    obsoletes = lookup( pac_depends, "OBSOLETE", [] );
 
 	    obs_depends = GetNewObsoletes( obsoletes );
-	    
+
 	};
 
 	if ( !or_exist && !xor_exist && and_depends == [] )
@@ -794,7 +793,7 @@ Select one from the list below."),
     // Get "OBSOLETE" dependencies which are not yet in list of dependencies
     // which are ignored.
     //
-    
+
     global define list GetNewObsoletes( list obsoletes ) ``{
 
 	list obs_depends = [];
@@ -825,10 +824,10 @@ Select one from the list below."),
 		obs_depends = obsoletes;
 	    }
 	}
-	
+
 	return obs_depends;
     };
-    
+
 
     //
     // Popup display ADD Notify message
@@ -872,10 +871,10 @@ Really deselect \"%1\"?
 				    )
 			     )
 		       );
-	
+
 	symbol r = `ok;
 	list selected_items = [];
-	
+
 	while (true)
 	{
 	    r = UI::UserInput();
@@ -884,7 +883,7 @@ Really deselect \"%1\"?
 
 	    if ( !check_single )
 		break;
-	    
+
 	    if ( check_single )
 	    {
 		string message = "";
@@ -899,11 +898,11 @@ None of the packages will be installed.");
 		{
 		    // this is a popup text: one package is usually enough
 		    message = _("Usually, it is sufficient to select only one package.
-Do you really want to install several packages?"); 
+Do you really want to install several packages?");
 		}
 		if ( message == "" )
 		    break;
-		
+
 		if ( message != "" )
 		{
 		    any ret = UI::AnyQuestionPopup( "", message, OKButtonLabel(), CancelButtonLabel(), `focus_no );
@@ -913,7 +912,7 @@ Do you really want to install several packages?");
 		}
 	    }
 	}
-	
+
 	if ( r == `ok )
 	{
 	    UI::CloseDialog();

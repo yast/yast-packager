@@ -14,7 +14,7 @@
  */
 
 {
-    textdomain "sw_single";
+    textdomain "packager";
 
     import "Arch";
     import "Installation";
