@@ -232,7 +232,16 @@
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update ||  !Mode::autoinst)
 	{
-	    if (Pkg::IsAvailable (Kernel::kernel_packages[0]:"kernel-default"))
+	    string the_kernel = Kernel::kernel_packages[0]:"";
+	    y2milestone ("Selecting '%s' as kernel package", the_kernel);
+	    while (the_kernel != ""
+		   && !Pkg::IsAvailable (the_kernel))
+	    {
+		the_kernel = Kernel::fallbacks[the_kernel]:"";
+		y2milestone ("Not available, falling back to '%s'", the_kernel);
+	    }
+
+	    if (kernel != "")
 	    {
 		install_list = (list<string>) union (install_list,
 						     Kernel::kernel_packages);
@@ -240,7 +249,7 @@
 	    else
 	    {
 		y2warning ("%1 not available, using kernel-default",
-			   Kernel::kernel_packages);
+						Kernel::kernel_packages);
 		install_list = add (install_list, "kernel-default");
 	    }
 	}

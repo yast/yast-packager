@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  4 17:58:12 CET 2004 - kkaempf@suse.de
+
+- implement full kernel fallback strategy
+
+-------------------------------------------------------------------
 Thu Mar  4 16:36:37 CET 2004 - visnov@suse.cz
 
 - added type info
