@@ -1,10 +1,11 @@
 #
-# Makefile.am for y2m_inst/ycp/packages
+# Makefile.am for packager/packages
 #
 
 SUBDIRS = modules testsuite
 
-client_DATA = \
+client_DATA =					\
+	inst_kickoff.ycp			\
 	inst_rpmcopy.ycp			\
 	inst_sw_select.ycp			\
 	inst_packages.ycp
