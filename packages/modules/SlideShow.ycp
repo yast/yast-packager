@@ -728,7 +728,7 @@
 
 	if ( slide_list == nil )
 	{
-	    // y2debug( "No slides found at %1", slide_pic_path);
+	    y2milestone( "No slides found at %1", slide_pic_path);
 	    return [];
 	}
 

@@ -120,7 +120,7 @@
 
 	if (media_number > 1)
 	{
-	    other_media_packages = SCR::Read (.target.ycp, "/var/lib/YaST2/other_media_packages", []);
+	    other_media_packages = SCR::Read (.target.ycp, ["/var/lib/YaST2/other_media_packages", []]);
 	    if (other_media_packages == nil)
 		other_media_packages = [];
 	    y2milestone ("%1 packages remaining", size (other_media_packages));
