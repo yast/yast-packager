@@ -117,15 +117,36 @@
 	    return ret;
 	}
 
-	// packager
-	y2milestone ("Pkg::PkgPrepareOrder()");
-	list ins_del_count = Pkg::PkgPrepareOrder();
-	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
+	list other_media_packages = [];		// packages on other media
+	integer other_media_pos = 0;
+
+	if (media_number == 1)
+	{
+	    // packager
+	    y2milestone ("Pkg::PkgPrepareOrder()");
+	    list ins_del_count = Pkg::PkgPrepareOrder();
+	    y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
+	}
+	else
+	{
+	    other_media_packages = SCR::Read (.target.ycp, Installation::destdir + "var/lib/YaST2/other_media_packages");
+	    if (other_media_packages == nil)
+		other_media_packages = [];
+	    y2milestone ("%1 packages remaining", size (other_media_packages));
+	}
 
 	map product = Pkg::SourceProductData (Packages::theSource);
 	string datadir = product["datadir"]:"suse";
 	y2milestone ("datadir %1", datadir);
-	string pkgname = Pkg::PkgNextInstall();
+	string pkgname = "";
+
+	if (media_number == 1)
+	    pkgname = Pkg::PkgNextInstall();
+	else
+	{
+	    pkgname = other_media_packages[other_media_pos]:"";
+	    other_media_pos = other_media_pos + 1;
+	}
 
 	boolean correct_media = true;			// FIXME
 	boolean skip_media = false;
@@ -177,10 +198,31 @@
 		    y2milestone ("install %1", ok);
 		}
 	    }
-	    pkgname = Pkg::PkgNextInstall ();
+	    if (media_number == 1)
+		pkgname = Pkg::PkgNextInstall();
+	    else
+	    {
+		pkgname = other_media_packages[other_media_pos]:"";
+		other_media_pos = other_media_pos + 1;
+	    }
 	}
 
 	SlideShow::StopTimer();
+
+
+	// write out remaining packages
+
+	if (media_number == 1)
+	{
+	    while ((pkgname != nil)
+		    && (pkgname != ""))
+	    {
+		other_media_packages = add (other_media_packages, pkgname);
+		pkgname = Pkg::PkgNextInstall();
+	    }
+	    y2milestone ("%d packages on other media", size (other_media_packages));
+	    SCR::Write (.target.ycp, Installation::destdir + "var/lib/YaST2/other_media_packages");
+	}
 
 	if (size (error_packages) > 0)
 	    ret = -ret;
