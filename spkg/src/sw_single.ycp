@@ -23,12 +23,154 @@ do this.</P>"))),
 			     `codefragment : nil ]
       ];
 
-  // Include Popups, etc. ...
-  Include (`ui_inst_setup());
-  // Close installation dialog -> open inst_sw_single (see below) 
-  UI(`CloseDialog());
-  
+  UI(``{
+
+      define size_text (integer bytes) ``{
+	  float whole = tofloat (bytes) / 1024.0;
+	  // KiloByte abbreviated
+	  string unit = _("KB");
+	  if (whole > 1024.0)
+          {
+	      whole = whole / 1024.0;
+	      // MegaByte abbreviated
+	      unit = _("MB");
+	      if (whole > 1024.0)
+              {
+		  whole = whole / 1024.0;
+		  // GigaByte abbreviated
+		  unit = _("GB");
+              }
+          }
+	  return tostring (whole, 2) + " " + unit;
+      };
+
+      /*
+       * Small dialog that has a cancel and continue button that
+       * appears just befor the video mode is tested.
+       */
+      define ContinueCancel(string message,
+			    string continue_button_message,
+			    string cancel_button_message ) ``{
+	  OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `HBox(
+				       `PushButton(`id(`continue), `opt(`default),continue_button_message),
+				       `HSpacing(2),
+				       `PushButton(`id(`cancel),   cancel_button_message)
+				       ),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+	  any r = UserInput();
+	  CloseDialog();
+	  return ( r == `continue );
+      };
+
+      /*
+       * Are your sure?
+       */
+
+      define YesOrNo(any message, string yes_button_message, string no_button_message) ``{
+          OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `HBox(
+				       `PushButton(`id(`yes), `opt(`default), yes_button_message),
+				       `HSpacing(2),
+				       `PushButton( no_button_message )
+				       ),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+          any ret = UserInput();
+          CloseDialog();
+          return (ret == `yes);
+      };
+
+      /*
+       * Are your sure? with possibiltity to specify default-Button ( values: `no_default, `yes_default )
+       */
+
+      define YesNoOpt(any message, string yes_button_message, string no_button_message, symbol def_symbol) ``{
+	  term yes_button = `empty();
+	  term no_button = `empty();
+	  
+	  if ( def_symbol == `no_default )
+	  {
+	      yes_button = `PushButton( `id(`yes),  yes_button_message );
+	      no_button  = `PushButton( `id(`no_button), `opt(`default), no_button_message );
+	  }
+	  else
+	  {
+	      yes_button = `PushButton(`id(`yes), `opt(`default), yes_button_message);
+	      no_button = `PushButton( `id(`no_button), no_button_message );
+	  }
+	  
+          OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `HBox(
+				       yes_button,
+				       `HSpacing(2),
+				       no_button
+				       ),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+          any ret = UserInput();
+          CloseDialog();
+          return (ret == `yes);
+      };
+
+
+      /*
+       * Displays a message to the user in a small dialog with an OK
+       * button.
+       */
+
+      define DisplayMessage(string message) ``{
+          // ok pushbutton: confirm the dialog
+          OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `PushButton(`opt(`default), _("&OK")),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+          UserInput();
+          CloseDialog();
+      };
+
+  });
+
+    
   // mount CD 
+
   define MyChangeCD(integer cdnum) ``{
       boolean ret = true;
       
@@ -74,28 +216,28 @@ do this.</P>"))),
   string default_architecture = "i386";
 
   map lang2yast1 = $[
-      "en_GB"    : "english",
-      "en_US"    : "english",
-      "en"	 : "english",
-      "de_DE"    : "german",
-      "de_CH"    : "german",
-      "de" 	 : "german",
-      "br_FR"    : "french",
-      "fr_FR"    : "french",
-      "fr_CH"    : "french",
-      "fr"       : "french",
-      "it_IT"    : "italian",
-      "es_ES"    : "spanish",
-      "nl_NL"    : "dutch",
-      "pt_PT"    : "portuguese",
-      "pt_BR"    : "brazilian",
-      "hu_HU"    : "hungarian",
-      "pl_PL"    : "polish",
-      "el_GR"    : "greek",
-      "ru_RU.KOI8-R" : "russian",
-      "cs_CZ"    : "czech",
-      "sk_SK"    : "slovak"
-    ];
+		     "en_GB"    : "english",
+		     "en_US"    : "english",
+		     "en"	 : "english",
+		     "de_DE"    : "german",
+		     "de_CH"    : "german",
+		     "de" 	 : "german",
+		     "br_FR"    : "french",
+		     "fr_FR"    : "french",
+		     "fr_CH"    : "french",
+		     "fr"       : "french",
+		     "it_IT"    : "italian",
+		     "es_ES"    : "spanish",
+		     "nl_NL"    : "dutch",
+		     "pt_PT"    : "portuguese",
+		     "pt_BR"    : "brazilian",
+		     "hu_HU"    : "hungarian",
+		     "pl_PL"    : "polish",
+		     "el_GR"    : "greek",
+		     "ru_RU.KOI8-R" : "russian",
+		     "cs_CZ"    : "czech",
+		     "sk_SK"    : "slovak"
+  ];
 
   string  long_language 	= lookup(lang2yast1, language, "english");
   
@@ -134,40 +276,40 @@ do this.</P>"))),
   _debug ( "DF DF DF: ", partition );
 
  
-   // filter out headline and other invalid entries 
-   partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
+  // filter out headline and other invalid entries 
+  partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
 
-   // pkginfo expects names of partitions without "/" in front ( exception: "/" itself ) 
-   list part_input = [];
+  // pkginfo expects names of partitions without "/" in front ( exception: "/" itself ) 
+  list part_input = [];
   
-   foreach( `part, partition, ``{
-       map part_info = $[];
-       if ( lookup( part, "name" ) != "/" )
-       {
-	   part_info = add( part_info, "name", substring( lookup( part, "name" ), 1 ) );
-       }
-       else
-       {
-	   part_info = add( part_info, "name",  lookup( part, "name" ) );
-       }
-       part_info = add( part_info, "used",  tointeger(lookup( part, "used" )) );
-       part_info = add( part_info, "free",  tointeger(lookup( part, "free" )) );
+  foreach( `part, partition, ``{
+      map part_info = $[];
+      if ( lookup( part, "name" ) != "/" )
+      {
+	  part_info = add( part_info, "name", substring( lookup( part, "name" ), 1 ) );
+      }
+      else
+      {
+	  part_info = add( part_info, "name",  lookup( part, "name" ) );
+      }
+      part_info = add( part_info, "used",  tointeger(lookup( part, "used" )) );
+      part_info = add( part_info, "free",  tointeger(lookup( part, "free" )) );
 
-       part_input = add( part_input, part_info );
-   });
+      part_input = add( part_input, part_info );
+  });
 
-   _debug( "SW: part_input: ", part_input ); 
+  _debug( "SW: part_input: ", part_input ); 
    
   UI(`OpenDialog(`opt(`decorated ),`Label(_("One moment please..."))));
   
   // Initialisierung
   any retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
-					 "language":long_language,  "dudir":dudir,
-					 "partition":part_input, "rootpath":"/",
-					 "yastpath":"/var/lib/YaST",
-					 "update":true,
-					 "memoptimized":true]
-					));
+					  "language":long_language,  "dudir":dudir,
+					  "partition":part_input, "rootpath":"/",
+					  "yastpath":"/var/lib/YaST",
+					  "update":true,
+					  "memoptimized":true]
+					 ));
 
   _debug( "SW: Return  PKGINFO (`setEnvironment()", retval );
    
@@ -185,22 +327,22 @@ do this.</P>"))),
   if ( ret_single == `ok )
   {
       // setting user_setting.install_info for packages which have to be installed
-	list install_info =  PKGINFO ( `getInstallSet() );
-	// _debug ( "Writing install_info: ", install_info );
-	user_settings = add ( user_settings , "install_info", install_info );
+      list install_info =  PKGINFO ( `getInstallSet() );
+      // _debug ( "Writing install_info: ", install_info );
+      user_settings = add ( user_settings , "install_info", install_info );
 
-	list delete_info =  PKGINFO ( `getDeleteSet() );
-	// _debug ( "Writing delete_info: ", delete_info );
-	user_settings = add ( user_settings , "delete_info", delete_info );
+      list delete_info =  PKGINFO ( `getDeleteSet() );
+      // _debug ( "Writing delete_info: ", delete_info );
+      user_settings = add ( user_settings , "delete_info", delete_info );
 
-	_debug( "SW: Usersettings: ", user_settings );
+      _debug( "SW: Usersettings: ", user_settings );
 	
-	ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
+      ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
 
-	if ( ret_rpm  == `next )
-	{
-	    CallFunction( `inst_suseconfig (false, false) );
-	}
+      if ( ret_rpm  == `next )
+      {
+	  CallFunction( `inst_suseconfig (false, false) );
+      }
   }
 
   // umount CD
