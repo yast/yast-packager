@@ -310,13 +310,21 @@ Select which desktop to install.</p>
 	// and the most flexible enhancement for other products
 	if (ProductFeatures::packages_transmogrify != "")
 	{
-	    install_list = (list<string>)
+            list<string> tmp_list = (list<string>)
 		WFM::CallFunction (ProductFeatures::packages_transmogrify,
 				   [ install_list ]);
+
+            // Make sure we did not get a nil from calling the client, i.e.
+            // if the client does not exist at all..
+            if (tmp_list != nil)
+            {
+                install_list = tmp_list;
+            }
 	}
 
-        if (size(ProductFeatures::packages) > 0 )
+        if (size(ProductFeatures::packages) > 0 && ProductFeatures::packages != nil )
         {
+            y2milestone("Adding packages from control file: %1", ProductFeatures::packages );
             install_list = (list<string>) union (install_list, ProductFeatures::packages );
         }
 
@@ -736,7 +744,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 
 
     /**
-     *
+     * Warn about suboptimal distribution
      */
     define void add_information_about_suboptimal_distribution (list& output)
     {
@@ -758,21 +766,21 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 
     define void SetSelectionAndComputeSystemPackages (string selection)
     {
-    // set the new selection
-    boolean ret = Pkg::SetSelection (selection);
+        // set the new selection
+        boolean ret = Pkg::SetSelection (selection);
 
-    y2milestone ( "Selecting '%1' returns: %2", selection, ret );
+        y2milestone ( "Selecting '%1' returns: %2", selection, ret );
 
-    ret = Pkg::ActivateSelections();
-    y2milestone ("Pkg::ActivateSelections() returns %1", ret);
+        ret = Pkg::ActivateSelections();
+        y2milestone ("Pkg::ActivateSelections() returns %1", ret);
 
-    // add additional (internal) packages, like kernel etc.
-    Pkg::DoProvide (Packages::ComputeSystemPackageList());
-    Pkg::PkgSolve(false);
-    list selected_selections = Pkg::GetSelections( `selected, "base");
-    selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
-    y2milestone( "INSTALLING software selection: %1", selected_selections );
-}
+        // add additional (internal) packages, like kernel etc.
+        Pkg::DoProvide (Packages::ComputeSystemPackageList());
+        Pkg::PkgSolve(false);
+        list selected_selections = Pkg::GetSelections( `selected, "base");
+        selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
+        y2milestone( "INSTALLING software selection: %1", selected_selections );
+    }
 
 define boolean SelectDesktop () {
     // get all available base selections
@@ -903,11 +911,10 @@ ask your system administrator.
 
 
     /**
-     * Proposal()
      * Make a proposal for package selection
-     * @param boolean force reset
-     * @param boolean re initialize
-     * @return map for the API proposal;
+     * @param force reset
+     * @param re-initialize
+     * @return map Map for the API proposal
      */
     global define map Proposal( boolean force_reset, boolean reinit )
     {
