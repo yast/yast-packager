@@ -210,23 +210,11 @@
 
 
 
-    /**
-     * media open/attach callback
-     *
-     */
-    global define string MediaError (integer error)
-    ``{
-	y2milestone ("MediaError(%1)", error);
-	//UI::MessagePopup ("Error accessing media:\n"+error);
-	return "";
-    }
-
     global define void SetMediaCallbacks ()
     ``{
 	foreach (`src, Pkg::SourceGetCurrent(),
 	``{
 	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
-	    Pkg::CallbackMediaError (src, "PackageCallbacks::MediaError");
 	});
     }
 
@@ -246,9 +234,16 @@
 	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
 	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
 
-	Pkg::SourceStartCache (true);
+	list sources = Pkg::SourceStartCache (true);
 
 	SetMediaCallbacks ();
+
+	while ((sources == nil) || (sources == []))
+	{
+	    string result = MediaChange (Pkg::Error(), "cd:///", "?", 0, 1);
+	    if (result != "")
+		break;
+	}
 
     UI::{
     // UI USE
