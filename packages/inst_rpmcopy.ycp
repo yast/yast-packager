@@ -31,6 +31,8 @@
     import "SlideShow";
     import "SlideShowCallbacks";
     import "AutoinstSoftware";
+    import "Popup";
+    import "DirInstall";
 
 
     Pkg::SetLocale (Language::language);
@@ -39,7 +41,15 @@
 
     // start target, create new rpmdb if none is existing
     // FIXME error checking is missing all around here, initialization could actually fail!
-    Pkg::TargetInit (Installation::destdir, true);
+    //Pkg::TargetInit (Installation::destdir, true);
+    if(Pkg::TargetInit (Installation::destdir,true) != true)
+    {
+        if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false)
+        {
+            return `abort;
+        }
+    }
+
 
     if (Stage::cont ())
     {
@@ -122,6 +132,10 @@
     else if (Stage::cont ())
     {
 	current_cd_no = 2; // continue with second CD but only in continue mode
+    }
+    else if (DirInstall::installing_into_dir)
+    {
+	current_cd_no = 1;
     }
 
     if (Packages::metadir_used)			// all is in ramdisk
