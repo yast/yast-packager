@@ -75,7 +75,7 @@
 	map tmp1 = WFM::Read (.local.stat, slide_base_path);
 	if (!tmp1["isdir"]:false)
 	{
-	    slide_base_path = "/var/adm/YaST/InstSrcManager/IS_CACHE_0x00000001/MEDIA/suse/setup/slide";
+	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
 	}
 
 	if ( Mode::test )
