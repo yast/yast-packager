@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep  4 18:56:15 CEST 2002 - kkaempf@suse.de
+
+- fix run-time package selection
+- 2.6.24
+
+-------------------------------------------------------------------
 Wed Sep  4 15:38:49 CEST 2002 - kkaempf@suse.de
 
 - force /dev/cdrom symlink
