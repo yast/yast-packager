@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 11 09:21:05 CET 2005 - jsrain@suse.cz
+
+- improve checks if base selection was changed (#37726)
+
+-------------------------------------------------------------------
 Mon Jan 10 09:46:51 CET 2005 - jsrain@suse.cz
 
 - fixed parser of yast2/order and yast2/instorder files (#39405)

@@ -205,8 +205,9 @@ To make a more precise selection of software to install, select
 
     string wrn_msg = "";
 
+
     // Checking: already selected addons or single selection?
-    if ( Pkg::RestoreState(true) )		// only check state diffs
+    if (Pkg::RestoreState(true) && Packages::base_selection_modified)		// only check state diffs
     {
 	// Display warning message
 	wrn_msg = _("\
@@ -264,7 +265,7 @@ You will lose that selection if you change the basic selection.");
 
 	// if the selection has changed and the user has already selected some addons or single packages
 	if ( (save_selection != base_selection)
-	     && Pkg::RestoreState(true) )
+	     && Pkg::RestoreState(true) && Packages::base_selection_modified )
 	{
             // popup text: ask the user whether to reset his individuell selection
 	    boolean ret = Popup::YesNo(_("Do you really want\nto reset your detailed selection?"));
@@ -274,6 +275,10 @@ You will lose that selection if you change the basic selection.");
 		Wizard::CloseDialog();
 		// rebuild the former selected RadioButton
 		return `again;
+	    }
+	    else
+	    {
+		Packages::base_selection_modified = false;
 	    }
 	}
 
@@ -328,7 +333,10 @@ You will lose that selection if you change the basic selection.");
 		ret = WFM::CallFunction( "inst_packages", [ true, true ] );
 
 		if ( ret == `accept )
+		{
+		    Packages::base_selection_modified = true;
 		    ret = `next;
+		}
 	    }
 
 	    error_found = SpaceCalculation::ShowPartitionWarning();
