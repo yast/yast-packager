@@ -17,7 +17,6 @@
     import "Arch";
     import "Misc";
     import "Installation";
-    import "InstMedia";
 
     textdomain "packager";
     include "ui/common_popups.ycp";
@@ -52,15 +51,9 @@
 	string media_prompt	= "";
 
 	// will be used in conjunction with other text below
-	if (InstMedia::mediatype <= 1)
-	{
-	    // prompt for user to insert the correct CD/DVD
-	    media_prompt = sformat(_("Please insert %1 %2."), InstMedia::medianame, cdnum);
-	}
-	else
-	{
-	    media_prompt =_("The correct source medium could not be mounted.");
-	}
+	// prompt for user to insert the correct CD/DVD
+	media_prompt = sformat(_("Please insert %1 %2."), "CD", cdnum);
+	media_prompt =_("The correct source medium could not be mounted.");
 
 	while ( go_on )
 	{
@@ -79,11 +72,10 @@
 		y2milestone ("Release No. or product information on installation medium differs from
 saved information (Medium: %1, %2, Reference: %3, %4) type %5",
 			     release_no, product,
-			     InstMedia::release_no, InstMedia::product,
-			     InstMedia::mediatype);
+			     "?", "?", 0);
 
-		string medianame = InstMedia::medianame;
-		if (InstMedia::mediatype > 1)
+		string medianame = "CD";
+		if (false)
 		{
 		    // if we dont install from CD or DVD, we must
 		    // use a different name.
@@ -106,10 +98,6 @@ Insert the appropriate medium.
 		{
 		    string errname = medianame;
 
-		    if (InstMedia::mediatype <= 1)
-		    {
-			errname = errname + " " + cdnum;
-		    }
 		    // the installation was done with a different
 		    // media set than currently found.
 		    // i.e. installing a package from a personal distribution if
@@ -123,17 +111,6 @@ Insert the appropriate medium.
 		    string medium = "";
 		    string harddisk = "";
 
-		    if ( product != InstMedia::product )
-		    {
-			medium = product;
-			harddisk = InstMedia::product;
-		    }
-		    else
-		    {
-			medium = sformat( "%1", release_no );
-			harddisk = sformat( "%1", InstMedia::release_no );
-		    }
-
 		    message = sformat(_("
 The product information on the installation
 medium differs from the information found
@@ -146,7 +123,7 @@ Press \"Continue\" to proceed or \"Cancel\" to abort.\n"),
 		    // FIXME: reactivate this part
 		    if ( false )
 		    {
-			if (InstMedia::mediatype <= 1)
+			if (false)
 			{
 			    message = message + "\n";
 			    // only shown on CD or DVD installs.
@@ -157,7 +134,7 @@ To install packages from the
 finish this installation first then
 restart later with the first %1 of the
 respective set.
-"), InstMedia::medianame);
+"), "CD");
 			}
 		    }
 		}
@@ -174,7 +151,6 @@ respective set.
 		if (!ret)
 		{
 		    // don't ignore bad product ID
-		    InstMedia::UnmountMedium();
 		}
 
 		break;
@@ -198,13 +174,13 @@ respective set.
 	    else if (actcdnum > 0)	// found a medium, but the wrong one
 	    {
 		// if there is a medium available, inform user about the number
-		if  ( InstMedia::medianame != "" && InstMedia::mediatype <= 1 )
+		if  ( false )
 		{
 		    // tell the user which Medium is currently inserted
 		    // %1 == prompt defined above
 		    // %2 == "CD" or "DVD"
 		    // %3 == number
-		    message = sformat(_("%1\nCurrently %2 %3 is inserted."), media_prompt, InstMedia::medianame, actcdnum);
+		    message = sformat(_("%1\nCurrently %2 %3 is inserted."), media_prompt, "CD", actcdnum);
 		}
 		else
 		{
@@ -220,8 +196,6 @@ respective set.
 		       + Misc::File2UI (Installation::mountlog);
 	    }
 
-	    InstMedia::UnmountMedium();
-
 	    if ( !show_popup )
 		break;
 
@@ -233,9 +207,6 @@ respective set.
 		break;
 
 	} // while (go_on)
-
-	if (!ret)
-	    InstMedia::UnmountMedium();
 
 	return ret; // true or false
     };
@@ -258,7 +229,7 @@ respective set.
 
 	if (do_eject)
 	{
-	    if (InstMedia::mediatype <= 1)	// just CD/DVD with "Eject"
+	    if (true)		// just CD/DVD with "Eject"
 	    {
 		button_box = `HBox(
 				   `PushButton(`id(`continue), `opt(`default), OKButtonLabel() ),
@@ -319,7 +290,7 @@ respective set.
 	    }
 	    else if ( r == `eject )
 	    {
-		InstMedia::EjectMedium();
+		SCR::Execute (.target.bash, "/bin/eject /dev/cdrom");
 	    }
 
 	} until (r == `cancel || r == `continue);
