@@ -1,0 +1,1 @@
+CallModule("sw_single", [ "get_menuentry" ])
