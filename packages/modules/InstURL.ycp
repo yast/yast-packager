@@ -1,0 +1,118 @@
+/**
+ * Module:		InstURL.ycp
+ *
+ * Authors:		Klaus Kaempf (kkaempf@suse.de)
+ *
+ * Purpose:		Convert /etc/install.inf data to URL
+ *
+ *
+ * $Id$
+ */
+
+{
+    module "InstURL";
+
+    textdomain "packager";
+
+    global define string installInf2Url ( )
+    ``{
+	string options = "";
+
+	string url = SCR::Read (.etc.install_inf.InstMode);	// mode
+	if (url == nil)						// defaults to "CD"
+	    url = "cd";
+
+
+	if ((url == "cd")					// CD or DVD
+	    || (url == "dvd"))
+	{
+	    list devicelist = SCR::Read(.probe.cdrom);
+	    foreach (`device, devicelist,
+	    ``{
+		string devname = device["dev_name"]:"";
+		if (url == "dvd")			// filter out cd drives if dvd is wanted
+		{
+		    if (!issubstring (device["cdtype"]:"", "dvd"))
+			devname = "";
+		}
+
+		if (devname != "")
+		{
+		    if (options != "") options = options + ",";
+		    options = options + devname;
+		}
+	    });
+	    if (options != "")
+	    {
+		options = "devices=" + options;
+	    }
+	}
+	else if (url == "hd")						// Harddisk
+	{
+	    options = "device=" + SCR::Read (.etc.install_inf.Partition);
+	}
+
+	url = url + "://";
+
+	string username = SCR::Read (.etc.install_inf.Username);
+	if ((username != nil) && (username != ""))
+	{
+	    url = url + username;
+	    string password = SCR::Read (.etc.install_inf.Password);
+	    if ((password != nil) && (password != ""))
+	    {
+		url = url + ":";
+		url = url + password;
+	    }
+	    url = url + "@";
+	}
+	string server = SCR::Read (.etc.install_inf.Server);
+	if ((server != nil) && (server != ""))
+	{
+	    url = url + server;
+	}
+	string serverdir = SCR::Read (.etc.install_inf.Serverdir);
+	if ((serverdir != nil) && (serverdir != ""))
+	{
+	    url = url + serverdir;
+	}
+	else
+	{
+	    url = url + "/";
+	}
+	string proxy = SCR::Read (.etc.install_inf.Proxy);
+	if ((proxy != nil) && (proxy != ""))
+	{
+	    url = url + ";proxy=" + proxy;
+	}
+	string proxyport = SCR::Read (.etc.install_inf.ProxyPort);
+	if ((proxyport != nil) && (proxyport != ""))
+	{
+	    url = url + ";proxyport=" + proxyport;
+	}
+	string proxyproto = SCR::Read (.etc.install_inf.ProxyProto);
+	if ((proxyproto != nil) && (proxyproto != ""))
+	{
+	    url = url + ";proxyproto=" + proxyproto;
+	}
+	string proxyuser = SCR::Read (.etc.install_inf.ProxyUser);
+	if ((proxyuser != nil) && (proxyuser != ""))
+	{
+	    url = url + ";proxyuser=" + proxyuser;
+	}
+	string proxypassword = SCR::Read (.etc.install_inf.ProxyPassword);
+	if ((proxypassword != nil) && (proxypassword != ""))
+	{
+	    url = url + ";proxypassword=" + proxypassword;
+	}
+
+	if (options != "")
+	{
+	    url = url + ";" + options;
+	    y2milestone ("options %1", options);
+	}
+	y2milestone ("URL %1", url);
+	return url;
+    }
+
+}
