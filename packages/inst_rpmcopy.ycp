@@ -1,8 +1,7 @@
 /**
  * Module: 		inst_rpmcopy.ycp
  *
- * Authors:		Mathias Kettner <kettner@suse.de>
- *			Klaus Kaempf <kkaempf@suse.de> (initial)
+ * Authors:		Klaus Kaempf <kkaempf@suse.de>
  *			Stefan Hundhammer <sh@suse.de> (slide show)
  *
  * Purpose:
@@ -172,9 +171,6 @@
 			+ "/: /:\"| /bin/sed \"s: " + Installation::destdir
 			+ ": /:\" > " + Installation::destdir + mtabname);
 	}
-	// add additional (internal) packages, like kernel etc.
-	Pkg::DoProvide (Packages::ComputeSystemPackageList());
-	Pkg::PkgSolve();
     }
 
     if  (Mode::autoinst
