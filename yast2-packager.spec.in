@@ -1,6 +1,6 @@
 @HEADER-COMMENT@
 
-# neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages
+# neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages yast2 yast2-installation yast2-storage yast2-country yast2-mouse yast2-x11 yast2-bootloader
 
 @HEADER@
 Requires:	yast2
@@ -28,7 +28,7 @@ Summary:	-
 %defattr(-,root,root)
 @yncludedir@/inst_source_dialogs.ycp
 @clientdir@/*.ycp
-@moduledir@/*.ycp
+@moduledir@/*
 @configdir@/*.y2cc
 @desktopdir@/*.desktop
 %doc @docdir@
