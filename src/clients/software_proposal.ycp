@@ -60,6 +60,14 @@
 		Packages::desktop_dialog_shown = false;
 	    }
 	}
+        if (Packages::solve_errors > 0)
+        {
+             // the proposal for the packages requires manual intervention
+            ret = union (ret, $[
+                        /* warning text */
+                     "warning" : _("Cannot solve dependencies automatically. Manual intervention required"),
+                     "warning_level" : `blocker ]);
+        }
     }
     else if ( func == "AskUser" )
     {

@@ -60,6 +60,9 @@ Select which desktop to install.</p>");
 
     string pm_init_blocker = nil;
 
+    // count of errors during packages solver
+    global integer solve_errors = 0;
+
 
 
     /*-----------------------------------------------------------------------
@@ -873,6 +876,8 @@ ask your system administrator.
 	    Packages::Init( !init_called ); // reset completely only if necessary
 	}
 
+	boolean initial_run = reinit || ! init_called;
+
 	UI::CloseDialog();
 
 	if (pm_init_blocker != nil)
@@ -1113,6 +1118,14 @@ ask your system administrator.
 	    Pkg::PkgSolve (false);
 
 	    y2milestone ("activating: %1, returning %2", act_sel, ret);
+	}
+	if (initial_run || redo_proposal)
+	{
+	    boolean success = Pkg::PkgSolve (false);
+	    if (! success)
+	    {
+		solve_errors = Pkg::PkgSolveErrors ();
+	    }
 	}
 	return ret;
     }
