@@ -169,10 +169,10 @@
 
 	if (Mode::vnc)
 	{
-	    packages = ["vnc", "yast2-qt", "xf86", "mesasoft"];
+	    packages = ["vnc", "yast2-qt", "XFree86", "mesasoft"];
 	}
 
-		return packages;
+	return packages;
     }
 
     /**
