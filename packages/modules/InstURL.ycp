@@ -17,20 +17,21 @@
     global define string installInf2Url ( )
     ``{
 	string options = "";
+	string is_network = true;
 
-	string url = SCR::Read (.etc.install_inf.InstMode);	// mode
-	if (url == nil)						// defaults to "CD"
-	    url = "cd";
+	string instmode = SCR::Read (.etc.install_inf.InstMode);	// mode
+	if (instmode == nil)						// defaults to "CD"
+	    instmode = "cd";
 
-
-	if ((url == "cd")					// CD or DVD
-	    || (url == "dvd"))
+	if ((instmode == "cd")					// CD or DVD
+	    || (instmode == "dvd"))
 	{
+	    is_network = false;
 	    list devicelist = SCR::Read(.probe.cdrom);
 	    foreach (`device, devicelist,
 	    ``{
 		string devname = device["dev_name"]:"";
-		if (url == "dvd")			// filter out cd drives if dvd is wanted
+		if (instmode == "dvd")			// filter out cd drives if dvd is wanted
 		{
 		    if (!issubstring (device["cdtype"]:"", "dvd"))
 			devname = "";
@@ -47,13 +48,16 @@
 		options = "devices=" + options;
 	    }
 	}
-	else if (url == "hd")						// Harddisk
+	else if (instmode == "hd")						// Harddisk
 	{
+	    is_network = false;
 	    options = "device=" + SCR::Read (.etc.install_inf.Partition);
 	}
 
-	url = url + "://";
+	string url = instmode + "://";
 
+	if (is_network)
+	{
 	string username = SCR::Read (.etc.install_inf.Username);
 	if ((username != nil) && (username != ""))
 	{
@@ -71,6 +75,11 @@
 	{
 	    url = url + server;
 	}
+	} // is_network
+
+	if ((instmode == "hd")
+	    || is_network)
+	{
 	string serverdir = SCR::Read (.etc.install_inf.Serverdir);
 	if ((serverdir != nil) && (serverdir != ""))
 	{
@@ -80,6 +89,10 @@
 	{
 	    url = url + "/";
 	}
+	}
+
+	if (is_network)
+	{
 	string proxy = SCR::Read (.etc.install_inf.Proxy);
 	if ((proxy != nil) && (proxy != ""))
 	{
@@ -105,6 +118,7 @@
 	{
 	    url = url + ";proxypassword=" + proxypassword;
 	}
+	} // is_network
 
 	if (options != "")
 	{
