@@ -233,19 +233,14 @@ do this.</P>
 	UI::CloseDialog();
 	return `next;
     }
-    else if ((result == `next)
-	      || (result == `unknown_descr))
-    {
-	if (WFM::CallFunction( `inst_source ( true, true )) == `next)
-	    result = `found_descr;
-	else
-	    result = `abort;
-    }
 
     if (result == `found_descr)
     {
 	if (size (packagelist) == 0)			// packages given ?
 	{
+	    import "SpaceCalculation";
+	    SpaceCalculation::GetPartitionInfo();	// initialize the DU calculation
+
 	    result = WFM::CallFunction( `inst_packages ());	// No: ask user
 	    y2milestone ("inst_packages returns %1", result);
 	    result = `next;	// FIXME
