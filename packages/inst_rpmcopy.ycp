@@ -50,9 +50,9 @@
     string tmpdir	= SCR::Read(.target.tmpdir);
     string language	= Language::language;
 
-    any 	ret 		= nil;	// return value module packager
-    list 	rpm_list 	= [];
-    list 	descr_list 	= [];
+    any		ret			= nil;	// return value module packager
+    list	rpm_list	= [];
+    list	descr_list	= [];
 
     SlideShow::SetLanguage( language );
     SlideShow::OpenSlideShowDialog();
@@ -193,12 +193,6 @@
 	Pkg::DoProvide (Packages::ComputeSystemPackageList());
     }
 
-    if  (Mode::autoinst
-	 && Mode::cont)
-    {
-	// extra packages from autoinstall
-	Pkg::DoProvide( AutoInstall::postPackageList());
-    }
 
     SlideShow::InitPkgData();
 
@@ -213,10 +207,20 @@
     {
 	maxnumbercds = 1; // only the first CD will be installed
     }
+    else if (Mode::autoinst && Mode::cont && size(AutoInstall::postPackageList()) > 0) 
+    {
+	// one more compatibility feature to old YaST, post-packages
+	// Simply install a list of package after initial installation (only
+	// makes sense with nfs installatons)
+	maxnumbercds = 1;
+	Pkg::DoProvide( AutoInstall::postPackageList());
+    }    
     else if (Mode::cont && !Mode::normal)
     {
 	current_cd_no = 2; // continue with second CD but only in continue mode
     }
+
+    
     // else
     // Mode::normal means start with first CD
 
