@@ -27,6 +27,7 @@
     import "GetInstArgs";
     import "Label";
     import "PackageSystem";
+    import "Report";
 
     list<string> packagelist = [];		// list of packages to install
 
@@ -212,6 +213,19 @@
 	   }
 	   else
 	   {
+		list<string>nonexisting = filter (string p, packagelist, {
+		    return ! Pkg::IsAvailable (p);
+		});
+		if (size (nonexisting) > 0)
+		{
+		    string missing = mergestring (nonexisting, ", ");
+		    y2error ("Tags %1 aren't available",
+		        mergestring (nonexisting, ", "));
+		    Report::Error (sformat (
+			_("Following packages haven't been found on the medium:\n%1"),
+			mergestring (nonexisting, "\n")));
+		    return `cancel;
+		}
 	       foreach (string package, packagelist,		// Yes: install them
 	       {
 		   if (!Pkg::PkgInstall (package))			// select package for installation
