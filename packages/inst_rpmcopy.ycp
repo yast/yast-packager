@@ -174,7 +174,7 @@
 
     if (!Mode::initial)
     {
-	list remaining = SCR::Read (.target.ycp, "/var/lib/YaST2/remaining", []);
+	list remaining = SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
 	if (remaining == nil)
 	    remaining = [];
 	y2milestone ("%1 packages remaining", size (remaining));
