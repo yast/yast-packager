@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 11 15:56:07 CET 2005 - nashif@suse.de
+
+- disabled detecting slp sources 
+- 2.11.19
+
+-------------------------------------------------------------------
 Fri Feb 11 13:40:38 CET 2005 - jsrain@suse.cz
 
 - better warning if out-of-disk-space during update (#50376)
