@@ -1,0 +1,42 @@
+{
+return Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+}
+{
+    return Read(.selGroups);
+}
+{
+    return Execute(.selectSelInstall, "Minimal", true );
+}
+{
+    return Read(.selInstallSet);
+}
+{
+    return Read(.selDependencies);
+}
+{
+    return Read(.selPackages);
+}
+{
+    return Execute(.selectSelInstall, "Dmz", false );
+}
+{
+    return Read(.selInstallSet);
+}
+{
+    return Read(.selDependencies);
+}
+{
+    return Read(.selPackages);
+}
+{
+    return Execute(.deselectSelInstall, "Dmz" );
+}
+{
+    return Read(.selInstallSet);
+}
+{
+    return Read(.selDependencies);
+}
+{
+    return Read(.selPackages);
+}

@@ -1,0 +1,60 @@
+-------------------------------------------------------------------
+Tue Apr 23 18:46:19 CEST 2002 - arvin@suse.de
+
+- use %{_libdir} in path for plugins
+
+-------------------------------------------------------------------
+Sun Apr 14 00:44:28 CEST 2002 - arvin@suse.de
+
+- fixes for gcc 3.1
+
+-------------------------------------------------------------------
+Tue Mar 19 17:29:06 CET 2002 - kkaempf@suse.de
+
+- only provide own .scr files (#14530).
+
+-------------------------------------------------------------------
+Sat Mar  2 14:58:19 CET 2002 - kkaempf@suse.de
+
+- add .info.vendor and .info.summary commands (#11819).
+
+-------------------------------------------------------------------
+Fri Feb 15 17:30:35 CET 2002 - schubi@suse.de
+
+- removing targetdir in the backup-tgz #12165
+
+-------------------------------------------------------------------
+Wed Feb 13 16:57:24 CET 2002 - ma@suse.de
+
+- Version to 2.5.5
+- Delay initialisation of rpmDB until we need access, or
+  Write(.dbTargetPath) was called. (#13172)
+
+-------------------------------------------------------------------
+Fri Feb  8 14:49:21 CET 2002 - ma@suse.de
+
+- Version to 2.5.4
+- new Read(.info.fileList): return a packages file list als list of
+  strings, or YCPVoid, if package is not installed.
+
+-------------------------------------------------------------------
+Thu Jan 31 17:14:12 CET 2002 - schubi@suse.de
+
+- Bugfix in getting installed kernel
+
+-------------------------------------------------------------------
+Wed Jan 30 17:17:25 CET 2002 - schubi@suse.de
+
+- Read(.info) return buildtime as long
+
+-------------------------------------------------------------------
+Wed Jan 23 18:46:24 CET 2002 - schubi@suse.de
+
+- Read(.backupPath) added
+
+-------------------------------------------------------------------
+Wed Dec 12 16:33:58 CET 2001 - schubi@suse.de
+
+- initial
+
+-------------------------------------------------------------------

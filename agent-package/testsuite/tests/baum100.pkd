@@ -1,0 +1,50 @@
+# 
+
+Filename:      a.rpm
+Requires:        b c g d f
+Provides:         
+Conflicts:       
+
+
+Filename:      b.rpm
+Requires:         e
+Provides:          
+Conflicts:       
+
+
+Filename:      c.rpm
+Requires:        f 
+Provides:         
+Conflicts:       
+
+
+Filename:      d.rpm
+Requires:         
+Provides:          
+Conflicts:       
+
+Filename:      e.rpm
+Requires:        
+Provides:         c 
+Conflicts:       f
+
+Filename:      f.rpm
+Requires:         
+Provides:          
+Conflicts:       e
+
+Filename:      g.rpm
+Requires:        
+Provides:          
+Conflicts:       
+
+Filename:      h.rpm
+Requires:        
+Provides:         d 
+Conflicts:       
+
+
+
+
+
+

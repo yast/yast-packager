@@ -1,0 +1,36 @@
+{
+return Execute(.setEnvironment,$["packageinfopath":"tests","language":"german","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+}
+{
+    return Execute(.setInstallSelection,["aaa_base", "aaa_dir", "aaa_skel", "at", "base", "bash", "bash1", "bdflush", "compat", "compress", "cpio", "cracklib", "cron", "ddrescue", "devs", "diff", "eazy", "elvis", "ext2fs", "file", "fileutil", "find", "gawk", "gdbm", "gppshare", "groff", "gzip", "kbd", "kernmod", "kernmods", "ldso", "less", "libaout", "libz", "lilo"],false);
+}
+{
+    return Read(.installSet);
+}
+{
+    return Read(.deleteSet);
+}
+{
+    return Execute(.selectInstall,"loadlin",false);
+}
+{
+    return Read(.installSet);
+}
+{
+    return Execute(.selectDelete,"loadlin");
+}
+{
+    return Read(.installSet);
+}
+{
+    return Read(.deleteSet);
+}
+{
+    return Execute(.deselectDelete,"loadlin");
+}
+{
+    return Read(.installSet);
+}
+{
+    return Read(.deleteSet);
+}

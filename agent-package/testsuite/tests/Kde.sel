@@ -1,0 +1,97 @@
+# SuSE-Linux Configuration YaST Version 1.03 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Aug 14 10:58:15 GMT 2001
+
+Version: 2.1
+
+Name: Kde
+
+Label: All of KDE
+Label.cs: Vše z KDE
+Label.de: KDE komplett
+Label.en: All of KDE
+Label.es: Todo el KDE
+Label.fr: Tout de KDE
+Label.gl: Todo o KDE
+Label.hu: KDE rendszer
+Label.it: Tutto su KDE
+Label.ja: KDE システム
+Label.lt: Viskas KDE
+Label.nl: KDE compleet
+Label.pt: KDE inteiro
+Label.tr: All of KDE
+
+Requires: Kde-Desktop 
+Category: addon
+
+Visible: true
+
+Toinstall:
+KDialm
+Magellan
+PyQt
+gettext
+gmp
+kaim
+kalamaris
+kappdock
+kaptain
+karchiveur
+kbear
+kcommander2
+kconfigure
+kdbg
+kdebase-devel
+kdebindings
+kdegraphics-devel
+kdemultimedia-devel
+kdenetwork-devel
+kdesdk
+kdesdk-devel
+kdoc
+kec
+keduca
+kemistry
+keuklid
+kfilecoder
+kgoodstuff
+klassie
+kleandisk
+klock
+klogic
+kmag
+kmago
+kmlocfg
+kmlofax
+kmlovoice
+knc
+koffice
+koffice-devel
+kooka
+kpicframer
+kpl
+kpncalc
+kpooka
+kprof
+kreatecd
+krusader
+kscanlib
+ksetiwatch
+ksnuffle
+kssh
+ksteak
+kstocks
+ktamaga
+kugar
+kwatch
+kwintv
+kxicq2
+postgresql-lib
+python
+qt-designer
+quanta
+sane
+sip
+steak
+tse3
+Llatsniot:
+

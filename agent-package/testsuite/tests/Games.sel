@@ -1,0 +1,166 @@
+# SuSE-Linux Configuration YaST Version 1.03 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Aug 14 10:57:48 GMT 2001
+
+Version: 2.1
+
+Name: Games
+
+Label: Games
+Label.cs: Hry
+Label.de: Spiele
+Label.en: Games
+Label.es: Juegos
+Label.fr: Jeux
+Label.gl: Xogos
+Label.hu: Játékok
+Label.it: Giochi
+Label.ja: ゲーム
+Label.lt: Þaidimai
+Label.nl: Spelletjes
+Label.pt: Jogos
+Label.tr: Oyunlar
+
+Category: addon
+
+Visible: true
+
+Toinstall:
+3d_chess
+3dpong
+FlightGear
+Maelstrom
+SDL_mixer
+SearchAndRescue
+aalib
+abuse
+aleclone
+anachron
+antipoli
+asclock
+astrolog
+battalion
+battball
+bb
+blt
+bsdgames
+bzflag
+cgoban
+clanbomber
+clanlib
+craft
+crafty
+emiclock
+empire
+esound
+figlet
+flying
+fortune
+freeciv
+frisk
+frotz
+glchess
+gmp
+gnuchess
+gnugo
+guile
+gxmhtml
+hextris
+html2txt
+kbattleship
+kpooka
+ktamaga
+libjsw
+libmikmo
+lincity
+loadlin
+ltris
+meltflip
+mirrma
+net3d
+nethack
+netmaze
+nh_data
+oneko
+oonsoo
+orbit
+pacman
+pdksh
+pingus
+playmidi
+plib
+pysol
+python
+python-imaging
+python-tk
+qtlib
+rocksndiamonds
+rplay
+sastroid
+sdl
+smpeg
+spellc
+ssbase
+svgalib
+termcap
+tf
+tfhelp
+thrust
+trophy
+tux_aqfh
+tuxracer
+vgacard
+xabacus
+xancur
+xaos
+xarchon
+xball
+xbill
+xbl
+xblast
+xboard
+xboing
+xbomb
+xbombs
+xcruise
+xdigger
+xearth
+xengine
+xfract
+xftp
+xgalaga
+xgammon
+xgas
+xgospel
+xigc
+xjewel
+xkobo
+xlife
+xmahjong
+xmemory
+xmine
+xminesweep
+xmoontool
+xmris
+xpat2
+xphoon
+xpilot
+xpinguin
+xpuzzles
+xracer
+xscaveng
+xskat
+xsnow
+xsok
+xspringi
+xsw
+xtacy
+xtartan
+xteddy
+xtetris
+xtron
+xvier
+xview
+yahtzee
+yiff
+Llatsniot:
+

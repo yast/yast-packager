@@ -1,0 +1,187 @@
+# SuSE-Linux Configuration YaST Version 1.03 -- (c) 1994-2000 SuSE GmbH
+# generated on Sat Apr 14 02:38:36 GMT 2001
+
+Description.english: Minimum system.
+Description.french: Syst�me minimal.
+Description.german: Minimal System.
+
+Utf8Description.default: Minimum system
+Utf8Description.czech: Minimum system
+Utf8Description.dutch: Minimum system
+Utf8Description.english: Minimum system
+Utf8Description.french: Système minimal
+Utf8Description.galician: Sistema mínimo
+Utf8Description.german: Minimal System
+Utf8Description.hungarian: Minimális rendszer
+Utf8Description.italian: Sistema minimo
+Utf8Description.lithuanian: Minimum system
+Utf8Description.portuguese: Minimum system
+Utf8Description.spanish: Minimum system
+Utf8Description.turkish: Minimum system
+
+Info.english: 
+Ofni.english: 
+Info.french: 
+Ofni.french: 
+Info.german: 
+Ofni.german: 
+
+Kind: baseconf
+
+Visible: true
+
+Toinstall:
+aaa_base
+aaa_dir
+aaa_skel
+apmd
+ash
+at
+base
+bash
+bc
+bdflush
+bzip
+compress
+cpio
+cpp
+cracklib
+cron
+cyrus-sasl
+db
+devs
+dhcpcd
+diffutils
+e2fsprogs
+ed
+eject
+fbset
+file
+fileutils
+findutils
+finger
+gawk
+gdbm
+glibc
+gnu-efi
+gpg
+gppshare
+grep
+groff
+gzip
+hdparm
+hwinfo
+idedma
+iputils
+isapnp
+kbd
+less
+libscr
+liby2
+libycp
+libyui
+libz
+lilo
+lsof
+lukemftp
+lvm
+m4
+mailx
+man
+mktemp
+modutils
+ncurses
+net-tools
+netcfg
+openssh
+openssl
+pam
+pam_devperm
+pciutils
+pdisk
+perl
+popt
+portmap
+procmail
+providers
+ps
+raidtools
+rawio
+readline
+recode
+reiserfs
+rpm
+rsh
+sash
+saxtools
+sendmail
+sh-utils
+shadow
+silo
+syslogd
+sysvinit
+telnet
+terminfo
+textutils
+timezone
+usbmgr
+util-linux
+vim
+xshared
+y2c_boot
+y2c_inet
+y2c_rc_config
+y2c_sparc
+y2c_tune
+y2t_adsl
+y2t_boot
+y2t_inet
+y2t_inst-bootloader
+y2t_inst-general
+y2t_inst-packages
+y2t_inst-update
+y2t_inst-x11
+y2t_menu
+y2t_online_update
+y2t_rc_config
+y2t_spkg
+y2t_tune
+y2t_update
+yast
+yast2
+yast2-agent-any
+yast2-agent-fdisk
+yast2-agent-isax
+yast2-agent-modules
+yast2-agent-probe
+yast2-agent-rcconfig
+yast2-base
+yast2-config-adsl
+yast2-config-hwinfo
+yast2-config-network
+yast2-config-online-update
+yast2-config-package-manager
+yast2-config-security
+yast2-config-update
+yast2-core-clients
+yast2-core-pkginfo
+yast2-core-scr
+yast2-core-translator
+yast2-core-wfm
+yast2-db-keyboard
+yast2-db-mouse
+yast2-db-timezone
+yast2-lib-wizard
+yast2-module-support
+yast2-trans-network
+yast2-trans-security
+yast2-trans-support
+yast2-ui-ncurses
+Llatsniot:
+
+Toinstall.japanese:
+jfbterm
+kon2
+kon2font
+Llatsniot.japanese:
+

@@ -1,0 +1,5 @@
+(true)
+("Experimentální perlový skript pro konvertování programových balí�\215ků. Podporuje následující formáty: deb (Debian), rpm (Red Hat), a tgz (Slackware). \n")
+("")
+("Tento balí�\215ek je nezbytný pro fungování systém SuSE Linux! Nemažte jej, pokud zcela jist�\233 nevíte, co d�\233láte! \n")
+("Pokud chcete vytvá�\231et také balí�\215ky typu .deb, musíte nainstalovat také balí�\215ek deb. \n")

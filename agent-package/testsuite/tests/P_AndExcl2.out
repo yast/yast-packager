@@ -1,0 +1,3 @@
+(true)
+(true)
+($["ADD":["b", "c"], "CONFLICT":[$["name":"c", "packages":["b"]]], "OBSOLETE":[], "REQUIRE":[]])

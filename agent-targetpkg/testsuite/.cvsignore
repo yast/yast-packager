@@ -1,0 +1,13 @@
+Makefile
+Makefile.in
+.libs
+.deps
+runtargetpkg
+*.log
+*.sum
+tmp.*
+site.exp
+Y2LOGFILE
+runtest.sh
+runag_targetpkg
+test.ycp

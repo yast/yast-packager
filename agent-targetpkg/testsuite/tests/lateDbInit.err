@@ -1,0 +1,16 @@
+[YCP] tests/lateDbInit.ycp:2 >>true<<
+[yast2-agent-targetpkg] TargetpkgAgent.cc(setTargetroot):101 New targetroot = /somewhere
+[yast2-agent-targetpkg] TargetpkgAgent.cc(rpmDb):63 Initialize rpmDb: Targetroot = /somewhere
+[yast2-agent-targetpkg] RpmDb.cc(initDatabase):216 dbFilename not found /somewhere/var/lib/rpm/packages.rpm
+[yast2-agent-targetpkg] TargetpkgAgent.cc(rpmDb):81 init rpm-database
+[yast2-agent-targetpkg] RpmDb.cc(RpmDb):174 ~RpmDb()
+[yast2-agent-targetpkg] RpmDb.cc(RpmDb):190 ~RpmDb() end
+[YCP] tests/lateDbInit.ycp:3 >>false<<
+[Interpreter] tests/lateDbInit.ycp:4 RPM-DB not initialized
+[YCP] tests/lateDbInit.ycp:4 >>nil<<
+[yast2-agent-targetpkg] TargetpkgAgent.cc(setTargetroot):101 New targetroot = /
+[yast2-agent-targetpkg] TargetpkgAgent.cc(rpmDb):63 Initialize rpmDb: Targetroot = /
+[YCP] tests/lateDbInit.ycp:5 >>true<<
+[YCP] tests/lateDbInit.ycp:6 >>/var/lib/rpm/<<
+[yast2-agent-targetpkg] RpmDb.cc(RpmDb):174 ~RpmDb()
+[yast2-agent-targetpkg] RpmDb.cc(RpmDb):190 ~RpmDb() end
