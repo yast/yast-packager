@@ -97,7 +97,9 @@
 
 	    any retAsk = `no_log;
 
-	    string message = sformat(_("%1 packages returned an error.\nDo you want to see the log file ?"), size (errpacks));
+	    string message = sformat(_("%1 packages returned an error.
+View the log file?
+"), size (errpacks));
 	    if ( UI::AnyQuestionPopup( NoHeadline(), message, YesButtonLabel(), NoButtonLabel(), `focus_no))
 	    {
 		retAsk = `yes_short;

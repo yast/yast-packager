@@ -109,7 +109,7 @@ To make a more precise selection of software to install, select
 	Wizard::SetContents(title,
 			    `HVCenter(`Label(
 				     // Intermediate contents of the software selection screen
-				     _("This product has a fixed software selection which cannot be changed"))),
+				     _("This product has a fixed software selection that cannot be changed."))),
 			    helptext, WFM::Args(0), WFM::Args(1));
         any ret = Wizard::UserInput();
 	Wizard::CloseDialog();

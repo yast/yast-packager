@@ -195,7 +195,7 @@
 			    `HSpacing(1),
 			    `VBox(
 				  // title of a popup
-				  `Left(`Heading( _("Samba configuration" )) ),
+				  `Left(`Heading( _("Samba configuration")) ),
 				  `VSpacing(0.5),
 				  // popup text samba configuration
 				  `Label( _("If you want to access as guest, you don't need
@@ -287,7 +287,7 @@ to specify username, password and workgroup.") ),
 
        return ret;
     }
-    
+
 
     integer numSources = 0;
 
@@ -334,20 +334,20 @@ to specify username, password and workgroup.") ),
 
     /**
         Fill sources table with entries from the InstSrcManager agent.
-    */        
+    */
     global define void fillTable() ``{
         list(integer) sources = Pkg::SourceGetCurrent ( false );
- 
+
         list items = [];
- 
+
         numSources = size( sources );
-    
+
         integer i = 0;
         while ( i < numSources ) {
             items = add( items, createItem( select( sources, i, nil ) ) );
             i = i + 1;
         }
-        
+
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
@@ -364,7 +364,7 @@ from URL '%1'."), url );
                 string _msg2 = "";
                 if ( err != "ok" ) {
                     if ( err == "instsrc_duplicate" )
-                        _msg2 = _("A source with the same product already exists.");
+                        _msg2 = _("A source for this product already exists.");
                     else
                         _msg2 = _("Details:") + "\n" + Pkg::Error();
                 }
@@ -383,31 +383,31 @@ from URL '%1'."), url );
     string deleteButtonLabel = _("&Delete");
     string upButtonLabel = _("&Up");
     string downButtonLabel = _("D&own");
-    string enableButtonLabel = _("Enab&le/Disable");
+    string enableButtonLabel = _("Enab&le or Disable");
 
     term contents =
 	`VBox(
 	      `HBox(
 		    `Table( `id( `table ), `opt( `keepSorting ),
 			   `header(
-				   _( "Status" ),
-                                   _( "Name" ),
-				   _( "URL" )
+				   _("Status"),
+				   _("Name"),
+				   _("URL")
 				   ),
 			   items
 			   ),
 		    `HSpacing()
 		    ),
 	      `HBox(
-		    `HWeight( 1, `MenuButton( _( "&Add" ),
+		    `HWeight( 1, `MenuButton( _("&Add"),
 					      [
-					       `item(`id(`ftp), 	_( "&FTP..." 		) ),
-					       `item(`id(`http), 	_( "&HTTP..." 		) ),
-					       `item(`id(`samba), 	_( "&Samba..." 		) ),
-					       `item(`id(`nfs), 	_( "&NFS..." 		) ),
-					       `item(`id(`cd), 		_( "&CD..." 		) ),
-					       `item(`id(`dvd), 	_( "&DVD..." 		) ),
-					       `item(`id(`local_dir), 	_( "&Local directory..."  ) )
+					       `item(`id(`ftp), 	_("&FTP...") ),
+					       `item(`id(`http), 	_("&HTTP...") ),
+					       `item(`id(`samba), 	_("&Samba...") ),
+					       `item(`id(`nfs), 	_("&NFS...") ),
+					       `item(`id(`cd), 		_("&CD...") ),
+					       `item(`id(`dvd), 	_("&DVD...") ),
+					       `item(`id(`local_dir), 	_("&Local Directory...") )
 					       ]
 					      )
 			      ),
@@ -514,7 +514,7 @@ into one directory.
 <b>Network</b> installation requires a working network connection.
 Configure YaST2's \"Network/Base\" module first,
 if required.  Specify the directory where the packages from
-the first CD are located, such as, /usr/SuSE/<b>CD1</b>.
+the first CD are located, such as /usr/SuSE/<b>CD1</b>.
 Only the base path is
 required if packages are not divided, for example, /usr/full-i386.
 The directory must be listed in the file <i>/etc/exports</i>
@@ -534,9 +534,9 @@ on the NFS server.
     any input = nil;
 
     integer current = -1;
-    
+
     string url = "";
-    
+
     repeat
     {
         if ( current >= 0 ) {
@@ -569,10 +569,10 @@ on the NFS server.
         else
         {
             current = UI::QueryWidget( `id( `table ), `CurrentItem );
-            
+
             term idterm = select( UI::QueryWidget( `id( `table ), `Item( current ) ), 0, 0 );
             integer id = select( idterm, 0, 0 );
-            
+
             if ( input == `edit )
             {
                 symbol type = SCR::Read( .instsrcmgr.source.type, id );
@@ -602,7 +602,7 @@ on the NFS server.
                         UI::ErrorPopup( _("Error deleting source.") );
                     }
                     else
-                    { 
+                    {
                         fillTable();
                     }
                 }
@@ -634,7 +634,7 @@ on the NFS server.
                 fillTable();
             }
         }
-    
+
     } until ( input == `abort || input == `next || input == `back );
 
     UI::CloseDialog();

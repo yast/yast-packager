@@ -132,7 +132,7 @@
 	if (substring (url, 0, 3) == "dvd")
 	    medianame = "DVD ";
 	// prompt to insert product (%1 == "SuSE Linux ...") and media (%2 == "CD 2")
-	string message = sformat(_("Please insert\n'%1'  %2"), product, (medianame + wanted));
+	string message = sformat(_("Insert\n'%1' %2"), product, (medianame + wanted));
 
 	// currently unused
 	string media_prompt =_("The correct source medium could not be mounted.");
