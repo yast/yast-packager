@@ -14,21 +14,25 @@
 
     textdomain "packager";
 
-    global define string installInf2Url (string extra_dir) ``{
+    global boolean is_network = true;
 
+    global string installInf2Url (string extra_dir)
+    {
 	string options = "";
-	boolean is_network = true;
 
 	string instmode = (string) SCR::Read (.etc.install_inf.InstMode);	// mode
 	if (instmode == nil)						// defaults to "CD"
+	{
 	    instmode = "cd";
+	}
 
 	if ((instmode == "cd")					// CD or DVD
 	    || (instmode == "dvd"))
 	{
 	    is_network = false;
 	    list devicelist = (list) SCR::Read(.probe.cdrom);
-	    foreach (map device, devicelist, ``{
+	    foreach (map device, devicelist,
+	    {
 		string devname = device["dev_name"]:"";
 		if (devname != "")
 		{
