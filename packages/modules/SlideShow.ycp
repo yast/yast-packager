@@ -267,13 +267,11 @@
 	if (deleting)
 	    pkg_size = -1;
 
+	if ( pkg_description == nil )
+	    pkg_description = "";
+
 	if ( showing_details )
 	{
-	    if ( pkg_description == nil )
-	    {
-		pkg_description = "";
-	    }
-
 	    string pkg_version = "";
 	    string pkg_name_with_version = pkg_name;
 
@@ -295,7 +293,7 @@
 	    UI::ChangeWidget(`id(`inst_log), `LastLine, sformat( "%1 --- %2\n", pkg_name_with_version, pkg_description ) );
 	    UI::ChangeWidget(`id(`progress_current_package), `Value, 0);
 	}
-	else // not details
+	else // no details
 	{
 	    ChangeSlideIfNecessary();
 	}
@@ -304,8 +302,9 @@
 	if ( ! deleting )
 	{
 	    SubtractPackageSize( pkg_size );
-	    y2debug ( "Installing package %1 from CD %2 of source #%3 -- size: %4 -- remaining: %5",
-			 pkg_name, current_cd_no, current_src_no, pkg_size, remaining_sizes_per_cd );
+	    y2milestone( "Installing %1 --- %2", pkg_name, pkg_description );
+	    y2debug( "Installing package %1 from CD %2 of source #%3 -- size: %4 -- remaining: %5",
+		     pkg_name, current_cd_no, current_src_no, pkg_size, remaining_sizes_per_cd );
 
 	    if (SwitchToSecondsIfNecessary()
 		|| RecalcRemainingTimes( false ) )	// no forced recalculation
