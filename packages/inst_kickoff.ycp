@@ -18,6 +18,7 @@
     import "Directory";
     import "ModuleLoading";
     import "Bootloader";
+    import "DirInstall";
 
 
     /**
@@ -270,8 +271,21 @@
 	SCR::Execute(.target.mkdir, Installation::destdir + Directory::logdir);
 
 	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
-	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir + "/etc");
-	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir + "/etc");
+        if (DirInstall::installing_into_dir)
+        {
+            string template_dir= "/var/adm/fillup-templates";
+            // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/passwd.aaa_base " 
+                    + Installation::destdir + "/etc/passwd");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/group.aaa_base " 
+                    + Installation::destdir + "/etc/group");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/shadow.aaa_base " 
+                    + Installation::destdir + "/etc/shadow");
+        } else
+        {
+	    SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir + "/etc");
+	    SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir + "/etc");
+        }
 
 	// fake mtab
 	fake_mtab ();
