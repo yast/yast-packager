@@ -50,6 +50,9 @@ _("<p>SUSE Linux offers a selection of efficient and comfortable desktops.
 Select which desktop to install.</p>
 ");
 
+    // to remember if warning should occurre if switching base selection
+    global boolean base_selection_modified = false;
+
     // Local variables
 
     boolean init_called = false;
