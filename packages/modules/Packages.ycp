@@ -525,6 +525,7 @@
 	}
 	else if (SCR::Read (.etc.install_inf.Sourcemounted) == "1")
 	{
+	    y2milestone ("Sourcemounted !!");
 	    base_url = "dir://"+Installation::sourcedir;
 	}
 	else

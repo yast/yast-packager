@@ -180,9 +180,9 @@
 	while ((pkgname != nil)
 		&& (pkgname != ""))
 	{
-
 	    if (Pkg::PkgMediaNr (pkgname) != media_number)
 	    {
+		y2milestone ("%1: %2 != %3 -> other", pkgname, Pkg::PkgMediaNr (pkgname), media_number);
 		other_media_packages = add (other_media_packages, pkgname);
 	    }
 	    else
