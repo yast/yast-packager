@@ -1,78 +1,78 @@
 {
-return Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+    return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-    return Read(.selGroups);
+    return SCR::Read(.selGroups);
 }
 {
-    return Execute(.selectSelInstall, "Standard", true );
+    return SCR::Execute(.selectSelInstall, "Standard", true );
 }
 {
-    return Read(.selInstallSet);
+    return SCR::Read(.selInstallSet);
 }
 {
-    return Read(.selDependencies);
+    return SCR::Read(.selDependencies);
 }
 {
-    return Execute(.selectSelInstall, "Minimal", false );
+    return SCR::Execute(.selectSelInstall, "Minimal", false );
 }
 {
-    return Read(.selDependencies);
+    return SCR::Read(.selDependencies);
 }
 {
-    return Execute(.deselectSelInstall, "Minimal" );
+    return SCR::Execute(.deselectSelInstall, "Minimal" );
 }
 {
-    return Read(.selDependencies);
+    return SCR::Read(.selDependencies);
 }
 {
-    return Execute(.selectSelInstall, "Kde", false );
+    return SCR::Execute(.selectSelInstall, "Kde", false );
 }
 {
-    return Read(.selDependencies);
+    return SCR::Read(.selDependencies);
 }
 {
-    return Read(.selInstallSet);
+    return SCR::Read(.selInstallSet);
 }
 {
-    return Execute(.deselectSelInstall, "Games" );
+    return SCR::Execute(.deselectSelInstall, "Games" );
 }
 {
-    return Read(.selDependencies);
+    return SCR::Read(.selDependencies);
 }
 {
-    return Read(.selInstallSet);
+    return SCR::Read(.selInstallSet);
 }
 {
-    return Execute(.setInstallSelection,Read(.selPackages),  false);
+    return SCR::Execute(.setInstallSelection, SCR::Read(.selPackages),  false);
 }
 {
-    return Read(.installSet);
+    return SCR::Read(.installSet);
 }
 {
-    return Read(.deleteSet);
+    return SCR::Read(.deleteSet);
 }
 {
-    return Execute(.selectInstall,"loadlin", false);
+    return SCR::Execute(.selectInstall,"loadlin", false);
 }
 {
-    return Execute(.deselectInstall,"lilo");
+    return SCR::Execute(.deselectInstall,"lilo");
 }
 {
-    return Read(.installSet);
+    return SCR::Read(.installSet);
 }
 {
-    return Read(.selInstallSet);
+    return SCR::Read(.selInstallSet);
 }
 {
-    return Read(.installSetCD, 1);
+    return SCR::Read(.installSetCD, 1);
 }
 {
-    return Read(.installSetCD, 2);
+    return SCR::Read(.installSetCD, 2);
 }
 {
-    return Write(.packageSelections,"/tmp/packages");
+    return SCR::Write(.packageSelections,"/tmp/packages");
 }
 {
-    return Read(.packageSelections,"/tmp/packages");
+    return SCR::Read(.packageSelections,"/tmp/packages");
 }

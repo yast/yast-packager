@@ -1,18 +1,18 @@
 {
-return Execute(.setEnvironment,$["packageinfopath":"tests","language":"cs_CZ","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+    return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"cs_CZ","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-    return Read(.selGroups);
+    return SCR::Read(.selGroups);
 }
 {
-    return Execute(.selectSelInstall, "default", true );
+    return SCR::Execute(.selectSelInstall, "default", true );
 }
 {
-    return Read(.selInstallSet);
+    return SCR::Read(.selInstallSet);
 }
 {
-    return Read(.selDependencies);
+    return SCR::Read(.selDependencies);
 }
 {
-    return Read(.selPackages);
+    return SCR::Read(.selPackages);
 }
