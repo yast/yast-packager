@@ -21,12 +21,14 @@ For installing commercial software also launch this module and select
 set 'pay' from list of package sets.
 </p>" ));
 
-  string msg_str12 = UI(_( "<p>Please insert <b>CD 1</b> before proceeding.</p>"
+  string msg_str12 = UI(_( "<p>Please insert <b>CD 1</b> for CD installation.</p>"
 			   ));
 
   string msg_str13 = UI(_("<p>Launch this module if you want to choose the
 source of installation. It is possible to install packages from CD,
-via network or from harddisk. 
+via network or from harddisk.</p>
+<p>You can specify the source media and do the
+installation of packages within this module.
 </p>" ) );
   
   string msg_str21 = UI(_( "<P>You need to be logged in as <i>root</i> in order to
@@ -258,7 +260,7 @@ do this.</P>"));
 
   map lang2yast1 = ReadY2("lang2yast1.ycp");
 
-  string  long_language 	= lookup(lang2yast1, language, "english");
+  string  long_language	= lookup(lang2yast1, language, "english");
   
   user_settings = add( user_settings, "language", language );
   user_settings = add( user_settings, "continue_mode", false );
@@ -308,7 +310,7 @@ do this.</P>"));
    */
   
   list dialog = [
-		 `inst_source( false, true ),
+		 `inst_source( true, true ),
 		 `inst_sw_single( ),
 		 `inst_rpmcopy( false, false ),
 		 `inst_suseconfig( false, false )
@@ -318,66 +320,97 @@ do this.</P>"));
   any result = `next;
 
   boolean skip_source = false;
- 
   
   // do not call inst_source if sw_single is called with Arg "beginner" or Arg = file with package list
-  if ( size( Args() ) > 0 && Args(0) == "beginner" )
+  if ( size( Args() ) > 0 )
   {
-      skip_source = true;
-      id = id + 1;
-  }
+      if ( Args(0) == "beginner" )
+      {
+	  boolean go_on = ChangeCD( 1, false);
+	  
+	  if ( !go_on )
+	  {
+	      any ret = UI(`ContinueCancel(_("No access to source media used on previous installation.
+Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 
+	      if ( ret )		// choose new installation source
+	      {
+		  skip_source = false;
+		  id = 0;
+	      }
+	      else			// exit the installation dialog
+	      {
+		  UI(`CloseDialog() );
+		  return `cancel;
+	      }
+	  }
+	  else				// mount ok on previos media -> skip inst_source
+	  {
+	      skip_source = true;
+	      id = id + 1;
+	  }
+      }
+      else
+      {
+	  skip_source = true;		// sw_single called with package list
+	  id = id + 1;
+      }   
+  }
+  
   while ((id >= 0) && (id < size (dialog))) {
 
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
       {
-	  repeat {
-	      any retval = nil;
+	  any retval = nil;
 
-	      // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
-	      boolean go_on  = ChangeCD( 1, true);
+	  // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
+	  boolean go_on = ChangeCD( 1, true); 
+	  if ( !go_on )
+	  {
+	      // quit dialog (CD 1 cannot be skipped)
+	      UI( `CloseDialog() );      
+	      return `cancel;
+	  }
 
-	      if ( !go_on )
-	      {
-		  // quit dialog (CD 1 cannot be skipped)
-		  UI( `CloseDialog() );      
-		  return `cancel;
-	      }
+	  boolean version_ok = false;
+	  string instSource = GetInstSource(1);
+	  string infopath =  instSource + "setup/descr";
+	  string dudir = instSource + "setup/du/du.dir";
 
-	      boolean version_ok = false;
-	      string instSource = GetInstSource(1);
-	      string infopath =  instSource + "setup/descr";
-	      string dudir = instSource + "setup/du/du.dir";
-
-	      UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
+	
+	  UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
 	  
-	      retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
-						  "language":long_language,  "dudir":dudir,
-						  "partition":part_input, "rootpath":"/",
-						  "yastpath":"/var/lib/YaST",
-						  "update":true,
-						  "memoptimized":true,
-						  "forceInit":true]		// force initialisation
+	  retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
+					      "language":long_language,  "dudir":dudir,
+					      "partition":part_input, "rootpath":"/",
+					      "yastpath":"/var/lib/YaST",
+					      "update":true,
+					      "memoptimized":true,
+					      "forceInit":true]		// force initialisation
 
-	      			 ));
-	      _debug( "SW: Return  PKGINFO(`setEnvironment()", retval );	
+					     ));
+	  _debug( "SW: Return  PKGINFO(`setEnvironment()", retval );	
 
-	      UI(`CloseDialog());
+	  UI(`CloseDialog());
 	      
-	      _debug("SW: VERSION: ", PKGINFO (`compareSuSEVersions()));
+	  _debug("SW: VERSION: ", PKGINFO (`compareSuSEVersions()));
 
-	      if ( lookup( PKGINFO (`compareSuSEVersions()), "installedGreater", false ) )
+	  if ( lookup( PKGINFO (`compareSuSEVersions()), "installedGreater", false ) )
+	  {
+	      if ( IsRemountable() )
 	      {
 		  SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
-		  UI(`DisplayMessage("Version passt nicht"));
 	      }
-	      else
-	      {
-		  version_ok = true;
-	      }
-	  } until ( version_ok );
-	  
-	 
+	      
+	      UI(`DisplayMessage(_("The version of SuSE distribution on source media
+must NOT be older than the installed one.
+Please insert actual CD or specify path of actual sources.")));
+	      version_ok = false;
+	  }
+	  else
+	  {
+	      version_ok = true;
+	  }
 
           // There could be a list of packages which have to be installed.
 	  // ( Defined in an ascii-file, which path is given via argument. )
@@ -397,12 +430,12 @@ do this.</P>"));
 		  install_list = add ( install_list, Args(0) );
 		  installMap = add ( installMap, "install", install_list );
 		  y2log ( .milestone, "sw_single", 1,
-		      sformat ( "package %1 will be installed", Args(0) ));
+			  sformat ( "package %1 will be installed", Args(0) ));
 	      }
 	      else
 	      {
 		  y2log ( .milestone, "sw_single", 1,
-		      sformat ( "Reading file %1", pathname ) );
+			  sformat ( "Reading file %1", pathname ) );
 		  installMap = Read ( pathname );
 	      }
 	      y2log ( .milestone, "sw_single", 2,
@@ -471,13 +504,19 @@ do this.</P>"));
 		  }
 	      }
 	  }
-	  else
+	  else if ( version_ok )
 	  {
 	      // Calling inst_sw_single
 	      result = CallFunction( `inst_sw_single( `post_install,
 						      `not_only_checked,
 						      part_input ) );
 
+	  }
+	  else
+	  {
+	      // continue with inst_source
+	      id = 0;
+	      continue;
 	  }
       }
       else
@@ -544,8 +583,11 @@ do this.</P>"));
 
   UI(`CloseDialog());
   
-  // umount CD
-  Shell ("/bin/umount /var/adm/mount");
+  // umount CD (safety reasons)
+ if ( IsRemountable() )
+ {
+     SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
+ }
   
   return `next;
 }
