@@ -35,7 +35,6 @@
 	    SlideShow::SlideProvideStart (name);
 	    _remote_provide = true;
 	}
-	return;
     }
 
 
@@ -47,7 +46,6 @@
 	{
 	    SlideShow::SlideDisplayProgress ( percent );
 	}
-	return;
     }
 
 
@@ -70,15 +68,6 @@
 
 
     /**
-     *  at start of package install
-     */
-    global define boolean StartPackage (string name, string summary,
-					integer installsize, boolean is_delete) ``{
-	PackageCallbacks::_package_name = name;
-	return DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
-    }
-
-    /**
      * at end of install
      * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
      */
@@ -86,7 +75,7 @@
 	SlideShow::SlideDisplayProgress (100);
 	if (error != 0)
 	{
-	    return PackageCallbacks::DonePackage (error, reason);
+	    // return PackageCallbacks::DonePackage (error, reason);
 	}
 	return "";
     }
@@ -169,7 +158,17 @@ Continue with the installation?
 	}
 
 	return true;
-    };
+    }
+
+
+    /**
+     *  at start of package install
+     */
+    global define boolean StartPackage (string name, string summary,
+					integer installsize, boolean is_delete) ``{
+	PackageCallbacks::_package_name = name;
+	return DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
+    }
 
 
     /**
@@ -197,7 +196,6 @@ Continue with the installation?
 	SlideShow::SlideDisplayProgress (0);
 	SlideShow::UpdateAllCdProgress(false);
 	SlideShow::UpdateCurrentCdProgress(); // may or may not be 0 -> recalculate
-	return;
     };
 
     /**
