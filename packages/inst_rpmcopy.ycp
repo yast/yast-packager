@@ -96,7 +96,6 @@
 	// create new rpmdb
 
 	Pkg::TargetInit (Installation::destdir, true);
-	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
     }
     else
     {
@@ -104,6 +103,8 @@
 
 	Pkg::TargetInit (Installation::destdir, false);
     }
+    SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
+    Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
     // Now that we know how many packages to install, we can show the dialog
 
@@ -234,7 +235,7 @@
 	{
 	    y2milestone ("%1 packages installed ok", ret);
 	    y2milestone ("%1 packages failed: %2", size (PackageInstallation::error_packages), PackageInstallation::error_packages);
-	    Report::Error( _("Some packages failed") );
+	    Report::Error( sformat ("Failed: %1", PackageInstallation::error_packages));
 	    packages_installed = packages_installed - ret;
 	}
 
