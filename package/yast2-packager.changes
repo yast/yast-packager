@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul  8 16:49:12 CEST 2002 - mvidner@suse.cz
+
+- fixed Provides/Obsoletes
+
+-------------------------------------------------------------------
 Sat Jul 06 18:01:29 CEST 2002 - arvin@suse.de
 
 - added config files to file list
