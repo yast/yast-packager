@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan  3 21:33:14 CET 2001 - mike@suse.de
+
+- fix: "change source" and "install" were permuted for ycc 
+
+-------------------------------------------------------------------
 Tue Dec 19 11:38:56 CET 2000 - kkaempf@suse.de
 
 - use bzip2 packaging
