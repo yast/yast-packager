@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 30 12:33:34 CEST 2004 - arvin@suse.de
+
+- removed confusing superfluous error message (bug #46411)
+
+-------------------------------------------------------------------
 Wed Sep 29 10:19:54 CEST 2004 - arvin@suse.de
 
 - fixed build
