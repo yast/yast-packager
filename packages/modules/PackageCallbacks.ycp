@@ -102,30 +102,24 @@
     // make showLongInfo module-global so it gets remembered (cf. #14018)
     boolean showLongInfo = false;
 
-    global define ChangeMediumPopup (string product, string error, integer current, integer wanted)
+    global define string MediumChange (string product, string error, integer current, integer wanted)
     ``{
 
-	y2milestone ("ChangeMediumPopup '%1', '%2'", message, info);
+	y2milestone ("ChangeMediumPopup '%1', '%2', '%3', '%4'", product, error, current, wanted);
 	term button_box = `PushButton(`id(`cancel), `opt(`default), OKButtonLabel() );
 
-	if (do_eject)
-	{
-	    if (true)		// just CD/DVD with "Eject"
-	    {
-		button_box = `HBox(
-				   `PushButton(`id(`continue), `opt(`default), OKButtonLabel() ),
-				   `PushButton(`id(`cancel), _("&Skip") ),
-				   `PushButton(`id(`eject), _("&Eject"))
-				   );
-	    }
-	    else
-	    {
-		button_box = `HBox(
-				   `PushButton(`id(`continue), `opt(`default), OKButtonLabel() ),
-				   `PushButton(`id(`cancel), _("&Skip") )
-				   );
-	    }
-	}
+        // will be used in conjunction with other text below
+        // prompt for user to insert the correct CD/DVD
+	string message = sformat(_("Please insert %1 %2."), product, ("CD "+ wanted));
+
+	// currently unused
+	string media_prompt =_("The correct source medium could not be mounted.");
+
+	button_box = `HBox(
+			   `PushButton(`id(`continue), `opt(`default), OKButtonLabel() ),
+			   `PushButton(`id(`cancel), _("&Skip") ),
+			   `PushButton(`id(`eject), _("&Eject"))
+			   );
 
 	if ( showLongInfo )
 	{
@@ -176,205 +170,20 @@
 
 	} until (r == `cancel || r == `continue);
 
-	y2milestone ("ChangeMediumPopup %1", r);
+	y2milestone ("MediaChange %1", r);
 
 	UI::CloseDialog();
 
-	return r;
+	if (r != `continue)
+	    return "1";
+
+	return "";
     }
 
 
 //=============================================================================
 //	MEDIA ERROR
 //=============================================================================
-
-    /**
-     * Change the source medium, i.e. mount the medium to /var/adm/mount
-     * (umount previous used). Inform the user, if the source could
-     * not be mounted.
-     *
-     * @param cdnum integer Medium number
-     * @param show_popup boolean, true: show popups false: no popups, only check
-     * @return boolean, true == ok, false == bad
-     *
-     * @example ChangeMedium ( 2, true );
-     *
-     */
-
-    global define ChangeMedium(integer cdnum, boolean show_popup) ``{
-
-	boolean ret		= false;	// final value
-	boolean go_on		= true;		// loop var
-
-	integer	actcdnum	= 1;		// actual cd number
-
-	integer	release_no	= 0;		// release number on medium
-	string product 		= "";		// product code on medium
-
-	string  message		= "";		// message for popup
-	string  info		= "";		// information for popup
-	string media_prompt	= "";
-
-	// will be used in conjunction with other text below
-	// prompt for user to insert the correct CD/DVD
-	media_prompt = sformat(_("Please insert %1 %2."), "CD", cdnum);
-	media_prompt =_("The correct source medium could not be mounted.");
-
-	while ( go_on )
-	{
-	    do_eject = true;
-
-	    // ok, found it
-	    if (actcdnum == 0)
-	    {
-		ret = true;
-
-		if (true)
-		    break;
-
-		// keep text here for translation
-
-		y2milestone ("Release No. or product information on installation medium differs from
-saved information (Medium: %1, %2, Reference: %3, %4) type %5",
-			     release_no, product,
-			     "?", "?", 0);
-
-		string medianame = "CD";
-		if (false)
-		{
-		    // if we dont install from CD or DVD, we must
-		    // use a different name.
-		    medianame = _("installation medium");
-		}
-
-		if ( Mode::initial )
-		{
-		    // inform the user that the CD/DVD/'installation medium' (%1) number %2 currently inserted
-		    // has a different release number than the start medium
-		    // (all CDs/DVDs must be from the same set)
-		    // %1 = CD or DVD or 'installation medium'
-		    // %2 = number (1,2,...)
-		    message = sformat(_("%1 %2 has a different product information than the start %1.
-
-Insert the appropriate medium.
-"), medianame, cdnum);
-		}
-		else
-		{
-		    string errname = medianame;
-
-		    // the installation was done with a different
-		    // media set than currently found.
-		    // i.e. installing a package from a personal distribution if
-		    // a professional distribution was installed.
-		    //
-		    // if CD/DVD install
-		    //   %1 == "CD n" or "DVD n", n = number
-		    // else (NFS, FTP, Harddisk, or SMB installs)
-		    //   %1 = "installation media" as defined above
-
-		    string medium = "";
-		    string harddisk = "";
-
-		    message = sformat(_("
-The product information on the installation
-medium differs from the information found
-on your hard disk.\n
-Medium:    %1
-Hard disk: %2\n
-Press \"Continue\" to proceed or \"Cancel\" to abort.\n"),
-					  medium, harddisk );
-
-		    // FIXME: reactivate this part
-		    if ( false )
-		    {
-			if (false)
-			{
-			    message = message + "\n";
-			    // only shown on CD or DVD installs.
-			    // %1 = "CD" or "DVD"
-			    message = message + sformat(_("
-To install packages from the
-%1 currently in the drive,
-finish this installation first then
-restart later with the first %1 of the
-respective set.
-"), "CD");
-			}
-		    }
-		}
-
-		if (show_popup)
-		{
-		    ret = UI::AnyQuestionPopup( NoHeadline(), message, ContinueButtonLabel(), CancelButtonLabel(), `focus_no);
-		}
-		else
-		{
-		    ret = false;
-		}
-
-		if (!ret)
-		{
-		    // don't ignore bad product ID
-		}
-
-		break;
-	    }
-	    else if (actcdnum == -1)  // no correct CD/DVD found
-	    {
-		// mounting of the installation medium failed.
-		message = _("Could not mount the source medium.");
-		do_eject = false;
-	    }
-	    else if (actcdnum == -2)	// bad CD/DVD mount
-	    {
-		message = media_prompt;
-	    }
-	    else if (actcdnum == -3)	// no installation medium found
-	    {
-		// the medium is not a SuSE installation medium (i.e. one of the CDs)
-		// or the NFS server path is wrong.
-		message = _("No installation data found on medium.");
-	    }
-	    else if (actcdnum > 0)	// found a medium, but the wrong one
-	    {
-		// if there is a medium available, inform user about the number
-		if  ( false )
-		{
-		    // tell the user which Medium is currently inserted
-		    // %1 == prompt defined above
-		    // %2 == "CD" or "DVD"
-		    // %3 == number
-		    message = sformat(_("%1\nCurrently %2 %3 is inserted."), media_prompt, "CD", actcdnum);
-		}
-		else
-		{
-		    message = media_prompt;
-		}
-		info = _("The correct source medium could not be mounted.");
-	    }
-
-	    if (actcdnum < 0)
-	    {
-		// inform user "something is wrong" with mounting medium
-		info = _("Could not mount the source medium.<br>")
-		       + Misc::File2UI (Installation::mountlog);
-	    }
-
-	    if ( !show_popup )
-		break;
-
- 	    any r = ChangeMediumPopup( message, info );
-
-	    y2milestone ("ChangeMediumPopup returned %1", r);
-
-	    if ( r != `continue )
-		break;
-
-	} // while (go_on)
-
-	return ret; // true or false
-    };
 
 
 
