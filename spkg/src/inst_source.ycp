@@ -290,8 +290,8 @@ configuration.");
         else if ( input == `abort )
         {
           string headline = _("Abort Installation Source Configuration");
-          string msg = _("Do you want to abort the installation source configuration?
-This means that all changes are lost.");
+          string msg = _("Abort the installation source configuration?
+All changes will be lost.");
           if ( Popup::YesNoHeadline( headline, msg ) ) {
             exit = true;
             Pkg::SourceEditSet( sourceStatesIn );
