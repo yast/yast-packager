@@ -19,15 +19,15 @@
     import "Label";
     import "URL";
 
-    global define string getServerUrl( symbol type, string host,
-                                       string urlpath, string user,
-                                       string pass );
+    define string getServerUrl( symbol type, string host,
+				string urlpath, string user,
+				string pass );
 
     /**
         Return an HBox with ok and cancel buttons for use by other dialogs.
         @return An HBox term for use in a CreateDialog call.
     */
-    global define term dialogButtons() ``{
+    define term dialogButtons() ``{
         return
             `HBox(
                 `PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
@@ -40,7 +40,7 @@
         Open a dialog for editing of authentification information (basically a
         username and a password.
     */
-    global define void editAuthentification() ``{
+    define void editAuthentification() ``{
         UI::OpenDialog(
             `VBox(
                 `Label( _("Authentication") ),
@@ -85,7 +85,7 @@
     /**
         Open a dialog for editing of FTP server information.
     */
-    global define void editFtp() ``{
+    define void editFtp() ``{
         UI::OpenDialog(
             `VBox(
                 `Label( _("FTP Server and Directory") ),
@@ -125,7 +125,7 @@
     /**
         Get a nfs url.
     */
-    global define string getNfsUrl( string host, string urlpath ) ``{
+    define string getNfsUrl( string host, string urlpath ) ``{
         if ( substring( urlpath, 0, 1 ) == "/" ) {
           urlpath = substring( urlpath, 1 );
         }
@@ -169,7 +169,7 @@
     /**
         Get url for a cd or dvd.
     */
-    global define string getCdUrl() ``{
+    define string getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
                 `Label( _("CD Installation") ),
@@ -213,7 +213,7 @@
         return url;
     }
 
-    global define string getNewServerUrl( symbol protocol )
+    define string getNewServerUrl( symbol protocol )
     ``{
       return getServerUrl( protocol, "", "", "", "" );
     }
@@ -224,7 +224,7 @@
 
         @param protocol type of server, can be `ftp, `http or `smb.
     */
-    global define string getServerUrl( symbol type, string host,
+    define string getServerUrl( symbol type, string host,
                                        string urlpath, string user,
                                        string pass )
     ``{
@@ -339,7 +339,7 @@
      * @return directory url on success, empty string when the user
      *   canceled the dialog.
     */
-    global define string getDirectoryUrl( string default ) ``{
+    define string getDirectoryUrl( string default ) ``{
 
         UI::OpenDialog(
             `VBox(
@@ -358,7 +358,7 @@
         string url = "";
 
         any input = nil;
-        
+
         repeat
         {
             input = UI::UserInput();
@@ -392,7 +392,7 @@
         return url;
     }
 
-    global define string getUrl( string default ) ``{
+    define string getUrl( string default ) ``{
         UI::OpenDialog(
             `VBox(
 		/* Label text */
@@ -446,7 +446,7 @@
         return url;
     }
 
-    global define string editUrl( string url ) ``{
+    define string editUrl( string url ) ``{
         if ( size( url ) == 0 ) return getUrl( "" );
 
         map parsedUrl = URL::Parse( url );
