@@ -128,7 +128,7 @@
 	foreach (`pkg, rpm_list,
 	``{
 	    Pkg::PkgInstall (pkg);
-	})
+	});
 	ret = PackageInstallation::CommitPackages ( 0, 0);
 
 	if (ret == `cancel)
