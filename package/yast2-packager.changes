@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 17 14:45:01 CET 2003 - cschum@suse.de
+
+- inst_source: Removed back and abort button because they didn't work.
+- inst_source: Don't show redundant cd selection dialog.
+- inst_source: Show "Adding source ..." dialog while adding a source.
+
+-------------------------------------------------------------------
 Tue Feb 11 12:30:52 CET 2003 - kkaempf@suse.de
 
 - Correct error message (#21754)
