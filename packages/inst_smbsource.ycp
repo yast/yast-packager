@@ -162,21 +162,7 @@ the corresponding <b>password</b> and either the <b>workgroup</b> or the user
 						  `Password (`id(`password ), _( "&Password:" ), WFM::InstMedia::net_password )
 						  ),
 					    `VSpacing( 0.9 ),
-					    `RadioButtonGroup(
-							      `HBox(
-								    `VBox(
-									  // Radio button to activate input field for workgroup
-									  `Left(`RadioButton(`id(`activate_workgroup ), `opt(`notify), _( "&Workgroup:" ), WFM::InstMedia::smb_as_workgroup) ),
-									  `TextEntry(`id(`workgroup ), (WFM::InstMedia::smb_as_workgroup?WFM::InstMedia::smb_workdomain:""))
-									  ),
-								    `HSpacing(),
-								    `VBox(
-									  // Radio button to activate input field for domain
-									  `Left(`RadioButton(`id(`activate_domain ), `opt(`notify ), _( "&Domain:" ), !WFM::InstMedia::smb_as_workgroup) ),
-									  `TextEntry(`id(`domain), (WFM::InstMedia::smb_as_workgroup?"":WFM::InstMedia::smb_workdomain) )
-									  )
-								    )
-							      )
+					    `HBox(`TextEntry(`id(`workgroup ), _( "&Workgroup:" ), WFM::InstMedia::smb_workdomain))
 					    ),
 				      `VSpacing( 0.5 )
 				      ),
