@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep  5 12:13:35 CEST 2001 - kkaempf@suse.de
+
+- accept single package or list of packages as command line args.
+
+-------------------------------------------------------------------
 Fri Aug 31 17:53:00 CEST 2001 - kkaempf@suse.de
 
 - rewrite to use InstMedia and MediaUI modules.
