@@ -505,6 +505,9 @@ must NOT be older than the version of your installed system.\n");
 
     UI::CloseDialog();
 
+    // unload pkginfo server in order to release common.pkd
+    PKGINFO();
+    
     InstMedia::UnmountMedium();
 
     return `next;
