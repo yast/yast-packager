@@ -18,23 +18,25 @@
   string msg_beginner = "";
   string msg_expert = "";
   
-  string msg_str11 =   UI(_( "<p>Launch this module to install additional packages or
+  string msg_str11 =   UI(_("<p>Launch this module to install additional packages or
 remove installed ones.
-For installing commercial software also launch this module and select
+To install commercial software, launch this module and select
 set 'pay' from list of package sets.
-</p>" ));
+</p>
+"));
 
-  string msg_str12 = UI(_( "<p>Please insert <b>CD 1</b> for CD installation.</p>"
-			   ));
+  string msg_str12 = UI(_("<p>Please insert <b>CD 1</b> for CD installation.</p>"));
 
   string msg_str13 = UI(_("<p>Launch this module if you want to choose the
 source of installation. It is possible to install packages from CD,
-via network or from harddisk.</p>
-<p>You can specify the source media and do the
-installation of packages within this module.
-</p>" ) );
+via the network or from harddisk.</p>
+<p>You can specify the source media and install
+packages with this module.
+</p>
+
+") );
   
-  string msg_str21 = UI(_( "<P>You need to be logged in as <i>root</i> in order to
+  string msg_str21 = UI(_("<P>You need to be logged in as <i>root</i> in order to
 do this.</P>"));
 
 
