@@ -208,17 +208,23 @@
 		initdefault = tointeger (idsplit[1]:"3");
 	    }
 
-	    y2milestone("run-level %1 found", initdefault);
+	    y2milestone ("run-level %1 found", initdefault);
 
-	    // versplit = "7", "0", "0"
-	    list versplit = splitstring (Update::installedVersion, ".");
-	    integer oldmajor = tointeger (versplit[0]:"0");
-	    if ((oldmajor != 0) &&
-		((oldmajor < 7) || ((oldmajor == 7 && (versplit[1]:"" == "0")))))
+	    list <string> versplit1 = splitstring (Update::installedVersion, " ");
+	    if (size (versplit1) > 0)
 	    {
-		// position == old, value == new
-		list new_levels = [ 0, 0, 3, 5, 4, 4 ];	// 0->0, 1->0, 2->3, 3->5, 4->4, 5->4
-		initdefault = new_levels[initdefault]:5;
+		list <string> versplit2 = splitstring (versplit1[size(versplit1) - 1]:"", ".");
+		integer oldmajor = tointeger (versplit2[0]:"0");
+		integer oldminor = tointeger (versplit2[1]:"0");
+		if (oldmajor != 0 && oldminor != 0)
+		{
+		    if ((oldmajor < 7) || (oldmajor == 7 && oldminor == 0))
+		    {
+			// position == old, value == new
+			list new_levels = [ 0, 0, 3, 5, 4, 4 ];	// 0->0, 1->0, 2->3, 3->5, 4->4, 5->4
+			initdefault = new_levels[initdefault]:5;
+		    }
+		}
 	    }
 
 	    Update::last_runlevel = initdefault;		// evaluated in inst_finish
