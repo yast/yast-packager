@@ -353,7 +353,7 @@ You will lose that selection if you change the basic selection.");
     }
     else
     {
-	Pkg::ClearSaveState()
+	Pkg::ClearSaveState();
     }
 
     Wizard::CloseDialog();
