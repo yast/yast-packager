@@ -358,10 +358,17 @@ to specify username, password and workgroup.") ),
             integer id = Pkg::SourceCreate( url );
             if ( id == nil )
             {
-                UI::ErrorPopup( sformat( _("Unable to create installation source
-from URL '%1'."), url ) );
+                string _msg1 = sformat( _("Unable to create installation source
+from URL '%1'."), url );
+                string err = Pkg::ErrorId();
+                string _msg2 = "";
+                if ( err == "instsrc_duplicate" )
+                    _msg2 = _("A source with the same product already exists.");
+                else
+                    _msg2 = _("Details:") + "\n" + Pkg::Error();
+                UI::ErrorPopup( _msg1 + "\n" + _msg2 );
             }
-            else 
+            else
             {
                 fillTable();
             }
@@ -610,6 +617,8 @@ on the NFS server.
         }
     
     } until ( input == `abort || input == `next );
+
+    y2debug( "Return: %1", input );
 
     return input;
 

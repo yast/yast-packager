@@ -258,13 +258,10 @@
                 url = "";
                 symbol type = UI::QueryWidget( `id( `rb_type), `CurrentButton );
                 if ( type == `ftp ) {
-                    typestr = "ftp";
                     url = "ftp://";
                 } else if ( type == `http ) {
-                    typestr = "http";
                     url = "http://";
                 } else if ( type == `samba ) {
-                    typestr = "samba";
                     url = "smb://";
                 }
 
