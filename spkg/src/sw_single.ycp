@@ -162,15 +162,18 @@ do this.</P>"));
   any result = `next;
 
   boolean skip_source = false;
-  
+
   // if sw_single is called with argument "beginner" or with a package list or package name
   // -> skip inst_source (if possible)
-  
+
   if ( size( arg_list ) > 0 )
   {
       string postfix =  substring( select(arg_list, 0), size(select(arg_list, 0)) - 4 );
       y2debug("SW_SINGLE: POSTFIX: %1", postfix );
 
+      // if sw_single is called with an absolut package-pathname, there is no need to
+      // mount the source media or check SuSE version or depemdendies
+      
       if ( postfix == ".rpm" )
       {
 	  if ( fileFound( select(arg_list, 0) ) )
@@ -193,11 +196,10 @@ do this.</P>"));
 	      //return `cancel;
 	  }  
       }
-      else
+      else		// try to mount source media
       {
-	  // ??? Why not leave parameter false: don't show popup Could not mount ... ???
-	  boolean go_on = ChangeCD( 1, false );
-	  // boolean go_on = ChangeCD( 1, true);
+	  boolean go_on = ChangeCD( 1,			// CD number 1
+				    false );		// don't show popup "Wrong CD ..." (show "No access ...")
 	  
 	  if ( !go_on )
 	  {
@@ -310,7 +312,7 @@ must NOT be older than the installed one.\n"));
 	      continue;
 	  }
 
-          // There could be a list of packages (defined in an ascii-file) or a package name
+          // There could be a list of packages (defined in an ascii-file) or a package name (without .rpm)
 	  
 	  if ( size(arg_list) > 0 && select(arg_list, 0) != "beginner" )
 	  {
