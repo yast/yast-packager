@@ -269,6 +269,28 @@ Select which desktop to install.</p>
     }
 
 
+    /*
+     * Additional kernel packages from control file
+     * @return list<string> Additional Kernel packages
+     */
+    define list<string> ComputeAdditionalKernelPackages ()
+    {
+        integer pos = findfirstof(Kernel::final_kernel, "-");
+        string extension = substring(Kernel::final_kernel, pos, size(Kernel::final_kernel));
+        list<string> akp = [];
+        if (extension!="")
+        {
+            if (size(ProductFeatures::kernel_packages) > 0 && 
+                    ProductFeatures::kernel_packages != nil)
+            {
+                akp = maplist(string p , ProductFeatures::kernel_packages, ``{
+                        return (p + "-" + extension);
+                        });
+            }
+        }
+        return akp;
+    }
+
     /*-----------------------------------------------------------------------
      * GLOBAL FUNCTIONS
      *-----------------------------------------------------------------------*/
@@ -291,7 +313,12 @@ Select which desktop to install.</p>
 	if (!Mode::update () || !Mode::autoinst ())
 	{
             list <string> kernel_pkgs = Kernel::ComputePackages ();
+            list <string> kernel_pkgs_additional = ComputeAdditionalKernelPackages();
 	    install_list = (list <string>) union (install_list, kernel_pkgs);
+            if (size(kernel_pkgs_additional) > 0 && kernel_pkgs_additional != nil)
+            {
+	        install_list = (list <string>) union (install_list, kernel_pkgs_additional);
+            }
         }
 
 	if (Pkg::IsSelected("xorg-x11"))
