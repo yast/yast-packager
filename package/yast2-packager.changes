@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 26 15:14:10 CEST 2002 - mvidner@suse.cz
+
+- require.ycp: Adapted for the new packagemanager.
+- require.ycp: New function IsPackageAvailable.
+- 2.6.15
+
+-------------------------------------------------------------------
 Mon Aug 26 10:23:06 CEST 2002 - kkaempf@suse.de
 
 - copy /etc/passwd and /etc/group from inst-sys to target (#18243).
