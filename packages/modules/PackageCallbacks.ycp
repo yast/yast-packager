@@ -477,23 +477,22 @@
     global define LayoutPopup ( string message, term button_box, integer vertical_size, boolean info_on )
     ``{
 
-	term dialog_layout =  `VBox(`HSpacing(40),
-				    `Left(`Heading (NotifyMsg())),
-				    `VBox( `VSpacing(0.1),
-					   `Left(`Label( message)),
-					   `Left(`CheckBox(`id(`show), `opt(`notify), _("Show &details"), info_on )),
-					   `VSpacing(0.4),
-					   `HBox(`VSpacing(vertical_size),
-						 `HSpacing(0.1),
-						 `ReplacePoint(`id(`info), `Empty()),
-						 `HSpacing(0.1)
-						 ),
-					   `HBox(`HSpacing(0.1),
-						 button_box,
-						 `HSpacing(0.1)
-						 ),
-					   `VSpacing(0.2)
-					   )
+	term dialog_layout =  `VBox(
+				    `HSpacing(40),	// enforce width
+				    `VSpacing(0.1),
+				    `Left(`Label( message)),
+				    `Left(`CheckBox(`id(`show), `opt(`notify), _("Show &details"), info_on )),
+				    `VSpacing(0.4),
+				    `HBox(`VSpacing(vertical_size),
+					  `HSpacing(0.1),
+					  `ReplacePoint(`id(`info), `Empty()),
+					  `HSpacing(0.1)
+					  ),
+				    `HBox(`HSpacing(0.1),
+					  button_box,
+					  `HSpacing(0.1)
+					  ),
+				    `VSpacing(0.2)
 				    );
 	return dialog_layout;
     };
