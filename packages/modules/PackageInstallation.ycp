@@ -23,8 +23,8 @@
     import "InstMedia";
     import "MediaUI";
     import "Packages";
-    import "PackageCallbacks";
     import "SlideShow";
+    import "SlideShowCallbacks";
 
     import "Wizard";
 

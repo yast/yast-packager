@@ -53,6 +53,7 @@
    ``{
 	if (_provide_popup)
 	    UI::CloseDialog();
+	_provide_popup = false;
 	return;
    }
 
@@ -60,7 +61,7 @@
    /** at start of package install
     *
     */
-   global define void StartInstall (string name, string summary, integer installsize, boolean is_delete)
+   global define void StartPackage (string name, string summary, integer installsize, boolean is_delete)
    ``{
 	term packagebox = `HBox (`HStretch(),
 				     `VBox( `Label(`id(`package), name ),
@@ -77,7 +78,7 @@
    /** during package install
     *
     */
-   global define void ProgressInstall (integer percent)
+   global define void ProgressPackage (integer percent)
    ``{
 	UI::ChangeWidget(`id(`progress), `Value, percent);
 	return;
@@ -87,7 +88,7 @@
    /** after package install
     *
     */
-   global define void DoneInstall (string name)
+   global define void DonePackage (string name)
    ``{
 	UI::CloseDialog();
 	return;
