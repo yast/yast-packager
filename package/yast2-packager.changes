@@ -1,8 +1,14 @@
 -------------------------------------------------------------------
+Tue Sep 07 14:15:02 CEST 2004 - arvin@suse.de
+
+- added proposal step to initialize sources (needed to solve
+  bug #44724)
+
+-------------------------------------------------------------------
 Mon Sep  6 11:55:51 CEST 2004 - visnov@suse.cz
 
 - V 2.10.12
-- ComputeKernelPackages moved to Kernel 
+- ComputeKernelPackages moved to Kernel
 
 -------------------------------------------------------------------
 Fri Sep  3 11:57:27 CEST 2004 - sh@suse.de
@@ -16,7 +22,7 @@ Fri Sep  3 11:57:27 CEST 2004 - sh@suse.de
 Thu Sep  2 18:28:13 CEST 2004 - sh@suse.de
 
 - V 2.10.10
-- Added package counter to slide show details table 
+- Added package counter to slide show details table
 
 -------------------------------------------------------------------
 Mon Aug 30 18:28:56 CEST 2004 - arvin@suse.de
