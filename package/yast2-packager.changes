@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 18 03:10:35 CEST 2004 - nashif@suse.de
+
+- Using xorg-x11 instead of XFree86.
+
+-------------------------------------------------------------------
 Fri Aug 13 15:45:26 CEST 2004 - kkaempf@suse.de
 
 - add languagePackages() to select yast2-trans-$lang for each
