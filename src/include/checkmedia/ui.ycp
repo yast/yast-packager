@@ -80,7 +80,7 @@ define list<string> TranslateInfo(list<string> info) {
 		    // %1 = result of the check
 		    "check" : _("Result: %1"),
 		    // error message
-		    "not an iso" : _("The drive doesn't contain an ISO image.")
+		    "not an iso" : _("The drive does not contain a medium or the ISO file system is broken.")
 		];
 
 		if (key == "check")
