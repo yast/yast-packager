@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb  4 15:30:57 CET 2002 - gs@suse.de
+
+- internal changes: remove obsolete variables 
+
+-------------------------------------------------------------------
 Wed Jan 30 15:36:38 CET 2002 - gs@suse.de
 
 - correct initialisation of the package agent 
