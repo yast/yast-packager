@@ -148,7 +148,7 @@
     define list autoinstPackages()
 	``{
 	import "AutoInstall";
-	
+
 	map configure = AutoInstall::Profile["configure"]:$[];
 	list packages = [];
 
@@ -217,7 +217,7 @@
 
 	if (Mode::vnc)
 	{
-	    packages = ["vnc"];
+	    packages = ["vnc", "yast2-qt"];
 	}
 
     	return packages;

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 02 17:43:31 CEST 2002 - arvin@suse.de
+
+- added yast2-qt to required packages for vnc installation
+
+-------------------------------------------------------------------
 Mon Jul 29 10:54:55 CEST 2002 - arvin@suse.de
 
 - make correct package
