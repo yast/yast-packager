@@ -24,6 +24,7 @@
     import "InstMedia";
     import "MediaUI";
     import "Packages";
+    import "Boot";
 
     import "Wizard";
     include "ui/common_popups.ycp";
@@ -126,7 +127,7 @@
 
 	    if ( SCR::Read(.target.size, first_arg) > 0 )
 	    {
-		InstMedia::bootmode = "Harddisk";
+		InstMedia::installmode = "hd";
 		InstMedia::mediatype = 3;
 
 		y2milestone( "SW_SINGLE: installing  %1", first_arg );
@@ -150,17 +151,22 @@
 	    //  try to mount source medium or read local descriptions
 	    //  if possible -> skip dialog inst_source
 	    
-	    y2milestone ("SW_SINGLE: sw_single %1; trying to mount source medium", Args());
+	    y2milestone ("SW_SINGLE: %1; trying to mount source medium", Args());
 
 	    // initialize InstMedia from running system
 	    InstMedia::initializeInstMedia ($[]);
 
 	    // is CD1/directory with CD1 sources inserted/available ?
-	    boolean mount_ok = MediaUI::ChangeMedium ( 1, false );
+	    integer result = InstMedia::MountMedium ( 1 );
 	    
-	    if ( mount_ok )
+	    if ( result == 0 )
 	    {
+		// skip dialog Change source medium
 		skip_source = true;
+		
+		// this flag is read in Packages::Init() and means:
+		// don't read locally saved package description but information from source medium
+		InstMedia::source_medium = true;
 		return `found_medium;
 	    }
 
@@ -374,8 +380,8 @@ must NOT be older than the version of your installed system.\n");
 		    y2debug( "REQUIRE Dependencies: %1", or_depends );
 		    list xor_depends = lookup( pac_depends, "CONFLICT", [] );
 		    y2debug( "CONFLICT Dependencies: %1", xor_depends );
-		    list and_depends = lookup( pac_depends, "ADD", [] );
-		    y2debug( "ADD Dependencies: %1", and_depends );
+		    // list and_depends = lookup( pac_depends, "ADD", [] );
+		    // y2debug( "ADD Dependencies: %1", and_depends );
 
 		    if ( userInput == true )
 		    {
@@ -384,9 +390,10 @@ must NOT be older than the version of your installed system.\n");
 		    }
 		    else
 		    {
+			// Show REQUIRE and CONFLICT dependencies (but don't call
+			// inst_sw_single if there are additional packages required)
 			if (or_depends != []
-			    || xor_depends != []
-			    || and_depends !=[] )
+			    || xor_depends != [] )
 			{
 			    // There is an unresolved dependency -> call
 			    // single-package-selection to solve it.
@@ -410,6 +417,38 @@ must NOT be older than the version of your installed system.\n");
 	}
 	else
 	{
+	    if ( dialog_id == 3 )	// Before inst_suseconfig
+	    {
+		// Base packages and kernels must be on Medium1
+		list install_list = SCR::Read(.package.installSetCD, 1);
+		
+		boolean bootCalled = false;
+		foreach ( `package, install_list,
+			  ``{
+		    string packageName =  package[0]:"";
+		    integer pos = findfirstof ( packageName, "/" );
+		    if ( pos != nil )
+		    {
+			// removing path 
+			packageName = substring ( packageName,
+						  pos+1, size(packageName) -pos -5 );
+			packageName = SCR::Read( .package.shortName, packageName );
+		    }
+		    if( substring ( packageName, 0, 2) == "k_"
+			&& !bootCalled )
+			{
+			    // calling mk_initrd and lilo if kernel has been updated
+			    boolean saveMode =  Mode::update;
+			    // In order to call mk_initrd and lilo correctly we have to set
+			    // to update mode
+			    Mode::update = true;
+			    Boot::Write();
+			    bootCalled = true;
+			    Mode::update = saveMode;
+			}
+		});
+	    }
+	    
 	    result = CallFunction( select(dialog, dialog_id, 0) );
 	}
 

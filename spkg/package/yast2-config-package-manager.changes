@@ -1,4 +1,26 @@
 -------------------------------------------------------------------
+Mon Mar 25 14:34:10 CET 2002 - schubi@suse.de
+
+- Bugfix: Calling mk_initrd and lilo while updating kernel #15443
+
+-------------------------------------------------------------------
+Mon Mar 18 15:37:42 CET 2002 - gs@suse.de
+
+- don't show the package conflict popup if there are additional
+  packages required (#14990) 
+
+-------------------------------------------------------------------
+Mon Feb 25 14:25:23 CET 2002 - gs@suse.de
+
+- internal changes (correct settings for .rpm installation) 
+
+-------------------------------------------------------------------
+Mon Feb 18 11:20:24 CET 2002 - gs@suse.de
+
+- read information from source medium (instead of locally saved info)
+  if the medium can be mounted at the start of the workflow
+
+-------------------------------------------------------------------
 Mon Feb 11 13:44:38 CET 2002 - gs@suse.de
 
 - menue entry file changed
