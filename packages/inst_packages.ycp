@@ -11,7 +11,10 @@
 
 {
     UI::OpenDialog(`opt(`defaultsize), `PackageSelector(`id(`selector) ));
-    any result = UI::RunPkgSelection(`id(`selector) );		// FIXME
+
+    // returns `accept or `cancel
+    symbol result = UI::RunPkgSelection(`id(`selector) );
+
     UI::CloseDialog();
     return result;
 }

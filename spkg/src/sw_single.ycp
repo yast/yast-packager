@@ -192,7 +192,8 @@
 
 	    result = WFM::CallFunction( `inst_packages ());	// No: ask user
 	    y2milestone ("inst_packages returns %1", result);
-	    result = `next;	// FIXME
+	    if (result == `accept)
+		result = `next;
 	}
 	else
 	{
