@@ -464,13 +464,13 @@
 	output = add (output, base_data["summary"]:"?");
 
 	// add on
-	foreach(`sel, base_data["recommends"]:[],
+	foreach(`sel, selected_addon_selections,
 	``{
-	    map recommend_data = Pkg::SelectionData (sel);
-	    if ((recommend_data != nil)				// skip unknown selections
-		&& (recommend_data["category"]:"" != "base"))
+	    map addon_data = Pkg::SelectionData (sel);
+	    if ((addon_data != nil)				// skip unknown selections
+		&& (addon_data["category"]:"" != "base"))
 	    {
-		output = add ( output, "+  " + recommend_data["summary"]:sel);
+		output = add ( output, "+  " + addon_data["summary"]:sel);
 	    }
 	});
 
