@@ -43,6 +43,7 @@ Development/Libraries/Python
 Development/Libraries/Tcl
 Development/Libraries/X11
 Development/Libraries/YaST
+Development/Sources
 Development/Tools/Building
 Development/Tools/Debuggers
 Development/Tools/Doc Generators
@@ -51,6 +52,7 @@ Development/Tools/IDE
 Development/Tools/Navigators
 Development/Tools/Other
 Development/Tools/Version Control
+Documentation/HTML
 Documentation/Howto
 Documentation/Man
 Documentation/Other
@@ -129,6 +131,7 @@ Productivity/Networking/ICQ
 Productivity/Networking/IRC
 Productivity/Networking/LDAP/Clients
 Productivity/Networking/LDAP/Servers
+Productivity/Networking/LDAP/Utilities
 Productivity/Networking/NFS
 Productivity/Networking/NIS
 Productivity/Networking/Napster
@@ -216,5 +219,5 @@ System/X11/Terminals
 System/X11/Utilities
 System/YaST
 Unsorted
-zall
 z??
+zall
