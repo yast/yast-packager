@@ -332,10 +332,12 @@ must NOT be older than the installed one.\n"));
 		  // Checking dependecies
 		  map pac_depends = PKGINFO(`getDependencies());
 	   
-		  list(map) or_depends = lookup( pac_depends, "OR" );
-		  y2debug( "OR Dependencies: %1", or_depends );
-		  list(map) xor_depends = lookup( pac_depends, "XOR" );
-		  y2debug( "XOR Dependencies: %1", xor_depends );
+		  list(map) or_depends = lookup( pac_depends, "REQUIRE", [] );
+		  y2debug( "REQUIRE Dependencies: %1", or_depends );
+		  list(map) xor_depends = lookup( pac_depends, "CONFLICT", [] );
+		  y2debug( "CONFLICT Dependencies: %1", xor_depends );
+		  list(map) and_depends = lookup( pac_depends, "ADD", [] );
+		  y2debug( "ADD Dependencies: %1", and_depends );
 
 		  if ( userInput == true )
 		  {
@@ -345,7 +347,7 @@ must NOT be older than the installed one.\n"));
 		  }
 		  else
 		  {
-		      if ( or_depends != [] || xor_depends != [] )
+		      if ( or_depends != [] || xor_depends != [] || and_depends !=[] )
 		      {
 			  // There is an unresolved dependency -> call
 			  // single-package-selection to solve it.
