@@ -32,8 +32,10 @@
     import "Packages";
     import "SlideShow";
     import "Wizard";
-
     import "Popup";
+
+    if (Mode::Update)
+	return `auto;
 
     boolean packager_called = false;		// is there any package installed/deleted
                                                 // (only used if Mode::normal is set)
