@@ -18,7 +18,17 @@
 
     import "Label";
     import "Popup";
-    import "Product"; // need the constructor
+
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_source");
+    // dialog caption
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+    // constructor of Product is needed in order to initialize the product
+    // macro. Takes a lot of time because whole package manager target
+    // is initialized
+    import "Product";
 
     include "inst_source_dialogs.ycp";
 
@@ -245,8 +255,6 @@ on the NFS server.
 </p>
 ");
 
-    Wizard::CreateDialog();
-    Wizard::SetDesktopIcon("sw_source");
     Wizard::SetNextButton(`next, Label::FinishButton() );
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::HideBackButton();
