@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan  3 22:42:20 CET 2001 - mike@suse.de
+
+- changed icon for YCC
+
+-------------------------------------------------------------------
 Wed Jan  3 21:33:14 CET 2001 - mike@suse.de
 
 - fix: "change source" and "install" were permuted for ycc 
