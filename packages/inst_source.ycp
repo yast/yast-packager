@@ -326,7 +326,7 @@ to specify username, password and workgroup.") ),
             `id( source ),
             "On",
 //            lookup( source, "state", true ) ? "On" : "Off",
-            lookup( productData, "productname", "unknown" ),
+            lookup( productData, "label", "unknown" ),
             lookup( generalData, "url", "" )
         );
         return item;
