@@ -514,7 +514,9 @@ on the NFS server.
 </p>
 ");
 
-    Wizard::SetContents(title, contents, help_text, WFM::Args(0), WFM::Args(1));
+    Wizard::CreateDialog();
+    Wizard::ReplaceNextButton (`PushButton(`id(`next), FinishButtonLabel()));
+    Wizard::SetContents(title, contents, help_text, true, true);
 
     Pkg::SourceStartCache ( false );
 
@@ -616,7 +618,9 @@ on the NFS server.
             }
         }
     
-    } until ( input == `abort || input == `next );
+    } until ( input == `abort || input == `next || input == `back );
+
+    UI::CloseDialog();
 
     y2debug( "Return: %1", input );
 

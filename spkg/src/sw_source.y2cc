@@ -5,7 +5,7 @@
 ; $Id$
 ;
 
-[Y2Module sw_single]
+[Y2Module inst_source]
 
 ; name of the entry, shown in y2cc
 Name = _("Change source of installation")
