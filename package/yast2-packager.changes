@@ -9,6 +9,12 @@ Thu Feb 20 11:39:23 CET 2003 - arvin@suse.de
 - use title-style capitalization for menu names (bug #23848)
 
 -------------------------------------------------------------------
+Wed Feb 19 15:17:23 CET 2003 - kkaempf@suse.de
+
+- only offer eject button for cd or dvd (#23827)
+- reduce duplicate code
+
+-------------------------------------------------------------------
 Wed Feb 19 11:28:18 CET 2003 - kkaempf@suse.de
 
 - check existance of id(`url) widget before checking its
