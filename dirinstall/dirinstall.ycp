@@ -36,9 +36,20 @@
     while (ret == `again)
     {
         ret = (symbol) WFM::CallFunction ("inst_proposal", [true, true, `dirinstall]);
+        if (ret == `abort)
+        {
+            break;
+        }
         if (Installation::destdir == "" || Installation::destdir == "/" )
         {
            Popup::Error(_("Select a valid directory for the installation first"));
+           ret = `again;
+           continue;
+        }
+        else if (SCR::Read(.target.dir, Installation::destdir ) != nil
+                && size((list)SCR::Read(.target.dir, Installation::destdir )) > 0  )
+        {
+           Popup::Error(_("Directory already exists, select another directory for installation."));
            ret = `again;
            continue;
         }
@@ -55,5 +66,5 @@
 
     Wizard::CloseDialog ();
 
-    return `next;
+    return ret;
 }
