@@ -65,9 +65,9 @@
 	    "delete": toremove
 	    ];
 
-	string fn = SCR (`Read (.target.tmpdir));
+	string fn = SCR::Read (.target.tmpdir);
 	fn = fn + "/script.sw_single";
-	SCR (`Write (.target.ycp, fn, script));
+	SCR::Write (.target.ycp, fn, script);
 	CallFunction (`sw_single (fn));
 
 	return true;
