@@ -158,8 +158,8 @@
 
     define list autoinstPackages()
 	``{
-	import "AIsoftware";
-	list packages = AIsoftware::autoinstPackages();
+	import "AutoinstSoftware";
+	list packages = AutoinstSoftware::autoinstPackages();
 	return packages;
     }
 
