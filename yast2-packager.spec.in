@@ -11,12 +11,6 @@ Summary:	-
 %description
 -
 
-@HEADER-DEVEL@
-Summary:	-
-Provides:	libpkg:/usr/lib/YaST2/include/PKG.h
-%description devel
--
-
 @PREP@
 
 @BUILD-SCRIPT@
