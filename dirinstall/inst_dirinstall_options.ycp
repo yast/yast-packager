@@ -25,7 +25,18 @@
     term contents = `HVSquash(
 			      `VBox(
 				    `Left(`TextEntry(`id(`target), _("Root Directory (not \"/\"):"), DirInstall::target)),
-                                    `Left(`CheckBox(`id(`suseconfig), _("Run YaST/SuSEconfig on first boot"), DirInstall::runme_at_boot))
+                                    `Left(`CheckBox(`id(`suseconfig), _("Run YaST/SuSEconfig on first boot"), DirInstall::runme_at_boot)),
+                                    `Left(`CheckBox(`id(`makeimage), `opt(`notify), _("Create Ima&ge"), DirInstall::makeimage)),
+                                    `Left(`TextEntry(`id(`imagename), _("Ima&ge Name:"), DirInstall::image_name)),
+                                    `VSquash(
+                                        `HBox(
+                                            `TextEntry(`id(`imagedir), _("&Image Directory:"), DirInstall::image_dir),
+                                            `VBox(
+                                                `VSpacing(),
+                                                `Bottom(`PushButton(`id(`open_dir), _("Select &Directory")))
+                                                )
+                                            )
+                                        )
                                   )
             );
 
@@ -41,6 +52,19 @@
 
     while (true)
     {
+        boolean image = (boolean)UI::QueryWidget(`id(`makeimage), `Value);
+        if (image)
+        {
+            UI::ChangeWidget(`id(`imagename) , `Enabled, true);
+            UI::ChangeWidget(`id(`imagedir) , `Enabled, true);
+            UI::ChangeWidget(`id(`open_dir) , `Enabled, true);
+        }
+        else
+        {
+            UI::ChangeWidget(`id(`imagename) , `Enabled, false);
+            UI::ChangeWidget(`id(`imagedir) , `Enabled, false);
+            UI::ChangeWidget(`id(`open_dir) , `Enabled, false);
+        }
 	ret = Wizard::UserInput ();
 
 	if (ret == `abort && Popup::ConfirmAbort (`painless))
