@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 30 15:36:38 CET 2002 - gs@suse.de
+
+- correct initialisation of the package agent 
+
+-------------------------------------------------------------------
 Thu Jan 24 11:40:54 CET 2002 - gs@suse.de
 
 - internal changes: use the package agent calls  
