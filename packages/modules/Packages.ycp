@@ -346,6 +346,8 @@
 
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
 
+	Pkg::SetLocale (Language::language);
+
 	if ( force_reset )
 	{
 	    Kernel::ProbeKernel();
