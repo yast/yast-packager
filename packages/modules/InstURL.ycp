@@ -17,7 +17,7 @@
     global define string installInf2Url ( )
     ``{
 	string options = "";
-	string is_network = true;
+	boolean is_network = true;
 
 	string instmode = SCR::Read (.etc.install_inf.InstMode);	// mode
 	if (instmode == nil)						// defaults to "CD"
