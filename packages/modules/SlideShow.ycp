@@ -311,7 +311,7 @@
 
 	if ( slide_list == nil )
 	{
-	    y2warning( "Directory %1 does not exist", txt_path );
+	    y2debug( "Directory %1 does not exist", txt_path );
 	}
 	else
 	{
@@ -320,7 +320,7 @@
 		return regexpmatch( filename, ".*\.(rtf|RTF|html|HTML|htm|HTM)$" );
 	    } ) );
 
-	    y2milestone( "GetSlideList(): Slides at %1: %2", txt_path, slide_list );
+	    y2debug( "GetSlideList(): Slides at %1: %2", txt_path, slide_list );
 	}
 
 	if ( slide_list != nil && size( slide_list ) > 0 )	// Slide texts found
@@ -330,11 +330,11 @@
 	}
 	else							// No slide texts found
 	{
-	    y2milestone( "No slides found at %1", txt_path );
+	    y2debug( "No slides found at %1", txt_path );
 
 	    if ( lang != "en" )
 	    {
-		y2milestone( "Trying to load slides from fallback: en" );
+		y2debug( "Trying to load slides from fallback: en" );
 		slide_list = GetSlideList( "en" );
 	    }
 	}
