@@ -5,6 +5,12 @@ Thu Aug 29 09:49:05 CEST 2002 - kkaempf@suse.de
 - show all selected selections in proposal (#18523)
 
 -------------------------------------------------------------------
+Thu Aug 29 16:14:29 CEST 2002 - kkaempf@suse.de
+
+- symlink /dev/cdrom for DVD too
+- 2.6.19
+
+-------------------------------------------------------------------
 Thu Aug 29 00:40:03 CEST 2002 - kkaempf@suse.de
 
 - Add directory to Url if not given by linuxrc
