@@ -11,78 +11,21 @@
 {
     textdomain "packager";
 
-
-    /**
-     *		UI defines - workaround for "packager"
-     **/
-    UI(``{
-
-	/**
-	 * Callback that will be called by the packager as packages are installed
-	 **/
-	global define symbol CyclicInstallPkgCallback( string  pkg_name,
-						       string  pkg_description,
-						       integer pkg_percent,
-						       integer current_pkg_number,
-						       integer disk_usage,
-						       integer disk_capacity,
-						       boolean error )
-	``{
-
-	    return WFM::CyclicUpdateCallback( pkg_name,
-					      pkg_description,
-					      pkg_percent,
-					      current_pkg_number,
-					      disk_usage,
-					      disk_capacity,
-					      error,
-					      false );	// deleting
-	};
-
-
-	/**
-	 * Callback that will be called by the packager as packages are deleted
-	 **/
-	global define symbol CyclicDeletePkgCallback( string  pkg_name,
-						      string  pkg_description,
-						      integer pkg_percent,
-						      integer current_pkg_number,
-						      integer disk_usage,
-						      integer disk_capacity,
-						      boolean error )
-	``{
-
-	    return WFM::CyclicUpdateCallback( pkg_name,
-					      pkg_description,
-					      pkg_percent,
-					      current_pkg_number,
-					      disk_usage,
-					      disk_capacity,
-					      error,
-					      true );	// deleting
-	};
-    });  	// UI defines end
-
-   //---------------------------------------------------------------------
-
    /**
      * Callback that will be called by the packager for each RPM as it is being installed or deleted.
      * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
      * and pass the "deleting" flag as appropriate.
      **/
-    global define symbol CyclicUpdateCallback( string  pkg_name,
+    global define symbol CallbackDisplayStart ( string  pkg_name,
 					    string  pkg_description,
-					    integer pkg_percent,
-					    integer current_pkg_number,
 					    integer disk_usage,
 					    integer disk_capacity,
-					    boolean error,
 					    boolean deleting )
     ``{
 
 	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
 
-	SlideShow::CyclicDisplayUpdate( pkg_name, pkg_description, pkg_percent, deleting );
+	SlideShow::SlideDisplayStart ( pkg_name, pkg_description, deleting );
 
 	integer how_much = (disk_usage * 100) / disk_capacity;
 
@@ -138,6 +81,32 @@ Do you want to go on with the installation?\n"),
 	    SlideShow::ProcessButtonPress( button );
 	}
 
+	return nil;
+    };
+
+
+   /**
+     * CallbackDisplayProgress percent
+     **/
+
+    global define symbol CallbackDisplayProgress(integer pkg_percent)
+    ``{
+
+	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
+
+	SlideShow::SlideDisplayProgress ( pkg_percent );
+
+	return nil;
+    };
+
+
+
+   /**
+     * CallbackDisplayError
+     **/
+
+    global define symbol CallbackDisplayError (string pkg_name)
+    ``{
 	if ( error )
 	{
 	    y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
@@ -180,7 +149,6 @@ Do you want to go on with the installation?\n"),
 		textdomain "packager";
 	    }
 	}
-	return nil;
     };
 
 }

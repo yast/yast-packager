@@ -214,9 +214,7 @@
 
 	    if (location != nil)
 	    {
-		y2milestone ("Installing %1", pkgname);
-
-		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
+		CallbackDisplayStart ( pkgname+"-"+Pkg::PkgVersion(pkgname), Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
 
 		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
 		if (localpath != nil)
@@ -230,7 +228,7 @@
 		    }
 		    else
 			ret = ret + 1;
-		    y2milestone ("install %1", ok);
+		    y2milestone ("install '%1': %2", pkgname, ok);
 		}
 	    }
 
