@@ -33,7 +33,6 @@
     import "SlideShow";
     import "Wizard";
 
-    include "showlog_defines.ycp";
     import "Popup";
 
     boolean packager_called = false;		// is there any package installed/deleted
