@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 29 09:49:05 CEST 2002 - kkaempf@suse.de
+
+- activate selections before entering package manager (#18501)
+
+-------------------------------------------------------------------
 Thu Aug 29 00:40:03 CEST 2002 - kkaempf@suse.de
 
 - Add directory to Url if not given by linuxrc

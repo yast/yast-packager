@@ -288,6 +288,9 @@ You will lose that selection if you change the basic selection.");
 	{
 	    any details_ret = `again;
 
+	    // activate current selection before entering package widget
+	    Pkg::ActivateSelections();
+
 	    while ( details_ret == `again )
 	    {
 		details_ret = WFM::CallFunction( `inst_packages( true, true ) );
