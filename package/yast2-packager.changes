@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 10 22:03:56 CET 2003 - nashif@suse.de
+
+- Modified names of autoinstall modules
+- 2.7.5
+
+-------------------------------------------------------------------
 Fri Feb 07 12:26:50 CET 2003 - arvin@suse.de
 
 - add package ppc64-tools on chrp ppp64 boards (bug #23386)
