@@ -94,7 +94,7 @@
      * @param toremove pacakges to remove
      * @return success?
      */
-    global define DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
+    global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
 	// TODO: it is going to change
 	EnsureTargetInit ();
 	boolean ok = true;
@@ -112,9 +112,9 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @param continue_button Text which is going to be on the left-hand button (continue)
      * @param cancel_button Text which is going to be on the right-hand button (cancel)
-     * @return boolean installation successful
+     * @return installation successful?
      */
-    global define InstallAndRemoveButtons ( list(string) require,
+    global define boolean InstallAndRemoveButtons ( list(string) require,
 					    list(string) conflict,
 					    string help,
 					    string continue_button, string cancel_button ) ``{
@@ -149,9 +149,9 @@
      * @param require Required packages
      * @param conflict Conflicting packages
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
-     * @return boolean installation successful
+     * @return installation successful?
      */
-    global define InstallAndRemove (list(string) require, list(string) conflict, string help) ``{
+    global define boolean InstallAndRemove (list(string) require, list(string) conflict, string help) ``{
 	return InstallAndRemoveButtons ( require,
 					 conflict,
 					 help,
@@ -168,9 +168,9 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @param continue_button Text which is going to be on the left-hand button (continue)
      * @param cancel_button Text which is going to be on the right-hand button (cancel)
-     * @return boolean installation successful
+     * @return installation successful?
      */
-    global define RequireAndConflictButtons ( list(string) require,
+    global define boolean RequireAndConflictButtons ( list(string) require,
 					      list(string) conflict,
 					      string help,
 					      string continue_button, string cancel_button ) ``{
@@ -192,9 +192,9 @@
      * @param require Required packages
      * @param conflict Conflicting packages
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
-     * @return boolean installation successful
+     * @return installation successful?
      */
-    global define RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
+    global define boolean RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
 	return RequireAndConflictButtons( require,
 					  conflict,
 					  help,
