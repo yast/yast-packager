@@ -27,7 +27,8 @@
     y2debug("creating wizard");
     // create initial dialog
     Wizard::CreateDialog ();
-
+    Wizard::SetDesktopIcon("sw_source");
+    
     // calling inst_proposal
 
     Installation::destdir = DirInstall::target;

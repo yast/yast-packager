@@ -29,7 +29,8 @@
         }
     }
     Wizard::CreateDialog();
-
+    Wizard::SetDesktopIcon("sw_source");
+    
     SCR::Execute(.target.mkdir,Installation::destdir+"/var/log/YaST2");
     SCR::Execute(.target.mkdir,Installation::destdir+"/etc");
 

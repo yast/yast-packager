@@ -174,7 +174,8 @@
    Pkg::SetLocale (UI::GetLanguage (true));
 
    Wizard::CreateDialog();
-
+   Wizard::SetDesktopIcon("sw_single");
+   
    // check Args
    // set test_mode, test_popup
 
