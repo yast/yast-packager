@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 19 11:28:18 CET 2003 - kkaempf@suse.de
+
+- check existance of id(`url) widget before checking its
+  contents (#23786)
+
+-------------------------------------------------------------------
 Wed Feb 19 11:08:16 CET 2003 - kkaempf@suse.de
 
 - keep silent if no backup_path exists (#23784)
