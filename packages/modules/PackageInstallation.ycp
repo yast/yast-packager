@@ -60,6 +60,8 @@
 	}
 	// install packages from this media
 
+	y2milestone ("CommitPackages: Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
+
 	map source_data = Pkg::SourceGeneralData(0);
 	if (source_data != nil)
 	{
