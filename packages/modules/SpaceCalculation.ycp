@@ -124,7 +124,7 @@
 		    }
 		}
 	    });
-	    Pkg::TargetDUInit (directories);
+	    Pkg::TargetInitDU (directories);
 	    y2milestone ("partitions: %1", partitions);
 	    y2milestone ("directories: %1", directories);
 	    return partitions;
@@ -183,8 +183,7 @@
 		    }
 		    free_size = free_size - spare_size;
 
-		    y2debug("available partition: mount: %1, free: %2 KB",
-				  part["mount"]:"", free_size);
+		    y2debug("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size);
 		    if ( !remove_slash)
 		    {
 			target_partitions = add ( target_partitions, $["name":part["mount"]:"",
@@ -217,9 +216,9 @@
 	} ); // foreach (`part)
 	} ); // foreach (`disk)
 
-	y2milestone( "get_partition_info: %1", target_partitions );
-	y2milestone( "get_partition_info: %1", directories);
-	Pkg::TargetDUInit (directories);
+	y2milestone( "get_partition_info: part %1", target_partitions );
+	y2milestone( "get_partition_info: dir %1", directories);
+	Pkg::TargetInitDU (directories);
 
 	return ( target_partitions );
     };
@@ -330,8 +329,8 @@
 	    }
 	});
 
-	y2debug( "UTILS *** EvaluateFreeSpace returns: %1", part_input );
-
+	y2milestone( "UTILS *** EvaluateFreeSpace returns: %1", part_input );
+	y2milestone ("Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
 	return part_input;
     };
 
@@ -358,6 +357,7 @@
 	    output = add (output, eval (outdata));
 	});
 	y2milestone ("CheckCurrentSpace(%1) = %2", current_partitions, output);
+	y2milestone ("Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
 	return output;
     }
 
@@ -444,6 +444,7 @@
 	    return ( size_text( (used-initial_used)*1024 ) );
 	}
 
+	y2milestone ("GetReqSpace Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
     };
 
 
