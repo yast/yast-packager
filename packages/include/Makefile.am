@@ -2,7 +2,7 @@
 # Makefile.am for packager/packages/include
 #
 
-SUBDIRS = # testsuite
+SUBDIRS = testsuite
 
 yncludedir = @yncludedir@/packages
 
