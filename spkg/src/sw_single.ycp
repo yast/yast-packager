@@ -152,7 +152,8 @@
 	    y2milestone("packagelist: %1", packagelist );
 	}
 
-	UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
+	// label of popup
+	UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information; One moment please...")));
 
         // start package manager
 
@@ -171,6 +172,8 @@
     // =============================================================
 
     string language = UI::GetLanguage(true);
+
+    Pkg::SetLocale (language);
 
     Wizard::CreateDialog();
 
