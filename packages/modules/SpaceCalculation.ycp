@@ -69,7 +69,7 @@
 	partition = filter( map part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
-	list<map> part_input = [];
+	list<map<any,any> > part_input = [];
 
 	foreach( map part, partition,
 		 ``{
