@@ -381,6 +381,7 @@
 	import "AutoinstSoftware";
 	AutoinstSoftware::AddModulePackages (toinstall);
 	AutoinstSoftware::RemoveModulePackages (toremove);
+	return true;
     }
 
     // ---------- RequireAndConflict* ----------
