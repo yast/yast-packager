@@ -148,6 +148,7 @@
     define list autoinstPackages()
 	``{
 	import "AutoInstall";
+	
 	map configure = AutoInstall::Profile["configure"]:$[];
 	list packages = [];
 
@@ -168,9 +169,9 @@
 			packages = add(packages, "autofs");
 	}
 
-	if (haskey(configure, "ldapclient")) {
-		map ldapclient = configure["ldapclient"]:$[];
-		if (ldapclient["start_ldapclient"]:false)
+	if (haskey(configure, "ldap")) {
+		map ldapclient = configure["ldap"]:$[];
+		if (ldapclient["start_ldap"]:false)
 			packages = union(packages, ["pam_ldap","nss_ldap"]);
 	}
 
