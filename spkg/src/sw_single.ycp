@@ -368,7 +368,7 @@ must NOT be older than the installed one.\n"));
       {
 	  result = CallFunction( select(dialog, id) );
       }
-      y2debug( "RESULT: %1", select(dialog, id), result );
+      y2debug( "RESULT %1: %2", select(dialog, id), result );
 
       if (result == `cancel || result == `abort)
       {
