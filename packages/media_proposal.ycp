@@ -41,7 +41,7 @@
 	{
 	    y2error ("Screwed source");
 	    ret = $[ "warning" :
-                     // Proposal for system to update
+                     // Proposal for system to update, part of the richtext
                      _("No valid Installation Media"),
                      "warning_level" : `blocker
             ];
