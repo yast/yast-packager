@@ -16,7 +16,11 @@
     import "Arch";
     import "Installation";
     import "Mode";
-    Mode::normal = true;	// system is already installed
+    if (!Mode::initial
+	&& !Mode::cont)
+    {
+	Mode::normal = true;	// system is already installed
+    }
 
     import "Packages";
     import "PackageCallbacks";
@@ -246,8 +250,9 @@
 
 	UI::CloseDialog();
 
-	if (commit_result[0]:0 > 0
-	    || anyToDelete )
+	if (Mode::normal				// run SuSEconfig only in normal system, not during installation
+	    && ((commit_result[0]:0 > 0)
+		|| anyToDelete))
 	{
 	    // prepare "you must boot" popup in inst_suseconfig
 
