@@ -126,7 +126,7 @@
                 serverdir = extra_dir;
 	}
 
-	if (serverdir == nil || serverdir == "")
+	if (serverdir != nil && serverdir != "")
 	    url_tokens["path"] = serverdir;
 
         string url = URL::Build(url_tokens);
