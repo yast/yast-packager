@@ -15,6 +15,7 @@
     textdomain "packager";
 
     import "Installation";
+    import "Directory";
     import "Label";
     import "Mode";
     import "Popup";
@@ -241,7 +242,7 @@
 	{
 	    string infopath = (string) SCR::Read (.target.tmpdir) + "/rpmlog";
 	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir
-			  + "/var/log/YaST2/y2logRPM > " + infopath);
+			  + Directory::logdir + "/y2logRPM > " + infopath);
 	    string info = reason + "\n---\n" + (string) SCR::Read (.target.string, [infopath, "-?-"]);
 
 	    // error popup during package installation, %1 is the name of the package

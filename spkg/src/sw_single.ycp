@@ -15,6 +15,7 @@
 
     import "Arch";
     import "Installation";
+    import "Directory";
     import "Mode";
     import "Packages";
     import "PackageCallbacks";
@@ -101,7 +102,7 @@
 	   // if sw_single is called with an absolute package-pathname, there is no need to
 	   // mount the source medium or check SuSE version or dependencies
 
-	   Pkg::TargetLogfile (Installation::destdir + "/var/log/YaST2/y2logRPM");
+	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
 	   SlideShow::InitPkgData();	// keep SlideShow quiet
 
@@ -237,7 +238,7 @@
 	   SlideShow::OpenSlideShowDialog();
 
 	   import "PackageInstallation";
-	   Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
+	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 	   integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
 	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");

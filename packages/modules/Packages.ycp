@@ -14,6 +14,7 @@
     import "Arch";
     import "Bootloader";
     import "Installation";
+    import "Directory";
     import "InstURL";
     import "Kernel";
     import "Label";
@@ -733,8 +734,9 @@ Packages from this media cannot be installed."), orderdir),
 	    import "SlideShowCallbacks";
 
 	    // an error message
-	    string errortext = _("Error while initializing package descriptions.
-Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastError();
+	    string errortext = sformat (_("Error while initializing package descriptions.
+Check the log file %1 for more details."), Directory::logdir + "/y2log") +
+		"\n" + Pkg::LastError();
 
 	    // FIXME somewhere get correct current_label and wanted_label
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "",
