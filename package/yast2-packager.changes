@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  9 07:09:47 CET 2005 - nashif@suse.de
+
+- Added module SourceManager and client for 3rd party package
+  installation
+- 2.11.15
+
+-------------------------------------------------------------------
 Tue Feb  8 13:43:41 CET 2005 - kkaempf@suse.de
 
 - add 'laptop' selections to proposal if PCMCIA interface 

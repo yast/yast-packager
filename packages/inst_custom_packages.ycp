@@ -1,0 +1,95 @@
+/**
+ * Module:	inst_custom_packages.ycp
+ *
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ * Purpose:	Client for 3rd prodcuts/addon products package installations
+ *
+ */
+{
+    textdomain "packager";
+    import "ProductFeatures";
+    import "SourceManager";
+    import "Directory";
+    import "Popup";
+    import "SlideShow";
+    import "Kernel";
+    import "Installation";
+    import "GetInstArgs";
+    import "Mode";
+
+
+    list<string> packages = (list)ProductFeatures::GetFeatuteProperty("software/packages");
+
+    boolean probeSource (string url)
+    {
+        symbol ret = SourceManager::createSource(url);
+        if (ret != `ok )
+        {
+            y2error ("no sources available on media");
+            return false;
+        } else {
+            SourceManager::CommitSources();
+            return true;
+        }
+    }
+    if (!probeSource("dir://" + Directory::custom_workflow_dir))
+    {
+        Popup::Error(_("Could not read package information"));
+        return `abort;
+    }
+
+    if (size(packages) > 0 )
+    {
+        y2milestone("installing packages: %1", packages );
+        foreach(string pkg, packages, ``{
+                if (!Pkg::PkgInstall(pkg) ) {
+                    Pkg::DoProvide ([pkg]);
+                }
+                });
+        boolean solve = Pkg::PkgSolve(false);
+        if (!solve)
+        {
+            y2error("Error solving package dependencies");
+        }
+    }
+
+    symbol result = (symbol)WFM::CallFunction( "inst_packages", [`summaryMode]);
+    y2milestone ("inst_packages returns %1", result);
+    if (result == `accept)
+        result = `next;
+
+    if (result == `next)				// packages selected ?
+    {
+        boolean anyToDelete = Pkg::PkgAnyToDelete();
+        SlideShow::SetLanguage (UI::GetLanguage(true));
+        SlideShow::InitPkgData();
+        SlideShow::OpenSlideShowDialog();
+
+        import "PackageInstallation";
+        Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
+        integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+        list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
+        integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+
+        SlideShow::CloseSlideShowDialog();
+
+        if (Installation::destdir == "/"
+                && ((commit_result[0]:0 > 0)
+                    || anyToDelete))
+        {
+            // prepare "you must boot" popup in inst_suseconfig
+            Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
+
+            result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
+        }
+    }
+
+    if (size(SourceManager::newSources)== 1)
+    {
+        Pkg::SourceChangeUrl( SourceManager::newSources[0]:-1 , "cd:///" );
+    }
+
+    return `next;
+
+}

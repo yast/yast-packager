@@ -11,6 +11,7 @@
     textdomain "packager";
 
     import "Mode";
+    import "Stage";
     import "Linuxrc";
     import "Installation";
     import "Update";
@@ -292,6 +293,13 @@
     }
     else
     {
+        if (Stage::normal())
+        {
+            import "Kernel";
+            string kernel = Kernel::ComputePackage ();
+            Kernel::SetInformAboutKernelChange(Pkg::IsSelected (kernel));
+        }
+
 	// make some directories
 	SCR::Execute (.target.mkdir, Installation::destdir + Directory::logdir);
 	SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);

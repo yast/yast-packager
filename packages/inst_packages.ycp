@@ -1,10 +1,7 @@
 /**
  * Module: 		inst_packages.ycp
- *
  * Authors:		Gabriele Strattner <gs@suse.de>
- *
- * Purpose:
- * Show the package installation dialogue.
+ * Purpose:             Show the package installation dialogue.
  *
  * $Id$
  */
@@ -13,17 +10,29 @@
     import "StorageDevices";
     import "Mode";
 
+    symbol mode = `searchMode;
+
+    if (size(WFM::Args()) > 0 && is(WFM::Args(0), symbol))
+    {
+        mode = (symbol)WFM::Args(0);
+        y2milestone("mode: %1", mode);
+    }
+
     string floppyDevice = StorageDevices::FloppyDevice;
 
     if ( Mode::normal () )
     {
 	UI::OpenDialog(`opt(`defaultsize),
-		       `PackageSelector( `id(`selector), `opt(`searchMode), floppyDevice ) );
+		       `PackageSelector( `id(`selector), `opt(mode), floppyDevice ) );
     }
     else
     {
-	UI::OpenDialog(`opt(`defaultsize),
-		       `PackageSelector( `id(`selector), floppyDevice ) );
+        if (WFM::Args()) > 0)
+            UI::OpenDialog(`opt(`defaultsize),
+                    `PackageSelector( `id(`selector), `opt(mode), floppyDevice ) );
+        else
+            UI::OpenDialog(`opt(`defaultsize),
+                    `PackageSelector( `id(`selector), floppyDevice ) );
     }
 
     Pkg::SaveState();
