@@ -777,7 +777,6 @@ Packages from this media cannot be installed."), orderdir),
 	else
 	{
 	    import "PackageCallbacks";
-	    import "SlideShowCallbacks";
 
 	    // an error message
 	    string errortext = sformat (_("Error while initializing package descriptions.
