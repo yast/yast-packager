@@ -30,7 +30,7 @@
 	    || (instmode == "dvd"))
 	{
 	    is_network = false;
-	    list devicelist = (list) SCR::Read(.probe.cdrom);
+	    list<map> devicelist = (list<map>) SCR::Read(.probe.cdrom);
 	    foreach (map device, devicelist,
 	    {
 		string devname = device["dev_name"]:"";

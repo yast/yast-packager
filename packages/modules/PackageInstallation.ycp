@@ -28,7 +28,7 @@
 
     textdomain "packager";
 
-    global define any FakePackager( list packages, string inst_source, boolean deleting );
+    global define any FakePackager( list<list> packages, string inst_source, boolean deleting );
 
     /**
      *  commitPackages marked for deletion or installation
@@ -113,7 +113,7 @@ View the log file?
     // NOTE: This is currently completely broken.
     // -- sh 2003-12-15
     //
-    global define any FakePackager( list packages, string inst_source, boolean deleting )
+    global define any FakePackager( list<list> packages, string inst_source, boolean deleting )
     ``{
 	integer disk_usage = 20;
 	integer disk_capacity = 10000;

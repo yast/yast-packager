@@ -48,7 +48,7 @@
 
     SlideShow::CloseSlideShowDialog();
 
-    list progress_stages =
+    list<string> progress_stages =
 	[
 	 // progress stages
 	 _("Update configuration"),
@@ -58,11 +58,12 @@
 	 _("Prepare system for initial boot")
 	 ];
 
-    list progress_descriptions =
+    list<string> progress_descriptions =
 	[];
 
 
     integer progress_length = 16;
+    string help_text = "FIXME";
 
     string help_text = "FIXME";
 

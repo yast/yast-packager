@@ -63,11 +63,11 @@
 	// second stage of package installation, re-read list of remaining binary and source
 	// packages
 
-	list remaining = (list) SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
+	list<string> remaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
 	if (remaining == nil)
 	    remaining = [];
 
-	list srcremaining = (list) SCR::Read (.target.ycp, ["/var/lib/YaST2/srcremaining", []]);
+	list<string> srcremaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/srcremaining", []]);
 	if (srcremaining == nil)
 	    srcremaining = [];
 

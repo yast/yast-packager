@@ -37,7 +37,7 @@
 
     // get all available base selections
     // checked in help below !
-    list available_base_selections = Pkg::GetSelections( `available, "base" );
+    list<string> available_base_selections = Pkg::GetSelections( `available, "base" );
     y2milestone ("available_base_selections %1", available_base_selections);
 
     if (size (available_base_selections) == 0)
@@ -152,7 +152,7 @@ To make a more precise selection of software to install, select
     // sort available_base_selections by order
     // $[ "order" : [ "name", "summary" ], .... ]
 
-    map sorted_base_selections = $[];
+    map<string, list<string> > sorted_base_selections = $[];
     foreach( string selection, available_base_selections,
     ``{
 	map selection_data = Pkg::SelectionData (selection);
@@ -167,7 +167,7 @@ To make a more precise selection of software to install, select
     });
 
     // construct display box in order
-    foreach(`order, map data, sorted_base_selections,
+    foreach(string order, list<string> data, sorted_base_selections,
     ``{
 	{
 	    baseconfs_box = add( baseconfs_box, `Left(`RadioButton(`id(data[0]:""),		// id
