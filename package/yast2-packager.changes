@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  1 11:34:18 CEST 2004 - kkaempf@suse.de
+
+- skip base selection screen if there is no choice (#37831)
+
+-------------------------------------------------------------------
 Wed Mar 31 12:22:41 CEST 2004 - arvin@suse.de
 
 - added product feature about suboptimal distribution (bug #36823)
