@@ -130,8 +130,13 @@
 	string media_prompt =_("The correct source medium could not be mounted.");
 
 	button_box = `HBox(
-			   `PushButton(`id(`continue), `opt(`default), OKButtonLabel() ),
+			   `PushButton(`id(`retry), `opt(`default), OKButtonLabel() ),
+			   `PushButton(`id(`ignore), ContinueButtonLabel() ),
+			   `PushButton(`id(`cancel), AbortButtonLabel() ),
+			   // push button label during media change popup, user can skip
+			   // this media (CD) so no packages from this media will be installed
 			   `PushButton(`id(`skip), _("&Skip") ),
+			   // push button label during media change popup, user can eject the CD/DVD
 			   `PushButton(`id(`eject), _("&Eject"))
 			   );
 
@@ -178,7 +183,7 @@
 		    UI::ReplaceWidget(`id(`info), `Empty() );
 	    }
 
-	} until (r == `cancel || r == `continue || r == `eject);
+	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore);
 
 	y2milestone ("MediaChange %1", r);
 
@@ -186,6 +191,8 @@
 
 	if (r == `cancel)
 	    return "C";
+	if (r == `ignore)
+	    return "I";
 	if (r == `skip)
 	    return "S";
 	if (r == `eject)

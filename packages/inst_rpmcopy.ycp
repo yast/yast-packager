@@ -45,9 +45,19 @@
     //----------------------------------------------------------------------
 
     string tmpdir	= SCR::Read(.target.tmpdir);
-    string language	= Language::language;
+    string language	= "";
 
-    any		ret			= nil;	// return value module packager
+    if (Mode::initial)
+    {
+	language = Language::language;
+	Pkg::SetLocale (language);
+    }
+    else
+    {
+	language = Pkg::GetLocale ();	// language is set from $LANG environment
+    }
+
+    any		ret		= nil;	// return value module packager
     list	rpm_list	= [];
     list	descr_list	= [];
 
@@ -97,12 +107,14 @@
 	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
 	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir+"/etc");
 	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir+"/etc");
+
     }
-    else
+    else	// run-time
     {
 	// use existing rpmdb
 
 	Pkg::TargetInit (Installation::destdir, false);
+
     }
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
