@@ -191,6 +191,7 @@
 	// install packages from this media
 
 	SlideShow::StartTimer();
+	UI::MessagePopup( _( "Timer started" ) );
 
 	while ((pkgname != nil)
 		&& (pkgname != ""))

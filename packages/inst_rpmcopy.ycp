@@ -38,12 +38,17 @@
     import "Wizard";
 
     include "showlog_defines.ycp";
+    include "packages/installationCallback.ycp";
     include "ui/common_popups.ycp";
 
     boolean packager_called = false;		// is there any package installed/deleted
                                                 // (only used if Mode::normal is set)
 
-
+    global define void progressCallback (integer percent)
+    ``{
+	y2milestone ("progressCallback");
+	return CyclicUpdateCallback( "package", "description", percent, 1, 10, 100, false, false);
+    }
 
     //----------------------------------------------------------------------
     //				     MAIN
@@ -110,6 +115,8 @@
     }
     SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
+
+    UI::MessagePopup( _( "Target initialized" ) );
 
     // Now that we know how many packages to install, we can show the dialog
 
@@ -203,6 +210,11 @@
     }
 
     SlideShow::InitPkgData();
+    UI::MessagePopup( _( "Slideshow initialized" ) );
+
+    y2milestone ("Pkg::SetProgressCallback");
+    Pkg::SetProgressCallback ("progressCallback");
+    UI::MessagePopup( _( "Callback set" ) );
 
     // Install the software from Medium1 to Mediummax, but not the already
     // installed base packages.
@@ -226,6 +238,7 @@
     {
 	boolean go_on = true;
 
+	UI::MessagePopup( _( "Calling PackageInstallation::InstallPackages" ) );
 	ret = PackageInstallation::InstallPackages( current_cd_no,			// media nr
 						    packages_installed );		// number of packages installed
 

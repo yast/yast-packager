@@ -155,9 +155,8 @@
 	    return;
 	}
 
-	// FIXME needed CDs
-	install_sizes_per_cd	= KiloBytesToBytes ([1,2,3]);
-
+	install_sizes_per_cd	= KiloBytesToBytes (Pkg::PkgMediaSizes());
+	y2milestone ("install_sizes_per_cd %1", install_sizes_per_cd);
 	if ( Mode::cont && install_sizes_per_cd[0]:0 > 0 )
 	{
 	    // CD1 is guaranteed to be done in continue mode.
