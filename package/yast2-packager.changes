@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 11 11:02:15 CET 2005 - jsrain@suse.cz
+
+- fixed incorrecto counting of disk space (#71772)
+- fixed generating list of language-dependend packages (#71099)
+
+-------------------------------------------------------------------
 Mon Mar  7 16:41:05 CET 2005 - jsrain@suse.cz
 
 - fixed counting disk size of packages to install (#67278)
