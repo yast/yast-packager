@@ -85,15 +85,6 @@
 	}
     }
 
-    if ( Mode::cont
-	 && !Mode::normal )
-    {
-	// initialize the package agent in continue mode
-	Packages::Init( true );
-	Packages::Restore();
-        SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
-    }
-
     if (Mode::initial
 	&& !Mode::update)
     {
@@ -107,6 +98,12 @@
 	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir+"/etc");
 	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir+"/etc");
 
+    }
+    else if (Mode::cont)
+    {
+	// initialize the package agent in continue mode
+	Packages::Init( true );
+        SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
     }
     else	// run-time
     {

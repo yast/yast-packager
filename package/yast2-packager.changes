@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 11 13:10:42 CEST 2002 - kkaempf@suse.de
+
+- rewrite cd/dvd url in 2nd stage of installation (#19185)
+- 2.6.42
+
+-------------------------------------------------------------------
 Wed Sep 11 01:26:10 CEST 2002 - kkaempf@suse.de
 
 - drop argument "beginner" in calling sw_single

@@ -19,8 +19,8 @@
 
     textdomain "packager";
 
+    global url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false; // Installing source packages ?
-    global integer installed = 0;	// amount of already installed packages
     global integer timestamp = 0;	// last time of getting the target map
 
     global list theSources = [];
@@ -300,31 +300,6 @@
     }
 
     /**
-     * Restore()
-     * Restore saved package list
-     * @return void
-     *
-     */
-
-    global define void Restore()
-    ``{
-	if ( !init_called )
-	{
-	    Packages::Init( true );
-	}
-
-	// FIXME restore package list
-
-	installed = SCR::Read (.target.ycp,
-			       [Installation::yast2dir+"/package_counter.ycp",
-			       0] );
-
-	y2milestone("Restored install list");
-	return;
-    }
-
-
-    /**
      * SetBaseSelection (string base name)
      */
 
@@ -570,6 +545,16 @@
 	    {
 		y2error ("Pkg::SourceStartCache failed");
 		theSources = [];
+	    }
+	    else if (!url_rewritten
+		     && Mode::cont)
+	    {
+		if ((substring (url, 0, 2) == "cd")
+		    || (substring (url, 0, 3) == "dvd"))
+		{
+		   y2milestone ("rewrite url: '%1'", base_url);
+		   Pkg::SourceChangeUrl (theSources[0]:0, base_url);
+		}
 	    }
 	}
 	if (size (theSources) >= 0)
