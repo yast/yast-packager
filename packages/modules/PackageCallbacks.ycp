@@ -66,12 +66,11 @@
     */
    global define void StartPackage (string name, string summary, integer installsize, boolean is_delete)
    ``{
-	term packagebox = `HBox (`HStretch(),
-				     `VBox( `Label(`id(`package), name ),
-				     `VSpacing(),
-				     `HBox(`ProgressBar(`id(`progress), " ", 100, 0 )),
-				     `HStretch()
-				  ));
+	term packagebox = `VBox( `Label(`id(`package), name ),
+				`VSpacing(),
+				`HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
+			   );
+
 	    UI::OpenDialog( `opt(`decorated), packagebox );
 
 	return;

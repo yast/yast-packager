@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 11 19:31:37 CEST 2002 - kkaempf@suse.de
+
+- fix callback label display (gs@suse.de) (#19178)
+- 2.6.46
+
+-------------------------------------------------------------------
 Wed Sep 11 18:25:23 CEST 2002 - kkaempf@suse.de
 
 - solve packages installed with "yast2 -i" and popup
