@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan  9 12:20:04 MET 2001 - schubi@suse.de
+
+- Bugfixes while installing packages via command line. 
+
+-------------------------------------------------------------------
 Wed Jan  3 22:42:20 CET 2001 - mike@suse.de
 
 - changed icon for YCC
