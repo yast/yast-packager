@@ -12,12 +12,13 @@
   include "package_utils.ycp";
 
   map user_settings = $[];
-  
+
   string architecture = SCR(`Read(.probe.architecture));
   user_settings = add (user_settings, "architecture", architecture );
   user_settings = add (user_settings, "targetroot", "/" );  // It is from an installed system
 
-  string targetroot	= "/";
+  string targetroot = SCR(`Read(.target.root));
+
   boolean arch_i386	= (architecture == "i386");
   boolean arch_sparc32	= (architecture == "sparc");
   boolean arch_sparc64	= (architecture == "sparc64");
