@@ -23,7 +23,7 @@
     import "MediaUI";
     import "Packages";
 
-    include "ui/wizard_dialog.ycp";
+    import "Wizard";
     include "ui/common_popups.ycp";
     include "ui/common_functions.ycp";
 
@@ -194,7 +194,7 @@ do this.</P>
 
     string language = UI::GetLanguage(true);
 
-    UI::CreateWizardDialog();
+    Wizard::CreateDialog();
 
     map user_settings = $[];
 
