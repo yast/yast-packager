@@ -129,7 +129,7 @@
 	}
 	else
 	{
-	    other_media_packages = SCR::Read (.target.ycp, Installation::destdir + "var/lib/YaST2/other_media_packages");
+	    other_media_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages");
 	    if (other_media_packages == nil)
 		other_media_packages = [];
 	    y2milestone ("%1 packages remaining", size (other_media_packages));
@@ -220,12 +220,19 @@
 		other_media_packages = add (other_media_packages, pkgname);
 		pkgname = Pkg::PkgNextInstall();
 	    }
-	    y2milestone ("%d packages on other media", size (other_media_packages));
-	    SCR::Write (.target.ycp, Installation::destdir + "var/lib/YaST2/other_media_packages");
+	    y2milestone ("%1 packages on other media", size (other_media_packages));
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
 	}
 
 	if (size (error_packages) > 0)
+	{
+	    list failed_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages");
+	    if (failed_packages == nil)
+		failed_packages = [];
+	    failed_packages = union (failed_packages, error_packages);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed_packages);
 	    ret = -ret;
+	}
 
 	y2debug( "InstallPackages: WFM::CallModule(packager, ...) returns: %1", ret );
 
