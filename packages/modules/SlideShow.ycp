@@ -61,12 +61,31 @@
 
 
     /**
+     * Set the slide show image to the image data specified.
+     * @param imagedata image bytes in one of the supported formats (PNG, ...)
+     *
+     * This is a low level function; use the corresponding high level
+     * function, if possible: SlideShowLoadSlide()
+     **/
+    global define void SetImageUI( byteblock imagedata ) ``{
+	if (imagedata == nil)
+	{
+	    y2warning ( "SetImageUI(): Invalid image" );
+	    UI::ReplaceWidget( `id(`rep_work_area), `Empty() );
+	}
+	else
+	{
+	    UI::ReplaceWidget( `id(`rep_work_area),
+			   `HVCenter( `HVSquash( `Image( imagedata, "Slide Show Image") ) ) );
+	}
+    }
+
+    /**
      * Constructor
      **/
     global define void SlideShow()
     ``{
 	y2milestone ( "SlideShow constructor" );
-	ui_defines();
 	next_recalc_time	= time();
 	slide_base_path		= Packages::slidedir;
 
@@ -119,37 +138,6 @@
     ``{
 	media_type = mediatype;
     }
-
-    /**
-     * UI-defines for the SlideShow module.
-     *
-     * Workaround so the YCP interpreter doesn't complain about code
-     *  outside any 'define': Define UI functions right here.
-     **/
-    define void ui_defines() ``{
-	UI(``{
-	    /**
-	     * Set the slide show image to the image data specified.
-	     * @param imagedata image bytes in one of the supported formats (PNG, ...)
-	     *
-	     * This is a low level function; use the corresponding high level
-	     * function, if possible: SlideShowLoadSlide()
-	     **/
-	    global define void SetImageUI( byteblock imagedata ) ``{
-		if (imagedata == nil)
-		{
-		    y2warning ( "SetImageUI(): Invalid image" );
-		    ReplaceWidget( `id(`rep_work_area), `Empty() );
-		}
-		else
-		{
-		    ReplaceWidget( `id(`rep_work_area),
-				   `HVCenter( `HVSquash( `Image( imagedata, "Slide Show Image") ) ) );
-		}
-	    };
-	});
-    };
-
 
     /**
      * Initialize internal pacakge data, such as remaining package sizes and
@@ -865,7 +853,7 @@
 	else
 	{
 	    y2debug( "Loading slide show image from %1", image_file_name );
-	    UI::SetImageUI( image_data );
+	    SetImageUI( image_data );
 	    return true;
 	}
     };
