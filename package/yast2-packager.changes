@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 10 09:46:51 CET 2005 - jsrain@suse.cz
+
+- fixed parser of yast2/order and yast2/instorder files (#39405)
+
+-------------------------------------------------------------------
 Fri Jan  7 11:09:56 CET 2005 - jsrain@suse.cz
 
 - don't use YCP keyword as variable name
