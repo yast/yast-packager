@@ -87,9 +87,11 @@
 
 	    // error popup after package installation, %1 is a numeric
 	    // value (number of failed packages)
-	    string message = sformat(_("%1 packages returned an error.
+	    string message = sformat(_("%1 package returned an error.
 View the log file?
-"), size (errpacks));
+", "%1 packages returned an error.
+View the log file?
+", size(errpacks)), size (errpacks));
 
 	    if (Popup::AnyQuestion (Popup::NoHeadline(), message,
 				    Label::YesButton(), Label::NoButton(),
