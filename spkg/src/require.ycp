@@ -33,6 +33,7 @@
      * @param packages
      * @return boolean
      */
+
     global define IsAnyPackageInstalled (list(string) packages) ``{
 	string which = find(`p, packages, ``{
 	    return IsPackageInstalled (p);
@@ -97,9 +98,9 @@
 		`PushButton (`id (`cancel), CancelButtonLabel ())
 		)
 	    );
-	UI (`OpenDialog (d));
-	any ui = UI (`UserInput ());
-	UI (`CloseDialog ());
+	UI::OpenDialog (d);
+	any ui = UI::UserInput ();
+	UI::CloseDialog ();
 	if (ui == `continue)
 	{
 	    return DoInstallAndRemove (toinstall, toremove);

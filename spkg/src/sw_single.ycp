@@ -14,433 +14,445 @@
  */
 
 {
-  textdomain "sw_single";
-  include "package_utils.ycp";
+    textdomain "sw_single";
 
-  include "ui/wizard_dialog.ycp";
-  include "ui/common_popups.ycp";
-  include "ui/common_functions.ycp";
-  include "arch_defines.ycp";
-  
-  UI(`CreateWizardDialog());
+    import "Arch";
+    import "Installation";
+    import "InstMedia";
+    import "MediaUI";
+    import "PackageIO";
 
-  map user_settings = $[];
+    include "ui/wizard_dialog.ycp";
+    include "ui/common_popups.ycp";
+    include "ui/common_functions.ycp";
 
-  // report_architecture returns all used information about architecture, boards ...
-  user_settings = union (user_settings, report_architecture());
+    // =============================================================
 
-  y2debug( "ARCHITECTURE: %1", user_settings );
-  
-  string msg_beginner = "";
-  string msg_expert = "";
-  
-  string msg_str11 =   UI(_("<p>Launch this module to install additional packages or
+    // check test_popup
+    // test_mode is checked for in Installation constructor
+
+    global define CheckArguments () ``{
+
+	integer arg_n = size (Args()) - 1;
+
+	boolean test_popup = false;
+	list arg_list = [];
+
+	while (arg_n >= 0)
+	{
+	    if (Args(arg_n) == .test)
+	    {
+		Installation::test_mode = true;
+	    }
+	    else if (Args(arg_n) == .testp)
+	    {
+		Installation::test_mode = true;	// .testp implies .test
+		test_popup = true;
+	    }
+	    else
+	    {
+		arg_list = add (arg_list, Args(arg_n));
+	    }
+	    arg_n = arg_n - 1;
+	}
+
+	y2debug("Testmode %1, Testpopup %2", Installation::test_mode, test_popup );
+	y2debug("ARGLIST %1", arg_list);
+
+	return arg_list;
+
+   };  // CheckArguments
+
+   //
+   // CheckWhichPackages
+   //
+   // check arg_list if we're called with an absolute package path
+   // if yes, we just install this package and dont need installation media
+   //
+   // returns	`done		all done
+   //		`failed		package not found
+   //		`found_medium	found CD1
+   //		`found_descr	found local package descr
+   //		`unknown_descr	found nothing
+   //
+
+   define CheckWhichPackages (list arg_list) ``{
+
+	if (size (arg_list) < 1)
+	    return `unknown_descr;
+
+	// if sw_single is called with argument "beginner" or with a package list or package name
+	// -> skip inst_source (if possible)
+
+	string postfix =  substring (select (arg_list, 0), size (select (arg_list, 0)) - 4 );
+	y2debug("SW_SINGLE: POSTFIX: %1", postfix );
+
+	// if sw_single is called with an absolute package-pathname, there is no need to
+	// mount the source medium or check SuSE version or depemdendies
+
+	if ( postfix == ".rpm" )		// package name given
+	{
+	    // does packge exist ?
+	    if ( SCR::Read(.target.size, select (arg_list, 0)) > 0 )
+	    {
+		InstMedia::bootmode = "Harddisk";
+		InstMedia::mediatype = 3;
+
+		CallFunction( `inst_rpmcopy( false, false, select(arg_list, 0) ));
+
+		// package is installed without paying attention to SuSE dependencies
+		// don't call SuSEConfig -> dialog loop ends
+		return `done;
+	    }
+	    else
+	    {
+		string message = sformat (_("Package %1 was not found on the medium."), select(arg_list, 0) );
+		UI::MessagePopup(message);
+		return `failed;
+	    }
+	}
+	else		// no package given, try to mount source medium
+	{
+	    // initialize InstMedia from running system
+
+	    InstMedia::initializeInstMedia ([]);
+
+	    // don't show popup "Please insert CD 1"
+
+	    if (MediaUI::ChangeMedium ( 1, false))
+		return `found_medium;
+
+	    // try to get local information (common.pkd, du.dir, ...)
+	    local_descr = PackageIO::CheckLocalDescription();
+	    if ( local_descr )
+		return `found_descr;
+
+	}  // no package given
+
+	return `unknown_descr;
+
+    };	// CheckWhichPackages
+
+    // =============================================================
+
+    string msg_beginner = "";
+    string msg_expert = "";
+
+    string msg_str11 =   _("<p>Launch this module to install additional packages or
 remove installed ones.
 To install commercial software, launch this module and select
 'pay' from list of package sets.
 </p>
-"));
+");
 
-  string msg_str12 = UI(_("<p>Please insert <b>CD 1</b> for CD installation.</p>"));
+    string msg_str12 = _("<p>Please insert <b>CD 1</b> for CD installation.</p>");
 
-  string msg_str13 = UI(_("<p>Launch this module if you want to choose the
+    string msg_str13 = _("<p>Launch this module if you want to choose the
 source of installation. It is possible to install packages from CD,
 via network or from a hard drive.</p>
 <p>You can specify the source medium and install
 packages with this module.
 </p>
 
-") );
-  
-  string msg_str21 = UI(_("<P>You need to be logged in as <i>root</i> in order to
-do this.</P>"));
+");
 
+    string msg_str21 = _("<P>You need to be logged in as <i>root</i> in order to
+do this.</P>");
 
-  msg_beginner = msg_str11 + msg_str12 + msg_str21;
-  msg_expert = msg_str13 + msg_str21;
-  
+    msg_beginner = msg_str11 + msg_str12 + msg_str21;
+    msg_expert = msg_str13 + msg_str21;
 
-  define fileFound( string pathname ) ``{
+    string language = UI::GetLanguage(true);
 
-        string fileCommand = "test -f " + pathname;
-	return ( SCR(`Execute(.target.bash, fileCommand)) == 0 );
-  };
-  
-  string language = UI( `GetLanguage(true) );
+    UI::CreateWizardDialog();
 
-  string default_language = "en";
+    map user_settings = $[];
 
-  map lang2yast1 = SCR(`Read(.target.yast2,"lang2yast1.ycp"));
+    list arg_list = CheckArguments();
 
-  string  long_language	= lookup(lang2yast1, language, "english");
-  
-  user_settings = add( user_settings, "language", language );
-  user_settings = add( user_settings, "continue_mode", false );
-  user_settings = add( user_settings, "post_install", true );
+    //
+    // Get informations for initialisation of PKGINFO server
+    //
 
-  // check test_mode
-  integer arg_n = size(Args()) - 1;
+    list part_input = [];
 
-  boolean test_mode = false;
-  boolean test_popup = false;
-  list arg_list = [];
-  
-  while (arg_n >= 0) {
-      if (Args(arg_n) == .test)
-      {
-	  test_mode = true;
-      }
-      else if (Args(arg_n) == .testp)
-      {
-	   test_mode = true;
-	   test_popup = true;
-      }
-      else
-      {
-	  arg_list = add(arg_list, Args(arg_n));
-      }
-      arg_n = arg_n - 1;
-  }
-  user_settings = add( user_settings, "test_mode", test_mode );
-  y2debug("Testmode %1, Testpopup %2", test_mode, test_popup );
-  y2debug("ARGLIST %1", arg_list);
-  
-  //
-  // Get informations for initialisation of PKGINFO server
-  //
+    // percentage of spare space
+    part_input = EvaluateFreeSpace( Installation::destdir, 5 );
 
-  list part_input = [];
+    y2debug( "SW_SINGLE: partition input: %1", part_input );
 
-  part_input = EvaluateFreeSpace( "/",		// target root is "/" (called in installed system) 
-				  5 );		// percentage of spare space
+    /*
+     * main dialog loop
+     */
 
+    list dialog = [
+		 `inst_source( true, true ),		// 0: ask installation source
+		 `inst_sw_single( ),			// 1: ask packages
+		 `inst_rpmcopy( false, false ),		// 2: install packages
+		 `inst_suseconfig( false, false )	// 3: SuSEconfig
+    ];
 
-  y2debug( "SW_SINGLE: partition input: %1", part_input ); 
+    integer dialog_id = 0;
+    any result = `next;
 
-  
-  /*
-   * main dialog loop
-   */
-  
-  list dialog = [
-		 `inst_source( true, true ),
-		 `inst_sw_single( ),
-		 `inst_rpmcopy( false, false ),
-		 `inst_suseconfig( false, false )
-  ];
+    // assume package information already on destination
 
-  integer id = 0;
-  any result = `next;
+    string descrPath = Installation::descrdestdir + "/suse";
+    string infopath  = descrPath + "/setup/descr";
+    string dudir     = descrPath + "/setup/du/du.dir";
+    string rootpath  = Installation::destdir;
 
-  string instSource = "";
-  string infopath = "";
-  string dudir = "";
-  boolean local_descr = false;
- 
-  boolean skip_source = false;
-	  
-  // if sw_single is called with argument "beginner" or with a package list or package name
-  // -> skip inst_source (if possible)
+    // flag, if package info was found on destination
+    boolean local_descr = true;
 
-  if ( size( arg_list ) > 0 )
-  {
-      string postfix =  substring( select(arg_list, 0), size(select(arg_list, 0)) - 4 );
-      y2debug("SW_SINGLE: POSTFIX: %1", postfix );
+    boolean skip_source = false;
 
-      // if sw_single is called with an absolut package-pathname, there is no need to
-      // mount the source medium or check SuSE version or depemdendies
-      
-      if ( postfix == ".rpm" )
-      {
-	  if ( fileFound( select(arg_list, 0) ) )
-	  {
-	      // prepare for inst_rpmcopy !!!
-	      map installMap = $[];
-	      installMap = add(installMap, "bootmode", "Harddisk" );
-	      user_settings = add(user_settings, "installMap", installMap );
+    symbol descr_result = `next;
 
-	      CallFunction( `inst_rpmcopy( false, false, select(arg_list, 0) ));
-	      // package is installed without paying attention to SuSE dependencies
-	      // don't call SuSEConfig -> dialog loop ends
-	      id = size(dialog) + 1;
-	  }
-	  else
-	  {
-	      string message = sformat (UI(_("Package %1 was not found on the medium.")), select(arg_list, 0) );
-	      UI( `MessagePopup(message) );  
-	      id = size(dialog) + 1;
-	      //return `cancel;
-	  }  
-      }
-      else		// try to mount source medium
-      {
-	  boolean go_on = ChangeCD( 1,			// CD number 1
-				    false );		// don't show popup "Please insert CD 1" 
-	  
-	  if ( !go_on )
-	  {
-	      // try to get local information (common.pkd, du.dir, ...)
-	      local_descr = CheckLocalDescription();
-	      if ( local_descr )
-	      {
-		  infopath = "/var/adm/current_package_descr/suse/setup/descr";
-		  dudir =  "/var/adm/current_package_descr/suse/setup/du/du.dir";
-		  skip_source = true;
-		  id = id + 1;
-	      }
-	      else
-	      {
-		  skip_source = false;
-		  id = 0;
-	      }
-	  }
-	  else			// mount ok on previos medium -> skip inst_source
-	  {
-	      skip_source = true;
-	      id = id + 1;
-	  }
-      }
-  }
-	  
-  if ( !test_mode )
-  {
-      // removing old logging
-      SCR(`Execute (.target.bash, "/bin/rm -f /var/log/y2logRPM*"));
-  }
+    if ( size( arg_list ) > 0 )
+    {
+	descr_result = CheckWhichPackages();
+	if ((descr_result == `done)
+	    || (descr_result == `failed))
+	    id = -1;				// done
+	else if ((descr_result == `found_medium)
+		 || (descr_result == `found_descr)) 
+	    id = 1;				// dont ask for source
+    }
 
-  while ((id >= 0) && (id < size (dialog))) {
+    if ( !test_mode )
+    {
+	// removing old logging
+	SCR::Execute (.target.bash, "/bin/rm -f /var/log/y2logRPM*");
+    }
 
-      if ( symbolof (select( dialog, id )) == `inst_sw_single )
-      {
-	  any retval = nil;
-	  
-	  boolean version_ok = false;
-	
-	  UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
+    while ((id >= 0) && (id < size (dialog)))
+    {
+	if ( id == 1 )
+	{
+	    any retval = nil;
 
-	  if ( !local_descr )
-	  {
-	       instSource = GetInstSource(1);
-	       infopath =  instSource + "setup/descr";
-	       dudir = instSource + "setup/du/du.dir"; 
-	  }
-	  else if ( test_mode )
-	  {
-	      infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
-	      dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
-	  }
-	  y2debug("SW_SINGLE infopath: %1", infopath );
+	    boolean version_ok = false;
 
-	  retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
-					      "language":long_language,  "dudir":dudir,
-					      "partition":part_input, "rootpath":"/",
-					      "yastpath":"/var/lib/YaST",
-					      "update":true,
-					      "memoptimized":true,
-					      "forceInit":true]		// force initialisation
+	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
 
-					     ));
-	  y2debug( "Return  PKGINFO(`setEnvironment() %1", retval );	
+	    if ( descr_result == `found_medium )
+	    {
+		instPath = GetInstPath();
+		infopath = instPath + "/setup/descr";
+		dudir    = instPath + "/setup/du/du.dir";
+	    }
+	    else if ( Installation::test_mode )
+	    {
+		infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
+		dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
+	    }
+	    y2debug("SW_SINGLE infopath: %1", infopath );
 
-	  UI(`CloseDialog());
+	    map pkginitmap = $["common.pkd":"common.pkd",
+				"packageinfopath":infopath,
+				"language":language,
+				"dudir":dudir,
+				"partition":part_input,
+				"rootpath":Installation::destdir,
+				"yastpath":Installation::yastpath,
+				"update":true,
+				"memoptimized":true,
+				"forceInit":true];		// force initialisation
 
-	  map version_map = $[];
+	    retval = PKGINFO (`setEnvironment(pkginitmap));
+	    y2debug( "Return  PKGINFO(%1) %2", pkginitmap, retval);
 
-	  if ( !test_mode )
-	  {
-	      version_map = PKGINFO (`compareSuSEVersions() );
-	  }
-	  else if ( test_popup )
-	  {
-	      // test the popup
-	      version_map = $[ "installedGreater":true ];
-	      version_map = add( version_map, "installedVersion", "7.1" );
-	      version_map = add( version_map, "updateVersion","7.0" );
-	  }
+	    UI::CloseDialog();
 
-	  if ( lookup( version_map, "installedGreater", false ) )
-	  {
-	      if ( IsRemountable() )
-	      {
-		  SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
-	      }
-	      // This popup informs the user that he is installing from an older version
-	      string msg1 = UI(_("The SuSE distribution version on the source medium
-must NOT be older than the version of your installed system.\n"));
+	    map version_map = $[];
 
-	      string versions = sformat( UI(_("Installed version: %1\n")),
-					 lookup( version_map, "installedVersion","" )) +
-		  sformat( UI(_("Version on source medium: %1\n\n")),
-			   lookup( version_map, "updateVersion","" ));
-	      y2debug( "SW_SINGLE: %1", versions );
-	      
-	      string msg2 = UI(_("Please make sure the installation medium is correct."));
-	      
-	      UI(`MessagePopup(msg1 + versions + msg2));
+	    if ( !Installation::test_mode )
+	    {
+		version_map = PKGINFO (`compareSuSEVersions() );
+	    }
+	    else if ( test_popup )
+	    {
+		// test the popup
+		version_map = $[ "installedGreater":true ];
+		change ( version_map, "installedVersion", "7.3" );
+		change ( version_map, "updateVersion","7.2" );
+	    }
 
-	      // continue with inst_source
-	      id = 0;
-	      continue;
-	  }
+	    if ( lookup( version_map, "installedGreater", false ) )
+	    {
+		Installation::UnmountMedium();
+		// This popup informs the user that he is installing from an older version
+		string msg1 = _("The SuSE distribution version on the source medium
+must NOT be older than the version of your installed system.\n");
 
-          // There could be a list of packages (defined in an ascii-file) or a package name (without .rpm)
-	  
-	  if ( size(arg_list) > 0 && select(arg_list, 0) != "beginner" )
-	  {
-	      string arg_name = select(arg_list,0);
-	      map inputMap = $[];
-	      
-	      if ( !fileFound(arg_name) )
-	      {
-		  list installList = [];
-		  installList = add ( installList, arg_name );
-		  inputMap = add(inputMap,"install", installList);
+		string versions = sformat( _("Installed version: %1\n"),
+			lookup( version_map, "installedVersion","" ))
+			+ sformat( _("Version on source medium: %1\n\n"),
+			lookup( version_map, "updateVersion","" ));
+		y2debug( "SW_SINGLE: %1", versions );
 
-	      }
-	      else
-	      {
-		  y2milestone("Reading file %1", arg_name );
-		  inputMap = SCR(`Read( .target.ycp, arg_name ));
-	      }
-	      y2milestone("inputMap: %1", inputMap );
-      
+		string msg2 = _("Please make sure the installation medium is correct.");
 
-	      if ( inputMap == nil || size ( inputMap ) == 0 )
-	      {
-		  string message = UI(_("Error while reading configuration-file."));
-		  UI(`MessagePopup(message));
-		  return `cancel;
-	      }
-	      else
-	      {
-		  list installList = lookup ( inputMap, "install", [] );
-		  list deleteList = lookup ( inputMap, "delete", [] );
-		  boolean userInput = lookup ( inputMap, "userInput", false );
+		UI::MessagePopup(msg1 + versions + msg2);
 
-		  y2milestone("SW_SINGLE installList: %1", installList );
-		  y2milestone("SW_SINGLE deleteList: %1", deleteList );
-		  y2milestone("SW_SINGLE userInput: %1", userInput );
+		// continue with inst_source
+		id = 0;
+		continue;
 
-	  
-		  foreach( `package, installList, ``{
-		      any r = PKGINFO( `selectInstall( package ));
-		      y2debug( "PKGINFO selectInstall: %1", package );
-		  } );           
+	    }  // wrong version
 
-		  foreach( `package, deleteList, ``{
-		      any r = PKGINFO( `selectDelete( package ) );
-		      y2debug( "PKGINFO selectDelete: %1", package );
-		  } );
-	       
-		  // Checking dependecies
-		  map pac_depends = PKGINFO(`getDependencies());
-	   
-		  list or_depends = lookup( pac_depends, "REQUIRE", [] );
-		  y2debug( "REQUIRE Dependencies: %1", or_depends );
-		  list xor_depends = lookup( pac_depends, "CONFLICT", [] );
-		  y2debug( "CONFLICT Dependencies: %1", xor_depends );
-		  list and_depends = lookup( pac_depends, "ADD", [] );
-		  y2debug( "ADD Dependencies: %1", and_depends );
+	    // There could be a list of packages (defined in an ascii-file) or a package name (without .rpm)
 
-		  if ( userInput == true )
-		  {
-		      result = CallFunction( `inst_sw_single( `post_install,
+	    if ( size(arg_list) > 0 && select(arg_list, 0) != "beginner" )
+	    {
+		string arg_name = select(arg_list,0);
+		map inputMap = $[];
+
+		if ( SCR::Read(.target.size, arg_name) <= 0 )
+		{
+		    list installList = [];
+		    installList = add ( installList, arg_name );
+		    inputMap = add (inputMap, "install", installList);
+	        }
+		else
+	 	{
+		    y2milestone("Reading file %1", arg_name );
+		    inputMap = SCR::Read( .target.ycp, arg_name);
+		}
+	        y2milestone("inputMap: %1", inputMap );
+
+		if ( inputMap == nil || size ( inputMap ) == 0 )
+		{
+		    string message = _("Error while reading configuration-file.");
+		    UI::MessagePopup(message);
+		    return `cancel;
+	        }
+		else
+		{
+		    list installList = lookup ( inputMap, "install", [] );
+		    list deleteList = lookup ( inputMap, "delete", [] );
+		    boolean userInput = lookup ( inputMap, "userInput", false );
+
+		    y2milestone("SW_SINGLE installList: %1", installList );
+		    y2milestone("SW_SINGLE deleteList: %1", deleteList );
+		    y2milestone("SW_SINGLE userInput: %1", userInput );
+
+		    foreach( `package, installList,
+		    ``{
+			any r = PKGINFO( `selectInstall( package ));
+			y2debug( "PKGINFO selectInstall: %1", package );
+		    });
+
+		    foreach( `package, deleteList,
+		    ``{
+			any r = PKGINFO( `selectDelete( package ) );
+			y2debug( "PKGINFO selectDelete: %1", package );
+		    });
+
+		    // Checking dependecies
+		    map pac_depends = PKGINFO(`getDependencies());
+
+		    list or_depends = lookup( pac_depends, "REQUIRE", [] );
+		    y2debug( "REQUIRE Dependencies: %1", or_depends );
+		    list xor_depends = lookup( pac_depends, "CONFLICT", [] );
+		    y2debug( "CONFLICT Dependencies: %1", xor_depends );
+		    list and_depends = lookup( pac_depends, "ADD", [] );
+		    y2debug( "ADD Dependencies: %1", and_depends );
+
+		    if ( userInput == true )
+		    {
+			result = CallFunction( `inst_sw_single( `post_install,
 							      `not_only_checked,
 							      part_input ) );
-		  }
-		  else
-		  {
-		      if ( or_depends != [] || xor_depends != [] || and_depends !=[] )
-		      {
-			  // There is an unresolved dependency -> call
-			  // single-package-selection to solve it.
-			  result = CallFunction( `inst_sw_single( `post_install,
+		    }
+		    else
+		    {
+			if (or_depends != []
+			    || xor_depends != []
+			    || and_depends !=[] )
+			{
+			    // There is an unresolved dependency -> call
+			    // single-package-selection to solve it.
+			    result = CallFunction( `inst_sw_single( `post_install,
 								  `only_check,
 								  part_input) );
-		      }
-		      else
-		      {
-			  // install anyway
-			  result = `ok;
-		      }
-		  }
-	      }
-	  }
-	  else
-	  {
-	      // Calling inst_sw_single
-	      result = CallFunction( `inst_sw_single( `post_install,
+			}
+			else
+			{
+			    // install anyway
+			    result = `ok;
+			}
+		    }
+		}
+	    }
+	    else
+	    {
+		// Calling inst_sw_single
+		result = CallFunction( `inst_sw_single( `post_install,
 						      `not_only_checked,
 						      part_input ) );
+	    }
+	}
+	else
+	{
+	    result = CallFunction( select(dialog, id) );
+	}
+        y2debug( "RESULT %1: %2", select(dialog, id), result );
 
-	  }
-      }
-      else
-      {
-	  result = CallFunction( select(dialog, id) );
-      }
-      y2debug( "RESULT %1: %2", select(dialog, id), result );
+	if (result == `cancel || result == `abort)
+        {
+	    // dialog loop ends
+	    dialog_id = -1;
+        }
+        else if (result == `auto)
+        {
+	    // inst_suseconfig returns `auto -> last module, dialog loop ends
+	    dialog_id = dialog_id + 1;
+	}
+	else if (result == `next )
+	{
+	    dialog_id = dialog_id + 1;
+	}
+	else if (result == `ok )	// inst_sw_single returns `ok
+	{
+	    // setting user_setting.install_list for packages which have to be installed
 
-      if (result == `cancel || result == `abort)
-      {
-	  // dialog loop ends
-	  id = size( dialog ) +1; 
-      }
-      else if (result == `auto)
-      {
-	  // inst_suseconfig returns `auto -> last module, dialog loop ends
-	  id = id + 1;			
-      }
-      else if (result == `next )		
-      {
-	  id = id + 1;
-      }
-      else if (result == `ok )	// inst_sw_single returns `ok
-      {
-	  // setting user_setting.install_info for packages which have to be installed
-	  list install_info =  PKGINFO ( `getInstallSet() );
-	  y2debug( "SW_SINGLE: Writing install_info: %1", install_info );
-	  user_settings = add ( user_settings , "install_info", install_info );
+	    list install_list =  PKGINFO ( `getInstallSet() );
+	    y2debug( "SW_SINGLE: Writing install_list: %1", install_list );
+	    change ( user_settings , "install_list", install_list );
 
-	  list delete_info =  PKGINFO ( `getDeleteSet() );
-	  // y2debug( "Writing delete_info: %1", delete_info );
-	  user_settings = add ( user_settings , "delete_info", delete_info );
+	    list delete_list =  PKGINFO ( `getDeleteSet() );
+	    // y2debug( "Writing delete_list: %1", delete_list );
+	    change ( user_settings , "delete_list", delete_list );
 
-	  y2debug( "SW_SINGLE: Usersettings: %1", user_settings );
+	    y2debug( "SW_SINGLE: Usersettings: %1", user_settings );
 
-	  if ( install_info != [] || delete_info != [] )
-	  {
-	      id = id + 1;  
-	  }
-	  else
-	  {
-	      y2debug( "Nothing selected" );
-	      // dialog loop ends
-	      id = id+3;
-	  }
-      }
-      else if (result == `back)
-      {
-	  id = id - 1;
-      }
-      else if (result == `cancel_single)
-      {
-	  if ( !skip_source )
-	  {
-	      id = id - 1; 
-	  }
-	  else
-	  {
-	      id = id - 2;
-	  }
-      }
-      
-  }
+	    if ( install_list != [] || delete_list != [] )
+	    {
+		dalog_id = dialog_id + 1;
+	    }
+	    else
+	    {
+	        y2debug( "Nothing selected" );
+	        // dialog loop ends
+		dialog_id = -1
+	    }
+	}
+	else if (result == `back)
+	{
+	    dialog_id = dialog_id - 1;
+	}
+	else if (result == `cancel_single)
+	{
+	   dialog_id = -1;	// FIXME, depend on descr_result
+	}
+    }
 
-  UI(`CloseDialog());
-  
-  // umount CD (safety reasons)
-  SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
-  
-  return `next;
+    UI::CloseDialog();
+
+    if (Installation::we_mounted)
+	Installation::UnmountMedium();
+
+    return `next;
 }
