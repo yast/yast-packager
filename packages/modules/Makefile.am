@@ -13,6 +13,7 @@ module_HEADERS = 			\
 		SlideShow.ycp		\
 		SpaceCalculation.ycp	\
 		PackageInstallation.ycp \
+		PackageCallbacks.ycp    \
 		PackageSelectionIO.ycp	\
 		PackagesUI.ycp
 
