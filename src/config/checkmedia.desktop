@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=yast2-media-check
+Icon=yast2-check-media
 Exec=/sbin/yast2 checkmedia
 
 Name=Media Check

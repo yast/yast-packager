@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 11 17:38:59 CET 2005 - lslezak@suse.cz
+
+- fixed name of the icon for checkmedia client (#72160)
+- 2.11.34
+
+-------------------------------------------------------------------
 Fri Mar 11 11:02:15 CET 2005 - jsrain@suse.cz
 
 - fixed incorrecto counting of disk space (#71772)
