@@ -20,6 +20,8 @@
 
     import "Packages";
     import "PackageCallbacks";
+    import "SlideShow";
+    import "SlideShowCallbacks";
 
     import "Wizard";
     include "ui/common_popups.ycp";
@@ -151,15 +153,9 @@
 
         // start package manager
 
-        if (size (Pkg::SourceStartCache(true)) <= 0)
-	{
-	    UI::CloseDialog();
-	    return `unknown_descr;
-	}
+        Pkg::SourceStartCache(true);
 
 	Pkg::TargetInit ("/", false);
-
-	PackageCallbacks::InitCallbacks();
 
 	UI::CloseDialog();
 
@@ -226,12 +222,37 @@
 
     if (result == `next)				// packages selected ?
     {
+	SlideShow::SetLanguage (UI::GetLanguage(true));
+	SlideShow::OpenSlideShowDialog();
+	import "PackageInstallation";
 	Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
-	list commit_result = Pkg::PkgCommit (0);				// Y: commit them !
+	integer oldvmlinuzsize = SCR::Read(.target.size, "/boot/vmlinuz");
+	list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
+	integer newvmlinuzsize = SCR::Read(.target.size, "/boot/vmlinuz");
+
+	UI::CloseDialog();
 
 	if (commit_result[0]:0 > 0)
+	{
+	    // prepare "you must boot" popup in inst_suseconfig
+
+	    if (oldvmlinuzsize != newvmlinuzsize)
+	    {
+		import "Kernel";
+		Kernel::switched = true;
+		Mode::update = true;
+	    }
+	    else
+	    {
+		Mode::update = false;
+	    }
+
 	    result = WFM::CallFunction( `inst_suseconfig (false, false));
+	}
     }
+
+    // stop packagemanager, unmount all media
+    Pkg::SourceFinishAll();
 
     UI::CloseDialog();
 

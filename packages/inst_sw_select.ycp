@@ -39,9 +39,9 @@
     // checked in help below !
     list available_base_selections = Pkg::GetSelections( `available, "base" );
     y2milestone ("available_base_selections %1", available_base_selections);
-   
+
     Wizard::OpenAcceptDialog();
-    
+
     // Dialog title for software selection
     string title = _("Software Selection");
 
@@ -51,7 +51,7 @@
     // translations must be consistent with po/index/index.??.po
     string helptext = _("<p>
 The SuSE Linux <b>Default</b> system is a good software
-selection for most users. 
+selection for most users.
 </p>
 ");
 
@@ -62,15 +62,15 @@ selection for most users.
 	helptext = helptext + _("<p>It includes powerful graphical office applications.
 </p>");
     }
-    
-    // help text, continued 
-    helptext = helptext + _("<p>    
+
+    // help text, continued
+    helptext = helptext + _("<p>
    You will not need to insert all of the CDs that
 come with SuSE Linux for this selection. Additional software from the
 other CDs can always be installed later.
 </p>
 ");
-    
+
     // help text, continued
     helptext = helptext +
 	_("<p>
@@ -125,7 +125,7 @@ To make a more precise selection of software to install, select
     }
 
 
-    
+
     // ------------------------------------------------------------------------
 
     //
@@ -134,7 +134,7 @@ To make a more precise selection of software to install, select
     list restore_selections = Pkg::GetSelections( `selected, "base" );
     restore_selections = union ( restore_selections, Pkg::GetSelections( `selected, "" ) );
     y2milestone ("restore_selections %1", restore_selections);
-    
+
     // save the current selection
     boolean retval = Pkg::SaveState();
     y2milestone( "Save selection: %1, return: %2", restore_selections, retval );
@@ -142,6 +142,9 @@ To make a more precise selection of software to install, select
     // get the currently selected base selection
     list current_base_selections = Pkg::GetSelections( `selected, "base" );
     y2milestone ("current_base_selections %1", current_base_selections);
+
+    // save the current base selection
+    string save_selection = current_base_selections[0]:"default";
 
     // Construct a box with radiobuttons for each software base configuration
     term baseconfs_box = `VBox();
@@ -219,14 +222,11 @@ You will lose that selection if you change the basic selection.");
 
     repeat
     {
-	// save the current base selection
-	string save_selection = UI::QueryWidget(`id(`baseconf), `CurrentButton);
-    
 	ret = Wizard::UserInput();
 
 	// get the newly selected base configuration
 	string base_selection = UI::QueryWidget( `id(`baseconf),`CurrentButton );
- 
+
 	if ( (ret == `abort)
 	     && WFM::CallFunction(`inst_confirm_abort(`painless) ) )
 	{
@@ -239,7 +239,7 @@ You will lose that selection if you change the basic selection.");
 	     && Pkg::IsManualSelection() )
 	{
             // popup text: ask the user whether to reset his individuell selection
-	    any ret = UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?")); 
+	    any ret = UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?"));
 	    if ( !ret )
 	    {
 		Wizard::CloseDialog();
@@ -250,9 +250,7 @@ You will lose that selection if you change the basic selection.");
 
 	// Inform the package manager on `next about the new (only about a NEW) selection
 	// or if the selection has changed
-	if (((ret == `next)
-	      && (save_selection != base_selection) )
-	    || (save_selection != base_selection) )
+	if (save_selection != base_selection)
 	{
 	    // set the new selection
 	    boolean ret = Pkg::SetSelection( base_selection );
@@ -262,13 +260,15 @@ You will lose that selection if you change the basic selection.");
 	    ret = Pkg::ActivateSelections();
 	    y2milestone ("Pkg::ActivateSelections() returns %1", ret);
 
+	    save_selection = base_selection;				// this is the new one
+
 	    // add additional (internal) packages, like kernel etc.
 	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
 	    Pkg::PkgSolve();
 
 	    string msg = "";
 
-	    // FIXME: get notify decsription
+	    // FIXME: get notify description
             // msg = Pkg::GetNotify( base_selection );
 
 	    if ( msg != "" )
@@ -277,7 +277,7 @@ You will lose that selection if you change the basic selection.");
 		term msg_text = `RichText( "<p>" + base_selection + "</p>" + "<p>" + msg + "</p>" );
 		PackagesUI::DisplayHelpMsg( nty_title, msg_text, `none, 10 );
 	    }
-	    
+
 	    // reset the warning: you have already choosen ...
 	    wrn_msg	= "";
 	    UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
@@ -285,37 +285,29 @@ You will lose that selection if you change the basic selection.");
 	}
 
 	// call the package selection dialog
-	
+
 	if ( ret == `details )
 	{
-	    any details_ret = `again;
-
-	    // activate current selection before entering package widget
-	    Pkg::ActivateSelections();
-
+	    ret = `again;
+	    
 	    // add additional (internal) packages, like kernel etc.
 	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
 	    Pkg::PkgSolve();
 
-	    while ( details_ret == `again )
+	    while ( ret == `again )
 	    {
-		details_ret = WFM::CallFunction( `inst_packages( true, true ) );
+		ret = WFM::CallFunction( `inst_packages( true, true ) );
+
+		if ( ret == `accept )
+		    ret = `next;
 	    }
 
-	    if ( details_ret == `next )
+	    error_found = SpaceCalculation::ShowPartitionWarning();
+
+	    if ( error_found )
 	    {
-		ret = `next;
-		break;
-	    }
-	    else if ( details_ret == `cancel )
-	    {
-		ret = `cancel;
-		break;
-	    }
-	    else if ( details_ret == `abort )
-	    {
-		ret = `abort;
-		break;
+		y2error( "Error: Not enough disk space" );
+		ret = `again;
 	    }
 
 	    if ( Pkg::IsManualSelection() )
@@ -325,17 +317,19 @@ You will lose that selection if you change the basic selection.");
 You have already chosen software from \"Detailed selection\".\n\
 You will lose that selection if you change the basic selection.");
 		UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
+		UI::RecalcLayout();
 	    }
 	}
-
-	// FIXME: fix the module SpaceCalculation
-	// calculate required diskspace 
-	error_found = SpaceCalculation::ShowPartitionWarning();
-	if ( error_found )
+	else
 	{
-	    y2error( "Error: not enough disk space" );
+	    // FIXME: fix the module SpaceCalculation
+	    // calculate required diskspace
+	    error_found = SpaceCalculation::ShowPartitionWarning();
+	    if ( error_found )
+	    {
+		y2error( "Error: not enough disk space" );
+	    }
 	}
-	
     } until ( (ret == `next && !error_found) || ret == `cancel ||  ret == `back );
 
     if ( ret == `back || ret == `cancel )

@@ -14,7 +14,7 @@
 
     textdomain "packager";
 
-    global define string installInf2Url ( )
+    global define string installInf2Url (string extra_dir )
     ``{
 	string options = "";
 	boolean is_network = true;
@@ -51,7 +51,7 @@
 	else if (instmode == "hd")						// Harddisk
 	{
 	    is_network = false;
-	    options = "device=" + SCR::Read (.etc.install_inf.Partition);
+	    options = "device=/dev/" + SCR::Read (.etc.install_inf.Partition) + ";filesystem=auto";
 	}
 
 	string url = instmode + "://";
@@ -81,11 +81,21 @@
 	if (((instmode == "hd") || is_network)				// if serverdir needed
 	    && ((serverdir != nil) && (serverdir != "")))		// and is valid
 	{
+	    // for smb mounts it is usual to not have a leading slash
+	    if (substring (serverdir, 0, 1) != "/")
+		serverdir = "/" + serverdir;
+
 	    url = url + serverdir;
 	}
 	else
 	{
 	    url = url + "/";
+	}
+
+	if (extra_dir != "")
+	{
+	    url = url + "/" + extra_dir;
+	    y2milestone ("extra_dir url '%1'", url);
 	}
 
 	if (is_network)

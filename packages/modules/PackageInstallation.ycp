@@ -30,8 +30,6 @@
 
     textdomain "packager";
 
-    boolean shutup = false;			// show the disk space warning popup only once
-
 
     /**
      * Constructor()
@@ -60,7 +58,7 @@
 	}
 	// install packages from this media
 
-	y2milestone ("CommitPackages: Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
+	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3", media_number, packages_installed, Pkg::TargetGetDU());
 
 	map source_data = Pkg::SourceGeneralData(0);
 	if (source_data != nil)
@@ -70,7 +68,14 @@
 		SlideShow::SetMediaType ("DVD");
 	}
 	SlideShow::InitPkgData();
-	SlideShow::SetCurrentCdNo(media_number);
+	if (media_number == 0)
+	{
+	    SlideShow::SetCurrentCdNo (1, 1);
+	}
+	else
+	{
+	    SlideShow::SetCurrentCdNo (1, media_number);
+	}
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
@@ -108,7 +113,7 @@
 		}
 		if ( retAsk == `yes_long )
 		{
-		    text = SCR::Read (.target.string, "/var/log/YaST2/y2logRPM");
+		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
 		}
 
 		retAsk = UI::DisplayLogFile( text, retAsk );

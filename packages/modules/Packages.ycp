@@ -8,7 +8,6 @@
  */
 
 {
-
     module "Packages";
 
     import "Mode";
@@ -23,13 +22,21 @@
     global boolean install_sources = false; // Installing source packages ?
     global integer timestamp = 0;	// last time of getting the target map
 
-    global list theSources = [];
+    global string slidedir = Installation::sourcedir + "/suse/setup/slide";
+    global string metadir = "/yast-install";
+    global boolean metadir_used = false;		// true if meta data and inst-sys is in ramdisk
+
+    global list theSources = [];		// id codes of sources in priority order
+    global list theSourceDirectories = [];	// product directories on sources
+    global map  theSourceOrder = $[];		// installation order
 
     // Local variables
 
     string tmpdir	= SCR::Read(.target.tmpdir);
 
     boolean init_called = false;
+
+    string choosen_base_selection = "";
 
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
@@ -363,11 +370,23 @@
 	// re-set space calculation
 	SpaceCalculation::GetPartitionInfo();
 
-	if (selected_base_selection == ""
+	// remember if we must re-do the proposal.
+	// If not, there's no need to activate any selections !
+	boolean redo_proposal = (choosen_base_selection == "");
+
+	if (redo_proposal
 	    || !SpaceCalculation::CheckDiskSize() )
 	{
 	    // make a new proposal or change a proposal,
 	    // if it does not fit on the disk anymore
+
+	    if ( ! redo_proposal )
+	    {
+		ret = add( ret, "warning", _("Disk space exhausted - changing software selection") );
+		ret = add( ret, "warning_level", `error );
+		redo_proposal = true; // 
+	    }
+
 
 	    // get all base selections
 	    // and sort them by reverse order
@@ -375,7 +394,7 @@
 		``{
 			map xmap = Pkg::SelectionData(x);
 			map ymap = Pkg::SelectionData(y);
-			return (xmap["order"]:"" > ymap["order"]:"");
+			return (xmap["order"]:"" >= ymap["order"]:"");
 		}
 	    );
 	    y2milestone ("available_base_selections %1", available_base_selections);
@@ -403,34 +422,14 @@
 	    }
 	    if (!fit)
 	    {
-		y2warning ("No selection fits, going to default");
-		selected_base_selection = "default";
-		if (!contains (available_base_selections, selected_base_selection))
-		{
-		    // no default.sel -> fallback to UnitedLinux.sel
-		    selected_base_selection = "UnitedLinux";
-		    if (!contains (available_base_selections, selected_base_selection))
-		    {
-			// no UnitedLinux.sel, fallback to first available base selection
-			selected_base_selection = available_base_selections[0]:"";
-			if (selected_base_selection == "")
-			{
-			    // no base selections at all -> give up
-			    // this error appears only if the CD mastering
-			    // process failed
-			    // It should never happen, *if* (:-)) CDs are
-			    // tested at least once before shipping ...
-			    // (not marking as translatable on purpose !)
-			    return $[ "warning" : "No base selection available",
-				   "warning_level" : `blocker ];
+		y2warning ("No selection fits");
+		Pkg::ClearSelection (selected_base_selection);
+		return $[ "warning" : _( "Not enough disk space even for a minimal installation!" ),
+			  "warning_level" : `blocker ];
 
-			}
-		    }
-		}
-		Pkg::SetSelection (selected_base_selection);
 	    }
 
-	    y2warning ("Get suggestions for %1", selected_base_selection);
+	    y2warning ("Get recommendations for %1", selected_base_selection);
 
 	    map base_data = Pkg::SelectionData (selected_base_selection);
 	    if (base_data == nil)
@@ -449,6 +448,7 @@
 	    Pkg::SetSelection (selected_base_selection);
 	}
 
+	choosen_base_selection = selected_base_selection;
 
 	// generate user readable output for proposal
 	list output = [];
@@ -467,7 +467,8 @@
 	``{
 	    map addon_data = Pkg::SelectionData (sel);
 	    if ((addon_data != nil)				// skip unknown selections
-		&& (addon_data["category"]:"" != "base"))
+		&& (addon_data["category"]:"" != "base")
+		&& addon_data["visible"]:false)
 	    {
 		output = add ( output, "+  " + addon_data["summary"]:sel);
 	    }
@@ -486,14 +487,19 @@
 
 	ret = add ( ret, "raw_proposal", output );
 
-	y2milestone ("activating selections");
-	boolean act_sel = Pkg::ActivateSelections ();
+	// we just proposed a new base selection, activate it !
 
-	// add additional (internal) packages, like kernel etc.
-	Pkg::DoProvide (Packages::ComputeSystemPackageList());
-	Pkg::PkgSolve();
+	if (redo_proposal)
+	{
+	    y2milestone ("activating selections");
+	    boolean act_sel = Pkg::ActivateSelections ();
 
-	y2milestone ("activating: %1, returning %2", act_sel, ret);
+	    // add additional (internal) packages, like kernel etc.
+	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	    Pkg::PkgSolve();
+
+	    y2milestone ("activating: %1, returning %2", act_sel, ret);
+	}
 
 	return ret;
     }
@@ -528,15 +534,187 @@
 	else
 	{
 	    import "InstURL";
-	    base_url = InstURL::installInf2Url ();
+	    base_url = InstURL::installInf2Url ("");
 	}
+
+	y2milestone ("Initialize Package Manager: %1", base_url);
 
 	if (Mode::initial)
 	{
-	    y2milestone ("Initialize Package Manager: %1", base_url);
+	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
+
+	    Pkg::SourceSetRamCache (false);
 	    integer initial_source = Pkg::SourceCreate (base_url);
-	    if (initial_source != nil)
+	    if (initial_source == nil)
+	    {
+		y2error ("No source on '%1'", base_url);
+		return;
+	    }
+
+	    // check for yast/order
+
+	    string orderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/order");
+	    if (orderfile != nil)			// splitted source installation
+	    {
+		y2milestone ("orderfile '%1'", orderfile);
+		string orderdata = WFM::Read(.local.string, [orderfile, ""]);		// read install/order
+		if (orderdata == "")
+		{
+		    y2error ("Can't read '%1'", orderfile);
+		    return;
+		}
+
+		string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
+		map instordermap = $[];	// instorder : product dir, ...
+		if (instorderfile != nil)
+		{
+		    y2milestone ("instorder file '%1'", instorderfile);
+		    string instorderdata = WFM::Read (.local.string, [instorderfile, ""]);
+
+		    integer instorder = 1;
+		    list instorderlist = splitstring (instorderdata, "\n");
+		    foreach (`instorderline, instorderlist,
+		    ``{
+			if ((instorderline != "")
+			    && (substring (instorderline, 0, 1) != "#"))
+			{
+			    instordermap[instorder] = instorderline;
+			    instorder = instorder + 1;
+			}
+		    });
+		}
+		y2milestone ("instordermap %1", instordermap);
+
+		// setup slidedir
+
+		map productmap = Pkg::SourceProductData (initial_source);
+		string datadir = productmap["datadir"]:"suse";
+		slidedir = metadir + "/" + datadir + "/setup/slide";
+
+		// setup meta data dir
+
+		list orderlist = splitstring (orderdata, "\n");
+
+		WFM::Execute (.local.mkdir, metadir);
+		foreach (`orderline, orderlist,				// copy all data to ramdisk
+		``{
+		    if ((orderline != "")
+			&& (substring (orderline, 0, 1) != "#"))
+		    {
+			list sourcelist = splitstring (orderline, " \t\n");
+			string orderdir = sourcelist[0]:"";
+			string pkgdir = sourcelist[1]:"/";
+
+			string localdir = "/yast-install/"+orderdir;
+			WFM::Execute (.local.mkdir, localdir);
+
+			y2milestone ("Filling %1", localdir);
+
+			// media.1
+
+			datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/media.1");
+			WFM::Execute (.local.mkdir, localdir+"/media.1");
+			WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " + localdir+"/media.1");
+
+			// content
+
+			datadir = Pkg::SourceProvideFile (initial_source, 1, orderdir+"/content");
+			WFM::Execute (.local.bash, "/bin/cp " + datadir + " " + localdir + "/content");
+
+			// DESCRDIR
+
+			WFM::Execute (.local.bash, "/bin/grep DESCRDIR " + localdir + "/content > /tmp/descrdir");
+			string descrline = WFM::Read (.local.string, "/tmp/descrdir");
+			list descrsplit = splitstring (descrline, " \t\n");
+			string descrdir = descrsplit[1]:"";
+			if (size (descrdir) > 0)
+			{
+			    y2milestone ("descrdir %1", descrdir);
+			    WFM::Execute (.local.mkdir, localdir+"/"+descrdir);
+			    datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/"+descrdir);
+			    if (datadir != nil)
+			    {
+				WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " +localdir+"/"+descrdir);
+			    }
+			}
+
+			// slide show
+
+			if (size (descrdir) > 5)
+			{
+			    string tmp = substring (descrdir, 0, size (descrdir) - 5) + "slide";
+			    WFM::Execute (.local.mkdir, localdir+"/"+tmp);
+			    // FIXME: SourceProvideDir can't handle dirs with subdirs
+			    // datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/"+tmp);
+			    datadir = "/var/adm/YaST/InstSrcManager/IS_CACHE_0x00000001/MEDIA" + orderdir+"/"+tmp;
+			    y2milestone ("tmp datadir %1 %2", tmp, datadir);
+			    if (datadir != nil)
+			    {
+				y2milestone ("copy slide show %1 %2", datadir, slidedir);
+				WFM::Execute (.local.bash, "/bin/cp -r " + datadir + "/* " + slidedir);
+			    }
+			}
+		    }
+		});
+
+		// ok, all data copied from the install media, release and delete it
+
+		Pkg::SourceDelete (initial_source);
+		Pkg::SourceSetRamCache (true);
+
+		metadir_used = true;
+
+		// now restart the whole stuff from the metadata in the ramdisk and create
+		// the *real* sources
+
+		foreach (`orderline, orderlist,
+		``{
+		    if ((orderline != "")
+			&& (substring (orderline, 0, 1) != "#"))
+		    {
+			list sourcelist = splitstring (orderline, " \t\n");
+			string orderdir = sourcelist[0]:"";
+			string pkgdir = sourcelist[1]:"";
+
+			string meta_url = "dir:///yast-install/" + orderdir;
+			integer order_source = Pkg::SourceCreate (meta_url);		// create and enable source
+			y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
+			if (order_source != nil)
+			{
+			    theSources = add (theSources, order_source);
+			    theSourceDirectories = add (theSourceDirectories, orderdir);
+
+			    if (find (pkgdir, ":") > 0)					// if second column of yast/order contains ":"
+			    {
+				base_url = pkgdir;					// then take as URL
+			    }
+			    else
+			    {
+				base_url = InstURL::installInf2Url (pkgdir);		// else take as sub-dir
+			    }
+			    Pkg::SourceChangeUrl (order_source, base_url);		// rewrite URL for *real* source
+
+			    // now find this source in the instorder map and fill
+			    // the global 'theSourceOrder'
+
+			    foreach (`key, `value, instordermap,
+			    ``{
+				if (value == orderdir)
+				{
+				    theSourceOrder[key] = order_source;
+				}
+			    });
+			}
+		    }
+		});
+		y2milestone ("theSourceOrder %1", theSourceOrder);
+		Pkg::SourceInstallOrder (theSourceOrder);
+	    }
+	    else		// normal media installation
+	    {
+		y2milestone ("No order file, doing single source installation");
 		theSources = [ initial_source ];
+	    }
 	}
 	else	// cont or normal mode
 	{
@@ -546,17 +724,26 @@
 		y2error ("Pkg::SourceStartCache failed");
 		theSources = [];
 	    }
-	    else if (!url_rewritten
-		     && Mode::cont)
+	    else if (!url_rewritten				// rewrite URL if cd/dvd since ide-scsi might have changed it
+		     && Mode::cont
+		     && ((substring (base_url, 0, 2) == "cd")
+			|| (substring (base_url, 0, 3) == "dvd")))
 	    {
-		if ((substring (base_url, 0, 2) == "cd")
-		    || (substring (base_url, 0, 3) == "dvd"))
-		{
-		   y2milestone ("rewrite url: '%1'", base_url);
-		   Pkg::SourceChangeUrl (theSources[0]:0, base_url);
-		}
+		foreach (`source, theSources,
+		``{
+		    map data = Pkg::SourceGeneralData (source);		// get source data
+		    string url = data["url"]:"";
+		    if ((substring (url, 0, 2) == "cd")			// source comes from cd/dvd
+			|| (substring (url, 0, 3) == "dvd"))
+		    {
+			y2milestone ("rewrite url: '%1'->'%2'", url, base_url);
+			Pkg::SourceChangeUrl (source, base_url);
+		    }
+		});
 	    }
 	}
+	y2milestone ("theSources %1", theSources);
+	y2milestone ("theSourceDirectories %1", theSourceDirectories);
 	if (size (theSources) >= 0)
 	{
 	    init_called = true;
@@ -569,7 +756,7 @@
 	    // Currently this error should only occured while developping.
 	    string errortext = _("Error while initializing package descriptions.
 Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error();
-	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1);	    
+	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1);
 
 	    if (result == "")		// retry
 		return 1;
@@ -586,23 +773,6 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
 
 	return;
     }
-
-    /**
-     * Save()
-     * Used in inst_finish.ycp
-     *
-     */
-
-    global define void Save()
-    ``{
-	if ( !init_called )
-	{
-	    Packages::Init( true );
-	}
-	y2warning ("Packages::Save() TBD");
-	return;
-    }
-
 
     /**
      * Constructor()

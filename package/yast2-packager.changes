@@ -1,8 +1,230 @@
 -------------------------------------------------------------------
+Fri Oct 18 14:13:50 CEST 2002 - kkaempf@suse.de
+
+- de-select last tried selection if none of the base selections
+  fits the current partitioning.
+- remember if a "file provide" progress was started (for remote
+  package sources).
+- 2.6.78
+
+-------------------------------------------------------------------
+Fri Oct 18 12:59:23 CEST 2002 - kkaempf@suse.de
+
+- remember choosen selection only if the selection fits, else
+  force re-calculation of selections (#21077)
+- 2.6.77
+
+-------------------------------------------------------------------
+Thu Oct 17 11:07:47 CEST 2002 - sh@suse.de
+
+- V 2.6.76
+- Recalc current medium progress on medium change
+
+-------------------------------------------------------------------
+Thu Oct 17 10:49:16 CEST 2002 - kkaempf@suse.de
+
+- fix progress bar to stay on correct source
+- 2.6.75
+
+-------------------------------------------------------------------
+Wed Oct 16 17:34:40 CEST 2002 - sh@suse.de
+
+- V 2.6.74
+- Fixed bug #20988: Time estimate for unneeded CD shown
+
+-------------------------------------------------------------------
+Tue Oct 15 11:05:39 CEST 2002 - sh@suse.de
+
+- V 2.6.72
+- Fixed bug #20008: Block installation if insufficient disk space
+  even for minimal system
+
+-------------------------------------------------------------------
+Mon Oct 14 14:13:36 CEST 2002 - sh@suse.de
+
+- Better fix for bug#20686 (partition overflow):
+  Don't reset all SW settings, just warn what partition is
+  overflowed
+
+-------------------------------------------------------------------
+Fri Oct 11 19:28:23 CEST 2002 - sh@suse.de
+
+- Fixed bug #20686: SW selection resets without warning upon
+  partition overflow
+- V2.6.70
+
+-------------------------------------------------------------------
+Fri Oct 11 19:06:56 CEST 2002 - kkaempf@suse.de
+
+- only activate the proposed selections if it's a new proposal.
+  (#20194)
+- 2.6.69
+
+-------------------------------------------------------------------
+Fri Oct 11 16:33:33 CEST 2002 - kkaempf@suse.de
+
+- fix URL construction if installing from harddisk partition
+  (#19803, lnussel@suse.de)
+- 2.6.68
+
+-------------------------------------------------------------------
+Wed Oct  9 16:36:05 CEST 2002 - kkaempf@suse.de
+
+- fix cd progress bar display when installing from
+  multiple source (#20726)
+- 2.6.67
+
+-------------------------------------------------------------------
+Tue Oct  8 21:47:45 CEST 2002 - kkaempf@suse.de
+
+- fix SlideShow to display media sorted by source sorted by
+  installation order (sh@suse.de)
+- 2.6.66
+
+-------------------------------------------------------------------
+Mon Oct  7 20:22:28 CEST 2002 - kkaempf@suse.de
+
+- read "yast/instorder" to specify installation order (#20609)
+- 2.6.65
+
+-------------------------------------------------------------------
+Tue Oct  1 18:37:08 CEST 2002 - kkaempf@suse.de
+
+- pass media number '0' to PkgCommit so all CDs get installed
+  in a single run.
+- 2.6.64
+
+-------------------------------------------------------------------
+Tue Oct  1 18:04:20 CEST 2002 - kkaempf@suse.de
+
+- when slide show is available, display download progress in
+  existing progress bar instead of an extra popup window.
+
+-------------------------------------------------------------------
+Tue Oct  1 10:45:51 CEST 2002 - kkaempf@suse.de
+
+- fix sorting selections by order. Allow multiple selections
+  with equal order.
+
+-------------------------------------------------------------------
+Mon Sep 30 11:54:32 CEST 2002 - kkaempf@suse.de
+
+- declare 'shutup' where needed.
+
+-------------------------------------------------------------------
+Thu Sep 26 13:43:38 CEST 2002 - arvin@suse.de
+
+- more fixes for slide show
+
+-------------------------------------------------------------------
+Wed Sep 25 16:10:59 CEST 2002 - arvin@suse.de
+
+- if necessary append leading slash to serverdir of
+  installation url (bug #20152)
+
+-------------------------------------------------------------------
+Tue Sep 24 15:02:44 CEST 2002 - arvin@suse.de
+
+- workaround to get slide show working on systems with
+  big memory
+
+-------------------------------------------------------------------
+Fri Sep 20 14:05:25 CEST 2002 - kkaempf@suse.de
+
+- add SourceChange callback
+- 2.6.60
+
+-------------------------------------------------------------------
+Thu Sep 19 21:05:57 CEST 2002 - kkaempf@suse.de
+
+- replace unused variable in space calculation
+- 2.6.59
+
+-------------------------------------------------------------------
+Thu Sep 19 14:50:02 CEST 2002 - kkaempf@suse.de
+
+- fix SpaceCalculation, it's all in bytes.
+- usage calculation in packagemanager returns the
+  new usage (current usage + package diff), not the diff only.
+- dont restart packagemanager internally.
+- drop unneeded popup during packager init.
+- 2.6.58
+
+-------------------------------------------------------------------
+Wed Sep 18 18:39:24 CEST 2002 - kkaempf@suse.de
+
+- implement separated installation and product medias.
+- 2.6.57
+
+-------------------------------------------------------------------
+Tue Sep 17 16:16:38 CEST 2002 - kkaempf@suse.de
+
+- read y2logRPM from target directory (#19772)
+
+-------------------------------------------------------------------
+Mon Sep 16 17:17:59 CEST 2002 - mvidner@suse.de
+
+- Added missing translation marks to On/Off (inst. source selection).
+
+-------------------------------------------------------------------
+Mon Sep 16 12:38:31 CEST 2002 - kkaempf@suse.de
+
+- remove unneeded Packages::Save() (#19591)
+- 2.6.56
+
+-------------------------------------------------------------------
+Fri Sep 13 21:34:18 CEST 2002 - kukuk@suse.de
+
+- Revert fix for space calculation, breaks space calculation on
+  update (workaround for #19657)
+
+-------------------------------------------------------------------
+Fri Sep 13 17:55:31 CEST 2002 - lnussel@suse.de
+
+- initialize target system in continue mode too, to make backup work (#19620)
+- 2.6.55
+
+-------------------------------------------------------------------
+Fri Sep 13 17:14:24 CEST 2002 - lnussel@suse.de
+
+- fix wrong function call for space calculation
+- 2.6.54
+
+-------------------------------------------------------------------
+Fri Sep 13 16:38:41 CEST 2002 - mvidner@suse.cz
+
+- Re-fixed #19550: kernel change would never be detected.
+- 2.6.53
+
+-------------------------------------------------------------------
+Fri Sep 13 15:18:02 CEST 2002 - lnussel@suse.de
+
+- treat nil as empty too
+- 2.6.51
+
+-------------------------------------------------------------------
+Fri Sep 13 14:29:41 CEST 2002 - lnussel@suse.de
+
+- read /var/lib/YaST2/backup_path to determine wheter backups have to be created
+- 2.6.51
+
+-------------------------------------------------------------------
+Thu Sep 12 17:32:50 CEST 2002 - kkaempf@suse.de
+
+- release media at end
+- 2.6.49
+
+-------------------------------------------------------------------
 Thu Sep 12 09:53:57 CEST 2002 - kkaempf@suse.de
 
 - call rewriteUrl correctly (#19501)
 - start package at 0%, end at 100% (#19506)
+- popup "please wait" during packagemanager init
+- drop unused CallbackDisplayError()
+- display full slide show during runtime (#19496)
+- correctly evaluate return from package selection (#19055)
+- check if kernel changed in sw_single (#19550)
+- 2.6.48
 
 -------------------------------------------------------------------
 Wed Sep 11 22:46:52 CEST 2002 - kkaempf@suse.de
@@ -65,7 +287,7 @@ Tue Sep 10 12:58:25 CEST 2002 - kkaempf@suse.de
 Mon Sep  9 22:34:04 CEST 2002 - kkaempf@suse.de
 
 - show "Ignore" only if prompting with wrong media
-- 2.6.38 
+- 2.6.38
 
 -------------------------------------------------------------------
 Mon Sep  9 19:39:01 CEST 2002 - kkaempf@suse.de
