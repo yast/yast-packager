@@ -36,7 +36,7 @@
      *
      **/
     global define list CommitPackages (integer media_number,
-					integer packages_installed)
+				       integer packages_installed)
     ``{
 	if ( Mode::test )
 	{
@@ -87,27 +87,13 @@
 	    return [];
 	}
 
+	// see if installation of some packages failed
 	list<string> errpacks = (list<string>) (commit_result[1]:[]);
 	if (size (errpacks) > 0)
 	{
-	    // some packages failed installation
-
-	    // error popup after package installation, %1 is a numeric
-	    // value (number of failed packages)
-	    string message = sformat(_("%1 package returned an error.
-View the log file?
-", "%1 packages returned an error.
-View the log file?
-", size(errpacks)), size (errpacks));
-
-	    if (Report::AnyQuestion (Popup::NoHeadline(), message,
-				    Label::YesButton(), Label::NoButton(),
-				    `focus_no))
-	    {
-		string text = mergestring (errpacks, "\n");
-		// headline for a popup that displays a list of packages
-		Popup::ShowText (_("List of Failed Packages"), text);
-	    }
+	    string text = mergestring (errpacks, "\n");
+	    // headline for a popup that displays a list of packages
+	    Popup::ShowText (_("These Packages returned an Error"), text);
 	}
 
 	return commit_result;
