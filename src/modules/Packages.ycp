@@ -1062,38 +1062,6 @@ ask your system administrator.
 	    y2warning ("Software selection does not fit on disk");
 	}
 
-	// display media check link only in the installation proposal
-	// when a CD/DVD source is used
-	if (Stage::initial())
-	{
-	    // check whether we are using a CD installation source
-	    list<integer> srcs = Pkg::SourceGetCurrent(true);
-	    boolean cdsource = false;
-
-	    if (srcs != nil)
-	    {
-		foreach(integer s, srcs, {
-			map data = Pkg::SourceGeneralData(s);
-			y2milestone("installation source: %1", data);
-
-			string url = data["url"]:"";
-
-			if (regexpmatch(url, "^cd://") || regexpmatch(url, "^dvd://"))
-			{
-			    cdsource = true;
-			}
-		    }
-		);
-	    }
-
-	    if (cdsource)
-	    {
-		// item in the installation proposal (link)
-		output = prepend(output, sformat("<a href=\"mediacheck\">%1</a>", _("CD or DVD Media Check")));
-		ret = add(ret, "links", ["mediacheck"]);
-	    }
-	}
-
 	ret = add ( ret, "raw_proposal", output );
 
 	// we just proposed a new base selection, activate it !

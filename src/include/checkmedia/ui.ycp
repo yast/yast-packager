@@ -208,6 +208,63 @@ define boolean MountCD(map<string,string> mountedCDs) {
     return ret;
 }
 
+// mount CD drive and check whether there is directory 'media.1' (the first medium) and 'boot' (bootable product CD)
+define boolean InsertedCD1() {
+    boolean ret = true;
+    string instmode = (string)SCR::Read(.etc.install_inf.InstMode);
+
+    if (instmode == "cd" || instmode == "dvd")
+    {
+	// get CD device name
+	string bootcd = "/dev/" + (string)SCR::Read(.etc.install_inf.Cdrom);
+
+	// is the device mounted?
+	list<map> mounts = (list<map>)SCR::Read(.proc.mounts);
+	map<string,string> mnt = listmap(map m, mounts, {return $[m["spec"]:"" : m["file"]:""];});
+
+	string dir = "";
+	boolean mounted = false;
+
+	if (haskey(mnt, bootcd))
+	{
+	    dir = mnt[bootcd]:"";
+	}
+	else
+	{
+	    dir = (string)SCR::Read(.target.tmpdir) + "/YaST.mnt";
+	    SCR::Execute(.target.mkdir, dir);
+	    mounted = (boolean)SCR::Execute(.target.mount, [bootcd, dir], "-o ro");
+	}
+
+	// check for the first medium
+	integer succ = (integer)SCR::Execute(.target.bash, sformat("test -d %1/media.1 && test -d %1/boot", dir));
+
+	ret = (succ == 0);
+
+	// reset to the previous state
+	if (mounted)
+	{
+	    // unmount back
+	    boolean umnt = (boolean)SCR::Execute(.target.umount, dir);
+	    y2milestone("unmounted %1: %2", dir, umnt);
+	}
+    }
+
+    return ret;
+}
+
+define void RequireFirstMedium() {
+    while (!InsertedCD1())
+    {
+	// warning popup - the CD/DVD drive doesn't contain the first medium (CD1/DVD1)
+	if (Popup::AnyQuestion(Popup::NoHeadline(), _("Please insert the first installation medium."),
+	    Label::OKButton(), Label::CancelButton(), `focus_yes) == false)
+	{
+	    break;
+	}
+    }
+}
+
 /**
  * Main dialog
  * @return symbol Result from UserInput()
@@ -422,6 +479,12 @@ to avoid installation problems.");
 	    y2warning("unknown UserInput: %1", ret);
 	}
     };
+
+    if (Stage::initial())
+    {
+	// is the first medium in drive?
+	RequireFirstMedium();
+    }
 
     // remount umounted CD drives back
     MountCD(unmountedCD);
