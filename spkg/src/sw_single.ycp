@@ -105,7 +105,9 @@
             // if sw_single is called with an absolute package-pathname, there is no need to
 	    // mount the source medium or check SuSE version or dependencies
 
-	    Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
+	    Pkg::TargetLogfile (Installation::destdir + "/var/log/YaST2/y2logRPM");
+
+	    SlideShow::InitPkgData();	// keep SlideShow quiet
 
 	    foreach (`package, arg_list,
 	    ``{
@@ -116,6 +118,7 @@
 		}
 		else
 		{
+		    // error popup, %1 is the name of the .rpm package
 		    string message = sformat (_("Package %1 was not found on the medium."), package);
 		    y2error ("SW_SINGLE: Package %1 was not found on the medium", package);
 		    UI::MessagePopup (message);
@@ -157,6 +160,8 @@
 
 	Pkg::TargetInit ("/", false);
 
+	SlideShow::InitPkgData();
+
 	UI::CloseDialog();
 
 	return `found_descr;
@@ -193,7 +198,7 @@
 	    import "SpaceCalculation";
 	    SpaceCalculation::GetPartitionInfo();	// initialize the DU calculation
 
-	    result = WFM::CallFunction( `inst_packages ());	// No: ask user
+	    result = WFM::CallFunction( `inst_packages ());	// No: ask user via package selection widget
 	    y2milestone ("inst_packages returns %1", result);
 	    if (result == `accept)
 		result = `next;
@@ -202,8 +207,13 @@
 	{
 	    foreach (`package, packagelist,			// Yes: install them
 	    ``{
-		Pkg::PkgInstall (package);
+		if (!Pkg::PkgInstall (package))			// select package for installation
+		{
+								// oops, package not found ?
+		    Pkg::DoProvide (package);			// try as tagname
+		}
 	    });
+
 	    if (Pkg::PkgSolve ())				// Solve dependencies
 	    {
 		result = `next;					// go-on if no conflicts
