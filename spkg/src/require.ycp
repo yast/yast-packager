@@ -81,9 +81,14 @@
      * @param require Required packages
      * @param conflict Conflicting packages
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @param continue_button Text which is going to be on the left-hand button (continue)
+     * @param cancel_button Text which is going to be on the right-hand button (cancel)
      * @return boolean installation successful
      */
-    global define InstallAndRemove (list(string) require, list(string) conflict, string help) ``{
+    global define InstallAndRemoveButtons ( list(string) require,
+					    list(string) conflict,
+					    string help,
+					    string continue_button, string cancel_button ) ``{
 	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalled (p)));
 	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalled (p)));
 	string message = sformat (help, 
@@ -94,8 +99,8 @@
 	    `HSpacing (40),
 	    `RichText (message),
 	    `HBox (
-		`PushButton (`id (`continue), `opt (`default), ContinueButtonLabel ()),
-		`PushButton (`id (`cancel), CancelButtonLabel ())
+		`PushButton (`id (`continue), `opt (`default), continue_button),
+		`PushButton (`id (`cancel), cancel_button)
 		)
 	    );
 	UI::OpenDialog (d);
@@ -109,6 +114,48 @@
     }
 
     /**
+     * Install and remove packages.
+     * The user is presented an explanation and asked to confirm the
+     * changes. Then sw_single is called to do the job.
+     * @param require Required packages
+     * @param conflict Conflicting packages
+     * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @return boolean installation successful
+     */
+    global define InstallAndRemove (list(string) require, list(string) conflict, string help) ``{
+	return InstallAndRemoveButtons ( require,
+					 conflict,
+					 help,
+					 ContinueButtonLabel (), CancelButtonLabel () );
+    }
+
+    /**
+     * Ensure that all required packages are installed and no
+     * conflicting packages are installed. If it is not the case, the
+     * user is presented an explanation and asked to confirm the
+     * changes. Then sw_single is called to do the job.
+     * @param require Required packages
+     * @param conflict Conflicting packages
+     * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @param continue_button Text which is going to be on the left-hand button (continue)
+     * @param cancel_button Text which is going to be on the right-hand button (cancel)
+     * @return boolean installation successful
+     */
+    global define RequireAndConflictButtons ( list(string) require,
+					      list(string) conflict,
+					      string help,
+					      string continue_button, string cancel_button ) ``{
+	if (AreAllPackagesInstalled (require) &&  !IsAnyPackageInstalled (conflict))
+	{
+	    return true;
+	}
+	else
+	{
+	    return InstallAndRemoveButtons (require, conflict, help, continue_button, cancel_button);
+	}
+    }
+
+    /**
      * Ensure that all required packages are installed and no
      * conflicting packages are installed. If it is not the case, the
      * user is presented an explanation and asked to confirm the
@@ -119,13 +166,9 @@
      * @return boolean installation successful
      */
     global define RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
-	if (AreAllPackagesInstalled (require) &&  !IsAnyPackageInstalled (conflict))
-	{
-	    return true;
-	}
-	else
-	{
-	    return InstallAndRemove (require, conflict, help);
-	}
+	return RequireAndConflictButtons( require,
+					  conflict,
+					  help,
+					  ContinueButtonLabel (), CancelButtonLabel ());
     }
 }

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 11 14:07:44 CEST 2001 - kendy@suse.cz
+
+- Added RequireAndConflictButtons() to require.ycp to fix
+  bug 10331 in y2c_tv.
+
+-------------------------------------------------------------------
 Fri Sep  7 15:40:42 CEST 2001 - kkaempf@suse.de
 
 - correctly start with source media selection, if requested.
