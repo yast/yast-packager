@@ -264,9 +264,6 @@
        }
    }
 
-   // stop packagemanager, unmount all media
-   Pkg::SourceFinishAll();
-
    UI::CloseDialog();
 
    return result;
