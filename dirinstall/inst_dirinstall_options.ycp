@@ -1,0 +1,74 @@
+/**
+ * Module:	inst_dirinstall.ycp
+ *
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ * Purpose:	Ask the user for various options for dir install.
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    import "DirInstall";
+    import "Installation";
+    import "Wizard";
+    import "Popup";
+
+    // screen title for uml options
+    string title = _("Directory Install Options");
+
+    // build and show dialog
+
+    Wizard::OpenAcceptDialog ();
+
+    term contents = `HVSquash(
+			      `VBox(
+				    `Left(`TextEntry(`id(`target), _("Root Directory (not \"/\"):"), DirInstall::target)),
+                                    `Left(`CheckBox(`id(`suseconfig), _("Run YaST/SuSEconfig on first boot"), DirInstall::runme_at_boot))
+                                  )
+            );
+
+    // help text for uml options
+    string help_text = _("<p>FIXME</p>
+");
+
+    Wizard::SetContents (title, contents, help_text, (boolean) WFM::Args(0),
+			 (boolean) WFM::Args(1));
+
+
+    any ret = nil;
+
+    while (true)
+    {
+	ret = Wizard::UserInput ();
+
+	if (ret == `abort && Popup::ConfirmAbort (`painless))
+	    break;
+
+	if (ret == `cancel || ret == `back)
+	    break;
+
+	if (ret == `next)
+	{
+	    string target =(string) UI::QueryWidget (`id(`target), `Value);
+	    boolean runme_at_boot = (boolean) UI::QueryWidget (`id(`suseconfig), `Value);
+
+            if(target == "" || target == "/")
+            {
+                Popup::Message (_("Specify a root directory. This does not mean /"));
+		continue;
+	    }
+
+
+	    DirInstall::target = target;
+            Installation::destdir = target;
+	    DirInstall::runme_at_boot = runme_at_boot;
+	    break;
+	}
+    }
+
+    Wizard::CloseDialog ();
+
+    return ret;
+}

@@ -1,0 +1,78 @@
+/**
+ * File:	packager/inst_dir/instintodir.ycp
+ * Module:	System installation
+ * Summary:	Installation into  a directory
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    import "Mode";
+    Mode::config = true;
+    import "Product";
+    Mode::config = false;
+    import "DirInstall";
+    import "Installation";
+
+    import "Wizard";
+    import "Label";
+    import "Popup";
+
+    // wizard stage
+    integer current_stage = -1;
+
+    y2debug("creating wizard");
+    // create initial dialog
+    Wizard::CreateDialog ();
+    if (false)
+    {
+        UI::OpenDialog(
+                `opt(`decorated),
+                `VBox(
+                    `HBox(
+                        `HSpacing(1),
+                        `TextEntry( `id( `target ), _("Enter the root installation directory (not \"/\")") ),
+                        `HSpacing( 1 )
+                        ),
+                    `VSpacing( 0.3 ),
+                    `HBox(
+                        `PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
+                        `PushButton( `id( `cancel ), Label::CancelButton() )
+                        )
+                    )
+                );
+        UI::SetFocus( `target );
+
+        symbol ret = (symbol)UI::UserInput();
+
+        if ( ret == `ok ) {
+            DirInstall::target = (string)UI::QueryWidget( `id( `target ), `Value );
+        } else {
+            DirInstall::target = "";
+        }
+
+        UI::CloseDialog();
+
+        if (ret == `cancel)
+            return `abort;
+        else
+            Installation::destdir =  DirInstall::target;
+
+
+    }
+
+    // calling inst_proposal
+    symbol ret = (symbol) WFM::CallFunction ("inst_proposal", [true, true, `dirinstall]);
+
+    if (ret == `next)
+    {
+	WFM::CallFunction ("inst_dirinstall", [false, false]);
+    }
+
+    Wizard::CloseDialog ();
+
+    return `next;
+}

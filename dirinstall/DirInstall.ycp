@@ -1,0 +1,16 @@
+/*
+ *
+ *
+ *
+*/
+{
+module "DirInstall";
+textdomain "packager";
+
+
+
+global boolean runme_at_boot = false;
+global string target = "";
+
+
+}
