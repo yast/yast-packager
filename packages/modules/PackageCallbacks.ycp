@@ -238,12 +238,6 @@
 
 	SetMediaCallbacks ();
 
-	while ((sources == nil) || (sources == []))
-	{
-	    string result = MediaChange (Pkg::Error(), "cd:///", "?", 0, 1);
-	    if (result != "")
-		break;
-	}
 
     UI::{
     // UI USE
