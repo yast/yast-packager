@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 22 14:03:53 CEST 2003 - cschum@suse.de
+
+- Added "Replace" button to inst_source module (#25260).
+- Let user edit URL in case of error (#21582).
+- 2.8.5
+
+-------------------------------------------------------------------
 Mon Jul 21 14:40:58 CEST 2003 - mvidner@suse.cz
 
 - Require::DoInstallAndRemove...: do not return nil.
