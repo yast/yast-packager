@@ -1794,7 +1794,7 @@ int RawPackageInfo::parseCommonPKD( istream & in_Fr )
       break;
 
     case CommonTags::Max_Tag:
-      y2error( "unknown tag - %s", DumpToString( ctag_Ci ).c_str() );
+      y2debug ( "unknown tag - %s", DumpToString( ctag_Ci ).c_str() );
       break;
 
     default:
@@ -2003,7 +2003,7 @@ int RawPackageInfo::parseLanguagePKD( istream & in_Fr )
     STAG( Description );
 
     case LanguageTags::Max_Tag:
-      y2error( "unknown tag - %s", DumpToString( ctag_Ci ).c_str() );
+      y2debug ( "unknown tag - %s", DumpToString( ctag_Ci ).c_str() );
       break;
     default:
       y2internal( "unhandled tag - %s", DumpToString( ctag_Ci ).c_str() );
