@@ -152,7 +152,13 @@
 	    else							// Yes: try to read the file
 	    {
 		y2milestone("Reading file %1", arg_name );
-		packagelist = SCR::Read( .target.ycp, arg_name);
+		packagelist = SCR::Read( .target.ycp, arg_name);	// try .ycp list first
+		if ((packagelist == nil)
+		    || (packagelist == []))
+		{
+		    string packagestr = SCR::Read( .target.string, arg_name);	// string ascii file next
+		    packagelist = splitstring (packagestr, "\n");
+		}
 	    }
 	    y2milestone("packagelist: %1", packagelist );
 	}
