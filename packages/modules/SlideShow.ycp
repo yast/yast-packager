@@ -401,13 +401,14 @@
 
 	while (true)
 	{
-	    string replaced = regexpsub( text, "&imagedir;", slide_pic_path );
+	    string replaced = regexpsub( text, "(.*)&imagedir;(.*)",
+					 sformat("\\1%1\\2", slide_pic_path ) );
 	    if ( replaced == nil ) break;
 	    text = replaced;
 	}
 
 	if ( debug )
-	    y2milestone( "Setting slide text to:\n%s\n", text );
+	    y2milestone( "Setting slide text to:\n%1\n", text );
 
 	UI::ChangeWidget(`slideText, `Value, text );
     }
