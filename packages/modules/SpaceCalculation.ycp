@@ -341,13 +341,10 @@
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
-	list p_info = CheckCurrentSpace (partition_info);
 	integer used = 0;
 
-	y2debug("partition: %1", p_info );
-
 	string message = "";
-	foreach( `par, p_info,
+	foreach( `par, partition_info,
 	``{
 	    if ( par["free"]:0 < 0 )
 	    {
@@ -393,8 +390,6 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-	// FIXME: get partition usage info
-	list p_info = [];
 	integer used = 0;
 
 	if ( initialize )
@@ -411,7 +406,7 @@
 	}
 	else
 	{
-	    foreach( `part, p_info,
+	    foreach( `part, partition_info,
 	    ``{
 		used = used + part["used"]:0;
 	    } );
@@ -436,14 +431,10 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-	list p_info = Pkg::CheckCurrentSpace ( partition_info );
-
 	integer used = 0;
 
-	y2debug("partition: %1", p_info );
-
 	string message = "";
-	foreach( `par, p_info,
+	foreach( `par, partition_info,
 	``{
 	    if ( par["free"]:0 < 0 )
 	    {
