@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sun Mar 16 13:38:28 CET 2003 - kkaempf@suse.de
+
+- call SlideShow::InitPkgData() after package status is
+  determined (#25437)
+- 2.7.32
+
+-------------------------------------------------------------------
 Sat Mar 15 22:45:12 CET 2003 - kkaempf@suse.de
 
 - don't call SpaceCalculation::GetPartitionInfo() at runtime,

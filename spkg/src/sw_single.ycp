@@ -165,8 +165,6 @@
 
 	Pkg::TargetInit ("/", false);
 
-	SlideShow::InitPkgData();
-
 	UI::CloseDialog();
 
 	return `found_descr;
@@ -236,7 +234,9 @@
     {
 	boolean anyToDelete = Pkg::PkgAnyToDelete();
 	SlideShow::SetLanguage (UI::GetLanguage(true));
+	SlideShow::InitPkgData();
 	SlideShow::OpenSlideShowDialog();
+
 	import "PackageInstallation";
 	Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 	integer oldvmlinuzsize = SCR::Read(.target.size, "/boot/vmlinuz");
