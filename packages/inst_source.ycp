@@ -324,7 +324,7 @@ to specify username, password and workgroup.") ),
         map productData = Pkg::SourceProductData( source );
         term item = `item(
             `id( source ),
-            "Off",
+            "On",
 //            lookup( source, "state", true ) ? "On" : "Off",
             lookup( productData, "productname", "unknown" ),
             lookup( generalData, "url", "" )
@@ -396,13 +396,13 @@ from URL '%1'."), url ) );
 					       ]
 					      )
 			      ),
-		    `HWeight( 1, `PushButton( `id(`edit), 	_( "&Edit..." 	) ) ),
-		    `HWeight( 1, `PushButton( `id(`delete),	_( "&Delete" 	) ) ),
-		    `HStretch(),
-		    `HWeight( 1, `PushButton( `id(`up), 	_( "&Up" 	) ) ),
-		    `HWeight( 1, `PushButton( `id(`down),	_( "D&own" 	) ) ),                    
-		    `HStretch(),
-		    `PushButton(`id(`enable), _( "Enab&le/Disable" ) )
+//		    `HWeight( 1, `PushButton( `id(`edit), 	_( "&Edit..." 	) ) ),
+//		    `HWeight( 1, `PushButton( `id(`delete),	_( "&Delete" 	) ) ),
+		    `HStretch()
+//		    `HWeight( 1, `PushButton( `id(`up), 	_( "&Up" 	) ) ),
+//		    `HWeight( 1, `PushButton( `id(`down),	_( "D&own" 	) ) ),                    
+//		    `HStretch(),
+//		    `PushButton(`id(`enable), _( "Enab&le/Disable" ) )
 		    ),
 	      `VSpacing( 0.5 )
 	      );
