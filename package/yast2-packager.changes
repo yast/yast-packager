@@ -3,6 +3,7 @@ Mon Feb 21 16:54:58 CET 2005 - jsrain@suse.cz
 
 - fixed handling of samba URLs containing workgroup (#53423)
 - display Samba as SMB/CIFS (#53423)
+- 2.11.26
 
 -------------------------------------------------------------------
 Fri Feb 18 14:54:59 CET 2005 - lslezak@suse.cz
