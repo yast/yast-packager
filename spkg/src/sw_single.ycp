@@ -67,7 +67,7 @@ do this.</P>"));
 
   string default_language = "en";
 
-  map lang2yast1 = ReadY2("lang2yast1.ycp");
+  map lang2yast1 = SCR(`Read(.target.yast2,"lang2yast1.ycp"));
 
   string  long_language	= lookup(lang2yast1, language, "english");
   
@@ -297,7 +297,7 @@ must NOT be older than the installed one.\n"));
 	      else
 	      {
 		  y2milestone("Reading file %1", arg_name );
-		  inputMap = Read ( arg_name );
+		  inputMap = SCR(`Read( .target.string, arg_name ));
 	      }
 	      y2milestone("inputMap: %1", inputMap );
       
