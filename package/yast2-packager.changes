@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 26 09:44:23 CEST 2003 - msvec@suse.de
+
+- using Label and Popup modules instead of includes in require.ycp
+- 2.8.3
+
+-------------------------------------------------------------------
 Tue Jun 17 13:26:46 CEST 2003 - jsrain@suse.de
 
 - using Label and Popup modules instead of includes in Require.ycp
