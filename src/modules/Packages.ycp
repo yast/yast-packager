@@ -1026,7 +1026,10 @@ ask your system administrator.
 		&& (addon_data["category"]:"" != "base")
 		&& addon_data["visible"]:false)
 	    {
-		output = add ( output, "+  " + addon_data["summary"]:sel);
+		if ( Pkg::SetSelection( sel ) )
+		    output = add ( output, "+  " + addon_data["summary"]:sel);
+		else
+		    y2error( "Couldn't add selection %1", sel );
 	    }
 	});
 
