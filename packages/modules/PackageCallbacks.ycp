@@ -131,43 +131,48 @@
 	}
 
 	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4', wan'%5'", error, url, product, current, wanted);
-	term button_box = `PushButton(`id(`cancel), `opt(`default), OKButtonLabel() );
+
+	// true if it makes sense to offer an eject button (for cd/dvd only ...)
+	boolean offer_eject_button = false;
 
         // will be used in conjunction with other text below
         // prompt for user to insert the correct CD/DVD
 	string medianame = "CD ";
+	if (substring (url, 0, 2) == "cd")
+	{
+	    offer_eject_button = true;
+	}
 	if (substring (url, 0, 3) == "dvd")
+	{
+	    offer_eject_button = true;
 	    medianame = "DVD ";
+	}
 	// prompt to insert product (%1 == "SuSE Linux ...") and media (%2 == "CD 2")
 	string message = sformat(_("Insert\n'%1' %2"), product, (medianame + wanted));
 
 	// currently unused
 	string media_prompt =_("The correct source medium could not be mounted.");
 
+	// --------------------------------------
+	// build up button box
+
+	term button_box = `HBox (`PushButton (`id(`retry), `opt(`default), OKButtonLabel()));
+
 	if (current == -1)			// wrong media id, offer "Ignore"
 	{
-	    button_box = `HBox(
-			   `PushButton(`id(`retry), `opt(`default), OKButtonLabel() ),
-			   `PushButton(`id(`ignore), IgnoreButtonLabel() ),
-			   `PushButton(`id(`cancel), AbortButtonLabel() ),
-			   // push button label during media change popup, user can skip
-			   // this media (CD) so no packages from this media will be installed
-			   `PushButton(`id(`skip), _("&Skip") ),
-			   // push button label during media change popup, user can eject the CD/DVD
-			   `PushButton(`id(`eject), _("&Eject"))
-			   );
+	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
 	}
-	else
+
+	button_box = add (button_box,  `PushButton (`id(`cancel), AbortButtonLabel()));
+
+	// push button label during media change popup, user can skip
+	// this media (CD) so no packages from this media will be installed
+	button_box = add (button_box, `PushButton (`id(`skip), _("&Skip")));
+
+	if (offer_eject_button)
 	{
-	    button_box = `HBox(
-			   `PushButton(`id(`retry), `opt(`default), OKButtonLabel() ),
-			   `PushButton(`id(`cancel), AbortButtonLabel() ),
-			   // push button label during media change popup, user can skip
-			   // this media (CD) so no packages from this media will be installed
-			   `PushButton(`id(`skip), _("&Skip") ),
-			   // push button label during media change popup, user can eject the CD/DVD
-			   `PushButton(`id(`eject), _("&Eject"))
-			   );
+	    // push button label during media change popup, user can eject the CD/DVD
+	    button_box = add (button_box, `PushButton (`id(`eject), _("&Eject")));
 	}
 
 	if ( showLongInfo )
