@@ -9,7 +9,10 @@
 	p = p + 5;
     	PackageCallbacks::ProgressRebuildDB (p);
 	sleep (100);
+
+	if (p == 40)
+	    PackageCallbacks::NotifyRebuildDB ("In three weeks I'm going insane");
     }
 
-    PackageCallbacks::StopRebuildDB ();
+    PackageCallbacks::StopRebuildDB (1, "kernel is on vacation");
 }
