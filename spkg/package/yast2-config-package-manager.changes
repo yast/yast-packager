@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 13 17:13:32 MET 2001 - gs@suse.de
+
+-  package rename / use of wizard_dialog
+
+-------------------------------------------------------------------
 Thu Feb  8 14:45:40 MET 2001 - gs@suse.de
 
 - always umount /var/adm/mount at the end of installation (bugfix 6283) 
