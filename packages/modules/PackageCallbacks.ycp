@@ -105,6 +105,12 @@
     // make showLongInfo module-global so it gets remembered (cf. #14018)
     boolean showLongInfo = false;
 
+    // media change callback
+    // return "" for ok, retry
+    // return "1" for skip
+    // return "2" for cancel (not implemented !)
+    // return url to change media URL
+
     global define string MediaChange (string product, string error, integer current, integer wanted)
     ``{
 
@@ -127,7 +133,7 @@
 	if ( showLongInfo )
 	{
 	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
-	    UI::ReplaceWidget(`id(`info), `RichText(info) );
+	    UI::ReplaceWidget(`id(`info), `RichText(error) );
 	}
 	else
 	{
@@ -162,7 +168,7 @@
 	    {
 		showLongInfo = UI::ShowLogInfo (message, button_box);
 		if (showLongInfo)
-		    UI::ReplaceWidget(`id(`info), `RichText(info));
+		    UI::ReplaceWidget(`id(`info), `RichText(error));
 		else
 		    UI::ReplaceWidget(`id(`info), `Empty() );
 	    }
