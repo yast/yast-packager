@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 11 01:26:10 CEST 2002 - kkaempf@suse.de
+
+- drop argument "beginner" in calling sw_single
+- 2.6.41
+
+-------------------------------------------------------------------
 Wed Sep 11 00:38:44 CEST 2002 - kkaempf@suse.de
 
 - full source media manager (cschum@suse.de)
