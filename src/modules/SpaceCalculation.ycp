@@ -341,17 +341,13 @@
 	return output;
     }
 
-    //
-    // Popup displays warning about exhausted disk space
-    //
-    global define boolean ShowPartitionWarning () ``{
-
+    global list<string> GetPartitionWarning () {
 	if ( !info_called )
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
 	integer used = 0;
-	string message = "";
+	list<string> message = [];
 
 	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 
@@ -361,8 +357,8 @@
 	    if ( needed > 0 )
 	    {
 		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
-		message = message + sformat ( _("Partition \"%1\" needs %2 more disk space."),
-					      dir, String::FormatSize(needed) ) + "\n";
+		message = add (message, sformat ( _("Partition \"%1\" needs %2 more disk space."),
+			      dir, String::FormatSize(needed)));
 	    }
 	    used = used + sizelist[2]:0;
 	} );
@@ -374,10 +370,30 @@
 	    // dont ask user to deselect packages for imap server, product
 	    if ( ProductFeatures::base_selection_choice == `auto)
 	    {
-		message = message + "\n" +  _("Please deselect some packages.");
+		if (Mode::update ())
+		    message = add (message, "\n" +
+// popup message
+_("Please deselect some packages or delete some data
+or temporary files befor upgrading the system."));
+
+		else
+		    message = add (message, "\n" +
+// popup message
+_("Please deselect some packages."));
 	    }
+	}
+	return message;
+    }
+
+    //
+    // Popup displays warning about exhausted disk space
+    //
+    global define boolean ShowPartitionWarning () ``{
+	list<string> message = GetPartitionWarning ();
+	if (size (message) > 0)
+	{
 	    y2warning("Warning: %1", message );
-	    Report::Message(message);
+	    Report::Message(mergestring (message, "\n"));
 	    return true;
 	}
 	else
