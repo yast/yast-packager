@@ -64,7 +64,7 @@
 	{
 	    packages = add (packages, "sbl");
 	}
-
+	
 	// check for aboot or milo on alpha and add package
 	if (Arch::alpha)
 	{
@@ -76,9 +76,10 @@
 	    }
 	    else if (loader_type == "milo")
 	    {
-		packages = add (packages, "milo");
+        	packages = add (packages, "milo");
 	    }
 	}
+
 
 	// remove unneeded / add needed packages for ppc
 	if (Arch::ppc)
@@ -192,7 +193,7 @@
      */
 
     define list autoinstPackages()
-	``{
+    ``{
 	import "AutoinstSoftware";
 	list packages = AutoinstSoftware::autoinstPackages();
 	return packages;
@@ -579,9 +580,10 @@
 	    // Currently this error should only occured while developping.
 	    string errortext = _("Error while initializing package descriptions.
 Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error();
-	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1);
+	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1, false);
 
-	    if (result == "")		// retry
+	    // FIXME: fix or remove, if anybody knows what is going on - Init does not return anything!
+	    /* if (result == "")		// retry
 		return 1;
 	    if (result == "I")		// ignore
 		return 0;
@@ -590,7 +592,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
 	    if (result == "S")		// skip
 		return 1;
 	    if (result == "E")		// eject
-		return 1;
+		return 1;*/
 
 	}
 
@@ -604,7 +606,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
      *
      */
 
-    global define void Proposal( boolean force_reset, boolean reinit )
+    global define map Proposal( boolean force_reset, boolean reinit )
     ``{
 	import "Language";
 
@@ -672,7 +674,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
 
 
 	    // get all base selections, and sort them by reverse order (highest ordered first)
-	    list available_base_selections = sort (`x, `y, Pkg::GetSelections (`available, "base"),
+	    list available_base_selections = sort (string x, string y, Pkg::GetSelections (`available, "base"),
 		``{
 			map xmap = Pkg::SelectionData(x);
 			map ymap = Pkg::SelectionData(y);
@@ -740,14 +742,14 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
 	map base_data = Pkg::SelectionData (selected_base_selection);
 	if (base_data == nil)
 	{
-	    y2error ("No data for selection '%1'", selected_base);
+	    y2error ("No data for selection '%1'", selected_base_selection);
 	    base_data = $[];
 	}
 	y2milestone ("Base %1: %2", selected_base_selection, base_data);
 	output = add (output, base_data["summary"]:"?");
 
 	// add on
-	foreach(`sel, selected_addon_selections,
+	foreach(string sel, selected_addon_selections,
 	``{
 	    map addon_data = Pkg::SelectionData (sel);
 	    if ((addon_data != nil)				// skip unknown selections
@@ -786,18 +788,6 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
 	}
 
 	return ret;
-    }
-
-
-    /**
-     * Constructor()
-     * Load saved package lists
-     * @return void;
-     *
-     */
-
-    global define void Packages() ``{
-	return;
     }
 
 /* EOF */
