@@ -22,6 +22,8 @@ Packager:     @MAINTAINER@
 Summary:      YaST2 Modules for installation
 Version:      @VERSION@
 Source0:      @RPMNAME@-@VERSION@.tar.bz2
+Provides:       y2c_spkg
+Obsoletes:      y2c_spkg
 
 %description
 -
