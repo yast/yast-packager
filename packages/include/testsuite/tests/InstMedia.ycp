@@ -2,9 +2,9 @@
 // check for InstMedia module
 //
 {
-    import "./../../../modules/Arch";
-    import "./../../../modules/Installation";
-    import "./../InstMedia";
+    import "Arch";
+    import "Installation";
+    import "InstMedia";
 
     y2milestone ("running InstMedia check");
 
