@@ -350,9 +350,14 @@
 
     global define void Proposal( boolean force_reset, boolean reinit )
     ``{
+	import "Language";
+
 	map ret = $[];
 
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
+
+	y2milestone ("Packages::Proposal: '%1'", Language::language);
+	Pkg::SetLocale (Language::language);
 
 	if ( force_reset )
 	{
