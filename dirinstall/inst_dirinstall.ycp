@@ -32,8 +32,35 @@
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_source");
 
-    SCR::Execute (.target.mkdir, Installation::destdir + Directory::logdir);
-    SCR::Execute (.target.mkdir, Installation::destdir + "/etc");
+    /**
+     *  Write a fake mtab to the target system since some %post scripts might
+     *  need it.
+     */
+    define void fake_mtab () ``{
+
+        string tmpdir = (string) SCR::Read (.target.tmpdir);
+
+        string mtabname = "/etc/mtab";
+        string mtab = (string) WFM::Read(.local.string, mtabname);
+
+        SCR::Write(.target.string, tmpdir + "/mtab", mtab);
+        SCR::Execute (.target.bash, "/bin/cat " + tmpdir + "/mtab"
+                      + " | /bin/sed \"s: " + Installation::destdir
+                      + "/: /:\"| /bin/sed \"s: " + Installation::destdir
+                      + ": /:\" > " + Installation::destdir + mtabname);
+
+    }
+    SCR::Execute(.target.mkdir,Installation::destdir+"/var/log/YaST2");
+    SCR::Execute(.target.mkdir,Installation::destdir+"/etc");
+
+    // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+    SCR::Execute(.target.bash, "/bin/cp /var/adm/fillup-templates/passwd.aaa_base " + Installation::destdir + "/etc/passwd");
+    SCR::Execute(.target.bash, "/bin/cp /var/adm/fillup-templates/group.aaa_base " + Installation::destdir + "/etc/group");
+    SCR::Execute(.target.bash, "/bin/cp /var/adm/fillup-templates/shadow.aaa_base " + Installation::destdir + "/etc/shadow");
+
+    // fake mtab
+    fake_mtab ();
+
 
 
 
