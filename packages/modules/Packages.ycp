@@ -1148,7 +1148,7 @@ global string CountSizeToBeInstalled () {
 		// also add the 'laptop' selection if PCMCIA detected
 		if (Arch::has_pcmcia ())
 		{
-		    selected_addon_selections = union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
+		    selected_addon_selections = (list<string>)union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
 		}
 	    }
 	}
