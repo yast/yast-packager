@@ -331,7 +331,7 @@
 	// check if url contains "@" -> might be username/password, hide from logging
 
 	string log_url = base_url;
-	if (findfirstof (log_url, "@") > 0)
+	if (findfirstof (log_url, "@") != nil)
 	{
 	    // convert "xxx:://user:pass@server/blah" to "xxx:/...@server/blah"
 	    log_url = substring (log_url, 0, 5) + "..." + substring (log_url, findfirstof (log_url, "@"));
