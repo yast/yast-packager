@@ -13,9 +13,9 @@ Summary:	-
 
 @PREP@
 
-@BUILD-SCRIPT@
+@BUILD@
 
-@INSTALL-SCRIPT@
+@INSTALL@
 
 @CLEAN@
 
