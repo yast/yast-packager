@@ -388,9 +388,20 @@ Select which desktop to install.</p>
 		return;
 	    }
 
-	    // check for yast/order
+            /* Check for Service Pack */
+            string servicepack_metadata = "/servicepack.tar.gz";
+            boolean servicepack_available = false;
+            if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
+            {
+                y2milestone("Service Pack data available");
+                servicepack_available = true;
+            }
 
+            // check for yast/order
 	    string orderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/order");
+	    list<string> orderlist = [];
+	    map<integer, string > instordermap = $[];	// instorder : product dir, ...
+
 	    if (orderfile != nil)			// splitted source installation
 	    {
 		y2milestone ("orderfile '%1'", orderfile);
@@ -402,7 +413,6 @@ Select which desktop to install.</p>
 		}
 
 		string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
-		map<integer, string > instordermap = $[];	// instorder : product dir, ...
 		if (instorderfile != nil)
 		{
 		    y2milestone ("instorder file '%1'", instorderfile);
@@ -431,9 +441,21 @@ Select which desktop to install.</p>
 		    });
 		}
 		y2milestone ("instordermap %1", instordermap);
+	        orderlist = splitstring (orderdata, "\n");
+            } 
+            else if (servicepack_available)
+            {
+                /* No order file, but service pack is available, so we hack 
+                   our own order/instorder files
+                */
+	        orderlist = ["/"];
+                instordermap[1] = "/";
 
+            }
+
+            if (size(orderlist) > 0 )
+            {
 		// setup slidedir
-
 		map productmap = Pkg::SourceProductData (initial_source);
 		string datadir = productmap["datadir"]:"suse";
 		string slidedir = metadir + "/" + datadir + "/setup/slide";
@@ -441,7 +463,6 @@ Select which desktop to install.</p>
 
 		// setup meta data dir
 
-		list<string> orderlist = splitstring (orderdata, "\n");
 
 		WFM::Execute (.local.mkdir, metadir);
 		boolean all_sources_ok = true;
@@ -537,17 +558,13 @@ Packages from this media cannot be installed."), orderdir),
 		    return false;
 		});
 
-                string servicepack_metadata = "/servicepack.tar.gz";
-                boolean servicepack_available = false;
-                if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
+                if (servicepack_available)
                 {
-                    y2milestone("Service Pack data available");
                     string localdir = "/yast-install/Service-Pack/CD1";
                     WFM::Execute (.local.mkdir, localdir);
                     y2milestone ("Filling %1", localdir);
                     WFM::Execute(.local.bash, "tar -zxvf " +
                             servicepack_metadata + " -C " + localdir);
-                    servicepack_available = true;
                 }
 
 		// ok, all data copied from the install media, release and delete it
