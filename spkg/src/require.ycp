@@ -25,7 +25,8 @@
 
     /**
      * This will be local when converted to a Module::
-     *
+     * Ensure that Pkg:: calls work.
+     * This may become superfluous.
      */
     global define void EnsureTargetInit () ``{
 	pkg_initialized = pkg_initialized || Pkg::TargetInit ("/", false);
@@ -95,11 +96,10 @@
      */
     global define DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
 	// TODO: it is going to change
+	EnsureTargetInit ();
 	boolean ok = true;
-	ok = ok && Pkg::TargetInit ("/", false);
 	ok = ok && Pkg::DoProvide (toinstall) == $[];
 	ok = ok && Pkg::DoRemove (toremove) == $[];
-	ok = ok && Pkg::TargetFinish ();
 	return ok;
     }
 
