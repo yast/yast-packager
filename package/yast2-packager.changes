@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Sep  8 17:18:01 CEST 2004 - sh@suse.de
+
+- Fixed remaining times for CD2..CDx: 
+  Local variables shadowed each other
+- Suppressed superfluous warning about non-existent widget `slideText
+- V 2.10.14
+
+-------------------------------------------------------------------
 Tue Sep 07 14:15:02 CEST 2004 - arvin@suse.de
 
 - added proposal step to initialize sources (needed to solve

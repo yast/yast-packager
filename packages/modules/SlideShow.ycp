@@ -433,19 +433,22 @@
      **/
     void SetSlideText( string text )
     {
-	//
-	// Fix <img src> tags: Replace image path with current slide_pic_path
-	//
-
-	while (true)
+	if ( UI::WidgetExists(`slideText ) )
 	{
-	    string replaced = regexpsub( text, "(.*)&imagedir;(.*)",
-					 sformat("\\1%1\\2", slide_pic_path ) );
-	    if ( replaced == nil ) break;
-	    text = replaced;
-	}
+	    //
+	    // Fix <img src> tags: Replace image path with current slide_pic_path
+	    //
 
-	UI::ChangeWidget(`slideText, `Value, text );
+	    while (true)
+	    {
+		string replaced = regexpsub( text, "(.*)&imagedir;(.*)",
+					     sformat("\\1%1\\2", slide_pic_path ) );
+		if ( replaced == nil ) break;
+		text = replaced;
+	    }
+
+	    UI::ChangeWidget(`slideText, `Value, text );
+	}
     }
 
 
@@ -525,14 +528,15 @@
 	{
 	    if ( ! silent )
 	    {
-		y2error( "Slide show not correctly initialized: SlideShow::InitPkgData() never called!" );
+		y2error( "SlideShow::SanityCheck(): Slide show not correctly initialized: " +
+			 "SlideShow::InitPkgData() never called!" );
 	    }
 	    return false;
 	}
 
 	if ( current_src_no < 1 || current_cd_no < 1 )
 	{
-	    y2error( "Illegal values for current_src (%1) or current_cd (%2)",
+	    y2error( "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
 		     current_src_no, current_cd_no );
 	    y2milestone( "total sizes: %1", total_sizes_per_cd_per_src );
 	    return false;
@@ -610,7 +614,7 @@
 	}
 
 	remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = remaining;
-	remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = 
+	remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] =
 	    remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0 -1;
 
 	if ( unit_is_seconds && bytes_per_second > 0 )
@@ -855,7 +859,7 @@
 			if ( unit_is_seconds && bytes_per_second > 0 )
 			{
 			    remaining = remaining / bytes_per_second;
-			    string rem_time = FormatTime( remaining );				// column #2
+			    rem_time = FormatTime( remaining );					// column #2
 
 			    if ( remaining > max_time_per_cd )		// clip off at 2 hours
 			    {
@@ -869,8 +873,6 @@
 			itemList = add( itemList,
 					TableItem( sformat("cd(%1,%2)", src_no, cd_no ),	// ID
 						   caption, rem_size, rem_count, rem_time ) );
-
-
 		    }
 
 		    cd_no = cd_no + 1;
@@ -983,7 +985,7 @@
 	{
 	    integer seconds = TotalRemainingTime();
 	    string rem_time = FormatTime( seconds );
-	    
+
 	    if ( seconds > max_time_per_cd )
 	    {
 		// When data throughput goes downhill (stalled network connection etc.),
@@ -991,7 +993,7 @@
 		// simply forget it!
 		rem_time = "";
 	    }
-	    
+
 	    UI::ChangeWidget(`id( `cdStatisticsTable ), `Item( "total", time_column ), rem_time );
 
 	}
