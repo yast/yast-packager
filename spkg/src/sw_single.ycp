@@ -332,9 +332,9 @@ must NOT be older than the installed one.\n"));
 		  // Checking dependecies
 		  map pac_depends = PKGINFO(`getDependencies());
 	   
-		  list(map) or_depends = lookup( pac_depends, "REQUIRE", [] );
+		  list or_depends = lookup( pac_depends, "REQUIRE", [] );
 		  y2debug( "REQUIRE Dependencies: %1", or_depends );
-		  list(map) xor_depends = lookup( pac_depends, "CONFLICT", [] );
+		  list xor_depends = lookup( pac_depends, "CONFLICT", [] );
 		  y2debug( "CONFLICT Dependencies: %1", xor_depends );
 		  list and_depends = lookup( pac_depends, "ADD", [] );
 		  y2debug( "ADD Dependencies: %1", and_depends );
