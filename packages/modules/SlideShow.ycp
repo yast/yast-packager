@@ -264,6 +264,7 @@
 	    UI::ChangeWidget(`id(`description_current_package), `Value, rich_text );
 	    UI::ChangeWidget(`id(`progress_current_package),    `Label, pkg_name_with_version );
 	    UI::ChangeWidget(`id(`inst_log), `LastLine, sformat( "%1 --- %2\n", pkg_name_with_version, pkg_description ) );
+	    UI::ChangeWidget(`id(`progress_current_package), `Value, 0);
 	}
 	else // not details
 	{

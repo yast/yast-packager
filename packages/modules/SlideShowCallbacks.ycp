@@ -30,6 +30,7 @@
     */
    global define void DonePackage (integer error, string name)
    ``{
+	SlideShow::SlideDisplayProgress (100);
 	return;
    }
 
