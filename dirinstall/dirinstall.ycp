@@ -51,9 +51,11 @@
         else if (SCR::Read(.target.dir, Installation::destdir ) != nil
                 && size((list)SCR::Read(.target.dir, Installation::destdir )) > 0  )
         {
-           Popup::Error(_("Directory already exists. Select another directory for installation."));
-           ret = `again;
-           continue;
+            if(!Popup::YesNo(_("Directory already exists.
+Should this directory be used?"))) {
+                ret = `again;
+                continue;
+            }
         }
         else
         {
