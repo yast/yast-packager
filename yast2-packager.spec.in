@@ -1,6 +1,6 @@
 @HEADER-COMMENT@
 
-# neededforbuild  autoconf automake yast2-devtools dejagnu expect tcl gperf gpp libgpp libtool libxcrypt libxcrypt-devel yast2-core yast2-core-devel yast2-testsuite
+# neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages
 
 @HEADER@
 Provides:	libpkg
