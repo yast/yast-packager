@@ -504,7 +504,7 @@
     /**
      * Init()
      * Initialize package module and package agent
-     * @return void;
+     * @return integer: 0 == ok, 1 == retry, -1 == error
      *
      */
 
@@ -513,7 +513,7 @@
 	if (init_called)
 	{
 	    y2warning ("Packages::Init() already called");
-	    return;
+	    return 0;
 	}
 	//
 	// Initialize package manager
@@ -536,12 +536,14 @@
 	if (Mode::initial)
 	{
 	    y2milestone ("Initialize Package Manager: %1", base_url);
-	    theSources = [ Pkg::SourceCreate (base_url) ];
+	    integer initial_source = Pkg::SourceCreate (base_url);
+	    if (initial_source != nil)
+		theSources = [ initial_source ];
 	}
 	else	// cont or normal mode
 	{
 	    theSources = Pkg::SourceStartCache (true);
-	    if (size (theSources) <= 0)
+	    if (theSources == nil || size (theSources) <= 0)
 	    {
 		y2error ("Pkg::SourceStartCache failed");
 		theSources = [];
@@ -553,10 +555,25 @@
 	}
 	else
 	{
+	    import "PackageCallbacks";
+
 	    // This text should be translated after 8.0.
 	    // Currently this error should only occured while developping.
-	    Report::Error( _("Error while initializing package descriptions.
-Check the log file /var/log/YaST2/y2log for more details.") );
+	    string errortext = _("Error while initializing package descriptions.
+Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error();
+	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1);	    
+
+	    if (result == "")		// retry
+		return 1;
+	    if (result == "I")		// ignore
+		return 0;
+	    if (result == "C")		// cancel
+		return -1;
+	    if (result == "S")		// skip
+		return 1;
+	    if (result == "E")		// eject
+		return 1;
+
 	}
 
 	return;
