@@ -251,9 +251,9 @@
 	   {
 	       // prepare "you must boot" popup in inst_suseconfig
 
+	       import "Kernel";
 	       if (oldvmlinuzsize != newvmlinuzsize)
 	       {
-		   import "Kernel";
 		   Kernel::switched = true;
 	       }
 	       else

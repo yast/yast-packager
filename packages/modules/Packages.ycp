@@ -17,6 +17,8 @@
     import "InstURL";
     import "Kernel";
     import "Label";
+    import "Mode";
+    import "Stage";
     import "Linuxrc";
     import "Label";
     import "Language";
