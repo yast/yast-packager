@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 16 12:14:48 CET 2004 - arvin@suse.de
+
+- restore callbacks after slideshow
+
+-------------------------------------------------------------------
 Thu Jan 15 16:35:58 CET 2004 - jsrain@suse.de
 
 - Require.ycp and package callbacks initialization moved to
@@ -7,7 +12,7 @@ Thu Jan 15 16:35:58 CET 2004 - jsrain@suse.de
 -------------------------------------------------------------------
 Thu Nov 20 15:59:07 CET 2003 - sh@suse.de
 
-- Break circular dependencies: Moved "import SlideShowCallbacks" 
+- Break circular dependencies: Moved "import SlideShowCallbacks"
   from "SlideShow.ycp" to "Packager.ycp"
 
 -------------------------------------------------------------------
