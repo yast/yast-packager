@@ -153,7 +153,7 @@
 
 	any r = nil;
 
-	UI(``{
+	UI::{
 	    global define ShowLogInfo (string message, term buttonbox) ``{
 		if (QueryWidget(`id(`show), `Value ))
 		{
@@ -169,7 +169,7 @@
 		}
 		return false;
 	    };
-	});
+	};
 
 	repeat
 	{
@@ -197,8 +197,19 @@
 	    return "S";
 	if (r == `eject)
 	    return "E";
+
+	import "Mode";
+	if (!Mode::normal)
+	{
+	    import "SlideShow";
+	    SlideShow::SetCurrentCdNo (wanted);
+	}
+
 	if (r == `url)
+	{
+
 	    return url;
+	}
 
 	return "";
     }
