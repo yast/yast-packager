@@ -17,24 +17,24 @@
     import "String";
     import "Wizard";
 
-    global list<list<integer> >	total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
-    global list<list<integer> >	remaining_sizes_per_cd_per_src 	= [];	// remaining sizes
-    global list<list<integer> >	remaining_times_per_cd_per_src	= [];	// remaining times
+    global list<list<integer> > total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
+    global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
+    global list<list<integer> > remaining_times_per_cd_per_src	= [];	// remaining times
     global list<string>		inst_src_names			= [];	// a list of strings identifying each installation source
     global string	media_type		= "CD";
-    global integer 	total_size_installed 	= 0;
+    global integer	total_size_installed	= 0;
     global integer	total_size_to_install	= 0;
-    global integer 	total_time_elapsed 	= 0;
+    global integer	total_time_elapsed	= 0;
     global integer	start_time		= -1;
     global integer	initial_recalc_delay	= 60;	// const - seconds before initially calculating remaining times
     global integer	recalc_interval		= 30;	// const - seconds between "remaining time" recalculations
     global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
-    global integer	max_time_per_cd		= 7200;	// const - seconds to cut off predicted time (it's bogus anyway)
+    global integer	max_time_per_cd		= 7200; // const - seconds to cut off predicted time (it's bogus anyway)
     global integer	size_column		= 1;	// const - column number for remaining size per CD
     global integer	time_column		= 2;	// const - column number for remaining time per CD
     global integer	next_recalc_time	= -1;
-    global integer 	current_src_no 		= -1;	// 1..n
-    global integer 	current_cd_no 		= -1;	// 1..n
+    global integer	current_src_no		= -1;	// 1..n
+    global integer	current_cd_no		= -1;	// 1..n
     global integer	next_src_no		= -1;
     global integer	next_cd_no		= -1;
     global integer	total_cd_count		= 0;
@@ -44,12 +44,13 @@
     global integer	current_slide_no	= 0;
     global integer	slide_start_time	= 0;
     global integer	slide_min_interval	= 30;	// const - minimum seconds between slide changes
-    global integer	slide_max_interval	= 3*60;	// const - maximum seconds between slide changes
-    global string 	slide_base_path		= Installation::sourcedir + "/suse/setup/slide";
+    global integer	slide_max_interval	= 3*60; // const - maximum seconds between slide changes
+    global string	slide_base_path		= Installation::sourcedir + "/suse/setup/slide";
 
     global string	slide_txt_path		= "";
+    global string	slide_pic_path		= "";
     global integer	slide_interval		= slide_min_interval;
-    global list<string>	slides			= [];
+    global list<string> slides			= [];
     global string	language		= Language::language;
     global boolean	init_pkg_data_complete	= false;
     global boolean	widgets_created		= false;
@@ -112,7 +113,7 @@
 	    return;
 	}
 
-	integer elapsed	= time() - start_time;
+	integer elapsed = time() - start_time;
 	start_time	= -1;
 	total_time_elapsed = total_time_elapsed + elapsed;
 	y2debug("StopTimer(): Elapsed this time: %1 sec; total: %2 sec (%3:%4)",
@@ -138,7 +139,7 @@
      **/
     boolean ShowingSlide()
     {
-        return widgets_created && UI::WidgetExists(`slidesPage );
+	return widgets_created && UI::WidgetExists(`slidesPage );
     }
 
 
@@ -194,8 +195,8 @@
 
     /**
      * Format number of remaining bytes to be installed as string.
-     * @param remaining 	bytes remaining, -1 for 'done'
-     * @return 			string human readable remaining time or byte / kB/ MB size
+     * @param remaining		bytes remaining, -1 for 'done'
+     * @return			string human readable remaining time or byte / kB/ MB size
      **/
     string FormatRemaining( integer remaining )
     {
@@ -323,7 +324,7 @@
 	if (disp != nil		// This shouldn't happen, but who knows?
 	    && disp["HasImageSupport"]:false
 	    && disp["DefaultWidth"]:-1	>= 800
-	    && disp["DefaultHeight"]:-1	>= 600
+	    && disp["DefaultHeight"]:-1 >= 600
 	    && disp["Depth"]:-1		>= 8  )
 	{
 	    return true;
@@ -388,6 +389,7 @@
 		y2debug( "Display OK for slide show" );
 
 		slide_txt_path	= slide_base_path + "/txt";
+		slide_pic_path	= slide_base_path + "/pic";
 		slides		= GetSlideList();
 	    }
 	    else
@@ -406,6 +408,20 @@
      **/
     void SetSlideText( string text )
     {
+	//
+	// Fix <img src> tags: Replace image path with current slide_pic_path
+	//
+
+	while (true)
+	{
+	    string replaced = regexpsub( text, "&imagedir;", slide_pic_path );
+	    if ( replaced == nil ) break;
+	    text = replaced;
+	}
+
+	if ( debug )
+	    y2milestone( "Setting slide text to:\n%s\n", text );
+
 	UI::ChangeWidget(`slideText, `Value, text );
     }
 
@@ -415,9 +431,9 @@
      * @param text_file_name file name + path of the text file (rich text / HTML)
      * @return true if OK, false if error
      **/
-    boolean LoadSlideText( string text_file_name )
+    boolean LoadSlideFile( string text_file_name )
     {
-	string text = (string) SCR::Read (.target.string, [text_file_name, ""] );
+	string text = (string) SCR::Read( .target.string, [text_file_name, ""] );
 
 	if ( text == "" )
 	{
@@ -426,7 +442,7 @@
 	else
 	{
 	    y2debug( "Loading slide show text from %1", text_file_name);
-	    SetSlideText (text);
+	    SetSlideText( text );
 	    return true;
 	}
     }
@@ -490,7 +506,7 @@
 	total_sizes_per_cd_per_src	= Pkg::PkgMediaSizes();
 	inst_src_names			= Pkg::PkgMediaNames();
 	total_size_to_install		= ListSum( flatten( total_sizes_per_cd_per_src ) );
-	remaining_sizes_per_cd_per_src 	= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
+	remaining_sizes_per_cd_per_src	= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
 	total_cd_count			= size( flatten( total_sizes_per_cd_per_src ) );
 	init_pkg_data_complete		= true;
 
@@ -501,7 +517,7 @@
     /**
      * Perform sanity check for correct initialzation etc.
      * @param silent	don't complain in log file
-     * @return 		true if OK, false if any error
+     * @return		true if OK, false if any error
      **/
     boolean SanityCheck( boolean silent )
     {
@@ -764,7 +780,7 @@
 	    item = add( item, FormatRemaining( remaining ) );			// column #1
 
 	    if ( unit_is_seconds && bytes_per_second > 0 )
-		item = add( item, FormatTime( remaining / bytes_per_second ) );	// column #2
+		item = add( item, FormatTime( remaining / bytes_per_second ) ); // column #2
 	    else
 		item = add( item, "" );
 
@@ -781,7 +797,7 @@
 	foreach ( list<integer> inst_src, remaining_sizes_per_cd_per_src, ``{
 	    y2milestone( "src #%1: %2", src_no, inst_src );
 
-	    if ( ListSum( inst_src ) > 0 	 // Ignore sources from where there is nothing is to install
+	    if ( ListSum( inst_src ) > 0	 // Ignore sources from where there is nothing is to install
 		 || src_no+1 == current_src_no ) // or if this happens to be the current source
 	    {
 		if ( size( total_sizes_per_cd_per_src ) > 1 )	// Multiple sources?
@@ -878,7 +894,7 @@
      **/
     global void UpdateCurrentCdProgress()
     {
-	if ( ! SanityCheck( false ) ) 			return;
+	if ( ! SanityCheck( false ) )			return;
 	if ( ! UI::WidgetExists(`cdStatisticsTable) )	return;
 
 
@@ -901,7 +917,7 @@
 	    {
 		// When data throughput goes downhill (stalled network connection etc.),
 		// cut off the predicted time at a reasonable maximum.
-	        remaining = max_time_per_cd;
+		remaining = max_time_per_cd;
 	    }
 
 	    if ( remaining <= 0 )
@@ -986,7 +1002,7 @@
      * Load a slide image + text.
      * @param slide_no number of slide to load
      **/
-    void LoadSlide (integer slide_no)
+    void LoadSlide( integer slide_no )
     {
 	if ( slide_no > size( slides ) )
 	{
@@ -997,7 +1013,6 @@
 
 	string slide_name = slides[slide_no]:"";
 	slide_start_time = time();
-	slide_name	 = substring( slide_name, 0, size( slide_name ) - size( ".png" ) );
 
 	// Try to load a corresponding text file:
 	//
@@ -1006,10 +1021,9 @@
 	// - Fallback: "en"
 	// - no text (only image)
 
-	if ( LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, language,				slide_name ) ) ) return;
-	if ( LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, substring( language, 0, 2 ), 	slide_name ) ) ) return;
-
-	if ( LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, "en",				slide_name ) ) ) return;
+	if ( LoadSlideFile( sformat ("%1/%2/%3", slide_txt_path, language,			slide_name ) ) ) return;
+	if ( LoadSlideFile( sformat ("%1/%2/%3", slide_txt_path, substring( language, 0, 2 ),	slide_name ) ) ) return;
+	if ( LoadSlideFile( sformat ("%1/%2/%3", slide_txt_path, "en",				slide_name ) ) ) return;
 	SetSlideText ("");
     }
 
@@ -1037,8 +1051,8 @@
      * @param pkg_summary	package summary (short description)
      * @param deleting		Flag: deleting (true) or installing (false) package?
      **/
-    global void SlideDisplayStart( string 	pkg_name,
-				   string 	pkg_summary,
+    global void SlideDisplayStart( string	pkg_name,
+				   string	pkg_summary,
 				   integer	pkg_size,
 				   boolean	deleting	)
     {
@@ -1140,9 +1154,9 @@
 
     /**
      * Add widgets for progress bar etc. around a slide show page
-     * @param page_id 		ID to use for this page (for checking with UI::WidgetExists() )
+     * @param page_id		ID to use for this page (for checking with UI::WidgetExists() )
      * @param page_contents	The inner widgets (the page contents)
-     * @return 			A term describing the widgets
+     * @return			A term describing the widgets
      **/
     term AddProgressWidgets( symbol page_id, term page_contents )
     {
@@ -1195,12 +1209,12 @@
      * Construct widgets describing a page with the real slide show
      * (the RichText / HTML page)
      *
-     * @return 	A term describing the widgets
+     * @return	A term describing the widgets
      **/
     term SlidePageWidgets()
     {
 	term widgets =
-	    AddProgressWidgets(	`slideShowPage,
+	    AddProgressWidgets( `slideShowPage,
 				`RichText(`id(`slideText), "" )
 				);
 	y2debug( "widget term: \n%1", widgets );
@@ -1211,7 +1225,7 @@
     /**
      * Construct widgets for the "details" page
      *
-     * @return 	A term describing the widgets
+     * @return	A term describing the widgets
      **/
     term DetailsPageWidgets()
     {
@@ -1296,7 +1310,7 @@
 		`DumbTab(`id(`dumbTab ),
 			     [
 			      `item(`id(`showSlide   ), _( "Slide Sho&w" ) ),
-			      `item(`id(`showDetails ), _( "&Details" )    )
+			      `item(`id(`showDetails ), _( "&Details" )	   )
 			      ],
 			  `VBox(
 				`VSpacing( 0.4 ),
@@ -1361,7 +1375,7 @@
 	// but since this uses 1..n and we need 0..n-1
 	// for array subscripts anyway, use it as it is.
 	next_cd_no	= current_cd_no;
-	next_src_no 	= current_src_no;
+	next_src_no	= current_src_no;
 
 	while ( next_src_no < size( remaining_sizes_per_cd_per_src ) )
 	{
@@ -1387,7 +1401,7 @@
 	if ( debug )
 	    y2milestone( "No next media - all done" );
 
-	next_src_no 	= -1;
+	next_src_no	= -1;
 	next_cd_no	= -1;
     }
 
