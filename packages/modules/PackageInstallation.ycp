@@ -209,22 +209,23 @@
 	while ((pkgname != nil)
 		&& (pkgname != ""))
 	{
+	    string location = Pkg::PkgLocation (pkgname);
+
 	    if (other_media_nr > 0)
 	    {
 		if (other_media_nr != media_number)
 		{
-		    break;
+		    location = nil;
 		}
 	    }
 	    else if (Pkg::PkgMediaNr (pkgname) != media_number)
 	    {
-		break;
+		location = nil;
 	    }
-	    y2milestone ("Installing %1", pkgname);
-	    string location = Pkg::PkgLocation (pkgname);
 
 	    if (location != nil)
 	    {
+		y2milestone ("Installing %1", pkgname);
 		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
 		if (localpath != nil)
 		{
@@ -236,6 +237,7 @@
 		    y2milestone ("install %1", ok);
 		}
 	    }
+
 	    if (media_number == 1)
 		pkgname = Pkg::PkgNextInstall();
 	    else
@@ -259,6 +261,22 @@
 		other_media_nr = Pkg::PkgMediaNr (pkgname);
 		other_media_packages = add (other_media_packages, [other_media_nr, pkgname]);
 		pkgname = Pkg::PkgNextInstall();
+	    }
+	    y2milestone ("%1 packages on other media", size (other_media_packages));
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
+	}
+	else	// media_number > 1
+	{
+	    list remaining_packages = [];
+	    other_media_pos = 0;
+	    while (other_media_pos < size (other_media_packages))
+	    {
+		other_media_nr = other_media_packages[other_media_pos,0]:0;
+		if (other_media_nr > media_number)
+		{
+		    remaining_packages = add (remaining_packages, [other_media_nr, other_media_packages[other_media_pos,1]:""])
+		}
+		other_media_pos = other_media_pos + 1;
 	    }
 	    y2milestone ("%1 packages on other media", size (other_media_packages));
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
