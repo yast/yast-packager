@@ -42,10 +42,8 @@ Y2PackageComponent::evaluate(const YCPValue& value)
     {
 	getSCRAgent ();
     }
-    bool flag = interpreter->enableSubclassed (true);
-    YCPValue v = interpreter->evaluate(value);
-    interpreter->enableSubclassed (flag);
-    return v;
+    
+    return interpreter->evaluate(value);
 }
 
 SCRAgent*
@@ -58,3 +56,4 @@ Y2PackageComponent::getSCRAgent ()
     }
     return agent;
 }
+

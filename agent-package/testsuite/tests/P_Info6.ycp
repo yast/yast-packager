@@ -1,54 +1,54 @@
 {
-	return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+	return Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-	return SCR::Read(.selGroups);
+	return Read(.selGroups);
 }
 {
-	return SCR::Execute(.selectSelInstall, "Standard", true );
+	return Execute(.selectSelInstall, "Standard", true );
 }
 {
-	return SCR::Read(.selInstallSet);
+	return Read(.selInstallSet);
 }
 {
-	return SCR::Read(.selDependencies);
+	return Read(.selDependencies);
 }
 {
-	return SCR::Execute(.selectSelInstall, "Minimal", false );
+	return Execute(.selectSelInstall, "Minimal", false );
 }
 {
-	return SCR::Read(.selInstallSet);
+	return Read(.selInstallSet);
 }
 {
-	return SCR::Read(.selDependencies);
+	return Read(.selDependencies);
 }
 {
-	return SCR::Execute(.deselectSelInstall, "Minimal" );
+	return Execute(.deselectSelInstall, "Minimal" );
 }
 {
-	return SCR::Read(.selDependencies);
+	return Read(.selDependencies);
 }
 {
-	return SCR::Execute(.selectSelInstall, "Kde", false );
+	return Execute(.selectSelInstall, "Kde", false );
 }
 {
-	return SCR::Read(.selDependencies);
+	return Read(.selDependencies);
 }
 {
-	return SCR::Read(.selInstallSet);
+	return Read(.selInstallSet);
 }
 {
-	return SCR::Execute(.deselectSelInstall, "Games" );
+	return Execute(.deselectSelInstall, "Games" );
 }
 {
-	return SCR::Read(.selDependencies);
+	return Read(.selDependencies);
 }
 {
-	return SCR::Read(.selInstallSet);
+	return Read(.selInstallSet);
 }
 {
-	return SCR::Read(.selDelDesc, "default" );
+	return Read(.selDelDesc, "default" );
 }
 {
-	return SCR::Read(.selNotifyDesc, "default" );
+	return Read(.selNotifyDesc, "default" );
 }
