@@ -27,7 +27,7 @@
      `widget       : `RichText( UI(_("<p>Launch this module to install additional packages or
 remove installed ones.
 To install commercial software, launch this module and select
-set 'pay' from list of package sets.
+set 'pay' from the list of package sets.
 </p>
 ")) + UI(_("<p>Please insert <b>CD 1</b> for CD installation.</p>"))),
 				

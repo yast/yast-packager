@@ -173,17 +173,18 @@ To install commercial software, launch this module and select
 
     string msg_str12 = _("<p>Please insert <b>CD 1</b> for CD installation.</p>");
 
-    string msg_str13 = _("<p>Launch this module if you want to choose the
+    string msg_str13 = _("<p>Launch this module to choose the
 source of installation. It is possible to install packages from CD,
-via network or from a hard drive.</p>
+via network, or from a hard drive.</p>
 <p>You can specify the source medium and install
 packages with this module.
 </p>
 
 ");
 
-    string msg_str21 = _("<P>You need to be logged in as <i>root</i> in order to
-do this.</P>");
+    string msg_str21 = _("<P>You need to be logged in as <i>root</i> to
+do this.</P>
+");
 
     msg_beginner = msg_str11 + msg_str12 + msg_str21;
     msg_expert = msg_str13 + msg_str21;
@@ -404,7 +405,7 @@ must NOT be older than the version of your installed system.\n");
 
 		if ( inputMap == nil || size ( inputMap ) == 0 )
 		{
-		    string message = _("Error while reading configuration-file.");
+		    string message = _("Error while reading configuration file.");
 		    UI::MessagePopup(message);
 		    return `cancel;
 	        }
