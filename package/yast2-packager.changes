@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 20 18:14:08 CET 2004 - arvin@suse.de
+
+- reduced minimum of free space required on a partition to 1 MB
+  (bug #33074)
+
+-------------------------------------------------------------------
 Fri Feb 20 15:27:39 CET 2004 - arvin@suse.de
 
 - removed yast2-mouse from neededforbuild

@@ -56,7 +56,7 @@
     global define list EvaluateFreeSpace (integer spare_percentage) ``{
 
 	list partition = [];
-	integer min_spare = 5 * 1024* 1024;		// 5 MB
+	integer min_spare = 1 * 1024* 1024;		// 1 MB
 	integer max_spare = 1024 * 1024 * 1024;		// 1 GB
 
 	string target = Installation::destdir;
@@ -128,7 +128,7 @@
 
 		if ( spare_size < min_spare )
 		    spare_size = min_spare;
-		else if  ( spare_size > max_spare )
+		else if ( spare_size > max_spare )
 		    spare_size = max_spare;
 
 		free_size = free_size - spare_size;
