@@ -49,6 +49,16 @@
 
     // --- Public interface, functions to initialize pkg target or source
 
+
+
+	/**
+	 * Autoinst Packages
+     */
+	global list AutoinstPackages = [];
+    global list AddModulePackages = [];
+    global list RemoveModulePackages = [];
+
+
     /**
      * Ensure that Pkg:: calls work.
      * This may become superfluous.
@@ -163,8 +173,7 @@
      * @see FooTarget
      */
     define boolean IsPackageInstalledAI (string package) ``{
-	import "AutoinstSoftware";
-	return contains (AutoinstSoftware::packages, package);
+	return contains (AutoinstPackages, package);
     }
 
     // ---------- AreAllPackagesInstalled* ----------
@@ -391,9 +400,8 @@
      * @return success?
      */
     define boolean DoInstallAndRemoveAI (list<string> toinstall, list<string> toremove) ``{
-	import "AutoinstSoftware";
-	AutoinstSoftware::AddModulePackages (toinstall);
-	AutoinstSoftware::RemoveModulePackages (toremove);
+	AddModulePackages = toinstall;
+	RemoveModulePackages = toremove;
 	return true;
     }
 
