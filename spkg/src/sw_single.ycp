@@ -210,7 +210,7 @@ do this.</P>
     list part_input = [];
 
     // percentage of spare space
-    part_input = PackageIO::EvaluateFreeSpace( Installation::destdir, 5 );
+    part_input = SpaceCalculation::EvaluateFreeSpace( Installation::destdir, 5 );
 
     y2debug( "SW_SINGLE: partition input: %1", part_input );
 
@@ -387,9 +387,9 @@ must NOT be older than the version of your installed system.\n");
 
 	    // There could be a list of packages (defined in an ascii-file) or a package name (without .rpm)
 
-	    if ( size(arg_list) > 0 && select(arg_list, 0) != "beginner" )
+	    if ( size(arg_list) > 0 && select(arg_list, 0, "") != "beginner" )
 	    {
-		string arg_name = select(arg_list,0);
+		string arg_name = select(arg_list, 0, "");
 		map inputMap = $[];
 
 		if ( SCR::Read(.target.size, arg_name) <= 0 )
@@ -478,7 +478,7 @@ must NOT be older than the version of your installed system.\n");
 	}
 	else
 	{
-	    result = CallFunction( select(dialog, dialog_id) );
+	    result = CallFunction( select(dialog, dialog_id, 0) );
 	    if (dialog_id == 0)			// installation source
 	    {
 		descrPath = InstMedia::GetInstPath();	// read common.pkd from there !
@@ -486,7 +486,7 @@ must NOT be older than the version of your installed system.\n");
 		dudir     = descrPath + "/setup/du/du.dir";
 	    }
 	}
-        y2debug( "RESULT %1: %2", select(dialog, dialog_id), result );
+        y2debug( "RESULT %1: %2", select(dialog, dialog_id, 0), result );
 
 	if (result == `cancel || result == `abort)
         {
