@@ -196,7 +196,7 @@
 	    if ( showLongInfo )
 	    {
 		UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
-		UI::ReplaceWidget(`id(`info), `RichtText (`opt(`plainText), info) );
+		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
 	    }
 	    else
 	    {
