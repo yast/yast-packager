@@ -107,12 +107,10 @@
 	// or in  beginner mode try to mount source medium 
 
 	string first_arg = "";
-	string postfix = "";
 
 	if ( size (arg_list) > 0 )
 	{
 	    first_arg = select (arg_list, 0, "");
-	    postfix =  substring (first_arg, size (first_arg) - 4 );
 	}
 	else if ( !beginner_mode )
 	{
@@ -120,7 +118,7 @@
 	                        // start with dialog inst_source
 	}
 	
-	if ( postfix == ".rpm" )		// package name given
+	if ( regexpmatch (first_arg, "\\.rpm$") )		// package name given
 	{
             // if sw_single is called with an absolute package-pathname, there is no need to
 	    // mount the source medium or check SuSE version or dependencies
