@@ -17,6 +17,7 @@
     import "Popup";
     import "Directory";
     import "ModuleLoading";
+    import "Bootloader";
 
 
     /**
@@ -300,6 +301,10 @@
 
 	// load all network modules
 	load_network_modules ();
+
+	// perform actions needed by various bootloaders before packages
+	// get updated
+	Bootloader::PreUpdate ();
     }
 
     return `next;

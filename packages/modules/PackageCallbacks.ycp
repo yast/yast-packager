@@ -304,20 +304,20 @@
 		     error, url, product, current, current_label, wanted, wanted_label);
 
 	// true if it makes sense to offer an eject button (for cd/dvd only ...)
-	boolean offer_eject_button = false;
+	boolean offer_eject_button = substring (url, 0, 2) == "cd" ||
+	    substring (url, 0, 3) == "dvd";
 
 	if (wanted_label == "")
 	{
 	    // will be used in conjunction with other text below
 	    // prompt for user to insert the correct CD/DVD
-	    string medianame = "CD ";
+	    string medianame = "CD "; // FIXME?
 	    if (substring (url, 0, 2) == "cd")
 	    {
-		offer_eject_button = true;
+		medianame = "CD ";
 	    }
 	    if (substring (url, 0, 3) == "dvd")
 	    {
-		offer_eject_button = true;
 		medianame = "DVD ";
 	    }
 

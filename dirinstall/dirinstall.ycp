@@ -43,14 +43,14 @@
         }
         if (Installation::destdir == "" || Installation::destdir == "/" )
         {
-           Popup::Error(_("Select a valid directory for the installation first"));
+           Popup::Error(_("Select a valid directory for the installation first."));
            ret = `again;
            continue;
         }
         else if (SCR::Read(.target.dir, Installation::destdir ) != nil
                 && size((list)SCR::Read(.target.dir, Installation::destdir )) > 0  )
         {
-           Popup::Error(_("Directory already exists, select another directory for installation."));
+           Popup::Error(_("Directory already exists. Select another directory for installation."));
            ret = `again;
            continue;
         }

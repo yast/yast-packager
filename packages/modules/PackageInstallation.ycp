@@ -23,12 +23,64 @@
 
     import "Wizard";
     import "Label";
-    import "Popup";
+    import "Report";
 
     textdomain "packager";
 
+
     global define any FakePackager( list<list> packages, string inst_source,
 				    boolean deleting );
+
+
+    /**
+     *  Show a dialog with either the list of failed packages (string a) or
+     *  the complete log (string b).
+     */
+    define void ShowFailedPackages (string a, string b)
+    {
+	term rbuttons = `RadioButtonGroup (
+					   `VBox (
+						  `Left(`RadioButton(`id(`a), `opt(`notify),
+								     // button label
+								     _("&Show Failed Packages List"), true)),
+						  `Left(`RadioButton(`id(`b), `opt(`notify),
+								     // button label
+								     _("&Show Full Log"), false))
+						  )
+					   );
+
+	UI::OpenDialog (
+			`opt(`decorated),
+			`VBox(
+			      `HSpacing(40),
+			      // dialog headline
+			      `Left(`Heading("Installation of Some Packages Failed")),
+			      rbuttons,
+			      `RichText(`id(`text),
+					`opt(`plainText),
+					a),
+			      `PushButton (`id(`ok), `opt(`default, `key_F10),
+					   Label::OKButton ())
+			      )
+			);
+
+	while (true)
+	{
+	    symbol ret = (symbol) UI::UserInput ();
+
+	    if (ret == `a || ret == `b)
+	    {
+		UI::ChangeWidget (`id(`text), `Value, (boolean) UI::QueryWidget (`id(`a), `Value) ? a : b);
+		continue;
+	    }
+
+	    if (ret == `ok)
+		break;
+	}
+
+	UI::CloseDialog ();
+    }
+
 
     /**
      *  commitPackages marked for deletion or installation
@@ -91,9 +143,9 @@
 	list<string> errpacks = (list<string>) (commit_result[1]:[]);
 	if (size (errpacks) > 0)
 	{
-	    string text = mergestring (errpacks, "\n");
-	    // headline for a popup that displays a list of packages
-	    Popup::ShowText (_("These Packages returned an Error"), text);
+	    string full_log = (string) SCR::Read (.target.string, Installation::destdir +
+						  "/var/log/YaST2/y2logRPM");
+	    ShowFailedPackages (mergestring (errpacks, "\n"), full_log);
 	}
 
 	return commit_result;

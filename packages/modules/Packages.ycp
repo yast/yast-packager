@@ -122,11 +122,6 @@
 		packages = add (packages, "ppc64-utils");
 		packages = add (packages, "iprutils");
 	    }
-
-	    if (Arch::board_prep)
-	    {
-		packages = add (packages, "iprutils");
-	    }
 	}
 
 	if (Arch::ia64)
@@ -411,7 +406,17 @@
 			if ((instorderline != "")
 			    && (substring (instorderline, 0, 1) != "#"))
 			{
-			    instordermap[instorder] = instorderline;
+                            list<string> sourcelist = splitstring (instorderline, " \t\n");
+                            // Due to documentation mistake, instorder might
+                            // have 2 columns, get only first column.
+                            //
+                            // just in case more spaces are used as delimiter,
+                            // remove all remaining spaces from the list
+                            //
+                            sourcelist = filter(string src, sourcelist,
+                                ``(src!=""));
+
+			    instordermap[instorder] = sourcelist[0]:"";
 			    instorder = instorder + 1;
 			}
 		    });
@@ -436,6 +441,11 @@
 			&& (substring (orderline, 0, 1) != "#"))
 		    {
 			list<string> sourcelist = splitstring (orderline, " \t\n");
+                        // just in case more spaces are used as delimiter,
+                        // remove all remaining spaces from the list
+                        //
+                        sourcelist = filter(string src, sourcelist,
+                            ``(src!=""));
 			string orderdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"/";
 
@@ -493,6 +503,7 @@
 			    {
 				y2milestone ("copy slide show %1 %2", datadir, slidedir);
 				WFM::Execute (.local.bash, "/bin/cp -r " + datadir + "/* " + slidedir);
+				WFM::Execute (.local.bash, "/bin/rmdir " + slidedir);
 			    }
 			}
 		    }
@@ -626,7 +637,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	    if (contains (flags, "lm"))
 	    {
 		output = add (output, _("Your computer is a 64-bit x86-64 system.") + " " +
-			      _("But you are trying to install a 32-bit distribution."));
+			      _("However, you are trying to install a 32-bit distribution."));
 	    }
 	}
     }

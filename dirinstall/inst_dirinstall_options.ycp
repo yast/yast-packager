@@ -25,7 +25,7 @@
     term contents = `HVSquash(
 			      `VBox(
 				    `Left(`TextEntry(`id(`target), _("Root Directory (not \"/\"):"), DirInstall::target)),
-                                    `Left(`CheckBox(`id(`suseconfig), _("Run YaST/SuSEconfig on first boot"), DirInstall::runme_at_boot)),
+                                    `Left(`CheckBox(`id(`suseconfig), _("Run YaST and SuSEconfig on First Boot"), DirInstall::runme_at_boot)),
                                     `Left(`CheckBox(`id(`makeimage), `opt(`notify), _("Create Ima&ge"), DirInstall::makeimage)),
                                     `Left(`TextEntry(`id(`imagename), _("Ima&ge Name:"), DirInstall::image_name)),
                                     `VSquash(
@@ -41,11 +41,12 @@
             );
 
     // help text for uml options
-    string help_text = _("<p>Choose a directory to install to. Depending on the software selection, you have to make sure
+    string help_text = _("<p>Choose a directory to which to install. Depending on the software selection, make sure
 enough space is available.</p>
 ");
-    help_text = help_text + _("<p>Additionally, you can create an archive image of the directory using tar. If you wish to create an 
-image, specify the name and the location in the respective fields.</p>");
+    help_text = help_text + _("<p>Additionally, you can create an archive image of the directory using tar. To create an 
+image, specify the name and the location in the respective fields.</p>
+");
 
     Wizard::SetContents (title, contents, help_text, (boolean) WFM::Args(0),
 			 (boolean) WFM::Args(1));

@@ -1,4 +1,47 @@
 -------------------------------------------------------------------
+Fri May 28 14:27:07 CEST 2004 - arvin@suse.de
+
+- nicer dialog with failed packages (bug #37529)
+
+-------------------------------------------------------------------
+Thu May 27 11:03:00 CEST 2004 - arvin@suse.de
+
+- fixed eject button (bug #39872)
+
+-------------------------------------------------------------------
+Tue May 25 18:25:41 CEST 2004 - arvin@suse.de
+
+- maybe fixed slide show (bug #38708)
+
+-------------------------------------------------------------------
+Fri May 21 06:30:56 CEST 2004 - nashif@suse.de
+
+- Use Report for failing messages
+- Also allow space delimited fields in order/instorder
+
+-------------------------------------------------------------------
+Tue May 18 13:20:40 CEST 2004 - sh@suse.de
+
+- Changed slide show layout to make more CDs fit (bug #35612)
+
+-------------------------------------------------------------------
+Tue May 04 11:15:40 CEST 2004 - arvin@suse.de
+
+- merged proofread messages
+
+-------------------------------------------------------------------
+Tue Apr 27 10:04:28 CEST 2004 - jsrain@suse.cz
+
+- update EFI partitioning layout before package update starts
+  (#21644)
+- 2.9.45
+
+-------------------------------------------------------------------
+Thu Apr 22 18:06:29 CEST 2004 - arvin@suse.de
+
+- don't install iprutils on prep (bug #39292)
+
+-------------------------------------------------------------------
 Mon Apr 05 14:54:06 CEST 2004 - arvin@suse.de
 
 - load all network modules during update (bug #38115)
