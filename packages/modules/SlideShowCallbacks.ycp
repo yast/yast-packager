@@ -123,12 +123,12 @@
 	{
 	    if (how_much > 95 && !shutup)
 	    {
-		boolean cont = UI::AnyQuestionPopup( WarningMsg(),
+		boolean cont = UI::AnyQuestionPopup( UI::WarningMsg(),
 						     _("The disk space is nearly exhausted.
 Continue with the installation?
 "),
-						     YesButtonLabel(),
-						     NoButtonLabel(),
+						     UI::YesButtonLabel(),
+						     UI::NoButtonLabel(),
 						     `focus_no );
 
 		if (!cont)
@@ -147,10 +147,10 @@ Continue with the installation?
 
 	    if ( Mode::normal )
 	    {
-		ret = UI::AnyQuestionPopup( NoHeadline(),
+		ret = UI::AnyQuestionPopup( UI::NoHeadline(),
 					    _("Do you really want\nto quit the installation?"),
-					    YesButtonLabel(),
-					    NoButtonLabel(),
+					    UI::YesButtonLabel(),
+					    UI::NoButtonLabel(),
 					    `focus_no );
 	    }
 	    else if ( Mode::initial )

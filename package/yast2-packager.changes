@@ -4,6 +4,11 @@ Sat Mar 08 21:31:03 CET 2003 - arvin@suse.de
 - added missing include statements (bug #24881)
 
 -------------------------------------------------------------------
+Thu Mar  6 10:51:24 CET 2003 - kkaempf@suse.de
+
+- prepend msg and button functions with UI:: namespace (#24704)
+
+-------------------------------------------------------------------
 Wed Mar  5 18:58:39 CET 2003 - kkaempf@suse.de
 
 - enhance provideDone and packageDone callbacks to pop up
