@@ -31,9 +31,9 @@
 	    foreach (`device, devicelist,
 	    ``{
 		string devname = device["dev_name"]:"";
-		if (instmode == "dvd")			// filter out cd drives if dvd is wanted
+		if (instmode == "dvd")			// filter out non dvd drives if dvd is wanted
 		{
-		    if (!issubstring (device["cdtype"]:"", "dvd"))
+		    if (!device["dvd"]:false)
 			devname = "";
 		}
 

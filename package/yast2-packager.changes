@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 14 16:00:47 CET 2003 - arvin@suse.de
+
+- support installation from DVD for drives that also have other
+  capability (bug #20068)
+
+-------------------------------------------------------------------
 Fri Oct 18 14:13:50 CEST 2002 - kkaempf@suse.de
 
 - de-select last tried selection if none of the base selections
