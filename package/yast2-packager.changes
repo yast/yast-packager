@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 19 18:26:27 CET 2004 - kkaempf@suse.de
+
+- drop "cpufreqd" and "apmd" on all platforms, now "powersave"
+  will be installed.
+
+-------------------------------------------------------------------
 Thu Feb 19 13:24:03 CET 2004 - mvidner@suse.cz
 
 - changed sort to use "<" instead of "<=" because of the switch to std::sort
