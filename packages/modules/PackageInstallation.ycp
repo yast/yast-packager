@@ -70,6 +70,7 @@
 		SlideShow::SetMediaType ("DVD");
 	}
 	SlideShow::InitPkgData();
+	SlideShow::SetCurrentCdNo(media_number);
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
