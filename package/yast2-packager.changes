@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 12 16:14:01 CEST 2002 - kkaempf@suse.de
+
+- fix /etc/install.inf:InstMode reading.
+
+-------------------------------------------------------------------
 Mon Aug 05 19:01:56 CEST 2002 - arvin@suse.de
 
 - changes for new /etc/install.inf agent
