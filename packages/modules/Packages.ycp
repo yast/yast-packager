@@ -269,8 +269,7 @@
             install_list = add(install_list, the_kernel );
         }
 
-	if (Pkg::IsSelected("XFree86")
-	    || Mode::live_eval)
+	if (Pkg::IsSelected("XFree86"))
 	{
 	    install_list = (list<string>) union (install_list, graphicPackages ());
 	}
