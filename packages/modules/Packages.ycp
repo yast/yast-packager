@@ -776,8 +776,15 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	    boolean act_sel = Pkg::ActivateSelections ();
 
 	    // add additional (internal) packages, like kernel etc.
-	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
-	    Pkg::PkgSolve(false);
+	    map <string, any> res = Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	    if (size (res) > 0)
+	    {
+		foreach (string s, any a, res, ``{
+		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+		});
+	    }
+
+	    Pkg::PkgSolve (false);
 
 	    y2milestone ("activating: %1, returning %2", act_sel, ret);
 	}

@@ -54,9 +54,17 @@
 	 && Mode::cont)
     {
 	import "AutoinstSoftware";
+
 	// post packages from autoinstall
-	Pkg::DoProvide( AutoinstSoftware::post_packages );
-	Pkg::PkgSolve(false);
+	map <string, any> res = Pkg::DoProvide (AutoinstSoftware::post_packages);
+	if (size (res) > 0)
+	{
+	    foreach (string s, any a, res, ``{
+		y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+	    });
+	}
+
+	Pkg::PkgSolve (false);
     }
 
     if (!Mode::initial)
