@@ -331,9 +331,8 @@ Select which desktop to install.</p>
      * @return integer: 0 == ok, 1 == retry, -1 == error
      *
      */
-
     global define void Init( boolean forceInit )
-    ``{
+    {
 	if (init_called)
 	{
 	    y2warning ("Packages::Init() already called");

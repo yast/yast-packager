@@ -1,0 +1,100 @@
+/**
+ * Module:	media_proposal.ycp
+ *
+ * Author:	Arvin Schnell <arvin@suse.de>
+ *
+ * Purpose:	Initialize the installation media.
+ */
+{
+    textdomain "packager";
+
+    import "HTML";
+    import "Update";
+    import "Mode";
+    import "Language";
+    import "Packages";
+    import "PackageCallbacks";
+
+    import "Installation";
+
+
+    string func = (string) WFM::Args(0);
+    map param = (map) WFM::Args(1);
+    map <string, any> ret = $[];
+
+
+    if ( func == "MakeProposal" )
+    {
+	boolean force_reset      = param["force_reset"     ]:false;
+	boolean language_changed = param["language_changed"]:false;
+
+	UI::OpenDialog (`opt(`decorated),
+			// intermediate popup while initializing internal packagemanagement
+			`Label(_("Reading package information. One moment please...")));
+
+	Packages::Init (true);
+
+	UI::CloseDialog();
+
+	list <string> tmp = [];
+
+	integer num = size (Packages::theSources);
+	if (num <= 0)
+	{
+	    y2error ("Screwed source");
+	    tmp = add (tmp, _("Media is broken"));
+	}
+	else
+	{
+	    map new_product = Pkg::SourceProductData (Packages::theSources[num-1]:0);
+	    if (new_product == nil)
+	    {
+		y2error ("Screwed source");
+		tmp = add (tmp, _("Media is broken"));
+	    }
+	    else
+	    {
+		// FIXME handle not only the first source
+		tmp = add (tmp, sformat (_("Installation Source: %1"),
+					 new_product["productname"]:"?" + " " +
+					 new_product["productversion"]:"?"));
+	    }
+	}
+
+	ret = $[ "preformatted_proposal" :
+		 HTML::List (tmp)
+	];
+    }
+    else if ( func == "AskUser" )
+    {
+	boolean has_next = param["has_next"]:false;
+
+	// call some function that displays a user dialog
+	// or a sequence of dialogs here:
+	//
+	// sequence = DummyMod::AskUser( has_next );
+
+	symbol result = (symbol) WFM::CallFunction ("inst_media", [true, has_next]);
+
+	// Fill return map
+
+	ret = $[ "workflow_sequence" : result ];
+    }
+    else if ( func == "Description" )
+    {
+	// Fill return map.
+	//
+	// Static values do just nicely here, no need to call a function.
+
+	ret =
+	    $[
+	      // this is a heading
+	      "rich_text_title"	:	_("Installation Media"),
+	      // this is a menu entry
+	      "menu_title"	:	_("&Media"),
+	      "id"		:	"media_stuff"
+	    ];
+    }
+
+    return ret;
+}
