@@ -142,14 +142,14 @@ View the log file?
 	    while  ( bytes_installed < pkg_size && ret != `cancel && ret != `diskfull )
 	    {
 		integer percent = ( 100 * bytes_installed ) / pkg_size;
-		if ( deleting )
-		{
-		    // Handle deleting packages
-		}
-		else
-		{
-		    // Handle installing packages
-		}
+		//	if ( deleting )
+		//	{
+		//	    // Handle deleting packages
+		//	}
+		//	else
+		//	{
+		//	    // Handle installing packages
+		//	}
 		sleep ( 300 ); // millisec
 		bytes_installed = bytes_installed + 300 * 1024;
 	    }
