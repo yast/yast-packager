@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 02 10:55:19 CET 2004 - arvin@suse.de
+
+- make it build
+
+-------------------------------------------------------------------
 Fri Feb 27 05:24:24 CET 2004 - nashif@suse.de
 
 - Move software_proposal from installation

@@ -10,6 +10,7 @@
 
 {
     textdomain "packager";
+
     import "DirInstall";
     import "Installation";
     import "Popup";
@@ -62,6 +63,8 @@
 
 
     integer progress_length = 16;
+
+    string help_text = "FIXME";
 
     Progress::New(
             // Headline for last dialog of base installation: Install LILO etc.
