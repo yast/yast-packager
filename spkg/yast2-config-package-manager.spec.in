@@ -14,7 +14,7 @@ Name:         @RPMNAME@
 Release:      1
 Copyright:    (c) 2000 SuSE GmbH
 Group:        System Environment/YaST
-Requires:	yast2-trans-package-manager yast2
+Requires:	yast2-trans-package-manager yast2-db-groups yast2
 BuildArchitectures: noarch
 
 Packager:     @MAINTAINER@
