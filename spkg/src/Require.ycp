@@ -134,6 +134,7 @@
      * @see FooTarget
      */
     define boolean IsPackageInstalledAI (string package) ``{
+	import "AutoinstSoftware";
 	return contains (AutoinstSoftware::packages, package);
     }
 
