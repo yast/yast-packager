@@ -84,6 +84,7 @@
 	    {
 		packages = add (packages, "ibmsis");
 		packages = add (packages, "scsi");
+		packages = add (packages, "iprutils");
 	    }
 
 	    if (Arch::board_mac)
@@ -119,6 +120,7 @@
 	    if (Arch::ppc64 && Arch::board_chrp)
 	    {
 		packages = add (packages, "ppc64-utils");
+		packages = add (packages, "iprutils");
 	    }
 	}
 
@@ -217,6 +219,33 @@
      * GLOBAL FUNCTIONS
      *-----------------------------------------------------------------------*/
 
+
+    /**
+     * Compute kernel package
+     * @return string selected kernel
+     */
+    global string ComputeKernelPackage () {
+	    string the_kernel = Kernel::kernel_packages[0]:"";
+	    y2milestone ("Selecting '%1' as kernel package", the_kernel);
+	    while (the_kernel != ""
+		   && !Pkg::IsAvailable (the_kernel))
+	    {
+		the_kernel = Kernel::fallbacks[the_kernel]:"";
+		y2milestone ("Not available, falling back to '%1'", the_kernel);
+	    }
+
+	    if (the_kernel != "")
+	    {
+                return the_kernel;
+	    }
+	    else
+	    {
+		y2warning ("%1 not available, using kernel-default",
+						Kernel::kernel_packages);
+                return "kernel-default";
+	    }
+    }
+
     /**
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
@@ -234,26 +263,9 @@
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update ||  !Mode::autoinst)
 	{
-	    string the_kernel = Kernel::kernel_packages[0]:"";
-	    y2milestone ("Selecting '%1' as kernel package", the_kernel);
-	    while (the_kernel != ""
-		   && !Pkg::IsAvailable (the_kernel))
-	    {
-		the_kernel = Kernel::fallbacks[the_kernel]:"";
-		y2milestone ("Not available, falling back to '%1'", the_kernel);
-	    }
-
-	    if (the_kernel != "")
-	    {
-		install_list = add (install_list, the_kernel);
-	    }
-	    else
-	    {
-		y2warning ("%1 not available, using kernel-default",
-						Kernel::kernel_packages);
-		install_list = add (install_list, "kernel-default");
-	    }
-	}
+            string the_kernel = ComputeKernelPackage();
+            install_list = add(install_list, the_kernel );
+        }
 
 	if (Pkg::IsSelected("XFree86")
 	    || Mode::live_eval)
@@ -273,6 +285,12 @@
 		WFM::CallFunction (ProductFeatures::packages_transmogrify,
 				   [ install_list ]);
 	}
+
+        if (size(ProductFeatures::packages) > 0 )
+        {
+            install_list = (list<string>) union (install_list,
+                    ProductFeatures::packages );
+        }
 
 	install_list = toset (install_list);
 	y2milestone ("auto-adding packages: %1", install_list);
@@ -536,7 +554,7 @@
 
 	    if (ProductFeatures::base_selection_choice == `fixed)
 	    {
-		Pkg::SetSelection (ProductFeatures::fixed_base_selection);
+                Pkg::SetSelection (ProductFeatures::fixed_base_selection);
 	    }
 	}
 	else	// cont or normal mode
