@@ -187,7 +187,7 @@
 	    string info = reason + "\n---\n" + SCR::Read (.target.string, [infopath, "-?-"]);
 
 	    // error popup during package installation, %1 is a numeric value (number of failed packages)
-	    string message = sformat (_("Package %1 failed installation."), _package_name);
+	    string message = sformat (_("Installation failed for %1 packages."), _package_name);
 
 	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
 	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
