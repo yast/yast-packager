@@ -19,7 +19,6 @@
 
     import "Label";
     import "Popup";
-    include "ui/file_popups.ycp";
 
     include "inst_source_dialogs.ycp";
 

@@ -14,7 +14,6 @@
  */
 
 {
-
     textdomain "packager";
 
     import "Label";
@@ -117,7 +116,7 @@
 
     /**
         Get a nfs url.
-    */    
+    */
     global define void getNfsUrl( string host, string urlpath ) ``{
         if ( substring( urlpath, 0, 1 ) == "/" ) {
           urlpath = substring( urlpath, 1 );
@@ -322,12 +321,14 @@
     }
 
     /**
-        Let the user put in a directory url.
-
-        @param default  initial default
-        @return directory url on success, empty string when the user canceled the dialog.
+     * Let the user put in a directory url.
+     *
+     * @param default  initial default
+     * @return directory url on success, empty string when the user
+     *   canceled the dialog.
     */
     global define string getDirectoryUrl( string default ) ``{
+
         UI::OpenDialog(
             `VBox(
                 `Label( _("Local Directory") ),
@@ -351,9 +352,10 @@
             if ( input == `browse )
             {
                 url = UI::QueryWidget( `id( `dir ), `Value );
-            
-                string result = PopupDir( url );
-                if ( result != "" )
+
+		// dialog caption
+ 		string result = UI::AskForExistingDirectory( url, _("Local Directory") );
+                if ( result != nil )
                 {
                     UI::ChangeWidget( `id( `dir ), `Value, result );
                 }
@@ -426,20 +428,20 @@
         } else {
             UI::CloseDialog();
         }
-      
+
         return url;
     }
 
     global define string editUrl( string url ) ``{
         if ( size( url ) == 0 ) return getUrl( "" );
-    
+
         map parsedUrl = URL::Parse( url );
 
         string protocol = parsedUrl[ "scheme" ]:"";
         string urlpath = parsedUrl[ "path" ]:"";
-        
+
         string newUrl = "";
-        
+
         if ( protocol == "ftp" || protocol == "http" || protocol == "smb" ) {
             string host = parsedUrl[ "host" ]:"";
             string user = parsedUrl[ "user" ]:"";
@@ -458,7 +460,7 @@
         } else {
             y2error( "Unsupported URL: %1", url );
         }
-        
+
         return newUrl;
     }
 }
