@@ -10,7 +10,7 @@
   // installed packages would not installed again
   
   string cmd = "sudo rpm -e 3d_chess tuxeyes xroach jpilot";
-  SCR(`Execute(.target.bash, cmd ));
+  SCR::Execute(.target.bash, cmd );
   
   map user_settings = $[];
 
