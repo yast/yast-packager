@@ -182,8 +182,6 @@
 	});
     }
 
-    SlideShow::InitPkgData();
-
     // Install the software from Medium1 to Mediummax, but not the already
     // installed base packages.
     // This part is also used for installation in running system (Mode::cont, Mode::normal)
@@ -226,7 +224,7 @@
 	if (size (failed) > 0)
 	{
 	    y2milestone ("failed: %1", failed);
-	    list previous_failed = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", []);
+	    list previous_failed = SCR::Read (.target.ycp, [Installation::destdir + "/var/lib/YaST2/failed_packages", []]);
 	    if (size (previous_failed) > 0)
 		failed = union (previous_failed, failed);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed);
