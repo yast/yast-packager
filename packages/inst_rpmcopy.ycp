@@ -34,7 +34,7 @@
     import "Wizard";
     import "Popup";
 
-    if (Mode::Update)
+    if (Mode::update)
 	return `auto;
 
     boolean packager_called = false;		// is there any package installed/deleted
