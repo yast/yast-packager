@@ -64,8 +64,7 @@
 	y2milestone ( "SlideShow constructor" );
 	ui_defines();
 	next_recalc_time	= time();
-	// FIXME -> descrdir
-	slide_base_path		= "suse/setup/slide";
+	slide_base_path		= Installation::sourcedir + "/suse/setup/slide";
 
 	if ( Mode::test )
 	{
