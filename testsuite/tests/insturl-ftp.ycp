@@ -14,7 +14,6 @@
         ]
     ];
 
-    TESTSUITE_INIT([READ, $[], $[]], nil);
     import "InstURL";
     import "Linuxrc";
     
@@ -24,14 +23,12 @@
 
 
     READ["etc","install_inf","Serverdir"] = "pub";
-    TESTSUITE_INIT([READ, $[], $[]], nil);
-    Linuxrc::Reset();
+    Linuxrc::ResetInstallInf();
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
 
     
     READ["etc","install_inf","Username"] = "suse";
     READ["etc","install_inf","Password"] = "yast2";
-    Linuxrc::Reset();
-    TESTSUITE_INIT([READ, $[], $[]], nil);
+    Linuxrc::ResetInstallInf();
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
 }
