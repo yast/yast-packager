@@ -9,6 +9,4 @@ client_DATA = \
 	inst_sw_select.ycp			\
 	inst_packages.ycp
 
-ynclude_DATA = inst_source_dialogs.ycp
-
-EXTRA_DIST = $(client_DATA) $(ynclude_DATA)
+EXTRA_DIST = $(client_DATA)
