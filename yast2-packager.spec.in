@@ -31,4 +31,5 @@ Summary:	-
 @clientdir@/*.ycp
 @moduledir@/*.ycp
 @configdir@/*.y2cc
+@desktopdir@/*.desktop
 %doc @docdir@
