@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 14 10:06:38 CEST 2004 - jsrain@suse.cz
+
+- report missing media properly (#42553)
+
+-------------------------------------------------------------------
 Wed Jun 16 14:42:44 CEST 2004 - arvin@suse.de
 
 - removed obsolete document y2c_spkg.html (bug #42048)
