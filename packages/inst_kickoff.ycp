@@ -210,13 +210,12 @@
 
 	    y2milestone ("run-level %1 found", initdefault);
 
-	    list <string> versplit1 = splitstring (Update::installedVersion, " ");
-	    if (size (versplit1) > 0)
+	    if (Update::installedVersion["name"] == "SuSE Linux")
 	    {
-		list <string> versplit2 = splitstring (versplit1[size(versplit1) - 1]:"", ".");
-		integer oldmajor = tointeger (versplit2[0]:"0");
-		integer oldminor = tointeger (versplit2[1]:"0");
-		if (oldmajor != 0 && oldminor != 0)
+		integer major = Update::installedVersion["major"]:-1;
+		integer minor = Update::installedVersion["minor"]:-1;
+
+		if (oldmajor >= 0 && oldminor >= 0)
 		{
 		    if ((oldmajor < 7) || (oldmajor == 7 && oldminor == 0))
 		    {
