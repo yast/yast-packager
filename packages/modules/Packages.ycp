@@ -356,7 +356,7 @@
 
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
 
-	y2milestone ("Packages::Proposal: '%1'", Language::language);
+	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'", force_reset, reinit, Language::language);
 	Pkg::SetLocale (Language::language);
 
 	if ( force_reset )
@@ -384,6 +384,9 @@
 
 	list selected_addon_selections = Pkg::GetSelections (`selected, "");
 	y2milestone ("selected base is %1, addon is %2", selected_base_selection, selected_addon_selections);
+
+	// re-set space calculation
+	SpaceCalculation::GetPartitionInfo();
 
 	if (selected_base_selection == ""
 	    || !SpaceCalculation::CheckDiskSize() )
