@@ -34,4 +34,5 @@ AC_OUTPUT(Makefile
 	package/yast2-config-package-manager.spec:yast2-config-package-manager.spec.in
 	src/Makefile
 	doc/Makefile
+	doc/autodocs/Makefile
 	testsuite/Makefile)

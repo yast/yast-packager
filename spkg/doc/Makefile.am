@@ -2,6 +2,8 @@
 # Makefile.am for y2c_spkg/doc
 #
 
+SUBDIRS = autodocs
+
 docdir = @DOCDIR@
 htmldir = $(docdir)/y2c_spkg
 
