@@ -229,7 +229,7 @@
 	    install_list = union (install_list, Kernel::kernel_packages);
 	}
 
-	if (Pkg::IsSelected("xf86")
+	if (Pkg::IsSelected("XFree86")
 	    || Mode::live_eval)
 	{
 	    install_list = union (install_list, graphicPackages ());
@@ -323,7 +323,7 @@
 	    {
 		ret = add( ret, "warning", _("Disk space exhausted -- changing software selection") );
 		ret = add( ret, "warning_level", `error );
-		redo_proposal = true; // 
+		redo_proposal = true; //
 	    }
 
 
