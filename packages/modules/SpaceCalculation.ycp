@@ -320,8 +320,7 @@
 
 	y2milestone( "UTILS *** EvaluateFreeSpace returns: %1", part_input );
 
-	// $[ "dir" : [ total, used, pkgusage ], .... ]
-	y2milestone ("Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
+	Pkg::InitDU(part_input);
 
 	return part_input;
     };
