@@ -255,52 +255,6 @@ Select which desktop to install.</p>
      * GLOBAL FUNCTIONS
      *-----------------------------------------------------------------------*/
 
-
-    /**
-     * Compute kernel package
-     * @return string selected kernel
-     */
-    global string ComputeKernelPackage () {
-	    string the_kernel = Kernel::kernel_packages[0]:"";
-	    y2milestone ("Selecting '%1' as kernel package", the_kernel);
-	    while (the_kernel != ""
-		   && !Pkg::IsAvailable (the_kernel))
-	    {
-		the_kernel = Kernel::fallbacks[the_kernel]:"";
-		y2milestone ("Not available, falling back to '%1'", the_kernel);
-	    }
-
-	    if (the_kernel != "")
-	    {
-                return the_kernel;
-	    }
-	    else
-	    {
-		y2warning ("%1 not available, using kernel-default",
-						Kernel::kernel_packages);
-                return "kernel-default";
-	    }
-    }
-
-
-    /**
-     * Compute kernel packages
-     * @return list of selected kernel packages
-     */
-    global list <string> ComputeKernelPackages () {
-
-	    string kernel = ComputeKernelPackage ();
-	    string kernel_nongpl = kernel + "-nongpl";
-
-	    list <string> ret = [ kernel ];
-
-	    if (Pkg::IsAvailable (kernel_nongpl))
-		ret = add (ret, kernel_nongpl);
-
-	    return ret;
-    }
-
-
     /**
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
@@ -318,7 +272,7 @@ Select which desktop to install.</p>
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update || !Mode::autoinst)
 	{
-            list <string> kernel_pkgs = ComputeKernelPackages ();
+            list <string> kernel_pkgs = Kernel::ComputePackages ();
 	    install_list = (list <string>) union (install_list, kernel_pkgs);
         }
 
