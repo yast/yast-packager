@@ -31,6 +31,6 @@ AM_CONDITIONAL(ISSPARC, test `uname -m` = sparc)
 AM_CONDITIONAL(ISPPC, test `uname -m` = ppc)
 
 AC_OUTPUT(Makefile
-	package/y2c_spkg.spec:y2c_spkg.spec.in
+	package/yast2-config-package-manager.spec:yast2-config-package-manager.spec.in
 	src/Makefile
 	doc/Makefile)
