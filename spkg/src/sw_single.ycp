@@ -103,6 +103,8 @@
             // if sw_single is called with an absolute package-pathname, there is no need to
 	    // mount the source medium or check SuSE version or dependencies
 
+	    Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
+
 	    foreach (`package, arg_list,
 	    ``{
 		if (SCR::Read (.target.size, package) > 0)
@@ -212,6 +214,8 @@
 	    }
 	    else
 	    {
+		import "SpaceCalculation";
+		SpaceCalculation::GetPartitionInfo();	// initialize the DU calculation
 		result = WFM::CallFunction( `inst_packages ());	// Ask user if conflicts
 		y2milestone ("inst_packages returns %1", result);
 		if (result == `accept)
@@ -223,8 +227,10 @@
     if (result == `next)				// packages selected ?
     {
 	Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
-	Pkg::PkgCommit (0);				// Y: commit them !
-	result = WFM::CallFunction( `inst_suseconfig (false, false));
+	list commit_result = Pkg::PkgCommit (0);				// Y: commit them !
+
+	if (commit_result[0]:0 > 0)
+	    result = WFM::CallFunction( `inst_suseconfig (false, false));
     }
 
     UI::CloseDialog();
