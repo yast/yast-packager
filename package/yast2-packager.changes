@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep  4 15:38:49 CEST 2002 - kkaempf@suse.de
+
+- force /dev/cdrom symlink
+- 2.6.23
+
+-------------------------------------------------------------------
 Wed Sep  4 12:13:48 CEST 2002 - kkaempf@suse.de
 
 - Fix MediaChange callback in PackageCallbacks
