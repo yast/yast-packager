@@ -494,13 +494,8 @@
 	    y2warning ("Packages::Init() already called");
 	    return;
 	}
-
-	// collect mountpoint:device as map to get a sorted list
-	
-	boolean retval = false;
-
 	//
-	// Initialize package agent
+	// Initialize package manager
 	//
 
 	// usual mountpoint for the source medium
@@ -509,9 +504,7 @@
 	if ( Mode::test )
 	{
 	    // Fake values for testing purposes
-
-	    base_url = "dir:///dist/next-i386";
-	    //base_path = "/suse/sh/fake-cd1";
+	    base_url = "dir:///dist/next-i386";	   
 	}
 	else if (SCR::Read (.etc.install_inf.Sourcemounted) == "1")
 	{
@@ -522,7 +515,7 @@
 	    base_url = InstMedia::installInf2Url ();
 	}
 
-	y2milestone ("INIT package agent: %1", base_url);
+	y2milestone ("Initialize Package Manager: %1", base_url);
 	theSource = Pkg::SourceInit (base_url);
 	if (theSource >= 0)
 	{
