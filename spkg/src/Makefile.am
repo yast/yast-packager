@@ -4,9 +4,9 @@
 
 client_DATA = sw_single.ycp
 
-config_DATA =				\
-	menuentry_sw_single.y2cc	\
-	menuentry_sw_source.y2cc
+config_DATA =			\
+	sw_single.y2cc		\
+	sw_source.y2cc
 
 ynclude_DATA = require.ycp
 
