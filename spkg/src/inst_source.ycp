@@ -324,8 +324,7 @@ to specify username, password and workgroup.") ),
         map productData = Pkg::SourceProductData( source );
         term item = `item(
             `id( source ),
-            "On",
-//            lookup( source, "state", true ) ? "On" : "Off",
+            lookup( generalData, "enabled", true ) ? "On" : "Off",
             lookup( productData, "label", "unknown" ),
             lookup( generalData, "url", "" )
         );
@@ -411,11 +410,11 @@ from URL '%1'."), url );
 			      ),
 //		    `HWeight( 1, `PushButton( `id(`edit), editButtonLabel ) ) ),
 //		    `HWeight( 1, `PushButton( `id(`delete), deleteButtonLabel ) ) ),
-		    `HStretch()
+		    `HStretch(),
 //		    `HWeight( 1, `PushButton( `id(`up), upButtonLabel ) ) ),
 //		    `HWeight( 1, `PushButton( `id(`down), downButtonLabel ) ) ),
 //		    `HStretch(),
-//		    `PushButton(`id(`enable), enableButtonLabel )
+		    `PushButton(`id(`enable), enableButtonLabel )
 		    ),
 	      `VSpacing( 0.5 )
 	      );
@@ -524,6 +523,7 @@ on the NFS server.
     Wizard::ReplaceNextButton (`PushButton(`id(`next), FinishButtonLabel()));
     Wizard::SetContents(title, contents, help_text, true, true);
 
+    Pkg::SourceStartManager( false );
     Pkg::SourceStartCache ( false );
 
     fillTable();
@@ -600,11 +600,12 @@ on the NFS server.
             }
             else if ( input == `enable )
             {
-                boolean state = SCR::Read( .instsrcmgr.source.state, id );
+                map generalData = Pkg::SourceGeneralData( id );
+                boolean state = lookup( generalData, "enabled", true );
                 state = !state;
                 string newstate = ( state ? _("On") : _("Off") );
                 UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
-                SCR::Write( .instsrcmgr.source.state, state, id );
+                Pkg::SourceSetEnabled( id, state );
             }
             else if ( input == `up )
             {
