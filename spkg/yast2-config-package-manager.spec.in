@@ -48,8 +48,8 @@ make install
 
 %dir @YAST2DIR@/clients
 %dir @YAST2DIR@/menuentries
-@YAST2DIR@/menuentries/menuentry_sw_single.ycp
-@YAST2DIR@/menuentries/menuentry_sw_source.ycp
+@YAST2DIR@/menuentries/menuentry_sw_single.y2cc
+@YAST2DIR@/menuentries/menuentry_sw_source.y2cc
 @YAST2DIR@/clients/sw_single.ycp
 @YAST2DIR@/include/require.ycp
 %doc @DOCDIR@
