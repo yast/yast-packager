@@ -10,6 +10,7 @@
 {
 
     module "Packages";
+
     import "Mode";
     import "Product";
     import "Installation";
@@ -537,7 +538,7 @@
 		string cdrom = SCR::Read (.etc.install_inf.Cdrom);
 		SCR::Execute(.target.symlink, "/dev/"+cdrom, "/dev/cdrom");
 	    }
-	    theSources = [ Pkg::SourceCreate (base_url) ];
+	    theSources = [ Pkg::SourceCreate (base_url) ];	    
 	}
 	else	// cont or normal mode
 	{
