@@ -22,7 +22,7 @@
 
     global boolean _provide_popup = false;
     global boolean _package_popup = false;
-    global string _provide_name = "";
+
     global string _package_name = "";
 
     global integer _current_source = 1;
@@ -41,7 +41,6 @@
 	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
 	}
-	_provide_name = name;
 	return;
    }
 
@@ -63,7 +62,7 @@
     // return "R" for retry
     // return "C" for abort
     */
-   global define string DoneProvide (integer error, string reason)
+   global define string DoneProvide (integer error, string reason, string name)
    ``{
 	if (_provide_popup)
 	    UI::CloseDialog();
@@ -71,7 +70,7 @@
 
 	if (error != 0)
 	{
-	    string message = sformat (_("Package %1 was not found on the medium."), _provide_name);
+	    string message = sformat (_("Package %1 was not found on the medium."), name);
 
 	    term button_box = `HBox (`PushButton (`id(`abort), AbortButtonLabel()));
 	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));

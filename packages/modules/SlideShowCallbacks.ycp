@@ -34,7 +34,6 @@
 	    SlideShow::SlideProvideStart (name);
 	    _remote_provide = true;
 	}
-	PackageCallbacks::_provide_name = name;
 	return;
    }
 
@@ -55,7 +54,7 @@
    /** during file providal
     *
     */
-   global define string DoneProvide (integer error, string reason)
+   global define string DoneProvide (integer error, string reason, string name)
    ``{
 	if (_remote_provide)
 	{
@@ -64,7 +63,7 @@
 	}
 	if (error != 0)
 	{
-	    return PackageCallbacks::DoneProvide (error, reason);
+	    return PackageCallbacks::DoneProvide (error, reason, name);
 	}
 
 	return "";
