@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  5 13:12:29 CEST 2002 - kkaempf@suse.de
+
+- added xf86, mesasoft to required packages for vnc installation
+- provide create_update_inf
+
+-------------------------------------------------------------------
 Fri Aug 02 17:43:31 CEST 2002 - arvin@suse.de
 
 - added yast2-qt to required packages for vnc installation
@@ -14,6 +20,11 @@ Fri Jul 26 12:15:00 CEST 2002 - ms@suse.de
 - changed use of X11 module. The X11 module does no longer exist
   to provide the information of "having X11" installed (have_x11) the
   module X11Version is used
+
+-------------------------------------------------------------------
+Wed Jul 24 11:24:27 CEST 2002 - kkaempf@suse.de
+
+- provide "create_update_inf"
 
 -------------------------------------------------------------------
 Tue Jul 16 13:07:56 CEST 2002 - arvin@suse.de
