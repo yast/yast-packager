@@ -343,7 +343,7 @@
 	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
 	}
 
-	button_box = add (button_box,  `PushButton (`id(`cancel), Label::AbortButton()));
+	button_box = add (button_box, `PushButton (`id(`cancel), Label::AbortButton()));
 
 	// push button label during media change popup, user can skip
 	// this media (CD) so no packages from this media will be installed
@@ -364,7 +364,7 @@
 	}
 	else
 	{
-	    UI::OpenDialog( `opt(`decorated),  UI::LayoutPopup (message, button_box, 2, false) );
+	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 2, false) );
 	    UI::ReplaceWidget(`id(`info), `Empty() );
 	}
 
@@ -381,7 +381,7 @@
 		else
 		{
 		    CloseDialog();
-		    OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 2, false) );
 		    ReplaceWidget(`id(`info), `Empty() );
 		}
 		return false;
@@ -524,7 +524,7 @@
     global define void StartConvertDB (string unused1) ``{
 
 	// heading of popup
-	string heading = _("RPM DB Convert");
+	string heading = _("Checking Package Database");
 
 	// message in a progress popup
 	string message = _("Converting package database. This process can take some time.");

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 24 13:24:03 CEST 2003 - arvin@suse.de
+
+- better (more inexpressive) message during rpm database convert
+  (bug #30457)
+
+-------------------------------------------------------------------
 Thu Oct 23 15:03:43 CEST 2003 - jsrain@suse.de
 
 - made more interface of Require global
