@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Aug 31 14:58:07 CEST 2003 - arvin@suse.de
+
+- use Popup::ConfirmAbort
+
+-------------------------------------------------------------------
 Sat Aug 30 22:56:41 CEST 2003 - arvin@suse.de
 
 - fixed installing of required bootloader on alpha
