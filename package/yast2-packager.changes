@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 21 16:08:17 CET 2003 - sh@suse.de
+
+- Fixed bug #23945: SpaceCalculation 14% off
+
+-------------------------------------------------------------------
 Thu Feb 20 11:39:23 CET 2003 - arvin@suse.de
 
 - use title-style capitalization for menu names (bug #23848)
