@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  6 10:52:36 CEST 2001 - gs@suse.de
+
+- deprecated wfm builtins removed
+
+-------------------------------------------------------------------
 Fri May 11 13:04:16 MEST 2001 - gs@suse.de
 
 - use UI(`GetLanguage(true)) (bug # 8103) 
