@@ -16,7 +16,6 @@
 
     include "ui/common_messages.ycp";
     import "Wizard";	// some modules call us without any dialog open
-    import "PackageCallbacks";
 
     /**
      * This will be local when converted to a Module::
@@ -40,6 +39,7 @@
     }
 
     global define void EnsureSourceInit () ``{
+    	import "PackageCallbacks";
 	source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
     }
 
