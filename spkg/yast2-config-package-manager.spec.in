@@ -15,6 +15,7 @@ Release:      1
 Copyright:    (c) 2000 SuSE GmbH
 Group:        System Environment/YaST
 Requires:	yast2-trans-package-manager yast2-db-groups yast2
+Requires:	yast2-agent-targetpkg
 BuildArchitectures: noarch
 
 Packager:     @MAINTAINER@

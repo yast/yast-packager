@@ -17,15 +17,14 @@
 
     include "ui/common_messages.ycp";
 
- 
+
     /**
      * Is this package installed?
      * @param package
      * @return boolean
      */
     global define IsPackageInstalled (string package) ``{
-	string query = sformat("/bin/rpm -q %1", package);
-	return 0 == SCR (`Execute (.target.bash, query));
+	return SCR::Read (.targetpkg.installed, package);
     }
 
     /**
@@ -65,7 +64,7 @@
 	    "install": toinstall,
 	    "delete": toremove
 	    ];
-	
+
 	string fn = SCR (`Read (.target.tmpdir));
 	fn = fn + "/script.sw_single";
 	SCR (`Write (.target.ycp, fn, script));
@@ -91,8 +90,8 @@
 					    string continue_button, string cancel_button ) ``{
 	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalled (p)));
 	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalled (p)));
-	string message = sformat (help, 
-				  mergestring (toinstall, ", "), 
+	string message = sformat (help,
+				  mergestring (toinstall, ", "),
 				  mergestring (toremove, ", ")
 				  );
 	term d = `VBox (
