@@ -54,13 +54,13 @@
 
     if(Installation::destdir == "" || Installation::destdir == "/")
     {
-	    Popup::Message (_("you need to specify a root directory != /"));
+	    Popup::Message (_("Specify a root directory. This does not mean /"));
 	    return false;
     }
 
     if(Pkg::TargetInit (Installation::destdir,true) != true)
     {
-	    if(Popup::ContinueCancel(_("initializing the target directory failed")) == false)
+	    if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false)
 	    {
 	      return 1;
 	    }
@@ -90,7 +90,7 @@
 
       if(SCR::Read (.target.size, Installation::destdir+"/usr/sbin/chpasswd") > 0)
       {
-	boolean ret = Popup::YesNo(_("Set rootpassword to \\n?"));
+	boolean ret = Popup::YesNo(_("Set root password to \\n?"));
 	if(ret == true)
 	{
 	  SCR::Execute(.target.bash,"echo root: | /usr/bin/chroot "+Installation::destdir+" /usr/sbin/chpasswd");
