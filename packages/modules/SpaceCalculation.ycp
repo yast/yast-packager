@@ -20,7 +20,6 @@
     import "Installation";
     import "Mode";
     import "Report";
-
     import "Label";
     include "ui/common_functions.ycp";
 
@@ -29,32 +28,33 @@
     boolean info_called = false;	// list partition_info already initialized?
     list    partition_info = [];	// information about available partitions
 
-   /*
-    * Return partion info list
-    * @return list of available partitions
-    */
-    global define list GetPartitionList() ``{
 
+    /*
+     * Return partition info list
+     * @return list of available partitions
+     */
+    global define list GetPartitionList() ``{
 	return partition_info;
     }
 
-  /*
-   * Get information about available partitions either from "targetMap"
-   * in case of a new installation or from 'df' command (continue mode
-   * and installation on installed system).
-   * Returns a list containing available partitions and stores the list
-   * in "partition_info".
-   *
-   * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
-   *				     $["free":1974697, "name":"usr", "used":4227733]]
-   *
-   *
-   * @example GetPartitionInfo();
-   *
-   * Will be called from Packages when re-doing proposal !!
-   */
-    global define list GetPartitionInfo( )
-    ``{
+
+    /*
+     * Get information about available partitions either from "targetMap"
+     * in case of a new installation or from 'df' command (continue mode
+     * and installation on installed system).
+     * Returns a list containing available partitions and stores the list
+     * in "partition_info".
+     *
+     * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
+     *				     $["free":1974697, "name":"usr", "used":4227733]]
+     *
+     *
+     * @example GetPartitionInfo();
+     *
+     * Will be called from Packages when re-doing proposal !!
+     */
+    global define list GetPartitionInfo () ``{
+
 	list partition = [];
 
 	if ( Mode::cont )
@@ -81,21 +81,22 @@
 	return partition;
     }
 
-  /*
-   * Define a macro that transforms information about all partitions ( from
-   * Storage::GetTargetMap() ) into a list(map) with information about partitions
-   * which are available for installation, e.g.:
-   *
-   * [$["free":1625676, "name":"/boot", "used":0], $["free":2210406, "name":"/", "used":0]]
-   *
-   * Please note: there isn't any information about used space, so "used" at begin
-   *              of installation is initialized with zero;
-   *              size "free", "used" in KBytes
-   *
-   */
 
-    define get_partition_info( )
-    ``{
+    /*
+     * Define a macro that transforms information about all partitions ( from
+     * Storage::GetTargetMap() ) into a list(map) with information about partitions
+     * which are available for installation, e.g.:
+     *
+     * [$["free":1625676, "name":"/boot", "used":0], $["free":2210406, "name":"/", "used":0]]
+     *
+     * Please note: there isn't any information about used space, so "used" at begin
+     *              of installation is initialized with zero;
+     *              size "free", "used" in KBytes
+     *
+     */
+
+    define get_partition_info () ``{
+
 	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
 
@@ -108,7 +109,7 @@
 
 	    list partitions = [];
 	    foreach (`mpoint, mounts,
-	    ``{
+		     ``{
 		string name = mpoint["file"]:"";
 		if ((substring (name, 0, 1) == "/")
 		    && (substring (name, 0, 5) != "/dev/")		// filter out /dev/pts etc.
@@ -138,64 +139,64 @@
 	integer min_spare 	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
 
 	foreach( `disk, `diskinfo, targets,
-	``{
+		 ``{
 
 	    list part_info = diskinfo["partitions"]:[];
 
 	    foreach( `part, part_info,
-	    ``{
+		     ``{
 		integer free_size = 0;
 
-	    if (part["mount"]:nil != nil
-		&& substring( part["mount"]:"", 0, 1 ) == "/" )
-	    {
-		if (part["create"]:nil == true
-		    || part["delete"]:nil == false
-		    || (part["create"]:nil == nil
-			&& part["delete"]:nil == nil ) )
+		if (part["mount"]:nil != nil
+		    && substring( part["mount"]:"", 0, 1 ) == "/" )
 		{
-		    y2debug( "get_partition_info: adding partition: %1", part );
-
-		    // get free_size on partition in kBytes
-
-		    if ( part["type"]:`empty == `pdisk )
+		    if (part["create"]:nil == true
+			|| part["delete"]:nil == false
+			|| (part["create"]:nil == nil
+			    && part["delete"]:nil == nil ) )
 		    {
-			// PowerPC: free_space = number of cyl. ( "region": second value ) * 512
-			free_size = (part["region",1]:0 * 512);
-		    }
-		    else
-		    {
-			// others: free space = number of cyl. ( "region": second value ) * cyl_size
-			free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1024);
-		    }
+			y2debug( "get_partition_info: adding partition: %1", part );
 
-		    free_size = free_size - min_spare;
+			// get free_size on partition in kBytes
 
-		    y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
-		    if ( !remove_slash)
-		    {
-			target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":0, "free":free_size]);
-		    }
-		    else
-		    {
-			string part_name = "";
-			string mount_name = part["mount"]:"";
-
-			if ( mount_name != "/" )
+			if ( part["type"]:`empty == `pdisk )
 			{
-			    part_name = substring( mount_name, 1, size(mount_name) );
+			    // PowerPC: free_space = number of cyl. ( "region": second value ) * 512
+			    free_size = (part["region",1]:0 * 512);
 			}
 			else
 			{
-			    part_name = mount_name;
+			    // others: free space = number of cyl. ( "region": second value ) * cyl_size
+			    free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1024);
 			}
 
-			target_partitions = add ( target_partitions, $["name":part_name, "used":0, "free":free_size]);
-		    }
+			free_size = free_size - min_spare;
 
+			y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
+			if ( !remove_slash)
+			{
+			    target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":0, "free":free_size]);
+			}
+			else
+			{
+			    string part_name = "";
+			    string mount_name = part["mount"]:"";
+
+			    if ( mount_name != "/" )
+			    {
+				part_name = substring( mount_name, 1, size(mount_name) );
+			    }
+			    else
+			    {
+				part_name = mount_name;
+			    }
+
+			    target_partitions = add ( target_partitions, $["name":part_name, "used":0, "free":free_size]);
+			}
+
+		    }
 		}
-	    }
-	} ); // foreach (`part)
+	    } ); // foreach (`part)
 	} ); // foreach (`disk)
 
 	y2milestone( "get_partition_info: part %1", target_partitions );
@@ -214,16 +215,11 @@
      * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
      *				     $["free":1974697, "name":"usr", "used":4227733]]
      *
-     *
      * @example EvaluateFreeSpace ( 5 );
      *
-     *
      * ***  This is needed during update !
-     *
      */
-
-    global define EvaluateFreeSpace( integer spare_percentage )
-    ``{
+    global define EvaluateFreeSpace (integer spare_percentage) ``{
 
 	list partition = [];
 	integer min_spare = 5 * 1024* 1024;		// 5 MB
@@ -241,7 +237,7 @@
 	list part_input = [];
 
 	foreach( `part, partition,
-	``{
+		 ``{
 	    map part_info = $[];
 	    integer free_size = 0;
 	    integer spare_size = 0;
@@ -278,8 +274,8 @@
 		    change ( part_info, "name", mountName );
 		}
 		else if ( mountName != Installation::sourcedir
-			 && mountName != "/cdrom"
-			 && mountName != "/dev/shm" )
+			  && mountName != "/cdrom"
+			  && mountName != "/dev/shm" )
 		{
 		    change ( part_info, "name", substring( mountName, 1 ) );  // remove "/" in front
 		}
@@ -328,12 +324,11 @@
      * $["name" : string, "free" : integer, "used" : integer ]
      *
      */
-    global define list CheckCurrentSpace (list current_partitions)
-    ``{
+    global define list CheckCurrentSpace (list current_partitions) ``{
+
 	list output = [];
 
-	foreach (`par, current_partitions,
-	``{
+	foreach (`par, current_partitions, ``{
 	    map outdata = $[];
 	    outdata["name"] = par["name"]:"";
 	    outdata["used"] = Pkg::TargetUsed (Installation::destdir + par["name"]:"");
@@ -348,7 +343,7 @@
     //
     // Popup displays warning about exhausted disk space
     //
-    global define boolean ShowPartitionWarning( ) ``{
+    global define boolean ShowPartitionWarning () ``{
 
 	if ( !info_called )
 	{
@@ -359,8 +354,7 @@
 
 	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 
-	foreach( `dir, `sizelist, Pkg::TargetGetDU(),
-	``{
+	foreach( `dir, `sizelist, Pkg::TargetGetDU(), ``{
 	    y2milestone ("dir %1, sizelist (total, current, future) %2", dir, sizelist);
 	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// usedfuture - total
 	    if ( needed > 0 )
@@ -398,9 +392,7 @@
     //
     // Calculate required disk space
     //
-
-    global define string GetRequSpace( boolean initialize )
-    ``{
+    global define string GetRequSpace (boolean initialize) ``{
 
 	if ( !info_called )
 	{
@@ -411,7 +403,7 @@
 
 	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 	foreach( `dir, `sizelist, Pkg::TargetGetDU(),
-	``{
+		 ``{
 	    used = used + sizelist[2]:0;
 	} );
 	y2milestone ("GetReqSpace Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
@@ -423,7 +415,7 @@
     // Check, if the current selection fits on the disk
     // return true or false
     //
-    global define boolean CheckDiskSize( ) ``{
+    global define boolean CheckDiskSize () ``{
 
 	boolean fit = true;
 
@@ -437,7 +429,7 @@
 	string message = "";
 	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 	foreach (`dir, `sizelist, Pkg::TargetGetDU(),
-	``{
+		 ``{
 	    y2milestone ("%1: %2", dir, sizelist);
 	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// usedfuture - total
 	    if ( needed > 0 )
