@@ -1514,7 +1514,6 @@
 
 		if ( user_switched_to_details )
 		    SwitchToDetailsView();
-
 	    }
 
 	    if ( ! user_switched_to_details ) // Don't override explicit user request!
@@ -1527,6 +1526,8 @@
 	{
 	    if ( ! ShowingDetails() )
 		RebuildDialog();
+	    else
+		UpdateTotalProgress();
 
 	    current_slide_no = 0;
 	}
