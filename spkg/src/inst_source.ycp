@@ -74,7 +74,7 @@
 				 `VSpacing( 0.2 )
 				 )
 			   );
-            integer id = Pkg::SourceCreate( url );
+            integer id = Pkg::SourceCreate( url, "" );
             UI::CloseDialog();
             if ( id == nil )
             {
@@ -92,7 +92,7 @@ from URL '%1'."), url );
 
                 boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
                 if ( tryagain ) return `again;
-                else `cancel;
+                else return `cancel;
             }
             else
             {
@@ -268,9 +268,9 @@ on the NFS server.
 	}
         else
         {
-            current = UI::QueryWidget( `id( `table ), `CurrentItem );
+            current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
 
-            term idterm = select( UI::QueryWidget( `id( `table ), `Item( current ) ), 0, 0 );
+            term idterm = (term) select( (list) UI::QueryWidget( `id( `table ), `Item( current ) ), 0, 0 );
             integer id = select( idterm, 0, 0 );
 
             if ( input == `replace )

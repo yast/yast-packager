@@ -46,9 +46,9 @@
      * LOCALE FUNCTIONS
      *-----------------------------------------------------------------------*/
 
-    define list architecturePackages ()
+    define list<string> architecturePackages ()
     ``{
-	list packages = [];
+	list<string> packages = [];
 
 	// check for PCMCIA and add package
 	if (Arch::has_pcmcia)
@@ -167,11 +167,11 @@
      *
      */
 
-    define list graphicPackages ()
+    define list<string> graphicPackages ()
     ``{
 	import "Display";
 
-	list packages = [];
+	list<string> packages = [];
 
 	// dont setup graphics if running via serial console
 
@@ -194,9 +194,9 @@
      * @return list(string)
      */
 
-    define list modePackages ()
+    define list<string> modePackages ()
     ``{
-	list packages = [];
+	list<string> packages = [];
 
 	if (Mode::vnc)
 	{
@@ -211,12 +211,12 @@
      * @return list(string)
      */
 
-    define list javaPackages ()
+    define list<string> javaPackages ()
     ``{
 	if (!Arch::alpha)
 	    return [];
 
-	list packages = [];
+	list<string> packages = [];
 
 	list cpus = (list) SCR::Read (.probe.cpu);
 	string model = cpus[0, "model"]:"EV4";
@@ -244,18 +244,18 @@
      * ( architecture, X11....)
      */
 
-    global define list ComputeSystemPackageList ()
+    global define list<string> ComputeSystemPackageList ()
     ``{
-	list install_list =  architecturePackages ();
+	list<string> install_list =  architecturePackages ();
 
-	install_list = union (install_list, modePackages ());
+	install_list = (list<string>) union (install_list, modePackages ());
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update ||  !Mode::autoinst)
 	{
 	    if (Pkg::IsAvailable (Kernel::kernel_packages[0]:"k_deflt"))
 	    {
-		install_list = union (install_list, Kernel::kernel_packages);
+		install_list = (list<string>) union (install_list, Kernel::kernel_packages);
 	    }
 	    else
 	    {
@@ -267,12 +267,12 @@
 	if (Pkg::IsSelected("XFree86")
 	    || Mode::live_eval)
 	{
-	    install_list = union (install_list, graphicPackages ());
+	    install_list = (list<string>) union (install_list, graphicPackages ());
 	}
 
 	if (Pkg::IsSelected("java"))
 	{
-	    install_list = union (install_list, javaPackages ());
+	    install_list = (list<string>) union (install_list, javaPackages ());
 	}
 
 	install_list = toset (install_list);
@@ -294,7 +294,7 @@
 	}
 	Pkg::SetSelection (basename);
 	Pkg::ActivateSelections ();
-	Pkg::PkgSolve();
+	Pkg::PkgSolve(false);
     }
 
     /**
@@ -352,7 +352,7 @@
 	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
 
 	    Pkg::SourceSetRamCache (false);
-	    integer initial_source = Pkg::SourceCreate (base_url);
+	    integer initial_source = Pkg::SourceCreate (base_url, "");
 	    if (initial_source == nil)
 	    {
 		y2error ("No source on '%1'", log_url);
@@ -486,7 +486,7 @@
 			string pkgdir = sourcelist[1]:"";
 
 			string meta_url = "dir:///yast-install/" + orderdir;
-			integer order_source = Pkg::SourceCreate (meta_url);		// create and enable source
+			integer order_source = Pkg::SourceCreate (meta_url, "");		// create and enable source
 			y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
 			if (order_source != nil)
 			{
@@ -768,7 +768,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error(
 
 	    // add additional (internal) packages, like kernel etc.
 	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
-	    Pkg::PkgSolve();
+	    Pkg::PkgSolve(false);
 
 	    y2milestone ("activating: %1, returning %2", act_sel, ret);
 	}
