@@ -316,8 +316,9 @@
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
-
-	list p_info = Pkg::CheckSpace(partition_info);
+	y2milestone ("Pkg::CheckSpace(%1)", partition_info);
+	list p_info = Pkg::CheckSpace (partition_info);
+	if (p_info == nil) p_info = [];
 	integer used = 0;
 
 	y2debug("partition: %1", p_info );
