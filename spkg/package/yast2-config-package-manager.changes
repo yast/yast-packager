@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 14 13:14:16 CEST 2001 - schubi@suse.de
+
+- unmounting Medium correctly before exit #10555
+
+-------------------------------------------------------------------
 Thu Sep 13 10:13:01 CEST 2001 - kkaempf@suse.de
 
 - re-read package data (common.pkd, etc.) if installation source
