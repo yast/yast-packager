@@ -670,7 +670,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 						       ``{
 							   map xmap = Pkg::SelectionData(x);
 							   map ymap = Pkg::SelectionData(y);
-							   return (xmap["order"]:"" >= ymap["order"]:"");
+							   return (xmap["order"]:"" > ymap["order"]:"");
 						       }
 						       );
 		y2milestone ("available_base_selections %1", available_base_selections);

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 19 13:24:03 CET 2004 - mvidner@suse.cz
+
+- changed sort to use "<" instead of "<=" because of the switch to std::sort
+
+-------------------------------------------------------------------
 Mon Feb 16 16:01:35 CET 2004 - arvin@suse.de
 
 - added more flexible package handling for products
