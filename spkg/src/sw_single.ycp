@@ -222,6 +222,7 @@
 
     if (result == `next)				// packages selected ?
     {
+	boolean anyToDelete = Pkg::PkgAnyToDelete();
 	SlideShow::SetLanguage (UI::GetLanguage(true));
 	SlideShow::OpenSlideShowDialog();
 	import "PackageInstallation";
@@ -232,7 +233,8 @@
 
 	UI::CloseDialog();
 
-	if (commit_result[0]:0 > 0)
+	if (commit_result[0]:0 > 0
+	    || anyToDelete )
 	{
 	    // prepare "you must boot" popup in inst_suseconfig
 
