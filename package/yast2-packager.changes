@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 18 14:54:59 CET 2005 - lslezak@suse.cz
+
+- checkmedia: unmount CD (allow to change the media) and remount
+  back (#50627)
+
+-------------------------------------------------------------------
 Fri Feb 18 11:27:20 CET 2005 - jsrain@suse.cz
 
 - import Product.ycp in inst_software in order to correctly replace

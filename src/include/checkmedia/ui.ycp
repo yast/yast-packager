@@ -122,10 +122,101 @@ define list<string> TranslateInfo(list<string> info) {
 }
 
 /**
+ * Unmount CD drives in the first installation stage
+ * @return map map with unmounted drives (key: device name, value: mount point)
+ */
+define map<string,string> UnmountCD() {
+    // key: device, value: mountpoint
+    map<string,string> unmounted = $[];
+
+    if (Stage::initial())
+    {
+	if (CheckMedia::cd_cache == nil)
+	{
+	    // the cache is not initialied, do it now
+	    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
+
+	    if (cds == nil)
+	    {
+		// initialize to empty list
+		cds = [];
+	    }
+
+	    CheckMedia::cd_cache = cds;
+	}
+
+	y2milestone("cd_cache: %1", CheckMedia::cd_cache);
+
+	if (CheckMedia::cd_cache != nil)
+	{
+	    // reload /proc/mounts file
+	    SCR::UnmountAgent(.proc.mounts);
+
+	    list<map> mounts = (list<map>)SCR::Read(.proc.mounts);
+	    list<string> cddevs = maplist(map cdd, CheckMedia::cd_cache, {return cdd["dev_name"]:"";});
+
+	    // check which CD drive is mounted
+	    foreach(map mnt, mounts, {
+		    string mpoint = mnt["file"]:"";
+		    string device = mnt["spec"]:"";
+
+		    if (mpoint != nil && device != nil && contains(cddevs, device))
+		    {
+			boolean succ = (boolean) SCR::Execute(.target.umount, mpoint);
+			if (succ == true)
+			{
+			    unmounted = add(unmounted, device, mpoint);
+			    y2milestone("Unmounted device: %1 (%2)", device, mpoint);
+			}
+			else
+			{
+			    y2warning("Could not unmount device %1 (%2)", device, mpoint);
+			}
+		    }
+		}
+	    );
+	}
+    }
+
+    y2milestone("unmounted: %1", unmounted);
+
+    return unmounted;
+}
+
+define boolean MountCD(map<string,string> mountedCDs) {
+    y2milestone("mountedCDs: %1", mountedCDs);
+    boolean ret = true;
+
+    if (Stage::initial() && size(mountedCDs) > 0)
+    {
+	// remount all unmounted devices back
+	foreach(string device, string mpoint, mountedCDs, {
+		boolean succ = (boolean)SCR::Execute(.target.mount, [device, mpoint], "-o ro");
+		if (succ)
+		{
+		    y2milestone("Remounted device %1 (%2)", device, mpoint);
+		}
+		else
+		{
+		    y2error("Mount failed: %1 (%2)", device, mpoint);
+		    ret = false;
+		}
+	    }
+	);
+    }
+
+    return ret;
+}
+
+/**
  * Main dialog
  * @return symbol Result from UserInput()
  */
 define symbol MainDialog () {
+
+    // umount CD drives (only in the first stage)
+    map<string,string> unmountedCD = UnmountCD();
+
     // dialog header
     string caption = _("Media Check");
 
@@ -189,7 +280,10 @@ to avoid installation problems.");
 	true, true
     );
 
-    Wizard::SetNextButton(`next, Label::OKButton());
+    if (!CheckMedia::forced_start)
+    {
+	Wizard::SetNextButton(`next, Label::OKButton());
+    }
 
     // set buttons according to mode
     if (!Stage::initial())
@@ -231,7 +325,8 @@ to avoid installation problems.");
 	{
 	    if (Popup::ConfirmAbort(`painless))
 	    {
-		return `abort;
+		ret = `abort;
+		break;
 	    }
 	}
 	else if (ret == `start)
@@ -289,13 +384,16 @@ to avoid installation problems.");
 			    CheckMedia::Stop();
 			    loop = false;
 			    aborted = true;
-
 			}
 			else if (ui == `abort)
 			{
 			    if (Popup::ConfirmAbort(`painless))
 			    {
 				CheckMedia::Stop();
+
+				// remount umounted CD drives back
+				MountCD(unmountedCD);
+
 				return `abort;
 			    }
 			}
@@ -325,8 +423,12 @@ to avoid installation problems.");
 	}
     };
 
+    // remount umounted CD drives back
+    MountCD(unmountedCD);
+
     return ret;
 }
+
 
 /**
  * Main workflow of the idedma configuration
@@ -343,8 +445,8 @@ define any MainSequence () ``{
 	"checkmedia" :
 	$[
 	    `abort	: `abort,
-	    `next	: `next,
-	],
+	    `next	: `next
+	]
     ];
 
     Wizard::CreateDialog();

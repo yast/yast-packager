@@ -43,6 +43,7 @@
 	{
 	    // booted from another location (network), test all CD drives
 	    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
+	    CheckMedia::cd_cache = cds;
 
 	    if (cds != nil)
 	    {
