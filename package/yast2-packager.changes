@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 29 10:54:55 CEST 2002 - arvin@suse.de
+
+- make correct package
+
+-------------------------------------------------------------------
 Fri Jul 26 12:15:00 CEST 2002 - ms@suse.de
 
 - changed use of X11 module. The X11 module does no longer exist
