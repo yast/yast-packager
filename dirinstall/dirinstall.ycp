@@ -28,7 +28,7 @@
     // create initial dialog
     Wizard::CreateDialog ();
     Wizard::SetDesktopIcon("sw_source");
-    
+
     // calling inst_proposal
 
     Installation::destdir = DirInstall::target;
@@ -65,6 +65,9 @@
 	WFM::CallFunction ("inst_dirinstall", [false, false]);
     }
 
+    Pkg::SourceFinishAll ();
+    Pkg::TargetFinish();
+    Installation::destdir = "/";
     Wizard::CloseDialog ();
 
     return ret;
