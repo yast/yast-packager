@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 05 18:12:20 CET 2004 - arvin@suse.de
+
+- fixed calling of Pkg::TargetInitDU
+
+-------------------------------------------------------------------
 Wed Feb 04 15:59:42 CET 2004 - arvin@suse.de
 
 - fixed some SlideShow callbacks
