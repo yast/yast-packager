@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb  8 14:45:40 MET 2001 - gs@suse.de
+
+- always umount /var/adm/mount at the end of installation (bugfix 6283) 
+
+-------------------------------------------------------------------
 Fri Jan 12 12:54:26 MET 2001 - schubi@suse.de
 
 - targetroot added to user_settings
