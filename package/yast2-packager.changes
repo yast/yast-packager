@@ -3,6 +3,7 @@ Mon Feb  7 09:24:38 CET 2005 - jsrain@suse.cz
 
 - display total size of packages to be installed
 - install pbbuttonsd instead of pmud on PowerBooks
+- 2.11.12
 
 -------------------------------------------------------------------
 Mon Jan 31 17:50:25 CET 2005 - lslezak@suse.cz
