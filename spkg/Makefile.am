@@ -4,9 +4,9 @@
 
 SUBDIRS = src doc
 
-VERSION = $(shell cat VERSION)
+VERSION = $(shell cat $(srcdir)/VERSION)
 
-RPMNAME = $(shell cat RPMNAME)
+RPMNAME = $(shell cat $(srcdir)/RPMNAME)
 
 EXTRA_DIST = COPYRIGHT.english COPYRIGHT.french COPYRIGHT.german \
 	VERSION README RPMNAME MAINTAINER $(RPMNAME).spec.in
