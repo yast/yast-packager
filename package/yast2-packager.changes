@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 19 08:42:32 CEST 2003 - arvin@suse.de
+
+- fixed failed package message (bug #29091)
+
+-------------------------------------------------------------------
 Fri Aug 15 15:18:43 CEST 2003 - arvin@suse.de
 
 - fixed summary of failed packages (bug #28758)
