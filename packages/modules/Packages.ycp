@@ -24,7 +24,7 @@
     global integer installed = 0;	// amount of already installed packages
     global integer timestamp = 0;	// last time of getting the target map
 
-    global integer theSource = -1;
+    global list theSources = [];
 
     // Local variables
 
@@ -537,22 +537,18 @@
 		string cdrom = SCR::Read (.etc.install_inf.Cdrom);
 		SCR::Execute(.target.symlink, "/dev/"+cdrom, "/dev/cdrom");
 	    }
-	    theSource = Pkg::SourceCreate (base_url);
+	    theSources = [ Pkg::SourceCreate (base_url) ];
 	}
 	else	// cont or normal mode
 	{
-	    list sources = Pkg::SourceStartCache (true);
-	    if (size (sources) > 0)
-	    {
-		theSource = sources[0]:-1;
-	    }
-	    else
+	    theSources = Pkg::SourceStartCache (true);
+	    if (size (theSources) <= 0)
 	    {
 		y2error ("Pkg::SourceStartCache failed");
-		theSource = -1;
+		theSources = [];
 	    }
 	}
-	if (theSource >= 0)
+	if (size (theSources) >= 0)
 	{
 	    init_called = true;
 	}
