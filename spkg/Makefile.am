@@ -2,7 +2,7 @@
 # Makefile.am for modules/y2c_spkg
 #
 
-SUBDIRS = src doc
+SUBDIRS = src doc testsuite
 
 VERSION = $(shell cat $(srcdir)/VERSION)
 
