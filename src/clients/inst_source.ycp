@@ -18,6 +18,7 @@
 
     import "Label";
     import "Popup";
+    import "Product"; // need the constructor
 
     include "inst_source_dialogs.ycp";
 
