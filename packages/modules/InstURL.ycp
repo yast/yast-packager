@@ -19,7 +19,7 @@
 	string options = "";
 	boolean is_network = true;
 
-	string instmode = SCR::Read (.etc.install_inf.InstMode);	// mode
+	string instmode = (string) SCR::Read (.etc.install_inf.InstMode);	// mode
 	if (instmode == nil)						// defaults to "CD"
 	    instmode = "cd";
 
@@ -27,8 +27,8 @@
 	    || (instmode == "dvd"))
 	{
 	    is_network = false;
-	    list devicelist = SCR::Read(.probe.cdrom);
-	    foreach (`device, devicelist, ``{
+	    list devicelist = (list) SCR::Read(.probe.cdrom);
+	    foreach (map device, devicelist, ``{
 		string devname = device["dev_name"]:"";
 		if (devname != "")
 		{
@@ -44,18 +44,18 @@
 	else if (instmode == "hd")						// Harddisk
 	{
 	    is_network = false;
-	    options = "device=/dev/" + SCR::Read (.etc.install_inf.Partition) + ";filesystem=auto";
+	    options = "device=/dev/" + (string) SCR::Read (.etc.install_inf.Partition) + ";filesystem=auto";
 	}
 
 	string url = instmode + "://";
 
 	if (is_network)
 	{
-	    string username = SCR::Read (.etc.install_inf.Username);
+	    string username = (string) SCR::Read (.etc.install_inf.Username);
 	    if ((username != nil) && (username != ""))
 	    {
 		url = url + username;
-		string password = SCR::Read (.etc.install_inf.Password);
+		string password = (string) SCR::Read (.etc.install_inf.Password);
 		if ((password != nil) && (password != ""))
 		{
 		    url = url + ":";
@@ -63,14 +63,14 @@
 		}
 		url = url + "@";
 	    }
-	    string server = SCR::Read (.etc.install_inf.Server);
+	    string server = (string) SCR::Read (.etc.install_inf.Server);
 	    if ((server != nil) && (server != ""))
 	    {
 		url = url + server;
 	    }
 	} // is_network
 
-	string serverdir = SCR::Read (.etc.install_inf.Serverdir);
+	string serverdir = (string) SCR::Read (.etc.install_inf.Serverdir);
 	if (((instmode == "hd") || is_network)				// if serverdir needed
 	    && ((serverdir != nil) && (serverdir != "")))		// and is valid
 	{
@@ -93,27 +93,27 @@
 
 	if (is_network)
 	{
-	    string proxy = SCR::Read (.etc.install_inf.Proxy);
+	    string proxy = (string) SCR::Read (.etc.install_inf.Proxy);
 	    if ((proxy != nil) && (proxy != ""))
 	    {
 		url = url + ";proxy=" + proxy;
 	    }
-	    string proxyport = SCR::Read (.etc.install_inf.ProxyPort);
+	    string proxyport = (string) SCR::Read (.etc.install_inf.ProxyPort);
 	    if ((proxyport != nil) && (proxyport != ""))
 	    {
 		url = url + ";proxyport=" + proxyport;
 	    }
-	    string proxyproto = SCR::Read (.etc.install_inf.ProxyProto);
+	    string proxyproto = (string) SCR::Read (.etc.install_inf.ProxyProto);
 	    if ((proxyproto != nil) && (proxyproto != ""))
 	    {
 		url = url + ";proxyproto=" + proxyproto;
 	    }
-	    string proxyuser = SCR::Read (.etc.install_inf.ProxyUser);
+	    string proxyuser = (string) SCR::Read (.etc.install_inf.ProxyUser);
 	    if ((proxyuser != nil) && (proxyuser != ""))
 	    {
 		url = url + ";proxyuser=" + proxyuser;
 	    }
-	    string proxypassword = SCR::Read (.etc.install_inf.ProxyPassword);
+	    string proxypassword = (string) SCR::Read (.etc.install_inf.ProxyPassword);
 	    if ((proxypassword != nil) && (proxypassword != ""))
 	    {
 		url = url + ";proxypassword=" + proxypassword;

@@ -163,7 +163,7 @@
      *
      */
 
-    define  list get_partition_info () ``{
+    define list get_partition_info () ``{
 
 	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
@@ -172,7 +172,7 @@
 	{
 	    // read /proc/mounts as a list of maps
 	    // $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
-	    list mounts = (list)SCR::Read (.proc.mounts);
+	    list mounts = (list) SCR::Read (.proc.mounts);
 	    y2milestone ("mounts %1", mounts);
 
 	    list partitions = [];
@@ -200,11 +200,11 @@
 	map targets = Storage::GetTargetMap();
 	if ( Mode::test )
 	{
-	    targets = (map)SCR::Read(.target.yast2, "test_target_map.ycp");
+	    targets = (map) SCR::Read(.target.yast2, "test_target_map.ycp");
 	}
 
 	list target_partitions = [];
-	integer min_spare 	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
+	integer min_spare	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
 
 	foreach( string disk, map diskinfo, targets,
 		 ``{
