@@ -230,10 +230,11 @@
 
 	if (is_mounted)
 	{
-	    actcdnum = SCR::Read (cdnumpath, Installation::sourcedir);
-
-	    if (actcdnum == cdnum)	// right medium found !
+	    if (SCR::Read (.target.string, Installation::sourcedir+"/media."+cdnum+"/media", "") != "")
+	    {
+		actcdnum = cdnum;
 		return 0;
+	    }
 
 	    actcdnum = -3;		// not a SuSE medium
 	}
@@ -312,22 +313,14 @@
 	    {
 		// ok, medium is mounted
 		// try to get SuSE medium number
-
-		actcdnum = SCR::Read (cdnumpath, Installation::sourcedir);
-		y2milestone ("actcdnum %1", actcdnum);
-		if (actcdnum == nil)		// not SuSE medium
-		{
-		    actcdnum = -3;
-		}
-		else if (actcdnum == cdnum)	// found it !
+		if (SCR::Read (.target.string, Installation::sourcedir+"/media."+cdnum+"/media", "") != "")
 		{
 		    actcdnum = 0;
 		    break;
 		}
-		else if (start_num < 0)		// if no cd found before
+		else
 		{
-		    start_num = actcdnum;	//   remember found cd
-		    actcddevicenum = cd_current;//   remember where we found it
+		    actcdnum = -3;
 		}
 	    }
 	    else
@@ -391,14 +384,12 @@
 	    if (MountMedium(1) != 0)
 		return false;
 
+	    string media = SCR::Read(.target.string, Installation::sourcedir+"/media.1/media", "");
+	    list splitted_media = splitstring (media, "\");
+
             // read release_no (used in MediaUI to check if != 0)
-	    release_no = SCR::Read(.yast2.instsource.cdrelease, Installation::sourcedir);
-	    product    = SCR::Read(.yast2.instsource.product, Installation::sourcedir);
-	}
-	else	// runtime
-	{
-	    release_no = SCR::Read(.yast2.instsource.cdrelease, Installation::descrdestdir);
-	    product    = SCR::Read(.yast2.instsource.product, Installation::descrdestdir);
+	    product    = splitted_media[0]:"";
+	    release_no = splitted_media[1]:"";
 	}
 
 	y2milestone( "RELEASE No. %1, %2 is the reference.", release_no, product );
