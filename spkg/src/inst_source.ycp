@@ -558,10 +558,13 @@ on the NFS server.
             url = getNfsUrl();
             createSource( url );
         }
-        else if ( input == `cd || input == `dvd )
+        else if ( input == `cd )
         {
-            url = getCdUrl();
-            createSource( url );
+            createSource( "cd:///" );
+        }
+        else if ( input == `dvd )
+        {
+            createSource( "dvd:///" );
         }
 	else if ( input == `local_dir )
 	{
