@@ -58,6 +58,61 @@ Select which desktop to install.</p>
 
 string pm_init_blocker = nil;
 
+/**
+ * Parse the order file
+ * Used also to parse instorder file
+ * @param orderfile string containing the filename to parse
+ * @return a list containing parsed contents of the file
+ */
+define list<list<string> > ParseOrderFile (string orderfile) {
+    // read install/order
+    string orderdata = (string) WFM::Read(.local.string, [orderfile, ""]);
+    if (orderdata == "" || orderdata == nil)
+    {
+	y2error ("Can't read '%1'", orderfile);
+	return nil;
+    }
+    list<string> orderlist = splitstring (orderdata, "\n\r");
+    orderlist = filter (string s, orderlist, {return s != "";});
+    list<list<string> > ret = maplist (string line, orderlist, {
+	list<string> lineitems = splitstring (line, " \t\n");
+	lineitems = filter (string i, lineitems, {
+	    return i != "";
+	});
+	// filter out comments
+	if (substring (lineitems[0]:"", 0, 1) == "#")
+	    return [];
+	return lineitems;
+    });
+    ret = filter (list<string> r, ret, {return r != [];});
+    y2milestone ("Parsed %1: %2", orderfile, ret);
+    return ret;
+}
+
+/**
+ * Parse the instorder file
+ * @param instorderfile string containing the filename to parse
+ * @return a map containing parsed data from instorder file
+ */
+define map<integer, string> ParseInstOrderFile (string instorderfile) {
+    map<integer, string> instordermap = $[];	// instorder : product dir, ...
+    y2milestone ("instorder file '%1'", instorderfile);
+    list<list<string> > instorderlines = ParseOrderFile (instorderfile);
+    integer instorder = 1;
+    foreach (list<string> line, instorderlines, {
+	// Due to documentation mistake, instorder might
+	// have 2 columns, get only first column.
+	//
+	// just in case more spaces are used as delimiter,
+	// remove all remaining spaces from the list
+	//
+	instordermap[instorder] = line[0]:"";
+	instorder = instorder + 1;
+    });
+    y2milestone ("instordermap %1", instordermap);
+    return instordermap;
+}
+
 
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
@@ -444,14 +499,14 @@ string pm_init_blocker = nil;
 
             // check for yast/order
 	    string orderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/order");
-	    list<string> orderlist = [];
+	    list<list<string> > orderlist = [];
 	    map<integer, string > instordermap = $[];	// instorder : product dir, ...
 
 	    if (orderfile != nil)			// splitted source installation
 	    {
 		y2milestone ("orderfile '%1'", orderfile);
-		string orderdata = (string) WFM::Read(.local.string, [orderfile, ""]);		// read install/order
-		if (orderdata == "")
+		orderlist = ParseOrderFile (orderfile);
+		if (orderlist == nil)
 		{
 		    y2error ("Can't read '%1'", orderfile);
 		    // error in proposal, %1 is filename
@@ -463,40 +518,14 @@ string pm_init_blocker = nil;
 
 		string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
 		if (instorderfile != nil)
-		{
-		    y2milestone ("instorder file '%1'", instorderfile);
-		    string instorderdata = (string) WFM::Read (.local.string, [instorderfile, ""]);
-
-		    integer instorder = 1;
-		    list<string> instorderlist = splitstring (instorderdata, "\n");
-		    foreach (string instorderline, instorderlist, {
-			if ((instorderline != "")
-			    && (substring (instorderline, 0, 1) != "#"))
-			{
-                            list<string> sourcelist = splitstring (instorderline, " \t\n");
-                            // Due to documentation mistake, instorder might
-                            // have 2 columns, get only first column.
-                            //
-                            // just in case more spaces are used as delimiter,
-                            // remove all remaining spaces from the list
-                            //
-                            sourcelist = filter(string src, sourcelist,
-                                ``(src!=""));
-
-			    instordermap[instorder] = sourcelist[0]:"";
-			    instorder = instorder + 1;
-			}
-		    });
-		}
-		y2milestone ("instordermap %1", instordermap);
-	        orderlist = splitstring (orderdata, "\n");
+		    instordermap = ParseInstOrderFile (instorderfile);
             }
             else if (servicepack_available)
             {
                 /* No order file, but service pack is available, so we hack
                    our own order/instorder files
                 */
-	        orderlist = ["/"];
+	        orderlist = [["/"]];
                 instordermap[1] = "/";
 
             }
@@ -514,12 +543,7 @@ string pm_init_blocker = nil;
 
 		WFM::Execute (.local.mkdir, metadir);
 		boolean all_sources_ok = true;
-		orderlist = filter (string orderline, orderlist, {		// copy all data to ramdisk
-		    if ((orderline != "")
-			&& (substring (orderline, 0, 1) != "#"))
-		    {
-			list<string> sourcelist = splitstring (orderline, " \t\n");
-
+		orderlist = filter (list<string> sourcelist, orderlist, {		// copy all data to ramdisk
                         // just in case more spaces are used as delimiter,
                         // remove all remaining spaces from the list
                         //
@@ -602,8 +626,6 @@ Packages from this media cannot be installed."), orderdir),
 			    }
 			}
 			return true;
-		    }
-		    return false;
 		});
 
                 if (servicepack_available)
@@ -669,11 +691,7 @@ Packages from this media cannot be installed."), orderdir),
 		// now restart the whole stuff from the metadata in the ramdisk and create
 		// the *real* sources
 
-		foreach (string orderline, orderlist, {
-		    if ((orderline != "")
-			&& (substring (orderline, 0, 1) != "#"))
-		    {
-			list<string> sourcelist = splitstring (orderline, " \t\n");
+		foreach (list<string> sourcelist, orderlist, {
 			string orderdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"";
 
@@ -706,7 +724,6 @@ Packages from this media cannot be installed."), orderdir),
 				}
 			    });
 			}
-		    }
 		});
 		y2milestone ("theSourceOrder %1", theSourceOrder);
 		Pkg::SourceInstallOrder (theSourceOrder);
