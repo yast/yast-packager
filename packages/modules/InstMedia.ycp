@@ -20,6 +20,9 @@
 
     textdomain "packager";
 
+
+    global integer theSource = -1;
+
     /**
      * !local! maximum number of installation CDs
      * used in splitServerPath
@@ -131,71 +134,16 @@
     }
 
     /**
-     * Returns path of source-installation
-     *
-     * @param	- none -
-     * @return  string path of installation source
-     *
-     */
-
-    global define string GetInstPath( )
-    ``{
-	string instPath="";
-
-	if ( mediatype == 3 )		// Harddisk
-	{
-	    instPath = CurrentMediumDevice() + "/suse";
-	}
-	else
-	{
-	    instPath = Installation::sourcedir+"/suse";
-	}
-	y2milestone ("GetInstPath (%1)", instPath);
-	return instPath;
-    }
-
-
-    /**
-     * eject the currently active installation medium (CD/DVD)
-     *
-     */
-
-    global define void EjectMedium( )
-    ``{
-
-	if ( mediatype == 0 || mediatype == 1 )
-	{
-	    string device = CurrentMediumDevice( );
-	    SCR::Execute(.target.umount, device);
-	    SCR::Execute(.target.bash, "/bin/eject " + device );
-	}
-	return;
-    }
-
-
-    /**
      * Unmount the installation medium
      *
      */
 
     global define void UnmountMedium ()
     ``{
-	if (we_mounted && is_mounted)
+	if (we_mounted
+	    && Pkg::SourceIsAttached(theSource))
 	{
-	    SCR::Execute (.target.umount, Installation::sourcedir);
-
-	    if ((mediatype == 3)	// harddisk
-		&& (net_server != ""))	// only if we did a "mount --bind"
-	    {
-		SCR::Execute (.target.umount, tmp_mount);
-	    }
-
-	    // eject CD/DVD on PPC (Mac !) architectures
-	    if (Arch::ppc32
-		&& (mediatype == 0 || mediatype == 1))
-	    {
-		EjectMedium();
-	    }
+	    Pkg::SourceRelease (theSource, (Arch::ppc32	&& (mediatype == 0 || mediatype == 1)));
 
 	    is_mounted = false;
 	    we_mounted = false;
@@ -227,8 +175,6 @@
 	integer actcdnum = -2;		// assume 'no medium'
 
 	integer actcddevicenum = -1;	// index to mediadevices for "actcdnum"
-
-	path cdnumpath = topath (".yast2.instsource.cdnum." + cdnum);
 
 	if (is_mounted)
 	{
@@ -270,46 +216,7 @@
 	    cd_current = current_device;
 	    string current_cd_device = CurrentMediumDevice ();
 
-	    if ( mediatype == 5 )		// SMB
-	    {
-		mount_result = SCR::Execute (.target.mount, [ smb_device + current_cd_device, Installation::sourcedir, Installation::mountlog ], smb_options);
-		we_mounted = mount_result;
-	    }
-	    else if (mediatype == 3)		// Harddisk
-	    {
-		if (net_server != "")		// partition given, use "--bind"
-		{
-		    y2milestone ("Doing mount --bind %1 %2, current %3", net_server, net_dir, current_cd_device);
-		    SCR::Execute (.target.mkdir, tmp_mount);
-		    mount_result = SCR::Execute (.target.mount, ["/dev/"+net_server, tmp_mount, Installation::mountlog]);
-		    if (mount_result)
-		    {
-			Installation::sourcedir = "/var/adm/mount";
-			mount_result = SCR::Execute (.target.mount, [ tmp_mount + net_dir, Installation::sourcedir, Installation::mountlog ], " --bind -o ro");
-		    }
-		    we_mounted = mount_result;
-		}
-		else			// already mounted
-		{
-		    Installation::sourcedir = current_cd_device; // Select proper directory.
-		    we_mounted = false;
-		}
-	    }
-	    else
-	    {
-		if (mediatype <= 1)		// CD or DVD
-		{
-		    // close the tray
-		    SCR::Execute (.target.bash, "/bin/eject -t " + current_cd_device);
-		}
-
-		// print error messages to logfile
-		mount_result = SCR::Execute (.target.mount, [ current_cd_device, Installation::sourcedir, Installation::mountlog ], " -o ro");
-		we_mounted = mount_result;
-		y2milestone( "MountMedium: %1 EXIT_CODE: %2", current_cd_device, mount_result );
-	    }
-
-	    is_mounted = mount_result;
+	    is_mounted = Pkg::SourceAttach (theSource);
 
 	    if (is_mounted)
 	    {
@@ -371,34 +278,6 @@
 
 	return actcdnum;
     }
-
-    /**
-     * Call this after first time mount of Medium1
-     */
-
-    global define boolean gatherReleaseData ()
-    ``{
-	if (Mode::test)
-	    return true;
-
-	if (Mode::initial)
-	{
-	    if (MountMedium(1) != 0)
-		return false;
-
-	    string media = SCR::Read(.target.string, Installation::sourcedir+"/media.1/media", "");
-	    list splitted_media = splitstring (media, "\n");
-
-            // read release_no (used in MediaUI to check if != 0)
-	    product    = splitted_media[0]:"";
-	    release_no = splitted_media[1]:"";
-	}
-
-	y2milestone( "RELEASE No. %1, %2 is the reference.", release_no, product );
-
-	return true;
-    }
-
 
     /**
      * !local! splitServerPath (string serverpath)

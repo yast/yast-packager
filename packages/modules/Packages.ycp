@@ -554,6 +554,7 @@
 	if (theSource >= 0)
 	{
 	    init_called = true;
+	    InstMedia::theSource = theSource;
 	}
 	else
 	{

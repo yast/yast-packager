@@ -73,15 +73,12 @@
 
 	if ( !Mode::test )
 	{
-	    ret = WFM::CallModule("packager", ["CyclicDeletePkgCallback",
-					  `remove(InstMedia::GetInstPath(), delete_list),
-					  `root(Installation::destdir),
-					  `number(0)]); // number of packages already deleted=0
+	   // FIXME
 	}
 	else
 	{
 	    ret = FakePackager( delete_list,
-				InstMedia::GetInstPath(),
+				"suse"
 				true );			// deleting packages
 	}
 
@@ -111,7 +108,7 @@
 	if ( Mode::test )
 	{
 	    FakePackager( [],
-			InstMedia::GetInstPath(),
+			"suse",
 			false );		// not deleting packages
 	    return ret;
 	}
@@ -156,6 +153,37 @@
 	    return ret;
 	}
 
+	if (!correct_media)
+	{
+	    correct_media = PackageInstallation::ChangeMediumWrapper ( media_number, true );
+	    // exit here if all packages were skipped
+	    if (!correct_media)
+	    {
+		// skip all packages of this media
+		while (Pkg::PkgMediaNr (pkgname) == media_number)
+		{
+		    ret = ret - 1;
+		    pkgname = Pkg::PkgNextInstall();
+		    if (pkgname == nil
+			|| pkgname == "")
+		    {
+			break;
+		    }
+		}
+
+		// copy all other packages to other_media_packages
+		while (pkgname != nil
+			&& pkgname != "")
+		{
+		    other_media_packages = add (other_media_packages, pkgname);
+		    pkgname = Pkg::PkgNextInstall();
+		}
+		y2error ("Not correct media #%1 found", media_number);
+		SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
+		return ret;
+	    }
+	}
+
 	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
@@ -175,27 +203,6 @@
 	    }
 	    else
 	    {
-		if (!correct_media)
-		{
-		    correct_media = PackageInstallation::ChangeMediumWrapper ( media_number, true );
-		    // exit here if all packages were skipped
-		    if (!correct_media)
-		    {
-			while (Pkg::PkgMediaNr (pkgname) == media_number)
-			{
-			    ret = ret - 1;
-			    pkgname = Pkg::PkgNextInstall();
-			    if (pkgname == nil
-				|| pkgname == "")
-			    {
-				break;
-			    }
-			}
-			y2error ("Not correct media #%1 found", media_number);
-			return ret;
-		    }
-		}
-
 		string location = Pkg::PkgLocation (pkgname);
 		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
 		CallbackDisplayProgress (0);

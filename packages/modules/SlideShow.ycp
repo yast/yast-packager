@@ -74,7 +74,8 @@
 	}
 
 	next_recalc_time	= time();
-	slide_base_path		= InstMedia::GetInstPath () + "/setup/slide";
+	// FIXME -> descrdir
+	slide_base_path		= "suse/setup/slide";
 
 	if ( Mode::test )
 	{
