@@ -1,0 +1,729 @@
+/**
+ * File:	Packages.ycp
+ * Package:	Package selections
+ * Authors:	Anas Nashif (nashif@suse.de)
+ * Summary:	?
+ *
+ * $Id$
+ */
+
+{
+
+    module "Packages";
+    import "Mode";
+    import "Product";
+    import "Installation";
+    import "Language";
+    import "Kernel";
+    import "SpaceCalculation";
+    import "Report";
+
+    textdomain "packages";
+
+    global boolean install_sources = false; // Installing source packages ?
+    global integer installed = 0; 	// amount of already installed packages
+    global integer timestamp = 0; 	// last time of getting the target map
+
+    // Local variables
+
+    string tmpdir	= SCR::Read(.target.tmpdir);
+
+    boolean init_called = false;
+
+    integer release_no = 0;
+
+    /*-----------------------------------------------------------------------
+     * LOCALE FUNCTIONS
+     *-----------------------------------------------------------------------*/
+
+    define void architecturePackages ()
+    ``{
+	list packages = [];
+
+	// check for PCMCIA and add package
+	if (Arch::has_pcmcia)
+	{
+	    packages = add (packages, "pcmcia");
+	    packages = add (packages, "apmd");
+	}
+
+
+	// check for blinux and add package
+	if (Mode::braille)
+	{
+	    packages = add (packages, "sbl");
+	}
+
+	// check for aboot or mile on alpha and add package
+	if (Arch::alpha)
+	{
+	    if (Boot::LoaderType == "aboot")
+	    {
+		packages = add (packages, "aboot");
+	    }
+	    else if (Boot::LoaderType == "milo")
+	    {
+		packages = add (packages, "milo");
+	    }
+
+	}
+
+	// remove unneeded / add needed packages for ppc
+	if (Arch::ppc)
+	{
+	    if (Arch::board_iseries)
+	    {
+		packages = add (packages, "ibmsis");
+		packages = add (packages, "scsi");
+	    }
+
+	    if (Arch::board_mac)
+	    {
+		packages = add (packages, "mouseemu");
+	    }
+
+	    if (Arch::board_mac_new
+		|| Arch::board_mac_old)
+	    {
+		string pmac_board = "";
+		list pmac_compatible = SCR::Read(.probe.cpu);
+		foreach (`pmac_compatible, pmac_compatible,
+		``{
+		    pmac_board = pmac_compatible["system"]:"";
+		});
+
+		// install pmud on PowerBooks and iMacs
+		if (issubstring (pmac_board, "PowerBook")
+		    || issubstring (pmac_board, "PowerMac2,1")
+		    || issubstring (pmac_board, "PowerMac2,2")
+		    || issubstring (pmac_board, "PowerMac4,1")
+		    || issubstring (pmac_board, "iMac,1"))
+		{
+		    packages = add (packages, "pmud");
+		}
+
+		// mol is fun, and needs root access to kmem
+		packages = add (packages, "mol");
+		packages = add (packages, "sudo");
+	    }
+	}
+
+	return packages;
+    }
+
+
+    /**
+     * graphicPackages ()
+     * Compute graphic (x11) packages
+     * @return list(string)	list of rpm packages needed
+     *
+     */
+
+    define list graphicPackages ()
+    ``{
+	import "Display";
+
+	list packages = [];
+
+	// dont setup graphics if running via serial console
+
+	if (Mode::serial_console)
+	{
+	    return packages;
+	}
+
+	packages = Display::pacs_to_install;
+
+	y2milestone("X11 Packages to install: %1", packages);
+	return packages;
+    }
+
+
+
+    /**
+     * Compute packages needed for autoinstallation
+     * @return list(string)
+     */
+
+    define list autoinstPackages()
+	``{
+	import "AutoInstall";
+	list packages = [];
+	
+	packages = union (packages, AutoInstall::packageList());
+	
+	// In autoinst mode, a kernel might be external and not available
+	// in common.pkd
+	if (size(AutoInstall::Kernel)==0) {
+	    packages = union (packages, Kernel::kernel_packages);
+	}
+
+        map cups = AutoInstall::GetConfMap("cups", true);
+        if (size(cups)>0) {
+            packages = union(packages, ["cups", "yast2-config-cups"]);
+        }
+
+
+	map nis = AutoInstall::GetConfMap("nis", true);
+	if (nis["start_nis"]:false)
+	    packages = add(packages, "ypbind");
+	if (nis["start_autofs"]:false)
+	    packages = add(packages, "autofs");
+
+	map ldapclient = AutoInstall::GetConfMap("ldapclient", true);
+	if (ldapclient["start_ldapclient"]:false)
+	    packages = union(packages, ["pam_ldap","nss_ldap"]);
+
+
+	map inetd = AutoInstall::GetConfMap("inetd", true);
+	if (inetd["start_inetd"]:false)
+	    packages = add(packages, "inetd");
+
+	map nisplus = AutoInstall::GetConfMap("nisplus", true);
+	if (nisplus["start_nisplus"]:false)
+	    packages = add(packages, "nis-utils");
+
+	map mail = AutoInstall::GetConfMap("mail", true);
+	if (mail["mta"]:`other == `postfix) {
+	    packages = add(packages, "postfix");
+	    if (mail["use_amavis"]:false)
+		packages = add(packages, "amavis-postfix");
+	}
+	else if (mail["mta"]:`other == `sendmail) {
+	    packages = add(packages, "sendmail");
+	    if (mail["use_amavis"]:false)
+		packages = add(packages, "amavis-sendmail");
+	}
+
+	return packages;
+    }
+
+    /**
+     * Compute special packages
+     * @return list(string)
+     */
+
+    define list modePackages ()
+    ``{
+	list packages = [];
+
+	if (Mode::vnc)
+	{
+	    packages = ["vnc"];
+	}
+
+    	return packages;
+    }
+
+    /**
+     * Compute special java packages
+     * @return list(string)
+     */
+
+    define list javaPackages ()
+    ``{
+	if (!Arch::alpha)
+	    return [];
+
+	list packages = [];
+
+	list cpus = SCR::Read (.probe.cpu);
+	string model = cpus[0, "model"]:"EV4";
+	string cputype = substring (model, 2, 1);
+
+	if ((cputype == "6") || (cputype == "7") || (cputype == "8"))
+	{
+	    packages = ["cpml_ev6"];
+	}
+	else
+	{
+	    packages = ["cpml_ev5"];
+	}
+	return packages;
+    }
+
+    /**
+     * Build and return list of packages which depends on the
+     * the current target system and the preselected packages
+     * ( architecture, X11....)
+     */
+
+    define list ComputeSystemPackageList ( list selectedPackages )
+    ``{
+	list install_list =  architecturePackages ();
+
+	install_list = union (install_list, modePackages ());
+
+	// Kernel is added in autoinstPackages () if autoinst is enabled
+	if (Mode::autoinst)
+	{
+	    install_list = union (install_list, autoinstPackages ());
+	}
+	else
+	{
+	    install_list = union (install_list, Kernel::kernel_packages);
+	}
+
+	if (contains ( selectedPackages, "xf86")
+	    || Mode::live_eval)
+	{
+	    install_list = union (install_list, graphicPackages ());
+	}
+
+	if (contains ( selectedPackages, "java"))
+	{
+	    install_list = union (install_list, javaPackages ());
+	}
+
+	install_list = toset (install_list);
+	return install_list;
+    }
+
+
+    /*-----------------------------------------------------------------------
+     * GLOBAL FUNCTIONS
+     *-----------------------------------------------------------------------*/
+
+
+    /**
+     * Restore()
+     * Restore saved package list
+     * @return void
+     *
+     */
+
+    global define void Restore()
+    ``{
+	if ( !init_called )
+	{
+	    Packages::Init( true );
+	}
+
+	if (! Mode::test)
+	{
+	    SCR::Read(.package.packageSelections,
+		      Installation::yast2dir + "/pacs_to_install" );
+	}
+	else
+	{
+	    SCR::Read(.package.packageSelections,
+		      tmpdir + "/pacs_to_install" );
+	}
+
+	installed = SCR::Read (.target.ycp,
+			       [Installation::yast2dir+"/package_counter.ycp",
+			       0] );
+
+	y2milestone("Restored install list");
+	return;
+    }
+
+
+    /**
+     * Proposal()
+     * Make a proposal for package selection
+     * @return map for the API proposal;
+     *
+     */
+
+    global define void Proposal( boolean force_reset, boolean reinit )
+    ``{
+	map ret = $[];
+
+	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
+
+	if ( force_reset )
+	{
+	    Kernel::ProbeKernel();
+	    Packages::Init( true );	// reintialize AND reset package selection too
+	}
+	else if ( reinit )
+	{
+	    Packages::Init( false ); 	// reinitialize but keep former selection (if possible)
+	}
+	else
+	{
+	    Packages::Init( !init_called ); // reset completely only if necessary
+	}
+
+	UI::CloseDialog();
+
+	list current_sel = SCR::Read(.package.selInstallSet);
+
+        if ( current_sel == []
+             || !SpaceCalculation::CheckDiskSize() )
+        {
+            // make a new proposal or change a proposal,
+            // if it does not fit on the disk anymore 
+
+            list available_selections = [["default"], ["Standard"], ["Minimal+X11"],
+["Minimal"]];
+            boolean fit = false;
+            integer counter = 0;
+
+            if (Mode::certify)
+            {
+                // force install mode for certify cd
+                counter = 1; // setting to Standard
+            }
+            
+            while ( !fit
+                    && counter < size(available_selections) )
+            {
+                current_sel = select ( available_selections, counter, [] );
+
+                SCR::Execute(.package.selectSelInstall,
+                             select( current_sel,0 ,""),
+                             true );
+            
+                // get all packages to install
+                // Initialize package agent with the packages which have to be installed, 
+                // but without resetting single-selected packages.
+		list package_list = Packages::ComputeInstallList ();
+		SCR::Execute(.package.setInstallSelection, package_list, true );		
+                if ( !SpaceCalculation::CheckDiskSize() )
+                {
+                    // does not fit --> trying next
+                    counter = counter +1;
+                }
+                else
+                {
+                    fit = true;
+                }
+            }
+        }
+	else if (Product::certify_cd)
+	{
+	    // certification is only possible with this selection. If it doen't
+	    // fit to disk, then the disk is too small so no further logic
+	    // required.
+	    y2milestone("force certify selection");
+	    current_sel = ["certify"];
+	    boolean selin = SCR::Execute(.package.selectSelInstall,
+			 select( current_sel,0 ,""),
+			 true );
+	    // get all packages to install
+	    list package_list = Packages::ComputeInstallList ();
+	    SCR::Execute(.package.setInstallSelection, package_list, true );
+	}
+
+
+	// generate user readable output for proposal
+	list output = [];
+	list pacsels =   SCR::Read(.package.selGroups);
+	current_sel = SCR::Read(.package.selInstallSet);
+
+	// basic selection
+	foreach(`sel, pacsels, ``{
+	    string   selid   = select(sel, 0, "");
+	    string   group   = select(sel, 2, "");
+	    string   seldesc = select(sel, 1, "");
+
+	    if ( group == "baseconf"
+		 && contains( current_sel, selid) )
+	    {
+		output = add ( output, seldesc );
+	    }
+	});
+
+	// add on
+	foreach(`sel, pacsels, ``{
+	    string   selid   = select(sel, 0, "");
+	    string   group   = select(sel, 2, "");
+	    string   seldesc = select(sel, 1, "");
+
+	    if ( group != "baseconf"
+		 && contains( current_sel, selid) )
+	    {
+		output = add ( output, "+  " + seldesc );
+	    }
+	});
+
+        // check only disk space, if the current software selection
+	// fits on the disk
+	if ( !SpaceCalculation::CheckDiskSize() )
+	{
+	    ret = $[ "warning" : _("Software selection does not fit on disk"),
+		   warning_level : `blocker ];
+	}
+
+	ret = add ( ret, "raw_proposal", output );
+
+	return ret;
+    }
+
+
+    /**
+     * Init()
+     * Initialize package module and package agent
+     * @return void;
+     *
+     */
+
+    global define void Init( boolean forceInit )
+    ``{
+
+	// collect mountpoint:device as map to get a sorted list
+
+	string language = Language::language;
+	boolean retval = false;
+
+	//
+	// Initialize package agent
+	//
+
+	string base_path = Installation::sourcedir;
+
+	if (( Mode::cont || Mode::normal || Mode::config )
+	      && !InstMedia::source_medium )
+	{
+	    y2milestone("source : %1 %2", InstMedia::source_medium, base_path);
+	    // reading package information from harddisk
+	     base_path = Installation::descrdestdir;
+	}
+
+	if ( Mode::test )
+	{
+	    // Fake values for testing purposes
+
+	    base_path = "/dist/next-i386";
+	    //base_path = "/suse/sh/fake-cd1";
+	}
+
+	string infopath = base_path + "/suse/setup/descr";
+	string dudir    = base_path + "/suse/setup/du/du.dir";
+	y2milestone ("INIT package agent: Reading %1/common.pkd",
+                    infopath );
+
+	// Get information about available partitions
+	list partition = SpaceCalculation::GetPartitionInfo( );
+
+	if (Mode::normal
+	    || Mode::update)
+	{
+	    retval = SCR::Execute(.package.setEnvironment,
+				  $["packageinfopath":infopath,
+				   "common.pkd":"common.pkd",
+				   "language": language,
+				   "dudir":dudir,
+				   "partition":partition,
+				   "update":true,
+				   "rootpath":Installation::destdir,
+				   "yastpath":Installation::destdir +
+				   Installation::yastdir,
+				   "forceInit":forceInit]
+				  );
+	}
+	else
+	{
+	    retval = SCR::Execute(.package.setEnvironment,
+				  $["packageinfopath":infopath,
+				   "common.pkd":"common.pkd",
+				   "language": language,
+				   "dudir":dudir,
+				   "partition":partition,
+				   "yastpath":Installation::destdir +
+				   Installation::yastdir,
+				   "forceInit":forceInit]
+				  );
+	}
+	y2milestone( "INIT package agent: setEnvironment: %1", retval );
+
+	if ( retval == true )
+	{
+	    init_called = true;
+	}
+	else
+	{
+	    // This text should be translated after 8.0.
+	    // Currently this error should only occured while developping.
+	    Report::Error( _("Error while initializing package descriptions.
+Check the log file /var/log/y2log for more details.") );
+	}
+
+	return;
+    }
+
+    /**
+     * Build and return list of packages to install, this list could be changed
+     * by the user and dependencies and disk-space would be checked.
+     * The list of packages depends on user-settings like .default .minimal
+     * .all, .kde .....
+     */
+
+    global define list ComputeInstallList ()
+    ``{
+	if ( !init_called )
+	{
+	    Packages::Init( true );
+	}
+
+	// Get a list of all packages that should be installed
+	list install_list = SCR::Read (.package.selPackages);
+
+	// Add packages which depends on the targetsystem and
+	// the preselected packages
+	install_list = union (install_list,
+			      ComputeSystemPackageList( install_list ));
+
+	install_list = toset (install_list);
+	return install_list;
+    }
+
+    /**
+     * Save()
+     * Used in inst_finish.ycp
+     *
+     */
+
+    global define void Save()
+    ``{
+	if ( !init_called )
+	{
+	    Packages::Init( true );
+	}
+
+	// evaluate all system packages which were added by YaST
+	list systemPackageList = ComputeSystemPackageList(
+					SCR::Read (.package.selPackages));
+
+	// Checking, if the user has not deselected these packages.
+	foreach(`package, systemPackageList, ``{
+	    string status = SCR::Read (.package.packageStatus, package );
+	    if ( status == "X"
+		 || status == "a" )
+	    {
+		// single select to install in order to select
+		// this package for installation
+		SCR::Execute (.package.selectInstall, package, false );
+		y2milestone ( "selecting system specific package %1 for installation",
+			      package );
+	    }
+	});
+
+	if (! Mode::test)
+	{
+	    y2milestone ( "Saving package selection to %1",
+			  Installation::destdir +
+			  Installation::yast2dir +
+			  "/pacs_to_install" );
+	    SCR::Write(.package.packageSelections,
+		       Installation::destdir +
+		       Installation::yast2dir + "/pacs_to_install" );
+	}
+	else
+	{
+	    SCR::Write(.package.packageSelections,
+		      tmpdir + "/pacs_to_install" );
+	}
+
+	SCR::Write (.target.ycp,
+		    Installation::destdir +
+		    Installation::yast2dir+"/package_counter.ycp",
+		    installed );
+	return;
+    }
+
+    /**
+     * Saving package-information (e.g. commom.pkd) and the .S.u.S.E-file
+     * to /var/adm/current_package_descr/suse/setup/descr.
+     *
+     * @param   language	language (save descriptions of this language)
+     * @return none
+     *
+     */
+    global define installPackageInformation( string language ) ``{
+	if ( !init_called )
+	{
+	    Packages::Init( true );
+	}
+
+	string descrdir = Installation::descrdestdir + "/suse/setup/descr";
+	string dudir = Installation::descrdestdir + "/suse/setup/du";
+
+	// remove old installation/package data first
+	SCR::Execute (.target.bash, "/bin/rm -f " + Installation::descrdestdir + "/.S.u.S.E*");
+	SCR::Execute (.target.bash, "/bin/rm -rf "+descrdir);
+	SCR::Execute (.target.mkdir, descrdir);
+	SCR::Execute (.target.bash, "/bin/rm -rf "+dudir);
+	SCR::Execute (.target.mkdir, dudir);
+
+	string cpcmd = "/bin/cp "+Installation::descrsourcedir;
+
+	SCR::Execute (.target.bash, cpcmd + "/*.pkd " + descrdir);
+	SCR::Execute (.target.bash, cpcmd + "/info " + descrdir);
+	SCR::Execute (.target.bash, cpcmd + "/*.sel " + descrdir);
+	SCR::Execute (.target.bash, cpcmd + "/update.in_ " + descrdir);
+	SCR::Execute (.target.bash, "/bin/cp " + Installation::sourcedir + "/suse/setup/du/du.dir " + dudir);
+	SCR::Execute (.target.bash, "/bin/cp " + Installation::sourcedir + "/.S.u.S.E* " + Installation::descrdestdir);
+    };
+
+
+    /**
+     * Check whether local package descripions are available in directory
+     * /var/adm/current_package_descr.
+     *
+     * @return boolean
+     *
+     * @example CheckLocalDescription ( );
+     *
+     */
+    global define CheckLocalDescription () ``{
+
+	// CheckLocalDescription does not require the initialization of the
+	// package agent (only checks locally saved information)
+
+	boolean ret = false;
+
+	string product = "";
+
+        string file1 = Installation::descrdestdir + "/suse/setup/descr/common.pkd";
+
+	string file2 = "";
+
+	list susefiles = SCR::Read(.target.dir, Installation::descrdestdir);
+
+	y2milestone ("CheckLocalDescription(%1) = %2", Installation::descrdestdir, susefiles);
+	foreach (`susefile, susefiles,
+	``{
+	    if (file2 == ""
+		&& substring (susefile, 0, 13) == ".S.u.S.E-disk")
+	    {
+		file2 = Installation::descrdestdir + "/" + susefile;
+	    }
+	});
+
+	y2milestone ("file1 %1, file2 %2", file1, file2);
+
+        if (SCR::Read(.target.size, file1) > 0
+	    && SCR::Read(.target.size, file2) > 0)
+	{
+	    release_no 	= SCR::Read(.yast2.instsource.cdrelease, Installation::descrdestdir);
+	    product 	= SCR::Read(.yast2.instsource.product, Installation::descrdestdir);
+	}
+
+	if ( release_no != 0 )
+	{
+	    InstMedia::product = product;
+	    InstMedia::release_no = release_no;
+	    ret = true;
+	}
+	y2milestone( "UTILS *** CheckLocalDescription() returns: %1, release_no: %2", ret, release_no );
+
+	return ret;
+    };
+
+
+    /**
+     * Constructor()
+     * Load saved package lists
+     * @return void;
+     *
+     */
+
+    global define void Packages() ``{
+	return;
+    }
+
+/* EOF */
+}

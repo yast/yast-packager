@@ -1,0 +1,612 @@
+/**
+ * Module: 		package_tests.ycp
+ *
+ * Authors:		Gabriele Strattner (gs@suse.de)
+ *
+ * Purpose: 		Testmodul for package installation modules
+ *			and defines
+ * 		
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packages";
+
+    import "Arch";
+    import "Installation";
+    import "Wizard";
+    import "Packages";
+    import "Language";
+    import "Mode";
+    include "ui/common_popups.ycp";
+    include "ui/common_functions.ycp";
+    
+    include "partitioning/partition_defines.ycp";
+
+    include "./install_inf.ycp";		// test data install.inf 
+    include "./packages_inf.ycp";		// test data with package information (update/install)
+
+    Mode::test = true;				// set test mode TRUE
+    
+    //
+    // Initialisation
+    //
+    Packages::Init( true );
+    Wizard::CreateDialog();
+
+    //
+    // global variables / module settings
+    //
+    list	result_table = [];			// contains result of function calls
+
+    boolean 	init_pkginfo = false;			// reinitialize the package agent
+    symbol 	sw_single_check = `not_only_checked;	// argument inst_sw_single
+    
+    string 	base_path = ".";			// default path package descriptions
+
+    if ( Mode::test )
+    {
+	Installation::sourcedir = base_path;
+	Installation::descrdestdir = base_path + "/suse/setup/descr";
+	Installation::descrsourcedir = base_path + "/suse/setup/descr";
+    }
+
+    string architecture =  Arch::architecture;
+    string language = Language::language;
+
+    Mode::cont = false;				// continue mode
+    Mode::normal = true;			// installed system
+    
+    Packages::install_sources = false;		// used in inst_sw_details
+
+    // check arguments
+    integer arg_n = size(Args()) - 1;
+
+    while (arg_n >= 0)
+    {
+	if (Args(arg_n) == .initialize)
+	{
+	    init_pkginfo = true;
+	}
+	arg_n = arg_n - 1;
+    }
+
+    //
+    // Show result of FUNCTION test
+    //
+    UI( ``{
+	global define ShowResult( list table_input ) ``{
+	    OpenDialog(`VBox(`HSpacing(30),
+			     `HBox(`VSpacing(8),
+				   `HSpacing(1.0),
+				   `Table( `id(`ret_table), `opt(`hvstretch),
+					   `header( _("Return"), _("Value") ),
+					   table_input ),
+				   `HSpacing(1.0)
+				   ),
+			     `PushButton(`id(`start), `opt(`ok), _("&OK") )
+			     )
+		       );
+	    any ret = UserInput();
+	    CloseDialog();
+	  
+	    return (ret==`ok);
+	};
+    });
+  
+
+    
+    string title = "Testing ycp-modules and defines";
+    string helptext1 =   "<p><b>MODULE Testing</b>: select module for testing
+and click on buttons to choose mode.<br>
+\"single\", \"pay\", \"post\",\"update\" are possible
+modes for inst_sw_single.
+</p>
+<p>
+\"post\" is also used for post_install mode in
+inst_rpmcopy.
+</p>
+<p>
+\"continue_mode\" is used for inst_rpmcopy after first boot.
+NOTE: run inst_rpmcopy FIRST with mode \"single\"
+(which means just normal installation for rpmcopy)
+and AFTER that run \"continue_mode\".
+</p>";
+  
+    string helptext2 = "<p>
+\"install.inf\": different install settings for inst_rpmcopy
+and functions GetBootDevice/ChangeCD.
+</p>";
+
+    string helptext3 = "<p><b>FUNCTION Testing</b>: select function to test and enter
+arguments in appropriate fields (see descriptions).
+ <p>RUN \"Test\" to run the test and
+click on \"Show Result\" to check the result.
+</p>";
+
+  
+    list module_list = [ "inst_sw_single", "inst_rpmcopy", "inst_source", "inst_sw_details",
+			 "inst_rpmupdate", "inst_finish", "INIT package agent" ];
+    list function_list = [ "GetBootDevice", "ChangeMedium", "size_text", "CutBlanks" ];
+    list instinf_list = [ "install_cd", "install_cdrom", "install_cdwrong", "install_net",
+			  "install_harddisk", "install_netsplit" ];
+    list descr_list =  [ ".", "/usr/full-i386", "/dist/7.1-i386" ];
+
+    term richtext = `RichText("<p>This is a description of the <b>Hallo</b> package.
+The text is long.<br>
+<p>
+Very, Very long.
+With newlines and so on.
+</p>");
+  
+    map call_popups = $["MessagePopup" : `MessagePopup("This is just for your information.\nThe text continues ..."),
+			"WarningPopup" : `WarningPopup("Something is wrong.\nPlease check your configuration."),
+			"NotifyPopup" : `NotifyPopup("Your printer is ready for use.."),
+			"ErrorPopup" : `ErrorPopup("The configuration was not succesful."),		     
+			"ContinueCancelPopup" : `ContinueCancelPopup( "This is the Continue Cancel popup.\nDo you want to use it?"),
+			"ContinueCancelHeadlinePopup" : `ContinueCancelHeadlinePopup( "Start Action","Going on with action ....?"),
+			"TimedMessagePopup" : `TimedMessagePopup("This is a timed message.\nPopup will disappear.", 3),				   
+			"YesNoPopup" : `YesNoPopup( "This is the new Yes No popup."),
+			"YesNoHeadlinePopup" : `YesNoHeadlinePopup("Paket installieren?", "Soll YaST2 das Paket xyz installieren?"),
+			"AnyQuestionPopup1" : `AnyQuestionPopup( NotifyMsg(), "This is the message \nDo you want to continue?",
+								 "Continue", "Cancel", `focus_no ),
+			"AnyQuestionPopup2" : `AnyQuestionPopup( WarningMsg(), "This is the message \nDo you really want to install?",
+								 "Install", "Don't install", `focus_no ),
+			"AnyQuestionPopup3" : `AnyQuestionPopup( NoHeadline(), "This is the message. The Message is wide.\nDo you really ????",
+								 "YES", "NO", `focus_yes ),
+			"AnyQuestionPopup4" : `AnyQuestionPopup( "Packages Conflict",
+								 "This could be dangerous .\nDo you really want to do it?",
+								 "Install", "Don't do it", `focus_no ),
+			"ConfirmAbortPopup" : `ConfirmAbortPopup(`painless ),
+			"LongTextPopup" : `LongTextPopup("Description", richtext, 30, 10),
+			"SetLanguageEn": `SetLanguage("en_EN"),
+			"SetLanguageDe": `SetLanguage("de_DE"),
+			"ModuleError" : `ModuleError("The module package_test.ycp doesn't work.")
+    ];
+
+    list popup_list = maplist( `key, `value, call_popups,``(key) );
+  
+    term contents = `VBox(
+			  `HBox(
+				`RadioButtonGroup(`id(`choice),
+						  `VBox(`VSpacing(1.2),
+							`Left(`RadioButton(`id(`b_mod),`opt(`notify),
+									   _("MODULE testing"), true) ),
+							`VSpacing(1.2),
+							`Left(`RadioButton(`id(`b_func),`opt(`notify),
+									   _("FUNCTION testing") ,  false) ),
+							`VSpacing(1.2),
+							`Left(`RadioButton(`id(`b_popup),`opt(`notify),
+									   _("POPUP testing") ,  false) )
+							)
+						  ),
+				`VBox(
+				      `Left(`ComboBox(`id(`module), `opt(`notify), "",
+						      module_list
+						      )),
+				      `Left(`ComboBox(`id(`func), `opt(`notify), "",
+						      function_list
+						      )),
+				      `Left(`ComboBox(`id(`popup), `opt(`notify), "",
+						      popup_list
+						      ))
+				      )
+				),
+			  `HBox( `HSpacing(1.0),
+				 `Frame (_("Select test mode"),
+					 `RadioButtonGroup(`id(`mode),
+							   `HBox(
+								 `Left(`RadioButton(`id(`single),`opt(`notify),
+										    "single", true) ),
+								 `Left(`RadioButton(`id(`pay),`opt(`notify),
+										    "pay" ,  false) ),
+								 `Left(`RadioButton(`id(`post),`opt(`notify),
+										    "post" ,  false) ),
+								 `Left(`RadioButton(`id(`update),`opt(`notify),
+										    "update" ,  false) ),
+								 `Left(`CheckBox(`id(`cont),`opt(`notify),
+										 "continue_mode" ,  false))
+								 )
+							   )
+					 ),
+				 `HSpacing(1.0)
+				 ),
+			  `HBox( `HSpacing(1.0),
+				 `ComboBox(`id(`file), "install.inf", instinf_list ),
+				 `ComboBox(`id(`descr_file), "Path package descriptions", descr_list ),
+				 `HSpacing(1.0)
+				 ),
+			  `HBox( `HSpacing(1.0),
+				 `VBox( `TextEntry(`id(`arg1), "ARG 1:", " " ),
+					`TextEntry(`id(`arg2), "ARG 2:", " " )
+					),
+				 `VBox( `TextEntry(`id(`arg3), "ARG 3:", " " ),
+					`TextEntry(`id(`arg4), "ARG 4:", " " )
+					),
+				 `HSpacing(1.0)
+				 ),
+			  `HBox(`HSpacing(1.0),
+				`PushButton(`id(`start), `opt(`default), _("&TEST") ),
+				`PushButton(`id(`show), `opt(`default), _("&Show Result") ),
+				`HSpacing(1.0)
+				)
+			  );
+
+    Wizard::SetContents(title, contents, helptext1 + helptext2 + helptext3, false, false);
+  
+    string test_choice = "MODULE";
+    string modulename = "";
+    string func = "";
+    symbol mode = `single;
+    string file_rd = "";
+    any ret = nil;
+    boolean module_called = false;
+  
+    repeat
+	{
+	    if ( module_called )
+	    {
+		// restore test dialog and buttons if another module was called
+		Wizard::SetContents(title, contents, helptext1 + helptext2 + helptext3, false, false);
+		UI::ChangeWidget(`id(`back), `Label, _("&Back") );
+		UI::ChangeWidget(`id(`next), `Label, _("&Next") ); 
+		module_called = false;
+	    }
+	  
+	    ret = UI::UserInput();
+	    UI::ChangeWidget(`id(`show), `Enabled, false );
+
+	    if ( ret == `b_mod )
+	    {
+		test_choice = "MODULE";
+	    }
+	    else if ( ret == `b_popup || ret == `popup)
+	    {
+		test_choice = "POPUP";
+	     
+	    }
+	    else if ( ret == `b_func || ret == `func )
+	    {
+		test_choice = "FUNCTION";
+		string function =  UI::QueryWidget(`id(`func), `Value );
+
+		if ( function == "ChangeCD" )
+		{
+		    UI::ChangeWidget(`id(`arg1), `Label, "ARG1 integer cdnum");
+		    UI::ChangeWidget(`id(`arg1), `Value, "1" 	);
+		    UI::ChangeWidget(`id(`arg2), `Label, "ARG2: boolean popup, true or false" );
+		    UI::ChangeWidget(`id(`arg2), `Value, "true" 	);
+		    UI::ChangeWidget(`id(`arg3), `Label, "architecture");
+		    UI::ChangeWidget(`id(`arg3), `Value, "i386" 	); 
+		}
+		else if ( function == "GetBootDevice" )
+		{
+		    UI::ChangeWidget(`id(`arg1), `Label, "Choose install information");
+		    UI::ChangeWidget(`id(`arg1), `Value, "-> see above" 	);
+		    UI::ChangeWidget(`id(`arg2), `Label, "NOT USED");
+		    UI::ChangeWidget(`id(`arg2), `Value, "" );
+		    UI::ChangeWidget(`id(`arg3), `Label, "NOT USED");
+		    UI::ChangeWidget(`id(`arg3), `Value, "" ); 
+		    UI::ChangeWidget(`id(`arg4), `Label, "NOT USED"); 
+		}
+		else if ( function == "size_text" )
+		{
+		    UI::ChangeWidget(`id(`arg1), `Label, "ARG1 integer bytes");
+		    UI::ChangeWidget(`id(`arg1), `Value, "43535345345" 	);  
+		}
+		else if ( function == "CutBlanks" )
+		{
+		    UI::ChangeWidget(`id(`arg1), `Label, "ARG1 integer bytes");
+		    UI::ChangeWidget(`id(`arg1), `Value, "   any input "	);  
+		} 
+	    }
+	    else if ( ret == `single || ret == `pay )
+	    {
+		mode = ret;
+
+		// Reset Mode variables
+		Mode::normal = false;
+		Mode::cont = false;
+		//user_settings = add( user_settings, "instmode", `default ); 
+	    }
+	    else if ( ret == `post )
+	    {
+		mode = `post_install;
+		Mode::normal = true;
+
+		// Reset
+		Mode::cont = false;
+		//user_settings = add( user_settings, "instmode", `default ); 
+	    }
+	    else if ( ret == `update )
+	    {
+		mode = `update;
+		Mode::update = true;
+	    }
+	    else if ( ret == `cont )
+	    {
+		Mode::cont = true;
+	    }
+	 
+	    if ( ret == `start )
+	    {
+		if ( test_choice == "MODULE" )
+		{
+		    any retval = nil;
+		    
+		    modulename = UI::QueryWidget(`id(`module), `Value );
+		    y2debug( "Selected module: %1", modulename );
+		    module_called = true;
+
+		    if ( modulename == "inst_sw_single" )
+		    {
+			string new_path =  UI::QueryWidget(`id(`descr_file), `Value );
+
+			if ( new_path != base_path )
+			{
+			    Installation::sourcedir = newpath;
+			    // always read the package information from the given path (see Packages::Init())
+			    Installation::descrsourcedir = new_path + "/suse/setup/descr";
+			    Installation::descrdestdir = new_path + "/suse/setup/descr";
+
+			    // initialise the package agent
+			    UI::OpenDialog(`opt(`decorated ),`Label(_("One moment please...")));
+
+			    Packages::Init( true );
+
+			    UI::CloseDialog();
+
+			    base_path = new_path;
+			}
+		      
+			retval = CallFunction( `inst_sw_single( mode, sw_single_check ) );
+			
+		    }
+		    else if ( modulename == "inst_source" )
+		    {
+			retval = CallFunction( `inst_source( true, true ) );
+			y2debug("INST_SOURCE returns: %1", retval );
+
+			SCR::Execute(.target.umount, Installation::sourcedir);
+		    }
+		    else if ( modulename == "inst_sw_details" )
+		    {
+			retval = CallFunction( `inst_sw_details( true, true ) );
+		    }
+		    else if ( modulename == "INIT package agent" )
+		    {
+			string new_path =  UI::QueryWidget(`id(`descr_file), `Value );
+
+			if ( new_path != base_path )
+			{
+			    Installation::sourcedir = newpath;
+			    // always read the package information from the given path (see Packages::Init())
+			    Installation::descrsourcedir = new_path + "/suse/setup/descr";
+			    Installation::descrdestdir = new_path + "/suse/setup/descr";
+
+			    // initialise the package agent
+			    UI::OpenDialog(`opt(`decorated ),`Label(_("One moment please...")));
+
+			    Packages::Init( true );
+
+			    UI::CloseDialog();
+
+			    base_path = new_path;
+			}
+		    }
+		    else if ( modulename == "inst_rpmcopy" )
+		    {
+			map installMap = $[];
+			any ret = nil;
+			
+			// get selected install.inf file
+			file_rd = UI::QueryWidget(`id(`file), `Value );
+
+			// for testing: always read install information from install_inf.ycp
+			// (Mode::Mode() -> if  Mode::initial read /etc/install.inf else read  /var/lib/YaST2/installmap.ycp
+			Mode::installMap = GetInstallInf(file_rd);
+			y2debug("InstallMap: %1", Mode::installMap );
+
+			ret = SCR::Execute(.package.setInstallSelection, GetInstallPackages(), false);
+			y2debug( "Execute(.package.setInstallSelection): %1", ret );
+
+			list delete_list = GetDeletePackages();
+			foreach ( `pac, delete_list, ``{
+			    ret = SCR::Execute(.package.selectDelete, pac);
+			    y2debug( "Execute(.package.selectDelete): %1", ret ); 
+			});
+			
+			// Calling inst_rpmcopy
+			retval = CallFunction( `inst_rpmcopy( true, false ) ); 
+
+			// umount sourcedir
+			SCR::Execute(.target.umount, Installation::sourcedir);
+
+		    }
+		    else if ( modulename == "inst_rpmupdate" )
+		    {
+			map installMap = $[];
+			any ret = nil;
+			
+			// get selected install.inf file
+			file_rd = UI::QueryWidget(`id(`file), `Value );
+
+                        // for testing: always read install information from install_inf.ycp
+			// Mode::Mode() -> if  Mode::initial read /etc/install.inf else read  /var/lib/YaST2/installmap.ycp
+			Mode::installMap = GetInstallInf(file_rd);
+			y2debug("InstallMap: %1", Mode::installMap );
+
+			ret = SCR::Execute(.package.setUpdateSelection, GetUpdateList(), false);
+			y2debug( "Execute(.package.setUpdateSelection(%1): %2", GetUpdateList(), ret );
+
+			list delete_list = GetDeletePackages();
+			foreach ( `pac, delete_list, ``{
+			    ret = SCR::Execute(.package.selectDelete, pac);
+			    y2debug( "Execute(.package.selectDelete): %1", ret ); 
+			});
+			
+			// Calling inst_rpmupdate
+			retval = CallFunction( `inst_rpmupdate( true, false ) ); 
+
+			// umount sourcedir
+			SCR::Execute(.target.umount, Installation::sourcedir);
+
+		    }
+		    else if ( modulename == "inst_finish" )
+		    {
+			 // Calling inst_finish
+			 retval = CallFunction( `inst_finish( true, false ) );
+		    }
+		}
+		else if ( test_choice == "POPUP" )
+		{
+		    string popup = UI::QueryWidget(`id(`popup), `Value );
+		    include "ui/common_popups.ycp";
+		   
+		    UI( lookup(call_popups, popup, "") );
+
+		    if ( popup == "SetLanguageEn" || popup == "SetLanguageDe" )
+		    {
+			include "ui/common_messages.ycp";
+		    }
+		   
+		    y2debug("LANGUAGE: %1", UI::GetLanguage(true));
+		}
+		else if ( test_choice == "FUNCTION" )
+		{
+		    module_called = false;
+		    boolean chcd_ret = false;
+		    map	getdev_ret = $[];
+		    string bool_val = "";
+
+		    func = UI::QueryWidget(`id(`func), `Value );
+		    y2debug( "Selected function: %1", func);		 
+
+		    if ( func == "ChangeCD" )		// FIXME --- ChangeCD is totally redesigned
+		    {
+			// store release_no from installMap, if already set 
+			map usermap = lookup(user_settings, "installMap", $[]);
+
+			integer release_no = lookup(usermap, "release_no", nil);
+			string product = lookup(usermap, "SuSE_product", "");
+			y2debug("RELEASENO: %1 PRODUCT: %2", release_no, product);
+
+			// *** RESET installMap in user_settings
+			map installMap = $[];
+
+			file_rd = UI::QueryWidget(`id(`file), `Value );
+
+			// Read install information from install_inf.ycp
+			installMap = GetInstallInf( file_rd );
+			y2debug("InstallMap: %1", installMap );
+		      
+			if (release_no != nil)
+			{
+			    installMap = add(installMap, "release_no", release_no);
+			    installMap = add(installMap, "SuSE_product", product);
+			}
+			// *** "installMap"
+			user_settings = add(user_settings, "installMap", installMap );
+                    
+			string arch = UI::QueryWidget(`id(`arg3), `Value );
+
+			// *** "architecture"
+			string architecture = CutBlanks(arch);
+
+			//Arch::i386	= (architecture == "i386");
+			//Arch::sparc32	= (architecture == "sparc");
+			//Arch::sparc64	= (architecture == "sparc64");
+			//Arch::sparc	= (Arch::sparc32 || Arch::sparc64);
+			//Arch::ppc		= (architecture == "ppc");
+			//Arch::alpha	= (architecture == "axp");
+			//Arch::s390	= (architecture == "s390");
+			//Arch::ia64	= (architecture == "ia64");
+		      
+			chcd_ret = ChangeCD( tointeger( CutBlanks( UI::QueryWidget(`id(`arg1), `Value ))),
+					     CutBlanks( UI::QueryWidget(`id(`arg2), `Value )) == "true"
+					     );
+			string retval = "";
+
+			// show result
+			if (chcd_ret)
+			    retval = "true"; 
+			else
+			    retval = "false";
+		     
+			// Reset result table
+			result_table = [];
+			result_table = add( result_table, `item(`id(1), "Return value", retval ) );
+			result_table = add( result_table, `item(`id(2), "CD device in user_settings",
+								lookup( lookup(user_settings, "installMap", $[] ),
+									"current_cd_device", nil)) );
+			result_table = add( result_table, `item(`id(3), "Release number",
+							        lookup( lookup(user_settings, "installMap", $[] ),
+									"release_no", 0)) );
+
+			UI::ChangeWidget(`id(`show), `Enabled, true );
+			// umount sourcedir
+			SCR::Execute(.target.umount, Installation::sourcedir);
+		    }
+		    else if ( func == "GetBootDevice" )
+		    {
+			// get selected install info
+			file_rd = UI::QueryWidget(`id(`file), `Value );
+
+			// Read install information from install_inf.ycp
+			map installMap = GetInstallInf( file_rd );
+			y2debug("InstallMap: %1", installMap );
+
+			// installMap 
+			getdev_ret = GetBootDevice( installMap );
+
+			if ( lookup(getdev_ret, "remountable", false) )
+			    bool_val = "true";
+			else
+			    bool_val = "false";
+
+			// Reset result table
+			result_table = [];
+			result_table = add( result_table, `item(`id(1), "boot_src", lookup(getdev_ret, "boot_src", "" ) ) );
+			result_table = add( result_table, `item(`id(2), "cddevices", sformat( "%1",lookup(getdev_ret, "cddevices", []))) );
+			result_table = add( result_table, `item(`id(3), "remountable", bool_val) );
+
+			UI::ChangeWidget(`id(`show), `Enabled, true );
+ 
+		    }
+		    else if ( func == "size_text" )
+		    {
+			string output = size_text( tointeger(UI::QueryWidget(`id(`arg1), `Value )));
+			// Reset result table
+			result_table = [];
+			result_table = add( result_table, `item(`id(1), "string", output) );
+
+			UI::ChangeWidget(`id(`show), `Enabled, true );  
+		    }
+		    else if ( func == "CutBlanks" )
+		    {
+			string output = CutBlanks( UI::QueryWidget(`id(`arg1), `Value ) );
+			// Reset result table
+			result_table = [];
+			result_table = add( result_table, `item(`id(1), "string", output) );
+			y2debug( "Result CutBlanks: %1", output );
+			UI::ChangeWidget(`id(`show), `Enabled, true );  
+		    }
+		}
+	    }
+	    if ( ret == `show )
+	    {
+		UI::ShowResult(result_table);
+	    }
+	  
+	    if ( ret == `abort && module_called )
+	    {
+		y2debug( "module_called: %1", module_called );
+	   
+		ret = `again;
+	    }
+
+	} until ( ret == `abort );
+  
+    return ret;
+}

@@ -1,0 +1,30 @@
+
+{
+    /*
+    global define GetUpdateList() ``{
+
+	list updateList =	["3ddiag", "aaa_base", "aaa_version", "hotplug", "htdig", "hwinfo", "i4l", "i4lfirm", "icons", "icons-xpm", "iptables", "iputils", "java", "k_deflt", "kdeaddons3", "kdeartwork3", "kdebase3", "kdebase3-SuSE", "kdebase3-ksysguardd", "kdebase3-nsplugin", "perl-URI", "qt3-non-mt", "release-notes", "sax", "sax2", "saxident", "saxtools", "so_base", "so_de", "susehelp", "susehelp_de", "susewm", "taskjuggler", "vim", "yast2", "yast2-agent-probe", "yast2-config-cups", "yast2-config-network", "yast2-config-printer", "yast2-config-scanner", "yast2-config-sound", "yast2-config-tv", "yast2-config-users", "yast2-db-groups", "yast2-db-keyboard", "yast2-db-mouse", "yast2-db-sound", "yast2-db-timezone", "yast2-module-autoinst", "yast2-trans-autoinst", "yast2-trans-cups", "yast2-trans-inst-bootloader", "yast2-trans-inst-general", "yast2-trans-inst-keyboard", "yast2-trans-inst-language", "yast2-trans-inst-mouse", "yast2-trans-inst-packages", "yast2-trans-inst-partitioning", "yast2-trans-inst-proposal", "yast2-trans-inst-timezone", "yast2-trans-inst-update", "yast2-trans-inst-user", "yast2-trans-inst-x11", "yast2-trans-menu", "yast2-trans-network", "yast2-trans-printer", "yast2-trans-scanner", "yast2-trans-sound", "yast2-trans-tv", "yast2-trans-users", "yast2-ui-qt"];
+
+	return updateList;
+    };
+    */
+    
+    global define GetUpdateList() ``{
+	list updateList = [  "battball", "compress" ];
+	return updateList;
+    };
+    
+    global define GetInstallPackages () ``{
+	// list install_pacs = ["less", "diff", "aaa_dir", "aaa_skel", "aalib", "abiword",  "cracklib", "devs", "compat", "compress" ];
+	list install_pacs = [];
+    
+	return install_pacs;
+    };
+
+    global define GetDeletePackages () ``{
+	list delete_pacs = [ "abiword", "compress" ];
+    
+	return delete_pacs;
+    };
+
+}

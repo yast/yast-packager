@@ -1,0 +1,73 @@
+# SuSE-Linux-Package-Selection 2.1 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Mar 26 17:46:20 UTC 2002
+
+Version: 2.1
+
+Name: Games
+
+Label: Games
+Label.cs: Hry
+Label.de: Spiele
+Label.en: Games
+Label.es: Juegos
+Label.fr: Jeux
+Label.gl: Xogos
+Label.hu: Játékok
+Label.it: Giochi
+Label.ja: ゲーム
+Label.lt: Þaidimai
+Label.nl: Spelletjes
+Label.pt: Games
+Label.sv: Spel
+Label.tr: Games
+
+Requires: Kde-Desktop 
+Conflicts: Minimal 
+Category: addon
+
+Visible: true
+
+Toinstall:
+AlephOne
+AlephOne-data
+FlightGear
+SDL
+SDL_image
+SDL_mixer
+SDL_net
+SDLmm
+aalib
+armagetron
+arts
+asc
+black-box
+bzflag
+chromium
+clanbomber
+clanlib
+crack-attack
+csmash
+d1x
+expat
+falconseye
+freeciv
+gnuchess
+nh_data
+openal
+openmotif
+pingus
+qt
+quadra
+racer
+racerdata
+shtools
+simutrans
+slang
+smpeg
+timidity
+tuxracer
+vegastrike
+xboard
+xgammon
+Llatsniot:
+

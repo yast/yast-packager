@@ -1,0 +1,6 @@
+$["bootmode":"Harddisk", "cdrom":"sr0", "demo":"0", "disks":"/dev/sda",
+  "display":"Color", "floppy_disk":"1", "framebuffer":"0x0301", "fstype":"ext2",
+  "haspcmcia":"0", "initrd_modules":["aic7xxx"], "keyboard":"1", "keytable":"us",
+  "manual":"1", "partition":"/dev/sda3", "serial":"0", "serverdir":"/full-i386",
+  "smp":"0", "sourcemounted":"0", "textmode":"0", "unknown":"BootDisk: 1", "usb":"1",
+  "yast2_update":"0"]

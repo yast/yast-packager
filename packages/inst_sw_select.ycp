@@ -1,0 +1,356 @@
+
+/**
+ * Module: 		inst_sw_select.ycp
+ *
+ * Authors:		Mathias Kettner <kettner@suse.de>
+ *			Klaus Kaempf <kkaempf@suse.de> (initial)
+ *			Stefan Hundhammer <sh@suse.de>
+ *			Stefan Schubert <schubi@suse.de>
+ *
+ * Purpose:
+ * Displays software selection screen. Show checkboxes for software
+ * categories. Let the user select his software.
+ *
+ *
+ * Packages module read:
+ *
+ * Packages module write:
+ *
+ * $Id$
+ *
+ */
+
+{
+    textdomain "packages";
+
+    import "Arch";
+    import "Mode";
+    import "Installation";
+    import "Storage";
+    import "Product";
+    import "Packages";
+    import "PackagesUI";
+    import "SpaceCalculation";
+    
+    import "InstMedia";
+
+    import "Wizard";
+
+    include "ui/common_popups.ycp";
+    include "partitioning/partition_defines.ycp";
+
+
+    // ------------------------------------------------------------------------
+    // Dialog title for software selection
+
+
+    Wizard::OpenNextBackDialog();
+    string title = _("Software Selection");
+
+    // Explain selectable system configurations
+    // but beware: some of the text in <b>'s, e.g. Default comes from the index file,
+    // translations must be consistent with po/index/index.??.po
+    // help text
+    string helptext = _("<p>
+The SuSE Linux <b>Default</b> system is a good software
+selection for most users. You will not need to insert all of the CDs that 
+come with SuSE Linux for this selection. Additional software from the
+other CDs can always be installed later. 
+</p>
+");
+
+    // help text, continued
+    if (Arch::i386)
+    {
+    helptext = helptext + _("<p>
+<b>Default with Office</b> extends this default system to include
+powerful graphical office applications.
+</p>");
+    }
+
+    // help text, continued
+    helptext = helptext +
+	_("<p>
+The <b>Minimal</b> system includes just the bare essentials needed
+to safely run SuSE Linux. This selection <b><i>does not include
+graphical desktop environments</i></b> -- no X11, no KDE, no GNOME.
+Select this option as a base for your own custom selection, for
+dedicated server systems that do not need a graphical desktop, or for
+systems that are short on disk space or memory.
+</p>
+");
+ 
+   // help text, continued
+    helptext = helptext + _("<p>
+With the <b>Minimum graphical system</b>, install the SuSE Linux
+base system and all packages required for X11, the Graphical User
+Interface (GUI).
+You can then work with a simple graphical desktop
+(with 'window maker' as the window manager). </p>
+");
+    
+    // help text, continued
+    // helptext = helptext + _("<p>
+    // The selection <b>All packages</b> includes every software package that comes
+    // with SuSE Linux, except the sources. Make sure you have enough
+    // disk space when you select this option.
+    // </p>
+    // ");
+
+    // help text, continued
+    helptext = helptext + _("<p>
+To make a more precise selection of software to install, select
+<b>Detailed selection</b>.
+</p>
+");
+
+    // dont ask user for software selection if imap server, product
+
+    if (   Product::imap_server
+	|| Product::fwadmin_host
+	|| Product::product_cd )
+    {
+	Wizard::SetContents(title,
+			    // Intermediate contents of the software selection screen
+			    `HVCenter(`Label(
+			    _("This product has a fixed software selection which cannot be changed"))),
+			    helptext, Args(0),Args(1));
+        any ret = Wizard::UserInput();
+	Wizard::CloseDialog();
+	y2milestone("product cd return %1",ret);
+	return ret;
+    }
+    else
+    {
+	Wizard::SetContents(title,
+			    // Intermediate contents of the software selection screen
+			    `HVCenter(`Label(_("Reading package database..."))),
+			    helptext, Args(0),Args(1));
+    }
+
+    // ------------------------------------------------------------------------
+
+    list current_sel     = SCR::Read(.package.selInstallSet);
+
+    // current_sel is empty
+
+    if ( current_sel == [] )
+    {
+	// setting selection group, if it has not been set
+	current_sel = ["default"];
+	SCR::Execute(.package.selectSelInstall,  select( current_sel,0 ,""),true );
+    }
+
+    y2debug("Current software_sel: %1", current_sel);
+
+    list pacsels = [];
+
+    pacsels = filter(`sel,
+		     SCR::Read(.package.selGroups),
+		     ``(select(sel, 1,"") != "paylist"));
+
+    y2debug( "getSelGroups return: %1", pacsels );
+
+    // Construct Box with Checkbox for each software category
+
+    // Title of frame around "basic software"
+    term baseconfs = `VBox();
+
+    foreach(`sel, pacsels, ``{
+	string   selid   = select(sel, 0, "");
+	string   group   = select(sel, 2, "");
+	string    seldesc = select(sel, 1, "");
+
+	if ( group == "baseconf" )
+	{
+	    baseconfs = add(baseconfs, `Left(`RadioButton(`id(selid),`opt(`notify, `autoShortcut),
+						    seldesc,
+						    contains (current_sel, selid))));
+	}
+    });
+
+    string wrn_msg = "";
+    
+    // Checking: already selected addons or single selection?
+    if ( SCR::Read(.package.isSingleSelected ) )
+    {
+	// Display warning message
+	wrn_msg = _("\
+You have already chosen software from \"Detailed selection\".\n\
+You will lose that selection if you change the basic selection.");
+    }
+
+
+    term contents = `HVSquash(
+			      `VBox(
+				    `HSquash(
+					     `VBox(
+						   `Frame(
+							  // Frame caption for software selection
+							  _("Software"),
+							  `VBox(
+								`VSpacing(0.3),
+								`RadioButtonGroup(`id(`baseconf),`opt(`notify), baseconfs),
+								`VSpacing(0.3)
+								)
+							  ),
+						   `VSpacing(),
+
+						   // Push button that will pop up the detailed
+						   // software selection (e.g. Multimedia, Games,
+						   // KDE, Gnome, ... - not the individual packages!)
+						   `PushButton( `id(`details),  _("&Detailed selection...") )
+						   )
+					     ),
+				    `VSpacing(0.7),
+				    `Label( `id(`wrn_label), wrn_msg )
+				    )
+			      );
+
+    Wizard::SetContents(title, contents, helptext, Args(0),Args(1));
+
+    // get all packages to install
+    list package_list = Packages::ComputeInstallList ();
+
+    // y2debug( "Required packages: %1", package_list );
+
+    // Initialize server with the packages which have to be installed, but without resetting
+    // single-selected packages.
+
+    SCR::Execute(.package.setInstallSelection, package_list, true );
+    SCR::Execute(.package.setSourceInstallation, Packages::install_sources );
+
+    any ret = nil;
+    boolean error_found = false;
+    while (true)
+    {
+	// calculate required diskspace
+	error_found = SpaceCalculation::ShowPartitionWarning();
+
+	list save_sel = [];
+	save_sel = add(save_sel, UI::QueryWidget(`id(`baseconf), `CurrentButton));
+
+	if ( ret == `next && !error_found )
+                break;
+
+        ret = Wizard::UserInput();
+	
+	if ( ret == `abort && CallFunction(`inst_confirm_abort(`painless) ) )
+	    return `abort;
+
+        // Add the selection of the basic group
+        current_sel = [];
+	current_sel = add(current_sel, UI::QueryWidget(`id(`baseconf),`CurrentButton));
+
+	// `next added here, because if the user clicks on a different button while package agent
+	// is doing the diskspace check, save_sel is already == current_sel
+	if ( (save_sel != current_sel) || (ret == `next) )
+        {
+	    // Write current_sel to module
+	    // (if the user has already selected some addons or single packages: ask first)
+	    if ( ( !SCR::Read(.package.isSingleSelected )
+		   || UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?")) ) )
+	    {
+		y2debug( "Add current_sel to module: %1", current_sel );
+
+		if ( size( current_sel ) >=1 )
+		{
+		    SCR::Execute(.package.selectSelInstall, select( current_sel,0 ,""), true );
+		    string msg = "";
+		    msg = SCR::Read(.package.selNotifyDesc, select( current_sel,0 ,"" ) );
+		    if ( msg != "" )
+		    {
+			string nty_title = NotifyMsg();
+			term msg_text = `RichText( "<p>" + select( current_sel,0, "" ) + "</p>" + "<p>" + msg + "</p>" );
+			PackagesUI::DisplayHelpMsg( nty_title, msg_text, `none, 10 );
+		    }
+		}
+
+                // Reset source-selected
+		Packages::install_sources = false;
+
+		list package_list = Packages::ComputeInstallList ();
+
+		// y2debug( "Required packages: %1", package_list );
+
+		// Initialize package agent and reset ALL single-selected packages
+		SCR::Execute(.package.setInstallSelection, package_list , false);
+		SCR::Execute(.package.setSourceInstallation, Packages::install_sources );
+
+		wrn_msg	= "";
+		UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );		
+		
+		// goto size-calculation
+		continue;
+	    }
+	    else
+	    {
+		// rebuild the former selected RadioButton
+		ret = `again;
+		break;
+	    }
+	}
+
+	// break here on back/cancel
+
+        if (ret == `cancel || ret == `back ) break;
+
+	// next or details: check current settings here
+
+        if ( ret == `details )
+        {
+	     any details_ret = `again;
+
+	     while ( details_ret == `again )
+	     {
+	         details_ret = CallFunction( `inst_sw_details( true, true ) );
+  	     }
+
+ 	     if ( details_ret == `next )
+	     {
+	         ret = `next;
+		 break;		 
+	     }
+	     else if ( details_ret == `cancel )
+	     {
+	         ret = `cancel;
+		 break;		 
+	     }
+	     else if ( details_ret == `back )
+	     {
+	         ret = `again;
+		 break;
+	     }
+	     else if ( details_ret == `abort )
+	     {
+	         ret = `abort;
+		 break;
+	     }
+
+	     if ( SCR::Read(.package.isSingleSelected ) )
+	     {
+		 // Display warning message
+		 wrn_msg = _("\
+You have already chosen software from \"Detailed selection\".\n\
+You will lose that selection if you change the basic selection.");
+		 UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );				 
+	     }
+        }
+
+	if (  ret == `next
+	     && !error_found )
+	{
+	    break;
+	}
+    }
+
+    if ( ret == `next )
+    {
+	y2milestone( "INSTALLING Software Selection: %1",  SCR::Read(.package.selInstallSet ));
+    }
+
+
+    Wizard::CloseDialog();
+    y2milestone( "inst_sw_select returns %1", ret );
+    return ret;
+}

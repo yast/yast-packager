@@ -1,0 +1,431 @@
+/**
+ * Module: 		SpaceCalculation.ycp
+ *
+ * Authors:		Klaus Kaempf (kkaempf@suse.de)
+ *			Gabriele Strattner (gs@suse.de)
+ *			Stefan Schubert (schubi@suse.de)
+ *
+ * Purpose: 		Package installation functions usable
+ *			when the installation media is available
+ *			on Installation::sourcedir
+ *
+ *				
+ * $Id$
+ */
+
+{
+    module "SpaceCalculation";
+
+    import "Arch";
+    import "Installation";
+    import "InstMedia";
+    import "Storage";
+    import "Mode";
+    import "Report";
+
+    include "ui/common_messages.ycp";
+    include "ui/common_functions.ycp";
+    
+    textdomain "packages";
+
+    boolean info_called = false;	// list partition_info already initialized?
+    list    partition_info = [];	// information about available partitions
+    
+    integer initial_used = 0;  		// used disk space at begin of installation in bytes
+
+                                
+   /*
+    * Return partion info list
+    * @return list of available partitions
+    */
+    global define list GetPartitionList() ``{
+
+	return partition_info;
+    }
+    
+  /*
+   * Get information about available partitions either from "targetMap"
+   * in case of a new installation or from 'df' command (continue mode
+   * and installation on installed system).
+   * Returns a list containing available partitions and stores the list
+   * in "partition_info".
+   *
+   * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
+   *				     $["free":1974697, "name":"usr", "used":4227733]]
+   *
+   * 
+   * @example GetPartitionInfo();
+   *
+   */
+    global define list GetPartitionInfo( ) ``{
+	list partition = [];
+	
+	if ( Mode::cont )
+	{
+	    partition = EvaluateFreeSpace ( 0 ); // free spare already checked during first part of installation 
+	}
+	else if ( Mode::update )
+	{
+	    partition = EvaluateFreeSpace ( 2 );  // 2% free spare for update/upgrade
+	}
+	else if ( Mode::normal )
+	{
+	    partition = EvaluateFreeSpace ( 5	); // 5% free spare for post installation
+	}
+	else	// Mode::initial
+	{
+	    partition = get_partition_info( );
+	}
+	y2milestone( "INIT SpaceCalculation - partitions: %1", partition );
+
+	info_called = true;
+	partition_info = partition;	// store partition_info
+
+	return partition;
+    }
+
+  /*
+   * Define a macro that transforms information about all partitions ( from
+   * user_settings( "targets" ) ) into a list(map) with information about partitions
+   * which are available for installation, e.g.:
+   *
+   * [$["free":1625676, "name":"/boot", "used":0], $["free":2210406, "name":"/", "used":0]]
+   *
+   * Please note: there isn't any information about used space, so "used" at begin
+   *              of installation is initialized with zero;
+   *              size "free", "used" in KBytes
+   *
+   */
+
+   define get_partition_info( ) ``{
+      
+      boolean remove_slash = true;
+      map targets = Storage::GetTargetMap();
+
+      if ( Mode::test )
+      {
+	  targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
+      }
+      
+      list(map) target_partitions = [];
+      integer spare_percentage  = 14;   // percentage of free spare space on every partition
+      integer min_spare 	= 2048; // minimum free space ( 2 MB )
+
+      foreach( `disk, `diskinfo, targets, ``{
+
+	  list part_info = lookup( diskinfo, "partitions", [] );
+
+	  foreach( `part, part_info, ``{
+	      integer free_size = 0;
+	      integer spare_size = 0;
+
+	      if ( lookup( part, "mount", nil ) != nil && substring( lookup( part, "mount", ""), 0, 1 ) == "/" )
+	      {
+		  if ( lookup( part, "create", nil ) == true || lookup( part, "delete", nil ) == false ||
+		       ( lookup( part, "create", nil) == nil && lookup( part, "delete", nil ) == nil ) )
+		  {
+		      y2debug( "get_partition_info: adding partition: %1", part );
+
+                      // get free_size on partition in kBytes
+
+		      if ( lookup( part, "type", `empty ) == `pdisk )
+		      {
+			  // PowerPC: free_space = number of cyl. ( "region": second value ) * 512
+			  free_size = (select( lookup( part, "region", [] ), 1, 0 ) * 512)/1024;
+		      }
+		      else
+		      {
+                          // others: free space = number of cyl. ( "region": second value ) * cyl_size
+			  free_size = select( lookup( part, "region", [] ), 1, 0 ) * (lookup( diskinfo,"cyl_size", 1)/1024);
+		      }
+
+		      spare_size = (free_size*spare_percentage)/100;
+
+		      if ( spare_size < min_spare )
+		      {
+			  spare_size = min_spare;
+		      }
+		      free_size = free_size - spare_size;
+
+		      y2debug("available partition: mount: %1, free: %2 KB",
+				  lookup( part, "mount", "" ), free_size);
+		      if ( !remove_slash)
+		      {
+			  target_partitions = add ( target_partitions, $["name":lookup( part, "mount", "" ),
+									"used":0,
+									"free":free_size,
+									"format":lookup( part, "format", false ),
+									"region":lookup( part, "region", [] ),
+									"used_fs":lookup( part, "used_fs", `unknown )  ] );
+		      }
+		      else
+		      {
+			  string part_name = "";
+			  string mount_name = lookup( part, "mount", "");
+
+			  if ( mount_name != "/" )
+			  {
+			      part_name = substring( mount_name, 1, size(mount_name) );
+			  }
+			  else
+			  {
+			      part_name = mount_name;
+			  }
+
+			  target_partitions = add ( target_partitions, $["name":part_name,
+									"used":0,
+									"free":free_size,
+									"format":lookup( part, "format", false ),
+									"region":lookup( part, "region", [] ),
+									"used_fs":lookup( part, "used_fs", `unknown )  ] );
+
+		      }
+
+		  }
+	      }
+	  } );
+      } );
+
+      y2debug( "get_partition_info: %1", target_partitions );
+
+      return ( target_partitions );
+  };
+    
+	
+    /**
+     * Evaluate the free space on the file system. Runs the command "df" and creates a map 
+     * containig information about used and free space on every partition. 
+     * Free space is calculated respecting the spare_percentage given in second argument.
+     *
+     * @param  spare_percentage percentage of spare disk space, i.e. free space is increased
+     * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
+     *				     $["free":1974697, "name":"usr", "used":4227733]]
+     *
+     * 
+     * @example EvaluateFreeSpace ( 5 );
+     *
+     *
+     * ***  This is needed during update !
+     *
+     */
+  
+    global define EvaluateFreeSpace( integer spare_percentage ) ``{
+
+	list partition = [];
+	integer min_spare = 2048;		// 2 MB
+	integer max_spare = 1048576;		// 1 GB
+
+	string target = Installation::destdir;
+	
+	// get information about diskspace ( used/free space on every partition )
+	partition = SCR::Read(.run.df);
+
+	// filter out headline and other invalid entries
+	partition = filter( `part, partition, ``( substring ( lookup( part, "name", "" ), 0, 1 ) == "/" ) );
+
+	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
+	list part_input = [];
+
+	foreach( `part, partition,
+	``{
+	    map part_info = $[];
+	    integer free_size = 0;
+	    integer spare_size = 0;
+	    string partName = "";
+	    boolean add_part = true;
+	  
+	    string mountName = lookup( part, "name", "" );
+
+	    if ( target != "/" )
+	    {
+		if ((size(mountName) >= size(target))
+		    && (substring( mountName, 0, size(target)) == target) )
+		{
+		    partName = substring( mountName, size(target) );
+		    // nothing left, it was target root itself
+		    if ( size ( partName ) == 0 )
+		    {
+			part_info = add( part_info, "name", "/"  );
+		    }
+		    else
+		    {
+			part_info = add( part_info, "name", substring( partName, 1 ) );  // remove "/" in front
+		    }
+		}
+		else
+		{
+		    add_part = false;
+		}
+	    }
+	    else // target is "/"
+	    {
+		if ( mountName == "/" )
+		{
+		    change ( part_info, "name", mountName );
+		}
+		else if ( mountName != Installation::sourcedir
+			 && mountName != "/cdrom"
+			 && mountName != "/dev/shm" )
+		{
+		    change ( part_info, "name", substring( mountName, 1 ) );  // remove "/" in front
+		}
+		else
+		{
+		    add_part = false;
+		}
+	    }
+
+	    if ( add_part )
+	    {
+		change ( part_info, "used",  tointeger(lookup( part, "used", 0 )) );
+
+		free_size = tointeger(lookup( part, "free", 0));
+		spare_size = (free_size*spare_percentage)/100;
+
+		if ( spare_size < min_spare )
+		    spare_size = min_spare;
+		else if  ( spare_size > max_spare )
+		    spare_size = max_spare;
+	  
+		free_size = free_size - spare_size;
+		if ( free_size < 0 )
+		    free_size = 0;	// don't add a negative size
+	       
+		change ( part_info, "free",  free_size );
+
+		part_input = add ( part_input, part_info );
+	    }
+	});
+
+	y2debug( "UTILS *** EvaluateFreeSpace returns: %1", part_input );
+
+	return part_input;
+    };
+
+
+    //
+    // Popup displays warning about exhausted disk space
+    //
+    global define ShowPartitionWarning( ) ``{
+
+	if ( !info_called )
+	{
+	    SpaceCalculation::GetPartitionInfo();
+	}
+	
+        list p_info = SCR::Read(.package.diskSpace, partition_info );
+	integer used = 0;
+	
+	y2debug("partition: %1", p_info );
+	
+	string message = "";
+	foreach( `par, p_info,
+		 ``{
+	    if ( lookup( par, "free", 0 ) < 0 )
+	    {
+		integer needed = lookup (par, "free", 0) * -1;
+		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
+		message = message + sformat ( _("Partition \"%1\" needs %2 more disk space."),
+					      lookup ( par, "name", "" ), size_text(needed*1024) ) + "\n";
+	    }
+	    used = used + lookup( par, "used", 0 );
+	} );
+
+	y2debug( "Total used space: %1", used*1024 );
+	
+	if ( size ( message ) > 0 )
+	{
+	    // dont ask user to deselect packages for imap server, product
+	    if (!Product::imap_server
+		&& !Product::fwadmin_host
+		&& !Product::product_cd	)
+	    {
+		message = message + "\n" +  _("Please deselect some packages.");
+	    }
+	    y2warning("Warning: %1", message );	    
+	    Report::Message(message);
+	    return true;
+	}
+	else
+	{
+	    return false;
+	}
+    };
+
+
+    //
+    // Calculate required disk space
+    //
+
+    global define GetRequSpace( boolean initialize ) ``{
+
+	if ( !info_called )
+	{
+	    SpaceCalculation::GetPartitionInfo();
+	}
+
+        list p_info = SCR::Read(.package.diskSpace, partition_info );
+	integer used = 0;
+	
+	if ( initialize )
+	{
+	    foreach( `part, partition_info,
+		``{
+		used = used + lookup( part, "used", 0 );
+	    } );
+	    
+	    initial_used = used;	// store initial value for used space
+	    y2debug( "INITIAL USED: %1", initial_used );
+
+	    return ( size_text( used*1024 ) );
+	}
+	else
+	{
+	    foreach( `part, p_info,
+		``{
+		used = used + lookup( part, "used", 0 );
+	    } );
+	    y2debug( "USED: %1", used );
+	    
+	    return ( size_text( (used-initial_used)*1024 ) );
+	}
+
+    };
+
+
+    //
+    // Check, if the current selection fits on the disk
+    // return true or false
+    //
+    global define CheckDiskSize( ) ``{
+
+	boolean fit = true;
+
+	if ( !info_called )
+	{
+	    SpaceCalculation::GetPartitionInfo();
+	}
+	
+        list p_info = SCR::Read(.package.diskSpace, partition_info );
+	integer used = 0;
+	
+	y2debug("partition: %1", p_info );
+	
+	string message = "";
+	foreach( `par, p_info,
+		 ``{
+	    if ( lookup( par, "free", 0 ) < 0 )
+	    {
+		integer needed = lookup (par, "free", 0) * -1;
+		y2warning("Partition \"%1\" needs %2 more disk space.",
+			  lookup ( par, "name", "" ), size_text(needed*1024) );
+		fit = false;
+	    }
+	    used = used + lookup( par, "used", 0 );	    
+	} );
+
+	y2debug( "Total used space: %1", used*1024 );
+	
+	return fit;
+    };
+}

@@ -1,0 +1,876 @@
+/**
+ * Module:		InstMedia.ycp
+ *
+ * Authors:		Klaus Kaempf (kkaempf@suse.de)
+ *			Gabriele Strattner (gs@suse.de)
+ *			Stefan Schubert (schubi@suse.de)
+ *
+ * Purpose:		Installation media related functions module
+ *
+ *
+ * $Id$
+ */
+
+{
+    module "InstMedia";
+
+    import "Arch";
+    import "Mode";
+    import "Installation";
+
+    textdomain "packages";
+
+    /**
+     * !local! maximum number of installation CDs
+     * used in splitServerPath
+     */
+    integer maxnumbercds = 8;
+
+    /**
+     * list of possible media devices
+     */
+    global list mediadevices = [];
+
+    /**
+     * currently mounted Medium index from above list
+     */
+    global integer cd_current = 0;
+
+    /**
+     * is the installation medium currenty mounted
+     */
+    global boolean is_mounted = Mode::sourcemounted;
+
+    /**
+     * did we mount the medium (-> umount needed by us)
+     */
+    global boolean we_mounted = !Mode::sourcemounted;
+
+    /**
+     * flag if installation is splitted across different media
+     * if yes, inst-sys is on first medium only and we must
+     * start the system before installing from other medium.
+     */
+    global boolean splitted = true;
+
+    /**
+     * defines the installmode
+     *   dvd, cd, nfs, hd, ftp, smb, http, tftp
+     *
+     * !! This is not the same as Mode::boot since InstMedia
+     *    might be intialized differently from Mode. !!
+     *
+     * @see: initializeInstMedia
+     */
+    global string installmode = "cd";
+
+    /**
+     *   0=cd, 1=dvd, 2=nfs, 3=hd, 4=ftp, 5=smb, 6=http, 7=tftp
+     */
+    global integer mediatype = 0;
+
+    /**
+     * name of media
+     */
+    global string medianame = "CD";
+
+    /**
+     * network (nfs, smb, ...) server and directory
+     */
+    global string net_server = "";	// name of server, partition for Harddisk
+    global string net_dir = "";		// share for SMB, dir for Harddisk
+    global string net_username = "";	// SMB, FTP
+    global string net_password = "";	// SMB
+    global string net_proxy = "";	// FTP
+    global string net_proxyport = "";	// FTP
+
+    /**
+     * mount data SMB
+     */
+    global boolean smb_as_workgroup = true;	// connect via 'Workgroup'
+    global string smb_workdomain = "";		// Workgroup or Domainname
+
+    /**
+     * defines initial boot source, /var/adm/mount for harddisk
+     */
+    global string boot_src = "/dev/cdrom";
+
+    /**
+     * installation media data
+     */
+    global integer release_no = 0;
+    global string product = "";
+
+    /**
+     * get package information from source medium
+     */
+    global boolean source_medium = false;
+
+    /**
+     * local data !
+     */
+    string smb_device = "";		// constructed from above values
+    string smb_options = "";		// constructed from above values
+
+    string tmp_mount = "/tmp/mnt";	// temporary mount for hd install
+
+    // -------------------------------------------------------------------
+
+
+    /**
+     *
+     * get the name of current Medium device or other boot source (e.g. harddisk)
+     *
+     */
+
+    global define string CurrentMediumDevice( )
+    ``{
+	string dev = mediadevices[cd_current]:boot_src;
+	y2milestone ("CurrentMediumDevice (%1 [cd # %2])", dev, cd_current);
+	return dev;
+    }
+
+    /**
+     * Returns path of source-installation
+     *
+     * @param	- none -
+     * @return  string path of installation source
+     *
+     */
+
+    global define string GetInstPath( )
+    ``{
+	string instPath="";
+
+	if ( mediatype == 3 )		// Harddisk
+	{
+	    instPath = CurrentMediumDevice() + "/suse";
+	}
+	else
+	{
+	    instPath = Installation::sourcedir+"/suse";
+	}
+	y2milestone ("GetInstPath (%1)", instPath);
+	return instPath;
+    }
+
+
+    /**
+     * eject the currently active installation medium (CD/DVD)
+     *
+     */
+
+    global define void EjectMedium( )
+    ``{
+
+	if ( mediatype == 0 || mediatype == 1 )
+	{
+	    string device = CurrentMediumDevice( );
+	    SCR::Execute(.target.umount, device);
+	    SCR::Execute(.target.bash, "/bin/eject " + device );
+	}
+    }
+
+
+    /**
+     * Unmount the installation medium
+     *
+     */
+
+    global define void UnmountMedium ()
+    ``{
+	if (we_mounted && is_mounted)
+	{
+	    SCR::Execute (.target.umount, Installation::sourcedir);
+
+	    if ((mediatype == 3)	// harddisk 
+		&& (net_server != ""))	// only if we did a "mount --bind"
+	    {
+		SCR::Execute (.target.umount, tmp_mount);
+	    }
+
+	    // eject CD/DVD on PPC (Mac !) architectures
+	    if (Arch::ppc32
+		&& (mediatype == 0 || mediatype == 1))
+	    {
+		EjectMedium();
+	    }
+
+	    is_mounted = false;
+	    we_mounted = false;
+	}
+    }
+
+
+    /**
+     * Change the source medium, i.e. mount the medium to Installation::sourcedir
+     * (umount previous used).
+     *
+     * @param cdnum integer Medium number
+     * @return integer 0	all ok, medium mounted<BR>
+     *		> 0		wrong cd, number of current cd returned<BR>
+     *		< 0		error<BR>
+     *		-1		no alternatives (not remountable)<BR>
+     *		-2		mount failed (no medium)<BR>
+     *		-3		not an installation medium<BR>
+     *
+     * @example MountMedium ( 2 );
+     *
+     */
+
+    global define integer MountMedium (integer cdnum)
+    ``{
+	y2milestone ("MountMedium (%1) type %2, mounted %3 ...", cdnum, mediatype, is_mounted);
+
+	integer actcdnum = -2;		// assume 'no medium'
+
+	integer actcddevicenum = -1;	// index to mediadevices for "actcdnum"
+
+	path cdnumpath = topath (".yast2.instsource.cdnum." + cdnum);
+
+	if (is_mounted)
+	{
+	    actcdnum = SCR::Read (cdnumpath, Installation::sourcedir);
+
+	    if (actcdnum == cdnum)	// right medium found !
+		return 0;
+
+	    actcdnum = -3;		// not a SuSE medium
+	}
+
+	integer	current_device	= cd_current;	// start with previous device
+
+	if ( (mediatype == 2) || (mediatype == 3))	// NFS or Harddisk
+	{
+	    // direct access to dir, cdnum-1 is index in list mediadevices
+	    current_device = cdnum - 1;
+	}
+
+	// if list exhausted, restart at 0
+	if (current_device >= size(mediadevices) )
+	{
+	    current_device = 0;
+	}
+
+	integer start_device = current_device;
+	integer start_num = actcdnum;		// initial cd or error code
+
+	boolean mount_result = true;
+
+	while (true)
+	{
+	    // wrong number -> umount medium
+	    UnmountMedium ();
+
+	    // try to mount next from list
+
+	    cd_current = current_device;
+	    string current_cd_device = CurrentMediumDevice ();
+
+	    if ( mediatype == 5 )		// SMB
+	    {
+		mount_result = SCR::Execute (.target.mount, [ smb_device + current_cd_device, Installation::sourcedir, Installation::mountlog ], smb_options);
+		we_mounted = mount_result;
+	    }
+	    else if (mediatype == 3)		// Harddisk
+	    {
+		if (net_server != "")		// partition given, use "--bind"
+		{
+		    y2milestone ("Doing mount --bind %1 %2, current %3", net_server, net_dir, current_cd_device);
+		    SCR::Execute (.target.mkdir, tmp_mount);
+		    mount_result = SCR::Execute (.target.mount, ["/dev/"+net_server, tmp_mount, Installation::mountlog]);
+		    if (mount_result)
+		    {
+			Installation::sourcedir = "/var/adm/mount";
+			mount_result = SCR::Execute (.target.mount, [ tmp_mount + net_dir, Installation::sourcedir, Installation::mountlog ], " --bind -o ro");
+		    }
+		    we_mounted = mount_result;
+		}
+		else			// already mounted
+		{
+		    Installation::sourcedir = current_cd_device; // Select proper directory.
+		    we_mounted = false;
+		}
+	    }
+	    else
+	    {
+		if (mediatype <= 1)		// CD or DVD
+		{
+		    // close the tray
+		    SCR::Execute (.target.bash, "/bin/eject -t " + current_cd_device);
+		}
+
+		// print error messages to logfile
+		mount_result = SCR::Execute (.target.mount, [ current_cd_device, Installation::sourcedir, Installation::mountlog ], " -o ro");
+		we_mounted = mount_result;
+		y2milestone( "MountMedium: %1 EXIT_CODE: %2", current_cd_device, mount_result );
+	    }
+
+	    is_mounted = mount_result;
+
+	    if (is_mounted)
+	    {
+		// ok, medium is mounted
+		// try to get SuSE medium number
+
+		actcdnum = SCR::Read (cdnumpath, Installation::sourcedir);
+		y2milestone ("actcdnum %1", actcdnum);
+		if (actcdnum == nil)		// not SuSE medium
+		{
+		    actcdnum = -3;
+		}
+		else if (actcdnum == cdnum)	// found it !
+		{
+		    actcdnum = 0;
+		    break;
+		}
+		else if (start_num < 0)		// if no cd found before
+		{
+		    start_num = actcdnum;	//   remember found cd
+		    actcddevicenum = cd_current;//   remember where we found it
+		}
+	    }
+	    else
+	    {
+		actcdnum = -2;			// mount failed
+	    }
+
+	    // wrong number, try next
+
+	    current_device = current_device + 1;
+
+	    if (current_device >= size(mediadevices) )
+	    {
+		y2milestone ("Wrap list of alternatives");
+		current_device = 0;	// list exhausted, restart at 0
+	    }
+
+	    // wrap around, tried all
+
+	    if (current_device == start_device)
+	    {
+		y2milestone ("Tried all alternatives");
+		if (start_num > 0)
+		{
+		    // if found a different SuSE Medium, report this
+		    actcdnum = start_num;
+		}
+		break;
+	    }
+	} // while (try_next)
+
+	y2milestone ("... MountMedium (%1)", actcdnum);
+
+	if (actcdnum != 0)
+	{
+	    // wrong number -> umount medium
+	    UnmountMedium ();
+
+	    if (actcddevicenum >= 0)	// we found another SuSE medium
+	    {
+		// start next mount try here,
+		// eject _this_ device if triggered by user
+		cd_current = actcddevicenum;
+	    }
+	}
+
+	return actcdnum;
+    }
+
+    /**
+    // call this after first time mount of Medium1
+     */
+
+    global define boolean gatherReleaseData ()
+    ``{
+	if (Mode::test)
+	    return true;
+
+	if (Mode::initial)
+	{
+	    if (MountMedium(1) != 0)
+		return false;
+
+            // read release_no (used in MediaUI to check if != 0)
+	    release_no = SCR::Read(.yast2.instsource.cdrelease, Installation::sourcedir);
+	    product    = SCR::Read(.yast2.instsource.product, Installation::sourcedir);
+	}
+	else	// runtime
+	{
+	    release_no = SCR::Read(.yast2.instsource.cdrelease, Installation::descrdestdir);
+	    product    = SCR::Read(.yast2.instsource.product, Installation::descrdestdir);
+	}
+
+	y2milestone( "RELEASE No. %1, %2 is the reference.", release_no, product );
+
+	return true;
+    }
+
+
+    /**
+     * Write installation data
+     */
+
+    global define WriteInstallMap ()
+    ``{
+	// create installation information map and write data
+	// to /var/lib/YaST2/installmap.ycp
+
+	map installinf = Mode::installMap;
+	
+	installinf["instmode"] = installmode;
+
+	if (mediatype == 0)		// CD
+	{
+	    installinf["instmode"] = "cd";
+	    installinf["cdrom"]	   = "cdrom";
+	}
+	else if (mediatype == 1)	// DVD
+	{
+	    installinf["instmode"] = "dvd";
+	    installinf["cdrom"]	   = "dvd";
+	}
+	else if (mediatype == 2)	// NFS
+	{
+	    installinf["instmode"]  = "nfs";
+	    installinf["server"]    = net_server;
+	    installinf["serverdir"] = net_dir;
+	}
+	else if (mediatype == 3)	// Harddisk
+	{
+	    installinf["instmode"]  = "hd";
+	    installinf["partition"] = net_server;  // hd partition
+	    installinf["serverdir"] = net_dir;	   // directory on partition
+	}
+	else if (mediatype == 4)	// Ftp
+	{
+	    installinf["instmode"]	= "ftp";
+	    installinf["server"]	= net_server;
+	    installinf["serverdir"]	= net_dir;
+	    installinf["ftpuser"]	= net_username;
+	    installinf["password"]	= net_password;
+	    installinf["ftpproxy"]	= net_proxy;
+	    installinf["ftpproxyport"]	= net_proxy;
+	}
+	else if (mediatype == 5)	// SMB
+	{
+	    installinf["instmode"]	= "smb";
+	    installinf["server"]	= net_server;
+	    installinf["serverdir"]	= net_dir;
+	    installinf["username"]	= net_username;
+	    installinf["password"]	= net_password;
+	    installinf["asworkgroup"]	= smb_as_workgroup;
+	    installinf["workdomain"]	= smb_workdomain;
+	}
+	else if (mediatype == 6)	// Http
+	{
+	    installinf["instmode"]	= "http";
+	    installinf["server"]	= net_server;
+	    installinf["serverdir"]	= net_dir;
+	    installinf["httpuser"]	= net_username;
+	    installinf["password"]	= net_password;
+	    installinf["httpproxy"]	= net_proxy;
+	    installinf["httpproxyport"]	= net_proxy;
+	}
+
+	y2milestone ("WriteInstallMap (%1, %2)", Installation::yast2dir + "/installmap.ycp", installinf);
+
+	SCR::Write (.target.ycp, [Installation::yast2dir + "/installmap.ycp", 0600], installinf );
+    }
+
+    /**
+     * write all data YaST needs in installed system
+     * installation medium 1 is mounted on sourcedir
+     */
+
+    global define InstallYaSTData ()
+    ``{
+	// write dummy install.inf for package agent
+	// *** write via WFM since package agent doesn't run chroot
+
+	WFM::Execute (.local.mkdir, "/var/lib/YaST");
+	WFM::Write (.local.string, "/var/lib/YaST/install.inf", "MediaInfo: 2 /dev/cdrom");
+
+	// handle "elf" in infoMap separately, present means "1", non-present means "0"
+	string is_elf = "1";
+	if (Installation::infoMap["elf"]:"0" == "0")
+	    is_elf = "0";
+
+	SCR::Write (.target.string, "/var/lib/YaST/system.inf",
+		"ELF=\"" + is_elf
+		+ "\"\nHAS_LIVE_CD=\""
+		+ Installation::infoMap["haslivecd"]:"0" + "\"\n");
+
+	// This is obsolete:
+	// WriteYaSTData ();
+	// Installation data are not stored any longer in /var/lib/YaST/install.inf
+	// but in /var/lib/YaST2/install.ycp.
+	
+	WriteInstallMap();
+	
+	// generate on target:
+	//   /var/lib/YaST/update.inf from /tmpdir/info and /tmpdir/update.in_
+	//
+	// save info and update.in_ from CD1 for generating update.inf for YaST1
+	//
+
+	string tmpdir = SCR::Read(.target.tmpdir);
+
+	SCR::Execute (.target.bash, "/bin/cp " + Installation::sourcedir + "/suse/setup/descr/info " + tmpdir);
+	SCR::Execute (.target.bash, "/bin/cp " + Installation::sourcedir + "/suse/setup/descr/update.in_ " + tmpdir);
+
+	if (0 != SCR::Execute(.target.bash, "/usr/lib/YaST2/bin/create_update_inf "+tmpdir))
+	{
+	    y2error("Couldn't create update.info");
+	}
+    }
+
+
+    /**
+     * !local! splitServerPath (string serverpath)
+     * check if network install path ends in "CD1" and split it up
+     * @param serverpath	path on network server (nfs, smb)
+     * @return list of directories
+     *
+     * if serverpath ends in "/CD1", it is replicated for CD2 ... CD8
+     *
+     */
+
+    define splitServerPath (string serverpath)
+    ``{
+	list medias = [];
+
+	list serversplit = splitstring (serverpath, "/");
+
+	// if directory ends in ".../CD1", assume splitted dirs
+
+	string serverdir = serverpath;
+
+	if ((size (serversplit) > 0)
+	    && (serversplit[size (serversplit)-1]:"" == "CD1"))
+	{
+	    integer numcd = 1;	// use as counter, begin behind "server:"
+
+	    // re-build path, dropping final "/CD1"
+
+	    // start with adding up path elements.
+	    serverdir = "";
+
+	    while (numcd < size (serversplit)-1)
+	    {
+		serverdir = serverdir + "/" + serversplit[numcd]:"";
+		numcd = numcd + 1;
+	    }
+
+	    // now pre-pend "server:"
+	    serverdir = serversplit[0]:"" + serverdir;
+
+	    // now build up server directories in medias
+
+	    numcd = 1;			// start with CD1
+	    string net_dir_path = "";
+	    while (numcd <= maxnumbercds)
+	    {
+		net_dir_path = serverdir + "/CD" + numcd;
+		medias = add (medias, net_dir_path);
+		numcd = numcd + 1;
+	    }
+
+	}
+	else
+	{
+	    medias = [ serverpath ];
+	}
+	return medias;
+    }
+
+
+    /**
+     *
+     * this initializes the module
+     *
+     * it is used as a run-time constructor, since we need
+     * to pass different installMaps, either coming from
+     *
+     * linuxrc (based on /etc/install.inf) ==> installMap != $[]
+     *
+     * package agent (based on /var/lib/YaST/install.inf) ==> installMap == $[]
+     *
+     */
+
+    global define initializeInstMedia ( map installMap )
+    ``{
+	y2milestone ("initializeInstMedia (%1)", installMap);
+
+	if ( size ( installMap ) == 0 )
+	{
+	    installMap = Mode::installMap;
+	}
+
+	if ( size ( installMap ) == 0 )
+	{
+	    // fallback
+	    y2warning( "UTILS *** No install-information found->take CD as default" );
+	    installMap = $[ "instmode":"cd", "cdrom":"cdrom" ];
+	}
+
+	installmode = installMap["instmode"]:"cd";	// default: booting from CD
+
+	list allowed_install_modes = [ "cd", "dvd", "nfs", "hd", "ftp", "smb", "http", "tftp"]; 
+
+	if (!contains (allowed_install_modes, installmode))
+	{
+	    installmode = "cd";
+	}
+
+	is_mounted = Mode::initial;	// linuxrc does it
+
+	mediadevices = [];
+
+	if (installmode == "cd")
+	{
+	    mediatype = 0;
+	    medianame = "CD";
+
+	    string dev_name = installMap["cdrom"]:"cdrom";
+
+	    // set the initial boot source
+	    boot_src = "/dev/" + dev_name;
+
+	    list cddrives = [];
+	    if (Mode::initial
+		|| Mode::cont)
+	    {
+		cddrives = SCR::Read(.probe.cdrom);
+	    }
+	    else
+	    {
+		cddrives = SCR::Read(.probe.cdrom.manual);
+	    }
+	    if ((cddrives == nil)
+		|| (size (cddrives) == 0))
+	    {
+		cddrives = [$["dev_name":"/dev/cdrom"]];
+	    }
+
+	    foreach (`drive, cddrives,
+	    ``{
+		dev_name = drive["dev_name"]:"";
+		if (!contains (mediadevices, dev_name))
+		{
+		    mediadevices = add (mediadevices, dev_name);
+		}
+	    });
+
+	    splitted = true;
+	}
+	else if (installmode == "dvd")
+	{
+	    mediatype = 1;
+	    medianame = "DVD";
+
+	    string dev_name = installMap["cdrom"]:"dvd";
+
+	    // set the initial boot source
+	    boot_src = "/dev/" + dev_name;
+
+	    // if its not (!) /dev/dvd, save it
+	    //   /dev/dvd is always a symlink to the real
+	    //   device which we'll get via .probe.cdrom anyway
+
+	    if (dev_name != "dvd")
+	    {
+		mediadevices = add (mediadevices, boot_src);
+	    }
+
+	    list dvddrives = SCR::Read(.probe.cdrom.manual);
+
+	    if ((dvddrives == nil)
+		|| (size (dvddrives) == 0))
+	    {
+		cddrives = [$["dev_name":"/dev/dvd", "prog_if" : 3]];
+	    }
+
+	    foreach (`drive, dvddrives,
+	    ``{
+		// filter out DVD drives
+		if (drive["prog_if"]:0 == 3)
+		{
+		    dev_name = drive["dev_name"]:"";
+		    if (!contains (mediadevices, dev_name))
+		    {
+			mediadevices = add (mediadevices, dev_name);
+		    }
+		}
+	    });
+
+	    splitted = true;
+	}
+	else if (installmode == "nfs")
+	{
+	    mediatype = 2;
+	    // check if serverdir ends in "CD1"
+	    // rebuild serverdir without CD1
+
+	    net_server  = installMap["server"]:"";
+	    net_dir	= installMap["serverdir"]:"";
+
+	    boot_src = net_server + ":" + net_dir;
+
+	    list pathes = splitServerPath (boot_src);
+
+	    if (size (pathes) > 1)
+	    {
+		splitted = true;
+	    }
+	    else
+	    {
+		splitted = false;
+	    }
+
+	    mediadevices = union (mediadevices, pathes);
+	}
+	else if (installmode == "hd")
+	{
+	    mediatype = 3;
+	    integer hdcd = 1;
+	    boot_src   = "/var/adm/mount";
+
+	    net_server = installMap["partition"]:"";
+	    net_dir    = installMap["serverdir"]:"";
+
+	    // if partition given, ensure dir is rooted
+	    if (net_server != "")
+	    {
+		if (substring (net_dir, 0, 1) != "/")
+		{
+		    net_dir = "/" + net_dir;
+		}
+	    }
+
+	    // usually, linuxrc has already mounted it to /var/adm/mount
+	    // so we don't need to do anything.
+	    // However, during 2nd stage install or if linuxrc didn't mount
+	    // it, 'is_mounted' is false and we must re-mount it from
+	    // server.
+
+	    list pathes = splitServerPath (net_dir);
+
+	    if (size (pathes) > 1)
+	    {
+		splitted = true;
+	    }
+	    else
+	    {
+		splitted = false;
+	    }
+
+	    if (is_mounted)
+	    {
+		// CD1 already mounted to boot_src by linuxrc
+		mediadevices = [ boot_src ];
+	    }
+	    else
+	    {
+		mediadevices = union (mediadevices, pathes);
+	    }
+	}
+	else if (installmode == "ftp")
+	{
+	    mediatype = 4;
+	    net_server	 = installMap["server"]:"";
+	    net_dir	 = installMap["serverdir"]:"";
+	    net_username = installMap["ftpuser"]:"";
+	    net_password = installMap["password"]:"";
+	    net_proxy	 = installMap["ftpproxy"]:"";
+	    net_proxy	 = installMap["ftpproxyport"]:"";
+	    splitted = true;
+	}
+	else if (installmode == "smb")
+	{
+	    mediatype = 5;
+
+	    net_server	     = installMap["server"]:"";
+	    net_dir	     = installMap["serverdir"]:"";
+	    net_username     = installMap["username"]:"";
+	    net_password     = installMap["password"]:"";
+	    smb_as_workgroup = (installMap["asworkgroup"]:"" == "1");
+	    smb_workdomain   = installMap["workdomain"]:"";
+
+	    smb_device	= "//" + net_server;
+	    smb_options	= " -t smbfs";
+
+	    if ( net_username != "" && net_password != "" )
+	    {
+		smb_options = smb_options + " -o ro,username=" + net_username + ",password=" + net_password;
+
+		if ( smb_as_workgroup )
+		{
+		    smb_options = smb_options + ",workgroup=" + smb_workdomain;
+		}
+	    }
+	    else
+	    {
+		smb_options = smb_options + " -o guest,ro";
+	    }
+
+	    list pathes = splitServerPath (net_dir);
+
+	    if (size (pathes) > 1)
+	    {
+		splitted = true;
+	    }
+	    else
+	    {
+		splitted = false;
+	    }
+
+	    mediadevices = union (mediadevices, pathes);
+
+	} // if "Smb"
+	else if (installmode == "http")
+	{
+	    mediatype = 6;
+	    net_server	 = installMap["server"]:"";
+	    net_dir	 = installMap["serverdir"]:"";
+	    net_username = installMap["httpuser"]:"";
+	    net_password = installMap["password"]:"";
+	    net_proxy	 = installMap["httpproxy"]:"";
+	    net_proxy	 = installMap["httpproxyport"]:"";
+	    splitted = true;
+	}
+	else if (installmode == "tftp")
+	{
+	    mediatype = 7;
+	    net_server	 = installMap["server"]:"";
+	    net_dir	 = installMap["serverdir"]:"";
+	    net_username = installMap["ftpuser"]:"";
+	    net_password = installMap["password"]:"";
+	    net_proxy	 = installMap["ftpproxy"]:"";
+	    net_proxy	 = installMap["ftpproxyport"]:"";
+	    splitted = true;
+	}
+
+	if (mediadevices == nil)
+	{
+	    mediadevices = [boot_src];
+	}
+
+	// check if mount point is in use
+
+	if (mediatype != 3)
+	{
+	    foreach (`mountpoint, SCR::Read(.proc.mounts),
+	    ``{
+		if (mountpoint["file"]:"" == Installation::sourcedir)
+		    is_mounted = true;
+	    });
+	}
+
+	y2milestone ("mediadevices: %1", mediadevices);
+	return;
+    }
+
+    // NO constructor
+
+}

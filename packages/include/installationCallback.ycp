@@ -1,0 +1,181 @@
+/**
+ * Include: 		installationCallbak.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>	
+ *
+ * Purpose: 		provides the Callbacks for y2client "packager"
+ *
+ * $Id$
+ */
+
+{
+
+    textdomain "packages";    
+
+
+    /**
+     *		UI defines - workaround for "packager"
+     **/
+    UI(``{
+
+	/**
+	 * Callback that will be called by the packager as packages are installed
+	 **/ 
+	global define symbol CyclicInstallPkgCallback( string  pkg_name,
+						       string  pkg_description,
+						       integer pkg_percent,
+						       integer current_pkg_number,
+						       integer disk_usage,
+						       integer disk_capacity,
+						       boolean error )	``{
+
+	    return WFM::CyclicUpdateCallback( pkg_name,
+					      pkg_description,
+					      pkg_percent,
+					      current_pkg_number,
+					      disk_usage,
+					      disk_capacity,
+					      error,
+					      false );	// deleting
+	};
+
+	
+	/**
+	 * Callback that will be called by the packager as packages are deleted
+	 **/ 
+	global define symbol CyclicDeletePkgCallback( string  pkg_name,
+						      string  pkg_description,
+						      integer pkg_percent,
+						      integer current_pkg_number,
+						      integer disk_usage,
+						      integer disk_capacity,
+						      boolean error )	``{
+
+	    return WFM::CyclicUpdateCallback( pkg_name,
+					      pkg_description,
+					      pkg_percent,
+					      current_pkg_number,
+					      disk_usage,
+					      disk_capacity,
+					      error,
+					      true );	// deleting
+	};
+    });  	// UI defines end
+
+
+   /**
+     * Callback that will be called by the packager for each RPM as it is being installed or deleted.
+     * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
+     * and pass the "deleting" flag as appropriate.
+     **/
+    global define symbol CyclicUpdateCallback( string  pkg_name,
+					    string  pkg_description,
+					    integer pkg_percent,
+					    integer current_pkg_number,
+					    integer disk_usage,
+					    integer disk_capacity,
+					    boolean error,
+					    boolean deleting )		``{
+
+	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
+
+	SlideShow::CyclicDisplayUpdate( pkg_name, pkg_description, pkg_percent, deleting );
+
+	integer how_much = (disk_usage * 100) / disk_capacity;
+
+	// warn user about exhausted diskspace during installation (not if deleting packages)
+	if (!deleting)
+	{
+	    if (how_much > 95 && !shutup)
+	    {
+		boolean cont = UI::AnyQuestionPopup( WarningMsg(),
+						     _("The disk space is nearly exhausted.
+Do you want to go on with the installation?\n"),
+						     YesButtonLabel(),
+						     NoButtonLabel(),
+						     `focus_no );
+
+		if (!cont)
+		    return `cancel;
+		else
+		    shutup = true;
+	    }
+	}
+	
+	any button = UI::PollInput();
+
+	// in case of cancel ask user if he really wants to quit installation
+	if ( button == `abort )
+	{
+	    boolean ret = false;
+	    
+	    if ( Mode::normal )
+	    {
+		ret = UI::AnyQuestionPopup( NoHeadline(),
+					    _("Do you really want\nto quit the installation?"),
+					    YesButtonLabel(),
+					    NoButtonLabel(),
+					    `focus_no );
+	    }
+	    else if ( Mode::initial )
+	    {
+		ret = UI::ConfirmAbortPopup( `unusable );
+	    }
+	    else	// Mode::update, Mode::cont
+	    {
+		ret = UI::ConfirmAbortPopup( `incomplete );
+	    }
+
+	    if ( ret )
+		return `cancel;
+
+	}
+	else
+	{
+	    SlideShow::ProcessButtonPress( button );
+	}
+
+	if ( error )
+	{
+	    y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
+	    
+	    // add package to list error_packages (module "PackageInstallation")
+	    error_packages = add( error_packages, pkg_name );
+
+	    if ( !deleting )
+	    {
+		any answer = `no_log;
+		string message = sformat( _("Package %1 returned an error.\nDo you want to see the log file?"),
+					  pkg_name );
+		if ( UI::AnyQuestionPopup( NoHeadline(),
+					   message,
+					   YesButtonLabel(),
+					   NoButtonLabel(),
+					   `focus_no) )
+		{
+		    answer = `yes_short;
+		}
+		textdomain "general";
+
+		while ( answer != `no_log )
+		{
+		    string text = "";
+
+		    if ( answer == `yes_short )
+		    {
+			text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2logRPMShort");
+		    }
+		    if ( answer == `yes_long )
+		    {
+			text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2logRPM");
+		    }
+
+		    answer = UI::DisplayLogFile( text, answer );
+		}
+		textdomain "packages";
+	    }
+	}
+	return nil;
+    };
+
+}

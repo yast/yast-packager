@@ -1,0 +1,32 @@
+//
+// check for InstMedia module
+//
+{
+    import "./../../../modules/Arch";
+    import "./../../../modules/Installation";
+    import "./../InstMedia";
+
+    y2milestone ("running InstMedia check");
+
+    integer arg_count = size(Args());
+    if (arg_count < 1)
+    {
+	return "Bad arguments for InstMedia check";
+    }
+
+    string installmapfile = Args(0);
+    y2milestone ("reading %1", installmapfile);
+
+    map installmap = WFM::Read(.local.ycp, installmapfile);
+    if (installmap == nil)
+    {
+	return "Failure reading "+installmapfile;
+    }
+    if (size (installmap) <= 0)
+    {
+	return "Bad data in "+installmapfile;
+    }
+    InstMedia::initializeInstMedia (installmap);
+
+    return "done";
+}

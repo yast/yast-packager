@@ -1,0 +1,128 @@
+sw_single command line:
+-----------------------
+
+- Paketliste installieren ohne Userinput
+
+/sbin/yast2 sw_single \[\"tuxracer\",\"tuxkart\"\]
+
+- Install/Remove Software
+
+/sbin/yast2 sw_single \"beginner\"
+
+- Inputfile
+
+/sbin/yast2 sw_single \"/tmp/inputfile\"
+
+inputfile:
+----------
+$["install":["tuxracer","tuxkart"],
+  "delete": ["xy"],
+  "userInput":true]
+
+
+OBSOLETES: (test dependencies)
+---------
+
+findutils (not installed ) <-> gawk (installed)
+
+
+CONFLICT:
+---------
+zip <-> ziptool 	(both installed)
+aterm <-> wterm 	(aterm not installed)
+
+
+common.pkd
+----------
+from 7.2 on DepAnd DepOR DepEXCL or obsolete
+
+and replaced by Requires/Provides
+Requires: x     means ADDITIONAL dep. if only one package Provides:  x
+		is a REQUIRE dep. if more than one package Provides: x
+
+I. Call of package_tests:
+-------------------------
+(user root)
+.../testsuite > ./test_package
+
+default is reading package descriptions from ./suse/seteup/descr
+
+II. Call of inst_sw_single in "single" mode
+    that means: testing new installation
+--------------------------------------------
+1. set "a"      select package "bash"
+  -> popup: Your former selection contains .... 
+            appears if there are any existing package conflicts 
+            Normally the conflict linclude/lxsuse exists if STANDARD
+            and Development is installed.
+   - click on "Show dependencies"
+   -> popup: Package conflict lxsuse and linclude           
+   -> popup: Warning bash  ....
+   -> popup: "bash" is automatically selected/deselect it?
+              select NO -> bash is not deselected
+
+2. set "aplx"   select package "axdemo-demo-grn"
+         -> axdemo is marked with "a"
+
+3. set "beo"   select package "dqs"
+   - select package "pbs"
+   -> popup: Package conflict 
+      - select No installation 
+      -> pbs is not selected
+
+
+   - exit dialog with Cancel
+   -> Your choices are not saved ....
+
+
+III. Call of inst_sw_single in "post" mode
+    that means: testing installation in already installed system
+
+1.  -> popup: Your existing installation contains .... 
+            appears at once (before selecting a package)
+            if there are any existing package conflicts. 
+            Normally the conflict linclude/lxsuse exists if STANDARD
+            and Development is installed.
+   - click on "Show dependencies"
+   -> popup: Package conflicts/Additional package required 
+   -> popup: Additional packages needed (existing AND deps)
+      - select NO installtion 
+      -> Required space is set to 0.00 KB
+    
+
+2. set "a"      select package: "bash"
+   -> popup: Warning bash  ....
+   -> popup: "bash" is automatically selected/deselect it?
+              select YES -> bash is marked with "d"
+
+   - exit dialog with Cancel
+   -> Your choices are not saved ....
+
+  
+IV. Call of inst_sw_single in "update" mode
+
+1. change between Manual/Update/No Update
+   -> check description of lists
+   
+2. click on Check installation
+  -> Package conflicts are shown,
+     Additional needed are shown as well
+     Should YaST2 install this packages?
+     - select YES
+        
+3.  click on Check installation again
+   -> Additional needed are shown again (AND deps are shown again and again -
+      this should be OK, packages will be installed, unless NO is selected)
+     - select NO
+     
+4. click on Check installation again
+   -> No additional dependencies found
+
+5. Select "Manual selection" and click on "Update all"
+   -> all packages are marked with "u"
+      - select "Select for Update" 
+      -> packages are here 
+        - change back to manual
+        -> packages are gone
+
+

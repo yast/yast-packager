@@ -1,0 +1,30 @@
+/*
+ * Test GetInstallMap
+ */
+
+{
+  include "package_utils.ycp";
+  include "testsuite.ycp";
+  
+  map user_settings = $[ "installMap":$["bootmode":"Net",
+				       "server":"10.10.0.14",
+				       "serverdir":"/work4/CDs/suse-prof-i386/CD1" ]];  
+
+
+  DUMP ("GetInstallMap: read data from user_settings" );
+
+  TEST (``(GetInstallMap()), [$[], $[], $[]], []); 
+
+  DUMP ("GetBootDevice: returns list of \"cddevices\" (=directories)" );
+
+  TEST (``(GetBootDevice(GetInstallMap())), [$[], $[], $[]], []);
+
+ user_settings = $[ "installMap":$["bootmode":"Net",
+				       "server":"10.10.0.14",
+				       "serverdir":"/work4/CDs/suse-prof-i386" ]];
+
+  DUMP ("GetBootDevice: only one directory" );
+
+  TEST (``(GetBootDevice(GetInstallMap())), [$[], $[], $[]], []);
+ 
+}

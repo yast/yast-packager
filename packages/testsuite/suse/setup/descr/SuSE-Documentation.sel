@@ -1,0 +1,186 @@
+# SuSE-Linux-Package-Selection 2.1 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Mar 26 17:46:26 UTC 2002
+
+Version: 2.1
+
+Name: SuSE-Documentation
+
+Label: Help & Support Documentation
+Label.cs: Nápověda a dokumentace
+Label.de: Dokumentation zu Hilfe & Support
+Label.en: Help & Support Documentation
+Label.es: Ayuda y documentación de Soporte
+Label.fr: Documentation Aide & Support
+Label.gl: Help & Support Documentation
+Label.hu: Segítség és terméktámogatás
+Label.it: Documentazione di supporto
+Label.ja: ヘルプ、説明書、マニュアル
+Label.lt: Help & Support Documentation
+Label.nl: Help & ondersteunings-documentatie
+Label.pt: Help & Support Documentation
+Label.sv: Help & Support Documentation
+Label.tr: Help & Support Documentation
+
+Category: addon
+
+Visible: true
+
+Toinstall:
+howtoenh
+htdig
+l2h-pngicons
+sdb
+susehelp
+susetour
+Llatsniot:
+
+Toinstall.cs:
+man-pages-cs
+sdb_cz
+sdb_en
+susehelp_cz (susehelp_en)
+susetour_en
+Llatsniot.cs:
+
+Toinstall.de:
+howtodeh
+qappl_de (qappl_en)
+qconfig_de (qconfig_en)
+sdb_de (sdb_en)
+susehelp_de (susehelp_en)
+suselinux-reference_de (suselinux-reference_en)
+susetour_de (susetour_en)
+Llatsniot.de:
+
+Toinstall.default:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.default:
+
+Toinstall.el:
+howtoel
+sdb_en
+susehelp_en
+susetour_en
+Llatsniot.el:
+
+Toinstall.es:
+howtoes
+ldpmanes
+qappl_es (qappl_en)
+qconfig_es (qconfig_en)
+sdb_es (sdb_en)
+susehelp_es (susehelp_en)
+suselinux-reference_es (suselinux-reference_en)
+susetour_es (susetour_en)
+Llatsniot.es:
+
+Toinstall.fr:
+howtofr
+ldpmanfr
+sdb_fr (sdb_en)
+susehelp_fr (susehelp_en)
+susetour_en
+Llatsniot.fr:
+
+Toinstall.hu:
+qappl_hu (qappl_en)
+qconfig_hu (qconfig_en)
+sdb_en
+sdb_hu
+susehelp_hu (susehelp_en)
+suselinux-reference_hu (suselinux-reference_en)
+susetour_hu (susehelp_en)
+Llatsniot.hu:
+
+Toinstall.it:
+howtoit
+man-pages-it
+qappl_it (qappl_en)
+qconfig_it (qconfig_en)
+sdb_it (sdb_en)
+susehelp_it (susehelp_en)
+suselinux-reference_it (suselinux-reference_en)
+susetour_it (susetour_en)
+Llatsniot.it:
+
+Toinstall.ja:
+man-pages-ja
+sdb_en
+susehelp_en
+susetour_en
+xmanja
+Llatsniot.ja:
+
+Toinstall.nl:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.nl:
+
+Toinstall.pl:
+howtopl
+sdb_en
+susehelp_en
+susetour_en
+Llatsniot.pl:
+
+Toinstall.pt:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.pt:
+
+Toinstall.ru:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.ru:
+
+Toinstall.sl_SI:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.sl_SI:
+
+Toinstall.sv:
+howtosv
+sdb_en
+susehelp_en
+susetour_en
+Llatsniot.sv:
+
+Toinstall.tr:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.tr:
+
+Toinstall.tu:
+qappl_en
+qconfig_en
+sdb_en
+susehelp_en
+suselinux-reference_en
+susetour_en
+Llatsniot.tu:
+
