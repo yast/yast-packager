@@ -39,7 +39,7 @@
     // FIXME error checking is missing all around here, initialization could actually fail!
     Pkg::TargetInit (Installation::destdir, true);
 
-    if (Mode::cont)
+    if (Stage::cont ())
     {
 	// initialize the package agent in continue mode
 	Packages::Init( true );
@@ -50,8 +50,8 @@
     Pkg::TargetLogfile (Installation::destdir + "/var/log/YaST2/y2logRPM");
 
 
-    if  (Mode::autoinst
-	 && Mode::cont)
+    if  (Mode::autoinst ()
+	 && Stage::cont ())
     {
 	import "AutoinstSoftware";
 
@@ -67,7 +67,7 @@
 	Pkg::PkgSolve (false);
     }
 
-    if (!Mode::initial)
+    if (!Stage::initial ())
     {
 	// second stage of package installation, re-read list of remaining binary and source
 	// packages
@@ -101,23 +101,23 @@
 
     // Install the software from Medium1 to Mediummax, but not the already
     // installed base packages.
-    // This part is also used for installation in running system (Mode::cont)
+    // This part is also used for installation in running system (Stage::cont ())
 
     integer maxnumbercds = 10;
     integer current_cd_no = 1;
 
-    if (Mode::initial)
+    if (Stage::initial ())
     {
 	maxnumbercds = 1;			// only the first CD will be installed
     }
-    else if (Mode::autoinst && Mode::cont && size( AutoinstSoftware::post_packages ) > 0)
+    else if (Mode::autoinst () && Stage::cont () && size( AutoinstSoftware::post_packages ) > 0)
     {
 	// one more compatibility feature to old YaST, post-packages
 	// Simply install a list of package after initial installation (only
 	// makes sense with nfs installatons)
 	current_cd_no = 1;
     }
-    else if (Mode::cont)
+    else if (Stage::cont ())
     {
 	current_cd_no = 2; // continue with second CD but only in continue mode
     }
@@ -180,7 +180,7 @@
 	}
 
 	// break on first round with Mediums
-	if (Mode::initial && !Mode::test)
+	if (Stage::initial () && !Mode::test ())
 	    break;
 
 	current_cd_no = current_cd_no + 1;

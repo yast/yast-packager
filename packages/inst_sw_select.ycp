@@ -147,7 +147,7 @@ To make a more precise selection of software to install, select
 			    helptext, (boolean)WFM::Args(0), (boolean)WFM::Args(1));
     }
 
-    if ( Mode::initial )
+    if ( Stage::initial () )
 	Wizard::SetTitleIcon( "software" );
 
 

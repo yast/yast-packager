@@ -22,6 +22,7 @@
     import "Installation";
     import "Label";
     import "Mode";
+    import "Stage";
     import "ProductFeatures";
     import "Report";
     import "Storage";
@@ -167,7 +168,7 @@
 	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
 
-	if (!Mode::initial)
+	if (!Stage::initial ())
 	{
 	    // read /proc/mounts as a list of maps
 	    // $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
@@ -194,10 +195,10 @@
 	    y2milestone ("get_partition_info: %1", partitions);
 	    return partitions;
 
-	} // !Mode::initial
+	} // !Stage::initial ()
 
 	map<string, map> targets = Storage::GetTargetMap();
-	if ( Mode::test )
+	if ( Mode::test () )
 	{
 	    targets = (map<string, map>) SCR::Read(.target.yast2, "test_target_map.ycp");
 	}
@@ -291,19 +292,19 @@
 
 	list partition = [];
 
-	if ( Mode::cont )
+	if ( Stage::cont () )
 	{
 	    partition = EvaluateFreeSpace ( 0 ); // free spare already checked during first part of installation
 	}
-	else if ( Mode::update )
+	else if ( Mode::update () )
 	{
 	    partition = EvaluateFreeSpace ( 2 ); // 2% free spare for update/upgrade
 	}
-	else if ( Mode::normal )
+	else if ( Mode::normal () )
 	{
 	    partition = EvaluateFreeSpace ( 5 ); // 5% free spare for post installation
 	}
-	else	// Mode::initial
+	else	// Stage::initial ()
 	{
 	    partition = get_partition_info( );
 	}

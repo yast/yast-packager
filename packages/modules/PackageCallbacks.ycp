@@ -321,7 +321,7 @@
     {
 	import "Mode";
 
-	if (!Mode::normal)
+	if (!Mode::normal ())
 	{
 	    import "SlideShow";
 	    SlideShow::StopTimer();
@@ -445,7 +445,7 @@
 
 	UI::CloseDialog();
 
-	if (!Mode::normal)
+	if (!Mode::normal ())
 	{
 	    import "SlideShow";
 	    SlideShow::StartTimer();
@@ -460,7 +460,7 @@
 	if (r == `eject)
 	    return "E";
 
-	if (!Mode::normal)
+	if (!Mode::normal ())
 	{
 	    import "SlideShow";
 	    SlideShow::SetCurrentCdNo (_current_source, wanted);

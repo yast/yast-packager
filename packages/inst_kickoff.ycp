@@ -256,13 +256,13 @@
 		string name = drivers[0, "modules", 0, 0]:"";
 		if (name != "")
 		    ModuleLoading::Load (name, "", "Linux", "",
-					 Mode::manual, true);
+					 Linuxrc::manual (), true);
 	    }
 	});
     }
 
 
-    if (!Mode::update)
+    if (!Mode::update ())
     {
 	// make some directories
 	SCR::Execute(.target.mkdir, Installation::destdir + "/etc");

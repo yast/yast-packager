@@ -17,7 +17,7 @@
     import "InstURL";
     import "Kernel";
     import "Label";
-    import "Mode";
+    import "Linuxrc";
     import "Label";
     import "Language";
     import "Popup";
@@ -165,7 +165,7 @@ Select which desktop to install.</p>
 	list<string> packages = [];
 
 	// don't setup graphics if running via serial console
-	if (!Mode::serial_console)
+	if (!Linuxrc::serial_console ())
 	{
 	    import "Display";
 	    packages = (list<string>) Display::pacs_to_install;
@@ -184,14 +184,14 @@ Select which desktop to install.</p>
     {
 	list<string> packages = [];
 
-	if (Mode::vnc)
+	if (Linuxrc::vnc ())
 	{
 	    packages = add (packages, "tightvnc");
 	    packages = add (packages, "yast2-qt");
 	    packages = add (packages, "xorg-x11");
 	}
 
-	if (Mode::braille)
+	if (Linuxrc::braille ())
 	{
 	    packages = add (packages, "sbl");
 	}
@@ -285,7 +285,7 @@ Select which desktop to install.</p>
 	                                     Storage::AddPackageList());
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
-	if (!Mode::update || !Mode::autoinst)
+	if (!Mode::update () || !Mode::autoinst ())
 	{
             list <string> kernel_pkgs = Kernel::ComputePackages ();
 	    install_list = (list <string>) union (install_list, kernel_pkgs);
@@ -362,7 +362,7 @@ Select which desktop to install.</p>
 	// usual mountpoint for the source medium
 	string base_url = "";
 
-	if ( Mode::test )
+	if ( Mode::test () )
 	{
 	    // Fake values for testing purposes
 	    base_url = "dir:///dist/next-i386";
@@ -384,15 +384,15 @@ Select which desktop to install.</p>
 	y2milestone ("Initialize Package Manager: %1", log_url);
 
 	// Set languages for packagemanager. Always set the UI language. Set
-	// language for additional packages only in Mode::initial.
+	// language for additional packages only in Stage::initial ().
 
 	Pkg::SetLocale (Language::language);
 
-	if (Mode::initial)
+	if (Stage::initial ())
 	    Pkg::SetAdditionalLocales ([Language::language]);
 
 
-	if (Mode::initial)
+	if (Stage::initial ())
 	{
 	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
 
@@ -694,7 +694,7 @@ Packages from this media cannot be installed."), orderdir),
 		theSources = [];
 	    }
 	    else if (!url_rewritten				// rewrite URL if cd/dvd since ide-scsi might have changed it
-		     && Mode::cont
+		     && Stage::cont ()
 		     && ((substring (base_url, 0, 2) == "cd")
 			|| (substring (base_url, 0, 3) == "dvd")))
 	    {
@@ -841,7 +841,7 @@ ask your system administrator.
 
     //Wizard::OpenAcceptDialog();
     Wizard::OpenAcceptStepsDialog();
-    string wizard_mode = Mode::demo ? "installation" : Mode::mode;
+    string wizard_mode = Mode::test () ? "installation" : Mode::mode ();
 
     // UI::WizardCommand() can safely be called even if the respective UI
     // doesn't support the wizard widget, but for optimization it makes sense
@@ -958,7 +958,7 @@ ask your system administrator.
 
 	// remember if we must re-do the proposal.
 	// If not, there's no need to activate any selections !
-	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst;
+	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
 
 	if (ProductFeatures::base_selection_choice == `fixed)
 	{

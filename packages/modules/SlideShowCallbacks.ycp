@@ -16,6 +16,7 @@
     import "Installation";
     import "Label";
     import "Mode";
+    import "Stage";
     import "PackageCallbacks";
     import "Popup";
     import "SlideShow";
@@ -101,7 +102,7 @@
 	// in case of cancel ask user if he really wants to quit installation
 	if ( button == `abort || button == `cancel )
 	{
-	    if ( Mode::normal )
+	    if ( Mode::normal () )
 	    {
 		user_abort = Popup::AnyQuestion( Popup::NoHeadline(),
 						 _("Do you really want\nto quit the installation?"),
@@ -109,11 +110,11 @@
 						 Label::NoButton(),
 						 `focus_no );
 	    }
-	    else if ( Mode::initial )
+	    else if ( Stage::initial () )
 	    {
 		user_abort = Popup::ConfirmAbort( `unusable );
 	    }
-	    else	// Mode::update, Mode::cont
+	    else	// Mode::update (), Stage::cont ()
 	    {
 		user_abort = Popup::ConfirmAbort( `incomplete );
 	    }

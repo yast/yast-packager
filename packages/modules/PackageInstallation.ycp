@@ -85,8 +85,8 @@
      **/
     global define list CommitPackages (integer media_number,
 				       integer packages_installed)
-    ``{
-	if ( Mode::test )
+    {
+	if ( Mode::test () )
 	{
 	    FakePackager( [],
 			"suse",
@@ -149,14 +149,14 @@
 
 
     //
-    // Fake progress bars for Mode::test
+    // Fake progress bars for Mode::test ()
     //
     // NOTE: This is currently completely broken.
     // -- sh 2003-12-15
     //
     global define any FakePackager( list<list> packages, string inst_source,
 				    boolean deleting )
-    ``{
+    {
 	integer disk_usage = 20;
 	integer disk_capacity = 10000;
 	any ret = nil;
@@ -164,7 +164,7 @@
 
 	y2debug( "FakePackager - handling %1 packages", size( packages ) );
 
-	foreach( list pac, packages, ``{
+	foreach( list pac, packages, {
 	    //y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
 
 	    string pkg_name	= pac[0]:"";
