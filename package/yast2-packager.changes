@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 22 01:48:26 CEST 2002 - nashif@suse.de
+
+- disabled testsuite for spkg for now
+- fixed spec
+
+-------------------------------------------------------------------
 Wed Aug 21 18:03:46 CEST 2002 - kkaempf@suse.de
 
 - fix for build
