@@ -1,3 +1,0 @@
-#!/bin/bash
-# differr
-diff -u tests/$1.err tmp.err.$1  | less

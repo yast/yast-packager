@@ -1,5 +1,0 @@
-load_lib "package_modules_init.exp"
-
-proc package_modules_exit {} {}
-proc package_modules_version {} {}
-

@@ -1,7 +1,0 @@
-$["alias":"eth0 pcnet32", "bootmode":"Net", "cdrom":"hdc", "demo":"0", "disks":"/dev/hda",
-  "display":"Color", "domain":"suse.de", "floppy_disk":"0", "framebuffer":"0x0301",
-  "gateway":"10.10.0.8", "haspcmcia":"0", "initrd_modules":[], "ip":"10.10.100.98",
-  "keyboard":"1", "keytable":"de-lat1-nd", "language":"german", "llocale":"de_DE",
-  "manual":"1", "nameserver":"10.10.0.1", "netdevice":"eth0", "netmask":"255.255.0.0",
-  "serial":"0", "server":"10.10.0.159", "serverdir":"/usr/full-i386", "smp":"0",
-  "sourcemounted":"1", "textmode":"0", "unknown":"BootDisk: 1", "usb":"1", "yast2_update":"0"]
