@@ -9,6 +9,11 @@
  *   Martin Vidner <mvidner@suse.cz>
  *
  * $Id$
+ *
+ * This include is obsoleted by the module Require.ycp which provides
+ * support for autoinstallation.
+ * This file still extsts for compatibility.
+ * If you change something here, check if also the other file needs changing.
  */
 
 {
@@ -55,7 +60,7 @@
 		include "ui/common_popups.ycp";
 		// error popup, no packages sources
 		// FIXME: translation
-		UI::ErrorPopup ("No package source defined.");
+		UI::ErrorPopup (_("No package source defined."));
 	    }
 	}
     }

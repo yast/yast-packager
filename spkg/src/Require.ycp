@@ -6,6 +6,10 @@
  *   Martin Vidner <mvidner@suse.cz>
  *
  * $Id$
+ *
+ * This module is intended to replace the include file require.ycp,
+ * but that one still extsts for compatibility.
+ * If you change something here, check if also the other file needs changing.
  */
 
 {
@@ -46,8 +50,25 @@
      * Ensure that Pkg:: calls working with the installation sources work
      */
     define void EnsureSourceInit () ``{
-	import "PackageCallbacks";
-	source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
+	if (!source_initialized)
+	{
+	    import "PackageCallbacks";		// trigger constructor
+	    // popup when initializing the package manager
+	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
+	    list sources = Pkg::SourceStartCache (true);
+	    UI::CloseDialog();
+	    if (size (sources) > 0)
+	    {
+		source_initialized = true;
+	    }
+	    else
+	    {
+		include "ui/common_popups.ycp";
+		// error popup, no packages sources
+		// FIXME: translation
+		UI::ErrorPopup (_("No package source defined."));
+	    }
+	}
     }
 
     // --- Public interface, from low-level functions to high-level ones ---
