@@ -79,12 +79,12 @@ other systems.</p>");
             list<string> l = splitstring(distprod, " ");
             distprod = mergestring(l, "-");
             string updir = (string)SCR::Read (.etc.install_inf.UpdateDir);
-            string export = "";
+            string _export = "";
             if (updir==nil)
             {
-                export = dest+"/dist";
+                _export = dest+"/dist";
             } else {
-                export = dest+updir;
+                _export = dest+updir;
             }
 
             boolean changed_url = false;
@@ -92,7 +92,7 @@ other systems.</p>");
             integer i = 1;
             while (i <= md["media_count"]:0)
             {
-                string tgt = sformat("%1/%2/CD%3", export, distprod, i );
+                string tgt = sformat("%1/%2/CD%3", _export, distprod, i );
                 y2debug("tgt: %1", tgt );
                 Popup::Message(sformat(_("Before... %1"), i ));
                 any dir =  Pkg::SourceProvideDir(source, i , ".");

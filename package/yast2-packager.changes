@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan  7 11:09:56 CET 2005 - jsrain@suse.cz
+
+- don't use YCP keyword as variable name
+
+-------------------------------------------------------------------
 Wed Jan  5 17:51:09 CET 2005 - jsrain@suse.cz
 
 - adapted to new interface of Kernel.ycp
