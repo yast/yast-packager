@@ -202,7 +202,7 @@
 	// one more compatibility feature to old YaST, post-packages
 	// Simply install a list of package after initial installation (only
 	// makes sense with nfs installatons)
-	maxnumbercds = 1;
+    current_cd_no = 1;
     }
     else if (Mode::cont && !Mode::normal)
     {
