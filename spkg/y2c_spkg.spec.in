@@ -46,4 +46,5 @@ make install
 %dir @YAST2DIR@/clients
 %dir @YAST2DIR@/menuentries
 @YAST2DIR@/menuentries/menuentry_sw_single.ycp
+@YAST2DIR@/menuentries/menuentry_sw_source.ycp
 @YAST2DIR@/clients/sw_single.ycp
