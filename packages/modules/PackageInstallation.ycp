@@ -26,7 +26,8 @@
     import "Wizard";
 
     include "showlog_defines.ycp";
-    include "ui/common_popups.ycp";
+    import "Label";
+    import "Popup";
 
     textdomain "packager";
 
@@ -101,7 +102,7 @@
 	    string message = sformat(_("%1 packages returned an error.
 View the log file?
 "), size (errpacks));
-	    if ( UI::AnyQuestionPopup( NoHeadline(), message, YesButtonLabel(), NoButtonLabel(), `focus_no))
+	    if ( Popup::AnyQuestion( Popup::NoHeadline(), message, Label::YesButton(), Label::NoButton(), `focus_no))
 	    {
 		retAsk = `yes_short;
 	    }

@@ -28,7 +28,7 @@
     import "SlideShowCallbacks";
 
     import "Wizard";
-    include "ui/common_popups.ycp";
+    import "Popup";
     include "ui/common_functions.ycp";
 
     list packagelist = [];		// list of packages to install
@@ -125,7 +125,7 @@
 		    // error popup, %1 is the name of the .rpm package
 		    string message = sformat (_("Package %1 was not found on the medium."), package);
 		    y2error ("SW_SINGLE: Package %1 was not found on the medium", package);
-		    UI::MessagePopup (message);
+		    Popup::Message (message);
 		    return `failed;
 		}
 	    });

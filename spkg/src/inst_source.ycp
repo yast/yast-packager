@@ -17,9 +17,9 @@
 
     import "Wizard";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     include "ui/common_functions.ycp";
-    include "ui/common_popups.ycp";
+    import "Popup";
     include "ui/file_popups.ycp";
 
     include "inst_source_dialogs.ycp";
@@ -68,7 +68,7 @@
     define void createSource( string url ) ``{
         if ( url != "" )
         {
-//            UI::MessagePopup( sformat( "URL: %1", url ) );
+//            Popup::Message( sformat( "URL: %1", url ) );
             UI::OpenDialog(
               `VBox(
                 `VSpacing( 0.2 ),
@@ -90,7 +90,7 @@ from URL '%1'."), url );
                     else
                         _msg2 = _("Details:") + "\n" + Pkg::Error();
                 }
-                UI::ErrorPopup( _msg1 + "\n" + _msg2 );
+                Popup::Error( _msg1 + "\n" + _msg2 );
             }
             else
             {
@@ -188,7 +188,7 @@ on the NFS server.
 ");
 
     Wizard::CreateDialog();
-    Wizard::ReplaceNextButton (`PushButton(`id(`next), CloseButtonLabel()));
+    Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::CloseButton()));
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::ReplaceAbortButton( `Empty() );
     Wizard::ReplaceBackButton( `Empty() );
@@ -265,11 +265,11 @@ on the NFS server.
             }
             else if ( input == `delete )
             {
-                if ( UI::YesNoPopup( _("Delete selected installation source from list?") ) )
+                if ( Popup::YesNo( _("Delete selected installation source from list?") ) )
                 {
                     if ( !Pkg::SourceDelete( id ) )
                     {
-                        UI::ErrorPopup( _("Error deleting source.") );
+                        Popup::Error( _("Error deleting source.") );
                     }
                     else
                     {

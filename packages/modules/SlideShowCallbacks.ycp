@@ -14,9 +14,9 @@
 
     import "PackageCallbacks";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     include "ui/common_functions.ycp";
-    include "ui/common_popups.ycp";
+    import "Popup";
 
     textdomain "packager";
 
@@ -122,12 +122,12 @@
 	{
 	    if (how_much > 95 && !shutup)
 	    {
-		boolean cont = UI::AnyQuestionPopup( UI::WarningMsg(),
+		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
 						     _("The disk space is nearly exhausted.
 Continue with the installation?
 "),
-						     UI::YesButtonLabel(),
-						     UI::NoButtonLabel(),
+						     Label::YesButton(),
+						     Label::NoButton(),
 						     `focus_no );
 
 		if (!cont)
@@ -146,19 +146,19 @@ Continue with the installation?
 
 	    if ( Mode::normal )
 	    {
-		ret = UI::AnyQuestionPopup( UI::NoHeadline(),
+		ret = Popup::AnyQuestion( Popup::NoHeadline(),
 					    _("Do you really want\nto quit the installation?"),
-					    UI::YesButtonLabel(),
-					    UI::NoButtonLabel(),
+					    Label::YesButton(),
+					    Label::NoButton(),
 					    `focus_no );
 	    }
 	    else if ( Mode::initial )
 	    {
-		ret = UI::ConfirmAbortPopup( `unusable );
+		ret = Popup::ConfirmAbort( `unusable );
 	    }
 	    else	// Mode::update, Mode::cont
 	    {
-		ret = UI::ConfirmAbortPopup( `incomplete );
+		ret = Popup::ConfirmAbort( `incomplete );
 	    }
 
 	    if ( ret )

@@ -15,7 +15,7 @@
     import "Packages";			// for slidedir
     import "SlideShowCallbacks";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     include "ui/common_functions.ycp";
 
     textdomain "packager";
@@ -1139,11 +1139,11 @@
     define term WizardButtons()
     ``{
 	return `HBox(
-		     `PushButton(`id(`back),  BackButtonLabel()  ),
+		     `PushButton(`id(`back),  Label::BackButton()  ),
 		     `HStretch(),
-		     `PushButton(`id(`abort), AbortButtonLabel() ),
+		     `PushButton(`id(`abort), Label::AbortButton() ),
 		     `HStretch(),
-		     `PushButton(`id(`next),  NextButtonLabel() )
+		     `PushButton(`id(`next),  Label::NextButton() )
 		     );
     };
 
