@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar  7 16:41:05 CET 2005 - jsrain@suse.cz
+
+- fixed counting disk size of packages to install (#67278)
+
+-------------------------------------------------------------------
 Thu Mar  3 12:31:02 CET 2005 - jsrain@suse.cz
 
 - added xen-dirinstall client
