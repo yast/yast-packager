@@ -301,13 +301,17 @@
 	{
 	   this_cd_packages  = union(this_cd_packages, AutoInstall::install_list);
 	}
+	else if  (Mode::autoinst && Mode::cont)
+	{
+	    this_cd_packages  = union(this_cd_packages, AutoInstall::post_install_list);
+	}
 
 	// Filter out basepackages
 	if ( current_cd_no == 1 && Mode::initial )
 	{
 	    this_cd_packages = filter(`v, this_cd_packages, ``(!(v[3]:false && (v[2]:0 == 1))));
 	}
-
+	
 	// y2debug("this_cd_packages: %1", this_cd_packages);
 
 	if (this_cd_packages != [])
