@@ -14,7 +14,6 @@
     module "PackageInstallation";
 
     import "Arch";
-    import "AutoInstall";
     import "Report";
     import "Mode";
     import "Installation";
@@ -91,7 +90,7 @@
 	}
 
 	list errpacks = commit_result[1]:[];
-	if (size (errpacks) > 0 && !AutoInstall::IgnorePkgErr)
+	if (size (errpacks) > 0)
 	{
 	    // some packages failed installation
 
