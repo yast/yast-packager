@@ -3,3 +3,10 @@
 #
 
 SUBDIRS = checkmedia
+yncludedir = @yncludedir@/
+
+ynclude_DATA =			\
+	inst_source_dialogs.ycp
+
+
+EXTRA_DIST = $(ynclude_DATA) 
