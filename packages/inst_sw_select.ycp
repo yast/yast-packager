@@ -21,7 +21,6 @@
     import "Arch";
     import "Mode";
     import "Installation";
-    import "Storage";
     import "Product";
     import "Packages";
     import "PackagesUI";
