@@ -149,6 +149,61 @@
 
 
     /**
+     * Sum up all positive list items, but cut off individual items at a maximum value.
+     * Negative return values indicate overflow of any individual item at "max_cutoff".
+     * In this case, the real sum is the absolute value of the return value.
+     **/
+    integer ListSumCutOff( list<integer> sizes, integer max_cutoff )
+    {
+	boolean overflow = false;
+	integer sum = 0;
+
+	foreach( integer item, sizes, ``{
+	    if ( item > 0 )
+	    {
+		if ( item > max_cutoff )
+		{
+		    overflow = true;
+		    sum = sum + max_cutoff;
+		}
+		else
+		    sum = sum + item;
+	    }
+	});
+
+	if ( overflow )
+	    sum = -sum;
+
+	return sum;
+    }
+
+
+    integer TotalRemainingSize()
+    {
+	return ListSum( flatten( remaining_sizes_per_cd_per_src ) );
+    }
+
+
+    integer TotalRemainingTime()
+    {
+	return ListSumCutOff( flatten( remaining_times_per_cd_per_src ),
+			      max_time_per_cd );
+    }
+
+
+    integer TotalRemainingPkgCount()
+    {
+	return ListSum( flatten( remaining_pkg_count_per_cd_per_src ) );
+    }
+
+
+    integer TotalInstalledSize()
+    {
+	return total_size_to_install - TotalRemainingSize();
+    }
+
+
+    /**
      * Format an integer number as (at least) two digits; use leading zeroes if
      * necessary.
      * @return number as two-digit string
@@ -166,7 +221,7 @@
      **/
     string FormatTime( integer seconds )
     {
-	if ( seconds <= 0 )
+	if ( seconds < 0 )
 	    return "";
 
 	if ( seconds < 3600 )	// Less than one hour
@@ -179,6 +234,33 @@
 	    seconds = seconds % 3600;
 	    return sformat( "%1:%2:%3", hours, FormatTwoDigits( seconds / 60 ), FormatTwoDigits( seconds % 60 ) );
 	}
+    }
+
+
+    /**
+     * Format an integer seconds value with min:sec or hours:min:sec
+     *
+     * Negative values are interpreted as overflow - ">" is prepended and the
+     * absolute value is used.
+     **/
+    string FormatTimeShowOverflow( integer seconds )
+    {
+	string text = "";
+
+	if ( seconds < 0 )	// Overflow (indicated by negative value)
+	{
+	    // When data throughput goes downhill (stalled network connection etc.),
+	    // cut off the predicted time at a reasonable maximum.
+	    // "%1" is a predefined maximum time.
+
+	    text = sformat( _( ">%1" ), FormatTime( -seconds ) );
+	}
+	else
+	{
+	    text = FormatTime( seconds );
+	}
+
+	return text;
     }
 
 
@@ -227,23 +309,10 @@
     string FormatTotalRemaining()
     {
 	// (Short!) headline for the total remaining time or MBs to install
-	string text = _( "Remaining:" );
-	integer remaining =
-	    ListSum( flatten ( unit_is_seconds ?
-			       remaining_times_per_cd_per_src :
-			       remaining_sizes_per_cd_per_src
-			       )
-		     );
-
-	if ( remaining < 1 )
-	    return " \n "; // Avoid height changes at this late stage when everything is done
-
-	text = sformat( _( "Remaining:\n%1" ),
+	return sformat( _( "Remaining:\n%1" ),
 			unit_is_seconds ?
-			FormatTime( remaining ) :
-			FormatRemainingSize( remaining ) ) ;
-
-	return text;
+			FormatTimeShowOverflow( TotalRemainingTime() ) :
+			FormatRemainingSize( TotalRemainingSize() ) );
     }
 
 
@@ -546,30 +615,6 @@
     }
 
 
-    integer TotalRemainingSize()
-    {
-	return ListSum( flatten( remaining_sizes_per_cd_per_src ) );
-    }
-
-
-    integer TotalRemainingTime()
-    {
-	return ListSum( flatten( remaining_times_per_cd_per_src ) );
-    }
-
-
-    integer TotalRemainingPkgCount()
-    {
-	return ListSum( flatten( remaining_pkg_count_per_cd_per_src ) );
-    }
-
-
-    integer TotalInstalledSize()
-    {
-	return total_size_to_install - TotalRemainingSize();
-    }
-
-
     /**
      * Package providal start
      */
@@ -617,9 +662,14 @@
 	remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] =
 	    remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0 -1;
 
-	if ( unit_is_seconds && bytes_per_second > 0 )
+	if ( unit_is_seconds )
 	{
-	    remaining_times_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = remaining / bytes_per_second;
+	    integer seconds = 0;
+
+	    if ( remaining > 0 && bytes_per_second > 0 )
+		seconds = remaining / bytes_per_second;
+
+	    remaining_times_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = seconds;
 	}
 
 	if ( debug )
@@ -691,7 +741,10 @@
 	// halved to what it looks like initially. It decreases to 1.0 towards
 	// the end.
 
-	float pessimistic_factor = 1.7 - tofloat( total_size_installed ) / tofloat( total_size_to_install );
+	float pessimistic_factor = 1.0;
+
+	if ( total_size_to_install > 0 )
+	    pessimistic_factor = 1.7 - tofloat( total_size_installed ) / tofloat( total_size_to_install );
 	bytes_per_second = tointeger( tofloat( real_bytes_per_second ) / pessimistic_factor + 0.5 );
 
 	if ( bytes_per_second < 1 )
@@ -807,16 +860,7 @@
 
 	    if ( unit_is_seconds && bytes_per_second > 0 )
 	    {
-		integer seconds = remaining / bytes_per_second;
-		rem_time = FormatTime( seconds );
-
-		if ( seconds > max_time_per_cd )
-		{
-		    // When data throughput goes downhill (stalled network connection etc.),
-		    // a total sum of unreliable predictions doesn't make any sense -
-		    // simply forget it!
-		    rem_time = "";
-		}
+		rem_time = FormatTimeShowOverflow( TotalRemainingTime() );
 	    }
 
 	    itemList = add( itemList, TableItem( "total", caption, rem_size, rem_count, rem_time ) );
@@ -866,7 +910,7 @@
 				// When data throughput goes downhill (stalled network connection etc.),
 				// cut off the predicted time at a reasonable maximum.
 				// "%1" is a predefined maximum time.
-				rem_time = sformat( _( ">%1" ), FormatTime( max_time_per_cd ) );
+				rem_time = FormatTimeShowOverflow( -max_time_per_cd );
 			    }
 			}
 
@@ -953,19 +997,19 @@
 
 	    remaining = remaining / bytes_per_second;
 
+	    if ( remaining <= 0 )
+		remaining = 0;
+
 	    if ( remaining > max_time_per_cd )		// clip off at 2 hours
 	    {
 		// When data throughput goes downhill (stalled network connection etc.),
 		// cut off the predicted time at a reasonable maximum.
-		remaining = max_time_per_cd;
+		remaining = -max_time_per_cd;
 	    }
-
-	    if ( remaining <= 0 )
-		remaining = 0;
 
 	    UI::ChangeWidget(`id(`cdStatisticsTable ),
 			     `Item( sformat( "cd(%1,%2)", current_src_no-1, current_cd_no-1), time_column ),
-			     FormatTime( remaining ) );
+			     FormatTimeShowOverflow( remaining ) );
 	}
 
 
@@ -983,18 +1027,8 @@
 
 	if ( unit_is_seconds )
 	{
-	    integer seconds = TotalRemainingTime();
-	    string rem_time = FormatTime( seconds );
-
-	    if ( seconds > max_time_per_cd )
-	    {
-		// When data throughput goes downhill (stalled network connection etc.),
-		// a total sum of unreliable predictions doesn't make any sense -
-		// simply forget it!
-		rem_time = "";
-	    }
-
-	    UI::ChangeWidget(`id( `cdStatisticsTable ), `Item( "total", time_column ), rem_time );
+	    UI::ChangeWidget(`id( `cdStatisticsTable ), `Item( "total", time_column ),
+			     FormatTimeShowOverflow( TotalRemainingTime() ) );
 
 	}
     }
