@@ -26,16 +26,18 @@
     include "ui/common_popups.ycp";
     include "ui/common_functions.ycp";
 
+    boolean test_popup = false;
+    boolean beginner_mode = false;
+
     // =============================================================
 
     // check test_popup
     // test_mode is checked for in Installation constructor
 
     global define CheckArguments () ``{
-
+	y2milestone ("CheckArguments (%1)", Args());
 	integer arg_n = size (Args()) - 1;
 
-	boolean test_popup = false;
 	list arg_list = [];
 
 	while (arg_n >= 0)
@@ -51,7 +53,14 @@
 	    }
 	    else if (is (Args(arg_n), string))
 	    {
-		arg_list = add (arg_list, Args(arg_n));
+		if (Args(arg_n) == "beginner")
+		{
+		    beginner_mode = true;
+		}
+		else
+		{
+		    arg_list = add (arg_list, Args(arg_n));
+		}
 	    }
 	    else if (is (Args(arg_n), list))
 	    {
@@ -83,16 +92,19 @@
 
    define CheckWhichPackages (list arg_list) ``{
 
-	if (size (arg_list) <= 0)
-	{
-	    return `next;
-	}
-
 	// if sw_single is called with argument "beginner" or with a package list or package name
 	// -> skip inst_source (if possible)
 
-	string first_arg = select (arg_list, 0);
-	string postfix =  substring (first_arg, size (first_arg) - 4 );
+	string first_arg = "";
+	string postfix = "";
+
+	if (size (arg_list) > 0)
+	{
+	    beginner_mode = true;
+	    first_arg = select (arg_list, 0);
+	    postfix =  substring (first_arg, size (first_arg) - 4 );
+	}
+
 	y2milestone("SW_SINGLE: POSTFIX: %1", postfix );
 
 	// if sw_single is called with an absolute package-pathname, there is no need to
@@ -121,7 +133,7 @@
 	}
 	else		// no package given, try to mount source medium
 	{
-	    y2milestone ("beginner");
+	    y2milestone ("args %1", Args());
 
 	    // initialize InstMedia from running system
 
@@ -182,6 +194,9 @@ do this.</P>");
 
     map user_settings = $[];
 
+    // check Args
+    // set test_mode, test_popup, beginner_mode
+
     list arg_list = CheckArguments();
 
     //
@@ -233,14 +248,21 @@ do this.</P>");
     }
     else if ( descr_result == `next )
     {
-	dialog_id = 0;				// ask for medium
+	if (beginner_mode)
+	    dialog_id = 1;
+	else
+	    dialog_id = 0;				// ask for medium
     }
     else if ( descr_result == `found_medium )	// found CD1
     {
 	descrPath = InstMedia::GetInstPath();	// read common.pkd from there !
 	infopath  = descrPath + "/setup/descr";
 	dudir     = descrPath + "/setup/du/du.dir";
-	if (MediaUI::ChangeMedium(1, false))	// check release data
+	if (beginner_mode)
+	{
+	    dialog_id = 1;
+	}
+	else if (MediaUI::ChangeMedium(1, false))	// check release data
 	{
 	    dialog_id = 1;			// dont ask for source
 	}
@@ -254,11 +276,18 @@ do this.</P>");
 	descrPath = Installation::descrdestdir + "/suse";
 	infopath = descrPath + "/setup/descr";
 	dudir    = descrPath + "/setup/du/du.dir";
-	dialog_id = 1;				// dont ask for source
+	if (beginner_mode)
+	    dialog_id = 1;
+	else
+	    dialog_id = 0;				// ask for medium
     }
     else if ( descr_result == `unknown_descr )	// found NO descr
     {
-	if (MediaUI::ChangeMedium(1, true))	// check release data
+	if (!beginner_mode)
+	{
+	    dialog_id = 0;
+	}
+	else if (MediaUI::ChangeMedium(1, true))	// check release data
 	{
 	    dialog_id = 1;			// dont ask for source
 	}

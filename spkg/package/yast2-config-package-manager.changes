@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep 18 16:41:56 CEST 2001 - kkaempf@suse.de
+
+- honor "beginner" argument to skip source media selection.
+
+-------------------------------------------------------------------
 Fri Sep 14 13:14:16 CEST 2001 - schubi@suse.de
 
 - unmounting Medium correctly before exit #10555
