@@ -41,8 +41,11 @@
             );
 
     // help text for uml options
-    string help_text = _("<p>FIXME</p>
+    string help_text = _("<p>Choose a directory to install to. Depending on the software selection, you have to make sure
+enough space is available.</p>
 ");
+    help_text = help_text + _("<p>Additionally, you can create an archive image of the directory using tar. If you wish to create an 
+image, specify the name and the location in the respective fields.</p>");
 
     Wizard::SetContents (title, contents, help_text, (boolean) WFM::Args(0),
 			 (boolean) WFM::Args(1));
