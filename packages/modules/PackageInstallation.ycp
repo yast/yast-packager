@@ -184,9 +184,9 @@
 
 	Pkg::SourceSetMediaChangeCallback (Packages::theSource, "changeMedium");
 	Pkg::SourceSetMediaErrorCallback (Packages::theSource, "errorMedium");
-
+	
+	SlideShow::InitPkgData();
 	SlideShow::UpdateAllCdProgress (false);
-
 	SlideShow::StartTimer();
 
 	while ((pkgname != nil)

@@ -62,17 +62,6 @@
     ``{
 	// y2debug( "SlideShow constructor" );
 	ui_defines();
-
-	if ( ! Mode::cont )
-	{
-	    // In continue_mode the pkginfo server is not yet initialized
-	    // correctly, so let's wait until it is. In this case,
-	    // SlideShow::InitPkgData() needs to be called explicitly after the
-	    // pkginfo server is correctly set up.
-
-	    SlideShow::InitPkgData();
-	}
-
 	next_recalc_time	= time();
 	// FIXME -> descrdir
 	slide_base_path		= "suse/setup/slide";
