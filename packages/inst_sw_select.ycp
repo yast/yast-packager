@@ -114,7 +114,7 @@ To make a more precise selection of software to install, select
 			    `HVCenter(`Label(
 				     // Intermediate contents of the software selection screen
 				     _("This product has a fixed software selection that cannot be changed."))),
-			    helptext, WFM::Args(0), WFM::Args(1));
+			    helptext, (boolean)WFM::Args(0), (boolean)WFM::Args(1));
         any ret = Wizard::UserInput();
 	Wizard::CloseDialog();
 	y2milestone("product cd return %1",ret);
@@ -125,7 +125,7 @@ To make a more precise selection of software to install, select
 	Wizard::SetContents(title,
 			    // Intermediate contents of the software selection screen
 			    `HVCenter(`Label(_("Reading package database..."))),
-			    helptext, WFM::Args(0), WFM::Args(1));
+			    helptext, (boolean)WFM::Args(0), (boolean)WFM::Args(1));
     }
 
 
@@ -157,7 +157,7 @@ To make a more precise selection of software to install, select
     // $[ "order" : [ "name", "summary" ], .... ]
 
     map sorted_base_selections = $[];
-    foreach( `selection, available_base_selections,
+    foreach( string selection, available_base_selections,
     ``{
 	map selection_data = Pkg::SelectionData (selection);
 	if (selection_data != nil)
@@ -171,7 +171,7 @@ To make a more precise selection of software to install, select
     });
 
     // construct display box in order
-    foreach(`order, `data, sorted_base_selections,
+    foreach(`order, map data, sorted_base_selections,
     ``{
 	{
 	    baseconfs_box = add( baseconfs_box, `Left(`RadioButton(`id(data[0]:""),		// id
@@ -219,7 +219,7 @@ You will lose that selection if you change the basic selection.");
 				    )
 			      );
 
-    Wizard::SetContents(title, contents, helptext, WFM::Args(0), WFM::Args(1));
+    Wizard::SetContents(title, contents, helptext, (boolean)WFM::Args(0), (boolean)WFM::Args(1));
 
     any ret = nil;
     boolean error_found = false;
@@ -229,11 +229,11 @@ You will lose that selection if you change the basic selection.");
 	ret = Wizard::UserInput();
 
 	// get the newly selected base configuration
-	string base_selection = UI::QueryWidget( `id(`baseconf),`CurrentButton );
+	string base_selection = (string) UI::QueryWidget( `id(`baseconf),`CurrentButton );
 
 	if (ret == `abort && Popup::ConfirmAbort (`painless))
 	{
-	    Pkg::RestoreState();
+	    Pkg::RestoreState(false);
 	    Wizard::CloseDialog();
 	    return `abort;
 	}
@@ -243,7 +243,7 @@ You will lose that selection if you change the basic selection.");
 	     && Pkg::RestoreState(true) )
 	{
             // popup text: ask the user whether to reset his individuell selection
-	    any ret = Popup::YesNo(_("Do you really want\nto reset your detailed selection?"));
+	    boolean ret = Popup::YesNo(_("Do you really want\nto reset your detailed selection?"));
 	    if ( !ret )
 	    {
 		Pkg::ClearSaveState();		// free the previously saved state
@@ -301,7 +301,7 @@ You will lose that selection if you change the basic selection.");
 
 	    while ( ret == `again )
 	    {
-		ret = WFM::CallFunction( `inst_packages( true, true ) );
+		ret = WFM::CallFunction( "inst_packages", [ true, true ] );
 
 		if ( ret == `accept )
 		    ret = `next;
@@ -339,7 +339,7 @@ You will lose that selection if you change the basic selection.");
 
     if ( ret == `back || ret == `cancel )
     {
-	boolean ret = Pkg::RestoreState( );
+	boolean ret = Pkg::RestoreState( false );
 	y2milestone( "RESET to software selection: %1, return: %2",  restore_selections, ret );
     }
     else if ( ret == `next )

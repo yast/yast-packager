@@ -46,7 +46,7 @@
     //				     MAIN
     //----------------------------------------------------------------------
 
-    string tmpdir	= SCR::Read(.target.tmpdir);
+    string tmpdir	= (string) SCR::Read(.target.tmpdir);
     string language	= "";
 
     language = Language::language;
@@ -68,7 +68,7 @@
 	}
 	else if ( is(WFM::Args(2), list) )
 	{
-	    rpm_list = WFM::Args(2);
+	    rpm_list = (list) WFM::Args(2);
 	}
 
 	if (size(WFM::Args()) == 4 )
@@ -76,7 +76,7 @@
 	   // forth argument is a list of package descriptions
 	   if ( is(WFM::Args(3), list) )
 	    {
-		descr_list = WFM::Args(3);
+		descr_list = (list) WFM::Args(3);
 	    }
 	}
     }
@@ -112,7 +112,7 @@
     if ( size (rpm_list) > 0)
     {
 	y2milestone( "Installing RPM_LIST: %1", rpm_list );
-	foreach (`pkg, rpm_list,
+	foreach (string pkg, rpm_list,
 	``{
 	    Pkg::PkgInstall (pkg);
 	});
