@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  4 18:09:11 CET 2003 - kkaempf@suse.de
+
+- use new state checking functions to decide if the user has
+  changed the selection (#23616)
+
+-------------------------------------------------------------------
 Mon Mar  3 12:59:37 CET 2003 - gs@suse.de
 
 - pass the floppy device to PackageSelector widget (needed to save
