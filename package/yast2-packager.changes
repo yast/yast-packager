@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 26 14:44:16 CEST 2003 - msvec@suse.cz
+
+- add a proper error reporting (#29325)
+- added missing imports
+- 2.8.11
+
+-------------------------------------------------------------------
 Tue Aug 26 15:53:09 CEST 2003 - kkaempf@suse.de
 
 - don't release the sources in sw_single any more, the package-

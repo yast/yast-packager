@@ -1,22 +1,26 @@
 /**
  * File:	Packages.ycp
  * Package:	Package selections
- * Authors:	Anas Nashif (nashif@suse.de)
  * Summary:	?
+ * Authors:	Anas Nashif <nashif@suse.de>
  *
  * $Id$
  */
 
 {
+
     module "Packages";
 
+    textdomain "packager";
+
+    import "Arch";
+    import "Boot";
+    import "Installation";
+    import "Kernel";
     import "Mode";
     import "Product";
-    import "Installation";
-    import "SpaceCalculation";
     import "Report";
-
-    textdomain "packager";
+    import "SpaceCalculation";
 
     global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false; // Installing source packages ?

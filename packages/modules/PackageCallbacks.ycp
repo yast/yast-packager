@@ -10,14 +10,14 @@
  */
 
 {
-    module "PackageCallbacks";
 
-    import "Mode";
-    import "Installation";
+    module "PackageCallbacks";
 
     textdomain "packager";
 
+    import "Installation";
     import "Label";
+    import "Mode";
 
     global boolean _provide_popup = false;
     global boolean _package_popup = false;
@@ -338,8 +338,8 @@
 	if ( showLongInfo )
 	{
 	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
-	    // no need to translate "URL" !
-	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), "&URL"), `RichText(error)) );
+	    /* TextEntry label */
+	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
 	    UI::ChangeWidget(`id(`url), `Value, url);
 	}
 	else
@@ -375,7 +375,8 @@
 		showLongInfo = UI::ShowLogInfo (message, button_box);
 		if (showLongInfo)
 		{
-		    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), "&URL"), `RichText(error)) );
+		    /* TextEntry label */
+		    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
 		    UI::ChangeWidget(`id(`url), `Value, url);
 		}
 		else

@@ -1,5 +1,5 @@
 /**
- * Module: 		inst_source.ycp
+ * File:		inst_source.ycp
  *
  * Authors:		Klaus Kaempf <kkaempf@suse.de>
  *			Gabriele Strattner <gs@suse.de>
@@ -14,6 +14,7 @@
  */
 
 {
+
     textdomain "packager";
 
     import "Label";
