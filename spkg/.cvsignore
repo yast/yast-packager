@@ -1,8 +1,6 @@
 Makefile
 Makefile.in
-Makefile.am
 configure
-configure.in
 config.cache
 config.status
 config.sub
@@ -11,3 +9,4 @@ stamp-h
 config.log
 config.h.in
 aclocal.m4
+Makefile.am
