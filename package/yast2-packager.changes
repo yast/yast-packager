@@ -3,6 +3,8 @@ Wed Feb 23 14:50:02 CET 2005 - jsrain@suse.cz
 
 - fixed comments for translators
 - fixed some check_ycp errors
+- changed the form of SMB/CIFS URL according to packagemanager
+  (#53423)
 
 -------------------------------------------------------------------
 Mon Feb 21 17:44:01 CET 2005 - lslezak@suse.cz

@@ -236,7 +236,7 @@
     /**
         Get a URL for a ftp, http or samba server, optionally inclduing
         user/password information.
-	// FIXME Samba share is part of urlpath, workgroup is part of user
+	// FIXME Samba share and workgroup are parts of urlpath
 
         @param protocol type of server, can be `ftp, `http or `smb.
     */
@@ -258,12 +258,14 @@
 	    urlpath = sharepath[1]:"";
 	    if (urlpath == nil)
 		urlpath = "/";
-	    list workgroupuser = regexptokenize (urlpath,
-		"^(([^;]+);)?(.+)$");
-	    workgroup = workgroupuser[1]:"";
-	    user = workgroupuser[2]:"";
 	    if (workgroup == nil)
 		workgroup = "";
+	    if (regexpmatch (urlpath, "^.*;workgroup=[^;]+$"))
+	    {
+		workgroup = regexpsub (urlpath,
+		    "^.*;workgroup=([^;]+)$", "\\1");
+		urlpath = regexpsub (urlpath, "^(.*);workgroup=[^;]+$", "\\1");
+	    }
 	}
 	// text entry
 	term wg_widget = `TextEntry( `id( `workgroup), _("Workgroup / Domain"),
@@ -381,12 +383,8 @@
                 {
                     string user = (string) UI::QueryWidget( `id( `username ), `Value );
                     string password = (string) UI::QueryWidget( `id( `password ), `Value );
-		    if (UI::WidgetExists (`id (`workgroup)))
-			 workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
 
                     if ( size( user ) != 0 ) {
-			if (type == `samba && size (workgroup) > 0)
-			    url = url + workgroup + ";";
                         url = url + user;
                         if ( size( password ) != 0 ) {
                             url = url + ":" + password;
@@ -405,12 +403,16 @@
 		else
 		    url = url + server + "/" + directory;
 
+		if (UI::WidgetExists (`id (`workgroup)))
+		     workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
+		if (type == `samba && size (workgroup) > 0)
+		    url = url + ";workgroup=" + workgroup;
+
 
             }
         } until ( input == `cancel || input == `ok );
 
         UI::CloseDialog();
-
         return url;
     }
 
