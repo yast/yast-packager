@@ -153,79 +153,8 @@
 
     define list autoinstPackages()
 	``{
-	import "AutoInstall";
-
-	map configure = AutoInstall::Profile["configure"]:$[];
-	list packages = [];
-
-	packages = union (packages, AutoInstall::packageList());
-
-	// In autoinst mode, a kernel might be external and not available
-	// in packages
-	if (size(AutoInstall::Kernel) == 0)
-	{
-	    import "Kernel";
-	    packages = union (packages, Kernel::kernel_packages);
-	}
-	else {
-	    packages = add (packages, AutoInstall::Kernel);
-	}
-
-	if (haskey(configure, "nis")) {
-		map nis = configure["nis"]:$[];
-		if (nis["start_nis"]:false)
-			packages = add(packages, "ypbind");
-		if (nis["start_autofs"]:false)
-			packages = add(packages, "autofs");
-	}
-
-	if (haskey(configure, "ldap")) {
-		map ldapclient = configure["ldap"]:$[];
-		if (ldapclient["start_ldap"]:false)
-			packages = union(packages, ["pam_ldap","nss_ldap"]);
-	}
-
-	if (haskey(configure, "nfs_server"))
-	{
-	    boolean start_nfsserver = configure["nfs_server", "start_nfsserver"]:false;
-	    if (start_nfsserver)
-		packages = union(packages, ["yast2-nfs-server", "nfs-utils"]);
-	}
-
-	if (haskey(configure, "inetd")) {
-		map inetd = configure["inetd"]:$[];
-		if (inetd["start_inetd"]:false)
-			packages = add(packages, "inetd");
-	}
-
-	if (haskey(configure, "nisplus")) {
-		map nisplus = configure["nisplus"]:$[];
-		if (nisplus["start_nisplus"]:false)
-			packages = add(packages, "nis-utils");
-	}
-	if (haskey(configure, "mail")) {
-		map mail = configure["mail"]:$[];
-		if (mail["mta"]:`other == `postfix)
-		{
-			packages = add(packages, "postfix");
-			if (mail["use_amavis"]:false)
-				packages = add(packages, "amavis-postfix");
-		}
-		else if (mail["mta"]:`other == `sendmail)
-		{
-			packages = add(packages, "sendmail");
-			if (mail["use_amavis"]:false)
-				packages = add(packages, "amavis-sendmail");
-		}
-	}
-	list extraPackages = AutoInstall::calcExtraPackages ();
-		
-	if (size(extraPackages) > 0 )
-	{
-	    packages = union(packages,extraPackages);
-	}
-	
-	y2milestone("package list calculated for auto-installation: %1", packages);
+	import "AIsoftware";
+	list packages = AIsoftware::autoinstPackages();
 	return packages;
     }
 
@@ -243,7 +172,7 @@
 	    packages = ["vnc", "yast2-qt", "xf86", "mesasoft"];
 	}
 
-    	return packages;
+		return packages;
     }
 
     /**
@@ -358,7 +287,7 @@
 	}
 	else if ( reinit )
 	{
-	    Packages::Init( false ); 	// reinitialize but keep former selection (if possible)
+	    Packages::Init( false );	// reinitialize but keep former selection (if possible)
 	}
 	else
 	{
