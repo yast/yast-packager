@@ -19,7 +19,7 @@
 
     textdomain "packager";
 
-
+    global string	media_type		= "CD";
     global boolean 	showing_details		= false;
     global list		install_sizes_per_cd	= [];
     global list		remaining_sizes_per_cd 	= [];
@@ -98,6 +98,14 @@
 	}
     };
 
+    /**
+     * set media type "CD" or "DVD"
+     *
+     */
+    global define void SetMediaType (string mediatype)
+    ``{
+	media_type = mediatype;
+    }
 
     /**
      * UI-defines for the SlideShow module.
@@ -1025,7 +1033,7 @@
 	    widgets = add( widgets,
 			   `HBox(
 				 // Label for installation media - '%1' will be replaced with the CD number
-				 `Label( sformat( _("CD %1:"), cd_num+1 ) ),
+				 `Label( sformat(media_type + " %1:", cd_num+1 ) ),
 				 `Right( `Label( `id( cd_num ),
 						 cd_num < current_cd ?
 						 UI::Glyph(`CheckMark ) :

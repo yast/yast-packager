@@ -60,6 +60,13 @@
 	}
 	// install packages from this media
 
+	map source_data = Pkg::SourceGeneralData(0);
+	if (source_data != nil)
+	{
+	    string url = source_data["url"]:"cd:///";
+	    if (substring (url, 0, 3) == "dvd")
+		SlideShow::SetMediaType ("DVD");
+	}
 	SlideShow::InitPkgData();
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();

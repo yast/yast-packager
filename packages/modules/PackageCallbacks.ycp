@@ -107,8 +107,9 @@
 
     // media change callback
     // return "" for ok, retry
-    // return "E" for eject
-    // return "S" for skip
+    // return "E" for eject media
+    // return "I" for ignore bad media
+    // return "S" for skip this media
     // return "C" for cancel (not implemented !)
     // return url to change media URL
 
@@ -120,7 +121,10 @@
 
         // will be used in conjunction with other text below
         // prompt for user to insert the correct CD/DVD
-	string message = sformat(_("Please insert\n'%1'  %2"), product, ("CD "+ wanted));
+	string medianame = "CD ";
+	if (substring (url, 0, 3) == "dvd")
+	    medianame = "DVD ";
+	string message = sformat(_("Please insert\n'%1'  %2"), product, (medianame + wanted));
 
 	// currently unused
 	string media_prompt =_("The correct source medium could not be mounted.");
