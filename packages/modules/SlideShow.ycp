@@ -17,6 +17,7 @@
     import "Language";
     import "Mode";
     import "String";
+    import "Wizard";
 
     global string	media_type		= "CD";
     global boolean 	showing_details		= false;
