@@ -307,12 +307,6 @@
 	if (init_called)
 	{
 	    y2warning ("Packages::Init() already called");
-
-	    if (forceInit)
-	    {
-		// Pkg::PkgReset ();
-	    }
-
 	    return;
 	}
 
@@ -610,6 +604,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	if ( force_reset )
 	{
 	    Kernel::ProbeKernel();
+	    Pkg::PkgReset ();
 	    Packages::Init( true );	// reintialize AND reset package selection too
 	}
 	else if ( reinit )
