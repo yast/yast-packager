@@ -14,7 +14,6 @@
  */
 
 {
-
     module "SpaceCalculation";
 
     textdomain "packager";
@@ -122,9 +121,9 @@
 
 	    if ( add_part )
 	    {
-		change ( part_info, "used",  tointeger(part["used"]:0) * 1024 );
+		change ( part_info, "used", tointeger(part["used"]:(integer)(0)) * 1024 );
 
-		free_size = tointeger(part["free"]:0) * 1024;
+		free_size = tointeger(part["free"]:(integer)(0)) * 1024;
 		spare_size = (free_size*spare_percentage)/100;
 
 		if ( spare_size < min_spare )

@@ -75,7 +75,7 @@
 	    }
 	    else if (loader_type == "milo")
 	    {
-        	packages = add (packages, "milo");
+		packages = add (packages, "milo");
 	    }
 	}
 
@@ -503,7 +503,7 @@
 			    // now find this source in the instorder map and fill
 			    // the global 'theSourceOrder'
 
-			    foreach (`key, `value, instordermap,
+			    foreach (integer key, string value, instordermap,
 			    ``{
 				if (value == orderdir)
 				{
