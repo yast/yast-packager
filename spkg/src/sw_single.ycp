@@ -14,8 +14,8 @@
 			     `widget       : `RichText(
 						       UI(_( "<P>Launch this module to install additional packages or
 remove installed ones.
-For installing commercial packages also launch this module and select
-serie 'pay' from set selection.
+For installing commercial software also launch this module and select
+set 'pay' from list of package sets.
 </P>
 Please insert <b>CD 1</b> before proceeding.
 <P>You need to be logged in as <i>root</i> in order to
