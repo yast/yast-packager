@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May  4 16:09:16 MEST 2001 - gs@suse.de
+
+- Requires: yast2-db-groups (translations for groups tags)
+- don't start an additional unused grey screen (bug 6337)
+- go directly to dialog Change Source Media (bug 7135)
+- don't use list(map) (bug #7519)
+
+-------------------------------------------------------------------
 Mon May  7 16:42:55 CEST 2001 - sh@suse.de
 
 - Use new UI(`GetLanguage()) parameter 
