@@ -64,32 +64,32 @@
     {
 	y2milestone ( "SlideShow constructor" );
 	next_recalc_time	= time();
-    };
+    }
 	
 
     /**
      * Start the internal (global) timer.
      **/
     global define void StartTimer()
-    ``{
+    {
 	start_time = time();
-    };
+    }
 
 
     /**
      * Reset the internal (global) timer.
      **/
     global define void ResetTimer()
-    ``{
+    {
 	start_time = time();
-    };
+    }
 
 
     /**
      * Stop the internal (global) timer and account elapsed time.
      **/
     global define void StopTimer()
-    ``{
+    {
 	if ( start_time < 0 )
 	{
 	    y2error( "StopTimer(): No timer running." );
@@ -103,7 +103,7 @@
 		 elapsed, total_time_elapsed,
 		 total_time_elapsed / 60,	// min
 		 total_time_elapsed % 60 );	// sec
-    };
+    }
 
 
     /**
@@ -112,10 +112,10 @@
      * @return number as two-digit string
      **/
     define string FormatTwoDigits( integer x )
-    ``{
+    {
 	string str = sformat( "%1", x );
 	return size( str ) < 2 ? "0" + str : str;
-    };
+    }
 
 
     /**
@@ -125,7 +125,7 @@
      * @return string human readable remaining time or byte / kB/ MB size
      **/
     define string FormatRemaining( integer remaining, boolean unit_is_seconds )
-    ``{
+    {
 	if ( remaining <  0 )
 	{
 	    return UI::Glyph(`CheckMark );
@@ -148,7 +148,7 @@
 	    remaining = remaining % 3600;
 	    return sformat( "%1:%2:%3", hours, FormatTwoDigits( remaining / 60 ), FormatTwoDigits( remaining % 60 ) );
 	}
-    };
+    }
 
 
 
@@ -163,7 +163,7 @@
 					    string 	pkg_description,
 					    integer 	pkg_size,
 					    boolean	deleting )
-    ``{
+    {
 	// Optimized for performance - intentionally not using summaryAddSimpleSection() etc.
 	//
 	// Notice: Don't remove the trailing backslashes here, or the (Qt) RichText
@@ -200,7 +200,7 @@
 	}
 
 	return rich_text;
-    };
+    }
 
 
 
@@ -229,7 +229,7 @@
      * @return list slides
      **/
     define list<string> GetSlideList()
-    ``{
+    {
 	list<string> slide_list = (list<string>) SCR::Read (.target.dir, slide_pic_path);
 
 	if ( slide_list == nil )
@@ -258,7 +258,7 @@
 	y2debug( "Slide list: %1", slide_list );
 
 	return slide_list;
-    };
+    }
 
 
     /**
@@ -313,7 +313,7 @@
 	}
 
 	return enable_slide_show_cache;
-    };
+    }
 
 
 
@@ -323,7 +323,7 @@
      * @return true if OK, false if error
      **/
     define boolean LoadSlideImage( string image_file_name )
-    ``{
+    {
 	byteblock image_data = (byteblock) SCR::Read (.target.byte, [image_file_name, #[]] );
 
 	if ( size (image_data) == 0 )
@@ -337,7 +337,7 @@
 	    SetImageUI( image_data );
 	    return true;
 	}
-    };
+    }
 
 
     /**
@@ -345,9 +345,9 @@
      * @param text
      **/
     define void SetSlideText( string text )
-    ``{
+    {
 	UI::ChangeWidget(`id(`description), `Value, text );
-    };
+    }
 
 
 
@@ -357,7 +357,7 @@
      * @return true if OK, false if error
      **/
     define boolean LoadSlideText( string text_file_name )
-    ``{
+    {
 	string text = (string) SCR::Read (.target.string, [text_file_name, ""] );
 
 	if ( text == "" )
@@ -370,7 +370,7 @@
 	    SetSlideText (text);
 	    return true;
 	}
-    };
+    }
 
 
 
@@ -381,7 +381,7 @@
      * @return version string
      **/
     global define string StripReleaseNo( string pkg_name )
-    ``{
+    {
 	integer build_no_pos = findlastof (pkg_name, "-" );	// find trailing build no.
 
 	if ( build_no_pos > 0 )
@@ -391,7 +391,7 @@
 	}
 
 	return pkg_name;
-    };
+    }
 
 
     /**
@@ -399,7 +399,7 @@
      *
      */
     global define void SetMediaType (string mediatype)
-    ``{
+    {
 	media_type = mediatype;
     }
 
@@ -407,7 +407,7 @@
      *
      */
     global define void setSlideDir (string dir)
-    ``{
+    {
 	slide_base_path = dir;
 
 	// FIXME: ugly hack
@@ -425,7 +425,7 @@
      * cases.
      **/
     global define void InitPkgData()
-    ``{
+    {
 	if ( init_pkg_data_complete )
 	{
 	    return;
@@ -459,7 +459,7 @@
 	init_pkg_data_complete	= true;
 
 	y2milestone( "SlideShow::InitPkgData() done; install_sizes_per_cd: %1", install_sizes_per_cd );
-    };
+    }
 
 
     /**
@@ -468,7 +468,7 @@
      * @return 		true if OK, false if any error
      **/
     define boolean SanityCheck( boolean silent )
-    ``{
+    {
 	if ( ! init_pkg_data_complete )
 	{
 	    if ( ! silent )
@@ -487,7 +487,7 @@
      *
      */
     global define void SlideProvideStart (string pkg_name)
-    ``{
+    {
 	if ( ! SanityCheck( false ) )	return;
 	if ( !showing_details )		return;
 	UI::ChangeWidget(`id(`progress_current_package), `Label, pkg_name);
@@ -500,20 +500,20 @@
      * cd_no: 1...n
      **/
     global define void SetCurrentCdNo( integer src_no, integer cd_no )
-    ``{
+    {
 	y2milestone ("SetCurrentCdNo(%1,%2)", src_no, cd_no);
 	current_src_no = src_no;
 	current_cd_no  = cd_no;
-    };
+    }
 
 
     /**
      * Set the curent language. Must be called once during initialization.
      **/
     global define void SetLanguage( string new_language )
-    ``{
+    {
 	language = new_language;
-    };
+    }
 
 
 
@@ -522,7 +522,7 @@
      * global list of remaining sizes per CD
      **/
     define void SubtractPackageSize( integer pkg_size )
-    ``{
+    {
 	integer remaining = remaining_sizes_per_cd [ current_src_no-1, current_cd_no-1 ]: 1;
 	remaining = remaining - pkg_size;
 	total_size_installed = total_size_installed + pkg_size;
@@ -536,7 +536,7 @@
 
 	remaining_sizes_per_cd [ current_src_no-1, current_cd_no-1 ] = remaining;
 	y2debug ("SubtractPackageSize(%1) = %2", pkg_size, remaining_sizes_per_cd);
-    };
+    }
 
 
     /**
@@ -545,9 +545,9 @@
      * @param cd_no number of the CD within that installation source (from 0 on)
      **/
     define string CdProgressId( integer src_no, integer cd_no )
-    ``{
+    {
 	return sformat( "Src %1 CD %2", src_no, cd_no );
-    };
+    }
 
 
 
@@ -560,7 +560,7 @@
      * @return true if recalculated, false if not
      **/
     define boolean RecalcRemainingTimes( boolean force_recalc )
-    ``{
+    {
 	if ( ! force_recalc
 	    && time() < next_recalc_time )
 	{
@@ -696,7 +696,7 @@
 	 **/
 
 	return true;
-    };
+    }
 
 
     /**
@@ -714,7 +714,7 @@
      **/
     define term CdStatisticsWidgets( list<list <integer> > cd_remaining, integer current_src, integer current_cd,
 				     boolean unit_is_seconds, boolean deleting )
-    ``{
+    {
 	y2debug ("CdStatisticsWidgets(%1,%2,%3, ...)", cd_remaining, current_src, current_cd);
 	integer src_no = 0;
 	string label = unit_is_seconds ?
@@ -789,7 +789,7 @@
 	}
 
 	return widgets;
-    };
+    }
 
 
     /**
@@ -797,11 +797,11 @@
      **/
     define void ReplaceCdStatistics( list<list<integer> > cd_remaining, integer current_src, integer current_cd,
 				     boolean unit_is_seconds, boolean deleting )
-    ``{
+    {
 	UI::ReplaceWidget( `id(`rep_cd_statistics),
 			   CdStatisticsWidgets( cd_remaining, current_src, current_cd, unit_is_seconds, deleting ) );
 	cd_statistics_created = true;
-    };
+    }
 
 
     /**
@@ -811,13 +811,13 @@
      * @param deleting Flag: deleting or installing packages?
      **/
     global define void UpdateAllCdProgress( boolean deleting )
-    ``{
+    {
 	if ( ! SanityCheck( true ) )	return;
 	if ( ! widgets_created )	return;
 
 	integer saved_percent = 0;
 
-	if ( cd_statistics_created )
+	if ( cd_statistics_created && UI::WidgetExists(`progress_current_cd) )
 	{
 	    saved_percent = (integer) UI::QueryWidget( `id(`progress_current_cd ), `Value );
 	}
@@ -832,7 +832,7 @@
 	    ReplaceCdStatistics( remaining_sizes_per_cd, current_src_no-1, current_cd_no-1, unit_is_seconds, deleting );
 	}
 
-	if ( saved_percent != nil )
+	if ( saved_percent != nil && UI::WidgetExists(`progress_current_cd) )
 	{
 	    // Reduce flicker: restore the old percentage value.
 	    //
@@ -842,7 +842,7 @@
 
 	    UI::ChangeWidget( `id(`progress_current_cd ), `Value, saved_percent );
 	}
-    };
+    }
 
 
     /**
@@ -850,7 +850,7 @@
      * Use global statistics variables for that.
      **/
     global define void UpdateCurrentCdProgress()
-    ``{
+    {
 	if ( ! SanityCheck( false ) ) return;
 
 	integer total     = install_sizes_per_cd   [ current_src_no-1, current_cd_no-1 ]:1;
@@ -891,7 +891,6 @@
 	string remaining_text = FormatRemaining( remaining, unit_is_seconds );
 
 	UI::ChangeWidget( `id( CdProgressId( current_src_no-1, current_cd_no-1 ) ), `Value, remaining_text );
-
 	UI::ChangeWidget( `id(`progress_current_cd ), `Value, cd_percent );
 
 
@@ -921,7 +920,7 @@
 
 	    UI::ChangeWidget( `id( `total ), `Value, FormatRemaining( sum, unit_is_seconds ) );
 	}
-    };
+    }
 
 
     /**
@@ -929,7 +928,7 @@
      * @return true if just switched from sizes to seconds, false otherwise
      **/
     define boolean SwitchToSecondsIfNecessary()
-    ``{
+    {
 	if (unit_is_seconds
 	    || time() < start_time + initial_recalc_delay )
 	{
@@ -940,7 +939,7 @@
 	unit_is_seconds = true;
 
 	return true;	// just switched
-    };
+    }
 
 
     /**
@@ -948,7 +947,7 @@
      * @param slide_no number of slide to load
      **/
     define void LoadSlide (integer slide_no)
-    ``{
+    {
 	if ( slide_no > size( slides ) )
 	{
 	    slide_no = 0;
@@ -977,7 +976,7 @@
 
 	if (LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, "en",				slide_name ) ) ) return;
 	SetSlideText ("");
-    };
+    }
 
 
     /**
@@ -985,14 +984,14 @@
      * necessary.
      **/
     define void ChangeSlideIfNecessary()
-    ``{
+    {
 	if (current_slide_no + 1 < size( slides )
 	    && time() > slide_start_time + slide_interval )
 	{
 	    y2debug( "Loading slide #%1", current_slide_no + 2 );
 	    LoadSlide( current_slide_no + 1 );
 	}
-    };
+    }
 
 
     /**
@@ -1007,7 +1006,7 @@
 					  string 	pkg_description,
 					  integer	pkg_size,
 					  boolean	deleting	)
-    ``{
+    {
 	if ( ! SanityCheck( false ) )	return;
 
 	// New package (this package hasn't been displayed before)
@@ -1080,7 +1079,7 @@
 	    UpdateCurrentCdProgress();
 
 	} // ! deleting
-    };
+    }
 
     /**
      * Progress display update
@@ -1089,21 +1088,21 @@
      * @param pkg_percent	package percentage
      **/
     global define void SlideDisplayProgress (integer pkg_percent)
-    ``{
+    {
 	if ( ! SanityCheck( false ) )	return;
 
 	if ( showing_details )
 	{
 	    UI::ChangeWidget(`id(`progress_current_package), `Value, pkg_percent);
 	}
-    };
+    }
 
     /**
      * Return a term to create the usual wizard buttons.
      * @return term widget description for the wizard buttons
      **/
     define term WizardButtons()
-    ``{
+    {
 	return `HBox(
 		     `PushButton(`id(`back),  Label::BackButton() ),
 		     `HStretch(),
@@ -1111,7 +1110,7 @@
 		     `HStretch(),
 		     `PushButton(`id(`next),  Label::NextButton() )
 		     );
-    };
+    }
 
 
 
@@ -1121,7 +1120,7 @@
      * the image) and CD statistics.
      **/
     define void OpenSlideShowBaseDialog()
-    ``{
+    {
 	showing_details = false;
 	UI::OpenDialog( `opt(`defaultsize),
 			`HBox(
@@ -1169,7 +1168,7 @@
 	Wizard::DisableNextButton();
 	UI::SetFocus(`id(`details_view) );
 	widgets_created = true;
-    };
+    }
 
 
 
@@ -1177,7 +1176,7 @@
      * Switch from the 'details' view to the 'slide show' view.
      **/
     global define void SwitchToSlideShowView()
-    ``{
+    {
 	showing_details = false;
 	// PushButton that switches from slide show to technical installation
 	// details (info package that is currently being installed)
@@ -1187,14 +1186,14 @@
 	// We don't have image data right now, so use an Empty widget instead of the Image widget.
 	UI::ReplaceWidget(`id(`rep_work_area), `Empty() );
 	UI::SetFocus(`id(`details_view) );
-    };
+    }
 
 
     /**
      * Switch from the 'slide show' view to the 'details' view.
      **/
     global define void SwitchToDetailsView()
-    ``{
+    {
 	showing_details = true;
 
 	if ( EnableSlideShow() )
@@ -1233,7 +1232,7 @@
 				  )
 			  );
 
-    };
+    }
 
 
 
@@ -1241,7 +1240,7 @@
      * Process (slide show) button press.
      **/
     global define void ProcessButtonPress( any button )
-    ``{
+    {
 	if ( button == `details_view && ! showing_details )
 	{
 	    SwitchToDetailsView();
@@ -1251,7 +1250,7 @@
 	    SwitchToSlideShowView();
 	    LoadSlide (current_slide_no);
 	}
-    };
+    }
 
 
     /**
@@ -1298,7 +1297,7 @@
      * Open the slide show dialog.
      **/
     global define void OpenSlideShowDialog()
-    ``{
+    {
 	InstallSlideShowCallbacks();
 
 	OpenSlideShowBaseDialog();
@@ -1313,17 +1312,17 @@
 	}
 
 	UpdateAllCdProgress( false );	// false: not deleting
-    };
+    }
 
 
     /**
      * Close the slide show dialog.
      **/
     global define void CloseSlideShowDialog()
-    ``{
+    {
 	UI::CloseDialog();
 
 	RemoveSlideShowCallbacks();
-    };
+    }
 
 }
