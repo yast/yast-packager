@@ -1,6 +1,6 @@
 @HEADER-COMMENT@
 
-# neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages yast2-installation yast2-storage yast2-country yast2-x11 yast2-bootloader yast2-xml
+# neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages yast2-installation yast2-storage yast2-country yast2-x11 yast2-xml
 
 @HEADER@
 Requires:	yast2 yast2-x11 yast2-installation

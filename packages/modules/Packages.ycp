@@ -12,7 +12,6 @@
     textdomain "packager";
 
     import "Arch";
-    import "Bootloader";
     import "Installation";
     import "Directory";
     import "InstURL";
@@ -78,21 +77,6 @@ string pm_init_blocker = nil;
 	    packages = add (packages, "pcmcia");
 	    packages = add (packages, "scpm");
 	    packages = add (packages, "irda");
-	}
-
-	// check for aboot or milo on alpha and add package
-	if (Arch::alpha ())
-	{
-	    string loader_type = Bootloader::getLoaderType ();
-
-	    if (loader_type == "aboot")
-	    {
-		packages = add (packages, "aboot");
-	    }
-	    else if (loader_type == "milo")
-	    {
-		packages = add (packages, "milo");
-	    }
 	}
 
 	// remove unneeded / add needed packages for ppc
