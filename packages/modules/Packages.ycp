@@ -22,12 +22,12 @@
     import "SpaceCalculation";
 
     global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
-    global boolean install_sources = false; // Installing source packages ?
-    global integer timestamp = 0;	// last time of getting the target map
+    global boolean install_sources = false;	// Installing source packages ?
+    global integer timestamp = 0;		// last time of getting the target map
 
     global string slidedir = Installation::sourcedir + "/suse/setup/slide";
     global string metadir = "/yast-install";
-    global boolean metadir_used = false;		// true if meta data and inst-sys is in ramdisk
+    global boolean metadir_used = false;	// true if meta data and inst-sys is in ramdisk
 
     global list theSources = [];		// id codes of sources in priority order
     global list theSourceDirectories = [];	// product directories on sources
@@ -59,7 +59,6 @@
 	    packages = add (packages, "irda");
 	}
 
-
 	// check for blinux and add package
 	if (Mode::braille)
 	{
@@ -79,6 +78,12 @@
 	    {
 		packages = add (packages, "milo");
 	    }
+	}
+
+	// add special amd64 packages
+	if (Arch::x86_64 &&  Arch::has_smp)
+	{
+	    packages = add (packages, "irqbalance");
 	}
 
 	// remove unneeded / add needed packages for ppc
