@@ -49,7 +49,15 @@
 	if ( language_changed && !force_reset )
 	{
 	    // if the  language has changed the software proposal is reset to the default settings
-	    ret = add( ret, "warning", _("The software proposal is reset to default values.") );
+	    if ( !Packages::desktop_dialog_shown )
+	    {
+		// the language_changed flag has NOT been set by the NLD frame
+		ret = add( ret, "warning", _("The software proposal is reset to default values.") );
+	    }
+	    else
+	    {
+		Packages::desktop_dialog_shown = false;
+	    }
 	}
     }
     else if ( func == "AskUser" )

@@ -73,10 +73,10 @@
      */
     global define string DonePackage (integer error, string reason) ``{
 	SlideShow::SlideDisplayProgress (100);
-	//	if (error != 0)
-	//	{
-	//	    // return PackageCallbacks::DonePackage (error, reason);
-	//	}
+	if (error != 0)
+	{
+	    return PackageCallbacks::DonePackage (error, reason);
+	}
 	return "";
     }
 

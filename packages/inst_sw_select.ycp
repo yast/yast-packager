@@ -22,6 +22,7 @@
     import "Arch";
     import "Mode";
     import "Installation";
+    import "Product";
     import "ProductFeatures";
     import "Packages";
     import "PackagesUI";
@@ -116,6 +117,10 @@ base system and all packages required for X11, the graphical user
 interface (GUI).
 You can then work with a simple graphical desktop. </p>
 ");
+
+//    if (Product::name == "Novell Linux Desktop")
+    if (ProductFeatures::software_proposal == "desktop")
+	helptext = Packages::desktop_help_text;
 
     // help text, continued
     helptext = helptext + _("<p>
