@@ -91,8 +91,8 @@ systems that are short on disk space or memory.
    // help text, continued
     helptext = helptext + _("<p>
 With the <b>Minimum graphical system</b>, install the &product;
-base system and all packages required for X11, the Graphical User
-Interface (GUI).
+base system and all packages required for X11, the graphical user
+interface (GUI).
 You can then work with a simple graphical desktop. </p>
 ");
 
