@@ -7,9 +7,9 @@
         ],
         "etc" : $[
             "install_inf": $[ 
-                "InstMode":"ftp",
+                "InstMode":"http",
                 "Server":"192.168.1.1",
-                "Serverdir":"pub",
+                "Serverdir":"/install",
             ]
         ]
     ];
@@ -22,14 +22,18 @@
     TEST (``(InstURL::installInf2Url("/test")), [READ], nil);
 
 
-    READ["etc","install_inf","Serverdir"] = "/pub";
-    Linuxrc::ResetInstallInf();
-    TEST (``(InstURL::installInf2Url("")), [READ], nil);
-
     
     READ["etc","install_inf","Username"] = "suse";
     READ["etc","install_inf","Password"] = "yast2";
     READ["etc","install_inf","Serverdir"] = "pub";
+    READ["etc","install_inf","Port"] = "8888";
+    Linuxrc::ResetInstallInf();
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
+
+    READ["etc","install_inf","Proxy"] = "http://proxy.suse.de";
+    READ["etc","install_inf","ProxyPort"] = "8888";
+    READ["etc","install_inf","ProxyUser"] = "foo";
+    READ["etc","install_inf","ProxyPassword"] = "bar";
     Linuxrc::ResetInstallInf();
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
 }

@@ -2,7 +2,7 @@ Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Server", "Serverdir"]
 Read	.etc.install_inf."InstMode" "ftp"
 Read	.etc.install_inf."Server" "192.168.1.1"
-Read	.etc.install_inf."Serverdir" "/pub"
+Read	.etc.install_inf."Serverdir" "pub"
 Return	ftp://192.168.1.1/pub
 Return	ftp://192.168.1.1/pub/test
 Return	ftp://192.168.1.1/pub/test
@@ -10,8 +10,8 @@ Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Server", "Serverdir"]
 Read	.etc.install_inf."InstMode" "ftp"
 Read	.etc.install_inf."Server" "192.168.1.1"
-Read	.etc.install_inf."Serverdir" "pub"
-Return	ftp://192.168.1.1/pub
+Read	.etc.install_inf."Serverdir" "/pub"
+Return	ftp://192.168.1.1/%2fpub
 Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Password", "Server", "Serverdir", "Username"]
 Read	.etc.install_inf."InstMode" "ftp"
