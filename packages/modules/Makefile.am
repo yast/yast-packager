@@ -7,7 +7,7 @@
 #
 
 module_HEADERS = 			\
-		InstMedia.ycp		\
+		InstURL.ycp		\
 		Packages.ycp		\
 		SlideShow.ycp		\
 		SlideShowCallbacks.ycp	\

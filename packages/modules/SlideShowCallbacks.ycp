@@ -204,7 +204,7 @@ Do you want to go on with the installation?\n"),
 		ret = UI::ContinueCancelPopup( sformat( "%1 #%2 requested (test mode).\n\n"			+
 							"You don't really need a %1 - this is just a fake.\n"	+
 							"You can safely just hit 'Continue'.\n"
-							, InstMedia::medianame, cd_no ) );
+							, "CD", cd_no ) );
 	    }
 	}
 

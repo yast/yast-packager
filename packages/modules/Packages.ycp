@@ -16,7 +16,6 @@
     import "Installation";
     import "SpaceCalculation";
     import "Report";
-	import "InstMedia";
 
     textdomain "packager";
 
@@ -530,7 +529,8 @@
 	}
 	else
 	{
-	    base_url = InstMedia::installInf2Url ();
+	    import "InstURL";
+	    base_url = InstURL::installInf2Url ();
 	}
 
 	if (Mode::initial)
