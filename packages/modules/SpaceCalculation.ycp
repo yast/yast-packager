@@ -51,6 +51,7 @@
    *
    * @example GetPartitionInfo();
    *
+   * Will be called from Packages when re-doing proposal !!
    */
     global define list GetPartitionInfo( )
     ``{
@@ -104,7 +105,7 @@
 	    // $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
 	    list mounts = SCR::Read (.proc.mounts);
 	    y2milestone ("mounts %1", mounts);
-	    list directories = [];
+
 	    list partitions = [];
 	    foreach (`mpoint, mounts,
 	    ``{
@@ -118,13 +119,11 @@
 		    {
 			integer used = Pkg::TargetUsed (name);
 			partitions = add (partitions, $["name" : name, "free" : capacity-used, "used" : used]);
-			directories = add (directories, name);
 		    }
 		}
 	    });
-	    Pkg::TargetInitDU (directories);
-	    y2milestone ("partitions: %1", partitions);
-	    y2milestone ("directories: %1", directories);
+	    Pkg::TargetInitDU (partitions);
+	    y2milestone ("get_partition_info: %1", partitions);
 	    return partitions;
 
 	} // !Mode::initial
@@ -135,7 +134,6 @@
 	    targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
 	}
 
-	list directories = [];
 	list(map) target_partitions = [];
 	integer spare_percentage  = 14;   // percentage of free spare space on every partition
 	integer min_spare 	= 2048; // minimum free space ( 2 MB )
@@ -165,12 +163,12 @@
 		    if ( part["type"]:`empty == `pdisk )
 		    {
 			// PowerPC: free_space = number of cyl. ( "region": second value ) * 512
-			free_size = (part["region",1]:0 * 512) / 1024;
+			free_size = (part["region",1]:0 * 512);
 		    }
 		    else
 		    {
 			// others: free space = number of cyl. ( "region": second value ) * cyl_size
-			free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1/1024);
+			free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1024);
 		    }
 
 		    spare_size = (free_size*spare_percentage)/100;
@@ -181,11 +179,10 @@
 		    }
 		    free_size = free_size - spare_size;
 
-		    y2debug("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size);
+		    y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
 		    if ( !remove_slash)
 		    {
 			target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":0, "free":free_size]);
-			directories = add (directories, part["mount"]:"");
 		    }
 		    else
 		    {
@@ -202,7 +199,6 @@
 			}
 
 			target_partitions = add ( target_partitions, $["name":part_name, "used":0, "free":free_size]);
-			directories = add (directories, part_name);
 		    }
 
 		}
@@ -211,8 +207,7 @@
 	} ); // foreach (`disk)
 
 	y2milestone( "get_partition_info: part %1", target_partitions );
-	y2milestone( "get_partition_info: dir %1", directories);
-	Pkg::TargetInitDU (directories);
+	Pkg::TargetInitDU (target_partitions);
 
 	return ( target_partitions );
     };
@@ -376,14 +371,15 @@
 
 	foreach( `dir, `sizelist, Pkg::TargetGetDU(),
 	``{
-	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// pkgusage - total
+	    integer dirused = sizelist[1]:0 + sizelist[2]:0;
+	    integer needed = dirused - sizelist[0]:0;	// (current+pkgusage) - total
 	    if ( needed > 0 )
 	    {
 		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
 		message = message + sformat ( _("Partition \"%1\" needs %2 more disk space."),
 					      dir, size_text(needed) ) + "\n";
 	    }
-	    used = used + sizelist[1]:0;
+	    used = used + dirused;
 	} );
 
 	y2debug( "Total used space: %1", used );
@@ -425,7 +421,7 @@
 	//$[ "dir" : [ total, used, pkgusage ], .... ]
 	foreach( `dir, `sizelist, Pkg::TargetGetDU(),
 	``{
-	    used = used + sizelist[1]:0;
+	    used = used + (sizelist[1]:0 + sizelist[2]:0);
 	} );
 	y2milestone ("GetReqSpace Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
 	return ( size_text (used) );
@@ -451,7 +447,9 @@
 	//$[ "dir" : [ total, used, pkgusage ], .... ]
 	foreach (`dir, `sizelist, Pkg::TargetGetDU(),
 	``{
-	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// pkgusage - total
+	    integer dirused = sizelist[1]:0 + sizelist[2]:0;
+	    y2milestone ("%1: %2", dir, sizelist);
+	    integer needed = dirused - sizelist[0]:0;	// pkgusage - total
 	    if ( needed > 0 )
 	    {
 		y2warning("Partition \"%1\" needs %2 more disk space.",
@@ -459,10 +457,10 @@
 		fit = false;
 	    }
 
-	    used = used + sizelist[1]:0;
+	    used = used + dirused;
 	});
 
-	y2milestone ("Total used space: %1", used);
+	y2milestone ("Total used space: %1, fits ?: %2", used, fit);
 
 	return fit;
     };
