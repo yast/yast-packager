@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Aug 30 22:56:41 CEST 2003 - arvin@suse.de
+
+- fixed installing of required bootloader on alpha
+
+-------------------------------------------------------------------
 Fri Aug 29 16:13:36 CEST 2003 - arvin@suse.de
 
 - implemented callbacks for converting rpm database (bug #29484)
