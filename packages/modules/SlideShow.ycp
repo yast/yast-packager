@@ -675,11 +675,11 @@
 			// ridiculously unrealistic.
 			remaining_time = min_time_per_cd;
 		    }
-		    else if ( remaining > max_time_per_cd )	// clip off at 2 hours
+		    else if ( remaining_time > max_time_per_cd ) // clip off at 2 hours
 		    {
 			// When data throughput goes downhill (stalled network connection etc.),
 			// cut off the predicted time at a reasonable maximum.
-			remaining = max_time_per_cd;
+			remaining_time = max_time_per_cd;
 		    }
 		}
 		remaining_times_list = add( remaining_times_list, remaining_time );

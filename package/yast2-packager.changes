@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 23 11:36:59 CEST 2003 - sh@suse.de
+
+- V 2.8.24
+- Fixed bug #31606: Undeclared variable in SlideShow.ycp 
+
+-------------------------------------------------------------------
 Sun Sep 21 19:38:02 CEST 2003 - arvin@suse.de
 
 - finished support of double sided media
