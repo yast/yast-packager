@@ -5,7 +5,6 @@
  *
  * Purpose:	Do various tasks before starting with installation of rpms.
  *
- * $Id$
  */
 
 {
