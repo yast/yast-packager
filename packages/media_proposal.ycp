@@ -48,26 +48,15 @@
 	}
 	else
 	{
-	    map new_product = Pkg::SourceProductData (Packages::theSources[num-1]:0);
-	    if (new_product == nil)
-	    {
-		y2error ("Screwed source");
-		ret = $[ "warning" :
-			 // Proposal for system to update
-			 _("No valid Installation Media"),
-			 "warning_level" : `blocker
-		];
-	    }
-	    else
-	    {
-		// FIXME: handle not only the first source
+	    list <string> tmp = [];
 
-		string tmp = sformat (_("Installation Source: %1"),
-				      new_product["productname"]:"?" + " " +
-				      new_product["productversion"]:"?");
+	    foreach (integer i, Packages::theSources, {
+		map new_product = Pkg::SourceProductData (i);
+		tmp = add (tmp, new_product["productname"]:"?" + " " +
+			   new_product["productversion"]:"?");
+	    });
 
-		ret = $[ "preformatted_proposal" : HTML::List ([tmp]) ];
-	    }
+	    ret = $[ "preformatted_proposal" : HTML::List (tmp) ];
 	}
     }
     else if ( func == "AskUser" )
