@@ -1140,9 +1140,9 @@
     define term WizardButtons()
     ``{
 	return `HBox(
-		     `PushButton(`id(`back),  Label::BackButton()  ),
+		     `PushButton(`id(`back),  Label::BackButton() ),
 		     `HStretch(),
-		     `PushButton(`id(`abort), Label::AbortButton() ),
+		     `PushButton(`id(`abort), Label::AbortInstallationButton() ),
 		     `HStretch(),
 		     `PushButton(`id(`next),  Label::NextButton() )
 		     );
