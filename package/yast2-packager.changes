@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan  5 17:51:09 CET 2005 - jsrain@suse.cz
+
+- adapted to new interface of Kernel.ycp
+
+-------------------------------------------------------------------
 Tue Jan  4 11:31:33 CET 2005 - jsrain@suse.cz
 
 - fixed error reporting when unable to initialize isntallation
