@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep 29 10:19:54 CEST 2004 - arvin@suse.de
+
+- fixed build
+
+-------------------------------------------------------------------
 Mon Sep 27 21:14:35 CEST 2004 - kkaempf@suse.de
 
 - Read(.probe.system) to get board/vendor specific packages
@@ -8,12 +13,12 @@ Mon Sep 27 21:14:35 CEST 2004 - kkaempf@suse.de
 Fri Sep 24 13:59:04 CEST 2004 - sh@suse.de
 
 - V 2.10.21
-- Added some blanks as margin in slide show details table 
+- Added some blanks as margin in slide show details table
 
 -------------------------------------------------------------------
 Thu Sep 23 17:58:41 CEST 2004 - nashif@suse.de
 
-- Use service pack even if the product CD has no order/instorder 
+- Use service pack even if the product CD has no order/instorder
   files in "yast2/"
 
 -------------------------------------------------------------------
