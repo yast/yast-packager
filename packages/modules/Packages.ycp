@@ -147,6 +147,13 @@
 		packages = add (packages, "cpufreqd");
 	    }
 	}
+
+	// add numactl on x86_64 with SMP
+	if (Arch::has_smp && Arch::x86_64)
+	{
+	    packages = add (packages, "numactl");
+	}
+
 	return packages;
     }
 
