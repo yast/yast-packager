@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Mar  5 18:58:39 CET 2003 - kkaempf@suse.de
+
+- enhance provideDone and packageDone callbacks to pop up
+  a window on error, displaying the error code and the last
+  10 lines (tail) from y2logRPM. Offer ok/retry/skip/abort
+  buttons and return the button code to the packagemanager.
+  (#23780)
+- 2.7.17
+
+-------------------------------------------------------------------
 Wed Mar  5 17:54:51 CET 2003 - kkaempf@suse.de
 
 - fallback to "k_deflt" if real kernel not available (#16047)

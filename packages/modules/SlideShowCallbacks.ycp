@@ -30,6 +30,7 @@
 	    SlideShow::SlideProvideStart (name);
 	    _remote_provide = true;
 	}
+	PackageCallbacks::_provide_name = name;
 	return;
    }
 
@@ -50,14 +51,19 @@
    /** during file providal
     *
     */
-   global define void DoneProvide (integer error, string reason)
+   global define string DoneProvide (integer error, string reason)
    ``{
 	if (_remote_provide)
 	{
 	    SlideShow::SlideDisplayProgress ( 100 );
 	    _remote_provide = false;
 	}
-	return;
+	if (error != 0)
+	{
+	    return PackageCallbacks::DoneProvide (error, reason);
+	}
+
+	return "";
    }
 
 
@@ -66,16 +72,21 @@
     */
     global define boolean StartPackage (string name, string summary, integer installsize, boolean is_delete)
     ``{
+	PackageCallbacks::_package_name = name;
 	return DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
     }
 
    /** at end of install
     * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
     */
-   global define void DonePackage (integer error, string name)
+   global define string DonePackage (integer error, string reason)
    ``{
 	SlideShow::SlideDisplayProgress (100);
-	return;
+	if (error != 0)
+	{
+	    return PackageCallbacks::DonePackage (error, reason);
+	}
+	return "";
    }
 
 

@@ -13,6 +13,7 @@
     module "PackageCallbacks";
 
     import "Mode";
+    import "Installation";
 
     textdomain "packager";
 
@@ -20,6 +21,9 @@
     include "ui/common_functions.ycp";
 
     global boolean _provide_popup = false;
+    global boolean _package_popup = false;
+    global string _provide_name = "";
+    global string _package_name = "";
 
     global integer _current_source = 1;
    //--------------------------------------------------------------------------
@@ -37,6 +41,7 @@
 	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
 	}
+	_provide_name = name;
 	return;
    }
 
@@ -54,13 +59,93 @@
 
    /** during file providal
     *
+    // return "" for ok
+    // return "R" for retry
+    // return "I" for ignore bad media
+    // return "S" for skip this media
+    // return "C" for cancel
     */
-   global define void DoneProvide (integer error, string reason)
+   global define string DoneProvide (integer error, string reason)
    ``{
 	if (_provide_popup)
 	    UI::CloseDialog();
 	_provide_popup = false;
-	return;
+
+	if (error != 0)
+	{
+	    string message = sformat (_("Package %1 was not found on the medium."), _provide_name);
+
+	    term button_box = `HBox (`PushButton (`id(`ok), `opt(`default), OKButtonLabel()));
+	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
+	    button_box = add (button_box,  `PushButton (`id(`cancel), AbortButtonLabel()));
+	    button_box = add (button_box, `PushButton (`id(`skip), _("&Skip")));
+
+	    if ( showLongInfo )
+	    {
+		UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
+		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
+	    }
+	    else
+	    {
+		UI::OpenDialog( `opt(`decorated),  UI::LayoutPopup (message, button_box, 2, false) );
+		UI::ReplaceWidget(`id(`info), `Empty() );
+	    }
+
+	    any r = nil;
+
+	    UI::{
+		global define ShowLogInfo (string message, term buttonbox) ``{
+		if (QueryWidget(`id(`show), `Value ))
+		{
+		    CloseDialog();
+		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
+		    return true;
+		}
+		else
+		{
+		    CloseDialog();
+		    OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+		    ReplaceWidget(`id(`info), `Empty() );
+		}
+		return false;
+		};
+	    };
+
+	    repeat
+	    {
+		r = UI::UserInput();
+		if ( r == `show )
+		{
+		showLongInfo = UI::ShowLogInfo (message, button_box);
+		if (showLongInfo)
+		{
+		    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
+		}
+		else
+		{
+		    UI::ReplaceWidget(`id(`info), `Empty() );
+		}
+	    }
+	    } until (r == `ok || r == `cancel || r == `retry || r == `skip || r == `ignore);
+
+	    y2milestone ("DoneProvide %1", r);
+
+	    UI::CloseDialog();
+
+	    if (r == `cancel)
+		return "C";
+	    if (r == `ignore)
+		return "I";
+	    if (r == `skip)
+		return "S";
+	    if (r == `retry)
+		return "R";
+
+	    // default: ok
+	}
+
+	return "";
    }
 
 
@@ -69,13 +154,15 @@
     */
    global define boolean StartPackage (string name, string summary, integer installsize, boolean is_delete)
    ``{
+	_package_name = name;
+
 	term packagebox = `VBox( `Label(`id(`package), name ),
 				`VSpacing(),
 				`HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
 			   );
 
 	UI::OpenDialog( `opt(`decorated), packagebox );
-
+	_package_popup = true;
 	return true;
    }
 
@@ -92,14 +179,99 @@
 
    /** after package install
     *
+    // return "" for ok
+    // return "R" for retry
     // return "I" for ignore bad media
     // return "S" for skip this media
     // return "C" for cancel (not implemented !)
     */
-   global define void DonePackage (integer error, string name)
+   global define string DonePackage (integer error, string reason)
    ``{
-	UI::CloseDialog();
-	return;
+	if (_package_popup)
+	    UI::CloseDialog();
+	_package_popup = false;
+
+	if (error != 0)
+	{
+	    string infopath = SCR::Read (.target.tmpdir) + "/rpmlog";
+	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir + "/var/log/YaST2/y2logRPM > " + infopath);
+	    string info = reason + "\n---\n" + SCR::Read (.target.string, [infopath, "-?-"]);
+
+	    // error popup during package installation, %1 is a numeric value (number of failed packages)
+	    string message = sformat (_("Package %1 failed installation."), _package_name);
+
+	    term button_box = `HBox (`PushButton (`id(`ok), `opt(`default), OKButtonLabel()));
+	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
+	    button_box = add (button_box,  `PushButton (`id(`cancel), AbortButtonLabel()));
+	    button_box = add (button_box, `PushButton (`id(`skip), _("&Skip")));
+
+	    if ( showLongInfo )
+	    {
+		UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
+		UI::ReplaceWidget(`id(`info), `RichtText (`opt(`plainText), info) );
+	    }
+	    else
+	    {
+		UI::OpenDialog( `opt(`decorated),  UI::LayoutPopup (message, button_box, 2, false) );
+		UI::ReplaceWidget(`id(`info), `Empty() );
+	    }
+
+	    any r = nil;
+
+	    UI::{
+		global define ShowLogInfo (string message, term buttonbox) ``{
+		if (QueryWidget(`id(`show), `Value ))
+		{
+		    CloseDialog();
+		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
+		    return true;
+		}
+		else
+		{
+		    CloseDialog();
+		    OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+		    ReplaceWidget(`id(`info), `Empty() );
+		}
+		return false;
+		};
+	    };
+
+	    repeat
+	    {
+		r = UI::UserInput();
+		if ( r == `show )
+		{
+		showLongInfo = UI::ShowLogInfo (message, button_box);
+		if (showLongInfo)
+		{
+		    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+		}
+		else
+		{
+		    UI::ReplaceWidget(`id(`info), `Empty() );
+		}
+	    }
+	    } until (r == `ok || r == `cancel || r == `retry || r == `skip || r == `ignore);
+
+	    y2milestone ("DonePackage %1", r);
+
+	    UI::CloseDialog();
+
+	    if (r == `cancel)
+		return "C";
+	    if (r == `ignore)
+		return "I";
+	    if (r == `skip)
+		return "S";
+	    if (r == `retry)
+		return "R";
+
+	    // default: ok
+	}
+
+
+	return "";
    }
 
 //=============================================================================
