@@ -221,11 +221,14 @@
 	    }
 	    if (r == `retry || r == `url)
 	    {
-		string newurl = UI::QueryWidget(`id(`url), `Value);
-		if (newurl != url)
+		if (showLongInfo)	// id(`url) must exist
 		{
-		    url = newurl;
-		    r = `url;
+		    string newurl = UI::QueryWidget(`id(`url), `Value);
+		    if (newurl != url)
+		    {
+			url = newurl;
+			r = `url;
+		    }
 		}
 	    }
 	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore || r == `url);
