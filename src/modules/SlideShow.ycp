@@ -619,7 +619,7 @@
     /**
      * Package providal start
      */
-    global void SlideProvideStart (string pkg_name)
+    global void SlideProvideStart (string pkg_name, integer sz)
     {
 	if ( ! SanityCheck( false ) )	return;
 	if ( ! ShowingDetails() )	return;
@@ -633,7 +633,8 @@
 	// Update (user visible) installation log
 	//
 
-	string msg = sformat (_("Downloading %1"), pkg_name);
+	string strsize = String::FormatSize (sz);
+	string msg = sformat (_("Downloading %1 (%2)"), pkg_name, strsize);
 	string log_line = "\n" + msg;
 	inst_log = inst_log + log_line;
 
