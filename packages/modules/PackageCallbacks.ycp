@@ -280,7 +280,8 @@
     // return url to change media URL
 
     global define string MediaChange (string error, string url, string product,
-				      integer current, integer wanted) ``{
+				      integer current, integer wanted,
+				      boolean double_sided) ``{
 
 	import "Mode";
 
@@ -309,8 +310,6 @@
 	    medianame = "DVD ";
 	}
 
-	// FIXME
-	boolean double_sided = false;
 	string mediaside = sformat ("%1", (medianame + wanted));
 
 	if (double_sided)
