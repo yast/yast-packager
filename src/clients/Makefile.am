@@ -1,5 +1,5 @@
 #
-# Makefile.am for src/clients
+# Makefile.am for packager/src/clients
 #
 
 client_DATA = $(wildcard *.ycp)

@@ -1,4 +1,4 @@
-# Makefile.am for packager/packages/modules
+# Makefile.am for packager/src/modules
 
 module_DATA = $(wildcard [A-Z]*.ycp)
 EXTRA_DIST = $(module_DATA)
