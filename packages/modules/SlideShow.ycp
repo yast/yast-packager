@@ -1612,7 +1612,7 @@
 	y2milestone( "InstallSlideShowCallbacks");
 
 	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
-	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackProgressPackage");
+	Pkg::CallbackProgressPackage ("SlideShowCallbacks::ProgressPackage");
 	Pkg::CallbackDonePackage ("SlideShowCallbacks::DonePackage");
 
 	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
