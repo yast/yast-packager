@@ -9,13 +9,14 @@
 {
     textdomain "packager";
 
+    import "DirInstall";
+    import "ProductControl";
     import "Mode";
 
     Mode::SetMode ("autoinst_config");	// FIXME, messy
     import "Product";
     Mode::SetMode ("normal");		// FIXME, messy
 
-    import "DirInstall";
     import "Installation";
 
     import "Wizard";
@@ -23,18 +24,30 @@
     import "Popup";
     import "GetInstArgs";
 
-    // wizard stage
-    integer current_stage = -1;
 
-    y2debug("creating wizard");
-    // create initial dialog
-    Wizard::CreateDialog ();
-    Wizard::SetDesktopIcon("sw_source");
+    DirInstall::installing_into_dir = true;
+
+    Wizard::OpenNextBackStepsDialog();
+
+    string wizard_mode = Mode::test () ? "installation" : Mode::mode ();
+
+    list<map> stage_mode = [$["stage": "normal",  "mode": wizard_mode ]];
+    ProductControl::AddWizardSteps(stage_mode);
+
+    // Don't log Report messages by default
+    Report::LogMessages(false);
+    Report::LogErrors(false);
+    Report::LogWarnings(false);
 
     // calling inst_proposal
 
     Installation::destdir = DirInstall::target;
     y2debug("target dir: %1", Installation::destdir);
+    symbol ret = ProductControl::Run();
+
+
+
+    /*
     symbol ret = `again;
     while (ret == `again)
     {
@@ -43,7 +56,7 @@
         ret = (symbol) WFM::CallFunction ("inst_proposal", [GetInstArgs::ButtonsProposal(true,true,"dirinstall")]);
         if (ret == `abort)
         {
-            break;
+           break;
         }
         if (Installation::destdir == "" || Installation::destdir == "/" )
         {
@@ -65,11 +78,7 @@ Should this directory be used?"))) {
             break;
         }
     }
-
-    if (ret == `next)
-    {
-	WFM::CallFunction ("inst_dirinstall", [false, false]);
-    }
+    */
 
     Pkg::SourceFinishAll ();
     Pkg::TargetFinish();

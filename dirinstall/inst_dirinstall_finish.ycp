@@ -1,0 +1,55 @@
+{
+
+    import "DirInstall";
+
+    list<string> progress_stages =
+	[
+	 // progress stages
+	 _("Finalize system configuration"),
+	 // progress stages
+	 _("Prepare system for initial boot")
+	 ];
+
+    integer progress_length = 2;
+    if (DirInstall::makeimage)
+    {
+        progress_stages=add(progress_stages, _("Create image file"));
+        progress_length = progress_length + 1;
+    }
+
+    list<string> progress_descriptions =
+	[];
+
+
+    string help_text = _("<p>Please wait while the system is being configured.</p>");
+
+    Progress::New(
+            // Headline for last dialog of base installation: Install LILO etc.
+            _("Finishing Directory Installation"),
+            "",	// Initial progress bar label - not empty (reserve space!)
+            progress_length,	// progress bar length
+            progress_stages,
+            progress_descriptions,
+            help_text );
+
+
+
+
+    Progress::NextStage ();
+    Progress::Title(_("Configuring installed system"));
+    sleep(1000);
+
+    Progress::NextStage ();
+
+    if (DirInstall::makeimage && DirInstall::image_dir != "" && DirInstall::image_name != "")
+    {
+        Progress::NextStage();
+        string cmd =  sformat("cd %1 && tar -zcf %2 . && cd - ", DirInstall::target, DirInstall::image_dir + "/" + DirInstall::image_name );
+        y2debug("cmd: %1", cmd);
+        Progress::Title(_("Building directory image..."));
+        SCR::Execute(.target.bash, cmd);
+    }
+
+
+    Progress::Finish();
+}
