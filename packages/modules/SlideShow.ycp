@@ -629,6 +629,19 @@
 	    UI::ChangeWidget(`progressCurrentPackage, `Label, pkg_name);
 	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
 	}
+	//
+	// Update (user visible) installation log
+	//
+
+	string msg = sformat (_("Downloading %1"), pkg_name);
+	string log_line = "\n" + msg;
+	inst_log = inst_log + log_line;
+
+	if ( ShowingDetails() )
+	{
+	    if ( UI::WidgetExists( `instLog ) )
+		UI::ChangeWidget(`instLog, `LastLine, log_line );
+	}
     }
 
 

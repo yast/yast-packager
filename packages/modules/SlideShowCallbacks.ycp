@@ -69,21 +69,6 @@
     }
 
 
-    /**
-     * at end of install
-     * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
-     */
-    global string DonePackage( integer error, string reason )
-    {
-	SlideShow::UpdateCurrentPackageProgress (100);
-
-	if (error != 0)
-	{
-	    return PackageCallbacks::DonePackage( error, reason );
-	}
-	return "";
-    }
-
 
     //--------------------------------------------------------------------------
     // slide show
@@ -194,6 +179,21 @@
 
 	return nil;
     };
+
+    /**
+     * at end of install
+     * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
+     */
+    global string DonePackage( integer error, string reason )
+    {
+	SlideShow::UpdateCurrentPackageProgress (100);
+
+	if (error != 0)
+	{
+	    return PackageCallbacks::DonePackage( error, reason );
+	}
+	return "";
+    }
 
 
     /**
