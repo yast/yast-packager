@@ -29,12 +29,12 @@
     Pkg::SaveState();
 
     // returns `accept or `cancel
-    symbol result = UI::RunPkgSelection(`id(`selector) );
+    symbol result = (symbol) UI::RunPkgSelection(`id(`selector) );
 
     if (result == `accept)
 	Pkg::ClearSaveState();
     else
-	Pkg::RestoreState();
+	Pkg::RestoreState(false);
 
     UI::CloseDialog();
     return result;
