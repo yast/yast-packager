@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 10 13:55:18 CET 2003 - kkaempf@suse.de
+
+- error popups have "Abort", "Retry", "Ignore" as buttons.
+
+-------------------------------------------------------------------
 Mon Mar 10 13:28:47 CET 2003 - mvidner@suse.de
 
 - [Rr]equire.ycp: fixed package installation after YOU (#24744).
