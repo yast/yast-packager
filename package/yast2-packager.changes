@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 15 17:39:08 CEST 2004 - sh@suse.de
+
+- V 2.10.15
+- Added check for 'nil' to avoid crashing back to linuxrc when no
+  base selection is selected (bug #45312) 
+
+-------------------------------------------------------------------
 Wed Sep  8 17:18:01 CEST 2004 - sh@suse.de
 
 - Fixed remaining times for CD2..CDx: 

@@ -252,6 +252,8 @@ You will lose that selection if you change the basic selection.");
 
 	// get the newly selected base configuration
 	string base_selection = (string) UI::QueryWidget( `id(`baseconf),`CurrentButton );
+	if ( base_selection == nil )
+	    base_selection = "";
 
 	if (ret == `abort && Popup::ConfirmAbort (`painless))
 	{
