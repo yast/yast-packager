@@ -549,8 +549,8 @@
 	    else if (!url_rewritten
 		     && Mode::cont)
 	    {
-		if ((substring (url, 0, 2) == "cd")
-		    || (substring (url, 0, 3) == "dvd"))
+		if ((substring (base_url, 0, 2) == "cd")
+		    || (substring (base_url, 0, 3) == "dvd"))
 		{
 		   y2milestone ("rewrite url: '%1'", base_url);
 		   Pkg::SourceChangeUrl (theSources[0]:0, base_url);
