@@ -4,8 +4,6 @@
  * Purpose:		Slide show during package installation
  *
  * Author:		Stefan Hundhammer <sh@suse.de>
- *
- * $Id$
  */
 {
     module "SlideShow";
@@ -51,7 +49,7 @@
     global string	slide_txt_path		= "";
     global integer	slide_interval		= slide_min_interval;
     global list<string>	slides			= [];
-    global boolean	enable_slide_show	= false;
+    global boolean	enable_slide_show	= nil;
     global string	language		= Language::language;
     global boolean	init_pkg_data_complete	= false;
     global boolean	widgets_created		= false;
