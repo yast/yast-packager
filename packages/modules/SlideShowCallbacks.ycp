@@ -10,14 +10,17 @@
  */
 
 {
+
     module "SlideShowCallbacks";
 
-    import "PackageCallbacks";
-
-    import "Label";
-    import "Popup";
-
     textdomain "packager";
+
+    import "Installation";
+    import "Label";
+    import "Mode";
+    import "PackageCallbacks";
+    import "Popup";
+    import "SlideShow";
 
     boolean shutup = false;			// show the disk space warning popup only once
 

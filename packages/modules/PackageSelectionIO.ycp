@@ -9,13 +9,17 @@
  */
 
 {
+
     module "PackageSelectionIO";
 
     textdomain "packager";
-    import "Mode";
+
     import "Installation";
-    import "Report";
     import "Label";
+    import "Mode";
+    import "Popup";
+    import "Report";
+    import "StorageDevices";
 
     string lastHarddiskPath = "/var/lib/YaST2/packages.usr";
     string lastFloppyPath = "packages.usr";
@@ -224,7 +228,7 @@ Verify that the path name has been written correctly.
 				  `VSpacing(0.2),
 				  `HBox(
 					// button labels selection popup
-					`Left(`PushButton( `id(`cancel),`opt(`default), _("&Cancel"))),
+					`Left(`PushButton( `id(`cancel),`opt(`default), Label::CancelButton())),
 					`Right(`PushButton( `id(`load), _("&Load"))),
 					`Right(`PushButton( `id(`save),  _("&Save")))
 					)

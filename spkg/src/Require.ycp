@@ -1,9 +1,8 @@
 /**
- * Module: Require
- * Summary:
- *   Provide installation on demand.
- * Authors:
- *   Martin Vidner <mvidner@suse.cz>
+ * File:	modules/Require.ycp
+ * Package:	Packager
+ * Summary:	Provide installation on demand
+ * Authors:	Martin Vidner <mvidner@suse.cz>
  *
  * $Id$
  *
@@ -13,6 +12,7 @@
  */
 
 {
+
     module "Require";
     textdomain "packager";
 
@@ -352,40 +352,64 @@
 	EnsureSourceInit ();
 	EnsureTargetInit ();
 	boolean ok = true;
+
 	foreach (string p, toinstall, ``{
-	    ok = ok && Pkg::PkgInstall (p);
+	    if(ok == true)
+		if(Pkg::PkgInstall(p) != true) {
+		    y2error("Package install: %1", p);
+		    ok = false;
+		}
 	});
+	if(ok != true) return false;
+
 	foreach (string p, toremove, ``{
-	    ok = ok && Pkg::PkgDelete (p);
+	    if(ok == true)
+		if(Pkg::PkgDelete(p) != true) {
+		    y2error("Package delete: %1", p);
+		    ok = false;
+		}
 	});
-	ok = ok && Pkg::PkgSolve ();
-	if (ok)
-	{
-	    //[int successful, list failed, list remaining, list srcremaining]
-	    list result = Pkg::PkgCommit (0);
-	    y2debug ("PkgCommit: %1", result);
-	    ok = result[1]:[] == [];
-	    foreach (string remaining, result[2]:[], ``{
-		ok = ok && !contains (toinstall, remaining);
-	    });
+	if(ok != true) return false;
 
-	    // Only run SuSEconfig if any packages were installed?
-	    // No, deleted packages are not covered by this.
-	    // if (true || result[0]:-1 > 0)
-
-	    // But omit it during installation, one is run at its end.
-	    // #25071
-	    import "Mode";
-	    if (!Mode::initial && !Mode::cont)
-	    {
-		Wizard::CreateDialog ();
-		// inst_suseconfig returns `auto or `next
-		// (update mode or Args(2) is true) => no error checking
-		WFM::CallModule ("inst_suseconfig", [false, false]);
-		Wizard::CloseDialog ();
-	    }
+	if(Pkg::PkgSolve () != true) {
+	    y2error("Package solve failed");
+	    return false;
 	}
-	return ok;
+
+	//[int successful, list failed, list remaining, list srcremaining]
+	list result = Pkg::PkgCommit (0);
+	y2debug ("PkgCommit: %1", result);
+	if(result[1]:[] != []) {
+	    y2error("Package commit: %1", result[1]:[]);
+	    return false;
+	}
+
+	foreach (string remaining, result[2]:[], ``{
+	    if(ok == true)
+		if(contains(toinstall, remaining)) {
+		    y2error("Package remain: %1", remaining);
+		    ok = false;
+		}
+	});
+	if(ok != true) return false;
+
+	// Only run SuSEconfig if any packages were installed?
+	// No, deleted packages are not covered by this.
+	// if (true || result[0]:-1 > 0)
+
+	// But omit it during installation, one is run at its end.
+	// #25071
+	import "Mode";
+	if (!Mode::initial && !Mode::cont)
+	{
+	    Wizard::CreateDialog ();
+	    // inst_suseconfig returns `auto or `next
+	    // (update mode or Args(2) is true) => no error checking
+	    WFM::CallModule ("inst_suseconfig", [false, false]);
+	    Wizard::CloseDialog ();
+	}
+
+	return true;
     }
 
     /**

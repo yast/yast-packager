@@ -8,17 +8,18 @@
  * $Id$
  */
 {
+
     module "SlideShow";
 
-    import "Installation";
-    import "Language";
-    import "Packages";			// for slidedir
-    import "SlideShowCallbacks";
-
-    import "Label";
-    import "String";
-
     textdomain "packager";
+
+    import "Installation";
+    import "Label";
+    import "Language";
+    import "Mode";
+    import "Packages";
+    import "SlideShowCallbacks";
+    import "String";
 
     global string	media_type		= "CD";
     global boolean 	showing_details		= false;
