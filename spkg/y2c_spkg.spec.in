@@ -14,7 +14,7 @@ Name:         @RPMNAME@
 Release:      1
 Copyright:    (c) 2000 SuSE GmbH
 Group:        System Environment/YaST
-Requires:	y2t_spkg
+Requires:	y2t_spkg yast2
 BuildArchitectures: noarch
 
 Packager:     @MAINTAINER@
