@@ -134,6 +134,8 @@
 	    if (other_media_packages == nil)
 		other_media_packages = [];
 	    y2milestone ("%1 packages remaining", size (other_media_packages));
+	    if (size (other_media_packages) == 0)
+		return 0;
 	}
 
 	map product = Pkg::SourceProductData (Packages::theSource);
