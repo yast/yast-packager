@@ -6,12 +6,20 @@
             "tmpdir" : "/tmp",
         ],
         "etc" : $[
-            "install_inf": $[ "Instmode":"ftp" ]
+            "install_inf": $[ 
+                "InstMode":"ftp",
+                "Server":"192.168.1.1",
+                "Serverdir":"/pub",
+            ]
         ]
     ];
 
-    TESTSUITE_INIT([READ, $[], $[]], nil);
+    //TESTSUITE_INIT([READ, $[], $[]], nil);
     import "InstURL";
     
-    TEST (``(InstURL::installInf2Url("")), [], nil);
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
+    TEST (``(InstURL::installInf2Url("test")), [READ], nil);
+    TEST (``(InstURL::installInf2Url("/test")), [READ], nil);
+    READ["etc","install_inf","Serverdir"] = "pub";
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
 }
