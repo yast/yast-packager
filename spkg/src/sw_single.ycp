@@ -278,11 +278,12 @@ do this.</P>"));
   user_settings = add( user_settings, "continue_mode", false );
   user_settings = add( user_settings, "post_install", true );
 
-  // ONLY FOR TESTING
-  // map installMap = $[];
-  // installMap = add (installMap, "bootmode", "CD" );
-  // installMap = add (installMap, "cdrom", "cdrom" );
-  // user_settings = add( user_settings, "installMap", installMap );
+  // default is CD installation
+  map installMap = $[];
+  installMap = add (installMap, "bootmode", "CD" );
+  installMap = add (installMap, "cdrom", "cdrom" );
+  user_settings = add( user_settings, "installMap", installMap );
+
   // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
   // user_settings = add(user_settings, "test_mode", true );
   // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
@@ -341,7 +342,13 @@ do this.</P>"));
   any result = `next;
   boolean going_forward = true;
   
-  // TODO: anderes Popup bei Abort / PKGINFO nur in eine Richtung?????
+  // if CD 1 is already inserted, skip module inst_source
+  if ( lookup( ChangeCD( 1, architecture ), "success", false ) || size(Args() ) > 0 )
+  {
+      id = id + 1;
+  }
+
+  // TODO: evtl. anderes Popup bei Abort
   while ((id >= 0) && (id < size (dialog))) {
 
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
