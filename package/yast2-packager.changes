@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 23 18:02:41 CET 2004 - arvin@suse.de
+
+- disable reset of packagemanager again (bug #36788)
+
+-------------------------------------------------------------------
 Tue Mar 23 17:51:49 CET 2004 - kkaempf@suse.de
 
 - Fix "progress done" popup (#36783)
