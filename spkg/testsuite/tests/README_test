@@ -1,24 +1,35 @@
 Used test data:
----------------
-PKGINFO server is initialised with package information in
-.../y2m_inst/ycp/packages/testsuite/suse/setup/...
++++++++++++++++
+PKGINFO server in test_mode:
 
+setEnvironment: is called with with package information in
+.../y2m_inst/ycp/packages/testsuite/suse/setup/... (CVS data)
+-> constant test data
 Important files: common.pkd	(dependencies)
                  du.dir		(used disk space)
-                                               
+
+other calls of PKGINFO are "real"
+-> installed packages are checked on real system and dependencies
+   depend on actual installation
+-> TO DO: when PKGINFO agent is ready use the dummy agent to get
+   a constant e´set of installed packages                               
 
 Command line:
--------------
++++++++++++++
 > su
-> /sbin/yast2 sw_single '"./test_input2"'
--> 3d_chess wird installiert, xroach, tuxeyes werden gelöscht
+> rpm -e 3d_chess tuxeyes xroach jpilot
 
 > /sbin/yast2 sw_single '"./test_input1"'
--> xroach, tuxeyes werden installiert, 3d_chess gelöscht
+-> xroach, tuxeyes werden installiert
+
+> /sbin/yast2 sw_single '"./test_input2"'
+-> 3d_chess wird installiert, xroach, tuxeyes werden gelöscht
  
+> /sbin/yast2 sw_single \(\"jpilot\"\)
+
 
 make check test cases:
-
+++++++++++++++++++++++
 sw_popup:
 ---------
 1. Test 
@@ -31,7 +42,7 @@ sw_popup:
 * popup Error reading configuration file
 
 3. Test
-* popup Package not found
+* popup Package dummyfile.rpm not found
 
 4. Test
 * shows inst_source
@@ -40,8 +51,6 @@ sw_popup:
 - click "Skip" and "Abort"
 
 5. Test
-* shows inst_source
-- click "Install"
 * popup: No access to source media used on previous ...
 - click "Continue"
 * dialog inst_source
@@ -51,18 +60,30 @@ sw_input:
 ---------
 1. Test 
 * shows inst_sw_single (if there are unresolved dependencies)
-*  tuxeyes, xroach marked with "X"
 *  Required space: ! 0 KB
 
-- if there is an dependency popup -> click "Continue" on popup
+-  click "Continue" on popup
 * inst_rpmcopy starts immediateley ( xroach and tuxeyes will be installed )
  
 2. Test 	
-* shows inst_sw_single (if there are unresolved dependencies)
-- click on "Continue" in Dependency warning popup
+* shows inst_sw_single
+- click on "Continue" if Dependency warning popup is showed
 - click in "OK" 
 * inst_rpmcopy starts ( 3d_chess will be installed, tuxeyes, xroach removed)
 
+3. Test
+* shows inst_sw_single (if there are unresolved dependencies)
+-  click "Continue" on popup
+* inst_rpmcopy starts immediateley ( installing jpilot, pilot-link, perl.. )
+
+4. Test
+* gnuchess will be installed (inst_rpmcopy starts immediately)
+
+5. Test
+* inst_rpmcopy with popup "RPM returned error" (no testmode, no
+  root permissions and therefore no access to rpm database)
+
+ 
 sw_source:
 ----------
 1. Test (beginner)

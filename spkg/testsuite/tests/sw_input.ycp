@@ -9,7 +9,7 @@
   // delete packages, because PKGINFO server is not yet in testmode, i.e. already
   // installed packages would not installed again
   
-  string cmd = "sudo rpm -e 3d_chess tuxeyes xroach";
+  string cmd = "sudo rpm -e 3d_chess tuxeyes xroach jpilot";
   SCR(`Execute(.target.bash, cmd ));
   
   map user_settings = $[];
@@ -40,5 +40,14 @@
   DUMP( "TEST 2: argument test_input2 -> install 3d_chess, delete  tuxeyes/xroach, userInput false" );
   TEST( `sw_single(.test, "test_input2"), [read_map, $[], exec_map], $[] );
 
+  map exec_map = $["target": $["bash": 1 ]];
+  DUMP( "TEST 3: argument is package jpilot (depAND: pilot-link)" );
+  TEST( `sw_single(.test, "jpilot"), [read_map, $[], exec_map], $[] );
 
+  map exec_map = $["target": $["bash": 0 ]];
+  DUMP( "TEST 4: argument path/package.rpm, which means install package without checking deps" );
+  TEST( `sw_single(.test, "./gnuchess.rpm"), [read_map, $[], exec_map], $[] );
+
+  DUMP( "TEST 5: without .test -> popup packager error because can't read rpm database (not root)" );
+  TEST( `sw_single("./gnuchess.rpm"), [read_map, $[], exec_map], $[] );
 }

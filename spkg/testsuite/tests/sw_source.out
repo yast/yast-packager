@@ -1,7 +1,6 @@
 Dump	TEST 1: argument beginner -> skip inst_source
 Read	.probe.architecture "i386"
 Read	.target.root "/"
-SW_SINGLE: Testmode true
 Read	.run.df [$["dummy":"on", "free":"Available", "name":"Mounted", "prz":"Capacity", "spec":"Filesystem", "used":"Used", "whole":"1024-blocks"], $["free":"144988", "name":"/", "prz":"93%", "spec":"/dev/sda1", "used":"1733600", "whole":"1981000"], $["free":"2124147", "name":"/usr", "prz":"66%", "spec":"/dev/sda3", "used":"4080331", "whole":"6543449"]]
 SW_SINGLE: partition input: [$["free":144988, "name":"/", "used":1733600], $["free":2124147, "name":"usr", "used":4080331]]
 SW_SINGLE: POSTFIX: nner
@@ -23,7 +22,6 @@ Return	`next
 Dump	TEST 2: argument only .test -> inst_source is first module
 Read	.probe.architecture "i386"
 Read	.target.root "/"
-SW_SINGLE: Testmode true
 Read	.run.df [$["dummy":"on", "free":"Available", "name":"Mounted", "prz":"Capacity", "spec":"Filesystem", "used":"Used", "whole":"1024-blocks"], $["free":"144988", "name":"/", "prz":"93%", "spec":"/dev/sda1", "used":"1733600", "whole":"1981000"], $["free":"2124147", "name":"/usr", "prz":"66%", "spec":"/dev/sda3", "used":"4080331", "whole":"6543449"]]
 SW_SINGLE: partition input: [$["free":144988, "name":"/", "used":1733600], $["free":2124147, "name":"usr", "used":4080331]]
 Default value: no key 'ycp' in $["root":"/"]
