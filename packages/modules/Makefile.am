@@ -11,6 +11,7 @@ module_HEADERS = 			\
 		MediaUI.ycp		\
 		Packages.ycp		\
 		SlideShow.ycp		\
+		SlideShowCallbacks.ycp	\
 		SpaceCalculation.ycp	\
 		PackageInstallation.ycp \
 		PackageCallbacks.ycp    \

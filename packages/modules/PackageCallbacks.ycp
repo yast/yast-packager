@@ -4,7 +4,7 @@
  * Authors:		Gabriele Strattner <gs@suse.de>
  *			Klaus Kaempf <kkaempf@suse.de>
  *
- * Purpose: 		provides the Callbacks for Pkg::
+ * Purpose: 		provides the default Callbacks for Pkg::
  *
  * $Id$
  */
@@ -14,14 +14,27 @@
 
     textdomain "packager";
 
+   global boolean _provide_popup = false;
+
    //--------------------------------------------------------------------------
    // defaults
 
    /** at start of file providal
     *
     */
-   global define void StartProvide (string name, integer archivesize)
+   global define void StartProvide (string name, integer archivesize, boolean remote)
    ``{
+	if (remote)
+	{
+	    term providebox = `HBox (`HStretch(),
+				     `VBox( `Label(`id(`package), name ),
+				     `VSpacing(),
+				     `HBox(`ProgressBar(`id(`progress), " ", 100, 0 )),
+				     `HStretch()
+				  ));
+	    UI::OpenDialog( `opt(`defaultsize), providebox );
+	    _provide_popup = true;
+	}
 	return;
    }
 
@@ -31,6 +44,19 @@
     */
    global define void ProgressProvide (integer percent)
    ``{
+	if (_provide_popup)
+	    UI::ChangeWidget(`id(`progress), `Value, percent);
+	return;
+   }
+
+
+   /** during file providal
+    *
+    */
+   global define void DoneProvide (integer error, string reason)
+   ``{
+	if (_provide_popup)
+	    UI::CloseDialog();
 	return;
    }
 
@@ -40,7 +66,14 @@
     */
    global define void StartInstall (string name, string summary, integer installsize, boolean is_delete)
    ``{
-	DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
+	term packagebox = `HBox (`HStretch(),
+				     `VBox( `Label(`id(`package), name ),
+				     `VSpacing(),
+				     `HBox(`ProgressBar(`id(`progress), " ", 100, 0 )),
+				     `HStretch()
+				  ));
+	    UI::OpenDialog( `opt(`decorated), packagebox );
+
 	return;
    }
 
@@ -50,6 +83,7 @@
     */
    global define void ProgressInstall (integer percent)
    ``{
+	UI::ChangeWidget(`id(`progress), `Value, percent);
 	return;
    }
 
@@ -59,6 +93,7 @@
     */
    global define void DoneInstall (string name)
    ``{
+	UI::CloseDialog();
 	return;
    }
 
@@ -91,188 +126,25 @@
     }
 
 
-   //--------------------------------------------------------------------------
-   // slide show
-
-   /**
-     * Callback that will be called by the packager for each RPM as it is being installed or deleted.
-     * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
-     * and pass the "deleting" flag as appropriate.
-     **/
-    global define symbol DisplayStartInstall ( string  pkg_name,
-					    string  pkg_description,
-					    integer pkg_size,
-					    integer disk_usage,
-					    integer disk_capacity,
-					    boolean deleting )
-    ``{
-
-	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
-
-	SlideShow::SlideDisplayStart ( pkg_name, pkg_description, pkg_size, deleting );
-
-	integer how_much = (disk_usage * 100) / disk_capacity;
-
-	// warn user about exhausted diskspace during installation (not if deleting packages)
-	if (!deleting)
-	{
-	    if (how_much > 95 && !shutup)
-	    {
-		boolean cont = UI::AnyQuestionPopup( WarningMsg(),
-						     _("The disk space is nearly exhausted.
-Do you want to go on with the installation?\n"),
-						     YesButtonLabel(),
-						     NoButtonLabel(),
-						     `focus_no );
-
-		if (!cont)
-		    return `cancel;
-		else
-		    shutup = true;
-	    }
-	}
-
-	any button = UI::PollInput();
-
-	// in case of cancel ask user if he really wants to quit installation
-	if ( button == `abort )
-	{
-	    boolean ret = false;
-
-	    if ( Mode::normal )
-	    {
-		ret = UI::AnyQuestionPopup( NoHeadline(),
-					    _("Do you really want\nto quit the installation?"),
-					    YesButtonLabel(),
-					    NoButtonLabel(),
-					    `focus_no );
-	    }
-	    else if ( Mode::initial )
-	    {
-		ret = UI::ConfirmAbortPopup( `unusable );
-	    }
-	    else	// Mode::update, Mode::cont
-	    {
-		ret = UI::ConfirmAbortPopup( `incomplete );
-	    }
-
-	    if ( ret )
-		return `cancel;
-
-	}
-	else
-	{
-	    SlideShow::ProcessButtonPress( button );
-	}
-
-	return nil;
-    };
-
-
-   /**
-     * CallbackDisplayProgress percent
-     **/
-
-    global define symbol CallbackDisplayProgress(integer pkg_percent)
-    ``{
-
-	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
-
-	SlideShow::SlideDisplayProgress ( pkg_percent );
-
-	return nil;
-    };
-
-
-
-   /**
-     * CallbackDisplayError
-     **/
-
-    global define symbol CallbackDisplayError (string pkg_name)
-    ``{
-	y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
-
-	// add package to list error_packages (module "PackageInstallation")
-	error_packages = add( error_packages, pkg_name );
-
-	if ( !deleting )
-	{
-	    any answer = `no_log;
-	    string message = sformat( _("Package %1 returned an error.\nDo you want to see the log file?"),
-					  pkg_name );
-	    if ( UI::AnyQuestionPopup( NoHeadline(),
-					   message,
-					   YesButtonLabel(),
-					   NoButtonLabel(),
-					   `focus_no) )
-	    {
-		answer = `yes_short;
-	    }
-
-	    textdomain "general";	// what's that good for?
-
-	    while ( answer != `no_log )
-	    {
-		string text = "";
-
-		if ( answer == `yes_short )
-		{
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPMShort");
-		}
-		if ( answer == `yes_long )
-		{
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
-		}
-
-		answer = UI::DisplayLogFile( text, answer );
-	    }
-
-	    textdomain "packager";
-	}
-    };
-
-
-
     /**
-     * Wrapper function for ChangeMedium: Update statistics along with the
-     * (optional) real Medium change popup.
-     * @param cd_no Number of the Medium to request (from 1 on)
-     * @param show_popup false: no popup, only check for presence of this Medium
-     * @return boolean - passed trough from ChangeMedium (true: OK, false: abort)
-     **/
-    global define boolean ChangeMediumWrapper( integer cd_no, boolean show_popup )
+     * constructor
+     *
+     */
+
+    define void PackageCallbacks()
     ``{
-	// y2debug( "Requesting Medium #%1", cd_no );
+	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
+	Pkg::CallbackProgressProvide ("PackageCallbacks::ProgressProvide");
+	Pkg::CallbackDoneProvide ("PackageCallbacks::DoneProvide");
+	Pkg::CallbackStartPackage ("PackageCallbacks::StartPackage");
+	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
+	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
 
-	boolean ret = true;
+	foreach (`src, Pkg::SourceGetCurrent(),
+	``{
+	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
+	    Pkg::CallbackMediaError (src, "PackageCallbacks::MediaError");
+	});
 
-	if ( ! Mode::test )
-	{
-	    ret = MediaUI::ChangeMedium( cd_no, show_popup );
-	}
-	else // Mode::test - do some fake
-	{
-	    ret = true;
-
-	    if ( show_popup )
-	    {
-		// No translation, this is for testing only
-		ret = UI::ContinueCancelPopup( sformat( "%1 #%2 requested (test mode).\n\n"			+
-							"You don't really need a %1 - this is just a fake.\n"	+
-							"You can safely just hit 'Continue'.\n"
-							, InstMedia::medianame, cd_no ) );
-	    }
-	}
-
-	if ( ret )
-	{
-	    SlideShow::SetCurrentCdNo( cd_no );
-	}
-	SlideShow::UpdateAllCdProgress( false );
-	// y2debug( "ChangeMediumWrapper returning with %1", ret );
-
-	return ret;
-    };
-
+    }
 }
