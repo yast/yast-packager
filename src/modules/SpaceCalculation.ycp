@@ -25,6 +25,7 @@
     import "Report";
     import "Storage";
     import "String";
+    import "DirInstall";
 
     boolean info_called = false;	// list partition_info already initialized?
     list    partition_info = [];	// information about available partitions
@@ -38,6 +39,37 @@
 	return partition_info;
     }
 
+    /**
+     * Get mountpoint for a directory
+     * @param dirinstall directory
+     * @return mountpoint
+     */
+    string GetDirMountPoint(string dirinstall) {
+ 
+	list<string> d = splitstring(dirinstall, "/");
+	d=filter(string fd, d, ``(fd!=""));
+	string mountpoint = "";
+
+	map<string, list> TargetGetDU = Pkg::TargetGetDU();
+	foreach (string dir, list sizelist, TargetGetDU,
+		 ``{
+	    //  dirinstall: /test/xen dir: /test
+	    //  dirinstall:/var/tmp/xen dir: /
+
+	    string tmpdir = "";
+	    foreach(string dd ,d , ``{
+		tmpdir = sformat("%1/%2", tmpdir, dd );
+		y2debug("tmpdir: %1 dir: %2", tmpdir, dir );
+		if (dir == tmpdir )
+		   mountpoint = dir;
+	    });
+	});
+
+	if (mountpoint=="")
+		mountpoint = "/";
+
+	return mountpoint;
+    }
 
     /**
      * Evaluate the free space on the file system. Runs the command "df" and creates a map
@@ -58,7 +90,13 @@
 	integer min_spare = 1 * 1024* 1024;		// 1 MB
 	integer max_spare = 1024 * 1024 * 1024;		// 1 GB
 
-	string target = Installation::destdir;
+
+        string target = "";
+        if (DirInstall::installing_into_dir)
+            target = "/";
+        else
+            target = Installation::destdir;
+
 
 	// get information about diskspace ( used/free space on every partition )
 	partition = (list<map<string, string> >)SCR::Read(.run.df);
@@ -346,6 +384,12 @@
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
+
+	string dirinstall = "";
+	if (DirInstall::installing_into_dir) {
+		dirinstall = GetDirMountPoint(DirInstall::target);
+	}
+
 	integer used = 0;
 	list<string> message = [];
 
@@ -354,10 +398,10 @@
 	foreach( string dir, list sizelist, Pkg::TargetGetDU(), ``{
 	    y2milestone ("dir %1, sizelist (total, current, future) %2", dir, sizelist);
 	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// usedfuture - total
-	    if ( needed > 0 )
+	    if ( needed > 0 && ( dirinstall == "" || dirinstall == dir ))
 	    {
-		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
-		message = add (message, sformat ( _("Partition \"%1\" needs %2 more disk space."),
+	        // Warning message, e.g.: Partition /usr needs 35 MB more disk space
+		message = add (message, sformat (_("Partition \"%1\" needs %2 more disk space."),
 			      dir, String::FormatSize(needed)));
 	    }
 	    used = used + sizelist[2]:0;
@@ -425,17 +469,22 @@ _("Please deselect some packages."));
     };
 
 
+
     //
     // Check, if the current selection fits on the disk
     // return true or false
     //
     global define boolean CheckDiskSize () ``{
-
 	boolean fit = true;
 
 	if ( !info_called )
 	{
 	    SpaceCalculation::GetPartitionInfo();
+	}
+
+	string dirinstall = "";
+	if (DirInstall::installing_into_dir) {
+		dirinstall = GetDirMountPoint(DirInstall::target);
 	}
 
 	integer used = 0;
@@ -446,7 +495,7 @@ _("Please deselect some packages."));
 		 ``{
 	    y2milestone ("%1: %2", dir, sizelist);
 	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// usedfuture - total
-	    if ( needed > 0 )
+	    if ( needed > 0 && ( dirinstall == "" || dirinstall == dir ))
 	    {
 		y2warning("Partition \"%1\" needs %2 more disk space.",
 			  dir, String::FormatSize (needed) );

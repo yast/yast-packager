@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Sat Mar 12 04:42:59 CET 2005 - nashif@suse.de
+
+- Bug #67337: Create /var/lib/YaST2/runme_at_boot
+- Bug #71973: Check for required space when installing into
+  directory
+- Bug #72257: select Xen when installing into directory
+- 2.1.35
+
+
+-------------------------------------------------------------------
 Fri Mar 11 17:38:59 CET 2005 - lslezak@suse.cz
 
 - fixed name of the icon for checkmedia client (#72160)
