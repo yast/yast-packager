@@ -12,10 +12,8 @@
   include "package_utils.ycp";
 
   include "ui/wizard_dialog.ycp";
-  include "ui/wizard_error.ycp";
-  include "ui/wizard_flow.ycp";
-  include "ui/wizard_message.ycp";
-  include "ui/wizard_misc.ycp";
+  include "ui/common_popups.ycp";
+  include "ui/common_functions.ycp";
 
   UI(`CreateWizardDialog());
 
