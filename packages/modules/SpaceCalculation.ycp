@@ -196,16 +196,16 @@
 
 	} // !Mode::initial
 
-	map<string, map<string, any> > targets = Storage::GetTargetMap();
+	map<string, map> targets = Storage::GetTargetMap();
 	if ( Mode::test )
 	{
-	    targets = (map<string, map<string, any> >) SCR::Read(.target.yast2, "test_target_map.ycp");
+	    targets = (map<string, map>) SCR::Read(.target.yast2, "test_target_map.ycp");
 	}
 
 	list<map> target_partitions = [];
 	integer min_spare	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
 
-	foreach( string disk, map<string, any> diskinfo, targets,
+	foreach( string disk, map diskinfo, targets,
 		 ``{
 
 	    list<map> part_info = diskinfo["partitions"]:[];

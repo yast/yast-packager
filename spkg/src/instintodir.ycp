@@ -55,7 +55,7 @@
     if(Installation::destdir == "" || Installation::destdir == "/")
     {
 	    Popup::Message (_("Specify a root directory. This does not mean /"));
-	    return false;
+	    return 1;
     }
 
     if(Pkg::TargetInit (Installation::destdir,true) != true)
@@ -76,7 +76,7 @@
     if(WFM::CallFunction( "sw_single", [arg_list]) != `next)
     {
       Popup::Message(_("Software installation failed"));
-      return `failed;
+      return 1;
     }
 
     if(newsystem)
