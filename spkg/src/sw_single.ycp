@@ -297,7 +297,7 @@ must NOT be older than the installed one.\n"));
 	      else
 	      {
 		  y2milestone("Reading file %1", arg_name );
-		  inputMap = SCR(`Read( .target.string, arg_name ));
+		  inputMap = SCR(`Read( .target.ycp, arg_name ));
 	      }
 	      y2milestone("inputMap: %1", inputMap );
       
