@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 17 15:28:52 CET 2003 - kkaempf@suse.de
+
+- drop extra code for certify CD, it's not needed any more.
+- 2.7.33
+
+-------------------------------------------------------------------
 Sun Mar 16 13:38:28 CET 2003 - kkaempf@suse.de
 
 - call SlideShow::InitPkgData() after package status is
