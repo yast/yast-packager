@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May  8 15:56:57 MEST 2001 - gs@suse.de
+
+- initial create the Wizard dialog at begin of installation
+- if available, read locally saved package description  
+
+-------------------------------------------------------------------
 Fri May  4 16:09:16 MEST 2001 - gs@suse.de
 
 - Requires: yast2-db-groups (translations for groups tags)
