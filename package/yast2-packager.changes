@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  9 13:50:49 CET 2005 - kkaempf@suse.de
+
+- drop installation of fixed list of packages when PCMCIA is
+  detected. Theses packages are covered by the 'laptop' selections.
+
+-------------------------------------------------------------------
 Wed Feb  9 07:09:47 CET 2005 - nashif@suse.de
 
 - Added module SourceManager and client for 3rd party package
