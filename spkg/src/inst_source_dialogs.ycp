@@ -379,16 +379,24 @@
     global define string getUrl( string default ) ``{
         UI::OpenDialog(
             `VBox(
+		/* Label text */
                 `Label( _("Select Type of URL:") ),
                 `RadioButtonGroup( `id(`url_type),
                     `VBox(
-                        `Left( `RadioButton( `id( `dir ), "Directory", true ) ),
-                        `Left( `RadioButton( `id( `ftp ), "FTP" ) ),
-                        `Left( `RadioButton( `id( `http ), "HTTP" ) ),
-                        `Left( `RadioButton( `id( `samba ), "Samba" ) ),
-                        `Left( `RadioButton( `id( `nfs ), "NFS" ) ),
-                        `Left( `RadioButton( `id( `cd ), "CD" ) ),
-                        `Left( `RadioButton( `id( `dvd ), "DVD" ) )
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `dir ), _("D&irectory"), true ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `ftp ), "&FTP" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `http ), "&HTTP" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `samba ), "&Samba" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `nfs ), "&NFS" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `cd ), "&CD" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `dvd ), "&DVD" ) )
                     )
                 ),
                 dialogButtons()
