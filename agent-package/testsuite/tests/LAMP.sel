@@ -1,0 +1,43 @@
+# SuSE-Linux Configuration YaST Version 1.03 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Aug 14 10:58:55 GMT 2001
+
+Version: 2.1
+
+Name: LAMP
+
+Label: Simple Webserver
+Label.cs: Simple Webserver
+Label.de: Simple Webserver
+Label.en: Simple Webserver
+Label.es: Simple Webserver
+Label.fr: Simple Webserver
+Label.gl: Simple Webserver
+Label.hu: Simple Webserver
+Label.it: Simple Webserver
+Label.ja: Simple Webserver
+Label.lt: Simple Webserver
+Label.nl: Simple Webserver
+Label.pt: Simple Webserver
+Label.tr: Simple Webserver
+
+Category: addon
+
+Visible: true
+
+Toinstall:
+apache
+comanche
+libgmp
+libjpeg
+libmcal
+libmcrypt
+mod_php4
+mod_php4-core
+mod_ssl
+mysql
+mysql-client
+mysql-shared
+openldap2-client
+phpdoc
+Llatsniot:
+

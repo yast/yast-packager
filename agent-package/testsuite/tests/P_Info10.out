@@ -1,0 +1,2 @@
+(true)
+($["k_deflt":"The standard SuSE kernel", "k_deflt_22":"The standard SuSE kernel", "k_i386":"Kernel compiled for i386", "k_i386_22":"Kernel compiled for i386", "k_orig":"Kernel from pristine Linux sources", "k_psmp":"Kernel 2.4 with SMP-support for older processors (Pentium classic)", "k_smp":"Kernel with multiprocessor support", "k_smp_22":"Kernel with multiprocessor support"])

@@ -1,0 +1,117 @@
+# SuSE-Linux Configuration YaST Version 1.03 -- (c) 1994-2001 SuSE GmbH
+# generated on Tue Aug 14 10:58:26 GMT 2001
+
+Version: 2.1
+
+Name: Kde-Desktop
+
+Label: KDE Desktop Environment
+Label.cs: KDE Desktop Environment
+Label.de: KDE Desktop Environment
+Label.en: KDE Desktop Environment
+Label.es: KDE Desktop Environment
+Label.fr: KDE Desktop Environment
+Label.gl: KDE Desktop Environment
+Label.hu: KDE Desktop Environment
+Label.it: KDE Desktop Environment
+Label.ja: KDE Desktop Environment
+Label.lt: KDE Desktop Environment
+Label.nl: KDE Desktop Environment
+Label.pt: KDE Desktop Environment
+Label.tr: KDE Desktop Environment
+
+Category: addon
+
+Visible: true
+
+Toinstall:
+alsa-devel
+audiofile
+cdparanoia
+fam
+heimdal-lib
+kde-i18n
+kdeadmin
+kdebase
+kdebase-ksysguardd
+kdebase-nsplugin
+kdebase-yast2
+kdegames
+kdegraphics
+kdelibs
+kdelibs-artsd
+kdelibs-devel
+kdemultimedia
+kdenetwork
+kdetoys
+kdeutils
+kdialog
+kfontinst
+kinternet
+libogg
+libvorbis
+openldap2-client
+openmotif
+pcre
+qt-devel
+smbclnt
+susehelpcenter
+xmms-kde
+Llatsniot:
+
+Toinstall.cs:
+kde-i18n-cs
+Llatsniot.cs:
+
+Toinstall.de:
+kde-i18n-de
+Llatsniot.de:
+
+Toinstall.el:
+kde-i18n-el
+Llatsniot.el:
+
+Toinstall.es:
+kde-i18n-es
+Llatsniot.es:
+
+Toinstall.fr:
+kde-i18n-fr
+Llatsniot.fr:
+
+Toinstall.hu:
+kde-i18n-hu
+Llatsniot.hu:
+
+Toinstall.it:
+kde-i18n-it
+Llatsniot.it:
+
+Toinstall.ja:
+kde-i18n-ja
+Llatsniot.ja:
+
+Toinstall.nl:
+kde-i18n-nl
+Llatsniot.nl:
+
+Toinstall.pl:
+kde-i18n-pl
+Llatsniot.pl:
+
+Toinstall.pt:
+kde-i18n-pt
+Llatsniot.pt:
+
+Toinstall.ru:
+kde-i18n-ru
+Llatsniot.ru:
+
+Toinstall.sv:
+kde-i18n-sv
+Llatsniot.sv:
+
+Toinstall.tr:
+kde-i18n-tr
+Llatsniot.tr:
+

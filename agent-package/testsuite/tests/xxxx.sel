@@ -1,0 +1,33 @@
+# SuSE-Linux Configuration YaST Version 1.03 -- (c) 1994-99 SuSE GmbH
+
+Version: 2.0.1
+
+Name: xxxx
+
+Label: xxxx
+Label.de:  german xxxx
+Label.en: english xxxx
+
+Category: baseconf
+Visible: true
+
+Toinstall:
+pkg
+Llatsniot:
+
+Toinstall.en:
+english
+aaa
+bbb
+ccc
+Llatsniot.en:
+
+Toinstall.default:
+zzzz
+Llatsniot.default:
+
+Toinstall.de:
+german
+aaa
+Llatsniot.de:
+

@@ -1,0 +1,3 @@
+(true)
+(false)
+($["ADD":["bzip", "db", "e2fsprogs", "glibc", "readline", "textutils", "ctags", "gfxboot", "gpm", "popt", "emacs-info", "emacs", "glib", "smbclnt", "cyrus-sasl", "openssl"], "CONFLICT":[], "OBSOLETE":[], "REQUIRE":[$["packages":["emacs-x11", "emacs-nox"], "tag":"emacs_program"], $["packages":["sendmail", "postfix", "smail", "sendmail-tls"], "tag":"smtp_daemon"], $["packages":["vim", "nvi", "elvis", "vim-alpha", "nvi-m17n"], "tag":"vi_clone"]]])

@@ -1,0 +1,15 @@
+{
+    return  Execute(.setEnvironment, $["packageinfopath":"tests","language":"german","common.pkd":"baum.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+    }
+{
+    return Read(.isInstallSelected);
+}
+{
+    return Execute(.setInstallSelection,["a"], false);
+}
+{
+    return Read(.isInstallSelected);
+}
+{
+    return Read(.dependencies);
+}

@@ -1,0 +1,11 @@
+# get all files matching tests/*.ycp
+
+set filenames ""
+catch { set filenames [glob $srcdir/tests/*.ycp] }
+if { $filenames == "" } {
+	warning "no testcases found in $srcdir/tests"
+}
+
+# foreach file, call ycp-run (from testsuite/lib)
+
+foreach file $filenames { ycp-run $file }

@@ -1,0 +1,26 @@
+/**
+ * File:
+ *   targetpkg.scr
+ * Summary:
+ *   SCR Agent for handling package informations about packages 
+ *   which are installed on the system ( target system ). 
+ * Access:
+ *   read/write/execute
+ * Authors:
+ *   Stefan Schubert <schubi@suse.de>
+ * See:
+ *   source/y2a_targetpkg/doc/targetpkg.html
+ **
+ *
+ * $Id$
+ *
+ * <p>Handles package informations about packages which are installed on the
+ * system ( target system ). </p>
+ * <p>Installation and deletion of packages should be available in a second step.</p>
+ * <p>If the path cannot be recognized, void is returned.</p>
+ *
+ * <p>For more information see the agent's own documentation.</p>
+ */
+.targetpkg
+
+`ag_targetpkg ()
