@@ -6,7 +6,7 @@ AC_ARG_PROGRAM
 VERSION=`cat ${srcdir}/VERSION`
 RPMNAME=`cat ${srcdir}/RPMNAME`
 MAINTAINER=`cat ${srcdir}/MAINTAINER`
-DOCDIR=/usr/share/doc/packages/yast2
+DOCDIR=/usr/share/doc/packages/$RPMNAME
 YAST2DIR=/usr/lib/YaST2
 
 prefix=$YAST2DIR

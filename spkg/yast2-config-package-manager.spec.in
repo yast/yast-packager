@@ -51,3 +51,4 @@ make install
 @YAST2DIR@/menuentries/menuentry_sw_source.ycp
 @YAST2DIR@/clients/sw_single.ycp
 @YAST2DIR@/include/require.ycp
+%doc @DOCDIR@
