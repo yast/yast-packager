@@ -15,7 +15,7 @@
 						       UI(_( "<P>Launch this module to install additional packages or
 remove installed ones.
 For installing commercial packages also launch this module and select
-serie <b>pay</b> from set selection.
+serie 'pay' from set selection.
 </P>
 Please insert <b>CD 1</b> before proceeding.
 <P>You need to be logged in as <i>root</i> in order to
@@ -30,6 +30,7 @@ do this.</P>"))),
 	
 	integer|void actcdnum = nil;
 	while (true) {
+	    // reading /cdrom/.S.u.S.E-disk-001.2000032902 file
 	    actcdnum = SCR(`Read(.yast2.instsource.cdnum));
 	    if (actcdnum == cdnum) return true;
 	    else {
@@ -65,6 +66,31 @@ do this.</P>"))),
 		     );
           UserInput();
           CloseDialog();
+      };
+  });
+
+  UI(``{
+      define YesOrNo(any message, string yes_button_message, string no_button_message) ``{
+          OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `HBox(
+				       `PushButton(`id(`yes), `opt(`default), yes_button_message),
+				       `HSpacing(2),
+				       `PushButton( no_button_message )
+				       ),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+          any ret = UserInput();
+          CloseDialog();
+          return (ret == `yes);
       };
   });
   
