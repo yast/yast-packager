@@ -186,7 +186,7 @@ in the packages selection, continue."),
 						// menunutton item
                                                   `item(`id(`http),      _("&HTTP...") ),
 						// menunutton item
-                                                  `item(`id(`samba),     _("&SMB / CIFS...") ),
+                                                  `item(`id(`samba),     _("&SMB/CIFS") ),
 						// menunutton item
                                                   `item(`id(`nfs),       _("&NFS...") ),
 						// menunutton item
@@ -247,7 +247,7 @@ into one directory.
 <b>Network</b> installation requires a working network connection.
 Configure YaST2's \"Network Devices\" module first,
 if required.  Specify the directory where the packages from
-the first CD are located, such as /data1/<b>CD1</b>.
+the first CD are located, such as /data1/CD1.
 Only the base path is
 required if packages are not divided, for example, /usr/full-i386.
 The directory must be listed in the file <i>/etc/exports</i>

@@ -33,7 +33,7 @@
      */
     map cmdline = $[
 	// module description
-	"help"      : _("Check CD/DVD media integrity"),
+	"help"      : _("Check CD or DVD media integrity"),
 	"id"        : "checkmedia",
 	"guihandler": MainSequence,
     ];

@@ -1054,7 +1054,7 @@ ask your system administrator.
 	y2milestone ("proposal %1", output);
 
 	// part of summary, %1 is size of packages (in MB or GB)
-	output = add (output, sformat (_("Size of packages to install: %1"),
+	output = add (output, sformat (_("Size of Packages to Install: %1"),
 	    CountSizeToBeInstalled ()));
 
 	// check only disk space, if the selected software selection
