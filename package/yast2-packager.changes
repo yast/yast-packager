@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  3 12:56:49 CET 2004 - msvec@suse.cz
+
+- fixed textdomain
+- fixed one message to use plural
+
+-------------------------------------------------------------------
 Tue Mar 02 10:55:19 CET 2004 - arvin@suse.de
 
 - make it build
