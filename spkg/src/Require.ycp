@@ -16,7 +16,7 @@
     module "Require";
     textdomain "packager";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     import "Wizard";	// some modules call us without any dialog open
     import "Mode";
 
@@ -63,10 +63,10 @@
 	    }
 	    else
 	    {
-		include "ui/common_popups.ycp";
+		import "Popup";
 		// error popup, no packages sources
 		// FIXME: translation
-		UI::ErrorPopup (_("No package source defined."));
+		Popup::Error (_("No package source defined."));
 	    }
 	}
     }
@@ -402,7 +402,7 @@
     global define boolean RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
 	return RequireAndConflictButtons (
 	    require, conflict, help,
-	    ContinueButtonLabel (), CancelButtonLabel ());
+	    Label::ContinueButton (), Label::CancelButton ());
     }
 
     /**
@@ -422,7 +422,7 @@
     global define boolean RequireAndConflictTarget (list(string) require, list(string) conflict, string help) ``{
 	return RequireAndConflictTargetButtons (
 	    require, conflict, help,
-	    ContinueButtonLabel (), CancelButtonLabel ());
+	    Label::ContinueButton (), Label::CancelButton ());
     }
 
     /**
