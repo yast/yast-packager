@@ -2,6 +2,7 @@
  * Module: 		inst_sw_select.ycp
  *
  * Authors:		Gabriele Strattner <gs@suse.de>
+ *			Klaus Kaempf <kkaempf@suse.de>
  *
  * Purpose:
  * Displays software selection screen. Show radiokboxes for software
@@ -261,6 +262,10 @@ You will lose that selection if you change the basic selection.");
 	    ret = Pkg::ActivateSelections();
 	    y2milestone ("Pkg::ActivateSelections() returns %1", ret);
 
+	    // add additional (internal) packages, like kernel etc.
+	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	    Pkg::PkgSolve();
+
 	    string msg = "";
 
 	    // FIXME: get notify decsription
@@ -287,6 +292,10 @@ You will lose that selection if you change the basic selection.");
 
 	    // activate current selection before entering package widget
 	    Pkg::ActivateSelections();
+
+	    // add additional (internal) packages, like kernel etc.
+	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	    Pkg::PkgSolve();
 
 	    while ( details_ret == `again )
 	    {
