@@ -1,53 +1,30 @@
-#
-# spec file for package @RPMNAME@
-# 
-# Copyright  (c)  2000  SuSE GmbH  Nuernberg, Germany.
-#
-# please send bugfixes or comments to @MAINTAINER@
-#
-
+@HEADER-COMMENT@
 # neededforbuild  autoconf automake ydoc ycpdoc yast2-testsuite yast2-devtools
 
-Vendor:       SuSE GmbH, Nuernberg, Germany
-Distribution: SuSE Linux 6.4 (i386)
-Name:         @RPMNAME@
-Release:      1
-Copyright:    (c) 2000 SuSE GmbH
-Group:        System Environment/YaST
+@HEADER@
 Requires:	yast2-trans-package-manager yast2-db-groups yast2
 Requires:	yast2-agent-targetpkg
-BuildArchitectures: noarch
 
-Packager:     @MAINTAINER@
-
-Summary:      YaST2 Modules for installation
-Version:      @VERSION@
-Source0:      @RPMNAME@-@VERSION@.tar.bz2
 Provides:       y2c_spkg	y2base:/lib/YaST2/clients/inst_sw_single.ycp
 Obsoletes:      y2c_spkg
+
+BuildArchitectures: noarch
+
+Summary:      YaST2 Modules for installation
 
 %description
 -
 
-%prep
+@PREP@
 
-%setup -n @RPMNAME@-@VERSION@
+@BUILD-YCP@
 
-%build
+@INSTALL-YCP@
 
-./configure
-make
-
-%install
-
-make install
-
-%{?suse_check}
+@CLEAN@
 
 %files
 %defattr(-,root,root)
-%dir @YAST2DIR@/clients
-%dir @YAST2DIR@/menuentries
 @YAST2DIR@/menuentries/menuentry_sw_single.y2cc
 @YAST2DIR@/menuentries/menuentry_sw_source.y2cc
 @YAST2DIR@/clients/sw_single.ycp
