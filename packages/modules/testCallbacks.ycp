@@ -9,5 +9,5 @@
 	PackageCallbacks::ProgressProvide (i);
 	i = i + 1;
     }
-    PackageCallbacks::DoneProvide (0, "");
+    PackageCallbacks::DoneProvide (0, "", "");
 }

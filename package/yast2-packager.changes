@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 15 16:35:58 CET 2004 - jsrain@suse.de
+
+- Require.ycp and package callbacks initialization moved to
+  yast2.ycp
+
+-------------------------------------------------------------------
 Thu Nov 20 15:59:07 CET 2003 - sh@suse.de
 
 - Break circular dependencies: Moved "import SlideShowCallbacks" 

@@ -14,7 +14,7 @@ desktop_DATA =			\
 
 ynclude_DATA = inst_source_dialogs.ycp
 
-module_DATA = Require.ycp
+module_DATA =
 
 EXTRA_DIST = $(client_DATA) $(config_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA)
 

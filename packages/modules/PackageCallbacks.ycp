@@ -19,6 +19,7 @@
     import "Label";
     import "Mode";
     import "Popup";
+    import "PackageCallbacksInit";
 
     global boolean _provide_popup = false;
     global boolean _package_popup = false;
@@ -455,11 +456,6 @@
 
 
 
-    global define void SetMediaCallbacks () ``{
-	Pkg::CallbackMediaChange ("PackageCallbacks::MediaChange");
-	Pkg::CallbackSourceChange ("PackageCallbacks::SourceChange");
-    }
-
     /**
      * constructor
      *
@@ -467,16 +463,7 @@
 
     global define void PackageCallbacks() ``{
 	y2milestone ( "PackageCallbacks constructor" );
-
-	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
-	Pkg::CallbackProgressProvide ("PackageCallbacks::ProgressProvide");
-	Pkg::CallbackDoneProvide ("PackageCallbacks::DoneProvide");
-	Pkg::CallbackStartPackage ("PackageCallbacks::StartPackage");
-	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
-	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
-
-	SetMediaCallbacks ();
-
+	PackageCallbacksInit::InitPackageCallbacks ();
     }
 
 
@@ -523,6 +510,7 @@
 	Pkg::CallbackStartRebuildDb ("PackageCallbacks::StartRebuildDB");
 	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
 	Pkg::CallbackStopRebuildDb ("PackageCallbacks::StopRebuildDB");
+	return;
     }
 
 
