@@ -114,8 +114,7 @@
 	    else
 	    {
 		SCR::Execute (.target.bash, "/bin/rm -rf " + Installation::destdir +
-			      "var/log/YaST2");
-		SCR::Execute (.target.mkdir, Installation::destdir + "/var/log/YaST2");
+			      "var/log/YaST2/*");
 	    }
 	}
 
