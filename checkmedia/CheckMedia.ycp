@@ -1,0 +1,93 @@
+/**
+ * File:
+ *   modules/CheckMedia.ycp
+ *
+ * Summary:
+ *   Module for checking media intergrity
+ *
+ * Authors:
+ *   Ladislav Slezak <lslezak@suse.cz>
+ *
+ * $Id:$
+ *
+ * Input and output routines.
+ *
+ */
+
+{
+    // Set the name of the module
+    module "CheckMedia";
+    import "Report";
+
+    textdomain "packager";
+
+    string checkmedia = "/usr/bin/checkmedia";
+
+    list<string> output = [];
+    integer progress = 0;
+    boolean inprogress = false;
+
+    global string preferred_drive = "";
+
+    global define boolean Start(string device) {
+	// reset values
+	output = [];
+	progress = 0;
+	inprogress = false;
+
+	boolean ret = (boolean)SCR::Execute(.background.run_output, checkmedia + " " + device);
+	return ret;
+    }
+
+    global define boolean Stop() {
+	boolean ret = (boolean)SCR::Execute(.background.kill);
+
+	return ret;
+    }
+
+    global define void Process() {
+	if (inprogress)
+	{
+	    // read progress status
+	    // TODO read progress
+	    // switch back to normal mode
+	}
+	else
+	{
+	    list<string> out = (list<string>)SCR::Read(.background.newout);
+
+	    if (out != nil && size(out) > 0)
+	    {
+		// TODO check whether we need to switch to progress mode
+		if (false)
+		{
+		    inprogress = true;
+		}
+
+		output = (list<string>)merge(output, out);
+	    }
+	}
+
+	return;
+    }
+
+    global define boolean Running() {
+	boolean ret = (boolean)SCR::Read(.background.output_open);
+	return ret;
+    }
+
+    /**
+     * Return information printed by checkmedia utility
+     * @ret list<string> checkmedia output
+     */
+    global define list<string> Info() {
+	list<string> ret = output;
+	output = [];
+	return ret;
+    }
+
+    global define integer Progress() {
+	return progress;
+    }
+
+}

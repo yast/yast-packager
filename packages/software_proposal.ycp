@@ -70,16 +70,25 @@
 	//
 	// sequence = DummyMod::AskUser( has_next );
 
-	symbol result = `again;
-
-	while ( result == `again )
+	any chosen_id = param["chosen_id"]:nil;
+	if (chosen_id == "mediacheck")
 	{
-	    result = (symbol) WFM::CallFunction ("inst_sw_select", [true, true]);
+	    symbol result = (symbol)WFM::CallFunction("checkmedia", WFM::Args());
+	    ret = $[ "workflow_sequence" : result ];
 	}
+	else
+	{
+	    symbol result = `again;
 
-	// Fill return map
+	    while ( result == `again )
+	    {
+		result = (symbol) WFM::CallFunction ("inst_sw_select", [true, true]);
+	    }
 
-	ret = $[ "workflow_sequence" : result ];
+	    // Fill return map
+
+	    ret = $[ "workflow_sequence" : result ];
+	}
     }
     else if ( func == "Description" )
     {

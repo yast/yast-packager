@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 28 16:03:26 CET 2005 - lslezak@suse.cz
+
+- Check media feature (#100172)
+- 2.11.10
+
+-------------------------------------------------------------------
 Mon Jan 24 17:17:33 CET 2005 - nashif@suse.de
 
 - Set arguments according to new installation workflow interface

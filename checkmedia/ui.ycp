@@ -1,0 +1,294 @@
+/**
+ * File:
+ *   include/checkmedia/ui.ycp
+ *
+ * Summary:
+ *   User interface functions for checking media integrity
+ *
+ * Authors:
+ *   Ladislav Slezak <lslezak@suse.cz>
+ *
+ * $Id:$
+ *
+ * All user interface functions.
+ *
+ */
+
+{
+
+textdomain "packager";
+
+import "Wizard";
+import "CheckMedia";
+
+import "Popup";
+import "Label";
+import "Sequencer";
+import "String";
+import "Stage";
+
+define list<term> CDdevices(string preferred) {
+    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
+    list<term> ret = [];
+
+    if (cds != nil)
+    {
+	foreach(map cd, cds, {
+		string dev = cd["dev_name"]:"";
+		string model = cd["model"]:"";
+		boolean deflt = (preferred == dev);
+
+		if (dev != nil && dev != "" && model != nil)
+		{
+		    ret = add(ret, `item(`id(dev), model + sformat(" (%1)", dev), deflt));
+		}
+	    }
+	);
+    }
+
+    return ret;
+}
+
+define void SetButtonState(boolean running) {
+    UI::ChangeWidget(`id(`stop), `Enabled, running);
+    UI::ChangeWidget(`id(`next), `Enabled, !running);
+    UI::ChangeWidget(`id(`start), `Enabled, !running);
+    UI::ChangeWidget(`id(`back), `Enabled, !running);
+}
+
+define list<string> TranslateInfo(list<string> info) {
+    list<string> ret = [];
+
+    if (info != nil)
+    {
+	foreach(string i, info, {
+		list<string> parts = splitstring(i, ":");
+
+		string key = String::CutBlanks(parts[0]:"");
+		string val = String::CutBlanks(parts[1]:"");
+
+		map<string,string> trasmap = $[
+		    "app" : _("Identification"),
+		    "media" : _("Medium"),
+		    "size" : _("Size"),
+		    "md5" : _("MD5"),
+		    "check" : _("Check")
+		];
+
+		string newstr = trasmap[key]:"";
+
+		if (newstr != nil && newstr != "")
+		{
+		    newstr = sformat("%1: %2", newstr, val);
+
+		    ret = add(ret, newstr);
+		}
+	    }
+	);
+    }
+
+    return ret;
+}
+
+/**
+ * Main dialog
+ * @return symbol Result from UserInput()
+ */
+define symbol MainDialog () {
+    // dialog header
+    string caption = _("Media Check");
+
+    // help text - media check (header) 1/5
+    string help = _("<P><B>Media Check</B></P>") +
+    // help text - media check 2/5
+_("<P>When you have a problem with
+installation and you are using CD/DVD installation media you should check
+whether the media are not broken at first.</P>") +
+
+    // help text - media check 3/5
+_("<P>Select a drive, insert a medium into the drive and press <B>Start</B>
+button to perform the check. The check can take several minutes depending on
+speed of the drive and size of the media. The check verifies MD5 checksum of
+the media.</P>") +
+
+    // help text - media check 4/5
+_("<P>If check of the medium fails you should not continue the installation -
+it may fail or you may loss your data. You should replace the broken
+medium.</P>") +
+
+    // help text - media check 5/5
+_("<P><B>Note:</B> You cannot change medium if it is used by the system. If
+it happens during installation than use <B>Verify Installation CD-ROM/DVD</B>
+in the main menu in linuxrc.</P>");
+
+    term contents = `VBox(
+	`Left(`ComboBox(`id(`cddevices), _("&CD/DVD drive"), CDdevices(CheckMedia::preferred_drive))),
+	`VSpacing(0.4),
+	`LogView(`id(`log), _("R&esult"), 12, 0),
+	`VSpacing(0.4),
+	`ProgressBar(`id(`progress), _("Progress")),
+	`VSpacing(1),
+	`HBox(
+	    `PushButton(`id(`start), _("&Start")),
+	    `HSpacing(2),
+	    `PushButton(`id(`stop), _("S&top"))
+	)//,
+//	`VSpacing(1)
+    );
+
+    Wizard::SetContents(caption,
+	contents,
+	help,
+	true, true
+    );
+
+    Wizard::SetNextButton(`next, Label::OKButton());
+
+    // set buttons according to mode
+    if (!Stage::initial())
+    {
+	// remove Back button - workflow has only one dialog
+	Wizard::HideBackButton();
+	// remove Abort button - it's useless
+	Wizard::HideAbortButton();
+    }
+
+
+    symbol ret = nil;
+    while (true)
+    {
+	// update state of the buttons (enabled/disabled)
+	SetButtonState(false);
+
+	ret = (symbol)UI::UserInput();
+
+	y2milestone("ui: %1", ret);
+
+	if (ret == `next || ret == `back)
+	{
+	    // always return `back in the initial mode
+	    // avoid reproposing of the installation
+	    if (Stage::initial())
+	    {
+		ret = `back;
+	    }
+	    break;
+	}
+	else if (ret == `cancel)
+	{
+	    ret = `abort;
+	    break;
+	}
+	else if (ret == `abort)
+	{
+	    if (Popup::ConfirmAbort(`painless))
+	    {
+		return `abort;
+	    }
+	}
+	else if (ret == `start)
+	{
+	    string selecteddrive = (string)UI::QueryWidget(`id(`cddevices), `Value);
+
+	    if (selecteddrive != nil && selecteddrive != "")
+	    {
+		SetButtonState(true);
+
+		y2milestone("starting media check at drive %1", selecteddrive);
+		UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
+		CheckMedia::Start(selecteddrive);
+
+		boolean loop = true;
+		boolean aborted = false;
+		while(loop)
+		{
+		    CheckMedia::Process();
+
+		    integer progress = CheckMedia::Progress();
+		    list<string> data = CheckMedia::Info();
+
+		    if (data != nil && size(data) > 0)
+		    {
+			data = TranslateInfo(data);
+
+			// add new output to the log view
+			string info = mergestring(data, "\n");
+			UI::ChangeWidget(`id(`log), `LastLine, info);
+		    }
+
+		    symbol ui = (symbol)UI::PollInput();
+
+		    loop = CheckMedia::Running();
+
+		    if (ui == `stop || ui == `cancel)
+		    {
+			CheckMedia::Stop();
+			loop = false;
+			aborted = true;
+
+		    }
+		    else if (ui == `abort)
+		    {
+			if (Popup::ConfirmAbort(`painless))
+			{
+			    CheckMedia::Stop();
+			    return `abort;
+			}
+		    }
+
+		    // sleep for a while
+		    sleep(200);
+		}
+
+		SetButtonState(false);
+
+		if (aborted)
+		{
+		    UI::ChangeWidget(`id(`log), `LastLine, _("Aborted"));
+		}
+
+		// add empty line between outputs
+		UI::ChangeWidget(`id(`log), `LastLine, "\n\n");
+		// set zero progress
+		UI::ChangeWidget(`id(`progress), `Value, 0);
+	    }
+	}
+	else
+	{
+	    y2warning("unknown UserInput: %1", ret);
+	}
+    };
+
+    return ret;
+}
+
+/**
+ * Main workflow of the idedma configuration
+ * @return any Result from WizardSequencer() function
+ */
+define any MainSequence () ``{
+    map aliases =
+	$[
+	    "checkmedia" : ``(MainDialog()),
+	];
+
+    map sequence = $[
+	"ws_start" : "checkmedia",
+	"checkmedia" :
+	$[
+	    `abort	: `abort,
+	    `next	: `next,
+	],
+    ];
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("checkmedia");
+
+    any ret = Sequencer::Run(aliases, sequence);
+
+    UI::CloseDialog();
+    return ret;
+}
+
+
+}
