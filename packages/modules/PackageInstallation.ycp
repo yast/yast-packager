@@ -215,6 +215,7 @@
 	    if (location != nil)
 	    {
 		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
+		CallbackDisplayProgress (0);
 
 		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
 		if (localpath != nil)
