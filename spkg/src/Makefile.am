@@ -1,8 +1,6 @@
-#
-# Makefile.am for y2c_spkg/src
-#
+# Makefile.am for packager/spkg/src
 
-client_DATA = \
+client_DATA = 			\
 	sw_single.ycp		\
 	inst_source.ycp
 
@@ -19,3 +17,5 @@ ynclude_DATA = inst_source_dialogs.ycp
 module_DATA = Require.ycp
 
 EXTRA_DIST = $(client_DATA) $(config_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA)
+
+include $(top_srcdir)/Makefile.am.common
