@@ -21,7 +21,7 @@
     import "Mode";
     import "Report";
     import "Label";
-    include "ui/common_functions.ycp";
+    import "String";
 
     textdomain "packager";
 
@@ -361,7 +361,7 @@
 	    {
 		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
 		message = message + sformat ( _("Partition \"%1\" needs %2 more disk space."),
-					      dir, size_text(needed) ) + "\n";
+					      dir, String::FormatSize(needed) ) + "\n";
 	    }
 	    used = used + sizelist[2]:0;
 	} );
@@ -407,7 +407,7 @@
 	    used = used + sizelist[2]:0;
 	} );
 	y2milestone ("GetReqSpace Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
-	return ( size_text (used) );
+	return ( String::FormatSize (used) );
     };
 
 
@@ -435,7 +435,7 @@
 	    if ( needed > 0 )
 	    {
 		y2warning("Partition \"%1\" needs %2 more disk space.",
-			  dir, size_text (needed) );
+			  dir, String::FormatSize (needed) );
 		fit = false;
 	    }
 
