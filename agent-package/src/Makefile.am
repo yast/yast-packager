@@ -2,11 +2,13 @@
 # Makefile.am for y2a_package/src
 #
 
+AM_CXXFLAGS = -DY2LOG=\"agent-package\"
+
 plugin_LTLIBRARIES = libpy2ag_package.la
 lib_LTLIBRARIES = liby2ag_package.la
 
 liby2ag_package_la_SOURCES = 			\
-	PackageCalls.cc PackageUpdateCalls.cc \
+	PackageCalls.cc PackageUpdateCalls.cc	\
 	PackageAgent.cc PackageAgent.h
 liby2ag_package_la_LDFLAGS = -version-info 2:0
 
@@ -21,4 +23,3 @@ libpy2ag_package_la_LIBADD =			\
 liby2ag_package_la_LIBADD = $(libpy2ag_package_la_LIBADD)
 
 INCLUDES = -I$(includedir)
-
