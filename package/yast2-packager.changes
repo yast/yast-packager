@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 24 16:22:39 CET 2003 - cschum@suse.de
+
+- Moved "Enable or Disable" button to own row (#20776).
+
+-------------------------------------------------------------------
 Fri Feb 21 16:08:17 CET 2003 - sh@suse.de
 
 - Fixed bug #23945: SpaceCalculation 14% off
