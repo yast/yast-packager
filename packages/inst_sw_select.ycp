@@ -45,6 +45,27 @@
 	y2error( "No base selections available" );
     }
 
+    // if there is only a single base selection, setting up a radio-button dialog
+    // box for a single base selection is useless. Go to the single package selection
+    // directly in this case.
+
+    if (size (available_base_selections) == 1)
+    {
+	y2milestone ( "Only one base selections available, going directly to single package selection" );
+
+	any ret = `again;
+	while ( ret == `again )
+	{
+	    ret = WFM::CallFunction( "inst_packages", [ true, true ] );
+
+	    if ( ret == `accept )
+		ret = `next;
+	}
+	return ret;
+    }
+
+    // we have multiple base selections, let the user choose
+
     Wizard::OpenAcceptDialog();
 
     // Dialog title for software selection
