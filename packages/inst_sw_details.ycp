@@ -36,7 +36,7 @@
     import "SpaceCalculation";
 
     import "Wizard";
-    import "X11";
+    import "X11Version";
 
     include "ui/common_popups.ycp";
     include "ui/common_messages.ycp";
@@ -254,9 +254,9 @@ Note: sources are not available for commercial software.
 	// .Minimal has no X11
 	if (contains(current_sel, "Minimal")
 	    && (!(contains(current_sel, "Kde") || contains (current_sel, "Gnome"))))
-	    X11::have_x11 = false;
+	    X11Version::have_x11 = false;
 	else
-	    X11::have_x11 = true;
+	    X11Version::have_x11 = true;
 
 	// installation of source packages ?
 	Packages::install_sources = UI::QueryWidget(`id(`sources), `Value);
