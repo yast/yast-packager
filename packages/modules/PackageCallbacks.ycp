@@ -481,6 +481,51 @@
 
 
 
+    global define void StartRebuildDB () ``{
+
+	// heading of popup
+	string heading = _("Checking Package Database");
+
+	// message in a progress popup
+	string message = _("Rebuilding package database. This process can take some time.");
+
+	UI::OpenDialog (`opt(`decorated),
+			`VBox (`Heading (heading) ,
+			       `VBox (
+				      `Label(message),
+				      `HSpacing(60),
+				      `HBox(
+					    `HSpacing(2),
+					    `ProgressBar (`id(`progress),
+							  _("Status"), 100),
+					    `HSpacing(2)
+					    ),
+				      `VSpacing(1)
+				      )
+			       )
+			);
+
+	UI::ChangeWidget (`id(`progress), `Value, 0);
+    }
+
+
+    global define void ProgressRebuildDB (integer percent) ``{
+	UI::ChangeWidget (`id(`progress), `Value, percent);
+    }
+
+
+    global define void StopRebuildDB () ``{
+	UI::CloseDialog ();
+    }
+
+
+    global define void SetRebuildDBCallbacks () ``{
+	Pkg::CallbackStartRebuildDb ("PackageCallbacks::StartRebuildDB");
+	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
+	Pkg::CallbackStopRebuildDb ("PackageCallbacks::StopRebuildDB");
+    }
+
+
 
     global define void StartConvertDB (string unused1) ``{
 
