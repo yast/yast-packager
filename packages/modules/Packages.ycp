@@ -337,6 +337,8 @@
 	    Pkg::ClearSelection (current_base_selection);
 	}
 	Pkg::SetSelection (basename);
+	Pkg::ActivateSelections ();
+	Pkg::PkgSolve();
     }
 
     /**
