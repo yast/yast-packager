@@ -1,7 +1,5 @@
-## configure.in.in for debugger.
-## Use y2tool y2autoconf to get configure.in
 
-## Initialize
+## initialize
 @YAST2-INIT-COMMON@
 @YAST2-INIT-PROGRAM@
 @YAST2-INIT-YCP@
@@ -10,6 +8,7 @@
 @YAST2-CHECKS-COMMON@
 @YAST2-CHECKS-PROGRAM@
 @YAST2-CHECKS-YCP@
+@YAST2-CHECKS-TESTSUITE@
 
-## and generate the output...
+## and generate the output
 @YAST2-OUTPUT@
