@@ -16,13 +16,6 @@
     import "Arch";
     import "Installation";
     import "Mode";
-
-    if (!Mode::initial
-	&& !Mode::cont)
-    {
-	Mode::normal = true;	// system is already installed
-    }
-
     import "Packages";
     import "PackageCallbacks";
     import "SlideShow";
@@ -41,8 +34,8 @@
     // check test_popup
     // test_mode is checked for in Installation constructor
 
-    define list<string> CheckArguments () ``{
-
+    define list<string> CheckArguments ()
+    {
 	integer arg_n = size (WFM::Args()) - 1;
 
 	list<string> arg_list = [];
@@ -51,11 +44,11 @@
 	{
 	    if (WFM::Args(arg_n) == .test)
 	    {
-		Mode::test = true;
+		Mode::SetTest ("test");
 	    }
 	    else if (WFM::Args(arg_n) == .testp)
 	    {
-		Mode::test = true;	// .testp implies .test
+		Mode::SetTest ("test");		// .testp implies .test
 		test_popup = true;
 	    }
 	    else if (is (WFM::Args(arg_n), string))
@@ -175,7 +168,7 @@
 
    Wizard::CreateDialog();
    Wizard::SetDesktopIcon("sw_single");
-   
+
    // check Args
    // set test_mode, test_popup
 
@@ -251,7 +244,7 @@
 
 	   SlideShow::CloseSlideShowDialog();
 
-	   if (Mode::normal				// run SuSEconfig only in normal system, not during installation
+	   if (Mode::normal ()				// run SuSEconfig only in normal system, not during installation
 	       && Installation::destdir == "/"
 	       && ((commit_result[0]:0 > 0)
 		   || anyToDelete))
@@ -262,11 +255,10 @@
 	       {
 		   import "Kernel";
 		   Kernel::switched = true;
-		   Mode::update = true;
 	       }
 	       else
 	       {
-		   Mode::update = false;
+		   Kernel::switched = false;
 	       }
 
 	       result = (symbol)WFM::CallFunction( "inst_suseconfig", [false, false]);

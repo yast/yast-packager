@@ -16,7 +16,7 @@
 
     import "Installation";
     import "Label";
-    import "Mode";
+    import "Stage";
     import "Popup";
     import "Report";
     import "StorageDevices";
@@ -97,7 +97,7 @@ If so, is the disk formatted and verified?
 	else if ( !floppySelected )
 	{
 	    // Harddisk
-	    if ( !Mode::initial ||
+	    if ( !Stage::initial () ||
 		 ( !saveLater
 		   && savedLaterSelected ))
 	    {

@@ -15,7 +15,7 @@
 
     string floppyDevice = StorageDevices::FloppyDevice;
 
-    if ( Mode::normal )
+    if ( Mode::normal () )
     {
 	UI::OpenDialog(`opt(`defaultsize),
 		       `PackageSelector( `id(`selector), `opt(`searchMode), floppyDevice ) );

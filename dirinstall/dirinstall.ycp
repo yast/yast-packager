@@ -10,9 +10,11 @@
     textdomain "packager";
 
     import "Mode";
-    Mode::config = true;
+
+    Mode::SetMode ("autoinst_config");	// FIXME, messy
     import "Product";
-    Mode::config = false;
+    Mode::SetMode ("normal");		// FIXME, messy
+
     import "DirInstall";
     import "Installation";
 

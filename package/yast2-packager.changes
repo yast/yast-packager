@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 27 12:27:01 CEST 2004 - arvin@suse.de
+
+- adapted to new Mode.ycp
+
+-------------------------------------------------------------------
 Mon Oct 11 16:06:33 CEST 2004 - jsrain@suse.cz
 
 - adapted to new Arch:: interface
@@ -8,7 +13,7 @@ Mon Oct 11 16:06:33 CEST 2004 - jsrain@suse.cz
 Fri Oct  1 17:13:53 CEST 2004 - sh@suse.de
 
 - Fixed bug #44853 (again): Bad "next CD" msg upon last CD
-- V 2.10.24 
+- V 2.10.24
 
 -------------------------------------------------------------------
 Thu Sep 30 12:33:34 CEST 2004 - arvin@suse.de

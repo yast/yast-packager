@@ -13,7 +13,7 @@
     import "Installation";
     import "Label";
     import "Language";
-    import "Mode";
+    import "Stage";
     import "String";
     import "Wizard";
 
@@ -481,7 +481,7 @@
 	}
 
 
-	if ( Mode::initial || Mode::cont )
+	if ( Stage::initial () || Stage::cont () )
 	{
 	    if ( HaveSlideSupport() )
 	    {
