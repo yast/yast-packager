@@ -111,98 +111,94 @@
     }
 
     /**
-        Open a dialog for editing a NFS source. The data put in by the user is
-        written to the InstSrcManager agent.
-        @param srcid Id of InstSrc. 0 for a new source.
+        Get a nfs url.
     */    
-    global define void editNfs( integer srcid ) ``{
+    global define void getNfsUrl() ``{
         UI::OpenDialog(
             `VBox(
                 `Label( _("NFS Server and Directory") ),
                 `TextEntry( `id( `server ), _("&Server Name") ),
                 `TextEntry( `id( `dir ), _("&Directory on Server") ),
-                `TextEntry( `id( `mount ), _("&Mount options") ),
+//                `TextEntry( `id( `mount ), _("&Mount options") ),
                 dialogButtons()
             )
         );
 
-        if ( srcid != 0 ) {
-            map src = SCR::Read( .instsrcmgr.source, srcid );
-            string dir = lookup( src, "url", "" );
-            string options = lookup( src, "options", "" );
-
-            UI::ChangeWidget( `id( `server ), `Value, dir );
-            UI::ChangeWidget( `id( `mount ), `Value, options );
-        }
+        string url = "";
 
         repeat
         {
             symbol input = UI::UserInput();
             y2debug( "Input: %1", input );
 
-            if ( input == `auth_button )
-            {
-                editAuthentification();
-            }
-            else if ( input == `ok )
+            if ( input == `ok )
             {
                 string server = UI::QueryWidget( `id( `server ), `Value );
                 string dir = UI::QueryWidget( `id( `dir ), `Value );
                 string options = UI::QueryWidget( `id( `mount ), `Value );
                 
-                string url = "nfs://" + server + "/" + dir;
-                
-                map srcmap = $[ "id": srcid, "cost":4711, "type": "nfs",
-                                "url": url, "options": options, "state": true ];
-                SCR::Execute( .instsrcmgr.source.insert, srcmap );
+                url = "nfs://" + server + "/" + dir;
             }
     
         } until ( input == `cancel || input == `ok );
       
         UI::CloseDialog();
+    
+        return url;
     }
 
     /**
-        Open a dialog for editing a CD/DVD source. The data put in by the user
-        is written to the InstSrcManager agent.
-    */    
-    global define void editCd() ``{
+        Get url for a cd or dvd.
+    */
+    global define void getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
-                `Label( _("&CD installation") ),
-                `Left( `CheckBox( `id( 0 ), "/dev/cdrom", true ) ),
-                `Left( `CheckBox( `id( 1 ), "/dev/cdrom1" ) ),
-                `Left( `CheckBox( `id( 2 ), "/dev/dvd" ) ),
+                `Label( _("CD installation") ),
+                `RadioButtonGroup( `id( `device ),
+                    `VBox(
+                        `Left( `RadioButton( `id( `cd0 ), "/dev/cdrom", true ) ),
+//                        `Left( `RadioButton( `id( `cd1 ), "/dev/cdrom1" ) ),
+                        `Left( `RadioButton( `id( `dvd ), "/dev/dvd" ) )
+                    )
+                ),
                 dialogButtons()
             )
         );
+
+        string url = "";
 
         repeat
         {
             symbol input = UI::UserInput();
             y2debug( "Input: %1", input );
 
-            if ( input == `auth_button )
+            if ( input == `ok )
             {
-                editAuthentification();
-            }
-            else if ( input == `ok )
-            {
-                y2debug( "ok clicked" );
+                symbol device = UI::QueryWidget( `id( `device ), `CurrentButton );
+                if ( device == `cd0 )
+                {
+                    url = "cd:///";
+                }
+                else if ( device == `dvd )
+                {
+                    url = "dvd:///";
+                }
             }
     
         } until ( input == `cancel || input == `ok );
       
         UI::CloseDialog();
+        
+        return url;
     }
 
     /**
-        Open a dialog for editing a server source. The data put in by the user
-        is written to the InstSrcManager agent.
+        Get a URL for a ftp, http or samba server, optionally inclduing
+        user/password information.
+
         @param protocol type of server, can be `ftp, `http or `samba.
-        @param srcid Id of InstSrc. 0 for a new source.
-    */    
-    global define void editServer( symbol protocol, integer srcid ) ``{
+    */
+    global define void getServerUrl( symbol protocol ) ``{
         UI::OpenDialog( `opt( `decorated ),
             `VBox(
                 `Label( _("Server and Directory") ),
@@ -246,10 +242,7 @@
 
         UI::ChangeWidget( `id( `rb_type ), `CurrentButton, protocol );
 
-        if ( srcid != 0 ) {
-            map source = SCR::Read( .instsrcmgr.source, srcid );
-            UI::ChangeWidget( `id( `server ), `Value, lookup( source, "url", "" ) );
-        }
+        string url = "";
 
         repeat
         {
@@ -262,8 +255,7 @@
 
             if ( input == `ok )
             {
-                string url = "";
-                string typestr = "";
+                url = "";
                 symbol type = UI::QueryWidget( `id( `rb_type), `CurrentButton );
                 if ( type == `ftp ) {
                     typestr = "ftp";
@@ -276,19 +268,32 @@
                     url = "smb://";
                 }
 
+                if ( !anonymous )
+                {
+                    string user = UI::QueryWidget( `id( `username ), `Value );
+                    string password = UI::QueryWidget( `id( `password ), `Value );
+    
+                    if ( size( user ) != 0 ) {
+                        url = url + user;
+                        if ( size( password ) != 0 ) {
+                            url = url + ":" + password;
+                        }
+                        url = url + "@";
+                    }
+                }
+                    
                 string server = UI::QueryWidget( `id( `server ), `Value );
                 string directory = UI::QueryWidget( `id( `dir ), `Value );
 
                 url = url + server + "/" + directory;
 
-                map srcmap = $[ "id": srcid, "cost":4711, "type": typestr,
-                                "url": url, "options": "", "state": true ];
-
-                SCR::Execute( .instsrcmgr.source.insert, srcmap );
+                    
             }
         } until ( input == `cancel || input == `ok );
       
         UI::CloseDialog();
+
+        return url;
     }
 
     /**
@@ -297,7 +302,7 @@
         @param default  initial default
         @return directory url on success, empty string when the user canceled the dialog.
     */
-    global define string getDirectory( string default ) ``{
+    global define string getDirectoryUrl( string default ) ``{
         UI::OpenDialog(
             `VBox(
                 `Label( _("Local directory") ),

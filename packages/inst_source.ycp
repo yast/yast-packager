@@ -30,32 +30,6 @@
 
     any 	ret = nil;
 
-/*
-    boolean use_you = false;		// used for online update
-    string you_server = "";
-    string you_serverkind = "";
-
-    if ( Mode::youInstallMap != $[] )
-    {
-	use_you = true;
-	you_server 	= Mode::youInstallMap["you_server"]:"";
-	you_serverkind 	= Mode::youInstallMap["you_serverkind"]:"";
-    }
-
-    // special behaviour, if it is called from you-update
-    if ( use_you )
-    {
-	InstMedia::initializeInstMedia($[
-	    "instmode" : you_serverkind,
-	    "server"   : you_server,
-	    "serverdir": Mode::youInstallMap ["you_dir"]:""
-	]);
-    }
-    else
-    {	// initialize with current settings
-	InstMedia::initializeInstMedia($[]);
-    }
-*/
     //
     //  Settings for Online Update
     //
@@ -377,6 +351,17 @@ to specify username, password and workgroup.") ),
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
+    define void createSource( string url ) ``{
+        if ( url != "" )
+        {
+            UI::MessagePopup( sformat( "URL: %1", url ) );
+            Pkg::SourceCreate( url );
+            // FIXME: Check for errors
+
+            fillTable();
+        }
+    }
+
     list items = [];
 
     term contents =
@@ -539,30 +524,23 @@ on the NFS server.
 
 	if ( input == `ftp || input == `http || input == `samba )
 	{
-	    editServer( input, 0 );
-            fillTable();
+	    url = getServerUrl( input );
+            createSource( url );
         }
         else if ( input == `nfs )
         {
-            editNfs( 0 );
-            fillTable();
+            url = getNfsUrl();
+            createSource( url );
         }
         else if ( input == `cd || input == `dvd )
         {
-            editCd();
-            fillTable();
+            url = getCdUrl();
+            createSource( url );
         }
 	else if ( input == `local_dir )
 	{
-	    url = getDirectory( "" );
-            if ( url != "" )
-            {
-                UI::MessagePopup( sformat( "URL: %1", url ) );
-                Pkg::SourceCreate( url );
-                // FIXME: Check for errors
-            }
-            
-            fillTable();
+	    url = getDirectoryUrl( "" );
+            createSource( url );
 	}
         else
         {
