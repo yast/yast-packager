@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Aug 22 16:58:51 CEST 2002 - kkaempf@suse.de
+
+- default to UnitedLinux.sel if default.sel missing
+  default to first available base selection if UnitedLinux.sel
+  missing too.a
+  give up and make a blocker error if no base selection exists.
+  (#18207)
+
+-------------------------------------------------------------------
 Thu Aug 22 01:48:26 CEST 2002 - nashif@suse.de
 
 - disabled testsuite for spkg for now
