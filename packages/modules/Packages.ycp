@@ -251,6 +251,22 @@ Select which desktop to install.</p>
     }
 
 
+    /**
+     * Compute board (vendor) dependant packages
+     * @return list(string)
+     */
+    define list<string> boardPackages ()
+    {
+	list<string> packages = [];
+
+	list <map <string, any> > probe = (list <map <string, any> >)SCR::Read (.probe.system);
+	packages = (list<string>)probe[0,"requires"]:[];
+	y2milestone ("Board/Vendor specific packages: %1", packages);
+
+	return packages;
+    }
+
+
     /*-----------------------------------------------------------------------
      * GLOBAL FUNCTIONS
      *-----------------------------------------------------------------------*/
@@ -288,6 +304,8 @@ Select which desktop to install.</p>
 
 	install_list = (list<string>) union (install_list, languagePackages ());
 
+	install_list = (list<string>) union (install_list, boardPackages ());
+
 	// and the most flexible enhancement for other products
 	if (ProductFeatures::packages_transmogrify != "")
 	{
@@ -298,8 +316,7 @@ Select which desktop to install.</p>
 
         if (size(ProductFeatures::packages) > 0 )
         {
-            install_list = (list<string>) union (install_list,
-                    ProductFeatures::packages );
+            install_list = (list<string>) union (install_list, ProductFeatures::packages );
         }
 
 	install_list = toset (install_list);
