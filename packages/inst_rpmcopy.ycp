@@ -117,6 +117,10 @@
 
     // y2debug("%1 packages have been installed", packages_installed);
 
+
+    // ----------------------------------------------------------------------
+    // normal
+
     if ( size (rpm_list) > 0)
     {
 	y2milestone( "Installing RPM_LIST: %1", rpm_list );
@@ -164,62 +168,11 @@
 	return `next;
     }
 
+    // ----------------------------------------------------------------------
+    // initial/cont
+
     if (Mode::initial)
     {
-	// First install the base system. This has to be done with the %pre
-	// and %post scripts handled separately and not by rpm, because
-	// without a minimal system being installed no scripts can be executed
-	// chroot in the new system.  We filter the pacdesc list and extract
-	// only the base packages, and only those that are contained in our
-	// package selection. This filtered list we convert into a list
-	// containing only the package filename and the label in the current
-	// language.
-
-	y2milestone ("Pkg::PkgPrepareOrder()");
-	list ins_del_count = Pkg::PkgPrepareOrder();
-	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
-
-	map product = Pkg::SourceProductData (Packages::theSource);
-	string datadir = product["datadir"]:"suse";
-	y2milestone ("datadir %1", datadir);
-	string pkgname = Pkg::PkgNextInstall();
-
-	while ((pkgname != nil)
-		&& (pkgname != ""))
-	{
-	    y2milestone ("Installing %1", pkgname);
-	    string location = Pkg::PkgLocation (pkgname);
-	    y2milestone ("location %1/%2", datadir, location);
-	    if (location != nil)
-	    {
-		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
-		y2milestone ("localpath %1", localpath);
-		if (localpath != nil)
-		{
-		    boolean ok = Pkg::TargetInstall (localpath);
-		    y2milestone ("install %1", ok);
-		}
-	    }
-	    pkgname = Pkg::PkgNextInstall ();
-	}
-
-	// y2debug("Base packages ( on Medium1 ): %1", base_packages);
-
-	ret = PackageInstallation::InstallPackages( base_packages,		// base system
-						    InstMedia::GetInstPath(),	// source of installation
-						    true,			// installing the base system
-						    0 );			// number of packages installed
-
-	packages_installed = packages_installed + size(base_packages);
-
-	if (ret == `cancel) return `abort;
-	if (ret == `diskfull) break;
-	else if (ret != `error
-		 && ret != `ok)
-	{
-	    Report::Error( _("The packager returned an unknown code") );
-	}
-
 	// write a fake mtab to the target system since some %post scripts might need it
 	string mtabname = "/etc/mtab";
 	if (Mode::initial)
@@ -232,6 +185,15 @@
 			+ "/: /:\"| /bin/sed \"s: " + Installation::destdir
 			+ ": /:\" > " + Installation::destdir + mtabname);
 	}
+	// add additional (internal) packages, like kernel etc.
+	Pkg::DoProvide (Packages::ComputeSystemPackageList());
+    }
+
+    if  (Mode::autoinst
+	 && Mode::cont)
+    {
+	// extra packages from autoinstall
+	Pkg::DoProvide( AutoInstall::postPackageList());
     }
 
     SlideShow::InitPkgData();
@@ -258,54 +220,21 @@
     {
 	boolean go_on = true;
 
-	// FIXME, packages current CD
-	list this_cd_packages = [];
+	ret = PackageInstallation::InstallPackages( current_cd_no,			// media nr
+						    packages_installed );		// number of packages installed
 
-	if  (Mode::autoinst && Mode::cont)
+	packager_called = true;
+	// FIXME diskfull, abort/cancel
+	if (ret > 0)
 	{
-	    this_cd_packages  = union(this_cd_packages, AutoInstall::postPackageList());
+	    y2milestone ("%1 packages installed ok", ret);
+	    packages_installed = packages_installed + ret;
 	}
-
-	// Filter out basepackages
-	if ( current_cd_no == 1 && Mode::initial )
+	else
 	{
-	    this_cd_packages = filter(`v, this_cd_packages, ``(!(v[3]:false && (v[2]:0 == 1))));
-	}
-
-	// y2debug("this_cd_packages: %1", this_cd_packages);
-
-	if (this_cd_packages != [])
-	{
-	    go_on = PackageInstallation::ChangeMediumWrapper ( current_cd_no, true );
-	    if ( !go_on )		// skip medium
-	    {
-		// logging not installed packages
-		foreach ( `package, this_cd_packages,
-		``{
-		    string packageName = package[0]:"";
-		    integer pos = findfirstof ( packageName, "/" );
-		    packageName = substring ( packageName, pos+1, size(packageName) -pos -5 );
-		    SCR::Execute (.target.bash, "/bin/echo NOT installing "+packageName+" >>"+
-				  Installation::destdir + "/var/log/YaST2/y2logRPMShort" );
-		});
-
-		current_cd_no = current_cd_no + 1;
-		continue;
-	    }
-
-	    packager_called = true;
-
-	    ret = PackageInstallation::InstallPackages( this_cd_packages,
-							InstMedia::GetInstPath(),
-							false,		// not installing the base system
-							packages_installed );
-
-	    packages_installed = packages_installed + size(this_cd_packages);
-
-	    if (ret == `cancel) 	return `abort;
-	    if (ret == `diskfull)   	break;
-	    else if (ret != `error &&
-		     ret != `ok) Report::Error( _("The packager returned an unknown code") );
+	    y2milestone ("%1 packages failed, %2 packages ok", size (PackageInstallation::error_packages), -ret);
+	    Report::Error( _("Some packages failed") );
+	    packages_installed = packages_installed - ret;
 	}
 
 	// break on first round with Mediums
@@ -317,10 +246,9 @@
 	current_cd_no = current_cd_no + 1;
     }
 
-
     if ( Mode::initial )
     {
-	Packages::installed= packages_installed;
+	Packages::installed = packages_installed;
     }
     else
     {
