@@ -112,7 +112,7 @@ was entered.
 
 Continue?")))
 		    {
-			return `cancel;
+			return `again;
 		    }
 		}
                 foreach( integer id, newSources, ``{
