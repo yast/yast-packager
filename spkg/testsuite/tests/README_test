@@ -1,0 +1,79 @@
+Used test data:
+---------------
+PKGINFO server is initialised with package information in
+.../y2m_inst/ycp/packages/testsuite/suse/setup/...
+
+Important files: common.pkd	(dependencies)
+                 du.dir		(used disk space)
+                                               
+
+Command line:
+-------------
+> su
+> /sbin/yast2 sw_single '"./test_input2"'
+-> 3d_chess wird installiert, xroach, tuxeyes werden gelöscht
+
+> /sbin/yast2 sw_single '"./test_input1"'
+-> xroach, tuxeyes werden installiert, 3d_chess gelöscht
+ 
+
+make check test cases:
+
+sw_popup:
+---------
+1. Test 
+* shows inst_source (Source Selection)
+- click "Install"
+* popup: Versions do not match ...
+- click "OK" and "Abort"
+
+2. test
+* popup Error reading configuration file
+
+3. Test
+* popup Package not found
+
+4. Test
+* shows inst_source
+- click "Install"
+* popup: Currently CD 2 is inserted, Insert CD 1
+- click "Skip" and "Abort"
+
+5. Test
+* shows inst_source
+- click "Install"
+* popup: No access to source media used on previous ...
+- click "Continue"
+* dialog inst_source
+- click "Abort"
+
+sw_input:
+---------
+1. Test 
+* shows inst_sw_single (if there are unresolved dependencies)
+*  tuxeyes, xroach marked with "X"
+*  Required space: ! 0 KB
+
+- if there is an dependency popup -> click "Continue" on popup
+* inst_rpmcopy starts immediateley ( xroach and tuxeyes will be installed )
+ 
+2. Test 	
+* shows inst_sw_single (if there are unresolved dependencies)
+- click on "Continue" in Dependency warning popup
+- click in "OK" 
+* inst_rpmcopy starts ( 3d_chess will be installed, tuxeyes, xroach removed)
+
+sw_source:
+----------
+1. Test (beginner)
+* inst_sw_single is first dialog
+- click "Cancel"
+
+2. Test (change source)
+* inst_source is first dialog
+- click "Install"
+* inst_sw_single will be shown
+- click "Cancel"
+* back to inst_source
+- click "Abort"
+
