@@ -21,8 +21,8 @@
     textdomain "packager";
 
     global boolean install_sources = false; // Installing source packages ?
-    global integer installed = 0; 	// amount of already installed packages
-    global integer timestamp = 0; 	// last time of getting the target map
+    global integer installed = 0;	// amount of already installed packages
+    global integer timestamp = 0;	// last time of getting the target map
 
     // Local variables
 
@@ -148,53 +148,60 @@
     define list autoinstPackages()
 	``{
 	import "AutoInstall";
+	map configure = AutoInstall::Profile["configure"]:$[];
 	list packages = [];
 
 	packages = union (packages, AutoInstall::packageList());
 
 	// In autoinst mode, a kernel might be external and not available
 	// in common.pkd
-	if (size(AutoInstall::Kernel)==0) {
+	if (size(AutoInstall::Kernel)==0)
+	{
 	    packages = union (packages, Kernel::kernel_packages);
 	}
 
-        map cups = AutoInstall::GetConfMap("cups", true);
-        if (size(cups)>0) {
-            packages = union(packages, ["cups", "yast2-config-cups"]);
-        }
-
-
-	map nis = AutoInstall::GetConfMap("nis", true);
-	if (nis["start_nis"]:false)
-	    packages = add(packages, "ypbind");
-	if (nis["start_autofs"]:false)
-	    packages = add(packages, "autofs");
-
-	map ldapclient = AutoInstall::GetConfMap("ldapclient", true);
-	if (ldapclient["start_ldapclient"]:false)
-	    packages = union(packages, ["pam_ldap","nss_ldap"]);
-
-
-	map inetd = AutoInstall::GetConfMap("inetd", true);
-	if (inetd["start_inetd"]:false)
-	    packages = add(packages, "inetd");
-
-	map nisplus = AutoInstall::GetConfMap("nisplus", true);
-	if (nisplus["start_nisplus"]:false)
-	    packages = add(packages, "nis-utils");
-
-	map mail = AutoInstall::GetConfMap("mail", true);
-	if (mail["mta"]:`other == `postfix) {
-	    packages = add(packages, "postfix");
-	    if (mail["use_amavis"]:false)
-		packages = add(packages, "amavis-postfix");
-	}
-	else if (mail["mta"]:`other == `sendmail) {
-	    packages = add(packages, "sendmail");
-	    if (mail["use_amavis"]:false)
-		packages = add(packages, "amavis-sendmail");
+	if (haskey(configure, "nis")) {
+		map nis = configure["nis"]:$[];
+		if (nis["start_nis"]:false)
+			packages = add(packages, "ypbind");
+		if (nis["start_autofs"]:false)
+			packages = add(packages, "autofs");
 	}
 
+	if (haskey(configure, "ldapclient")) {
+		map ldapclient = configure["ldapclient"]:$[];
+		if (ldapclient["start_ldapclient"]:false)
+			packages = union(packages, ["pam_ldap","nss_ldap"]);
+	}
+
+
+	if (haskey(configure, "inetd")) {
+		map inetd = configure["inetd"]:$[];
+		if (inetd["start_inetd"]:false)
+			packages = add(packages, "inetd");
+	}
+
+	if (haskey(configure, "nisplus")) {
+		map nisplus = configure["nisplus"]:$[];
+		if (nisplus["start_nisplus"]:false)
+			packages = add(packages, "nis-utils");
+	}
+	if (haskey(configure, "mail")) {
+		map mail = configure["mail"]:$[];
+		if (mail["mta"]:`other == `postfix)
+		{
+			packages = add(packages, "postfix");
+			if (mail["use_amavis"]:false)
+				packages = add(packages, "amavis-postfix");
+		}
+		else if (mail["mta"]:`other == `sendmail)
+		{
+			packages = add(packages, "sendmail");
+			if (mail["use_amavis"]:false)
+				packages = add(packages, "amavis-sendmail");
+		}
+	}
+	y2milestone("package list needed for auto-installation: %1", packages);
 	return packages;
     }
 
