@@ -1,5 +1,5 @@
 /**
- * Module: 	inst_kickoff.ycp
+ * Module:	inst_kickoff.ycp
  *
  * Authors:	Arvin Schnell <arvin@suse.de>
  *
@@ -18,12 +18,14 @@
 
 
     /**
-     *  Write a fake mtab to the target system since some %post scripts might need it.
+     *  Write a fake mtab to the target system since some %post scripts might
+     *  need it.
      */
     define void fake_mtab () ``{
 
 	string mtabname = "/etc/mtab";
 	string mtab = (string) WFM::Read(.local.string, mtabname);
+
 	SCR::Write(.target.string, tmpdir + "/mtab", mtab);
 	SCR::Execute (.target.bash, "/bin/cat " + tmpdir + "/mtab"
 		      + " | /bin/sed \"s: " + Installation::destdir
@@ -34,18 +36,17 @@
 
 
     /**
-     *  remove some old junk.
+     *  Remove some old junk.
      */
     define void remove_stuff () ``{
 
-	// remove old junk
+	// remove old junk, script in in yast2-update
 	SCR::Execute (.target.bash, Directory::ybindir + "/remove_junk " +
 		      Installation::destdir);
 
 	// possibly remove /usr/share/info/dir
 	if (!Pkg::TargetFileHasOwner ("/usr/share/info/dir"))
 	{
-	    y2milestone ("/usr/share/info/dir not owned by any package, removing");
 	    SCR::Execute (.target.remove, Installation::destdir + "/usr/share/info/dir");
 	}
 
@@ -96,8 +97,9 @@
 		    num = num + 1;
 		}
 
-		if (SCR::Execute (.target.bash, "cd " + Installation::destdir + " ; /bin/tar czf " +
-				  Installation::destdir + filename + " " + "etc/sysconfig") != 0)
+		if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
+				  " ; /bin/tar czf " + Installation::destdir +
+				  filename + " " + "etc/sysconfig") != 0)
 		{
 		    y2error ("backup of %1 to %2 failed", "/etc/sysconfig", filename);
 		    // an error popup
@@ -122,8 +124,9 @@
 		    num = num + 1;
 		}
 
-		if (SCR::Execute (.target.bash, "cd " + Installation::destdir + " ; /bin/tar czf " +
-				  Installation::destdir + filename + " " + "etc/rc.config" + " " +
+		if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
+				  " ; /bin/tar czf " + Installation::destdir +
+				  filename + " " + "etc/rc.config" + " " +
 				  "etc/rc.config.d") != 0)
 		{
 		    y2error ("backup of %1 to %2 failed", "/etc/rc.config", filename);
@@ -204,7 +207,8 @@
 	SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST/update.inf");
 
 	// check passwd and group of target
-	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_users_groups " + Installation::destdir);
+	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_users_groups " +
+		      Installation::destdir);
 
 	remove_stuff ();
 	backup_stuff ();
