@@ -2,6 +2,7 @@
 Fri Sep  6 10:53:01 CEST 2002 - kkaempf@suse.de
 
 - report failed packages properly (#19022)
+- addind missing import to Packages.ycp (nashif@suse.de)
 - 2.6.27
 
 -------------------------------------------------------------------
