@@ -532,7 +532,7 @@
 	{
 	    y2milestone ("Initialize Package Manager: %1", base_url);
 	    if ((base_url == "cd:///")
-		|| (base_url == "dvd:///"))
+               || (base_url == "dvd:///"))
 	    {
 		// FIXME
 		string cdrom = SCR::Read (.etc.install_inf.Cdrom);
