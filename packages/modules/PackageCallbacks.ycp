@@ -20,6 +20,7 @@
     import "Mode";
     import "Popup";
     import "PackageCallbacksInit";
+    import "URL";
 
     global boolean _provide_popup = false;
     global boolean _package_popup = false;
@@ -331,20 +332,23 @@
 	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7'",
 		     error, url, product, current, current_label, wanted, wanted_label);
 
+	map url_tokens = URL::Parse (url);
+	string url_scheme = url_tokens["scheme"]:"";
+	url_scheme = tolower (url_scheme);
+
 	// true if it makes sense to offer an eject button (for cd/dvd only ...)
-	boolean offer_eject_button = substring (url, 0, 2) == "cd" ||
-	    substring (url, 0, 3) == "dvd";
+	boolean offer_eject_button = url_scheme == "cd" || url_scheme == "dvd";
 
 	if (wanted_label == "")
 	{
 	    // will be used in conjunction with other text below
 	    // prompt for user to insert the correct CD/DVD
 	    string medianame = "CD "; // FIXME?
-	    if (substring (url, 0, 2) == "cd")
+	    if (url_scheme == "cd")
 	    {
 		medianame = "CD ";
 	    }
-	    if (substring (url, 0, 3) == "dvd")
+	    if (url_scheme == "dvd")
 	    {
 		medianame = "DVD ";
 	    }
@@ -369,8 +373,21 @@
 	    wanted_label = sformat ("%1 %2", product, mediaside);
 	}
 
-	// prompt to insert product (%1 == "SuSE Linux ...") and media (%2 == "CD 2")
-	string message = sformat (_("Insert\n'%1' %2"), wanted_label, ""); // FIXME
+	// prompt to insert product (%1 == "SuSE Linux version 9.2 CD 2")
+	string message = sformat (_("Insert\n'%1'"), wanted_label);
+	// with network source it doesn't make sense to ask for disk
+	if (url_scheme == "dir")
+	{
+	    // report error while accessing local directory with product (%1 == "SuSE Linux ...")
+	    message = sformat (_("Cannot access installation media\n%1.
+Check that the directory is accessible."), wanted_label);
+	}
+	else if (url_scheme != "cd" && url_scheme != "dvd")
+	{
+	    // report error while accessing network media of product (%1 == "SuSE Linux ...")
+	    message = sformat (_("Cannot access installation media \n%1.
+Check that the server is accessible."), wanted_label);
+	}
 
 	// currently unused
 	string media_prompt = _("The correct source medium could not be mounted.");
