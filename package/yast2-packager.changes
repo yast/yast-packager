@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb  8 13:43:41 CET 2005 - kkaempf@suse.de
+
+- add 'laptop' selections to proposal if PCMCIA interface 
+  is detected.
+- 2.11.14
+
+-------------------------------------------------------------------
 Mon Feb  7 14:29:42 CET 2005 - jsrain@suse.cz
 
 - merged texts from proofread
