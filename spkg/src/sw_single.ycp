@@ -1,5 +1,8 @@
 /* 
- * 
+ * Purpose:
+ *	contains dialog loop for workflow
+ *	"Install/Remove software" 	called with argument "beginner", i.e. skip inst_source if possible
+ *	"Choose source of installation" without argument -> workflow starts with inst_source
  *
  * $Id$
  */
@@ -336,7 +339,7 @@ do this.</P>"));
   // sw_single is called with argument "beginner" or with a package list or package name
   // -> skip inst_source (if possible)
   
-  if ( size( Args() ) > 0 )
+  if ( size( Args() ) > 0 && Args(0) != .test )
   {
       string postfix =  substring( Args(0), size(Args(0))-4 );
       y2debug("SW_SINGLE: POSTFIX: %1", postfix );
@@ -449,7 +452,7 @@ Please insert actual CD or specify path of actual sources.")) );
 
           // There could be a list of packages (defined in an ascii-file) or a package name
 	  
-	  if ( size(Args() ) > 0 && Args(0) != "beginner" )
+	  if ( size(Args() ) > 0 && Args(0) != "beginner" && Args(0) != .test )
 	  {
 	      string pathname = Args(0);
 	      map|any installMap = $[];
