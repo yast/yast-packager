@@ -156,7 +156,7 @@
 
 	// In autoinst mode, a kernel might be external and not available
 	// in common.pkd
-	if (size(AutoInstall::Kernel)==0)
+	if (size(AutoInstall::Kernel) == 0)
 	{
 	    packages = union (packages, Kernel::kernel_packages);
 	}
