@@ -5,7 +5,7 @@
  */
 
 {
-  Include( `package_utils() );
+  include "package_utils.ycp";
 
   map user_settings = $[];
   
