@@ -102,6 +102,7 @@
 					  integer packages_installed)
     ``{
 	integer ret = 0;
+	boolean correct_media = true;
 
 	// Reset variables
 	shutup = false;
@@ -116,8 +117,6 @@
 	}
 
 	list other_media_packages = [];		// packages on other media, list of strings
-	integer other_media_pos = 0;
-	integer other_media_nr = 0;
 
 	if (media_number > 1)
 	{
@@ -126,11 +125,16 @@
 		other_media_packages = [];
 	    y2milestone ("%1 packages remaining", size (other_media_packages));
 	    if (size (other_media_packages) == 0)
+	    {
+		y2milestone ("No further packages");
 		return 0;
+	    }
 	    foreach (`pkg, other_media_packages,
 	    ``{
+		y2milestone ("Pkg::PkgInstall(%1)", pkg);
 		Pkg::PkgInstall (pkg);
 	    });
+	    other_media_packages = [];
 	}
 
 	map product = Pkg::SourceProductData (Packages::theSource);
@@ -138,85 +142,52 @@
 	y2milestone ("datadir %1", datadir);
 	string pkgname = "";
 
-	if (media_number == 1)
-	else
-	{
-	    other_media_nr = other_media_packages[other_media_pos,0]:0;
-	    pkgname = other_media_packages[other_media_pos,1]:"";
-	    other_media_pos = other_media_pos + 1;
-	}
-
 	// packager
 	y2milestone ("Pkg::PkgPrepareOrder()");
 	list ins_del_count = Pkg::PkgPrepareOrder();
 	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
+
+	pkgname = Pkg::PkgNextInstall();
+
+	if (pkgname == nil
+	    || pkgname == "")
+	{
+	    y2error ("Pkg::PkgNextInstall returns '%1'", pkgname);
+	    return ret;
+	}
+
+	if (media_number > 1)
+	{
+	    correct_media = PackageInstallation::ChangeMediumWrapper ( media_number, true );
+	}
+
+	// exit here if all packages were skipped
+	if (!correct_media)
+	{
+	    y2error ("Not correct media #%1 found", media_number);
+	    return ret;
+	}
+
+	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
 	Pkg::SetProgressCallback ("CallbackDisplayProgress");
 
 	SlideShow::UpdateAllCdProgress (false);
 
-	boolean correct_media = true;			// FIXME
-	boolean skip_media = false;
-
-	pkgname = Pkg::PkgNextInstall();
-
-	// ensure correct medium and implement skipping
-	while ((pkgname != nil)
-	     && (pkgname != ""))
-	{
-	    if (other_media_nr > 0)
-	    {
-		if (other_media_nr != media_number)
-		{
-		    break;
-		}
-	    }
-	    else if (Pkg::PkgMediaNr (pkgname) != media_number)
-	    {
-		break;
-	    }
-	    if (!correct_media)
-	    {
-		correct_media = true;		// only on first loop
-		if (!PackageInstallation::ChangeMediumWrapper ( media_number, true ))
-		{
-		    skip_media = true;		// user wants to skip all packages from this media
-		}
-	    }
-	    if (!skip_media)		// dont skip
-		break;
-
-	    // skipping, loop through all packages from this media
-	}
-
-	// exit here if all packages were skipped
-	if (skip_media)
-	    return 0;
-
-	// install packages from this media
-
 	SlideShow::StartTimer();
 
 	while ((pkgname != nil)
 		&& (pkgname != ""))
 	{
-	    string location = Pkg::PkgLocation (pkgname);
 
-	    if (other_media_nr > 0)
+	    if (Pkg::PkgMediaNr (pkgname) != media_number)
 	    {
-		if (other_media_nr != media_number)
-		{
-		    location = nil;
-		}
+		other_media_packages = add (other_media_packages, pkgname);
 	    }
-	    else if (Pkg::PkgMediaNr (pkgname) != media_number)
+	    else
 	    {
-		location = nil;
-	    }
-
-	    if (location != nil)
-	    {
+		string location = Pkg::PkgLocation (pkgname);
 		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
 		CallbackDisplayProgress (0);
 
@@ -236,14 +207,7 @@
 		}
 	    }
 
-	    if (media_number == 1)
-		pkgname = Pkg::PkgNextInstall();
-	    else
-	    {
-		other_media_nr = other_media_packages[other_media_pos,0]:0;
-		pkgname = other_media_packages[other_media_pos,1]:"";
-		other_media_pos = other_media_pos + 1;
-	    }
+	    pkgname = Pkg::PkgNextInstall();
 	}
 
 	SlideShow::StopTimer();
@@ -251,34 +215,8 @@
 
 	// write out remaining packages
 
-	if (media_number == 1)
-	{
-	    while ((pkgname != nil)
-		    && (pkgname != ""))
-	    {
-		other_media_nr = Pkg::PkgMediaNr (pkgname);
-		other_media_packages = add (other_media_packages, [other_media_nr, pkgname]);
-		pkgname = Pkg::PkgNextInstall();
-	    }
-	    y2milestone ("%1 packages on other media", size (other_media_packages));
-	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
-	}
-	else	// media_number > 1
-	{
-	    list remaining_packages = [];
-	    other_media_pos = 0;
-	    while (other_media_pos < size (other_media_packages))
-	    {
-		other_media_nr = other_media_packages[other_media_pos,0]:0;
-		if (other_media_nr > media_number)
-		{
-		    remaining_packages = add (remaining_packages, [other_media_nr, other_media_packages[other_media_pos,1]:""]);
-		}
-		other_media_pos = other_media_pos + 1;
-	    }
-	    y2milestone ("%1 packages on other media", size (other_media_packages));
-	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
-	}
+	y2milestone ("%1 packages on other media", size (other_media_packages));
+	SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
 
 	if (size (error_packages) > 0)
 	{
