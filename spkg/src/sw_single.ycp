@@ -20,6 +20,8 @@
     import "Installation";
     import "InstMedia";
     import "Mode";
+    Mode::normal = true;	// system is already installed
+
     import "MediaUI";
     import "Packages";
 
@@ -30,6 +32,7 @@
     boolean test_popup = false;
     boolean beginner_mode = false;
 
+    
     // =============================================================
 
     // check test_popup
@@ -210,7 +213,7 @@ do this.</P>
     list part_input = [];
 
     // percentage of spare space
-    part_input = SpaceCalculation::EvaluateFreeSpace( Installation::destdir, 5 );
+    part_input = SpaceCalculation::GetPartitionInfo( );
 
     y2debug( "SW_SINGLE: partition input: %1", part_input );
 
@@ -335,6 +338,7 @@ do this.</P>
 
 	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
 
+	    /*
 	    map pkginitmap = $["common.pkd":"common.pkd",
 				"dudir":dudir,
 				"language":language,
@@ -348,7 +352,8 @@ do this.</P>
 
 	    retval = SCR::Execute(.package.setEnvironment, pkginitmap);
 	    y2debug( "Return  package.setEnvironment(%1) %2", pkginitmap, retval);
-
+	    */
+	    
 	    UI::CloseDialog();
 
 	    map version_map = $[];
