@@ -81,7 +81,7 @@ If so, is the disk formatted and verified?
 		    else if (ret == `retry)	// format floppy
 		    {
 			UI::OpenDialog( `opt( `decorated ),
-					`HBox(`HSpacing(1), `Label(Label::Label::PleaseWaitMsg()), `HSpacing(1)));
+					`HBox(`HSpacing(1), `Label(Label::PleaseWaitMsg()), `HSpacing(1)));
 			SCR::Execute (.target.bash, "/sbin/mkdosfs " + StorageDevices::FloppyDevice);
 			UI::CloseDialog();
 		    }
