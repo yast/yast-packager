@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 31 17:50:25 CET 2005 - lslezak@suse.cz
+
+- checkmedia - show progress, show link in the software proposal
+  only when using CD/DVD installation source
+- version 2.11.11
+
+-------------------------------------------------------------------
 Fri Jan 28 16:03:26 CET 2005 - lslezak@suse.cz
 
 - Check media feature (#100172)
