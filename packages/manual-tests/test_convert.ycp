@@ -6,12 +6,19 @@
     integer p = 0;
     while (p < 100)
     {
-    	PackageCallbacks::ProgressConvertDB (p, 1, 2, 3, 4);
 	p = p + 5;
+    	PackageCallbacks::ProgressConvertDB (p, 1, 2, 3, 4);
 	sleep (100);
+
+	if (p == 20)
+	    PackageCallbacks::NotifyConvertDB ("Nindb", 50, "kdebase3");
+
+	if (p == 40)
+	    PackageCallbacks::NotifyConvertDB ("Eread", 50, "");
+
+	if (p == 60)
+	    PackageCallbacks::NotifyConvertDB ("Ewrite", 50, "");
     }
 
-    PackageCallbacks::StopConvertDB (1, "haha");
-
-    // PackageCallbacks::NotifyConvertDB ();
+    PackageCallbacks::StopConvertDB (1, "kernel is on vacation");
 }
