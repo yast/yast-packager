@@ -1,16 +1,11 @@
-
 /**
  * Module: 		inst_sw_select.ycp
  *
- * Authors:		Mathias Kettner <kettner@suse.de>
- *			Klaus Kaempf <kkaempf@suse.de> (initial)
- *			Stefan Hundhammer <sh@suse.de>
- *			Stefan Schubert <schubi@suse.de>
+ * Authors:		Gabriele Strattner <gs@suse.de>
  *
  * Purpose:
- * Displays software selection screen. Show checkboxes for software
- * categories. Let the user select his software.
- *
+ * Displays software selection screen. Show radiokboxes for software
+ * main categories. Let the user select the software.
  *
  * Packages module read:
  *
@@ -41,33 +36,43 @@
 
 
     // ------------------------------------------------------------------------
+
+    // get all available base selections
+    // checked in help below !
+    list available_base_selections = Pkg::GetSelections( `available, "base" );
+    y2milestone ("available_base_selections %1", available_base_selections);
+   
+    Wizard::OpenAcceptDialog();
+    
     // Dialog title for software selection
-
-
-    Wizard::OpenNextBackDialog();
     string title = _("Software Selection");
 
-    // Explain selectable system configurations
-    // but beware: some of the text in <b>'s, e.g. Default comes from the index file,
+    // Help text Software Selection dialog
+    // Explain selectable system configurations but beware:
+    // some of the text in <b>'s, e.g. Default comes from the index file,
     // translations must be consistent with po/index/index.??.po
-    // help text
     string helptext = _("<p>
 The SuSE Linux <b>Default</b> system is a good software
-selection for most users. You will not need to insert all of the CDs that
+selection for most users. 
+</p>
+");
+
+    // only add this part to help text if an office.sel file is available
+    if ( contains( available_base_selections, "Office" ) )
+    {
+	// help text, continued
+	helptext = helptext + _("<p>It includes powerful graphical office applications.
+</p>");
+    }
+    
+    // help text, continued 
+    helptext = helptext + _("<p>    
+   You will not need to insert all of the CDs that
 come with SuSE Linux for this selection. Additional software from the
 other CDs can always be installed later.
 </p>
 ");
-
-    // help text, continued
-    if (Arch::i386)
-    {
-    helptext = helptext + _("<p>
-<b>Default with Office</b> extends this default system to include
-powerful graphical office applications.
-</p>");
-    }
-
+    
     // help text, continued
     helptext = helptext +
 	_("<p>
@@ -90,14 +95,6 @@ You can then work with a simple graphical desktop
 ");
 
     // help text, continued
-    // helptext = helptext + _("<p>
-    // The selection <b>All packages</b> includes every software package that comes
-    // with SuSE Linux, except the sources. Make sure you have enough
-    // disk space when you select this option.
-    // </p>
-    // ");
-
-    // help text, continued
     helptext = helptext + _("<p>
 To make a more precise selection of software to install, select
 <b>Detailed selection</b>.
@@ -111,9 +108,9 @@ To make a more precise selection of software to install, select
 	|| Product::product_cd )
     {
 	Wizard::SetContents(title,
-			    // Intermediate contents of the software selection screen
 			    `HVCenter(`Label(
-			    _("This product has a fixed software selection which cannot be changed"))),
+				     // Intermediate contents of the software selection screen
+				     _("This product has a fixed software selection which cannot be changed"))),
 			    helptext, WFM::Args(0), WFM::Args(1));
         any ret = Wizard::UserInput();
 	Wizard::CloseDialog();
@@ -128,51 +125,54 @@ To make a more precise selection of software to install, select
 			    helptext, WFM::Args(0), WFM::Args(1));
     }
 
+
+    
     // ------------------------------------------------------------------------
 
-    list current_sel     = SCR::Read(.package.selInstallSet);
+    //
+    // save state solver and dependencies in case of `cancel
+    //
+    list restore_selections = Pkg::GetSelections( `selected, "base" );
+    restore_selections = union ( restore_selections, Pkg::GetSelections( `selected, "" ) );
+    y2milestone ("restore_selections %1", restore_selections);
+    
+    // save the current selection
+    boolean retval = Pkg::SaveState();
+    y2milestone( "Save selection: %1, return: %2", restore_selections, retval );
 
-    // current_sel is empty
+    // get the currently selected base selection
+    list current_base_selections = Pkg::GetSelections( `selected, "base" );
+    y2milestone ("current_base_selections %1", current_base_selections);
 
-    if ( current_sel == [] )
-    {
-	// setting selection group, if it has not been set
-	current_sel = ["default"];
-	SCR::Execute(.package.selectSelInstall,  select( current_sel,0 ,""),true );
-    }
+    // Construct a box with radiobuttons for each software base configuration
+    term baseconfs_box = `VBox();
 
-    y2debug("Current software_sel: %1", current_sel);
+    // sort available_base_selections by order
+    // $[ "order" : [ "name", "summary" ], .... ]
 
-    list pacsels = [];
+    map sorted_base_selections = $[];
+    foreach( `selection, available_base_selections,
+    ``{
+	map selection_data = Pkg::SelectionData (selection);
+	if (selection_data != nil)
+	    sorted_base_selections[selection_data["order"]:""] = [selection, selection_data["summary"]:("'"+selection+"'")];
+    });
 
-    pacsels = filter(`sel,
-		     SCR::Read(.package.selGroups),
-		     ``(select(sel, 1,"") != "paylist"));
-
-    y2debug( "getSelGroups return: %1", pacsels );
-
-    // Construct Box with Checkbox for each software category
-
-    // Title of frame around "basic software"
-    term baseconfs = `VBox();
-
-    foreach(`sel, pacsels, ``{
-	string   selid   = select(sel, 0, "");
-	string   group   = select(sel, 2, "");
-	string    seldesc = select(sel, 1, "");
-
-	if ( group == "baseconf" )
+    // construct display box in order
+    foreach(`order, `data, sorted_base_selections,
+    ``{
 	{
-	    baseconfs = add(baseconfs, `Left(`RadioButton(`id(selid),`opt(`notify, `autoShortcut),
-						    seldesc,
-						    contains (current_sel, selid))));
+	    baseconfs_box = add( baseconfs_box, `Left(`RadioButton(`id(data[0]:""),		// id
+						       `opt(`notify, `autoShortcut),
+						       data[1]:"",				// descrption
+						       contains( current_base_selections, data[0]:""))));
 	}
     });
 
     string wrn_msg = "";
 
     // Checking: already selected addons or single selection?
-    if ( SCR::Read(.package.isSingleSelected ) )
+    if ( Pkg::IsManualSelection() )
     {
 	// Display warning message
 	wrn_msg = _("\
@@ -190,7 +190,7 @@ You will lose that selection if you change the basic selection.");
 							  _("Software"),
 							  `VBox(
 								`VSpacing(0.3),
-								`RadioButtonGroup(`id(`baseconf),`opt(`notify), baseconfs),
+								`RadioButtonGroup(`id(`baseconf),`opt(`notify), baseconfs_box),
 								`VSpacing(0.3)
 								)
 							  ),
@@ -209,148 +209,128 @@ You will lose that selection if you change the basic selection.");
 
     Wizard::SetContents(title, contents, helptext, WFM::Args(0), WFM::Args(1));
 
-    // get all packages to install
-    list package_list = Packages::ComputeInstallList ();
-
-    // y2debug( "Required packages: %1", package_list );
-
-    // Initialize server with the packages which have to be installed, but without resetting
-    // single-selected packages.
-
-    SCR::Execute(.package.setInstallSelection, package_list, true );
-    SCR::Execute(.package.setSourceInstallation, Packages::install_sources );
-
     any ret = nil;
     boolean error_found = false;
-    while (true)
+
+    repeat
     {
-	// calculate required diskspace
-	error_found = SpaceCalculation::ShowPartitionWarning();
+	// save the current base selection
+	string save_selection = UI::QueryWidget(`id(`baseconf), `CurrentButton);
+    
+	ret = Wizard::UserInput();
 
-	list save_sel = [];
-	save_sel = add(save_sel, UI::QueryWidget(`id(`baseconf), `CurrentButton));
-
-	if ( ret == `next && !error_found )
-                break;
-
-        ret = Wizard::UserInput();
-
-	if ( ret == `abort && WFM::CallFunction(`inst_confirm_abort(`painless) ) )
+	// get the newly selected base configuration
+	string base_selection = UI::QueryWidget( `id(`baseconf),`CurrentButton );
+ 
+	if ( (ret == `abort)
+	     && WFM::CallFunction(`inst_confirm_abort(`painless) ) )
+	{
+	    Wizard::CloseDialog();
 	    return `abort;
+	}
 
-        // Add the selection of the basic group
-        current_sel = [];
-	current_sel = add(current_sel, UI::QueryWidget(`id(`baseconf),`CurrentButton));
-
-	// `next added here, because if the user clicks on a different button while package agent
-	// is doing the diskspace check, save_sel is already == current_sel
-	if ( (save_sel != current_sel) || (ret == `next) )
-        {
-	    // Write current_sel to module
-	    // (if the user has already selected some addons or single packages: ask first)
-	    if ( ( !SCR::Read(.package.isSingleSelected )
-		   || UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?")) ) )
+	// if the selection has changed and the user has already selected some addons or single packages
+	if ( (save_selection != base_selection)
+	     && Pkg::IsManualSelection() )
+	{
+            // popup text: ask the user whether to reset his individuell selection
+	    any ret = UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?")); 
+	    if ( !ret )
 	    {
-		y2debug( "Add current_sel to module: %1", current_sel );
-
-		if ( size( current_sel ) >=1 )
-		{
-		    SCR::Execute(.package.selectSelInstall, select( current_sel,0 ,""), true );
-		    string msg = "";
-		    msg = SCR::Read(.package.selNotifyDesc, select( current_sel,0 ,"" ) );
-		    if ( msg != "" )
-		    {
-			string nty_title = NotifyMsg();
-			term msg_text = `RichText( "<p>" + select( current_sel,0, "" ) + "</p>" + "<p>" + msg + "</p>" );
-			PackagesUI::DisplayHelpMsg( nty_title, msg_text, `none, 10 );
-		    }
-		}
-
-                // Reset source-selected
-		Packages::install_sources = false;
-
-		list package_list = Packages::ComputeInstallList ();
-
-		// y2debug( "Required packages: %1", package_list );
-
-		// Initialize package agent and reset ALL single-selected packages
-		SCR::Execute(.package.setInstallSelection, package_list , false);
-		SCR::Execute(.package.setSourceInstallation, Packages::install_sources );
-
-		wrn_msg	= "";
-		UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
-
-		// goto size-calculation
-		continue;
-	    }
-	    else
-	    {
+		Wizard::CloseDialog();
 		// rebuild the former selected RadioButton
-		ret = `again;
+		return `again;
+	    }
+	}
+
+	// Inform the package manager on `next about the new (only about a NEW) selection
+	// or if the selection has changed
+	if ( ( (ret == `next) && (save_selection != base_selection) )
+	     || (save_selection != base_selection) )
+	{
+	    // set the new selection
+	    boolean ret = Pkg::SetSelection( base_selection );
+
+	    y2milestone ( "Selecting %1 returns: %2", base_selection, ret );
+	    
+	    string msg = "";
+
+	    // FIXME: get notify decsription
+            // msg = Pkg::GetNotify( base_selection );
+
+	    if ( msg != "" )
+	    {
+		string nty_title = NotifyMsg();
+		term msg_text = `RichText( "<p>" + base_selection + "</p>" + "<p>" + msg + "</p>" );
+		PackagesUI::DisplayHelpMsg( nty_title, msg_text, `none, 10 );
+	    }
+	    
+	    // reset the warning: you have already choosen ...
+	    wrn_msg	= "";
+	    UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
+
+	}
+
+	// call the package selection dialog
+	
+	if ( ret == `details )
+	{
+	    any details_ret = `again;
+
+	    while ( details_ret == `again )
+	    {
+		details_ret = WFM::CallFunction( `inst_packages( true, true ) );
+	    }
+
+	    if ( details_ret == `next )
+	    {
+		ret = `next;
 		break;
 	    }
-	}
+	    else if ( details_ret == `cancel )
+	    {
+		ret = `cancel;
+		break;
+	    }
+	    else if ( details_ret == `abort )
+	    {
+		ret = `abort;
+		break;
+	    }
 
-	// break here on back/cancel
-
-        if (ret == `cancel || ret == `back ) break;
-
-	// next or details: check current settings here
-
-        if ( ret == `details )
-        {
-	     any details_ret = `again;
-
-	     while ( details_ret == `again )
-	     {
-	         details_ret = WFM::CallFunction( `inst_sw_details( true, true ) );
-  	     }
-
- 	     if ( details_ret == `next )
-	     {
-	         ret = `next;
-		 break;
-	     }
-	     else if ( details_ret == `cancel )
-	     {
-	         ret = `cancel;
-		 break;
-	     }
-	     else if ( details_ret == `back )
-	     {
-	         ret = `again;
-		 break;
-	     }
-	     else if ( details_ret == `abort )
-	     {
-	         ret = `abort;
-		 break;
-	     }
-
-	     if ( SCR::Read(.package.isSingleSelected ) )
-	     {
-		 // Display warning message
-		 wrn_msg = _("\
+	    if ( Pkg::IsManualSelection() )
+	    {
+		// Display warning message
+		wrn_msg = _("\
 You have already chosen software from \"Detailed selection\".\n\
 You will lose that selection if you change the basic selection.");
-		 UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
-	     }
-        }
-
-	if (  ret == `next
-	     && !error_found )
-	{
-	    break;
+		UI::ChangeWidget(`id(`wrn_label), `Value, wrn_msg );
+	    }
 	}
-    }
 
-    if ( ret == `next )
+	// FIXME: fix the module SpaceCalculation
+	// calculate required diskspace 
+	error_found = SpaceCalculation::ShowPartitionWarning();
+	if ( error_found )
+	{
+	    y2error( "Error: not enough disk space" );
+	}
+	
+    } until ( (ret == `next && !error_found) || ret == `cancel ||  ret == `back );
+
+    if ( ret == `back || ret == `cancel )
     {
-	y2milestone( "INSTALLING Software Selection: %1",  SCR::Read(.package.selInstallSet ));
+	boolean ret = Pkg::RestoreState( );
+	y2milestone( "RESET to software selection: %1, return: %2",  restore_selections, ret );
     }
-
+    else if ( ret == `next )
+    {
+	list selected_selections = Pkg::GetSelections( `selected, "base" );
+	selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
+	y2milestone( "INSTALLING software selection: %1", selected_selections );
+    }
 
     Wizard::CloseDialog();
-    y2milestone( "inst_sw_select returns %1", ret );
+
     return ret;
 }

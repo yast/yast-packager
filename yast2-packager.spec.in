@@ -3,18 +3,8 @@
 # neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages
 
 @HEADER@
-Provides:	libpkg libpkg-devel
-Obsoletes:	libpkg libpkg-devel
-Provides:	yast2-agent-package yast2-agent-package-devel
-Obsoletes:	yast2-agent-package yast2-agent-package-devel
-Provides:	yast2-agent-targetpkg yast2-agent-targetpkg-devel
-Obsoletes:	yast2-agent-targetpkg yast2-agent-targetpkg-devel
-Provides:	yast2-core-clients yast2-core-clients-devel
-Obsoletes:	yast2-core-clients yast2-core-clients-devel
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
-Provides:	yast2-db-groups
-Obsoletes:	yast2-db-groups
 
 Summary:	-
 
@@ -31,13 +21,9 @@ Summary:	-
 
 %files
 %defattr(-,root,root)
-%{_libdir}/libpkg.so.*
-@ybindir@/create_update_inf
 @yncludedir@
 @clientdir@/*.ycp
 @moduledir@/*.ycp
 @configdir@/*.y2cc
 @scrconfdir@/*.scr
-@plugindir@/*.so.*
-@execcompdir@/servers_non_y2/*
 %doc @docdir@

@@ -1,3 +1,0 @@
-(true)
-(false)
-($["ADD":["bzip", "db", "glibc", "readline", "textutils", "gfxboot", "popt"], "CONFLICT":[], "OBSOLETE":[], "REQUIRE":[$["packages":["sendmail", "postfix", "smail", "sendmail-tls"], "tag":"smtp_daemon"], $["packages":["vim", "nvi", "elvis", "vim-alpha", "nvi-m17n"], "tag":"vi_clone"]]])

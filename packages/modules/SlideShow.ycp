@@ -155,7 +155,8 @@
 	    return;
 	}
 
-	install_sizes_per_cd	= KiloBytesToBytes (SCR::Read (.package.neededCDs));
+	// FIXME needed CDs
+	install_sizes_per_cd	= KiloBytesToBytes (3);
 
 	if ( Mode::cont && install_sizes_per_cd[0]:0 > 0 )
 	{
@@ -346,7 +347,9 @@
      **/
     global define string GetPackageVersion( string pkg_name )
     ``{
-	string pkg_version = SCR::Read (.package.version, pkg_name);
+	string pkg_version = Pkg::PkgVersion (pkg_name);
+	if (pkg_version == nil)		// package not found
+	    return "?";
 	integer build_no_pos = findlastof (pkg_version, "-" );	// find trailing build no.
 
 	if ( build_no_pos > 0 )
@@ -367,16 +370,9 @@
      **/
     global define integer GetPackageSize( string pkg_name )
     ``{
-	list pkg_info = SCR::Read (.package.shortDesc, pkg_name);
-
-	if ( pkg_info == nil || size( pkg_info ) < 2 )
-	{
-	    y2debug( "GetPackageSize( %1 ): pkg_info: %2", pkg_name, pkg_info );
-	    return -1;
-	}
-
-	integer pkg_size = pkg_info[1]:1 * 1024;
-
+	integer pkg_size = Pkg::Size (pkg_name);
+	if (pkg_size == nil)	// package not found
+	    return 0;
 	return pkg_size;
     };
 

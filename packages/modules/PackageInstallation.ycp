@@ -163,12 +163,6 @@
 
 	boolean ret = true;
 
-	if ( cd_no > 1 )
-	{
-	    // release the common.pkd
-	    SCR::Execute(.package.closeMedium);
-	}
-
 	if ( ! Mode::test )
 	{
 	    ret = MediaUI::ChangeMedium( cd_no, show_popup );

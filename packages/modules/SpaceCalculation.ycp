@@ -76,7 +76,7 @@
 	{
 	    partition = get_partition_info( );
 	}
-	y2milestone( "INIT SpaceCalculation - partitions: %1", partition );
+	y2milestone( "INIT done, SpaceCalculation - partitions: %1", partition );
 
 	info_called = true;
 	partition_info = partition;	// store partition_info
@@ -97,99 +97,103 @@
    *
    */
 
-   define get_partition_info( ) ``{
+    define get_partition_info( )
+    ``{
 
-      boolean remove_slash = true;
-      map targets = Storage::GetTargetMap();
+	boolean remove_slash = true;
+	map targets = Storage::GetTargetMap();
 
-      if ( Mode::test )
-      {
-	  targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
-      }
+	if ( Mode::test )
+	{
+	    targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
+	}
 
-      list(map) target_partitions = [];
-      integer spare_percentage  = 14;   // percentage of free spare space on every partition
-      integer min_spare 	= 2048; // minimum free space ( 2 MB )
+	list(map) target_partitions = [];
+	integer spare_percentage  = 14;   // percentage of free spare space on every partition
+	integer min_spare 	= 2048; // minimum free space ( 2 MB )
 
-      foreach( `disk, `diskinfo, targets, ``{
+	foreach( `disk, `diskinfo, targets, ``{
 
-	  list part_info = lookup( diskinfo, "partitions", [] );
+	    list part_info = diskinfo["partitions"]:[];
 
-	  foreach( `part, part_info, ``{
-	      integer free_size = 0;
-	      integer spare_size = 0;
+	    foreach( `part, part_info,
+	    ``{
+		integer free_size = 0;
+		integer spare_size = 0;
 
-	      if ( lookup( part, "mount", nil ) != nil && substring( lookup( part, "mount", ""), 0, 1 ) == "/" )
-	      {
-		  if ( lookup( part, "create", nil ) == true || lookup( part, "delete", nil ) == false ||
-		       ( lookup( part, "create", nil) == nil && lookup( part, "delete", nil ) == nil ) )
-		  {
-		      y2debug( "get_partition_info: adding partition: %1", part );
+	    if (part["mount"]:nil != nil
+		&& substring( part["mount"]:"", 0, 1 ) == "/" )
+	    {
+		if (part["create"]:nil == true
+		    || part["delete"]:nil == false
+		    || (part["create"]:nil == nil
+			&& part["delete"]:nil == nil ) )
+		{
+		    y2debug( "get_partition_info: adding partition: %1", part );
 
-                      // get free_size on partition in kBytes
+		    // get free_size on partition in kBytes
 
-		      if ( lookup( part, "type", `empty ) == `pdisk )
-		      {
-			  // PowerPC: free_space = number of cyl. ( "region": second value ) * 512
-			  free_size = (select( lookup( part, "region", [] ), 1, 0 ) * 512)/1024;
-		      }
-		      else
-		      {
-                          // others: free space = number of cyl. ( "region": second value ) * cyl_size
-			  free_size = select( lookup( part, "region", [] ), 1, 0 ) * (lookup( diskinfo,"cyl_size", 1)/1024);
-		      }
+		    if ( part["type"]:`empty == `pdisk )
+		    {
+			// PowerPC: free_space = number of cyl. ( "region": second value ) * 512
+			free_size = (part["region",1]:0 * 512) / 1024;
+		    }
+		    else
+		    {
+			// others: free space = number of cyl. ( "region": second value ) * cyl_size
+			free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1/1024);
+		    }
 
-		      spare_size = (free_size*spare_percentage)/100;
+		    spare_size = (free_size*spare_percentage)/100;
 
-		      if ( spare_size < min_spare )
-		      {
-			  spare_size = min_spare;
-		      }
-		      free_size = free_size - spare_size;
+		    if ( spare_size < min_spare )
+		    {
+			spare_size = min_spare;
+		    }
+		    free_size = free_size - spare_size;
 
-		      y2debug("available partition: mount: %1, free: %2 KB",
-				  lookup( part, "mount", "" ), free_size);
-		      if ( !remove_slash)
-		      {
-			  target_partitions = add ( target_partitions, $["name":lookup( part, "mount", "" ),
+		    y2debug("available partition: mount: %1, free: %2 KB",
+				  part["mount"]:"", free_size);
+		    if ( !remove_slash)
+		    {
+			target_partitions = add ( target_partitions, $["name":part["mount"]:"",
 									"used":0,
 									"free":free_size,
-									"format":lookup( part, "format", false ),
-									"region":lookup( part, "region", [] ),
-									"used_fs":lookup( part, "used_fs", `unknown )  ] );
-		      }
-		      else
-		      {
-			  string part_name = "";
-			  string mount_name = lookup( part, "mount", "");
+									"format":part["format"]:false,
+									"region":part["region"]:[],
+									"used_fs":part["used_fs"]:`unknown ] );
+		    }
+		    else
+		    {
+			string part_name = "";
+			string mount_name = part["mount"]:"";
 
-			  if ( mount_name != "/" )
-			  {
-			      part_name = substring( mount_name, 1, size(mount_name) );
-			  }
-			  else
-			  {
-			      part_name = mount_name;
-			  }
+			if ( mount_name != "/" )
+			{
+			    part_name = substring( mount_name, 1, size(mount_name) );
+			}
+			else
+			{
+			    part_name = mount_name;
+			}
 
-			  target_partitions = add ( target_partitions, $["name":part_name,
+			target_partitions = add ( target_partitions, $["name":part_name,
 									"used":0,
 									"free":free_size,
-									"format":lookup( part, "format", false ),
-									"region":lookup( part, "region", [] ),
-									"used_fs":lookup( part, "used_fs", `unknown )  ] );
+									"format":part["format"]:false,
+									"region":part["region"]:[],
+									"used_fs":part["used_fs"]:`unknown ] );
+		    }
 
-		      }
+		}
+	    }
+	} ); // foreach (`part)
+        } ); // foreach (`disk)
 
-		  }
-	      }
-	  } );
-      } );
+	y2debug( "get_partition_info: %1", target_partitions );
 
-      y2debug( "get_partition_info: %1", target_partitions );
-
-      return ( target_partitions );
-  };
+	return ( target_partitions );
+    };
 
 
     /**
@@ -221,7 +225,7 @@
 	partition = SCR::Read(.run.df);
 
 	// filter out headline and other invalid entries
-	partition = filter( `part, partition, ``( substring ( lookup( part, "name", "" ), 0, 1 ) == "/" ) );
+	partition = filter( `part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
 	list part_input = [];
@@ -234,7 +238,7 @@
 	    string partName = "";
 	    boolean add_part = true;
 
-	    string mountName = lookup( part, "name", "" );
+	    string mountName = part["name"]:"";
 
 	    if ( target != "/" )
 	    {
@@ -277,9 +281,9 @@
 
 	    if ( add_part )
 	    {
-		change ( part_info, "used",  tointeger(lookup( part, "used", 0 )) );
+		change ( part_info, "used",  tointeger(part["used"]:0) );
 
-		free_size = tointeger(lookup( part, "free", 0));
+		free_size = tointeger(part["free"]:0);
 		spare_size = (free_size*spare_percentage)/100;
 
 		if ( spare_size < min_spare )
@@ -313,22 +317,22 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-        list p_info = SCR::Read(.package.diskSpace, partition_info );
+	list p_info = Pkg::CheckSpace(partition_info);
 	integer used = 0;
 
 	y2debug("partition: %1", p_info );
 
 	string message = "";
 	foreach( `par, p_info,
-		 ``{
-	    if ( lookup( par, "free", 0 ) < 0 )
+	``{
+	    if ( par["free"]:0 < 0 )
 	    {
-		integer needed = lookup (par, "free", 0) * -1;
+		integer needed = par["free"]:0 * -1;
 		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
 		message = message + sformat ( _("Partition \"%1\" needs %2 more disk space."),
-					      lookup ( par, "name", "" ), size_text(needed*1024) ) + "\n";
+					      par["name"]:"", size_text(needed*1024) ) + "\n";
 	    }
-	    used = used + lookup( par, "used", 0 );
+	    used = used + par["used"]:0;
 	} );
 
 	y2debug( "Total used space: %1", used*1024 );
@@ -364,14 +368,14 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-        list p_info = SCR::Read(.package.diskSpace, partition_info );
+	list p_info = SCR::Read(.package.diskSpace, partition_info );
 	integer used = 0;
 
 	if ( initialize )
 	{
 	    foreach( `part, partition_info,
-		``{
-		used = used + lookup( part, "used", 0 );
+	    ``{
+		used = used + part["used"]:0;
 	    } );
 
 	    initial_used = used;	// store initial value for used space
@@ -382,8 +386,8 @@
 	else
 	{
 	    foreach( `part, p_info,
-		``{
-		used = used + lookup( part, "used", 0 );
+	    ``{
+		used = used + part["used"]:0;
 	    } );
 	    y2debug( "USED: %1", used );
 
@@ -406,22 +410,23 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-        list p_info = SCR::Read(.package.diskSpace, partition_info );
+	list p_info = Pkg::CheckSpace ( partition_info );
+
 	integer used = 0;
 
 	y2debug("partition: %1", p_info );
 
 	string message = "";
 	foreach( `par, p_info,
-		 ``{
-	    if ( lookup( par, "free", 0 ) < 0 )
+	``{
+	    if ( par["free"]:0 < 0 )
 	    {
-		integer needed = lookup (par, "free", 0) * -1;
+		integer needed = par["free"]:0 * -1;
 		y2warning("Partition \"%1\" needs %2 more disk space.",
-			  lookup ( par, "name", "" ), size_text(needed*1024) );
+			  par["name"]:"", size_text(needed*1024) );
 		fit = false;
 	    }
-	    used = used + lookup( par, "used", 0 );
+	    used = used + par["used"]:0;
 	} );
 
 	y2debug( "Total used space: %1", used*1024 );
