@@ -19,6 +19,7 @@
     import "Arch";
     import "Installation";
     import "InstMedia";
+    import "Mode";
     import "MediaUI";
     import "Packages";
 
@@ -44,11 +45,11 @@
 	{
 	    if (Args(arg_n) == .test)
 	    {
-		Installation::test_mode = true;
+		Mode::test = true;
 	    }
 	    else if (Args(arg_n) == .testp)
 	    {
-		Installation::test_mode = true;	// .testp implies .test
+		Mode::test = true;	// .testp implies .test
 		test_popup = true;
 	    }
 	    else if (is (Args(arg_n), string))
@@ -69,7 +70,7 @@
 	    arg_n = arg_n - 1;
 	}
 
-	y2debug("Testmode %1, Testpopup %2", Installation::test_mode, test_popup );
+	y2debug("Testmode %1, Testpopup %2", Mode::test, test_popup );
 	y2milestone("ARGLIST %1", arg_list);
 
 	return arg_list;
@@ -300,7 +301,7 @@ do this.</P>
 	}
     }
 
-    if ( Installation::test_mode )
+    if ( Mode::test )
     {
 	infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
 	dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
@@ -318,7 +319,7 @@ do this.</P>
 
     y2milestone("SW_SINGLE infopath: %1", infopath );
 
-    if ( !Installation::test_mode )
+    if ( !Mode::test )
     {
 	// removing old logging
 	SCR::Execute (.target.bash, "/bin/rm -f /var/log/y2logRPM*");
@@ -352,7 +353,7 @@ do this.</P>
 
 	    map version_map = $[];
 
-	    if ( !Installation::test_mode )
+	    if ( !Mode::test )
 	    {
 		version_map = Execute (.package.compareSuSEVersions, "");
 	    }
