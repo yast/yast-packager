@@ -131,7 +131,7 @@
 	map targets = Storage::GetTargetMap();
 	if ( Mode::test )
 	{
-	    targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
+	    targets = SCR::Read(.target.yast2, "test_target_map.ycp");
 	}
 
 	list(map) target_partitions = [];
