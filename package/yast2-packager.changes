@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sat Mar 15 22:45:12 CET 2003 - kkaempf@suse.de
+
+- don't call SpaceCalculation::GetPartitionInfo() at runtime,
+  yast2-packagemanager does it itself (#23544)
+- 2.7.31
+
+-------------------------------------------------------------------
 Sat Mar 15 19:43:44 CET 2003 - kkaempf@suse.de
 
 - fix typo in widget type

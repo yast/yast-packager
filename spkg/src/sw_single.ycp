@@ -202,9 +202,6 @@
     {
 	if (size (packagelist) == 0)			// packages given ?
 	{
-	    import "SpaceCalculation";
-	    SpaceCalculation::GetPartitionInfo();	// initialize the DU calculation
-
 	    result = WFM::CallFunction( `inst_packages ());	// No: ask user via package selection widget
 	    y2milestone ("inst_packages returns %1", result);
 	    if (result == `accept)
@@ -227,8 +224,6 @@
 	    }
 	    else
 	    {
-		import "SpaceCalculation";
-		SpaceCalculation::GetPartitionInfo();	// initialize the DU calculation
 		result = WFM::CallFunction( `inst_packages ());	// Ask user if conflicts
 		y2milestone ("inst_packages returns %1", result);
 		if (result == `accept)
