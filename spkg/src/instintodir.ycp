@@ -1,0 +1,100 @@
+/**
+ * Module:		instintodir.ycp
+ *
+ * Authors:		Ludwig Nussel <lnussel@suse.de>
+ *
+ * Purpose:		Install packages from currently active
+ *			sources into a directory
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+    import "Mode";
+    // FIXME: workaround for target init in Product.ycp
+    Mode::config = true;
+    import "Product";
+    Mode::config = false;
+    import "Installation";
+    import "Popup";
+
+    integer pos = 0;
+    integer numargs = size(WFM::Args());
+    string rootdir = "";
+    list arg_list = [];
+    if( numargs > 0)
+    {
+	if(WFM::Args(0) == "--help")
+	{
+	    Popup::Message("Parameters:\n"
+		+ "  /where/to/install\n");
+	    return 0;
+	}
+	else
+	{
+		Installation::destdir = WFM::Args(0);
+	}
+
+	integer arg_n = size (WFM::Args()) - 2;
+
+	while (arg_n >= 0)
+	{
+	    if (is (WFM::Args(arg_n+1), string))
+	    {
+		arg_list = add (arg_list, WFM::Args(arg_n+1));
+	    }
+	    else if (is (WFM::Args(arg_n), list))
+	    {
+		foreach (`arg, WFM::Args(arg_n+1), ``{ arg_list = add (arg_list, arg);});
+	    }
+	    arg_n = arg_n - 1;
+	}
+    }
+
+    if(Installation::destdir == "" || Installation::destdir == "/")
+    {
+	    Popup::Message (_("you need to specify a root directory != /"));
+	    return false;
+    }
+
+    if(Pkg::TargetInit (Installation::destdir,true) != true)
+    {
+	    if(Popup::ContinueCancel(_("initializing the target directory failed")) == false)
+	    {
+	      return 1;
+	    }
+    }
+
+    SCR::Execute(.target.mkdir,Installation::destdir+"/var/log/YaST2");
+    SCR::Execute(.target.mkdir,Installation::destdir+"/etc");
+
+    boolean newsystem = SCR::Read (.target.size, Installation::destdir+"/dev/null") < 0;
+
+    y2milestone("#####");
+
+    if(WFM::CallFunction( `sw_single(arg_list)) != `next)
+    {
+      Popup::Message(_("Software installation failed"));
+      return `failed;
+    }
+
+    if(newsystem)
+    {
+      boolean ret = Popup::YesNo(_("Run YaST/SuSEconfig on first boot?"));
+      if(ret == true)
+      {
+	SCR::Execute(.target.mkdir,Installation::destdir+"/var/lib/YaST2");
+	SCR::Execute(.target.bash,"/usr/bin/touch "+Installation::destdir+"/var/lib/YaST2/runme_at_boot");
+      }
+
+      if(SCR::Read (.target.size, Installation::destdir+"/usr/sbin/chpasswd") > 0)
+      {
+	boolean ret = Popup::YesNo(_("Set rootpassword to \\n?"));
+	if(ret == true)
+	{
+	  SCR::Execute(.target.bash,"echo root: | /usr/bin/chroot "+Installation::destdir+" /usr/sbin/chpasswd");
+	}
+      }
+    }
+}
