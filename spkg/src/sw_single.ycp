@@ -307,7 +307,7 @@ do this.</P>"));
 
       part_input = add( part_input, part_info );
   });
-  _debug( "SW: partition input: ", part_input ); 
+  _debug( "SW_SINGLE: partition input: ", part_input ); 
    
   
   /*
@@ -352,7 +352,7 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
       else			// mount ok on previos media -> skip inst_source
       {
 	  string postfix =  substring( Args(0), size(Args(0))-4 );
-	  _debug("POSTFIX: ", postfix );
+	  _debug("SW_SINGLE: POSTFIX: ", postfix );
 	  
 	  if ( Args(0) != "beginner" && postfix == ".rpm" )
 	  {
@@ -417,22 +417,25 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 					      "forceInit":true]		// force initialisation
 
 					     ));
-	  _debug( "SW: Return  PKGINFO(`setEnvironment()", retval );	
+	  _debug( "SW_SINGLE: Return  PKGINFO(`setEnvironment()", retval );	
 
 	  UI(`CloseDialog());
-	      
-	  _debug("SW: VERSION: ", PKGINFO (`compareSuSEVersions()));
 
-	  if ( lookup( PKGINFO (`compareSuSEVersions()), "installedGreater", false ) )
+	  map version_map = PKGINFO (`compareSuSEVersions() );
+	  
+	  if ( lookup( version_map, "installedGreater", false ) )
 	  {
 	      if ( IsRemountable() )
 	      {
 		  SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
 	      }
+	      string versions = sformat( UI(_("Installed version: %1\n")), lookup( version_map, "installedVersion","" )) +
+		  sformat( UI(_("Version on source media: %1\n")), lookup( version_map, "updateVersion","" ));
+	      _debug( "SW_SINGLE: ", versions );
 	      
 	      UI(`DisplayMessage(_("The version of SuSE distribution on source media
 must NOT be older than the installed one.
-Please insert actual CD or specify path of actual sources.")));
+Please insert actual CD or specify path of actual sources.")) );
 
 	      // continue with inst_source
 	      id = 0;
@@ -561,7 +564,7 @@ Please insert actual CD or specify path of actual sources.")));
 	  // _debug ( "Writing delete_info: ", delete_info );
 	  user_settings = add ( user_settings , "delete_info", delete_info );
 
-	  _debug( "SW: Usersettings: ", user_settings );
+	  _debug( "SW_SINGLE: Usersettings: ", user_settings );
 
 	  if ( install_info != [] || delete_info != [] )
 	  {
