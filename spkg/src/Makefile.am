@@ -4,13 +4,13 @@
 
 modulesdir = $(YAST2DIR)/clients
 menudir = $(YAST2DIR)/menuentries
-includedir = $(YAST2DIR)/include
+yincludedir = $(YAST2DIR)/include
 
 modules_SCRIPTS = sw_single.ycp
 
 menu_SCRIPTS = menuentry_sw_single.y2cc	\
 		menuentry_sw_source.y2cc
 
-include_DATA = require.ycp
+yinclude_DATA = require.ycp
 
-EXTRA_DIST = $(modules_SCRIPTS) $(menu_SCRIPTS) $(include_DATA)
+EXTRA_DIST = $(modules_SCRIPTS) $(menu_SCRIPTS) $(yinclude_DATA)
