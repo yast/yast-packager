@@ -1,9 +1,4 @@
 -------------------------------------------------------------------
-Wed Sep 03 11:25:42 CEST 2003 - arvin@suse.de
-
-- install irqbalance on smp amd64 systems (bug #29885)
-
--------------------------------------------------------------------
 Tue Sep  2 11:29:42 CEST 2003 - kkaempf@suse.de
 
 - add code to ask for front or back side of a media (unfinished).
