@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  9 13:06:55 CEST 2003 - kkaempf@suse.de
+
+- install 'cpufreqd' on laptops and
+  single-processor AMD64 systems.
+
+-------------------------------------------------------------------
 Mon Sep 08 15:55:27 CEST 2003 - arvin@suse.de
 
 - sync rpm database

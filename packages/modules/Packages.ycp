@@ -56,6 +56,7 @@
 	    packages = add (packages, "apmd");
 	    packages = add (packages, "scpm");
 	    packages = add (packages, "irda");
+	    packages = add (packages, "cpufreqd");
 	}
 
 	// check for blinux and add package
@@ -131,6 +132,21 @@
 		packages = add (packages, "fpswa");
 	}
 
+	// add cpufreqd on single-processor AMD64 systems (even in 32bit mode)
+
+	if (!Arch::has_smp
+	    && (Arch::i386 || Arch::x86_64))
+	{
+	    map cpu = select (SCR::Read (.probe.cpu), 0, $[]);
+	    integer cpu_family = cpu["family"]:0;
+
+	    if ((cpu["vendor"]:"" == "AuthenticAMD")
+		&& (cpu_family >= 15))
+	    {
+		y2milestone ("AMD64 cpu, add cpufreqd");
+		packages = add (packages, "cpufreqd");
+	    }
+	}
 	return packages;
     }
 
@@ -362,8 +378,7 @@
 	    }
 
 
-	    // get all base selections
-	    // and sort them by reverse order
+	    // get all base selections, and sort them by reverse order (highest ordered first)
 	    list available_base_selections = sort (`x, `y, Pkg::GetSelections (`available, "base"),
 		``{
 			map xmap = Pkg::SelectionData(x);
