@@ -24,6 +24,7 @@
     import "Kernel";
     import "Wizard";
     import "Popup";
+    import "GetInstArgs";
 
     list<string> packagelist = [];		// list of packages to install
 
@@ -253,7 +254,7 @@
 	       // prepare "you must boot" popup in inst_suseconfig
 	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
 
-	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [false, false]);
+	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
 	   }
        }
    } while ( ask && Popup::AnyQuestion( Popup::NoHeadline(),
