@@ -103,6 +103,8 @@ global boolean ReadSources()
     return true;
 }
 
+/*
+ * Disabled for now
 global list<map> ReadSLPSources() {
     import "SLP";
     list<map> _slp_sources = SLP::FindSrvs("service:install.suse", "");
@@ -116,6 +118,7 @@ global list<map> ReadSLPSources() {
 
     return _slp_sources;
 }
+*/
 
 /**
  * Read all source-manager settings
@@ -166,7 +169,7 @@ global boolean Read() {
     /* Progress finished */
     Progress::NextStage();
 
-    slp_sources = ReadSLPSources();
+    // slp_sources = ReadSLPSources();
     
     y2debug ("slp sources: %1", slp_sources);
 
