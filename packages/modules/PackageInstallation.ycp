@@ -63,8 +63,7 @@
 	SlideShow::InitPkgData();
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
-	Pkg::PkgAnyToDelete();
-	Pkg::PkgAnyToInstall();
+
 	// returns [ int successful, list failed, list remaining ]
 	list commit_result = Pkg::PkgCommit (media_number);
 
