@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 28 23:31:26 CEST 2002 - kkaempf@suse.de
+
+- drop InstMedia, it's all in packagemanager now
+- 2.6.17
+
+-------------------------------------------------------------------
 Tue Aug 27 18:09:06 CEST 2002 - kkaempf@suse.de
 
 - fix installation workflow to properly report progress
