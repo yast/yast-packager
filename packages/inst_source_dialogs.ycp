@@ -314,7 +314,9 @@
             )
         );
 
-        UI::ChangeWidget( `id( `dir ), `Value, url );
+        UI::ChangeWidget( `id( `dir ), `Value, default );
+
+        string url = "";
 
         repeat
         {

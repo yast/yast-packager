@@ -355,10 +355,16 @@ to specify username, password and workgroup.") ),
         if ( url != "" )
         {
 //            UI::MessagePopup( sformat( "URL: %1", url ) );
-            Pkg::SourceCreate( url );
-            // FIXME: Check for errors
-
-            fillTable();
+            integer id = Pkg::SourceCreate( url );
+            if ( id == nil )
+            {
+                UI::ErrorPopup( sformat( _("Unable to create installation source
+from URL '%1'."), url ) );
+            }
+            else 
+            {
+                fillTable();
+            }
         }
     }
 
