@@ -105,7 +105,12 @@
     // make showLongInfo module-global so it gets remembered (cf. #14018)
     boolean showLongInfo = false;
 
+    //-------------------------------------------------------------------------
+    //
     // media change callback
+    //
+    // if current == -1, show "Ignore"
+    //
     // return "" for ok, retry
     // return "E" for eject media
     // return "I" for ignore bad media
@@ -129,9 +134,11 @@
 	// currently unused
 	string media_prompt =_("The correct source medium could not be mounted.");
 
-	button_box = `HBox(
+	if (current == -1)			// wrong media id, offer "Ignore"
+	{
+	    button_box = `HBox(
 			   `PushButton(`id(`retry), `opt(`default), OKButtonLabel() ),
-			   `PushButton(`id(`ignore), ContinueButtonLabel() ),
+			   `PushButton(`id(`ignore), IgnoreButtonLabel() ),
 			   `PushButton(`id(`cancel), AbortButtonLabel() ),
 			   // push button label during media change popup, user can skip
 			   // this media (CD) so no packages from this media will be installed
@@ -139,6 +146,19 @@
 			   // push button label during media change popup, user can eject the CD/DVD
 			   `PushButton(`id(`eject), _("&Eject"))
 			   );
+	}
+	else
+	{
+	    button_box = `HBox(
+			   `PushButton(`id(`retry), `opt(`default), OKButtonLabel() ),
+			   `PushButton(`id(`cancel), AbortButtonLabel() ),
+			   // push button label during media change popup, user can skip
+			   // this media (CD) so no packages from this media will be installed
+			   `PushButton(`id(`skip), _("&Skip") ),
+			   // push button label during media change popup, user can eject the CD/DVD
+			   `PushButton(`id(`eject), _("&Eject"))
+			   );
+	}
 
 	if ( showLongInfo )
 	{
