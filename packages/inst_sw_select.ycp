@@ -93,8 +93,7 @@ systems that are short on disk space or memory.
 With the <b>Minimum graphical system</b>, install the SuSE Linux
 base system and all packages required for X11, the Graphical User
 Interface (GUI).
-You can then work with a simple graphical desktop
-(with 'window maker' as the window manager). </p>
+You can then work with a simple graphical desktop. </p>
 ");
 
     // help text, continued
@@ -296,7 +295,7 @@ You will lose that selection if you change the basic selection.");
 	if ( ret == `details )
 	{
 	    ret = `again;
-	    
+
 	    // add additional (internal) packages, like kernel etc.
 	    Pkg::DoProvide (Packages::ComputeSystemPackageList());
 	    Pkg::PkgSolve();
