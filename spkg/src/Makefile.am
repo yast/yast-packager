@@ -7,6 +7,6 @@ menudir = $(YAST2DIR)/menuentries
 
 modules_SCRIPTS =
 
-menu_SCRIPTS = menuentry_spkg.ycp
+menu_SCRIPTS = menuentry_sw_single.ycp
 
 EXTRA_DIST = $(modules_SCRIPTS) $(menu_SCRIPTS)
