@@ -7,7 +7,9 @@ AM_CXXFLAGS = -DY2LOG=\"agent-package\"
 PACKAGE = ag_package
 AUTOMAKE_OPTIONS = dejagnu
 
-INCLUDES = -I$(includedir)
+INCLUDES =					\
+	-I$(top_srcdir)/libpkg/src/include	\
+	-I$(includedir)
 
 noinst_PROGRAMS = runag_package
 

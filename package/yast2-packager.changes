@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 03 13:24:35 CEST 2002 - arvin@suse.de
+
+- merged yast2-agent-package and yast2-agent-targetpkg
+
+-------------------------------------------------------------------
 Mon Jul 01 18:30:26 CEST 2002 - arvin@suse.de
 
 - fixed linking on lib64 archs
