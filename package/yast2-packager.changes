@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 10 10:17:48 CEST 2004 - jsrain@suse.cz
+
+- report if invalid source media location was entered (if media of
+  other type than UnitedLinux is found) and ask user before adding
+  such source (#43421)
+
+-------------------------------------------------------------------
 Thu Jul 29 19:56:16 CEST 2004 - nashif@suse.de
 
 - Remove Mode::live_eval
