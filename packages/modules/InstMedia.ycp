@@ -167,6 +167,7 @@
 	}
 
 	url = url + "://";
+
 	string username = SCR::Read (.etc.install_inf.Username);
 	if ((username != nil) && (username != ""))
 	{
@@ -221,7 +222,7 @@
 
 	if (options != "")
 	{
-	    url = url + options;
+	    url = url + ";" + options;
 	}
 	y2milestone ("URL %1", url);
 	return url;

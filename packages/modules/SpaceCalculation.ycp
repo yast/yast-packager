@@ -111,7 +111,8 @@
 	integer spare_percentage  = 14;   // percentage of free spare space on every partition
 	integer min_spare 	= 2048; // minimum free space ( 2 MB )
 
-	foreach( `disk, `diskinfo, targets, ``{
+	foreach( `disk, `diskinfo, targets,
+	``{
 
 	    list part_info = diskinfo["partitions"]:[];
 
