@@ -1,1 +1,0 @@
-CallModule("spkg", [ "get_menuentry" ])
