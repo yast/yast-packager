@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb  5 12:06:36 CET 2002 - gs@suse.de
+
+- bugfix for calling sw_single with an inputfile 
+
+-------------------------------------------------------------------
 Mon Feb  4 15:30:57 CET 2002 - gs@suse.de
 
 - internal changes: remove obsolete variables 
