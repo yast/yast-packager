@@ -137,7 +137,9 @@ from URL '%1'."), url );
 		    `HWeight( 1, `PushButton( `id(`delete), deleteButtonLabel ) ),
 		    `HStretch(),
 		    `HWeight( 1, `PushButton( `id(`up), upButtonLabel ) ),
-		    `HWeight( 1, `PushButton( `id(`down), downButtonLabel ) ),
+		    `HWeight( 1, `PushButton( `id(`down), downButtonLabel ) )
+              ),
+              `HBox(
 		    `HStretch(),
 		    `PushButton(`id(`enable), enableButtonLabel )
 		    ),
