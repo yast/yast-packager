@@ -1,0 +1,10 @@
+Makefile
+Makefile.in
+site.exp
+*.sum
+*.log
+tmp.out*
+tmp.err*
+tmp.log*
+config
+*.test
