@@ -25,6 +25,7 @@ Summary:	-
 @yncludedir@
 @clientdir@/*.ycp
 @moduledir@/*.ycp
+@configdir@/*.y2cc
 @scrconfdir@/*.scr
 @plugindir@/*.so.*
 @execcompdir@/servers_non_y2/*
