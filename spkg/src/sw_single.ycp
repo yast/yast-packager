@@ -5,75 +5,26 @@
  */
 
 {
-  Include( `package_utils() );
-  
   // Menuentry for the YaST2 menu
   if (Args() == [ "get_menuentry" ]) 
       return [ 
 	      "sw_single", $[
-			     `menuentry    : UI(_("Install/Remove packages")),
-			     `arguments    : [ ],
-			     `widget       : `RichText(
+			     "menuentry"    : UI(_("Install/Remove packages")),
+			     "arguments"    : [ ],
+			     "widget"       : `RichText(
 						       UI(_( "<P>Launch this module to install additional packages or
 remove installed ones.
 For installing commercial software also launch this module and select
 set 'pay' from list of package sets.
 </P>
+Please insert <b>CD 1</b> before proceeding.
 <P>You need to be logged in as <i>root</i> in order to
 do this.</P>"))),
-			     `codefragment : nil ]
+			     "codefragment" : nil ]
       ];
 
   UI(``{
-      /**
-       * Create a typical installation wizard dialog.
-       */
-      OpenDialog(
-		 `opt(`defaultsize),
-		 `VBox(
-		       `ReplacePoint( `id(`image ), `Image( `suseheader, "SuSE") ),
-		       `HBox(
-			     `HWeight( 30, `ReplacePoint( `id(`helpSpace), `RichText(`id(`help), ""))),
-			     `HSpacing(1),
-			     `HWeight( 70, `VBox(
-						 `VSpacing(0.2),
-						 `Left(`Heading(`id(`title), _("YaST2\nInitializing ..."))),
-						 `HVCenter(`ReplacePoint(`id(`contents), `Empty())),
-						 `HBox(
-						       // "back" button: Return to the previous dialog
-						       `PushButton(`id(`back), _("&Back")),
 
-						       `HCenter(
-								// "abort" button: The installation will be aborted
-								`ReplacePoint( `id(`rep_abort), `PushButton(`id(`abort), _("&Abort Installation")))
-								),
-
-						       // "next" button: Proceed to the next dialog
-						       `ReplacePoint( `id(`rep_next), `PushButton(`id(`next), _("&Next")) )
-						       ),
-						 `VSpacing(0.2)
-						 )
-				       ),
-			     `HSpacing(1)
-			     )
-		       )
-                 );
-
-
-      /*
-       * Define how the general framework for the installation wizard should
-       * look like. This Macro creates and show a dialog.
-       */
-      define SetWizardContents(string title, term contents, string helptext,
-			       boolean has_back, boolean has_next) ``{
-	  ChangeWidget(`id(`back), `Enabled, has_back);
-	  ChangeWidget(`id(`next), `Enabled, has_next);
-	  ChangeWidget(`id(`help), `Value, helptext);
-	  ChangeWidget(`id(`title), `Value, title);
-	  ReplaceWidget(`id(`contents), contents);
-	  SetFocus( `id(`next) );
-      };
-      
       define size_text (integer bytes) ``{
 	  float whole = tofloat (bytes) / 1024.0;
 	  // KiloByte abbreviated
@@ -217,6 +168,40 @@ do this.</P>"))),
 
   });
 
+    
+  // mount CD 
+
+  define MyChangeCD(integer cdnum) ``{
+      boolean ret = true;
+      
+      Shell ("/bin/mount /dev/cdrom /var/adm/mount");
+	
+      integer|void actcdnum = nil;
+      while (true) {
+	  // reading /cdrom/.S.u.S.E-disk-001.2000032902 file
+	  actcdnum = SCR(`Read(.yast2.instsource.cdnum));
+	  if (actcdnum == cdnum) return true;
+	  else {
+	      Shell ("/bin/umount /var/adm/mount");
+
+	      // advise user to insert the right CD
+	      string message = sformat(UI(_("Please insert CD %1.")), cdnum);
+	      if (is(actcdnum, integer)) 
+		  // inform user about current CD
+		  message = sformat(UI(_("%1\nCurrently CD %2 is inserted.")), message, actcdnum);
+
+	      ret = UI(`ContinueCancel(message, _("&OK"), _("&Cancel")) );
+
+	      if ( ret == false )
+		  break;
+	      else
+		  Shell ("/bin/mount /dev/cdrom /var/adm/mount");
+	  }
+      }
+
+      return ret;
+  };
+
   // map user_settings contains:
   // - install_info -> module inst_rpmcopy
   // - delete_info  -> module inst_rpmcopy
@@ -260,6 +245,13 @@ do this.</P>"))),
   user_settings = add( user_settings, "language", language );
   user_settings = add( user_settings, "continue_mode", false );
   user_settings = add( user_settings, "post_install", true );
+
+  map installMap = $[];
+
+  installMap = add (installMap, "bootmode", "CD" );
+  installMap = add (installMap, "cdrom", "cdrom" );
+
+  user_settings = add( user_settings, "installMap", installMap );
   
   // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
   // user_settings = add(user_settings, "test_mode", true );
@@ -269,25 +261,34 @@ do this.</P>"))),
   // Initialize PKGINFO server
   //
 
-  string architecture = SCR(`Read(.probe.architecture));
-  user_settings = add (user_settings, "architecture", architecture );
+  // mount CD 1 BEFORE initializing pkginfo-Server
+  // (needed to get commom.pkd)
+
+  boolean go_on = MyChangeCD(1);
+
+  if ( !go_on )
+  {
+      // quit dialog
+      return `cancel;
+  }
   
-  // Initialisation of pkginfo in post_install mode -> inst_s390net
+  string infopath =  "/var/adm/mount/suse/setup/descr";
+  string dudir = "/var/adm/mount/suse/setup/du/du.dir";
 
   list partition = [];
-
 
   // get information about diskspace ( used/free space on every partition )
   partition = SCR( `Read(.run.df ) );
   
   _debug ( "DF DF DF: ", partition );
 
+ 
   // filter out headline and other invalid entries 
   partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
 
   // pkginfo expects names of partitions without "/" in front ( exception: "/" itself ) 
   list part_input = [];
-
+  
   foreach( `part, partition, ``{
       map part_info = $[];
       if ( lookup( part, "name" ) != "/" )
@@ -305,44 +306,11 @@ do this.</P>"))),
   });
 
   _debug( "SW: part_input: ", part_input ); 
-
-  /*
-   * main dialog loop
-   */
+   
+  UI(`OpenDialog(`opt(`decorated ),`Label(_("One moment please..."))));
   
-  list dialog = [
-                ``CallFunction (`inst_source( false, true ) ),
-		``CallFunction (`inst_sw_single( `post_install, `not_only_checked, part_input ) ),
-                ``CallFunction (`inst_rpmcopy( false, false ) ),
-		``CallFunction (`inst_suseconfig( false, false ) )
-  ];
-
-  integer id = 0;
-  any result = `next;
-
-  while ((id >= 0) && (id < size (dialog))) {
-
-      if ( id == 1 )
-      {
-	  // mount CD 1 BEFORE initializing pkginfo-Server
-	  // (needed to get commom.pkd)
-	  map resMap = ChangeCD( 1, architecture);
-	  boolean go_on = lookup ( resMap, "success", false );
-
-	  if ( !go_on )
-	  {
-	      // quit dialog
-	      UI( `CloseDialog() );      
-	      return `cancel;
-	  }
-
-	  string instSource = GetInstSource(1);
-	  string infopath =  instSource + "setup/descr";
-	  string dudir = instSource + "setup/du/du.dir";
-	  
-	  UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
-	  
-	  any retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
+  // Initialisierung
+  any retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
 					  "language":long_language,  "dudir":dudir,
 					  "partition":part_input, "rootpath":"/",
 					  "yastpath":"/var/lib/YaST",
@@ -350,54 +318,128 @@ do this.</P>"))),
 					  "memoptimized":true]
 					 ));
 
-	  UI(`CloseDialog());	  
+  _debug( "SW: Return  PKGINFO (`setEnvironment()", retval );
+   
+  PKGINFO( `setDebugLevel(3) );
 
-	  _debug( "SW: Return  PKGINFO (`setEnvironment()", retval );
-      }
+  UI( `CloseDialog() );
 
+  
+  any ret_single = `ok;
+
+  if ( size(Args() ) > 0 )
+  {
+      // There could be a list of packages which have to be installed.
+      // ( Defined in an ascii-file, which path is given via argument. )
+      string pathname = Args(0);
+      y2log ( .milestone, "sw_single", 1,
+	      sformat ( "Reading file %1", pathname ) );
+
+      map|any installMap = Read ( pathname );
+      y2log ( .milestone, "sw_single", 2,
+	      sformat ( "installMap: %1", installMap ) );
       
-    result = eval(select(dialog, id));
 
-    _debug ( "RESULT: ", select(dialog, id), result );
-    
-    if (result == `cancel || result == `abort)
-      break;
-    if (result == `auto)
-	break;			// break here (last module inst_suseconfig returns `auto)
-    else if (result == `next )		
-      id = id + 1;
-    else if (result == `ok )	// inst_sw_single returns `ok
-    {
-	 // setting user_setting.install_info for packages which have to be installed
+      if ( installMap == nil || size ( installMap ) == 0 )
+      {
+	 string message = UI(_("Error while reading onfiguration-file."));
+         UI(`DisplayMessage(message));
+	 ret_single = `cancel;
+      }
+      else
+      {
+	  list installList = lookup ( installMap, "install", [] );
+	  list deleteList = lookup ( installMap, "delete", [] );
+	  boolean userInput = lookup ( installMap, "userInput", false );
+
+	  y2log ( .milestone, "sw_single)", 2,
+		  sformat ( "installList: %1", installList ) );
+	  y2log ( .milestone, "sw_single)", 2,
+		  sformat ( "deleteList: %1", deleteList ) );
+	  y2log ( .milestone, "sw_single)", 2,
+		  sformat ( "userInput: %1", userInput ) );
+
+	  
+	  foreach( `package, installList, ``{
+	      any r = PKGINFO( `selectInstall( package ));
+	      _debug( "PKGINFO selectInstall: ", package );
+	  } );           
+
+	  foreach( `package, deleteList, ``{
+	      any r = PKGINFO( `selectDelete( package ) );
+	      _debug( "PKGINFO selectDelete: ", package );
+	  } );
+	       
+	  // Checking dependecies
+	  map pac_depends = PKGINFO(`getDependencies());
+	   
+	  list(map) or_depends = lookup( pac_depends, "OR" );
+	  _debug( "OR Dependencies:", or_depends );
+	  list(map) xor_depends = lookup( pac_depends, "XOR" );
+	  _debug( "XOR Dependencies:", xor_depends );
+
+	  if ( userInput == true )
+	  {
+	      ret_single = CallFunction( `inst_sw_single( `post_install,
+							  `not_only_checked,
+							  part_input ) );
+	  }
+	  else
+	  {
+	      if ( or_depends != [] || xor_depends != [] )
+	      {
+		  // There is an unresolved dependency -> call
+		  // single-package-selection to solve it.
+		  ret_single = CallFunction( `inst_sw_single( `post_install,
+							      `only_check,
+							      part_input) );
+	      }
+	  }
+      }
+  }
+  else
+  {
+      // Calling inst_sw_single
+      ret_single = CallFunction( `inst_sw_single( `post_install,
+					      `not_only_checked,
+					      part_input ) );
+  }
+  
+  _debug( "SW: Return inst_sw_single ", ret_single );
+
+  any ret_rpm = nil;
+  
+  if ( ret_single == `ok )
+  {
+      // setting user_setting.install_info for packages which have to be installed
       list install_info =  PKGINFO ( `getInstallSet() );
-      // _debug ( "Writing install_info: ", install_info );
+      y2log ( .milestone,"sw_single",4,
+	      sformat( "Writing install_info :%1 ", install_info ) );
       user_settings = add ( user_settings , "install_info", install_info );
 
       list delete_info =  PKGINFO ( `getDeleteSet() );
-      // _debug ( "Writing delete_info: ", delete_info );
+      y2log ( .milestone,"sw_single",4,
+	      sformat( "Writing delete_info: %1 ", delete_info ));
       user_settings = add ( user_settings , "delete_info", delete_info );
 
       _debug( "SW: Usersettings: ", user_settings );
 
       if ( install_info != [] || delete_info != [] )
       {
-	 id = id + 1;  
-      }
-      else
-      {
-	  _debug( "Nothing selected" );
-      }
-    }
-    else if (result == `back || result == `cancel_single )	
-      id = id - 1;
+	  // remove old logging
+	  Shell ( "rm /var/log/y2logRPM*" );
+	  // start installation
+	  ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
 
+	  if ( ret_rpm  == `next )
+	  {
+	      CallFunction( `inst_suseconfig (false, false) );
+	  }
+      }
   }
 
-  UI( `CloseDialog() );
-
-  // umount
-  
+  // umount CD
   Shell ("/bin/umount /var/adm/mount");
-
+  
   return `next;
 }
