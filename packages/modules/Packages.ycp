@@ -171,10 +171,9 @@
 
 	if (Mode::vnc)
 	{
-	    packages = add (packages, "vnc");
+	    packages = add (packages, "tightvnc");
 	    packages = add (packages, "yast2-qt");
 	    packages = add (packages, "XFree86");
-	    packages = add (packages, "mesasoft");
 	}
 
 	if (Mode::braille)
