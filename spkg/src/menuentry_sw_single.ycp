@@ -37,7 +37,7 @@ set 'pay' from the list of package sets.
       `helptext     : UI(_("Install additional software package or remove installed packages.")),
    
       ////////////////////////////////////////////////////////////////////////////////
-      // leaf nil, experts only ;-)
+      // leave nil, experts only ;-)
       `codefragment : nil 
    
    ]

@@ -39,7 +39,7 @@ packages with this module.
 It is possible to install packages from CD, via the network, or from hard disk.")),
    
       ////////////////////////////////////////////////////////////////////////////////
-      // leaf nil, experts only ;-)
+      // leave nil, experts only ;-)
       `codefragment : nil 
    
    ]
