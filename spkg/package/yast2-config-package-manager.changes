@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 11 13:04:16 MEST 2001 - gs@suse.de
+
+- use UI(`GetLanguage(true)) (bug # 8103) 
+
+-------------------------------------------------------------------
 Tue May  8 15:56:57 MEST 2001 - gs@suse.de
 
 - initial create the Wizard dialog at begin of installation
