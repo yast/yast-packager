@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 21 16:46:34 CEST 2002 - kkaempf@suse.de
+
+- initial switch to new packagemanager.
+- V 2.6.11
+
+-------------------------------------------------------------------
 Mon Aug 12 16:14:01 CEST 2002 - kkaempf@suse.de
 
 - fix /etc/install.inf:InstMode reading.
