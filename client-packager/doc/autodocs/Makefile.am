@@ -1,6 +1,7 @@
 #
-# Makefile.am for packager/doc/autodocs
+# Makefile.am for packager/client-packager/doc/autodocs
 #
+
 htmldir = $(docdir)/packager/autodocs
 html_DATA = \
 	Rpm_Installer.html		\
@@ -14,6 +15,6 @@ CLEANFILES = $(html_DATA)
 
 $(filter-out index.html, $(html_DATA)): index.html
 index.html: $(srcdir)/../../src/*.h
-	cd $(srcdir)/../../src; @ybindir@/ydoc -p @RPMNAME@ *.h
+	cd $(srcdir)/../../src; @ybindir@/ydoc -p client-packager *.h
 	mv -f $(srcdir)/../../src/*.html .
 
