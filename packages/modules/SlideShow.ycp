@@ -1150,8 +1150,8 @@
 			      `HSpacing( 0.5 )
 			      )
 			);
-	UI::ChangeWidget(`id(`back), `Enabled, false );
-	UI::ChangeWidget(`id(`next), `Enabled, false );
+	Wizard::DisableBackButton();
+	Wizard::DisableNextButton();
 	UI::SetFocus(`id(`details_view) );
 	widgets_created = true;
     };
