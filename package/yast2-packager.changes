@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 12 12:28:57 CET 2004 - arvin@suse.de
+
+- fixes for new interpreter
+
+-------------------------------------------------------------------
 Wed Feb 11 16:11:43 CET 2004 - arvin@suse.de
 
 - more control over base selection handling
