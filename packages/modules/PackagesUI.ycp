@@ -19,7 +19,7 @@
     //
     // Popup displays helptext
     //
-    global define DisplayHelpMsg( string headline, term helptext, symbol color, integer vdim ) ``{
+    global define any DisplayHelpMsg( string headline, term helptext, symbol color, integer vdim ) ``{
 
 	term dia_opt = `opt ( `decorated );
 
@@ -32,7 +32,7 @@
 	    dia_opt =  `opt ( `decorated, `infocolor );
 	}
 
-	symbol header = `Empty();
+	term header = `Empty();
 	if ( headline != "" )
 	    header = `Left(`Heading( headline ));
 
@@ -51,7 +51,7 @@
 
 	any r = UI::UserInput();
 	UI::CloseDialog();
-	return (r);
-    };
+	return r;
+    }
 
 }

@@ -25,10 +25,11 @@
     string lastFloppyPath = "packages.usr";
     boolean floppySelected = false;
     boolean savedLaterSelected = false;
+
     //
     // Saving package selections
     //
-    global define savePackageSelection( boolean	saveLater ) ``{
+    global define boolean savePackageSelection( boolean	saveLater ) ``{
 	boolean success	= true;
 	if ( floppySelected && saveLater)
 	{
@@ -46,7 +47,7 @@ Write data to the floppy disk now?
 
 		// mount floppy_path by WFM, so use Execute() and Write()
 
-		if ( WFM::Execute (.local.mount, [StorageDevices::FloppyDevice, floppy_path]) )
+		if ( WFM::Execute (.local.mount, [StorageDevices::FloppyDevice, floppy_path]) == true)
 		{
 		    success = SCR::Write (.package.packageSelections, floppy_path+lastFloppyPath );
 
@@ -125,7 +126,7 @@ If so, is the disk formatted and verified?
     //
     // Loading package selections
     //
-    global define loadPackageSelection( ) ``{
+    global define boolean loadPackageSelection( ) ``{
 	boolean success = true;
 	// text of a popup with 'Yes' and 'No' button
 	if ( Popup::YesNo(_("Do you really want to reset your settings?")))
@@ -145,9 +146,9 @@ Read data from the floppy disk now?
 		{
 		    // mount floppy_path by WFM, so use Execute() and Read()
 
-		    if ( WFM::Execute (.local.mount, [StorageDevices::FloppyDevice, floppy_path]) )
+		    if ( WFM::Execute (.local.mount, [StorageDevices::FloppyDevice, floppy_path]) == true)
 		    {
-			success = SCR::Read (.package.packageSelections, floppy_path+lastFloppyPath );
+			success = (boolean) SCR::Read (.package.packageSelections, floppy_path+lastFloppyPath );
 
 			WFM::Execute (.local.umount, floppy_path);
 
@@ -169,7 +170,7 @@ and that the path name has been written correctly.
 	    else
 	    {
 		// Harddisk
-		success = SCR::Read (.package.packageSelections,
+		success = (boolean) SCR::Read (.package.packageSelections,
 				     Installation::destdir + lastHarddiskPath );
 		if ( !success )
 		{
@@ -191,7 +192,7 @@ Verify that the path name has been written correctly.
     //
     // Saving and Loading package user selections
     //
-    global define SaveLoadSelection( ) ``{
+    global define void SaveLoadSelection( ) ``{
 
 	savedLaterSelected = false;
 
@@ -238,7 +239,7 @@ Verify that the path name has been written correctly.
 
 	while ( true )
 	{
-	    boolean oldDiskSelected = UI::QueryWidget(`id(`harddisk), `Value);
+	    boolean oldDiskSelected = (boolean) UI::QueryWidget(`id(`harddisk), `Value);
 
 	    any ret = UI::UserInput();
 
@@ -247,7 +248,7 @@ Verify that the path name has been written correctly.
 		break;
 	    }
 
-	    if ( UI::QueryWidget(`id(`harddisk), `Value) )
+	    if ( UI::QueryWidget(`id(`harddisk), `Value)  == true)
 	    {
 		floppySelected = false;
 		if ( !oldDiskSelected )
@@ -257,7 +258,7 @@ Verify that the path name has been written correctly.
 		}
 		else
 		{
-		    lastHarddiskPath = UI::QueryWidget(`id(`path), `Value);
+		    lastHarddiskPath = (string) UI::QueryWidget(`id(`path), `Value);
 		}
 	    }
 	    else
@@ -270,7 +271,7 @@ Verify that the path name has been written correctly.
 		}
 		else
 		{
-		    lastFloppyPath = UI::QueryWidget(`id(`path), `Value);
+		    lastFloppyPath = (string) UI::QueryWidget(`id(`path), `Value);
 		}
 	    }
 
