@@ -17,7 +17,9 @@
     import "InstURL";
     import "Kernel";
     import "Mode";
+    import "Label";
     import "Language";
+    import "Popup";
     import "ProductFeatures";
     import "Report";
     import "SlideShow";
@@ -435,7 +437,8 @@
 		list<string> orderlist = splitstring (orderdata, "\n");
 
 		WFM::Execute (.local.mkdir, metadir);
-		foreach (string orderline, orderlist,				// copy all data to ramdisk
+		boolean all_sources_ok = true;
+		orderlist = filter (string orderline, orderlist,				// copy all data to ramdisk
 		``{
 		    if ((orderline != "")
 			&& (substring (orderline, 0, 1) != "#"))
@@ -464,7 +467,23 @@
 			}
 			else
 			{
-			    y2warning ("media doesn't provide %1", orderdir + "/media.1");
+			    y2error ("media doesn't provide %1", orderdir + "/media.1");
+			    if (Popup::AnyQuestion (
+//				Popup::NoHeadline(),
+				_("Reading Media Description Failed"),
+				sformat (
+_("Cannot read media description for %1.
+Packages from this media cannot be installed."), orderdir),
+				Label::IgnoreButton (),
+				Label::AbortButton (),
+				`cancel))
+			    {
+				return false;
+			    }
+			    else
+			    {
+				all_sources_ok = false;
+			    }
 			}
 
 			// content
@@ -506,7 +525,9 @@
 				WFM::Execute (.local.bash, "/bin/rmdir " + slidedir);
 			    }
 			}
+			return true;
 		    }
+		    return false;
 		});
 
 		// ok, all data copied from the install media, release and delete it
@@ -515,6 +536,13 @@
 		Pkg::SourceSetRamCache (true);
 
 		metadir_used = true;
+
+		// cancel initialization if some of the source is missing
+		if (! all_sources_ok)
+		{
+		    y2error ("Unable to initialize all installation sources");
+		    return;
+		}
 
 		// now restart the whole stuff from the metadata in the ramdisk and create
 		// the *real* sources
