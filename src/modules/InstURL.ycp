@@ -130,6 +130,12 @@
 
 	if (is_network)
 	{
+            // broken in linuxrc, might be Portname... (#50781)
+	    string port = Linuxrc::InstallInf("Port");
+	    if ((port != nil) && (port != ""))
+	    {
+                url_tokens["port"]  = port;
+	    }
 	    string proxy = Linuxrc::InstallInf("Proxy");
 	    if ((proxy != nil) && (proxy != ""))
 	    {
