@@ -10,6 +10,11 @@
     -->
 
     <textdomain>packager</textdomain>
+    <software>
+        <addon_selections config:type="list">
+            <selection>Xen</selection>
+        </addon_selections>
+    </software>
 
     <proposals config:type="list">
         <proposal>
