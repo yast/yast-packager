@@ -812,11 +812,22 @@ ask your system administrator.
 
 
     global string CountSizeToBeInstalled () {
-        list<string> packages = Pkg::GetPackages (`selected, true);
         integer sz = 0;
-        foreach (string p, packages, {
-	    sz = sz + Pkg::PkgSize (p);
-        });
+	if (Mode::installation ())
+	{
+	    list<string> packages = Pkg::GetPackages (`selected, true);
+	    foreach (string p, packages, {
+		sz = sz + Pkg::PkgSize (p);
+	    });
+	}
+	else
+	{
+	    map<string,list> du = Pkg::TargetGetDU ();
+	    foreach (string mp, list usages, du, {
+		sz = sz + usages[2]:0 - usages[1]:0;
+	    });
+	}
+	y2milestone ("Total size of packages to install: %1", sz);
         return String::FormatSizeWithPrecision (sz, 1, true);
     }
 
