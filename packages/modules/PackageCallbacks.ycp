@@ -128,8 +128,10 @@
      *
      */
 
-    define void PackageCallbacks()
+    global define void PackageCallbacks()
     ``{
+	y2milestone ( "PackageCallbacks constructor" );
+
 	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
 	Pkg::CallbackProgressProvide ("PackageCallbacks::ProgressProvide");
 	Pkg::CallbackDoneProvide ("PackageCallbacks::DoneProvide");

@@ -14,6 +14,7 @@
     import "Installation";
     import "Language";
     import "InstMedia";
+    import "SlideShowCallbacks";
 
     include "ui/common_messages.ycp";
     include "ui/common_functions.ycp";
@@ -60,7 +61,7 @@
      **/
     global define void SlideShow()
     ``{
-	// y2debug( "SlideShow constructor" );
+	y2milestone ( "SlideShow constructor" );
 	ui_defines();
 	next_recalc_time	= time();
 	// FIXME -> descrdir

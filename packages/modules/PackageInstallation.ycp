@@ -24,7 +24,6 @@
     import "MediaUI";
     import "Packages";
     import "SlideShow";
-    import "SlideShowCallbacks";
 
     import "Wizard";
 
@@ -62,17 +61,6 @@
 	    return [];
 	}
 	// install packages from this media
-
-	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
-	Pkg::CallbackStartInstall ("PackageCallbacks::StartInstall");
-	Pkg::CallbackProgress ("PackageCallbacks::CallbackDisplayProgress");
-	Pkg::CallbackDoneInstall ("PackageCallbacks::DoneInstall");
-
-	foreach (`src, Pkg::SourceGetCurrent(),
-	``{
-	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
-	    Pkg::CallbackMediaError (src, "PackageCallbacks::MediaError");
-	});
 
 	SlideShow::InitPkgData();
 	SlideShow::UpdateAllCdProgress (false);

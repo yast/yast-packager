@@ -218,8 +218,9 @@ Do you want to go on with the installation?\n"),
      *
      */
 
-    define void SlideShowCallbacks()
+    global define void SlideShowCallbacks()
     ``{
+	y2milestone ( "SlideShowCallbacks constructor" );
 	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
 	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackDisplayProgress");
     }
