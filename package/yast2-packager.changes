@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 31 12:22:41 CEST 2004 - arvin@suse.de
+
+- added product feature about suboptimal distribution (bug #36823)
+
+-------------------------------------------------------------------
 Tue Mar 30 13:07:11 CEST 2004 - fehr@suse.de
 
 - add storage dependent package to ComputeSystemPackageList (#37279)
