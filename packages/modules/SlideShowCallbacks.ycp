@@ -15,7 +15,6 @@
     import "PackageCallbacks";
 
     import "Label";
-    include "ui/common_functions.ycp";
     import "Popup";
 
     textdomain "packager";
@@ -24,38 +23,35 @@
 
     boolean _remote_provide = false;
 
-   /** at start of file providal
-    *
-    */
-    global define void StartProvide (string name, integer archivesize, boolean remote)
-    ``{
+    /**
+     *  at start of file providal
+     */
+    global define void StartProvide (string name, integer archivesize, boolean remote) ``{
 	if (remote)
 	{
 	    SlideShow::SlideProvideStart (name);
 	    _remote_provide = true;
 	}
 	return;
-   }
+    }
 
 
-   /** during file providal
-    *
-    */
-   global define void ProgressProvide (integer percent)
-   ``{
+    /**
+     * during file providal
+     */
+    global define void ProgressProvide (integer percent) ``{
 	if (_remote_provide)
 	{
 	    SlideShow::SlideDisplayProgress ( percent );
 	}
 	return;
-   }
+    }
 
 
-   /** during file providal
-    *
-    */
-   global define string DoneProvide (integer error, string reason, string name)
-   ``{
+    /**
+     * during file providal
+     */
+    global define string DoneProvide (integer error, string reason, string name) ``{
 	if (_remote_provide)
 	{
 	    SlideShow::SlideDisplayProgress ( 100 );
@@ -67,35 +63,35 @@
 	}
 
 	return "";
-   }
+    }
 
 
-   /** at start of package install
-    *
-    */
-    global define boolean StartPackage (string name, string summary, integer installsize, boolean is_delete)
-    ``{
+    /**
+     *  at start of package install
+     */
+    global define boolean StartPackage (string name, string summary,
+					integer installsize, boolean is_delete) ``{
 	PackageCallbacks::_package_name = name;
 	return DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
     }
 
-   /** at end of install
-    * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
-    */
-   global define string DonePackage (integer error, string reason)
-   ``{
+    /**
+     * at end of install
+     * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
+     */
+    global define string DonePackage (integer error, string reason) ``{
 	SlideShow::SlideDisplayProgress (100);
 	if (error != 0)
 	{
 	    return PackageCallbacks::DonePackage (error, reason);
 	}
 	return "";
-   }
+    }
 
 
-   //--------------------------------------------------------------------------
-   // slide show
-   /**
+    //--------------------------------------------------------------------------
+    // slide show
+    /**
      * Callback that will be called by the packager for each RPM as it is being installed or deleted.
      * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
      * and pass the "deleting" flag as appropriate.
@@ -104,12 +100,11 @@
      *        false: abort installation
      **/
     global define boolean DisplayStartInstall ( string  pkg_name,
-					    string  pkg_description,
-					    integer pkg_size,
-					    integer disk_usage,
-					    integer disk_capacity,
-					    boolean deleting )
-    ``{
+						string  pkg_description,
+						integer pkg_size,
+						integer disk_usage,
+						integer disk_capacity,
+						boolean deleting ) ``{
 
 	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
 
@@ -123,12 +118,12 @@
 	    if (how_much > 95 && !shutup)
 	    {
 		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
-						     _("The disk space is nearly exhausted.
+						   _("The disk space is nearly exhausted.
 Continue with the installation?
 "),
-						     Label::YesButton(),
-						     Label::NoButton(),
-						     `focus_no );
+						   Label::YesButton(),
+						   Label::NoButton(),
+						   `focus_no );
 
 		if (!cont)
 		    return false;
@@ -147,10 +142,10 @@ Continue with the installation?
 	    if ( Mode::normal )
 	    {
 		ret = Popup::AnyQuestion( Popup::NoHeadline(),
-					    _("Do you really want\nto quit the installation?"),
-					    Label::YesButton(),
-					    Label::NoButton(),
-					    `focus_no );
+					  _("Do you really want\nto quit the installation?"),
+					  Label::YesButton(),
+					  Label::NoButton(),
+					  `focus_no );
 	    }
 	    else if ( Mode::initial )
 	    {
@@ -174,12 +169,11 @@ Continue with the installation?
     };
 
 
-   /**
+    /**
      * CallbackDisplayProgress percent
      **/
 
-    global define symbol CallbackDisplayProgress(integer pkg_percent)
-    ``{
+    global define symbol CallbackDisplayProgress(integer pkg_percent) ``{
 
 	// y2debug( "CyclicUpdateCallback: pkg_name: %1 pkg_description: %2 pkg_percent: %3", pkg_name, pkg_description, pkg_percent );
 
@@ -193,8 +187,8 @@ Continue with the installation?
     // source: 0 .. n-1
     // media:  1 .. n
 
-    global define void CallbackSourceChange (integer source, integer media)
-    ``{
+    global define void CallbackSourceChange (integer source, integer media) ``{
+
 	PackageCallbacks::SourceChange (source, media);		// inform PackageCallbacks about the change
 	SlideShow::SetCurrentCdNo (source+1, media);
 	SlideShow::SlideDisplayProgress (0);
@@ -205,11 +199,9 @@ Continue with the installation?
 
     /**
      * constructor
-     *
      */
 
-    global define void SlideShowCallbacks()
-    ``{
+    global define void SlideShowCallbacks() ``{
 	y2milestone ( "SlideShowCallbacks constructor" );
 	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
 	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackDisplayProgress");

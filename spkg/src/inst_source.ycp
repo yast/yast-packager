@@ -18,7 +18,6 @@
     import "Wizard";
 
     import "Label";
-    include "ui/common_functions.ycp";
     import "Popup";
     include "ui/file_popups.ycp";
 
@@ -37,18 +36,18 @@
         map generalData = Pkg::SourceGeneralData( source );
         map productData = Pkg::SourceProductData( source );
         term item = `item(
-            `id( source ),
-	    // corresponds to the "Enable/Disable" button
-            lookup( generalData, "enabled", true ) ? _("On") : _("Off"),
-            lookup( productData, "label", "unknown" ),
-            lookup( generalData, "url", "" )
-        );
+			  `id( source ),
+			  // corresponds to the "Enable/Disable" button
+			  lookup( generalData, "enabled", true ) ? _("On") : _("Off"),
+			  lookup( productData, "label", "unknown" ),
+			  lookup( generalData, "url", "" )
+			  );
         return item;
     }
 
     /**
-        Fill sources table with entries from the InstSrcManager agent.
-    */
+     * Fill sources table with entries from the InstSrcManager agent.
+     */
     global define void fillTable() ``{
         list(integer) sources = Pkg::SourceGetCurrent ( false );
 
@@ -68,14 +67,14 @@
     define symbol createSource( string url ) ``{
         if ( url != "" )
         {
-//            Popup::Message( sformat( "URL: %1", url ) );
+	    // Popup::Message( sformat( "URL: %1", url ) );
             UI::OpenDialog(
-              `VBox(
-                `VSpacing( 0.2 ),
-                `Label( _("Adding installation source...") ),
-                `VSpacing( 0.2 )
-               )
-            );
+			   `VBox(
+				 `VSpacing( 0.2 ),
+				 `Label( _("Adding installation source...") ),
+				 `VSpacing( 0.2 )
+				 )
+			   );
             integer id = Pkg::SourceCreate( url );
             UI::CloseDialog();
             if ( id == nil )
@@ -105,7 +104,7 @@ from URL '%1'."), url );
 
     define boolean deleteSource( integer id ) ``{
         if ( Pkg::SourceDelete( id ) ) {
-          return true;
+	    return true;
         } else {
             Popup::Error( _("Error deleting source.") );
             return false;
@@ -122,16 +121,16 @@ from URL '%1'."), url );
 
     term contents =
         `VBox(
-            `HBox(
-                `Table( `id( `table ), `opt( `keepSorting ),
-                        `header( _("Status"), _("Name"), _("URL") ),
-                        items ),
-                `HSpacing()
-            ),
-            `HBox(
-                `VBox(
-                    `HWeight( 1,
-                        `MenuButton(  `opt(`hstretch), _("&Add"),[
+	      `HBox(
+		    `Table( `id( `table ), `opt( `keepSorting ),
+			    `header( _("Status"), _("Name"), _("URL") ),
+			    items ),
+		    `HSpacing()
+		    ),
+	      `HBox(
+		    `VBox(
+			  `HWeight( 1,
+				    `MenuButton(  `opt(`hstretch), _("&Add"),[
                                                   `item(`id(`ftp),       _("&FTP...") ),
                                                   `item(`id(`http),      _("&HTTP...") ),
                                                   `item(`id(`samba),     _("&Samba...") ),
@@ -212,27 +211,27 @@ on the NFS server.
 
     string url = "";
 
-    repeat
-    {
-        if ( current >= 0 ) {
-            UI::ChangeWidget( `id( `table ), `CurrentItem, current );
-        }
+    repeat {
+
+	if ( current >= 0 ) {
+	    UI::ChangeWidget( `id( `table ), `CurrentItem, current );
+	}
 
 	input = Wizard::UserInput();
 	y2debug( "Input: %1", input );
 
-        symbol createResult = `again;
+	symbol createResult = `again;
 
 	if ( input == `ftp || input == `http || input == `samba )
 	{
-            if ( input == `ftp ) url = "ftp://";
-            else if ( input == `http ) url = "http://";
-            else if ( input == `samba ) url = "smb://";
-            else url = "";
-            do {
-	        url = editUrl( url );
-                if ( size( url ) == 0 ) break;
-                createResult = createSource( url );
+	    if ( input == `ftp ) url = "ftp://";
+	    else if ( input == `http ) url = "http://";
+	    else if ( input == `samba ) url = "smb://";
+	    else url = "";
+	    do {
+		url = editUrl( url );
+		if ( size( url ) == 0 ) break;
+		createResult = createSource( url );
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }
@@ -283,8 +282,8 @@ on the NFS server.
                     if ( size( url ) == 0 ) break;
                     createResult = createSource( url );
                     if ( createResult == `ok ) {
-                      deleteSource( current );
-                      fillTable();
+			deleteSource( current );
+			fillTable();
                     }
                 } while ( createResult == `again );
             }
