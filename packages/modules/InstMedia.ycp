@@ -21,23 +21,10 @@
     textdomain "packager";
 
 
-    global integer theSource = -1;
-
-    /**
-     * !local! maximum number of installation CDs
-     * used in splitServerPath
-     */
-    integer maxnumbercds = 8;
-
     /**
      * list of possible media devices
      */
     global list mediadevices = [];
-
-    /**
-     * currently mounted Medium index from above list
-     */
-    global integer cd_current = 0;
 
     /**
      * is the installation medium currenty mounted
@@ -48,13 +35,6 @@
      * did we mount the medium (-> umount needed by us)
      */
     global boolean we_mounted = !Mode::sourcemounted;
-
-    /**
-     * flag if installation is splitted across different media
-     * if yes, inst-sys is on first medium only and we must
-     * start the system before installing from other medium.
-     */
-    global boolean splitted = true;
 
     /**
      * defines the installmode
@@ -99,243 +79,12 @@
     global string boot_src = "/dev/cdrom";
 
     /**
-     * installation media data
-     */
-    global integer release_no = 0;
-    global string product = "";
-
-    /**
-     * get package information from source medium
-     */
-    global boolean source_medium = false;
-
-    /**
      * local data !
      */
     string smb_device = "";		// constructed from above values
     string smb_options = "";		// constructed from above values
 
-    string tmp_mount = "/tmp/mnt";	// temporary mount for hd install
-
     // -------------------------------------------------------------------
-
-
-    /**
-     *
-     * get the name of current Medium device or other boot source (e.g. harddisk)
-     *
-     */
-
-    global define string CurrentMediumDevice( )
-    ``{
-	string dev = mediadevices[cd_current]:boot_src;
-	y2milestone ("CurrentMediumDevice (%1 [cd # %2])", dev, cd_current);
-	return dev;
-    }
-
-    /**
-     * Unmount the installation medium
-     *
-     */
-
-    global define void UnmountMedium ()
-    ``{
-	if (we_mounted
-	    && Pkg::SourceIsAttached(theSource))
-	{
-	    Pkg::SourceRelease (theSource, (Arch::ppc32	&& (mediatype == 0 || mediatype == 1)));
-
-	    is_mounted = false;
-	    we_mounted = false;
-	}
-	return;
-    }
-
-
-    /**
-     * Change the source medium, i.e. mount the medium to Installation::sourcedir
-     * (umount previous used).
-     *
-     * @param cdnum integer Medium number
-     * @return integer 0	all ok, medium mounted<BR>
-     *		> 0		wrong cd, number of current cd returned<BR>
-     *		< 0		error<BR>
-     *		-1		no alternatives (not remountable)<BR>
-     *		-2		mount failed (no medium)<BR>
-     *		-3		not an installation medium<BR>
-     *
-     * @example MountMedium ( 2 );
-     *
-     */
-
-    global define integer MountMedium (integer cdnum)
-    ``{
-	y2milestone ("MountMedium (%1) type %2, mounted %3 ...", cdnum, mediatype, is_mounted);
-
-	integer actcdnum = -2;		// assume 'no medium'
-
-	integer actcddevicenum = -1;	// index to mediadevices for "actcdnum"
-
-	if (is_mounted)
-	{
-	    if (SCR::Read (.target.string, Installation::sourcedir+"/media."+cdnum+"/media", "") != "")
-	    {
-		actcdnum = cdnum;
-		return 0;
-	    }
-
-	    actcdnum = -3;		// not a SuSE medium
-	}
-
-	integer	current_device	= cd_current;	// start with previous device
-
-	if ( (mediatype == 2) || (mediatype == 3))	// NFS or Harddisk
-	{
-	    // direct access to dir, cdnum-1 is index in list mediadevices
-	    current_device = cdnum - 1;
-	}
-
-	// if list exhausted, restart at 0
-	if (current_device >= size(mediadevices) )
-	{
-	    current_device = 0;
-	}
-
-	integer start_device = current_device;
-	integer start_num = actcdnum;		// initial cd or error code
-
-	boolean mount_result = true;
-
-	while (true)
-	{
-	    // wrong number -> umount medium
-	    UnmountMedium ();
-
-	    // try to mount next from list
-
-	    cd_current = current_device;
-	    string current_cd_device = CurrentMediumDevice ();
-
-	    is_mounted = Pkg::SourceAttach (theSource);
-
-	    if (is_mounted)
-	    {
-		// ok, medium is mounted
-		// try to get SuSE medium number
-		if (SCR::Read (.target.string, Installation::sourcedir+"/media."+cdnum+"/media", "") != "")
-		{
-		    actcdnum = 0;
-		    break;
-		}
-		else
-		{
-		    actcdnum = -3;
-		}
-	    }
-	    else
-	    {
-		actcdnum = -2;			// mount failed
-	    }
-
-	    // wrong number, try next
-
-	    current_device = current_device + 1;
-
-	    if (current_device >= size(mediadevices) )
-	    {
-		y2milestone ("Wrap list of alternatives");
-		current_device = 0;	// list exhausted, restart at 0
-	    }
-
-	    // wrap around, tried all
-
-	    if (current_device == start_device)
-	    {
-		y2milestone ("Tried all alternatives");
-		if (start_num > 0)
-		{
-		    // if found a different SuSE Medium, report this
-		    actcdnum = start_num;
-		}
-		break;
-	    }
-	} // while (try_next)
-
-	y2milestone ("... MountMedium (%1)", actcdnum);
-
-	if (actcdnum != 0)
-	{
-	    // wrong number -> umount medium
-	    UnmountMedium ();
-
-	    if (actcddevicenum >= 0)	// we found another SuSE medium
-	    {
-		// start next mount try here,
-		// eject _this_ device if triggered by user
-		cd_current = actcddevicenum;
-	    }
-	}
-
-	return actcdnum;
-    }
-
-    /**
-     * !local! splitServerPath (string serverpath)
-     * check if network install path ends in "CD1" and split it up
-     * @param serverpath	path on network server (nfs, smb)
-     * @return list of directories
-     *
-     * if serverpath ends in "/CD1", it is replicated for CD2 ... CD8
-     *
-     */
-
-    define splitServerPath (string serverpath)
-    ``{
-	list medias = [];
-
-	list serversplit = splitstring (serverpath, "/");
-
-	// if directory ends in ".../CD1", assume splitted dirs
-
-	string serverdir = serverpath;
-
-	if ((size (serversplit) > 0)
-	    && (serversplit[size (serversplit)-1]:"" == "CD1"))
-	{
-	    integer numcd = 1;	// use as counter, begin behind "server:"
-
-	    // re-build path, dropping final "/CD1"
-
-	    // start with adding up path elements.
-	    serverdir = "";
-
-	    while (numcd < size (serversplit)-1)
-	    {
-		serverdir = serverdir + "/" + serversplit[numcd]:"";
-		numcd = numcd + 1;
-	    }
-
-	    // now pre-pend "server:"
-	    serverdir = serversplit[0]:"" + serverdir;
-
-	    // now build up server directories in medias
-
-	    numcd = 1;			// start with CD1
-	    string net_dir_path = "";
-	    while (numcd <= maxnumbercds)
-	    {
-		net_dir_path = serverdir + "/CD" + numcd;
-		medias = add (medias, net_dir_path);
-		numcd = numcd + 1;
-	    }
-
-	}
-	else
-	{
-	    medias = [ serverpath ];
-	}
-	return medias;
-    }
 
     global define map installInf2installMap ( )
     ``{
@@ -382,6 +131,8 @@
     global define string installInf2Url ( )
     ``{
 	string url = SCR::Read (.etc.install_inf.InstMode);
+	if (url == nil)
+	    url = "cd";
 	url = url + "://";
 	string username = SCR::Read (.etc.install_inf.Username);
 	if ((username != nil) && (username != ""))
@@ -511,7 +262,6 @@
 		}
 	    });
 
-	    splitted = true;
 	}
 	else if (installmode == "dvd")
 	{
@@ -553,7 +303,6 @@
 		}
 	    });
 
-	    splitted = true;
 	}
 	else if (installmode == "nfs")
 	{
@@ -566,18 +315,6 @@
 
 	    boot_src = net_server + ":" + net_dir;
 
-	    list pathes = splitServerPath (boot_src);
-
-	    if (size (pathes) > 1)
-	    {
-		splitted = true;
-	    }
-	    else
-	    {
-		splitted = false;
-	    }
-
-	    mediadevices = union (mediadevices, pathes);
 	}
 	else if (installmode == "hd")
 	{
@@ -597,32 +334,6 @@
 		}
 	    }
 
-	    // usually, linuxrc has already mounted it to /var/adm/mount
-	    // so we don't need to do anything.
-	    // However, during 2nd stage install or if linuxrc didn't mount
-	    // it, 'is_mounted' is false and we must re-mount it from
-	    // server.
-
-	    list pathes = splitServerPath (net_dir);
-
-	    if (size (pathes) > 1)
-	    {
-		splitted = true;
-	    }
-	    else
-	    {
-		splitted = false;
-	    }
-
-	    if (is_mounted)
-	    {
-		// CD1 already mounted to boot_src by linuxrc
-		mediadevices = [ boot_src ];
-	    }
-	    else
-	    {
-		mediadevices = union (mediadevices, pathes);
-	    }
 	}
 	else if (installmode == "ftp")
 	{
@@ -633,7 +344,6 @@
 	    net_password = installMap["password"]:"";
 	    net_proxy	 = installMap["ftpproxy"]:"";
 	    net_proxy	 = installMap["ftpproxyport"]:"";
-	    splitted = true;
 	}
 	else if (installmode == "smb")
 	{
@@ -657,19 +367,6 @@
 		smb_options = smb_options + " -o guest,ro";
 	    }
 
-	    list pathes = splitServerPath (net_dir);
-
-	    if (size (pathes) > 1)
-	    {
-		splitted = true;
-	    }
-	    else
-	    {
-		splitted = false;
-	    }
-
-	    mediadevices = union (mediadevices, pathes);
-
 	} // if "Smb"
 	else if (installmode == "http")
 	{
@@ -681,7 +378,6 @@
 	    net_proxy	 = installMap["proxy"]:"";
 	    net_proxyport= installMap["proxyport"]:"";
 	    net_proxyproto=installMap["proxyproto"]:"";
-	    splitted = true;
 	}
 	else if (installmode == "tftp")
 	{
@@ -693,7 +389,6 @@
 	    net_proxy	 = installMap["proxy"]:"";
 	    net_proxyport= installMap["proxyport"]:"";
 	    net_proxyproto=installMap["proxyproto"]:"";
-	    splitted = true;
 	}
 
 	if (mediadevices == nil)
