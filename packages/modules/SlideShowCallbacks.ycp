@@ -198,41 +198,4 @@ Continue with the installation?
 	SlideShow::UpdateCurrentCdProgress(); // may or may not be 0 -> recalculate
     };
 
-
-    /**
-     * install callbacks for slideshow
-     */
-    global define void InstallSlideShowCallbacks() ``{
-
-	y2milestone ( "InstallSlideShowCallbacks" );
-
-	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
-	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackDisplayProgress");
-	Pkg::CallbackDonePackage ("SlideShowCallbacks::DonePackage");
-
-	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
-	Pkg::CallbackProgressProvide ("SlideShowCallbacks::ProgressProvide");
-	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
-
-	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
-    }
-
-
-    /**
-     * remove callbacks for slideshow
-     */
-    global define void RemoveSlideShowCallbacks() ``{
-
-	y2milestone ( "RemoveSlideShowCallbacks" );
-
-	Pkg::CallbackStartPackage ("");
-	Pkg::CallbackProgressPackage ("");
-	Pkg::CallbackDonePackage ("");
-
-	Pkg::CallbackStartProvide ("");
-	Pkg::CallbackProgressProvide ("");
-	Pkg::CallbackDoneProvide ("");
-
-	Pkg::CallbackSourceChange ("");
-    }
 }

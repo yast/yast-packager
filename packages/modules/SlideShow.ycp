@@ -13,7 +13,6 @@
     textdomain "packager";
 
     import "Installation";
-    import "SlideShowCallbacks";
     import "Label";
     import "Language";
     import "Mode";
@@ -1241,11 +1240,51 @@
 
 
     /**
+     * Install callbacks for slideshow. Should be in SlideShowCallbacks but
+     * that doesn't work at the moment.
+     */
+    global define void InstallSlideShowCallbacks() ``{
+
+	y2milestone ( "InstallSlideShowCallbacks" );
+
+	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
+	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackDisplayProgress");
+	Pkg::CallbackDonePackage ("SlideShowCallbacks::DonePackage");
+
+	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
+	Pkg::CallbackProgressProvide ("SlideShowCallbacks::ProgressProvide");
+	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
+
+	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
+    }
+
+
+    /**
+     * Remove callbacks for slideshow. Should be in SlideShowCallbacks but
+     * that doesn't work at the moment.
+     */
+    global define void RemoveSlideShowCallbacks() ``{
+
+	y2milestone ( "RemoveSlideShowCallbacks" );
+
+	Pkg::CallbackStartPackage ("");
+	Pkg::CallbackProgressPackage ("");
+	Pkg::CallbackDonePackage ("");
+
+	Pkg::CallbackStartProvide ("");
+	Pkg::CallbackProgressProvide ("");
+	Pkg::CallbackDoneProvide ("");
+
+	Pkg::CallbackSourceChange ("");
+    }
+
+
+    /**
      * Open the slide show dialog.
      **/
     global define void OpenSlideShowDialog()
     ``{
-	SlideShowCallbacks::InstallSlideShowCallbacks();
+	InstallSlideShowCallbacks();
 
 	OpenSlideShowBaseDialog();
 
@@ -1269,8 +1308,7 @@
     ``{
 	UI::CloseDialog();
 
-	SlideShowCallbacks::RemoveSlideShowCallbacks();
+	RemoveSlideShowCallbacks();
     };
-
 
 }
