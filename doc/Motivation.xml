@@ -1,0 +1,20 @@
+<chapter><title>Motivation</title>
+
+<para>
+The multi-vendor character of 'UnitedLinux' requires the split of
+the single vendor installation media we now have, to a "base media"
+(containing the basic UnitedLinux system) and "product media"
+(containing the product, i.e. an email server application).
+</para>
+<para>
+YaST must be able to handle both medias and resolve (package)
+dependencies between them.
+</para>
+<para>
+This document describes the requirements and implementation
+details of the package handling toolset implemented for
+UnitedLinux.
+</para>
+
+</chapter>
+

@@ -1,0 +1,137 @@
+<chapter><title>Use Cases</title>
+
+<section><title>3.1 Installation media</title>
+
+<para>
+Installation media functions are:
+<itemizedlist>
+<listitem><para>List known media
+</para></listitem>
+<listitem><para>Add a new media
+</para></listitem>
+<listitem><para>Edit a media entry
+e.g. Server changed, login changed, ranking
+</para></listitem>
+<listitem><para>Check media
+MD5 sums, integrety checks
+</para></listitem>
+<listitem><para>Delete a media
+</para></listitem>
+<listitem><para>Temporarely disable/enable a media
+</para></listitem>
+<listitem><para>View media information
+(Content, Selections, Packages, etc.)
+</para></listitem>
+</itemizedlist>
+</para>
+
+
+</section>
+<section><title>3.2 Selections</title>
+
+<para>
+Selection based functions are:
+<itemizedlist>
+<listitem><para>View selection
+Files, Dependencies, Attributes
+</para></listitem>
+<listitem><para>Show installed selections (0...100%)
+</para></listitem>
+<listitem><para>Add selection
+</para></listitem>
+<listitem><para>Delete selection
+</para></listitem>
+<listitem><para>Create/Save selection
+</para></listitem>
+<listitem><para>Load selection
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>3.3 Packages</title>
+
+<para>
+Package based functions are:
+<itemizedlist>
+<listitem><para>View package
+Author, License, Files, Provides, Requires, Conflicts, Label, Version,
+ Architecture
+</para></listitem>
+<listitem><para>Add package
+with/without immediate dependency/size checking
+</para></listitem>
+<listitem><para>Delete package
+with/without immediate dependency/size checking
+</para></listitem>
+</itemizedlist>
+</para>
+
+
+</section>
+<section><title>3.4 Dependency Solving</title>
+
+<para>
+Solver use cases are:
+<itemizedlist>
+<listitem><para>What-if view
+</para></listitem>
+<listitem><para>Or dependencies
+multiple packages providing the same requirement
+</para></listitem>
+<listitem><para>Conflict handling
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+<section><title>3.5 Packages</title>
+
+<para>
+Package based functions are:
+<itemizedlist>
+<listitem><para>Package info in selected language
+</para></listitem>
+<listitem><para>Query for packages
+</para></listitem>
+<listitem><para>Select package
+</para></listitem>
+<listitem><para>Deselect package
+</para></listitem>
+<listitem><para>Remove package
+</para></listitem>
+<listitem><para>Update package
+</para></listitem>
+<listitem><para>View package information
+Label, Files, Size, Dependencies, Architecture, Installation Source, Vendor
+</para></listitem>
+</itemizedlist>
+</para>
+<para>
+Further package related use cases see <ulink url="#UserInterface">User Interface</ulink> chapter.
+</para>
+
+</section>
+<section><title>3.6 Patches</title>
+
+<para>
+Patch based functions are:
+<itemizedlist>
+<listitem><para>List installed patches
+</para></listitem>
+<listitem><para>Check if patch applies
+</para></listitem>
+<listitem><para>Check if patch installed
+</para></listitem>
+<listitem><para>Check patch dependencies
+</para></listitem>
+<listitem><para>Delete patch
+</para></listitem>
+<listitem><para>Update patch
+</para></listitem>
+</itemizedlist>
+</para>
+
+</section>
+</chapter>
+
