@@ -72,11 +72,22 @@
 
 	if (ret == `cancel || ret == `back)
 	    break;
-
+	if (ret == `open_dir)
+        {
+            any dir = UI::AskForExistingDirectory( DirInstall::image_dir,  _("Select Directory"));
+            if (dir != nil)
+            {
+                UI::ChangeWidget(`id(`imagedir), `Value, (string)dir);
+            }
+            continue;
+        }
 	if (ret == `next)
 	{
 	    string target =(string) UI::QueryWidget (`id(`target), `Value);
 	    boolean runme_at_boot = (boolean) UI::QueryWidget (`id(`suseconfig), `Value);
+            DirInstall::makeimage = (boolean) UI::QueryWidget (`id(`makeimage), `Value);
+            DirInstall::image_name = (string) UI::QueryWidget (`id(`imagename), `Value);
+            DirInstall::image_dir = (string) UI::QueryWidget (`id(`imagedir), `Value);
 
             if(target == "" || target == "/")
             {

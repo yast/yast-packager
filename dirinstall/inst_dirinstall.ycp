@@ -48,16 +48,22 @@
     list<string> progress_stages =
 	[
 	 // progress stages
-	 _("Update configuration"),
+	 _("Finalize system configuration"),
 	 // progress stages
 	 _("Prepare system for initial boot")
 	 ];
+
+    integer progress_length = 2;
+    if (DirInstall::makeimage)
+    {
+        progress_stages=add(progress_stages, _("Create image file"));
+        progress_length = progress_length + 1;
+    }
 
     list<string> progress_descriptions =
 	[];
 
 
-    integer progress_length = 2;
     string help_text = "FIXME";
 
     Progress::New(
@@ -70,34 +76,22 @@
             help_text );
 
 
-    y2milestone ("Stopping SCR");
-
-    WFM::SCRClose (Installation::scrHandle);
 
 
-    // --------------------------------------------------------------
+    Progress::NextStage ();
+    Progress::Title(_("Sleeping..."));
+    sleep(5000);
 
-    y2milestone ("Re-starting SCR on %1", Installation::destdir);
-    Installation::scrHandle = WFM::SCROpen ("chroot="+Installation::destdir+":scr", false);
-    WFM::SCRSetDefault (Installation::scrHandle);
+    Progress::NextStage ();
 
-    Progress::NextStep ();
-    boolean newsystem = SCR::Read (.target.size, Installation::destdir+"/dev/null") < 0;
-    if(newsystem)
+    if (DirInstall::makeimage)
     {
-        if(DirInstall::runme_at_boot == true)
-        {
-            SCR::Execute(.target.mkdir,Installation::destdir+"/var/lib/YaST2");
-            SCR::Execute(.target.bash,"/usr/bin/touch "+Installation::destdir+"/var/lib/YaST2/runme_at_boot");
-        }
+        Progress::NextStage();
+        string cmd =  sformat("tar -C %1 -zcf %2  %3", DirInstall::target, DirInstall::image_dir + "/" + DirInstall::image_name , DirInstall::target );
+        y2debug("cmd: %1", cmd);
+        Progress::Title(_("Building directory image..."));
+        SCR::Execute(.target.bash, cmd);
     }
-
-    Progress::NextStep ();
-    // progress stage title
-    Progress::Title (_("Setting up linker cache"));
-
-    if (SCR::Execute (.target.bash, "/sbin/ldconfig") != 0)
-        y2error ("ldconfig failed\n");
 
 
     Progress::Finish();
