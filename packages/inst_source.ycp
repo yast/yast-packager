@@ -354,7 +354,7 @@ to specify username, password and workgroup.") ),
     define void createSource( string url ) ``{
         if ( url != "" )
         {
-            UI::MessagePopup( sformat( "URL: %1", url ) );
+//            UI::MessagePopup( sformat( "URL: %1", url ) );
             Pkg::SourceCreate( url );
             // FIXME: Check for errors
 
@@ -383,10 +383,10 @@ to specify username, password and workgroup.") ),
 					       `item(`id(`ftp), 	_( "&FTP..." 		) ),
 					       `item(`id(`http), 	_( "&HTTP..." 		) ),
 					       `item(`id(`samba), 	_( "&Samba..." 		) ),
+					       `item(`id(`nfs), 	_( "&NFS..." 		) ),
 					       `item(`id(`cd), 		_( "&CD..." 		) ),
 					       `item(`id(`dvd), 	_( "&DVD..." 		) ),
-					       `item(`id(`local_dir), 	_( "&Local directory..."  ) ),
-					       `item(`id(`nfs), 	_( "&NFS..." 		) )
+					       `item(`id(`local_dir), 	_( "&Local directory..."  ) )
 					       ]
 					      )
 			      ),
