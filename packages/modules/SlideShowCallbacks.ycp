@@ -110,7 +110,8 @@
 	    {
 		boolean cont = UI::AnyQuestionPopup( WarningMsg(),
 						     _("The disk space is nearly exhausted.
-Do you want to go on with the installation?\n"),
+Continue with the installation?
+"),
 						     YesButtonLabel(),
 						     NoButtonLabel(),
 						     `focus_no );

@@ -321,7 +321,7 @@
 
 	    if ( ! redo_proposal )
 	    {
-		ret = add( ret, "warning", _("Disk space exhausted - changing software selection") );
+		ret = add( ret, "warning", _("Disk space exhausted -- changing software selection") );
 		ret = add( ret, "warning_level", `error );
 		redo_proposal = true; // 
 	    }
@@ -363,7 +363,7 @@
 	    {
 		y2warning ("No selection fits");
 		Pkg::ClearSelection (selected_base_selection);
-		return $[ "warning" : _( "Not enough disk space even for a minimal installation!" ),
+		return $[ "warning" : _("Not enough disk space even for a minimal installation!"),
 			  "warning_level" : `blocker ];
 
 	    }

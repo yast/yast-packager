@@ -36,7 +36,7 @@
     global define void editAuthentification() ``{
         UI::OpenDialog(
             `VBox(
-                `Label( _("Authentification") ),
+                `Label( _("Authentication") ),
 
                 `RadioButtonGroup(`id(`rb), 
                     `VBox(
@@ -44,7 +44,7 @@
                         `Left( `RadioButton( `id( `account ), _("Account") ) ),
                         `HBox(
                             `HSpacing( 3 ),
-                            `TextEntry( `id( `username ), _("Username") ),
+                            `TextEntry( `id( `username ), _("User Name") ),
                             `HSpacing( 2 )
                         ),
                         `HBox(
@@ -83,7 +83,7 @@
                 `TextEntry( `id( `server ), _("Server Name") ),
                 `TextEntry( `id( `dir ), _("Directory on Server") ),
                 `HBox(
-                    `Label( _("Authentification:") ),
+                    `Label( _("Authentication:") ),
                     `Label( `id( `auth ), _("Anonymous") ),
                     `PushButton( `id( `auth_button ), _("Edit...") )
                 ),
@@ -153,7 +153,7 @@
     global define void getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
-                `Label( _("CD installation") ),
+                `Label( _("CD Installation") ),
                 `RadioButtonGroup( `id( `device ),
                     `VBox(
                         `Left( `RadioButton( `id( `cd0 ), "/dev/cdrom", true ) ),
@@ -223,11 +223,11 @@
                 `TextEntry( `id( `dir ), _("&Directory on Server") ),
                 `HBox(
                     `HSpacing( 0.5 ),
-                    `Frame( _("Au&thentification"),
+                    `Frame( _("Au&thentication"),
                         `VBox(
                             `Left( `CheckBox( `id( `anonymous ), `opt( `notify ), _("&Anonymous"), true ) ),
                             `HBox(
-                                `TextEntry( `id( `username ), _("&Username") )
+                                `TextEntry( `id( `username ), _("&User Name") )
                             ),
                             `HBox(
                                 `Password( `id( `password ), _("&Password") )
@@ -302,9 +302,9 @@
     global define string getDirectoryUrl( string default ) ``{
         UI::OpenDialog(
             `VBox(
-                `Label( _("Local directory") ),
+                `Label( _("Local Directory") ),
                 `HBox(
-                    `TextEntry( `id( `dir ), _("&Directory path") ),
+                    `TextEntry( `id( `dir ), _("&Directory Path") ),
                     `PushButton( `id( `browse ), _("&Browse...") )
                 ),
                 dialogButtons()
