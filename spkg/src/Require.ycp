@@ -141,31 +141,6 @@
     global define void FooTarget () ``{
 	y2internal ("Do not call");
     }
-
-    // ---------- IsPackageInstalled* ----------
-
-    /**
-     * Obsolete!
-     * If required, use AreAllPackagesInstalled,
-     * if conflicting, use IsAnyPackageInstalled.
-     * @deprecated AreAllPackagesInstalled or IsAnyPackageInstalled
-     */
-    global define boolean IsPackageInstalled (string package) ``{
-	y2warning (1, "IsPackageInstalled is obsolete");
-	return AreAllPackagesInstalled ([package]);
-    }
-
-    /**
-     * Is a package installed?
-     * In normal mode, works on the current system.
-     * In autoyast mode, works on the target system.
-     * @see FooTarget
-     */
-    global define boolean IsPackageInstalledTarget (string package) ``{
-	return Mode::config?
-	    IsPackageInstalledAI (package):
-	    IsPackageInstalledPkg (package);
-    }
 
     /**
      * Is a package installed?
@@ -192,66 +167,31 @@
 	return contains (AutoinstSoftware::packages, package);
     }
 
-    // ---------- IsAnyPackageInstalled* ----------
+    // ---------- AreAllPackagesInstalled* ----------
     /**
-     * Is any of these packages installed?
-     * Use for conflicting packages that you want deleted.
-     * In both normal and autoyast modes, works on the current system.
-     * In autoyast mode, also works on the target system.
-     * @see FooTarget
-     * @param packages list of packages
-     * @return true/false
-     */
-    global define boolean IsAnyPackageInstalled (list(string) packages) ``{
-	boolean result = false;
-	if (Mode::config)
-	{
-	    result = result || IsAnyPackageInstalledAI (packages);
-	}
-	result = result || IsAnyPackageInstalledPkg (packages);
-	return result;
-    }
-
-    /**
-     * Is any of these packages installed?
-     * Use for conflicting packages that you want deleted.
-     * In normal mode, works on the current system.
-     * In autoyast mode, works on the target system.
-     * @see FooTarget
-     * @param packages list of packages
-     * @return true/false
-     */
-    global define boolean IsAnyPackageInstalledTarget (list(string) packages) ``{
-	return Mode::config?
-	    IsAnyPackageInstalledAI (packages):
-	    IsAnyPackageInstalledPkg (packages);
-    }
-
-    /**
-     * Is any of these packages installed?
+     * Are all of these packages installed?
      * Works on the current system.
      * @see FooTarget
      * @param packages list of packages
      * @return true/false
      */
-    define boolean IsAnyPackageInstalledPkg (list(string) packages) ``{
-	string which = find(`p, packages, ``{ return IsPackageInstalledPkg (p); });
-	return which != nil;
+    define boolean AreAllPackagesInstalledPkg (list<string> packages) ``{
+	string which = find(string p, packages, ``{ return ! IsPackageInstalledPkg (p); });
+	return which == nil;
     }
 
     /**
-     * Is any of these packages installed?
+     * Are all of these packages installed?
      * Works on the target system.
      * @see FooTarget
      * @param packages list of packages
      * @return true/false
      */
-    define boolean IsAnyPackageInstalledAI (list(string) packages) ``{
-	string which = find(`p, packages, ``{ return IsPackageInstalledAI (p); });
-	return which != nil;
+    define boolean AreAllPackagesInstalledAI (list<string> packages) ``{
+	string which = find(string p, packages, ``{ return ! IsPackageInstalledAI (p); });
+	return which == nil;
     }
 
-    // ---------- AreAllPackagesInstalled* ----------
     /**
      * Are all of these packages installed?
      * Use for required packages that you want installed.
@@ -261,7 +201,7 @@
      * @param packages list of packages
      * @return true/false
      */
-    global define boolean AreAllPackagesInstalled (list(string) packages) ``{
+    global define boolean AreAllPackagesInstalled (list<string> packages) ``{
 	boolean result = true;
 	if (Mode::config)
 	{
@@ -280,78 +220,98 @@
      * @param packages list of packages
      * @return true/false
      */
-    global define boolean AreAllPackagesInstalledTarget (list(string) packages) ``{
+    global define boolean AreAllPackagesInstalledTarget (list<string> packages) ``{
 	return Mode::config?
 	    AreAllPackagesInstalledAI (packages):
 	    AreAllPackagesInstalledPkg (packages);
     }
 
+    // ---------- IsPackageInstalled* ----------
+
     /**
-     * Are all of these packages installed?
-     * Works on the current system.
-     * @see FooTarget
-     * @param packages list of packages
-     * @return true/false
+     * Obsolete!
+     * If required, use AreAllPackagesInstalled,
+     * if conflicting, use IsAnyPackageInstalled.
+     * @deprecated AreAllPackagesInstalled or IsAnyPackageInstalled
      */
-    define boolean AreAllPackagesInstalledPkg (list(string) packages) ``{
-	string which = find(`p, packages, ``{ return ! IsPackageInstalledPkg (p); });
-	return which == nil;
+    global define boolean IsPackageInstalled (string package) ``{
+	y2warning (1, "IsPackageInstalled is obsolete");
+	return AreAllPackagesInstalled ([package]);
     }
 
     /**
-     * Are all of these packages installed?
+     * Is a package installed?
+     * In normal mode, works on the current system.
+     * In autoyast mode, works on the target system.
+     * @see FooTarget
+     */
+    global define boolean IsPackageInstalledTarget (string package) ``{
+	return Mode::config?
+	    IsPackageInstalledAI (package):
+	    IsPackageInstalledPkg (package);
+    }
+
+    // ---------- IsAnyPackageInstalled* ----------
+    /**
+     * Is any of these packages installed?
      * Works on the target system.
      * @see FooTarget
      * @param packages list of packages
      * @return true/false
      */
-    define boolean AreAllPackagesInstalledAI (list(string) packages) ``{
-	string which = find(`p, packages, ``{ return ! IsPackageInstalledAI (p); });
-	return which == nil;
+    define boolean IsAnyPackageInstalledAI (list<string> packages) ``{
+	string which = find(string p, packages, ``{ return IsPackageInstalledAI (p); });
+	return which != nil;
     }
-
-    // ---------- DoInstallAndRemove* ----------
 
     /**
-     * Install required packages and remove conflicting packages.
+     * Is any of these packages installed?
+     * Works on the current system.
+     * @see FooTarget
+     * @param packages list of packages
+     * @return true/false
+     */
+    define boolean IsAnyPackageInstalledPkg (list<string> packages) ``{
+	string which = find(string p, packages, ``{ return IsPackageInstalledPkg (p); });
+	return which != nil;
+    }
+
+    /**
+     * Is any of these packages installed?
+     * Use for conflicting packages that you want deleted.
      * In both normal and autoyast modes, works on the current system.
      * In autoyast mode, also works on the target system.
      * @see FooTarget
-     * @param toinstall packages to install
-     * @param toremove pacakges to remove
-     * @return success?
+     * @param packages list of packages
+     * @return true/false
      */
-    global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
-	boolean ok = true;
+    global define boolean IsAnyPackageInstalled (list<string> packages) ``{
+	boolean result = false;
 	if (Mode::config)
 	{
-	    ok = DoInstallAndRemoveAI (toinstall, toremove) && ok;
+	    result = result || IsAnyPackageInstalledAI (packages);
 	}
-	ok = DoInstallAndRemovePkg (toinstall, toremove) && ok;
-	return ok;
+	result = result || IsAnyPackageInstalledPkg (packages);
+	return result;
     }
 
     /**
-     * Install required packages and remove conflicting packages.
+     * Is any of these packages installed?
+     * Use for conflicting packages that you want deleted.
      * In normal mode, works on the current system.
      * In autoyast mode, works on the target system.
      * @see FooTarget
-     * @param toinstall packages to install
-     * @param toremove pacakges to remove
-     * @return success?
+     * @param packages list of packages
+     * @return true/false
      */
-    global define boolean DoInstallAndRemoveTarget (list(string) toinstall, list(string) toremove) ``{
-	boolean ok = true;
-	if (Mode::config)
-	{
-	    ok = DoInstallAndRemoveAI (toinstall, toremove) && ok;
-	}
-	else
-	{
-	    ok = DoInstallAndRemovePkg (toinstall, toremove) && ok;
-	}
-	return ok;
+    global define boolean IsAnyPackageInstalledTarget (list<string> packages) ``{
+	return Mode::config?
+	    IsAnyPackageInstalledAI (packages):
+	    IsAnyPackageInstalledPkg (packages);
     }
+
+
+    // ---------- DoInstallAndRemove* ----------
 
     /**
      * Install required packages and remove conflicting packages.
@@ -361,7 +321,7 @@
      * @param toremove pacakges to remove
      * @return success?
      */
-    define boolean DoInstallAndRemovePkg (list(string) toinstall, list(string) toremove) ``{
+    define boolean DoInstallAndRemovePkg (list<string> toinstall, list<string> toremove) ``{
 	y2debug ("toinstall: %1, toremove: %2", toinstall, toremove);
 	EnsureSourceInit ();
 	EnsureTargetInit ();
@@ -430,13 +390,54 @@
      * @param toremove pacakges to remove
      * @return success?
      */
-    define boolean DoInstallAndRemoveAI (list(string) toinstall, list(string) toremove) ``{
+    define boolean DoInstallAndRemoveAI (list<string> toinstall, list<string> toremove) ``{
 	import "AutoinstSoftware";
 	AutoinstSoftware::AddModulePackages (toinstall);
 	AutoinstSoftware::RemoveModulePackages (toremove);
 	return true;
     }
-
+
+    /**
+     * Install required packages and remove conflicting packages.
+     * In both normal and autoyast modes, works on the current system.
+     * In autoyast mode, also works on the target system.
+     * @see FooTarget
+     * @param toinstall packages to install
+     * @param toremove pacakges to remove
+     * @return success?
+     */
+    global define boolean DoInstallAndRemove (list<string> toinstall, list<string> toremove) ``{
+	boolean ok = true;
+	if (Mode::config)
+	{
+	    ok = DoInstallAndRemoveAI (toinstall, toremove) && ok;
+	}
+	ok = DoInstallAndRemovePkg (toinstall, toremove) && ok;
+	return ok;
+    }
+
+    /**
+     * Install required packages and remove conflicting packages.
+     * In normal mode, works on the current system.
+     * In autoyast mode, works on the target system.
+     * @see FooTarget
+     * @param toinstall packages to install
+     * @param toremove pacakges to remove
+     * @return success?
+     */
+    global define boolean DoInstallAndRemoveTarget (list<string> toinstall, list<string> toremove) ``{
+	boolean ok = true;
+	if (Mode::config)
+	{
+	    ok = DoInstallAndRemoveAI (toinstall, toremove) && ok;
+	}
+	else
+	{
+	    ok = DoInstallAndRemovePkg (toinstall, toremove) && ok;
+	}
+	return ok;
+    }
+
     // ---------- RequireAndConflict* ----------
 
     /**
@@ -453,7 +454,7 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    global define boolean RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
+    global define boolean RequireAndConflict (list<string> require, list<string> conflict, string help) ``{
 	return RequireAndConflictButtons (
 	    require, conflict, help,
 	    Label::ContinueButton (), Label::CancelButton ());
@@ -473,7 +474,7 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    global define boolean RequireAndConflictTarget (list(string) require, list(string) conflict, string help) ``{
+    global define boolean RequireAndConflictTarget (list<string> require, list<string> conflict, string help) ``{
 	return RequireAndConflictTargetButtons (
 	    require, conflict, help,
 	    Label::ContinueButton (), Label::CancelButton ());
@@ -488,7 +489,7 @@
      * @return installation successful?
      */
     global define boolean RequireAndConflictButtons (
-	list(string) require, list(string) conflict, string help,
+	list<string> require, list<string> conflict, string help,
 	string continue_button, string cancel_button ) ``{
 
 	boolean ok = true;
@@ -510,7 +511,7 @@
      * @return installation successful?
      */
     global define boolean RequireAndConflictTargetButtons (
-	list(string) require, list(string) conflict, string help,
+	list<string> require, list<string> conflict, string help,
 	string continue_button, string cancel_button ) ``{
 
 	boolean ok = true;
@@ -539,11 +540,11 @@
      * @return installation successful?
      */
     define boolean RequireAndConflictPkg (
-	list(string) require, list(string) conflict, string help,
+	list<string> require, list<string> conflict, string help,
 	string continue_button, string cancel_button ) ``{
 
-	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalledPkg (p)));
-	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalledPkg (p)));
+	list<string> toinstall = filter (`p, require, ``(!IsPackageInstalledPkg (p)));
+	list<string> toremove = filter (`p, conflict, ``(IsPackageInstalledPkg (p)));
 	if (toinstall == [] && toremove == [])
 	{
 	    return true;
@@ -583,12 +584,12 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    define boolean RequireAndConflictAI ( list(string) require,
-					  list(string) conflict)
+    define boolean RequireAndConflictAI ( list<string> require,
+					  list<string> conflict)
     ``{
 	last_op_canceled = false;
-	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalledAI (p)));
-	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalledAI (p)));
+	list<string> toinstall = filter (`p, require, ``(!IsPackageInstalledAI (p)));
+	list<string> toremove = filter (`p, conflict, ``(IsPackageInstalledAI (p)));
 	if (toinstall == [] && toremove == [])
 	{
 	    return true;
