@@ -18,7 +18,7 @@ Group = Software
 Icon = source.png
 
 ; *one* *short* descriptive line for y2cc
-Helptext = _("Choose the source for installation or removal of software packages. It is possible to install packages from CD, via the network, or from hard disk.")
+Helptext = _("Choose the source (e.g. CD, network) for the installation of software packages.")
 
 ; arguments, seperated by space
 Arguments = 
