@@ -1,7 +1,6 @@
 /**
  * File:	Packages.ycp
  * Package:	Package selections
- * Summary:	?
  * Authors:	Anas Nashif <nashif@suse.de>
  *
  * $Id$
@@ -764,6 +763,7 @@
 	else
 	{
 	    import "PackageCallbacks";
+	    import "SlideShowCallbacks";
 
 	    // This text should be translated after 8.0.
 	    // Currently this error should only occured while developping.

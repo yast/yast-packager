@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 20 15:59:07 CET 2003 - sh@suse.de
+
+- Break circular dependencies: Moved "import SlideShowCallbacks" 
+  from "SlideShow.ycp" to "Packager.ycp"
+
+-------------------------------------------------------------------
 Fri Oct 24 13:24:03 CEST 2003 - arvin@suse.de
 
 - better (more inexpressive) message during rpm database convert
