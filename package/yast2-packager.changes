@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 21 17:42:30 CEST 2003 - nashif@suse.de
+
+- Install post-package from CD1 in autoinst mode
+
+-------------------------------------------------------------------
 Tue Aug 19 12:49:16 CEST 2003 - arvin@suse.de
 
 - always use String::FormatSize
