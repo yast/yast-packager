@@ -18,7 +18,6 @@
     import "Language";
     import "Mode";
     import "Packages";
-    import "SlideShowCallbacks";
     import "String";
 
     global string	media_type		= "CD";
