@@ -58,10 +58,8 @@
 	if (Arch::has_pcmcia)
 	{
 	    packages = add (packages, "pcmcia");
-	    packages = add (packages, "apmd");
 	    packages = add (packages, "scpm");
 	    packages = add (packages, "irda");
-	    packages = add (packages, "cpufreqd");
 	}
 
 	// check for aboot or milo on alpha and add package
@@ -128,22 +126,8 @@
 	{
 	    // install fpswa if the firmware has an older version
 	    if (SCR::Execute(.target.bash, "/sbin/fpswa_check_version") != 0)
-		packages = add (packages, "fpswa");
-	}
-
-	// add cpufreqd on single-processor AMD64 systems (even in 32bit mode)
-
-	if (!Arch::has_smp
-	    && (Arch::i386 || Arch::x86_64))
-	{
-	    map cpu = (map) select ((list) SCR::Read (.probe.cpu), 0, $[]);
-	    integer cpu_family = cpu["family"]:0;
-
-	    if ((cpu["vendor"]:"" == "AuthenticAMD")
-		&& (cpu_family >= 15))
 	    {
-		y2milestone ("AMD64 cpu, add cpufreqd");
-		packages = add (packages, "cpufreqd");
+		packages = add (packages, "fpswa");
 	    }
 	}
 
