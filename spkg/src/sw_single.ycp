@@ -160,7 +160,7 @@
 
        Pkg::SourceStartCache(true);
 
-       Pkg::TargetInit ("/", false);
+       Pkg::TargetInit (Installation::destdir, false);
 
        UI::CloseDialog();
 
@@ -243,6 +243,7 @@
        UI::CloseDialog();
 
        if (Mode::normal				// run SuSEconfig only in normal system, not during installation
+	   && Installation::destdir == "/"
 	   && ((commit_result[0]:0 > 0)
 	       || anyToDelete))
        {
