@@ -63,7 +63,7 @@ do this.</P>"));
 	return ( SCR(`Execute(.target.bash, fileCommand)) == 0 );
   };
   
-  string language = UI( `GetLanguage() );
+  string language = UI( `GetLanguage(true) );
 
   string default_language = "en";
 
