@@ -176,51 +176,6 @@ Do you want to go on with the installation?\n"),
     };
 
 
-
-    /**
-     * Wrapper function for ChangeMedium: Update statistics along with the
-     * (optional) real Medium change popup.
-     * @param cd_no Number of the Medium to request (from 1 on)
-     * @param show_popup false: no popup, only check for presence of this Medium
-     * @return boolean - passed trough from ChangeMedium (true: OK, false: abort)
-     **/
-    global define boolean ChangeMediumWrapper( integer cd_no, boolean show_popup )
-    ``{
-	// y2debug( "Requesting Medium #%1", cd_no );
-
-	boolean ret = true;
-
-	if ( ! Mode::test )
-	{
-	    ret = MediaUI::ChangeMedium( cd_no, show_popup );
-	}
-	else // Mode::test - do some fake
-	{
-	    ret = true;
-
-	    if ( show_popup )
-	    {
-		// No translation, this is for testing only
-		ret = UI::ContinueCancelPopup( sformat( "%1 #%2 requested (test mode).\n\n"			+
-							"You don't really need a %1 - this is just a fake.\n"	+
-							"You can safely just hit 'Continue'.\n"
-							, "CD", cd_no ) );
-	    }
-	}
-
-	if ( ret )
-	{
-	    SlideShow::SetCurrentCdNo( cd_no );
-	}
-	SlideShow::UpdateAllCdProgress( false );
-	// y2debug( "ChangeMediumWrapper returning with %1", ret );
-
-	return ret;
-    };
-
-
-
-
     /**
      * constructor
      *
