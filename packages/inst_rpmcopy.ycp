@@ -30,12 +30,9 @@
     import "AutoinstSoftware";
 
 
-    string tmpdir	= (string) SCR::Read(.target.tmpdir);
-    string language	= Language::language;
+    Pkg::SetLocale (Language::language);
 
-    Pkg::SetLocale (language);
-
-    SlideShow::SetLanguage (language);
+    SlideShow::SetLanguage (Language::language);
     SlideShow::OpenSlideShowDialog ();
 
     // start target, create new rpmdb if none is existing

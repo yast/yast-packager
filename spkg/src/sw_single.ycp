@@ -16,6 +16,7 @@
     import "Arch";
     import "Installation";
     import "Mode";
+
     if (!Mode::initial
 	&& !Mode::cont)
     {
@@ -170,9 +171,7 @@
 
    // =============================================================
 
-   string language = UI::GetLanguage(true);
-
-   Pkg::SetLocale (language);
+   Pkg::SetLocale (UI::GetLanguage (true));
 
    Wizard::CreateDialog();
 
