@@ -221,6 +221,7 @@
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
      * (architecture, X11....)
+     * @return list<string> packages
      */
     global define list<string> ComputeSystemPackageList ()
     ``{
@@ -270,8 +271,9 @@
 
     /**
      * SetBaseSelection (string base name)
+     * @param string base selection name
+     * @return boolean
      */
-
     global define boolean SetBaseSelection (string basename)
     ``{
 	list base_selections = Pkg::GetSelections (`selected, "base");
@@ -574,10 +576,10 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
     /**
      * Proposal()
      * Make a proposal for package selection
+     * @param boolean force reset
+     * @param boolean re initialize
      * @return map for the API proposal;
-     *
      */
-
     global define map Proposal( boolean force_reset, boolean reinit )
     ``{
 	import "Language";
