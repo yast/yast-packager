@@ -65,7 +65,7 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    define void createSource( string url ) ``{
+    define symbol createSource( string url ) ``{
         if ( url != "" )
         {
 //            Popup::Message( sformat( "URL: %1", url ) );
@@ -90,61 +90,69 @@ from URL '%1'."), url );
                     else
                         _msg2 = _("Details:") + "\n" + Pkg::Error();
                 }
-                Popup::Error( _msg1 + "\n" + _msg2 );
+                _msg2 = _msg2 + "\nTry again?";
+                
+                boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+                if ( tryagain ) return `again;
+                else `cancel;
             }
             else
             {
-                fillTable();
+                return `ok;
             }
+        }
+    }
+
+    define boolean deleteSource( integer id ) ``{
+        if ( Pkg::SourceDelete( id ) ) {
+          return true;
+        } else {
+            Popup::Error( _("Error deleting source.") );
+            return false;
         }
     }
 
     list items = [];
 
-    string editButtonLabel = _("&Edit...");
+    string replaceButtonLabel = _("&Replace...");
     string deleteButtonLabel = _("&Delete");
     string upButtonLabel = _("&Up");
     string downButtonLabel = _("D&own");
     string enableButtonLabel = _("Enab&le or Disable");
 
     term contents =
-	`VBox(
-	      `HBox(
-		    `Table( `id( `table ), `opt( `keepSorting ),
-			   `header(
-				   _("Status"),
-				   _("Name"),
-				   _("URL")
-				   ),
-			   items
-			   ),
-		    `HSpacing()
-		    ),
-	      `HBox(
-		    `HWeight( 1, `MenuButton( _("&Add"),
-					      [
-					       `item(`id(`ftp), 	_("&FTP...") ),
-					       `item(`id(`http), 	_("&HTTP...") ),
-					       `item(`id(`samba), 	_("&Samba...") ),
-					       `item(`id(`nfs), 	_("&NFS...") ),
-					       `item(`id(`cd), 		_("&CD...") ),
-					       `item(`id(`dvd), 	_("&DVD...") ),
-					       `item(`id(`local_dir), 	_("&Local Directory...") )
-					       ]
-					      )
-			      ),
-//		    `HWeight( 1, `PushButton( `id(`edit), editButtonLabel ) ),
-		    `HWeight( 1, `PushButton( `id(`delete), deleteButtonLabel ) ),
-		    `HStretch(),
-		    `HWeight( 1, `PushButton( `id(`up), upButtonLabel ) ),
-		    `HWeight( 1, `PushButton( `id(`down), downButtonLabel ) )
-              ),
-              `HBox(
-		    `HStretch(),
-		    `PushButton(`id(`enable), enableButtonLabel )
-		    ),
-	      `VSpacing( 0.5 )
-	      );
+        `VBox(
+            `HBox(
+                `Table( `id( `table ), `opt( `keepSorting ),
+                        `header( _("Status"), _("Name"), _("URL") ),
+                        items ),
+                `HSpacing()
+            ),
+            `HBox(
+                `VBox(
+                    `HWeight( 1,
+                        `MenuButton(  `opt(`hstretch), _("&Add"),[
+                                                  `item(`id(`ftp),       _("&FTP...") ),
+                                                  `item(`id(`http),      _("&HTTP...") ),
+                                                  `item(`id(`samba),     _("&Samba...") ),
+                                                  `item(`id(`nfs),       _("&NFS...") ),
+                                                  `item(`id(`cd),        _("&CD...") ),
+                                                  `item(`id(`dvd),       _("&DVD...") ),
+                                                  `item(`id(`local_dir), _("&Local Directory...") )
+                                                ] )
+                    ),
+                    `HWeight( 1, `PushButton( `id(`replace), `opt(`hstretch), replaceButtonLabel ) ),
+                    `HWeight( 1, `PushButton( `id(`delete), `opt(`hstretch),  deleteButtonLabel ) )
+                ),
+                `HSpacing( 10 ),
+                `VBox(
+                    `HWeight( 1, `PushButton( `id(`up), `opt(`hstretch),  upButtonLabel ) ),
+                    `HWeight( 1, `PushButton( `id(`down), `opt(`hstretch),  downButtonLabel ) ),
+                    `PushButton(`id(`enable), `opt(`hstretch),  enableButtonLabel )
+                ),
+                `VSpacing( 0.5 )
+            )
+        );
 
 
     string title = _("Software Source Media");
@@ -213,28 +221,48 @@ on the NFS server.
 	input = Wizard::UserInput();
 	y2debug( "Input: %1", input );
 
+        symbol createResult = `again;
+
 	if ( input == `ftp || input == `http || input == `samba )
 	{
-	    url = getServerUrl( input );
-            createSource( url );
+            if ( input == `ftp ) url = "ftp://";
+            else if ( input == `http ) url = "http://";
+            else if ( input == `samba ) url = "smb://";
+            else url = "";
+            do {
+	        url = editUrl( url );
+                if ( size( url ) == 0 ) break;
+                createResult = createSource( url );
+                if ( createResult == `ok ) fillTable();
+            } while ( createResult == `again );
         }
         else if ( input == `nfs )
         {
-            url = getNfsUrl();
-            createSource( url );
+            url = "nfs://";
+            do {
+                url = editUrl( url );
+                if ( size( url ) == 0 ) break;
+                createResult = createSource( url );
+                if ( createResult == `ok ) fillTable();
+            } while ( createResult == `again );
         }
         else if ( input == `cd )
         {
-            createSource( "cd:///" );
+            if ( createSource( "cd:///" ) == `ok ) fillTable();
         }
         else if ( input == `dvd )
         {
-            createSource( "dvd:///" );
+            if ( createSource( "dvd:///" ) == `ok ) fillTable();
         }
 	else if ( input == `local_dir )
 	{
-	    url = getDirectoryUrl( "" );
-            createSource( url );
+            url = "dir://";
+            do {
+                url = editUrl( url );
+                if ( size( url ) == 0 ) break;
+                createResult = createSource( url );
+                if ( createResult == `ok ) fillTable();
+            } while ( createResult == `again );
 	}
         else
         {
@@ -243,38 +271,28 @@ on the NFS server.
             term idterm = select( UI::QueryWidget( `id( `table ), `Item( current ) ), 0, 0 );
             integer id = select( idterm, 0, 0 );
 
-            if ( input == `edit )
+            if ( input == `replace )
             {
-                symbol type = SCR::Read( .instsrcmgr.source.type, id );
-                y2debug( "Edit type %1", type );
-                if ( type == `ftp || type == `http || type == `samba )
-                {
-                    editServer( type, id );
-                    fillTable();
-                }
-                else if ( type == `local )
-                {
-                    editDirectory( id );
-                    fillTable();
-                }
-                else if ( type == `nfs )
-                {
-                    editNfs( id );
-                    fillTable();
-                }
+                map generalData = Pkg::SourceGeneralData( id );
+                string url = generalData[ "url" ]:"";
+                
+                y2internal( "URL: %1", url );
+                
+                do {
+                    url = editUrl( url );
+                    if ( size( url ) == 0 ) break;
+                    createResult = createSource( url );
+                    if ( createResult == `ok ) {
+                      deleteSource( current );
+                      fillTable();
+                    }
+                } while ( createResult == `again );
             }
             else if ( input == `delete )
             {
                 if ( Popup::YesNo( _("Delete selected installation source from list?") ) )
                 {
-                    if ( !Pkg::SourceDelete( id ) )
-                    {
-                        Popup::Error( _("Error deleting source.") );
-                    }
-                    else
-                    {
-                        fillTable();
-                    }
+                    if ( deleteSource( current ) ) fillTable();
                 }
             }
             else if ( input == `enable )
