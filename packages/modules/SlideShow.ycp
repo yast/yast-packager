@@ -258,8 +258,8 @@
 	    }
 	    else
 	    {
-		pkg_name_with_version = size( pkg_version ) > 0 ? sformat( "%1-%2", pkg_name, pkg_version ) : pkg_name;
 		pkg_version = GetPackageVersion( pkg_name );
+		pkg_name_with_version = size( pkg_version ) > 0 ? sformat( "%1-%2", pkg_name, pkg_version ) : pkg_name;
 	    }
 	    string rich_text = FormatPackageDescription( pkg_name_with_version, pkg_description, pkg_size, deleting );
 
