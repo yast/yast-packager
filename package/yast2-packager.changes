@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug  4 16:01:27 CEST 2003 - jsrain@suse.de
+
+- Enhanced Require in order to provide information if
+  RequireAndConflict* was canceled by user or really failed
+- 2.8.6
+
+-------------------------------------------------------------------
 Tue Jul 22 14:03:53 CEST 2003 - cschum@suse.de
 
 - Added "Replace" button to inst_source module (#25260).

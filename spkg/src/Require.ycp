@@ -38,6 +38,16 @@
     boolean source_initialized = false;
 
     /**
+     * Was last operation canceled?
+     * Used to enhance the exit status to distinguish between package
+     * installation fail and installation canceled by user, as in the second
+     * case doesn't make much sense to display any error
+     * Is set to true when user canceled package installation, from
+     * RequireAndConflict* functions
+     */
+    boolean last_op_canceled = false;
+
+    /**
      * Ensure that Pkg:: calls work.
      * This may become superfluous.
      */
@@ -72,6 +82,15 @@
     }
 
     // --- Public interface, from low-level functions to high-level ones ---
+
+    /**
+     * Read-only interface for @ref last_op_canceled
+     * Use immediately after calling some RequireAndTarget* function
+     * @return true if it was
+     */
+    global define boolean LastOperationCanceled () ``{
+	return last_op_canceled;
+    }
 
     /**
      * Is a package available for installation?
@@ -512,8 +531,10 @@
 	UI::CloseDialog ();
 	if (ui == `continue)
 	{
+	    last_op_canceled = false;
 	    return DoInstallAndRemovePkg (toinstall, toremove);
 	}
+	last_op_canceled = true;
 	return false;
     }
 
@@ -531,7 +552,7 @@
     define boolean RequireAndConflictAI ( list(string) require,
 					  list(string) conflict)
     ``{
-
+	last_op_canceled = false;
 	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalledAI (p)));
 	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalledAI (p)));
 	if (toinstall == [] && toremove == [])
