@@ -4,12 +4,12 @@
 
 AM_CXXFLAGS = -DY2LOG=\"libpkg\"
 
-INCLUDES= -I$(srcdir)/../src/include -I$(includedir)
+INCLUDES = -I$(srcdir)/../src/include -I$(includedir)
 
 bin_PROGRAMS = runpkg
 runpkg_SOURCES = runpkg.cc
 runpkg_LDADD = $(srcdir)/../src/libpkg.la -lycp
-runpkg_LDFLAGS = -L$(YAST2DIR)/lib
+runpkg_LDFLAGS =
 
 AUTOMAKE_OPTIONS = dejagnu
 
