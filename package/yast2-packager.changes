@@ -2,7 +2,12 @@
 Mon Mar  3 12:59:37 CET 2003 - gs@suse.de
 
 - pass the floppy device to PackageSelector widget (needed to save
-  or load a package selection, bug #23923) 
+  or load a package selection, bug #23923)
+
+-------------------------------------------------------------------
+Mon Mar 03 12:50:34 CET 2003 - arvin@suse.de
+
+- once more merged proofread texts
 
 -------------------------------------------------------------------
 Fri Feb 28 16:27:42 CET 2003 - kkaempf@suse.de

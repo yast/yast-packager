@@ -358,7 +358,7 @@
 		y2error ("No base selections available");
 		// Can't find any software data, probably a installation media error
 		// error message
-		return $[ "warning" : _("Can't read package data from installation media. Media error ?"),
+		return $[ "warning" : _("Cannot read package data from installation media. Media error?"),
 			  "warning_level" : `blocker ];
 	    }
 
