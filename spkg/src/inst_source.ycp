@@ -523,8 +523,10 @@ on the NFS server.
 ");
 
     Wizard::CreateDialog();
-    Wizard::ReplaceNextButton (`PushButton(`id(`next), FinishButtonLabel()));
-    Wizard::SetContents(title, contents, help_text, true, true);
+    Wizard::ReplaceNextButton (`PushButton(`id(`next), CloseButtonLabel()));
+    Wizard::SetContents(title, contents, help_text, false, true);
+    Wizard::ReplaceAbortButton( `Empty() );
+    Wizard::ReplaceBackButton( `Empty() );
 
     Pkg::SourceStartManager( false );
     Pkg::SourceStartCache ( false );
@@ -644,6 +646,7 @@ on the NFS server.
     y2debug( "Return: %1", input );
 
     return input;
+
 
     // Disabled obsolete code. It's still in to conserve translations.
     if ( false ) {
