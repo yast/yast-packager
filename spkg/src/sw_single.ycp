@@ -129,10 +129,11 @@ do this.</P>"));
   integer id = 0;
   any result = `next;
 
-  string instSource = GetInstSource(1);
-  string infopath =  instSource + "setup/descr";
-  string dudir = instSource + "setup/du/du.dir"; 
-
+  string instSource = "";
+  string infopath = "";
+  string dudir = "";
+  boolean local_descr = false;
+ 
   boolean skip_source = false;
 	  
   // if sw_single is called with argument "beginner" or with a package list or package name
@@ -176,7 +177,7 @@ do this.</P>"));
 	  if ( !go_on )
 	  {
 	      // try to get local information (common.pkd, du.dir, ...)
-	      boolean local_descr = CheckLocalDescription();
+	      local_descr = CheckLocalDescription();
 	      if ( local_descr )
 	      {
 		  infopath = "/var/adm/current_package_descr/suse/setup/descr";
@@ -214,12 +215,19 @@ do this.</P>"));
 	
 	  UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
 
-	  if ( test_mode )
+	  if ( !local_descr )
+	  {
+	       instSource = GetInstSource(1);
+	       infopath =  instSource + "setup/descr";
+	       dudir = instSource + "setup/du/du.dir"; 
+	  }
+	  else if ( test_mode )
 	  {
 	      infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
 	      dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
 	  }
-	  
+	  y2debug("SW_SINGLE infopath: %1", infopath );
+
 	  retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
 					      "language":long_language,  "dudir":dudir,
 					      "partition":part_input, "rootpath":"/",
