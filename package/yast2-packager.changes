@@ -2,6 +2,7 @@
 Thu Jul 04 17:41:39 CEST 2002 - arvin@suse.de
 
 - added ag_instsource to file list
+- fixed location of include files
 
 -------------------------------------------------------------------
 Wed Jul 03 13:24:35 CEST 2002 - arvin@suse.de
