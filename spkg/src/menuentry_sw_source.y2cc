@@ -1,0 +1,38 @@
+;
+; Menuentry file used by
+;  YaST2 Control Center
+;
+; $Id$
+;
+
+[Y2Module sw_single]
+
+; name of the entry, shown in y2cc
+Name = _("Change source of installation")
+
+; "raw" group name to which this module belongs
+; see /usr/lib/YaST2/etc/y2controlcentericons.y2cc for valid values
+Group = Software
+
+; icon displayed in y2cc
+Icon = source.png
+
+; *one* *short* descriptive line for y2cc
+Helptext = _("Choose the source for installation or removal of software packages. It is possible to install packages from CD, via the network, or from hard disk.")
+
+; arguments, seperated by space
+Arguments = 
+
+; whether root privileges are required to run this module
+RequiresRoot = true
+
+; default size for window, Y2CC will set $Y2_GEOMETRY to this value
+Geometry = 
+
+; string to use for sorting instead of Name
+SortKey = 
+
+; which textdomain to use for translations (important!)
+Textdomain = sw_single
+
+; vim:syntax=dosini
