@@ -32,12 +32,10 @@
     import "PackageInstallation";
     import "MediaUI";
     import "Packages";
-
     import "SlideShow";
     import "Wizard";
 
     include "showlog_defines.ycp";
-    include "packages/installationCallback.ycp";
     include "ui/common_popups.ycp";
 
     boolean packager_called = false;		// is there any package installed/deleted
