@@ -221,86 +221,91 @@
 
 
     /**
-     * Cyclic display update - this is called via the packager's callbacks.
+     * package start display update
+     * - this is called at the beginning of a new package
      *
      * @param pkg_name		package name
      * @param pkg_description	package description
-     * @param pkg_percent	package percentage
      * @param deleting		Flag: deleting (true) or installing (false) package?
      **/
-    global define void CyclicDisplayUpdate( string 	pkg_name,
-					    string 	pkg_description,
-					    integer	pkg_percent,
-					    boolean	deleting	)
+    global define void SlideDisplayStart (string 	pkg_name,
+					   string 	pkg_description,
+					   boolean	deleting	)
     ``{
 	if ( ! SanityCheck( false ) )	return;
 
-	if ( pkg_name != nil &&
-	     pkg_name != current_pkg_name )
+	// New package (this package hasn't been displayed before)
+
+	current_pkg_name = pkg_name;
+	integer pkg_size = deleting ? -1 : GetPackageSize( pkg_name );
+
+	if ( showing_details )
 	{
-	    // New package (this package hasn't been displayed before)
-
-	    current_pkg_name = pkg_name;
-	    integer pkg_size = deleting ? -1 : GetPackageSize( pkg_name );
-
-	    if ( showing_details )
+	    if ( pkg_description == nil )
 	    {
-		if ( pkg_description == nil )
-		{
-		    pkg_description = "";
-		}
+		pkg_description = "";
+	    }
 
-		string pkg_version = "";
-		string pkg_name_with_version = pkg_name;
+	    string pkg_version = "";
+	    string pkg_name_with_version = pkg_name;
 
-		if ( deleting )
-		{
-		    // Heading for the progress bar for the current package
-		    // while it is deleted. "%1" is the package name.
-		    pkg_name_with_version = sformat( _("Deleting %1"), pkg_name );
-		    pkg_version = "";
-		}
-		else
-		{
-		    pkg_name_with_version = size( pkg_version ) > 0 ? sformat( "%1-%2", pkg_name, pkg_version ) : pkg_name;
-		    pkg_version = GetPackageVersion( pkg_name );
-		}
-		string rich_text = FormatPackageDescription( pkg_name_with_version, pkg_description, pkg_size, deleting );
-
-		UI::ChangeWidget(`id(`description_current_package), `Value, rich_text );
-		UI::ChangeWidget(`id(`progress_current_package),    `Label, pkg_name_with_version );
-		UI::ChangeWidget(`id(`inst_log), `LastLine, sformat( "%1 --- %2\n", pkg_name_with_version, pkg_description ) );
+	    if ( deleting )
+	    {
+		// Heading for the progress bar for the current package
+		// while it is deleted. "%1" is the package name.
+		pkg_name_with_version = sformat( _("Deleting %1"), pkg_name );
+		pkg_version = "";
 	    }
 	    else
 	    {
-		ChangeSlideIfNecessary();
+		pkg_name_with_version = size( pkg_version ) > 0 ? sformat( "%1-%2", pkg_name, pkg_version ) : pkg_name;
+		pkg_version = GetPackageVersion( pkg_name );
 	    }
+	    string rich_text = FormatPackageDescription( pkg_name_with_version, pkg_description, pkg_size, deleting );
+
+	    UI::ChangeWidget(`id(`description_current_package), `Value, rich_text );
+	    UI::ChangeWidget(`id(`progress_current_package),    `Label, pkg_name_with_version );
+	    UI::ChangeWidget(`id(`inst_log), `LastLine, sformat( "%1 --- %2\n", pkg_name_with_version, pkg_description ) );
+	}
+	else // not details
+	{
+	    ChangeSlideIfNecessary();
+	}
 
 
-	    if ( ! deleting )
-	    {
-		SubtractPackageSize( pkg_size );
-		y2debug( "Installing package %1 from CD %2 -- size: %3 -- remaining: %4",
+	if ( ! deleting )
+	{
+	    SubtractPackageSize( pkg_size );
+	    y2debug( "Installing package %1 from CD %2 -- size: %3 -- remaining: %4",
 			 pkg_name, current_cd_no, pkg_size, remaining_sizes_per_cd );
 
-		if ( SwitchToSecondsIfNecessary() ||
-		     RecalcRemainingTimes( false ) )	// no forced recalculation
-		{
-		    y2debug( "Updating progress for all CDs" );
-		    UpdateAllCdProgress( deleting );
-		}
-
-		UpdateCurrentCdProgress();
+	    if (SwitchToSecondsIfNecessary()
+		|| RecalcRemainingTimes( false ) )	// no forced recalculation
+	    {
+		y2debug( "Updating progress for all CDs" );
+		UpdateAllCdProgress( deleting );
 	    }
-	}
+
+	    UpdateCurrentCdProgress();
+
+	} // !deleting
+    };
+
+    /**
+     * Progress display update
+     * - this is called via the packager's progress callbacks.
+     *
+     * @param pkg_percent	package percentage
+     **/
+    global define void SlideDisplayProgress (integer pkg_percent)
+    ``{
+	if ( ! SanityCheck( false ) )	return;
 
 	if ( showing_details )
 	{
 	    UI::ChangeWidget(`id(`progress_current_package), `Value, pkg_percent);
 	}
     };
-
-
 
     /**
      * Process (slide show) button press.
