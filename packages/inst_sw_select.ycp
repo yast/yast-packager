@@ -55,7 +55,7 @@
     // some of the text in <b>'s, e.g. Default comes from the index file,
     // translations must be consistent with po/index/index.??.po
     string helptext = _("<p>
-The SuSE Linux <b>Default</b> system is a good software
+The &product; <b>Default</b> system is a good software
 selection for most users.
 </p>
 ");
@@ -71,7 +71,7 @@ selection for most users.
     // help text, continued
     helptext = helptext + _("<p>
    You will not need to insert all of the CDs that
-come with SuSE Linux for this selection. Additional software from the
+come with &product; for this selection. Additional software from the
 other CDs can always be installed later.
 </p>
 ");
@@ -80,7 +80,7 @@ other CDs can always be installed later.
     helptext = helptext +
 	_("<p>
 The <b>Minimal</b> system includes just the bare essentials needed
-to safely run SuSE Linux. This selection <b><i>does not include
+to safely run &product;. This selection <b><i>does not include
 graphical desktop environments</i></b> -- no X11, no KDE, no GNOME.
 Select this option as a base for your own custom selection, for
 dedicated server systems that do not need a graphical desktop, or for
@@ -90,7 +90,7 @@ systems that are short on disk space or memory.
 
    // help text, continued
     helptext = helptext + _("<p>
-With the <b>Minimum graphical system</b>, install the SuSE Linux
+With the <b>Minimum graphical system</b>, install the &product;
 base system and all packages required for X11, the Graphical User
 Interface (GUI).
 You can then work with a simple graphical desktop. </p>
