@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 11 15:59:00 CET 2003 - kkaempf@suse.de
+
+- fix parameters of doneProvide() callback (#25081)
+- 2.7.25
+
+-------------------------------------------------------------------
 Tue Mar 11 14:06:18 CET 2003 - kkaempf@suse.de
 
 - do not run SuSEconfig when adding packages during installation
