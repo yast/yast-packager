@@ -46,15 +46,8 @@
     string tmpdir	= SCR::Read(.target.tmpdir);
     string language	= "";
 
-    if (Mode::initial)
-    {
-	language = Language::language;
-	Pkg::SetLocale (language);
-    }
-    else
-    {
-	language = Pkg::GetLocale ();	// language is set from $LANG environment
-    }
+    language = Language::language;
+    Pkg::SetLocale (language);
 
     any		ret		= nil;	// return value module packager
     list	rpm_list	= [];
@@ -101,6 +94,8 @@
     }
     else if (Mode::cont)
     {
+	// FIXME error checking is missing all around here, initialization could actually fail!
+	Pkg::TargetInit (Installation::destdir, false);
 	// initialize the package agent in continue mode
 	Packages::Init( true );
         SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
@@ -168,6 +163,15 @@
 	list remaining = SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
 	if (remaining == nil)
 	    remaining = [];
+
+	string backupPath = SCR::Read(.target.string, Installation::destdir + "/var/lib/YaST2/backup_path");
+	if ( backupPath != nil && backupPath != "")
+	{
+	    y2milestone("create package backups in %1",backupPath);
+	    Pkg::CreateBackups (true);
+	    Pkg::SetBackupPath (backupPath);
+	}
+
 	y2milestone ("%1 packages remaining", size (remaining));
 	foreach (`pkg, remaining,
 	``{
@@ -198,6 +202,11 @@
 	current_cd_no = 2; // continue with second CD but only in continue mode
     }
 
+    if (Packages::metadir_used)			// all is in ramdisk, we can install all sources now
+    {
+	current_cd_no = 0;
+	maxnumbercds = 0;
+    }
 
     symbol result = `next;
     // else

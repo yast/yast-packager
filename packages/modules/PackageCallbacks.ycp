@@ -12,6 +12,8 @@
 {
     module "PackageCallbacks";
 
+    import "Mode";
+
     textdomain "packager";
 
     include "ui/common_messages.ycp";
@@ -19,6 +21,7 @@
 
     global boolean _provide_popup = false;
 
+    global integer _current_source = 1;
    //--------------------------------------------------------------------------
    // defaults
 
@@ -128,6 +131,7 @@
 	string medianame = "CD ";
 	if (substring (url, 0, 3) == "dvd")
 	    medianame = "DVD ";
+	// prompt to insert product (%1 == "SuSE Linux ...") and media (%2 == "CD 2")
 	string message = sformat(_("Please insert\n'%1'  %2"), product, (medianame + wanted));
 
 	// currently unused
@@ -236,7 +240,7 @@
 	if (!Mode::normal)
 	{
 	    import "SlideShow";
-	    SlideShow::SetCurrentCdNo (wanted);
+	    SlideShow::SetCurrentCdNo (_current_source, wanted);
 	}
 
 	if (r == `url)
@@ -248,8 +252,17 @@
     }
 
 
+    /**
+     * dummy source change callback, see SlideShowCallbacks for the real one
+     */
+    global define string SourceChange (integer source, integer medianr)
+    ``{
+	y2milestone ("SourceChange (%1, %2)", source, medianr);
+	_current_source = source + 1;
+    }
+
 //=============================================================================
-//	MEDIA ERROR
+//	constructor and callback init
 //=============================================================================
 
 
@@ -260,6 +273,7 @@
 	``{
 	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
 	});
+	Pkg::CallbackSourceChange ("PackageCallbacks::SourceChange");
     }
 
     /**
@@ -278,7 +292,13 @@
 	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
 	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
 
-	list sources = Pkg::SourceStartCache (true);
+	if (!Mode::initial)
+	{
+	    // popup when initializing the package manager
+	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
+	    list sources = Pkg::SourceStartCache (true);
+	    UI::CloseDialog();
+	}
 
 	SetMediaCallbacks ();
 

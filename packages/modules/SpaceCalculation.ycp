@@ -136,7 +136,7 @@
 
 	list(map) target_partitions = [];
 	integer spare_percentage  = 14;   // percentage of free spare space on every partition
-	integer min_spare 	= 2048; // minimum free space ( 2 MB )
+	integer min_spare 	= 2048 * 1024; // minimum free space ( 2 MB )
 
 	foreach( `disk, `diskinfo, targets,
 	``{
@@ -230,11 +230,12 @@
      *
      */
 
-    global define EvaluateFreeSpace( integer spare_percentage ) ``{
+    global define EvaluateFreeSpace( integer spare_percentage )
+    ``{
 
 	list partition = [];
-	integer min_spare = 2048;		// 2 MB
-	integer max_spare = 1048576;		// 1 GB
+	integer min_spare = 2048 * 1024;		// 2 MB
+	integer max_spare = 1048576 * 1024;		// 1 GB
 
 	string target = Installation::destdir;
 
@@ -298,9 +299,9 @@
 
 	    if ( add_part )
 	    {
-		change ( part_info, "used",  tointeger(part["used"]:0) );
+		change ( part_info, "used",  tointeger(part["used"]:0) * 1024 );
 
-		free_size = tointeger(part["free"]:0);
+		free_size = tointeger(part["free"]:0) * 1024;
 		spare_size = (free_size*spare_percentage)/100;
 
 		if ( spare_size < min_spare )
@@ -320,7 +321,7 @@
 
 	y2milestone( "UTILS *** EvaluateFreeSpace returns: %1", part_input );
 
-	Pkg::InitDU(part_input);
+	Pkg::TargetInitDU (part_input);
 
 	return part_input;
     };
@@ -349,8 +350,6 @@
 	});
 	y2milestone ("CheckCurrentSpace(%1) = %2", current_partitions, output);
 
-	//$[ "dir" : [ total, used, pkgusage ], .... ]
-	y2milestone ("Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
 	return output;
     }
 
@@ -366,19 +365,19 @@
 	integer used = 0;
 	string message = "";
 
-	//$[ "dir" : [ total, used, pkgusage ], .... ]
+	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 
 	foreach( `dir, `sizelist, Pkg::TargetGetDU(),
 	``{
-	    integer dirused = sizelist[1]:0 + sizelist[2]:0;
-	    integer needed = dirused - sizelist[0]:0;	// (current+pkgusage) - total
+	    y2milestone ("dir %1, sizelist (total, current, future) %2", dir, sizelist);
+	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// usedfuture - total
 	    if ( needed > 0 )
 	    {
 		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
 		message = message + sformat ( _("Partition \"%1\" needs %2 more disk space."),
 					      dir, size_text(needed) ) + "\n";
 	    }
-	    used = used + dirused;
+	    used = used + sizelist[2]:0;
 	} );
 
 	y2debug( "Total used space: %1", used );
@@ -408,7 +407,8 @@
     // Calculate required disk space
     //
 
-    global define string GetRequSpace( boolean initialize ) ``{
+    global define string GetRequSpace( boolean initialize )
+    ``{
 
 	if ( !info_called )
 	{
@@ -417,10 +417,10 @@
 
 	integer used = 0;
 
-	//$[ "dir" : [ total, used, pkgusage ], .... ]
+	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 	foreach( `dir, `sizelist, Pkg::TargetGetDU(),
 	``{
-	    used = used + (sizelist[1]:0 + sizelist[2]:0);
+	    used = used + sizelist[2]:0;
 	} );
 	y2milestone ("GetReqSpace Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
 	return ( size_text (used) );
@@ -443,12 +443,11 @@
 	integer used = 0;
 
 	string message = "";
-	//$[ "dir" : [ total, used, pkgusage ], .... ]
+	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
 	foreach (`dir, `sizelist, Pkg::TargetGetDU(),
 	``{
-	    integer dirused = sizelist[1]:0 + sizelist[2]:0;
 	    y2milestone ("%1: %2", dir, sizelist);
-	    integer needed = dirused - sizelist[0]:0;	// pkgusage - total
+	    integer needed = sizelist[2]:0 - sizelist[0]:0;	// usedfuture - total
 	    if ( needed > 0 )
 	    {
 		y2warning("Partition \"%1\" needs %2 more disk space.",
@@ -456,7 +455,7 @@
 		fit = false;
 	    }
 
-	    used = used + dirused;
+	    used = used + sizelist[2]:0;
 	});
 
 	y2milestone ("Total used space: %1, fits ?: %2", used, fit);

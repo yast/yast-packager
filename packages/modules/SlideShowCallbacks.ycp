@@ -16,6 +16,50 @@
 
     textdomain "packager";
 
+    boolean shutup = false;			// show the disk space warning popup only once
+
+    boolean _remote_provide = false;
+
+   /** at start of file providal
+    *
+    */
+    global define void StartProvide (string name, integer archivesize, boolean remote)
+    ``{
+	if (remote)
+	{
+	    SlideShow::SlideProvideStart (name);
+	    _remote_provide = true;
+	}
+	return;
+   }
+
+
+   /** during file providal
+    *
+    */
+   global define void ProgressProvide (integer percent)
+   ``{
+	if (_remote_provide)
+	{
+	    SlideShow::SlideDisplayProgress ( percent );
+	}
+	return;
+   }
+
+
+   /** during file providal
+    *
+    */
+   global define void DoneProvide (integer error, string reason)
+   ``{
+	if (_remote_provide)
+	{
+	    SlideShow::SlideDisplayProgress ( 100 );
+	    _remote_provide = false;
+	}
+	return;
+   }
+
 
    /** at start of package install
     *
@@ -130,54 +174,19 @@ Do you want to go on with the installation?\n"),
     };
 
 
+    // change of source
+    // source: 0 .. n-1
+    // media:  1 .. n
 
-   /**
-     * CallbackDisplayError
-     **/
-
-    global define symbol CallbackDisplayError (string pkg_name)
+    global define void CallbackSourceChange (integer source, integer media)
     ``{
-	y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
-
-	// add package to list error_packages (module "PackageInstallation")
-	error_packages = add( error_packages, pkg_name );
-
-	if ( !deleting )
-	{
-	    any answer = `no_log;
-	    string message = sformat( _("Package %1 returned an error.\nDo you want to see the log file?"),
-					  pkg_name );
-	    if ( UI::AnyQuestionPopup( NoHeadline(),
-					   message,
-					   YesButtonLabel(),
-					   NoButtonLabel(),
-					   `focus_no) )
-	    {
-		answer = `yes_short;
-	    }
-
-	    textdomain "general";	// what's that good for?
-
-	    while ( answer != `no_log )
-	    {
-		string text = "";
-
-		if ( answer == `yes_short )
-		{
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPMShort");
-		}
-		if ( answer == `yes_long )
-		{
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
-		}
-
-		answer = UI::DisplayLogFile( text, answer );
-	    }
-
-	    textdomain "packager";
-	}
+	PackageCallbacks::SourceChange (source, media);		// inform PackageCallbacks about the change
+	SlideShow::SetCurrentCdNo (source+1, media);
+	SlideShow::SlideDisplayProgress (0);
+	SlideShow::UpdateAllCdProgress(false);
+	SlideShow::UpdateCurrentCdProgress(); // may or may not be 0 -> recalculate
+	return;
     };
-
 
     /**
      * constructor
@@ -190,6 +199,12 @@ Do you want to go on with the installation?\n"),
 	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
 	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackDisplayProgress");
 	Pkg::CallbackDonePackage ("SlideShowCallbacks::DonePackage");
+
+	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
+	Pkg::CallbackProgressProvide ("SlideShowCallbacks::ProgressProvide");
+	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
+
+	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
     }
 
 }

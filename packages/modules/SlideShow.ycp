@@ -12,6 +12,7 @@
 
     import "Installation";
     import "Language";
+    import "Packages";			// for slidedir
     import "SlideShowCallbacks";
 
     include "ui/common_messages.ycp";
@@ -21,9 +22,10 @@
 
     global string	media_type		= "CD";
     global boolean 	showing_details		= false;
-    global list		install_sizes_per_cd	= [];
-    global list		remaining_sizes_per_cd 	= [];
-    global list		remaining_times_per_cd	= [];
+    global list		install_sizes_per_cd	= [];	// a list of sizes per installation source: [[42, 43, 44], [12, 13, 14]]
+    global list		remaining_sizes_per_cd 	= [];	// see above: a list of lists of int
+    global list		remaining_times_per_cd	= [];	// see above: a list of lists of int
+    global list		inst_src_names		= [];	// a list of strings identifying each installation source
     global integer 	total_size_installed 	= 0;
     global integer	total_size_to_install	= 0;
     global integer 	total_time_elapsed 	= 0;
@@ -31,7 +33,9 @@
     global integer	initial_recalc_delay	= 30;	// const - seconds before initially calculating remaining times
     global integer	recalc_interval		= 30;	// const - seconds between "remaining time" recalculations
     global integer	next_recalc_time	= -1;
-    global integer 	current_cd_no 		= 1;
+    global integer 	current_src_no 		= 1;	// 1..n
+    global integer 	current_cd_no 		= 1;	// 1..n
+    global integer	total_cd_count		= 0;
     global boolean	unit_is_seconds		= false;	// begin with package sizes
     global integer	bytes_per_second	= 1;
     global string 	current_pkg_name	= "";
@@ -62,7 +66,14 @@
 	y2milestone ( "SlideShow constructor" );
 	ui_defines();
 	next_recalc_time	= time();
-	slide_base_path		= Installation::sourcedir + "/suse/setup/slide";
+	slide_base_path		= Packages::slidedir;
+
+	// FIXME: ugly hack
+	map tmp1 = WFM::Read (.local.stat, slide_base_path);
+	if (!tmp1["isdir"]:false)
+	{
+	    slide_base_path = "/var/adm/YaST/InstSrcManager/IS_CACHE_0x00000001/MEDIA/suse/setup/slide";
+	}
 
 	if ( Mode::test )
 	{
@@ -151,24 +162,31 @@
 	    return;
 	}
 
-	install_sizes_per_cd	= KiloBytesToBytes (Pkg::PkgMediaSizes());
-	y2milestone ("install_sizes_per_cd %1", install_sizes_per_cd);
-	if ( Mode::cont && install_sizes_per_cd[0]:0 > 0 )
+	install_sizes_per_cd	= Pkg::PkgMediaSizes();
+	inst_src_names		= Pkg::PkgMediaNames();
+
+	if ( Mode::cont && install_sizes_per_cd[0, 0]:0 > 0 )
 	{
 	    // CD1 is guaranteed to be done in continue mode.
 	    // The packager tends to return the old sizes for CD1 there, too
 	    // (bad reinitialization?).
-	    y2warning( "Packager returned remaining size %1 for CD1 - (fixing)", install_sizes_per_cd[0]:0 );
-	    install_sizes_per_cd[0] = -1;
+	    y2warning( "Packager returned remaining size %1 for CD1 - (fixing)", install_sizes_per_cd[0,0]:0 );
+	    install_sizes_per_cd[0, 0] = -1;
 	}
 
 	total_size_to_install	= 0;
-	foreach ( `cd_size, install_sizes_per_cd,
-	``{
-	    total_size_to_install = total_size_to_install + cd_size;
+	total_cd_count		= 0;
+
+	foreach ( `size_list, install_sizes_per_cd,
+        ``{
+	    foreach ( `cd_size, size_list,
+	    ``{
+		total_size_to_install	= total_size_to_install + cd_size;
+		total_cd_count		= total_cd_count + 1;
+	    });
 	});
 
-	remaining_sizes_per_cd 	= install_sizes_per_cd;
+	remaining_sizes_per_cd 	= eval (install_sizes_per_cd);
 	init_pkg_data_complete	= true;
 
 	y2milestone( "SlideShow::InitPkgData() done; install_sizes_per_cd: %1", install_sizes_per_cd );
@@ -215,6 +233,17 @@
     };
 
 
+    /**
+     * package providal start
+     *
+     */
+    global define void SlideProvideStart (string pkg_name)
+    ``{
+	if ( ! SanityCheck( false ) )	return;
+	if ( !showing_details )		return;
+	UI::ChangeWidget(`id(`progress_current_package), `Label, pkg_name);
+
+    }
 
     /**
      * package start display update
@@ -275,8 +304,8 @@
 	if ( ! deleting )
 	{
 	    SubtractPackageSize( pkg_size );
-	    y2debug( "Installing package %1 from CD %2 -- size: %3 -- remaining: %4",
-			 pkg_name, current_cd_no, pkg_size, remaining_sizes_per_cd );
+	    y2debug ( "Installing package %1 from CD %2 of source #%3 -- size: %4 -- remaining: %5",
+			 pkg_name, current_cd_no, current_src_no, pkg_size, remaining_sizes_per_cd );
 
 	    if (SwitchToSecondsIfNecessary()
 		|| RecalcRemainingTimes( false ) )	// no forced recalculation
@@ -324,11 +353,15 @@
 
 
     /**
-     * Set the current CD numer. Must be called for each CD change.
+     * Set the current source and CD number. Must be called for each CD change.
+     * src_no : 1...n
+     * cd_no: 1...n
      **/
-    global define void SetCurrentCdNo( integer cd_no )
+    global define void SetCurrentCdNo( integer src_no, integer cd_no )
     ``{
-	current_cd_no = cd_no;
+	y2milestone ("SetCurrentCdNo(%1,%2)", src_no, cd_no);
+	current_src_no = src_no;
+	current_cd_no  = cd_no;
     };
 
 
@@ -368,51 +401,19 @@
      **/
     define void SubtractPackageSize( integer pkg_size )
     ``{
-	list new_remaining = [];
-	integer cd_no = 1;
-
-	foreach ( `remaining, remaining_sizes_per_cd,
-	``{
-	    if ( cd_no == current_cd_no )
-	    {
-		remaining = remaining - pkg_size;
-
-		if ( remaining == 0 )
-		{
-		    // -1 is the indicator for "done with this CD" - not to be
-		    // confused with 0 for "nothing to install from this CD".
-		    remaining = -1;
-		}
-		new_remaining = add( new_remaining, remaining );
-	    }
-	    else
-	    {
-		new_remaining = add( new_remaining, remaining );
-	    }
-
-	    cd_no = cd_no + 1;
-	});
-
-	remaining_sizes_per_cd = new_remaining;
+	integer remaining = remaining_sizes_per_cd [ current_src_no-1, current_cd_no-1 ]: 1;
+	remaining = remaining - pkg_size;
 	total_size_installed = total_size_installed + pkg_size;
-    };
 
+	if ( remaining <= 0 )
+	{
+	    // -1 is the indicator for "done with this CD" - not to be
+	    // confused with 0 for "nothing to install from this CD".
+	    remaining = -1;
+	}
 
-    /**
-     * Translate a list of sizes in KiloBytes to Bytes
-     * @param kb_sizes sizes in kilobytes
-     * @return list of sizes in bytes
-     **/
-    define integer KiloBytesToBytes( list kb_sizes )
-    ``{
-	list byte_sizes = [];
-
-	foreach ( `kb_size, kb_sizes,
-	``{
-	    byte_sizes = add( byte_sizes, kb_size * 1024 );
-	});
-
-	return byte_sizes;
+	remaining_sizes_per_cd [ current_src_no-1, current_cd_no-1 ] = remaining;
+	y2debug ("SubtractPackageSize(%1) = %2", pkg_size, remaining_sizes_per_cd);
     };
 
 
@@ -437,11 +438,11 @@
 	if ( unit_is_seconds )
 	{
 	    RecalcRemainingTimes( true );	// force
-	    ReplaceCdStatistics( remaining_times_per_cd, current_cd_no-1, unit_is_seconds, deleting );
+	    ReplaceCdStatistics( remaining_times_per_cd, current_src_no-1, current_cd_no-1, unit_is_seconds, deleting );
 	}
 	else
 	{
-	    ReplaceCdStatistics( remaining_sizes_per_cd, current_cd_no-1, unit_is_seconds, deleting );
+	    ReplaceCdStatistics( remaining_sizes_per_cd, current_src_no-1, current_cd_no-1, unit_is_seconds, deleting );
 	}
 
 	if ( saved_percent != nil )
@@ -451,6 +452,7 @@
 	    // This might as well wait until the next cyclic update, but every
 	    // once in a while a value of 0 percent would be visible which
 	    // might confuse the user.
+
 	    UI::ChangeWidget( `id(`progress_current_cd ), `Value, saved_percent );
 	}
     };
@@ -464,8 +466,8 @@
     ``{
 	if ( ! SanityCheck( false ) ) return;
 
-	integer total     = install_sizes_per_cd[current_cd_no-1]:1;
-	integer remaining = remaining_sizes_per_cd[current_cd_no-1]:1;
+	integer total     = install_sizes_per_cd   [ current_src_no-1, current_cd_no-1 ]:1;
+	integer remaining = remaining_sizes_per_cd [ current_src_no-1, current_cd_no-1 ]:1;
 
 	integer cd_percent = 0;
 
@@ -484,6 +486,11 @@
 	    // Convert 'remaining' from size (bytes) to time (seconds)
 
 	    remaining = remaining / bytes_per_second;
+
+	    if ( remaining > 4*3600 )		// clip off at 4 hours
+	    {
+	        remaining = 4*3600;
+	    }
 	}
 
 	if ( remaining <= 0 )
@@ -494,26 +501,33 @@
 
 	string remaining_text = FormatRemaining( remaining, unit_is_seconds );
 
-	// The CD labels use the CD number (from 0 on) directly as widget IDs.
-	UI::ChangeWidget( `id( current_cd_no-1 ),	`Value, remaining_text );
-	UI::ChangeWidget( `id(`progress_current_cd ),	`Value, cd_percent     );
+	UI::ChangeWidget( `id( CdProgressId( current_src_no-1, current_cd_no-1 ) ), `Value, remaining_text );
+
+	UI::ChangeWidget( `id(`progress_current_cd ), `Value, cd_percent );
 
 
 	// Update 'total' field
 
-	if ( size( remaining_sizes_per_cd ) > 1 )
+	if ( total_cd_count > 1 )
 	{
 	    integer sum = remaining > 0 ? remaining : 0; // init with current CD (expensive to recalc)
-	    integer cd_no = 1;
+	    integer src_no = 1;
+	    integer cd_no  = 1;
 
-	    foreach ( `cd_remaining, unit_is_seconds ? remaining_times_per_cd : remaining_sizes_per_cd, ``{
+	    foreach ( `cd_remaining_list, unit_is_seconds ? remaining_times_per_cd : remaining_sizes_per_cd,
+            ``{
+  	        foreach ( `cd_remaining, cd_remaining_list,
+	        ``{
+ 		    if ( ! ( src_no == current_src_no && cd_no == current_cd_no )
+			 && cd_remaining > 0 )
+		    {
+			sum = sum + cd_remaining;
+		    }
 
-		if ( cd_no != current_cd_no && cd_remaining > 0 )
-		{
-		    sum = sum + cd_remaining;
-		}
+		    cd_no = cd_no + 1;
+		});
 
-		cd_no = cd_no + 1;
+		src_no = src_no + 1;
 	    });
 
 	    UI::ChangeWidget( `id( `total ), `Value, FormatRemaining( sum, unit_is_seconds ) );
@@ -614,18 +628,31 @@
 
 	// Recalculate remaining times for the individual CDs
 
-	foreach ( `remaining, remaining_sizes_per_cd,
+	foreach ( `remaining_sizes_list, remaining_sizes_per_cd,
 	``{
-	    integer remaining_time = remaining / bytes_per_second;
+	    list remaining_times_list = [];
+	    integer remaining_time = -1;
 
-	    if ( remaining > 0 && remaining_time < 5 )
-	    {
-		// It takes at least this long for the CD drive to spin up and
-		// for RPM to do _anything_. Times below this values are
-		// ridiculously unrealistic.
-		remaining_time = 5;
-	    }
-	    remaining_times_per_cd = add( remaining_times_per_cd, remaining_time );
+	    foreach ( `remaining_size, remaining_sizes_list,
+	    ``{
+		remaining_time = remaining_size;
+
+		if ( remaining_size > 0 )
+		{
+		    remaining_time = remaining_size / bytes_per_second;
+
+		    if ( remaining_time < 5 )
+		    {
+			// It takes at least this long for the CD drive to spin up and
+			// for RPM to do _anything_. Times below this values are
+			// ridiculously unrealistic.
+			remaining_time = 5;
+		    }
+		}
+		remaining_times_list = add( remaining_times_list, remaining_time );
+	    });
+
+	    remaining_times_per_cd = add( remaining_times_per_cd, remaining_times_list );
 	});
 
 
@@ -646,7 +673,7 @@
 		// In addition to that, take elapsed time for current slide
 		// into account so all slides get about the same time.
 
-		integer time_remaining = remaining_times_per_cd[current_cd_no-1]:1 + time() - slide_start_time;
+		integer time_remaining = remaining_times_per_cd[current_src_no-1, current_cd_no-1]:1 + time() - slide_start_time;
 		slide_interval = time_remaining / slides_remaining;
 		y2debug( "New slide interval: %1 - slides remaining: %2 - remaining time: %3",
 			 slide_interval, slides_remaining, time_remaining );
@@ -1006,16 +1033,19 @@
      * CD x / remaining seconds or byte size;
      * insert progress bar for the current CD underneath this CD's description line.
      *
-     * @param cd_remaining list of remaining seconds / byte sizes for each CD
+     * @param cd_remaining list of remaining seconds / byte sizes for each source and CD
+     * @param current_src number of the current installation source (starting with 0)
      * @param current_cd number of the current CD (starting with 0)
      * @param unit_is_seconds true if 'remaining' are seconds, false if bytes
      * @param deleting true if deleting packages, false if installing
      *
      * @return term widget description for the CD statistics
      **/
-    define term CdStatisticsWidgets( list cd_remaining, integer current_cd, boolean unit_is_seconds, boolean deleting )
+    define term CdStatisticsWidgets( list cd_remaining, integer current_src, integer current_cd,
+				     boolean unit_is_seconds, boolean deleting )
     ``{
-	integer cd_num = 0;
+	y2debug ("CdStatisticsWidgets(%1,%2,%3, ...)", cd_remaining, current_src, current_cd);
+	integer src_no = 0;
 	string label = unit_is_seconds ?
 	    // Label above CD statistics when switched to min:seconds display
 	    // Translators: About double this wide should be OK. Insert newlines if in doubt!
@@ -1024,39 +1054,55 @@
 	    _("Remaining");
 
 	term widgets = `VBox(
-			     `Right( `Label( label ) ),
-			     `VSpacing( 0.5 )
+			     `Right( `Label( label ) )
 			     );
 	integer sum = 0;
 
-	foreach ( `remaining, cd_remaining,
+	foreach ( `remaining_list, cd_remaining,
 	``{
-	    widgets = add( widgets,
-			   `HBox(
-				 // Label for installation media - '%1' will be replaced with the CD number
-				 `Label( sformat(media_type + " %1:", cd_num+1 ) ),
-				 `Right( `Label( `id( cd_num ),
-						 cd_num < current_cd ?
-						 UI::Glyph(`CheckMark ) :
-						 FormatRemaining( remaining, unit_is_seconds ) ) )
-				 )
-			   );
-	    if ( remaining > 0 )
+	    widgets = add( widgets, `VSpacing( 0.5 ) );
+
+	    if ( size( inst_src_names ) > 1 )
 	    {
-		// Don't add negative numbers ("done with this CD" markers) to the sum!
-		sum = sum + remaining;
+		// Add a header for this installation source ("United Linux", "SLES")
+
+		widgets = add( widgets, `Left( `Label( inst_src_names[ src_no ]: "" ) ) );
 	    }
 
-	    if ( current_cd == cd_num && ! deleting )
-	    {
-		widgets = add( widgets,	`ProgressBar( `id(`progress_current_cd), "", 100, 0 ) );
-		widgets = add( widgets,	`VSpacing( 0.7 ) );
-	    }
+	    integer cd_no = 0;			// re-start at 0 for every source
 
-	    cd_num = cd_num + 1;
+	    foreach ( `remaining, remaining_list,
+            ``{
+		widgets = add( widgets,
+			       `HBox(
+				     // Label for installation media - '%1' will be replaced with the CD number
+				     `Label( sformat(media_type + " %1:", cd_no+1 ) ),
+				     `Right( `Label( `id( CdProgressId( src_no, cd_no ) ),
+						     FormatRemaining( remaining, unit_is_seconds ) ) )
+				     )
+			       );
+		if ( remaining > 0 )
+		{
+		    // Don't add negative numbers ("done with this CD" markers) to the sum!
+		    sum = sum + remaining;
+		}
+
+		if (src_no == current_src
+		    && cd_no == current_cd
+		    && ! deleting )
+		{
+		    widgets = add( widgets, `ProgressBar( `id(`progress_current_cd), "", 100, 0 ) );
+		    widgets = add( widgets, `VSpacing( 0.7 ) );
+		}
+
+		cd_no = cd_no + 1;
+	    });
+
+	    src_no = src_no + 1;
 	});
 
-	if ( size( cd_remaining ) > 1 )
+
+	if ( total_cd_count > 1 )
 	{
 	    // Add "total" entry - only if more than one installation medium
 
@@ -1072,6 +1118,17 @@
 	}
 
 	return widgets;
+    };
+
+
+    /**
+     * Return a CD's progress bar ID
+     * @param src_no number of the installation source (from 0 on)
+     * @param cd_no number of the CD within that installation source (from 0 on)
+     **/
+    define string CdProgressId( integer src_no, integer cd_no )
+    ``{
+	return sformat( "Src %1 CD %2", src_no, cd_no );
     };
 
 
@@ -1161,9 +1218,11 @@
     /**
      * Replace the widgets for the CD statistics. Vital after each CD change.
      **/
-    define void ReplaceCdStatistics( list cd_remaining, integer current_cd, boolean unit_is_seconds, boolean deleting )
+    define void ReplaceCdStatistics( list cd_remaining, integer current_src, integer current_cd,
+				     boolean unit_is_seconds, boolean deleting )
     ``{
-	UI::ReplaceWidget( `id(`rep_cd_statistics), CdStatisticsWidgets( cd_remaining, current_cd, unit_is_seconds, deleting ) );
+	UI::ReplaceWidget( `id(`rep_cd_statistics),
+			   CdStatisticsWidgets( cd_remaining, current_src, current_cd, unit_is_seconds, deleting ) );
 	cd_statistics_created = true;
     };
 
