@@ -16,15 +16,19 @@
     import "Installation";
     import "InstURL";
     import "Kernel";
+    import "Label";
     import "Mode";
     import "Label";
     import "Language";
     import "Popup";
+    import "Product";
     import "ProductFeatures";
+    import "ProductControl";
     import "Report";
     import "SlideShow";
     import "SpaceCalculation";
     import "Storage";
+    import "Wizard";
 
     global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false;	// Installing source packages ?
@@ -36,6 +40,12 @@
     global list<integer> theSources = [];		// id codes of sources in priority order
     global list<string> theSourceDirectories = [];	// product directories on sources
     global map<integer,integer> theSourceOrder = $[];	// installation order
+    global boolean desktop_dialog_shown = false;	// flag, that the Desktop software selection frame has been shownw
+
+    global string desktop_help_text =
+// help text
+_("<p>SUSE Linux offers you the most efficient and comfortable desktops.
+Select which desktop you would like to install.</p>");
 
     // Local variables
 
@@ -529,6 +539,19 @@ Packages from this media cannot be installed."), orderdir),
 		    return false;
 		});
 
+                string servicepack_metadata = "/tmp/servicepack.tar.gz";
+                boolean servicepack_available = false;
+                if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
+                {
+                    y2milestone("Service Pack data available");
+                    string localdir = "/yast-install/Service-Pack/CD1";
+                    WFM::Execute (.local.mkdir, localdir);
+                    y2milestone ("Filling %1", localdir);
+                    WFM::Execute(.local.bash, "tar -zxvf " +
+                            servicepack_metadata + " -C " + localdir);
+                    servicepack_available = true;
+                }
+
 		// ok, all data copied from the install media, release and delete it
 
 		Pkg::SourceDelete (initial_source);
@@ -542,6 +565,40 @@ Packages from this media cannot be installed."), orderdir),
 		    y2error ("Unable to initialize all installation sources");
 		    return;
 		}
+
+                // Add service pack as the first source if it exists:
+                integer instordersp = 0;
+                if (servicepack_available)
+                {
+
+                    string meta_url = "dir:///yast-install/Service-Pack/CD1";
+                    string pkgdir = "/";
+                    string orderdir = "/Service-Pack/CD1";
+                    integer order_source = Pkg::SourceCreate (meta_url, "");		// create and enable source
+                    y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
+                    if (order_source != nil)
+                    {
+                        theSources = add (theSources, order_source);
+                        theSourceDirectories = add (theSourceDirectories, orderdir);
+
+                        if (find (pkgdir, ":") > 0)					// if second column of yast/order contains ":"
+                        {
+                            base_url = pkgdir;					// then take as URL
+                        }
+                        else
+                        {
+                            base_url = InstURL::installInf2Url (pkgdir);		// else take as sub-dir
+                        }
+                        Pkg::SourceChangeUrl (order_source, base_url);		// rewrite URL for *real* source
+
+                        // now find this source in the instorder map and fill
+                        // the global 'theSourceOrder'
+
+                        theSourceOrder[1] = order_source;
+                        instordersp = 1;
+                    }
+
+                }
 
 		// now restart the whole stuff from the metadata in the ramdisk and create
 		// the *real* sources
@@ -576,8 +633,9 @@ Packages from this media cannot be installed."), orderdir),
 			    // now find this source in the instorder map and fill
 			    // the global 'theSourceOrder'
 
-			    foreach (integer key, string value, instordermap,
+			    foreach (integer keysp, string value, instordermap,
 			    ``{
+                                integer key = keysp +  instordersp;
 				if (value == orderdir)
 				{
 				    theSourceOrder[key] = order_source;
@@ -668,6 +726,148 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	    }
 	}
     }
+define void SetSelectionAndComputeSystemPackages (string selection) {
+    // set the new selection
+    boolean ret = Pkg::SetSelection (selection);
+
+    y2milestone ( "Selecting '%1' returns: %2", selection, ret );
+
+    ret = Pkg::ActivateSelections();
+    y2milestone ("Pkg::ActivateSelections() returns %1", ret);
+
+    // add additional (internal) packages, like kernel etc.
+    Pkg::DoProvide (Packages::ComputeSystemPackageList());
+    Pkg::PkgSolve(false);
+    list selected_selections = Pkg::GetSelections( `selected, "base");
+    selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
+    y2milestone( "INSTALLING software selection: %1", selected_selections );
+}
+
+define boolean SelectDesktop () {
+    // get all available base selections
+    // checked in help below !
+    list<string> available_desktop_selections = Pkg::GetSelections( `available, "base");
+    y2milestone ("available_desktop_selections %1", available_desktop_selections);
+
+    if (!contains (available_desktop_selections, "Gnome"))
+    {
+	y2error( "No desktop selections available for Gnome" );
+	return false;
+    }
+    if (!contains (available_desktop_selections, "Kde"))
+    {
+	y2error( "No desktop selections available Kde" );
+	return false;
+    }
+
+    // get the currently selected base selection
+    list current_desktop_selections = Pkg::GetSelections( `selected, "base");
+    y2milestone ("current_desktop_selections %1", current_desktop_selections);
+
+    // evaluate descriptions
+    map<string, string> selection_description = $[];
+    foreach( string selection, available_desktop_selections, {
+	map selection_data = Pkg::SelectionData (selection);
+	if (selection_data != nil)
+	{
+	    selection_description[selection] = selection_data["summary"]:("'"+selection+"'");
+	}
+    });
+
+    // Construct a box with radiobuttons for each software base configuration
+    term selection_box = `RadioButtonGroup(`id(`selection_box),
+					    `VBox(
+						  `Left(`RadioButton(`id("Gnome"), `opt(`notify), selection_description["Gnome"]:"not defined",
+							contains (current_desktop_selections,"Gnome"))),
+						  `VSpacing(1),
+						  `Left(`RadioButton(`id("Kde"), `opt(`notify), selection_description["Kde"]:"not defined",
+								     contains (current_desktop_selections,"Kde")))
+						  )
+					    );
+
+
+    term ask_desktop_dialog = `HBox(
+                                    `HStretch(),
+				    `VBox (
+                                        `VWeight(30,`VStretch()),
+					// translators: dialog text
+					`Left(`Label (_("The &product; includes two different
+desktop environments.
+Please select the environment which you would like
+to use by default from the list below. If you do not
+know which environment is preferred by your company,
+please ask your system administrator."))),
+					`VSpacing(1),
+                                        `VWeight(10,`VStretch()),
+					`HBox(
+					      `HSpacing(10),
+					       selection_box
+                                         ),
+                                       `VWeight(60,`VStretch())
+                                       ),
+                                   `HStretch()
+				    );
+
+
+    //Wizard::OpenAcceptDialog();
+    Wizard::OpenAcceptStepsDialog();
+    string wizard_mode = Mode::demo ? "installation" : Mode::mode;
+
+    // UI::WizardCommand() can safely be called even if the respective UI
+    // doesn't support the wizard widget, but for optimization it makes sense
+    // to do expensive operations only when it is available.
+    list<map> stage_mode = [$["stage": "initial" , "mode": wizard_mode ],
+                            $["stage": "continue", "mode": wizard_mode ],
+                            $["stage": "normal", "mode": wizard_mode ]];
+    ProductControl::AddWizardSteps(stage_mode);
+    UI::WizardCommand(`SetCurrentStep( ProductControl::CurrentWizardStep ));
+
+
+    // translators: dialog title
+    Wizard::SetContents ( _("Select Your Default Desktop"), ask_desktop_dialog,
+            desktop_help_text, false, true);
+    UI::ChangeWidget(`id(`accept), `Enabled, false );
+    UI::SetFocus(`id(`abort));
+
+    any ret = nil;
+    string desktop_selection = "";
+    repeat
+    {
+        ret = UI::UserInput();
+        // get the newly selected base configuration
+        desktop_selection = (string) UI::QueryWidget( `id(`selection_box),`CurrentButton );
+
+        if (ret == `cancel)
+        {
+            if (Popup::ConfirmAbort (`painless))
+            {
+                Pkg::RestoreState(false);
+                Wizard::CloseDialog();
+                return false;
+            }
+            else
+            {
+                ret = `again;
+            }
+        }
+
+        if (ret != `cancel && ret != `accept && ret != `again)
+	{
+	    UI::ChangeWidget(`id(`accept), `Enabled, true );
+	}
+    } until (ret == `cancel || ret == `accept);
+
+    if (ret == `accept)
+    {
+	y2milestone ("Setting selection to %1", desktop_selection);
+	SetSelectionAndComputeSystemPackages (desktop_selection);
+    }
+    // Flag that this screen has been finished successfully
+    Wizard::CloseDialog();
+    desktop_dialog_shown = true;
+    return true;
+}
+
 
 
     /**
@@ -776,6 +976,32 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 		boolean fit = false;
 		integer counter = 0;
 
+		y2milestone ("Proposing packages for product '%1'",
+		    Product::name);
+		if (ProductFeatures::software_proposal == "desktop")
+		{
+		    if (!desktop_dialog_shown)
+		    {
+			if (!SelectDesktop ())
+                        {
+			    ret = add( ret, "warning_level", `fatal);
+			}
+			base_selections = Pkg::GetSelections (`selected, "base");
+
+			y2milestone ("Desktop base selection: %1", base_selections);
+			selected_base_selection = base_selections[0]:"";
+
+			SetBaseSelection (selected_base_selection);
+			if (SpaceCalculation::CheckDiskSize())
+			{
+			    fit = true;
+			}
+			else
+			{
+			    Popup::Error(_("Not enough disk space; Please remove some packages in the single selection."));
+			}
+		    }
+		}
 		while (!fit
 		       && counter < size(available_base_selections) )
 		{
@@ -800,8 +1026,9 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 		    Pkg::ClearSelection (selected_base_selection);
 		    // can't find a set of software packages which fits on the harddisk
 		    // error message
-		    return $[ "warning" : _("Not enough disk space even for a minimal installation!"),
-			      "warning_level" : `blocker ];
+		    ret = add( ret, "warning" , _("Not enough disk space even for a minimal installation!"));
+		    ret = add( ret, "warning_level" , `blocker);
+		    return ret;
 		}
 
 		y2warning ("Get recommendations for %1", selected_base_selection);
@@ -882,7 +1109,6 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 
 	    y2milestone ("activating: %1, returning %2", act_sel, ret);
 	}
-
 	return ret;
     }
 

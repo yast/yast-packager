@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 12 06:48:31 CEST 2004 - nashif@suse.de
+
+- merged changes for from 9.1 Branch (SLES,NLD)
+  - Handle Service Pack CDs
+  - Desktop Selection
+
+-------------------------------------------------------------------
 Tue Aug 10 10:17:48 CEST 2004 - jsrain@suse.cz
 
 - report if invalid source media location was entered (if media of
