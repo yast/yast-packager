@@ -116,8 +116,6 @@
     SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
-    UI::MessagePopup( _( "Target initialized" ) );
-
     // Now that we know how many packages to install, we can show the dialog
 
     integer packages_installed = 0;
@@ -210,11 +208,9 @@
     }
 
     SlideShow::InitPkgData();
-    UI::MessagePopup( _( "Slideshow initialized" ) );
 
     y2milestone ("Pkg::SetProgressCallback");
     Pkg::SetProgressCallback ("progressCallback");
-    UI::MessagePopup( _( "Callback set" ) );
 
     // Install the software from Medium1 to Mediummax, but not the already
     // installed base packages.
@@ -238,7 +234,6 @@
     {
 	boolean go_on = true;
 
-	UI::MessagePopup( _( "Calling PackageInstallation::InstallPackages" ) );
 	ret = PackageInstallation::InstallPackages( current_cd_no,			// media nr
 						    packages_installed );		// number of packages installed
 
