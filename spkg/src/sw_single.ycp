@@ -5,7 +5,7 @@
  *
  * Purpose: 		contains dialog loop for workflows:
  *	"Install/Remove software" 	called with argument "beginner", i.e. skip inst_source if possible
- *	"Choose source of installation" without argument 	-> workflow starts with inst_source
+ *	"Change source of installation" without argument 	-> workflow starts with inst_source
  *
  * String corrections by Christian Steinruecken <cstein@suse.de>, 2001/08/01
  *
@@ -18,10 +18,10 @@
 
     import "Arch";
     import "Installation";
-    import "InstMedia";
     import "Mode";
     Mode::normal = true;	// system is already installed
-                                // (used in constructor of Packages)
+
+    import "InstMedia";
     import "MediaUI";
     import "Packages";
 
@@ -31,7 +31,7 @@
 
     boolean test_popup = false;
     boolean beginner_mode = false;
-
+    boolean skip_source = false;
     
     // =============================================================
 
@@ -39,7 +39,7 @@
     // test_mode is checked for in Installation constructor
 
     global define CheckArguments () ``{
-	y2milestone ("CheckArguments (%1)", Args());
+
 	integer arg_n = size (Args()) - 1;
 
 	list arg_list = [];
@@ -88,8 +88,8 @@
    //
    // returns	`done		all done
    //		`failed		package not found
-   //		`next
-   //		`found_medium	found CD1
+   //		`next		workflow "Change source of installation" 
+   //		`found_medium	found sources from CD1 
    //		`found_descr	found local package descr
    //		`unknown_descr	found nothing
    //
@@ -97,34 +97,33 @@
    define CheckWhichPackages (list arg_list) ``{
 
 	// if sw_single is called with a list of packages or a package name
-	// set beginner mode and try to mount source medium 
+	// or in  beginner mode try to mount source medium 
 
 	string first_arg = "";
 	string postfix = "";
 
-	if (size (arg_list) > 0)
+	if ( size (arg_list) > 0 )
 	{
-	    beginner_mode = true;
 	    first_arg = select (arg_list, 0, "");
 	    postfix =  substring (first_arg, size (first_arg) - 4 );
 	}
-	else
-	    return `next;	// no packages given.
-
-
-	// if sw_single is called with an absolute package-pathname, there is no need to
-	// mount the source medium or check SuSE version or depemdendies
-
+	else if ( !beginner_mode )
+	{
+	    return `next;	// workflow "Change source of installation", i.e.
+	                        // start with dialog inst_source
+	}
+	
 	if ( postfix == ".rpm" )		// package name given
 	{
-	    y2milestone( "SW_SINGLE: installing  %1", first_arg );
+            // if sw_single is called with an absolute package-pathname, there is no need to
+	    // mount the source medium or check SuSE version or dependencies
 
-	    // does packge exist ?
 	    if ( SCR::Read(.target.size, first_arg) > 0 )
 	    {
 		InstMedia::bootmode = "Harddisk";
 		InstMedia::mediatype = 3;
 
+		y2milestone( "SW_SINGLE: installing  %1", first_arg );
 		CallFunction( `inst_rpmcopy( false, false, first_arg ));
 
 		// package is installed without paying attention to SuSE dependencies
@@ -134,30 +133,38 @@
 	    else
 	    {
 		string message = sformat (_("Package %1 was not found on the medium."), select(arg_list, 0,"") );
+		y2error( "SW_SINGLE: Package %1 was not found on the medium", select(arg_list, 0,"") );
 		UI::MessagePopup(message);
+
 		return `failed;
 	    }
 	}
-	else		// no package file  given, try to mount source medium
+	else		
 	{
-	    y2milestone ("SW_SINGLE: args %1", Args());
+	    //  try to mount source medium or read local descriptions
+	    //  if possible -> skip dialog inst_source
+	    
+	    y2milestone ("SW_SINGLE: sw_single %1; trying to mount source medium", Args());
 
 	    // initialize InstMedia from running system
-
 	    InstMedia::initializeInstMedia ($[]);
 
-	    // is CD1 inserted / available ?
-
-	    integer mount_result = InstMedia::MountMedium ( 1 );
-	    if (mount_result == 0
-	        || mount_result == -1)
+	    // is CD1/directory with CD1 sources inserted/available ?
+	    boolean mount_ok = MediaUI::ChangeMedium ( 1, false );
+	    
+	    if ( mount_ok )
+	    {
+		skip_source = true;
 		return `found_medium;
+	    }
 
 	    // try to get local information (common.pkd, du.dir, ...)
 	    local_descr = Packages::CheckLocalDescription();
 	    if ( local_descr )
+	    {
+		skip_source = true;
 		return `found_descr;
-
+	    }
 	}  // no package file given
 
 	return `unknown_descr;
@@ -220,23 +227,14 @@ do this.</P>
     integer dialog_id = 0;
     any result = `next;
 
-    // assume package information already on destination
-    // TODO: pathes are not used any longer here to initialize the package agent -
-    //       Packages::Init does the work
-    
-    string descrPath = Installation::descrdestdir + "/suse";
-    string infopath  = descrPath + "/setup/descr";
-    string dudir     = descrPath + "/setup/du/du.dir";
-    string rootpath  = Installation::destdir;
-
     // flag, if package info was found on destination
     boolean local_descr = true;
 
-    boolean skip_source = false;
-
     symbol descr_result = `next;
 
+    // check the arguments and try the mount/search fpr local description
     descr_result = CheckWhichPackages (arg_list);
+
     y2milestone ("SW_SINGLE: result CheckWhichPackages %1", descr_result);
 
     if ((descr_result == `done)
@@ -244,71 +242,22 @@ do this.</P>
     {
 	dialog_id = -1;				// done
     }
-    else if ( descr_result == `next )
+    else if ((descr_result == `next)
+	      || (descr_result == `unknown_descr))
     {
-	if (beginner_mode)
-	    dialog_id = 1;
-	else
-	    dialog_id = 0;				// ask for medium
+	dialog_id = 0;				// ask for medium
     }
-    else if ( descr_result == `found_medium )	// found CD1
+    else if ((descr_result == `found_medium)
+	      || (descr_result == `found_descr))	// found source medium or local description
     {
-	descrPath = InstMedia::GetInstPath();	// read common.pkd from there !
-	infopath  = descrPath + "/setup/descr";
-	dudir     = descrPath + "/setup/du/du.dir";
-	if (beginner_mode)
-	{
-	    dialog_id = 1;
-	}
-	else if (MediaUI::ChangeMedium(1, false))	// check release data
-	{
-	    dialog_id = 1;			// dont ask for source
-	}
-	else
-	{
-	    dialog_id = 0;
-	}
-    }
-    else if ( descr_result == `found_descr )	// found local descr
-    {
-	descrPath = Installation::descrdestdir + "/suse";
-	infopath = descrPath + "/setup/descr";
-	dudir    = descrPath + "/setup/du/du.dir";
-	if (beginner_mode)
-	    dialog_id = 1;
-	else
-	    dialog_id = 0;				// ask for medium
-    }
-    else if ( descr_result == `unknown_descr )	// found NO descr
-    {
-	if (!beginner_mode)
-	{
-	    dialog_id = 0;
-	}
-	else if (MediaUI::ChangeMedium(1, true))	// check release data
-	{
-	    dialog_id = 1;			// dont ask for source
-	}
-	else
-	{
-	    dialog_id = 0;
-	}
+	dialog_id = 1;
     }
 
     if ( Mode::test )
     {
-	infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
-	dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
-    }
-
-    if (dialog_id == 1)		// found something
-    {
-	InstMedia::gatherReleaseData ();	// get installed product info
-
-	if (InstMedia::release_no == 0)		// no installed info found
-	{
-	    UI::MessagePopup (_("No product/version information available on system."));
-	}
+	// TODO: correct initialization of the package agent in test mode
+	string infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
+	string dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
     }
 
     if ( !Mode::test )
@@ -367,7 +316,7 @@ must NOT be older than the version of your installed system.\n");
 
 	    // There could be a list of packages (defined in an ascii-file) or a package name (without .rpm)
 
-	    if ( size(arg_list) > 0 && select(arg_list, 0, "") != "beginner" )
+	    if ( size(arg_list) > 0 )
 	    {
 		string arg_name = select(arg_list, 0, "");
 		map inputMap = $[];
@@ -456,13 +405,8 @@ must NOT be older than the version of your installed system.\n");
 	else
 	{
 	    result = CallFunction( select(dialog, dialog_id, 0) );
-	    if (dialog_id == 0)			// installation source
-	    {
-		descrPath = InstMedia::GetInstPath();	// read common.pkd from there !
-		infopath  = descrPath + "/setup/descr";
-		dudir     = descrPath + "/setup/du/du.dir";
-	    }
 	}
+
         y2debug( "RESULT %1: %2", select(dialog, dialog_id, 0), result );
 
 	if (result == `cancel || result == `abort)
