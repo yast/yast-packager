@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 11 11:03:59 CET 2003 - cschum@suse.de
+
+- Don't wronlgy display an error when adding installation source
+  from local directory (#24996).
+- 2.7.22
+
+-------------------------------------------------------------------
 Mon Mar 10 15:53:58 CET 2003 - kkaempf@suse.de
 
 - fix syntax error in Require.ycp (#24994)

@@ -341,8 +341,6 @@
                 url = UI::QueryWidget( `id( `dir ), `Value );
 
                 url = "dir://" + url;
-
-                Pkg::SourceCreate( url );
             }
             else if ( input == `cancel )
             {
