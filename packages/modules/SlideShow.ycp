@@ -10,10 +10,8 @@
 {
     module "SlideShow";
 
-    import "Arch";
     import "Installation";
     import "Language";
-    import "InstMedia";
     import "SlideShowCallbacks";
 
     include "ui/common_messages.ycp";
