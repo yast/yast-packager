@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 17 16:43:28 CET 2005 - sh@suse.de
+
+- Fixed bug #51006: sw_single during installation starts with "search"
+- V 2.11.23 
+
+-------------------------------------------------------------------
 Wed Feb 16 11:18:52 CET 2005 - jsrain@suse.cz
 
 - fixed getting URL from install.inf if installation from CDs
