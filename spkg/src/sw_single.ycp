@@ -101,7 +101,7 @@
 	if (size (arg_list) > 0)
 	{
 	    beginner_mode = true;
-	    first_arg = select (arg_list, 0);
+	    first_arg = select (arg_list, 0, "");
 	    postfix =  substring (first_arg, size (first_arg) - 4 );
 	}
 	else
@@ -128,7 +128,7 @@
 	    }
 	    else
 	    {
-		string message = sformat (_("Package %1 was not found on the medium."), select(arg_list, 0) );
+		string message = sformat (_("Package %1 was not found on the medium."), select(arg_list, 0,"") );
 		UI::MessagePopup(message);
 		return `failed;
 	    }
@@ -203,7 +203,7 @@ do this.</P>
     list arg_list = CheckArguments();
 
     //
-    // Get informations for initialisation of PKGINFO server
+    // Get informations for initialisation of package agent
     //
 
     list part_input = [];
@@ -345,8 +345,8 @@ do this.</P>
 				"memoptimized":true,
 				"forceInit":true];		// force initialisation
 
-	    retval = PKGINFO (`setEnvironment(pkginitmap));
-	    y2debug( "Return  PKGINFO(%1) %2", pkginitmap, retval);
+	    retval = SCR::Execute(.package.setEnvironment, pkginitmap);
+	    y2debug( "Return  package.setEnvironment(%1) %2", pkginitmap, retval);
 
 	    UI::CloseDialog();
 
@@ -354,7 +354,7 @@ do this.</P>
 
 	    if ( !Installation::test_mode )
 	    {
-		version_map = PKGINFO (`compareSuSEVersions() );
+		version_map = Execute (.package.compareSuSEVersions, "");
 	    }
 	    else if ( test_popup )
 	    {
@@ -421,18 +421,18 @@ must NOT be older than the version of your installed system.\n");
 
 		    foreach( `package, installList,
 		    ``{
-			any r = PKGINFO( `selectInstall( package ));
-			y2debug( "PKGINFO selectInstall: %1", package );
+			any r = SCR::Execute( .package.selectInstall,"xv", false);
+			y2debug( ".package.selectInstall: %1", package );
 		    });
 
 		    foreach( `package, deleteList,
 		    ``{
-			any r = PKGINFO( `selectDelete( package ) );
-			y2debug( "PKGINFO selectDelete: %1", package );
+			any r = SCR::Execute(.package.selectDelete, package);
+			y2debug( ".package.selectDelete: %1", package );
 		    });
 
 		    // Checking dependecies
-		    map pac_depends = PKGINFO(`getDependencies());
+		    map pac_depends = SCR::Read( .package.dependencies);
 
 		    list or_depends = lookup( pac_depends, "REQUIRE", [] );
 		    y2debug( "REQUIRE Dependencies: %1", or_depends );
@@ -505,11 +505,12 @@ must NOT be older than the version of your installed system.\n");
 	{
 	    // setting user_setting.install_list for packages which have to be installed
 
-	    list install_list =  PKGINFO ( `getInstallSet() );
+	    list install_list =  SCR::Read(.package.installSet);
+ 
 	    y2debug( "SW_SINGLE: Writing install_list: %1", install_list );
 	    change ( user_settings , "install_list", install_list );
 
-	    list delete_list =  PKGINFO ( `getDeleteSet() );
+	    list delete_list =  SCR::Read(.package.deleteSet);
 	    // y2debug( "Writing delete_list: %1", delete_list );
 	    change ( user_settings , "delete_list", delete_list );
 
@@ -538,8 +539,8 @@ must NOT be older than the version of your installed system.\n");
 
     UI::CloseDialog();
 
-    // unload pkginfo server in order to release common.pkd
-    PKGINFO();
+    // unload package agent in order to release common.pkd
+    SCR::UnmountAgent(.package);
     
     InstMedia::UnmountMedium();
 
