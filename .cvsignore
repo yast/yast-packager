@@ -20,4 +20,4 @@ missing
 mkinstalldirs
 autom4te.cache
 configure.in
-*.pot
+packager.pot
