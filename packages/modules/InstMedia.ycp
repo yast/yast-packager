@@ -169,6 +169,7 @@
 	    SCR::Execute(.target.umount, device);
 	    SCR::Execute(.target.bash, "/bin/eject " + device );
 	}
+	return;
     }
 
 
@@ -199,6 +200,7 @@
 	    is_mounted = false;
 	    we_mounted = false;
 	}
+	return;
     }
 
 
@@ -371,7 +373,7 @@
     }
 
     /**
-    // call this after first time mount of Medium1
+     * Call this after first time mount of Medium1
      */
 
     global define boolean gatherReleaseData ()
