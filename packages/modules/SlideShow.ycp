@@ -63,7 +63,7 @@
     // DEBUG
     // DEBUG
     // DEBUG
-    global boolean	debug			= true;
+    global boolean	debug			= false;
     // DEBUG
     // DEBUG
     // DEBUG
