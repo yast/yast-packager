@@ -12,4 +12,6 @@ config_DATA =			\
 
 ynclude_DATA = require.ycp inst_source_dialogs.ycp
 
-EXTRA_DIST = $(client_DATA) $(config_DATA) $(ynclude_DATA)
+module_DATA = Require.ycp
+
+EXTRA_DIST = $(client_DATA) $(config_DATA) $(ynclude_DATA) $(module_DATA)

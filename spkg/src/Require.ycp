@@ -1,0 +1,212 @@
+/**
+ * Module:
+ *   sw_single
+ *
+ * Summary:
+ *   Provide installation on demand.
+ *
+ * Authors:
+ *   Martin Vidner <mvidner@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+    module "Require";
+    textdomain "packager";
+
+    include "ui/common_messages.ycp";
+    import "Wizard";	// some modules call us without any dialog open
+    import "PackageCallbacks";
+
+    /**
+     * This will be local when converted to a Module::
+     * Has Pkg::TargetInit run?
+     */
+    global boolean target_initialized = false;
+
+    /**
+     * This will be local when converted to a Module::
+     * Has Pkg::SourceStartCache run?
+     */
+    global boolean source_initialized = false;
+
+    /**
+     * This will be local when converted to a Module::
+     * Ensure that Pkg:: calls work.
+     * This may become superfluous.
+     */
+    global define void EnsureTargetInit () ``{
+	target_initialized = target_initialized || Pkg::TargetInit ("/", false);
+    }
+
+    global define void EnsureSourceInit () ``{
+	source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
+    }
+
+    /**
+     * Is a package available for installation?
+     * @param	package package name, without version or .rpm suffix
+     * @return true/false
+     */
+    global define boolean IsPackageAvailable (string package) ``{
+	EnsureSourceInit ();
+	return Pkg::IsAvailable (package);
+    }
+
+    /**
+     * Is this package installed?
+     * @param package a bare package name
+     * @return true/false
+     */
+    global define boolean IsPackageInstalled (string package) ``{
+	return Pkg::IsProvided (package);
+    }
+
+    /**
+     * Is any of these packages installed?
+     * @param packages list of packages
+     * @return true/false
+     */
+
+    global define boolean IsAnyPackageInstalled (list(string) packages) ``{
+	string which = find(`p, packages, ``{ return IsPackageInstalled (p); });
+	return which != nil;
+    }
+
+    /**
+     * Are all of of these packages installed?
+     * @param packages list of packages
+     * @return true/false
+     */
+    global define boolean AreAllPackagesInstalled (list(string) packages) ``{
+	string which = find(`p, packages, ``{ return ! IsPackageInstalled (p); });
+	return which == nil;
+    }
+
+    /**
+     * Install required packages and remove conflicting packages.
+     * @param toinstall packages to install
+     * @param toremove pacakges to remove
+     * @return success?
+     */
+    global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
+	y2debug ("toinstall: %1, toremove: %2", toinstall, toremove);
+	EnsureSourceInit ();
+	EnsureTargetInit ();
+	boolean ok = true;
+	foreach (string p, toinstall, ``{
+	    ok = ok && Pkg::PkgInstall (p);
+	});
+	foreach (string p, toremove, ``{
+	    ok = ok && Pkg::PkgDelete (p);
+	});
+	ok = ok && Pkg::PkgSolve ();
+	list result = Pkg::PkgCommit (0);
+	y2debug ("PkgCommit: %1", result);
+	ok = ok && result[1]:nil == [] && result[2]:nil == [];
+	Wizard::CreateDialog ();
+	// inst_suseconfig returns `auto or `next (update mode or Args(2) is true) => no error checking
+	WFM::CallModule ("inst_suseconfig", [false, false]);
+	Wizard::CloseDialog ();
+	return ok;
+    }
+
+    /**
+     * Install and remove packages.
+     * The user is presented an explanation and asked to confirm the
+     * changes. Then sw_single is called to do the job.
+     * @param require Required packages
+     * @param conflict Conflicting packages
+     * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @param continue_button Text which is going to be on the left-hand button (continue)
+     * @param cancel_button Text which is going to be on the right-hand button (cancel)
+     * @return installation successful?
+     */
+    global define boolean InstallAndRemoveButtons ( list(string) require,
+					    list(string) conflict,
+					    string help,
+					    string continue_button, string cancel_button ) ``{
+	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalled (p)));
+	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalled (p)));
+	string message = sformat (help,
+				  mergestring (toinstall, ", "),
+				  mergestring (toremove, ", ")
+				  );
+	term d = `VBox (
+	    `HSpacing (40),
+	    `RichText (message),
+	    `HBox (
+		`PushButton (`id (`continue), `opt (`default), continue_button),
+		`PushButton (`id (`cancel), cancel_button)
+		)
+	    );
+	UI::OpenDialog (d);
+	any ui = UI::UserInput ();
+	UI::CloseDialog ();
+	if (ui == `continue)
+	{
+	    return DoInstallAndRemove (toinstall, toremove);
+	}
+	return false;
+    }
+
+    /**
+     * Install and remove packages.
+     * The user is presented an explanation and asked to confirm the
+     * changes. Then sw_single is called to do the job.
+     * @param require Required packages
+     * @param conflict Conflicting packages
+     * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @return installation successful?
+     */
+    global define boolean InstallAndRemove (list(string) require, list(string) conflict, string help) ``{
+	return InstallAndRemoveButtons ( require,
+					 conflict,
+					 help,
+					 ContinueButtonLabel (), CancelButtonLabel () );
+    }
+
+    /**
+     * Ensure that all required packages are installed and no
+     * conflicting packages are installed. If it is not the case, the
+     * user is presented an explanation and asked to confirm the
+     * changes. Then sw_single is called to do the job.
+     * @param require Required packages
+     * @param conflict Conflicting packages
+     * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @param continue_button Text which is going to be on the left-hand button (continue)
+     * @param cancel_button Text which is going to be on the right-hand button (cancel)
+     * @return installation successful?
+     */
+    global define boolean RequireAndConflictButtons ( list(string) require,
+					      list(string) conflict,
+					      string help,
+					      string continue_button, string cancel_button ) ``{
+	if (AreAllPackagesInstalled (require) &&  !IsAnyPackageInstalled (conflict))
+	{
+	    return true;
+	}
+	else
+	{
+	    return InstallAndRemoveButtons (require, conflict, help, continue_button, cancel_button);
+	}
+    }
+
+    /**
+     * Ensure that all required packages are installed and no
+     * conflicting packages are installed. If it is not the case, the
+     * user is presented an explanation and asked to confirm the
+     * changes. Then sw_single is called to do the job.
+     * @param require Required packages
+     * @param conflict Conflicting packages
+     * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
+     * @return installation successful?
+     */
+    global define boolean RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
+	return RequireAndConflictButtons( require,
+					  conflict,
+					  help,
+					  ContinueButtonLabel (), CancelButtonLabel ());
+    }
+}
