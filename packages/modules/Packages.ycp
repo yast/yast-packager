@@ -537,18 +537,18 @@
 		string cdrom = SCR::Read (.etc.install_inf.Cdrom);
 		SCR::Execute(.target.symlink, "/dev/"+cdrom, "/dev/cdrom");
 	    }
-	    theSource = Pkg::SourceInit (base_url);
+	    theSource = Pkg::SourceCreate (base_url);
 	}
 	else	// cont or normal mode
 	{
-	    list sources = Pkg::SourceList (true);
+	    list sources = Pkg::SourceStartCache (true);
 	    if (size (sources) > 0)
 	    {
 		theSource = sources[0]:-1;
 	    }
 	    else
 	    {
-		y2error ("Pkg::SourceList failed");
+		y2error ("Pkg::SourceStartCache failed");
 		theSource = -1;
 	    }
 	}
