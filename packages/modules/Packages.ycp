@@ -719,7 +719,7 @@
 		    if ((substring (url, 0, 2) == "cd")			// source comes from cd/dvd
 			|| (substring (url, 0, 3) == "dvd"))
 		    {
-			y2milestone ("rewrite url: '%1'->'%2'", url, base_url);
+			y2milestone ("rewrite url: '%1'->'%2'", url, log_url);
 			Pkg::SourceChangeUrl (source, base_url);
 		    }
 		});
