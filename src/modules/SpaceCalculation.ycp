@@ -373,8 +373,8 @@
 		if (Mode::update ())
 		    message = add (message, "\n" +
 // popup message
-_("Please deselect some packages or delete some data
-or temporary files befor upgrading the system."));
+_("Deselect some packages or delete some data
+or temporary files before updating the system."));
 
 		else
 		    message = add (message, "\n" +

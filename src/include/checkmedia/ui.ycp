@@ -258,7 +258,7 @@ define void RequireFirstMedium() {
     while (!InsertedCD1())
     {
 	// warning popup - the CD/DVD drive doesn't contain the first medium (CD1/DVD1)
-	if (Popup::AnyQuestion(Popup::NoHeadline(), _("Please insert the first installation medium."),
+	if (Popup::AnyQuestion(Popup::NoHeadline(), _("Insert the first installation medium."),
 	    Label::OKButton(), Label::CancelButton(), `focus_yes) == false)
 	{
 	    break;
@@ -319,12 +319,13 @@ The order of the media is irrelevant.") +
 
     // help text - media check 6/7
 _("<P><B>Note:</B> You cannot change the medium if it is used by the system. If
-it happens during installation then start manual installation and select media
-verification item in the menu.</P> ") +
+it happens during installation, start manual installation and select the media
+verification item in the menu.</P> 
+") +
 
     // help text - media check 7/6
-_("<P>If you burn the media yourselves <B>pad</B> option in a recording software
-should be used. It avoids read errors at the end of media during the check.</P>");
+_("<P>If you burn the media yourself, use the <B>pad</B> option in your recording software. It avoids read errors at the end of media during the check.</P>
+");
 
 // advice check of the media
 string label = _("It is recommended to check all installation media to avoid installation problems.");
