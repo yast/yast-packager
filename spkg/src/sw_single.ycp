@@ -1,13 +1,14 @@
 /* 
  * Purpose:
- *	contains dialog loop for workflow
+ *	contains dialog loop for workflows:
  *	"Install/Remove software" 	called with argument "beginner", i.e. skip inst_source if possible
- *	"Choose source of installation" without argument -> workflow starts with inst_source
+ *	"Choose source of installation" without argument 	-> workflow starts with inst_source
  *
  * $Id$
  */
 
 {
+  textdomain "sw_single";
   include "package_utils.ycp";
 
   map user_settings = $[];
@@ -261,7 +262,7 @@ do this.</P>"));
   define fileFound( string pathname ) ``{
 
         string fileCommand = "test -f " + pathname;
-	return ( SCR(`Execute( .shell, fileCommand )) == 0 );
+	return ( SCR(`Execute(.target.bash, fileCommand)) == 0 );
   };
   
   string language = UI( `GetLanguage() );
@@ -338,7 +339,7 @@ do this.</P>"));
 
   boolean skip_source = false;
   
-  // sw_single is called with argument "beginner" or with a package list or package name
+  // if sw_single is called with argument "beginner" or with a package list or package name
   // -> skip inst_source (if possible)
   
   if ( size( Args() ) > 0 && Args(0) != .test )
@@ -357,7 +358,7 @@ do this.</P>"));
 
 	      CallFunction( `inst_rpmcopy( false, false, Args(0) ));
 	      // package is installed without paying attention to SuSE dependencies
-	      // don't call SuSEConfig
+	      // don't call SuSEConfig -> dialog loop ends
 	      id = size(dialog) + 1;
 	  }
 	  else
@@ -439,13 +440,19 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 	      {
 		  SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
 	      }
-	      string versions = sformat( UI(_("Installed version: %1\n")), lookup( version_map, "installedVersion","" )) +
-		  sformat( UI(_("Version on source media: %1\n")), lookup( version_map, "updateVersion","" ));
+	      // Popup informs the user that he/she wants to install an older versions
+	      string msg1 = UI(_("The version of SuSE distribution on source media
+must NOT be older than the installed one.\n"));
+
+	      string versions = sformat( UI(_("Installed version: %1\n")),
+					 lookup( version_map, "installedVersion","" )) +
+		                sformat( UI(_("Version on source media: %1\n\n")),
+					 lookup( version_map, "updateVersion","" ));
 	      y2debug( "SW_SINGLE: %1", versions );
 	      
-	      UI(`DisplayMessage(_("The version of SuSE distribution on source media
-must NOT be older than the installed one.
-Please insert actual CD or specify path of actual sources.")) );
+	      string msg2 = UI(_("Please insert actual CD or specify path of actual sources."));
+	      
+	      UI(`DisplayMessage(msg1 + versions + msg2));
 
 	      // continue with inst_source
 	      id = 0;
@@ -547,7 +554,7 @@ Please insert actual CD or specify path of actual sources.")) );
       }
       y2debug( "RESULT: %1", select(dialog, id), result );
 
-      if (result == `cancel || result == `abort || result == `cancel_rpm)
+      if (result == `cancel || result == `abort)
       {
 	  // dialog loop ends
 	  id = size( dialog ) +1; 
