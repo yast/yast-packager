@@ -62,6 +62,7 @@
 	else if (instmode == "hd")						// Harddisk
 	{
 	    is_network = false;
+// FIXME may be nil
 	    options = "device=/dev/" + Linuxrc::InstallInf("Partition") + ";filesystem=auto";
 	}
 
@@ -125,7 +126,9 @@
                 serverdir = extra_dir;
 	}
 
-        url_tokens["path"] = serverdir;
+	if (serverdir == nil || serverdir == "")
+	    url_tokens["path"] = serverdir;
+
         string url = URL::Build(url_tokens);
 
 	if (is_network)
