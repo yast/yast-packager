@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 13 12:38:15 MEST 2001 - gs@suse.de
+
+- check for new package dependencies
+
+-------------------------------------------------------------------
 Fri Mar 30 13:57:31 MEST 2001 - gs@suse.de
 
 - popups replaced by common popups, split alias added to spec file ,
