@@ -1326,8 +1326,11 @@
 							`header(
 								// Table headings for CD statistics during installation
 								_("Media"),
+								// Table headings for CD statistics during installation
 								`Right( _("Size") ),
+								// Table headings for CD statistics during installation
 								`Right( _("Packages") ),
+								// Table headings for CD statistics during installation
 								`Right(  _("Time") )
 								),
 							CdStatisticsTableItems()
@@ -1405,7 +1408,9 @@
 	    contents =
 		`DumbTab(`id(`dumbTab ),
 			     [
+				// tab
 			      `item(`id(`showSlide   ), _("Slide Sho&w") ),
+				// tab
 			      `item(`id(`showDetails ), _("&Details")	   )
 			      ],
 			  `VBox(

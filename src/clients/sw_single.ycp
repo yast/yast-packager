@@ -262,8 +262,7 @@
 				       _("Install more packages?"),
 				       // Button label: User would like to install more packages
 				       _("Install &More"),
-				       // Button label: User does not like to install any more package, exit program
-				       _("&Finish"),
+					Label::FinishButton (),
 				       `focus_yes ) );
 
    UI::CloseDialog();

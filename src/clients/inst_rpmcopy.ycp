@@ -43,6 +43,7 @@
     //Pkg::TargetInit (Installation::destdir, true);
     if(Pkg::TargetInit (Installation::destdir,true) != true)
     {
+	// continue-cancel popup
         if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false)
         {
             return `abort;

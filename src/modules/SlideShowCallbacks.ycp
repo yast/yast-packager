@@ -90,6 +90,7 @@
 	    if ( Mode::normal () )
 	    {
 		user_abort = Popup::AnyQuestion( Popup::NoHeadline(),
+						// popup yes-no
 						 _("Do you really want\nto quit the installation?"),
 						 Label::YesButton(),
 						 Label::NoButton(),
@@ -137,6 +138,7 @@
 	    if ( disk_percentage_left > 95 && !shutup)
 	    {
 		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
+						   // yes-no popup
 						   _("The disk space is nearly exhausted.\nContinue with the installation?"),
 						   Label::YesButton(),
 						   Label::NoButton(),

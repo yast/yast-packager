@@ -73,11 +73,15 @@ and is not write protected.
 		{
 		    // Popup with a 'Retry', a 'Cancel' button and a 'Format floppy' button.
 		    // Check inserted floppy.
+		    // headline
 		    any ret = Popup::AnyQuestion3(_("Could not find a formatted floppy disk."),
+// popup contents
 						    _("Are you sure you inserted a floppy disk
 into the correct drive?
 If so, is the disk formatted and verified?
-"), Label::RetryButton(), Label::CancelButton(), _("&Format floppy"), `focus_yes);
+"), Label::RetryButton(), Label::CancelButton(),
+// push button
+_("&Format floppy"), `focus_yes);
 
 		    if (ret == `no)		// cancel
 		    {
@@ -230,7 +234,9 @@ Verify that the path name has been written correctly.
 				  `HBox(
 					// button labels selection popup
 					`Left(`PushButton( `id(`cancel),`opt(`default), Label::CancelButton())),
+					// push button
 					`Right(`PushButton( `id(`load), _("&Load"))),
+					// push button
 					`Right(`PushButton( `id(`save),  _("&Save")))
 					)
 				  )

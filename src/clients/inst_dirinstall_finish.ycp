@@ -14,6 +14,7 @@
     integer progress_length = 2;
     if (DirInstall::makeimage)
     {
+	// progress stage
         progress_stages=add(progress_stages, _("Create image file"));
         progress_length = progress_length + 1;
     }
@@ -21,7 +22,7 @@
     list<string> progress_descriptions =
 	[];
 
-
+    // help text
     string help_text = _("<p>Please wait while the system is being configured.</p>");
 
     Progress::New(
@@ -37,6 +38,7 @@
 
 
     Progress::NextStage ();
+	// progress title
     Progress::Title(_("Configuring installed system"));
     sleep(1000);
 
@@ -47,6 +49,7 @@
         Progress::NextStage();
         string cmd =  sformat("cd %1 && tar -zcf %2 . && cd - ", DirInstall::target, DirInstall::image_dir + "/" + DirInstall::image_name );
         y2debug("cmd: %1", cmd);
+	// progress title
         Progress::Title(_("Building directory image..."));
         SCR::Execute(.target.bash, cmd);
     }

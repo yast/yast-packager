@@ -77,6 +77,7 @@
 				    `VSpacing(0.1),
 				    `Left(`Label( message)),
 				    `Left(`CheckBox(`id(`show), `opt(`notify),
+						    // check box
 						    _("Show &details"), info_on )),
 				    `VSpacing(0.4),
 				    `HBox(`VSpacing(vertical_size),
@@ -631,6 +632,7 @@ Check that the server is accessible."), wanted_label);
 
     global define void NotifyRebuildDB (string error_text)
     {
+	// error popup
 	Popup::Error (sformat (_("Error rebuilding database:
 %1"), error_text));
     }
@@ -700,6 +702,7 @@ Check that the server is accessible."), wanted_label);
     {
 	if (message_type == "Nindb")
 	{
+	    // error popup
 	    Popup::Error (sformat (_("Package %1 is already present in the new database."),
 				   detail));
 	    return "";
@@ -708,6 +711,7 @@ Check that the server is accessible."), wanted_label);
 	if (message_type == "Eread")
 	{
 	    boolean skip = Popup::YesNoHeadline (Label::ErrorMsg (),
+						// yes-no popup
 						 _("Error reading from old database.
 Ignore this error and continue?"));
 	    return skip ? "SKIP" : "CANCEL";
@@ -715,6 +719,7 @@ Ignore this error and continue?"));
 
 	if (message_type == "Ewrite")
 	{
+	    // error popup
 	    Popup::Error (_("Error writing to new database"));
 	    return "";
 	}

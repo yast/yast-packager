@@ -54,7 +54,12 @@ global string Propose()
     tmp = add (tmp, sformat (_("Target Directory: %1"), HTML::Colorize(DirInstall::target, color)));
 
     // Proposal for backup during update
-    tmp = add (tmp, sformat (_("Run YaST and SuSEconfig at First Boot: %1"), HTML::Colorize(DirInstall::runme_at_boot ? _("Yes"): _("No"), color) ));
+    tmp = add (tmp, sformat (_("Run YaST and SuSEconfig at First Boot: %1"), HTML::Colorize(DirInstall::runme_at_boot
+	// part of label in proposal
+	? _("Yes"):
+	// part of label in proposal
+	_("No"), color) ));
+    // Proposal for dirinstall installation
     tmp = add (tmp, sformat (_("Create Image: %1"), HTML::Colorize(DirInstall::makeimage ? _("Yes"): _("No"), color) ));
     return HTML::List (tmp);
 
