@@ -49,11 +49,11 @@
     global string	slide_txt_path		= "";
     global integer	slide_interval		= slide_min_interval;
     global list<string>	slides			= [];
-    global boolean	enable_slide_show	= nil;
     global string	language		= Language::language;
     global boolean	init_pkg_data_complete	= false;
     global boolean	widgets_created		= false;
     global boolean	cd_statistics_created	= false;
+    global boolean	enable_slide_show_cache	= nil;
 
 
 
@@ -61,51 +61,11 @@
      * Constructor
      **/
     global define void SlideShow()
-    ``{
+    {
 	y2milestone ( "SlideShow constructor" );
 	next_recalc_time	= time();
-
-	// FIXME: ugly hack
-	map tmp1 = (map) WFM::Read (.local.stat, slide_base_path);
-	if (!tmp1["isdir"]:false)
-	{
-	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
-	}
-
-	if ( Mode::test )
-	{
-	    y2debug( "Test mode" );
-	    slide_base_path 		= "/suse/sh/fake-cd1/suse/setup/slide";
-	    initial_recalc_delay	= 10;
-	    recalc_interval		= 15;
-	    slide_min_interval		= 5;
-	}
-
-
-	if ( Mode::initial || Mode::cont )
-	{
-	    map disp = UI::GetDisplayInfo();
-
-	    if (disp != nil		// This shouldn't happen, but who knows?
-		&& disp["HasImageSupport"]:false
-		&& disp["DefaultWidth"]:-1	>= 800
-		&& disp["DefaultHeight"]:-1	>= 600
-		&& disp["Depth"]:-1		>= 8  )
-	    {
-		// y2debug( "Display OK for slide show: %1", disp );
-
-		slide_pic_path	= slide_base_path + "/pic";
-		slide_txt_path	= slide_base_path + "/txt";
-		slides		= GetSlideList();
-		enable_slide_show = size( slides ) > 0;
-	    }
-	    else
-	    {
-		y2warning( "Disabling slide show - insufficient display capabilities: %1", disp );
-	    }
-	}
     };
-
+	
 
     /**
      * Start the internal (global) timer.
@@ -298,6 +258,61 @@
 	y2debug( "Slide list: %1", slide_list );
 
 	return slide_list;
+    };
+
+
+    /**
+     * Check if the slide show is available. This must be called before trying
+     * to access any slides; some late initialization is done here. 
+     **/
+    global define boolean EnableSlideShow()
+    {
+	if ( enable_slide_show_cache == nil )
+	{
+	    enable_slide_show_cache = false;
+	
+	    // FIXME: ugly hack
+	    map tmp1 = (map) WFM::Read (.local.stat, slide_base_path);
+	    if (!tmp1["isdir"]:false)
+	    {
+		slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+	    }
+
+	    if ( Mode::test )
+	    {
+		y2debug( "Test mode" );
+		slide_base_path 	= "/suse/sh/fake-cd1/suse/setup/slide";
+		initial_recalc_delay	= 10;
+		recalc_interval		= 15;
+		slide_min_interval	= 5;
+	    }
+
+
+	    if ( Mode::initial || Mode::cont )
+	    {
+		map disp = UI::GetDisplayInfo();
+
+		if (disp != nil		// This shouldn't happen, but who knows?
+		    && disp["HasImageSupport"]:false
+		    && disp["DefaultWidth"]:-1	>= 800
+		    && disp["DefaultHeight"]:-1	>= 600
+		    && disp["Depth"]:-1		>= 8  )
+		{
+		    // y2debug( "Display OK for slide show: %1", disp );
+
+		    slide_pic_path	= slide_base_path + "/pic";
+		    slide_txt_path	= slide_base_path + "/txt";
+		    slides		= GetSlideList();
+		    enable_slide_show_cache = size( slides ) > 0;
+		}
+		else
+		{
+		    y2warning( "Disabling slide show - insufficient display capabilities: %1", disp );
+		}
+	    }
+	}
+
+	return enable_slide_show_cache;
     };
 
 
@@ -1178,11 +1193,11 @@
     /**
      * Switch from the 'slide show' view to the 'details' view.
      **/
-    global define void SwitchToDetailsView( boolean enable_slide_show )
+    global define void SwitchToDetailsView()
     ``{
 	showing_details = true;
 
-	if ( enable_slide_show )
+	if ( EnableSlideShow() )
 	{
 	    // PushButton that switches from technical installation details to slide show
 	    UI::ReplaceWidget(`id(`rep_toggle_view), `PushButton(`id(`slide_show_view), _("&Slide Show...") ) );
@@ -1229,7 +1244,7 @@
     ``{
 	if ( button == `details_view && ! showing_details )
 	{
-	    SwitchToDetailsView( enable_slide_show );
+	    SwitchToDetailsView();
 	}
 	else if ( button == `slide_show_view && showing_details )
 	{
@@ -1288,13 +1303,13 @@
 
 	OpenSlideShowBaseDialog();
 
-	if ( enable_slide_show )
+	if ( EnableSlideShow() )
 	{
 	    LoadSlide (0);
 	}
 	else
 	{
-	    SwitchToDetailsView( enable_slide_show );
+	    SwitchToDetailsView();
 	}
 
 	UpdateAllCdProgress( false );	// false: not deleting
