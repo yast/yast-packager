@@ -5,7 +5,6 @@ configure: all
 	./configure
 
 all:
-	y2tool y2autoconf
 	y2tool y2automake
 	aclocal
 	autoconf
