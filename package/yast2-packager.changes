@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Feb 21 17:44:01 CET 2005 - lslezak@suse.cz
+
+- checkmedia - check wheter the drive contains CD1 when
+  the module finishes (#65947)
+- removed "CD/DVD Media Check" link from the installation proposal
+- version 2.11.27
+
+-------------------------------------------------------------------
 Mon Feb 21 16:54:58 CET 2005 - jsrain@suse.cz
 
 - fixed handling of samba URLs containing workgroup (#53423)
