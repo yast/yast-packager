@@ -26,44 +26,42 @@
     global string _package_name = "";
 
     global integer _current_source = 1;
-   //--------------------------------------------------------------------------
-   // defaults
+    //--------------------------------------------------------------------------
+    // defaults
 
-   /** at start of file providal
-    *
-    */
-    global define void StartProvide (string name, integer archivesize, boolean remote)
-    ``{
+    /** at start of file providal
+     *
+     */
+    global define void StartProvide (string name, integer archivesize, boolean remote) ``{
 	if (remote)
 	{
-	    term providebox = `VBox( `HSpacing(40), `ProgressBar(`id(`progress), name, 100, 0 ));
-
+	    term providebox = `VBox( `HSpacing(40), `ProgressBar(`id(`progress),
+								 name, 100, 0 ));
 	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
 	}
 	return;
-   }
+    }
 
 
-   /** during file providal
-    *
-    */
-   global define void ProgressProvide (integer percent)
-   ``{
+    /** during file providal
+     *
+     */
+    global define void ProgressProvide (integer percent) ``{
 	if (_provide_popup)
 	    UI::ChangeWidget(`id(`progress), `Value, percent);
 	return;
-   }
+    }
 
 
-   /** during file providal
-    *
-    // return "" for ignore
-    // return "R" for retry
-    // return "C" for abort
-    */
-   global define string DoneProvide (integer error, string reason, string name)
-   ``{
+    /** during file providal
+     *
+     // return "" for ignore
+     // return "R" for retry
+     // return "C" for abort
+     */
+    global define string DoneProvide (integer error, string reason, string name) ``{
+
 	if (_provide_popup)
 	    UI::CloseDialog();
 	_provide_popup = false;
@@ -91,38 +89,40 @@
 
 	    UI::{
 		global define ShowLogInfo (string message, term buttonbox) ``{
-		if (QueryWidget(`id(`show), `Value ))
-		{
-		    CloseDialog();
-		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
-		    return true;
-		}
-		else
-		{
-		    CloseDialog();
-		    OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
-		    ReplaceWidget(`id(`info), `Empty() );
-		}
-		return false;
+		    if (QueryWidget(`id(`show), `Value ))
+		    {
+			CloseDialog();
+			OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
+			return true;
+		    }
+		    else
+		    {
+			CloseDialog();
+			OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+			ReplaceWidget(`id(`info), `Empty() );
+		    }
+		    return false;
 		};
 	    };
 
 	    repeat
-	    {
-		r = UI::UserInput();
-		if ( r == `show )
 		{
-		showLongInfo = UI::ShowLogInfo (message, button_box);
-		if (showLongInfo)
-		{
-		    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
-		}
-		else
-		{
-		    UI::ReplaceWidget(`id(`info), `Empty() );
-		}
-	    }
-	    } until (r == `abort || r == `retry || r == `ignore);
+		    r = UI::UserInput();
+		    if ( r == `show )
+		    {
+			showLongInfo = UI::ShowLogInfo (message, button_box);
+			if (showLongInfo)
+			{
+			    UI::ReplaceWidget(`id(`info),
+					      `RichText (`opt(`plainText),
+							 sformat ("Err: %1:", error) + reason) );
+			}
+			else
+			{
+			    UI::ReplaceWidget(`id(`info), `Empty() );
+			}
+		    }
+		} until (r == `abort || r == `retry || r == `ignore);
 
 	    y2milestone ("DoneProvide %1", r);
 
@@ -137,45 +137,45 @@
 	}
 
 	return "";
-   }
+    }
 
 
-   /** at start of package install
-    *
-    */
-   global define boolean StartPackage (string name, string summary, integer installsize, boolean is_delete)
-   ``{
+    /** at start of package install
+     *
+     */
+    global define boolean StartPackage (string name, string summary, integer
+					installsize, boolean is_delete) ``{
+
 	_package_name = name;
 
 	term packagebox = `VBox( `Label(`id(`package), name ),
-				`VSpacing(),
-				`HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
-			   );
+				 `VSpacing(),
+				 `HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
+				 );
 
 	UI::OpenDialog( `opt(`decorated), packagebox );
 	_package_popup = true;
 	return true;
-   }
+    }
 
 
-   /** during package install
-    *
-    */
-   global define void ProgressPackage (integer percent)
-   ``{
+    /** during package install
+     *
+     */
+    global define void ProgressPackage (integer percent) ``{
 	UI::ChangeWidget(`id(`progress), `Value, percent);
 	return;
-   }
+    }
 
 
-   /** after package install
-    *
-    // return "" for ignore
-    // return "R" for retry
-    // return "C" for abort (not implemented !)
-    */
-   global define string DonePackage (integer error, string reason)
-   ``{
+    /** after package install
+     *
+     // return "" for ignore
+     // return "R" for retry
+     // return "C" for abort (not implemented !)
+     */
+    global define string DonePackage (integer error, string reason) ``{
+
 	if (_package_popup)
 	    UI::CloseDialog();
 	_package_popup = false;
@@ -183,10 +183,12 @@
 	if (error != 0)
 	{
 	    string infopath = SCR::Read (.target.tmpdir) + "/rpmlog";
-	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir + "/var/log/YaST2/y2logRPM > " + infopath);
+	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir
+			  + "/var/log/YaST2/y2logRPM > " + infopath);
 	    string info = reason + "\n---\n" + SCR::Read (.target.string, [infopath, "-?-"]);
 
-	    // error popup during package installation, %1 is a numeric value (number of failed packages)
+	    // error popup during package installation, %1 is a numeric
+	    // value (number of failed packages)
 	    string message = sformat (_("Installation failed for %1 packages."), _package_name);
 
 	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
@@ -208,37 +210,36 @@
 
 	    UI::{
 		global define ShowLogInfo (string message, term buttonbox) ``{
-		if (QueryWidget(`id(`show), `Value ))
-		{
-		    CloseDialog();
-		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
-		    return true;
-		}
-		else
-		{
-		    CloseDialog();
-		    OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
-		    ReplaceWidget(`id(`info), `Empty() );
-		}
-		return false;
+		    if (QueryWidget(`id(`show), `Value ))
+		    {
+			CloseDialog();
+			OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
+			return true;
+		    }
+		    else
+		    {
+			CloseDialog();
+			OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+			ReplaceWidget(`id(`info), `Empty() );
+		    }
+		    return false;
 		};
 	    };
 
-	    repeat
-	    {
+	    repeat {
 		r = UI::UserInput();
 		if ( r == `show )
 		{
-		showLongInfo = UI::ShowLogInfo (message, button_box);
-		if (showLongInfo)
-		{
-		    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+		    showLongInfo = UI::ShowLogInfo (message, button_box);
+		    if (showLongInfo)
+		    {
+			UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+		    }
+		    else
+		    {
+			UI::ReplaceWidget(`id(`info), `Empty() );
+		    }
 		}
-		else
-		{
-		    UI::ReplaceWidget(`id(`info), `Empty() );
-		}
-	    }
 	    } until (r == `abort || r == `retry || r == `ignore);
 
 	    y2milestone ("DonePackage %1", r);
@@ -255,7 +256,7 @@
 
 
 	return "";
-   }
+    }
 
 //=============================================================================
 //	MEDIA CHANGE
@@ -278,8 +279,9 @@
     // return "C" for cancel (not implemented !)
     // return url to change media URL
 
-    global define string MediaChange (string error, string url, string product, integer current, integer wanted)
-    ``{
+    global define string MediaChange (string error, string url, string product,
+				      integer current, integer wanted) ``{
+
 	import "Mode";
 
 	if (!Mode::normal)
@@ -288,7 +290,8 @@
 	    SlideShow::StopTimer();
 	}
 
-	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4', wan'%5'", error, url, product, current, wanted);
+	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4', wan'%5'",
+		     error, url, product, current, wanted);
 
 	// true if it makes sense to offer an eject button (for cd/dvd only ...)
 	boolean offer_eject_button = false;
@@ -366,8 +369,7 @@
 	    };
 	};
 
-	repeat
-	{
+	repeat {
 	    r = UI::UserInput();
 	    if ( r == `show )
 	    {
@@ -433,8 +435,7 @@
     /**
      * dummy source change callback, see SlideShowCallbacks for the real one
      */
-    global define string SourceChange (integer source, integer medianr)
-    ``{
+    global define string SourceChange (integer source, integer medianr) ``{
 	y2milestone ("SourceChange (%1, %2)", source, medianr);
 	_current_source = source + 1;
     }
@@ -445,8 +446,7 @@
 
 
 
-    global define void SetMediaCallbacks ()
-    ``{
+    global define void SetMediaCallbacks () ``{
 	Pkg::CallbackMediaChange ("PackageCallbacks::MediaChange");
 	Pkg::CallbackSourceChange ("PackageCallbacks::SourceChange");
     }
@@ -456,8 +456,7 @@
      *
      */
 
-    global define void PackageCallbacks()
-    ``{
+    global define void PackageCallbacks() ``{
 	y2milestone ( "PackageCallbacks constructor" );
 
 	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
@@ -469,32 +468,33 @@
 
 	SetMediaCallbacks ();
 
-    UI::{
-    // UI USE
-    // creates layout for ChangMediumPopup
+	UI::{
+	    // UI USE
+	    // creates layout for ChangMediumPopup
 
-    global define LayoutPopup ( string message, term button_box, integer vertical_size, boolean info_on )
-    ``{
+	    global define LayoutPopup ( string message, term button_box,
+					integer vertical_size, boolean info_on ) ``{
 
-	term dialog_layout =  `VBox(
-				    `HSpacing(40),	// enforce width
-				    `VSpacing(0.1),
-				    `Left(`Label( message)),
-				    `Left(`CheckBox(`id(`show), `opt(`notify), _("Show &details"), info_on )),
-				    `VSpacing(0.4),
-				    `HBox(`VSpacing(vertical_size),
-					  `HSpacing(0.1),
-					  `ReplacePoint(`id(`info), `Empty()),
-					  `HSpacing(0.1)
-					  ),
-				    `HBox(`HSpacing(0.1),
-					  button_box,
-					  `HSpacing(0.1)
-					  ),
-				    `VSpacing(0.2)
-				    );
-	return dialog_layout;
-    };
-    }; // UI()
+		term dialog_layout =  `VBox(
+					    `HSpacing(40),	// enforce width
+					    `VSpacing(0.1),
+					    `Left(`Label( message)),
+					    `Left(`CheckBox(`id(`show), `opt(`notify),
+							    _("Show &details"), info_on )),
+					    `VSpacing(0.4),
+					    `HBox(`VSpacing(vertical_size),
+						  `HSpacing(0.1),
+						  `ReplacePoint(`id(`info), `Empty()),
+						  `HSpacing(0.1)
+						  ),
+					    `HBox(`HSpacing(0.1),
+						  button_box,
+						  `HSpacing(0.1)
+						  ),
+					    `VSpacing(0.2)
+					    );
+		return dialog_layout;
+	    };
+	}; // UI()
     }
 }
