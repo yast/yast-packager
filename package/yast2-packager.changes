@@ -9,6 +9,7 @@ Tue Mar 11 16:56:10 CET 2003 - mvidner@suse.de
 Tue Mar 11 16:46:18 CET 2003 - kkaempf@suse.de
 
 - always let TargetInit create everything which doesn't exist.
+  (#24932)
 
 -------------------------------------------------------------------
 Tue Mar 11 15:59:00 CET 2003 - kkaempf@suse.de
