@@ -27,6 +27,9 @@
 
     global integer _current_source = 1;
 
+    // make showLongInfo module-global so it gets remembered (cf. #14018)
+    boolean showLongInfo = false;
+
     //--------------------------------------------------------------------------
     // defaults
 
@@ -55,6 +58,49 @@
     }
 
 
+
+    // creates layout for ChangeMediumPopup
+    global define term LayoutPopup ( string message, term button_box,
+				integer vertical_size, boolean info_on ) ``{
+
+	term dialog_layout =  `VBox(
+				    `HSpacing(40),	// enforce width
+				    `VSpacing(0.1),
+				    `Left(`Label( message)),
+				    `Left(`CheckBox(`id(`show), `opt(`notify),
+						    _("Show &details"), info_on )),
+				    `VSpacing(0.4),
+				    `HBox(`VSpacing(vertical_size),
+					  `HSpacing(0.1),
+					  `ReplacePoint(`id(`info), `Empty()),
+					  `HSpacing(0.1)
+					  ),
+				    `HBox(`HSpacing(0.1),
+					  button_box,
+					  `HSpacing(0.1)
+					  ),
+				    `VSpacing(0.2)
+				    );
+	return dialog_layout;
+    }
+
+    global define boolean ShowLogInfo (string message, term buttonbox) ``{
+	if (UI::QueryWidget(`id(`show), `Value ) == true)
+	{
+	    UI::CloseDialog();
+	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
+	    return true;
+	}
+	else
+	{
+	    UI::CloseDialog();
+	    UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+	    UI::ReplaceWidget(`id(`info), `Empty() );
+	}
+	return false;
+    }
+
+
     /** during file providal
      *
      // return "" for ignore
@@ -77,41 +123,23 @@
 
 	    if ( showLongInfo )
 	    {
-		UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
+		UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
 		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
 	    }
 	    else
 	    {
-		UI::OpenDialog( `opt(`decorated),  UI::LayoutPopup (message, button_box, 2, false) );
+		UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 2, false) );
 		UI::ReplaceWidget(`id(`info), `Empty() );
 	    }
 
 	    any r = nil;
-
-	    UI::{
-		global define ShowLogInfo (string message, term buttonbox) ``{
-		    if (QueryWidget(`id(`show), `Value ))
-		    {
-			CloseDialog();
-			OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
-			return true;
-		    }
-		    else
-		    {
-			CloseDialog();
-			OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
-			ReplaceWidget(`id(`info), `Empty() );
-		    }
-		    return false;
-		};
-	    };
 
 	    repeat
 		{
 		    r = UI::UserInput();
 		    if ( r == `show )
 		    {
-			showLongInfo = UI::ShowLogInfo (message, button_box);
+			showLongInfo = ShowLogInfo (message, button_box);
 			if (showLongInfo)
 			{
 			    UI::ReplaceWidget(`id(`info),
@@ -183,10 +211,10 @@
 
 	if (error != 0)
 	{
-	    string infopath = SCR::Read (.target.tmpdir) + "/rpmlog";
+	    string infopath = (string) SCR::Read (.target.tmpdir) + "/rpmlog";
 	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir
 			  + "/var/log/YaST2/y2logRPM > " + infopath);
-	    string info = reason + "\n---\n" + SCR::Read (.target.string, [infopath, "-?-"]);
+	    string info = reason + "\n---\n" + (string) SCR::Read (.target.string, [infopath, "-?-"]);
 
 	    // error popup during package installation, %1 is the name of the package
 	    string message = sformat (_("Installation of package %1 failed."), _package_name);
@@ -197,40 +225,22 @@
 
 	    if ( showLongInfo )
 	    {
-		UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
+		UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
 		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
 	    }
 	    else
 	    {
-		UI::OpenDialog( `opt(`decorated),  UI::LayoutPopup (message, button_box, 2, false) );
+		UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 2, false) );
 		UI::ReplaceWidget(`id(`info), `Empty() );
 	    }
 
 	    any r = nil;
 
-	    UI::{
-		global define ShowLogInfo (string message, term buttonbox) ``{
-		    if (QueryWidget(`id(`show), `Value ))
-		    {
-			CloseDialog();
-			OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
-			return true;
-		    }
-		    else
-		    {
-			CloseDialog();
-			OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
-			ReplaceWidget(`id(`info), `Empty() );
-		    }
-		    return false;
-		};
-	    };
-
 	    repeat {
 		r = UI::UserInput();
 		if ( r == `show )
 		{
-		    showLongInfo = UI::ShowLogInfo (message, button_box);
+		    showLongInfo = ShowLogInfo (message, button_box);
 		    if (showLongInfo)
 		    {
 			UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
@@ -262,9 +272,6 @@
 //	MEDIA CHANGE
 //=============================================================================
 
-
-    // make showLongInfo module-global so it gets remembered (cf. #14018)
-    boolean showLongInfo = false;
 
     //-------------------------------------------------------------------------
     //
@@ -357,42 +364,24 @@
 
 	if ( showLongInfo )
 	{
-	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
+	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
 	    /* TextEntry label */
 	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
 	    UI::ChangeWidget(`id(`url), `Value, url);
 	}
 	else
 	{
-	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 2, false) );
+	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 2, false) );
 	    UI::ReplaceWidget(`id(`info), `Empty() );
 	}
 
 	any r = nil;
 
-	UI::{
-	    global define ShowLogInfo (string message, term buttonbox) ``{
-		if (QueryWidget(`id(`show), `Value ))
-		{
-		    CloseDialog();
-		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
-		    return true;
-		}
-		else
-		{
-		    CloseDialog();
-		    OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 2, false) );
-		    ReplaceWidget(`id(`info), `Empty() );
-		}
-		return false;
-	    };
-	};
-
 	repeat {
 	    r = UI::UserInput();
 	    if ( r == `show )
 	    {
-		showLongInfo = UI::ShowLogInfo (message, button_box);
+		showLongInfo = ShowLogInfo (message, button_box);
 		if (showLongInfo)
 		{
 		    /* TextEntry label */
@@ -488,34 +477,6 @@
 
 	SetMediaCallbacks ();
 
-	UI::{
-	    // UI USE
-	    // creates layout for ChangeMediumPopup
-
-	    global define LayoutPopup ( string message, term button_box,
-					integer vertical_size, boolean info_on ) ``{
-
-		term dialog_layout =  `VBox(
-					    `HSpacing(40),	// enforce width
-					    `VSpacing(0.1),
-					    `Left(`Label( message)),
-					    `Left(`CheckBox(`id(`show), `opt(`notify),
-							    _("Show &details"), info_on )),
-					    `VSpacing(0.4),
-					    `HBox(`VSpacing(vertical_size),
-						  `HSpacing(0.1),
-						  `ReplacePoint(`id(`info), `Empty()),
-						  `HSpacing(0.1)
-						  ),
-					    `HBox(`HSpacing(0.1),
-						  button_box,
-						  `HSpacing(0.1)
-						  ),
-					    `VSpacing(0.2)
-					    );
-		return dialog_layout;
-	    };
-	}; // UI()
     }
 
 
