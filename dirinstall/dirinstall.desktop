@@ -6,7 +6,7 @@ X-KDE-ModuleType=Library
 X-KDE-RootOnly=true
 X-KDE-HasReadOnlyMode=true
 X-KDE-Library=yast2
-X-SuSE-YaST-Call=uml
+X-SuSE-YaST-Call=dirinstall
 
 X-SuSE-YaST-Group=Software
 X-SuSE-YaST-Argument=
@@ -17,7 +17,7 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoinstResource=
 
 Icon=system_dirinstall
-Exec=/sbin/yast2 disrinstall
+Exec=/sbin/yast2 dirinstall
 
-Name=UML Installation
+Name=Installation into Directory
 GenericName=Install System into a Directory
