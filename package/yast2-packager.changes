@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Sep 21 19:38:02 CEST 2003 - arvin@suse.de
+
+- finished support of double sided media
+
+-------------------------------------------------------------------
 Fri Sep 19 10:34:27 CEST 2003 - kkaempf@suse.de
 
 - add numactl on AMD64-smp systems (#31338)
@@ -7,7 +12,7 @@ Fri Sep 19 10:34:27 CEST 2003 - kkaempf@suse.de
 Thu Sep 18 13:57:04 CEST 2003 - sh@suse.de
 
 - V 2.8.22
-- Fixed bug #31140: Predicted SlideShow timings 
+- Fixed bug #31140: Predicted SlideShow timings
 
 -------------------------------------------------------------------
 Thu Sep 11 18:00:00 CEST 2003 - kkaempf@suse.de
