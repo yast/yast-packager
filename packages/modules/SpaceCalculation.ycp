@@ -186,9 +186,7 @@
 		    y2debug("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size);
 		    if ( !remove_slash)
 		    {
-			target_partitions = add ( target_partitions, $["name":part["mount"]:"",
-									"used":0,
-									"free":free_size);
+			target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":0, "free":free_size]);
 			directories = add (directories, part["mount"]:"");
 		    }
 		    else
@@ -205,9 +203,7 @@
 			    part_name = mount_name;
 			}
 
-			target_partitions = add ( target_partitions, $["name":part_name,
-									"used":0,
-									"free":free_size);
+			target_partitions = add ( target_partitions, $["name":part_name, "used":0, "free":free_size]);
 			directories = add (directories, part_name);
 		    }
 
