@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 26 20:43:49 CET 2004 - arvin@suse.de
+
+- removed useless popup (bug #37042)
+
+-------------------------------------------------------------------
 Wed Mar 24 18:30:53 CET 2004 - arvin@suse.de
 
 - fixed update of default runlevel for old distributions
