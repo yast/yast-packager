@@ -21,7 +21,13 @@
      * This will be local when converted to a Module::
      * Has Pkg::TargetInit run?
      */
-    global boolean pkg_initialized = false;
+    global boolean target_initialized = false;
+
+    /**
+     * This will be local when converted to a Module::
+     * Has Pkg::SourceStartCache run?
+     */
+    global boolean source_initialized = false;
 
     /**
      * This will be local when converted to a Module::
@@ -29,7 +35,11 @@
      * This may become superfluous.
      */
     global define void EnsureTargetInit () ``{
-	pkg_initialized = pkg_initialized || Pkg::TargetInit ("/", false);
+	target_initialized = target_initialized || Pkg::TargetInit ("/", false);
+    }
+
+    global define void EnsureSourceInit () ``{
+	source_initialized = source_initialized || Pkg::SourceStartCache (true);
     }
 
     /**
@@ -38,18 +48,8 @@
      * @return true/false
      */
     global define boolean IsPackageAvailable (string package) ``{
-	EnsureTargetInit ();
-	// will it work yet?
+	EnsureSourceInit ();
 	return Pkg::IsAvailable (package);
-
-	/*
-	 * This was a hack for 8.0:
-	 * This is a bit kludgy, since querying .package would take up
-	 * a large amount of resources.
-	 */
-	string cmd = "/usr/bin/grep -q '^RpmName:[ \t]*%1$' %2";
-	string pkd = "/var/adm/current_package_descr/suse/setup/descr/common.pkd";
-	return SCR::Execute (.target.bash, sformat (cmd, package, pkd)) == 0;
     }
 
     /**
@@ -58,9 +58,7 @@
      * @return true/false
      */
     global define boolean IsPackageInstalled (string package) ``{
-	// too much overhead
-	// return Pkg::IsProvided (package);
-	return SCR::Execute (.target.bash, "/bin/rpm -q " + package) == 0;
+	return Pkg::IsProvided (package);
     }
 
     /**
@@ -70,9 +68,7 @@
      */
 
     global define boolean IsAnyPackageInstalled (list(string) packages) ``{
-	string which = find(`p, packages, ``{
-	    return IsPackageInstalled (p);
-	});
+	string which = find(`p, packages, ``{ return IsPackageInstalled (p); });
 	return which != nil;
     }
 
@@ -82,9 +78,7 @@
      * @return true/false
      */
     global define boolean AreAllPackagesInstalled (list(string) packages) ``{
-	string which = find(`p, packages, ``{
-	    return ! IsPackageInstalled (p);
-	});
+	string which = find(`p, packages, ``{ return ! IsPackageInstalled (p); });
 	return which == nil;
     }
 
@@ -95,8 +89,7 @@
      * @return success?
      */
     global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
-	// TODO: it is going to change
-	EnsureTargetInit ();
+	EnsureSourceInit ();
 	boolean ok = true;
 	ok = ok && Pkg::DoProvide (toinstall) == $[];
 	ok = ok && Pkg::DoRemove (toremove) == $[];

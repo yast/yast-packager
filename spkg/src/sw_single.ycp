@@ -21,9 +21,8 @@
     import "Mode";
     Mode::normal = true;	// system is already installed
 
-    import "InstMedia";
-    import "MediaUI";
     import "Packages";
+    import "PackageCallbacks";
     import "Boot";
 
     import "Wizard";
@@ -125,8 +124,6 @@
 
 	    if ( SCR::Read(.target.size, first_arg) > 0 )
 	    {
-		InstMedia::installmode = "hd";
-		InstMedia::mediatype = 3;
 
 		y2milestone( "SW_SINGLE: installing  %1", first_arg );
 		WFM::CallFunction( `inst_rpmcopy( false, false, first_arg ));
