@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 30 13:07:11 CEST 2004 - fehr@suse.de
+
+- add storage dependent package to ComputeSystemPackageList (#37279)
+- 2.9.39
+
+-------------------------------------------------------------------
 Mon Mar 29 14:57:23 CEST 2004 - kkaempf@suse.de
 
 - use the fallback kernel (#37326)

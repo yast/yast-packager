@@ -22,6 +22,7 @@
     import "Report";
     import "SlideShow";
     import "SpaceCalculation";
+    import "Storage";
 
     global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false;	// Installing source packages ?
@@ -227,6 +228,8 @@
 	list<string> install_list =  architecturePackages ();
 
 	install_list = (list<string>) union (install_list, modePackages ());
+	install_list = (list<string>) union (install_list, 
+	                                     Storage::AddPackageList());
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update ||  !Mode::autoinst)
