@@ -30,28 +30,35 @@ do this.</P>"))),
   
   // mount CD 
   define MyChangeCD(integer cdnum) ``{
-
-	Shell ("/bin/mount /dev/cdrom /var/adm/mount");
+      boolean ret = true;
+      
+      Shell ("/bin/mount /dev/cdrom /var/adm/mount");
 	
-	integer|void actcdnum = nil;
-	while (true) {
-	    // reading /cdrom/.S.u.S.E-disk-001.2000032902 file
-	    actcdnum = SCR(`Read(.yast2.instsource.cdnum));
-	    if (actcdnum == cdnum) return true;
-	    else {
-		Shell ("/bin/umount /var/adm/mount");
+      integer|void actcdnum = nil;
+      while (true) {
+	  // reading /cdrom/.S.u.S.E-disk-001.2000032902 file
+	  actcdnum = SCR(`Read(.yast2.instsource.cdnum));
+	  if (actcdnum == cdnum) return true;
+	  else {
+	      Shell ("/bin/umount /var/adm/mount");
 
-		// advise user to insert the right CD
-		string message = sformat(UI(_("Please insert CD %1.")), cdnum);
-		if (is(actcdnum, integer)) 
-		    // inform user about current CD
-		    message = sformat(UI(_("%1\nCurrently CD %2 is inserted.")), message, actcdnum);
-		UI(`DisplayMessage(message));
+	      // advise user to insert the right CD
+	      string message = sformat(UI(_("Please insert CD %1.")), cdnum);
+	      if (is(actcdnum, integer)) 
+		  // inform user about current CD
+		  message = sformat(UI(_("%1\nCurrently CD %2 is inserted.")), message, actcdnum);
 
-		Shell ("/bin/mount /dev/cdrom /var/adm/mount");
-	    }
-	}
-    };
+	      ret = UI(`ContinueCancel(message, _("&OK"), _("&Cancel")) );
+
+	      if ( ret == false )
+		  break;
+	      else
+		  Shell ("/bin/mount /dev/cdrom /var/adm/mount");
+	  }
+      }
+
+      return ret;
+  };
 
   // map user_settings contains:
   // - install_info -> module inst_rpmcopy
@@ -108,8 +115,14 @@ do this.</P>"))),
   // mount CD 1 BEFORE initializing pkginfo-Server
   // (needed to get commom.pkd)
 
-  MyChangeCD(1);
+  boolean go_on = MyChangeCD(1);
 
+  if ( !go_on )
+  {
+      // quit dialog
+      return `cancel;
+  }
+  
   string infopath =  "/var/adm/mount/suse/setup/descr";
   string dudir = "/var/adm/mount/suse/setup/du/du.dir";
 
