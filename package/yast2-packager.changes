@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 23 17:58:41 CEST 2004 - nashif@suse.de
+
+- Use service pack even if the product CD has no order/instorder 
+  files in "yast2/"
+
+-------------------------------------------------------------------
 Thu Sep 23 15:30:31 CEST 2004 - nashif@suse.de
 
 - Copy service pack archive from the correct location
