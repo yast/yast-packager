@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 17 10:36:01 CET 2004 - arvin@suse.de
+
+- don't ignore return of Pkg::DoProvide (bug #36022)
+
+-------------------------------------------------------------------
 Tue Mar 16 21:12:24 CET 2004 - kkaempf@suse.de
 
 - run GNOME cleanup before upgrade starts (#36196)
