@@ -200,7 +200,7 @@ on the NFS server.
     Wizard::CreateDialog();
     Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::FinishButton()));
     Wizard::SetContents(title, contents, help_text, false, true);
-    Wizard::ReplaceBackButton( `Empty() );
+    Wizard::HideBackButton();
 
     Pkg::SourceStartManager( false );
     Pkg::SourceStartCache ( false );
