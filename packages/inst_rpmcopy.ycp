@@ -232,7 +232,8 @@
 	}
 	else
 	{
-	    y2milestone ("%1 packages failed, %2 packages ok", size (PackageInstallation::error_packages), -ret);
+	    y2milestone ("%1 packages installed ok", ret);
+	    y2milestone ("%1 packages failed: %2", size (PackageInstallation::error_packages), PackageInstallation::error_packages);
 	    Report::Error( _("Some packages failed") );
 	    packages_installed = packages_installed - ret;
 	}
