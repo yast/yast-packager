@@ -467,6 +467,59 @@
     }
 
 
+    global define void StartDownload (string url, string localfile) ``{
+
+	// heading of popup
+	string heading = _("Download");
+
+	// message in a progress popup
+	string message = sformat (_("Downloading: %1"), url);
+
+	UI::OpenDialog (`opt(`decorated),
+			`VBox (`Heading (heading) ,
+			       `VBox (
+				      `Label(message),
+				      `HSpacing(60),
+				      `HBox(
+					    `HSpacing(2),
+					    `ProgressBar (`id(`progress),
+							  _("Status"), 100),
+					    `HSpacing(2)
+					    ),
+				      `VSpacing(1)
+				      )
+			       )
+			);
+
+	UI::ChangeWidget (`id(`progress), `Value, 0);
+    }
+
+
+    global define void ProgressDownload (integer percent, integer expected_size) ``{
+	UI::ChangeWidget (`id(`progress), `Value, percent);
+    }
+
+
+    global define void DoneDownload (integer error_value, string error_text) ``{
+
+	if (error_value != 0)
+	{
+	    // error message, %1 is the cause for the error
+	    Popup::Error (sformat (_("Download failed:
+%1"), error_text));
+	}
+
+	UI::CloseDialog ();
+    }
+
+
+    global define void SetDownloadCallbacks () ``{
+	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
+	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
+	Pkg::CallbackDoneDownload ("PackageCallbacks::DownDownload");
+    }
+
+
 
     global define void StartRebuildDB () ``{
 
