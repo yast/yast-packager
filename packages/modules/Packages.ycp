@@ -383,6 +383,8 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 	install_list = (list<string>) union (install_list, boardPackages ());
 
 	// and the most flexible enhancement for other products
+        // NOTE: not really flexible, because it requires the client
+        // in the instsys, instead use <kernel-packages> in the control file.
 	if (ProductFeatures::packages_transmogrify != "")
 	{
             list<string> tmp_list = (list<string>)
