@@ -31,8 +31,10 @@
     global integer	total_size_to_install	= 0;
     global integer 	total_time_elapsed 	= 0;
     global integer	start_time		= -1;
-    global integer	initial_recalc_delay	= 30;	// const - seconds before initially calculating remaining times
+    global integer	initial_recalc_delay	= 60;	// const - seconds before initially calculating remaining times
     global integer	recalc_interval		= 30;	// const - seconds between "remaining time" recalculations
+    global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
+    global integer	max_time_per_cd		= 7200;	// const - seconds to cut off predicted time (it's bogus anyway)
     global integer	next_recalc_time	= -1;
     global integer 	current_src_no 		= 1;	// 1..n
     global integer 	current_cd_no 		= 1;	// 1..n
@@ -265,8 +267,22 @@
 
 	current_pkg_name = pkg_name;
 
-	if (deleting)
+	if ( deleting )
+	{
 	    pkg_size = -1;
+
+	    // This is a kind of misuse of insider knowledge: If there are packages to delete, this
+	    // deletion comes first, and only then packages are installed. This, however, greatly
+	    // distorts the estimated times based on data throughput so far: While packages are
+	    // deleted, throughput is zero, and estimated times rise to infinity (they are cut off
+	    // at max_time_per_cd to hide this). So we make sure the time spent deleting packages is
+	    // not counted for estimating remaining times - reset the timer.
+	    //
+	    // Note: This will begin to fail when some day packages are deleted in the middle of the
+	    // installaton process.
+
+	    ResetTimer();
+	}
 
 	if ( pkg_description == nil )
 	    pkg_description = "";
@@ -316,7 +332,7 @@
 
 	    UpdateCurrentCdProgress();
 
-	} // !deleting
+	} // ! deleting
     };
 
     /**
@@ -487,9 +503,11 @@
 
 	    remaining = remaining / bytes_per_second;
 
-	    if ( remaining > 4*3600 )		// clip off at 4 hours
+	    if ( remaining > max_time_per_cd )		// clip off at 2 hours
 	    {
-	        remaining = 4*3600;
+		// When data throughput goes downhill (stalled network connection etc.),
+		// cut off the predicted time at a reasonable maximum.
+	        remaining = max_time_per_cd;
 	    }
 	}
 
@@ -539,6 +557,15 @@
      * Start the internal (global) timer.
      **/
     global define void StartTimer()
+    ``{
+	start_time = time();
+    };
+
+
+    /**
+     * Reset the internal (global) timer.
+     **/
+    global define void ResetTimer()
     ``{
 	start_time = time();
     };
@@ -641,12 +668,18 @@
 		{
 		    remaining_time = remaining_size / bytes_per_second;
 
-		    if ( remaining_time < 5 )
+		    if ( remaining_time < min_time_per_cd )
 		    {
 			// It takes at least this long for the CD drive to spin up and
 			// for RPM to do _anything_. Times below this values are
 			// ridiculously unrealistic.
-			remaining_time = 5;
+			remaining_time = min_time_per_cd;
+		    }
+		    else if ( remaining > max_time_per_cd )	// clip off at 2 hours
+		    {
+			// When data throughput goes downhill (stalled network connection etc.),
+			// cut off the predicted time at a reasonable maximum.
+			remaining = max_time_per_cd;
 		    }
 		}
 		remaining_times_list = add( remaining_times_list, remaining_time );
