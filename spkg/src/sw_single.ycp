@@ -9,7 +9,7 @@
   if (Args() == [ "get_menuentry" ]) 
       return [ 
 	      "sw_single", $[
-			     `menuentry    : UI(_("Install/deinstall single packages")),
+			     `menuentry    : UI(_("Install/Remove packages")),
 			     `arguments    : [ ],
 			     `widget       : `RichText(
 						       UI(_( "<P>Launch this module to install additional packages or
@@ -24,7 +24,7 @@ do this.</P>"))),
       ];
 
   // mount CD 
-  define ChangeCD(integer cdnum) ``{
+  define MyChangeCD(integer cdnum) ``{
 
 	Shell ("/bin/mount /dev/cdrom /var/adm/mount");
 	
