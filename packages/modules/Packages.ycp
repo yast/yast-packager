@@ -523,18 +523,34 @@
 	    // Fake values for testing purposes
 	    base_url = "dir:///dist/next-i386";	   
 	}
-	else if (SCR::Read (.etc.install_inf.Sourcemounted) == "1")
-	{
-	    y2milestone ("Sourcemounted !!");
-	    base_url = "dir://"+Installation::sourcedir;
-	}
+//	else if (SCR::Read (.etc.install_inf.Sourcemounted) == "1")
+//	{
+//	    y2milestone ("Sourcemounted !!");
+//	    base_url = "dir://"+Installation::sourcedir;
+//	}
 	else
 	{
 	    base_url = InstMedia::installInf2Url ();
 	}
 
-	y2milestone ("Initialize Package Manager: %1", base_url);
-	theSource = Pkg::SourceInit (base_url);
+	if (Mode::initial)
+	{
+	    y2milestone ("Initialize Package Manager: %1", base_url);
+	    theSource = Pkg::SourceInit (base_url);
+	}
+	else	// cont or normal mode
+	{
+	    list sources = Pkg::SourceList (true);
+	    if (size (sources) > 0)
+	    {
+		theSource = sources[0]:-1;
+	    }
+	    else
+	    {
+		y2error ("Pkg::SourceList failed");
+		theSource = -1;
+	    }
+	}
 	if (theSource >= 0)
 	{
 	    init_called = true;
