@@ -89,10 +89,19 @@
      * @return success?
      */
     global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
+	y2debug ("toinstall: %1, toremove: %2", toinstall, toremove);
 	EnsureSourceInit ();
 	boolean ok = true;
-	ok = ok && Pkg::DoProvide (toinstall) == $[];
-	ok = ok && Pkg::DoRemove (toremove) == $[];
+	foreach (string p, toinstall, ``{
+	    ok = ok && Pkg::PkgInstall (p);
+	});
+	foreach (string p, toremove, ``{
+	    ok = ok && Pkg::PkgDelete (p);
+	});
+	ok = ok && Pkg::PkgSolve ();
+	list result = Pkg::PkgCommit (0);
+	y2debug ("PkgCommit: %1", result);
+	ok = ok && result[1]:nil == [] && result[2]:nil == [];
 	return ok;
     }
 
