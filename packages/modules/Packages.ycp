@@ -307,8 +307,15 @@
 	if (init_called)
 	{
 	    y2warning ("Packages::Init() already called");
+
+	    if (forceInit)
+	    {
+		Pkg::PkgReset ();
+	    }
+
 	    return;
 	}
+
 	//
 	// Initialize package manager
 	//
