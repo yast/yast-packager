@@ -64,15 +64,15 @@
 	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
-	Pkg::CallbackStartProvide ("CallbackPackages::StartProvide");
-	Pkg::CallbackStartInstall ("CallbackPackages::StartInstall");
-	Pkg::CallbackProgress ("CallbackPackages::ProgressInstall");
-	Pkg::CallbackDoneInstall ("CallbackPackages::DoneInstall");
+	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
+	Pkg::CallbackStartInstall ("PackageCallbacks::StartInstall");
+	Pkg::CallbackProgress ("PackageCallbacks::ProgressInstall");
+	Pkg::CallbackDoneInstall ("PackageCallbacks::DoneInstall");
 
 	foreach (`src, Pkg::SourceGetCurrent(),
 	``{
-	    Pkg::CallbackMediaChange (src, "CallbackPackages::MediaChange");
-	    Pkg::CallbackMediaError (src, "CallbackPackages::MediaError");
+	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
+	    Pkg::CallbackMediaError (src, "PackageCallbacks::MediaError");
 	});
 
 	SlideShow::InitPkgData();
