@@ -26,7 +26,7 @@
    ``{
 	if (remote)
 	{
-	    term providebox = `HBox(`HStretch(), `HSpacing(40), `ProgressBar(`id(`progress), name, 100, 0 ));
+	    term providebox = `VBox( `HSpacing(40), `ProgressBar(`id(`progress), name, 100, 0 ));
 
 	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
