@@ -210,10 +210,10 @@
 
 	    y2milestone ("run-level %1 found", initdefault);
 
-	    if (Update::installedVersion["name"] == "SuSE Linux")
+	    if (Update::installedVersion["name"]:"" == "SuSE Linux")
 	    {
-		integer major = Update::installedVersion["major"]:-1;
-		integer minor = Update::installedVersion["minor"]:-1;
+		integer oldmajor = Update::installedVersion["major"]:-1;
+		integer oldminor = Update::installedVersion["minor"]:-1;
 
 		if (oldmajor >= 0 && oldminor >= 0)
 		{
