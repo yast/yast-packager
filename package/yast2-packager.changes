@@ -1,15 +1,21 @@
 -------------------------------------------------------------------
+Fri Mar 12 15:59:02 CET 2004 - arvin@suse.de
+
+- fixed use of Pkg::SourceGeneralData (bug #35712)
+
+-------------------------------------------------------------------
 Fri Mar 12 15:13:58 CET 2004 - sh@suse.de
 
 - Fixed bug #34973: No slide show
-  Now doing late initialization to overcome initialization dependencies 
+  Now doing late initialization to overcome initialization
+  dependencies
 
 -------------------------------------------------------------------
 Wed Mar 10 01:53:14 CET 2004 - sh@suse.de
 
 - V 2.9.23
 - Migration to new wizard
-- Fixed ycpc complaints 
+- Fixed ycpc complaints
 
 -------------------------------------------------------------------
 Tue Mar  9 18:32:22 CET 2004 - kkaempf@suse.de
@@ -26,7 +32,7 @@ Thu Mar  4 22:41:49 CET 2004 - kkaempf@suse.de
 -------------------------------------------------------------------
 Thu Mar  4 20:36:05 CET 2004 - visnov@suse.cz
 
-- 2.9.19 
+- 2.9.19
 
 -------------------------------------------------------------------
 Thu Mar  4 17:58:12 CET 2004 - kkaempf@suse.de

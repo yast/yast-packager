@@ -10,7 +10,6 @@
  */
 
 {
-
     module "PackageInstallation";
 
     import "Arch";
@@ -28,7 +27,8 @@
 
     textdomain "packager";
 
-    global define any FakePackager( list<list> packages, string inst_source, boolean deleting );
+    global define any FakePackager( list<list> packages, string inst_source,
+				    boolean deleting );
 
     /**
      *  commitPackages marked for deletion or installation
@@ -50,13 +50,20 @@
 	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3",
 		     media_number, packages_installed, Pkg::TargetGetDU());
 
-	map source_data = Pkg::SourceGeneralData(0);
-	if (source_data != nil)
+	list <integer> sources = Pkg::SourceGetCurrent (false);
+	integer source_id = sources[0]:0;
+
+	if (source_id != 0)
 	{
-	    string url = source_data["url"]:"cd:///";
-	    if (substring (url, 0, 3) == "dvd")
-		SlideShow::SetMediaType ("DVD");
+	    map source_data = Pkg::SourceGeneralData (source_id);
+	    if (source_data != nil)
+	    {
+		string url = source_data["url"]:"cd:///";
+		if (substring (url, 0, 3) == "dvd")
+		    SlideShow::SetMediaType ("DVD");
+	    }
 	}
+
 	SlideShow::InitPkgData();
 	if (media_number == 0)
 	{
@@ -113,7 +120,8 @@ View the log file?
     // NOTE: This is currently completely broken.
     // -- sh 2003-12-15
     //
-    global define any FakePackager( list<list> packages, string inst_source, boolean deleting )
+    global define any FakePackager( list<list> packages, string inst_source,
+				    boolean deleting )
     ``{
 	integer disk_usage = 20;
 	integer disk_capacity = 10000;
