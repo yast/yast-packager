@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 27 05:24:24 CET 2004 - nashif@suse.de
+
+- Move software_proposal from installation
+- Adapted for new Control file
+
+-------------------------------------------------------------------
 Wed Feb 25 18:36:29 CET 2004 - arvin@suse.de
 
 - improved setting of locales of packagemanager

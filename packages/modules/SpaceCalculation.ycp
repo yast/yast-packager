@@ -373,10 +373,7 @@
 	if ( size ( message ) > 0 )
 	{
 	    // dont ask user to deselect packages for imap server, product
-	    if (!Product::imap_server
-		&& !Product::openteam_server
-		&& !Product::fwadmin_host
-		&& !Product::product_cd	)
+	    if ( Product::base_selection_choice == `auto)
 	    {
 		message = message + "\n" +  _("Please deselect some packages.");
 	    }
