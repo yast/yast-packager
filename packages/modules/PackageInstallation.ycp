@@ -34,7 +34,6 @@
 
     textdomain "packager";
 
-
     boolean shutup = false;			// show the disk space warning popup only once
 
 
@@ -43,6 +42,18 @@
      */
     global list error_packages = [];		// list of packages which are not installed (or deleted) correctly
 
+
+    /**
+     * progress callback
+     * !!! must be in same namespace (== module) as the call
+     * to Pkg::TargetInstall() !!!
+     */
+
+    global define void progressCallback (integer percent)
+    ``{
+	y2milestone ("progressCallback");
+	return CyclicUpdateCallback( "package", "description", percent, 1, 10, 100, false, false);
+    }
 
     /**
      * Constructor()
@@ -151,6 +162,9 @@
 	    pkgname = other_media_packages[other_media_pos,1]:"";
 	    other_media_pos = other_media_pos + 1;
 	}
+
+	y2milestone ("Pkg::SetProgressCallback");
+	Pkg::SetProgressCallback ("progressCallback");
 
 	boolean correct_media = true;			// FIXME
 	boolean skip_media = false;
@@ -273,7 +287,8 @@
      * @param show_popup false: no popup, only check for presence of this Medium
      * @return boolean - passed trough from ChangeMedium (true: OK, false: abort)
      **/
-    global define boolean ChangeMediumWrapper( integer cd_no, boolean show_popup ) ``{
+    global define boolean ChangeMediumWrapper( integer cd_no, boolean show_popup )
+    ``{
 	// y2debug( "Requesting Medium #%1", cd_no );
 
 	boolean ret = true;
@@ -311,7 +326,8 @@
     //
     // Fake progress bars for Mode::test
     //
-    global define symbol FakePackager(  list packages, string inst_source, boolean deleting ) ``{
+    global define symbol FakePackager(  list packages, string inst_source, boolean deleting )
+    ``{
 	integer disk_usage = 20;
 	integer disk_capacity = 10000;
 	any ret = nil;
