@@ -10,18 +10,32 @@
  */
 
 {
-    module "InstURL";
-
     textdomain "packager";
+
+    module "InstURL";
+    import "Linuxrc";
+    import "URL";
+
 
     global boolean is_network = true;
 
+    
+    global string  HidePassword(string url) {
+        map t = URL::Parse(url);
+        if (size(t["pass"]:"") > 0 )
+        {
+            t["pass"] = "XXXXXXXX";
+        }
+        return URL::Build(t);
+    }
+    
     global string installInf2Url (string extra_dir)
     {
 	string options = "";
+        map url_tokens =  $[];
 
-	string instmode = (string) SCR::Read (.etc.install_inf.InstMode);	// mode
-	if (instmode == nil)						// defaults to "CD"
+	string instmode = Linuxrc::InstallInf("InstMode");	// mode
+	if (instmode == nil)	// defaults to "CD"
 	{
 	    instmode = "cd";
 	}
@@ -48,83 +62,95 @@
 	else if (instmode == "hd")						// Harddisk
 	{
 	    is_network = false;
-	    options = "device=/dev/" + (string) SCR::Read (.etc.install_inf.Partition) + ";filesystem=auto";
+	    options = "device=/dev/" + Linuxrc::InstallInf("Partition") + ";filesystem=auto";
 	}
 
-	string url = instmode + "://";
+        
+        url_tokens["scheme"] = instmode;
 
 	if (is_network)
 	{
-	    string username = (string) SCR::Read (.etc.install_inf.Username);
+	    string username = Linuxrc::InstallInf("Username");
 	    if ((username != nil) && (username != ""))
 	    {
-		url = url + username;
-		string password = (string) SCR::Read (.etc.install_inf.Password);
+                url_tokens["user"] = username;
+		string password = Linuxrc::InstallInf("Password");
 		if ((password != nil) && (password != ""))
 		{
-		    url = url + ":";
-		    url = url + password;
+                    url_tokens["pass"] = password;
 		}
-		url = url + "@";
 	    }
-	    string servername = (string) SCR::Read (.etc.install_inf.ServerName);
-	    string serverip = (string) SCR::Read (.etc.install_inf.ServerIP);
+	    string servername = Linuxrc::InstallInf("Server");
+	    string serverip = Linuxrc::InstallInf("ServerIP");
 
 	    if ((servername != nil) && (servername != ""))
 	    {
-		url = url + servername;
+                url_tokens["host"] = servername;
 	    }
 	    else if ((serverip != nil) && (serverip != ""))
 	    {
-		url = url + serverip;
+                url_tokens["host"] = serverip;
 	    }
 
 	} // is_network
 
-	string serverdir = (string) SCR::Read (.etc.install_inf.Serverdir);
+	string serverdir = Linuxrc::InstallInf("Serverdir");
+        /*
 	if (((instmode == "hd") || is_network)				// if serverdir needed
 	    && ((serverdir != nil) && (serverdir != "")))		// and is valid
 	{
 	    // for smb mounts it is usual to not have a leading slash
 	    if (substring (serverdir, 0, 1) != "/")
 		serverdir = "/" + serverdir;
-
-	    url = url + serverdir;
-	}
-	else
-	{
-	    url = url + "/";
-	}
+	} 
+        */
 
 	if (extra_dir != "")
 	{
-	    url = url + "/" + extra_dir;
-	    y2milestone ("extra_dir url '%1'", url);
+            if (serverdir != nil)
+            {
+                // avoid too many slashes
+                if (findlastof(serverdir, "/") == size(serverdir) - 1)
+                {
+                    serverdir = substring(serverdir,  0  , size(serverdir) - 1 );
+                }
+
+                string slash = "";
+                if (substring (extra_dir, 0, 1) != "/")
+                    slash = "/";
+	        serverdir = serverdir + slash + extra_dir;
+                slash = "";
+            }
+            else
+                serverdir = extra_dir;
 	}
+
+        url_tokens["path"] = serverdir;
+        string url = URL::Build(url_tokens);
 
 	if (is_network)
 	{
-	    string proxy = (string) SCR::Read (.etc.install_inf.Proxy);
+	    string proxy = Linuxrc::InstallInf("Proxy");
 	    if ((proxy != nil) && (proxy != ""))
 	    {
 		url = url + ";proxy=" + proxy;
 	    }
-	    string proxyport = (string) SCR::Read (.etc.install_inf.ProxyPort);
+	    string proxyport = Linuxrc::InstallInf("ProxyPort");
 	    if ((proxyport != nil) && (proxyport != ""))
 	    {
 		url = url + ";proxyport=" + proxyport;
 	    }
-	    string proxyproto = (string) SCR::Read (.etc.install_inf.ProxyProto);
+	    string proxyproto = Linuxrc::InstallInf("ProxyProto");
 	    if ((proxyproto != nil) && (proxyproto != ""))
 	    {
 		url = url + ";proxyproto=" + proxyproto;
 	    }
-	    string proxyuser = (string) SCR::Read (.etc.install_inf.ProxyUser);
+	    string proxyuser = Linuxrc::InstallInf("ProxyUser");
 	    if ((proxyuser != nil) && (proxyuser != ""))
 	    {
 		url = url + ";proxyuser=" + proxyuser;
 	    }
-	    string proxypassword = (string) SCR::Read (.etc.install_inf.ProxyPassword);
+	    string proxypassword = Linuxrc::InstallInf("ProxyPassword");
 	    if ((proxypassword != nil) && (proxypassword != ""))
 	    {
 		url = url + ";proxypassword=" + proxypassword;

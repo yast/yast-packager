@@ -27,7 +27,6 @@
     import "Language";
     import "PackageInstallation";
     import "Packages";
-    import "InstURL";
     import "SlideShow";
     import "SlideShowCallbacks";
     import "AutoinstSoftware";

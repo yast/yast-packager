@@ -12,18 +12,14 @@
     textdomain "packager";
 
     import "Arch";
-    import "Installation";
     import "Directory";
     import "InstURL";
+    import "SourceManager";
     import "Kernel";
-    import "Label";
     import "Mode";
     import "Stage";
     import "Linuxrc";
-    import "Label";
     import "Language";
-    import "Popup";
-    import "Product";
     import "ProductFeatures";
     import "ProductControl";
     import "Report";
@@ -31,6 +27,8 @@
     import "SpaceCalculation";
     import "Storage";
     import "String";
+    import "Popup";
+    import "Label";
     import "Wizard";
 
     global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
@@ -44,6 +42,7 @@
     global list<string> theSourceDirectories = [];	// product directories on sources
     global map<integer,integer> theSourceOrder = $[];	// installation order
     global boolean desktop_dialog_shown = false;	// flag, that the Desktop software selection frame has been shownw
+    string servicepack_metadata = "/servicepack.tar.gz";
 
     global string desktop_help_text =
 // help text
@@ -60,62 +59,8 @@ Select which desktop to install.</p>
 
     string choosen_base_selection = "";
 
-string pm_init_blocker = nil;
+    string pm_init_blocker = nil;
 
-/**
- * Parse the order file
- * Used also to parse instorder file
- * @param orderfile string containing the filename to parse
- * @return a list containing parsed contents of the file
- */
-define list<list<string> > ParseOrderFile (string orderfile) {
-    // read install/order
-    string orderdata = (string) WFM::Read(.local.string, [orderfile, ""]);
-    if (orderdata == "" || orderdata == nil)
-    {
-	y2error ("Can't read '%1'", orderfile);
-	return nil;
-    }
-    list<string> orderlist = splitstring (orderdata, "\n\r");
-    orderlist = filter (string s, orderlist, {return s != "";});
-    list<list<string> > ret = maplist (string line, orderlist, {
-	list<string> lineitems = splitstring (line, " \t\n");
-	lineitems = filter (string i, lineitems, {
-	    return i != "";
-	});
-	// filter out comments
-	if (substring (lineitems[0]:"", 0, 1) == "#")
-	    return [];
-	return lineitems;
-    });
-    ret = filter (list<string> r, ret, {return r != [];});
-    y2milestone ("Parsed %1: %2", orderfile, ret);
-    return ret;
-}
-
-/**
- * Parse the instorder file
- * @param instorderfile string containing the filename to parse
- * @return a map containing parsed data from instorder file
- */
-define map<integer, string> ParseInstOrderFile (string instorderfile) {
-    map<integer, string> instordermap = $[];	// instorder : product dir, ...
-    y2milestone ("instorder file '%1'", instorderfile);
-    list<list<string> > instorderlines = ParseOrderFile (instorderfile);
-    integer instorder = 1;
-    foreach (list<string> line, instorderlines, {
-	// Due to documentation mistake, instorder might
-	// have 2 columns, get only first column.
-	//
-	// just in case more spaces are used as delimiter,
-	// remove all remaining spaces from the list
-	//
-	instordermap[instorder] = line[0]:"";
-	instorder = instorder + 1;
-    });
-    y2milestone ("instordermap %1", instordermap);
-    return instordermap;
-}
 
 
     /*-----------------------------------------------------------------------
@@ -453,14 +398,7 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 	}
 
 	// check if url contains "@" -> might be username/password, hide from logging
-
-	string log_url = base_url;
-	if (findfirstof (log_url, "@") != nil)
-	{
-	    // convert "xxx:://user:pass@server/blah" to "xxx:/...@server/blah"
-	    log_url = substring (log_url, 0, 5) + "..." + substring (log_url, findfirstof (log_url, "@"));
-	}
-
+	string log_url = InstURL::HidePassword(base_url);
 	y2milestone ("Initialize Package Manager: %1", log_url);
 
 	// Set languages for packagemanager. Always set the UI language. Set
@@ -469,11 +407,8 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 	Pkg::SetLocale (Language::language);
 
 	if (Stage::initial ())
-	    Pkg::SetAdditionalLocales ([Language::language]);
-
-
-	if (Stage::initial ())
 	{
+	    Pkg::SetAdditionalLocales ([Language::language]);
 	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
 
 	    Pkg::SourceSetRamCache (false);
@@ -488,7 +423,6 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 	    }
 
             /* Check for Service Pack */
-            string servicepack_metadata = "/servicepack.tar.gz";
             boolean servicepack_available = false;
             if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
             {
@@ -504,7 +438,7 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 	    if (orderfile != nil)			// splitted source installation
 	    {
 		y2milestone ("orderfile '%1'", orderfile);
-		orderlist = ParseOrderFile (orderfile);
+		orderlist = SourceManager::ParseOrderFile (orderfile);
 		if (orderlist == nil)
 		{
 		    y2error ("Can't read '%1'", orderfile);
@@ -517,124 +451,55 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 
 		string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
 		if (instorderfile != nil)
-		    instordermap = ParseInstOrderFile (instorderfile);
+                {
+		    instordermap = SourceManager::ParseInstOrderFile (instorderfile);
+                }
             }
             else if (servicepack_available)
             {
-                /* No order file, but service pack is available, so we hack
-                   our own order/instorder files
-                */
+                /**
+                 * No order file, but service pack is available, so we hack
+                 * our own order/instorder files
+                 */
 	        orderlist = [["/"]];
                 instordermap[1] = "/";
-
             }
 
             if (size(orderlist) > 0 )
             {
 		// setup slidedir
+                // FIXME: Is that needed here?
 		map productmap = Pkg::SourceProductData (initial_source);
 		string datadir = productmap["datadir"]:"suse";
 		string slidedir = metadir + "/" + datadir + "/setup/slide";
+                WFM::Execute (.local.mkdir, slidedir);
 		SlideShow::SetSlideDir (slidedir);
 
 		// setup meta data dir
 
-
 		WFM::Execute (.local.mkdir, metadir);
 		boolean all_sources_ok = true;
-		orderlist = filter (list<string> sourcelist, orderlist, {		// copy all data to ramdisk
+                // copy all data to ramdisk
+		list<list<string> > new_orderlist = filter (list<string> sourcelist, orderlist, {		
                         // just in case more spaces are used as delimiter,
                         // remove all remaining spaces from the list
-                        //
                         sourcelist = filter(string src, sourcelist,
                             ``(src!=""));
-			string orderdir = sourcelist[0]:"";
+
+			string descDir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"/";
-
-			string localdir = metadir+"/"+orderdir;
-			WFM::Execute (.local.mkdir, localdir);
-
-			y2milestone ("Filling %1", localdir);
-
-			// media.1
-
-			datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/media.1");
-			if (datadir != nil)
-			{
-			    WFM::Execute (.local.mkdir, localdir+"/media.1");
-			    WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " + localdir+"/media.1");
-			}
-			else
-			{
-			    y2error ("media doesn't provide %1", orderdir + "/media.1");
-			    if (Popup::AnyQuestion (
-//				Popup::NoHeadline(),
-				_("Reading Media Description Failed"),
-				sformat (
-_("Cannot read media description for %1.
-Packages from this media cannot be installed."), orderdir),
-				Label::IgnoreButton (),
-				Label::AbortButton (),
-				`cancel))
-			    {
-				return false;
-			    }
-			    else
-			    {
-				all_sources_ok = false;
-			    }
-			}
-
-			// content
-
-			datadir = Pkg::SourceProvideFile (initial_source, 1, orderdir+"/content");
-			WFM::Execute (.local.bash, "/bin/cp " + datadir + " " + localdir + "/content");
-
-			// DESCRDIR
-
-			WFM::Execute (.local.bash, "/bin/grep DESCRDIR " + localdir + "/content > /tmp/descrdir");
-			string descrline = (string) WFM::Read (.local.string, "/tmp/descrdir");
-			list<string> descrsplit = splitstring (descrline, " \t\n");
-			string descrdir = descrsplit[1]:"";
-			if (size (descrdir) > 0)
-			{
-			    y2milestone ("descrdir %1", descrdir);
-			    WFM::Execute (.local.mkdir, localdir+"/"+descrdir);
-			    datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/"+descrdir);
-			    if (datadir != nil)
-			    {
-				WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " +localdir+"/"+descrdir);
-			    }
-			}
-
-			// slide show
-
-			if (size (descrdir) > 5)
-			{
-			    string tmp = substring (descrdir, 0, size (descrdir) - 5) + "slide";
-			    WFM::Execute (.local.mkdir, localdir+"/"+tmp);
-			    // FIXME: SourceProvideDir can't handle dirs with subdirs
-			    // datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/"+tmp);
-			    datadir = "/var/adm/YaST/InstSrcManager/IS_CACHE_0x00000001/MEDIA" + orderdir+"/"+tmp;
-			    y2milestone ("tmp datadir %1 %2", tmp, datadir);
-			    if (datadir != nil)
-			    {
-				y2milestone ("copy slide show %1 %2", datadir, slidedir);
-				WFM::Execute (.local.bash, "/bin/cp -r " + datadir + "/* " + slidedir);
-				WFM::Execute (.local.bash, "/bin/rmdir " + slidedir);
-			    }
-			}
-			return true;
+                        boolean status = SourceManager::CreateLocalMetaData(initial_source, 
+                            metadir, 
+                            slidedir,
+                            descDir , 
+                            pkgdir );
+                        return status;
 		});
-
-                if (servicepack_available)
+                if (new_orderlist!= orderlist)
                 {
-                    string localdir = metadir + "/Service-Pack/CD1";
-                    WFM::Execute (.local.mkdir, localdir);
-                    y2milestone ("Filling %1", localdir);
-                    WFM::Execute(.local.bash, "tar -zxvf " +
-                            servicepack_metadata + " -C " + localdir);
+                    all_sources_ok = false;
                 }
+                orderlist = new_orderlist;
 
 		// ok, all data copied from the install media, release and delete it
 
@@ -653,73 +518,53 @@ Packages from this media cannot be installed."), orderdir),
 		    return;
 		}
 
-                // Add service pack as the first source if it exists:
-                integer instordersp = 0;
                 if (servicepack_available)
                 {
+                    string spdir = metadir + "/Service-Pack/CD1";
+                    WFM::Execute (.local.mkdir, spdir);
+                    y2milestone ("Filling %1", spdir);
+                    WFM::Execute(.local.bash, "tar -zxvf " +
+                            servicepack_metadata + " -C " + spdir);
 
-                    string meta_url = "dir://"+metadir+"/Service-Pack/CD1";
-                    string pkgdir = "/";
-                    string orderdir = "/Service-Pack/CD1";
-                    integer order_source = Pkg::SourceCreate (meta_url, "");		// create and enable source
-                    y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
-                    if (order_source != nil)
-                    {
-                        theSources = add (theSources, order_source);
-                        theSourceDirectories = add (theSourceDirectories, orderdir);
-
-                        if (find (pkgdir, ":") > 0)					// if second column of yast/order contains ":"
-                        {
-                            base_url = pkgdir;					// then take as URL
-                        }
-                        else
-                        {
-                            base_url = InstURL::installInf2Url (pkgdir);		// else take as sub-dir
-                        }
-                        Pkg::SourceChangeUrl (order_source, base_url);		// rewrite URL for *real* source
-
-                        // now find this source in the instorder map and fill
-                        // the global 'theSourceOrder'
-
-                        theSourceOrder[1] = order_source;
-                        instordersp = 1;
-                    }
+                    
+                    string sp_url = "dir://"+metadir+"/Service-Pack/CD1";
+                    orderlist = add(orderlist, ["/", sp_url]);
+                    instordermap =  add (instordermap, size(instordermap) + 1, sp_url);
 
                 }
 
 		// now restart the whole stuff from the metadata in the ramdisk and create
 		// the *real* sources
 
+                y2milestone("orderlist: %1", orderlist );
 		foreach (list<string> sourcelist, orderlist, {
-			string orderdir = sourcelist[0]:"";
+			string descrdir = sourcelist[0]:"";
 			string pkgdir = sourcelist[1]:"";
 
-			string meta_url = "dir://"+metadir+"/" + orderdir;
-			integer order_source = Pkg::SourceCreate (meta_url, "");		// create and enable source
-			y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
-			if (order_source != nil)
+			string meta_url = "dir://"+metadir+"/" + descrdir;
+			integer srcid = Pkg::SourceCreate (meta_url, "");		// create and enable source
+			y2milestone ("srcid %1, temp_url '%2'", srcid, meta_url);
+			if (srcid != nil)
 			{
-			    theSources = add (theSources, order_source);
-			    theSourceDirectories = add (theSourceDirectories, orderdir);
-
-			    if (find (pkgdir, ":") > 0)					// if second column of yast/order contains ":"
+			    theSources = add (theSources, srcid);
+			    theSourceDirectories = add (theSourceDirectories, descrdir);
+                            // if second column of yast/order contains ":"
+			    if (find (pkgdir, ":") > 0)					
 			    {
-				base_url = pkgdir;					// then take as URL
+				base_url = pkgdir;	// then take as URL
 			    }
 			    else
 			    {
 				base_url = InstURL::installInf2Url (pkgdir);		// else take as sub-dir
 			    }
-			    Pkg::SourceChangeUrl (order_source, base_url);		// rewrite URL for *real* source
+			    Pkg::SourceChangeUrl (srcid, base_url);		// rewrite URL for *real* source
 
 			    // now find this source in the instorder map and fill
 			    // the global 'theSourceOrder'
-
-			    foreach (integer keysp, string value, instordermap, {
-                                integer key = keysp +  instordersp;
-				if (value == orderdir)
+			    foreach (integer key, string value, instordermap, {
+				if (value == descrdir)
 				{
-				    theSourceOrder[key] = order_source;
+				    theSourceOrder[key] = srcid;
 				}
 			    });
 			}
@@ -952,14 +797,14 @@ ask your system administrator.
 }
 
 
-global string CountSizeToBeInstalled () {
-    list<string> packages = Pkg::GetPackages (`selected, true);
-    integer sz = 0;
-    foreach (string p, packages, {
-	sz = sz + Pkg::PkgSize (p);
-    });
-    return String::FormatSizeWithPrecision (sz, 1, true);
-}
+    global string CountSizeToBeInstalled () {
+        list<string> packages = Pkg::GetPackages (`selected, true);
+        integer sz = 0;
+        foreach (string p, packages, {
+	    sz = sz + Pkg::PkgSize (p);
+        });
+        return String::FormatSizeWithPrecision (sz, 1, true);
+    }
 
     /**
      * Make a proposal for package selection
@@ -969,7 +814,6 @@ global string CountSizeToBeInstalled () {
      */
     global define map Proposal( boolean force_reset, boolean reinit )
     {
-	import "Language";
 
 	map ret = $[];
 
@@ -1074,8 +918,6 @@ global string CountSizeToBeInstalled () {
 		boolean fit = false;
 		integer counter = 0;
 
-		y2milestone ("Proposing packages for product '%1'",
-		    Product::name);
 		if (ProductFeatures::software_proposal == "desktop")
 		{
 		    if (!desktop_dialog_shown)
@@ -1157,8 +999,12 @@ global string CountSizeToBeInstalled () {
 	// generate user readable output for proposal
 	list output = [];
 
+        string dp = (string) SCR::Read(.content.DISTPRODUCT);
+        if (dp==nil)
+            dp = "";
+
 	if (ProductFeatures::inform_about_suboptimal_distribution &&
-                Arch::i386 () && issubstring(Product::distproduct, "DVD"))
+                Arch::i386 () && issubstring(dp, "DVD"))
 	    add_information_about_suboptimal_distribution (output);
 
 	map base_data = Pkg::SelectionData (selected_base_selection);

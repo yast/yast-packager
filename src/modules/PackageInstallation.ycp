@@ -7,22 +7,16 @@
 
 {
     module "PackageInstallation";
+    textdomain "packager";
 
-    import "Arch";
-    import "Report";
     import "Mode";
     import "Installation";
     import "Directory";
-    import "Version";
-    import "SpaceCalculation";
     import "Packages";
     import "SlideShow";
 
-    import "Wizard";
     import "Label";
-    import "Report";
 
-    textdomain "packager";
 
 
     global define any FakePackager( list<list> packages, string inst_source,

@@ -18,9 +18,7 @@
 
     textdomain "packager";
 
-    import "Arch";
     import "Installation";
-    import "Label";
     import "Mode";
     import "Stage";
     import "ProductFeatures";
