@@ -16,7 +16,7 @@
     import "SlideShowCallbacks";
 
     import "Label";
-    include "ui/common_functions.ycp";
+    import "String";
 
     textdomain "packager";
 
@@ -698,8 +698,8 @@
 	 *  	     force_recalc ? "forced" : "if necessary",
 	 *  	     remaining_times_per_cd, remaining_sizes_per_cd );
 	 *  y2debug( "Data transfer rate: used: %1 Bytes/s (%2/s) - real: %3 Bytes/s (%4/s)",
-	 *  	     bytes_per_second, size_text( bytes_per_second ),
-	 *  	     real_bytes_per_second, size_text( real_bytes_per_second ) );
+	 *  	     bytes_per_second, String::FormatSize( bytes_per_second ),
+	 *  	     real_bytes_per_second, String::FormatSize( real_bytes_per_second ) );
 	 **/
 
 	return true;
@@ -902,7 +902,7 @@
 	}
 	if ( ! unit_is_seconds )	// using sizes instead of seconds
 	{
-	    return size_text( remaining );
+	    return String::FormatSize( remaining );
 	}
 	if ( remaining < 3600 )	// Less than one hour
 	{
@@ -961,7 +961,7 @@
 					     // Header above size (in kB / MB) of current package in 'details' view
 					     // Plain text, not RichText / HTML!
 					     _("Size"),		// %1
-					     size_text( pkg_size )	// %2
+					     String::FormatSize( pkg_size )	// %2
 					     );
 	}
 

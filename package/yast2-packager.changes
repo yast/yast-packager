@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 19 12:49:16 CEST 2003 - arvin@suse.de
+
+- always use String::FormatSize
+
+-------------------------------------------------------------------
 Tue Aug 19 08:42:32 CEST 2003 - arvin@suse.de
 
 - fixed failed package message (bug #29091)
