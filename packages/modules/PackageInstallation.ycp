@@ -78,7 +78,7 @@
 	else
 	{
 	    ret = FakePackager( delete_list,
-				"suse"
+				"suse",
 				true );			// deleting packages
 	}
 
