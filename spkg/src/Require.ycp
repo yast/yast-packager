@@ -47,11 +47,13 @@
      */
     boolean last_op_canceled = false;
 
+    // --- Public interface, functions to initialize pkg target or source
+
     /**
      * Ensure that Pkg:: calls work.
      * This may become superfluous.
      */
-    define void EnsureTargetInit () ``{
+    global define void EnsureTargetInit () ``{
 	import "PackageCallbacks";
 	target_initialized = target_initialized || Pkg::TargetInit ("/", false);
     }
@@ -59,7 +61,7 @@
     /**
      * Ensure that Pkg:: calls working with the installation sources work
      */
-    define void EnsureSourceInit () ``{
+    global define void EnsureSourceInit () ``{
 	if (!source_initialized)
 	{
 	    import "PackageCallbacks";		// trigger constructor
@@ -82,6 +84,18 @@
     }
 
     // --- Public interface, from low-level functions to high-level ones ---
+
+    /**
+     * Run SuSE config, create new wizard dialog before it, close after it is
+     * finished
+     */
+    global define void RunSuSEconfig () ``{
+	Wizard::CreateDialog ();
+	// inst_suseconfig returns `auto or `next
+	// (update mode or Args(2) is true) => no error checking
+	WFM::CallModule ("inst_suseconfig", [false, false]);
+	Wizard::CloseDialog ();
+    }
 
     /**
      * Read-only interface for @ref last_op_canceled
@@ -402,11 +416,7 @@
 	import "Mode";
 	if (!Mode::initial && !Mode::cont)
 	{
-	    Wizard::CreateDialog ();
-	    // inst_suseconfig returns `auto or `next
-	    // (update mode or Args(2) is true) => no error checking
-	    WFM::CallModule ("inst_suseconfig", [false, false]);
-	    Wizard::CloseDialog ();
+	    RunSuSEconfig ();
 	}
 
 	return true;

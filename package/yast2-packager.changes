@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 23 15:03:43 CEST 2003 - jsrain@suse.de
+
+- made more interface of Require global
+
+-------------------------------------------------------------------
 Tue Sep 23 16:51:12 CEST 2003 - arvin@suse.de
 
 - fixed media change callback for double sided media
