@@ -1245,7 +1245,7 @@
      **/
     global define void OpenSlideShowDialog()
     ``{
-	InstallSlideShowCallbacks();
+	SlideShowCallbacks::InstallSlideShowCallbacks();
 
 	OpenSlideShowBaseDialog();
 
@@ -1269,7 +1269,7 @@
     ``{
 	UI::CloseDialog();
 
-	RemoveSlideShowCallbacks();
+	SlideShowCallbacks::RemoveSlideShowCallbacks();
     };
 
 
