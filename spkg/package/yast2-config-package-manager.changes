@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 31 17:53:00 CEST 2001 - kkaempf@suse.de
+
+- rewrite to use InstMedia and MediaUI modules.
+
+-------------------------------------------------------------------
 Mon Aug  6 11:22:46 CEST 2001 - mvidner@suse.cz
 
 - Added an include to replace RPM Require. (2.4.1)
