@@ -1,9 +1,9 @@
 -------------------------------------------------------------------
-Tue Mar 11 16:51:30 CET 2003 - mvidner@suse.de
+Tue Mar 11 16:56:10 CET 2003 - mvidner@suse.de
 
 - Do not run SuSEconfig in [Rr]equire.ycp when adding packages
   during installation. Real fix for (#25071).
-- 2.7.27
+- 2.7.28
 
 -------------------------------------------------------------------
 Tue Mar 11 16:46:18 CET 2003 - kkaempf@suse.de
