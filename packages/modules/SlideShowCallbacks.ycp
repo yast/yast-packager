@@ -122,7 +122,7 @@
 	{
 	    if (how_much > 95 && !shutup)
 	    {
-		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
+		boolean cont = Popup::AnyQuestion( Label::Label::WarningMsg(),
 						     _("The disk space is nearly exhausted.
 Continue with the installation?
 "),
@@ -146,7 +146,7 @@ Continue with the installation?
 
 	    if ( Mode::normal )
 	    {
-		ret = Popup::AnyQuestion( Popup::NoHeadline(),
+		ret = Popup::AnyQuestion( Popup::Popup::NoHeadline(),
 					    _("Do you really want\nto quit the installation?"),
 					    Label::YesButton(),
 					    Label::NoButton(),
