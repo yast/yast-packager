@@ -2,6 +2,8 @@
 Tue Jan 11 09:21:05 CET 2005 - jsrain@suse.cz
 
 - improve checks if base selection was changed (#37726)
+- display information what package is downloaded in installation
+  log (#37712)
 
 -------------------------------------------------------------------
 Mon Jan 10 09:46:51 CET 2005 - jsrain@suse.cz
