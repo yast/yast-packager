@@ -1,0 +1,214 @@
+/* 
+ * 
+ *
+ * $Id$
+ */
+
+{
+  // Menuentry for the YaST2 menu
+  if (Args() == [ "get_menuentry" ]) 
+      return [ 
+	      "sw_single", $[
+			     `menuentry    : UI(_("Install/deinstall single packages")),
+			     `arguments    : [ ],
+			     `widget       : `RichText(
+						       UI(_( "<P>Launch this module to install additional packages or
+remove installed ones.
+For installing commercial packages also launch this module and select
+serie <b>pay</b> from set selection.
+</P>
+Please insert <b>CD 1</b> before proceeding.
+<P>You need to be logged in as <i>root</i> in order to
+do this.</P>"))),
+			     `codefragment : nil ]
+      ];
+
+  // mount CD 
+  define ChangeCD(integer cdnum) ``{
+
+	Shell ("/bin/mount /dev/cdrom /var/adm/mount");
+	
+	integer|void actcdnum = nil;
+	while (true) {
+	    actcdnum = SCR(`Read(.yast2.instsource.cdnum));
+	    if (actcdnum == cdnum) return true;
+	    else {
+		Shell ("/bin/umount /var/adm/mount");
+
+		// advise user to insert the right CD
+		string message = sformat(UI(_("Please insert CD %1.")), cdnum);
+		if (is(actcdnum, integer)) 
+		    // inform user about current CD
+		    message = sformat(UI(_("%1\nCurrently CD %2 is inserted.")), message, actcdnum);
+		UI(`DisplayMessage(message));
+
+		Shell ("/bin/mount /dev/cdrom /var/adm/mount");
+	    }
+	}
+    };
+
+  UI(``{
+      define DisplayMessage(string message) ``{
+          // ok pushbutton: confirm the dialog
+          OpenDialog(
+		     `opt(`decorated),
+		     `HBox(
+			   `HSpacing(1),
+			   `VBox(
+				 `VSpacing(0.2),
+				 `Label(message),
+				 `PushButton(`opt(`default), _("&OK")),
+				 `VSpacing(0.2)
+				 ),
+			   `HSpacing(1)
+			   )
+		     );
+          UserInput();
+          CloseDialog();
+      };
+  });
+  
+    // Return a pretty description of a byte count, with two fraction digits
+    // and using KB, MB or GB as unit as appropriate.
+  UI(``{
+      define size_text (integer bytes) ``{
+	  float whole = tofloat (bytes) / 1024.0;
+	  // KiloByte abbreviated
+	  string unit = _("KB");
+	  if (whole > 1024.0)
+	  {
+	      whole = whole / 1024.0;
+	      // MegaByte abbreviated
+	      unit = _("MB");
+	      if (whole > 1024.0)
+	      {
+		  whole = whole / 1024.0;
+		  // GigaByte abbreviated
+		  unit = _("GB");
+	      }
+	  }
+	  return tostring (whole, 2) + " " + unit;
+      };
+  });
+
+
+  
+  // map user_settings contains:
+  // - install_info -> module inst_rpmcopy
+  // - continue_mode -> module inst_rpmcopy
+  // - language -> module inst_rpmcopy
+  
+  map user_settings = $[];
+  
+  string language = UI( `GetLanguage() );
+  
+  // informations needed in inst_rpmcopy
+  user_settings = add( user_settings, "language", language );
+  user_settings = add( user_settings, "continue_mode", false );
+  user_settings = add( user_settings, "post_install", true );
+  
+  // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
+  user_settings = add(user_settings, "test_mode", true );
+  
+  //
+  // Initialize PKGINFO server
+  //
+
+  // mount CD 1 BEFORE initializing pkginfo-Server
+  // (needed to get commom.pkd)
+
+  MyChangeCD(1);
+
+  string infopath =  "/var/adm/mount/suse/setup/descr";
+  string dudir = "/var/adm/mount/suse/setup/du/du.dir";
+
+  list partition = [];
+  string long_language = "";
+
+  // get information about diskspace ( used / free on every partition )
+  partition = SCR( `Read(.run.df ) );
+  
+  _debug ( "DDDFFFF: ", partition );
+  
+  if ( lookup( user_settings, "test_mode", false ) == true ) 
+  {
+      // TEST VALUES !!!
+
+      long_language = "german";
+	
+      //dudir =  "/dist/6.4-i386/suse/setup/du/du.dir";
+      //infopath = "/dist/6.4-i386/suse/setup/descr";
+
+  }
+
+   // filter out headline and other invalid entries 
+   partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
+
+   // pkginfo expects names of partitions without "/" in front ( exception: "/" itself ) 
+   list part_input = [];
+  
+   foreach( `part, partition, ``{
+       map part_info = $[];
+       if ( lookup( part, "name" ) != "/" )
+       {
+	   part_info = add( part_info, "name", substring( lookup( part, "name" ), 1 ) );
+       }
+       else
+       {
+	   part_info = add( part_info, "name",  lookup( part, "name" ) );
+       }
+       part_info = add( part_info, "used",  tointeger(lookup( part, "used" )) );
+       part_info = add( part_info, "free",  tointeger(lookup( part, "free" )) );
+
+       part_input = add( part_input, part_info );
+   });
+
+   _debug( "SW: part_input: ", part_input ); 
+   
+  UI(`OpenDialog(`opt(`decorated ),`Label(_("One moment please..."))));
+  
+  // Initialisierung
+  any retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
+					 "language":long_language,  "dudir":dudir,
+					 "partition":part_input, "rootpath":"/",
+					 "yastpath":"/var/lib/YaST",
+					 "update":true,
+					 "memoptimized":true]
+					));
+
+  _debug( "SW: Return  PKGINFO (`setEnvironment()", retval );
+   
+  PKGINFO( `setDebugLevel(3) );
+
+  UI( `CloseDialog() );
+
+  // Calling inst_sw_single
+  any ret_single = CallFunction( `inst_sw_single( `post_install, `not_only_checked, part_input ) );
+  
+  _debug( "SW: Return inst_sw_single ", ret_single );
+
+  any ret_rpm = nil;
+  
+  if ( ret_single == `ok )
+  {
+      // setting user_setting.install_info for packages which have to be installed
+	list install_info =  PKGINFO ( `getInstallSet() );
+	// _debug ( "Writing install_info: ", install_info );
+	user_settings = add ( user_settings , "install_info", install_info );
+
+	list delete_info =  PKGINFO ( `getDeleteSet() );
+	// _debug ( "Writing delete_info: ", delete_info );
+	user_settings = add ( user_settings , "delete_info", delete_info );
+
+	_debug( "SW: Usersettings: ", user_settings );
+	
+	ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
+
+	if ( ret_rpm == nil )
+	{
+	    // Error ???
+	}
+  }
+
+  return `next;
+}
