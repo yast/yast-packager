@@ -488,7 +488,7 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
 	    {
 		y2error ("No source on '%1'", log_url);
 		// error in proposal, %1 is URL
-		pm_init_blocker = sformat (_("No source found at '%1'"),
+		pm_init_blocker = sformat (_("No source found at '%1'."),
 		    log_url);
 		return;
 	    }
@@ -655,7 +655,7 @@ Packages from this media cannot be installed."), orderdir),
 		    y2error ("Unable to initialize all installation sources");
 		    pm_init_blocker
 			// error in proposal
-			= _("Unable to initialize all installation sources");
+			= _("Unable to initialize all installation sources.");
 		    return;
 		}
 
@@ -1222,7 +1222,7 @@ global string CountSizeToBeInstalled () {
 	    if (cdsource)
 	    {
 		// item in the installation proposal (link)
-		output = prepend(output, sformat("<a href=\"mediacheck\">%1</a>", _("CD/DVD Media Check")));
+		output = prepend(output, sformat("<a href=\"mediacheck\">%1</a>", _("CD or DVD Media Check")));
 		ret = add(ret, "links", ["mediacheck"]);
 	    }
 	}

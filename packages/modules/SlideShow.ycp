@@ -254,7 +254,7 @@
 	    // cut off the predicted time at a reasonable maximum.
 	    // "%1" is a predefined maximum time.
 
-	    text = sformat( _( ">%1" ), FormatTime( -seconds ) );
+	    text = sformat( _(">%1"), FormatTime( -seconds ) );
 	}
 	else
 	{
@@ -275,7 +275,7 @@
 	if ( remaining <  0 )
 	{
 	    // Nothing more to install from this CD (very concise - little space!!)
-	    return _( "Done." );
+	    return _("Done.");
 	}
 	if ( remaining == 0 )
 	{
@@ -296,7 +296,7 @@
 	if ( remaining <  0 )
 	{
 	    // Nothing more to install from this CD (very concise - little space!!)
-	    return _( "Done." );
+	    return _("Done.");
 	}
 	if ( remaining == 0 )
 	{
@@ -310,7 +310,7 @@
     string FormatTotalRemaining()
     {
 	// (Short!) headline for the total remaining time or MBs to install
-	return sformat( _( "Remaining:\n%1" ),
+	return sformat( _("Remaining:\n%1"),
 			unit_is_seconds ?
 			FormatTimeShowOverflow( TotalRemainingTime() ) :
 			FormatRemainingSize( TotalRemainingSize() ) );
@@ -333,7 +333,7 @@
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
 		// %3: Time remaining until this media will be needed
-		text = sformat( _( "Next %1: %2 -- %3" ), media_type, next_media_name,
+		text = sformat( _("Next %1: %2 -- %3"), media_type, next_media_name,
 				FormatTime( remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1) );
 	    }
 	    else
@@ -341,7 +341,7 @@
 		// Status line informing about the next CD that will be used
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
-		text = sformat( _( "Next %1: %2" ), media_type, next_media_name );
+		text = sformat( _("Next %1: %2"), media_type, next_media_name );
 	    }
 	}
 
@@ -866,7 +866,7 @@
 
 	{
 	    // List column header for total remaining MB and time to install
-	    string caption 	=  _( "Total" );
+	    string caption 	=  _("Total");
 	    integer remaining 	= TotalRemainingSize();
 	    string rem_size	= FormatRemainingSize( remaining );
 	    string rem_count 	= FormatRemainingCount( TotalRemainingPkgCount() );
@@ -1280,7 +1280,7 @@
 			    `VWeight( 1, // lower layout priority
 				      page_contents ),
 			    // Progress bar for overall progress of software package installation
-			    `ProgressBar(`id(`progressTotal ), _( "Total" ),
+			    `ProgressBar(`id(`progressTotal ), _("Total"),
 					 total_size_to_install, TotalInstalledSize() )
 			    // intentionally omitting `Label(`nextMedia) -
 			    // too much flicker upon update (UI::RecalcLayout() ) on NCurses
@@ -1325,10 +1325,10 @@
 						`Table( `id(`cdStatisticsTable), `opt(`keepSorting),
 							`header(
 								// Table headings for CD statistics during installation
-								_( "Media" ),
-								`Right( _( "Size" ) ),
-								`Right( _( "Packages" ) ),
-								`Right(  _( "Time" ) )
+								_("Media"),
+								`Right( _("Size") ),
+								`Right( _("Packages") ),
+								`Right(  _("Time") )
 								),
 							CdStatisticsTableItems()
 							)
@@ -1387,7 +1387,7 @@
     string HelpText()
     {
 	// Help text while software packages are being installed (displayed only in rare cases)
-	string help_text = _( "<p>Please wait while packages are installed.</p>" );
+	string help_text = _("<p>Please wait while packages are installed.</p>");
 
 	return help_text;
     }
@@ -1405,8 +1405,8 @@
 	    contents =
 		`DumbTab(`id(`dumbTab ),
 			     [
-			      `item(`id(`showSlide   ), _( "Slide Sho&w" ) ),
-			      `item(`id(`showDetails ), _( "&Details" )	   )
+			      `item(`id(`showSlide   ), _("Slide Sho&w") ),
+			      `item(`id(`showDetails ), _("&Details")	   )
 			      ],
 			  `VBox(
 				`VSpacing( 0.4 ),
@@ -1429,7 +1429,7 @@
 
 	Wizard::SetContents(
 			    // Dialog heading while software packages are being installed
-			    _( "Package Installation" ),
+			    _("Package Installation"),
 			    contents,
 			    HelpText(),
 			    false, false );	// has_back, has_next
@@ -1461,7 +1461,7 @@
 
 	Wizard::SetContents(
 			    // Dialog heading while software packages are being installed
-			    _( "Package Installation" ),
+			    _("Package Installation"),
 			    `Empty(),		// Wait until InitPkgData() is called from outside
 			    HelpText(),
 			    false, false );	// has_back, has_next
