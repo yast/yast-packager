@@ -20,7 +20,7 @@
     import "Installation";
     import "InstMedia";
     import "MediaUI";
-    import "PackageIO";
+    import "Packages";
 
     include "ui/wizard_dialog.ycp";
     include "ui/common_popups.ycp";
@@ -149,7 +149,7 @@
 		return `found_medium;
 
 	    // try to get local information (common.pkd, du.dir, ...)
-	    local_descr = PackageIO::CheckLocalDescription();
+	    local_descr = Packages::CheckLocalDescription();
 	    if ( local_descr )
 		return `found_descr;
 
