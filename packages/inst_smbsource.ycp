@@ -32,7 +32,7 @@
      */
 
 
-    textdomain "general";	// FIXME: textdomain OK?
+    textdomain "packager";
 
     import "Arch";
     import "Installation";

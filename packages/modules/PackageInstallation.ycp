@@ -32,7 +32,7 @@
 
     include "packages/installationCallback.ycp";
 
-    textdomain "packages";
+    textdomain "packager";
 
 
     boolean shutup = false;			// show the disk space warning popup only once

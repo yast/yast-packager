@@ -35,8 +35,7 @@
  */
 
 {
-
-  textdomain "packages";
+  textdomain "packager";
 
   import "Arch";
   import "Installation";
@@ -456,7 +455,6 @@ The result of the search is stored in set \"z??\".
 
   if ( update_mode )
   {
-      textdomain "update";
       UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating update packages. One moment please...")));
 
       // Creating update list
@@ -509,7 +507,7 @@ The result of the search is stored in set \"z??\".
       });
 
       UI::CloseDialog();
-      textdomain "packages";
+      textdomain "packager";
       y2debug( "UPDATE_PACS: %1", upd_pacs );
   }
 
@@ -585,7 +583,7 @@ The result of the search is stored in set \"z??\".
 	  group_input = add( group_input, a );
       });
 
-      textdomain "packages";
+      textdomain "packager";
 
   }
   else if ( pay_mode )

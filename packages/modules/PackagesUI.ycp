@@ -5,17 +5,17 @@
  *
  * Purpose: 		Provides a number of common popups
  *			for the package installation.
- *				
+ *
  * $Id$
  */
 
 {
 
     module "PackagesUI";
-    textdomain "packages";
+    textdomain "packager";
     include "ui/common_messages.ycp";
 
-    
+
     //
     // Popup displays helptext
     //
@@ -49,5 +49,5 @@
 	UI::CloseDialog();
 	return (r);
     };
-    
+
 }

@@ -18,7 +18,7 @@
     include "ui/common_messages.ycp";
     include "ui/common_functions.ycp";
 
-    textdomain "packages";
+    textdomain "packager";
 
 
     global boolean 	showing_details		= false;
@@ -69,7 +69,7 @@
 	    // correctly, so let's wait until it is. In this case,
 	    // SlideShow::InitPkgData() needs to be called explicitly after the
 	    // pkginfo server is correctly set up.
-	    
+
 	    SlideShow::InitPkgData();
 	}
 
@@ -89,7 +89,7 @@
 	if ( Mode::initial || Mode::cont )
 	{
 	    map disp = UI::GetDisplayInfo();
-	    
+
 	    if (disp != nil		// This shouldn't happen, but who knows?
 		&& disp["HasImageSupport"]:false
 		&& disp["DefaultWidth"]:-1	>= 800
@@ -141,7 +141,7 @@
 	});
     };
 
-    
+
     /**
      * Initialize internal pacakge data, such as remaining package sizes and
      * times. This may not be called before the pkginfo server is up and
@@ -156,7 +156,7 @@
 	}
 
 	install_sizes_per_cd	= KiloBytesToBytes (SCR::Read (.package.neededCDs));
-	
+
 	if ( Mode::cont && install_sizes_per_cd[0]:0 > 0 )
 	{
 	    // CD1 is guaranteed to be done in continue mode.
@@ -165,7 +165,7 @@
 	    y2warning( "Packager returned remaining size %1 for CD1 - (fixing)", install_sizes_per_cd[0]:0 );
 	    install_sizes_per_cd[0] = -1;
 	}
-	
+
 	total_size_to_install	= 0;
 	foreach ( `cd_size, install_sizes_per_cd,
 	``{
@@ -234,7 +234,7 @@
 					    boolean	deleting	)
     ``{
 	if ( ! SanityCheck( false ) )	return;
-	
+
 	if ( pkg_name != nil &&
 	     pkg_name != current_pkg_name )
 	{
@@ -783,11 +783,11 @@
 
 	if (LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, language,				slide_name ) ) ) return;
 	if (LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, substring( language, 0, 2 ), 	slide_name ) ) ) return;
-	
+
 	// See http://bugzilla.suse.de/show_bug.cgi?id=13594
 	// if (LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, "en_US",				slide_name ) ) ) return;
 	// if (LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, "en_GB",				slide_name ) ) ) return;
-	
+
 	if (LoadSlideText (sformat ("%1/%2/%3.rtf", slide_txt_path, "en",				slide_name ) ) ) return;
 	SetSlideText ("");
     };

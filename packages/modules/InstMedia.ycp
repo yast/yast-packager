@@ -18,7 +18,7 @@
     import "Mode";
     import "Installation";
 
-    textdomain "packages";
+    textdomain "packager";
 
     /**
      * !local! maximum number of installation CDs
@@ -183,7 +183,7 @@
 	{
 	    SCR::Execute (.target.umount, Installation::sourcedir);
 
-	    if ((mediatype == 3)	// harddisk 
+	    if ((mediatype == 3)	// harddisk
 		&& (net_server != ""))	// only if we did a "mount --bind"
 	    {
 		SCR::Execute (.target.umount, tmp_mount);
@@ -417,7 +417,7 @@
 	// to /var/lib/YaST2/installmap.ycp
 
 	map installinf = Mode::installMap;
-	
+
 	installinf["instmode"] = installmode;
 
 	if (mediatype == 0)		// CD
@@ -505,9 +505,9 @@
 	// WriteYaSTData ();
 	// Installation data are not stored any longer in /var/lib/YaST/install.inf
 	// but in /var/lib/YaST2/install.ycp.
-	
+
 	WriteInstallMap();
-	
+
 	// generate on target:
 	//   /var/lib/YaST/update.inf from /tmpdir/info and /tmpdir/update.in_
 	//
@@ -616,7 +616,7 @@
 
 	installmode = installMap["instmode"]:"cd";	// default: booting from CD
 
-	list allowed_install_modes = [ "cd", "dvd", "nfs", "hd", "ftp", "smb", "http", "tftp"]; 
+	list allowed_install_modes = [ "cd", "dvd", "nfs", "hd", "ftp", "smb", "http", "tftp"];
 
 	if (!contains (allowed_install_modes, installmode))
 	{

@@ -27,12 +27,11 @@ Arguments =  beginner
 RequiresRoot = true
 
 ; default size for window, Y2CC will set $Y2_GEOMETRY to this value
-Geometry = 
+Geometry =
 
 ; string to use for sorting instead of Name
-SortKey = 
+SortKey =
 
 ; which textdomain to use for translations (important!)
-Textdomain = sw_single
+Textdomain = packager
 
-; vim:syntax=dosini

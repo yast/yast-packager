@@ -12,11 +12,10 @@
  */
 
 {
-
     import "PackagesUI";
     import "Packages";
 
-    textdomain "packages";
+    textdomain "packager";
 
     //
     // Select a selection
@@ -24,7 +23,7 @@
 
     global define SelectSel( string selection, boolean reset ) ``{
 	string msg = "";
-      
+
 	any r = SCR::Execute(.package.selectSelInstall, selection, reset );
 	y2debug( "SCR::Execute(.package.selectSelInstall: %1, %2", selection, r );
 
@@ -33,7 +32,7 @@
 	{
 	    string nty_title = NotifyMsg();
 	    term msg_text = `RichText( "<p>" + selection + "</p>" + "<p>" + msg + "</p>" );
-	    UI::DisplayHelpMsg( nty_title, msg_text, `none, 10 ); 
+	    UI::DisplayHelpMsg( nty_title, msg_text, `none, 10 );
 	}
 	return SolveSelDependencies( "" );
     };
@@ -44,7 +43,7 @@
 
     global define DeselectSel( string selection ) ``{
 	string msg = "";
-      
+
 	any r = SCR::Execute(.package.deselectSelInstall, selection );
 	y2debug( "SCR::Execute(.package.deselectSelInstall: %1, %2", selection, r );
 
@@ -53,12 +52,12 @@
 	{
 	    string wrn_title = WarningMsg();
 	    term msg_text = `RichText( "<p>" + selection + "</p>" + "<p>" + msg + "</p>" );
-	    UI::DisplayHelpMsg( wrn_title, msg_text, `warncolor, 10 ); 
+	    UI::DisplayHelpMsg( wrn_title, msg_text, `warncolor, 10 );
 	}
 	return SolveSelDependencies( selection );
     };
 
-    
+
   //
   // Popup displays the OR dependencies
   //
@@ -79,7 +78,7 @@
 					 `VWeight( 1, `HBox(`PushButton( `id(`ready), `opt(`default), InstallButtonLabel() ),
 							    // Button: don't install a package from list
 							    `PushButton( `id(`none), _("&Discard") ),
-							    // Button: close dialog      
+							    // Button: close dialog
 							    `PushButton( `id(`cancel), CloseButtonLabel() )
 							    ))
 					 )
@@ -127,7 +126,7 @@
 	  if ( !installed )
 	  {
 	      button_box = `VBox( `Left(`Label(sformat(_("Do you want to install \"%1\"?"), pac_name)) ),
-				  `HBox( 
+				  `HBox(
 					// This are the buttons of popup "package1 interferes with other packages".
 					// Yes, install package1
 					`PushButton( `id(`yes_install),  _("&Install selection") ),
@@ -146,12 +145,12 @@ side effects if the selections are installed together.");
 	      button_box = `HCenter(
 				    `PushButton( `id(`yes_install),`opt(`default), OKButtonLabel() )
 				    );
-	      // package is already installed, give some more user informations 
+	      // package is already installed, give some more user informations
 	      info = _("This selection conflict cannot be resolved
 automatically.");
 	      msg_str = _("Normally the conflict doesn't cause a problem.");
 	  }
-	 
+
 
 	  OpenDialog( `opt(`decorated),
 		      `HBox(`VSpacing(15),
@@ -166,7 +165,7 @@ automatically.");
 				  button_box )
 			    )
 		      );
-	  
+
 	  any r = UserInput();
 	  CloseDialog();
 	  return (r);
@@ -177,7 +176,7 @@ automatically.");
   // Get dependencies from pkginfo + display popup ADD / REQUIRE / CONFLICT / OBSOLETE dependencies.
   //
   // AND selecting and deselecting evaluated packages
-  // 
+  //
   // $["ADD": [pac1, pac2], "REQUIRE":[$["tag":"tag1", "selections":["aaa", "bbb", "ccc"]]],
   //                  	"CONFLICT": $["name":"pac1", "selections":["abc", "ddd"]],
   //			"OBSOLETE":  [ [ pac2, [], pac3, [] ]			]
@@ -203,7 +202,7 @@ automatically.");
 
 	  pac_depends = SCR::Read(.package.selDependencies);
 	  y2debug( "SCR::Read(.package.selDependencies: %1", pac_depends );
-	    
+
 	  if ( contains( lookup( pac_depends, "ADD", [] ), deletedSelection ) )
 	  {
 	      string message = UI(_("This selection is required by another software selection."));
@@ -211,15 +210,15 @@ automatically.");
 	      return ( true );
 	  }
       }
-      
+
       repeat {
 	  map    pac_depends = $[];
 	  list	 or_depends = [];
 
 	  pac_depends = SCR::Read(.package.selDependencies);
 	  y2debug( "SCR::Read(.package.selDependencies: %1", pac_depends );
-	    
-	  or_depends = lookup( pac_depends, "REQUIRE", [] ); 
+
+	  or_depends = lookup( pac_depends, "REQUIRE", [] );
 
 	  if ( or_depends != [] )
 	  {
@@ -229,10 +228,10 @@ automatically.");
 	      list pac_list = lookup( first_dep, "selections", [] );
 	      string tag_name = lookup( first_dep, "tag", "" );
 	      list or_table = [];
-		
+
 	      foreach( `pac, pac_list, ``{
 		  string description = "";
-	      
+
 		  foreach(`sel, pacsels, ``{
 		      string   selid   = select(sel, 0, "");
 		      string   group   = select(sel, 2, "");
@@ -242,7 +241,7 @@ automatically.");
 			  description = seldesc;
 		      }
 		  });
-		  
+
 		  or_table = add( or_table, `item(`id(pac), pac, description ) );
 	      } );
 
@@ -281,29 +280,29 @@ Select one from the list below.
 		  // User decides to cancel that REQUIRE dependency
 		  any r =  SCR::Execute(.package.deleteSelUnsolvedRequirements, tag_name );
 		  y2debug( "SCR::Execute(.package.deleteSelUnsolvedRequirements: %1, %2", tag_name, r );
-	      }	      
+	      }
 	  }
       } until ( or_depends == [] );
 
       repeat {
-	    
+
 	  map    pac_depends = $[];
 	  list	 xor_depends = [];
 
 	  pac_depends = SCR::Read(.package.selDependencies);
 	  y2debug("SCR::Read(.package.getSelDependencies: %1", pac_depends );
-	  
+
 	  xor_depends = lookup( pac_depends, "CONFLICT", [] );
 
 	  if ( xor_depends != [] )
 	  {
 	      map first_dep = $[];
 	      xor_exist = true;
-	      
+
 	      foreach ( `pac, xor_depends, ``{
 		  if ( lookup( pac, "name", "" ) == actual_sel )
 		  {
-		      // if actual_sel is in XOR-list display that dependency first 
+		      // if actual_sel is in XOR-list display that dependency first
 		      first_dep = pac;
 		  }
 	      } );
@@ -313,22 +312,22 @@ Select one from the list below.
 	      {
 		  first_dep = select( xor_depends, 0 , $[]); // get first
 	      }
-	      
+
 	      string pac_name = lookup( first_dep, "name", "" );
 	      list pac_list = lookup( first_dep, "selections", [] );
 	      y2debug( "first dependency: %1 : %2", pac_name, pac_list );
 
 
-	      // selections should not be installed together 
+	      // selections should not be installed together
 	      string msg_str = sformat( UI(_("Selection <b>%1</b> interferes with:<br>")), pac_name );
-		
+
 	      foreach ( `pac, pac_list, ``{
 		  msg_str = msg_str + sformat("<b>%1</b>\n", pac );
 	      } );
 
 	      any ret = nil;
 	      ret = UI::DisplayXorList( pac_name, msg_str, false );
-	      
+
 	      if ( ret == `yes_install ) // install package anyway
 	      {
 		  foreach( `pac, pac_list, ``{
@@ -337,7 +336,7 @@ Select one from the list below.
 		      r =  SCR::Execute(.package.deleteSelConflictDependencies, pac, pac_name );
 		      y2debug( "SCR::Execute(.package.deleteConflictDependencies: %1 %2", pac, pac_name );
 		  } );
-		  
+
 		  if ( pac_name != actual_sel )
 		  {
 		      SelectSel( pac_name, false );
@@ -362,7 +361,7 @@ other selections.
 
 Install \"%1\"?
 ")) , pac_name );
-		      
+
 		      any r = UI::AnyQuestionPopup( NotifyMsg(), yesorno_new, YesButtonLabel(), NoButtonLabel(), `focus_yes);
 		      // NO -> deselect package
 		      if ( r == false )
@@ -385,7 +384,7 @@ Install \"%1\"?
       // single-selected packages.
 
       SCR::Execute(.package.setInstallSelection, install_list, true );
-	  
+
       return ( changed );
   };
 

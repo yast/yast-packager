@@ -18,7 +18,7 @@
     import "SpaceCalculation";
     import "Report";
 
-    textdomain "packages";
+    textdomain "packager";
 
     global boolean install_sources = false; // Installing source packages ?
     global integer installed = 0; 	// amount of already installed packages

@@ -7,7 +7,7 @@
  *
  * Purpose: 		User interface for installation media
  *
- *				
+ *
  * $Id$
  */
 
@@ -19,7 +19,7 @@
     import "Installation";
     import "InstMedia";
 
-    textdomain "packages";
+    textdomain "packager";
     include "ui/common_popups.ycp";
 
     boolean do_eject = true;
@@ -29,10 +29,10 @@
      * (umount previous used). Inform the user, if the source could
      * not be mounted.
      *
-     * @param cdnum integer Medium number 
+     * @param cdnum integer Medium number
      * @param show_popup boolean, true: show popups false: no popups, only check
      * @return boolean, true == ok, false == bad
-     * 
+     *
      * @example ChangeMedium ( 2, true );
      *
      */
@@ -50,7 +50,7 @@
 	string  message		= "";		// message for popup
 	string  info		= "";		// information for popup
 	string media_prompt	= "";
-	
+
 	// will be used in conjunction with other text below
 	if (InstMedia::mediatype <= 1)
 	{
@@ -61,7 +61,7 @@
 	{
 	    media_prompt =_("The correct source medium could not be mounted.");
 	}
-	
+
 	while ( go_on )
 	{
 	    do_eject = true;
@@ -75,7 +75,7 @@
 	    if (actcdnum == 0)
 	    {
 		ret = true;
-		
+
 		if (InstMedia::release_no == 0)
 		{
 		    // save release number of start CD in module "InstMedia"
@@ -110,7 +110,7 @@ saved information (Medium: %1, %2, Reference: %3, %4) type %5",
 		    // use a different name.
 		    medianame = _("installation medium");
 		}
-	
+
 		if ( Mode::initial )
 		{
 		    // inform the user that the CD/DVD/'installation medium' (%1) number %2 currently inserted
@@ -143,7 +143,7 @@ Insert the appropriate medium.
 
 		    string medium = "";
 		    string harddisk = "";
-			
+
 		    if ( product != InstMedia::product )
 		    {
 			medium = product;
@@ -171,7 +171,7 @@ Press \"Continue\" to proceed or \"Cancel\" to abort.\n"),
 			{
 			    message = message + "\n";
 			    // only shown on CD or DVD installs.
-			    // %1 = "CD" or "DVD" 
+			    // %1 = "CD" or "DVD"
 			    message = message + sformat(_("
 To install packages from the
 %1 currently in the drive,
@@ -249,7 +249,7 @@ respective set.
  	    any r = ChangeMediumPopup( message, info );
 
 	    y2milestone ("ChangeMediumPopup returned %1", r);
-		      
+
 	    if ( r != `continue )
 		break;
 
@@ -284,7 +284,7 @@ respective set.
 				   `PushButton(`id(`continue), `opt(`default), OKButtonLabel() ),
 				   `PushButton(`id(`cancel), _("&Skip") ),
 				   `PushButton(`id(`eject), _("&Eject"))
-				   );  
+				   );
 	    }
 	    else
 	    {
@@ -294,7 +294,7 @@ respective set.
 				   );
 	    }
 	}
-		      
+
 	if ( showLongInfo )
 	{
 	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
@@ -305,7 +305,7 @@ respective set.
 	    UI::OpenDialog( `opt(`decorated),  UI::LayoutPopup (message, button_box, 2, false) );
 	    UI::ReplaceWidget(`id(`info), `Empty() );
 	}
-      
+
 	any r = nil;
 
 	UI(``{
@@ -373,7 +373,7 @@ respective set.
 						 `HSpacing(0.1),
 						 `ReplacePoint(`id(`info), `Empty()),
 						 `HSpacing(0.1)
-						 ), 
+						 ),
 					   `HBox(`HSpacing(0.1),
 						 button_box,
 						 `HSpacing(0.1)

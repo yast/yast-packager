@@ -9,7 +9,7 @@
  *			when the installation media is available
  *			on Installation::sourcedir
  *
- *				
+ *
  * $Id$
  */
 
@@ -25,15 +25,15 @@
 
     include "ui/common_messages.ycp";
     include "ui/common_functions.ycp";
-    
-    textdomain "packages";
+
+    textdomain "packager";
 
     boolean info_called = false;	// list partition_info already initialized?
     list    partition_info = [];	// information about available partitions
-    
+
     integer initial_used = 0;  		// used disk space at begin of installation in bytes
 
-                                
+
    /*
     * Return partion info list
     * @return list of available partitions
@@ -42,7 +42,7 @@
 
 	return partition_info;
     }
-    
+
   /*
    * Get information about available partitions either from "targetMap"
    * in case of a new installation or from 'df' command (continue mode
@@ -53,16 +53,16 @@
    * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
    *				     $["free":1974697, "name":"usr", "used":4227733]]
    *
-   * 
+   *
    * @example GetPartitionInfo();
    *
    */
     global define list GetPartitionInfo( ) ``{
 	list partition = [];
-	
+
 	if ( Mode::cont )
 	{
-	    partition = EvaluateFreeSpace ( 0 ); // free spare already checked during first part of installation 
+	    partition = EvaluateFreeSpace ( 0 ); // free spare already checked during first part of installation
 	}
 	else if ( Mode::update )
 	{
@@ -98,7 +98,7 @@
    */
 
    define get_partition_info( ) ``{
-      
+
       boolean remove_slash = true;
       map targets = Storage::GetTargetMap();
 
@@ -106,7 +106,7 @@
       {
 	  targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");
       }
-      
+
       list(map) target_partitions = [];
       integer spare_percentage  = 14;   // percentage of free spare space on every partition
       integer min_spare 	= 2048; // minimum free space ( 2 MB )
@@ -190,25 +190,25 @@
 
       return ( target_partitions );
   };
-    
-	
+
+
     /**
-     * Evaluate the free space on the file system. Runs the command "df" and creates a map 
-     * containig information about used and free space on every partition. 
+     * Evaluate the free space on the file system. Runs the command "df" and creates a map
+     * containig information about used and free space on every partition.
      * Free space is calculated respecting the spare_percentage given in second argument.
      *
      * @param  spare_percentage percentage of spare disk space, i.e. free space is increased
      * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
      *				     $["free":1974697, "name":"usr", "used":4227733]]
      *
-     * 
+     *
      * @example EvaluateFreeSpace ( 5 );
      *
      *
      * ***  This is needed during update !
      *
      */
-  
+
     global define EvaluateFreeSpace( integer spare_percentage ) ``{
 
 	list partition = [];
@@ -216,7 +216,7 @@
 	integer max_spare = 1048576;		// 1 GB
 
 	string target = Installation::destdir;
-	
+
 	// get information about diskspace ( used/free space on every partition )
 	partition = SCR::Read(.run.df);
 
@@ -233,7 +233,7 @@
 	    integer spare_size = 0;
 	    string partName = "";
 	    boolean add_part = true;
-	  
+
 	    string mountName = lookup( part, "name", "" );
 
 	    if ( target != "/" )
@@ -286,11 +286,11 @@
 		    spare_size = min_spare;
 		else if  ( spare_size > max_spare )
 		    spare_size = max_spare;
-	  
+
 		free_size = free_size - spare_size;
 		if ( free_size < 0 )
 		    free_size = 0;	// don't add a negative size
-	       
+
 		change ( part_info, "free",  free_size );
 
 		part_input = add ( part_input, part_info );
@@ -312,12 +312,12 @@
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
-	
+
         list p_info = SCR::Read(.package.diskSpace, partition_info );
 	integer used = 0;
-	
+
 	y2debug("partition: %1", p_info );
-	
+
 	string message = "";
 	foreach( `par, p_info,
 		 ``{
@@ -332,7 +332,7 @@
 	} );
 
 	y2debug( "Total used space: %1", used*1024 );
-	
+
 	if ( size ( message ) > 0 )
 	{
 	    // dont ask user to deselect packages for imap server, product
@@ -342,7 +342,7 @@
 	    {
 		message = message + "\n" +  _("Please deselect some packages.");
 	    }
-	    y2warning("Warning: %1", message );	    
+	    y2warning("Warning: %1", message );
 	    Report::Message(message);
 	    return true;
 	}
@@ -366,14 +366,14 @@
 
         list p_info = SCR::Read(.package.diskSpace, partition_info );
 	integer used = 0;
-	
+
 	if ( initialize )
 	{
 	    foreach( `part, partition_info,
 		``{
 		used = used + lookup( part, "used", 0 );
 	    } );
-	    
+
 	    initial_used = used;	// store initial value for used space
 	    y2debug( "INITIAL USED: %1", initial_used );
 
@@ -386,7 +386,7 @@
 		used = used + lookup( part, "used", 0 );
 	    } );
 	    y2debug( "USED: %1", used );
-	    
+
 	    return ( size_text( (used-initial_used)*1024 ) );
 	}
 
@@ -405,12 +405,12 @@
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
-	
+
         list p_info = SCR::Read(.package.diskSpace, partition_info );
 	integer used = 0;
-	
+
 	y2debug("partition: %1", p_info );
-	
+
 	string message = "";
 	foreach( `par, p_info,
 		 ``{
@@ -421,11 +421,11 @@
 			  lookup ( par, "name", "" ), size_text(needed*1024) );
 		fit = false;
 	    }
-	    used = used + lookup( par, "used", 0 );	    
+	    used = used + lookup( par, "used", 0 );
 	} );
 
 	y2debug( "Total used space: %1", used*1024 );
-	
+
 	return fit;
     };
 }

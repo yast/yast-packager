@@ -4,15 +4,14 @@
  * Authors:		Stefan Schubert (schubi@suse.de)
  *
  * Purpose: 		Saving and loading user package selections
- *				
+ *
  * $Id$
  */
 
 {
-
     module "PackageSelectionIO";
 
-    textdomain "packages";
+    textdomain "packager";
     import "Mode";
     import "Installation";
     import "Report";
@@ -48,7 +47,7 @@ Write data to the floppy disk now?
 		    success = SCR::Write (.package.packageSelections, floppy_path+lastFloppyPath );
 
 		    WFM::Execute (.local.umount, floppy_path);
-		    
+
 		    if (success)
 		    {
 			// msgbox
@@ -109,14 +108,14 @@ If so, is the disk formatted and verified?
 		{
 		    // text of en error popup: error while writing data
 		    Report::Message(_("Error while saving package selections to the hard disk."));
-		}				
+		}
 	    }
 	    else
 	    {
 		savedLaterSelected = true;
 	    }
 	}
-	return success;	
+	return success;
     };
 
     //
@@ -134,9 +133,9 @@ If so, is the disk formatted and verified?
 
 		// Yes/No MsgBox; default: Yes
 		// Ask for the floppy with the package selection.
-		while (UI::YesNoPopup(_("The current package selection will be loaded 
-from a floppy disk.  Insert the floppy. 
- 
+		while (UI::YesNoPopup(_("The current package selection will be loaded
+from a floppy disk.  Insert the floppy.
+
 Read data from the floppy disk now?
 ")))
 		{
@@ -147,7 +146,7 @@ Read data from the floppy disk now?
 			success = SCR::Read (.package.packageSelections, floppy_path+lastFloppyPath );
 
 			WFM::Execute (.local.umount, floppy_path);
-		    
+
 			if (success)
 			{
 			    break;
@@ -156,7 +155,7 @@ Read data from the floppy disk now?
 			{
 			    // text of an error popup: can't read settings from floppy
 			    Report::Error(_("Error while loading settings from the floppy disk.
-Verify that the correct floppy has been inserted  
+Verify that the correct floppy has been inserted
 and that the path name has been written correctly.
 "));
 			}
@@ -174,7 +173,7 @@ and that the path name has been written correctly.
 		    Report::Error(_("Error while loading settings from the hard disk.
 Verify that the path name has been written correctly.
 "));
-		}		
+		}
 	    }
 	}
 	else
@@ -184,14 +183,14 @@ Verify that the path name has been written correctly.
 
 	return success;
     };
-    
+
     //
     // Saving and Loading package user selections
     //
     global define SaveLoadSelection( ) ``{
 
 	savedLaterSelected = false;
-	
+
 	term dia_opt = `opt ( `decorated );
 
 	UI::OpenDialog( dia_opt,
@@ -200,7 +199,7 @@ Verify that the path name has been written correctly.
 				  // Headline of a popup with a 'Cancel', a 'Load' and a 'Save' button.
 				  // A user defined selection of packages can be loaded or saved.
 				  `Left(`Heading( _("Load or save package selection") )),
-				  `VSpacing(0.2),				  
+				  `VSpacing(0.2),
 				  `RadioButtonGroup(`id(`selections),`opt(`notify),
 						    `VBox(
 							  `HBox(
@@ -215,7 +214,7 @@ Verify that the path name has been written correctly.
 										   _("&Floppy"),
 										   floppySelected))
 								),
-							  `VSpacing(0.8),						      
+							  `VSpacing(0.8),
 							  `TextEntry(`id(`path),
 								     // Input field label for the filename
 								     _("&Path name"),
@@ -225,7 +224,7 @@ Verify that the path name has been written correctly.
 				  `VSpacing(0.2),
 				  `HBox(
 					// button labels selection popup
-					`Left(`PushButton( `id(`cancel),`opt(`default), _("&Cancel"))),	  
+					`Left(`PushButton( `id(`cancel),`opt(`default), _("&Cancel"))),
 					`Right(`PushButton( `id(`load), _("&Load"))),
 					`Right(`PushButton( `id(`save),  _("&Save")))
 					)
@@ -236,9 +235,9 @@ Verify that the path name has been written correctly.
 	while ( true )
 	{
 	    boolean oldDiskSelected = UI::QueryWidget(`id(`harddisk), `Value);
-		
+
 	    any ret = UI::UserInput();
-	    
+
 	    if ( ret == `cancel )
 	    {
 		break;
@@ -268,7 +267,7 @@ Verify that the path name has been written correctly.
 		else
 		{
 		    lastFloppyPath = UI::QueryWidget(`id(`path), `Value);
-		}		
+		}
 	    }
 
 	    if ( ret == `load )
@@ -287,11 +286,11 @@ Verify that the path name has been written correctly.
 		}
 	    }
 	}
-	
+
 	UI::CloseDialog();
     };
 
 
-    
-    
+
+
 }

@@ -9,8 +9,7 @@
  */
 
 {
-
-    textdomain "packages";
+    textdomain "packager";
 
 
     /**
@@ -155,7 +154,8 @@ Do you want to go on with the installation?\n"),
 		{
 		    answer = `yes_short;
 		}
-		textdomain "general";
+
+		textdomain "general";	// what's that good for?
 
 		while ( answer != `no_log )
 		{
@@ -172,7 +172,8 @@ Do you want to go on with the installation?\n"),
 
 		    answer = UI::DisplayLogFile( text, answer );
 		}
-		textdomain "packages";
+
+		textdomain "packager";
 	    }
 	}
 	return nil;
