@@ -167,6 +167,9 @@
 	    import "Kernel";
 	    packages = union (packages, Kernel::kernel_packages);
 	}
+	else {
+	    packages = add (packages, AutoInstall::Kernel);
+	}
 
 	if (haskey(configure, "nis")) {
 		map nis = configure["nis"]:$[];
@@ -215,7 +218,14 @@
 				packages = add(packages, "amavis-sendmail");
 		}
 	}
-	y2milestone("package list needed for auto-installation: %1", packages);
+	list extraPackages = AutoInstall::calcExtraPackages ();
+		
+	if (size(extraPackages) > 0 )
+	{
+	    packages = union(packages,extraPackages);
+	}
+	
+	y2milestone("package list calculated for auto-installation: %1", packages);
 	return packages;
     }
 
