@@ -200,8 +200,6 @@ do this.</P>
 
     Wizard::CreateDialog();
 
-    map user_settings = $[];
-
     // check Args
     // set test_mode, test_popup, beginner_mode
 
@@ -489,18 +487,11 @@ must NOT be older than the version of your installed system.\n");
 	}
 	else if (result == `ok )	// inst_sw_single returns `ok
 	{
-	    // setting user_setting.install_list for packages which have to be installed
-
-	    list install_list =  SCR::Read(.package.installSet);
- 
-	    y2debug( "SW_SINGLE: Writing install_list: %1", install_list );
-	    change ( user_settings , "install_list", install_list );
-
-	    list delete_list =  SCR::Read(.package.deleteSet);
-	    // y2debug( "Writing delete_list: %1", delete_list );
-	    change ( user_settings , "delete_list", delete_list );
-
-	    y2debug( "SW_SINGLE: Usersettings: %1", user_settings );
+	    // only for debugging ( user_settings are not used any longer,
+	    // information about packages to install/to delete are got
+	    // directly from package agent in inst_rpmcopy )
+	    y2debug( "SW_SINGLE: install_list: %1", SCR::Read(.package.installSet) );
+	    y2debug( "SW_SINGLE: delete_list: %1", SCR::Read(.package.deleteSet)  );
 
 	    if ( install_list != [] || delete_list != [] )
 	    {
