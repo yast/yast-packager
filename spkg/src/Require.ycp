@@ -340,13 +340,27 @@
 	    ok = ok && Pkg::PkgDelete (p);
 	});
 	ok = ok && Pkg::PkgSolve ();
-	list result = Pkg::PkgCommit (0);
-	y2debug ("PkgCommit: %1", result);
-	ok = ok && result[1]:nil == [] && result[2]:nil == [];
-	Wizard::CreateDialog ();
-	// inst_suseconfig returns `auto or `next (update mode or Args(2) is true) => no error checking
-	WFM::CallModule ("inst_suseconfig", [false, false]);
-	Wizard::CloseDialog ();
+	if (ok)
+	{
+	    //[int successful, list failed, list remaining, list srcremaining]
+	    list result = Pkg::PkgCommit (0);
+	    y2debug ("PkgCommit: %1", result);
+	    ok = result[1]:[] == [];
+	    foreach (string remaining, result[2]:[], ``{
+		ok = ok && !contains (toinstall, remaining);
+	    });
+
+	    // Only run SuSEconfig if any packages were installed?
+	    // No, deleted packages are not covered by this.
+	    if (true || result[0]:-1 > 0)
+	    {
+		Wizard::CreateDialog ();
+		// inst_suseconfig returns `auto or `next
+		// (update mode or Args(2) is true) => no error checking
+		WFM::CallModule ("inst_suseconfig", [false, false]);
+		Wizard::CloseDialog ();
+	    }
+	}
 	return ok;
     }
 
