@@ -156,7 +156,7 @@ in the packages selection, continue."),
 				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
                                                   `item(`id(`ftp),       _("&FTP...") ),
                                                   `item(`id(`http),      _("&HTTP...") ),
-                                                  `item(`id(`samba),     _("&Samba...") ),
+                                                  `item(`id(`samba),     _("&SMB / CIFS...") ),
                                                   `item(`id(`nfs),       _("&NFS...") ),
                                                   `item(`id(`cd),        _("&CD...") ),
                                                   `item(`id(`dvd),       _("&DVD...") ),
