@@ -59,11 +59,9 @@
 
    /** during file providal
     *
-    // return "" for ok
+    // return "" for ignore
     // return "R" for retry
-    // return "I" for ignore bad media
-    // return "S" for skip this media
-    // return "C" for cancel
+    // return "C" for abort
     */
    global define string DoneProvide (integer error, string reason)
    ``{
@@ -75,11 +73,9 @@
 	{
 	    string message = sformat (_("Package %1 was not found on the medium."), _provide_name);
 
-	    term button_box = `HBox (`PushButton (`id(`ok), `opt(`default), OKButtonLabel()));
+	    term button_box = `HBox (`PushButton (`id(`abort), AbortButtonLabel()));
 	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));
 	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
-	    button_box = add (button_box,  `PushButton (`id(`cancel), AbortButtonLabel()));
-	    button_box = add (button_box, `PushButton (`id(`skip), _("&Skip")));
 
 	    if ( showLongInfo )
 	    {
@@ -127,22 +123,18 @@
 		    UI::ReplaceWidget(`id(`info), `Empty() );
 		}
 	    }
-	    } until (r == `ok || r == `cancel || r == `retry || r == `skip || r == `ignore);
+	    } until (r == `abort || r == `retry || r == `ignore);
 
 	    y2milestone ("DoneProvide %1", r);
 
 	    UI::CloseDialog();
 
-	    if (r == `cancel)
+	    if (r == `abort)
 		return "C";
-	    if (r == `ignore)
-		return "I";
-	    if (r == `skip)
-		return "S";
 	    if (r == `retry)
 		return "R";
 
-	    // default: ok
+	    // default: ignore
 	}
 
 	return "";
@@ -179,11 +171,9 @@
 
    /** after package install
     *
-    // return "" for ok
+    // return "" for ignore
     // return "R" for retry
-    // return "I" for ignore bad media
-    // return "S" for skip this media
-    // return "C" for cancel (not implemented !)
+    // return "C" for abort (not implemented !)
     */
    global define string DonePackage (integer error, string reason)
    ``{
@@ -200,11 +190,9 @@
 	    // error popup during package installation, %1 is a numeric value (number of failed packages)
 	    string message = sformat (_("Package %1 failed installation."), _package_name);
 
-	    term button_box = `HBox (`PushButton (`id(`ok), `opt(`default), OKButtonLabel()));
+	    term button_box = `HBox (`PushButton (`id(`abort), AbortButtonLabel()));
 	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));
 	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
-	    button_box = add (button_box,  `PushButton (`id(`cancel), AbortButtonLabel()));
-	    button_box = add (button_box, `PushButton (`id(`skip), _("&Skip")));
 
 	    if ( showLongInfo )
 	    {
@@ -252,22 +240,18 @@
 		    UI::ReplaceWidget(`id(`info), `Empty() );
 		}
 	    }
-	    } until (r == `ok || r == `cancel || r == `retry || r == `skip || r == `ignore);
+	    } until (r == `abort || r == `retry || r == `ignore);
 
 	    y2milestone ("DonePackage %1", r);
 
 	    UI::CloseDialog();
 
-	    if (r == `cancel)
+	    if (r == `abort)
 		return "C";
-	    if (r == `ignore)
-		return "I";
-	    if (r == `skip)
-		return "S";
 	    if (r == `retry)
 		return "R";
 
-	    // default: ok
+	    // default: ignore
 	}
 
 
