@@ -17,6 +17,7 @@
     import "PackageInstallation";
     import "PackageCallbacks";
     import "Wizard";
+    import "Progress";
 
 
     if(Pkg::TargetInit (Installation::destdir,true) != true)
@@ -46,6 +47,43 @@
 
     SlideShow::CloseSlideShowDialog();
 
+    list progress_stages =
+	[
+	 // progress stages
+	 _("Update configuration"),
+	 // progress stages
+	 _("Copy files to installed system"),
+	 // progress stages
+	 _("Prepare system for initial boot")
+	 ];
+
+    list progress_descriptions =
+	[];
+
+
+    integer progress_length = 16;
+
+    Progress::New(
+            // Headline for last dialog of base installation: Install LILO etc.
+            _("Finishing Directory Installation"),
+            "",	// Initial progress bar label - not empty (reserve space!)
+            progress_length,	// progress bar length
+            progress_stages,
+            progress_descriptions,
+            help_text );
+
+
+    y2milestone ("Stopping SCR");
+
+    WFM::SCRClose (Installation::scrHandle);
+
+
+    // --------------------------------------------------------------
+
+
+    y2milestone ("Re-starting SCR on %1", Installation::destdir);
+    Installation::scrHandle = WFM::SCROpen ("chroot="+Installation::destdir+":scr", false);
+    WFM::SCRSetDefault (Installation::scrHandle);
 
     if(newsystem)
     {
@@ -54,6 +92,28 @@
             SCR::Execute(.target.mkdir,Installation::destdir+"/var/lib/YaST2");
             SCR::Execute(.target.bash,"/usr/bin/touch "+Installation::destdir+"/var/lib/YaST2/runme_at_boot");
         }
+    }
+
+    Progress::NextStep ();
+    // progress stage title
+    Progress::Title (_("Setting up linker cache"));
+
+    if (SCR::Execute (.target.bash, "/sbin/ldconfig") != 0)
+        y2error ("ldconfig failed\n");
+
+    // progress stage title
+    Progress::Title (_("Creating mount points"));
+
+    SCR::Execute (.target.mkdir, Installation::sourcedir);
+
+    // setup fonts
+    if (SCR::Read (.target.size, "/sbin/conf.d/SuSEconfig.fonts") != -1)
+    {
+        // progress stage title
+        Progress::Title (_("Initializing fonts"));
+
+        if (SCR::Execute (.target.bash, "/sbin/SuSEconfig --module fonts") != 0)
+            y2error ("SuSEconfig --module fonts failed");
     }
 
     UI::CloseDialog();

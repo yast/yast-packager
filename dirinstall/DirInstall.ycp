@@ -10,7 +10,7 @@ textdomain "packager";
 
 
 global boolean runme_at_boot = false;
-global string target = "";
+global string target = "/var/tmp/dirinstall";
 
 
 }

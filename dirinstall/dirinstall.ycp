@@ -65,7 +65,21 @@
     }
 
     // calling inst_proposal
-    symbol ret = (symbol) WFM::CallFunction ("inst_proposal", [true, true, `dirinstall]);
+    symbol ret = `again;
+    while (ret == `again)
+    {
+        ret = (symbol) WFM::CallFunction ("inst_proposal", [true, true, `dirinstall]);
+        if (DirInstall::target == "" || DirInstall::target == "/" )
+        {
+           Popup::Error(_("Select a valid directory for the installation first"));
+           ret = `again;
+           continue;
+        }
+        else
+        {
+            break;
+        }
+    }
 
     if (ret == `next)
     {
