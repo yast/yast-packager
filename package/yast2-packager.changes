@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Feb 01 20:13:56 CET 2004 - arvin@suse.de
+
+- fixed return value in inst_kickoff.ycp
+
+-------------------------------------------------------------------
 Sat Jan 31 21:40:17 CET 2004 - arvin@suse.de
 
 - fixed faking of mtab in inst_kickoff.ycp
