@@ -9,22 +9,24 @@
 {
     textdomain "packager";
 
-    import "DirInstall";
-    import "ProductControl";
     import "Mode";
-
     Mode::SetMode ("autoinst_config");	// FIXME, messy
     import "Product";
     Mode::SetMode ("normal");		// FIXME, messy
+    import "DirInstall";
+    import "ProductControl";
+
 
     import "Installation";
 
     import "Wizard";
     import "Label";
     import "Popup";
+    import "Report";
     import "GetInstArgs";
 
 
+    y2milestone("current mode: %1", Mode::mode());
     DirInstall::installing_into_dir = true;
 
     Wizard::OpenNextBackStepsDialog();
