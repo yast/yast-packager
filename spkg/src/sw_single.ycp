@@ -19,7 +19,7 @@
   include "ui/common_functions.ycp";
   include "arch_defines.ycp";
   
-  //UI(`CreateWizardDialog());
+  UI(`CreateWizardDialog());
 
   map user_settings = $[];
 
@@ -63,7 +63,7 @@ do this.</P>"));
 	return ( SCR(`Execute(.target.bash, fileCommand)) == 0 );
   };
   
-  string language = UI( `GetLanguage(true) );
+  string language = UI( `GetLanguage() );
 
   string default_language = "en";
 
@@ -99,7 +99,7 @@ do this.</P>"));
       arg_n = arg_n - 1;
   }
   user_settings = add( user_settings, "test_mode", test_mode );
-  y2debug("Testmode %1", test_mode );
+  y2debug("Testmode %1, Testpopup %2", test_mode, test_popup );
   y2debug("ARGLIST %1", arg_list);
   
   //
@@ -129,8 +129,12 @@ do this.</P>"));
   integer id = 0;
   any result = `next;
 
-  boolean skip_source = false;
+  string instSource = GetInstSource(1);
+  string infopath =  instSource + "setup/descr";
+  string dudir = instSource + "setup/du/du.dir"; 
 
+  boolean skip_source = false;
+	  
   // if sw_single is called with argument "beginner" or with a package list or package name
   // -> skip inst_source (if possible)
 
@@ -167,28 +171,24 @@ do this.</P>"));
       else		// try to mount source media
       {
 	  boolean go_on = ChangeCD( 1,			// CD number 1
-				    false );		// don't show popup "Wrong CD ..." (show "No access ...")
+				    false );		// don't show popup "Please insert CD 1" 
 	  
 	  if ( !go_on )
 	  {
-	      /*
-	      any ret = UI(`ContinueCancelPopup(_("No access to source media used on previous installation.
-Continue with choosing new installation source?") ));
-
-	      if ( ret )		// choose new installation source
+	      // try to get local information (common.pkd, du.dir, ...)
+	      boolean local_descr = CheckLocalDescription();
+	      if ( local_descr )
+	      {
+		  infopath = "/var/adm/current_package_descr/suse/setup/descr";
+		  dudir =  "/var/adm/current_package_descr/suse/setup/du/du.dir";
+		  skip_source = true;
+		  id = id + 1;
+	      }
+	      else
 	      {
 		  skip_source = false;
 		  id = 0;
 	      }
-	      else			// exit the installation dialog
-	      {
-		  UI(`CloseDialog() );
-		  return `cancel;
-	      }
-	      */
-	      // go to dialog inst_source directly
-	      skip_source = false;
-	      id = 0;
 	  }
 	  else			// mount ok on previos media -> skip inst_source
 	  {
@@ -197,38 +197,20 @@ Continue with choosing new installation source?") ));
 	  }
       }
   }
-
+	  
   if ( !test_mode )
   {
       // removing old logging
       SCR(`Execute (.target.bash, "/bin/rm /var/log/y2logRPM*"));
   }
 
-  if ( !skip_source )
-  {
-      UI(`CreateWizardDialog());
-  }
-    
   while ((id >= 0) && (id < size (dialog))) {
 
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
       {
 	  any retval = nil;
-
-	  // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
-	  boolean go_on = ChangeCD( 1, true); 
-	  if ( !go_on )
-	  {
-	      // quit dialog (CD 1 cannot be skipped)
-	      UI( `CloseDialog() );      
-	      return `cancel;
-	  }
-
+	  
 	  boolean version_ok = false;
-	  string instSource = GetInstSource(1);
-	  string infopath =  instSource + "setup/descr";
-	  string dudir = instSource + "setup/du/du.dir";
-
 	
 	  UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
 
@@ -264,7 +246,7 @@ Continue with choosing new installation source?") ));
 	      version_map = add( version_map, "installedVersion", "7.1" );
 	      version_map = add( version_map, "updateVersion","7.0" );
 	  }
-	  
+
 	  if ( lookup( version_map, "installedGreater", false ) )
 	  {
 	      if ( IsRemountable() )
@@ -277,8 +259,8 @@ must NOT be older than the installed one.\n"));
 
 	      string versions = sformat( UI(_("Installed version: %1\n")),
 					 lookup( version_map, "installedVersion","" )) +
-		                sformat( UI(_("Version on source media: %1\n\n")),
-					 lookup( version_map, "updateVersion","" ));
+		  sformat( UI(_("Version on source media: %1\n\n")),
+			   lookup( version_map, "updateVersion","" ));
 	      y2debug( "SW_SINGLE: %1", versions );
 	      
 	      string msg2 = UI(_("Please insert current CD or specify path of current sources."));
@@ -312,7 +294,7 @@ must NOT be older than the installed one.\n"));
 	      y2milestone("inputMap: %1", inputMap );
       
 
-	      if ( isnil( inputMap ) || size ( inputMap ) == 0 )
+	      if ( inputMap == nil || size ( inputMap ) == 0 )
 	      {
 		  string message = UI(_("Error while reading configuration-file."));
 		  UI(`MessagePopup(message));
@@ -384,11 +366,6 @@ must NOT be older than the installed one.\n"));
       }
       else
       {
-	  if (  symbolof (select( dialog, id )) == `inst_rpmcopy && skip_source )
-	  {
-	       UI(`CreateWizardDialog());
-	  }
-	  
 	  result = CallFunction( select(dialog, id) );
       }
       y2debug( "RESULT: %1", select(dialog, id), result );
