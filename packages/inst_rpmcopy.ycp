@@ -227,8 +227,7 @@
     // sync package manager FIXME
     Pkg::PkgCommit (9999);
 
-    // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
-    UI::CloseDialog();
+    SlideShow::CloseSlideShowDialog();
 
     if ( Mode::normal && !packager_called )
 	return `finish;

@@ -41,7 +41,7 @@
 
     string choosen_base_selection = "";
 
-  
+
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
      *-----------------------------------------------------------------------*/
@@ -65,7 +65,7 @@
 	{
 	    packages = add (packages, "sbl");
 	}
-	
+
 	// check for aboot or milo on alpha and add package
 	if (Arch::alpha)
 	{
@@ -551,6 +551,7 @@
 		});
 	    }
 	}
+
 	y2milestone ("theSources %1", theSources);
 	y2milestone ("theSourceDirectories %1", theSourceDirectories);
 	if (size (theSources) >= 0)
@@ -567,19 +568,6 @@
 	    string errortext = _("Error while initializing package descriptions.
 Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastError();
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1, false);
-
-	    // FIXME: fix or remove, if anybody knows what is going on - Init does not return anything!
-	    /* if (result == "")		// retry
-		return 1;
-	    if (result == "I")		// ignore
-		return 0;
-	    if (result == "C")		// cancel
-		return -1;
-	    if (result == "S")		// skip
-		return 1;
-	    if (result == "E")		// eject
-		return 1;*/
-
 	}
 
 	return;

@@ -240,7 +240,7 @@
        list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
        integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 
-       UI::CloseDialog();
+       SlideShow::CloseSlideShowDialog();
 
        if (Mode::normal				// run SuSEconfig only in normal system, not during installation
 	   && Installation::destdir == "/"

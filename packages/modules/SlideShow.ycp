@@ -8,12 +8,12 @@
  * $Id$
  */
 {
-
     module "SlideShow";
 
     textdomain "packager";
 
     import "Installation";
+    import "SlideShowCallbacks";
     import "Label";
     import "Language";
     import "Mode";
@@ -388,7 +388,7 @@
     ``{
 	media_type = mediatype;
     }
-    
+
     /**
      *
      */
@@ -1245,6 +1245,8 @@
      **/
     global define void OpenSlideShowDialog()
     ``{
+	InstallSlideShowCallbacks();
+
 	OpenSlideShowBaseDialog();
 
 	if ( enable_slide_show )
@@ -1257,6 +1259,17 @@
 	}
 
 	UpdateAllCdProgress( false );	// false: not deleting
+    };
+
+
+    /**
+     * Close the slide show dialog.
+     **/
+    global define void CloseSlideShowDialog()
+    ``{
+	UI::CloseDialog();
+
+	RemoveSlideShowCallbacks();
     };
 
 
