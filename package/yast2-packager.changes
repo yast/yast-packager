@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 16 21:12:24 CET 2004 - kkaempf@suse.de
+
+- run GNOME cleanup before upgrade starts (#36196)
+
+-------------------------------------------------------------------
 Sat Mar 13 19:03:06 CET 2004 - arvin@suse.de
 
 - DVD sides are called "Side A" and "Side B"
