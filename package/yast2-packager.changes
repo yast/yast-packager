@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 24 10:10:34 CET 2003 - gs@suse.de
+
+- Calling SuSEConfig after deleting a package only (#22317)
+
+-------------------------------------------------------------------
 Tue Jan 14 16:00:47 CET 2003 - arvin@suse.de
 
 - support installation from DVD for drives that also have other
