@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun 16 14:42:44 CEST 2004 - arvin@suse.de
+
+- removed obsolete document y2c_spkg.html (bug #42048)
+
+-------------------------------------------------------------------
 Fri May 28 14:27:07 CEST 2004 - arvin@suse.de
 
 - nicer dialog with failed packages (bug #37529)

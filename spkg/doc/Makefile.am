@@ -6,6 +6,6 @@ SUBDIRS = autodocs
 
 htmldir = $(docdir)
 
-html_DATA = y2c_spkg.html
+html_DATA =
 
 EXTRA_DIST = $(html_DATA)
