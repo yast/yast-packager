@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 21 18:03:46 CEST 2002 - kkaempf@suse.de
+
+- fix for build
+  V 2.6.12
+
+-------------------------------------------------------------------
 Wed Aug 21 16:46:34 CEST 2002 - kkaempf@suse.de
 
 - initial switch to new packagemanager.
