@@ -135,9 +135,9 @@ global boolean Read() {
     // We do not set help text here, because it was set outside
     Progress::New( caption, " ", steps, [
 	    /* Progress stage 1/3 */
-	    _("Read  configured Sources"),
+	    _("Read configured sources"),
 	    /* Progress stage 2/3 */
-	    _("Detect available Sources via SLP")
+	    _("Detect available sources via SLP")
 	], [
 	    /* Progress step 1/3 */
 	    _("Reading configured sources..."),
@@ -155,7 +155,7 @@ global boolean Read() {
 
 
     /* Error message */
-    if(!ReadSources()) Report::Error(_("Cannot read Sources."));
+    if(!ReadSources()) Report::Error(_("Cannot read sources."));
 
     // read another database
     if(Abort()) return false;
@@ -189,8 +189,9 @@ global boolean CommitSources() {
         success = Pkg::SourceEditSet( sourceStatesOut );
         if ( !success ) {
 	    // popup message header
-            string _msg1 = _("Unable to save changes to source
-                    repository.");
+            string _msg1 = _("Unable to save changes to the source
+                    repository.
+");
             string err = Pkg::LastErrorId();
             string _msg2 = _("Details:") + "\n" + Pkg::LastError();
             _msg2 = _msg2 + "\nTry again?";
