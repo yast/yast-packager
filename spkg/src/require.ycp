@@ -19,7 +19,7 @@
 {
     textdomain "packager";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     import "Wizard";	// some modules call us without any dialog open
 
     /**
@@ -57,10 +57,10 @@
 	    }
 	    else
 	    {
-		include "ui/common_popups.ycp";
+		import "Popup";
 		// error popup, no packages sources
 		// FIXME: translation
-		UI::ErrorPopup (_("No package source defined."));
+		Popup::Error (_("No package source defined."));
 	    }
 	}
     }
@@ -205,7 +205,7 @@
 	return InstallAndRemoveButtons ( require,
 					 conflict,
 					 help,
-					 ContinueButtonLabel (), CancelButtonLabel () );
+					 Label::ContinueButton (), Label::CancelButton () );
     }
 
     /**
@@ -248,6 +248,6 @@
 	return RequireAndConflictButtons( require,
 					  conflict,
 					  help,
-					  ContinueButtonLabel (), CancelButtonLabel ());
+					  Label::ContinueButton (), Label::CancelButton ());
     }
 }
