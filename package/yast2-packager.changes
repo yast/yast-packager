@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep  4 08:10:20 CEST 2002 - mvidner@suse.cz
+
+- Re-added require.ycp which got dropped by an accident.
+
+-------------------------------------------------------------------
 Tue Sep  3 22:48:04 CEST 2002 - kkaempf@suse.de
 
 - improved callback handling
