@@ -190,7 +190,7 @@
 	if ( remaining <  0 )
 	{
 	    // Nothing more to install from this CD (very concise - little space!!)
-	    return _( "Done." );
+	    return _("Done.");
 	}
 	if ( remaining == 0 )
 	{
@@ -204,7 +204,7 @@
     string FormatTotalRemaining()
     {
 	// (Short!) headline for the total remaining time or MBs to install
-	string text = _( "Remaining:" );
+	string text = _("Remaining:");
 	integer remaining =
 	    ListSum( flatten ( unit_is_seconds ?
 			       remaining_times_per_cd_per_src :
@@ -215,7 +215,7 @@
 	if ( remaining < 1 )
 	    return " \n "; // Avoid height changes at this late stage when everything is done
 
-	text = sformat( _( "Remaining:\n%1" ),
+	text = sformat( _("Remaining:\n%1"),
 			unit_is_seconds ?
 			FormatTime( remaining ) :
 			FormatRemaining( remaining ) ) ;
@@ -240,7 +240,7 @@
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
 		// %3: Time remaining until this media will be needed
-		text = sformat( _( "Next %1: %2 -- %3" ), media_type, next_media_name,
+		text = sformat( _("Next %1: %2 -- %3"), media_type, next_media_name,
 				remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1);
 	    }
 	    else
@@ -248,7 +248,7 @@
 		// Status line informing about the next CD that will be used
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
-		text = sformat( _( "Next %1: %2" ), media_type, next_media_name );
+		text = sformat( _("Next %1: %2"), media_type, next_media_name );
 	    }
 	}
 
@@ -762,7 +762,7 @@
 	{
 	    term item = `item(`id("total"),
 			      // List column header for total remaining MB and time to install
-			      _( "Total" ) );					// column #0
+			      _("Total") );					// column #0
 
 	    integer remaining = ListSum( flatten( remaining_sizes_per_cd_per_src ) );
 	    item = add( item, FormatRemaining( remaining ) );			// column #1
@@ -1179,7 +1179,7 @@
 			    `VWeight( 1, // lower layout priority
 				      page_contents ),
 			    // Progress bar for overall progress of software package installation
-			    `ProgressBar(`id(`progressTotal ), _( "Total" ),
+			    `ProgressBar(`id(`progressTotal ), _("Total"),
 					 total_size_to_install, TotalInstalledSize() )
 			    // intentionally omitting `Label(`nextMedia) -
 			    // too much flicker upon update (UI::RecalcLayout() ) on NCurses
@@ -1224,7 +1224,7 @@
 						`Table( `id(`cdStatisticsTable), `opt(`keepSorting),
 							`header(
 								// Table headings for CD statistics during installation
-								_( "Media" ), _( "Size" ), _( "Time" )
+								_("Media"), _("Size"), _("Time")
 								),
 							CdStatisticsTableItems()
 							)
@@ -1289,8 +1289,8 @@
 	    contents =
 		`DumbTab(`id(`dumbTab ),
 			     [
-			      `item(`id(`showSlide   ), _( "Slide Sho&w" ) ),
-			      `item(`id(`showDetails ), _( "&Details" )	   )
+			      `item(`id(`showSlide   ), _("Slide Sho&w") ),
+			      `item(`id(`showDetails ), _("&Details")	   )
 			      ],
 			  `VBox(
 				`VSpacing( 0.4 ),
@@ -1311,11 +1311,11 @@
 	    contents = DetailsPageWidgets();
 	}
 	// Help text while software packages are being installed (displayed only in rare cases)
-	string help_text = _( "<p>Please wait while packages are being installed.</p>" );
+	string help_text = _("<p>Please wait while packages are installed.</p>");
 
 	Wizard::SetContents(
 			    // Dialog heading while software packages are being installed
-			    _( "Package Installation" ),
+			    _("Package Installation"),
 			    contents,
 			    help_text,
 			    false, false );	// has_back, has_next

@@ -151,7 +151,7 @@
 	    if ( disk_percentage_left > 95 && !shutup)
 	    {
 		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
-						   _("The disk space is nearly exhausted.\nContinue with the installation?" ),
+						   _("The disk space is nearly exhausted.\nContinue with the installation?"),
 						   Label::YesButton(),
 						   Label::NoButton(),
 						   `focus_no );
