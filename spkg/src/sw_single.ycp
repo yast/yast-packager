@@ -193,76 +193,93 @@
        return `next;
    }
 
-   if (result == `found_descr)
-   {
-       if (size (packagelist) == 0)			// packages given ?
-       {
-	   result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
-	   y2milestone ("inst_packages returns %1", result);
-	   if (result == `accept)
-	       result = `next;
-       }
-       else
-       {
-	   foreach (string package, packagelist,		// Yes: install them
-		    ``{
-	       if (!Pkg::PkgInstall (package))			// select package for installation
-	       {
-		   // oops, package not found ?
-		   Pkg::DoProvide ([package]);			// try as tagname
-	       }
-	   });
 
-	   if (Pkg::PkgSolve (false))				// Solve dependencies
+   boolean ask = false;
+   boolean found_descr = result == `found_descr;
+
+   do
+   {
+       if ( found_descr )
+       {
+	   if (size (packagelist) == 0)			// packages given ?
 	   {
-	       result = `next;					// go-on if no conflicts
-	   }
-	   else
-	   {
-	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
+	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
+	       {
 		   result = `next;
-	   }
-       }
-   }
-
-   if (result == `next)				// packages selected ?
-   {
-       boolean anyToDelete = Pkg::PkgAnyToDelete();
-       SlideShow::SetLanguage (UI::GetLanguage(true));
-       SlideShow::InitPkgData();
-       SlideShow::OpenSlideShowDialog();
-
-       import "PackageInstallation";
-       Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
-       integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
-       list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
-       integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
-
-       SlideShow::CloseSlideShowDialog();
-
-       if (Mode::normal				// run SuSEconfig only in normal system, not during installation
-	   && Installation::destdir == "/"
-	   && ((commit_result[0]:0 > 0)
-	       || anyToDelete))
-       {
-	   // prepare "you must boot" popup in inst_suseconfig
-
-	   if (oldvmlinuzsize != newvmlinuzsize)
-	   {
-	       import "Kernel";
-	       Kernel::switched = true;
-	       Mode::update = true;
+		   ask = true;
+	       }
 	   }
 	   else
 	   {
-	       Mode::update = false;
-	   }
+	       foreach (string package, packagelist,		// Yes: install them
+			``{
+		   if (!Pkg::PkgInstall (package))			// select package for installation
+		   {
+		       // oops, package not found ?
+		       Pkg::DoProvide ([package]);			// try as tagname
+		   }
+	       });
 
-	   result = (symbol)WFM::CallFunction( "inst_suseconfig", [false, false]);
+	       if (Pkg::PkgSolve (false))				// Solve dependencies
+	       {
+		   result = `next;					// go-on if no conflicts
+	       }
+	       else
+	       {
+		   result = (symbol)WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
+		   y2milestone ("inst_packages returns %1", result);
+		   if (result == `accept)
+		       result = `next;
+	       }
+	   }
        }
-   }
+
+       if (result == `next)				// packages selected ?
+       {
+	   boolean anyToDelete = Pkg::PkgAnyToDelete();
+	   SlideShow::SetLanguage (UI::GetLanguage(true));
+	   SlideShow::InitPkgData();
+	   SlideShow::OpenSlideShowDialog();
+
+	   import "PackageInstallation";
+	   Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
+	   integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
+	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+
+	   SlideShow::CloseSlideShowDialog();
+
+	   if (Mode::normal				// run SuSEconfig only in normal system, not during installation
+	       && Installation::destdir == "/"
+	       && ((commit_result[0]:0 > 0)
+		   || anyToDelete))
+	   {
+	       // prepare "you must boot" popup in inst_suseconfig
+
+	       if (oldvmlinuzsize != newvmlinuzsize)
+	       {
+		   import "Kernel";
+		   Kernel::switched = true;
+		   Mode::update = true;
+	       }
+	       else
+	       {
+		   Mode::update = false;
+	       }
+
+	       result = (symbol)WFM::CallFunction( "inst_suseconfig", [false, false]);
+	   }
+       }
+   } while ( ask && Popup::AnyQuestion( Popup::NoHeadline(),
+				       // Popup dialog contents
+				       _( "Would you like to install more packages?" ),
+				       // Button label: User would like to install more packages
+				       _( "Install &More" ),
+				       // Button label: User does not like to install any more package, exit program
+				       _( "&Finish" ),
+				       `focus_yes ) );
 
    UI::CloseDialog();
 
