@@ -19,13 +19,13 @@
     import "Mode";
     import "Product";
     import "Report";
+    import "SlideShow";
     import "SpaceCalculation";
 
     global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
 
-    global string slidedir = Installation::sourcedir + "/suse/setup/slide";
     global string metadir = "/yast-install";
     global boolean metadir_used = false;	// true if meta data and inst-sys is in ramdisk
 
@@ -410,7 +410,8 @@
 
 		map productmap = Pkg::SourceProductData (initial_source);
 		string datadir = productmap["datadir"]:"suse";
-		slidedir = metadir + "/" + datadir + "/setup/slide";
+		string slidedir = metadir + "/" + datadir + "/setup/slide";
+		SlideShow::setSlideDir (slidedir);
 
 		// setup meta data dir
 
