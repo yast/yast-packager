@@ -385,7 +385,7 @@
 		return false;
 
 	    string media = SCR::Read(.target.string, Installation::sourcedir+"/media.1/media", "");
-	    list splitted_media = splitstring (media, "\");
+	    list splitted_media = splitstring (media, "\n");
 
             // read release_no (used in MediaUI to check if != 0)
 	    product    = splitted_media[0]:"";
