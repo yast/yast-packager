@@ -51,6 +51,9 @@
 	{
 	    packages = add (packages, "pcmcia");
 	    packages = add (packages, "apmd");
+	    packages = add (packages, "scpm");
+	    packages = add (packages, "acpid");
+	    packages = add (packages, "irda");
 	}
 
 
