@@ -14,7 +14,10 @@
 
     textdomain "packager";
 
-   global boolean _provide_popup = false;
+    include "ui/common_messages.ycp";
+    include "ui/common_functions.ycp";
+
+    global boolean _provide_popup = false;
 
    //--------------------------------------------------------------------------
    // defaults
@@ -22,8 +25,8 @@
    /** at start of file providal
     *
     */
-   global define void StartProvide (string name, integer archivesize, boolean remote)
-   ``{
+    global define void StartProvide (string name, integer archivesize, boolean remote)
+    ``{
 	if (remote)
 	{
 	    term providebox = `VBox( `HSpacing(40), `ProgressBar(`id(`progress), name, 100, 0 ));
@@ -102,15 +105,15 @@
     // make showLongInfo module-global so it gets remembered (cf. #14018)
     boolean showLongInfo = false;
 
-    global define string MediumChange (string product, string error, integer current, integer wanted)
+    global define string MediaChange (string product, string error, integer current, integer wanted)
     ``{
 
-	y2milestone ("ChangeMediumPopup '%1', '%2', '%3', '%4'", product, error, current, wanted);
+	y2milestone ("MediaChange '%1', '%2', '%3', '%4'", product, error, current, wanted);
 	term button_box = `PushButton(`id(`cancel), `opt(`default), OKButtonLabel() );
 
         // will be used in conjunction with other text below
         // prompt for user to insert the correct CD/DVD
-	string message = sformat(_("Please insert %1 %2."), product, ("CD "+ wanted));
+	string message = sformat(_("Please insert\n'%1'  %2"), product, ("CD "+ wanted));
 
 	// currently unused
 	string media_prompt =_("The correct source medium could not be mounted.");
@@ -194,10 +197,18 @@
     global define string MediaError (integer error)
     ``{
 	y2milestone ("MediaError(%1)", error);
-	UI::MessagePopup ("Error accessing media:\n"+error);
+	//UI::MessagePopup ("Error accessing media:\n"+error);
 	return "";
     }
 
+    global define void SetMediaCallbacks ()
+    ``{
+	foreach (`src, Pkg::SourceGetCurrent(),
+	``{
+	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
+	    Pkg::CallbackMediaError (src, "PackageCallbacks::MediaError");
+	});
+    }
 
     /**
      * constructor
@@ -215,11 +226,9 @@
 	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
 	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
 
-	foreach (`src, Pkg::SourceGetCurrent(),
-	``{
-	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
-	    Pkg::CallbackMediaError (src, "PackageCallbacks::MediaError");
-	});
+	Pkg::SourceStartCache (true);
+
+	SetMediaCallbacks ();
 
     UI::{
     // UI USE
