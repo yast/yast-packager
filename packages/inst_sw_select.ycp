@@ -5,7 +5,7 @@
  *			Klaus Kaempf <kkaempf@suse.de>
  *
  * Purpose:
- * Displays software selection screen. Show radiokboxes for software
+ * Displays software selection screen. Show radioboxes for software
  * main categories. Let the user select the software.
  *
  * Packages module read:
@@ -39,6 +39,11 @@
     // checked in help below !
     list available_base_selections = Pkg::GetSelections( `available, "base" );
     y2milestone ("available_base_selections %1", available_base_selections);
+
+    if (size (available_base_selections) == 0)
+    {
+	y2error( "No base selections available" );
+    }
 
     Wizard::OpenAcceptDialog();
 
@@ -306,7 +311,7 @@ You will lose that selection if you change the basic selection.");
 
 	    if ( error_found )
 	    {
-		y2error( "Error: Not enough disk space" );
+		y2error( "Not enough disk space" );
 		ret = `again;
 	    }
 
@@ -327,7 +332,7 @@ You will lose that selection if you change the basic selection.");
 	    error_found = SpaceCalculation::ShowPartitionWarning();
 	    if ( error_found )
 	    {
-		y2error( "Error: not enough disk space" );
+		y2error( "Not enough disk space" );
 	    }
 	}
     } until ( (ret == `next && !error_found) || ret == `cancel ||  ret == `back );
