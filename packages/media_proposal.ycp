@@ -66,7 +66,7 @@
 				      new_product["productname"]:"?" + " " +
 				      new_product["productversion"]:"?");
 
-		ret = $[ "preformatted_proposal" : tmp ];
+		ret = $[ "preformatted_proposal" : HTML::List ([tmp]) ];
 	    }
 	}
     }
