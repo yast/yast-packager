@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Jan 31 21:40:17 CET 2004 - arvin@suse.de
+
+- fixed faking of mtab in inst_kickoff.ycp
+- import Directory in inst_kickoff.ycp
+
+-------------------------------------------------------------------
 Mon Jan 19 13:06:17 CET 2004 - arvin@suse.de
 
 - united inst_rpmcopy.ycp and inst_rpmupdate.ycp
