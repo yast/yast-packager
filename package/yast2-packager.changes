@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 24 17:28:35 CET 2003 - kkaempf@suse.de
+
+- Allow "yast2 -i <tagname>" besides "yast2 -i <packagename>".
+
+-------------------------------------------------------------------
 Mon Feb 24 16:22:39 CET 2003 - cschum@suse.de
 
 - Moved "Enable or Disable" button to own row (#20776).
