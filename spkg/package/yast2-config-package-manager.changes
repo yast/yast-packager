@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  6 11:22:46 CEST 2001 - mvidner@suse.cz
+
+- Added an include to replace RPM Require. (2.4.1)
+
+-------------------------------------------------------------------
 Mon Aug  6 10:52:36 CEST 2001 - gs@suse.de
 
 - deprecated wfm builtins removed
