@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar  3 12:59:37 CET 2003 - gs@suse.de
+
+- pass the floppy device to PackageSelector widget (needed to save
+  or load a package selection, bug #23923) 
+
+-------------------------------------------------------------------
 Fri Feb 28 16:27:42 CET 2003 - kkaempf@suse.de
 
 - don't start source unconditionally (in constructor) any more,
