@@ -24,7 +24,7 @@
         map t = URL::Parse(url);
         if (size(t["pass"]:"") > 0 )
         {
-            t["pass"] = "XXXXXXXX";
+            t["pass"] = "PASSWORD";
         }
         return URL::Build(t);
     }
@@ -106,6 +106,7 @@
 	} 
         */
 
+
 	if (extra_dir != "")
 	{
             if (serverdir != nil)
@@ -127,20 +128,28 @@
 	}
 
 	if (serverdir != nil && serverdir != "")
-	    url_tokens["path"] = serverdir;
-	else
-	    url_tokens["path"] = "/"; // FIXME don't know why it is needed
+        {
+            if (instmode == "ftp" && findfirstof(serverdir, "/") == 0) {
+                // ftp://foo/%2fbar is /bar on foo 
+	        url_tokens["path"] = "%2f" + substring(serverdir,1,size(serverdir));
+            } else {
+	        url_tokens["path"] = serverdir;
+            }
+
+        }
+        else
+            url_tokens["path"] = "/"; // FIXME don't know why it is needed
+
+        string port = Linuxrc::InstallInf("Port");
+        if ((port != nil) && (port != ""))
+        {
+            url_tokens["port"]  = port;
+        }
 
         string url = URL::Build(url_tokens);
 
 	if (is_network)
 	{
-            // broken in linuxrc, might be Portname... (#50781)
-	    string port = Linuxrc::InstallInf("Port");
-	    if ((port != nil) && (port != ""))
-	    {
-                url_tokens["port"]  = port;
-	    }
 	    string proxy = Linuxrc::InstallInf("Proxy");
 	    if ((proxy != nil) && (proxy != ""))
 	    {
