@@ -156,7 +156,7 @@
 	}
 
 	// FIXME needed CDs
-	install_sizes_per_cd	= KiloBytesToBytes (3);
+	install_sizes_per_cd	= KiloBytesToBytes ([1,2,3]);
 
 	if ( Mode::cont && install_sizes_per_cd[0]:0 > 0 )
 	{

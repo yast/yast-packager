@@ -24,6 +24,8 @@
     global integer installed = 0;	// amount of already installed packages
     global integer timestamp = 0;	// last time of getting the target map
 
+    global integer theSource = -1;
+
     // Local variables
 
     string tmpdir	= SCR::Read(.target.tmpdir);
@@ -449,7 +451,10 @@
 
 	ret = add ( ret, "raw_proposal", output );
 
-	y2milestone ("returning %1", ret);
+	y2milestone ("activating selections");
+	boolean act_sel = Pkg::ActivateSelections ();
+
+	y2milestone ("activating: %1, returning %2", act_sel, ret);
 
 	return ret;
     }
@@ -514,8 +519,8 @@
 	}
 
 	y2milestone ("INIT package agent: %1", base_url);
-
-	if (Pkg::SourceInit (base_url) >= 0)
+	theSource = Pkg::SourceInit (base_url);
+	if (theSource >= 0)
 	{
 	    init_called = true;
 	}

@@ -175,15 +175,31 @@
 	// containing only the package filename and the label in the current
 	// language.
 
-	y2milestone ("Pkg::PrepareOrder()");
-	list ins_del_count = Pkg::PrepareOrder();
+	y2milestone ("Pkg::PkgPrepareOrder()");
+	list ins_del_count = Pkg::PkgPrepareOrder();
 	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
 
+	map product = Pkg::SourceProductData (Packages::theSource);
+	string datadir = product["datadir"]:"suse";
+	y2milestone ("datadir %1", datadir);
 	string pkgname = Pkg::PkgNextInstall();
+
 	while ((pkgname != nil)
-		&& (pgkname != ""))
+		&& (pkgname != ""))
 	{
 	    y2milestone ("Installing %1", pkgname);
+	    string location = Pkg::PkgLocation (pkgname);
+	    y2milestone ("location %1/%2", datadir, location);
+	    if (location != nil)
+	    {
+		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
+		y2milestone ("localpath %1", localpath);
+		if (localpath != nil)
+		{
+		    boolean ok = Pkg::TargetInstall (localpath);
+		    y2milestone ("install %1", ok);
+		}
+	    }
 	    pkgname = Pkg::PkgNextInstall ();
 	}
 
