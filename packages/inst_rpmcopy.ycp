@@ -55,33 +55,9 @@
     Pkg::SetLocale (language);
 
     any		ret		= nil;	// return value module packager
-    list	rpm_list	= [];
-    list	descr_list	= [];
 
-    SlideShow::SetLanguage( language );
-    SlideShow::OpenSlideShowDialog();
-
-    if (size(WFM::Args()) >= 3 )
-    {
-	// third argument can be a package name or a list of packages
-	if ( is(WFM::Args(2), string) )
-	{
-	    rpm_list = add( rpm_list, WFM::Args(2) );
-	}
-	else if ( is(WFM::Args(2), list) )
-	{
-	    rpm_list = (list) WFM::Args(2);
-	}
-
-	if (size(WFM::Args()) == 4 )
-	{
-	   // forth argument is a list of package descriptions
-	   if ( is(WFM::Args(3), list) )
-	    {
-		descr_list = (list) WFM::Args(3);
-	    }
-	}
-    }
+    SlideShow::SetLanguage (language);
+    SlideShow::OpenSlideShowDialog ();
 
     // start target, create new rpmdb if none is existing
     // FIXME error checking is missing all around here, initialization could actually fail!
@@ -90,45 +66,21 @@
     if (Mode::initial
 	&& !Mode::update)
     {
-	// created new rpmdb
-
+	// make some directories
 	SCR::Execute(.target.mkdir, Installation::destdir+"/etc");
 	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
 
 	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
 	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir+"/etc");
 	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir+"/etc");
-
     }
     else if (Mode::cont)
     {
 	// initialize the package agent in continue mode
 	Packages::Init( true );
-        SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
+	SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
     }
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
-
-    // ----------------------------------------------------------------------
-    // normal
-
-    if ( size (rpm_list) > 0)
-    {
-	y2milestone( "Installing RPM_LIST: %1", rpm_list );
-	foreach (string pkg, rpm_list,
-	``{
-	    Pkg::PkgInstall (pkg);
-	});
-	Pkg::PkgSolve(false);
-	list commit_result = PackageInstallation::CommitPackages (0, 0);
-
-        // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
-        UI::CloseDialog();
-
-	if (commit_result[0]:0 < 0)
-	    return `abort;
-
-	return `next;
-    }
 
     // ----------------------------------------------------------------------
     // initial/cont
@@ -266,7 +218,7 @@
 	}
 
 	// break on first round with Mediums
-	if (Mode::initial && !Mode::test )
+	if (Mode::initial && !Mode::test)
 	    break;
 
 	current_cd_no = current_cd_no + 1;
