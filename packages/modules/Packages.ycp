@@ -122,6 +122,13 @@
 	    }
 	}
 
+	if (Arch::ia64)
+	{
+	    // install fpswa if the firmware has an older version
+	    if (SCR::Execute(.target.bash, "/sbin/fpswa_check_version") != 0)
+		packages = add (packages, "fpswa");
+	}
+
 	return packages;
     }
 
