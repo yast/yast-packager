@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep  9 14:05:52 CEST 2002 - kkaempf@suse.de
+
+- check base selections in reverse order for matching partition
+  space (default ... minimal). Selection with highest priority
+  matching the current partitioning will be choosen (#18855)
+- 2.6.34
+
+-------------------------------------------------------------------
 Mon Sep  9 14:34:00 CEST 2002 - kkaempf@suse.de
 
 - call solver after activating selections
