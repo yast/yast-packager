@@ -215,7 +215,7 @@
     {
 	boolean go_on = true;
 
-	// returns [ err-installed, err-deleted ]
+	// returns [ int successful, list failed, list remaining ]
 	list commit_result = PackageInstallation::CommitPackages( current_cd_no, packages_installed );
 
 	integer count = commit_result[0]:0;
