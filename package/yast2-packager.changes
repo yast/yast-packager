@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 19 16:34:24 CET 2004 - nashif@suse.de
+
+- close all sources, target and reset destdir after die install 
+  (#36465)
+
+-------------------------------------------------------------------
 Wed Mar 17 11:49:05 CET 2004 - arvin@suse.de
 
 - added download progress callbacks (bug #31445)
