@@ -16,7 +16,6 @@
 
     textdomain "packager";
 
-    import "CheckMedia";
     import "CommandLine";
 
     include "checkmedia/ui.ycp";
@@ -28,9 +27,6 @@
 
     /* main ui function */
     any ret = nil;
-
-    import "StorageDevices";
-    y2internal("cddrives: %1", StorageDevices::cddrives);
 
     /**
      * Command line definition - minimal command line support
