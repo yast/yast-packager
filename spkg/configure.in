@@ -33,4 +33,5 @@ AM_CONDITIONAL(ISPPC, test `uname -m` = ppc)
 AC_OUTPUT(Makefile
 	package/yast2-config-package-manager.spec:yast2-config-package-manager.spec.in
 	src/Makefile
-	doc/Makefile)
+	doc/Makefile
+	testsuite/Makefile)
