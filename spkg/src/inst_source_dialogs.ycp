@@ -90,6 +90,7 @@
                 dialogButtons()
             )
         );
+	UI::SetFocus (`id (`server));
 
         repeat
         {
@@ -123,6 +124,7 @@
                 dialogButtons()
             )
         );
+	UI::SetFocus (`id (`server));
 
         string url = "";
 
@@ -164,6 +166,7 @@
                 dialogButtons()
             )
         );
+	UI::SetFocus (`id (`cd0));
 
         string url = "";
 
@@ -241,6 +244,7 @@
         );
 
         UI::ChangeWidget( `id( `rb_type ), `CurrentButton, protocol );
+	UI::SetFocus (`id (`server));
 
         string url = "";
 
@@ -312,6 +316,7 @@
         );
 
         UI::ChangeWidget( `id( `dir ), `Value, default );
+	UI::SetFocus (`id (`dir));
 
         string url = "";
 
@@ -371,6 +376,7 @@
         );
         
         string url = "";
+	UI::SetFocus (`id (`dir));
         
         symbol input = UI::UserInput();
 
