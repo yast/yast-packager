@@ -23,6 +23,7 @@
     import "InstMedia";
     import "MediaUI";
     import "Packages";
+    import "PackageCallbacks";
     import "SlideShow";
 
     import "Wizard";
@@ -30,38 +31,9 @@
     include "showlog_defines.ycp";
     include "ui/common_popups.ycp";
 
-    include "packages/installationCallback.ycp";
-
     textdomain "packager";
 
     boolean shutup = false;			// show the disk space warning popup only once
-
-
-    /**
-     * media change callback
-     *
-     */
-    global define integer changeMedium (integer error, integer current, integer wanted)
-    ``{
-	y2milestone ("change (err %1, now %2, want %3)", error, current, wanted);
-	string message = sformat ("Please insert media #%1", wanted);
-	string info = sformat ("Found media #%1 (code %2)", current, error);
-	any ret = MediaUI::ChangeMediumPopup (message, info);
-	if (ret == `continue)
-	    return 0;
-	return -1;
-    }
-
-    /**
-     * media open/attach callback
-     *
-     */
-    global define integer errorMedium (string message)
-    ``{
-	y2milestone ("errorMedium(%1)", message);
-	UI::MessagePopup ("Error accessing media:\n"+message);
-	return 0;
-    }
 
 
     /**
@@ -92,11 +64,17 @@
 	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
-	Pkg::SetProgressCallback ("CallbackDisplayProgress");
+	Pkg::CallbackStartProvide ("CallbackPackages::StartProvide");
+	Pkg::CallbackStartInstall ("CallbackPackages::StartInstall");
+	Pkg::CallbackProgress ("CallbackPackages::ProgressInstall");
+	Pkg::CallbackDoneInstall ("CallbackPackages::DoneInstall");
 
-	Pkg::SourceSetMediaChangeCallback (Packages::theSource, "changeMedium");
-	Pkg::SourceSetMediaErrorCallback (Packages::theSource, "errorMedium");
-	
+	foreach (`src, Pkg::SourceGetCurrent(),
+	``{
+	    Pkg::CallbackMediaChange (src, "CallbackPackages::MediaChange");
+	    Pkg::CallbackMediaError (src, "CallbackPackages::MediaError");
+	});
+
 	SlideShow::InitPkgData();
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
@@ -113,49 +91,6 @@
 
 	return commit_result;
     };
-
-
-    /**
-     * Wrapper function for ChangeMedium: Update statistics along with the
-     * (optional) real Medium change popup.
-     * @param cd_no Number of the Medium to request (from 1 on)
-     * @param show_popup false: no popup, only check for presence of this Medium
-     * @return boolean - passed trough from ChangeMedium (true: OK, false: abort)
-     **/
-    global define boolean ChangeMediumWrapper( integer cd_no, boolean show_popup )
-    ``{
-	// y2debug( "Requesting Medium #%1", cd_no );
-
-	boolean ret = true;
-
-	if ( ! Mode::test )
-	{
-	    ret = MediaUI::ChangeMedium( cd_no, show_popup );
-	}
-	else // Mode::test - do some fake
-	{
-	    ret = true;
-
-	    if ( show_popup )
-	    {
-		// No translation, this is for testing only
-		ret = UI::ContinueCancelPopup( sformat( "%1 #%2 requested (test mode).\n\n"			+
-							"You don't really need a %1 - this is just a fake.\n"	+
-							"You can safely just hit 'Continue'.\n"
-							, InstMedia::medianame, cd_no ) );
-	    }
-	}
-
-	if ( ret )
-	{
-	    SlideShow::SetCurrentCdNo( cd_no );
-	}
-	SlideShow::UpdateAllCdProgress( false );
-	// y2debug( "ChangeMediumWrapper returning with %1", ret );
-
-	return ret;
-    };
-
 
 
     //
