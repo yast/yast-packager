@@ -241,7 +241,7 @@
 		y2milestone ("Not available, falling back to '%s'", the_kernel);
 	    }
 
-	    if (kernel != "")
+	    if (the_kernel != "")
 	    {
 		install_list = (list<string>) union (install_list,
 						     Kernel::kernel_packages);
