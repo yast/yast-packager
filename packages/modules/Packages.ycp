@@ -502,7 +502,16 @@
 	    base_url = InstURL::installInf2Url ("");
 	}
 
-	y2milestone ("Initialize Package Manager: %1", base_url);
+	// check if url contains "@" -> might be username/password, hide from logging
+
+	string log_url = base_url;
+	if (findfirstof (log_url, "@") > 0)
+	{
+	    // convert "xxx:://user:pass@server/blah" to "xxx:/...@server/blah"
+	    log_url = substring (log_url, 0, 5) + "..." + substring (log_url, findfirstof (log_url, "@"));
+	}
+
+	y2milestone ("Initialize Package Manager: %1", log_url);
 
 	if (Mode::initial)
 	{
@@ -512,7 +521,7 @@
 	    integer initial_source = Pkg::SourceCreate (base_url);
 	    if (initial_source == nil)
 	    {
-		y2error ("No source on '%1'", base_url);
+		y2error ("No source on '%1'", log_url);
 		return;
 	    }
 
