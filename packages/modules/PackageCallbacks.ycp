@@ -519,6 +519,11 @@
 	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
     }
 
+    global define void ClearDownloadCallbacks () ``{
+	Pkg::CallbackStartDownload ("");
+	Pkg::CallbackProgressDownload ("");
+	Pkg::CallbackDoneDownload ("");
+    }
 
 
     global define void StartRebuildDB () ``{
