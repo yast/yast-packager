@@ -243,13 +243,13 @@
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed);
 	}
 	list remaining = commit_result[2]:[];
-	if (size (remaining) > 0)
+	if (size (remaining) >= 0)
 	{
 	    y2milestone ("remaining: %1", remaining);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining", remaining);
 	}
 	list srcremaining = commit_result[3]:[];
-	if (size (srcremaining) > 0)
+	if (size (srcremaining) >= 0)
 	{
 	    y2milestone ("source remaining: %1", srcremaining);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/srcremaining", srcremaining);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  4 16:50:23 CEST 2003 - kkaempf@suse.de
+
+- clear list of yet-to-be-installed packages if all packages
+  are installed.
+
+-------------------------------------------------------------------
 Thu Sep  4 13:06:42 CEST 2003 - kkaempf@suse.de
 
 - acpid is installed by default now
