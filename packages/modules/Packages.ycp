@@ -130,14 +130,6 @@ define map<integer, string> ParseInstOrderFile (string instorderfile) {
     {
 	list<string> packages = [];
 
-	// check for PCMCIA and add package
-	if (Arch::has_pcmcia ())
-	{
-	    packages = add (packages, "pcmcia");
-	    packages = add (packages, "scpm");
-	    packages = add (packages, "irda");
-	}
-
 	// remove unneeded / add needed packages for ppc
 	if (Arch::ppc ())
 	{
