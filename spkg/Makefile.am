@@ -21,4 +21,5 @@ MAINTAINERCLEANFILES = package/$(RPMNAME)-$(VERSION).tar.bz2 package/$(RPMNAME).
 
 package: $(RPMNAME)-$(VERSION).tar.bz2
 	rm -rf package/$(RPMNAME)-*.tar.bz2
-	mv $(RPMNAME)-$(VERSION).tar.bz2 package
+	parseycp -q -R
+	mv $< package
