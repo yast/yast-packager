@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  4 13:06:42 CEST 2003 - kkaempf@suse.de
+
+- acpid is installed by default now
+
+-------------------------------------------------------------------
 Tue Sep  2 11:29:42 CEST 2003 - kkaempf@suse.de
 
 - add code to ask for front or back side of a media (unfinished).
