@@ -179,7 +179,7 @@
 	{
 	    boolean start_nfsserver = configure["nfs_server", "start_nfsserver"]:false;
 	    if (start_nfsserver)
-		packages = union(packages, ["yast2-nfs-server", "nfs-server"]);
+		packages = union(packages, ["yast2-nfs-server", "nfs-utils"]);
 	}
 
 	if (haskey(configure, "inetd")) {
