@@ -129,7 +129,7 @@ void Rpm_Installer::logRPM ( string line, bool onlyLongFormat,
     if ( line[0] != '%' && line[1] != '%')
     {
 	// logging no percent display
-	string filename = prepend_rootfs (rootfs, "/var/log/y2logRPM");
+	string filename = prepend_rootfs (rootfs, "/var/log/YaST2/y2logRPM");
 	ofstream fpRpmLog ( filename.c_str(), ios::app | ios::ate );
 	if ( fpRpmLog )
 	{
@@ -139,7 +139,7 @@ void Rpm_Installer::logRPM ( string line, bool onlyLongFormat,
 	if ( !onlyLongFormat )
 	{
 	    // short form of logging
-	    filename = prepend_rootfs (rootfs, "/var/log/y2logRPMShort");
+	    filename = prepend_rootfs (rootfs, "/var/log/YaST2/y2logRPMShort");
 	    ofstream fpRpmLogShort ( filename.c_str() , ios::app | ios::ate );
 	    if ( fpRpmLogShort )
 	    {

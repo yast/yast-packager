@@ -149,9 +149,9 @@
 	``{
 	import "AutoInstall";
 	list packages = [];
-	
+
 	packages = union (packages, AutoInstall::packageList());
-	
+
 	// In autoinst mode, a kernel might be external and not available
 	// in common.pkd
 	if (size(AutoInstall::Kernel)==0) {
@@ -354,7 +354,7 @@
              || !SpaceCalculation::CheckDiskSize() )
         {
             // make a new proposal or change a proposal,
-            // if it does not fit on the disk anymore 
+            // if it does not fit on the disk anymore
 
             list available_selections = [["default"], ["Standard"], ["Minimal+X11"],
 ["Minimal"]];
@@ -366,7 +366,7 @@
                 // force install mode for certify cd
                 counter = 1; // setting to Standard
             }
-            
+
             while ( !fit
                     && counter < size(available_selections) )
             {
@@ -375,12 +375,12 @@
                 SCR::Execute(.package.selectSelInstall,
                              select( current_sel,0 ,""),
                              true );
-            
+
                 // get all packages to install
-                // Initialize package agent with the packages which have to be installed, 
+                // Initialize package agent with the packages which have to be installed,
                 // but without resetting single-selected packages.
 		list package_list = Packages::ComputeInstallList ();
-		SCR::Execute(.package.setInstallSelection, package_list, true );		
+		SCR::Execute(.package.setInstallSelection, package_list, true );
                 if ( !SpaceCalculation::CheckDiskSize() )
                 {
                     // does not fit --> trying next
@@ -538,7 +538,7 @@
 	    // This text should be translated after 8.0.
 	    // Currently this error should only occured while developping.
 	    Report::Error( _("Error while initializing package descriptions.
-Check the log file /var/log/y2log for more details.") );
+Check the log file /var/log/YaST2/y2log for more details.") );
 	}
 
 	return;

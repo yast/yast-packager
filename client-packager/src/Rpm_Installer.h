@@ -72,7 +72,7 @@ public:
     * Check, if the package is installed
     */
    bool is_installed();
-   
+
   /**
    * Read a line from the rpm process.
    */
@@ -90,10 +90,10 @@ public:
   void kill();
 
    /**
-    * Logging rpm-command and results /var/log/y2logRPM and
-    * /var/log/y2logRPMShort
+    * Logging rpm-command and results /var/log/YaST2/y2logRPM and
+    * /var/log/YaST2/y2logRPMShort
     */
-  void logRPM ( string line, bool onlyLongFormat, bool withoutCR = false );   
+  void logRPM ( string line, bool onlyLongFormat, bool withoutCR = false );
 
 private:
 
@@ -106,7 +106,7 @@ private:
    * Path of the rpm-db
    */
    string rpmDBPath;
-   
+
   /**
    * The name of the current package.
    */
@@ -118,7 +118,7 @@ private:
     * have to be logged in the short form
     **/
    bool globaLogShortRPM;
-   
+
   /**
    * The connection to the rpm process.
    */
@@ -129,7 +129,7 @@ private:
     **/
    void splitt( string source, string *column, int max_column,
 		string seperator );
-   
+
   /**
    * Run rpm with the specified arguments and handle stderr.
    * @param n_opts The number of arguments

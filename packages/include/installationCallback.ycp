@@ -1,7 +1,7 @@
 /**
  * Include: 		installationCallbak.ycp
  *
- * Authors:		Gabriele Strattner <gs@suse.de>	
+ * Authors:		Gabriele Strattner <gs@suse.de>
  *
  * Purpose: 		provides the Callbacks for y2client "packager"
  *
@@ -10,7 +10,7 @@
 
 {
 
-    textdomain "packages";    
+    textdomain "packages";
 
 
     /**
@@ -20,7 +20,7 @@
 
 	/**
 	 * Callback that will be called by the packager as packages are installed
-	 **/ 
+	 **/
 	global define symbol CyclicInstallPkgCallback( string  pkg_name,
 						       string  pkg_description,
 						       integer pkg_percent,
@@ -39,10 +39,10 @@
 					      false );	// deleting
 	};
 
-	
+
 	/**
 	 * Callback that will be called by the packager as packages are deleted
-	 **/ 
+	 **/
 	global define symbol CyclicDeletePkgCallback( string  pkg_name,
 						      string  pkg_description,
 						      integer pkg_percent,
@@ -101,14 +101,14 @@ Do you want to go on with the installation?\n"),
 		    shutup = true;
 	    }
 	}
-	
+
 	any button = UI::PollInput();
 
 	// in case of cancel ask user if he really wants to quit installation
 	if ( button == `abort )
 	{
 	    boolean ret = false;
-	    
+
 	    if ( Mode::normal )
 	    {
 		ret = UI::AnyQuestionPopup( NoHeadline(),
@@ -138,7 +138,7 @@ Do you want to go on with the installation?\n"),
 	if ( error )
 	{
 	    y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
-	    
+
 	    // add package to list error_packages (module "PackageInstallation")
 	    error_packages = add( error_packages, pkg_name );
 
@@ -163,11 +163,11 @@ Do you want to go on with the installation?\n"),
 
 		    if ( answer == `yes_short )
 		    {
-			text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2logRPMShort");
+			text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPMShort");
 		    }
 		    if ( answer == `yes_long )
 		    {
-			text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2logRPM");
+			text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
 		    }
 
 		    answer = UI::DisplayLogFile( text, answer );
