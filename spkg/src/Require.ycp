@@ -352,7 +352,12 @@
 
 	    // Only run SuSEconfig if any packages were installed?
 	    // No, deleted packages are not covered by this.
-	    if (true || result[0]:-1 > 0)
+	    // if (true || result[0]:-1 > 0)
+
+	    // But omit it during installation, one is run at its end.
+	    // #25071
+	    import "Mode";
+	    if (!Mode::initial && !Mode::cont)
 	    {
 		Wizard::CreateDialog ();
 		// inst_suseconfig returns `auto or `next
