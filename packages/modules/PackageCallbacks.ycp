@@ -478,7 +478,7 @@
     /**
      * dummy source change callback, see SlideShowCallbacks for the real one
      */
-    global define string SourceChange (integer source, integer medianr)
+    global define void SourceChange (integer source, integer medianr)
     {
 	y2milestone ("SourceChange (%1, %2)", source, medianr);
 	_current_source = source + 1;
