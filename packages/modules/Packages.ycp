@@ -228,7 +228,7 @@
 	list<string> install_list =  architecturePackages ();
 
 	install_list = (list<string>) union (install_list, modePackages ());
-	install_list = (list<string>) union (install_list, 
+	install_list = (list<string>) union (install_list,
 	                                     Storage::AddPackageList());
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
@@ -584,6 +584,29 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	}
     }
 
+
+    /**
+     *
+     */
+    define void add_information_about_suboptimal_distribution (list& output)
+    ``{
+	// this depends on the kernel
+	if (Arch::i386)
+	{
+	    list tmp1 = (list) SCR::Read (.probe.cpu);
+	    map tmp2 = tmp1[0]:$[];
+	    string tmp3 = tmp2["name"]:"";
+
+	     // this depends on the cpu
+	    if (tmp3 == "Athlon HX")
+	    {
+		output = add (output, _("Your computer is a 64-bit x86-64 system.") + " " +
+			      _("But you are trying to install a 32-bit distribution."));
+	    }
+	}
+    }
+
+
     /**
      * Proposal()
      * Make a proposal for package selection
@@ -642,7 +665,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 
 	// remember if we must re-do the proposal.
 	// If not, there's no need to activate any selections !
-	boolean redo_proposal = (choosen_base_selection == "") &&  !Mode::autoinst;
+	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst;
 
 	if (ProductFeatures::base_selection_choice == `fixed)
 	{
@@ -738,6 +761,9 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 
 	// generate user readable output for proposal
 	list output = [];
+
+	if (ProductFeatures::inform_about_suboptimal_distribution)
+	    add_information_about_suboptimal_distribution (output);
 
 	map base_data = Pkg::SelectionData (selected_base_selection);
 	if (base_data == nil)
