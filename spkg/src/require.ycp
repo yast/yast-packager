@@ -91,7 +91,7 @@
      * @return true/false
      */
 
-    global define boolean IsAnyPackageInstalled (list(string) packages) ``{
+    global define boolean IsAnyPackageInstalled (list<string> packages) ``{
 	string which = find(`p, packages, ``{ return IsPackageInstalled (p); });
 	return which != nil;
     }
@@ -101,7 +101,7 @@
      * @param packages list of packages
      * @return true/false
      */
-    global define boolean AreAllPackagesInstalled (list(string) packages) ``{
+    global define boolean AreAllPackagesInstalled (list<string> packages) ``{
 	string which = find(`p, packages, ``{ return ! IsPackageInstalled (p); });
 	return which == nil;
     }
@@ -112,7 +112,7 @@
      * @param toremove pacakges to remove
      * @return success?
      */
-    global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
+    global define boolean DoInstallAndRemove (list<string> toinstall, list<string> toremove) ``{
 	y2debug ("toinstall: %1, toremove: %2", toinstall, toremove);
 	EnsureSourceInit ();
 	EnsureTargetInit ();
@@ -164,12 +164,12 @@
      * @param cancel_button Text which is going to be on the right-hand button (cancel)
      * @return installation successful?
      */
-    global define boolean InstallAndRemoveButtons ( list(string) require,
-					    list(string) conflict,
+    global define boolean InstallAndRemoveButtons ( list<string> require,
+					    list<string> conflict,
 					    string help,
 					    string continue_button, string cancel_button ) ``{
-	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalled (p)));
-	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalled (p)));
+	list<string> toinstall = filter (`p, require, ``(!IsPackageInstalled (p)));
+	list<string> toremove = filter (`p, conflict, ``(IsPackageInstalled (p)));
 	string message = sformat (help,
 				  mergestring (toinstall, ", "),
 				  mergestring (toremove, ", ")
@@ -201,7 +201,7 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    global define boolean InstallAndRemove (list(string) require, list(string) conflict, string help) ``{
+    global define boolean InstallAndRemove (list<string> require, list<string> conflict, string help) ``{
 	return InstallAndRemoveButtons ( require,
 					 conflict,
 					 help,
@@ -220,8 +220,8 @@
      * @param cancel_button Text which is going to be on the right-hand button (cancel)
      * @return installation successful?
      */
-    global define boolean RequireAndConflictButtons ( list(string) require,
-					      list(string) conflict,
+    global define boolean RequireAndConflictButtons ( list<string> require,
+					      list<string> conflict,
 					      string help,
 					      string continue_button, string cancel_button ) ``{
 	if (AreAllPackagesInstalled (require) &&  !IsAnyPackageInstalled (conflict))
@@ -244,7 +244,7 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    global define boolean RequireAndConflict (list(string) require, list(string) conflict, string help) ``{
+    global define boolean RequireAndConflict (list<string> require, list<string> conflict, string help) ``{
 	return RequireAndConflictButtons( require,
 					  conflict,
 					  help,

@@ -49,7 +49,7 @@
      * Fill sources table with entries from the InstSrcManager agent.
      */
     global define void fillTable() ``{
-        list(integer) sources = Pkg::SourceGetCurrent ( false );
+        list<integer> sources = Pkg::SourceGetCurrent ( false );
 
         list items = [];
 
