@@ -21,6 +21,8 @@
     global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
     global list<list<integer> > remaining_times_per_cd_per_src	= [];	// remaining times
     global list<string>		inst_src_names			= [];	// a list of strings identifying each installation source
+    global list<list<integer> > total_pkg_count_per_cd_per_src	= [];	// number of pkgs per inst-src: [ [7, 5, 3], [2, 3, 4] ]
+    global list<list<integer> > remaining_pkg_count_per_cd_per_src = []; // remaining number of pkgs
     global string	media_type		= "CD";
     global integer	total_size_installed	= 0;
     global integer	total_size_to_install	= 0;
@@ -31,7 +33,8 @@
     global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
     global integer	max_time_per_cd		= 7200; // const - seconds to cut off predicted time (it's bogus anyway)
     global integer	size_column		= 1;	// const - column number for remaining size per CD
-    global integer	time_column		= 2;	// const - column number for remaining time per CD
+    global integer	pkg_count_column	= 2;	// const - column number for remaining number of packages per CD
+    global integer	time_column		= 3;	// const - column number for remaining time per CD
     global integer	next_recalc_time	= -1;
     global integer	current_src_no		= -1;	// 1..n
     global integer	current_cd_no		= -1;	// 1..n
@@ -184,7 +187,7 @@
      * @param remaining		bytes remaining, -1 for 'done'
      * @return			string human readable remaining time or byte / kB/ MB size
      **/
-    string FormatRemaining( integer remaining )
+    string FormatRemainingSize( integer remaining )
     {
 	if ( remaining <  0 )
 	{
@@ -197,6 +200,27 @@
 	}
 
 	return String::FormatSize( remaining );
+    }
+
+
+    /**
+     * Format number of remaining packages to be installed as string.
+     * @param remaining		bytes remaining, -1 for 'done'
+     * @return			string human readable remaining time or byte / kB/ MB size
+     **/
+    string FormatRemainingCount( integer remaining )
+    {
+	if ( remaining <  0 )
+	{
+	    // Nothing more to install from this CD (very concise - little space!!)
+	    return _( "Done." );
+	}
+	if ( remaining == 0 )
+	{
+	    return "";
+	}
+
+	return sformat( "%1", remaining );
     }
 
 
@@ -217,7 +241,7 @@
 	text = sformat( _( "Remaining:\n%1" ),
 			unit_is_seconds ?
 			FormatTime( remaining ) :
-			FormatRemaining( remaining ) ) ;
+			FormatRemainingSize( remaining ) ) ;
 
 	return text;
     }
@@ -530,6 +554,12 @@
     }
 
 
+    integer TotalRemainingPkgCount()
+    {
+	return ListSum( flatten( remaining_pkg_count_per_cd_per_src ) );
+    }
+
+
     integer TotalInstalledSize()
     {
 	return total_size_to_install - TotalRemainingSize();
@@ -580,6 +610,8 @@
 	}
 
 	remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = remaining;
+	remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = 
+	    remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0 -1;
 
 	if ( unit_is_seconds && bytes_per_second > 0 )
 	{
@@ -742,6 +774,15 @@
 
 
     /**
+     * Create one single item for the CD statistics table
+     **/
+    term TableItem( string id, string col1, string col2, string col3, string col4 )
+    {
+	return `item(`id( id ), col1, col2, col3, col4 );
+    }
+
+
+    /**
      * Returns a table widget item list for CD statistics
      **/
     list<term> CdStatisticsTableItems()
@@ -753,19 +794,28 @@
 	//
 
 	{
-	    term item = `item(`id("total"),
-			      // List column header for total remaining MB and time to install
-			      _( "Total" ) );					// column #0
-
-	    integer remaining = ListSum( flatten( remaining_sizes_per_cd_per_src ) );
-	    item = add( item, FormatRemaining( remaining ) );			// column #1
+	    // List column header for total remaining MB and time to install
+	    string caption 	=  _( "Total" );
+	    integer remaining 	= TotalRemainingSize();
+	    string rem_size	= FormatRemainingSize( remaining );
+	    string rem_count 	= FormatRemainingCount( TotalRemainingPkgCount() );
+	    string rem_time 	= "";
 
 	    if ( unit_is_seconds && bytes_per_second > 0 )
-		item = add( item, FormatTime( remaining / bytes_per_second ) ); // column #2
-	    else
-		item = add( item, "" );
+	    {
+		integer seconds = remaining / bytes_per_second;
+		rem_time = FormatTime( seconds );
 
-	    itemList = add( itemList, item );
+		if ( seconds > max_time_per_cd )
+		{
+		    // When data throughput goes downhill (stalled network connection etc.),
+		    // a total sum of unreliable predictions doesn't make any sense -
+		    // simply forget it!
+		    rem_time = "";
+		}
+	    }
+
+	    itemList = add( itemList, TableItem( "total", caption, rem_size, rem_count, rem_time ) );
 	}
 
 
@@ -787,37 +837,40 @@
 		    // Add heading for this installation source
 		    //
 
-		    itemList = add( itemList,
-				    `item(`id( sformat( "src(%1)", src_no ) ), inst_src_names[ src_no ]:"", "", "" ) );
+		    itemList = add( itemList, TableItem( sformat( "src(%1)", src_no ),
+							 inst_src_names[ src_no ]:"", "", "", "" ) );
 		}
 
 		integer cd_no = 0;
 
 		foreach ( integer remaining, inst_src, ``{
 		    if ( remaining > 0
-			 || ( src_no+1 == current_src_no && cd_no+1 == current_cd_no ) )	// don't suppress current CD
+			 || ( src_no+1 == current_src_no && cd_no+1 == current_cd_no ) )	// suppress current CD
 		    {
-			term item = `item(`id( sformat("cd(%1,%2)", src_no, cd_no ) ),
-					  sformat( "%1 %2", media_type, cd_no+1 ),		// "CD 1" - column #0
-					  FormatRemaining( remaining ) );			// column #1
+			string caption  = sformat( "%1 %2", media_type, cd_no+1 );		// "CD 1" - column #0
+			string rem_size = FormatRemainingSize( remaining );			// column #1
+			string rem_count = FormatRemainingCount( remaining_pkg_count_per_cd_per_src[ src_no, cd_no ]:0 );
+			string rem_time = "";
 
 			if ( unit_is_seconds && bytes_per_second > 0 )
 			{
 			    remaining = remaining / bytes_per_second;
+			    string rem_time = FormatTime( remaining );				// column #2
 
 			    if ( remaining > max_time_per_cd )		// clip off at 2 hours
 			    {
 				// When data throughput goes downhill (stalled network connection etc.),
 				// cut off the predicted time at a reasonable maximum.
-				remaining = max_time_per_cd;
+				// "%1" is a predefined maximum time.
+				rem_time = sformat( _( ">%1" ), FormatTime( max_time_per_cd ) );
 			    }
-
-			    item = add( item, FormatTime( remaining ) );			// column #2
 			}
-			else
-			    item = add( item, "" );
 
-			itemList = add( itemList, item );
+			itemList = add( itemList,
+					TableItem( sformat("cd(%1,%2)", src_no, cd_no ),	// ID
+						   caption, rem_size, rem_count, rem_time ) );
+
+
 		    }
 
 		    cd_no = cd_no + 1;
@@ -886,7 +939,11 @@
 	integer remaining = remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0;
 	UI::ChangeWidget(`id(`cdStatisticsTable ),
 			 `Item( sformat( "cd(%1,%2)", current_src_no-1, current_cd_no-1), size_column ),
-			 FormatRemaining( remaining ) );
+			 FormatRemainingSize( remaining ) );
+
+	UI::ChangeWidget(`id(`cdStatisticsTable ),
+			 `Item( sformat( "cd(%1,%2)", current_src_no-1, current_cd_no-1), pkg_count_column ),
+			 FormatRemainingCount( remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0 ) );
 
 	if ( unit_is_seconds )
 	{
@@ -916,13 +973,26 @@
 
 	UI::ChangeWidget(`id( `cdStatisticsTable ),
 			 `Item( "total", size_column ),
-			 FormatRemaining( TotalRemainingSize() ) );
+			 FormatRemainingSize( TotalRemainingSize() ) );
+
+	UI::ChangeWidget(`id( `cdStatisticsTable ),
+			 `Item( "total", pkg_count_column ),
+			 FormatRemainingCount( TotalRemainingPkgCount() ) );
 
 	if ( unit_is_seconds )
 	{
-	    UI::ChangeWidget(`id( `cdStatisticsTable ),
-			     `Item( "total", time_column ),
-			     FormatTime( TotalRemainingTime() ) );
+	    integer seconds = TotalRemainingTime();
+	    string rem_time = FormatTime( seconds );
+	    
+	    if ( seconds > max_time_per_cd )
+	    {
+		// When data throughput goes downhill (stalled network connection etc.),
+		// a total sum of unreliable predictions doesn't make any sense -
+		// simply forget it!
+		rem_time = "";
+	    }
+	    
+	    UI::ChangeWidget(`id( `cdStatisticsTable ), `Item( "total", time_column ), rem_time );
 
 	}
     }
@@ -1204,7 +1274,10 @@
 						`Table( `id(`cdStatisticsTable), `opt(`keepSorting),
 							`header(
 								// Table headings for CD statistics during installation
-								_( "Media" ), `Right( _( "Size" ) ), `Right(  _( "Time" ) )
+								_( "Media" ),
+								`Right( _( "Size" ) ),
+								`Right( _( "Packages" ) ),
+								`Right(  _( "Time" ) )
 								),
 							CdStatisticsTableItems()
 							)
@@ -1358,14 +1431,19 @@
 	if ( init_pkg_data_complete )
 	    return;
 
-	total_sizes_per_cd_per_src	= Pkg::PkgMediaSizes();
-	inst_src_names			= Pkg::PkgMediaNames();
-	total_size_to_install		= ListSum( flatten( total_sizes_per_cd_per_src ) );
-	remaining_sizes_per_cd_per_src	= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
-	total_cd_count			= size( flatten( total_sizes_per_cd_per_src ) );
-	init_pkg_data_complete		= true;
+	total_sizes_per_cd_per_src		= Pkg::PkgMediaSizes();
+	inst_src_names				= Pkg::PkgMediaNames();
+	total_pkg_count_per_cd_per_src		= Pkg::PkgMediaCount();
+
+
+	total_size_to_install			= ListSum( flatten( total_sizes_per_cd_per_src ) );
+	remaining_sizes_per_cd_per_src		= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
+	remaining_pkg_count_per_cd_per_src	= (list<list <integer> >) eval (total_pkg_count_per_cd_per_src);
+	total_cd_count				= size( flatten( total_sizes_per_cd_per_src ) );
+	init_pkg_data_complete			= true;
 
 	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
+	y2milestone( "SlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
 	RebuildDialog();
     }
 
