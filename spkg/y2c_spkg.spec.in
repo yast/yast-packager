@@ -21,7 +21,7 @@ Packager:     @MAINTAINER@
 
 Summary:      YaST2 Modules for installation
 Version:      @VERSION@
-Source0:      @RPMNAME@-@VERSION@.tar.gz
+Source0:      @RPMNAME@-@VERSION@.tar.bz2
 
 %description
 -
