@@ -67,11 +67,18 @@
 		}
 		url = url + "@";
 	    }
-	    string server = (string) SCR::Read (.etc.install_inf.Server);
-	    if ((server != nil) && (server != ""))
+	    string servername = (string) SCR::Read (.etc.install_inf.ServerName);
+	    string serverip = (string) SCR::Read (.etc.install_inf.ServerIP);
+
+	    if ((servername != nil) && (servername != ""))
 	    {
-		url = url + server;
+		url = url + servername;
 	    }
+	    else if ((serverip != nil) && (serverip != ""))
+	    {
+		url = url + serverip;
+	    }
+
 	} // is_network
 
 	string serverdir = (string) SCR::Read (.etc.install_inf.Serverdir);
