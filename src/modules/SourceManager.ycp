@@ -348,6 +348,8 @@ global boolean CreateLocalMetaData (
         {
             y2milestone ("copy slide show %1 %2", datadir, slidedir);
             WFM::Execute (.local.bash, "/bin/cp -r " + datadir + "/* " + slidedir);
+
+            // if directory is empty, remove it.
             WFM::Execute (.local.bash, "/bin/rmdir " + slidedir);
         }
     }

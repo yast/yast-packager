@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Feb 17 18:31:02 CET 2005 - nashif@suse.de
+
+- Adapted creation of samba URLs (#26059)
+- Do not rewrite multiple CD urls (multiple sources on CD) with one
+  sinle URL read from install.inf
+- Testsuites for source URLs
+- V 2.11.24
+
+-------------------------------------------------------------------
 Thu Feb 17 16:43:28 CET 2005 - sh@suse.de
 
 - Fixed bug #51006: sw_single during installation starts with "search"

@@ -31,7 +31,6 @@
     import "Label";
     import "Wizard";
 
-    global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
 
@@ -591,8 +590,7 @@ Select which desktop to install.</p>
 		y2error ("Pkg::SourceStartCache failed");
 		theSources = [];
 	    }
-	    else if (!url_rewritten				// rewrite URL if cd/dvd since ide-scsi might have changed it
-		     && Stage::cont ()
+	    else if ( Stage::cont ()    // rewrite URL if cd/dvd since ide-scsi might have changed it
 		     && ((substring (base_url, 0, 2) == "cd")
 			|| (substring (base_url, 0, 3) == "dvd")))
 	    {
@@ -602,8 +600,9 @@ Select which desktop to install.</p>
 		    if ((substring (url, 0, 2) == "cd")			// source comes from cd/dvd
 			|| (substring (url, 0, 3) == "dvd"))
 		    {
-			y2milestone ("rewrite url: '%1'->'%2'", url, log_url);
-			Pkg::SourceChangeUrl (source, base_url);
+                        string new_url = InstURL::RewriteCDUrl(url);
+			y2milestone ("rewrite url: '%1'->'%2'", url, InstURL::HidePassword(new_url));
+			Pkg::SourceChangeUrl (source, new_url);
 		    }
 		});
 	    }
