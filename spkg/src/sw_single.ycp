@@ -205,12 +205,6 @@ do this.</P>
 
     list arg_list = CheckArguments();
 
-    //
-    // Get informations for initialisation of package agent
-    //
-    // 8.0: Initialisation is done inside constructor of the package agent.
-    //	    The installation mode is set to Mode::nornal.
-    //
 
     /*
      * main dialog loop
@@ -227,7 +221,7 @@ do this.</P>
     any result = `next;
 
     // assume package information already on destination
-    // TODO: pathes are not used any longer here to initialize package agent -
+    // TODO: pathes are not used any longer here to initialize the package agent -
     //       Packages::Init does the work
     
     string descrPath = Installation::descrdestdir + "/suse";
@@ -325,7 +319,7 @@ do this.</P>
 
     while ((dialog_id >= 0) && (dialog_id < size (dialog)))
     {
-	if ( dialog_id == 1 )
+	if ( dialog_id == 1 )	// Single Package Selection dialog
 	{
 	    any retval = nil;
 
@@ -408,7 +402,7 @@ must NOT be older than the version of your installed system.\n");
 
 		    foreach( `package, installList,
 			     ``{
-			any r = SCR::Execute( .package.selectInstall,"xv", false);
+			any r = SCR::Execute( .package.selectInstall, package, false);
 			y2debug( ".package.selectInstall: %1", package );
 		    });
 
