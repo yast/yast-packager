@@ -102,7 +102,7 @@
 	    string message = sformat(_("%1 packages returned an error.
 View the log file?
 "), size (errpacks));
-	    if ( Popup::AnyQuestion( Popup::NoHeadline(), message, Label::YesButton(), Label::NoButton(), `focus_no))
+	    if ( Popup::AnyQuestion( Popup::Popup::NoHeadline(), message, Label::YesButton(), Label::NoButton(), `focus_no))
 	    {
 		retAsk = `yes_short;
 	    }
