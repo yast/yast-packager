@@ -24,11 +24,11 @@ proc testsuite-run { src } {
 
   if {[llength $fname] < 2} {
     fail "Bad filename syntax '$src'"
-    return
+    return -1
   }
   if {[lindex $fname [expr [llength $fname]-1]] != "ycp"} {
     fail "Not .ycp extension '$src'"
-    return
+    return -1
   }
 
   # setup filenames
@@ -55,34 +55,50 @@ proc testsuite-run { src } {
   set oops [catch { set result [exec "run/runtest.sh" "$test_input" "$tmpout_name" "$tmperr_name" ] } catched]
 
   if {$oops != 0} {
-    fail "test case failed for $base_name: $catched"
-    return
+    fail "Test case failed for $base_name: $catched"
+    return -1
   }
 
   # check return code from runycp
 
   if {$result != ""} {
     warning "Compilation of $base_name results in '$result'"
-    return
-  }
-
-  # check stdout
-
-  if {[diff $stdout_name "tmp.out.$base_name"] != 1} {
-    fail "Wrong stdout for $base_name"
-    return
+    return -1
   }
 
   # check stderr
 
   if {[diff $stderr_name "tmp.err.$base_name"] != 1} {
     fail "Wrong stderr for $base_name"
-    return
+    set oops [catch { set result [exec test -f $stderr_name] } catched ]
+    if {$oops == 0} {
+      puts "\nThe diff follows...\n"
+      puts [exec sh -c "diff -u $stderr_name tmp.err.$base_name || true"]
+      puts ""
+      fail "Wrong stderr for $base_name"
+      puts "See the diff above."
+    }
+    return -1
+  }
+
+  # check stdout
+
+  if {[diff $stdout_name "tmp.out.$base_name"] != 1} {
+    fail "Wrong stdout for $base_name"
+    set oops [catch { set result [exec test -f $stdout_name] } catched ]
+    if {$oops == 0} {
+      puts "\nThe diff follows...\n"
+      puts [exec sh -c "diff -u $stdout_name tmp.out.$base_name || true"]
+      puts ""
+      fail "Wrong stdout for $base_name"
+      puts "See the diff above."
+    }
+    return -1
   }
 
   # ok, all is fine
 
   pass $base_name
 
-  return
+  return 0
 }

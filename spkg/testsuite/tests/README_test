@@ -31,6 +31,8 @@ Command line:
 > /sbin/yast2 sw_single  \"/usr/local_src/yast2/modules/y2c_spkg/testsuite/gnuchess.rpm\"
 -> gnuchess wird ohne dependency check installiert
 
+> /usr/lib/YaST2/bin/y2bignfat sw_single qt \"beginner\"
+
 make check test cases:
 ++++++++++++++++++++++
 sw_popup:

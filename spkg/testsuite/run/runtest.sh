@@ -1,20 +1,44 @@
 #! /bin/bash
-export PATH="$PATH:/usr/lib/YaST2/bin"
-export PATH="$PATH:/usr/lib/YaST2/clients"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/YaST2/lib"
-export Y2DEBUG=1
 
+# Run test on one ycp file
+# Michal Svec <msvec@suse.cz>
+#
 # $1 = script.ycp
 # $2 = stdout
 # $3 = stderr
+#
+# $Id$
+
+unset LANG
+unset LC_CTYPE
+unset LC_NUMERIC
+unset LC_TIME
+unset LC_COLLATE
+unset LC_MONETARY
+unset LC_MESSAGES
+unset LC_PAPER
+unset LC_NAME
+unset LC_ADDRESS
+unset LC_TELEPHONE
+unset LC_MEASUREMENT
+unset LC_IDENTIFICATION
+unset LC_ALL
+
+export Y2DEBUG=1
+export Y2DEBUGALL=1
+
+export PATH="$PATH:/usr/lib/YaST2/bin"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/YaST2/lib"
 
 parse() {
   file="`mktemp /tmp/yast2-test.XXXXXX`"
-  cat >$file
+  cat >"$file"
   if [ -z "$Y2TESTSUITE" ]; then
-    seds="s/ <[2-5]> [^ ]\+ \[YCP\] [^ ]\+ / <0> host [YCP] file LoGlOg=/"
-    cat "$file" | sed "$seds" | grep -E "<[012]>.*(\[ag_dummy\]|\[bash_stdout\]|rEaL_rEt=|aNY_OutPuT=|LoGlOg=|SW_SINGLE|installList|deleteList)" | cut -d" " -f7-| grep -v "^checkPath" | sed -e 's/rEaL_rEt=/Return	/' | sed -e 's/aNY_OutPuT=/Dump	/' | sed -e 's/LoGlOg=/Log	/'
-    cat "$file" | grep "<[^012]>" | grep -v "\[YCP\]" | grep -vF "type declaration with '|' will go away soon" >&2
+    sed1="s/ <[2-5]> [^ ]\+ \[YCP\] [^ ]\+ / <0> host [YCP] file LoGlOg=/"
+    components="\[ag_dummy\]|\[bash\]"
+    ycp="\[YCP\].*(rEaL_rEt=|aNY_OutPuT=|LoGlOg=|fIlE_OutPuT=)"
+    cat "$file" | grep -v "checkPath" | grep -v "Exit status is " | sed "$sed1" |grep -E "<[012]>[^\[]*($ycp|$components)" | cut -d" " -f7- | sed -e 's/rEaL_rEt=/Return	/' | sed -e 's/aNY_OutPuT=/Dump	/' | sed -e 's/fIlE_OutPuT=/File	/' | sed -e 's/LoGlOg=/Log	/'
+    cat "$file" | grep "<[345]>" | grep -v "\[YCP\]" >&2
   else
     echo "Y2TESTSUITE set to \"$Y2TESTSUITE\""
     echo
@@ -23,10 +47,14 @@ parse() {
   rm -f "$file"
 }
 
-( y2bignfat -l /dev/fd/2 "$1" qt 2>&1 ) | parse >"$2" 2>"$3"
+( y2bignfat -l /dev/fd/1 "$1" scr 2>&1 ) | parse >"$2" 2>"$3"
 
-#( y2bignfat "$1" qt 2>&1 ) | parse >"$2" 2>"$3"
+retcode="$PIPESTATUS"
+if [ "$retcode" -ge 128 ]; then
+  sig=$[$retcode-128]
+  echo -ne "\nCommand terminated on signal '$sig'"
+  echo -e '!\n'
+fi
 
-#(y2bignfat -l /dev/fd/2 $1 scr >$2) 2>&1 | cat > $3
-#(y2bignfat -l /dev/fd/2 $1 scr >$2) 2>&1 | fgrep "[ag_dummy]" | cut -d" " -f7- > $3
-#(y2bignfat -l /dev/fd/2 $1 scr >$2) 2>&1 | fgrep "[ag_dummy]" | sed 's/^....-..-.. ..:..:.. [^)]*) //g' > $3
+exit "$retcode"
+# EOF
