@@ -5,8 +5,8 @@
 @HEADER@
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
-Provides:	yast2-trans-inst-packages
-Obsoletes:	yast2-trans-inst-packages
+Provides:	yast2-trans-package-manager yast2-trans-inst-packages
+Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
 
 Summary:	-
 
