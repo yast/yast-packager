@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Sep  7 14:12:06 CEST 2002 - kkaempf@suse.de
+
+- adapt medie change api
+- 2.6.30
+
+-------------------------------------------------------------------
 Sat Sep  7 10:58:54 CEST 2002 - kkaempf@suse.de
 
 - pass probed devices to URL
