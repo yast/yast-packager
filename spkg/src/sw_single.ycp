@@ -83,16 +83,16 @@
 
    define CheckWhichPackages (list arg_list) ``{
 
-	string postfix = "";
-
-	if (size (arg_list) > 0)
+	if (size (arg_list) <= 0)
 	{
-	    // if sw_single is called with argument "beginner" or with a package list or package name
-	    // -> skip inst_source (if possible)
-
-	    string postfix =  substring (select (arg_list, 0), size (select (arg_list, 0)) - 4 );
-	    y2debug("SW_SINGLE: POSTFIX: %1", postfix );
+	    return `next;
 	}
+
+	// if sw_single is called with argument "beginner" or with a package list or package name
+	// -> skip inst_source (if possible)
+
+	string postfix =  substring (select (arg_list, 0), size (select (arg_list, 0)) - 4 );
+	y2milestone("SW_SINGLE: POSTFIX: %1", postfix );
 
 	// if sw_single is called with an absolute package-pathname, there is no need to
 	// mount the source medium or check SuSE version or depemdendies
@@ -120,6 +120,8 @@
 	}
 	else		// no package given, try to mount source medium
 	{
+	    y2milestone ("beginner");
+
 	    // initialize InstMedia from running system
 
 	    InstMedia::initializeInstMedia ($[]);
@@ -226,9 +228,12 @@ do this.</P>");
     {
 	dialog_id = -1;				// done
     }
+    else if ( descr_result == `next )
+    {
+	dialog_id = 0;
+    }
     else if ( descr_result == `found_medium )	// found CD1
     {
-
 	descrPath = InstMedia::GetInstPath();
 	infopath = descrPath + "/setup/descr";
 	dudir    = descrPath + "/setup/du/du.dir";
@@ -240,7 +245,6 @@ do this.</P>");
 	{
 	    dialog_id = 0;
 	}
-
     }
     else if ( descr_result == `found_descr )	// found local descr
     {
@@ -251,16 +255,17 @@ do this.</P>");
     }
     else if ( descr_result == `unknown_descr )	// found NO descr
     {
-	if (MediaUI::ChangeMedium(1, true))
+	if (MediaUI::ChangeMedium(1, true))	// check release data
 	{
-	    dialog_id = 1;
+	    dialog_id = 1;			// dont ask for source
 	}
 	else
 	{
 	    dialog_id = 0;
 	}
     }
-    else if ( Installation::test_mode )
+
+    if ( Installation::test_mode )
     {
 	infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
 	dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";

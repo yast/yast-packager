@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  7 15:40:42 CEST 2001 - kkaempf@suse.de
+
+- correctly start with source media selection, if requested.
+
+-------------------------------------------------------------------
 Thu Sep  6 12:00:23 CEST 2001 - kkaempf@suse.de
 
 - fix multiple package installation.
