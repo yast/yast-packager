@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Mar 08 21:31:03 CET 2003 - arvin@suse.de
+
+- added missing include statements (bug #24881)
+
+-------------------------------------------------------------------
 Wed Mar  5 18:58:39 CET 2003 - kkaempf@suse.de
 
 - enhance provideDone and packageDone callbacks to pop up
