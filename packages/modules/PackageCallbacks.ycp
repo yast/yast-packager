@@ -506,10 +506,16 @@
     }
 
 
+    global define string NotifyConvertDB () ``{
+
+    }
+
+
     global define void SetRebuildDBCallbacks () ``{
 	Pkg::CallbackStartRebuildDb ("PackageCallbacks::StartRebuildDB");
 	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
 	Pkg::CallbackStopRebuildDb ("PackageCallbacks::StopRebuildDB");
+	Pkg::CallbackNotifyRebuildDb ("PackageCallbacks::NotifyRebuildDB");
 	return;
     }
 
