@@ -2,8 +2,8 @@
 # neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages
 
 @HEADER@
-Provides:	libpkg
-Obsoletes:	libpkg
+Provides:	libpkg yast2-agent-package yast-agent-targetpkg
+Obsoletes:	libpkg yast2-agent-package yast-agent-targetpkg
 
 Summary:	-
 
@@ -20,18 +20,10 @@ Summary:	-
 
 %files
 %defattr(-,root,root)
-
-# libpkg
-
 %{_libdir}/libpkg.so.*
-%doc @docdir@
-
-# client-packager
-
-@plugindir@/*.la
-
-# packages
-
 @yncludedir@
 @clientdir@/*.ycp
 @moduledir@/*.ycp
+@scrconfdir@/*.scr
+@plugindir@/*.so.*
+%doc @docdir@

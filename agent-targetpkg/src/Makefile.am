@@ -18,4 +18,6 @@ libpy2ag_targetpkg_la_SOURCES =			\
 	Y2CCtargetpkgAgent.cc
 libpy2ag_targetpkg_la_LDFLAGS = -version-info 2:0
 
-INCLUDES = -I$(includedir)
+INCLUDES =					\
+	-I$(top_srcdir)/libpkg/src/include	\
+	-I$(includedir)
