@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 29 00:40:03 CEST 2002 - kkaempf@suse.de
+
+- Add directory to Url if not given by linuxrc
+- 2.6.18
+
+-------------------------------------------------------------------
 Wed Aug 28 23:31:26 CEST 2002 - kkaempf@suse.de
 
 - drop InstMedia, it's all in packagemanager now

@@ -156,6 +156,10 @@
 	{
 	    url = url + serverdir;
 	}
+	else
+	{
+	    url = url + "/";
+	}
 	string proxy = SCR::Read (.etc.install_inf.Proxy);
 	if ((proxy != nil) && (proxy != ""))
 	{
