@@ -59,6 +59,7 @@
      * @return true/false
      */
     global define boolean IsPackageInstalled (string package) ``{
+	EnsureTargetInit (); // this seems necessary since 8.2. #23822
 	return Pkg::IsProvided (package);
     }
 
