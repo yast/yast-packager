@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Feb 27 12:56:15 CET 2003 - mvidner@suse.de
+
+- require.ycp:
+ * Fix not recognizing installed packages (#23882).
+ * Do not call "Reading package information" until necessary (#20486).
+- 2.7.12
+
+-------------------------------------------------------------------
 Wed Feb 26 17:19:59 CET 2003 - kkaempf@suse.de
 
 - pass language to packagemanager (#23828)
