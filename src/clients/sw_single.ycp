@@ -26,6 +26,7 @@
     import "Popup";
     import "GetInstArgs";
     import "Label";
+    import "PackageSystem";
 
     list<string> packagelist = [];		// list of packages to install
 
@@ -85,6 +86,8 @@
 
    define symbol CheckWhichPackages (list<string> arg_list)
    {
+	PackageSystem::EnsureTargetInit();
+
        y2milestone ("CheckWhichPackages (%1)", arg_list);
        // if sw_single is called with a list of packages or a package name
 
