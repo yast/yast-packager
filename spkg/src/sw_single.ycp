@@ -182,7 +182,7 @@ do this.</P>"))),
   // get information about diskspace ( used / free on every partition )
   partition = SCR( `Read(.run.df ) );
   
-  _debug ( "DDDFFFF: ", partition );
+  _debug ( "DF DF DF: ", partition );
   
   if ( lookup( user_settings, "test_mode", false ) == true ) 
   {
@@ -258,9 +258,9 @@ do this.</P>"))),
 	
 	ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
 
-	if ( ret_rpm == nil )
+	if ( ret_rpm  == `next )
 	{
-	    // Error ???
+	    CallFunction( `inst_suseconfig (false, false) );
 	}
   }
 
