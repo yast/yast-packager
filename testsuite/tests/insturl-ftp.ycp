@@ -14,12 +14,24 @@
         ]
     ];
 
-    //TESTSUITE_INIT([READ, $[], $[]], nil);
+    TESTSUITE_INIT([READ, $[], $[]], nil);
     import "InstURL";
+    import "Linuxrc";
     
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
     TEST (``(InstURL::installInf2Url("test")), [READ], nil);
     TEST (``(InstURL::installInf2Url("/test")), [READ], nil);
+
+
     READ["etc","install_inf","Serverdir"] = "pub";
+    TESTSUITE_INIT([READ, $[], $[]], nil);
+    Linuxrc::Reset();
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
+
+    
+    READ["etc","install_inf","Username"] = "suse";
+    READ["etc","install_inf","Password"] = "yast2";
+    Linuxrc::Reset();
+    TESTSUITE_INIT([READ, $[], $[]], nil);
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
 }
