@@ -29,6 +29,10 @@
 
     global string preferred_drive = "";
 
+    // true if module start was forced - check=1 was found in the application area,
+    // effects UI a little
+    global boolean forced_start = false;
+
     global define boolean Start(string device) {
 	// reset values
 	output = [];

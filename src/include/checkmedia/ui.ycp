@@ -99,7 +99,7 @@ define list<string> TranslateInfo(list<string> info) {
 			{
 			    // result of the check - failed, %1 is the real MD5 sum
 			    val = sformat(_("Failed (MD5: %1)"), wrongMD5);
-			    y2internal("computedMD5: %1", wrongMD5);
+			    y2milestone("computedMD5: %1", wrongMD5);
 			}
 		    }
 		}
@@ -155,14 +155,16 @@ it happens during installation then start manual installation and select media
 verification item in the menu.</P> ") +
 
     // help text - media check 6/6
-_("If you burn the media yourselves <B>pad</B> option in a recording software
-should be used. It avoids read errors at the end of media during the check.");
+_("<P>If you burn the media yourselves <B>pad</B> option in a recording software
+should be used. It avoids read errors at the end of media during the check.</P>");
 
 // advice check of the media
-string label = _("Check of the installation media is highly recommended.");
+string label = _("It is recommended to check all installation media
+to avoid installation problems.");
 
     term contents = `VBox(
 	// combobox label
+	CheckMedia::forced_start ? `VBox(`Label(label), `VSpacing(0.6)) : `Empty(),
 	`Left(`ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive))),
 	`VSpacing(0.4),
 	// widget label
@@ -211,9 +213,10 @@ string label = _("Check of the installation media is highly recommended.");
 
 	if (ret == `next || ret == `back)
 	{
-	    // always return `back in the initial mode
-	    // avoid reproposing of the installation
-	    if (Stage::initial())
+	    // avoid reproposing of the installation -  always return `back in
+	    // the initial mode when the module start wasn't forced (after
+	    // language selection)
+	    if (Stage::initial() && !CheckMedia::forced_start)
 	    {
 		ret = `back;
 	    }
