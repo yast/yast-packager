@@ -390,6 +390,28 @@
 	    {
 		y2warning ("No selection fits, going to default");
 		selected_base_selection = "default";
+		if (!contains (available_base_selections, selected_base_selection))
+		{
+		    // no default.sel -> fallback to UnitedLinux.sel
+		    selected_base_selection = "UnitedLinux";
+		    if (!contains (available_base_selections, selected_base_selection))
+		    {
+			// no UnitedLinux.sel, fallback to first available base selection
+			selected_base_selection = available_base_selections[0]:"";
+			if (selected_base_selection == "")
+			{
+			    // no base selections at all -> give up
+			    // this error appears only if the CD mastering
+			    // process failed
+			    // It should never happen, *if* (:-)) CDs are
+			    // tested at least once before shipping ...
+			    // (not marking as translatable on purpose !)
+			    return $[ "warning" : "No base selection available",
+				   warning_level : `blocker ];
+
+			}
+		    }
+		}
 		Pkg::SetSelection (selected_base_selection);
 	    }
 
