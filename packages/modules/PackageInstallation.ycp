@@ -95,55 +95,96 @@
     };
 
     /**
-     *	Return: `error		-> global list 'error_packages' contains packages which are not installed correctly
-     *          `ok		-> everything ok
-     *		`cancel		-> user wants to stop the installation
-     *		nil		-> invalid argument
+     *	Return: < 0		-> negative number of installed packages
+     *				   but some failed, global list 'error_packages' contains packages which are not installed correctly
+     *          > 0		-> everything ok, number of installed packages
+     *		0		-> user wants to stop the installation
      **/
-    global define symbol InstallPackages( list install_list,
-					  string source_path,
-					  boolean base_system,
-					  integer packages_installed ) ``{
-
-	symbol ret = `ok;
+    global define integer InstallPackages(integer media_number,
+					  integer packages_installed)
+    ``{
+	integer ret = 0;
 
 	// Reset variables
 	shutup = false;
 	error_packages = [];
 
-	if ( install_list == [] || install_list == nil )
-	    return nil;
-
-
 	if ( Mode::test )
 	{
-	    ret = FakePackager( install_list,
-				InstMedia::GetInstPath(),
-				false );		// not deleting packages
+	    FakePackager( [],
+			InstMedia::GetInstPath(),
+			false );		// not deleting packages
 	    return ret;
 	}
 
+	// packager
+	y2milestone ("Pkg::PkgPrepareOrder()");
+	list ins_del_count = Pkg::PkgPrepareOrder();
+	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
+
+	map product = Pkg::SourceProductData (Packages::theSource);
+	string datadir = product["datadir"]:"suse";
+	y2milestone ("datadir %1", datadir);
+	string pkgname = Pkg::PkgNextInstall();
+
+	boolean correct_media = false;
+	boolean skip_media = false;
+
+	// ensure correct medium and implement skipping
+	while ((pkgname != nil)
+	     && (pkgname != "")
+	     && (Pkg::PkgMediaNr (pkgname) == media_number))
+	{
+	    if (!correct_media)
+	    {
+		correct_media = true;		// only on first loop
+		if (!PackageInstallation::ChangeMediumWrapper ( media_number, true ))
+		{
+		    skip_media = true;		// user wants to skip all packages from this media
+		}
+	    }
+	    if (!skip_media)		// dont skip
+		break;
+
+	    // skipping, loop through all packages from this media
+	}
+
+	// exit here if all packages were skipped
+	if (skip_media)
+	    return 0;
+
+	// install packages from this media
+
 	SlideShow::StartTimer();
 
-	if ( base_system )
+	while ((pkgname != nil)
+		&& (pkgname != "")
+		&& (Pkg::PkgMediaNr (pkgname) == media_number))
 	{
-	    // scripts are installed manually if installing the base system
-	    ret = WFM::CallModule("packager", ["CyclicInstallPkgCallback",
-					  `add(source_path, install_list),
-					  `root(Installation::destdir),
-					  `manual_scripts,
-					  `number(packages_installed)]);
-	}
-	else
-	{
-	    ret = WFM::CallModule("packager", ["CyclicInstallPkgCallback",
-					  `add(source_path, install_list),
-					  `root(Installation::destdir),
-					  `number(packages_installed)]);
-
+	    y2milestone ("Installing %1", pkgname);
+	    string location = Pkg::PkgLocation (pkgname);
+	    y2milestone ("location %1/%2", datadir, location);
+	    if (location != nil)
+	    {
+		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
+		y2milestone ("localpath %1", localpath);
+		if (localpath != nil)
+		{
+		    boolean ok = Pkg::TargetInstall (localpath);
+		    if (!ok)
+			error_packages = add (error_packages, pkgname);
+		    else
+			ret = ret + 1;
+		    y2milestone ("install %1", ok);
+		}
+	    }
+	    pkgname = Pkg::PkgNextInstall ();
 	}
 
 	SlideShow::StopTimer();
+
+	if (size (error_packages) > 0)
+	    ret = -ret;
 
 	y2debug( "InstallPackages: WFM::CallModule(packager, ...) returns: %1", ret );
 
