@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 03 15:07:06 CET 2004 - arvin@suse.de
+
+- fixed return type of SourceChange
+
+-------------------------------------------------------------------
 Wed Oct 27 12:27:01 CEST 2004 - arvin@suse.de
 
 - adapted to new Mode.ycp
