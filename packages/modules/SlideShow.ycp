@@ -934,7 +934,7 @@
 			,
 			// Header above name + version of current package in 'details' view
 			// Plain text, not RichText / HTML!
-			_("&Current Package"),	// %1
+			_("Current Package"),	// %1
 			pkg_name,		// %2
 
 			// Header above short description of current package in 'details' view
@@ -1156,7 +1156,7 @@
 			  );
 
 	UI::ReplaceWidget(`id(`rep_work_area),
-			  `Frame( _("Current Package"),
+			  `Frame( _("&Current Package"),
 				  `HBox(
 					`HSpacing(),
 					`VBox(
