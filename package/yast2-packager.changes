@@ -2,6 +2,7 @@
 Tue Mar  9 18:32:22 CET 2004 - kkaempf@suse.de
 
 - vnc -> tightvnc, drop mesasoft (ro@suse.de)
+- use Report module (nashif@suse.de)
 - 2.9.22
 
 -------------------------------------------------------------------
