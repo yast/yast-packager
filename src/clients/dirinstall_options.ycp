@@ -24,15 +24,21 @@
 
     term contents = `HVSquash(
 			      `VBox(
+						// text entry
 				    `Left(`TextEntry(`id(`target), _("Root Directory (not \"/\"):"), DirInstall::target)),
+						// check box
                                     `Left(`CheckBox(`id(`suseconfig), _("Run YaST and SuSEconfig on First Boot"), DirInstall::runme_at_boot)),
+						// check box
                                     `Left(`CheckBox(`id(`makeimage), `opt(`notify), _("Create Ima&ge"), DirInstall::makeimage)),
+						// text entry
                                     `Left(`TextEntry(`id(`imagename), _("Ima&ge Name:"), DirInstall::image_name)),
                                     `VSquash(
                                         `HBox(
+						// text entry
                                             `TextEntry(`id(`imagedir), _("&Image Directory:"), DirInstall::image_dir),
                                             `VBox(
                                                 `VSpacing(),
+						// push button
                                                 `Bottom(`PushButton(`id(`open_dir), _("Select &Directory")))
                                                 )
                                             )
@@ -40,10 +46,11 @@
                                   )
             );
 
-    // help text for dirinstall options
+    // help text for dirinstall options 1/2
     string help_text = _("<p>Choose a directory to which to install. Depending on the software selection, make sure
 enough space is available.</p>
 ");
+    // help text for dirinstall options 2/2
     help_text = help_text + _("<p>Additionally, you can create an archive image of the directory using tar. To create an 
 image, specify the name and the location in the respective fields.</p>
 ");
@@ -78,6 +85,7 @@ image, specify the name and the location in the respective fields.</p>
 	    break;
 	if (ret == `open_dir)
         {
+	    // directory selection header
             any dir = UI::AskForExistingDirectory( DirInstall::image_dir,  _("Select Directory"));
             if (dir != nil)
             {
@@ -95,6 +103,7 @@ image, specify the name and the location in the respective fields.</p>
 
             if(target == "" || target == "/")
             {
+		// popup message
                 Popup::Message (_("Specify a root directory. This does not mean /"));
 		continue;
 	    }

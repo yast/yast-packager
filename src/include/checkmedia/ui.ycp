@@ -313,6 +313,7 @@ to avoid installation problems.");
     term contents = `VBox(
 	// combobox label
 	CheckMedia::forced_start ? `VBox(`Label(label), `VSpacing(0.6)) : `Empty(),
+	// combo box
 	`Left(`ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive))),
 	`VSpacing(0.4),
 	// widget label

@@ -35,7 +35,9 @@
 	});
     }
 
+    // dialog heading
     string heading_text = _("Copy Installation Media");
+    // help text
     string help_text = _("<p>The installation CDs will be copied into the system
 to create an installation source that can be used to install
 other systems.</p>
@@ -102,7 +104,10 @@ other systems.</p>
                 //Popup::Message(sformat(_("After... %1"), i ));
                 if (dir!=nil)
                 {
-                    Popup::ShowFeedback(_("Copying CD contents to a local directory..."), _("Please wait..."));
+		    // feedback popup 1/2
+                    Popup::ShowFeedback(_("Copying CD contents to a local directory..."),
+		    // feedback popup 2/2
+			_("Please wait..."));
                     SCR::Execute(.target.mkdir, tgt);
                     //string cmd = sformat("cd %1 && tar cf - . | (cd %2  && tar xBf -)", dir,  tgt);
                     string cmd = sformat("cp %1/content %2", dir, tgt);

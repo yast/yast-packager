@@ -43,19 +43,24 @@
     define void editAuthentification() ``{
         UI::OpenDialog(
             `VBox(
+		// label
                 `Label( _("Authentication") ),
 
                 `RadioButtonGroup(`id(`rb),
                     `VBox(
+			// radio button
                         `Left( `RadioButton( `id( `anonymous ), _("Anonymous") ) ),
+			// radio button
                         `Left( `RadioButton( `id( `account ), _("Account") ) ),
                         `HBox(
                             `HSpacing( 3 ),
+				// text entry
                             `TextEntry( `id( `username ), _("User Name") ),
                             `HSpacing( 2 )
                         ),
                         `HBox(
                             `HSpacing( 3 ),
+				// text entry
                             `TextEntry( `id( `password ), _("Password") ),
                             `HSpacing( 2 )
                         ),
@@ -88,12 +93,18 @@
     define void editFtp() ``{
         UI::OpenDialog(
             `VBox(
+		// label
                 `Label( _("FTP Server and Directory") ),
+		// text entry
                 `TextEntry( `id( `server ), _("Server Name") ),
+		// text entry
                 `TextEntry( `id( `dir ), _("Directory on Server") ),
                 `HBox(
+		    // label
                     `Label( _("Authentication:") ),
+		    // label
                     `Label( `id( `auth ), _("Anonymous") ),
+		    // push button
                     `PushButton( `id( `auth_button ), _("Edit...") )
                 ),
                 dialogButtons()
@@ -132,8 +143,11 @@
 
         UI::OpenDialog(
             `VBox(
+		// label
                 `Label( _("NFS Server and Directory") ),
+		// text entry
                 `TextEntry( `id( `server ), _("&Server Name"), host ),
+		// text entry
                 `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
 //                `TextEntry( `id( `mount ), _("&Mount options") ),
                 dialogButtons()
@@ -172,6 +186,7 @@
     define string getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
+		// label
                 `Label( _("CD Installation") ),
                 `RadioButtonGroup( `id( `device ),
                     `VBox(
@@ -250,23 +265,30 @@
 	    if (workgroup == nil)
 		workgroup = "";
 	}
+	// text entry
 	term wg_widget = `TextEntry( `id( `workgroup), _("Workgroup / Domain"),
 					workgroup);
+	// text entry
 	term share_widget = `TextEntry (`id (`share), _("&Share"), share);
 
         UI::OpenDialog( `opt( `decorated ),
             `VBox(
+		// label
                 `Label( _("Server and Directory") ),
                 `HBox(
                     `HSpacing( 0.5 ),
+		    // frame
                     `Frame( _("P&rotocol"),
                         `RadioButtonGroup( `id( `rb_type ), `opt (`notify),
                             `HBox(
                                 `HStretch(),
+				// radio button
                                 `RadioButton( `id( `ftp ), `opt (`notify), _("&FTP") ),
                                 `HStretch(),
+				// radio button
                                 `RadioButton( `id( `http ), `opt (`notify), _("H&TTP") ),
                                 `HStretch(),
+				// radio button
                                 `RadioButton( `id( `samba ), `opt (`notify), _("&SMB / CIFS") ),
                                 `HStretch()
                             )
@@ -274,14 +296,18 @@
                     ),
                     `HSpacing( 0.5 )
                 ),
+		// text entry
                 `TextEntry( `id( `server ), _("Server &Name"), host ),
 		`ReplacePoint (`id (`share_rp), share_widget),
+		// text entry
                 `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
                 `HBox(
                     `HSpacing( 0.5 ),
+			// frame
                     `Frame( _("Au&thentication"),
                         `VBox(
                             `Left( `CheckBox( `id( `anonymous ),
+						// check box
                                               `opt( `notify ), _("&Anonymous"),
                                               size( user ) == 0 ) ),
 			    `HBox (
@@ -289,10 +315,12 @@
 				wg_widget)
 			    ),
                             `HBox(
+				// text entry
                                 `TextEntry( `id( `username ), _("&User Name"),
                                             user )
                             ),
                             `HBox(
+				// password entry
                                 `Password( `id( `password ), _("&Password"),
                                            pass )
                             )
@@ -397,9 +425,12 @@
 
         UI::OpenDialog(
             `VBox(
+		// label
                 `Label( _("Local Directory") ),
                 `HBox(
+			// text entry
                     `TextEntry( `id( `dir ), _("&Directory Path") ),
+			// push button
                     `PushButton( `id( `browse ), _("&Browse...") )
                 ),
                 dialogButtons()

@@ -52,7 +52,9 @@
 					  `HSpacing( 40 ),	// force minimum width
 					  `Left (`Label (label)),
 					  `Table (`id (`sources),
+							// table header
 						  `header (_("Name"),
+							// table header
 							   _("Version")),
 						  source_list)
 					  )

@@ -455,6 +455,7 @@ Select which desktop to install.</p>
 		    y2error ("Can't read '%1'", orderfile);
 		    // error in proposal, %1 is filename
 		    pm_init_blocker = sformat (
+			// error in the proposal
 			_("Cannot read '%1' from the installation media."),
 			orderfile);
 		    return;
@@ -656,7 +657,9 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 	    // this depends on the cpu (lm = long mode)
 	    if (contains (flags, "lm"))
 	    {
+		// warning text, part 1
 		output = add (output, _("Your computer is a 64-bit x86-64 system.") + " " +
+		// warning text, part 2
 			      _("However, you are trying to install a 32-bit distribution."));
 	    }
 	}
@@ -892,6 +895,7 @@ ask your system administrator.
 	{
 	    if (! disk_space_sufficient)
 	    {
+		// warning in the summary
 		ret = add( ret, "warning", _("Disk Space Exhausted") );
 		ret = add( ret, "warning_level", `blocker );
 	    }
@@ -954,6 +958,7 @@ ask your system administrator.
 			}
 			else
 			{
+			    // error popup
 			    Popup::Error(_("Not enough disk space.  Remove some packages in the single selection."));
 			}
 		    }

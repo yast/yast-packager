@@ -35,6 +35,7 @@
     }
     if (!probeSource("dir://" + Directory::custom_workflow_dir))
     {
+	// error popup
         Popup::Error(_("Could not read package information"));
         return `abort;
     }

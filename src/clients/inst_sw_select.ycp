@@ -24,6 +24,7 @@
     import "Packages";
     import "PackagesUI";
     import "SpaceCalculation";
+    import "Stage";
 
     import "Wizard";
     import "Popup";
@@ -96,8 +97,7 @@ other CDs can always be installed later.
 ");
 
     // help text, continued
-    helptext = helptext +
-	_("<p>
+    helptext = helptext + _("<p>
 The <b>Minimal</b> system includes just the bare essentials needed
 to safely run &product;. This selection <b><i>does not include
 graphical desktop environments</i></b> -- no X11, no KDE, no GNOME.

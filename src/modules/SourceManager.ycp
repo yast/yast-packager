@@ -188,7 +188,7 @@ global boolean CommitSources() {
     {
         success = Pkg::SourceEditSet( sourceStatesOut );
         if ( !success ) {
-
+	    // popup message header
             string _msg1 = _("Unable to save changes to source
                     repository.");
             string err = Pkg::LastErrorId();
@@ -297,8 +297,10 @@ global boolean CreateLocalMetaData (
         y2error ("media doesn't provide %1", descrDir + "/media.1");
         if (Popup::AnyQuestion (
                     //	Popup::NoHeadline(),
+		    // popup headline
                     _("Reading Media Description Failed"),
                     sformat (
+			// popup message, %1 is filename
                         _("Cannot read media description for %1.
                             Packages from this media cannot be installed."), descrDir),
                     Label::IgnoreButton (),
@@ -599,7 +601,11 @@ define string createItem( integer index, map source ) {
     map generalData = Pkg::SourceGeneralData( id );
     map productData = Pkg::SourceProductData( id );
     string sitem = "";
-    string status = source[ "enabled" ]:true ? _("Enabled") : _("Disabled");
+    string status = source[ "enabled" ]:true
+	// status info, to be used inside summary
+	? _("Enabled")
+	// status info, to be used inside summary
+	: _("Disabled");
     string color = source[ "enabled" ]:true ? "#006600" : "#FF0000";
     sitem = sitem + HTML::Colorize("["+status+"] ",
             color);
@@ -620,8 +626,11 @@ define term  createOverviewItem( integer index, map source ) {
 
     term item = `item(
 		      `id(index ),
+		      source[ "enabled" ]:true
 		      // corresponds to the "Enable/Disable" button
-		      source[ "enabled" ]:true ? _("On") : _("Off"),
+			? _("On")
+		      // corresponds to the "Enable/Disable" button
+			: _("Off"),
 		      productData[ "label" ]:"unknown",
 		      generalData[ "url" ]:""
 		      );    
@@ -665,8 +674,8 @@ boolean HandleMultipleSources( string url )	{
         if (orderlist == nil)
         {
             y2error ("Can't read '%1'", orderfile);
-            // error in proposal, %1 is filename
             SourceManager::pm_init_blocker = sformat (
+	            // error in proposal, %1 is filename
                     _("Cannot read '%1' from the installation media."),
                     orderfile);
             return false;
@@ -718,8 +727,10 @@ boolean HandleMultipleSources( string url )	{
                     y2error ("media doesn't provide %1", orderdir + "/media.1");
                     if (Popup::AnyQuestion (
                                 //				Popup::NoHeadline(),
+				// popup headline
                                 _("Reading Media Description Failed"),
                                 sformat (
+				    // popup message, %1 is filename
                                     _("Cannot read media description for %1.
                                         Packages from this media cannot be installed."), orderdir),
                                 Label::IgnoreButton (),
@@ -840,6 +851,7 @@ boolean HandleMultipleSources( string url )	{
 global list Summary() {
 
     string summary = "";
+    // summary header
     summary = Summary::AddHeader(summary, _("Configured Sources"));
     summary = Summary::OpenList(summary);
     numSources = size( sourceStatesOut );
@@ -855,7 +867,10 @@ global list Summary() {
     list unconf = maplist(map s, slp_sources, ``{
 	string id = substring(s["srvurl"]:"", 21);
 	y2debug("source url : %1", id );
-	return(`item(`id(id), s["attr", "label"]:_("Unknown") + _(" On ") + s["pcHost"]:""));
+	// part of item in summary
+	return(`item(`id(id), s["attr", "label"]:_("Unknown")
+	    // part of item in summary meaning "switched on"
+	    + _(" On ") + s["pcHost"]:""));
     });   
 
     return [summary, unconf ];
