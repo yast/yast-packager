@@ -104,6 +104,7 @@ To make a more precise selection of software to install, select
     // dont ask user for software selection if imap server, product
 
     if (   Product::imap_server
+	|| Product::openteam_server
 	|| Product::fwadmin_host
 	|| Product::product_cd )
     {
