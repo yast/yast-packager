@@ -45,4 +45,4 @@ make install
 %dir @YAST2DIR@/clients
 %dir @YAST2DIR@/menuentries
 @YAST2DIR@/menuentries/menu*.ycp
-@YAST2DIR@/clients/dial*.ycp
+@YAST2DIR@/clients/*sw_single.ycp
