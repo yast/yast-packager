@@ -10,9 +10,10 @@
 {
 textdomain "packager";
 module "DirInstall";
-module "Mode";
-module "Stage";
+import "Mode";
+import "Stage";
 import "HTML";
+import "ProductControl";
 
 
 global boolean runme_at_boot = false;
