@@ -2,13 +2,10 @@
  * Module: 		sw_single.ycp
  *
  * Authors: 		Gabriele Strattner (gs@suse.de)
+ *			Klaus Kaempf <kkaempf@suse.de>
  *
  * Purpose: 		contains dialog loop for workflows:
- *	"Install/Remove software" 	called with argument "beginner", i.e. skip inst_source if possible
- *	"Change source of installation" without argument 	-> workflow starts with inst_source
- *
- * String corrections by Christian Steinruecken <cstein@suse.de>, 2001/08/01
- *
+ *	"Install/Remove software"
  *
  * $Id$
  */
@@ -31,7 +28,6 @@
     list packagelist = [];		// list of packages to install
 
     boolean test_popup = false;
-    boolean beginner_mode = false;
     boolean skip_source = false;
 
     // =============================================================
@@ -59,14 +55,7 @@
 	    }
 	    else if (is (WFM::Args(arg_n), string))
 	    {
-		if (WFM::Args(arg_n) == "beginner")
-		{
-		    beginner_mode = true;
-		}
-		else
-		{
-		    arg_list = add (arg_list, WFM::Args(arg_n));
-		}
+		arg_list = add (arg_list, WFM::Args(arg_n));
 	    }
 	    else if (is (WFM::Args(arg_n), list))
 	    {
@@ -74,9 +63,6 @@
 	    }
 	    arg_n = arg_n - 1;
 	}
-
-	y2milestone( "SW_SINGLE: arguments %1, beginner mode: %2",
-		     arg_list, beginner_mode );
 
 	return arg_list;
 
@@ -88,9 +74,6 @@
    // Check arg_list:
    // If we're called with an absolute package path just install
    // this package without paying attention to dependencies.
-   // If we are not started in "beginner" mode go `next
-   // (and call dialog change source medium first).
-   // Otherwise we start the package manager.
    //
    // returns	`done		all done
    //		`failed		package not found
@@ -103,18 +86,12 @@
    ``{
 	y2milestone ("CheckWhichPackages (%1)", arg_list);
 	// if sw_single is called with a list of packages or a package name
-	// or in  beginner mode try to mount source medium
 
 	string first_arg = "";
 
 	if ( size (arg_list) > 0 )
 	{
 	    first_arg = arg_list[0]:"";
-	}
-	else if ( !beginner_mode )
-	{
-	    return `next;	// workflow "Change source of installation", i.e.
-	                        // start with dialog inst_source
 	}
 
 	if ( regexpmatch (first_arg, "\\.rpm$") )		// package name given
@@ -185,40 +162,12 @@
 
     // =============================================================
 
-    string msg_beginner = "";
-    string msg_expert = "";
-
-    string msg_str11 =   _("<p>Launch this module to install additional packages or
-remove installed ones.
-To install commercial software, launch this module and select
-'pay' from list of package sets.
-</p>
-");
-
-    string msg_str13 = _("<p>Launch this module to choose the
-source of installation. It is possible to install packages from CD,
-via network, or from a hard drive.</p>
-<p>You can specify the source medium and install
-packages with this module.
-</p>
-
-");
-
-    string msg_str21 = _("<P>You need to be logged in as <i>root</i> to
-do this.</P>
-");
-
-    msg_beginner = msg_str11 + msg_str21;
-    msg_expert = msg_str13 + msg_str21;
-
-    string wrong_media_msg = _("Please make sure the installation medium is correct.");
-
     string language = UI::GetLanguage(true);
 
     Wizard::CreateDialog();
 
     // check Args
-    // set test_mode, test_popup, beginner_mode
+    // set test_mode, test_popup
 
     list arg_list = CheckArguments();
 
