@@ -254,6 +254,7 @@ do this.</P>
 
     if (result == `next)				// packages selected ?
     {
+	Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 	Pkg::PkgCommit (0);				// Y: commit them !
 	result = WFM::CallFunction( `inst_suseconfig (false, false));
     }
