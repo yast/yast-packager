@@ -308,7 +308,9 @@
 	backup_stuff ();
 
 	// remove some stuff
-	remove_stuff ();
+        // do not remove when updating running system (#49608)
+        if (!Stage::normal())
+	    remove_stuff ();
 
 	// set update mode to yes
 	SCR::Write(.target.string, Installation::destdir + "/var/lib/YaST2/update_mode", "YES");
