@@ -91,7 +91,7 @@ from URL '%1'."), url );
                         _msg2 = _("Details:") + "\n" + Pkg::Error();
                 }
                 _msg2 = _msg2 + "\nTry again?";
-                
+
                 boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
                 if ( tryagain ) return `again;
                 else `cancel;
@@ -167,16 +167,16 @@ network, or from the hard disk.
     // help, continued
     help_text = help_text + _("<p>
 To install packages from <b>CD</b>,
-have the SuSE CD set or the DVD available.
+have the &product; CD set or the DVD available.
 </p>
 ");
 
     // help, continued
     help_text = help_text + _("<p>
-The SuSE CDs can be copied to the <b>hard disk</b>.
+The &product; CDs can be copied to the <b>hard disk</b>.
 Then use that as the installation source.
 Insert the path name where the first
-CD is located, for example, /usr/SuSE/<b>CD1</b>.
+CD is located, for example, /data1/<b>CD1</b>.
 Only the base path is required if all CDs are copied
 into one directory.
 </p>
@@ -187,7 +187,7 @@ into one directory.
 <b>Network</b> installation requires a working network connection.
 Configure YaST2's \"Network/Base\" module first,
 if required.  Specify the directory where the packages from
-the first CD are located, such as /usr/SuSE/<b>CD1</b>.
+the first CD are located, such as /data1/<b>CD1</b>.
 Only the base path is
 required if packages are not divided, for example, /usr/full-i386.
 The directory must be listed in the file <i>/etc/exports</i>
@@ -275,9 +275,9 @@ on the NFS server.
             {
                 map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
-                
+
                 y2internal( "URL: %1", url );
-                
+
                 do {
                     url = editUrl( url );
                     if ( size( url ) == 0 ) break;
