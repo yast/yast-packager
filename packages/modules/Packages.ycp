@@ -242,7 +242,7 @@
 
 	    if (the_kernel != "")
 	    {
-		install_list = (list<string>) union (install_list, the_kernel);
+		install_list = add (install_list, the_kernel);
 	    }
 	    else
 	    {
