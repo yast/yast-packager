@@ -593,12 +593,11 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	// this depends on the kernel
 	if (Arch::i386)
 	{
-	    list tmp1 = (list) SCR::Read (.probe.cpu);
-	    map tmp2 = tmp1[0]:$[];
-	    string tmp3 = tmp2["name"]:"";
+	    string tmp = (string) SCR::Read(.proc.cpuinfo.value."0"."flags");
+	    list flags = (size (tmp) > 0) ? splitstring (tmp, " ") : [];
 
-	     // this depends on the cpu
-	    if (tmp3 == "Athlon HX")
+	    // this depends on the cpu (lm = long mode)
+	    if (contains (flags, "lm"))
 	    {
 		output = add (output, _("Your computer is a 64-bit x86-64 system.") + " " +
 			      _("But you are trying to install a 32-bit distribution."));
