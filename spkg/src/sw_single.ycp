@@ -70,8 +70,8 @@ do this.</P>"))),
   });
 
   //
-  // Popups must be defined here for modules inst_sw_single and inst_rpmcopy because
-  // installation.ycp is not available in running system
+  // Popups must be defined here for inst_sw_single and inst_rpmcopy because
+  // modules are not called in installation.ycp
   //
   UI(``{
       define YesOrNo(any message, string yes_button_message, string no_button_message) ``{
@@ -142,10 +142,10 @@ do this.</P>"))),
       };
   });
 
-
   
   // map user_settings contains:
   // - install_info -> module inst_rpmcopy
+  // - delete_info  -> module inst_rpmcopy
   // - continue_mode -> module inst_rpmcopy
   // - language -> module inst_rpmcopy
   
@@ -155,6 +155,32 @@ do this.</P>"))),
 
   string default_language = "en";
   string default_architecture = "i386";
+
+  map lang2yast1 = $[
+      "en_GB"    : "english",
+      "en_US"    : "english",
+      "en"	 : "english",
+      "de_DE"    : "german",
+      "de_CH"    : "german",
+      "de" 	 : "german",
+      "br_FR"    : "french",
+      "fr_FR"    : "french",
+      "fr_CH"    : "french",
+      "fr"       : "french",
+      "it_IT"    : "italian",
+      "es_ES"    : "spanish",
+      "nl_NL"    : "dutch",
+      "pt_PT"    : "portuguese",
+      "pt_BR"    : "brazilian",
+      "hu_HU"    : "hungarian",
+      "pl_PL"    : "polish",
+      "el_GR"    : "greek",
+      "ru_RU.KOI8-R" : "russian",
+      "cs_CZ"    : "czech",
+      "sk_SK"    : "slovak"
+    ];
+
+  string  long_language 	= lookup(lang2yast1, language, "english");
   
   // informations needed in inst_rpmcopy
   user_settings = add( user_settings, "language", language );
@@ -162,8 +188,9 @@ do this.</P>"))),
   user_settings = add( user_settings, "post_install", true );
   
   // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
-  user_settings = add(user_settings, "test_mode", true );
-  
+  // user_settings = add(user_settings, "test_mode", true );
+  // !!!!!!!!!!!!!!! ONLY FOR TESTING !!!!!!!!!!!!!!!!!!!!
+
   //
   // Initialize PKGINFO server
   //
@@ -177,24 +204,13 @@ do this.</P>"))),
   string dudir = "/var/adm/mount/suse/setup/du/du.dir";
 
   list partition = [];
-  string long_language = "";
 
-  // get information about diskspace ( used / free on every partition )
+    // get information about diskspace ( used / free on every partition )
   partition = SCR( `Read(.run.df ) );
   
   _debug ( "DF DF DF: ", partition );
-  
-  if ( lookup( user_settings, "test_mode", false ) == true ) 
-  {
-      // TEST VALUES !!!
 
-      long_language = "german";
-	
-      //dudir =  "/dist/6.4-i386/suse/setup/du/du.dir";
-      //infopath = "/dist/6.4-i386/suse/setup/descr";
-
-  }
-
+ 
    // filter out headline and other invalid entries 
    partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
 
