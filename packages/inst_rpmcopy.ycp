@@ -153,8 +153,9 @@
     if  (Mode::autoinst
 	 && Mode::cont)
     {
+	import "AISoftware";
 	// post packages from autoinstall
-	Pkg::DoProvide( AutoInstall::postPackageList());
+	Pkg::DoProvide( AIsoftware::post_packages );
 	Pkg::PkgSolve();
     }
 
@@ -190,7 +191,7 @@
     {
 	maxnumbercds = 1; // only the first CD will be installed
     }
-    else if (Mode::autoinst && Mode::cont && size(AutoInstall::postPackageList()) > 0)
+    else if (Mode::autoinst && Mode::cont && size( AIsoftware::post_packages ) > 0)
     {
 	// one more compatibility feature to old YaST, post-packages
 	// Simply install a list of package after initial installation (only

@@ -91,7 +91,7 @@
 	}
 
 	list errpacks = commit_result[1]:[];
-	if (size (errpacks) > 0)
+	if (size (errpacks) > 0 && !AutoInstall::IgnorePkgErr )
 	{
 	    // some packages failed installation
 
@@ -117,7 +117,7 @@
 		}
 
 		retAsk = UI::DisplayLogFile( text, retAsk );
-    	    }
+	    }
 
 	}  // errpacks
 	return commit_result;
