@@ -1,0 +1,349 @@
+/**
+ * Module: 		inst_source.ycp
+ *
+ * Authors:		Klaus Kaempf <kkaempf@suse.de>
+ *			Gabriele Strattner <gs@suse.de>
+ *			Stefan Schubert <schubi@suse.de>
+ *                      Cornelius Schumacher <cschum@suse.de>
+ *
+ * Purpose:
+ * Displays possibilities to install from NFS, CD or partion
+ * Do the "mount" for testing the input.
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    /**
+        Return an HBox with ok and cancel buttons for use by other dialogs.
+        @return An HBox term for use in a CreateDialog call.
+    */
+    global define term dialogButtons() ``{
+        return
+            `HBox(
+                `PushButton( `id( `ok ), `opt( `default ), OKButtonLabel() ),
+                `HStretch(),
+                `PushButton( `id( `cancel ), CancelButtonLabel() )
+            );
+    }
+
+    /**
+        Open a dialog for editing of authentification information (basically a
+        username and a password.
+    */
+    global define void editAuthentification() ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("Authentification") ),
+
+                `RadioButtonGroup(`id(`rb), 
+                    `VBox(
+                        `Left( `RadioButton( `id( `anonymous ), _("Anonymous") ) ),
+                        `Left( `RadioButton( `id( `account ), _("Account") ) ),
+                        `HBox(
+                            `HSpacing( 3 ),
+                            `TextEntry( `id( `username ), _("Username") ),
+                            `HSpacing( 2 )
+                        ),
+                        `HBox(
+                            `HSpacing( 3 ),
+                            `TextEntry( `id( `password ), _("Password") ),
+                            `HSpacing( 2 )
+                        ),
+                        dialogButtons()
+                    )
+                )
+            )
+        );
+
+        repeat
+        {
+            symbol authinput = UI::UserInput();
+            y2debug( "Auth Input: %1", authinput );
+
+            if ( authinput == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+    
+        } until ( authinput == `cancel || authinput == `ok );
+        
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing of FTP server information.
+    */
+    global define void editFtp() ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("FTP Server and Directory") ),
+                `TextEntry( `id( `server ), _("Server Name") ),
+                `TextEntry( `id( `dir ), _("Directory on Server") ),
+                `HBox(
+                    `Label( _("Authentification:") ),
+                    `Label( `id( `auth ), _("Anonymous") ),
+                    `PushButton( `id( `auth_button ), _("Edit...") )
+                ),
+                dialogButtons()
+            )
+        );
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing a NFS source. The data put in by the user is
+        written to the InstSrcManager agent.
+        @param srcid Id of InstSrc. 0 for a new source.
+    */    
+    global define void editNfs( integer srcid ) ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("NFS Server and Directory") ),
+                `TextEntry( `id( `server ), _("&Server Name") ),
+                `TextEntry( `id( `dir ), _("&Directory on Server") ),
+                `TextEntry( `id( `mount ), _("&Mount options") ),
+                dialogButtons()
+            )
+        );
+
+        if ( srcid != 0 ) {
+            map src = SCR::Read( .instsrcmgr.source, srcid );
+            string dir = lookup( src, "url", "" );
+            string options = lookup( src, "options", "" );
+
+            UI::ChangeWidget( `id( `server ), `Value, dir );
+            UI::ChangeWidget( `id( `mount ), `Value, options );
+        }
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                string server = UI::QueryWidget( `id( `server ), `Value );
+                string dir = UI::QueryWidget( `id( `dir ), `Value );
+                string options = UI::QueryWidget( `id( `mount ), `Value );
+                
+                string url = "nfs://" + server + "/" + dir;
+                
+                map srcmap = $[ "id": srcid, "cost":4711, "type": "nfs",
+                                "url": url, "options": options, "state": true ];
+                SCR::Execute( .instsrcmgr.source.insert, srcmap );
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing a CD/DVD source. The data put in by the user
+        is written to the InstSrcManager agent.
+    */    
+    global define void editCd() ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("&CD installation") ),
+                `Left( `CheckBox( `id( 0 ), "/dev/cdrom", true ) ),
+                `Left( `CheckBox( `id( 1 ), "/dev/cdrom1" ) ),
+                `Left( `CheckBox( `id( 2 ), "/dev/dvd" ) ),
+                dialogButtons()
+            )
+        );
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing a server source. The data put in by the user
+        is written to the InstSrcManager agent.
+        @param protocol type of server, can be `ftp, `http or `samba.
+        @param srcid Id of InstSrc. 0 for a new source.
+    */    
+    global define void editServer( symbol protocol, integer srcid ) ``{
+        UI::OpenDialog( `opt( `decorated ),
+            `VBox(
+                `Label( _("Server and Directory") ),
+                `HBox(
+                    `HSpacing( 0.5 ),
+                    `Frame( _("P&rotocol"),
+                        `RadioButtonGroup( `id( `rb_type ),
+                            `HBox(
+                                `HStretch(),
+                                `RadioButton( `id( `ftp ), _("&FTP") ),
+                                `HStretch(),
+                                `RadioButton( `id( `http ), _("H&TTP") ),
+                                `HStretch(),
+                                `RadioButton( `id( `samba ), _("&Samba") ),
+                                `HStretch()
+                            )
+                        )
+                    ),
+                    `HSpacing( 0.5 )
+                ),
+                `TextEntry( `id( `server ), _("Server &Name") ),
+                `TextEntry( `id( `dir ), _("&Directory on Server") ),
+                `HBox(
+                    `HSpacing( 0.5 ),
+                    `Frame( _("Au&thentification"),
+                        `VBox(
+                            `Left( `CheckBox( `id( `anonymous ), `opt( `notify ), _("&Anonymous"), true ) ),
+                            `HBox(
+                                `TextEntry( `id( `username ), _("&Username") )
+                            ),
+                            `HBox(
+                                `Password( `id( `password ), _("&Password") )
+                            )
+                        )
+                    ),
+                    `HSpacing( 0.5 )
+                ),
+                dialogButtons()
+            )
+        );
+
+        UI::ChangeWidget( `id( `rb_type ), `CurrentButton, protocol );
+
+        if ( srcid != 0 ) {
+            map source = SCR::Read( .instsrcmgr.source, srcid );
+            UI::ChangeWidget( `id( `server ), `Value, lookup( source, "url", "" ) );
+        }
+
+        repeat
+        {
+            boolean anonymous = UI::QueryWidget( `id( `anonymous ), `Value );
+            UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
+            UI::ChangeWidget( `id( `password ), `Enabled, !anonymous );
+        
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `ok )
+            {
+                string url = "";
+                string typestr = "";
+                symbol type = UI::QueryWidget( `id( `rb_type), `CurrentButton );
+                if ( type == `ftp ) {
+                    typestr = "ftp";
+                    url = "ftp://";
+                } else if ( type == `http ) {
+                    typestr = "http";
+                    url = "http://";
+                } else if ( type == `samba ) {
+                    typestr = "samba";
+                    url = "smb://";
+                }
+
+                string server = UI::QueryWidget( `id( `server ), `Value );
+                string directory = UI::QueryWidget( `id( `dir ), `Value );
+
+                url = url + server + "/" + directory;
+
+                map srcmap = $[ "id": srcid, "cost":4711, "type": typestr,
+                                "url": url, "options": "", "state": true ];
+
+                SCR::Execute( .instsrcmgr.source.insert, srcmap );
+            }
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Let the user put in a directory url.
+
+        @param default  initial default
+        @return directory url on success, empty string when the user canceled the dialog.
+    */
+    global define string getDirectory( string default ) ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("Local directory") ),
+                `HBox(
+                    `TextEntry( `id( `dir ), _("&Directory path") ),
+                    `PushButton( `id( `browse ), _("&Browse...") )
+                ),
+                dialogButtons()
+            )
+        );
+
+        UI::ChangeWidget( `id( `dir ), `Value, url );
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `browse )
+            {
+                string result = PopupDir( "/tmp" );
+                y2debug("file popup result: %1",result);
+                if ( result != "" )
+                {
+                    UI::ChangeWidget( `id( `dir ), `Value, result );
+                }
+            }
+            else if ( input == `ok )
+            {
+                y2warning("ok clicked");
+            
+                url = UI::QueryWidget( `id( `dir ), `Value );
+
+                url = "dir://" + url;
+
+                Pkg::SourceCreate( url );
+            }
+            else if ( input == `cancel )
+            {
+                url = "";
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    
+        return url;
+    }
+}

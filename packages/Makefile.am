@@ -11,4 +11,6 @@ client_DATA = \
 	inst_smbsource.ycp			\
 	inst_packages.ycp
 
-EXTRA_DIST = $(client_DATA)
+ynclude_DATA = inst_source_dialogs.ycp
+
+EXTRA_DIST = $(client_DATA) $(ynclude_DATA)
