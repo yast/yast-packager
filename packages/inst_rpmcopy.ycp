@@ -88,17 +88,16 @@
 	Packages::Restore();
     }
 
-    if ( Mode::installMap == nil
-	 || size ( Mode::installMap ) == 0 )
+    // FIXME: temporary workaround
     {
-	// only for security reasons - installMap should be set
-	map installMap = SCR::Read (.target.ycp,
-				    ["/var/lib/YaST2/installmap.ycp", $[]]);
-	InstMedia::initializeInstMedia (installMap);
-    }
-    else
-    {
-	InstMedia::initializeInstMedia (Mode::installMap);
+	string instmode = SCR::Read (.etc.install_inf.Instmode);
+	if (instmode == nil) instmode = "cd";
+
+	string cdrom = SCR::Read (.etc.install_inf.Cdrom);
+	if (cdrom == nil) cdrom = "cdrom";
+
+	map tmp = $[ "instmode" : instmode, "cdrom" : cdrom ];
+	InstMedia::initializeInstMedia (tmp);
     }
 
     // List of all packages to install
@@ -311,7 +310,7 @@
 	{
 	    this_cd_packages = filter(`v, this_cd_packages, ``(!(v[3]:false && (v[2]:0 == 1))));
 	}
-	
+
 	// y2debug("this_cd_packages: %1", this_cd_packages);
 
 	if (this_cd_packages != [])
