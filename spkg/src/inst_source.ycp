@@ -97,6 +97,24 @@ from URL '%1'."), url );
             }
             else
             {
+		list<integer> ul_sources = filter (integer s, newSources, {
+		    map src_data = Pkg::SourceGeneralData (s);
+		    string src_type = src_data["type"]:"";
+		    return src_type == "UnitedLinux";
+		});
+		if (size (ul_sources) == 0)
+		{
+		    // yes-no popup
+		    if (! Popup::YesNo (_("Cannot read the product information
+for the specified packages source
+location.  Probably wrong location
+was entered.
+
+Continue?")))
+		    {
+			return `cancel;
+		    }
+		}
                 foreach( integer id, newSources, ``{
                     map<string, any> sourceState = $[ "SrcId": id, "enabled": true ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
