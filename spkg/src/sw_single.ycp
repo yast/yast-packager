@@ -536,7 +536,7 @@ Please insert actual CD or specify path of actual sources.")));
       }
       _debug ( "RESULT: ", select(dialog, id), result );
 
-      if (result == `cancel || result == `abort)
+      if (result == `cancel || result == `abort || result == `cancel_rpm)
       {
 	  // dialog loop ends
 	  id = size( dialog ) +1; 
