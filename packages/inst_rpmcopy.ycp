@@ -114,19 +114,6 @@
     }
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
-    // Now that we know how many packages to install, we can show the dialog
-
-    integer packages_installed = 0;
-
-    if ( !Mode::initial)
-    {
-	// get the number of already installed packages
-	packages_installed = Packages::installed;
-    }
-
-    // y2debug("%1 packages have been installed", packages_installed);
-
-
     // ----------------------------------------------------------------------
     // normal
 
@@ -217,10 +204,9 @@
 	boolean go_on = true;
 
 	// returns [ int successful, list failed, list remaining ]
-	list commit_result = PackageInstallation::CommitPackages( current_cd_no, packages_installed );
+	list commit_result = PackageInstallation::CommitPackages( current_cd_no, 0 );
 
 	integer count = commit_result[0]:0;
-	packages_installed = packages_installed + count;
 	y2milestone ("%1 packages installed", count);
 
 	list failed = commit_result[1]:[];
@@ -255,8 +241,6 @@
 
 	current_cd_no = current_cd_no + 1;
     }
-
-    Packages::installed = packages_installed;
 
     // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
     UI::CloseDialog();
