@@ -7,6 +7,9 @@
  *	"Install/Remove software" 	called with argument "beginner", i.e. skip inst_source if possible
  *	"Choose source of installation" without argument 	-> workflow starts with inst_source
  *
+ * String corrections by Christian Steinruecken <cstein@suse.de>, 2001/08/01
+ *
+ *
  * $Id$
  */
 
@@ -34,7 +37,7 @@
   string msg_str11 =   UI(_("<p>Launch this module to install additional packages or
 remove installed ones.
 To install commercial software, launch this module and select
-set 'pay' from list of package sets.
+'pay' from list of package sets.
 </p>
 "));
 
@@ -42,8 +45,8 @@ set 'pay' from list of package sets.
 
   string msg_str13 = UI(_("<p>Launch this module if you want to choose the
 source of installation. It is possible to install packages from CD,
-via the network or from harddisk.</p>
-<p>You can specify the source media and install
+via network or from a hard drive.</p>
+<p>You can specify the source medium and install
 packages with this module.
 </p>
 
@@ -163,7 +166,7 @@ do this.</P>"));
 	  }
 	  else
 	  {
-	      string message = sformat (UI(_("Package %1 not found.")), select(arg_list, 0) );
+	      string message = sformat (UI(_("Package %1 was not found on the medium.")), select(arg_list, 0) );
 	      UI( `MessagePopup(message) );  
 	      id = size(dialog) + 1;
 	      //return `cancel;
@@ -261,17 +264,17 @@ do this.</P>"));
 	      {
 		  SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
 	      }
-	      // Popup informs the user that he/she wants to install an older versions
-	      string msg1 = UI(_("The version of SuSE distribution on source media
-must NOT be older than the installed one.\n"));
+	      // This popup informs the user that he is installing from an older version
+	      string msg1 = UI(_("The SuSE distribution version on the source medium
+must NOT be older than the version of your installed system.\n"));
 
 	      string versions = sformat( UI(_("Installed version: %1\n")),
 					 lookup( version_map, "installedVersion","" )) +
-		  sformat( UI(_("Version on source media: %1\n\n")),
+		  sformat( UI(_("Version on source medium: %1\n\n")),
 			   lookup( version_map, "updateVersion","" ));
 	      y2debug( "SW_SINGLE: %1", versions );
 	      
-	      string msg2 = UI(_("Please insert current CD or specify path of current sources."));
+	      string msg2 = UI(_("Please make sure the installation medium is correct."));
 	      
 	      UI(`MessagePopup(msg1 + versions + msg2));
 
