@@ -1,11 +1,11 @@
 /**
- * Module: 		SpaceCalculation.ycp
+ * Module:		SpaceCalculation.ycp
  *
  * Authors:		Klaus Kaempf (kkaempf@suse.de)
  *			Gabriele Strattner (gs@suse.de)
  *			Stefan Schubert (schubi@suse.de)
  *
- * Purpose: 		Package installation functions usable
+ * Purpose:		Package installation functions usable
  *			when the installation media is available
  *			on Installation::sourcedir
  *
@@ -22,7 +22,7 @@
     import "Installation";
     import "Label";
     import "Mode";
-    import "Product";
+    import "ProductFeatures";
     import "Report";
     import "Storage";
     import "String";
@@ -373,7 +373,7 @@
 	if ( size ( message ) > 0 )
 	{
 	    // dont ask user to deselect packages for imap server, product
-	    if ( Product::base_selection_choice == `auto)
+	    if ( ProductFeatures::base_selection_choice == `auto)
 	    {
 		message = message + "\n" +  _("Please deselect some packages.");
 	    }
