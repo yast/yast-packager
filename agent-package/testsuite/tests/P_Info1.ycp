@@ -1,18 +1,18 @@
 {
-    return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"german","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+return Execute(.setEnvironment,$["packageinfopath":"tests","language":"german","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-    return SCR::Read(.hierarchyInformation,$["branch":"", "rpmgroup":true]);
+    return Read(.hierarchyInformation,$["branch":"", "rpmgroup":true]);
 }
 {
-    return SCR::Read(.hierarchyInformation,$["branch":"", "rpmgroup":false]);
+    return Read(.hierarchyInformation,$["branch":"", "rpmgroup":false]);
 }
 {
-    return SCR::Read(.hierarchyInformation,$["branch":"a", "rpmgroup":true]);
+    return Read(.hierarchyInformation,$["branch":"a", "rpmgroup":true]);
 }
 {
-    return SCR::Execute(.selectInstall,"aaa_base", false);
+    return Execute(.selectInstall,"aaa_base", false);
 }
 {
-    return SCR::Read(.hierarchyInformation,$["branch":"a", "rpmgroup":false]);
+    return Read(.hierarchyInformation,$["branch":"a", "rpmgroup":false]);
 }

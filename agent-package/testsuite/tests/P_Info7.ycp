@@ -1,42 +1,42 @@
 {
-    return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+return Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-    return SCR::Read(.selGroups);
+    return Read(.selGroups);
 }
 {
-    return SCR::Execute(.selectSelInstall, "Minimal", true );
+    return Execute(.selectSelInstall, "Minimal", true );
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Read(.selPackages);
+    return Read(.selPackages);
 }
 {
-    return SCR::Execute(.selectSelInstall, "Dmz", false );
+    return Execute(.selectSelInstall, "Dmz", false );
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Read(.selPackages);
+    return Read(.selPackages);
 }
 {
-    return SCR::Execute(.deselectSelInstall, "Dmz" );
+    return Execute(.deselectSelInstall, "Dmz" );
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Read(.selPackages);
+    return Read(.selPackages);
 }

@@ -1,34 +1,34 @@
 {
-return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"german","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+return Execute(.setEnvironment,$["packageinfopath":"tests","language":"german","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-    return SCR::Execute(.setInstallSelection,["aaa_base", "aaa_dir", "aaa_skel"], false);
+    return Execute(.setInstallSelection,["aaa_base", "aaa_dir", "aaa_skel"], false);
 }
 {
-    return SCR::Read(.installSet);
+    return Read(.installSet);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"/","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"/","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[$["name":"bin","used":0,"free":10000]]);
+    return Read(.diskSpace,[$["name":"bin","used":0,"free":10000]]);
 }
 {
-    return SCR::Read(.diskSpace,[]);
+    return Read(.diskSpace,[]);
 }
 

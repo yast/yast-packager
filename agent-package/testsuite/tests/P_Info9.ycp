@@ -1,66 +1,66 @@
 {
-    return SCR::Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
+return Execute(.setEnvironment,$["packageinfopath":"tests","language":"de","common.pkd":"common.ori.pkd","dudir":"tests/du.dir","partition":[$["name":"/","used":0,"free":10000],$["name":"bin","used":0,"free":10000],$["name":"etc","used":0,"free":10000],$["name":"sbin","used":0,"free":10000],$["name":"usr","used":0,"free":10000],$["name":"var","used":0,"free":10000]]]);
 }
 {
-    return SCR::Read(.selGroups);
+    return Read(.selGroups);
 }
 {
-    return SCR::Execute(.selectSelInstall, "Standard", true );
+    return Execute(.selectSelInstall, "Standard", true );
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Execute(.selectSelInstall, "Minimal", false );
+    return Execute(.selectSelInstall, "Minimal", false );
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Execute(.deselectSelInstall, "Minimal" );
+    return Execute(.deselectSelInstall, "Minimal" );
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Execute(.selectSelInstall, "Kde", false );
+    return Execute(.selectSelInstall, "Kde", false );
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
 {
-    return SCR::Execute(.deselectSelInstall, "Games" );
+    return Execute(.deselectSelInstall, "Games" );
 }
 {
-    return SCR::Read(.selDependencies);
+    return Read(.selDependencies);
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
 {
-    return SCR::Execute(.setInstallSelection,["aaa_base", "aaa_dir", "aaa_skel", "at", "base", "bash", "bash1", "bdflush", "compat", "compress", "cpio", "cracklib", "cron", "ddrescue", "devs", "diff", "eazy", "elvis", "ext2fs", "file", "fileutil", "find", "gawk", "gdbm", "gppshare", "groff", "gzip", "kbd", "kernmod", "kernmods", "ldso", "less", "libaout", "libz", "lilo"], false);
+    return Execute(.setInstallSelection,["aaa_base", "aaa_dir", "aaa_skel", "at", "base", "bash", "bash1", "bdflush", "compat", "compress", "cpio", "cracklib", "cron", "ddrescue", "devs", "diff", "eazy", "elvis", "ext2fs", "file", "fileutil", "find", "gawk", "gdbm", "gppshare", "groff", "gzip", "kbd", "kernmod", "kernmods", "ldso", "less", "libaout", "libz", "lilo"], false);
 }
 {
-    return SCR::Read(.installSet);
+    return Read(.installSet);
 }
 {
-    return SCR::Read(.deleteSet);
+    return Read(.deleteSet);
 }
 {
-    return SCR::Execute(.selectInstall,"loadlin", false);
+    return Execute(.selectInstall,"loadlin", false);
 }
 {
-    return SCR::Execute(.deselectInstall,"lilo");
+    return Execute(.deselectInstall,"lilo");
 }
 {
-    return SCR::Read(.installSet);
+    return Read(.installSet);
 }
 {
-    return SCR::Read(.selInstallSet);
+    return Read(.selInstallSet);
 }
