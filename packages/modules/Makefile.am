@@ -1,20 +1,4 @@
-#
-# Makefile.am for y2m_inst/ycp/packages/modules
-#
+# Makefile.am for packager/packages/modules
 
-#
-# Files being accessed using "import" should be installed to
-#
-
-module_HEADERS = 			\
-		InstURL.ycp		\
-		Packages.ycp		\
-		SlideShow.ycp		\
-		SlideShowCallbacks.ycp	\
-		SpaceCalculation.ycp	\
-		PackageInstallation.ycp \
-		PackageCallbacks.ycp    \
-		PackageSelectionIO.ycp	\
-		PackagesUI.ycp
-
-
+module_DATA = $(wildcard *.ycp)
+include $(top_srcdir)/Makefile.am.common
