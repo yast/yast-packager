@@ -222,7 +222,7 @@
 
 	if (options != "")
 	{
-	    //url = url + ";" + options;
+	    url = url + ";" + options;
 	    y2milestone ("options %1", options);
 	}
 	y2milestone ("URL %1", url);
