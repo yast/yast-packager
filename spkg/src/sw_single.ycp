@@ -336,12 +336,15 @@ do this.</P>"))),
       user_settings = add ( user_settings , "delete_info", delete_info );
 
       _debug( "SW: Usersettings: ", user_settings );
-	
-      ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
 
-      if ( ret_rpm  == `next )
+      if ( install_info != [] || delete_info != [] )
       {
-	  CallFunction( `inst_suseconfig (false, false) );
+	  ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
+
+	  if ( ret_rpm  == `next )
+	  {
+	      CallFunction( `inst_suseconfig (false, false) );
+	  }
       }
   }
 
