@@ -44,28 +44,6 @@ do this.</P>"));
   msg_beginner = msg_str11 + msg_str12 + msg_str21;
   msg_expert = msg_str13 + msg_str21;
   
-  // Menuentry for the YaST2 menu
-  if (Args() == [ "get_menuentry" ]) 
-  {
-      return [ 
-	      "sw_single", $[
-			     "menuentry"    : UI(_("Install/Remove software")),
-			     "arguments"    : ["beginner"],
-			     "widget"       : `RichText(msg_beginner),
-			     "codefragment" : nil ]
-      ];
-  }
-  else if (Args() == [ "get_menuexpert" ])
-  {
-      return [
-	      "sw_single", $[
-			     "menuentry"    : UI(_("Choose source of installation")),
-			     "arguments"    : [],
-			     "widget"       : `RichText(msg_expert),
-			     "codefragment" : nil ]
-      ];
-  }
-  
   UI(``{
       /**
        * Create a typical installation wizard dialog.
