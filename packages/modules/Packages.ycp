@@ -252,13 +252,18 @@
 	return packages;
     }
 
+
+    /*-----------------------------------------------------------------------
+     * GLOBAL FUNCTIONS
+     *-----------------------------------------------------------------------*/
+
     /**
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
      * ( architecture, X11....)
      */
 
-    define list ComputeSystemPackageList ()
+    global define list ComputeSystemPackageList ()
     ``{
 	list install_list =  architecturePackages ();
 
@@ -288,12 +293,6 @@
 	install_list = toset (install_list);
 	return install_list;
     }
-
-
-    /*-----------------------------------------------------------------------
-     * GLOBAL FUNCTIONS
-     *-----------------------------------------------------------------------*/
-
 
     /**
      * Restore()
