@@ -135,11 +135,6 @@
 	{
 	    return `abort;
 	}
-	else if (ret != `error &&
-		 ret != `ok)
-	{
-	    Report::Error( _("The packager returned an unknown code") );
-	}
 
         // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
         UI::CloseDialog();
