@@ -535,13 +535,6 @@
 	if (Mode::initial)
 	{
 	    y2milestone ("Initialize Package Manager: %1", base_url);
-		// FIXME
-	    string cdrom = SCR::Read (.etc.install_inf.Cdrom);
-	    if (cdrom != nil)
-	    {			  
-		SCR::Execute(.target.symlink, "/dev/"+cdrom, "/dev/cdrom");
-	    }
-
 	    theSources = [ Pkg::SourceCreate (base_url) ];	    
 	}
 	else	// cont or normal mode
