@@ -57,20 +57,7 @@
     global boolean	user_switched_to_details = false;
     global boolean	opened_own_wizard	= false;
     global string	inst_log		= "";
-
-
-
-    // DEBUG
-    // DEBUG
-    // DEBUG
     global boolean	debug			= false;
-    // DEBUG
-    // DEBUG
-    // DEBUG
-
-
-
-
 
 
 
@@ -1295,16 +1282,7 @@
 	term contents = `Empty();
 
 	if ( UI::HasSpecialWidget(`DumbTab) && HaveSlideSupport()
-	     // DEBUG
-	     // DEBUG
-	     // DEBUG
-
-	     // && HaveSlides()
-
-	     // DEBUG
-	     // DEBUG
-	     // DEBUG
-	     )
+	     && HaveSlides() )
 	{
 	    contents =
 		`DumbTab(`id(`dumbTab ),
