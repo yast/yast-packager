@@ -368,7 +368,8 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-	list p_info = SCR::Read(.package.diskSpace, partition_info );
+	// FIXME: get partition usage info
+	list p_info = [];
 	integer used = 0;
 
 	if ( initialize )
