@@ -1112,48 +1112,52 @@
     void OpenSlideShowBaseDialog()
     {
 	showing_details = false;
+
+	term contents_pane =
+	    `VBox(
+		  `VSpacing( 0.5 ),
+		  `VWeight( 70, `ReplacePoint( `id(`rep_work_area), `Empty() ) ),
+		  `VSpacing( 0.5 ),
+		  `VWeight( 30, `ReplacePoint(`id(`rep_text_area), `RichText(`id(`description), "" ) ) )
+		  );
+
+	term cd_statistics_pane =
+	    // Translators: Header of frame around statistics about CDs needed for installation
+	    `Frame( _("&Installation"),
+		    `VBox(
+			  `HBox(
+				`HSpacing( 1 ),
+				`ReplacePoint( `id(`rep_cd_statistics), `Empty() ),
+				`HSpacing( 1 )
+				),
+			  `VStretch(),
+
+			  // PushButton that switches from slide show to technical installation
+			  // details (info about the package that is currently being installed)
+			  `ReplacePoint(`id(`rep_toggle_view),
+					`PushButton(`id(`details_view), `opt(`default), _("&Details...") )
+					)
+			  )
+		    );
+
 	UI::OpenDialog( `opt(`defaultsize),
 			`HBox(
 			      `HSpacing( 0.5 ),
 			      `VBox(
-				    `VSpacing(0.2),
-				    `VWeight( 70, `HBox(
-							`HWeight( 70, `ReplacePoint( `id(`rep_work_area), `Empty() ) ),
-							`HSpacing( 1 ),
-							// frame header
-							`HWeight( 30, `Frame( _("&Installation"),
-									      `VBox(
-										    `VSpacing( 0.5 ),
-										    `HBox(
-											  `HSpacing( 1 ),
-											  `ReplacePoint( `id(`rep_cd_statistics), `Empty() ),
-											  `HSpacing( 1 )
-											  ),
-										    `VStretch(),
-
-										    // PushButton that switches from slide show to technical installation
-										    // details (info package that is currently being installed)
-										    `ReplacePoint(`id(`rep_toggle_view),
-												  `PushButton(`id(`details_view), `opt(`default), _("&Details...") )
-												  ),
-										    `VSpacing( 0.5 )
-										    )
-									      )
-								  )
-							)
-					      ),
-				    `VSpacing( 0.5 ),
-				    `VWeight( 30, `ReplacePoint(`id(`rep_text_area),
-								`RichText(`id(`description), "" )
-								)
-					      ),
-				    `VSpacing(0.2),
-				    WizardButtons(),
-				    `VSpacing(0.2)
+				    `VSpacing( 0.2 ),
+				    `HBox(
+					  `HWeight( 70, contents_pane ),
+					  `HSpacing( 0.7 ),
+					  `HWeight( 30, cd_statistics_pane ),
+					  `HSpacing( 0.5 )
+					  ),
+				    `VSpacing( 0.2 ),
+				    WizardButtons()
 				    ),
 			      `HSpacing( 0.5 )
 			      )
 			);
+
 	Wizard::DisableBackButton();
 	Wizard::DisableNextButton();
 	UI::SetFocus(`id(`details_view) );
