@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Apr 05 14:54:06 CEST 2004 - arvin@suse.de
+
+- load all network modules during update (bug #38115)
+
+-------------------------------------------------------------------
 Fri Apr 02 15:59:59 CEST 2004 - arvin@suse.de
 
 - finally changed license to GPL for good
