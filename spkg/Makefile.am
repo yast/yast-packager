@@ -20,4 +20,5 @@ CLEANFILES = $(RPMNAME).kdoc
 MAINTAINERCLEANFILES = package/$(RPMNAME)-$(VERSION).tar.bz2 package/$(RPMNAME).spec
 
 package: $(RPMNAME)-$(VERSION).tar.bz2
+	rm -rf package/$(RPMNAME)-*.tar.bz2
 	mv $(RPMNAME)-$(VERSION).tar.bz2 package
