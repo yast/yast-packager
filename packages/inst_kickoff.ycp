@@ -15,6 +15,7 @@
     import "Installation";
     import "Update";
     import "Popup";
+    import "Directory";
 
 
     /**
@@ -22,6 +23,8 @@
      *  need it.
      */
     define void fake_mtab () ``{
+
+	string tmpdir = (string) SCR::Read (.target.tmpdir);
 
 	string mtabname = "/etc/mtab";
 	string mtab = (string) WFM::Read(.local.string, mtabname);
