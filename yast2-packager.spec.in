@@ -27,4 +27,5 @@ Summary:	-
 @moduledir@/*.ycp
 @scrconfdir@/*.scr
 @plugindir@/*.so.*
+@execcompdir@/servers_non_y2/*
 %doc @docdir@
