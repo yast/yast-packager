@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  9 18:32:22 CET 2004 - kkaempf@suse.de
+
+- vnc -> tightvnc, drop mesasoft (ro@suse.de)
+- 2.9.22
+
+-------------------------------------------------------------------
 Thu Mar  4 22:41:49 CET 2004 - kkaempf@suse.de
 
 - revoke bugfix #35052, this needs another solution
