@@ -450,7 +450,7 @@ must NOT be older than the installed one.\n"));
 					 lookup( version_map, "updateVersion","" ));
 	      y2debug( "SW_SINGLE: %1", versions );
 	      
-	      string msg2 = UI(_("Please insert actual CD or specify path of actual sources."));
+	      string msg2 = UI(_("Please insert current CD or specify path of current sources."));
 	      
 	      UI(`DisplayMessage(msg1 + versions + msg2));
 
