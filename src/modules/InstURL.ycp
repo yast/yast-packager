@@ -131,7 +131,6 @@
                 y2error("no partition specified");
 	}
 
-        
         url_tokens["scheme"] = instmode;
 
 	if (is_network)
@@ -139,6 +138,11 @@
 	    string username = Linuxrc::InstallInf("Username");
 	    if ((username != nil) && (username != ""))
 	    {
+		string workgroup = Linuxrc::InstallInf ("WorkDomain");
+		if (workgroup != nil && workgroup != "")
+		{
+		    username = sformat ("%1;%2", workgroup, username);
+		}
                 url_tokens["user"] = username;
 		string password = Linuxrc::InstallInf("Password");
 		if ((password != nil) && (password != ""))

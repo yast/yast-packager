@@ -221,6 +221,7 @@
     /**
         Get a URL for a ftp, http or samba server, optionally inclduing
         user/password information.
+	// FIXME Samba share is part of urlpath, workgroup is part of user
 
         @param protocol type of server, can be `ftp, `http or `smb.
     */
@@ -232,20 +233,41 @@
           urlpath = substring( urlpath, 1 );
         }
 
+	string share = "";
+	string workgroup = "";
+	if (type == `samba)
+	{
+	    list sharepath = regexptokenize (urlpath,
+		"^/*([^/]+)(/.*)?$");
+	    share = sharepath[0]:"";
+	    urlpath = sharepath[1]:"";
+	    if (urlpath == nil)
+		urlpath = "/";
+	    list workgroupuser = regexptokenize (urlpath,
+		"^(([^;]+);)?(.+)$");
+	    workgroup = workgroupuser[1]:"";
+	    user = workgroupuser[2]:"";
+	    if (workgroup == nil)
+		workgroup = "";
+	}
+	term wg_widget = `TextEntry( `id( `workgroup), _("Workgroup / Domain"),
+					workgroup);
+	term share_widget = `TextEntry (`id (`share), _("&Share"), share);
+
         UI::OpenDialog( `opt( `decorated ),
             `VBox(
                 `Label( _("Server and Directory") ),
                 `HBox(
                     `HSpacing( 0.5 ),
                     `Frame( _("P&rotocol"),
-                        `RadioButtonGroup( `id( `rb_type ),
+                        `RadioButtonGroup( `id( `rb_type ), `opt (`notify),
                             `HBox(
                                 `HStretch(),
-                                `RadioButton( `id( `ftp ), _("&FTP") ),
+                                `RadioButton( `id( `ftp ), `opt (`notify), _("&FTP") ),
                                 `HStretch(),
-                                `RadioButton( `id( `http ), _("H&TTP") ),
+                                `RadioButton( `id( `http ), `opt (`notify), _("H&TTP") ),
                                 `HStretch(),
-                                `RadioButton( `id( `samba ), _("&Samba") ),
+                                `RadioButton( `id( `samba ), `opt (`notify), _("&SMB / CIFS") ),
                                 `HStretch()
                             )
                         )
@@ -253,6 +275,7 @@
                     `HSpacing( 0.5 )
                 ),
                 `TextEntry( `id( `server ), _("Server &Name"), host ),
+		`ReplacePoint (`id (`share_rp), share_widget),
                 `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
                 `HBox(
                     `HSpacing( 0.5 ),
@@ -261,6 +284,10 @@
                             `Left( `CheckBox( `id( `anonymous ),
                                               `opt( `notify ), _("&Anonymous"),
                                               size( user ) == 0 ) ),
+			    `HBox (
+				`ReplacePoint (`id (`workgroup_rp),
+				wg_widget)
+			    ),
                             `HBox(
                                 `TextEntry( `id( `username ), _("&User Name"),
                                             user )
@@ -285,9 +312,27 @@
         any input = nil;
         repeat
         {
+
+	    if (UI::QueryWidget (`id (`rb_type), `CurrentButton) == `samba)
+	    {
+		UI::ReplaceWidget (`id (`workgroup_rp), wg_widget);
+		UI::ReplaceWidget (`id (`share_rp), share_widget);
+		UI::ChangeWidget (`id (`workgroup), `Value, workgroup);
+		UI::ChangeWidget (`id (`share), `Value, share);
+	    }
+	    else
+	    {
+		UI::ReplaceWidget (`id (`workgroup_rp), `Empty ());
+		UI::ReplaceWidget (`id (`share_rp), `Empty ());
+	    }
+
             boolean anonymous = (boolean) UI::QueryWidget( `id( `anonymous ), `Value );
             UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
             UI::ChangeWidget( `id( `password ), `Enabled, !anonymous );
+	    if (UI::WidgetExists (`id (`workgroup)))
+	    {
+		UI::ChangeWidget( `id( `workgroup), `Enabled, !anonymous );
+	    }
 
             input = UI::UserInput();
             y2debug( "Input: %1", input );
@@ -308,8 +353,12 @@
                 {
                     string user = (string) UI::QueryWidget( `id( `username ), `Value );
                     string password = (string) UI::QueryWidget( `id( `password ), `Value );
+		    if (UI::WidgetExists (`id (`workgroup)))
+			 workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
 
                     if ( size( user ) != 0 ) {
+			if (type == `samba && size (workgroup) > 0)
+			    url = url + workgroup + ";";
                         url = url + user;
                         if ( size( password ) != 0 ) {
                             url = url + ":" + password;
@@ -320,8 +369,13 @@
 
                 string server = (string) UI::QueryWidget( `id( `server ), `Value );
                 string directory = (string) UI::QueryWidget( `id( `dir ), `Value );
-
-                url = url + server + "/" + directory;
+		if (UI::WidgetExists (`id (`share)))
+		{
+		    share = (string)UI::QueryWidget (`id (`share), `Value);
+		    url = url + server + "/" + share + "/" + directory;
+		}
+		else
+		    url = url + server + "/" + directory;
 
 
             }
@@ -406,7 +460,7 @@
 			/* RadioButton label */
                         `Left( `RadioButton( `id( `http ), "&HTTP" ) ),
 			/* RadioButton label */
-                        `Left( `RadioButton( `id( `samba ), "&Samba" ) ),
+                        `Left( `RadioButton( `id( `samba ), "&SMB / CIFS" ) ),
 			/* RadioButton label */
                         `Left( `RadioButton( `id( `nfs ), "&NFS" ) ),
 			/* RadioButton label */
