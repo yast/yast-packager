@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 11 13:40:38 CET 2005 - jsrain@suse.cz
+
+- better warning if out-of-disk-space during update (#50376)
+
+-------------------------------------------------------------------
 Thu Feb 10 13:59:08 CET 2005 - lslezak@suse.cz
 
 - checkmedia - updated help texts, added read check, translate
