@@ -391,8 +391,17 @@
 	    // make a new proposal or change a proposal,
 	    // if it does not fit on the disk anymore
 
-	    list available_base_selections = Pkg::GetSelections (`available, "base");
+	    // get all base selections
+	    // and sort them by reverse order
+	    list available_base_selections = sort (`x, `y, Pkg::GetSelections (`available, "base"),
+		``{
+			map xmap = Pkg::SelectionData(x);
+			map ymap = Pkg::SelectionData(y);
+			return (xmap["order"]:"" > ymap["order"]:"");
+		}
+	    );
 	    y2milestone ("available_base_selections %1", available_base_selections);
+
 	    boolean fit = false;
 	    integer counter = 0;
 
@@ -401,7 +410,7 @@
 	    {
 		selected_base_selection = available_base_selections[counter]:"";
 
-		y2milestone ("Checking space for %1", selected_base_selection);
+		y2milestone ("Checking space for '%1'", selected_base_selection);
 		SetBaseSelection (selected_base_selection);
 
 		if ( !SpaceCalculation::CheckDiskSize() )
