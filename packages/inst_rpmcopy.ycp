@@ -193,6 +193,24 @@
 	Pkg::DoProvide (Packages::ComputeSystemPackageList());
     }
 
+    if  (Mode::autoinst
+	 && Mode::cont)
+    {
+	// extra packages from autoinstall
+	Pkg::DoProvide( AutoInstall::postPackageList());
+    }
+
+    if (!Mode::initial)
+    {
+	list remaining_packages = SCR::Read (.target.ycp, "/var/lib/YaST2/remaining_packages", []);
+	if (remaining_packages == nil)
+	    remaining_packages = [];
+	y2milestone ("%1 packages remaining", size (remaining_packages));
+	foreach (`pkg, remaining_packages,
+	``{
+	    Pkg::DoProvide (pkg);
+	});
+    }
 
     SlideShow::InitPkgData();
 
@@ -230,6 +248,29 @@
 
 	ret = PackageInstallation::InstallPackages( current_cd_no,			// media nr
 						    packages_installed );		// number of packages installed
+
+	if (media_number == 1)
+	{
+	    while ((pkgname != nil)
+		    && (pkgname != ""))
+	    {
+		remaining_nr = Pkg::PkgMediaNr (pkgname);
+		remaining_packages = add (remaining_packages, [remaining_nr, pkgname]);
+		pkgname = Pkg::PkgNextInstall();
+	    }
+	    y2milestone ("%1 packages on other media", size (remaining_packages));
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining_packages", remaining_packages);
+	}
+
+	if (size (error_packages) > 0)
+	{
+	    list failed_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", []);
+	    if (failed_packages == nil)
+		failed_packages = [];
+	    failed_packages = union (failed_packages, error_packages);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed_packages);
+	    ret = -ret;
+	}
 
 	packager_called = true;
 	// FIXME diskfull, abort/cancel
