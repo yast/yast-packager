@@ -130,9 +130,34 @@
 
     global define string installInf2Url ( )
     ``{
+	string options = "";
 	string url = SCR::Read (.etc.install_inf.InstMode);
 	if (url == nil)
 	    url = "cd";
+	if ((url == "cd")
+	    || (url == "dvd"))
+	{
+	    list devicelist = SCR::Read(.probe.cdrom);
+	    foreach (`device, devicelist,
+	    ``{
+		string devname = device["dev_name"]:"";
+		if (url == "dvd")			// filter out cd drives if dvd is wanted
+		{
+		    if (!issubstring (device["cdtype"]:"", "dvd"))
+			devname = "";
+		}
+
+		if (devname != "")
+		{
+		    if (options != "") options = options + ",";
+		    options = options + devname;
+		}
+	    });
+	    if (options != "")
+	    {
+		options = "devices=" + options;
+	    }
+	}
 	url = url + "://";
 	string username = SCR::Read (.etc.install_inf.Username);
 	if ((username != nil) && (username != ""))
@@ -184,6 +209,11 @@
 	if ((proxypassword != nil) && (proxypassword != ""))
 	{
 	    url = url + ";proxypassword=" + proxypassword;
+	}
+
+	if (options != "")
+	{
+	    url = url + options;
 	}
 	y2milestone ("URL %1", url);
 	return url;
