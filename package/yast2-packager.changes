@@ -3,6 +3,7 @@ Wed Feb 16 11:18:52 CET 2005 - jsrain@suse.cz
 
 - fixed getting URL from install.inf if installation from CDs
   (#50893)
+- 2.11.22
 
 -------------------------------------------------------------------
 Mon Feb 14 15:41:24 CET 2005 - jsrain@suse.cz

@@ -128,6 +128,8 @@
 
 	if (serverdir != nil && serverdir != "")
 	    url_tokens["path"] = serverdir;
+	else
+	    url_tokens["path"] = "/"; // FIXME don't know why it is needed
 
         string url = URL::Build(url_tokens);
 
