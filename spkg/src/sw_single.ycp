@@ -317,8 +317,86 @@ do this.</P>"))),
 
   UI( `CloseDialog() );
 
-  // Calling inst_sw_single
-  any ret_single = CallFunction( `inst_sw_single( `post_install, `not_only_checked, part_input ) );
+  
+  any ret_single = `ok;
+
+  if ( size(Args() ) > 0 )
+  {
+      // There could be a list of packages which have to be installed.
+      // ( Defined in an ascii-file, which path is given via argument. )
+      string pathname = Args(0);
+      y2log ( .milestone, "sw_single", 1,
+	      sformat ( "Reading file %1", pathname ) );
+
+      map|any installMap = Read ( pathname );
+      y2log ( .milestone, "sw_single", 2,
+	      sformat ( "installMap: %1", installMap ) );
+      
+
+      if ( installMap == nil || size ( installMap ) == 0 )
+      {
+	 string message = UI(_("Error while reading onfiguration-file."));
+         UI(`DisplayMessage(message));
+	 ret_single = `cancel;
+      }
+      else
+      {
+	  list installList = lookup ( installMap, "install", [] );
+	  list deleteList = lookup ( installMap, "delete", [] );
+	  boolean userInput = lookup ( installMap, "userInput", false );
+
+	  y2log ( .milestone, "sw_single)", 2,
+		  sformat ( "installList: %1", installList ) );
+	  y2log ( .milestone, "sw_single)", 2,
+		  sformat ( "deleteList: %1", deleteList ) );
+	  y2log ( .milestone, "sw_single)", 2,
+		  sformat ( "userInput: %1", userInput ) );
+
+	  
+	  foreach( `package, installList, ``{
+	      any r = PKGINFO( `selectInstall( package ));
+	      _debug( "PKGINFO selectInstall: ", package );
+	  } );           
+
+	  foreach( `package, deleteList, ``{
+	      any r = PKGINFO( `selectDelete( package ) );
+	      _debug( "PKGINFO selectDelete: ", package );
+	  } );
+	       
+	  // Checking dependecies
+	  map pac_depends = PKGINFO(`getDependencies());
+	   
+	  list(map) or_depends = lookup( pac_depends, "OR" );
+	  _debug( "OR Dependencies:", or_depends );
+	  list(map) xor_depends = lookup( pac_depends, "XOR" );
+	  _debug( "XOR Dependencies:", xor_depends );
+
+	  if ( userInput == true )
+	  {
+	      ret_single = CallFunction( `inst_sw_single( `post_install,
+							  `not_only_checked,
+							  part_input ) );
+	  }
+	  else
+	  {
+	      if ( or_depends != [] || xor_depends != [] )
+	      {
+		  // There is an unresolved dependency -> call
+		  // single-package-selection to solve it.
+		  ret_single = CallFunction( `inst_sw_single( `post_install,
+							      `only_check,
+							      part_input) );
+	      }
+	  }
+      }
+  }
+  else
+  {
+      // Calling inst_sw_single
+      ret_single = CallFunction( `inst_sw_single( `post_install,
+					      `not_only_checked,
+					      part_input ) );
+  }
   
   _debug( "SW: Return inst_sw_single ", ret_single );
 
@@ -328,17 +406,22 @@ do this.</P>"))),
   {
       // setting user_setting.install_info for packages which have to be installed
       list install_info =  PKGINFO ( `getInstallSet() );
-      // _debug ( "Writing install_info: ", install_info );
+      y2log ( .milestone,"sw_single",4,
+	      sformat( "Writing install_info :%1 ", install_info ) );
       user_settings = add ( user_settings , "install_info", install_info );
 
       list delete_info =  PKGINFO ( `getDeleteSet() );
-      // _debug ( "Writing delete_info: ", delete_info );
+      y2log ( .milestone,"sw_single",4,
+	      sformat( "Writing delete_info: %1 ", delete_info ));
       user_settings = add ( user_settings , "delete_info", delete_info );
 
       _debug( "SW: Usersettings: ", user_settings );
 
       if ( install_info != [] || delete_info != [] )
       {
+	  // remove old logging
+	  Shell ( "rm /var/log/y2logRPM*" );
+	  // start installation
 	  ret_rpm = CallFunction( `inst_rpmcopy (false, false) );
 
 	  if ( ret_rpm  == `next )
