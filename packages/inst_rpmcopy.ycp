@@ -25,6 +25,7 @@
     import "Language";
     import "PackageInstallation";
     import "Packages";
+    import "InstURL";
     import "SlideShow";
     import "SlideShowCallbacks";
     import "AutoinstSoftware";
@@ -98,7 +99,7 @@
 
     if (Mode::initial)
     {
-	maxnumbercds = 1; // only the first CD will be installed
+	maxnumbercds = 1;			// only the first CD will be installed
     }
     else if (Mode::autoinst && Mode::cont && size( AutoinstSoftware::post_packages ) > 0)
     {
@@ -112,9 +113,10 @@
 	current_cd_no = 2; // continue with second CD but only in continue mode
     }
 
-    if (Packages::metadir_used)			// all is in ramdisk, we can install all sources now
+    if (Packages::metadir_used			// all is in ramdisk
+	|| InstURL::is_network)			//   or coming via network
     {
-	current_cd_no = 0;
+	current_cd_no = 0;			// we can install all sources now
 	maxnumbercds = 0;
     }
 

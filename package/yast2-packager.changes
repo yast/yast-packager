@@ -5,6 +5,11 @@ Fri Feb 27 05:24:24 CET 2004 - nashif@suse.de
 - Adapted for new Control file
 
 -------------------------------------------------------------------
+Thu Feb 26 09:28:00 CET 2004 - kkaempf@suse.de
+
+- install in one go if packages are coming via network (#35052)
+
+-------------------------------------------------------------------
 Wed Feb 25 18:36:29 CET 2004 - arvin@suse.de
 
 - improved setting of locales of packagemanager
