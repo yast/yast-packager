@@ -23,7 +23,6 @@
 
     // wizard stage
     integer current_stage = -1;
-    symbol ret = `dummy;
 
     y2debug("creating wizard");
     // create initial dialog

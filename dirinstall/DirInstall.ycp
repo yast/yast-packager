@@ -12,5 +12,10 @@ textdomain "packager";
 global boolean runme_at_boot = false;
 global string target = "/var/tmp/dirinstall";
 
+global boolean makeimage = false;
+global string image_dir = "";
+global string image_name = "";
+
+
 
 }
