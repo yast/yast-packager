@@ -96,6 +96,7 @@
 
 	Pkg::TargetInit (Installation::destdir, true);
 	SCR::Execute(.target.mkdir, Installation::destdir+"/etc");
+	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
 
 	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
 	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir+"/etc");
@@ -107,7 +108,6 @@
 
 	Pkg::TargetInit (Installation::destdir, false);
     }
-    SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
     // Now that we know how many packages to install, we can show the dialog
