@@ -45,7 +45,7 @@ make install
 %{?suse_check}
 
 %files
-
+%defattr(-,root,root)
 %dir @YAST2DIR@/clients
 %dir @YAST2DIR@/menuentries
 @YAST2DIR@/menuentries/menuentry_sw_single.y2cc
