@@ -934,7 +934,7 @@
 			,
 			// Header above name + version of current package in 'details' view
 			// Plain text, not RichText / HTML!
-			_("Current Package"),	// %1
+			_("&Current Package"),	// %1
 			pkg_name,		// %2
 
 			// Header above short description of current package in 'details' view
@@ -978,7 +978,8 @@
 				    `VWeight( 70, `HBox(
 							`HWeight( 70, `ReplacePoint( `id(`rep_work_area), `Empty() ) ),
 							`HSpacing( 1 ),
-							`HWeight( 30, `Frame( _("Installation"),
+							// frame header
+							`HWeight( 30, `Frame( _("&Installation"),
 									      `VBox(
 										    `VSpacing( 0.5 ),
 										    `HBox(
