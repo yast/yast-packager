@@ -39,7 +39,7 @@
     }
 
     global define void EnsureSourceInit () ``{
-	source_initialized = source_initialized || Pkg::SourceStartCache (true);
+	source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
     }
 
     /**
