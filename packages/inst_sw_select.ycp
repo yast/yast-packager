@@ -155,7 +155,13 @@ To make a more precise selection of software to install, select
     ``{
 	map selection_data = Pkg::SelectionData (selection);
 	if (selection_data != nil)
-	    sorted_base_selections[selection_data["order"]:""] = [selection, selection_data["summary"]:("'"+selection+"'")];
+	{
+	    string order = selection_data["order"]:"";
+	    // use selection name as sort criteria if not given
+	    if (order == "")
+		order = selection;
+	    sorted_base_selections[order] = [selection, selection_data["summary"]:("'"+selection+"'")];
+	}
     });
 
     // construct display box in order
@@ -245,13 +251,14 @@ You will lose that selection if you change the basic selection.");
 
 	// Inform the package manager on `next about the new (only about a NEW) selection
 	// or if the selection has changed
-	if ( ( (ret == `next) && (save_selection != base_selection) )
-	     || (save_selection != base_selection) )
+	if (((ret == `next)
+	      && (save_selection != base_selection) )
+	    || (save_selection != base_selection) )
 	{
 	    // set the new selection
 	    boolean ret = Pkg::SetSelection( base_selection );
 
-	    y2milestone ( "Selecting %1 returns: %2", base_selection, ret );
+	    y2milestone ( "Selecting '%1' returns: %2", base_selection, ret );
 	    
 	    string msg = "";
 

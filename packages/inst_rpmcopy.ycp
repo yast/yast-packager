@@ -117,7 +117,7 @@
 
     // y2debug("%1 packages have been installed", packages_installed);
 
-    if ( rpm_list != [] )
+    if ( size (rpm_list) > 0)
     {
 	y2milestone( "Installing RPM_LIST: %1", rpm_list );
 
@@ -175,8 +175,17 @@
 	// containing only the package filename and the label in the current
 	// language.
 
-	// FIXME Solver
-	list base_packages = [];
+	y2milestone ("Pkg::PrepareOrder()");
+	list ins_del_count = Pkg::PrepareOrder();
+	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
+
+	string pkgname = Pkg::PkgNextInstall();
+	while ((pkgname != nil)
+		&& (pgkname != ""))
+	{
+	    y2milestone ("Installing %1", pkgname);
+	    pkgname = Pkg::PkgNextInstall ();
+	}
 
 	// y2debug("Base packages ( on Medium1 ): %1", base_packages);
 
