@@ -91,7 +91,8 @@
 	// if sw_single is called with argument "beginner" or with a package list or package name
 	// -> skip inst_source (if possible)
 
-	string postfix =  substring (select (arg_list, 0), size (select (arg_list, 0)) - 4 );
+	string first_arg = select (arg_list, 0);
+	string postfix =  substring (first_arg, size (first_arg) - 4 );
 	y2milestone("SW_SINGLE: POSTFIX: %1", postfix );
 
 	// if sw_single is called with an absolute package-pathname, there is no need to
@@ -100,12 +101,12 @@
 	if ( postfix == ".rpm" )		// package name given
 	{
 	    // does packge exist ?
-	    if ( SCR::Read(.target.size, select (arg_list, 0)) > 0 )
+	    if ( SCR::Read(.target.size, first_arg) > 0 )
 	    {
 		InstMedia::bootmode = "Harddisk";
 		InstMedia::mediatype = 3;
 
-		CallFunction( `inst_rpmcopy( false, false, select(arg_list, 0) ));
+		CallFunction( `inst_rpmcopy( false, false, first_arg ));
 
 		// package is installed without paying attention to SuSE dependencies
 		// don't call SuSEConfig -> dialog loop ends
