@@ -523,7 +523,8 @@
      * @return installation successful?
      */
     define boolean RequireAndConflictAI ( list(string) require,
-					  list(string) conflict) ``{
+					  list(string) conflict)
+    ``{
 
 	list(string) toinstall = filter (`p, require, ``(!IsPackageInstalledAI (p)));
 	list(string) toremove = filter (`p, conflict, ``(IsPackageInstalledAI (p)));
@@ -532,6 +533,7 @@
 	    return true;
 	}
 	else
+	{
 	    return DoInstallAndRemoveAI (toinstall, toremove);
 	}
     }
