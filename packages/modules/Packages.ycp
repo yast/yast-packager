@@ -411,15 +411,6 @@
 	    }
 	    selected_addon_selections = base_data["recommends"]:[];
 	}
-	else if (Product::certify_cd)
-	{
-	    // certification is only possible with this selection. If it doen't
-	    // fit to disk, then the disk is too small so no further logic
-	    // required.
-	    y2milestone("force certify selection");
-	    selected_base_selection = "certify";
-	    Pkg::SetSelection (selected_base_selection);
-	}
 
 	choosen_base_selection = selected_base_selection;
 
