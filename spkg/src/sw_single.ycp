@@ -213,7 +213,7 @@
 		if (!Pkg::PkgInstall (package))			// select package for installation
 		{
 								// oops, package not found ?
-		    Pkg::DoProvide (package);			// try as tagname
+		    Pkg::DoProvide ([package]);			// try as tagname
 		}
 	    });
 
