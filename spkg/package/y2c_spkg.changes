@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Dec 13 19:06:57 MET 2000 - schubi@suse.de
+
+- new menue-entry 
+
+-------------------------------------------------------------------
 Fri Dec  1 17:25:52 MET 2000 - gs@suse.de
 
 - version 1.0.6 command line call added, e.g. yast2 sw_single '("file.rpm")'
