@@ -76,26 +76,10 @@
 	    {
 		ret = true;
 
-		if (InstMedia::release_no == 0)
-		{
-		    // save release number of start CD in module "InstMedia"
-		    ret = InstMedia::gatherReleaseData();
-
-		    // allright if we got the initial data
-
-		    if (Mode::initial && ret)
-			break;
-		}
-
-		// we must compare the release number and the product information
-		release_no = SCR::Read(.yast2.instsource.cdrelease, Installation::sourcedir);
-		product    = SCR::Read(.yast2.instsource.product, Installation::sourcedir);
-
-		if (product == InstMedia::product
-		    && release_no == InstMedia::release_no)
-		{
+		if (true)
 		    break;
-		}
+
+		// keep text here for translation
 
 		y2milestone ("Release No. or product information on installation medium differs from
 saved information (Medium: %1, %2, Reference: %3, %4) type %5",
