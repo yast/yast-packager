@@ -282,6 +282,25 @@ Select which desktop to install.</p>
 	    }
     }
 
+
+    /**
+     * Compute kernel packages
+     * @return list of selected kernel packages
+     */
+    global list <string> ComputeKernelPackages () {
+
+	    string kernel = ComputeKernelPackage ();
+	    string kernel_nongpl = kernel + "-nongpl";
+
+	    list <string> ret = [ kernel ];
+
+	    if (Pkg::IsAvailable (kernel_nongpl))
+		ret = add (ret, kernel_nongpl);
+
+	    return ret;
+    }
+
+
     /**
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
@@ -297,10 +316,10 @@ Select which desktop to install.</p>
 	                                     Storage::AddPackageList());
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
-	if (!Mode::update ||  !Mode::autoinst)
+	if (!Mode::update || !Mode::autoinst)
 	{
-            string the_kernel = ComputeKernelPackage();
-            install_list = add(install_list, the_kernel );
+            list <string> kernel_pkgs = ComputeKernelPackages ();
+	    install_list = (list <string>) union (install_list, kernel_pkgs);
         }
 
 	if (Pkg::IsSelected("xorg-x11"))
@@ -819,7 +838,7 @@ define boolean SelectDesktop () {
 					// translators: dialog text
 					`Left(`Label (_("The &product; includes two different
 desktop environments.
-Select the environment to use by default 
+Select the environment to use by default
 from the list below. If you do not
 know which environment is preferred by your company,
 ask your system administrator.
