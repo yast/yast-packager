@@ -8,13 +8,12 @@
  */
 
 {
-
     module "Packages";
 
     textdomain "packager";
 
     import "Arch";
-    import "Boot";
+    import "Bootloader";
     import "Installation";
     import "Kernel";
     import "Mode";
@@ -67,18 +66,19 @@
 	    packages = add (packages, "sbl");
 	}
 
-	// check for aboot or mile on alpha and add package
+	// check for aboot or milo on alpha and add package
 	if (Arch::alpha)
 	{
-	    if (Boot::LoaderType == "aboot")
+	    string loader_type = Bootloader::getLoaderType ();
+
+	    if (loader_type == "aboot")
 	    {
 		packages = add (packages, "aboot");
 	    }
-	    else if (Boot::LoaderType == "milo")
+	    else if (loader_type == "milo")
 	    {
 		packages = add (packages, "milo");
 	    }
-
 	}
 
 	// remove unneeded / add needed packages for ppc
