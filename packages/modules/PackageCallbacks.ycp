@@ -238,7 +238,6 @@
 
 	SetMediaCallbacks ();
 
-
     UI::{
     // UI USE
     // creates layout for ChangMediumPopup
