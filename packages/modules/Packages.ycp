@@ -112,6 +112,11 @@
 		packages = add (packages, "mol");
 		packages = add (packages, "sudo");
 	    }
+
+	    if (Arch::ppc64 && Arch::board_chrp)
+	    {
+		packages = add (packages, "ppc64-tools");
+	    }
 	}
 
 	return packages;
