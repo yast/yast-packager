@@ -271,12 +271,19 @@ do this.</P>"));
   user_settings = add( user_settings, "continue_mode", false );
   user_settings = add( user_settings, "post_install", true );
 
-
-  if (size(Args()) > 0 && Args(0) == .test)
-  {
-      user_settings = add(user_settings, "test_mode", true );
-  }
+  // check test_mode
+  integer arg_n = size(Args()) - 1;
+  boolean test_mode = false;
   
+  while (arg_n >= 0) {
+      if (Args(arg_n) == .test) {
+	  test_mode = true;
+      }            
+      arg_n = arg_n - 1;
+  }
+  user_settings = add( user_settings, "test_mode", test_mode );
+  y2debug("SW_SINGLE: Testmode %1", test_mode );
+
   //
   // Get informations for initialisation of PKGINFO server
   //
@@ -307,7 +314,7 @@ do this.</P>"));
 
       part_input = add( part_input, part_info );
   });
-  _debug( "SW_SINGLE: partition input: ", part_input ); 
+  y2debug( "SW_SINGLE: partition input: %1", part_input ); 
    
   
   /*
@@ -331,53 +338,51 @@ do this.</P>"));
   
   if ( size( Args() ) > 0 )
   {
-      boolean go_on = ChangeCD( 1, false);
-	  
-      if ( !go_on )
-      {
-	  any ret = UI(`ContinueCancel(_("No access to source media used on previous installation.
-Continue with choosing new installation source?"), _("&Yes"), _("&No")));
+      string postfix =  substring( Args(0), size(Args(0))-4 );
+      y2debug("SW_SINGLE: POSTFIX: %1", postfix );
 
-	  if ( ret )		// choose new installation source
-	  {
-	      skip_source = false;
-	      id = 0;
-	  }
-	  else			// exit the installation dialog
-	  {
-	      UI(`CloseDialog() );
-	      return `cancel;
-	  }
-      }
-      else			// mount ok on previos media -> skip inst_source
+      if ( postfix == ".rpm" )
       {
-	  string postfix =  substring( Args(0), size(Args(0))-4 );
-	  _debug("SW_SINGLE: POSTFIX: ", postfix );
-	  
-	  if ( Args(0) != "beginner" && postfix == ".rpm" )
+	  if ( fileFound( Args(0) ) )
 	  {
-	      if ( fileFound( Args(0) ) )
-	      {
-		  // prepare for inst_rpmcopy !!!
-		  map installMap = $[];
-		  installMap = add(installMap, "bootmode", "Harddisk" );
-		  user_settings = add(user_settings, "continue_mode", true );
-		  user_settings = add(user_settings, "installMap", installMap );
-		  list install_info = [];
-		  // TODO: this_cd_packages: " [["fun2/xtartan.rpm", "xtartan ", 3, false]] 
-		  install_info = add(install_info, Args(0) );
-		  Write("/var/lib/YaST2/pacs_to_install.ycp", install_info);
+	      // prepare for inst_rpmcopy !!!
+	      map installMap = $[];
+	      installMap = add(installMap, "bootmode", "Harddisk" );
+	      user_settings = add(user_settings, "installMap", installMap );
 
-		  id = id + 2;
-	      }
-	      else
-	      {
-		 string message = sformat (UI(_("Package %1 not found.")), Args(0) );
-		 UI(`DisplayMessage(message));  
-		 return `cancel;
-	      }
+	      CallFunction( `inst_rpmcopy( false, false, Args(0) ));
+	      // package is installed without paying attention to SuSE dependencies
+	      // don't call SuSEConfig
+	      id = size(dialog) + 1;
 	  }
 	  else
+	  {
+	      string message = sformat (UI(_("Package %1 not found.")), Args(0) );
+	      UI(`DisplayMessage(message));  
+	      return `cancel;
+	  }  
+      }
+      else
+      {
+	  boolean go_on = ChangeCD( 1, false);
+	  
+	  if ( !go_on )
+	  {
+	      any ret = UI(`ContinueCancel(_("No access to source media used on previous installation.
+Continue with choosing new installation source?"), _("&Yes"), _("&No")));
+
+	      if ( ret )		// choose new installation source
+	      {
+		  skip_source = false;
+		  id = 0;
+	      }
+	      else			// exit the installation dialog
+	      {
+		  UI(`CloseDialog() );
+		  return `cancel;
+	      }
+	  }
+	  else			// mount ok on previos media -> skip inst_source
 	  {
 	      skip_source = true;
 	      id = id + 1;
@@ -417,7 +422,7 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 					      "forceInit":true]		// force initialisation
 
 					     ));
-	  _debug( "SW_SINGLE: Return  PKGINFO(`setEnvironment()", retval );	
+	  y2debug( "SW_SINGLE: Return  PKGINFO(`setEnvironment() %1", retval );	
 
 	  UI(`CloseDialog());
 
@@ -431,7 +436,7 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 	      }
 	      string versions = sformat( UI(_("Installed version: %1\n")), lookup( version_map, "installedVersion","" )) +
 		  sformat( UI(_("Version on source media: %1\n")), lookup( version_map, "updateVersion","" ));
-	      _debug( "SW_SINGLE: ", versions );
+	      y2debug( "SW_SINGLE: %1", versions );
 	      
 	      UI(`DisplayMessage(_("The version of SuSE distribution on source media
 must NOT be older than the installed one.
@@ -451,18 +456,16 @@ Please insert actual CD or specify path of actual sources.")) );
 	      
 	      if ( !fileFound(pathname) )
 	      {
-		  // It could be a single package which have to be installed.
-		  list install_list = [];
-		  install_list = add ( install_list, Args(0) );
-		  installMap = add ( installMap, "install", install_list );
-		  y2log ( .milestone, "sw_single", 1, sformat ( "package %1 will be installed", Args(0) ));
+		  string message = sformat(UI(_("File %1 not found.")), Args(0) );
+		  UI(`DisplayMessage(message));  
+		  return `cancel;
 	      }
 	      else
 	      {
-		  y2log ( .milestone, "sw_single", 1, sformat ( "Reading file %1", pathname ) );
+		  y2milestone("Reading file %1", pathname );
 		  installMap = Read ( pathname );
 	      }
-	      y2log ( .milestone, "sw_single", 2, sformat ( "installMap: %1", installMap ) );
+	      y2milestone("installMap: %1", installMap );
       
 
 	      if ( installMap == nil || size ( installMap ) == 0 )
@@ -477,28 +480,28 @@ Please insert actual CD or specify path of actual sources.")) );
 		  list deleteList = lookup ( installMap, "delete", [] );
 		  boolean userInput = lookup ( installMap, "userInput", false );
 
-		  y2log ( .milestone, "sw_single)", 2, sformat ( "installList: %1", installList ) );
-		  y2log ( .milestone, "sw_single)", 2, sformat ( "deleteList: %1", deleteList ) );
-		  y2log ( .milestone, "sw_single)", 2, sformat ( "userInput: %1", userInput ) );
+		  y2milestone("installList: %1", installList );
+		  y2milestone("deleteList: %1", deleteList );
+		  y2milestone("userInput: %1", userInput );
 
 	  
 		  foreach( `package, installList, ``{
 		      any r = PKGINFO( `selectInstall( package ));
-		      _debug( "PKGINFO selectInstall: ", package );
+		      y2debug( "PKGINFO selectInstall: %1", package );
 		  } );           
 
 		  foreach( `package, deleteList, ``{
 		      any r = PKGINFO( `selectDelete( package ) );
-		      _debug( "PKGINFO selectDelete: ", package );
+		      y2debug( "PKGINFO selectDelete: %1", package );
 		  } );
 	       
 		  // Checking dependecies
 		  map pac_depends = PKGINFO(`getDependencies());
 	   
 		  list(map) or_depends = lookup( pac_depends, "OR" );
-		  _debug( "OR Dependencies:", or_depends );
+		  y2debug( "OR Dependencies: %1", or_depends );
 		  list(map) xor_depends = lookup( pac_depends, "XOR" );
-		  _debug( "XOR Dependencies:", xor_depends );
+		  y2debug( "XOR Dependencies: %1", xor_depends );
 
 		  if ( userInput == true )
 		  {
@@ -537,7 +540,7 @@ Please insert actual CD or specify path of actual sources.")) );
       {
 	  result = CallFunction( select(dialog, id) );
       }
-      _debug ( "RESULT: ", select(dialog, id), result );
+      y2debug( "RESULT: %1", select(dialog, id), result );
 
       if (result == `cancel || result == `abort || result == `cancel_rpm)
       {
@@ -557,14 +560,14 @@ Please insert actual CD or specify path of actual sources.")) );
       {
 	  // setting user_setting.install_info for packages which have to be installed
 	  list install_info =  PKGINFO ( `getInstallSet() );
-	  // _debug ( "Writing install_info: ", install_info );
+	  // y2debug( "Writing install_info: %1", install_info );
 	  user_settings = add ( user_settings , "install_info", install_info );
 
 	  list delete_info =  PKGINFO ( `getDeleteSet() );
-	  // _debug ( "Writing delete_info: ", delete_info );
+	  // y2debug( "Writing delete_info: %1", delete_info );
 	  user_settings = add ( user_settings , "delete_info", delete_info );
 
-	  _debug( "SW_SINGLE: Usersettings: ", user_settings );
+	  y2debug( "SW_SINGLE: Usersettings: %1", user_settings );
 
 	  if ( install_info != [] || delete_info != [] )
 	  {
@@ -572,7 +575,7 @@ Please insert actual CD or specify path of actual sources.")) );
 	  }
 	  else
 	  {
-	      _debug( "Nothing selected" );
+	      y2debug( "Nothing selected" );
 	      // dialog loop ends
 	      id = id+3;
 	  }
