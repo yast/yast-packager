@@ -413,6 +413,7 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
+	y2milestone ("Pkg::CheckSpace(%1)", partition_info);
 	list p_info = Pkg::CheckSpace ( partition_info );
 
 	integer used = 0;
