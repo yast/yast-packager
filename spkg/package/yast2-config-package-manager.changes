@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May  7 16:42:55 CEST 2001 - sh@suse.de
+
+- Use new UI(`GetLanguage()) parameter 
+
+-------------------------------------------------------------------
 Tue Apr 17 13:06:37 MEST 2001 - gs@suse.de
 
 - translation package rename
