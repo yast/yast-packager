@@ -18,21 +18,57 @@
 
 
     /**
-     * Is this package installed?
-     * @param package
-     * @return boolean
+     * This will be local when converted to a Module::
+     * Has Pkg::TargetInit run?
      */
-    global define IsPackageInstalled (string package) ``{
-	return SCR::Read (.targetpkg.installed, package);
+    global boolean pkg_initialized = false;
+
+    /**
+     * This will be local when converted to a Module::
+     *
+     */
+    global define void EnsureTargetInit () ``{
+	pkg_initialized = pkg_initialized || Pkg::TargetInit ("/", false);
+    }
+
+    /**
+     * Is a package available for installation?
+     * @param	package package name, without version or .rpm suffix
+     * @return true/false
+     */
+    global define boolean IsPackageAvailable (string package) ``{
+	EnsureTargetInit ();
+	// will it work yet?
+	return Pkg::IsAvailable (package);
+
+	/*
+	 * This was a hack for 8.0:
+	 * This is a bit kludgy, since querying .package would take up
+	 * a large amount of resources.
+	 */
+	string cmd = "/usr/bin/grep -q '^RpmName:[ \t]*%1$' %2";
+	string pkd = "/var/adm/current_package_descr/suse/setup/descr/common.pkd";
+	return SCR::Execute (.target.bash, sformat (cmd, package, pkd)) == 0;
+    }
+
+    /**
+     * Is this package installed?
+     * @param package a bare package name
+     * @return true/false
+     */
+    global define boolean IsPackageInstalled (string package) ``{
+	// too much overhead
+	// return Pkg::IsProvided (package);
+	return SCR::Execute (.target.bash, "/bin/rpm -q " + package) == 0;
     }
 
     /**
      * Is any of these packages installed?
-     * @param packages
-     * @return boolean
+     * @param packages list of packages
+     * @return true/false
      */
 
-    global define IsAnyPackageInstalled (list(string) packages) ``{
+    global define boolean IsAnyPackageInstalled (list(string) packages) ``{
 	string which = find(`p, packages, ``{
 	    return IsPackageInstalled (p);
 	});
@@ -41,10 +77,10 @@
 
     /**
      * Are all of of these packages installed?
-     * @param packages
-     * @return boolean
+     * @param packages list of packages
+     * @return true/false
      */
-    global define AreAllPackagesInstalled (list(string) packages) ``{
+    global define boolean AreAllPackagesInstalled (list(string) packages) ``{
 	string which = find(`p, packages, ``{
 	    return ! IsPackageInstalled (p);
 	});
@@ -55,21 +91,16 @@
      * Install required packages and remove conflicting packages.
      * @param toinstall packages to install
      * @param toremove pacakges to remove
-     * @return boolean true :(
+     * @return success?
      */
     global define DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
-	map script = $[
-	    "userInput": false,
-	    "install": toinstall,
-	    "delete": toremove
-	    ];
-
-	string fn = SCR::Read (.target.tmpdir);
-	fn = fn + "/script.sw_single";
-	SCR::Write (.target.ycp, fn, script);
-	WFM::CallFunction (`sw_single (fn));
-
-	return true;
+	// TODO: it is going to change
+	boolean ok = true;
+	ok = ok && Pkg::TargetInit ("/", false);
+	ok = ok && Pkg::DoProvide (toinstall) == $[];
+	ok = ok && Pkg::DoRemove (toremove) == $[];
+	ok = ok && Pkg::TargetFinish ();
+	return ok;
     }
 
     /**
