@@ -16,7 +16,6 @@
     import "Language";
     import "Kernel";
     import "SpaceCalculation";
-    import "InstMedia";
     import "Report";
 
     textdomain "packager";
@@ -523,11 +522,6 @@
 	    // Fake values for testing purposes
 	    base_url = "dir:///dist/next-i386";	   
 	}
-//	else if (SCR::Read (.etc.install_inf.Sourcemounted) == "1")
-//	{
-//	    y2milestone ("Sourcemounted !!");
-//	    base_url = "dir://"+Installation::sourcedir;
-//	}
 	else
 	{
 	    base_url = InstMedia::installInf2Url ();
@@ -554,7 +548,6 @@
 	if (theSource >= 0)
 	{
 	    init_called = true;
-	    InstMedia::theSource = theSource;
 	}
 	else
 	{
