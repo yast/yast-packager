@@ -12,7 +12,6 @@
   string architecture = SCR(`Read(.probe.architecture));
   user_settings = add (user_settings, "architecture", architecture );
 
-  _debug( "SW_SINGLE called with Args(0): ", Args(0) );
   string msg_beginner = "";
   string msg_expert = "";
   
@@ -302,14 +301,10 @@ do this.</P>"));
   // Get informations for initialisation of PKGINFO server
   //
 
-  string infopath =  "/var/adm/mount/suse/setup/descr";
-  string dudir = "/var/adm/mount/suse/setup/du/du.dir";
-
   list partition = [];
 
   // get information about diskspace ( used/free space on every partition )
   partition = SCR( `Read(.run.df ) );
-  _debug ( "DF DF DF: ", partition );
  
   // filter out headline and other invalid entries 
   partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
@@ -332,10 +327,8 @@ do this.</P>"));
 
       part_input = add( part_input, part_info );
   });
-
-  _debug( "SW: part_input: ", part_input ); 
+  _debug( "SW: partition input: ", part_input ); 
    
- 
   
   /*
    * main dialog loop
@@ -351,10 +344,10 @@ do this.</P>"));
   integer id = 0;
   any result = `next;
 
-  _debug("ARGS(0): ", Args(0) );
   boolean skip_source = false;
+ 
   
-  // do not call inst_source if sw_single is called with Arg "beginner" or pathname
+  // do not call inst_source if sw_single is called with Arg "beginner" or Arg = file with package list
   if ( size( Args() ) > 0 && Args(0) == "beginner" )
   {
       skip_source = true;
@@ -365,34 +358,53 @@ do this.</P>"));
 
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
       {
-	  // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
-	  boolean go_on  = ChangeCD( 1, true);
+	  repeat {
+	      any retval = nil;
 
-	  if ( !go_on )
-	  {
-	      // quit dialog (CD 1 cannot be skipped)
-	      UI( `CloseDialog() );      
-	      return `cancel;
-	  }
+	      // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
+	      boolean go_on  = ChangeCD( 1, true);
 
-	  string instSource = GetInstSource(1);
-	  string infopath =  instSource + "setup/descr";
-	  string dudir = instSource + "setup/du/du.dir";
+	      if ( !go_on )
+	      {
+		  // quit dialog (CD 1 cannot be skipped)
+		  UI( `CloseDialog() );      
+		  return `cancel;
+	      }
+
+	      boolean version_ok = false;
+	      string instSource = GetInstSource(1);
+	      string infopath =  instSource + "setup/descr";
+	      string dudir = instSource + "setup/du/du.dir";
+
+	      UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
 	  
-	  UI(`OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please..."))));
-	  
-	  any retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
+	      retval = PKGINFO (`setEnvironment( $["packageinfopath":infopath, "common.pkd":"common.pkd",
 						  "language":long_language,  "dudir":dudir,
 						  "partition":part_input, "rootpath":"/",
 						  "yastpath":"/var/lib/YaST",
 						  "update":true,
 						  "memoptimized":true,
 						  "forceInit":true]		// force initialisation
-						 ));
 
-	  UI(`CloseDialog());	  
+	      			 ));
+	      _debug( "SW: Return  PKGINFO(`setEnvironment()", retval );	
 
-	  _debug( "SW: Return  PKGINFO (`setEnvironment()", retval );
+	      UI(`CloseDialog());
+	      
+	      _debug("SW: VERSION: ", PKGINFO (`compareSuSEVersions()));
+
+	      if ( lookup( PKGINFO (`compareSuSEVersions()), "installedGreater", false ) )
+	      {
+		  SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
+		  UI(`DisplayMessage("Version passt nicht"));
+	      }
+	      else
+	      {
+		  version_ok = true;
+	      }
+	  } until ( version_ok );
+	  
+	 
 
           // There could be a list of packages which have to be installed.
 	  // ( Defined in an ascii-file, which path is given via argument. )
