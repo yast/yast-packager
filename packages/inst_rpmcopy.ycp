@@ -113,8 +113,7 @@
 	current_cd_no = 2; // continue with second CD but only in continue mode
     }
 
-    if (Packages::metadir_used			// all is in ramdisk
-	|| InstURL::is_network)			//   or coming via network
+    if (Packages::metadir_used)			// all is in ramdisk
     {
 	current_cd_no = 0;			// we can install all sources now
 	maxnumbercds = 0;
