@@ -374,7 +374,7 @@
      **/
     global define integer GetPackageSize( string pkg_name )
     ``{
-	integer pkg_size = Pkg::Size (pkg_name);
+	integer pkg_size = Pkg::PkgSize (pkg_name);
 	if (pkg_size == nil)	// package not found
 	    return 0;
 	return pkg_size;
