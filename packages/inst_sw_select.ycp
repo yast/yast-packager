@@ -22,7 +22,7 @@
     import "Arch";
     import "Mode";
     import "Installation";
-    import "Product";
+    import "ProductFeatures";
     import "Packages";
     import "PackagesUI";
     import "SpaceCalculation";
@@ -104,7 +104,7 @@ To make a more precise selection of software to install, select
 ");
 
     // dont ask user for software selection if imap server, product
-    if ( Product::base_selection_choice == `fixed )
+    if ( ProductFeatures::base_selection_choice == `fixed )
     {
 	Wizard::SetContents(title,
 			    `HVCenter(`Label(

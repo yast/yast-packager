@@ -18,7 +18,7 @@
     import "Kernel";
     import "Mode";
     import "Language";
-    import "Product";
+    import "ProductFeatures";
     import "Report";
     import "SlideShow";
     import "SpaceCalculation";
@@ -257,10 +257,10 @@
 	}
 
 	// and the most flexible enhancement for other products
-	if (Product::packages_transmogrify != "")
+	if (ProductFeatures::packages_transmogrify != "")
 	{
 	    install_list = (list<string>)
-		WFM::CallFunction (Product::packages_transmogrify,
+		WFM::CallFunction (ProductFeatures::packages_transmogrify,
 				   [ install_list ]);
 	}
 
@@ -523,9 +523,9 @@
 		theSources = [ initial_source ];
 	    }
 
-	    if (Product::base_selection_choice == `fixed)
+	    if (ProductFeatures::base_selection_choice == `fixed)
 	    {
-		Pkg::SetSelection (Product::fixed_base_selection);
+		Pkg::SetSelection (ProductFeatures::fixed_base_selection);
 	    }
 	}
 	else	// cont or normal mode
@@ -631,7 +631,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	// If not, there's no need to activate any selections !
 	boolean redo_proposal = (choosen_base_selection == "") &&  !Mode::autoinst;
 
-	if (Product::base_selection_choice == `fixed)
+	if (ProductFeatures::base_selection_choice == `fixed)
 	{
 	    if (!SpaceCalculation::CheckDiskSize())
 	    {
@@ -639,7 +639,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 		ret = add( ret, "warning_level", `blocker );
 	    }
 	}
-	else if (Product::base_selection_choice == `auto)
+	else if (ProductFeatures::base_selection_choice == `auto)
 	{
 	    if (redo_proposal || !SpaceCalculation::CheckDiskSize())
 	    {
@@ -717,8 +717,8 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	}
 	else
 	{
-	    y2error ("unknown value %1 for Product::base_selection_choice",
-		     Product::base_selection_choice);
+	    y2error ("unknown value %1 for ProductFeatures::base_selection_choice",
+		     ProductFeatures::base_selection_choice);
 	}
 
 	choosen_base_selection = selected_base_selection;
