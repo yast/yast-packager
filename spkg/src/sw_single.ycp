@@ -40,11 +40,11 @@
     // check test_popup
     // test_mode is checked for in Installation constructor
 
-    global define list CheckArguments () ``{
+    global define list<string> CheckArguments () ``{
 
 	integer arg_n = size (WFM::Args()) - 1;
 
-	list arg_list = [];
+	list<string> arg_list = [];
 
 	while (arg_n >= 0)
 	{
@@ -179,10 +179,10 @@
    // check Args
    // set test_mode, test_popup
 
-   list arg_list = CheckArguments();
+   list<string> arg_list = CheckArguments();
 
    // check the arguments and try the mount/search for local description
-   any result = CheckWhichPackages (arg_list);
+   symbol result = CheckWhichPackages (arg_list);
 
    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", result);
 
@@ -197,7 +197,7 @@
    {
        if (size (packagelist) == 0)			// packages given ?
        {
-	   result = WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
+	   result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
 	   y2milestone ("inst_packages returns %1", result);
 	   if (result == `accept)
 	       result = `next;
@@ -219,7 +219,7 @@
 	   }
 	   else
 	   {
-	       result = WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
+	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 		   result = `next;
@@ -260,7 +260,7 @@
 	       Mode::update = false;
 	   }
 
-	   result = WFM::CallFunction( "inst_suseconfig", [false, false]);
+	   result = (symbol)WFM::CallFunction( "inst_suseconfig", [false, false]);
        }
    }
 
