@@ -1,5 +1,5 @@
 /**
- * Module: 		PackageInstallation.ycp
+ * Module:		PackageInstallation.ycp
  *
  * Authors:		Gabriele Strattner <gs@suse.de>
  *
@@ -28,6 +28,7 @@
 
     textdomain "packager";
 
+    global define any FakePackager( list packages, string inst_source, boolean deleting );
 
     /**
      * Constructor()
@@ -117,7 +118,7 @@ View the log file?
     //
     // Fake progress bars for Mode::test
     //
-    global define symbol FakePackager( list packages, string inst_source, boolean deleting )
+    global define any FakePackager( list packages, string inst_source, boolean deleting )
     ``{
 	integer disk_usage = 20;
 	integer disk_capacity = 10000;
@@ -126,12 +127,12 @@ View the log file?
 
 	y2debug( "FakePackager - handling %1 packages", size( packages ) );
 
-	foreach( `pac, packages, ``{
+	foreach( list pac, packages, ``{
 	    //y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
 
 	    string pkg_name	= pac[0]:"";
 
-	    integer pkg_size 	= SlideShow::GetPackageSize( select(pac, 0, "") );
+	    integer pkg_size	= SlideShow::GetPackageSize( select(pac, 0, "") );
 	    integer bytes_installed = 0;
 
 	    if ( pkg_size < 0 )
@@ -180,6 +181,6 @@ View the log file?
 
 	y2debug( "FakePackager returning with %1", ret );
 	return ret;
-    };
+    }
 
 }
