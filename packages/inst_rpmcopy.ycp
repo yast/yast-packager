@@ -125,7 +125,10 @@
     if ( size (rpm_list) > 0)
     {
 	y2milestone( "Installing RPM_LIST: %1", rpm_list );
-	Pkg::DoProvide (rpm_list);
+	foreach (`pkg, rpm_list,
+	``{
+	    Pkg::PkgInstall (pkg);
+	})
 	ret = PackageInstallation::CommitPackages ( 0, 0);
 
 	if (ret == `cancel)
@@ -180,7 +183,7 @@
 	y2milestone ("%1 packages remaining", size (remaining));
 	foreach (`pkg, remaining,
 	``{
-	    Pkg::DoProvide (pkg);
+	    Pkg::PkgInstall (pkg);
 	});
     }
 
