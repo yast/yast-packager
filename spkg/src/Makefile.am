@@ -4,7 +4,6 @@
 
 client_DATA = \
 	sw_single.ycp		\
-	inst_source_dialogs.ycp	\
 	inst_source.ycp
 
 config_DATA =			\
