@@ -4,6 +4,8 @@
 
 SUBDIRS = # testsuite
 
+yncludedir = @yncludedir@/packages
+
 ynclude_HEADERS =		\
 	packageHandle.ycp	\
 	selectionHandle.ycp	\
