@@ -1,0 +1,48 @@
+#
+# spec file for package @RPMNAME@
+# 
+# Copyright  (c)  2000  SuSE GmbH  Nuernberg, Germany.
+#
+# please send bugfixes or comments to @MAINTAINER@
+#
+
+# neededforbuild  autoconf automake ydoc
+
+Vendor:       SuSE GmbH, Nuernberg, Germany
+Distribution: SuSE Linux 6.4 (i386)
+Name:         @RPMNAME@
+Release:      1
+Copyright:    (c) 2000 SuSE GmbH
+Group:        unsorted
+BuildArchitectures: noarch
+
+Packager:     @MAINTAINER@
+
+Summary:      YaST2 Modules for installation
+Version:      @VERSION@
+Source0:      @RPMNAME@-@VERSION@.tar.gz
+
+%description
+-
+
+%prep
+
+%setup -n @RPMNAME@-@VERSION@
+
+%build
+
+./configure
+make
+
+%install
+
+make install
+
+%{?suse_check}
+
+%files
+
+%dir @YAST2DIR@/clients
+%dir @YAST2DIR@/menuentries
+@YAST2DIR@/menuentries/menu*.ycp
+@YAST2DIR@/clients/dial*.ycp
