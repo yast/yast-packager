@@ -93,7 +93,7 @@ View the log file?
 View the log file?
 ", size(errpacks)), size (errpacks));
 
-	    if (Popup::AnyQuestion (Popup::NoHeadline(), message,
+	    if (Report::AnyQuestion (Popup::NoHeadline(), message,
 				    Label::YesButton(), Label::NoButton(),
 				    `focus_no))
 	    {
