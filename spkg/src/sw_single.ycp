@@ -128,7 +128,9 @@
 
 	    // is CD1 inserted / available ?
 
-	    if (InstMedia::MountMedium ( 1 ) == 0)
+	    integer mount_result = InstMedia::MountMedium ( 1 );
+	    if (mount_result == 0
+	        || mount_result == -1)
 		return `found_medium;
 
 	    // try to get local information (common.pkd, du.dir, ...)
@@ -230,16 +232,16 @@ do this.</P>");
     }
     else if ( descr_result == `next )
     {
-	dialog_id = 0;
+	dialog_id = 0;				// ask for medium
     }
     else if ( descr_result == `found_medium )	// found CD1
     {
-	descrPath = InstMedia::GetInstPath();
-	infopath = descrPath + "/setup/descr";
-	dudir    = descrPath + "/setup/du/du.dir";
+	descrPath = InstMedia::GetInstPath();	// read common.pkd from there !
+	infopath  = descrPath + "/setup/descr";
+	dudir     = descrPath + "/setup/du/du.dir";
 	if (MediaUI::ChangeMedium(1, false))	// check release data
 	{
-	    dialog_id = 1;				// dont ask for source
+	    dialog_id = 1;			// dont ask for source
 	}
 	else
 	{
@@ -443,6 +445,12 @@ must NOT be older than the version of your installed system.\n");
 	else
 	{
 	    result = CallFunction( select(dialog, dialog_id) );
+	    if (dialog_id == 0)			// installation source
+	    {
+		descrPath = InstMedia::GetInstPath();	// read common.pkd from there !
+		infopath  = descrPath + "/setup/descr";
+		dudir     = descrPath + "/setup/du/du.dir";
+	    }
 	}
         y2debug( "RESULT %1: %2", select(dialog, dialog_id), result );
 

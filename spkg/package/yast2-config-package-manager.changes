@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 13 10:13:01 CEST 2001 - kkaempf@suse.de
+
+- re-read package data (common.pkd, etc.) if installation source
+  was changed.
+
+-------------------------------------------------------------------
 Tue Sep 11 14:07:44 CEST 2001 - kendy@suse.cz
 
 - Added RequireAndConflictButtons() to require.ycp to fix
