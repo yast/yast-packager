@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
-Thu Sep  5 11:40:12 CEST 2002 - mvidner@suse.cz
+Thu Sep  5 11:47:22 CEST 2002 - mvidner@suse.cz
 
-- require.ycp: Adapted for the new packagemanager, yet again.
+- require.ycp: Adapted for the new packagemanager, yet again. (#18904)
 - 2.6.25
 
 -------------------------------------------------------------------
