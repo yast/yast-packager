@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 04 15:59:42 CET 2004 - arvin@suse.de
+
+- fixed some SlideShow callbacks
+
+-------------------------------------------------------------------
 Sun Feb 01 20:13:56 CET 2004 - arvin@suse.de
 
 - fixed return value in inst_kickoff.ycp
