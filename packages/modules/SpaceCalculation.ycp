@@ -18,7 +18,6 @@
 
     import "Arch";
     import "Installation";
-    import "Storage";
     import "Mode";
     import "Report";
 
@@ -85,7 +84,7 @@
 
   /*
    * Define a macro that transforms information about all partitions ( from
-   * user_settings( "targets" ) ) into a list(map) with information about partitions
+   * Storage::GetTargetMap() ) into a list(map) with information about partitions
    * which are available for installation, e.g.:
    *
    * [$["free":1625676, "name":"/boot", "used":0], $["free":2210406, "name":"/", "used":0]]
@@ -98,10 +97,37 @@
 
     define get_partition_info( )
     ``{
-
+	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
-	map targets = Storage::GetTargetMap();
 
+	if (!Mode::initial)
+	{
+	    // read /proc/mounts as a list of maps
+	    // $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
+	    list mounts = SCR::Read (.proc.mounts);
+	    y2milestone ("mounts %1", mounts);
+	    list partitions = [];
+	    foreach (`mpoint, mounts,
+	    ``{
+		string name = mpoint["file"]:"";
+		if ((substring (name, 0, 1) == "/")
+		    && (substring (name, 0, 5) != "/dev/")		// filter out /dev/pts etc.
+		    && (mpoint["vfstype"]:"" != "rootfs"))		// filter out duplicate "/" entry
+		{
+		    integer capacity = Pkg::TargetCapacity (name);
+		    if (capacity != 0)		// dont look at pseudo-devices (proc, shmfs, ...)
+		    {
+			integer used = Pkg::TargetUsed (name);
+			partitions = add (partitions, $["name" : name, "free" : capacity-used, "used" : used]);
+		    }
+		}
+	    });
+	    y2milestone ("partitions: %1", partitions);
+	    return partitions;
+
+	} // !Mode::initial
+
+	map targets = Storage::GetTargetMap();
 	if ( Mode::test )
 	{
 	    targets = SCR::Read(.target.yast2, "test/test_target_map.ycp");

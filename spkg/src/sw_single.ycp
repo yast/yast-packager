@@ -23,11 +23,12 @@
 
     import "Packages";
     import "PackageCallbacks";
-    import "Boot";
 
     import "Wizard";
     include "ui/common_popups.ycp";
     include "ui/common_functions.ycp";
+
+    list packagelist = [];		// list of packages to install
 
     boolean test_popup = false;
     boolean beginner_mode = false;
@@ -38,7 +39,8 @@
     // check test_popup
     // test_mode is checked for in Installation constructor
 
-    global define CheckArguments () ``{
+    global define list CheckArguments ()
+    ``{
 
 	integer arg_n = size (WFM::Args()) - 1;
 
@@ -88,20 +90,18 @@
    // this package without paying attention to dependencies.
    // If we are not started in "beginner" mode go `next
    // (and call dialog change source medium first).
-   // Otherwise try to mount the source medium (instmode is read
-   // from /var/lib/YaST2/installmap.ycp).
-   // If medium is not accessable check local package decsription.
+   // Otherwise we start the package manager.
    //
    // returns	`done		all done
    //		`failed		package not found
    //		`next		workflow "Change source of installation"
-   //		`found_medium	found sources from CD1
-   //		`found_descr	found local package descr
+   //		`found_descr	started package manager
    //		`unknown_descr	found nothing
    //
 
-   define CheckWhichPackages (list arg_list) ``{
-
+   define symbol CheckWhichPackages (list arg_list)
+   ``{
+	y2milestone ("CheckWhichPackages (%1)", arg_list);
 	// if sw_single is called with a list of packages or a package name
 	// or in  beginner mode try to mount source medium
 
@@ -109,7 +109,7 @@
 
 	if ( size (arg_list) > 0 )
 	{
-	    first_arg = select (arg_list, 0, "");
+	    first_arg = arg_list[0]:"";
 	}
 	else if ( !beginner_mode )
 	{
@@ -126,7 +126,7 @@
 	    {
 
 		y2milestone( "SW_SINGLE: installing  %1", first_arg );
-		WFM::CallFunction( `inst_rpmcopy( false, false, first_arg ));
+		Pkg::TargetInstall (first_arg);
 
 		// package is installed without paying attention to SuSE dependencies
 		// don't call SuSEConfig -> dialog loop ends
@@ -141,40 +141,39 @@
 		return `failed;
 	    }
 	}
-	else
+	else if (first_arg != "")		// firstarg given, but not *.rpm
 	{
-	    //  try to mount source medium or read local descriptions
-	    //  if possible -> skip dialog inst_source
+	    string arg_name = arg_list[0]:"";
 
-	    y2milestone ("SW_SINGLE: %1; trying to mount source medium", WFM::Args());
-
-	    // initialize InstMedia from running system
-	    InstMedia::initializeInstMedia ($[]);
-
-	    // is CD1/directory with CD1 sources inserted/available ?
-	    integer result = InstMedia::MountMedium ( 1 );
-
-	    if ( result == 0 )
+	    if ( SCR::Read(.target.size, arg_name) <= 0 )		// a local file ?
 	    {
-		// skip dialog Change source medium
-		skip_source = true;
-
-		// this flag is read in Packages::Init() and means:
-		// don't read locally saved package description but information from source medium
-		InstMedia::source_medium = true;
-		return `found_medium;
+		packagelist = arg_list;					// No: expect package names
 	    }
-
-	    // try to get local information (common.pkd, du.dir, ...)
-	    local_descr = Packages::CheckLocalDescription();
-	    if ( local_descr )
+	    else							// Yes: try to read the file
 	    {
-		skip_source = true;
-		return `found_descr;
+		y2milestone("Reading file %1", arg_name );
+		packagelist = SCR::Read( .target.ycp, arg_name);
 	    }
-	}  // no package file given
+	    y2milestone("packagelist: %1", packagelist );
+	}
 
-	return `unknown_descr;
+	UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
+
+        // start package manager
+
+        if (size (Pkg::SourceStartCache(true)) <= 0)
+	{
+	    UI::CloseDialog();
+	    return `unknown_descr;
+	}
+
+	Pkg::TargetInit ("/", false);
+
+	PackageCallbacks::InitCallbacks();
+
+	UI::CloseDialog();
+
+	return `found_descr;
 
     };	// CheckWhichPackages
 
@@ -190,8 +189,6 @@ To install commercial software, launch this module and select
 </p>
 ");
 
-    string msg_str12 = _("<p>Please insert <b>CD 1</b> for CD installation.</p>");
-
     string msg_str13 = _("<p>Launch this module to choose the
 source of installation. It is possible to install packages from CD,
 via network, or from a hard drive.</p>
@@ -205,7 +202,7 @@ packages with this module.
 do this.</P>
 ");
 
-    msg_beginner = msg_str11 + msg_str12 + msg_str21;
+    msg_beginner = msg_str11 + msg_str21;
     msg_expert = msg_str13 + msg_str21;
 
     string wrong_media_msg = _("Please make sure the installation medium is correct.");
@@ -219,288 +216,49 @@ do this.</P>
 
     list arg_list = CheckArguments();
 
+    // check the arguments and try the mount/search for local description
+    symbol result = CheckWhichPackages (arg_list);
 
-    /*
-     * main dialog loop
-     */
+    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", result);
 
-    list dialog = [
-		 `inst_source( true, true ),		// 0: ask installation source
-		 `inst_sw_single( ),			// 1: ask packages
-		 `inst_rpmcopy( false, false ),		// 2: install packages
-		 `inst_suseconfig( false, false )	// 3: SuSEconfig
-    ];
-
-    integer dialog_id = 0;
-    any result = `next;
-
-    // flag, if package info was found on destination
-    boolean local_descr = true;
-
-    symbol descr_result = `next;
-
-    // check the arguments and try the mount/search fpr local description
-    descr_result = CheckWhichPackages (arg_list);
-
-    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", descr_result);
-
-    if ((descr_result == `done)
-	|| (descr_result == `failed))
+    if ((result == `done)
+	|| (result == `failed))
     {
-	dialog_id = -1;				// done
+	UI::CloseDialog();
+	return `next;
     }
-    else if ((descr_result == `next)
-	      || (descr_result == `unknown_descr))
+    else if ((result == `next)
+	      || (result == `unknown_descr))
     {
-	dialog_id = 0;				// ask for medium
-    }
-    else if ((descr_result == `found_medium)
-	      || (descr_result == `found_descr))	// found source medium or local description
-    {
-	dialog_id = 1;
+	if (WFM::CallFunction( `inst_source ( true, true )) == `next)
+	    result = `found_descr;
     }
 
-    if ( Mode::test )
+    if (result == `found_descr)
     {
-	// TODO: correct initialization of the package agent in test mode
-	string infopath = "../../y2m_inst/ycp/packages/testsuite/suse/setup/descr";
-	string dudir  = "../../y2m_inst/ycp/packages/testsuite/suse/setup/du/du.dir";
-    }
-
-    if ( !Mode::test )
-    {
-	// removing old logging
-	SCR::Execute (.target.bash, "/bin/rm -f /var/log/y2logRPM*");
-    }
-
-    while ((dialog_id >= 0) && (dialog_id < size (dialog)))
-    {
-	if ( dialog_id == 1 )	// Single Package Selection dialog
+	if (size (packagelist) == 0)			// packages given ?
 	{
-	    any retval = nil;
-
-	    boolean version_ok = false;
-
-	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
-
-	    // Initialize the package agent
-	    Packages::Init( true );
-
-	    UI::CloseDialog();
-	    map version_map = $[];
-
-	    if ( !Mode::test )
-	    {
-		version_map = SCR::Execute (.package.compareSuSEVersions, "");
-	    }
-	    else if ( test_popup )
-	    {
-		// test the popup
-		version_map = $[ "installedGreater":true ];
-		change ( version_map, "installedVersion", "7.3" );
-		change ( version_map, "updateVersion","7.2" );
-	    }
-
-	    if ( lookup( version_map, "installedGreater", false ) )
-	    {
-		// This popup informs the user that he is installing from an older version
-		string msg1 = _("The SuSE distribution version on the source medium
-must NOT be older than the version of your installed system.\n");
-
-		string versions = sformat( _("Installed version: %1\n"),
-					   lookup( version_map, "installedVersion","" ))
-		    + sformat( _("Version on source medium: %1\n\n"),
-			       lookup( version_map, "updateVersion","" ));
-		y2debug( "SW_SINGLE: %1", versions );
-
-		UI::MessagePopup(msg1 + versions + wrong_media_msg);
-
-		// continue with inst_source
-		dialog_id = 0;
-		continue;
-
-	    }  // wrong version
-
-	    // There could be a list of packages (defined in an ascii-file) or a package name (without .rpm)
-
-	    if ( size(arg_list) > 0 )
-	    {
-		string arg_name = select(arg_list, 0, "");
-		map inputMap = $[];
-
-		if ( SCR::Read(.target.size, arg_name) <= 0 )
-		{
-		    list installList = arg_list;
-		    inputMap = add (inputMap, "install", installList);
-	        }
-		else
-	 	{
-		    y2milestone("Reading file %1", arg_name );
-		    inputMap = SCR::Read( .target.ycp, arg_name);
-		}
-	        y2milestone("inputMap: %1", inputMap );
-
-		if ( inputMap == nil || size ( inputMap ) == 0 )
-		{
-		    string message = _("Error while reading configuration file.");
-		    UI::MessagePopup(message);
-		    return `cancel;
-	        }
-		else
-		{
-		    list installList = lookup ( inputMap, "install", [] );
-		    list deleteList = lookup ( inputMap, "delete", [] );
-		    boolean userInput = lookup ( inputMap, "userInput", false );
-
-		    y2milestone("SW_SINGLE installList: %1", installList );
-		    y2milestone("SW_SINGLE deleteList: %1", deleteList );
-		    y2milestone("SW_SINGLE userInput: %1", userInput );
-
-		    foreach( `package, installList,
-			     ``{
-			any r = SCR::Execute( .package.selectInstall, package, false);
-			y2debug( ".package.selectInstall: %1", package );
-		    });
-
-		    foreach( `package, deleteList,
-			     ``{
-			any r = SCR::Execute(.package.selectDelete, package);
-			y2debug( ".package.selectDelete: %1", package );
-		    });
-
-		    // Checking dependecies
-		    map pac_depends = SCR::Read( .package.dependencies);
-
-		    list or_depends = lookup( pac_depends, "REQUIRE", [] );
-		    y2debug( "REQUIRE Dependencies: %1", or_depends );
-		    list xor_depends = lookup( pac_depends, "CONFLICT", [] );
-		    y2debug( "CONFLICT Dependencies: %1", xor_depends );
-		    // list and_depends = lookup( pac_depends, "ADD", [] );
-		    // y2debug( "ADD Dependencies: %1", and_depends );
-
-		    if ( userInput == true )
-		    {
-			result = WFM::CallFunction( `inst_sw_single( `post_install,
-								`not_only_checked ) );
-		    }
-		    else
-		    {
-			// Show REQUIRE and CONFLICT dependencies (but don't call
-			// inst_sw_single if there are additional packages required)
-			if (or_depends != []
-			    || xor_depends != [] )
-			{
-			    // There is an unresolved dependency -> call
-			    // single-package-selection to solve it.
-			    result = WFM::CallFunction( `inst_sw_single( `post_install,
-								    `only_check ) );
-			}
-			else
-			{
-			    // install anyway
-			    result = `ok;
-			}
-		    }
-		}
-	    }
-	    else
-	    {
-		// Calling inst_sw_single
-		result = WFM::CallFunction( `inst_sw_single( `post_install,
-							`not_only_checked ) );
-	    }
+	    result = WFM::CallFunction( `inst_packages ());	// No: ask user
+	    y2milestone ("inst_packages returns %1", result);
+	    result = `next;	// FIXME
 	}
 	else
 	{
-	    if ( dialog_id == 3 )	// Before inst_suseconfig
-	    {
-		// Base packages and kernels must be on Medium1
-		list install_list = SCR::Read(.package.installSetCD, 1);
-
-		boolean bootCalled = false;
-		foreach ( `package, install_list,
-			  ``{
-		    string packageName =  package[0]:"";
-		    integer pos = findfirstof ( packageName, "/" );
-		    if ( pos != nil )
-		    {
-			// removing path
-			packageName = substring ( packageName,
-						  pos+1, size(packageName) -pos -5 );
-			packageName = SCR::Read( .package.shortName, packageName );
-		    }
-		    if( substring ( packageName, 0, 2) == "k_"
-			&& !bootCalled )
-			{
-			    // calling mk_initrd and lilo if kernel has been updated
-			    boolean saveMode =  Mode::update;
-			    // In order to call mk_initrd and lilo correctly we have to set
-			    // to update mode
-			    Mode::update = true;
-			    Boot::Write();
-			    bootCalled = true;
-			    Mode::update = saveMode;
-			}
-		});
-	    }
-
-	    result = WFM::CallFunction( select(dialog, dialog_id, 0) );
+	    foreach (`package, packagelist,			// Yes: install them
+	    ``{
+		Pkg::PkgInstall (package);
+	    });
+	    result = `next;
 	}
+    }
 
-        y2debug( "RESULT %1: %2", select(dialog, dialog_id, 0), result );
-
-	if (result == `cancel || result == `abort || result == `finish)
-        {
-	    // dialog loop ends
-	    dialog_id = -1;
-        }
-        else if (result == `auto)
-        {
-	    // inst_suseconfig returns `auto -> last module, dialog loop ends
-	    dialog_id = dialog_id + 1;
-	}
-	else if (result == `next )
-	{
-	    dialog_id = dialog_id + 1;
-	}
-	else if (result == `ok )	// inst_sw_single returns `ok
-	{
-	    // user_settings are not used any longer,
-	    // inst_rpmcopy gets information about packages to install
-	    // from package agent
-	    list install_list = SCR::Read(.package.installSet);
-	    list delete_list  = SCR::Read(.package.deleteSet);
-
-	    y2debug( "SW_SINGLE: install_list: %1", install_list );
-	    y2debug( "SW_SINGLE: delete_list: %1",  delete_list );
-
-	    if ( install_list != [] || delete_list != [] )
-	    {
-		dialog_id = dialog_id + 1;
-	    }
-	    else
-	    {
-	        y2debug( "Nothing selected" );
-	        // dialog loop ends
-		dialog_id = -1;
-	    }
-	}
-	else if (result == `back)
-	{
-	    dialog_id = dialog_id - 1;
-	}
-	else if (result == `cancel_single)
-	{
-	   dialog_id = -1;	// FIXME, depend on descr_result
-	}
+    if (result == `next)				// packages selected ?
+    {
+	Pkg::PkgCommit (0);				// Y: commit them !
+	result = WFM::CallFunction( `inst_suseconfig (false, false));
     }
 
     UI::CloseDialog();
 
-    // unload package agent in order to release common.pkd
-    SCR::UnmountAgent(.package);
-
-    InstMedia::UnmountMedium();
-
-    return `next;
+    return result;
 }

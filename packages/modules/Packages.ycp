@@ -14,8 +14,6 @@
     import "Mode";
     import "Product";
     import "Installation";
-    import "Language";
-    import "Kernel";
     import "SpaceCalculation";
     import "Report";
 
@@ -159,6 +157,7 @@
 	// in common.pkd
 	if (size(AutoInstall::Kernel) == 0)
 	{
+	    import "Kernel";
 	    packages = union (packages, Kernel::kernel_packages);
 	}
 
@@ -296,6 +295,7 @@
 	}
 
 	install_list = toset (install_list);
+	y2milestone ("auto-adding packages: %1", install_list);
 	return install_list;
     }
 
@@ -351,8 +351,6 @@
 	map ret = $[];
 
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
-
-	Pkg::SetLocale (Language::language);
 
 	if ( force_reset )
 	{
@@ -520,7 +518,7 @@
 	//
 	// Initialize package manager
 	//
-
+	y2milestone ("Packages::Init(%1)", forceInit);
 	// usual mountpoint for the source medium
 	string base_url = "";
 
