@@ -1,6 +1,8 @@
 #
-# Makefile.am for lib2/testsuite
+# Makefile.am for packager/libpkg/testsuite
 #
+
+AM_CXXFLAGS = -DY2LOG=\"libpkg\"
 
 INCLUDES= -I$(srcdir)/../src/include -I$(includedir)
 

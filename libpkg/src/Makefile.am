@@ -1,8 +1,10 @@
 #
-# Makefile.am for libpkg/src
+# Makefile.am for packager/libpkg/src
 #
 
 SUBDIRS = include
+
+AM_CXXFLAGS = -DY2LOG=\"libpkg\"
 
 lib_LTLIBRARIES = libpkg.la
 
