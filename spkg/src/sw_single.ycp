@@ -251,7 +251,7 @@
 		   || anyToDelete))
 	   {
 	       // prepare "you must boot" popup in inst_suseconfig
-	       Kernel::set_inform_about_kernel_change (oldvmlinuzsize != newvmlinuzsize);
+	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
 
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [false, false]);
 	   }

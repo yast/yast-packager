@@ -261,8 +261,9 @@ string pm_init_blocker = nil;
      */
     define list<string> ComputeAdditionalKernelPackages ()
     {
-        integer pos = findfirstof(Kernel::final_kernel, "-");
-        string extension = substring(Kernel::final_kernel, pos, size(Kernel::final_kernel));
+	string final_kernel = Kernel::GetFinalKernel ();
+        integer pos = findfirstof(final_kernel, "-");
+        string extension = substring(final_kernel, pos, size(final_kernel));
         list<string> akp = [];
         if (extension!="")
         {
