@@ -176,6 +176,12 @@
 			packages = union(packages, ["pam_ldap","nss_ldap"]);
 	}
 
+	if (haskey(configure, "nfs_server"))
+	{
+	    boolean start_nfsserver = configure["nfs_server", "start_nfsserver"]:false;
+	    if (start_nfsserver)
+		packages = union(packages, ["yast2-nfs-server"]);
+	}
 
 	if (haskey(configure, "inetd")) {
 		map inetd = configure["inetd"]:$[];
