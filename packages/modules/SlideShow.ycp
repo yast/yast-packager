@@ -17,7 +17,6 @@
     import "Label";
     import "Language";
     import "Mode";
-    import "Packages";
     import "String";
 
     global string	media_type		= "CD";
@@ -46,7 +45,7 @@
     global integer	slide_start_time	= 0;
     global integer	slide_min_interval	= 30;	// const - minimum seconds between slide changes
     global integer	slide_max_interval	= 3*60;	// const - maximum seconds between slide changes
-    global string 	slide_base_path		= "";
+    global string 	slide_base_path		= Installation::sourcedir + "/suse/setup/slide";
 
     global string	slide_pic_path		= "";
     global string	slide_txt_path		= "";
@@ -87,7 +86,6 @@
     ``{
 	y2milestone ( "SlideShow constructor" );
 	next_recalc_time	= time();
-	slide_base_path		= Packages::slidedir;
 
 	// FIXME: ugly hack
 	map tmp1 = WFM::Read (.local.stat, slide_base_path);
@@ -137,6 +135,21 @@
     global define void SetMediaType (string mediatype)
     ``{
 	media_type = mediatype;
+    }
+    
+    /**
+     *
+     */
+    global define void setSlideDir (string dir)
+    ``{
+	slide_base_path = dir;
+
+	// FIXME: ugly hack
+	map tmp1 = WFM::Read (.local.stat, slide_base_path);
+	if (!tmp1["isdir"]:false)
+	{
+	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+	}
     }
 
     /**
