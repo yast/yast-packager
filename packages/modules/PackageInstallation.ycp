@@ -117,8 +117,9 @@
 	    return ret;
 	}
 
-	list other_media_packages = [];		// packages on other media
+	list other_media_packages = [];		// packages on other media, pairs of [cdnr, "pack"]
 	integer other_media_pos = 0;
+	integer other_media_nr = 0;
 
 	if (media_number == 1)
 	{
@@ -144,7 +145,8 @@
 	    pkgname = Pkg::PkgNextInstall();
 	else
 	{
-	    pkgname = other_media_packages[other_media_pos]:"";
+	    other_media_nr = other_media_packages[other_media_pos,0]:0;
+	    pkgname = other_media_packages[other_media_pos,1]:"";
 	    other_media_pos = other_media_pos + 1;
 	}
 
@@ -153,9 +155,19 @@
 
 	// ensure correct medium and implement skipping
 	while ((pkgname != nil)
-	     && (pkgname != "")
-	     && (Pkg::PkgMediaNr (pkgname) == media_number))
+	     && (pkgname != ""))
 	{
+	    if (other_media_nr > 0)
+	    {
+		if (other_media_nr != media_number)
+		{
+		    break;
+		}
+	    }
+	    else if (Pkg::PkgMediaNr (pkgname) != media_number)
+	    {
+		break;
+	    }
 	    if (!correct_media)
 	    {
 		correct_media = true;		// only on first loop
@@ -179,9 +191,19 @@
 	SlideShow::StartTimer();
 
 	while ((pkgname != nil)
-		&& (pkgname != "")
-		&& (Pkg::PkgMediaNr (pkgname) == media_number))
+		&& (pkgname != ""))
 	{
+	    if (other_media_nr > 0)
+	    {
+		if (other_media_nr != media_number)
+		{
+		    break;
+		}
+	    }
+	    else if (Pkg::PkgMediaNr (pkgname) != media_number)
+	    {
+		break;
+	    }
 	    y2milestone ("Installing %1", pkgname);
 	    string location = Pkg::PkgLocation (pkgname);
 
@@ -202,7 +224,8 @@
 		pkgname = Pkg::PkgNextInstall();
 	    else
 	    {
-		pkgname = other_media_packages[other_media_pos]:"";
+		other_media_nr = other_media_packages[other_media_pos,0]:0;
+		pkgname = other_media_packages[other_media_pos,1]:"";
 		other_media_pos = other_media_pos + 1;
 	    }
 	}
@@ -217,7 +240,8 @@
 	    while ((pkgname != nil)
 		    && (pkgname != ""))
 	    {
-		other_media_packages = add (other_media_packages, pkgname);
+		other_media_nr = Pkg::PkgMediaNr (pkgname);
+		other_media_packages = add (other_media_packages, [other_media_nr, pkgname]);
 		pkgname = Pkg::PkgNextInstall();
 	    }
 	    y2milestone ("%1 packages on other media", size (other_media_packages));
