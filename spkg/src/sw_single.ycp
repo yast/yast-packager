@@ -238,6 +238,8 @@ do this.</P>
     {
 	if (WFM::CallFunction( `inst_source ( true, true )) == `next)
 	    result = `found_descr;
+	else
+	    result = `abort;
     }
 
     if (result == `found_descr)
