@@ -6,7 +6,7 @@
     <!--
     $Id: firstboot.xml 20768 2005-01-16 23:42:37Z nashif $
     Work around for the text domain
-    textdomain="firstboot"
+    textdomain="packager"
     -->
 
     <textdomain>packager</textdomain>

@@ -44,7 +44,6 @@
 	// call some function that displays a user dialog
 	// or a sequence of dialogs here:
 	//
-	// sequence = DummyMod::AskUser( has_next );
 
 	symbol result = (symbol) WFM::CallFunction ("dirinstall_options", [true, has_next]);
 
@@ -64,7 +63,7 @@
 	      "rich_text_title"	:	_("Options"),
 	      // this is a menu entry
 	      "menu_title"	:	_("&Options"),
-	      "id"		:	"uml_options_stuff"
+	      "id"		:	"dirinstall_options_stuff"
 	    ];
     }
 

@@ -15,7 +15,7 @@
     import "Wizard";
     import "Popup";
 
-    // screen title for uml options
+    // screen title for installation into directory options
     string title = _("Directory Install Options");
 
     // build and show dialog
@@ -40,7 +40,7 @@
                                   )
             );
 
-    // help text for uml options
+    // help text for dirinstall options
     string help_text = _("<p>Choose a directory to which to install. Depending on the software selection, make sure
 enough space is available.</p>
 ");
