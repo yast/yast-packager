@@ -8,8 +8,8 @@ includedir = $(YAST2DIR)/include
 
 modules_SCRIPTS = sw_single.ycp
 
-menu_SCRIPTS = menuentry_sw_single.ycp	\
-		menuentry_sw_source.ycp
+menu_SCRIPTS = menuentry_sw_single.y2cc	\
+		menuentry_sw_source.y2cc
 
 include_DATA = require.ycp
 
