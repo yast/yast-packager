@@ -25,6 +25,7 @@
     import "Report";
     import "Storage";
     import "String";
+    import "DirInstall";
 
     boolean info_called = false;	// list partition_info already initialized?
     list    partition_info = [];	// information about available partitions
@@ -38,6 +39,38 @@
 	return partition_info;
     }
 
+    /**
+     * Get mountpoint for a directory
+     * @param target directory
+     * @param partition partitions list
+     * @return mountpoint
+     */
+    string GetDirMountPoint(string target, list<map<string, string> > partition ) {
+ 
+	list<string> d = splitstring(target, "/");
+	d=filter(string fd, d, ``(fd!=""));
+	string mountpoint = "";
+
+	foreach( map part, partition,
+		 ``{
+	    //  dirinstall: /test/xen dir: /test
+	    //  dirinstall:/var/tmp/xen dir: /
+
+	    string dir = part["name"]:"";
+	    string tmpdir = "";
+	    foreach(string dd ,d , ``{
+		tmpdir = sformat("%1/%2", tmpdir, dd );
+		y2debug("tmpdir: %1 dir: %2", tmpdir, dir );
+		if (dir == tmpdir )
+		   mountpoint = dir;
+	    });
+	});
+
+	if (mountpoint=="")
+		mountpoint = "/";
+
+	return mountpoint;
+    }
 
     /**
      * Evaluate the free space on the file system. Runs the command "df" and creates a map
@@ -65,6 +98,11 @@
 
 	// filter out headline and other invalid entries
 	partition = filter( map<string, string> part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
+
+        if (DirInstall::installing_into_dir)
+        {
+            target = GetDirMountPoint(DirInstall::target, partition );
+        }
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
 	list<map<any,any> > part_input = [];
