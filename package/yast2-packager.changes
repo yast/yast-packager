@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 11 12:30:52 CET 2003 - kkaempf@suse.de
+
+- Correct error message (#21754)
+
+-------------------------------------------------------------------
 Mon Feb 10 22:03:56 CET 2003 - nashif@suse.de
 
 - Modified names of autoinstall modules

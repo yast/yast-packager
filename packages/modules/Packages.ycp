@@ -280,6 +280,7 @@
 
 	map ret = $[];
 
+	// popup label
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
 
 	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'", force_reset, reinit, Language::language);
@@ -326,6 +327,8 @@
 
 	    if ( ! redo_proposal )
 	    {
+		// the selected set of software packages does not fit on the harddisk
+		// error message
 		ret = add( ret, "warning", _("Disk space exhausted -- changing software selection") );
 		ret = add( ret, "warning_level", `error );
 		redo_proposal = true; //
@@ -342,6 +345,15 @@
 		}
 	    );
 	    y2milestone ("available_base_selections %1", available_base_selections);
+
+	    if (size (available_base_selections) == 0)
+	    {
+		y2error ("No base selections available");
+		// Can't find any software data, probably a installation media error
+		// error message
+		return $[ "warning" : _("Can't read package data from installation media. Media error ?"),
+			  "warning_level" : `blocker ];
+	    }
 
 	    boolean fit = false;
 	    integer counter = 0;
@@ -368,6 +380,8 @@
 	    {
 		y2warning ("No selection fits");
 		Pkg::ClearSelection (selected_base_selection);
+		// can't find a set of software packages which fits on the harddisk
+		// error message
 		return $[ "warning" : _("Not enough disk space even for a minimal installation!"),
 			  "warning_level" : `blocker ];
 
