@@ -81,13 +81,13 @@
     global string net_dir = "";		// share for SMB, dir for Harddisk
     global string net_username = "";	// SMB, FTP
     global string net_password = "";	// SMB
-    global string net_proxy = "";	// FTP
-    global string net_proxyport = "";	// FTP
+    global string net_proxy = "";	// FTP, HTTP
+    global string net_proxyport = "";	// FTP, HTTP
+    global string net_proxyproto = "";	// FTP, HTTP
 
     /**
      * mount data SMB
      */
-    global boolean smb_as_workgroup = true;	// connect via 'Workgroup'
     global string smb_workdomain = "";		// Workgroup or Domainname
 
     /**
@@ -447,10 +447,11 @@
 	    installinf["instmode"]	= "ftp";
 	    installinf["server"]	= net_server;
 	    installinf["serverdir"]	= net_dir;
-	    installinf["ftpuser"]	= net_username;
+	    installinf["username"]	= net_username;
 	    installinf["password"]	= net_password;
-	    installinf["ftpproxy"]	= net_proxy;
-	    installinf["ftpproxyport"]	= net_proxy;
+	    installinf["roxy"]		= net_proxy;
+	    installinf["proxyport"]	= net_proxyport;
+	    installinf["proxyproto"]	= net_proxyproto;
 	}
 	else if (mediatype == 5)	// SMB
 	{
@@ -459,7 +460,6 @@
 	    installinf["serverdir"]	= net_dir;
 	    installinf["username"]	= net_username;
 	    installinf["password"]	= net_password;
-	    installinf["asworkgroup"]	= smb_as_workgroup;
 	    installinf["workdomain"]	= smb_workdomain;
 	}
 	else if (mediatype == 6)	// Http
@@ -467,10 +467,11 @@
 	    installinf["instmode"]	= "http";
 	    installinf["server"]	= net_server;
 	    installinf["serverdir"]	= net_dir;
-	    installinf["httpuser"]	= net_username;
+	    installinf["username"]	= net_username;
 	    installinf["password"]	= net_password;
-	    installinf["httpproxy"]	= net_proxy;
-	    installinf["httpproxyport"]	= net_proxy;
+	    installinf["proxy"]		= net_proxy;
+	    installinf["proxyport"]	= net_proxyport;
+	    installinf["proxyproto"]	= net_proxyproto;
 	}
 
 	y2milestone ("WriteInstallMap (%1, %2)", Installation::yast2dir + "/installmap.ycp", installinf);
@@ -794,7 +795,6 @@
 	    net_dir	     = installMap["serverdir"]:"";
 	    net_username     = installMap["username"]:"";
 	    net_password     = installMap["password"]:"";
-	    smb_as_workgroup = (installMap["asworkgroup"]:"" == "1");
 	    smb_workdomain   = installMap["workdomain"]:"";
 
 	    smb_device	= "//" + net_server;
@@ -802,12 +802,7 @@
 
 	    if ( net_username != "" && net_password != "" )
 	    {
-		smb_options = smb_options + " -o ro,username=" + net_username + ",password=" + net_password;
-
-		if ( smb_as_workgroup )
-		{
-		    smb_options = smb_options + ",workgroup=" + smb_workdomain;
-		}
+		smb_options = smb_options + " -o ro,username=" + net_username + ",password=" + net_password + ",workgroup=" + smb_workdomain;
 	    }
 	    else
 	    {
@@ -833,10 +828,11 @@
 	    mediatype = 6;
 	    net_server	 = installMap["server"]:"";
 	    net_dir	 = installMap["serverdir"]:"";
-	    net_username = installMap["httpuser"]:"";
+	    net_username = installMap["username"]:"";
 	    net_password = installMap["password"]:"";
-	    net_proxy	 = installMap["httpproxy"]:"";
-	    net_proxy	 = installMap["httpproxyport"]:"";
+	    net_proxy	 = installMap["proxy"]:"";
+	    net_proxyport= installMap["proxyport"]:"";
+	    net_proxyproto=installMap["proxyproto"]:"";
 	    splitted = true;
 	}
 	else if (installmode == "tftp")
@@ -844,10 +840,11 @@
 	    mediatype = 7;
 	    net_server	 = installMap["server"]:"";
 	    net_dir	 = installMap["serverdir"]:"";
-	    net_username = installMap["ftpuser"]:"";
+	    net_username = installMap["username"]:"";
 	    net_password = installMap["password"]:"";
-	    net_proxy	 = installMap["ftpproxy"]:"";
-	    net_proxy	 = installMap["ftpproxyport"]:"";
+	    net_proxy	 = installMap["proxy"]:"";
+	    net_proxyport= installMap["proxyport"]:"";
+	    net_proxyproto=installMap["proxyproto"]:"";
 	    splitted = true;
 	}
 
