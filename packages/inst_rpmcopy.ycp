@@ -320,14 +320,9 @@
 
 	list this_cd_packages = SCR::Read (.package.installSetCD, current_cd_no);
 
-	// Autoinstall: Add non-SuSE packages
-	if (Mode::autoinst && Mode::initial)
+	if  (Mode::autoinst && Mode::cont)
 	{
-	   this_cd_packages  = union(this_cd_packages, AutoInstall::install_list);
-	}
-	else if  (Mode::autoinst && Mode::cont)
-	{
-	    this_cd_packages  = union(this_cd_packages, AutoInstall::post_install_list);
+	    this_cd_packages  = union(this_cd_packages, AutoInstall::postPackageList());
 	}
 
 	// Filter out basepackages
