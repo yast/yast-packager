@@ -23,7 +23,6 @@ Summary:	-
 
 %files
 %defattr(-,root,root)
-@yncludedir@
 @clientdir@/*.ycp
 @moduledir@/*.ycp
 @configdir@/*.y2cc
