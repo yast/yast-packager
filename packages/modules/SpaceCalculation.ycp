@@ -169,7 +169,7 @@
 			free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1024);
 		    }
 
-		    free_size = free_size - min_spae;
+		    free_size = free_size - min_spare;
 
 		    y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
 		    if ( !remove_slash)
