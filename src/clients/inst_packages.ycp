@@ -9,9 +9,11 @@
 {
     import "StorageDevices";
     import "Mode";
+    import "Stage";
 
     symbol mode = `searchMode;
 
+    y2milestone("inst_packages called with: %1" , WFM::Args() );
     if (size(WFM::Args()) > 0 && is(WFM::Args(0), symbol))
     {
         mode = (symbol)WFM::Args(0);
@@ -28,7 +30,7 @@
     else
     {
 	
-        if (size(WFM::Args()) > 0 && ! Mode::initial() )
+        if (size(WFM::Args()) > 0 && ! Stage::initial() )
             UI::OpenDialog(`opt(`defaultsize),
                     `PackageSelector( `id(`selector), `opt(mode), floppyDevice ) );
         else

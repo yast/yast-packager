@@ -278,6 +278,18 @@ Select which desktop to install.</p>
      * GLOBAL FUNCTIONS
      *-----------------------------------------------------------------------*/
 
+
+    global define list<string> ComputeSystemSelectionList ()
+    {
+	list<string> selection_list = [];
+        // also add the 'laptop' selection if PCMCIA detected
+        if (Arch::has_pcmcia ())
+        {
+            selection_list  =  Pkg::GetSelections( `available, "laptop");
+        }
+        return selection_list;
+    }
+
     /**
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
@@ -664,6 +676,7 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
         // add additional (internal) packages, like kernel etc.
         Pkg::DoProvide (Packages::ComputeSystemPackageList());
         Pkg::PkgSolve(false);
+
         list selected_selections = Pkg::GetSelections( `selected, "base");
         selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
         y2milestone( "INSTALLING software selection: %1", selected_selections );
@@ -805,6 +818,7 @@ ask your system administrator.
         return String::FormatSizeWithPrecision (sz, 1, true);
     }
 
+
     /**
      * Make a proposal for package selection
      * @param force reset
@@ -944,6 +958,7 @@ ask your system administrator.
 			}
 		    }
 		}
+
 		while (!fit
 		       && counter < size(available_base_selections) )
 		{
@@ -1089,7 +1104,7 @@ ask your system administrator.
 	    boolean act_sel = Pkg::ActivateSelections ();
 
 	    // add additional (internal) packages, like kernel etc.
-	    map <string, any> res = Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	    map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
 	    if (size (res) > 0)
 	    {
 		foreach (string s, any a, res, {
