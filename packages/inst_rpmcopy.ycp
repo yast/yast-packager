@@ -44,12 +44,6 @@
     boolean packager_called = false;		// is there any package installed/deleted
                                                 // (only used if Mode::normal is set)
 
-    global define void progressCallback (integer percent)
-    ``{
-	y2milestone ("progressCallback");
-	return CyclicUpdateCallback( "package", "description", percent, 1, 10, 100, false, false);
-    }
-
     //----------------------------------------------------------------------
     //				     MAIN
     //----------------------------------------------------------------------
@@ -208,9 +202,6 @@
     }
 
     SlideShow::InitPkgData();
-
-    y2milestone ("Pkg::SetProgressCallback");
-    Pkg::SetProgressCallback ("progressCallback");
 
     // Install the software from Medium1 to Mediummax, but not the already
     // installed base packages.
