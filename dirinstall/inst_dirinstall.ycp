@@ -64,7 +64,7 @@
 	[];
 
 
-    string help_text = "FIXME";
+    string help_text = _("<p>Please wait while the system is being configured.</p>");
 
     Progress::New(
             // Headline for last dialog of base installation: Install LILO etc.
@@ -79,15 +79,15 @@
 
 
     Progress::NextStage ();
-    Progress::Title(_("Sleeping..."));
-    sleep(5000);
+    Progress::Title(_("Configuring installed system"));
+    sleep(1000);
 
     Progress::NextStage ();
 
-    if (DirInstall::makeimage)
+    if (DirInstall::makeimage && DirInstall::image_dir != "" && DirInstall::image_name != "")
     {
         Progress::NextStage();
-        string cmd =  sformat("tar -C %1 -zcf %2  %3", DirInstall::target, DirInstall::image_dir + "/" + DirInstall::image_name , DirInstall::target );
+        string cmd =  sformat("cd %1 && tar -zcf %2 . && cd - ", DirInstall::target, DirInstall::image_dir + "/" + DirInstall::image_name );
         y2debug("cmd: %1", cmd);
         Progress::Title(_("Building directory image..."));
         SCR::Execute(.target.bash, cmd);
