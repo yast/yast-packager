@@ -33,7 +33,6 @@
     SCR::Execute(.target.mkdir,Installation::destdir+"/var/log/YaST2");
     SCR::Execute(.target.mkdir,Installation::destdir+"/etc");
 
-    boolean newsystem = SCR::Read (.target.size, Installation::destdir+"/dev/null") < 0;
 
 
     boolean anyToDelete = Pkg::PkgAnyToDelete();
@@ -42,9 +41,7 @@
     SlideShow::OpenSlideShowDialog();
 
     Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
-    integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
-    list commit_result = PackageInstallation::CommitPackages (0, 0);                         // Y: commit them !
-    integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+    list commit_result = PackageInstallation::CommitPackages (0, 0);
 
     SlideShow::CloseSlideShowDialog();
 
@@ -53,8 +50,6 @@
 	 // progress stages
 	 _("Update configuration"),
 	 // progress stages
-	 _("Copy files to installed system"),
-	 // progress stages
 	 _("Prepare system for initial boot")
 	 ];
 
@@ -62,7 +57,7 @@
 	[];
 
 
-    integer progress_length = 16;
+    integer progress_length = 2;
     string help_text = "FIXME";
 
     Progress::New(
@@ -82,11 +77,12 @@
 
     // --------------------------------------------------------------
 
-
     y2milestone ("Re-starting SCR on %1", Installation::destdir);
     Installation::scrHandle = WFM::SCROpen ("chroot="+Installation::destdir+":scr", false);
     WFM::SCRSetDefault (Installation::scrHandle);
 
+    Progress::NextStep ();
+    boolean newsystem = SCR::Read (.target.size, Installation::destdir+"/dev/null") < 0;
     if(newsystem)
     {
         if(DirInstall::runme_at_boot == true)
@@ -103,21 +99,8 @@
     if (SCR::Execute (.target.bash, "/sbin/ldconfig") != 0)
         y2error ("ldconfig failed\n");
 
-    // progress stage title
-    Progress::Title (_("Creating mount points"));
 
-    SCR::Execute (.target.mkdir, Installation::sourcedir);
-
-    // setup fonts
-    if (SCR::Read (.target.size, "/sbin/conf.d/SuSEconfig.fonts") != -1)
-    {
-        // progress stage title
-        Progress::Title (_("Initializing fonts"));
-
-        if (SCR::Execute (.target.bash, "/sbin/SuSEconfig --module fonts") != 0)
-            y2error ("SuSEconfig --module fonts failed");
-    }
-
+    Progress::Finish();
     UI::CloseDialog();
 
 
