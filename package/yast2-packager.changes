@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Sep  3 11:57:27 CEST 2004 - sh@suse.de
+
+- V 2.10.11
+- Fixed bug #44407: Faster restart of sw_single
+  Now asking "Would you like to install more packages"
+  rather than exiting right away
+
+-------------------------------------------------------------------
 Thu Sep  2 18:28:13 CEST 2004 - sh@suse.de
 
 - V 2.10.10
