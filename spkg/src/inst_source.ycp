@@ -31,7 +31,7 @@
         @param source The map describing the source as returned form the agent.
         @return An item suitable for addition to a Table.
     */
-    global define term createItem( integer source ) ``{
+    define term createItem( integer source ) ``{
         map generalData = Pkg::SourceGeneralData( source );
         map productData = Pkg::SourceProductData( source );
         term item = `item(
@@ -47,7 +47,7 @@
     /**
      * Fill sources table with entries from the InstSrcManager agent.
      */
-    global define void fillTable() ``{
+    define void fillTable() ``{
         list<integer> sources = Pkg::SourceGetCurrent ( false );
 
         list items = [];
