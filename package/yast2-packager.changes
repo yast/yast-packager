@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 11 16:51:30 CET 2003 - mvidner@suse.de
+
+- Do not run SuSEconfig in [Rr]equire.ycp when adding packages
+  during installation. Real fix for (#25071).
+- 2.7.27
+
+-------------------------------------------------------------------
 Tue Mar 11 16:46:18 CET 2003 - kkaempf@suse.de
 
 - always let TargetInit create everything which doesn't exist.
