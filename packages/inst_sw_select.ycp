@@ -185,7 +185,7 @@ To make a more precise selection of software to install, select
     string wrn_msg = "";
 
     // Checking: already selected addons or single selection?
-    if ( Pkg::IsManualSelection() )
+    if ( Pkg::RestoreState(true) )		// only check state diffs
     {
 	// Display warning message
 	wrn_msg = _("\
@@ -235,18 +235,20 @@ You will lose that selection if you change the basic selection.");
 	if ( (ret == `abort)
 	     && WFM::CallFunction(`inst_confirm_abort(`painless) ) )
 	{
+	    Pkg::RestoreState();
 	    Wizard::CloseDialog();
 	    return `abort;
 	}
 
 	// if the selection has changed and the user has already selected some addons or single packages
 	if ( (save_selection != base_selection)
-	     && Pkg::IsManualSelection() )
+	     && Pkg::RestoreState(true) )
 	{
             // popup text: ask the user whether to reset his individuell selection
 	    any ret = UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?"));
 	    if ( !ret )
 	    {
+		Pkg::ClearSaveState();		// free the previously saved state
 		Wizard::CloseDialog();
 		// rebuild the former selected RadioButton
 		return `again;
@@ -315,7 +317,7 @@ You will lose that selection if you change the basic selection.");
 		ret = `again;
 	    }
 
-	    if ( Pkg::IsManualSelection() )
+	    if ( Pkg::RestoreState(true) )		// just checking
 	    {
 		// Display warning message
 		wrn_msg = _("\
@@ -344,9 +346,14 @@ You will lose that selection if you change the basic selection.");
     }
     else if ( ret == `next )
     {
+	Pkg::ClearSaveState();
 	list selected_selections = Pkg::GetSelections( `selected, "base" );
 	selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
 	y2milestone( "INSTALLING software selection: %1", selected_selections );
+    }
+    else
+    {
+	Pkg::ClearSaveState()
     }
 
     Wizard::CloseDialog();
