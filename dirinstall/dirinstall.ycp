@@ -21,6 +21,7 @@
     import "Wizard";
     import "Label";
     import "Popup";
+    import "GetInstArgs";
 
     // wizard stage
     integer current_stage = -1;
@@ -39,10 +40,7 @@
     {
 
         map args = $[];
-        args["enable_next"] = true;
-        args["enable_back"] = true;
-        args["proposal"] = "direinstall";
-        ret = (symbol) WFM::CallFunction ("inst_proposal", [args]);
+        ret = (symbol) WFM::CallFunction ("inst_proposal", [GetInstArgs::ButtonsProposal(true,true,"dirinstall")]);
         if (ret == `abort)
         {
             break;
