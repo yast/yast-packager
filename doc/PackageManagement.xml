@@ -1,3 +1,5 @@
+<!-- Maintainer: kkaempf@suse.de -->
+
 <?xml version="1.0" encoding='ISO-8859-1'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
                          "/usr/share/sgml/db41xml/docbookx.dtd"
@@ -8,6 +10,7 @@
 <!ENTITY Requirements SYSTEM "Requirements.xml">
 <!ENTITY UseCases SYSTEM "UseCases.xml">
 <!ENTITY UserInterface SYSTEM "UserInterface.xml">
+<!ENTITY OnlineUpdate SYSTEM "OnlineUpdate.xml">
 <!ENTITY FunctionalView SYSTEM "FunctionalView.xml">
 <!ENTITY Implementation SYSTEM "Implementation.xml">
 ]>
@@ -33,11 +36,13 @@
 &Motivation;
 &Requirements;
 &UseCases;
+&OnlineUpdate;
 &UserInterface;
 &FunctionalView;
 &Implementation;
 
 
+<!--
 <glossary><title>Glossary</title>
 <para>
 This is a short list of names used in this document
@@ -92,4 +97,5 @@ Computes a final list of packages by resolving dependencies.
 
 <footnote>Written by <ulink url="mailto:kkaempf@suse.de">Klaus Kämpf</ulink>
 with help from Michael Andres, Stefan Hundhammer, Ludwig Nussel, and others.</footnote>
+-->
 </book>
