@@ -107,7 +107,7 @@ View the log file?
 	    {
 		string text = mergestring (errpacks, "\n");
 		// headline for a popup that displays a list of packages
-		Popup::ShowText (_("List of failed packages"), text);
+		Popup::ShowText (_("List of Failed Packages"), text);
 	    }
 	}
 
