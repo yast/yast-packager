@@ -11,14 +11,14 @@
  * Show checkboxes for software categories.
  * Let the user select his software.
  *
- * user_settings read:	
- *		
+ * user_settings read:
+ *
  *			"install_sources"
  *
- * user_settings write: 
+ * user_settings write:
  *			"install_sources"
  *
- * 
+ *
  *
  *
  * $Id$
@@ -43,13 +43,13 @@
     include "ui/common_functions.ycp";
 
     include "packages/selectionHandle.ycp";
-    
+
     list current_sel     = SCR::Read(.package.selInstallSet);
     string actual_sel = "";
-    
+
     list pacsels = [];
 
-    // sort the add ons 
+    // sort the add ons
     pacsels = sort( `x, `y, filter(`sel,
 				   SCR::Read(.package.selGroups),
 				   ``(select(sel, 1, "") != "paylist")),
@@ -78,10 +78,10 @@
 	}
 	if ( group == "baseconf" )
 	{
-	   baseconf = add ( baseconf, selid );   
+	   baseconf = add ( baseconf, selid );
 	}
     });
-    
+
     // recognize the current selected baseconf ( default, Minimal, All )
     string software_group_path = "";
     list software_group = [];
@@ -90,7 +90,7 @@
 	{
 		software_group_path = sel;
 	}
-    });    
+    });
     if ( size ( software_group_path ) > 0 )
     {
         software_group = add ( software_group, software_group_path );
@@ -104,7 +104,7 @@
 						 _("&Install available sources"),    // false ) ) );
     						 Packages::install_sources ) ) );
     categories = add(categories, `VSpacing(0.5) );
-    
+
     // Build and show dialog
     term contents = `VBox(
 			  `HVCenter( `HVSquash( `Frame( _("Categories"), categories ) ) ),
@@ -118,7 +118,7 @@
 				`HWeight( 1, `PushButton( `id(`sw_pay    ), `opt(`hstretch),
 							  _("&Commercial software...") ) ),
 				`HSpacing(`opt(`hstretch), 0.2),
-						   
+
 				// Push button that branches into the single package dialog
 				`HWeight( 1, `PushButton( `id(`sw_single ), `opt(`hstretch),
 							  _("Select &single packages...") ) )
@@ -126,7 +126,7 @@
 			  `VSpacing(0.5)
 			  );
 
-    
+
     // Explain additional software categories
     // (E.g. Multimedia, Games, Development, ...).
     // help part 1 of 3
@@ -153,14 +153,14 @@ of selected categories.
      // help part 3 of 3
      helptext = helptext + UI(_("<p>
 SuSE Linux comes with all the source code, so you have the option to
-<b>install available sources</b> for selected components. 
+<b>install available sources</b> for selected components.
 Note: sources are not available for commercial software.
 </p>
 <br>
 "));
 
-    Wizard::SetContents(title, contents, helptext, Args(0),Args(1));
-    
+    Wizard::SetContents(title, contents, helptext, WFM::Args(0), WFM::Args(1));
+
     any ret = nil;
     while (true)
     {
@@ -175,16 +175,16 @@ Note: sources are not available for commercial software.
 	    if (UI::QueryWidget(`id(id), `Value))
 		old_sel = add(old_sel, id);
 	});
-	
+
 	ret = Wizard::UserInput();
 
-	if ( ret == `abort && CallFunction(`inst_confirm_abort(`painless) ) )
+	if ( ret == `abort && WFM::CallFunction(`inst_confirm_abort(`painless) ) )
 	    return `abort;
-      
+
 	if ( ret == `back || ret == `cancel )
 	{
-	    break;  
-	}                  
+	    break;
+	}
 
 	current_sel = software_group;
 
@@ -209,7 +209,7 @@ Note: sources are not available for commercial software.
 	    if ( selected )
 	    {
 		y2milestone( "Selected: %1", actual_sel );
-		
+
 		if ( SelectSel( actual_sel, false ) )
 		{
 		    ret = `again;
@@ -226,8 +226,8 @@ Note: sources are not available for commercial software.
 			actual_sel = sel;
 			selected = false;
 		    }
-		});    		
-		y2milestone( "Deselected: %1", actual_sel );		
+		});
+		y2milestone( "Deselected: %1", actual_sel );
 
 		if ( DeselectSel( actual_sel ) )
 		{
@@ -239,7 +239,7 @@ Note: sources are not available for commercial software.
 
 	// showing all selected and autoselected selections
 	current_sel = SCR::Read(.package.selInstallSet);
-	y2milestone( "Current selections : %1", current_sel );			
+	y2milestone( "Current selections : %1", current_sel );
 	foreach(`sel, pacsels, ``{
 	    string   selid   = select(sel, 0, "");
 	    string   group   = select(sel, 2, "");
@@ -263,14 +263,14 @@ Note: sources are not available for commercial software.
 	SCR::Execute(.package.setSourceInstallation, Packages::install_sources );
 
 	if ( Mode::test )
-	{ 
+	{
 	    // TEST MODE !!!
 	    // Check, if there is a unresolved dependency
 	    map    pac_depends = $[];
 	    list(map) or_depends = [];
 	    list(map) xor_depends = [];
 	    pac_depends = SCR::Read(.package.dependencies);
-	    y2debug( "TESTMODE: check-dependencies BEFORE solving" );  
+	    y2debug( "TESTMODE: check-dependencies BEFORE solving" );
 	    or_depends = lookup( pac_depends, "REQUIRE", [] );
 	    y2debug( "REQUIRE Dependencies: %1", or_depends );
 	    xor_depends = lookup( pac_depends, "CONFLICT", [] );
@@ -281,7 +281,7 @@ Note: sources are not available for commercial software.
 
 	if ( ret == `sw_pay )
 	{
-	    ret = CallFunction( `inst_sw_single( `pay, `not_only_checked ) );
+	    ret = WFM::CallFunction( `inst_sw_single( `pay, `not_only_checked ) );
 
 	    if ( ret == `ok || ret == `cancel_single )
 		ret = `again;
@@ -289,19 +289,19 @@ Note: sources are not available for commercial software.
 	}
 	else if ( ret == `sw_single )
 	{
-	    ret = CallFunction( `inst_sw_single( `single, `not_only_checked ) );
-	   
+	    ret = WFM::CallFunction( `inst_sw_single( `single, `not_only_checked ) );
+
 	    if ( ret == `ok || ret == `cancel_single )
 		ret = `again;
 	    break;
 	}
-      
+
 	// Check, if there is a unresolved dependency
 	map    pac_depends = $[];
 	list(map) or_depends = [];
 	list(map) xor_depends = [];
 	pac_depends = SCR::Read(.package.dependencies);
-	   
+
 	or_depends = lookup( pac_depends, "REQUIRE", [] );
 	y2debug( "REQUIRE Dependencies: %1", or_depends );
 	xor_depends = lookup( pac_depends, "CONFLICT", [] );
@@ -313,7 +313,7 @@ Note: sources are not available for commercial software.
 	    // to solve it ( only if user did any single selection before )
 	    if ( SCR::Read(.package.isSingleSelected ))
 	    {
-		CallFunction( `inst_sw_single( `single, `only_check ) );
+		WFM::CallFunction( `inst_sw_single( `single, `only_check ) );
 	    }
 	    else
 	    {
@@ -329,7 +329,7 @@ Note: sources are not available for commercial software.
 	    list(map) or_depends = [];
 	    list(map) xor_depends = [];
 	    pac_depends = SCR::Read(.package.dependencies);
-	    y2debug( "TESTMODE: check-dependencies AFTER solving" );  
+	    y2debug( "TESTMODE: check-dependencies AFTER solving" );
 	    or_depends = lookup( pac_depends, "REQUIRE", [] );
 	    y2debug( "REQUIRE Dependencies: %1", or_depends );
 	    xor_depends = lookup( pac_depends, "CONFLICT", [] );
@@ -337,7 +337,7 @@ Note: sources are not available for commercial software.
 	    list install_list =  SCR::Read(.package.installSet);
 	    y2debug( "getInstallSet: %1",install_list );
 	}
-	
+
 	// calculating size
 
 	if ( !SpaceCalculation::ShowPartitionWarning() )
@@ -350,8 +350,8 @@ Note: sources are not available for commercial software.
 	UI::ChangeWidget( `id(`free_space),
 			  `Value, sformat( UI(_("%1 required disk space")),
 					   SpaceCalculation::GetRequSpace( false) ) );
-			 
-	
+
+
     }
 
     y2milestone( "inst_sw_details return: %1", ret );

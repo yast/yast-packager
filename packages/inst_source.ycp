@@ -30,10 +30,10 @@
 
     any 	ret = nil;
 
-    boolean use_you = false;		// used for online update 
+    boolean use_you = false;		// used for online update
     string you_server = "";
     string you_serverkind = "";
-      
+
     if ( Mode::youInstallMap != $[] )
     {
 	use_you = true;
@@ -58,19 +58,19 @@
     //
     //  Settings for Online Update
     //
-      
+
     global define SetOnlineUpdateInfo( integer mediatype ) ``{
 
 	if ( mediatype == 0 )	// CD
 	{
 	    Mode::youInstallMap["you_serverkind"] = "cd";
-	    Mode::youInstallMap["you_server"] 	= "CD";		// text for YOU combobox 
+	    Mode::youInstallMap["you_server"] 	= "CD";		// text for YOU combobox
 	    Mode::youInstallMap["you_dir"] 	= "";
 	}
 	if ( mediatype == 1 )	// DVD
 	{
 	    Mode::youInstallMap["you_serverkind"] = "cd";
-	    Mode::youInstallMap["you_server"] 	= "DVD";	// text for YOU combobox 
+	    Mode::youInstallMap["you_server"] 	= "DVD";	// text for YOU combobox
 	    Mode::youInstallMap["you_dir"] 	= "";
 	}
 	else if ( mediatype == 2
@@ -83,28 +83,28 @@
 		Mode::youInstallMap["you_serverkind"] = "ftp";
 	    else if ( mediatype == 6 )
 		Mode::youInstallMap["you_serverkind"] = "http";
-	    
+
 	    string server = UI::QueryWidget(`id(`server), `Value);
 	    string dir    = UI::QueryWidget(`id(`dir), `Value);
-	    
+
 	    Mode::youInstallMap["you_server"] = CutBlanks( server ) ;
 	    Mode::youInstallMap["you_dir"] = CutBlanks( dir );
 	}
 	else if ( mediatype == 3 )	// Harddisk
 	{
 	    Mode::youInstallMap["you_serverkind"] = "harddisk";
-	    
+
 	    string partition = UI::QueryWidget(`id(`partdir), `Value);
 
 	    Mode::youInstallMap["you_dir"]	= CutBlanks( partition );
-	    Mode::youInstallMap["you_server"] 	= "Hard disk";  // text for YOU combobox 
+	    Mode::youInstallMap["you_server"] 	= "Hard disk";  // text for YOU combobox
 	}
     };
 
     //
     //	Check whether the source medium is mountable
     //
-    
+
     define CheckMount( integer mediatype ) ``{
 	boolean mount_ok = false;
 
@@ -152,7 +152,7 @@
 	{
 	    string server = UI::QueryWidget(`id(`server), `Value);
 	    string dir    = UI::QueryWidget(`id(`dir), `Value);
-	    // usually the Samba share name doesn't start with "/" 
+	    // usually the Samba share name doesn't start with "/"
 	    if ( substring ( dir, 0, 1) != "/" )
 	    {
 		dir = "/" + dir;
@@ -161,7 +161,7 @@
 	    // remove blanks at the beginning and end of server and dir
 	    server = CutBlanks( server );
 	    dir    = CutBlanks( dir );
-	    
+
 	    InstMedia::initializeInstMedia($["instmode" : "smb",
 					    "server"   : server,
 					    "serverdir" : dir,
@@ -191,7 +191,7 @@
 	    // set flag for Packages::Init(): get information from
 	    // source medium not locally save description
 	    InstMedia::source_medium = true;
-	    
+
 	}
 	if ( InstMedia::mediatype <= 1 )
 	{
@@ -206,14 +206,14 @@
     string smb_user = "";
     string smb_workgroup = "";
     string smb_asworkgroup = "";
-    
+
     //
     // SambaPopup()
     //
 
     global define SambaPopup() ``{
        map ret_map = $[];
-       
+
        UI::OpenDialog(
 		      `opt(`decorated),
 		      `HBox(
@@ -238,7 +238,7 @@ to specify username, password and workgroup.") ),
 						      `HSpacing (0.5)
 						      ),
 						`HBox(
-						      `HSpacing (0.5), 
+						      `HSpacing (0.5),
 						      // inputfield label
 						      `Password (`id(`password), _("&Password:"), smb_password),
 						      `HSpacing (0.5)
@@ -248,7 +248,7 @@ to specify username, password and workgroup.") ),
 						      // inputfield label
 						      `TextEntry (`id(`workgroup), _("&Workgroup:"), smb_workgroup),
 						      `HSpacing (0.5)
-						      )  
+						      )
 						)
 					  ),
 				  `HBox(`PushButton(`id(`ok), `opt(`default), OKButtonLabel() ),
@@ -259,25 +259,25 @@ to specify username, password and workgroup.") ),
 			    `HSpacing(1)
 			    )
 		      );
-       
+
        symbol ret = `none;
        boolean enable = false;
        UI::ChangeWidget( `id(`user), `Enabled, enable );
        UI::ChangeWidget( `id(`password), `Enabled, enable );
        UI::ChangeWidget( `id(`workgroup), `Enabled, enable );
-		
+
        while ( true )
        {
 	   smb_password = "";
 	   smb_user = "";
 	   smb_workgroup = "";
 	   smb_asworkgroup = "";
-		   
+
 	   ret =   UI::UserInput();
 
 	   if ( ret == `cancel )
 	       break;
-	   
+
 	   if ( UI::QueryWidget(`id(`guest), `Value) )
 	   {
 	       enable = false;
@@ -290,7 +290,7 @@ to specify username, password and workgroup.") ),
 	   UI::ChangeWidget( `id(`user), `Enabled, enable );
 	   UI::ChangeWidget( `id(`password), `Enabled, enable );
 	   UI::ChangeWidget( `id(`workgroup), `Enabled, enable );
-	   
+
 	   if ( ret == `ok )
 	   {
 	       // it is not a guest login
@@ -307,13 +307,13 @@ to specify username, password and workgroup.") ),
 	       break;
 	   }
        }
-	  
+
        UI::CloseDialog();
-       
+
        return ret;
     }
 
-    
+
     // Build and show dialog
     term cd_box = `Empty();
 
@@ -326,7 +326,7 @@ to specify username, password and workgroup.") ),
     term ftp_box = `Empty();
     term http_box = `Empty();
     term samba_box = `Empty();
-    
+
     if ( use_you )
     {
 	ftp_box = `Left(`RadioButton(`id(`ftp),
@@ -350,7 +350,7 @@ to specify username, password and workgroup.") ),
     y2debug("InstMedia::net_server: %1", InstMedia::net_server );
     y2debug("InstMedia::net_dir: %1", InstMedia::net_dir );
     y2debug("InstMedia::mediatype: %1", InstMedia::mediatype );
-    
+
     string title = _("Software Source Media");
     term contents = `VBox(
 			`HBox(
@@ -380,7 +380,7 @@ to specify username, password and workgroup.") ),
 													    InstMedia::net_server ),
 												 `TextEntry(`id(`dir),
 													    // Input field label for (remote) directory
-													    // for network installation 
+													    // for network installation
 													    _("Directory on the ser&ver:"),
 													    InstMedia::net_dir ),
 												 `VSpacing(0.3))
@@ -412,7 +412,7 @@ to specify username, password and workgroup.") ),
     // help
     string help_text = _("<p>
 Software packages can be installed from the CD, over a
-network, or from the hard disk. 
+network, or from the hard disk.
 </p>
 ");
 
@@ -438,8 +438,8 @@ into one directory.
     help_text = help_text + _("<p>
 <b>Network</b> installation requires a working network connection.
 Configure YaST2's \"Network/Base\" module first,
-if required.  Specify the directory where the packages from 
-the first CD are located, such as, /usr/SuSE/<b>CD1</b>. 
+if required.  Specify the directory where the packages from
+the first CD are located, such as, /usr/SuSE/<b>CD1</b>.
 Only the base path is
 required if packages are not divided, for example, /usr/full-i386.
 The directory must be listed in the file <i>/etc/exports</i>
@@ -447,7 +447,7 @@ on the NFS server.
 </p>
 ");
 
-    Wizard::SetContents(title, contents, help_text, Args(0),Args(1));
+    Wizard::SetContents(title, contents, help_text, WFM::Args(0), WFM::Args(1));
 
     // change label of buttons (only normal mode)
     if ( Mode::normal
@@ -460,7 +460,7 @@ on the NFS server.
     }
 
     y2debug( "MEDIATYPE: %1", InstMedia::mediatype );
-    
+
     if ( InstMedia::mediatype <= 1 )			// CD, DVD
     {
 	if ( use_you )
@@ -497,7 +497,7 @@ on the NFS server.
     {
 	UI(``{
 	    ChangeWidget(`id(`ftp), `Value, true);
-	    ChangeWidget(`id(`http), `Value, false);	    
+	    ChangeWidget(`id(`http), `Value, false);
 	    ChangeWidget(`id(`cd), `Value, false);
 	    ChangeWidget(`id(`nfs), `Value, false);
 	    ChangeWidget(`id(`partition), `Value, false);
@@ -510,7 +510,7 @@ on the NFS server.
     {
 	UI(``{
 	    ChangeWidget(`id(`ftp), `Value, false);
-	    ChangeWidget(`id(`http), `Value, true);	    
+	    ChangeWidget(`id(`http), `Value, true);
 	    ChangeWidget(`id(`cd), `Value, false);
 	    ChangeWidget(`id(`nfs), `Value, false);
 	    ChangeWidget(`id(`partition), `Value, false);
@@ -601,7 +601,7 @@ on the NFS server.
 		ChangeWidget(`id(`partdir), `Enabled, false);
 	    });
 	}
-	
+
 	if ( UI::QueryWidget(`id(`partition), `Value) )
 	{
 	    InstMedia::mediatype = 3;
@@ -694,7 +694,7 @@ on the NFS server.
 	    }  // normal_mode
 	    else
 	    {
-		if ( CallFunction(`inst_confirm_abort(`painless) ) )
+		if ( WFM::CallFunction(`inst_confirm_abort(`painless) ) )
 		    return `abort;
 	    }
 	} // ret == `abort
@@ -738,7 +738,7 @@ on the NFS server.
 	    if ( go_on )
 	    {
 		mount_ok = CheckMount( InstMedia::mediatype);
-	    
+
 		if ( mount_ok )
 		{
 		    if ( !Mode::test )

@@ -33,7 +33,7 @@
     boolean test_popup = false;
     boolean beginner_mode = false;
     boolean skip_source = false;
-    
+
     // =============================================================
 
     // check test_popup
@@ -41,35 +41,35 @@
 
     global define CheckArguments () ``{
 
-	integer arg_n = size (Args()) - 1;
+	integer arg_n = size (WFM::Args()) - 1;
 
 	list arg_list = [];
 
 	while (arg_n >= 0)
 	{
-	    if (Args(arg_n) == .test)
+	    if (WFM::Args(arg_n) == .test)
 	    {
 		Mode::test = true;
 	    }
-	    else if (Args(arg_n) == .testp)
+	    else if (WFM::Args(arg_n) == .testp)
 	    {
 		Mode::test = true;	// .testp implies .test
 		test_popup = true;
 	    }
-	    else if (is (Args(arg_n), string))
+	    else if (is (WFM::Args(arg_n), string))
 	    {
-		if (Args(arg_n) == "beginner")
+		if (WFM::Args(arg_n) == "beginner")
 		{
 		    beginner_mode = true;
 		}
 		else
 		{
-		    arg_list = add (arg_list, Args(arg_n));
+		    arg_list = add (arg_list, WFM::Args(arg_n));
 		}
 	    }
-	    else if (is (Args(arg_n), list))
+	    else if (is (WFM::Args(arg_n), list))
 	    {
-		foreach (`arg, Args(arg_n), ``{ arg_list = add (arg_list, arg);});
+		foreach (`arg, WFM::Args(arg_n), ``{ arg_list = add (arg_list, arg);});
 	    }
 	    arg_n = arg_n - 1;
 	}
@@ -95,8 +95,8 @@
    //
    // returns	`done		all done
    //		`failed		package not found
-   //		`next		workflow "Change source of installation" 
-   //		`found_medium	found sources from CD1 
+   //		`next		workflow "Change source of installation"
+   //		`found_medium	found sources from CD1
    //		`found_descr	found local package descr
    //		`unknown_descr	found nothing
    //
@@ -104,7 +104,7 @@
    define CheckWhichPackages (list arg_list) ``{
 
 	// if sw_single is called with a list of packages or a package name
-	// or in  beginner mode try to mount source medium 
+	// or in  beginner mode try to mount source medium
 
 	string first_arg = "";
 
@@ -117,7 +117,7 @@
 	    return `next;	// workflow "Change source of installation", i.e.
 	                        // start with dialog inst_source
 	}
-	
+
 	if ( regexpmatch (first_arg, "\\.rpm$") )		// package name given
 	{
             // if sw_single is called with an absolute package-pathname, there is no need to
@@ -129,7 +129,7 @@
 		InstMedia::mediatype = 3;
 
 		y2milestone( "SW_SINGLE: installing  %1", first_arg );
-		CallFunction( `inst_rpmcopy( false, false, first_arg ));
+		WFM::CallFunction( `inst_rpmcopy( false, false, first_arg ));
 
 		// package is installed without paying attention to SuSE dependencies
 		// don't call SuSEConfig -> dialog loop ends
@@ -144,24 +144,24 @@
 		return `failed;
 	    }
 	}
-	else		
+	else
 	{
 	    //  try to mount source medium or read local descriptions
 	    //  if possible -> skip dialog inst_source
-	    
-	    y2milestone ("SW_SINGLE: %1; trying to mount source medium", Args());
+
+	    y2milestone ("SW_SINGLE: %1; trying to mount source medium", WFM::Args());
 
 	    // initialize InstMedia from running system
 	    InstMedia::initializeInstMedia ($[]);
 
 	    // is CD1/directory with CD1 sources inserted/available ?
 	    integer result = InstMedia::MountMedium ( 1 );
-	    
+
 	    if ( result == 0 )
 	    {
 		// skip dialog Change source medium
 		skip_source = true;
-		
+
 		// this flag is read in Packages::Init() and means:
 		// don't read locally saved package description but information from source medium
 		InstMedia::source_medium = true;
@@ -383,7 +383,7 @@ must NOT be older than the version of your installed system.\n");
 
 		    if ( userInput == true )
 		    {
-			result = CallFunction( `inst_sw_single( `post_install,
+			result = WFM::CallFunction( `inst_sw_single( `post_install,
 								`not_only_checked ) );
 		    }
 		    else
@@ -395,7 +395,7 @@ must NOT be older than the version of your installed system.\n");
 			{
 			    // There is an unresolved dependency -> call
 			    // single-package-selection to solve it.
-			    result = CallFunction( `inst_sw_single( `post_install,
+			    result = WFM::CallFunction( `inst_sw_single( `post_install,
 								    `only_check ) );
 			}
 			else
@@ -409,7 +409,7 @@ must NOT be older than the version of your installed system.\n");
 	    else
 	    {
 		// Calling inst_sw_single
-		result = CallFunction( `inst_sw_single( `post_install,
+		result = WFM::CallFunction( `inst_sw_single( `post_install,
 							`not_only_checked ) );
 	    }
 	}
@@ -419,7 +419,7 @@ must NOT be older than the version of your installed system.\n");
 	    {
 		// Base packages and kernels must be on Medium1
 		list install_list = SCR::Read(.package.installSetCD, 1);
-		
+
 		boolean bootCalled = false;
 		foreach ( `package, install_list,
 			  ``{
@@ -427,7 +427,7 @@ must NOT be older than the version of your installed system.\n");
 		    integer pos = findfirstof ( packageName, "/" );
 		    if ( pos != nil )
 		    {
-			// removing path 
+			// removing path
 			packageName = substring ( packageName,
 						  pos+1, size(packageName) -pos -5 );
 			packageName = SCR::Read( .package.shortName, packageName );
@@ -446,8 +446,8 @@ must NOT be older than the version of your installed system.\n");
 			}
 		});
 	    }
-	    
-	    result = CallFunction( select(dialog, dialog_id, 0) );
+
+	    result = WFM::CallFunction( select(dialog, dialog_id, 0) );
 	}
 
         y2debug( "RESULT %1: %2", select(dialog, dialog_id, 0), result );
@@ -473,7 +473,7 @@ must NOT be older than the version of your installed system.\n");
 	    // from package agent
 	    list install_list = SCR::Read(.package.installSet);
 	    list delete_list  = SCR::Read(.package.deleteSet);
-	    
+
 	    y2debug( "SW_SINGLE: install_list: %1", install_list );
 	    y2debug( "SW_SINGLE: delete_list: %1",  delete_list );
 
@@ -502,7 +502,7 @@ must NOT be older than the version of your installed system.\n");
 
     // unload package agent in order to release common.pkd
     SCR::UnmountAgent(.package);
-    
+
     InstMedia::UnmountMedium();
 
     return `next;
