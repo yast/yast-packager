@@ -65,7 +65,7 @@
 	y2milestone ( "SlideShow constructor" );
 	next_recalc_time	= time();
     }
-	
+
 
     /**
      * Start the internal (global) timer.
@@ -264,12 +264,12 @@
 
     /**
      * Check if the slide show is available. This must be called before trying
-     * to access any slides; some late initialization is done here. 
+     * to access any slides; some late initialization is done here.
      **/
     global boolean checkForSlides()
     {
 	slides = [];
-	
+
 	// FIXME: ugly hack
 	map tmp1 = (map) WFM::Read (.local.stat, slide_base_path);
 	if (!tmp1["isdir"]:false)
@@ -309,7 +309,7 @@
 	    }
 	}
 
-	
+
     }
 
 
@@ -1227,7 +1227,7 @@
     global void SetCurrentCdNo( integer src_no, integer cd_no )
     {
 	checkForSlides();
-	    
+
 	if ( haveSlides() )
 	{
 	    if ( ! user_switched_to_details ) // Don't override explicit user request!
@@ -1243,13 +1243,13 @@
 	{
 	    if ( ! showing_details )
 		SwitchToDetailsView();
-	    
+
 	    current_slide_no = 0;
 	}
 
 	if ( UI::WidgetExists(`slide_show_view ) )
 	    UI::ChangeWidget(`slide_show_view, `Enabled, haveSlides() );
-	
+
 	y2milestone ("SetCurrentCdNo(%1,%2)", src_no, cd_no);
 	current_src_no = src_no;
 	current_cd_no  = cd_no;
@@ -1281,8 +1281,7 @@
      */
     global void InstallSlideShowCallbacks()
     {
-
-	y2milestone ( "InstallSlideShowCallbacks" );
+	y2milestone ("InstallSlideShowCallbacks");
 
 	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
 	Pkg::CallbackProgressPackage ("SlideShowCallbacks::CallbackDisplayProgress");
@@ -1293,6 +1292,10 @@
 	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
 
 	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
+
+	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
+	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
+	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
     }
 
 
@@ -1302,8 +1305,7 @@
      */
     global void RemoveSlideShowCallbacks()
     {
-
-	y2milestone ( "RemoveSlideShowCallbacks" );
+	y2milestone ("RemoveSlideShowCallbacks");
 
 	Pkg::CallbackStartPackage ("");
 	Pkg::CallbackProgressPackage ("");
@@ -1314,6 +1316,10 @@
 	Pkg::CallbackDoneProvide ("");
 
 	Pkg::CallbackSourceChange ("");
+
+	Pkg::CallbackStartDownload ("");
+	Pkg::CallbackProgressDownload ("");
+	Pkg::CallbackDoneDownload ("");
     }
 
 
