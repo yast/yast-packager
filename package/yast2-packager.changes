@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 18 12:01:00 CET 2003 - kkaempf@suse.de
+
+- stop timer during wait for medium (#21026)
+
+-------------------------------------------------------------------
 Mon Feb 17 14:45:01 CET 2003 - cschum@suse.de
 
 - inst_source: Removed back and abort button because they didn't work.

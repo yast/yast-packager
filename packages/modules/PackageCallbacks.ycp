@@ -122,6 +122,13 @@
 
     global define string MediaChange (string error, string url, string product, integer current, integer wanted)
     ``{
+	import "Mode";
+
+	if (!Mode::normal)
+	{
+	    import "SlideShow";
+	    SlideShow::StopTimer();
+	}
 
 	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4', wan'%5'", error, url, product, current, wanted);
 	term button_box = `PushButton(`id(`cancel), `opt(`default), OKButtonLabel() );
@@ -227,6 +234,12 @@
 
 	UI::CloseDialog();
 
+	if (!Mode::normal)
+	{
+	    import "SlideShow";
+	    SlideShow::StartTimer();
+	}
+
 	if (r == `cancel)
 	    return "C";
 	if (r == `ignore)
@@ -236,7 +249,6 @@
 	if (r == `eject)
 	    return "E";
 
-	import "Mode";
 	if (!Mode::normal)
 	{
 	    import "SlideShow";
