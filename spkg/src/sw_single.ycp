@@ -20,8 +20,8 @@ For installing commercial software also launch this module and select
 set 'pay' from list of package sets.
 </P>" ));
   string msg_str12 = UI(_( "<p>Please insert <b>CD 1</b> for CD installation.<br>
-Required data for installation over network or from harddisk
- will be asked in following dialog." ));
+Data required for installation over network or from harddisk
+will be asked in separate dialog." ));
   
   string msg_str2 = UI(_( "<P>You need to be logged in as <i>root</i> in order to
 do this.</P>"));
@@ -343,7 +343,7 @@ do this.</P>"));
   boolean going_forward = true;
   
   // if CD 1 is already inserted, skip module inst_source
-  if ( lookup( ChangeCD( 1, architecture ), "success", false ) || size(Args() ) > 0 )
+  if ( lookup( ChangeCD( 1, architecture, false ), "success", false ) || size(Args() ) > 0 )
   {
       id = id + 1;
   }
@@ -354,7 +354,7 @@ do this.</P>"));
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
       {
 	  // mount CD 1 BEFORE initializing pkginfo-Server (needed to get commom.pkd)
-	  map resMap = ChangeCD( 1, architecture);
+	  map resMap = ChangeCD( 1, architecture, true);
 	  boolean go_on = lookup ( resMap, "success", false );
 
 	  if ( !go_on )
