@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec  1 17:25:52 MET 2000 - gs@suse.de
+
+- version 1.0.6 command line call added, e.g. yast2 sw_single '("file.rpm")'
+  
+-------------------------------------------------------------------
 Thu Nov  2 14:56:54 MET 2000 - gs@suse.de
 
 -  version 1.0.5 module Software Source Media added, additional menuentry
