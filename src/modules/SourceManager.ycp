@@ -31,9 +31,7 @@ import "Mode";
 
 global list<integer> newSources = [];
 
-
 global integer numSources = 0;
-
     
 global list<integer> sourceStates = [];
 
@@ -94,6 +92,17 @@ global boolean Modified() {
     return (sourceStatesIn != sourceStatesOut);
 }
 
+global boolean ReadSources()
+{
+    boolean success = Pkg::SourceStartManager( false );
+    if (!success)
+        return success;
+    sourceStates = Pkg::SourceStartCache ( false );
+    sourceStatesIn = Pkg::SourceEditGet();
+    sourceStatesOut = sourceStatesIn;
+    return true;
+}
+
 
 /**
  * Read all source-manager settings
@@ -128,17 +137,9 @@ global boolean Read() {
     if(Abort()) return false;
     Progress::NextStage();
 
-    list installed_products = Pkg::TargetProducts ();
-    y2debug("installed products: %1" , installed_products );
-
-    Pkg::SourceStartManager( false );
-    sourceStates = Pkg::SourceStartCache ( false );
-    sourceStatesIn = Pkg::SourceEditGet();
-    sourceStatesOut = sourceStatesIn;
-
 
     /* Error message */
-    if(false) Report::Error(_("Cannot read Sources."));
+    if(!ReadSources()) Report::Error(_("Cannot read Sources."));
 
     // read another database
     if(Abort()) return false;
@@ -320,8 +321,6 @@ global define map<integer, string> ParseInstOrderFile (string instorderfile) {
 }
 
 
-
-
 /**
  * Get Source ID by index 
  */
@@ -346,15 +345,14 @@ global void SetUrlByIndex(integer idx)   {
 /**
  * Get Source ID when only URL is known 
  */
-global define integer getSourceId( string url )
-    {
+global define integer getSourceId( string url ) {
     
     numSources = size( sourceStatesOut );
     integer i = 0;
     integer id = -1;
     while ( i < numSources )
-    {
-	map generalData = Pkg::SourceGeneralData(sourceStatesOut[i, "SrcId"]:-1 );
+    { 
+        map generalData = Pkg::SourceGeneralData(sourceStatesOut[i, "SrcId"]:-1 );
 	if ( generalData[ "url" ]:"" == url )
 	{
 	    id = sourceStatesOut[i, "SrcId"]:-1;
