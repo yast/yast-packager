@@ -3,6 +3,7 @@
  *
  * Authors:		Klaus Kaempf <kkaempf@suse.de>
  *			Stefan Hundhammer <sh@suse.de> (slide show)
+ *			Arvin Schnell <arvin@suse.de>
  *
  * Purpose:
  * Install all the RPM packages the user has selected.
@@ -18,39 +19,20 @@
 {
     textdomain "packager";
 
-    import "Arch";
     import "AutoInstall";
-    import "Report";
     import "Mode";
     import "Installation";
-    import "Version";
     import "Language";
-
-    import "SpaceCalculation";
     import "PackageInstallation";
     import "Packages";
     import "SlideShow";
-    import "Wizard";
-    import "Popup";
-
     import "AutoinstSoftware";
 
 
-    if (Mode::initial && Mode::update)
-	return `auto;
-
-
-    //----------------------------------------------------------------------
-    //				     MAIN
-    //----------------------------------------------------------------------
-
     string tmpdir	= (string) SCR::Read(.target.tmpdir);
-    string language	= "";
+    string language	= Language::language;
 
-    language = Language::language;
     Pkg::SetLocale (language);
-
-    any		ret		= nil;	// return value module packager
 
     SlideShow::SetLanguage (language);
     SlideShow::OpenSlideShowDialog ();
@@ -59,43 +41,14 @@
     // FIXME error checking is missing all around here, initialization could actually fail!
     Pkg::TargetInit (Installation::destdir, true);
 
-    if (Mode::initial
-	&& !Mode::update)
-    {
-	// make some directories
-	SCR::Execute(.target.mkdir, Installation::destdir+"/etc");
-	SCR::Execute(.target.mkdir, Installation::destdir+"/var/log/YaST2");
-
-	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
-	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir+"/etc");
-	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir+"/etc");
-    }
-    else if (Mode::cont)
+    if (Mode::cont)
     {
 	// initialize the package agent in continue mode
 	Packages::Init( true );
-	SCR::Execute(.target.bash, "/bin/echo "+ "'YaST2 Version " + Version::yast2 + "' > /dev/tty2");
     }
-    Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
 
-    // ----------------------------------------------------------------------
-    // initial/cont
+    Pkg::TargetLogfile (Installation::destdir + "/var/log/YaST2/y2logRPM");
 
-    if (Mode::initial)
-    {
-	// write a fake mtab to the target system since some %post scripts might need it
-	string mtabname = "/etc/mtab";
-	if (Mode::initial)
-	{
-	    string mtab = (string) WFM::Read(.local.string, mtabname);
-	    SCR::Write(.target.string, tmpdir + "/mtab", mtab);
-	    SCR::Execute (.target.bash, "/bin/cat "
-			+ tmpdir + "/mtab"
-			+ " | /bin/sed \"s: " + Installation::destdir
-			+ "/: /:\"| /bin/sed \"s: " + Installation::destdir
-			+ ": /:\" > " + Installation::destdir + mtabname);
-	}
-    }
 
     if  (Mode::autoinst
 	 && Mode::cont)
@@ -128,14 +81,12 @@
 	}
 
 	y2milestone ("%1 binary packages remaining", size (remaining));
-	foreach (string pkg, remaining,
-	``{
+	foreach (string pkg, remaining, ``{
 	    Pkg::PkgInstall (pkg);
 	});
 
 	y2milestone ("%1 source packages remaining", size (srcremaining));
-	foreach (string pkg, srcremaining,
-	``{
+	foreach (string pkg, srcremaining, ``{
 	    Pkg::PkgSrcInstall (pkg);
 	});
     }
@@ -185,22 +136,33 @@
 	if (size (failed) > 0)
 	{
 	    y2milestone ("failed: %1", failed);
-	    list previous_failed = (list) SCR::Read (.target.ycp, [Installation::destdir + "/var/lib/YaST2/failed_packages", []]);
+	    list previous_failed = (list) SCR::Read (.target.ycp, [Installation::destdir +
+								   "/var/lib/YaST2/failed_packages", []]);
 	    if (size (previous_failed) > 0)
 		failed = union (previous_failed, failed);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed);
 	}
+
 	list remaining = commit_result[2]:[];
 	if (size (remaining) >= 0)
 	{
 	    y2milestone ("remaining: %1", remaining);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining", remaining);
 	}
+	else
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/remaining");
+	}
+
 	list srcremaining = commit_result[3]:[];
 	if (size (srcremaining) >= 0)
 	{
 	    y2milestone ("source remaining: %1", srcremaining);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/srcremaining", srcremaining);
+	}
+	else
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/srcremaining");
 	}
 
 	if (count < 0)					// aborted by user
