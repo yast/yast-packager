@@ -3,8 +3,14 @@
 # neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages
 
 @HEADER@
-Provides:	libpkg yast2-agent-package yast-agent-targetpkg
-Obsoletes:	libpkg yast2-agent-package yast-agent-targetpkg
+Provides:	libpkg libpkg-devel
+Obsoletes:	libpkg libpkg-devel
+Provides:	yast2-agent-package yast2-agent-package-devel
+Obsoletes:	yast2-agent-package yast2-agent-package-devel
+Provides:	yast2-agent-targetpkg yast2-agent-targetpkg-devel
+Obsoletes:	yast2-agent-targetpkg yast2-agent-targetpkg-devel
+Provides:	yast2-core-clients yast2-core-clients-devel
+Obsoletes:	yast2-core-clients yast2-core-clients-devel
 
 Summary:	-
 
