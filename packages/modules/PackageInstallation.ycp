@@ -132,7 +132,7 @@ View the log file?
 
 	    string pkg_name	= pac[0]:"";
 
-	    integer pkg_size	= SlideShow::GetPackageSize( select(pac, 0, "") );
+	    integer pkg_size	= 42*1024;
 	    integer bytes_installed = 0;
 
 	    if ( pkg_size < 0 )
@@ -149,13 +149,7 @@ View the log file?
 		integer percent = ( 100 * bytes_installed ) / pkg_size;
 		if ( deleting )
 		{
-		    ret = UI::CyclicDeletePkgCallback( pkg_name,
-						       pac[1]:"",
-						       percent,
-						       number,
-						       disk_usage,
-						       disk_capacity,
-						       false );	// error
+		    // Handle deleting packages
 		}
 		else
 		{
