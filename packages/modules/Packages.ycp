@@ -310,7 +310,7 @@
 
 	    if (forceInit)
 	    {
-		Pkg::PkgReset ();
+		// Pkg::PkgReset ();
 	    }
 
 	    return;
@@ -604,7 +604,8 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	// popup label
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
 
-	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'", force_reset, reinit, Language::language);
+	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
+		     force_reset, reinit, Language::language);
 
 	if ( force_reset )
 	{
