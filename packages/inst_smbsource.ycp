@@ -36,8 +36,6 @@
 
     import "Arch";
     import "Installation";
-    import "InstMedia";
-    import "MediaUI";
     import "Wizard";
 
     include "ui/common_popups.ycp";
