@@ -17,29 +17,17 @@
   include "ui/wizard_dialog.ycp";
   include "ui/common_popups.ycp";
   include "ui/common_functions.ycp";
-
+  include "arch_defines.ycp";
+  
   UI(`CreateWizardDialog());
 
   map user_settings = $[];
 
-  string architecture = SCR(`Read(.probe.architecture));
-  user_settings = add (user_settings, "architecture", architecture );
+  // report_architecture returns all used information about architecture, boards ...
+  user_settings = union (user_settings, report_architecture());
+
+  y2debug( "ARCHITECTURE: %1", user_settings );
   
-  string targetroot = SCR(`Read(.target.root));
-  user_settings = add (user_settings, "targetroot",
-		       targetroot );  // It is from an installed system
-
-  boolean arch_i386	= (architecture == "i386");
-  boolean arch_sparc32	= (architecture == "sparc");
-  boolean arch_sparc64	= (architecture == "sparc64");
-  boolean arch_sparc	= (arch_sparc32 || arch_sparc64);
-  boolean arch_ppc	= (architecture == "ppc");
-  boolean arch_alpha	= (architecture == "axp");
-  boolean arch_s390	= (architecture == "s390");
-  boolean arch_ia64	= (architecture == "ia64");
-  boolean live_eval_mode = false;
-
-
   string msg_beginner = "";
   string msg_expert = "";
   
@@ -125,37 +113,6 @@ do this.</P>"));
 
 
   y2debug( "SW_SINGLE: partition input: %1", part_input ); 
-
-  /*
-  // this section is replaced by EvaluateFreeSpace()
-  
-  list partition = [];
-  // get information about diskspace ( used/free space on every partition )
-  partition = SCR( `Read(.run.df ) );
-
-  // filter out headline and other invalid entries 
-  partition = filter( `part, partition, ``( substring ( lookup( part, "name" ), 0, 1 ) == "/" ) );
-
-  // pkginfo expects names of partitions without "/" in front ( exception: "/" itself ) 
-  list part_input = [];
-  
-  foreach( `part, partition, ``{
-      map part_info = $[];
-      if ( lookup( part, "name" ) != "/" )
-      {
-	  part_info = add( part_info, "name", substring( lookup( part, "name" ), 1 ) );
-      }
-      else
-      {
-	  part_info = add( part_info, "name",  lookup( part, "name" ) );
-      }
-      part_info = add( part_info, "used",  tointeger(lookup( part, "used" )) );
-      part_info = add( part_info, "free",  tointeger(lookup( part, "free" )) );
-
-      part_input = add( part_input, part_info );
-  });
-  y2debug( "SW_SINGLE: partition input: %1", part_input ); 
-  */
 
   
   /*
