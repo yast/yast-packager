@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 11 16:46:18 CET 2003 - kkaempf@suse.de
+
+- always let TargetInit create everything which doesn't exist.
+
+-------------------------------------------------------------------
 Tue Mar 11 15:59:00 CET 2003 - kkaempf@suse.de
 
 - fix parameters of doneProvide() callback (#25081)
