@@ -107,47 +107,44 @@ Do you want to go on with the installation?\n"),
 
     global define symbol CallbackDisplayError (string pkg_name)
     ``{
-	if ( error )
+	y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
+
+	// add package to list error_packages (module "PackageInstallation")
+	error_packages = add( error_packages, pkg_name );
+
+	if ( !deleting )
 	{
-	    y2milestone ( "The RPM packager returned an error for package: %1", pkg_name );
-
-	    // add package to list error_packages (module "PackageInstallation")
-	    error_packages = add( error_packages, pkg_name );
-
-	    if ( !deleting )
-	    {
-		any answer = `no_log;
-		string message = sformat( _("Package %1 returned an error.\nDo you want to see the log file?"),
+	    any answer = `no_log;
+	    string message = sformat( _("Package %1 returned an error.\nDo you want to see the log file?"),
 					  pkg_name );
-		if ( UI::AnyQuestionPopup( NoHeadline(),
+	    if ( UI::AnyQuestionPopup( NoHeadline(),
 					   message,
 					   YesButtonLabel(),
 					   NoButtonLabel(),
 					   `focus_no) )
-		{
-		    answer = `yes_short;
-		}
-
-		textdomain "general";	// what's that good for?
-
-		while ( answer != `no_log )
-		{
-		    string text = "";
-
-		    if ( answer == `yes_short )
-		    {
-			text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPMShort");
-		    }
-		    if ( answer == `yes_long )
-		    {
-			text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
-		    }
-
-		    answer = UI::DisplayLogFile( text, answer );
-		}
-
-		textdomain "packager";
+	    {
+		answer = `yes_short;
 	    }
+
+	    textdomain "general";	// what's that good for?
+
+	    while ( answer != `no_log )
+	    {
+		string text = "";
+
+		if ( answer == `yes_short )
+		{
+		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPMShort");
+		}
+		if ( answer == `yes_long )
+		{
+		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
+		}
+
+		answer = UI::DisplayLogFile( text, answer );
+	    }
+
+	    textdomain "packager";
 	}
     };
 
