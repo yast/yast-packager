@@ -4,6 +4,7 @@
  * Authors:		Klaus Kaempf <kkaempf@suse.de>
  *			Gabriele Strattner <gs@suse.de>
  *			Stefan Schubert <schubi@suse.de>
+ *                      Cornelius Schumacher <cschum@suse.de>
  *
  * Purpose:
  * Displays possibilities to install from NFS, CD or partion
@@ -22,9 +23,12 @@
 
     include "ui/common_messages.ycp";
     include "ui/common_functions.ycp";
+    include "ui/common_popups.ycp";
+    include "ui/file_popups.ycp";
 
     any 	ret = nil;
 
+/*
     boolean use_you = false;		// used for online update
     string you_server = "";
     string you_serverkind = "";
@@ -49,7 +53,7 @@
     {	// initialize with current settings
 	InstMedia::initializeInstMedia($[]);
     }
-
+*/
     //
     //  Settings for Online Update
     //
@@ -308,101 +312,499 @@ to specify username, password and workgroup.") ),
        return ret;
     }
 
-
-    // Build and show dialog
-    term cd_box = `Empty();
-
-    if ( !Arch::s390 )
-    {
-	cd_box = `Left( `RadioButton(`id(`cd),`opt(`notify),
-                                   _("&CD installation"), true ) );
+    /**
+        Return an HBox with ok and cancel buttons for use by other dialogs.
+        @return An HBox term for use in a CreateDialog call.
+    */
+    global define term dialogButtons() ``{
+        return
+            `HBox(
+                `PushButton( `id( `ok ), `opt( `default ), OKButtonLabel() ),
+                `HStretch(),
+                `PushButton( `id( `cancel ), CancelButtonLabel() )
+            );
     }
 
-    term ftp_box = `Empty();
-    term http_box = `Empty();
-    term samba_box = `Empty();
+    /**
+        Open a dialog for editing of authentification information (basically a
+        username and a password.
+    */
+    global define void editAuthentification() ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("Authentification") ),
 
-    if ( use_you )
-    {
-	ftp_box = `Left(`RadioButton(`id(`ftp),
-				   `opt(`notify),
-				   _("&FTP"),
-				   false));
-	http_box = `Left(`RadioButton(`id(`http),
-				   `opt(`notify),
-				   _("H&TTP"),
-				   false));
-    }
-    else
-    {
-	samba_box = `Left(`RadioButton(`id(`smb),
-				       `opt(`notify),
-				       // translation is not required
-				       "&Samba",
-				       false));
+                `RadioButtonGroup(`id(`rb), 
+                    `VBox(
+                        `Left( `RadioButton( `id( `anonymous ), _("Anonymous") ) ),
+                        `Left( `RadioButton( `id( `account ), _("Account") ) ),
+                        `HBox(
+                            `HSpacing( 3 ),
+                            `TextEntry( `id( `username ), _("Username") ),
+                            `HSpacing( 2 )
+                        ),
+                        `HBox(
+                            `HSpacing( 3 ),
+                            `TextEntry( `id( `password ), _("Password") ),
+                            `HSpacing( 2 )
+                        ),
+                        dialogButtons()
+                    )
+                )
+            )
+        );
+
+        repeat
+        {
+            symbol authinput = UI::UserInput();
+            y2debug( "Auth Input: %1", authinput );
+
+            if ( authinput == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+    
+        } until ( authinput == `cancel || authinput == `ok );
+        
+        UI::CloseDialog();
     }
 
-    y2debug("InstMedia::net_server: %1", InstMedia::net_server );
-    y2debug("InstMedia::net_dir: %1", InstMedia::net_dir );
-    y2debug("InstMedia::mediatype: %1", InstMedia::mediatype );
+    /**
+        Open a dialog for editing of FTP server information.
+    */
+    global define void editFtp() ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("FTP Server and Directory") ),
+                `TextEntry( `id( `server ), _("Server Name") ),
+                `TextEntry( `id( `dir ), _("Directory on Server") ),
+                `HBox(
+                    `Label( _("Authentification:") ),
+                    `Label( `id( `auth ), _("Anonymous") ),
+                    `PushButton( `id( `auth_button ), _("Edit...") )
+                ),
+                dialogButtons()
+            )
+        );
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing a NFS source. The data put in by the user is
+        written to the InstSrcManager agent.
+        @param srcid Id of InstSrc. 0 for a new source.
+    */    
+    global define void editNfs( integer srcid ) ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("NFS Server and Directory") ),
+                `TextEntry( `id( `server ), _("&Server Name") ),
+                `TextEntry( `id( `dir ), _("&Directory on Server") ),
+                `TextEntry( `id( `mount ), _("&Mount options") ),
+                dialogButtons()
+            )
+        );
+
+        if ( srcid != 0 ) {
+            map src = SCR::Read( .instsrcmgr.source, srcid );
+            string dir = lookup( src, "url", "" );
+            string options = lookup( src, "options", "" );
+
+            UI::ChangeWidget( `id( `server ), `Value, dir );
+            UI::ChangeWidget( `id( `mount ), `Value, options );
+        }
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                string server = UI::QueryWidget( `id( `server ), `Value );
+                string dir = UI::QueryWidget( `id( `dir ), `Value );
+                string options = UI::QueryWidget( `id( `mount ), `Value );
+                
+                string url = "nfs://" + server + "/" + dir;
+                
+                map srcmap = $[ "id": srcid, "cost":4711, "type": "nfs",
+                                "url": url, "options": options, "state": true ];
+                SCR::Execute( .instsrcmgr.source.insert, srcmap );
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing a CD/DVD source. The data put in by the user
+        is written to the InstSrcManager agent.
+    */    
+    global define void editCd() ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("&CD installation") ),
+                `Left( `CheckBox( `id( 0 ), "/dev/cdrom", true ) ),
+                `Left( `CheckBox( `id( 1 ), "/dev/cdrom1" ) ),
+                `Left( `CheckBox( `id( 2 ), "/dev/dvd" ) ),
+                dialogButtons()
+            )
+        );
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing a server source. The data put in by the user
+        is written to the InstSrcManager agent.
+        @param protocol type of server, can be `ftp, `http or `samba.
+        @param srcid Id of InstSrc. 0 for a new source.
+    */    
+    global define void editServer( symbol protocol, integer srcid ) ``{
+        UI::OpenDialog( `opt( `decorated ),
+            `VBox(
+                `Label( _("Server and Directory") ),
+                `HBox(
+                    `HSpacing( 0.5 ),
+                    `Frame( _("P&rotocol"),
+                        `RadioButtonGroup( `id( `rb_type ),
+                            `HBox(
+                                `HStretch(),
+                                `RadioButton( `id( `ftp ), _("&FTP") ),
+                                `HStretch(),
+                                `RadioButton( `id( `http ), _("H&TTP") ),
+                                `HStretch(),
+                                `RadioButton( `id( `samba ), _("&Samba") ),
+                                `HStretch()
+                            )
+                        )
+                    ),
+                    `HSpacing( 0.5 )
+                ),
+                `TextEntry( `id( `server ), _("Server &Name") ),
+                `TextEntry( `id( `dir ), _("&Directory on Server") ),
+                `HBox(
+                    `HSpacing( 0.5 ),
+                    `Frame( _("Au&thentification"),
+                        `VBox(
+                            `Left( `CheckBox( `id( `anonymous ), `opt( `notify ), _("&Anonymous"), true ) ),
+                            `HBox(
+                                `TextEntry( `id( `username ), _("&Username") )
+                            ),
+                            `HBox(
+                                `Password( `id( `password ), _("&Password") )
+                            )
+                        )
+                    ),
+                    `HSpacing( 0.5 )
+                ),
+                dialogButtons()
+            )
+        );
+
+        UI::ChangeWidget( `id( `rb_type ), `CurrentButton, protocol );
+
+        if ( srcid != 0 ) {
+            map source = SCR::Read( .instsrcmgr.source, srcid );
+            UI::ChangeWidget( `id( `server ), `Value, lookup( source, "url", "" ) );
+        }
+
+        repeat
+        {
+            boolean anonymous = UI::QueryWidget( `id( `anonymous ), `Value );
+            UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
+            UI::ChangeWidget( `id( `password ), `Enabled, !anonymous );
+        
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `ok )
+            {
+                string url = "";
+                string typestr = "";
+                symbol type = UI::QueryWidget( `id( `rb_type), `CurrentButton );
+                if ( type == `ftp ) {
+                    typestr = "ftp";
+                    url = "ftp://";
+                } else if ( type == `http ) {
+                    typestr = "http";
+                    url = "http://";
+                } else if ( type == `samba ) {
+                    typestr = "samba";
+                    url = "smb://";
+                }
+
+                string server = UI::QueryWidget( `id( `server ), `Value );
+                string directory = UI::QueryWidget( `id( `dir ), `Value );
+
+                url = url + server + "/" + directory;
+
+                map srcmap = $[ "id": srcid, "cost":4711, "type": typestr,
+                                "url": url, "options": "", "state": true ];
+
+                SCR::Execute( .instsrcmgr.source.insert, srcmap );
+            }
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    }
+
+    /**
+        Let the user put in a directory url.
+
+        @param default  initial default
+        @return directory url on success, empty string when the user canceled the dialog.
+    */
+    global define string getDirectory( string default ) ``{
+        UI::OpenDialog(
+            `VBox(
+                `Label( _("Local directory") ),
+                `HBox(
+                    `TextEntry( `id( `dir ), _("&Directory path") ),
+                    `PushButton( `id( `browse ), _("&Browse...") )
+                ),
+                dialogButtons()
+            )
+        );
+
+        UI::ChangeWidget( `id( `dir ), `Value, url );
+
+        repeat
+        {
+            symbol input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `browse )
+            {
+                string result = PopupDir( "/tmp" );
+                y2debug("file popup result: %1",result);
+                if ( result != "" )
+                {
+                    UI::ChangeWidget( `id( `dir ), `Value, result );
+                }
+            }
+            else if ( input == `ok )
+            {
+                y2warning("ok clicked");
+            
+                url = UI::QueryWidget( `id( `dir ), `Value );
+
+                url = "dir://" + url;
+
+                Pkg::SourceCreate( url );
+            }
+            else if ( input == `cancel )
+            {
+                url = "";
+            }
+    
+        } until ( input == `cancel || input == `ok );
+      
+        UI::CloseDialog();
+    
+        return url;
+    }
+
+    integer numSources = 0;
+
+    /**
+        Exchange two items of a Table.
+        @param index1 Index of first item.
+        @param index2 Index of second item.
+        @return true on success, false on error.
+    */
+    global define boolean exchangeTableItems( integer index1, integer index2 ) ``{
+        term item1 = UI::QueryWidget( `id( `table ), `Item( index1 ) );
+        if ( item1 == nil ) { return false; }
+        term item2 = UI::QueryWidget( `id( `table ), `Item( index2 ) );
+        if ( item2 == nil ) { return false; }
+        integer i = 2;
+        while ( i < size( item1 ) )
+        {
+            any value1 = select( item1, i, 0 );
+            any value2 = select( item2, i, 0 );
+            UI::ChangeWidget( `id( `table ), `Item( index1, i - 1 ), value2 );
+            UI::ChangeWidget( `id( `table ), `Item( index2, i - 1 ), value1 );
+            i = i + 1;
+        }
+        return true;
+    }
+
+    /**
+        Create a table item from a map as returned by the InstSrcManager agent.
+        @param source The map describing the source as returned form the agent.
+        @return An item suitable for addition to a Table.
+    */
+    global define term createItem( integer source ) ``{
+        map generalData = Pkg::SourceGeneralData( source );
+        map productData = Pkg::SourceProductData( source );
+        term item = `item(
+            `id( source ),
+            "Off",
+//            lookup( source, "state", true ) ? "On" : "Off",
+            lookup( productData, "productname", "unknown" ),
+            lookup( generalData, "url", "" )
+        );
+        return item;
+    }
+
+    /**
+        Fill sources table with entries from the InstSrcManager agent.
+    */        
+    global define void fillTable() ``{
+        list(integer) sources = Pkg::SourceGetCurrent ( false );
+ 
+        list items = [];
+ 
+        numSources = size( sources );
+    
+        integer i = numSources - 1;
+        while ( i >= 0 ) {
+            items = add( items, createItem( select( sources, i, nil ) ) );
+            i = i - 1;
+        }
+        
+        UI::ChangeWidget( `id( `table ), `Items, items );
+    }
+
+    list items = [];
+
+    term contents =
+	`VBox(
+	      `HBox(
+		    `Table( `id( `table ), `opt( `keepSorting ),
+			   `header(
+				   _( "Status" ),
+                                   _( "Name" ),
+				   _( "URL" )
+				   ),
+			   items
+			   ),
+		    `HSpacing()
+		    ),
+	      `HBox(
+		    `HWeight( 1, `MenuButton( _( "&Add" ),
+					      [
+					       `item(`id(`ftp), 	_( "&FTP..." 		) ),
+					       `item(`id(`http), 	_( "&HTTP..." 		) ),
+					       `item(`id(`samba), 	_( "&Samba..." 		) ),
+					       `item(`id(`cd), 		_( "&CD..." 		) ),
+					       `item(`id(`dvd), 	_( "&DVD..." 		) ),
+					       `item(`id(`local_dir), 	_( "&Local directory..."  ) ),
+					       `item(`id(`nfs), 	_( "&NFS..." 		) )
+					       ]
+					      )
+			      ),
+		    `HWeight( 1, `PushButton( `id(`edit), 	_( "&Edit..." 	) ) ),
+		    `HWeight( 1, `PushButton( `id(`delete),	_( "&Delete" 	) ) ),
+		    `HStretch(),
+		    `HWeight( 1, `PushButton( `id(`up), 	_( "&Up" 	) ) ),
+		    `HWeight( 1, `PushButton( `id(`down),	_( "D&own" 	) ) ),                    
+		    `HStretch(),
+		    `PushButton(`id(`enable), _( "Enab&le/Disable" ) )
+		    ),
+	      `VSpacing( 0.5 )
+	      );
+
 
     string title = _("Software Source Media");
-    term contents = `VBox(
-			`HBox(
-			      `HWeight( 10, `HStretch() ),
-			      `HWeight( 50,
-					`Frame( _("Select location of source"),
-						`RadioButtonGroup(`id(`network),`opt(`notify),
-								  `VBox(
-									`VSpacing(0.3),
-									cd_box,
-									`VSpacing(0.8),
-									`HBox(
-									      `Left(`RadioButton(`id(`nfs),
-												 `opt(`notify),
-												 // Radio button for installation from network
-												 _("Net&work"),
-												 true)),
-									      samba_box,
-									      ftp_box, http_box
-									      ),
-									`HBox(`HWeight(1, `Empty()),
-									      `HWeight(10, `VBox(
-												 `TextEntry(`id(`server),
-													    // Input field label for IP of server
-													    // to install from for network installation
-													    _("&IP address or name of server:"),
-													    InstMedia::net_server ),
-												 `TextEntry(`id(`dir),
-													    // Input field label for (remote) directory
-													    // for network installation
-													    _("Directory on the ser&ver:"),
-													    InstMedia::net_dir ),
-												 `VSpacing(0.3))
-										       )
-									      ),
-									`VSpacing(0.8),
-									`Left(`RadioButton(`id(`partition),`opt(`notify),
-											   // Radio button for installation from local hard disk
-											   _("&Hard disk") ,
-											   (InstMedia::mediatype == 3))
-									      ),
-									`HBox(`HWeight(1, `Empty()),
-									      `HWeight(10,`TextEntry(`id(`partdir),
-												     // Input field label for local directory
-												     _("&Directory:"),
-												     ((InstMedia::mediatype == 3)?InstMedia::boot_src:"")))
-									      ),
-									`VSpacing(0.8)
-									)
 
-								  )
-						)
-					),
-			      `HWeight( 10, `HStretch() )
-			      ),
-			`VSpacing(0.2)
-		    );
+    if ( false ) {
+        term contents = `VBox(
+          `HBox(
+                `HWeight( 10, `HStretch() ),
+                `HWeight( 50,
+              `Frame( _("Select location of source"),
+                `RadioButtonGroup(`id(`network),`opt(`notify),
+                      `VBox(
+                      `VSpacing(0.3),
+                      cd_box,
+                      `VSpacing(0.8),
+                      `HBox(
+                            `Left(`RadioButton(`id(`nfs),
+                             `opt(`notify),
+                             // Radio button for installation from network
+                             _("Net&work"),
+                             true)),
+                            samba_box,
+                            ftp_box, http_box
+                            ),
+                      `HBox(`HWeight(1, `Empty()),
+                            `HWeight(10, `VBox(
+                             `TextEntry(`id(`server),
+                                  // Input field label for IP of server
+                                  // to install from for network installation
+                                  _("&IP address or name of server:"),
+                                  InstMedia::net_server ),
+                             `TextEntry(`id(`dir),
+                                  // Input field label for (remote) directory
+                                  // for network installation
+                                  _("Directory on the ser&ver:"),
+                                  InstMedia::net_dir ),
+                             `VSpacing(0.3))
+                               )
+                            ),
+                      `VSpacing(0.8),
+                      `Left(`RadioButton(`id(`partition),`opt(`notify),
+                             // Radio button for installation from local hard disk
+                             _("&Hard disk") ,
+                             (InstMedia::mediatype == 3))
+                            ),
+                      `HBox(`HWeight(1, `Empty()),
+                            `HWeight(10,`TextEntry(`id(`partdir),
+                                 // Input field label for local directory
+                                 _("&Directory:"),
+                                 ((InstMedia::mediatype == 3)?InstMedia::boot_src:"")))
+                            ),
+                      `VSpacing(0.8)
+                      )
+
+                      )
+                )
+              ),
+                `HWeight( 10, `HStretch() )
+                ),
+          `VSpacing(0.2)
+            );
+    }
 
     // help
     string help_text = _("<p>
@@ -444,314 +846,428 @@ on the NFS server.
 
     Wizard::SetContents(title, contents, help_text, WFM::Args(0), WFM::Args(1));
 
-    // change label of buttons (only normal mode)
-    if ( Mode::normal
-	 && !use_you )
-    {
-	Wizard::ReplaceAbortButton (`PushButton(`id(`abort), _("&Save and Exit")));
-	Wizard::ReplaceBackButton  (`PushButton(`id(`back), AbortButtonLabel()));
-	// let the Next Button active
-	// Wizard::ReplaceNextButton (`PushButton(`id(`next), InstallButtonLabel()));
-    }
+    Pkg::SourceStartCache ( false );
 
-    y2debug( "MEDIATYPE: %1", InstMedia::mediatype );
+    fillTable();
 
-    if ( InstMedia::mediatype <= 1 )			// CD, DVD
-    {
-	if ( use_you )
-	{
-	    UI::ChangeWidget(`id(`ftp), `Value, false);
-	    UI::ChangeWidget(`id(`http), `Value, false);
-	}
-	UI(``{
-	    ChangeWidget(`id(`cd), `Value, true);
-	    ChangeWidget(`id(`nfs), `Value, false);
-	    ChangeWidget(`id(`partition), `Value, false);
-	    ChangeWidget(`id(`server), `Enabled, false);
-	    ChangeWidget(`id(`dir), `Enabled, false);
-	    ChangeWidget(`id(`partdir), `Enabled, false);
-	});
-    }
-    else if (InstMedia::mediatype == 2)	// NFS
-    {
-	if ( use_you )
-	{
-	    UI::ChangeWidget(`id(`ftp), `Value, false);
-	    UI::ChangeWidget(`id(`http), `Value, false);
-	}
-	UI(``{
-	    ChangeWidget(`id(`cd), `Value, false);
-	    ChangeWidget(`id(`nfs), `Value, true);
-	    ChangeWidget(`id(`partition), `Value, false);
-	    ChangeWidget(`id(`server), `Enabled, true);
-	    ChangeWidget(`id(`dir), `Enabled, true);
-	    ChangeWidget(`id(`partdir), `Enabled, false);
-	});
-    }
-    else if ( InstMedia::mediatype == 4 && use_you )	// FTP
-    {
-	UI(``{
-	    ChangeWidget(`id(`ftp), `Value, true);
-	    ChangeWidget(`id(`http), `Value, false);
-	    ChangeWidget(`id(`cd), `Value, false);
-	    ChangeWidget(`id(`nfs), `Value, false);
-	    ChangeWidget(`id(`partition), `Value, false);
-	    ChangeWidget(`id(`server), `Enabled, true);
-	    ChangeWidget(`id(`dir), `Enabled, true);
-	    ChangeWidget(`id(`partdir), `Enabled, false);
-	});
-    }
-    else if ( InstMedia::mediatype == 6 && use_you )	// HTTP
-    {
-	UI(``{
-	    ChangeWidget(`id(`ftp), `Value, false);
-	    ChangeWidget(`id(`http), `Value, true);
-	    ChangeWidget(`id(`cd), `Value, false);
-	    ChangeWidget(`id(`nfs), `Value, false);
-	    ChangeWidget(`id(`partition), `Value, false);
-	    ChangeWidget(`id(`server), `Enabled, true);
-	    ChangeWidget(`id(`dir), `Enabled, true);
-	    ChangeWidget(`id(`partdir), `Enabled, false);
-	});
-    }
-    else if ( InstMedia::mediatype == 5 )		// Samba
-    {
-	UI(``{
-	    ChangeWidget(`id(`cd), `Value, false);
-	    ChangeWidget(`id(`nfs), `Value, false);
-	    ChangeWidget(`id(`smb), `Value, true);
-	    ChangeWidget(`id(`partition), `Value, false);
-	    ChangeWidget(`id(`server), `Enabled, true);
-	    ChangeWidget(`id(`dir), `Enabled, true);
-	    ChangeWidget(`id(`partdir), `Enabled, false);
-	});
-    }
-    else if ( InstMedia::mediatype == 3 )		// Harddisk
-    {
-	if ( use_you )
-	{
-	    UI::ChangeWidget(`id(`ftp), `Value, false);
-	    UI::ChangeWidget(`id(`http), `Value, false);
-	}
-	UI(``{
-	    ChangeWidget(`id(`cd), `Value, false);
-	    ChangeWidget(`id(`nfs), `Value, false);
-	    ChangeWidget(`id(`partition), `Value, true);
-	    ChangeWidget(`id(`server), `Enabled, false);
-	    ChangeWidget(`id(`dir), `Enabled, false);
-	    ChangeWidget(`id(`partdir), `Enabled, true);
-	});
-    }
+    any input = nil;
 
-    UI::ChangeWidget(`id(`server), `Value, InstMedia::net_server);
-    UI::ChangeWidget(`id(`dir), `Value, InstMedia::net_dir);
-
-    boolean mount_ok = false;
-
+    integer current = 0;
+    
+    string url = "";
+    
     repeat
     {
-	if ( UI::QueryWidget(`id(`cd), `Value) )
+        if ( current != 0 ) {
+            UI::ChangeWidget( `id( `table ), `CurrentItem, current );
+        }
+
+	input = Wizard::UserInput();
+	y2debug( "Input: %1", input );
+
+	if ( input == `ftp || input == `http || input == `samba )
 	{
-	    InstMedia::mediatype = 0;
+	    editServer( input, 0 );
+            fillTable();
+        }
+        else if ( input == `nfs )
+        {
+            editNfs( 0 );
+            fillTable();
+        }
+        else if ( input == `cd || input == `dvd )
+        {
+            editCd();
+            fillTable();
+        }
+	else if ( input == `local_dir )
+	{
+	    url = getDirectory( "" );
+            if ( url != "" )
+            {
+                UI::MessagePopup( sformat( "URL: %1", url ) );
+                Pkg::SourceCreate( url );
+                // FIXME: Check for errors
+            }
+            
+            fillTable();
+	}
+        else
+        {
+            current = UI::QueryWidget( `id( `table ), `CurrentItem );
+            
+            term idterm = select( UI::QueryWidget( `id( `table ), `Item( current ) ), 0, 0 );
+            integer id = select( idterm, 0, 0 );
+            
+            if ( input == `edit )
+            {
+                symbol type = SCR::Read( .instsrcmgr.source.type, id );
+                y2debug( "Edit type %1", type );
+                if ( type == `ftp || type == `http || type == `samba )
+                {
+                    editServer( type, id );
+                    fillTable();
+                }
+                else if ( type == `local )
+                {
+                    editDirectory( id );
+                    fillTable();
+                }
+                else if ( type == `nfs )
+                {
+                    editNfs( id );
+                    fillTable();
+                }
+            }
+            else if ( input == `delete )
+            {
+                if ( UI::YesNoPopup( _("Delete selected installation source from list?") ) )
+                {
+                    SCR::Execute( .instsrcmgr.source.remove, id );
+                    fillTable();
+                }
+            }
+            else if ( input == `enable )
+            {
+                boolean state = SCR::Read( .instsrcmgr.source.state, id );
+                state = !state;
+                string newstate = ( state ? _("On") : _("Off") );
+                UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
+                SCR::Write( .instsrcmgr.source.state, state, id );
+            }
+            else if ( input == `up )
+            {
+                if ( current > 1 ) {
+                    SCR::Execute( .instsrcmgr.source.up, id );
+                    current = current - 1;
+                }
+                fillTable();
+            }
+            else if ( input == `down )
+            {
+                if ( current < numSources ) {
+                    SCR::Execute( .instsrcmgr.source.down, id );
+                    current = current + 1;
+                }
+                fillTable();
+            }
+        }
+    
+    } until ( input == `abort || input == `next );
+
+    return input;
+
+    // Disabled obsolete code. It's still in to conserve translations.
+    if ( false ) {
+        // change label of buttons (only normal mode)
+        if ( Mode::normal
+	     && !use_you )
+        {
+	    Wizard::ReplaceAbortButton (`PushButton(`id(`abort), _("&Save and Exit")));
+	    Wizard::ReplaceBackButton  (`PushButton(`id(`back), AbortButtonLabel()));
+	    // let the Next Button active
+	    // Wizard::ReplaceNextButton (`PushButton(`id(`next), InstallButtonLabel()));
+        }
+
+        y2debug( "MEDIATYPE: %1", InstMedia::mediatype );
+
+        if ( InstMedia::mediatype <= 1 )			// CD, DVD
+        {
 	    if ( use_you )
 	    {
-		UI::ChangeWidget(`id(`ftp), `Value, false);
-		UI::ChangeWidget(`id(`http), `Value, false);
+	        UI::ChangeWidget(`id(`ftp), `Value, false);
+	        UI::ChangeWidget(`id(`http), `Value, false);
 	    }
-
 	    UI(``{
-		ChangeWidget(`id(`nfs), `Value, false);
-		ChangeWidget(`id(`partition), `Value, false);
-		ChangeWidget(`id(`server), `Enabled, false);
-		ChangeWidget(`id(`dir), `Enabled, false);
-		ChangeWidget(`id(`partdir), `Enabled, false);
+	        ChangeWidget(`id(`cd), `Value, true);
+	        ChangeWidget(`id(`nfs), `Value, false);
+	        ChangeWidget(`id(`partition), `Value, false);
+	        ChangeWidget(`id(`server), `Enabled, false);
+	        ChangeWidget(`id(`dir), `Enabled, false);
+	        ChangeWidget(`id(`partdir), `Enabled, false);
 	    });
-	}
-
-        if ( UI::QueryWidget(`id(`nfs), `Value) )
-	{
-	    InstMedia::mediatype = 2;
+        }
+        else if (InstMedia::mediatype == 2)	// NFS
+        {
 	    if ( use_you )
 	    {
-		UI::ChangeWidget(`id(`ftp), `Value, false);
-		UI::ChangeWidget(`id(`http), `Value, false);
+	        UI::ChangeWidget(`id(`ftp), `Value, false);
+	        UI::ChangeWidget(`id(`http), `Value, false);
 	    }
 	    UI(``{
-		ChangeWidget(`id(`cd), `Value, false);
-		ChangeWidget(`id(`partition), `Value, false);
-		ChangeWidget(`id(`server), `Enabled, true);
-		ChangeWidget(`id(`dir), `Enabled, true);
-		ChangeWidget(`id(`partdir), `Enabled, false);
+	        ChangeWidget(`id(`cd), `Value, false);
+	        ChangeWidget(`id(`nfs), `Value, true);
+	        ChangeWidget(`id(`partition), `Value, false);
+	        ChangeWidget(`id(`server), `Enabled, true);
+	        ChangeWidget(`id(`dir), `Enabled, true);
+	        ChangeWidget(`id(`partdir), `Enabled, false);
 	    });
-	}
-
-	if ( !use_you && UI::QueryWidget(`id(`smb), `Value) )
-	{
-	    InstMedia::mediatype = 5;
+        }
+        else if ( InstMedia::mediatype == 4 && use_you )	// FTP
+        {
 	    UI(``{
-		ChangeWidget(`id(`cd), `Value, false);
-		ChangeWidget(`id(`partition), `Value, false);
-		ChangeWidget(`id(`server), `Enabled, true);
-		ChangeWidget(`id(`dir), `Enabled, true);
-		ChangeWidget(`id(`partdir), `Enabled, false);
+	        ChangeWidget(`id(`ftp), `Value, true);
+	        ChangeWidget(`id(`http), `Value, false);
+	        ChangeWidget(`id(`cd), `Value, false);
+	        ChangeWidget(`id(`nfs), `Value, false);
+	        ChangeWidget(`id(`partition), `Value, false);
+	        ChangeWidget(`id(`server), `Enabled, true);
+	        ChangeWidget(`id(`dir), `Enabled, true);
+	        ChangeWidget(`id(`partdir), `Enabled, false);
 	    });
-	}
-
-	if ( UI::QueryWidget(`id(`partition), `Value) )
-	{
-	    InstMedia::mediatype = 3;
+        }
+        else if ( InstMedia::mediatype == 6 && use_you )	// HTTP
+        {
+	    UI(``{
+	        ChangeWidget(`id(`ftp), `Value, false);
+	        ChangeWidget(`id(`http), `Value, true);
+	        ChangeWidget(`id(`cd), `Value, false);
+	        ChangeWidget(`id(`nfs), `Value, false);
+	        ChangeWidget(`id(`partition), `Value, false);
+	        ChangeWidget(`id(`server), `Enabled, true);
+	        ChangeWidget(`id(`dir), `Enabled, true);
+	        ChangeWidget(`id(`partdir), `Enabled, false);
+	    });
+        }
+        else if ( InstMedia::mediatype == 5 )		// Samba
+        {
+	    UI(``{
+	        ChangeWidget(`id(`cd), `Value, false);
+	        ChangeWidget(`id(`nfs), `Value, false);
+	        ChangeWidget(`id(`smb), `Value, true);
+	        ChangeWidget(`id(`partition), `Value, false);
+	        ChangeWidget(`id(`server), `Enabled, true);
+	        ChangeWidget(`id(`dir), `Enabled, true);
+	        ChangeWidget(`id(`partdir), `Enabled, false);
+	    });
+        }
+        else if ( InstMedia::mediatype == 3 )		// Harddisk
+        {
 	    if ( use_you )
 	    {
-		UI::ChangeWidget(`id(`ftp), `Value, false);
-		UI::ChangeWidget(`id(`http), `Value, false);
+	        UI::ChangeWidget(`id(`ftp), `Value, false);
+	        UI::ChangeWidget(`id(`http), `Value, false);
 	    }
 	    UI(``{
-		ChangeWidget(`id(`cd), `Value, false);
-		ChangeWidget(`id(`nfs), `Value, false);
-		ChangeWidget(`id(`server), `Enabled, false);
-		ChangeWidget(`id(`dir), `Enabled, false);
-		ChangeWidget(`id(`partdir), `Enabled, true);
+	        ChangeWidget(`id(`cd), `Value, false);
+	        ChangeWidget(`id(`nfs), `Value, false);
+	        ChangeWidget(`id(`partition), `Value, true);
+	        ChangeWidget(`id(`server), `Enabled, false);
+	        ChangeWidget(`id(`dir), `Enabled, false);
+	        ChangeWidget(`id(`partdir), `Enabled, true);
 	    });
-	}
+        }
 
-	if ( use_you && UI::QueryWidget(`id(`ftp), `Value) )
-	{
-	    InstMedia::mediatype = 4;
-	    UI(``{
-		ChangeWidget(`id(`http), `Value, false);
-		ChangeWidget(`id(`cd), `Value, false);
-		ChangeWidget(`id(`nfs), `Value, false);
-		ChangeWidget(`id(`partition), `Value, false);
-		ChangeWidget(`id(`server), `Enabled, true);
-		ChangeWidget(`id(`dir), `Enabled, true);
-		ChangeWidget(`id(`partdir), `Enabled, false);
-	    });
-	}
+        UI::ChangeWidget(`id(`server), `Value, InstMedia::net_server);
+        UI::ChangeWidget(`id(`dir), `Value, InstMedia::net_dir);
 
-	if ( use_you && UI::QueryWidget(`id(`http), `Value) )
-	{
-	    InstMedia::mediatype = 6;
-	    UI(``{
-		ChangeWidget(`id(`ftp), `Value, false);
-		ChangeWidget(`id(`cd), `Value, false);
-		ChangeWidget(`id(`nfs), `Value, false);
-		ChangeWidget(`id(`partition), `Value, false);
-		ChangeWidget(`id(`server), `Enabled, true);
-		ChangeWidget(`id(`dir), `Enabled, true);
-		ChangeWidget(`id(`partdir), `Enabled, false);
-	    });
-	}
+        boolean mount_ok = false;
 
-	ret = UI::UserInput();
-
-	InstMedia::net_server = UI::QueryWidget(`id(`server), `Value);
-	InstMedia::net_dir    = UI::QueryWidget(`id(`dir), `Value);
-	InstMedia::boot_src   = UI::QueryWidget(`id(`partdir), `Value);
-
-	if ( ret == `abort )
-	{
-	    if ( Mode::normal )
+        repeat
+        {
+	    if ( UI::QueryWidget(`id(`cd), `Value) )
 	    {
-		if ( !use_you )
-		{
-		    string message = _("Do you want to save the settings\nand exit the dialog?");
-		    any ret = UI::YesNoPopup( message);
+	        InstMedia::mediatype = 0;
+	        if ( use_you )
+	        {
+		    UI::ChangeWidget(`id(`ftp), `Value, false);
+		    UI::ChangeWidget(`id(`http), `Value, false);
+	        }
 
-		    if (ret)
+	        UI(``{
+		    ChangeWidget(`id(`nfs), `Value, false);
+		    ChangeWidget(`id(`partition), `Value, false);
+		    ChangeWidget(`id(`server), `Enabled, false);
+		    ChangeWidget(`id(`dir), `Enabled, false);
+		    ChangeWidget(`id(`partdir), `Enabled, false);
+	        });
+	    }
+
+            if ( UI::QueryWidget(`id(`nfs), `Value) )
+	    {
+	        InstMedia::mediatype = 2;
+	        if ( use_you )
+	        {
+		    UI::ChangeWidget(`id(`ftp), `Value, false);
+		    UI::ChangeWidget(`id(`http), `Value, false);
+	        }
+	        UI(``{
+		    ChangeWidget(`id(`cd), `Value, false);
+		    ChangeWidget(`id(`partition), `Value, false);
+		    ChangeWidget(`id(`server), `Enabled, true);
+		    ChangeWidget(`id(`dir), `Enabled, true);
+		    ChangeWidget(`id(`partdir), `Enabled, false);
+	        });
+	    }
+
+	    if ( !use_you && UI::QueryWidget(`id(`smb), `Value) )
+	    {
+	        InstMedia::mediatype = 5;
+	        UI(``{
+		    ChangeWidget(`id(`cd), `Value, false);
+		    ChangeWidget(`id(`partition), `Value, false);
+		    ChangeWidget(`id(`server), `Enabled, true);
+		    ChangeWidget(`id(`dir), `Enabled, true);
+		    ChangeWidget(`id(`partdir), `Enabled, false);
+	        });
+	    }
+
+	    if ( UI::QueryWidget(`id(`partition), `Value) )
+	    {
+	        InstMedia::mediatype = 3;
+	        if ( use_you )
+	        {
+		    UI::ChangeWidget(`id(`ftp), `Value, false);
+		    UI::ChangeWidget(`id(`http), `Value, false);
+	        }
+	        UI(``{
+		    ChangeWidget(`id(`cd), `Value, false);
+		    ChangeWidget(`id(`nfs), `Value, false);
+		    ChangeWidget(`id(`server), `Enabled, false);
+		    ChangeWidget(`id(`dir), `Enabled, false);
+		    ChangeWidget(`id(`partdir), `Enabled, true);
+	        });
+	    }
+
+	    if ( use_you && UI::QueryWidget(`id(`ftp), `Value) )
+	    {
+	        InstMedia::mediatype = 4;
+	        UI(``{
+		    ChangeWidget(`id(`http), `Value, false);
+		    ChangeWidget(`id(`cd), `Value, false);
+		    ChangeWidget(`id(`nfs), `Value, false);
+		    ChangeWidget(`id(`partition), `Value, false);
+		    ChangeWidget(`id(`server), `Enabled, true);
+		    ChangeWidget(`id(`dir), `Enabled, true);
+		    ChangeWidget(`id(`partdir), `Enabled, false);
+	        });
+	    }
+
+	    if ( use_you && UI::QueryWidget(`id(`http), `Value) )
+	    {
+	        InstMedia::mediatype = 6;
+	        UI(``{
+		    ChangeWidget(`id(`ftp), `Value, false);
+		    ChangeWidget(`id(`cd), `Value, false);
+		    ChangeWidget(`id(`nfs), `Value, false);
+		    ChangeWidget(`id(`partition), `Value, false);
+		    ChangeWidget(`id(`server), `Enabled, true);
+		    ChangeWidget(`id(`dir), `Enabled, true);
+		    ChangeWidget(`id(`partdir), `Enabled, false);
+	        });
+	    }
+
+	    ret = UI::UserInput();
+
+	    InstMedia::net_server = UI::QueryWidget(`id(`server), `Value);
+	    InstMedia::net_dir    = UI::QueryWidget(`id(`dir), `Value);
+	    InstMedia::boot_src   = UI::QueryWidget(`id(`partdir), `Value);
+
+	    if ( ret == `abort )
+	    {
+	        if ( Mode::normal )
+	        {
+		    if ( !use_you )
 		    {
-			mount_ok = true;
-			if ( InstMedia::mediatype > 1 && InstMedia::mediatype != 5 ) // not  CD, DVD, Samba
-			{
-			    // Check not for CD
-			    mount_ok = CheckMount (InstMedia::mediatype);
-			}
+		        string message = _("Do you want to save the settings\nand exit the dialog?");
+		        any ret = UI::YesNoPopup( message);
 
-			if ( mount_ok )
-			{
-			    if ( !Mode::test )
+		        if (ret)
+		        {
+			    mount_ok = true;
+			    if ( InstMedia::mediatype > 1 && InstMedia::mediatype != 5 ) // not  CD, DVD, Samba
 			    {
-				InstMedia::WriteInstallMap();
+			        // Check not for CD
+			        mount_ok = CheckMount (InstMedia::mediatype);
 			    }
-			    // Umount before exiting
-			    InstMedia::UnmountMedium();
-			    return `abort;
-			}
-			else
-			{
-			    ret = `again;
-			}
-		    } // save == yes
-		}
-		else	// !use_you
-		{
-		    return `abort;
-		}
-	    }  // normal_mode
-	    else
-	    {
-		if ( WFM::CallFunction(`inst_confirm_abort(`painless) ) )
-		    return `abort;
-	    }
-	} // ret == `abort
 
-	if (ret == `cancel ) break;
-
-	if ( use_you && ret == `next )
-	{
-	    // return to the frame before ( only you )
-	    ret = `back;
-	}
-
-	if ( ret == `back )
-	{
-	    if ( use_you )
-	    {
-		// set info for online update, if going `next or `back
-		// (`next is changed to `back in case of online update -> see above)
-		SetOnlineUpdateInfo( InstMedia::mediatype );
-	    }
-
-	    break;
-	} // ret == `back
-
-
-	if ( ret == `next )
-	{
-	    boolean go_on = true;
-
-	    if ( InstMedia::mediatype == 5 )		// Samba
-	    {
-		symbol r = SambaPopup();
-
-		if ( r == `cancel )
-		{
-		    go_on = false;
-		    ret = `again;
-		}
-	    }
-
-	    if ( go_on )
-	    {
-		mount_ok = CheckMount( InstMedia::mediatype);
-
-		if ( mount_ok )
-		{
-		    if ( !Mode::test )
-		    {
-			InstMedia::WriteInstallMap();
+			    if ( mount_ok )
+			    {
+			        if ( !Mode::test )
+			        {
+				    InstMedia::WriteInstallMap();
+			        }
+			        // Umount before exiting
+			        InstMedia::UnmountMedium();
+			        return `abort;
+			    }
+			    else
+			    {
+			        ret = `again;
+			    }
+		        } // save == yes
 		    }
-		    UI::ChangeWidget(`id(`abort), `Label, CancelButtonLabel() );
-		    UI::ChangeWidget(`id(`back),  `Label, BackButtonLabel()   );
-		    UI::ChangeWidget(`id(`next),  `Label, NextButtonLabel()   );
-		}
-		else
-		{
-		    ret = `again;
-		}
-	    }
-	} // ret == `next
+		    else	// !use_you
+		    {
+		        return `abort;
+		    }
+	        }  // normal_mode
+	        else
+	        {
+		    if ( WFM::CallFunction(`inst_confirm_abort(`painless) ) )
+		        return `abort;
+	        }
+	    } // ret == `abort
 
-    } until ( ret == `next );
+	    if (ret == `cancel ) break;
+
+	    if ( use_you && ret == `next )
+	    {
+	        // return to the frame before ( only you )
+	        ret = `back;
+	    }
+
+	    if ( ret == `back )
+	    {
+	        if ( use_you )
+	        {
+		    // set info for online update, if going `next or `back
+		    // (`next is changed to `back in case of online update -> see above)
+		    SetOnlineUpdateInfo( InstMedia::mediatype );
+	        }
+
+	        break;
+	    } // ret == `back
+
+
+	    if ( ret == `next )
+	    {
+	        boolean go_on = true;
+
+	        if ( InstMedia::mediatype == 5 )		// Samba
+	        {
+		    symbol r = SambaPopup();
+
+		    if ( r == `cancel )
+		    {
+		        go_on = false;
+		        ret = `again;
+		    }
+	        }
+
+	        if ( go_on )
+	        {
+		    mount_ok = CheckMount( InstMedia::mediatype);
+
+		    if ( mount_ok )
+		    {
+		        if ( !Mode::test )
+		        {
+			    InstMedia::WriteInstallMap();
+		        }
+		        UI::ChangeWidget(`id(`abort), `Label, CancelButtonLabel() );
+		        UI::ChangeWidget(`id(`back),  `Label, BackButtonLabel()   );
+		        UI::ChangeWidget(`id(`next),  `Label, NextButtonLabel()   );
+		    }
+		    else
+		    {
+		        ret = `again;
+		    }
+	        }
+	    } // ret == `next
+
+        } until ( ret == `next );
+    }
 
     y2debug("INST_SOURCE *** return: %1", ret );
 
