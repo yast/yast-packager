@@ -49,15 +49,19 @@
 		Installation::test_mode = true;	// .testp implies .test
 		test_popup = true;
 	    }
-	    else
+	    else if (is (Args(arg_n), string))
 	    {
 		arg_list = add (arg_list, Args(arg_n));
+	    }
+	    else if (is (Args(arg_n), list))
+	    {
+		foreach (`arg, Args(arg_n), ``{ arg_list = add (arg_list, arg);});
 	    }
 	    arg_n = arg_n - 1;
 	}
 
 	y2debug("Testmode %1, Testpopup %2", Installation::test_mode, test_popup );
-	y2debug("ARGLIST %1", arg_list);
+	y2milestone("ARGLIST %1", arg_list);
 
 	return arg_list;
 
