@@ -22,7 +22,7 @@
     */
    global define void StartProvide (string name, integer archivesize)
    ``{
-	y2milestone ("StartProvide(%1,%2)", name, archivesize);
+	return;
    }
 
 
@@ -31,7 +31,7 @@
     */
    global define void ProgressProvide (integer percent)
    ``{
-	y2milestone ("ProgressProvide(%1)", percent);
+	return;
    }
 
 
@@ -40,7 +40,8 @@
     */
    global define void StartInstall (string name, string summary, integer installsize, boolean is_delete)
    ``{
-	y2milestone ("StartInstall(%1,%2,%3,%4)", name, summary, installsize, is_delete);
+	DisplayStartInstall ( name, summary, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
+	return;
    }
 
 
@@ -49,7 +50,7 @@
     */
    global define void ProgressInstall (integer percent)
    ``{
-	y2milestone ("ProgressInstall(%1)", percent);
+	return;
    }
 
 
@@ -58,7 +59,7 @@
     */
    global define void DoneInstall (string name)
    ``{
-	y2milestone ("DoneInstall(%1)", name);
+	return;
    }
 
 
