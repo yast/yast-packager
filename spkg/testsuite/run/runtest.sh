@@ -26,6 +26,7 @@ unset LC_ALL
 
 export Y2DEBUG=1
 export Y2DEBUGALL=1
+export Y2ALLGLOBAL=1
 
 export PATH="$PATH:/usr/lib/YaST2/bin"
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/YaST2/lib"
@@ -35,7 +36,8 @@ parse() {
   cat >"$file"
   if [ -z "$Y2TESTSUITE" ]; then
     sed1="s/ <[2-5]> [^ ]\+ \[YCP\] [^ ]\+ / <0> host [YCP] file LoGlOg=/"
-    components="\[ag_dummy\]|\[bash\]"
+    #components="\[ag_dummy\]|\[bash\]"
+    components="\[ag_dummy\]"
     ycp="\[YCP\].*(rEaL_rEt=|aNY_OutPuT=|LoGlOg=|fIlE_OutPuT=)"
     cat "$file" | grep -v "checkPath" | grep -v "Exit status is " | sed "$sed1" |grep -E "<[012]>[^\[]*($ycp|$components)" | cut -d" " -f7- | sed -e 's/rEaL_rEt=/Return	/' | sed -e 's/aNY_OutPuT=/Dump	/' | sed -e 's/fIlE_OutPuT=/File	/' | sed -e 's/LoGlOg=/Log	/'
     cat "$file" | grep "<[345]>" | grep -v "\[YCP\]" >&2
@@ -47,13 +49,18 @@ parse() {
   rm -f "$file"
 }
 
-( y2bignfat -l /dev/fd/1 "$1" scr 2>&1 ) | parse >"$2" 2>"$3"
+#( y2base -l /dev/fd/1 "$1" scr 2>&1 ) | parse >"$2" 2>"$3"
+( y2base -l - "$1" scr 2>&1 ) | parse >"$2" 2>"$3"
 
 retcode="$PIPESTATUS"
-if [ "$retcode" -ge 128 ]; then
-  sig=$[$retcode-128]
-  echo -ne "\nCommand terminated on signal '$sig'"
-  echo -e '!\n'
+if [ "$retcode" -gt 0 ]; then
+  if [ "$retcode" -ge 128 ]; then
+    sig=$[$retcode-128]
+    echo -ne "\nCommand terminated on signal '$sig'"
+    echo -e '!\n'
+  else
+    echo -e "\nReturn code: '$retcode'.\n"
+  fi
 fi
 
 exit "$retcode"
