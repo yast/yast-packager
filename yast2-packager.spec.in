@@ -29,6 +29,5 @@ Summary:	-
 @yncludedir@/inst_source_dialogs.ycp
 @clientdir@/*.ycp
 @moduledir@/*
-@configdir@/*.y2cc
 @desktopdir@/*.desktop
 %doc @docdir@
