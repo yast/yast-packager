@@ -286,11 +286,6 @@ do this.</P>"));
   user_settings = add( user_settings, "continue_mode", false );
   user_settings = add( user_settings, "post_install", true );
 
-  // default is CD installation
-  map installMap = $[];
-  installMap = add (installMap, "bootmode", "CD" );
-  installMap = add (installMap, "cdrom", "cdrom" );
-  user_settings = add( user_settings, "installMap", installMap );
 
   if (size(Args()) > 0 && Args(0) == .test)
   {
