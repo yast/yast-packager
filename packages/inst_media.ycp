@@ -36,10 +36,10 @@
     string title = _("Installation Media");
 
     // label for showing installation sources
-    string label = _("These Installation Sources are registered:");
+    string label = _("Registered Installation Sources:");
 
     // help text for dialog to show installation sources
-    string help_text = _("<p>Here are all registered Installation Sources shown.
+    string help_text = _("<p>All registered installation sources are shown here.
 </p>
 ");
 

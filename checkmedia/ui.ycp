@@ -107,28 +107,31 @@ define symbol MainDialog () {
     string help = _("<P><B>Media Check</B></P>") +
     // help text - media check 2/5
 _("<P>When you have a problem with
-installation and you are using CD/DVD installation media you should check
-whether the media are not broken at first.</P>") +
+installation and are using a CD or DVD installation medium, you should check
+whether the medium could be broken.</P>
+") +
 
     // help text - media check 3/5
-_("<P>Select a drive, insert a medium into the drive and press <B>Start</B>
-button to perform the check. The check can take several minutes depending on
-speed of the drive and size of the media. The check verifies MD5 checksum of
-the media.</P>") +
+_("<P>Select a drive, insert a medium into the drive, and press <B>Start</B>
+to perform the check. The check can take several minutes depending on
+speed of the drive and size of the medium. The check verifies the MD5 checksum.</P>
+") +
 
     // help text - media check 4/5
-_("<P>If check of the medium fails you should not continue the installation -
-it may fail or you may loss your data. You should replace the broken
-medium.</P>") +
+_("<P>If the check of the medium fails, you should not continue the installation.
+It may fail or you may lose your data. You should replace the broken
+medium.</P>
+") +
 
     // help text - media check 5/5
-_("<P><B>Note:</B> You cannot change medium if it is used by the system. If
-it happens during installation than use <B>Verify Installation CD-ROM/DVD</B>
-in the main menu in linuxrc.</P>");
+_("<P><B>Note:</B> You cannot change the medium if it is used by the system. If
+it happens during installation, use <B>Verify Installation CD-ROM or DVD</B>
+in the main menu in linuxrc.</P>
+");
 
     term contents = `VBox(
 	// combobox label
-	`Left(`ComboBox(`id(`cddevices), _("&CD/DVD drive"), CDdevices(CheckMedia::preferred_drive))),
+	`Left(`ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive))),
 	`VSpacing(0.4),
 	// widget label
 	`LogView(`id(`log), _("R&esult"), 12, 0),
