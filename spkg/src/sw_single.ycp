@@ -127,6 +127,9 @@ do this.</P>"))),
   map user_settings = $[];
   
   string language = UI( `GetLanguage() );
+
+  string default_language = "en";
+  string default_architecture = "i386";
   
   // informations needed in inst_rpmcopy
   user_settings = add( user_settings, "language", language );
