@@ -12,6 +12,8 @@ client_DATA =					\
 	inst_mediacopy.ycp				\
 	inst_packages.ycp			\
 	media_proposal.ycp			\
-	software_proposal.ycp
+	software_proposal.ycp			\
+	selection_proposal.ycp			\
+	source_proposal.ycp
 
 EXTRA_DIST = $(client_DATA)
