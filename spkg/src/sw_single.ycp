@@ -373,6 +373,12 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 	  }
       }
   }
+
+  if ( !test_mode )
+  {
+      // removing old logging
+      SCR(`Execute (.target.bash, "/bin/rm /var/log/y2logRPM*"));
+  }
   
   while ((id >= 0) && (id < size (dialog))) {
 
@@ -416,7 +422,7 @@ Continue with choosing new installation source?"), _("&Yes"), _("&No")));
 	  {
 	      if ( IsRemountable() )
 	      {
-		  SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
+		  SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
 	      }
 	      // Popup informs the user that he/she wants to install an older versions
 	      string msg1 = UI(_("The version of SuSE distribution on source media
@@ -446,9 +452,13 @@ must NOT be older than the installed one.\n"));
 	      
 	      if ( !fileFound(pathname) )
 	      {
+		  list installList = [];
+		  installList = add ( installList, pathname );
+		  installMap = add(installMap,"install", installList);
+
 		  string message = sformat(UI(_("File %1 not found.")), Args(0) );
-		  UI(`DisplayMessage(message));  
-		  return `cancel;
+//		  UI(`DisplayMessage(message));  
+//		  return `cancel;
 	      }
 	      else
 	      {
@@ -593,7 +603,7 @@ must NOT be older than the installed one.\n"));
   // umount CD (safety reasons)
  if ( IsRemountable() )
  {
-     SCR(`Execute(.shell, "/bin/umount /var/adm/mount") );
+     SCR(`Execute(.target.bash, "/bin/umount /var/adm/mount") );
  }
   
   return `next;
