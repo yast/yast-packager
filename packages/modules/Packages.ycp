@@ -19,7 +19,7 @@
 
     textdomain "packager";
 
-    global url_rewritten = false;	// url rewritten in continue mode ? (see Init())
+    global boolean url_rewritten = false;	// url rewritten in continue mode ? (see Init())
     global boolean install_sources = false; // Installing source packages ?
     global integer timestamp = 0;	// last time of getting the target map
 
