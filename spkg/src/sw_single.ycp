@@ -202,7 +202,7 @@ do this.</P>"));
   if ( !test_mode )
   {
       // removing old logging
-      SCR(`Execute (.target.bash, "/bin/rm /var/log/y2logRPM*"));
+      SCR(`Execute (.target.bash, "/bin/rm -f /var/log/y2logRPM*"));
   }
 
   while ((id >= 0) && (id < size (dialog))) {
