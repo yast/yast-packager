@@ -30,7 +30,6 @@
 
     import "SpaceCalculation";
     import "PackageInstallation";
-    import "InstMedia";
     import "MediaUI";
     import "Packages";
 
@@ -244,9 +243,7 @@
 	}
 
 	// break on first round with Mediums
-	if (Mode::initial
-	    && InstMedia::splitted
-	    && !Mode::test )
+	if (Mode::initial && !Mode::test )
 	    break;
 
 	current_cd_no = current_cd_no + 1;
@@ -264,8 +261,6 @@
 	// SCR::Execute (.target.remove, Installation::yast2dir + "/pacs_to_install");
 	// SCR::Execute (.target.remove, Installation::yast2dir + "/package_counter.ycp");
     }
-
-    InstMedia::UnmountMedium();
 
     // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
     UI::CloseDialog();
