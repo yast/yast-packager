@@ -64,7 +64,7 @@ Select which desktop to install.</p>
      * @return list(string)
      */
     define list<string> architecturePackages ()
-    ``{
+    {
 	list<string> packages = [];
 
 	// check for PCMCIA and add package
@@ -110,8 +110,7 @@ Select which desktop to install.</p>
 	    {
 		string pmac_board = "";
 		list<map> pmac_compatible = (list<map>) SCR::Read(.probe.cpu);
-		foreach (map pmac_compatible_tmp, pmac_compatible,
-		``{
+		foreach (map pmac_compatible_tmp, pmac_compatible, {
 		    pmac_board = pmac_compatible_tmp["system"]:"";
 		});
 
@@ -162,7 +161,7 @@ Select which desktop to install.</p>
      * @return list(string)	list of rpm packages needed
      */
     define list<string> graphicPackages ()
-    ``{
+    {
 	list<string> packages = [];
 
 	// don't setup graphics if running via serial console
@@ -182,7 +181,7 @@ Select which desktop to install.</p>
      * @return list(string)
      */
     define list<string> modePackages ()
-    ``{
+    {
 	list<string> packages = [];
 
 	if (Mode::vnc)
@@ -206,7 +205,7 @@ Select which desktop to install.</p>
      * @return list(string)
      */
     define list<string> javaPackages ()
-    ``{
+    {
 	if (!Arch::alpha)
 	    return [];
 
@@ -233,7 +232,7 @@ Select which desktop to install.</p>
      * @return list(string)
      */
     define list<string> languagePackages ()
-    ``{
+    {
 	list<string> packages = [];
 
 	// add yast2-trans-$locale
@@ -278,7 +277,7 @@ Select which desktop to install.</p>
      * @return list<string> packages
      */
     global define list<string> ComputeSystemPackageList ()
-    ``{
+    {
 	list<string> install_list =  architecturePackages ();
 
 	install_list = (list<string>) union (install_list, modePackages ());
@@ -330,7 +329,7 @@ Select which desktop to install.</p>
      * @return boolean
      */
     global define boolean SetBaseSelection (string basename)
-    ``{
+    {
 	list base_selections = Pkg::GetSelections (`selected, "base");
 	string current_base_selection = base_selections[0]:"";
 	if (current_base_selection != "")
@@ -437,8 +436,7 @@ Select which desktop to install.</p>
 
 		    integer instorder = 1;
 		    list<string> instorderlist = splitstring (instorderdata, "\n");
-		    foreach (string instorderline, instorderlist,
-		    ``{
+		    foreach (string instorderline, instorderlist, {
 			if ((instorderline != "")
 			    && (substring (instorderline, 0, 1) != "#"))
 			{
@@ -459,10 +457,10 @@ Select which desktop to install.</p>
 		}
 		y2milestone ("instordermap %1", instordermap);
 	        orderlist = splitstring (orderdata, "\n");
-            } 
+            }
             else if (servicepack_available)
             {
-                /* No order file, but service pack is available, so we hack 
+                /* No order file, but service pack is available, so we hack
                    our own order/instorder files
                 */
 	        orderlist = ["/"];
@@ -483,8 +481,7 @@ Select which desktop to install.</p>
 
 		WFM::Execute (.local.mkdir, metadir);
 		boolean all_sources_ok = true;
-		orderlist = filter (string orderline, orderlist,				// copy all data to ramdisk
-		``{
+		orderlist = filter (string orderline, orderlist, {		// copy all data to ramdisk
 		    if ((orderline != "")
 			&& (substring (orderline, 0, 1) != "#"))
 		    {
@@ -635,8 +632,7 @@ Packages from this media cannot be installed."), orderdir),
 		// now restart the whole stuff from the metadata in the ramdisk and create
 		// the *real* sources
 
-		foreach (string orderline, orderlist,
-		``{
+		foreach (string orderline, orderlist, {
 		    if ((orderline != "")
 			&& (substring (orderline, 0, 1) != "#"))
 		    {
@@ -665,8 +661,7 @@ Packages from this media cannot be installed."), orderdir),
 			    // now find this source in the instorder map and fill
 			    // the global 'theSourceOrder'
 
-			    foreach (integer keysp, string value, instordermap,
-			    ``{
+			    foreach (integer keysp, string value, instordermap, {
                                 integer key = keysp +  instordersp;
 				if (value == orderdir)
 				{
@@ -703,8 +698,7 @@ Packages from this media cannot be installed."), orderdir),
 		     && ((substring (base_url, 0, 2) == "cd")
 			|| (substring (base_url, 0, 3) == "dvd")))
 	    {
-		foreach (integer source, theSources,
-		``{
+		foreach (integer source, theSources, {
 		    map data = Pkg::SourceGeneralData (source);		// get source data
 		    string url = data["url"]:"";
 		    if ((substring (url, 0, 2) == "cd")			// source comes from cd/dvd
@@ -743,7 +737,7 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
      *
      */
     define void add_information_about_suboptimal_distribution (list& output)
-    ``{
+    {
 	// this depends on the kernel
 	if (Arch::i386)
 	{
@@ -758,7 +752,10 @@ Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastEr
 	    }
 	}
     }
-define void SetSelectionAndComputeSystemPackages (string selection) {
+
+
+    define void SetSelectionAndComputeSystemPackages (string selection)
+    {
     // set the new selection
     boolean ret = Pkg::SetSelection (selection);
 
@@ -911,7 +908,7 @@ ask your system administrator.
      * @return map for the API proposal;
      */
     global define map Proposal( boolean force_reset, boolean reinit )
-    ``{
+    {
 	import "Language";
 
 	map ret = $[];
@@ -1059,8 +1056,9 @@ ask your system administrator.
 		    Pkg::ClearSelection (selected_base_selection);
 		    // can't find a set of software packages which fits on the harddisk
 		    // error message
-		    ret = add( ret, "warning" , _("Not enough disk space even for a minimal installation!"));
-		    ret = add( ret, "warning_level" , `blocker);
+		    ret = add (ret, "warning" , _("Not enough disk space even for a minimal installation!"));
+		    ret = add (ret, "warning_level" , `blocker);
+		    ret = add (ret, "raw_proposal", []);
 		    return ret;
 		}
 
@@ -1098,8 +1096,7 @@ ask your system administrator.
 	output = add (output, base_data["summary"]:"?");
 
 	// add on
-	foreach(string sel, selected_addon_selections,
-	``{
+	foreach(string sel, selected_addon_selections, {
 	    map addon_data = Pkg::SelectionData (sel);
 	    if ((addon_data != nil)				// skip unknown selections
 		&& (addon_data["category"]:"" != "base")
@@ -1133,7 +1130,7 @@ ask your system administrator.
 	    map <string, any> res = Pkg::DoProvide (Packages::ComputeSystemPackageList());
 	    if (size (res) > 0)
 	    {
-		foreach (string s, any a, res, ``{
+		foreach (string s, any a, res, {
 		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
 		});
 	    }
