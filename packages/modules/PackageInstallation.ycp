@@ -42,6 +42,34 @@
      */
     global list error_packages = [];		// list of packages which are not installed (or deleted) correctly
 
+
+    /**
+     * media change callback
+     *
+     */
+    global define integer changeMedium (integer error, integer current, integer wanted)
+    ``{
+	y2milestone ("change (err %1, now %2, want %3)", error, current, wanted);
+	string message = sformat ("Please insert media #%1", wanted);
+	string info = sformat ("Found media #%1 (code %2)", current, error);
+	any ret = MediaUI::ChangeMediumPopup (message, info)
+	if (ret == `continue)
+	    return 0;
+	return -1;
+    }
+
+    /**
+     * media open/attach callback
+     *
+     */
+    global define integer errorMedium (string message)
+    ``{
+	y2milestone ("errorMedium(%1)", message);
+	UI::MessagePopup ("Error accessing media:\n"+message);
+	return 0;
+    }
+
+
     /**
      * Constructor()
      * @return void;
@@ -99,7 +127,6 @@
 					  integer packages_installed)
     ``{
 	integer ret = 0;
-	boolean correct_media = true;
 
 	// Reset variables
 	shutup = false;
@@ -134,9 +161,6 @@
 	    other_media_packages = [];
 	}
 
-	map product = Pkg::SourceProductData (Packages::theSource);
-	string datadir = product["datadir"]:"suse";
-	y2milestone ("datadir %1", datadir);
 	string pkgname = "";
 
 	// packager
@@ -153,41 +177,13 @@
 	    return ret;
 	}
 
-	if (!correct_media)
-	{
-	    correct_media = PackageInstallation::ChangeMediumWrapper ( media_number, true );
-	    // exit here if all packages were skipped
-	    if (!correct_media)
-	    {
-		// skip all packages of this media
-		while (Pkg::PkgMediaNr (pkgname) == media_number)
-		{
-		    ret = ret - 1;
-		    pkgname = Pkg::PkgNextInstall();
-		    if (pkgname == nil
-			|| pkgname == "")
-		    {
-			break;
-		    }
-		}
-
-		// copy all other packages to other_media_packages
-		while (pkgname != nil
-			&& pkgname != "")
-		{
-		    other_media_packages = add (other_media_packages, pkgname);
-		    pkgname = Pkg::PkgNextInstall();
-		}
-		y2error ("Not correct media #%1 found", media_number);
-		SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
-		return ret;
-	    }
-	}
-
 	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
 	Pkg::SetProgressCallback ("CallbackDisplayProgress");
+
+	Pkg::SourceSetMediaChangeCallback(source, "changeMedium");
+	Pkg::SourceSetMediaErrorCallback(source, "errorMedium");
 
 	SlideShow::UpdateAllCdProgress (false);
 
@@ -203,11 +199,10 @@
 	    }
 	    else
 	    {
-		string location = Pkg::PkgLocation (pkgname);
 		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
 		CallbackDisplayProgress (0);
 
-		string localpath = Pkg::SourceProvide (Packages::theSource, datadir + "/" + location);
+		string localpath = Pkg::SourceProvideLocation (Packages::theSource, pkgname);
 		if (localpath != nil)
 		{
 		    // this does the progress callback !

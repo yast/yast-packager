@@ -66,11 +66,6 @@
 	{
 	    do_eject = true;
 
-            // reading CD-number
-	    actcdnum = InstMedia::MountMedium (cdnum);
-
-	    y2milestone ("MountMedium (%1) returns %2", cdnum, actcdnum);
-
 	    // ok, found it
 	    if (actcdnum == 0)
 	    {
@@ -255,7 +250,8 @@ respective set.
     // make showLongInfo module-global so it gets remembered (cf. #14018)
     boolean showLongInfo = false;
 
-    global define ChangeMediumPopup( string message, string info ) ``{
+    global define ChangeMediumPopup( string message, string info )
+    ``{
 
 	y2milestone ("ChangeMediumPopup '%1', '%2'", message, info);
 	term button_box = `PushButton(`id(`cancel), `opt(`default), OKButtonLabel() );
