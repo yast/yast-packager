@@ -117,7 +117,7 @@
 
 	    if (Arch::ppc64 && Arch::board_chrp)
 	    {
-		packages = add (packages, "ppc64-tools");
+		packages = add (packages, "ppc64-utils");
 	    }
 	}
 
