@@ -38,12 +38,6 @@
 
 
     /**
-     * 	global variables
-     */
-    global list error_packages = [];		// list of packages which are not installed (or deleted) correctly
-
-
-    /**
      * media change callback
      *
      */
@@ -81,102 +75,20 @@
 
 
     /**
-     *	Return: `error		-> global list 'error_packages' contains packages which are not deleted
-     *          `ok		-> everything ok
-     *		`cancel		-> user wants to stop the installation
-     *		nil		-> invalid argument
-    **/
-    global define symbol DeletePackages( list delete_list ) ``{
-
-	symbol ret = `ok;
-
-	// Reset variables
-	shutup = false;
-	error_packages = [];
-
-	if ( delete_list == [] || delete_list == nil )
-	    return nil;
-
-	SlideShow::UpdateAllCdProgress( true );		// true: deleting
-
-	if ( !Mode::test )
-	{
-	   // FIXME
-	}
-	else
-	{
-	    ret = FakePackager( delete_list,
-				"suse",
-				true );			// deleting packages
-	}
-
-	y2debug( "DeletePackages: WFM::CallModule(packager, ...) returns: %1", ret );
-
-	SlideShow::UpdateAllCdProgress( false );	// false: no longer deleting
-
-	return ret;
-    };
-
-    /**
-     *	Return: < 0		-> negative number of installed packages
-     *				   but some failed, global list 'error_packages' contains packages which are not installed correctly
-     *          > 0		-> everything ok, number of installed packages
-     *		0		-> user wants to stop the installation
+     *  commitPackages marked for deletion or installation
+     *	Return: [ list errors, list remaining ]
+     *
      **/
-    global define integer InstallPackages(integer media_number,
-					  integer packages_installed)
+    global define list CommitPackages (integer media_number,
+					integer packages_installed)
     ``{
-	integer ret = 0;
-
-	// Reset variables
-	shutup = false;
-	error_packages = [];
-
 	if ( Mode::test )
 	{
 	    FakePackager( [],
 			"suse",
 			false );		// not deleting packages
-	    return ret;
+	    return [];
 	}
-
-	list other_media_packages = [];		// packages on other media, list of strings
-
-	if (media_number > 1)
-	{
-	    other_media_packages = SCR::Read (.target.ycp, ["/var/lib/YaST2/other_media_packages", []]);
-	    if (other_media_packages == nil)
-		other_media_packages = [];
-	    y2milestone ("%1 packages remaining", size (other_media_packages));
-	    if (size (other_media_packages) == 0)
-	    {
-		y2milestone ("No further packages");
-		return 0;
-	    }
-	    foreach (`pkg, other_media_packages,
-	    ``{
-		y2milestone ("Pkg::PkgInstall(%1)", pkg);
-		Pkg::PkgInstall (pkg);
-	    });
-	    other_media_packages = [];
-	}
-
-	string pkgname = "";
-
-	// packager
-	y2milestone ("Pkg::PkgPrepareOrder()");
-	list ins_del_count = Pkg::PkgPrepareOrder();
-	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
-
-	pkgname = Pkg::PkgNextInstall();
-
-	if (pkgname == nil
-	    || pkgname == "")
-	{
-	    y2error ("Pkg::PkgNextInstall returns '%1'", pkgname);
-	    return ret;
-	}
-
 	// install packages from this media
 
 	y2milestone ("Pkg::SetProgressCallback");
@@ -189,59 +101,17 @@
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
-	while ((pkgname != nil)
-		&& (pkgname != ""))
-	{
-	    if (Pkg::PkgMediaNr (pkgname) != media_number)
-	    {
-		y2milestone ("%1: %2 != %3 -> other", pkgname, Pkg::PkgMediaNr (pkgname), media_number);
-		other_media_packages = add (other_media_packages, pkgname);
-	    }
-	    else
-	    {
-		CallbackDisplayStart ( pkgname, Pkg::PkgSummary (pkgname), Pkg::TargetUsed("/"), Pkg::TargetCapacity("/"), false);
-		CallbackDisplayProgress (0);
-
-		string localpath = Pkg::SourceProvideLocation (Packages::theSource, pkgname);
-		if (localpath != nil)
-		{
-		    // this does the progress callback !
-		    boolean ok = Pkg::TargetInstall (localpath);
-		    if (!ok)
-		    {
-			CallbackDisplayError (pkgname);
-			error_packages = add (error_packages, pkgname);
-		    }
-		    else
-			ret = ret + 1;
-		    y2milestone ("install '%1': %2", pkgname, ok);
-		}
-	    }
-
-	    pkgname = Pkg::PkgNextInstall();
-	}
+	list commit_result = Pkg::commitPackages (media_number);
 
 	SlideShow::StopTimer();
 
-
-	// write out remaining packages
-
-	y2milestone ("%1 packages on other media", size (other_media_packages));
-	SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", other_media_packages);
-
-	if (size (error_packages) > 0)
+	if (commit_result == nil)
 	{
-	    list failed_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", []);
-	    if (failed_packages == nil)
-		failed_packages = [];
-	    failed_packages = union (failed_packages, error_packages);
-	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed_packages);
-	    ret = -ret;
+	    y2error ("Bad media number %1", media_number);
+	    return [];
 	}
 
-	y2debug( "InstallPackages: WFM::CallModule(packager, ...) returns: %1", ret );
-
-	return ret;
+	return commit_result;
     };
 
 
