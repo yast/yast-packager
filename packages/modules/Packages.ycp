@@ -154,7 +154,7 @@
 	packages = union (packages, AutoInstall::packageList());
 
 	// In autoinst mode, a kernel might be external and not available
-	// in common.pkd
+	// in packages
 	if (size(AutoInstall::Kernel) == 0)
 	{
 	    import "Kernel";
@@ -278,7 +278,7 @@
 	{
 	    install_list = union (install_list, autoinstPackages ());
 	}
-	else
+	else if (!Mode::update)
 	{
 	    install_list = union (install_list, Kernel::kernel_packages);
 	}
