@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul  3 16:52:01 MEST 2000 - gs@suse.de
+
+- ui_inst_setup removed 
+
+-------------------------------------------------------------------
 Thu Jun 29 17:35:47 MEST 2000 - gs@suse.de
 
 - Cancel Button added to popup Insert CD 1
