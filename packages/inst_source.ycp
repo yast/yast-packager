@@ -9,8 +9,6 @@
  * Displays possibilities to install from NFS, CD or partion
  * Do the "mount" for testing the input.
  *
- * InstMedia::mediaMap
- *
  * $Id$
  */
 
@@ -19,9 +17,6 @@
 
     import "Mode";
     import "Installation";
-
-    import "InstMedia";
-    import "MediaUI";
 
     import "Wizard";
 

@@ -20,8 +20,6 @@
     import "Installation";
     import "Version";
     import "SpaceCalculation";
-    import "InstMedia";
-    import "MediaUI";
     import "Packages";
     import "SlideShow";
 

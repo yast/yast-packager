@@ -30,7 +30,6 @@
 
     import "SpaceCalculation";
     import "PackageInstallation";
-    import "MediaUI";
     import "Packages";
     import "SlideShow";
     import "Wizard";

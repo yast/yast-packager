@@ -27,8 +27,6 @@
     import "PackagesUI";
     import "SpaceCalculation";
 
-    import "InstMedia";
-
     import "Wizard";
 
     include "ui/common_popups.ycp";

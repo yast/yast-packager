@@ -18,7 +18,6 @@
 
     import "Arch";
     import "Installation";
-    import "InstMedia";
     import "Storage";
     import "Mode";
     import "Report";
