@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 16 13:07:56 CEST 2002 - arvin@suse.de
+
+- include rpm groups names for translation
+
+-------------------------------------------------------------------
 Tue Jul  9 14:02:19 CEST 2002 - mvidner@suse.cz
 
 - fixed Provides/Obsoletes
