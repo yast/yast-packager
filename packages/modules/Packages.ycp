@@ -180,7 +180,7 @@
 	    return packages;
 	}
 
-	packages = Display::pacs_to_install;
+	packages = (list<string>)Display::pacs_to_install;
 
 	y2milestone("X11 Packages to install: %1", packages);
 	return packages;
@@ -565,7 +565,7 @@
 	    // This text should be translated after 8.0.
 	    // Currently this error should only occured while developping.
 	    string errortext = _("Error while initializing package descriptions.
-Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::Error();
+Check the log file /var/log/YaST2/y2log for more details.") + "\n" + Pkg::LastError();
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "", 0, 1, false);
 
 	    // FIXME: fix or remove, if anybody knows what is going on - Init does not return anything!
