@@ -118,8 +118,18 @@ do this.</P>"));
   // Get informations for initialisation of PKGINFO server
   //
 
-  list partition = [];
+  list part_input = [];
 
+  part_input = EvaluateFreeSpace( "/",		// target root is "/" (called in installed system) 
+				  5 );		// percentage of spare space
+
+
+  y2debug( "SW_SINGLE: partition input: %1", part_input ); 
+
+  /*
+  // this section is replaced by EvaluateFreeSpace()
+  
+  list partition = [];
   // get information about diskspace ( used/free space on every partition )
   partition = SCR( `Read(.run.df ) );
 
@@ -145,7 +155,8 @@ do this.</P>"));
       part_input = add( part_input, part_info );
   });
   y2debug( "SW_SINGLE: partition input: %1", part_input ); 
-   
+  */
+
   
   /*
    * main dialog loop
