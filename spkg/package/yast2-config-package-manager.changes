@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  6 16:43:10 CET 2002 - gs@suse.de
+
+- rebuild the installation workflow (bugfixes, don't
+  call SuSEConfig if nothing is installed)
+
+-------------------------------------------------------------------
 Tue Feb  5 12:06:36 CET 2002 - gs@suse.de
 
 - bugfix for calling sw_single with an inputfile 
