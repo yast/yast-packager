@@ -68,18 +68,23 @@ define list<string> TranslateInfo(list<string> info) {
 		string val = String::CutBlanks(parts[1]:"");
 
 		map<string,string> trasmap = $[
-		    "app" : _("Identification"),
-		    "media" : _("Medium"),
-		    "size" : _("Size"),
-		    "md5" : _("MD5"),
-		    "check" : _("Check")
+		    // CD identification
+		    "app" : _("Identification: %1"),
+		    // medium, e.g. CD1,CD2...
+		    "media" : _("Medium: %1"),
+		    // medium size
+		    "size" : _("Size: %1"),
+		    // MD5 hash value
+		    "md5" : _("MD5: %1"),
+		    // Result of the check
+		    "check" : _("Check: %1")
 		];
 
 		string newstr = trasmap[key]:"";
 
 		if (newstr != nil && newstr != "")
 		{
-		    newstr = sformat("%1: %2", newstr, val);
+		    newstr = sformat(newstr, val);
 
 		    ret = add(ret, newstr);
 		}
@@ -122,15 +127,20 @@ it happens during installation than use <B>Verify Installation CD-ROM/DVD</B>
 in the main menu in linuxrc.</P>");
 
     term contents = `VBox(
+	// combobox label
 	`Left(`ComboBox(`id(`cddevices), _("&CD/DVD drive"), CDdevices(CheckMedia::preferred_drive))),
 	`VSpacing(0.4),
+	// widget label
 	`LogView(`id(`log), _("R&esult"), 12, 0),
 	`VSpacing(0.4),
+	// progress bar label
 	`ProgressBar(`id(`progress), _("Progress")),
 	`VSpacing(1),
 	`HBox(
+	    // push button label
 	    `PushButton(`id(`start), _("&Start")),
 	    `HSpacing(2),
+	    // push button label
 	    `PushButton(`id(`stop), _("S&top"))
 	)//,
 //	`VSpacing(1)
@@ -195,6 +205,7 @@ in the main menu in linuxrc.</P>");
 		SetButtonState(true);
 
 		y2milestone("starting media check at drive %1", selecteddrive);
+		// progress message, %1 is CD device name (e.g. /dev/hdc)
 		UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
 		CheckMedia::Start(selecteddrive);
 
@@ -212,8 +223,13 @@ in the main menu in linuxrc.</P>");
 			data = TranslateInfo(data);
 
 			// add new output to the log view
-			string info = mergestring(data, "\n");
+			string info = mergestring(data, "\n") + "\n";
 			UI::ChangeWidget(`id(`log), `LastLine, info);
+		    }
+
+		    if (progress > 0)
+		    {
+			UI::ChangeWidget(`id(`progress), `Value, progress);
 		    }
 
 		    symbol ui = (symbol)UI::PollInput();
@@ -244,6 +260,7 @@ in the main menu in linuxrc.</P>");
 
 		if (aborted)
 		{
+		    // the check was aborted
 		    UI::ChangeWidget(`id(`log), `LastLine, _("Aborted"));
 		}
 

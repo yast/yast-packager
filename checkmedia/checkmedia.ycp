@@ -36,8 +36,8 @@
      * Command line definition - minimal command line support
      */
     map cmdline = $[
-	// help text
-	"help"      : _("Check media integrity"),
+	// module description
+	"help"      : _("Check CD/DVD media integrity"),
 	"id"        : "checkmedia",
 	"guihandler": MainSequence,
     ];
