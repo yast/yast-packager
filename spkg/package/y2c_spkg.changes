@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 10 21:09:24 MET 2001 - schubi@suse.de
+
+- Bugfixes while selection installation-medium 
+
+-------------------------------------------------------------------
 Tue Jan  9 12:20:04 MET 2001 - schubi@suse.de
 
 - Bugfixes while installing packages via command line. 
