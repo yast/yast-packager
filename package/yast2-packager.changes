@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 24 17:17:33 CET 2005 - nashif@suse.de
+
+- Set arguments according to new installation workflow interface
+
+-------------------------------------------------------------------
 Wed Jan 19 15:50:06 CET 2005 - jsrain@suse.cz
 
 - removed unneeded import

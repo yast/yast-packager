@@ -37,7 +37,12 @@
     symbol ret = `again;
     while (ret == `again)
     {
-        ret = (symbol) WFM::CallFunction ("inst_proposal", [true, true, `dirinstall]);
+
+        map args = $[];
+        args["enable_next"] = true;
+        args["enable_back"] = true;
+        args["proposal"] = "direinstall";
+        ret = (symbol) WFM::CallFunction ("inst_proposal", [args]);
         if (ret == `abort)
         {
             break;

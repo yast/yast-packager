@@ -15,6 +15,7 @@
     import "PackageCallbacks";
     import "PackageCallbacksInit";
     import "Installation";
+    import "GetInstArgs";
 
     list source_list = [];
 
@@ -58,7 +59,8 @@ other systems.</p>");
 	       `VSpacing (2)
 	       );
 
-    Wizard::SetContents( heading_text, contents, help_text, (boolean)WFM::Args(0), (boolean)WFM::Args(1));
+    Wizard::SetContents( heading_text, contents, help_text, 
+            GetInstArgs::enable_back(), GetInstArgs::enable_next());
 
     string dest = "";
     if (SCR::Read(.target.dir, Installation::destdir + "/export")==nil)
