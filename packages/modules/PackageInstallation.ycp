@@ -101,7 +101,7 @@
 	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
-	list commit_result = Pkg::commitPackages (media_number);
+	list commit_result = Pkg::PkgCommit (media_number);
 
 	SlideShow::StopTimer();
 
