@@ -27,14 +27,21 @@ global string image_name = "";
 global string dirinstall_control_file =
         "/usr/share/YaST2/control/dirinstall.xml";
 
+global string xen_dirinstall_control_file =
+	"/usr/share/YaST2/control/xen-dirinstall.xml";
+
 global boolean installing_into_dir = false;
 
+// one of `dir or `xen
+global symbol mode = nil;
 
-global void DirInstall()
-{
+
+global void InitProductControl () {
     if (Stage::normal())
     {
-        ProductControl::custom_control_file = dirinstall_control_file;
+        ProductControl::custom_control_file = mode == `xen
+	    ? xen_dirinstall_control_file
+	    : dirinstall_control_file;
 
         if (!ProductControl::Init())
         {
@@ -43,7 +50,13 @@ global void DirInstall()
     } else {
        installing_into_dir =false;
     }
-    return;
+
+
+}
+
+global void DirInstall()
+{
+    InitProductControl ();
 }
 
 global string Propose() 
