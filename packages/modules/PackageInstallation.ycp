@@ -63,7 +63,6 @@
 	}
 	// install packages from this media
 
-	y2milestone ("Pkg::SetProgressCallback");
 	Pkg::CallbackStartProvide ("PackageCallbacks::StartProvide");
 	Pkg::CallbackStartInstall ("PackageCallbacks::StartInstall");
 	Pkg::CallbackProgress ("PackageCallbacks::CallbackDisplayProgress");

@@ -219,15 +219,18 @@
      * @param deleting		Flag: deleting (true) or installing (false) package?
      **/
     global define void SlideDisplayStart (string 	pkg_name,
-					   string 	pkg_description,
-					   boolean	deleting	)
+					  string 	pkg_description,
+					  integer	pkg_size,
+					  boolean	deleting	)
     ``{
 	if ( ! SanityCheck( false ) )	return;
 
 	// New package (this package hasn't been displayed before)
 
 	current_pkg_name = pkg_name;
-	integer pkg_size = deleting ? -1 : GetPackageSize( pkg_name );
+
+	if (deleting)
+	    pkg_size = -1;
 
 	if ( showing_details )
 	{
@@ -243,13 +246,12 @@
 	    {
 		// Heading for the progress bar for the current package
 		// while it is deleted. "%1" is the package name.
-		pkg_name_with_version = sformat( _("Deleting %1"), pkg_name );
+		pkg_name_with_version = sformat( _("Deleting %1"), StripReleaseNo (pkg_name) );
 		pkg_version = "";
 	    }
 	    else
 	    {
-		pkg_version = GetPackageVersion( pkg_name );
-		pkg_name_with_version = size( pkg_version ) > 0 ? sformat( "%1-%2", pkg_name, pkg_version ) : pkg_name;
+		pkg_name_with_version = StripReleaseNo ( pkg_name );
 	    }
 	    string rich_text = FormatPackageDescription( pkg_name_with_version, pkg_description, pkg_size, deleting );
 
@@ -339,35 +341,17 @@
      * @param pkg_name name of the package without path and ".rpm" extension
      * @return version string
      **/
-    global define string GetPackageVersion( string pkg_name )
+    global define string StripReleaseNo( string pkg_name )
     ``{
-	string pkg_version = Pkg::PkgVersion (pkg_name);
-	if (pkg_version == nil)		// package not found
-	    return "?";
-	integer build_no_pos = findlastof (pkg_version, "-" );	// find trailing build no.
+	integer build_no_pos = findlastof (pkg_name, "-" );	// find trailing build no.
 
 	if ( build_no_pos > 0 )
 	{
 	    // cut off trailing build no.
-	    pkg_version = substring( pkg_version, 0, build_no_pos );
+	    pkg_name = substring( pkg_name , 0, build_no_pos );
 	}
 
-	return pkg_version;
-    };
-
-
-    /**
-     * Get disk space consumed by a package in the target system.
-     *
-     * @param pkg_name name of the package without path and ".rpm" extension
-     * @return package size in bytes
-     **/
-    global define integer GetPackageSize( string pkg_name )
-    ``{
-	integer pkg_size = Pkg::PkgSize (pkg_name);
-	if (pkg_size == nil)	// package not found
-	    return 0;
-	return pkg_size;
+	return pkg_name;
     };
 
 
