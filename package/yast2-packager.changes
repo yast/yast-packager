@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 07 12:26:50 CET 2003 - arvin@suse.de
+
+- add package ppc64-tools on chrp ppp64 boards (bug #23386)
+
+-------------------------------------------------------------------
 Mon Feb 03 17:41:51 CET 2003 - arvin@suse.de
 
 - new pot file handling
