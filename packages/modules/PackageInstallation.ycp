@@ -118,6 +118,9 @@ View the log file?
     //
     // Fake progress bars for Mode::test
     //
+    // NOTE: This is currently completely broken.
+    // -- sh 2003-12-15
+    //
     global define any FakePackager( list packages, string inst_source, boolean deleting )
     ``{
 	integer disk_usage = 20;
@@ -153,13 +156,7 @@ View the log file?
 		}
 		else
 		{
-		    ret = UI::CyclicInstallPkgCallback( pkg_name,
-							pac[1]:"",
-							percent,
-							number,
-							disk_usage,
-							disk_capacity,
-							false );	// error
+		    // Handle installing packages
 		}
 		sleep ( 300 ); // millisec
 		bytes_installed = bytes_installed + 300 * 1024;
