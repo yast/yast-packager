@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep  9 19:39:01 CEST 2002 - kkaempf@suse.de
+
+- fix handling of installation sources (cschum@suse.de)
+- move source handling to spkg (runtime stuff)
+- init SpaceCalculation at runtime properly
+- 2.6.36
+
+-------------------------------------------------------------------
 Mon Sep  9 16:35:47 CEST 2002 - mvidner@suse.cz
 
 - require.ycp: Fixed DoInstallAndRemove (#18904).
