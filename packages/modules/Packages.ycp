@@ -41,6 +41,7 @@
 
     string choosen_base_selection = "";
 
+  
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
      *-----------------------------------------------------------------------*/
@@ -187,17 +188,6 @@
 
 
 
-    /**
-     * Compute packages needed for autoinstallation
-     * @return list(string)
-     */
-
-    define list autoinstPackages()
-    ``{
-	import "AutoinstSoftware";
-	list packages = AutoinstSoftware::autoinstPackages();
-	return packages;
-    }
 
     /**
      * Compute special packages
@@ -261,11 +251,7 @@
 	install_list = union (install_list, modePackages ());
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
-	if (Mode::autoinst)
-	{
-	    install_list = union (install_list, autoinstPackages ());
-	}
-	else if (!Mode::update)
+	if (!Mode::update ||  !Mode::autoinst)
 	{
 	    if (Pkg::IsAvailable (Kernel::kernel_packages[0]:"k_deflt"))
 	    {
