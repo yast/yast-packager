@@ -83,8 +83,14 @@
    //
    // CheckWhichPackages
    //
-   // check arg_list if we're called with an absolute package path
-   // if yes, we just install this package and dont need installation media
+   // Check arg_list:
+   // If we're called with an absolute package path just install
+   // this package without paying attention to dependencies.
+   // If we are not started in "beginner" mode go `next
+   // (and call dialog change source medium first).
+   // Otherwise try to mount the source medium (instmode is read
+   // from /var/lib/YaST2/installmap.ycp).
+   // If medium is not accessable check local package decsription.
    //
    // returns	`done		all done
    //		`failed		package not found
@@ -409,7 +415,7 @@ must NOT be older than the version of your installed system.\n");
 
         y2debug( "RESULT %1: %2", select(dialog, dialog_id, 0), result );
 
-	if (result == `cancel || result == `abort)
+	if (result == `cancel || result == `abort || result == `finish)
         {
 	    // dialog loop ends
 	    dialog_id = -1;
@@ -425,11 +431,14 @@ must NOT be older than the version of your installed system.\n");
 	}
 	else if (result == `ok )	// inst_sw_single returns `ok
 	{
-	    // only for debugging ( user_settings are not used any longer,
-	    // information about packages to install/to delete are got
-	    // directly from package agent in inst_rpmcopy )
-	    y2debug( "SW_SINGLE: install_list: %1", SCR::Read(.package.installSet) );
-	    y2debug( "SW_SINGLE: delete_list: %1", SCR::Read(.package.deleteSet)  );
+	    // user_settings are not used any longer,
+	    // inst_rpmcopy gets information about packages to install
+	    // from package agent
+	    list install_list = SCR::Read(.package.installSet);
+	    list delete_list  = SCR::Read(.package.deleteSet);
+	    
+	    y2debug( "SW_SINGLE: install_list: %1", install_list );
+	    y2debug( "SW_SINGLE: delete_list: %1",  delete_list );
 
 	    if ( install_list != [] || delete_list != [] )
 	    {
