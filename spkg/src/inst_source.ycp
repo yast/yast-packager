@@ -80,13 +80,13 @@
             {
                 string _msg1 = sformat( _("Unable to create installation source
 from URL '%1'."), url );
-                string err = Pkg::ErrorId();
+                string err = Pkg::LastErrorId();
                 string _msg2 = "";
                 if ( err != "ok" ) {
                     if ( err == "instsrc_duplicate" )
                         _msg2 = _("A source for this product already exists.");
                     else
-                        _msg2 = _("Details:") + "\n" + Pkg::Error();
+                        _msg2 = _("Details:") + "\n" + Pkg::LastError();
                 }
                 _msg2 = _msg2 + "\nTry again?";
 
@@ -270,7 +270,7 @@ on the NFS server.
         {
             current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
 
-            term idterm = (term) select( (list) UI::QueryWidget( `id( `table ), `Item( current ) ), 0, 0 );
+            term idterm = (term) select( (list) UI::QueryWidget( `id( `table ), `Item( current ) ), 0, `id(-1) );
             integer id = select( idterm, 0, 0 );
 
             if ( input == `replace )
