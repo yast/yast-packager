@@ -104,6 +104,8 @@
 	    first_arg = select (arg_list, 0);
 	    postfix =  substring (first_arg, size (first_arg) - 4 );
 	}
+	else
+	    return `next;	// no packages given.
 
 	y2milestone("SW_SINGLE: POSTFIX: %1", postfix );
 
@@ -131,7 +133,7 @@
 		return `failed;
 	    }
 	}
-	else		// no package given, try to mount source medium
+	else		// no package file  given, try to mount source medium
 	{
 	    y2milestone ("args %1", Args());
 
@@ -151,7 +153,7 @@
 	    if ( local_descr )
 		return `found_descr;
 
-	}  // no package given
+	}  // no package file given
 
 	return `unknown_descr;
 

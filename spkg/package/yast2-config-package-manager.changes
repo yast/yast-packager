@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep 19 19:48:34 CEST 2001 - kkaempf@suse.de
+
+- if called without arguments, start with media selection (10948).
+
+-------------------------------------------------------------------
 Tue Sep 18 16:41:56 CEST 2001 - kkaempf@suse.de
 
 - honor "beginner" argument to skip source media selection.
