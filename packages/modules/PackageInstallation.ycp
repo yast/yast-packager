@@ -31,16 +31,6 @@
     global define any FakePackager( list packages, string inst_source, boolean deleting );
 
     /**
-     * Constructor()
-     * @return void;
-     *
-     */
-    global define void PackageInstallation() ``{
-	return;
-    }
-
-
-    /**
      *  commitPackages marked for deletion or installation
      *	Return: [ int successful, list failed, list remaining, list srcremaining ]
      *
