@@ -57,6 +57,8 @@ Select which desktop to install.</p>
 
     string choosen_base_selection = "";
 
+string pm_init_blocker = nil;
+
 
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
@@ -396,6 +398,7 @@ Select which desktop to install.</p>
 	//
 	// Initialize package manager
 	//
+	pm_init_blocker = nil;
 	y2milestone ("Packages::Init(%1)", forceInit);
 	// usual mountpoint for the source medium
 	string base_url = "";
@@ -439,6 +442,9 @@ Select which desktop to install.</p>
 	    if (initial_source == nil)
 	    {
 		y2error ("No source on '%1'", log_url);
+		// error in proposal, %1 is URL
+		pm_init_blocker = sformat (_("No source found at '%1'"),
+		    log_url);
 		return;
 	    }
 
@@ -463,6 +469,10 @@ Select which desktop to install.</p>
 		if (orderdata == "")
 		{
 		    y2error ("Can't read '%1'", orderfile);
+		    // error in proposal, %1 is filename
+		    pm_init_blocker = sformat (
+			_("Cannot read '%1' from the installation media."),
+			orderfile);
 		    return;
 		}
 
@@ -631,6 +641,9 @@ Packages from this media cannot be installed."), orderdir),
 		if (! all_sources_ok)
 		{
 		    y2error ("Unable to initialize all installation sources");
+		    pm_init_blocker
+			// error in proposal
+			= _("Unable to initialize all installation sources");
 		    return;
 		}
 
@@ -974,6 +987,14 @@ ask your system administrator.
 	}
 
 	UI::CloseDialog();
+
+	if (pm_init_blocker != nil)
+	{
+	    return $[
+		"warning" : pm_init_blocker,
+		"warning_level" : `blocker,
+	    ];
+	}
 
 	// start with base selections
 

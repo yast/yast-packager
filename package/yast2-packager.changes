@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan  4 11:31:33 CET 2005 - jsrain@suse.cz
+
+- fixed error reporting when unable to initialize isntallation
+  source during installation (#40876)
+
+-------------------------------------------------------------------
 Thu Nov 11 18:10:09 CET 2004 - arvin@suse.de
 
 - always use Directory::logdir
