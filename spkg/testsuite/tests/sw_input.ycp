@@ -6,7 +6,7 @@
   include "testsuite.ycp";
 
   // prepare for test:
-  // delete packages, because PKGINFO server is not yet in testmode, i.e. already
+  // delete packages, because package agent is not yet in testmode, i.e. already
   // installed packages would not installed again
   
   string cmd = "sudo rpm -e 3d_chess tuxeyes xroach jpilot";
