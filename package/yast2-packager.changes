@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Mar 13 19:03:06 CET 2004 - arvin@suse.de
+
+- DVD sides are called "Side A" and "Side B"
+
+-------------------------------------------------------------------
 Fri Mar 12 15:59:02 CET 2004 - arvin@suse.de
 
 - fixed use of Pkg::SourceGeneralData (bug #35712)

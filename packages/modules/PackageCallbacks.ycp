@@ -322,14 +322,14 @@
 
 	if (double_sided)
 	{
-	    // media is double sided, we want the user to insert the 'front side' of the media
+	    // media is double sided, we want the user to insert the 'Side A' of the media
 	    // the complete string will be "<product> <media> <number>, <side>"
-	    // e.g. "'SuSE Linux 9.0' DVD 1, front side"
-	    string side = _("front side");
+	    // e.g. "'SuSE Linux 9.0' DVD 1, Side A"
+	    string side = _("Side A");
 	    if ((wanted & 1) == 0)
 	    {
-		// media is double sided, we want the user to insert the 'back side' of the media
-		side = _("back side");
+		// media is double sided, we want the user to insert the 'Side B' of the media
+		side = _("Side B");
 	    }
 	    wanted = (wanted + 1) >> 1;
 	    mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
