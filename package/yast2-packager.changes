@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 10 15:53:58 CET 2003 - kkaempf@suse.de
+
+- fix syntax error in Require.ycp (#24994)
+- 2.7.21
+
+-------------------------------------------------------------------
 Mon Mar 10 13:55:18 CET 2003 - kkaempf@suse.de
 
 - error popups have "Abort", "Retry", "Ignore" as buttons.
