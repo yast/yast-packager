@@ -131,10 +131,13 @@
     global define string installInf2Url ( )
     ``{
 	string options = "";
-	string url = SCR::Read (.etc.install_inf.InstMode);
-	if (url == nil)
+
+	string url = SCR::Read (.etc.install_inf.InstMode);	// mode
+	if (url == nil)						// defaults to "CD"
 	    url = "cd";
-	if ((url == "cd")
+
+
+	if ((url == "cd")					// CD or DVD
 	    || (url == "dvd"))
 	{
 	    list devicelist = SCR::Read(.probe.cdrom);
@@ -158,6 +161,11 @@
 		options = "devices=" + options;
 	    }
 	}
+	else if (url == "hd")						// Harddisk
+	{
+	    options = "device=" + SCR::Read (.etc.install_inf.Partition);
+	}
+
 	url = url + "://";
 	string username = SCR::Read (.etc.install_inf.Username);
 	if ((username != nil) && (username != ""))
