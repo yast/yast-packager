@@ -1,1 +1,0 @@
-/usr/lib/YaST2/bin/y2base  package_tests.ycp  '(.initialize)' qt -T -geometry 640x480 -style=platinum -font '-gnu-unifont-medium-r-normal--16-160-75-75-p-80-iso10646-1'
