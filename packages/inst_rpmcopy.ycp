@@ -165,7 +165,7 @@
 	if (remaining == nil)
 	    remaining = [];
 
-	string backupPath = SCR::Read(.target.string, Installation::destdir + "/var/lib/YaST2/backup_path");
+	string backupPath = SCR::Read(.target.string, [Installation::destdir + "/var/lib/YaST2/backup_path", ""]);
 	if ( backupPath != nil && backupPath != "")
 	{
 	    y2milestone("create package backups in %1",backupPath);

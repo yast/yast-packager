@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 19 11:08:16 CET 2003 - kkaempf@suse.de
+
+- keep silent if no backup_path exists (#23784)
+
+-------------------------------------------------------------------
 Tue Feb 18 12:01:00 CET 2003 - kkaempf@suse.de
 
 - stop timer during wait for medium (#21026)
