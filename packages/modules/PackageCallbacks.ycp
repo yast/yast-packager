@@ -32,7 +32,7 @@
 				     `HBox(`ProgressBar(`id(`progress), " ", 100, 0 )),
 				     `HStretch()
 				  ));
-	    UI::OpenDialog( `opt(`defaultsize), providebox );
+	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
 	}
 	return;
