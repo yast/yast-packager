@@ -15,7 +15,8 @@
     textdomain "packager";
 
     include "ui/common_messages.ycp";
-
+    import "Wizard";	// some modules call us without any dialog open
+    import "PackageCallbacks";
 
     /**
      * This will be local when converted to a Module::
@@ -91,6 +92,7 @@
     global define boolean DoInstallAndRemove (list(string) toinstall, list(string) toremove) ``{
 	y2debug ("toinstall: %1, toremove: %2", toinstall, toremove);
 	EnsureSourceInit ();
+	EnsureTargetInit ();
 	boolean ok = true;
 	foreach (string p, toinstall, ``{
 	    ok = ok && Pkg::PkgInstall (p);
@@ -102,6 +104,9 @@
 	list result = Pkg::PkgCommit (0);
 	y2debug ("PkgCommit: %1", result);
 	ok = ok && result[1]:nil == [] && result[2]:nil == [];
+	Wizard::CreateDialog ();
+	ok = ok && WFM::CallModule ("inst_suseconfig", [false, false]);
+	Wizard::CloseDialog ();
 	return ok;
     }
 
