@@ -1,0 +1,17 @@
+{
+    import "PackageCallbacks";
+
+    PackageCallbacks::StartConvertDB ("/path/old");
+
+    integer p = 0;
+    while (p < 100)
+    {
+    	PackageCallbacks::ProgressConvertDB (p, 1, 2, 3, 4);
+	p = p + 5;
+	sleep (100);
+    }
+
+    PackageCallbacks::StopConvertDB (1, "haha");
+
+    // PackageCallbacks::NotifyConvertDB ();
+}

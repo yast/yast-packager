@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 29 16:13:36 CEST 2003 - arvin@suse.de
+
+- implemented callbacks for converting rpm database (bug #29484)
+
+-------------------------------------------------------------------
 Thu Aug 28 16:41:21 CEST 2003 - arvin@suse.de
 
 - run inst_rpmcopy during update after reboot

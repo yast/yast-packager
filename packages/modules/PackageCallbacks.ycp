@@ -3,6 +3,7 @@
  *
  * Authors:		Gabriele Strattner <gs@suse.de>
  *			Klaus Kaempf <kkaempf@suse.de>
+ *			Arvin Schnell <arvin@suse.de>
  *
  * Purpose: 		provides the default Callbacks for Pkg::
  *
@@ -10,7 +11,6 @@
  */
 
 {
-
     module "PackageCallbacks";
 
     textdomain "packager";
@@ -470,7 +470,7 @@
 
 	UI::{
 	    // UI USE
-	    // creates layout for ChangMediumPopup
+	    // creates layout for ChangeMediumPopup
 
 	    global define LayoutPopup ( string message, term button_box,
 					integer vertical_size, boolean info_on ) ``{
@@ -497,4 +497,80 @@
 	    };
 	}; // UI()
     }
+
+
+
+
+    global define void StartConvertDB (string dummy1) ``{
+
+	// heading of popup
+	string heading = _("RPM DB convert");
+
+	// message in a popup
+	string message = _("Converting package database. This process can take some time.");
+
+	UI::OpenDialog (`opt(`decorated),
+			`VBox (`Heading (heading) ,
+			       `VBox (
+				      `Label(message),
+				      `HSpacing(60),
+				      `HBox(
+					    `HSpacing(2),
+					    `ProgressBar (`id(`progress),
+							  _("Status"), 100),
+					    `HSpacing(2)
+					    ),
+				      `VSpacing(1)
+				      )
+			       )
+			);
+
+	UI::ChangeWidget (`id(`progress), `Value, 0);
+    }
+
+
+    global define void ProgressConvertDB (integer percent, integer dummy1,
+					  integer dummy2, integer dummy3,
+					  integer dummy4) ``{
+	UI::ChangeWidget (`id(`progress), `Value, percent);
+    }
+
+
+    global define void StopConvertDB (integer error_value, string error_text) ``{
+	UI::CloseDialog ();
+    }
+
+
+    global define string NotifyConvertDB (string message_type, integer dummy1,
+					  string detail) ``{
+
+	UI::OpenDialog (`opt(`decorated),
+			`VBox( `Heading( _("HAHA")) ,
+			       `VBox( `Label(rebuild_message),
+				      `HSpacing(60),
+				      `HBox(
+					    `HSpacing(2),
+					    `ProgressBar(`id(`progress),
+							 _("Status"), 100),
+					    `HSpacing(2)
+					    ),
+				      `VSpacing(1)
+				      )
+			       )
+			);
+
+	symbol ret = UI::UserInput ();
+
+	UI::CloseDialog();
+
+	return "SKIP";
+    }
+
+
+    global define void SetConvertDBCallbacks () ``{
+	Pkg::CallbackStartConvertDb ("PackageCallbacks::StartConvertDB");
+	Pkg::CallbackProgressConvertDb ("PackageCallbacks::ProgressConvertDB");
+	Pkg::CallbackStopConvertDb ("PackageCallbacks::StopConvertDB");
+	Pkg::CallbackNotifyConvertDb ("PackageCallbacks::NotifyConvertDB");
+    };
 }
