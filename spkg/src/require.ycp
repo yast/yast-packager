@@ -105,7 +105,8 @@
 	y2debug ("PkgCommit: %1", result);
 	ok = ok && result[1]:nil == [] && result[2]:nil == [];
 	Wizard::CreateDialog ();
-	ok = ok && WFM::CallModule ("inst_suseconfig", [false, false]);
+	// inst_suseconfig returns `auto or `next (update mode or Args(2) is true) => no error checking
+	WFM::CallModule ("inst_suseconfig", [false, false]);
 	Wizard::CloseDialog ();
 	return ok;
     }
