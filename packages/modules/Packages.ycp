@@ -505,8 +505,8 @@
 	// Get information about available partitions
 	list partition = SpaceCalculation::GetPartitionInfo( );
 
-	if (Mode::normal
-	    || Mode::update)
+	if (( Mode::normal
+	    || Mode::update ) && ! Mode::config)
 	{
 	    retval = SCR::Execute(.package.setEnvironment,
 				  $["packageinfopath":infopath,
