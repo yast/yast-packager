@@ -22,3 +22,4 @@ Exec=/sbin/yast2 dirinstall
 Name=Installation into Directory for XEN
 GenericName=Install System into a Directory for XEN
 X-KDE-SubstituteUID=true
+
