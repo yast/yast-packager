@@ -2,6 +2,7 @@
 Wed Jul 03 13:24:35 CEST 2002 - arvin@suse.de
 
 - merged yast2-agent-package and yast2-agent-targetpkg
+- moved non binary files to /usr/share/YaST2
 
 -------------------------------------------------------------------
 Mon Jul 01 18:30:26 CEST 2002 - arvin@suse.de
