@@ -115,25 +115,22 @@
 	    return ret;
 	}
 
-	list other_media_packages = [];		// packages on other media, pairs of [cdnr, "pack"]
+	list other_media_packages = [];		// packages on other media, list of strings
 	integer other_media_pos = 0;
 	integer other_media_nr = 0;
 
-	if (media_number == 1)
+	if (media_number > 1)
 	{
-	    // packager
-	    y2milestone ("Pkg::PkgPrepareOrder()");
-	    list ins_del_count = Pkg::PkgPrepareOrder();
-	    y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
-	}
-	else
-	{
-	    other_media_packages = SCR::Read (.target.ycp, Installation::destdir + "/var/lib/YaST2/other_media_packages", []);
+	    other_media_packages = SCR::Read (.target.ycp, "/var/lib/YaST2/other_media_packages", []);
 	    if (other_media_packages == nil)
 		other_media_packages = [];
 	    y2milestone ("%1 packages remaining", size (other_media_packages));
 	    if (size (other_media_packages) == 0)
 		return 0;
+	    foreach (`pkg, other_media_packages,
+	    ``{
+		Pkg::PkgInstall (pkg);
+	    });
 	}
 
 	map product = Pkg::SourceProductData (Packages::theSource);
@@ -142,13 +139,17 @@
 	string pkgname = "";
 
 	if (media_number == 1)
-	    pkgname = Pkg::PkgNextInstall();
 	else
 	{
 	    other_media_nr = other_media_packages[other_media_pos,0]:0;
 	    pkgname = other_media_packages[other_media_pos,1]:"";
 	    other_media_pos = other_media_pos + 1;
 	}
+
+	// packager
+	y2milestone ("Pkg::PkgPrepareOrder()");
+	list ins_del_count = Pkg::PkgPrepareOrder();
+	y2milestone ("delete %1, install %2", ins_del_count[0]:-1, ins_del_count[1]:-1);
 
 	y2milestone ("Pkg::SetProgressCallback");
 	Pkg::SetProgressCallback ("CallbackDisplayProgress");
@@ -157,6 +158,8 @@
 
 	boolean correct_media = true;			// FIXME
 	boolean skip_media = false;
+
+	pkgname = Pkg::PkgNextInstall();
 
 	// ensure correct medium and implement skipping
 	while ((pkgname != nil)
