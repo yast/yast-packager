@@ -29,7 +29,7 @@
 
     import "Wizard";
 
-    include "ui/common_popups.ycp";
+    import "Popup";
     include "partitioning/partition_defines.ycp";
 
 
@@ -244,7 +244,7 @@ You will lose that selection if you change the basic selection.");
 	     && Pkg::RestoreState(true) )
 	{
             // popup text: ask the user whether to reset his individuell selection
-	    any ret = UI::YesNoPopup(_("Do you really want\nto reset your detailed selection?"));
+	    any ret = Popup::YesNo(_("Do you really want\nto reset your detailed selection?"));
 	    if ( !ret )
 	    {
 		Pkg::ClearSaveState();		// free the previously saved state

@@ -21,7 +21,7 @@
     import "Mode";
     import "Report";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     include "ui/common_functions.ycp";
 
     textdomain "packager";

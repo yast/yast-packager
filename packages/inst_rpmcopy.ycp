@@ -34,7 +34,7 @@
     import "Wizard";
 
     include "showlog_defines.ycp";
-    include "ui/common_popups.ycp";
+    import "Popup";
 
     boolean packager_called = false;		// is there any package installed/deleted
                                                 // (only used if Mode::normal is set)

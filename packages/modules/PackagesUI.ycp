@@ -13,7 +13,7 @@
 
     module "PackagesUI";
     textdomain "packager";
-    include "ui/common_messages.ycp";
+    import "Label";
 
 
     //
@@ -42,7 +42,7 @@
 				  header,
 				  `VSpacing(0.2),
 				  helptext,	// e.g. `Richtext()
-				  `PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
+				  `PushButton( `id(`ok_help), `opt(`default), Label::OKButton() )
 				  )
 			   )
 		    );

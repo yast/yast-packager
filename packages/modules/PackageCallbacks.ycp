@@ -17,7 +17,7 @@
 
     textdomain "packager";
 
-    include "ui/common_messages.ycp";
+    import "Label";
     include "ui/common_functions.ycp";
 
     global boolean _provide_popup = false;
@@ -72,9 +72,9 @@
 	{
 	    string message = sformat (_("Package %1 was not found on the medium."), name);
 
-	    term button_box = `HBox (`PushButton (`id(`abort), AbortButtonLabel()));
-	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));
-	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
+	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
+	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
 
 	    if ( showLongInfo )
 	    {
@@ -189,9 +189,9 @@
 	    // error popup during package installation, %1 is a numeric value (number of failed packages)
 	    string message = sformat (_("Package %1 failed installation."), _package_name);
 
-	    term button_box = `HBox (`PushButton (`id(`abort), AbortButtonLabel()));
-	    button_box = add (button_box, `PushButton(`id(`retry), RetryButtonLabel()));
-	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
+	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
+	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
 
 	    if ( showLongInfo )
 	    {
@@ -314,14 +314,14 @@
 	// --------------------------------------
 	// build up button box
 
-	term button_box = `HBox (`PushButton (`id(`retry), `opt(`default), OKButtonLabel()));
+	term button_box = `HBox (`PushButton (`id(`retry), `opt(`default), Label::OKButton()));
 
 	if (current == -1)			// wrong media id, offer "Ignore"
 	{
-	    button_box = add (button_box, `PushButton(`id(`ignore), IgnoreButtonLabel()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
 	}
 
-	button_box = add (button_box,  `PushButton (`id(`cancel), AbortButtonLabel()));
+	button_box = add (button_box,  `PushButton (`id(`cancel), Label::AbortButton()));
 
 	// push button label during media change popup, user can skip
 	// this media (CD) so no packages from this media will be installed

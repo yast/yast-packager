@@ -15,7 +15,7 @@
     import "Mode";
     import "Installation";
     import "Report";
-    include "ui/common_messages.ycp";
+    import "Label";
 
     string lastHarddiskPath = "/var/lib/YaST2/packages.usr";
     string lastFloppyPath = "packages.usr";
@@ -33,7 +33,7 @@
 
 	    // Yes/No MsgBox; default: Yes
 	    // Ask for a formatted floppy to save the package selection
-	    while (UI::YesNoPopup(_("The current package selection will be saved
+	    while (Popup::YesNo(_("The current package selection will be saved
 on a floppy disk.  Insert a formatted floppy.
 
 Write data to the floppy disk now?
@@ -68,11 +68,11 @@ and is not write protected.
 		{
 		    // Popup with a 'Retry', a 'Cancel' button and a 'Format floppy' button.
 		    // Check inserted floppy.
-		    any ret = UI::AnyQuestionPopup3(_("Could not find a formatted floppy disk."),
+		    any ret = Popup::AnyQuestion3(_("Could not find a formatted floppy disk."),
 						    _("Are you sure you inserted a floppy disk
 into the correct drive?
 If so, is the disk formatted and verified?
-"), UI::RetryButtonLabel(), UI::CancelButtonLabel(), _("&Format floppy"), `focus_yes);
+"), Label::RetryButton(), Label::CancelButton(), _("&Format floppy"), `focus_yes);
 
 		    if (ret == `no)		// cancel
 		    {
@@ -81,7 +81,7 @@ If so, is the disk formatted and verified?
 		    else if (ret == `retry)	// format floppy
 		    {
 			UI::OpenDialog( `opt( `decorated ),
-					`HBox(`HSpacing(1), `Label(UI::PleaseWaitMsg()), `HSpacing(1)));
+					`HBox(`HSpacing(1), `Label(Label::PleaseWaitMsg()), `HSpacing(1)));
 			SCR::Execute (.target.bash, "/sbin/mkdosfs " + StorageDevices::FloppyDevice);
 			UI::CloseDialog();
 		    }
@@ -124,7 +124,7 @@ If so, is the disk formatted and verified?
     global define loadPackageSelection( ) ``{
 	boolean success = true;
 	// text of a popup with 'Yes' and 'No' button
-	if ( UI::YesNoPopup(_("Do you really want to reset your settings?")))
+	if ( Popup::YesNo(_("Do you really want to reset your settings?")))
 	{
 	    if ( floppySelected )
 	    {
@@ -133,7 +133,7 @@ If so, is the disk formatted and verified?
 
 		// Yes/No MsgBox; default: Yes
 		// Ask for the floppy with the package selection.
-		while (UI::YesNoPopup(_("The current package selection will be loaded
+		while (Popup::YesNo(_("The current package selection will be loaded
 from a floppy disk.  Insert the floppy.
 
 Read data from the floppy disk now?
