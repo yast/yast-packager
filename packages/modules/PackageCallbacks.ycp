@@ -506,8 +506,8 @@
     }
 
 
-    global define string NotifyConvertDB () ``{
-
+    global define string NotifyRebuildDB () ``{
+	return "fixme";
     }
 
 
