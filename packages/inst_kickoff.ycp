@@ -11,6 +11,7 @@
     textdomain "packager";
 
     import "Mode";
+    import "Linuxrc";
     import "Installation";
     import "Update";
     import "Popup";
