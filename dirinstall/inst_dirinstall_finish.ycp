@@ -1,6 +1,7 @@
 {
-
+    textdomain "packager";
     import "DirInstall";
+    import "Progress";
 
     list<string> progress_stages =
 	[
@@ -52,4 +53,5 @@
 
 
     Progress::Finish();
+    return `next;
 }

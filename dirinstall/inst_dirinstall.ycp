@@ -29,10 +29,9 @@
             return `abort;
         }
     }
-    Wizard::CreateDialog();
-    Wizard::SetDesktopIcon("sw_source");
 
 
+    /*
     boolean anyToDelete = Pkg::PkgAnyToDelete();
     SlideShow::SetLanguage (UI::GetLanguage(true));
     SlideShow::InitPkgData();
@@ -42,8 +41,7 @@
     list commit_result = PackageInstallation::CommitPackages (0, 0);
 
     SlideShow::CloseSlideShowDialog();
-    UI::CloseDialog();
-
+    */
 
     return `next;
 }

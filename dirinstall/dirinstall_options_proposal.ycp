@@ -46,7 +46,7 @@
 	//
 	// sequence = DummyMod::AskUser( has_next );
 
-	symbol result = (symbol) WFM::CallFunction ("inst_dirinstall_options", [true, has_next]);
+	symbol result = (symbol) WFM::CallFunction ("dirinstall_options", [true, has_next]);
 
 	// Fill return map
 
