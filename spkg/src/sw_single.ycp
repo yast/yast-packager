@@ -11,6 +11,14 @@
   textdomain "sw_single";
   include "package_utils.ycp";
 
+  include "ui/wizard_dialog.ycp";
+  include "ui/wizard_error.ycp";
+  include "ui/wizard_flow.ycp";
+  include "ui/wizard_message.ycp";
+  include "ui/wizard_misc.ycp";
+
+  UI(`CreateWizardDialog());
+
   map user_settings = $[];
 
   string architecture = SCR(`Read(.probe.architecture));
@@ -57,198 +65,6 @@ do this.</P>"));
   msg_beginner = msg_str11 + msg_str12 + msg_str21;
   msg_expert = msg_str13 + msg_str21;
   
-  UI(``{
-      /**
-       * Create a typical installation wizard dialog.
-       */
-      OpenDialog(
-		 `opt(`defaultsize),
-		 `VBox(
-		       `ReplacePoint( `id(`image ), `Image( `suseheader, "SuSE") ),
-		       `HBox(
-			     `HWeight( 30, `ReplacePoint( `id(`helpSpace), `RichText(`id(`help), ""))),
-			     `HSpacing(1),
-			     `HWeight( 70, `VBox(
-						 `VSpacing(0.2),
-						 `Left(`Heading(`id(`title), _("YaST2\nInitializing ..."))),
-						 `HVCenter(`ReplacePoint(`id(`contents), `Empty())),
-						 `HBox(
-						       // "back" button: Return to the previous dialog
-						       `PushButton(`id(`back), _("&Back")),
-
-						       `HCenter(
-								// "abort" button: The installation will be aborted
-								`ReplacePoint( `id(`rep_abort), `PushButton(`id(`abort), _("&Abort Installation")))
-								),
-
-						       // "next" button: Proceed to the next dialog
-						       `ReplacePoint( `id(`rep_next), `PushButton(`id(`next), _("&Next")) )
-						       ),
-						 `VSpacing(0.2)
-						 )
-				       ),
-			     `HSpacing(1)
-			     )
-		       )
-                 );
-
-
-      /*
-       * Define how the general framework for the installation wizard should
-       * look like. This Macro creates and show a dialog.
-       */
-      define SetWizardContents(string title, term contents, string helptext,
-			       boolean has_back, boolean has_next) ``{
-	  ChangeWidget(`id(`back), `Enabled, has_back);
-	  ChangeWidget(`id(`next), `Enabled, has_next);
-	  ChangeWidget(`id(`help), `Value, helptext);
-	  ChangeWidget(`id(`title), `Value, title);
-	  ReplaceWidget(`id(`contents), contents);
-	  SetFocus( `id(`next) );
-      };
-      
-      define size_text (integer bytes) ``{
-	  float whole = tofloat (bytes) / 1024.0;
-	  // KiloByte abbreviated
-	  string unit = _("KB");
-	  if (whole > 1024.0|| whole < -1024.0)
-          {
-	      whole = whole / 1024.0;
-	      // MegaByte abbreviated
-	      unit = _("MB");
-	      if (whole > 1024.0|| whole < -1024.0)
-              {
-		  whole = whole / 1024.0;
-		  // GigaByte abbreviated
-		  unit = _("GB");
-              }
-          }
-	  return tostring (whole, 2) + " " + unit;
-      };
-
-      /*
-       * Small dialog that has a cancel and continue button that
-       * appears just befor the video mode is tested.
-       */
-      define ContinueCancel(string message,
-			    string continue_button_message,
-			    string cancel_button_message ) ``{
-	  OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `HBox(
-				       `PushButton(`id(`continue), `opt(`default),continue_button_message),
-				       `HSpacing(2),
-				       `PushButton(`id(`cancel),   cancel_button_message)
-				       ),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-	  any r = UserInput();
-	  CloseDialog();
-	  return ( r == `continue );
-      };
-
-      /*
-       * Are your sure?
-       */
-
-      define YesOrNo(any message, string yes_button_message, string no_button_message) ``{
-          OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `HBox(
-				       `PushButton(`id(`yes), `opt(`default), yes_button_message),
-				       `HSpacing(2),
-				       `PushButton( no_button_message )
-				       ),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-          any ret = UserInput();
-          CloseDialog();
-          return (ret == `yes);
-      };
-
-      /*
-       * Are your sure? with possibiltity to specify default-Button ( values: `no_default, `yes_default )
-       */
-
-      define YesNoOpt(any message, string yes_button_message, string no_button_message, symbol def_symbol) ``{
-	  term yes_button = `empty();
-	  term no_button = `empty();
-	  
-	  if ( def_symbol == `no_default )
-	  {
-	      yes_button = `PushButton( `id(`yes),  yes_button_message );
-	      no_button  = `PushButton( `id(`no_button), `opt(`default), no_button_message );
-	  }
-	  else
-	  {
-	      yes_button = `PushButton(`id(`yes), `opt(`default), yes_button_message);
-	      no_button = `PushButton( `id(`no_button), no_button_message );
-	  }
-	  
-          OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `HBox(
-				       yes_button,
-				       `HSpacing(2),
-				       no_button
-				       ),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-          any ret = UserInput();
-          CloseDialog();
-          return (ret == `yes);
-      };
-
-
-      /*
-       * Displays a message to the user in a small dialog with an OK
-       * button.
-       */
-
-      define DisplayMessage(string message) ``{
-          // ok pushbutton: confirm the dialog
-          OpenDialog(
-		     `opt(`decorated),
-		     `HBox(
-			   `HSpacing(1),
-			   `VBox(
-				 `VSpacing(0.2),
-				 `Label(message),
-				 `PushButton(`opt(`default), _("&OK")),
-				 `VSpacing(0.2)
-				 ),
-			   `HSpacing(1)
-			   )
-		     );
-          UserInput();
-          CloseDialog();
-      };
-
-  });
 
   define fileFound( string pathname ) ``{
 
