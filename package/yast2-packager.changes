@@ -1,13 +1,18 @@
 -------------------------------------------------------------------
+Tue Sep 23 16:51:12 CEST 2003 - arvin@suse.de
+
+- fixed media change callback for double sided media
+
+-------------------------------------------------------------------
 Tue Sep 23 12:50:07 CEST 2003 - sh@suse.de
 
-- Fixed bug #31491: No slide show in exotic update case 
+- Fixed bug #31491: No slide show in exotic update case
 
 -------------------------------------------------------------------
 Tue Sep 23 11:36:59 CEST 2003 - sh@suse.de
 
 - V 2.8.24
-- Fixed bug #31606: Undeclared variable in SlideShow.ycp 
+- Fixed bug #31606: Undeclared variable in SlideShow.ycp
 
 -------------------------------------------------------------------
 Sun Sep 21 19:38:02 CEST 2003 - arvin@suse.de
