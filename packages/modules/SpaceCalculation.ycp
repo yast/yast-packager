@@ -307,6 +307,31 @@
     };
 
 
+    /*
+     * get current space data for partitions
+     * current_partitions = list of maps of
+     * $["format":bool, "free":integer, "name" : string, "region" : list, "used" :integer, "used_fs": symbol]
+     * from Storage module
+     * returns list of maps of
+     * $["name" : string, "free" : integer, "used" : integer ]
+     *
+     */
+    global define list CheckCurrentSpace (list current_partitions)
+    ``{
+	list output = [];
+
+	foreach (`par, current_partitions,
+	``{
+	    map outdata = $[];
+	    outdata["name"] = par["name"]:"";
+	    outdata["used"] = Pkg::TargetUsed (Installation::destdir + par["name"]:"");
+	    outdata["free"] = Pkg::TargetCapacity (Installation::destdir + par["name"]:"") - outdata["used"]:0;
+	    output = add (output, eval (outdata));
+	});
+	y2milestone ("CheckCurrentSpace(%1) = %2", current_partitions, output);
+	return output;
+    }
+
     //
     // Popup displays warning about exhausted disk space
     //
@@ -316,9 +341,7 @@
 	{
 	    SpaceCalculation::GetPartitionInfo();
 	}
-	y2milestone ("Pkg::CheckSpace(%1)", partition_info);
-	list p_info = Pkg::CheckSpace (partition_info);
-	if (p_info == nil) p_info = [];
+	list p_info = CheckCurrentSpace (partition_info);
 	integer used = 0;
 
 	y2debug("partition: %1", p_info );
@@ -413,8 +436,7 @@
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
-	y2milestone ("Pkg::CheckSpace(%1)", partition_info);
-	list p_info = Pkg::CheckSpace ( partition_info );
+	list p_info = Pkg::CheckCurrentSpace ( partition_info );
 
 	integer used = 0;
 
