@@ -57,7 +57,7 @@
     global boolean	user_switched_to_details = false;
     global boolean	opened_own_wizard	= false;
     global string	inst_log		= "";
-    global boolean	debug			= false;
+    global boolean	debug			= true;  // FIXME: DEBUG
 
 
 
@@ -190,7 +190,7 @@
 	if ( remaining <  0 )
 	{
 	    // Nothing more to install from this CD (very concise - little space!!)
-	    return _("Done.");
+	    return _( "Done." );
 	}
 	if ( remaining == 0 )
 	{
@@ -204,7 +204,7 @@
     string FormatTotalRemaining()
     {
 	// (Short!) headline for the total remaining time or MBs to install
-	string text = _("Remaining:");
+	string text = _( "Remaining:" );
 	integer remaining =
 	    ListSum( flatten ( unit_is_seconds ?
 			       remaining_times_per_cd_per_src :
@@ -215,7 +215,7 @@
 	if ( remaining < 1 )
 	    return " \n "; // Avoid height changes at this late stage when everything is done
 
-	text = sformat( _("Remaining:\n%1"),
+	text = sformat( _( "Remaining:\n%1" ),
 			unit_is_seconds ?
 			FormatTime( remaining ) :
 			FormatRemaining( remaining ) ) ;
@@ -240,17 +240,20 @@
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
 		// %3: Time remaining until this media will be needed
-		text = sformat( _("Next %1: %2 -- %3"), media_type, next_media_name,
-				remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1);
+		text = sformat( _( "Next %1: %2 -- %3" ), media_type, next_media_name,
+				FormatTime( remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1) );
 	    }
 	    else
 	    {
 		// Status line informing about the next CD that will be used
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
-		text = sformat( _("Next %1: %2"), media_type, next_media_name );
+		text = sformat( _( "Next %1: %2" ), media_type, next_media_name );
 	    }
 	}
+
+	if ( debug )
+	    y2milestone( "FormatNextMedia(): %1", text );
 
 	return text;
     }
@@ -278,22 +281,47 @@
      * Get a list of available slides (images) for the slide show.
      * @return list slides
      **/
-    list<string> GetSlideList()
+    list<string> GetSlideList( string lang )
     {
-	list<string> slide_list = (list<string>) SCR::Read (.target.dir, slide_txt_path);
+	if ( size( lang ) > 2 )
+	    lang = substring( lang, 0, 2 );
+
+	string txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
+	list<string> slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
 
 	if ( slide_list == nil )
 	{
-	    y2milestone( "No slides found at %1", slide_txt_path);
-	    return [];
+	    y2warning( "Directory %1 does not exist", txt_path );
+	}
+	else
+	{
+	    if ( debug )
+		y2milestone( "Slide list at %1 (unfiltered): %2", txt_path, slide_list );
+
+	    slide_list = sort( filter( string filename, slide_list, ``{
+		// Check for valid extensions - ignore editor save files and other leftover stuff
+		return regexpmatch( filename, ".*\.(rtf|RTF|html|HTML|htm|HTM)$" );
+	    } ) );
+
+	    if ( debug )
+		y2milestone( "Slide list at %1 (filtered): %2", txt_path, slide_list );
 	}
 
-	slide_list = sort( filter( string filename, slide_list,
-	``{
-	    // Check for valid extensions - ignore editor save files and other leftover stuff
-	    return regexpmatch( filename, ".*\.(rtf|RTF|html|HTML|htm|HTM)$" );
-	} ) );
-	y2debug( "Slide list: %1", slide_list );
+	if ( slide_list != nil && size( slide_list ) > 0 )	// Slide texts found
+	{
+	    slide_txt_path	= txt_path;
+	    slide_pic_path	= slide_base_path + "/pic";
+	}
+	else							// No slide texts found
+	{
+	    y2milestone( "No slides found at %1", txt_path );
+
+	    if ( lang != "en" )
+	    {
+		y2milestone( "Trying to load slides from fallback: en" );
+		slide_list = GetSlideList( "en" );
+	    }
+	}
 
 	return slide_list;
     }
@@ -348,18 +376,17 @@
      * Check if the slide show is available. This must be called before trying
      * to access any slides; some late initialization is done here.
      **/
-    global boolean CheckForSlides()
+    global void CheckForSlides()
     {
 	slides = [];
 
-	// FIXME: ugly hack
 	map tmp = (map) WFM::Read(.local.stat, slide_base_path);
 	if (! tmp["isdir"]:false)
 	{
 	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
 	}
 
-	if ( debug )
+	if ( debug && false )
 	{
 	    y2milestone( "Debug mode - using faster time recalc values" );
 	    initial_recalc_delay	= 7;
@@ -368,24 +395,22 @@
 	}
 
 
-	if ( Mode::initial || Mode::cont
-	     || true )	// FIXME
+	if ( Mode::initial || Mode::cont )
 	{
 	    if ( HaveSlideSupport() )
 	    {
-		y2debug( "Display OK for slide show" );
+		y2milestone( "Display OK for slide show" );
 
-		slide_txt_path	= slide_base_path + "/txt";
-		slide_pic_path	= slide_base_path + "/pic";
-		slides		= GetSlideList();
+		slides = GetSlideList( language );
+
+		if ( debug )
+		    y2milestone( "Slides: %1", slides );
 	    }
 	    else
 	    {
 		y2warning( "Disabling slide show - insufficient display capabilities" );
 	    }
 	}
-
-
     }
 
 
@@ -472,33 +497,10 @@
     {
 	slide_base_path = dir;
 
-	// FIXME: ugly hack
 	map tmp = (map) WFM::Read (.local.stat, slide_base_path);
 
 	if ( ! tmp["isdir"]:false )
 	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
-    }
-
-
-    /**
-     * Initialize internal pacakge data, such as remaining package sizes and
-     * times. This may not be called before the pkginfo server is up and
-     * running, so this cannot be reliably done from the constructor in all
-     * cases.
-     **/
-    global void InitPkgData()
-    {
-	if ( init_pkg_data_complete )
-	    return;
-
-	total_sizes_per_cd_per_src	= Pkg::PkgMediaSizes();
-	inst_src_names			= Pkg::PkgMediaNames();
-	total_size_to_install		= ListSum( flatten( total_sizes_per_cd_per_src ) );
-	remaining_sizes_per_cd_per_src	= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
-	total_cd_count			= size( flatten( total_sizes_per_cd_per_src ) );
-	init_pkg_data_complete		= true;
-
-	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
     }
 
 
@@ -592,6 +594,11 @@
 	}
 
 	remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = remaining;
+
+	if ( unit_is_seconds && bytes_per_second > 0 )
+	{
+	    remaining_times_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = remaining / bytes_per_second;
+	}
 
 	if ( debug )
 	    y2milestone( "SubtractPackageSize( %1 ) -> %2", pkg_size, remaining_sizes_per_cd_per_src);
@@ -762,7 +769,7 @@
 	{
 	    term item = `item(`id("total"),
 			      // List column header for total remaining MB and time to install
-			      _("Total") );					// column #0
+			      _( "Total" ) );					// column #0
 
 	    integer remaining = ListSum( flatten( remaining_sizes_per_cd_per_src ) );
 	    item = add( item, FormatRemaining( remaining ) );			// column #1
@@ -1002,16 +1009,7 @@
 	string slide_name = slides[slide_no]:"";
 	slide_start_time = time();
 
-	// Try to load a corresponding text file:
-	//
-	// - full length language ISO code ("de_DE")
-	// - short ISO code ("de")
-	// - Fallback: "en"
-	// - no text (only image)
-
-	if ( LoadSlideFile( sformat ("%1/%2/%3", slide_txt_path, language,			slide_name ) ) ) return;
-	if ( LoadSlideFile( sformat ("%1/%2/%3", slide_txt_path, substring( language, 0, 2 ),	slide_name ) ) ) return;
-	if ( LoadSlideFile( sformat ("%1/%2/%3", slide_txt_path, "en",				slide_name ) ) ) return;
+	if ( LoadSlideFile( sformat ("%1/%2", slide_txt_path, slide_name ) ) ) return;
 	SetSlideText ("");
     }
 
@@ -1166,7 +1164,7 @@
 				      )
 				),
 		      `VSpacing( 0.3 ),
-		      `Label(`id(`nextMedia ), `opt( `hstretch), "" )
+		      `Label(`id(`nextMedia ), `opt( `hstretch), FormatNextMedia() )
 		      );
 	}
 	else // No VMultiProgressMeter - use a simpler version (mainly for NCurses UI)
@@ -1179,7 +1177,7 @@
 			    `VWeight( 1, // lower layout priority
 				      page_contents ),
 			    // Progress bar for overall progress of software package installation
-			    `ProgressBar(`id(`progressTotal ), _("Total"),
+			    `ProgressBar(`id(`progressTotal ), _( "Total" ),
 					 total_size_to_install, TotalInstalledSize() )
 			    // intentionally omitting `Label(`nextMedia) -
 			    // too much flicker upon update (UI::RecalcLayout() ) on NCurses
@@ -1224,7 +1222,7 @@
 						`Table( `id(`cdStatisticsTable), `opt(`keepSorting),
 							`header(
 								// Table headings for CD statistics during installation
-								_("Media"), _("Size"), _("Time")
+								_( "Media" ), `Right( _( "Size" ) ), `Right(  _( "Time" ) )
 								),
 							CdStatisticsTableItems()
 							)
@@ -1270,11 +1268,23 @@
 	{
 	    UI::ChangeWidget(`dumbTab, `CurrentItem, `showDetails );
 	    UI::ReplaceWidget(`tabContents, DetailsPageWidgets() );
-	    UpdateTotalProgress();
-	    UpdateAllCdProgress();
 	}
+
+	UpdateTotalProgress();
+	UpdateAllCdProgress();
+
+	if ( UI::WidgetExists( `instLog ) && inst_log != "" )
+	    UI::ChangeWidget(`instLog, `Value, inst_log );
     }
 
+
+    string HelpText()
+    {
+	// Help text while software packages are being installed (displayed only in rare cases)
+	string help_text = _( "<p>Please wait while packages are installed.</p>" );
+
+	return help_text;
+    }
 
 
     void RebuildDialog()
@@ -1284,13 +1294,13 @@
 	term contents = `Empty();
 
 	if ( UI::HasSpecialWidget(`DumbTab) && HaveSlideSupport()
-	     && HaveSlides() )
+	    && HaveSlides() )
 	{
 	    contents =
 		`DumbTab(`id(`dumbTab ),
 			     [
-			      `item(`id(`showSlide   ), _("Slide Sho&w") ),
-			      `item(`id(`showDetails ), _("&Details")	   )
+			      `item(`id(`showSlide   ), _( "Slide Sho&w" ) ),
+			      `item(`id(`showDetails ), _( "&Details" )	   )
 			      ],
 			  `VBox(
 				`VSpacing( 0.4 ),
@@ -1310,15 +1320,15 @@
 	{
 	    contents = DetailsPageWidgets();
 	}
-	// Help text while software packages are being installed (displayed only in rare cases)
-	string help_text = _("<p>Please wait while packages are installed.</p>");
 
 	Wizard::SetContents(
 			    // Dialog heading while software packages are being installed
-			    _("Package Installation"),
+			    _( "Package Installation" ),
 			    contents,
-			    help_text,
+			    HelpText(),
 			    false, false );	// has_back, has_next
+
+	widgets_created = true;
 
 	if ( ! HaveSlides() && ShowingSlide() )
 	    SwitchToDetailsView();
@@ -1338,9 +1348,43 @@
 	    opened_own_wizard = true;
 	}
 
+	UI::WizardCommand(`ProtectNextButton( false ) );
+	Wizard::RestoreBackButton();
+	Wizard::RestoreAbortButton();
+	Wizard::RestoreNextButton();
+
+	Wizard::SetContents(
+			    // Dialog heading while software packages are being installed
+			    _( "Package Installation" ),
+			    `Empty(),		// Wait until InitPkgData() is called from outside
+			    HelpText(),
+			    false, false );	// has_back, has_next
+
 	RebuildDialog();
-	widgets_created = true;
 	Wizard::SetTitleIcon( "software" );
+    }
+
+
+    /**
+     * Initialize internal pacakge data, such as remaining package sizes and
+     * times. This may not be called before the pkginfo server is up and
+     * running, so this cannot be reliably done from the constructor in all
+     * cases.
+     **/
+    global void InitPkgData()
+    {
+	if ( init_pkg_data_complete )
+	    return;
+
+	total_sizes_per_cd_per_src	= Pkg::PkgMediaSizes();
+	inst_src_names			= Pkg::PkgMediaNames();
+	total_size_to_install		= ListSum( flatten( total_sizes_per_cd_per_src ) );
+	remaining_sizes_per_cd_per_src	= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
+	total_cd_count			= size( flatten( total_sizes_per_cd_per_src ) );
+	init_pkg_data_complete		= true;
+
+	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
+	RebuildDialog();
     }
 
 
@@ -1355,7 +1399,7 @@
 	// but since this uses 1..n and we need 0..n-1
 	// for array subscripts anyway, use it as it is.
 	next_cd_no	= current_cd_no;
-	next_src_no	= current_src_no;
+	next_src_no	= current_src_no-1;
 
 	while ( next_src_no < size( remaining_sizes_per_cd_per_src ) )
 	{
