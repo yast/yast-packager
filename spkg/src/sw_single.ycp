@@ -19,7 +19,7 @@
   include "ui/common_functions.ycp";
   include "arch_defines.ycp";
   
-  UI(`CreateWizardDialog());
+  //UI(`CreateWizardDialog());
 
   map user_settings = $[];
 
@@ -171,6 +171,7 @@ do this.</P>"));
 	  
 	  if ( !go_on )
 	  {
+	      /*
 	      any ret = UI(`ContinueCancelPopup(_("No access to source media used on previous installation.
 Continue with choosing new installation source?") ));
 
@@ -184,6 +185,10 @@ Continue with choosing new installation source?") ));
 		  UI(`CloseDialog() );
 		  return `cancel;
 	      }
+	      */
+	      // go to dialog inst_source directly
+	      skip_source = false;
+	      id = 0;
 	  }
 	  else			// mount ok on previos media -> skip inst_source
 	  {
@@ -198,7 +203,12 @@ Continue with choosing new installation source?") ));
       // removing old logging
       SCR(`Execute (.target.bash, "/bin/rm /var/log/y2logRPM*"));
   }
-  
+
+  if ( !skip_source )
+  {
+      UI(`CreateWizardDialog());
+  }
+    
   while ((id >= 0) && (id < size (dialog))) {
 
       if ( symbolof (select( dialog, id )) == `inst_sw_single )
@@ -374,6 +384,11 @@ must NOT be older than the installed one.\n"));
       }
       else
       {
+	  if (  symbolof (select( dialog, id )) == `inst_rpmcopy && skip_source )
+	  {
+	       UI(`CreateWizardDialog());
+	  }
+	  
 	  result = CallFunction( select(dialog, id) );
       }
       y2debug( "RESULT: %1", select(dialog, id), result );
