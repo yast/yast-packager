@@ -14,6 +14,7 @@ Name:         @RPMNAME@
 Release:      1
 Copyright:    (c) 2000 SuSE GmbH
 Group:        unsorted
+Requires:	y2t_spkg
 BuildArchitectures: noarch
 
 Packager:     @MAINTAINER@
