@@ -863,7 +863,7 @@
 		rem_time = FormatTimeShowOverflow( TotalRemainingTime() );
 	    }
 
-	    itemList = add( itemList, TableItem( "total", caption, rem_size, rem_count, rem_time ) );
+	    itemList = add( itemList, TableItem( "total", caption, "   " + rem_size, "   " + rem_count, "   " + rem_time ) );
 	}
 
 
@@ -916,7 +916,7 @@
 
 			itemList = add( itemList,
 					TableItem( sformat("cd(%1,%2)", src_no, cd_no ),	// ID
-						   caption, rem_size, rem_count, rem_time ) );
+						   caption, "   " + rem_size, "   " + rem_count, "   " + rem_time ) );
 		    }
 
 		    cd_no = cd_no + 1;
