@@ -2,6 +2,7 @@
 Thu Sep 12 09:53:57 CEST 2002 - kkaempf@suse.de
 
 - call rewriteUrl correctly (#19501)
+- start package at 0%, end at 100% (#19506)
 
 -------------------------------------------------------------------
 Wed Sep 11 22:46:52 CEST 2002 - kkaempf@suse.de
