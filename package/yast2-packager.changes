@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  3 17:48:13 CET 2004 - nashif@suse.de
+
+- Read product features from new feature module
+
+-------------------------------------------------------------------
 Wed Mar  3 12:56:49 CET 2004 - msvec@suse.cz
 
 - fixed textdomain
