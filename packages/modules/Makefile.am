@@ -8,7 +8,6 @@
 
 module_HEADERS = 			\
 		InstMedia.ycp		\
-		MediaUI.ycp		\
 		Packages.ycp		\
 		SlideShow.ycp		\
 		SlideShowCallbacks.ycp	\
