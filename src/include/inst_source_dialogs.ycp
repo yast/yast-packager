@@ -268,7 +268,7 @@
 	    }
 	}
 	// text entry
-	term wg_widget = `TextEntry( `id( `workgroup), _("Workgroup / Domain"),
+	term wg_widget = `TextEntry( `id( `workgroup), _("Workgroup or Domain"),
 					workgroup);
 	// text entry
 	term share_widget = `TextEntry (`id (`share), _("&Share"), share);
@@ -291,7 +291,7 @@
                                 `RadioButton( `id( `http ), `opt (`notify), _("H&TTP") ),
                                 `HStretch(),
 				// radio button
-                                `RadioButton( `id( `samba ), `opt (`notify), _("&SMB / CIFS") ),
+                                `RadioButton( `id( `samba ), `opt (`notify), _("&SMB/CIFS") ),
                                 `HStretch()
                             )
                         )
@@ -493,7 +493,7 @@
 			/* RadioButton label */
                         `Left( `RadioButton( `id( `http ), "&HTTP" ) ),
 			/* RadioButton label */
-                        `Left( `RadioButton( `id( `samba ), "&SMB / CIFS" ) ),
+                        `Left( `RadioButton( `id( `samba ), "&SMB/CIFS" ) ),
 			/* RadioButton label */
                         `Left( `RadioButton( `id( `nfs ), "&NFS" ) ),
 			/* RadioButton label */
