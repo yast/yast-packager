@@ -1163,7 +1163,8 @@ global string CountSizeToBeInstalled () {
 	// generate user readable output for proposal
 	list output = [];
 
-	if (ProductFeatures::inform_about_suboptimal_distribution)
+	if (ProductFeatures::inform_about_suboptimal_distribution &&
+                Arch::i386 () && issubstring(Product::distproduct, "DVD"))
 	    add_information_about_suboptimal_distribution (output);
 
 	map base_data = Pkg::SelectionData (selected_base_selection);

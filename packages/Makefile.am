@@ -7,9 +7,10 @@ SUBDIRS = modules testsuite
 client_DATA =					\
 	inst_kickoff.ycp			\
 	inst_rpmcopy.ycp			\
+	inst_custom_packages.ycp		\
 	inst_sw_select.ycp			\
 	inst_media.ycp				\
-	inst_mediacopy.ycp				\
+	inst_mediacopy.ycp			\
 	inst_packages.ycp			\
 	media_proposal.ycp			\
 	software_proposal.ycp

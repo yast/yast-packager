@@ -1,0 +1,772 @@
+/**
+ * File:	modules/SourceManager.ycp
+ * Package:	Package Source Management
+ * Summary:	SourceManager settings, input and output functions
+ * Authors:	Anas Nashif <nashif@suse.de>
+ * Status:      Work in Progress
+ *
+ * $Id: SourceManager.ycp,v 1.14 2004/10/26 07:41:14 locilka Exp $
+ *
+ * Representation of the configuration of source-manager.
+ * Input and output routines.
+ */
+
+{
+
+textdomain "packager";
+module "SourceManager";
+
+import "Progress";
+import "Report";
+import "Popup";
+import "Label";
+import "Summary";
+import "Message";
+import "HTML";
+import "SLP";
+import "Arch";
+import "Mode";
+
+
+
+global list<integer> newSources = [];
+
+
+global integer numSources = 0;
+
+    
+global list<integer> sourceStates = [];
+
+global list<map<string,any> > sourceStatesIn = [];
+
+global list<map<string,any> > sourceStatesOut = [];
+
+
+list<map> slp_sources = [];
+
+string pm_init_blocker = "";
+
+global map url_tokens = $[];
+
+global string currentUrl = "";
+
+/**
+ * Prototypes
+ */
+global boolean Modified();
+
+/**
+ * Data was modified?
+ */
+global boolean modified = false;
+
+/**
+ */
+global boolean proposal_valid = false;
+
+/**
+ * Abort function
+ * return boolean return true if abort
+ */
+global boolean AbortFunction() {
+    return false;
+    }
+
+/**
+ * Abort function
+ * @return boolean return true if abort
+ */
+global define boolean Abort() ``{
+    if(AbortFunction != nil)
+    {
+	return AbortFunction () == true;
+    }
+    return false;
+}
+
+/**
+ * Data was modified?
+ * @return true if modified
+ */
+global boolean Modified() {
+    y2debug("modified=%1",modified);
+    //return modified;
+    return (sourceStatesIn != sourceStatesOut);
+}
+
+
+/**
+ * Read all source-manager settings
+ * @return true on success
+ */
+global boolean Read() {
+
+    /* SourceManager read dialog caption */
+    string caption = _("Initializing Available Sources");
+
+    integer steps = 2;
+
+
+    // We do not set help text here, because it was set outside
+    Progress::New( caption, " ", steps, [
+	    /* Progress stage 1/3 */
+	    _("Read  configured Sources"),
+	    /* Progress stage 2/3 */
+	    _("Detect available Sources via SLP")
+	], [
+	    /* Progress step 1/3 */
+	    _("Reading configured sources..."),
+	    /* Progress step 2/3 */
+	    _("Detecting available sources..."),
+	    /* Progress finished */
+	    _("Finished")
+	],
+	""
+    );
+
+    // read database
+    if(Abort()) return false;
+    Progress::NextStage();
+
+    list installed_products = Pkg::TargetProducts ();
+    y2debug("installed products: %1" , installed_products );
+
+    Pkg::SourceStartManager( false );
+    sourceStates = Pkg::SourceStartCache ( false );
+    sourceStatesIn = Pkg::SourceEditGet();
+    sourceStatesOut = sourceStatesIn;
+
+
+    /* Error message */
+    if(false) Report::Error(_("Cannot read Sources."));
+
+    // read another database
+    if(Abort()) return false;
+    Progress::NextStep();
+
+
+    /* Error message */
+    if(false) Report::Error(_("Cannot detect availabe sources."));
+
+    if(Abort()) return false;
+    /* Progress finished */
+    Progress::NextStage();
+
+    slp_sources = SLP::FindSrvs("service:install.suse", "");
+    slp_sources = maplist (map s, slp_sources, ``{
+               s["attr"] = SLP::GetAttrMap(s["srvurl"]:"");
+               return s;
+            });
+
+    slp_sources = filter(map s , slp_sources, 
+            ``(issubstring(s["attr","machine"]:"", Arch::architecture())));
+    
+    y2debug ("slp sources: %1", slp_sources);
+
+    if(Abort()) return false;
+    modified = false;
+    return true;
+}
+
+/**
+ * Commit changed sources
+ */ 
+global boolean CommitSources() {
+    y2debug("In: %1  Out: %2",   sourceStatesIn, sourceStatesOut );
+    boolean success = false;
+    while (true)
+    {
+        success = Pkg::SourceEditSet( sourceStatesOut );
+        if ( !success ) {
+
+            string _msg1 = _("Unable to save changes to source
+                    repository.");
+            string err = Pkg::LastErrorId();
+            string _msg2 = _("Details:") + "\n" + Pkg::LastError();
+            _msg2 = _msg2 + "\nTry again?";
+
+            boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+            if (tryagain )
+                continue;
+            else
+                break;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return success;
+}
+
+/**
+ * Write all source-manager settings
+ * @return true on success
+ */
+global boolean Write() {
+    
+    /* SourceManager read dialog caption */
+    string caption = _("Saving Source Configuration");
+
+    integer steps = 1;
+
+    // We do not set help text here, because it was set outside
+    Progress::New(caption, " ", steps, [
+	    /* Progress stage 1/1 */
+	    _("Write source settings"),
+	], [
+	    /* Progress step 1/1 */
+	    _("Writing the settings..."),
+
+	    /* Progress finished */
+	    _("Finished")
+	],
+	""
+    );
+
+    // write settings
+    if(Abort()) return false;
+   
+    Progress::NextStage();
+    /* Error message */
+
+    boolean exit = CommitSources();
+
+        
+    
+    if(Abort()) return false;
+    /* Progress finished */
+    Progress::NextStage();
+
+    if(Abort()) return false;
+    
+    return exit;
+}
+
+/**
+ * Get all source-manager settings from the first parameter
+ * (For use by autoinstallation.)
+ * @param settings The YCP structure to be imported.
+ * @return boolean True on success
+ */
+global boolean Import (map settings) {
+    return true;
+}
+
+/**
+ * Dump the source-manager settings to a single map
+ * (For use by autoinstallation.)
+ * @return map Dumped settings (later acceptable by Import ())
+ */
+global map Export () {
+    return $[];
+}
+
+
+
+/**
+ * Parse the order file
+ * Used also to parse instorder file
+ * @param orderfile string containing the filename to parse
+ * @return a list containing parsed contents of the file
+ */
+global define list<list<string> > ParseOrderFile (string orderfile) {
+    // read install/order
+    string orderdata = (string) WFM::Read(.local.string, [orderfile, ""]);
+    if (orderdata == "" || orderdata == nil)
+    {
+	y2error ("Can't read '%1'", orderfile);
+	return nil;
+    }
+    list<string> orderlist = splitstring (orderdata, "\n\r");
+    orderlist = filter (string s, orderlist, {return s != "";});
+    list<list<string> > ret = maplist (string line, orderlist, {
+	list<string> lineitems = splitstring (line, " \t\n");
+	lineitems = filter (string i, lineitems, {
+	    return i != "";
+	});
+	// filter out comments
+	if (substring (lineitems[0]:"", 0, 1) == "#")
+	    return [];
+	return lineitems;
+    });
+    ret = filter (list<string> r, ret, {return r != [];});
+    y2milestone ("Parsed %1: %2", orderfile, ret);
+    return ret;
+}
+
+/**
+ * Parse the instorder file
+ * @param instorderfile string containing the filename to parse
+ * @return a map containing parsed data from instorder file
+ */
+global define map<integer, string> ParseInstOrderFile (string instorderfile) {
+    map<integer, string> instordermap = $[];	// instorder : product dir, ...
+    y2milestone ("instorder file '%1'", instorderfile);
+    list<list<string> > instorderlines = ParseOrderFile (instorderfile);
+    integer instorder = 1;
+    foreach (list<string> line, instorderlines, {
+	// Due to documentation mistake, instorder might
+	// have 2 columns, get only first column.
+	//
+	// just in case more spaces are used as delimiter,
+	// remove all remaining spaces from the list
+	//
+	instordermap[instorder] = line[0]:"";
+	instorder = instorder + 1;
+    });
+    y2milestone ("instordermap %1", instordermap);
+    return instordermap;
+}
+
+
+
+
+/**
+ * Get Source ID by index 
+ */
+global integer GetSrcIdByIndex(integer idx)   {
+    
+    integer SrcId = sourceStatesOut[idx, "SrcId"]:-1;
+  
+    return SrcId;
+}
+
+/**
+ * Set current used source URL by index 
+ */
+global void SetUrlByIndex(integer idx)   {
+    
+    integer SrcId = sourceStatesOut[idx, "SrcId"]:-1;
+    currentUrl = Pkg::SourceGeneralData(SrcId)["url"]:"";
+    return;
+}
+
+
+/**
+ * Get Source ID when only URL is known 
+ */
+global define integer getSourceId( string url )
+    {
+    
+    numSources = size( sourceStatesOut );
+    integer i = 0;
+    integer id = -1;
+    while ( i < numSources )
+    {
+	map generalData = Pkg::SourceGeneralData(sourceStatesOut[i, "SrcId"]:-1 );
+	if ( generalData[ "url" ]:"" == url )
+	{
+	    id = sourceStatesOut[i, "SrcId"]:-1;
+	    break;
+	}        
+    }
+    
+    return id;
+}
+
+
+/**
+ * Create a Source from an URL
+ */
+global symbol createSource( string url ) {
+    
+    if ( url != "" )
+    {
+	if (!Mode::commandline())
+	{
+	    // Popup::Message( sformat( "URL: %1", url ) );
+	    UI::OpenDialog(
+			   `VBox(
+				 `VSpacing( 0.2 ),
+				 `Label( _("Adding installation source...") ),
+				 `VSpacing( 0.2 )
+				 )
+			   );
+	}
+	newSources = Pkg::SourceScan( url, "" );
+
+	if (!Mode::commandline())	
+	    UI::CloseDialog();
+
+	
+	if ( size( newSources ) == 0  )
+	{
+	    string _msg1 = sformat( _("Unable to create installation source
+from URL '%1'."), url );
+	    string err = Pkg::LastErrorId();
+	    string _msg2 = "";
+	    if ( err != "ok" ) {
+		if ( err == "instsrc_duplicate" )
+		    _msg2 = _("A source for this product already exists.");
+		else
+		    _msg2 = _("Details:") + "\n" + Pkg::LastError();
+	    }
+	    _msg2 = _msg2 + "\nTry again?";
+
+	    boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+	    if ( tryagain ) return `again;
+	    else return `cancel;
+	}
+	else
+	{
+	    list<integer> ul_sources = filter (integer s, newSources, {
+		map src_data = Pkg::SourceGeneralData (s);
+		string src_type = src_data["type"]:"";
+		return src_type == "UnitedLinux";
+	    });
+	    if (size (ul_sources) == 0)
+	    {
+		if (! Popup::AnyQuestion (
+					  Popup::NoHeadline (),
+// continue-back popup
+					  _("There is no product information available at the given location.
+If you expected to address a product, return back and enter
+the correct location.
+To make rpm packages located at the specified location available
+in the packages selection, continue."),
+					  Label::ContinueButton (),
+					  Label::BackButton (),
+					  `focus_yes))
+		{
+		    return `again;
+		}
+	    }
+	    foreach( integer id, newSources, ``{
+		map<string, any> sourceState = $[ "SrcId": id, "enabled": true ];
+		sourceStatesOut = add( sourceStatesOut, sourceState ); 
+	    } );
+	    return `ok;
+	}
+    }
+    return `cancel;
+}
+
+/**
+ * Delete Source by Source ID
+ */
+global void deleteSourceBySrcId( integer SrcId )   {
+
+    y2debug("removing source: %1 %2", SrcId,   sourceStatesOut );
+    numSources = size( sourceStatesOut );
+    integer i = 0;
+    
+    while ( i < numSources )
+    {
+
+	if ( sourceStatesOut[i, "SrcId"]:-1 == SrcId )
+	{	    
+	    sourceStatesOut = remove( sourceStatesOut, i );
+	    break;
+	}        
+    }
+    return;
+    
+}
+
+
+/**
+ * Delete Source by Source Index
+ */
+global void deleteSourceByIndex (integer idx ) {
+    
+    sourceStatesOut = remove( sourceStatesOut, idx );
+    return;
+}
+    
+/**
+ * Delete Source by Source URL
+ */
+global void deleteSourceByUrl (string url ) {
+    deleteSourceBySrcId(getSourceId(url));    
+    return;
+}
+
+/**
+ * Create Summary Item
+ */
+define string createItem( integer index, map source ) {
+    integer id = source[ "SrcId" ]:0;
+    map generalData = Pkg::SourceGeneralData( id );
+    map productData = Pkg::SourceProductData( id );
+    string sitem = "";
+    string status = source[ "enabled" ]:true ? _("Enabled") : _("Disabled");
+    string color = source[ "enabled" ]:true ? "#006600" : "#FF0000";
+    sitem = sitem + HTML::Colorize("["+status+"] ",
+            color);
+    sitem = sitem + productData[ "label" ]:"unknown";
+    sitem = sitem + " ( " + generalData[ "url" ]:"" + ")";
+    return sitem;
+}
+
+
+/**
+ * Create Source Item for Overview
+ */
+define term  createOverviewItem( integer index, map source ) {
+    integer id = source[ "SrcId" ]:0;
+    map generalData = Pkg::SourceGeneralData( id );
+    map productData = Pkg::SourceProductData( id );
+      
+
+    term item = `item(
+		      `id(index ),
+		      // corresponds to the "Enable/Disable" button
+		      source[ "enabled" ]:true ? _("On") : _("Off"),
+		      productData[ "label" ]:"unknown",
+		      generalData[ "url" ]:""
+		      );    
+   
+    return item;
+}
+
+
+/**
+ * Handle Multiple source URLs (order/instorder)
+ */ 
+boolean HandleMultipleSources( string url )	{
+
+    boolean metadir_used = false;
+    list<string> theSourceDirectories = [];
+    map<integer,integer> theSourceOrder = $[];
+
+    list theSources=[];
+    string tmpdir = (string) SCR::Read(.target.tmpdir );
+    string metadir = tmpdir + "/yast-install";
+
+
+    Pkg::SourceStartManager( false );
+    integer initial_source = Pkg::SourceScan(url, "")[0]:nil;
+    if (initial_source == nil)
+    {
+        y2error ("No source on '%1'", url);
+        return false;
+    }
+
+
+    string orderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/order");
+    y2milestone("orderfile: %1", orderfile);
+    list<list<string> > orderlist = [];
+    map<integer, string > instordermap = $[];	// instorder : product dir, ...
+
+    if (orderfile != nil)			// splitted source installation
+    {
+        y2milestone ("orderfile '%1'", orderfile);
+        orderlist = SourceManager::ParseOrderFile (orderfile);
+        if (orderlist == nil)
+        {
+            y2error ("Can't read '%1'", orderfile);
+            // error in proposal, %1 is filename
+            SourceManager::pm_init_blocker = sformat (
+                    _("Cannot read '%1' from the installation media."),
+                    orderfile);
+            return false;
+        }
+
+        string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
+
+        if (instorderfile != nil)
+            instordermap = SourceManager::ParseInstOrderFile (instorderfile);
+    }
+
+
+    if (size(orderlist) > 0 )
+    {
+        // setup slidedir
+        map productmap = Pkg::SourceProductData (initial_source);
+
+        string datadir = productmap["datadir"]:"suse";
+
+
+        WFM::Execute (.local.mkdir, metadir);
+        boolean all_sources_ok = true;
+
+        orderlist = filter (list<string> sourcelist, orderlist, {		// copy all data to ramdisk
+                // just in case more spaces are used as delimiter,
+                // remove all remaining spaces from the list
+                //
+                sourcelist = filter(string src, sourcelist,
+                    ``(src!=""));
+
+                string orderdir = sourcelist[0]:"";
+                string pkgdir = sourcelist[1]:"/";
+
+                string localdir = metadir+"/"+orderdir;
+                WFM::Execute (.local.mkdir, localdir);
+
+                y2milestone ("Filling %1", localdir);
+
+                // media.1
+
+                datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/media.1");
+                if (datadir != nil)
+                {
+                WFM::Execute (.local.mkdir, localdir+"/media.1");
+                WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " + localdir+"/media.1");
+                }
+                else
+                {
+                    y2error ("media doesn't provide %1", orderdir + "/media.1");
+                    if (Popup::AnyQuestion (
+                                //				Popup::NoHeadline(),
+                                _("Reading Media Description Failed"),
+                                sformat (
+                                    _("Cannot read media description for %1.
+                                        Packages from this media cannot be installed."), orderdir),
+                                Label::IgnoreButton (),
+                                Label::AbortButton (),
+                                `cancel))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        all_sources_ok = false;
+                    }
+                }
+
+                // content
+
+                datadir = Pkg::SourceProvideFile (initial_source, 1, orderdir+"/content");
+                WFM::Execute (.local.bash, "/bin/cp " + datadir + " " + localdir + "/content");
+
+                // DESCRDIR
+
+                WFM::Execute (.local.bash, "/bin/grep DESCRDIR " + localdir + "/content > " + tmpdir + "/descrdir");
+                string descrline = (string) WFM::Read (.local.string, tmpdir + "/descrdir");
+                list<string> descrsplit = splitstring (descrline, " \t\n");
+                string descrdir = descrsplit[1]:"";
+                if (size (descrdir) > 0)
+                {
+                    y2milestone ("descrdir %1", descrdir);
+                    WFM::Execute (.local.mkdir, localdir+"/"+descrdir);
+                    datadir = Pkg::SourceProvideDir (initial_source, 1, orderdir+"/"+descrdir);
+                    if (datadir != nil)
+                    {
+                        WFM::Execute (.local.bash, "/bin/cp " + datadir + "/* " +localdir+"/"+descrdir);
+                    }
+                }
+                return true;
+        });
+
+
+
+        // ok, all data copied from the install media, release and delete it
+
+        Pkg::SourceDelete (initial_source);
+
+
+        metadir_used = true;
+
+        // cancel initialization if some of the source is missing
+        if (! all_sources_ok)
+        {
+            y2error ("Unable to initialize all installation sources");
+            SourceManager::pm_init_blocker
+                // error in proposal
+                = _("Unable to initialize all installation sources");
+            return false;
+        }
+
+        // Add service pack as the first source if it exists:
+        integer instordersp = 0;
+
+
+        // now restart the whole stuff from the metadata in the ramdisk and create
+        // the *real* sources
+
+        foreach (list<string> sourcelist, orderlist, {
+                string orderdir = sourcelist[0]:"";
+                string pkgdir = sourcelist[1]:"";
+
+                string meta_url = "dir://"+metadir+"/" + orderdir;
+                list<integer> order_source_list = Pkg::SourceScan (meta_url, "");		// create and enable source
+                integer order_source = order_source_list[0]:-1;
+                y2milestone ("order_source %1, temp_url '%2'", order_source, meta_url);
+
+                if (order_source != nil)
+                {
+                theSources = add (theSources, order_source);
+                theSourceDirectories = add (theSourceDirectories, orderdir);
+
+                /*
+                if (find (pkgdir, ":") > 0)					// if second column of yast/order contains ":"
+                {
+                base_url = pkgdir;					// then take as URL
+                }
+                else
+                {
+                base_url = InstURL::installInf2Url (pkgdir);		// else take as sub-dir
+                }
+                */
+                    Pkg::SourceChangeUrl (order_source, url + "/" + pkgdir);		// rewrite URL for *real* source
+
+                // now find this source in the instorder map and fill
+                // the global 'theSourceOrder'
+
+                foreach (integer keysp, string value, instordermap, {
+                        integer key = keysp +  instordersp;
+                        if (value == orderdir)
+                        {
+                        theSourceOrder[key] = order_source;
+                        }
+                        });
+                }
+        });
+        y2milestone ("theSourceOrder %1", theSourceOrder);
+        Pkg::SourceInstallOrder (theSourceOrder);
+    }
+    else		// normal media installation
+    {
+        y2milestone ("No order file, doing single source installation");
+        return false;
+    }
+}   
+
+
+/**
+ * Create a textual summary and a list of unconfigured cards
+ * @return summary of the current configuration
+ */
+global list Summary() {
+
+    string summary = "";
+    summary = Summary::AddHeader(summary, _("Configured Sources"));
+    summary = Summary::OpenList(summary);
+    numSources = size( sourceStatesOut );
+    integer i = 0;
+    while ( i < numSources ) {
+       summary = Summary::AddListItem(summary,createItem(i, sourceStatesOut[ i ]:$[]));
+        i = i + 1;
+    }
+    summary = Summary::CloseList(summary);
+
+
+  
+    list unconf = maplist(map s, slp_sources, ``{
+	string id = substring(s["srvurl"]:"", 21);
+	y2debug("source url : %1", id );
+	return(`item(`id(id), s["attr", "label"]:_("Unknown") + _(" On ") + s["pcHost"]:""));
+    });   
+
+    return [summary, unconf ];
+}
+
+/**
+ * Create an overview table with all configured cards
+ * @return table items
+ */
+global list Overview() {
+    numSources = size( sourceStatesOut );
+    integer i = 0;
+    list source_overview = [];
+    while ( i < numSources ) {
+	source_overview = add(source_overview,
+                createOverviewItem(i, sourceStatesOut[ i ]:$[] ));
+        i = i + 1;
+    }
+    return source_overview;
+}
+
+/* EOF */
+}
