@@ -20,7 +20,6 @@ Manual: 0
 Demo: 0
 UpdateDir: /linux/suse/x86_64-8.2
 YaST2update: 0
-YaST2serial: 0
 Textmode: 1
 MemFree: 426620
 VNC: 0
