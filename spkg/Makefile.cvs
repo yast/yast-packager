@@ -7,7 +7,6 @@ configure: all
 all:
 	aclocal
 	autoconf
-	autoheader
 	automake -a
 
 install: configure
