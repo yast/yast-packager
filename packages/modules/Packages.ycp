@@ -16,6 +16,7 @@
     import "Installation";
     import "SpaceCalculation";
     import "Report";
+	import "InstMedia";
 
     textdomain "packager";
 
@@ -525,7 +526,7 @@
 	if ( Mode::test )
 	{
 	    // Fake values for testing purposes
-	    base_url = "dir:///dist/next-i386";	   
+	    base_url = "dir:///dist/next-i386";
 	}
 	else
 	{
@@ -535,7 +536,7 @@
 	if (Mode::initial)
 	{
 	    y2milestone ("Initialize Package Manager: %1", base_url);
-	    theSources = [ Pkg::SourceCreate (base_url) ];	    
+	    theSources = [ Pkg::SourceCreate (base_url) ];
 	}
 	else	// cont or normal mode
 	{
