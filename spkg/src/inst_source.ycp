@@ -361,10 +361,12 @@ to specify username, password and workgroup.") ),
 from URL '%1'."), url );
                 string err = Pkg::ErrorId();
                 string _msg2 = "";
-                if ( err == "instsrc_duplicate" )
-                    _msg2 = _("A source with the same product already exists.");
-                else
-                    _msg2 = _("Details:") + "\n" + Pkg::Error();
+                if ( err != "ok" ) {
+                    if ( err == "instsrc_duplicate" )
+                        _msg2 = _("A source with the same product already exists.");
+                    else
+                        _msg2 = _("Details:") + "\n" + Pkg::Error();
+                }
                 UI::ErrorPopup( _msg1 + "\n" + _msg2 );
             }
             else
