@@ -16,6 +16,7 @@
     import "Update";
     import "Popup";
     import "Directory";
+    import "ModuleLoading";
 
 
     /**
@@ -230,6 +231,39 @@
     }
 
 
+    /**
+     *  Load all network modules.  The package sysconfig requires this during
+     *  update.
+     */
+    define void load_network_modules ()
+    {
+	list <map> cards = (list <map>) SCR::Read (.probe.netcard);
+
+	foreach (map card, cards,
+	{
+	    list <map> drivers = card["drivers"]:[];
+
+	    boolean one_active = false;
+
+	    foreach (map driver, drivers,
+	    {
+		if (driver["active"]:false)
+		    one_active = true;
+	    });
+
+	    if (!one_active)
+	    {
+		map driver = drivers[0]:$[];
+		list <string> modules = driver["modules"]:[];
+
+		if (modules[0]:"" != "")
+		    ModuleLoading::Load (modules[0]:"", "", "Linux", "",
+					 Mode::manual, true);
+	    }
+	});
+    }
+
+
     if (!Mode::update)
     {
 	// make some directories
@@ -240,6 +274,7 @@
 	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir + "/etc");
 	SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir + "/etc");
 
+	// fake mtab
 	fake_mtab ();
     }
     else
@@ -264,6 +299,9 @@
 
 	// update inittab
 	update_inittab ();
+
+	// load all network modules
+	load_network_modules ();
     }
 
     return `next;
