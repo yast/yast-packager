@@ -288,6 +288,13 @@ Select which desktop to install.</p>
         {
             selection_list  =  Pkg::GetSelections( `available, "laptop");
         }
+
+        if (size(ProductFeatures::addon_selections) > 0 &&
+                ProductFeatures::addon_selections!=nil)
+        {
+            selection_list=(list<string>)union(selection_list, 
+                    ProductFeatures::addon_selections );
+        }
         return selection_list;
     }
 
@@ -1019,7 +1026,13 @@ ask your system administrator.
 		if (Arch::has_pcmcia ())
 		{
 		    selected_addon_selections = (list<string>)union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
-		}
+                }
+                if (size(ProductFeatures::addon_selections) > 0 &&
+                        ProductFeatures::addon_selections!=nil)
+                {
+                    selected_addon_selections=(list<string>)union(selected_addon_selections, 
+                            ProductFeatures::addon_selections );
+                }
 	    }
 	}
 	else
