@@ -428,7 +428,7 @@
 			    // tested at least once before shipping ...
 			    // (not marking as translatable on purpose !)
 			    return $[ "warning" : "No base selection available",
-				   warning_level : `blocker ];
+				   "warning_level" : `blocker ];
 
 			}
 		    }
