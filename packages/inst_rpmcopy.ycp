@@ -21,6 +21,7 @@
 
     import "AutoInstall";
     import "Mode";
+    import "Stage";
     import "Installation";
     import "Language";
     import "PackageInstallation";

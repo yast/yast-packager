@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 09 14:41:11 CET 2004 - arvin@suse.de
+
+- added missing imports
+
+-------------------------------------------------------------------
 Wed Nov 03 15:07:06 CET 2004 - arvin@suse.de
 
 - fixed return type of SourceChange
