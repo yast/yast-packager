@@ -10,3 +10,4 @@
 # foreach file, call ycp-run (from testsuite/lib)
 
 #foreach file $filenames { ycp-run $file }
+exit 0
