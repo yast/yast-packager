@@ -130,7 +130,7 @@ from URL '%1'."), url );
 	      `HBox(
 		    `VBox(
 			  `HWeight( 1,
-				    `MenuButton(  `opt(`hstretch), _("&Add"),[
+				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
                                                   `item(`id(`ftp),       _("&FTP...") ),
                                                   `item(`id(`http),      _("&HTTP...") ),
                                                   `item(`id(`samba),     _("&Samba...") ),
@@ -140,17 +140,17 @@ from URL '%1'."), url );
                                                   `item(`id(`local_dir), _("&Local Directory...") )
                                                 ] )
                     ),
-					`MenuButton(  `opt(`hstretch), _("&Edit"),[
+					`MenuButton(  `opt(`hstretch, `key_F4), _("&Edit"),[
 												  `item(`id(`replace), replaceButtonLabel ),
 												  `item(`id(`refresh), refreshButtonLabel )
 												]),
-                    `HWeight( 1, `PushButton( `id(`delete), `opt(`hstretch),  deleteButtonLabel ) )
+                    `HWeight( 1, `PushButton( `id(`delete), `opt(`hstretch, `key_F5),  deleteButtonLabel ) )
                 ),
                 `HSpacing( 10 ),
                 `VBox(
                     `HWeight( 1, `PushButton( `id(`up), `opt(`hstretch),  upButtonLabel ) ),
                     `HWeight( 1, `PushButton( `id(`down), `opt(`hstretch),  downButtonLabel ) ),
-                    `PushButton(`id(`enable), `opt(`hstretch),  enableButtonLabel )
+                    `PushButton(`id(`enable), `opt(`hstretch, `key_F6),  enableButtonLabel )
                 ),
                 `VSpacing( 0.5 )
             )
