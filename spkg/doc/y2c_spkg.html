@@ -1,0 +1,65 @@
+<html>
+<head>
+<title>YaST2 - Package-Installation</title>
+</head>
+
+<body bgcolor="white">
+<h1>YaST2 - Package-Installation</h1>
+
+<h2>Overview</h2>
+<p>Package-installation is a module for installing and deleting packages in the
+running system. There are two kinds of using this module:
+
+<ul type="circle">
+<li><a href="#manually">Manually package-selection and package-installation</a></li>
+<li><a href="#automatically">Automatically package-selection and package-installation</a>
+</ul>
+
+<hr>
+
+<a name="manually"></a>
+<h3>Manually package-selection</h3>
+
+<ul type="circle">
+<p>In this case the workflow is started with the
+<i>package-single-selection</i>. The user can select or deleselct packages
+which have to be installed or deleted. After he has confirmed the selection the
+packages will be installed or deleted and <i>SuSEConfig </i> will be started.
+<p><b>Module call:</b>
+<p><i>yast2 sw_single<i>
+</ul>
+
+<a name="automatically"></a>
+<h3>Automatically package-selection</h3>
+
+<ul type="circle">
+<p>In this case the workflow is started with a pre-selected number of packages
+which have been defined in an ascii-file ( YCP-format ). This packages will be
+installed or deleted automatically after resolving the
+dependencies. <i>SuSEConfig </i> will be started at least.
+<p><b>Module call:</b>
+<p><i>yast2 sw_single '"filename"'</i>
+<p>
+<p><i>filename</i> is path on an ascii-file, where packages are defined
+for installation or deinstalltion.
+<p><b>Example of description file:</b>
+<p>$["userInput":true,
+"install":["tuxeyes","xroach"],
+"delete":["xlock"]]
+<p>
+<p><i>userInput</i>: If <i>userInput</i> is <i>true</i> the user can change the
+packages which have been pre-selected by calling the module
+<i>package-single-selection</i>. If it is <i>false</i>
+<i>package-single-selection</i> will be called if a package-confilct has been occured ( default is <i>false</i> ).
+<p><i>install</i>: Defines a list of packages, which have to be installed.
+<p><i>delete</i>: Defines a list of packages, which have to be deleted.
+</ul>
+
+<hr>
+<address><a href="mailto:schubi@suse.de">Stefan Schubert</a></address>
+<!-- Created: Tue Sep 26 10:15:19 CET 2000 -->
+<!-- hhmts start -->
+Last modified: Tue Sep 26 10:15:19 CET 2000
+<!-- hhmts end -->
+</body>
+</html>
