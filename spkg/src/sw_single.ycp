@@ -256,29 +256,7 @@ do this.</P>"));
 
   string default_language = "en";
 
-  map lang2yast1 = $[
-		     "en_GB"    : "english",
-		     "en_US"    : "english",
-		     "en"	 : "english",
-		     "de_DE"    : "german",
-		     "de_CH"    : "german",
-		     "de" 	 : "german",
-		     "br_FR"    : "french",
-		     "fr_FR"    : "french",
-		     "fr_CH"    : "french",
-		     "fr"       : "french",
-		     "it_IT"    : "italian",
-		     "es_ES"    : "spanish",
-		     "nl_NL"    : "dutch",
-		     "pt_PT"    : "portuguese",
-		     "pt_BR"    : "brazilian",
-		     "hu_HU"    : "hungarian",
-		     "pl_PL"    : "polish",
-		     "el_GR"    : "greek",
-		     "ru_RU.KOI8-R" : "russian",
-		     "cs_CZ"    : "czech",
-		     "sk_SK"    : "slovak"
-  ];
+  map lang2yast1 = ReadY2("lang2yast1.ycp");
 
   string  long_language 	= lookup(lang2yast1, language, "english");
   
