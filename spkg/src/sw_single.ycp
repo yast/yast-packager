@@ -148,7 +148,7 @@ do this.</P>"));
       y2debug("SW_SINGLE: POSTFIX: %1", postfix );
 
       // if sw_single is called with an absolut package-pathname, there is no need to
-      // mount the source media or check SuSE version or depemdendies
+      // mount the source medium or check SuSE version or depemdendies
       
       if ( postfix == ".rpm" )
       {
@@ -172,7 +172,7 @@ do this.</P>"));
 	      //return `cancel;
 	  }  
       }
-      else		// try to mount source media
+      else		// try to mount source medium
       {
 	  boolean go_on = ChangeCD( 1,			// CD number 1
 				    false );		// don't show popup "Please insert CD 1" 
@@ -194,7 +194,7 @@ do this.</P>"));
 		  id = 0;
 	      }
 	  }
-	  else			// mount ok on previos media -> skip inst_source
+	  else			// mount ok on previos medium -> skip inst_source
 	  {
 	      skip_source = true;
 	      id = id + 1;
