@@ -275,7 +275,7 @@ must NOT be older than the installed one.\n"));
 	  if ( size(Args() ) > 0 && Args(0) != "beginner" && Args(0) != .test )
 	  {
 	      string pathname = Args(0);
-	      map|any installMap = $[];
+	      map installMap = $[];
 	      
 	      if ( !fileFound(pathname) )
 	      {
