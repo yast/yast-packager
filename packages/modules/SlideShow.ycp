@@ -1279,6 +1279,7 @@
 
     void RebuildDialog()
     {
+	if ( ! SanityCheck( false ) )	return;
 
 	term contents = `Empty();
 
@@ -1315,9 +1316,9 @@
 	Wizard::SetContents(
 			    // Dialog heading while software packages are being installed
 			    _( "Package Installation" ),
-			     contents,
+			    contents,
 			    help_text,
-			     false, false );	// has_back, has_next
+			    false, false );	// has_back, has_next
 
 	if ( ! HaveSlides() && ShowingSlide() )
 	    SwitchToDetailsView();
