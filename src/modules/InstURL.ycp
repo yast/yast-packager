@@ -138,11 +138,6 @@
 	    string username = Linuxrc::InstallInf("Username");
 	    if ((username != nil) && (username != ""))
 	    {
-		string workgroup = Linuxrc::InstallInf ("WorkDomain");
-		if (workgroup != nil && workgroup != "")
-		{
-		    username = sformat ("%1;%2", workgroup, username);
-		}
                 url_tokens["user"] = username;
 		string password = Linuxrc::InstallInf("Password");
 		if ((password != nil) && (password != ""))
@@ -258,6 +253,11 @@
 	    if ((proxypassword != nil) && (proxypassword != ""))
 	    {
 		url = url + ";proxypassword=" + proxypassword;
+	    }
+	    string workgroup = Linuxrc::InstallInf ("WorkDomain");
+	    if (workgroup != nil && workgroup != "")
+	    {
+		url = url + ";workgroup=" + workgroup;
 	    }
 	} // is_network
 
