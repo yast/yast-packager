@@ -40,6 +40,7 @@
     global integer	current_cd_no		= -1;	// 1..n
     global integer	next_src_no		= -1;
     global integer	next_cd_no		= -1;
+    global boolean	last_cd			= false;
     global integer	total_cd_count		= 0;
     global boolean	unit_is_seconds		= false;	// begin with package sizes
     global integer	bytes_per_second	= 1;
@@ -1051,10 +1052,11 @@
 	{
 	    string nextMedia = FormatNextMedia();
 
-	    if ( nextMedia != "" )
+	    if ( nextMedia != "" || last_cd )
 	    {
 		UI::ChangeWidget(`nextMedia, `Value, nextMedia );
 		UI::RecalcLayout();
+		last_cd = false;
 	    }
 	}
 
@@ -1496,6 +1498,7 @@
 	// for array subscripts anyway, use it as it is.
 	next_cd_no	= current_cd_no;
 	next_src_no	= current_src_no-1;
+	last_cd		= false;
 
 	while ( next_src_no < size( remaining_sizes_per_cd_per_src ) )
 	{
@@ -1523,6 +1526,7 @@
 
 	next_src_no	= -1;
 	next_cd_no	= -1;
+	last_cd		= true;
     }
 
 
