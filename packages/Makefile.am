@@ -2,7 +2,7 @@
 # Makefile.am for y2m_inst/ycp/packages
 #
 
-SUBDIRS = include modules testsuite
+SUBDIRS = modules testsuite
 
 client_DATA = \
 	inst_rpmcopy.ycp			\
