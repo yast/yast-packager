@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  5 17:54:51 CET 2003 - kkaempf@suse.de
+
+- fallback to "k_deflt" if real kernel not available (#16047)
+
+-------------------------------------------------------------------
 Tue Mar  4 18:09:11 CET 2003 - kkaempf@suse.de
 
 - use new state checking functions to decide if the user has
