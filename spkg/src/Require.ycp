@@ -1,4 +1,5 @@
 /**
+ * Module: Require
  * Summary:
  *   Provide installation on demand.
  * Authors:
@@ -178,7 +179,7 @@
      * @param packages list of packages
      * @return true/false
      */
-    global define boolean IsAnyPackageInstalledPkg (list(string) packages) ``{
+    define boolean IsAnyPackageInstalledPkg (list(string) packages) ``{
 	string which = find(`p, packages, ``{ return IsPackageInstalledPkg (p); });
 	return which != nil;
     }
@@ -190,7 +191,7 @@
      * @param packages list of packages
      * @return true/false
      */
-    global define boolean IsAnyPackageInstalledAI (list(string) packages) ``{
+    define boolean IsAnyPackageInstalledAI (list(string) packages) ``{
 	string which = find(`p, packages, ``{ return IsPackageInstalledAI (p); });
 	return which != nil;
     }
