@@ -23,6 +23,7 @@
     import "Mode";
     import "Stage";
     import "Installation";
+    import "Directory";
     import "Language";
     import "PackageInstallation";
     import "Packages";
@@ -48,7 +49,7 @@
 
     SlideShow::OpenSlideShowDialog ();
 
-    Pkg::TargetLogfile (Installation::destdir + "/var/log/YaST2/y2logRPM");
+    Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
 
     if  (Mode::autoinst ()

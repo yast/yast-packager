@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov 11 18:10:09 CET 2004 - arvin@suse.de
+
+- always use Directory::logdir
+
+-------------------------------------------------------------------
 Tue Nov 09 14:41:11 CET 2004 - arvin@suse.de
 
 - added missing imports

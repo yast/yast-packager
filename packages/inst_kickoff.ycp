@@ -90,7 +90,7 @@
 	{
 	    string date = timestring ("%Y%m%d", time(), false);
 
-	    y2milestone ("backup of /var/log/YaST2");
+	    y2milestone ("backup of " + Directory::logdir);
 
 	    string filename = "";
 	    integer num = 0;
@@ -108,10 +108,10 @@
 			      " ; /bin/tar czf " + Installation::destdir +
 			      filename + " " + "var/log/YaST2") != 0)
 	    {
-		y2error ("backup of %1 to %2 failed", "/var/log/YaST2", filename);
+		y2error ("backup of %1 to %2 failed", Directory::logdir, filename);
 		// an error popup
 		Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
-				       "/var/log/YaST2", "/var/log/YaST2/y2log"));
+				       Directory::logdir, Directory::logdir + "/y2log"));
 	    }
 	    else
 	    {
@@ -147,7 +147,7 @@
 		    y2error ("backup of %1 to %2 failed", "/etc/sysconfig", filename);
 		    // an error popup
 		    Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
-					   "/etc/sysconfig", "/var/log/YaST2/y2log"));
+					   "/etc/sysconfig", Directory::logdir + "/y2log"));
 		}
 	    }
 	    else if (SCR::Read (.target.size, Installation::destdir + "/etc/rc.config") > 0 &&
@@ -175,7 +175,7 @@
 		    y2error ("backup of %1 to %2 failed", "/etc/rc.config", filename);
 		    // an error popup
 		    Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
-					   "/etc/rc.config", "/var/log/YaST2/y2log"));
+					   "/etc/rc.config", Directory::logdir + "/y2log"));
 		}
 	    }
 	}
@@ -267,7 +267,7 @@
     {
 	// make some directories
 	SCR::Execute(.target.mkdir, Installation::destdir + "/etc");
-	SCR::Execute(.target.mkdir, Installation::destdir + "/var/log/YaST2");
+	SCR::Execute(.target.mkdir, Installation::destdir + Directory::logdir);
 
 	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
 	SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir + "/etc");
@@ -279,7 +279,7 @@
     else
     {
 	// make some directories
-	SCR::Execute (.target.mkdir, Installation::destdir + "/var/log/YaST2");
+	SCR::Execute (.target.mkdir, Installation::destdir + Directory::logdir);
 	SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);
 
 	// backup some stuff

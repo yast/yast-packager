@@ -12,6 +12,7 @@
     import "Report";
     import "Mode";
     import "Installation";
+    import "Directory";
     import "Version";
     import "SpaceCalculation";
     import "Packages";
@@ -140,7 +141,7 @@
 	if (size (errpacks) > 0)
 	{
 	    string full_log = (string) SCR::Read (.target.string, Installation::destdir +
-						  "/var/log/YaST2/y2logRPM");
+						  Directory::logdir + "/y2logRPM");
 	    ShowFailedPackages (mergestring (errpacks, "\n"), full_log);
 	}
 
