@@ -20,6 +20,11 @@
     global boolean is_network = true;
 
     
+    /**
+     * Hide Password
+     * @param url original URL
+     * @return string new URL with hidden password
+     */
     global string  HidePassword(string url) {
         map t = URL::Parse(url);
         if (size(t["pass"]:"") > 0 )
@@ -28,7 +33,78 @@
         }
         return URL::Build(t);
     }
+
+    /**
+     * Get device options for CD/DVD
+     * @return string device options (devices=/dev/cdrom)
+     */
+    string GetDevicesOption() {
+        string options = "";
+        list<map> devicelist = (list<map>) SCR::Read(.probe.cdrom);
+        foreach (map device, devicelist,
+                {
+                string devname = device["dev_name"]:"";
+                if (devname != "")
+                {
+                if (options != "") options = options + ",";
+                options = options + devname;
+                }
+                });
+        if (options != "")
+        {
+            options = "devices=" + options;
+        }
+        return options;
+    }
+
+    /**
+     *
+     */
+    map GetURLOptions (string url) {
+        map<string,string> option_map = $[];
+        integer pos = findfirstof(url, ";");
+        if (pos!=nil)
+        {
+            string opts = substring(url, pos, size(url));
+            list<string> optpairs = splitstring(opts, ";");
+            option_map = listmap(string op, optpairs, ``{
+                    list<string> tmp = splitstring(op, "=");
+                    return($[tmp[0]:"": tmp[1]:""]);
+                    });
+        }
+        return option_map;
+    }
+
+    /**
+     *
+     */
+    global string  RewriteCDUrl(string url) {
+        map tokens = URL::Parse(url);
+        string new_url = "";
+        if (tokens["scheme"]:"" == "cd" || tokens["scheme"]:"" == "dvd")
+        {
+            y2milestone("Old options: %1", GetURLOptions(url));
+            integer pos = findfirstof(url, ";");
+            if (pos != nil)
+            {
+                string new_options = GetDevicesOption();
+                new_url = substring(url, 0, pos);
+                if (size(new_options) > 0 )
+                    new_url = new_url + ";" + GetDevicesOption();
+                else
+                    new_url = url;
+            }
+        } else {
+            new_url = url;
+        }
+        return new_url;
+    }
     
+    /**
+     * Convert install.inf to a URL useable by the package manager
+     * @param extra_dir append path to original URL
+     * @return string new Source URL
+     */
     global string installInf2Url (string extra_dir)
     {
 	string options = "";
@@ -44,26 +120,16 @@
 	    || (instmode == "dvd"))
 	{
 	    is_network = false;
-	    list<map> devicelist = (list<map>) SCR::Read(.probe.cdrom);
-	    foreach (map device, devicelist,
-	    {
-		string devname = device["dev_name"]:"";
-		if (devname != "")
-		{
-		    if (options != "") options = options + ",";
-		    options = options + devname;
-		}
-	    });
-	    if (options != "")
-	    {
-		options = "devices=" + options;
-	    }
+            options = GetDevicesOption();
 	}
 	else if (instmode == "hd")						// Harddisk
 	{
 	    is_network = false;
-// FIXME may be nil
-	    options = "device=/dev/" + Linuxrc::InstallInf("Partition") + ";filesystem=auto";
+            string partition = Linuxrc::InstallInf("Partition");
+            if (partition != nil )
+	        options = "device=/dev/" + partition + ";filesystem=auto";
+            else
+                y2error("no partition specified");
 	}
 
         
@@ -105,7 +171,7 @@
 		serverdir = "/" + serverdir;
 	} 
         */
-
+        string share = Linuxrc::InstallInf("Share");
 
 	if (extra_dir != "")
 	{
@@ -129,16 +195,24 @@
 
 	if (serverdir != nil && serverdir != "")
         {
+            string fs = "";
             if (instmode == "ftp" && findfirstof(serverdir, "/") == 0) {
                 // ftp://foo/%2fbar is /bar on foo 
-	        url_tokens["path"] = "%2f" + substring(serverdir,1,size(serverdir));
+                fs = "%2f" + substring(serverdir,1,size(serverdir));
+            } else if (instmode == "smb" && (share != nil) && (share != "")) {
+                fs = share + "/" +  serverdir;
             } else {
-	        url_tokens["path"] = serverdir;
+                fs = serverdir;
             }
+            url_tokens["path"] = fs;
 
         }
         else
-            url_tokens["path"] = "/"; // FIXME don't know why it is needed
+        {
+            // FIXME don't know why it is needed
+            // Needed as a seperator between URL and options (!)
+            url_tokens["path"] = "/"; 
+        }
 
         string port = Linuxrc::InstallInf("Port");
         if ((port != nil) && (port != ""))
