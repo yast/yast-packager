@@ -163,7 +163,9 @@
 	if ( showLongInfo )
 	{
 	    UI::OpenDialog( `opt(`decorated), UI::LayoutPopup (message, button_box, 10, true) );
-	    UI::ReplaceWidget(`id(`info), `RichText(error) );
+	    // no need to translate "URL" !
+	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), "&URL"), `RichText(error)) );
+	    UI::ChangeWidget(`id(`url), `Value, url);
 	}
 	else
 	{
@@ -198,12 +200,25 @@
 	    {
 		showLongInfo = UI::ShowLogInfo (message, button_box);
 		if (showLongInfo)
-		    UI::ReplaceWidget(`id(`info), `RichText(error));
+		{
+		    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), "&URL"), `RichText(error)) );
+		    UI::ChangeWidget(`id(`url), `Value, url);
+		}
 		else
+		{
 		    UI::ReplaceWidget(`id(`info), `Empty() );
+		}
 	    }
-
-	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore);
+	    if (r == `retry || r == `url)
+	    {
+		string newurl = UI::QueryWidget(`id(`url), `Value);
+		if (newurl != url)
+		{
+		    url = newurl;
+		    r = `url;
+		}
+	    }
+	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore || r == `url);
 
 	y2milestone ("MediaChange %1", r);
 
@@ -227,7 +242,6 @@
 
 	if (r == `url)
 	{
-
 	    return url;
 	}
 
