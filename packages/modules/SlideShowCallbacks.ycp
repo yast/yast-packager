@@ -20,10 +20,9 @@
    /** at start of package install
     *
     */
-    global define void StartPackage (string name, string summary, integer installsize, boolean is_delete)
+    global define boolean StartPackage (string name, string summary, integer installsize, boolean is_delete)
     ``{
-	DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
-	return;
+	return DisplayStartInstall ( name, summary, installsize, Pkg::TargetUsed(Installation::destdir), Pkg::TargetCapacity(Installation::destdir), is_delete);
     }
 
    /** at end of install
@@ -41,8 +40,11 @@
      * Callback that will be called by the packager for each RPM as it is being installed or deleted.
      * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
      * and pass the "deleting" flag as appropriate.
+     *
+     * return true: go on with installation
+     *        false: abort installation
      **/
-    global define symbol DisplayStartInstall ( string  pkg_name,
+    global define boolean DisplayStartInstall ( string  pkg_name,
 					    string  pkg_description,
 					    integer pkg_size,
 					    integer disk_usage,
@@ -69,7 +71,7 @@ Do you want to go on with the installation?\n"),
 						     `focus_no );
 
 		if (!cont)
-		    return `cancel;
+		    return false;
 		else
 		    shutup = true;
 	    }
@@ -100,7 +102,7 @@ Do you want to go on with the installation?\n"),
 	    }
 
 	    if ( ret )
-		return `cancel;
+		return false;
 
 	}
 	else
@@ -108,7 +110,7 @@ Do you want to go on with the installation?\n"),
 	    SlideShow::ProcessButtonPress( button );
 	}
 
-	return nil;
+	return true;
     };
 
 

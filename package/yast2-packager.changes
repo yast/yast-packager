@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 11 22:46:52 CEST 2002 - kkaempf@suse.de
+
+- save/restore state of packages
+- allow to abort during package installation
+- 2.6.47
+
+-------------------------------------------------------------------
 Wed Sep 11 19:31:37 CEST 2002 - kkaempf@suse.de
 
 - fix callback label display (gs@suse.de) (#19178)
