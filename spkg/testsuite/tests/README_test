@@ -1,6 +1,6 @@
 Used test data:
 +++++++++++++++
-PKGINFO server in test_mode:
+package agent in test_mode:
 
 setEnvironment: is called with with package information in
 .../y2m_inst/ycp/packages/testsuite/suse/setup/... (CVS data)
@@ -8,10 +8,10 @@ setEnvironment: is called with with package information in
 Important files: common.pkd	(dependencies)
                  du.dir		(used disk space)
 
-other calls of PKGINFO are "real"
+other calls of package agent are "real"
 -> installed packages are checked on real system and dependencies
    depend on actual installation
--> TO DO: when PKGINFO agent is ready use the dummy agent to get
+-> TO DO: when package agent is ready use the dummy agent to get
    a constant e´set of installed packages                               
 
 Command line:
