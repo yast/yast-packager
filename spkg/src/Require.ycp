@@ -93,7 +93,7 @@
 	Wizard::CreateDialog ();
 	// inst_suseconfig returns `auto or `next
 	// (update mode or Args(2) is true) => no error checking
-	WFM::CallModule ("inst_suseconfig", [false, false]);
+	WFM::CallFunction("inst_suseconfig", [false, false]);
 	Wizard::CloseDialog ();
     }
 
@@ -443,30 +443,53 @@
     /**
      * Ensure that all required packages are installed and no
      * conflicting packages are installed.
-     * In both normal and autoyast modes, works on the current system.
-     * In autoyast mode, also works on the target system.
-     * If the current system is affected, the user is presented an
+     * Works on the current system
+     * and the user is presented an
      * explanation and asked to confirm the changes.
-     * For the target system, nothing is displayed.
      * @see FooTarget
      * @param require Required packages
      * @param conflict Conflicting packages
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    global define boolean RequireAndConflict (list<string> require, list<string> conflict, string help) ``{
-	return RequireAndConflictButtons (
-	    require, conflict, help,
-	    Label::ContinueButton (), Label::CancelButton ());
+    define boolean RequireAndConflictPkg (
+	list<string> require, list<string> conflict, string help,
+	string continue_button, string cancel_button ) ``{
+
+	list<string> toinstall = filter (string p, require, ``(!IsPackageInstalledPkg (p)));
+	list<string> toremove = filter (string p, conflict, ``(IsPackageInstalledPkg (p)));
+	if (toinstall == [] && toremove == [])
+	{
+	    return true;
+	}
+	string message = sformat (help,
+				  mergestring (toinstall, ", "),
+				  mergestring (toremove, ", ")
+				  );
+	term d = `VBox (
+	    `HSpacing (40),
+	    `RichText (message),
+	    `HBox (
+		`PushButton (`id (`continue), `opt (`default), continue_button),
+		`PushButton (`id (`cancel), cancel_button)
+		)
+	    );
+	UI::OpenDialog (d);
+	any ui = UI::UserInput ();
+	UI::CloseDialog ();
+	if (ui == `continue)
+	{
+	    last_op_canceled = false;
+	    return DoInstallAndRemovePkg (toinstall, toremove);
+	}
+	last_op_canceled = true;
+	return false;
     }
 
     /**
      * Ensure that all required packages are installed and no
      * conflicting packages are installed.
-     * In normal mode, works on the current system
-     * and the user is presented an explanation and asked to confirm
-     * the changes.
-     * In autoyast mode, works on the target system
+     * Works on the target system
      * and nothing is displayed.
      * @see FooTarget
      * @param require Required packages
@@ -474,12 +497,21 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    global define boolean RequireAndConflictTarget (list<string> require, list<string> conflict, string help) ``{
-	return RequireAndConflictTargetButtons (
-	    require, conflict, help,
-	    Label::ContinueButton (), Label::CancelButton ());
+    define boolean RequireAndConflictAI ( list<string> require,
+					  list<string> conflict)
+    ``{
+	last_op_canceled = false;
+	list<string> toinstall = filter (string p, require, ``(!IsPackageInstalledAI (p)));
+	list<string> toremove = filter (string p, conflict, ``(IsPackageInstalledAI (p)));
+	if (toinstall == [] && toremove == [])
+	{
+	    return true;
+	}
+	else
+	{
+	    return DoInstallAndRemoveAI (toinstall, toremove);
+	}
     }
-
     /**
      * Like RequireAndConflict but you can specify button texts
      * in place of the default Continue and Cancel
@@ -530,53 +562,30 @@
     /**
      * Ensure that all required packages are installed and no
      * conflicting packages are installed.
-     * Works on the current system
-     * and the user is presented an
+     * In both normal and autoyast modes, works on the current system.
+     * In autoyast mode, also works on the target system.
+     * If the current system is affected, the user is presented an
      * explanation and asked to confirm the changes.
+     * For the target system, nothing is displayed.
      * @see FooTarget
      * @param require Required packages
      * @param conflict Conflicting packages
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    define boolean RequireAndConflictPkg (
-	list<string> require, list<string> conflict, string help,
-	string continue_button, string cancel_button ) ``{
-
-	list<string> toinstall = filter (`p, require, ``(!IsPackageInstalledPkg (p)));
-	list<string> toremove = filter (`p, conflict, ``(IsPackageInstalledPkg (p)));
-	if (toinstall == [] && toremove == [])
-	{
-	    return true;
-	}
-	string message = sformat (help,
-				  mergestring (toinstall, ", "),
-				  mergestring (toremove, ", ")
-				  );
-	term d = `VBox (
-	    `HSpacing (40),
-	    `RichText (message),
-	    `HBox (
-		`PushButton (`id (`continue), `opt (`default), continue_button),
-		`PushButton (`id (`cancel), cancel_button)
-		)
-	    );
-	UI::OpenDialog (d);
-	any ui = UI::UserInput ();
-	UI::CloseDialog ();
-	if (ui == `continue)
-	{
-	    last_op_canceled = false;
-	    return DoInstallAndRemovePkg (toinstall, toremove);
-	}
-	last_op_canceled = true;
-	return false;
+    global define boolean RequireAndConflict (list<string> require, list<string> conflict, string help) ``{
+	return RequireAndConflictButtons (
+	    require, conflict, help,
+	    Label::ContinueButton (), Label::CancelButton ());
     }
 
     /**
      * Ensure that all required packages are installed and no
      * conflicting packages are installed.
-     * Works on the target system
+     * In normal mode, works on the current system
+     * and the user is presented an explanation and asked to confirm
+     * the changes.
+     * In autoyast mode, works on the target system
      * and nothing is displayed.
      * @see FooTarget
      * @param require Required packages
@@ -584,19 +593,10 @@
      * @param help Explanation (rich text). %1 and %2 represent a comma separated list of packages to be installed/removed
      * @return installation successful?
      */
-    define boolean RequireAndConflictAI ( list<string> require,
-					  list<string> conflict)
-    ``{
-	last_op_canceled = false;
-	list<string> toinstall = filter (`p, require, ``(!IsPackageInstalledAI (p)));
-	list<string> toremove = filter (`p, conflict, ``(IsPackageInstalledAI (p)));
-	if (toinstall == [] && toremove == [])
-	{
-	    return true;
-	}
-	else
-	{
-	    return DoInstallAndRemoveAI (toinstall, toremove);
-	}
+    global define boolean RequireAndConflictTarget (list<string> require, list<string> conflict, string help) ``{
+	return RequireAndConflictTargetButtons (
+	    require, conflict, help,
+	    Label::ContinueButton (), Label::CancelButton ());
     }
+
 }
