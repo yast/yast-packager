@@ -57,8 +57,7 @@
     global boolean	user_switched_to_details = false;
     global boolean	opened_own_wizard	= false;
     global string	inst_log		= "";
-    global boolean	debug			= true;  // FIXME: DEBUG
-
+    global boolean	debug			= false;
 
 
     /**
@@ -252,9 +251,6 @@
 	    }
 	}
 
-	if ( debug )
-	    y2milestone( "FormatNextMedia(): %1", text );
-
 	return text;
     }
 
@@ -295,16 +291,12 @@
 	}
 	else
 	{
-	    if ( debug )
-		y2milestone( "Slide list at %1 (unfiltered): %2", txt_path, slide_list );
-
 	    slide_list = sort( filter( string filename, slide_list, ``{
 		// Check for valid extensions - ignore editor save files and other leftover stuff
 		return regexpmatch( filename, ".*\.(rtf|RTF|html|HTML|htm|HTM)$" );
 	    } ) );
 
-	    if ( debug )
-		y2milestone( "Slide list at %1 (filtered): %2", txt_path, slide_list );
+	    y2milestone( "GetSlideList(): Slides at %1: %2", txt_path, slide_list );
 	}
 
 	if ( slide_list != nil && size( slide_list ) > 0 )	// Slide texts found
@@ -402,9 +394,6 @@
 		y2milestone( "Display OK for slide show" );
 
 		slides = GetSlideList( language );
-
-		if ( debug )
-		    y2milestone( "Slides: %1", slides );
 	    }
 	    else
 	    {
@@ -431,9 +420,6 @@
 	    if ( replaced == nil ) break;
 	    text = replaced;
 	}
-
-	if ( debug )
-	    y2milestone( "Setting slide text to:\n%1\n", text );
 
 	UI::ChangeWidget(`slideText, `Value, text );
     }
@@ -1065,48 +1051,48 @@
 	if ( pkg_summary == nil )
 	    pkg_summary = "";
 
+	string msg = "";
+
+	if ( deleting )
+	{
+	    // Heading for the progress bar for the current package
+	    // while it is deleted. "%1" is the package name.
+	    msg = sformat( _("Deleting %1"), pkg_name );
+	}
+	else
+	{
+	    msg = sformat( "%1 (%2)", pkg_name, String::FormatSize( pkg_size ) );
+	}
+
+
+	//
+	// Update package progress bar
+	//
+
+	if ( UI::WidgetExists(`progressCurrentPackage) )
+	{
+	    UI::ChangeWidget(`progressCurrentPackage, `Label, msg );
+	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
+	}
+
+
+	//
+	// Update (user visible) installation log
+	//
+
+	string log_line = "\n" + msg;
+
+	if ( pkg_summary != "" )
+	    log_line = log_line + " -- " + pkg_summary;
+
+	inst_log = inst_log + log_line;
+
 	if ( ShowingDetails() )
 	{
-	    string msg = "";
-
-	    if ( deleting )
-	    {
-		// Heading for the progress bar for the current package
-		// while it is deleted. "%1" is the package name.
-		msg = sformat( _("Deleting %1"), pkg_name );
-	    }
-	    else
-	    {
-		msg = sformat( "%1 (%2)", pkg_name, String::FormatSize( pkg_size ) );
-	    }
-
-
-	    //
-	    // Update package progress bar
-	    //
-
-	    if ( UI::WidgetExists(`progressCurrentPackage) )
-	    {
-		UI::ChangeWidget(`progressCurrentPackage, `Label, msg );
-		UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
-	    }
-
-
-	    //
-	    // Update user installation log
-	    //
-
-	    string log_line = "\n" + msg;
-
-	    if ( pkg_summary != "" )
-		log_line = log_line + " -- " + pkg_summary;
-
-	    inst_log = inst_log + log_line;
-
 	    if ( UI::WidgetExists( `instLog ) )
 		UI::ChangeWidget(`instLog, `LastLine, log_line );
 	}
-	else // no details
+	else
 	{
 	    ChangeSlideIfNecessary();
 	}
@@ -1116,10 +1102,6 @@
 	{
 	    SubtractPackageSize( pkg_size );
 	    y2milestone( "Installing %1 -- %2", pkg_name, pkg_summary );
-
-	    if ( debug )
-		y2milestone( "Installing package %1 from CD %2 of source #%3 -- size: %4 -- remaining: %5",
-			     pkg_name, current_cd_no, current_src_no, pkg_size, remaining_sizes_per_cd_per_src );
 
 	    if (SwitchToSecondsIfNecessary()
 		|| RecalcRemainingTimes( false ) )	// no forced recalculation
