@@ -1,10 +1,33 @@
 -------------------------------------------------------------------
+Mon Mar 14 17:50:30 CET 2005 - nashif@suse.de
+
+- Reverted changes for space checking, needs more work
+- 2.1.36
+
+-------------------------------------------------------------------
+Sat Mar 12 04:42:59 CET 2005 - nashif@suse.de
+
+- Bug #67337: Create /var/lib/YaST2/runme_at_boot
+- Bug #71973: Check for required space when installing into
+  directory
+- Bug #72257: select Xen when installing into directory
+- 2.1.35
+
+
+-------------------------------------------------------------------
+Fri Mar 11 17:38:59 CET 2005 - lslezak@suse.cz
+
+- fixed name of the icon for checkmedia client (#72160)
+- 2.11.34
+
+-------------------------------------------------------------------
 Fri Mar 11 11:02:15 CET 2005 - jsrain@suse.cz
 
 - fixed incorrecto counting of disk space (#71772)
 - fixed generating list of language-dependend packages (#71099)
 - ensure Pkg target is inited before installing a package via
   command-line (#71761)
+- 2.11.33
 
 -------------------------------------------------------------------
 Mon Mar  7 16:41:05 CET 2005 - jsrain@suse.cz
