@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 03 17:41:51 CET 2003 - arvin@suse.de
+
+- new pot file handling
+
+-------------------------------------------------------------------
 Thu Jan 30 15:05:45 CET 2003 - arvin@suse.de
 
 - fixed autoinstalling of graphics packages (bug #22936)
