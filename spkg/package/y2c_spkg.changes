@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 13 14:44:54 MEST 2000 - gs@suse.de
+
+- do not call inst_rpmcopy/inst_suseconfig if nothing is selected 
+
+-------------------------------------------------------------------
 Mon Jul  3 16:52:01 MEST 2000 - gs@suse.de
 
 - ui_inst_setup removed 
