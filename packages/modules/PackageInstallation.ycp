@@ -90,7 +90,7 @@
 	    return [];
 	}
 
-	list errpacks = commit_result[1]:[];
+	list<string> errpacks = (list<string>) (commit_result[1]:[]);
 	if (size (errpacks) > 0)
 	{
 	    // some packages failed installation

@@ -30,7 +30,7 @@
     import "Wizard";
     import "Popup";
 
-    list packagelist = [];		// list of packages to install
+    list<string> packagelist = [];		// list of packages to install
 
     boolean test_popup = false;
     boolean skip_source = false;
@@ -63,7 +63,7 @@
 	    }
 	    else if (is (WFM::Args(arg_n), list))
 	    {
-		foreach (`arg, WFM::Args(arg_n), ``{ arg_list = add (arg_list, arg);});
+		foreach (any arg, (list) WFM::Args(arg_n), ``{ arg_list = add (arg_list, arg);});
 	    }
 	    arg_n = arg_n - 1;
 	}
@@ -86,7 +86,7 @@
     //		`unknown_descr	found nothing
     //
 
-   define symbol CheckWhichPackages (list arg_list) ``{
+   define symbol CheckWhichPackages (list<string> arg_list) ``{
 
        y2milestone ("CheckWhichPackages (%1)", arg_list);
        // if sw_single is called with a list of packages or a package name
@@ -111,7 +111,7 @@
 
 	   SlideShow::InitPkgData();	// keep SlideShow quiet
 
-	   foreach (`package, arg_list, ``{
+	   foreach (string package, arg_list, ``{
 	       if (SCR::Read (.target.size, package) > 0)
 	       {
 		   y2milestone ("SW_SINGLE: installing %1", package);
@@ -142,11 +142,11 @@
 	   else							// Yes: try to read the file
 	   {
 	       y2milestone("Reading file %1", arg_name );
-	       packagelist = SCR::Read( .target.ycp, arg_name);	// try .ycp list first
+	       packagelist = (list<string>) SCR::Read( .target.ycp, arg_name);	// try .ycp list first
 	       if ((packagelist == nil)
 		   || (packagelist == []))
 	       {
-		   string packagestr = SCR::Read( .target.string, arg_name);	// string ascii file next
+		   string packagestr = (string) SCR::Read( .target.string, arg_name);	// string ascii file next
 		   packagelist = splitstring (packagestr, "\n");
 	       }
 	   }
@@ -182,7 +182,7 @@
    list arg_list = CheckArguments();
 
    // check the arguments and try the mount/search for local description
-   symbol result = CheckWhichPackages (arg_list);
+   any result = CheckWhichPackages (arg_list);
 
    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", result);
 
@@ -197,14 +197,14 @@
    {
        if (size (packagelist) == 0)			// packages given ?
        {
-	   result = WFM::CallFunction( `inst_packages ());	// No: ask user via package selection widget
+	   result = WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
 	   y2milestone ("inst_packages returns %1", result);
 	   if (result == `accept)
 	       result = `next;
        }
        else
        {
-	   foreach (`package, packagelist,			// Yes: install them
+	   foreach (string package, packagelist,		// Yes: install them
 		    ``{
 	       if (!Pkg::PkgInstall (package))			// select package for installation
 	       {
@@ -213,13 +213,13 @@
 	       }
 	   });
 
-	   if (Pkg::PkgSolve ())				// Solve dependencies
+	   if (Pkg::PkgSolve (false))				// Solve dependencies
 	   {
 	       result = `next;					// go-on if no conflicts
 	   }
 	   else
 	   {
-	       result = WFM::CallFunction( `inst_packages ());	// Ask user if conflicts
+	       result = WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 		   result = `next;
@@ -236,9 +236,9 @@
 
        import "PackageInstallation";
        Pkg::TargetLogfile (Installation::destdir+"/var/log/YaST2/y2logRPM");
-       integer oldvmlinuzsize = SCR::Read(.target.size, "/boot/vmlinuz");
+       integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
        list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
-       integer newvmlinuzsize = SCR::Read(.target.size, "/boot/vmlinuz");
+       integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 
        UI::CloseDialog();
 
@@ -260,11 +260,11 @@
 	       Mode::update = false;
 	   }
 
-	   result = WFM::CallFunction( `inst_suseconfig (false, false));
+	   result = WFM::CallFunction( "inst_suseconfig", [false, false]);
        }
    }
 
    UI::CloseDialog();
 
-   return result;
+   return (symbol) result;
 }

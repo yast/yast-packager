@@ -69,7 +69,7 @@
 	partition = filter( map part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
-	list part_input = [];
+	list<map> part_input = [];
 
 	foreach( map part, partition,
 		 ``{
@@ -175,7 +175,7 @@
 	    list mounts = (list) SCR::Read (.proc.mounts);
 	    y2milestone ("mounts %1", mounts);
 
-	    list partitions = [];
+	    list<map> partitions = [];
 	    foreach (map mpoint, mounts,
 		     ``{
 		string name = mpoint["file"]:"";
@@ -203,7 +203,7 @@
 	    targets = (map) SCR::Read(.target.yast2, "test_target_map.ycp");
 	}
 
-	list target_partitions = [];
+	list<map> target_partitions = [];
 	integer min_spare	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
 
 	foreach( string disk, map diskinfo, targets,

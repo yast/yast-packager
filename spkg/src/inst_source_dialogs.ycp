@@ -19,6 +19,10 @@
     import "Label";
     import "URL";
 
+    global define string getServerUrl( symbol type, string host,
+                                       string urlpath, string user,
+                                       string pass );
+
     /**
         Return an HBox with ok and cancel buttons for use by other dialogs.
         @return An HBox term for use in a CreateDialog call.
@@ -61,9 +65,11 @@
             )
         );
 
+        any authinput = nil;
+
         repeat
         {
-            symbol authinput = UI::UserInput();
+            authinput = UI::UserInput();
             y2debug( "Auth Input: %1", authinput );
 
             if ( authinput == `ok )
@@ -95,9 +101,11 @@
         );
 	UI::SetFocus (`id (`server));
 
+        any input = nil;
+
         repeat
         {
-            symbol input = UI::UserInput();
+            input = UI::UserInput();
             y2debug( "Input: %1", input );
 
             if ( input == `auth_button )
@@ -117,7 +125,7 @@
     /**
         Get a nfs url.
     */
-    global define void getNfsUrl( string host, string urlpath ) ``{
+    global define string getNfsUrl( string host, string urlpath ) ``{
         if ( substring( urlpath, 0, 1 ) == "/" ) {
           urlpath = substring( urlpath, 1 );
         }
@@ -135,16 +143,18 @@
 
         string url = "";
 
+        any input = nil;
+
         repeat
         {
-            symbol input = UI::UserInput();
+            input = UI::UserInput();
             y2debug( "Input: %1", input );
 
             if ( input == `ok )
             {
-                string server = UI::QueryWidget( `id( `server ), `Value );
-                string dir = UI::QueryWidget( `id( `dir ), `Value );
-                string options = UI::QueryWidget( `id( `mount ), `Value );
+                string server = (string) UI::QueryWidget( `id( `server ), `Value );
+                string dir = (string) UI::QueryWidget( `id( `dir ), `Value );
+//                string options = UI::QueryWidget( `id( `mount ), `Value );
 
                 url = "nfs://" + server + "/" + dir;
             }
@@ -159,7 +169,7 @@
     /**
         Get url for a cd or dvd.
     */
-    global define void getCdUrl() ``{
+    global define string getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
                 `Label( _("CD Installation") ),
@@ -177,14 +187,15 @@
 
         string url = "";
 
+        any input = nil;
         repeat
         {
-            symbol input = UI::UserInput();
+            input = UI::UserInput();
             y2debug( "Input: %1", input );
 
             if ( input == `ok )
             {
-                symbol device = UI::QueryWidget( `id( `device ), `CurrentButton );
+                symbol device = (symbol) UI::QueryWidget( `id( `device ), `CurrentButton );
                 if ( device == `cd0 )
                 {
                     url = "cd:///";
@@ -202,7 +213,7 @@
         return url;
     }
 
-    global define void getNewServerUrl( symbol protocol )
+    global define string getNewServerUrl( symbol protocol )
     ``{
       return getServerUrl( protocol, "", "", "", "" );
     }
@@ -271,19 +282,20 @@
 
         string url = "";
 
+        any input = nil;
         repeat
         {
-            boolean anonymous = UI::QueryWidget( `id( `anonymous ), `Value );
+            boolean anonymous = (boolean) UI::QueryWidget( `id( `anonymous ), `Value );
             UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
             UI::ChangeWidget( `id( `password ), `Enabled, !anonymous );
 
-            symbol input = UI::UserInput();
+            input = UI::UserInput();
             y2debug( "Input: %1", input );
 
             if ( input == `ok )
             {
                 url = "";
-                symbol type = UI::QueryWidget( `id( `rb_type), `CurrentButton );
+                symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
                 if ( type == `ftp ) {
                     url = "ftp://";
                 } else if ( type == `http ) {
@@ -294,8 +306,8 @@
 
                 if ( !anonymous )
                 {
-                    string user = UI::QueryWidget( `id( `username ), `Value );
-                    string password = UI::QueryWidget( `id( `password ), `Value );
+                    string user = (string) UI::QueryWidget( `id( `username ), `Value );
+                    string password = (string) UI::QueryWidget( `id( `password ), `Value );
 
                     if ( size( user ) != 0 ) {
                         url = url + user;
@@ -306,8 +318,8 @@
                     }
                 }
 
-                string server = UI::QueryWidget( `id( `server ), `Value );
-                string directory = UI::QueryWidget( `id( `dir ), `Value );
+                string server = (string) UI::QueryWidget( `id( `server ), `Value );
+                string directory = (string) UI::QueryWidget( `id( `dir ), `Value );
 
                 url = url + server + "/" + directory;
 
@@ -345,13 +357,15 @@
 
         string url = "";
 
+        any input = nil;
+        
         repeat
         {
-            symbol input = UI::UserInput();
+            input = UI::UserInput();
 
             if ( input == `browse )
             {
-                url = UI::QueryWidget( `id( `dir ), `Value );
+                url = (string) UI::QueryWidget( `id( `dir ), `Value );
 
 		// dialog caption
  		string result = UI::AskForExistingDirectory( url, _("Local Directory") );
@@ -362,7 +376,7 @@
             }
             else if ( input == `ok )
             {
-                url = UI::QueryWidget( `id( `dir ), `Value );
+                url = (string) UI::QueryWidget( `id( `dir ), `Value );
 
                 url = "dir://" + url;
             }
@@ -408,11 +422,11 @@
         string url = "";
 	UI::SetFocus (`id (`dir));
 
-        symbol input = UI::UserInput();
+        any input = UI::UserInput();
 
         if ( input == `ok )
         {
-            symbol type = UI::QueryWidget( `id( `url_type), `CurrentButton );
+            symbol type = (symbol) UI::QueryWidget( `id( `url_type), `CurrentButton );
 
             UI::CloseDialog();
 

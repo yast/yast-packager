@@ -33,7 +33,7 @@
 	}
 	else
 	{
-		Installation::destdir = WFM::Args(0);
+		Installation::destdir = (string) WFM::Args(0);
 	}
 
 	integer arg_n = size (WFM::Args()) - 2;
@@ -46,7 +46,7 @@
 	    }
 	    else if (is (WFM::Args(arg_n), list))
 	    {
-		foreach (`arg, WFM::Args(arg_n+1), ``{ arg_list = add (arg_list, arg);});
+		foreach (any arg, (list) WFM::Args(arg_n+1), ``{ arg_list = add (arg_list, arg);});
 	    }
 	    arg_n = arg_n - 1;
 	}
@@ -73,7 +73,7 @@
 
     y2milestone("#####");
 
-    if(WFM::CallFunction( `sw_single(arg_list)) != `next)
+    if(WFM::CallFunction( "sw_single", [arg_list]) != `next)
     {
       Popup::Message(_("Software installation failed"));
       return `failed;

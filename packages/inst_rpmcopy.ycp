@@ -34,6 +34,8 @@
     import "Wizard";
     import "Popup";
 
+    import "AutoinstSoftware";
+
 
     if (Mode::initial && Mode::update)
 	return `auto;
@@ -116,7 +118,7 @@
 	``{
 	    Pkg::PkgInstall (pkg);
 	});
-	Pkg::PkgSolve();
+	Pkg::PkgSolve(false);
 	list commit_result = PackageInstallation::CommitPackages (0, 0);
 
         // close "Slide" dialog (inst_rpmcopy doesn't use the "Wizard" dialog)
@@ -153,7 +155,7 @@
 	import "AutoinstSoftware";
 	// post packages from autoinstall
 	Pkg::DoProvide( AutoinstSoftware::post_packages );
-	Pkg::PkgSolve();
+	Pkg::PkgSolve(false);
     }
 
     if (!Mode::initial)
