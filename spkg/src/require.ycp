@@ -39,8 +39,25 @@
     }
 
     global define void EnsureSourceInit () ``{
-    	import "PackageCallbacks";
-	source_initialized = source_initialized || Pkg::SourceStartCache (true) != [];
+	if (!source_initialized)
+	{
+	    import "PackageCallbacks";		// trigger constructor
+	    // popup when initializing the package manager
+	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
+	    list sources = Pkg::SourceStartCache (true);
+	    UI::CloseDialog();
+	    if (size (sources) > 0)
+	    {
+		source_initialized = true;
+	    }
+	    else
+	    {
+		include "ui/common_popups.ycp";
+		// error popup, no packages sources
+		// FIXME: translation
+		UI::ErrorPopup ("No package source defined.");
+	    }
+	}
     }
 
     /**

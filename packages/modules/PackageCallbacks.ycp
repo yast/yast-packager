@@ -74,7 +74,7 @@
 				`HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
 			   );
 
-	    UI::OpenDialog( `opt(`decorated), packagebox );
+	UI::OpenDialog( `opt(`decorated), packagebox );
 
 	return true;
    }
@@ -92,6 +92,9 @@
 
    /** after package install
     *
+    // return "I" for ignore bad media
+    // return "S" for skip this media
+    // return "C" for cancel (not implemented !)
     */
    global define void DonePackage (integer error, string name)
    ``{
@@ -289,10 +292,7 @@
 
     global define void SetMediaCallbacks ()
     ``{
-	foreach (`src, Pkg::SourceGetCurrent(),
-	``{
-	    Pkg::CallbackMediaChange (src, "PackageCallbacks::MediaChange");
-	});
+	Pkg::CallbackMediaChange ("PackageCallbacks::MediaChange");
 	Pkg::CallbackSourceChange ("PackageCallbacks::SourceChange");
     }
 
@@ -311,14 +311,6 @@
 	Pkg::CallbackStartPackage ("PackageCallbacks::StartPackage");
 	Pkg::CallbackProgressPackage ("PackageCallbacks::ProgressPackage");
 	Pkg::CallbackDonePackage ("PackageCallbacks::DonePackage");
-
-	if (!Mode::initial && !Mode::config)
-	{
-	    // popup when initializing the package manager
-	    UI::OpenDialog(`opt(`decorated ),`Label(_("Reading package information; One moment please...")));
-	    list sources = Pkg::SourceStartCache (true);
-	    UI::CloseDialog();
-	}
 
 	SetMediaCallbacks ();
 
