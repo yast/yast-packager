@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  6 13:55:59 CET 2004 - gs@suse.de
+
+- function keys added to buttons of the Source of Installation dialog 
+
+-------------------------------------------------------------------
 Thu Feb 05 18:12:20 CET 2004 - arvin@suse.de
 
 - fixed calling of Pkg::TargetInitDU
