@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Mar 13 18:56:37 CET 2003 - kkaempf@suse.de
+
+- save the list of remaining source packages to srcremaining,
+  re-read it in 2nd stage install and mark these packages
+  as source-to-install properly. (#25318)
+- 2.7.29
+
+-------------------------------------------------------------------
 Tue Mar 11 16:56:10 CET 2003 - mvidner@suse.de
 
 - Do not run SuSEconfig in [Rr]equire.ycp when adding packages
