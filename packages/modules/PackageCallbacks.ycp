@@ -64,7 +64,7 @@
    /** at start of package install
     *
     */
-   global define void StartPackage (string name, string summary, integer installsize, boolean is_delete)
+   global define boolean StartPackage (string name, string summary, integer installsize, boolean is_delete)
    ``{
 	term packagebox = `VBox( `Label(`id(`package), name ),
 				`VSpacing(),
@@ -73,7 +73,7 @@
 
 	    UI::OpenDialog( `opt(`decorated), packagebox );
 
-	return;
+	return true;
    }
 
 
