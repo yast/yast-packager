@@ -308,11 +308,31 @@
 	    offer_eject_button = true;
 	    medianame = "DVD ";
 	}
+
+	// FIXME
+	boolean double_sided = false;
+	string mediaside = sformat ("%1", (medianame + wanted));
+
+	if (double_sided)
+	{
+	    // media is double sided, we want the user to insert the 'front side' of the media
+	    // the complete string will be "<product> <media> <number>, <side>"
+	    // e.g. "'SuSE Linux 9.0' DVD 1, front side"
+	    string side = _("front side");
+	    if ((wanted & 1) == 0)
+	    {
+		// media is double sided, we want the user to insert the 'back side' of the media
+		side = _("back side");
+	    }
+	    wanted = wanted / 2;
+	    mediaside = mediaside + ", " + side;
+	}
+
 	// prompt to insert product (%1 == "SuSE Linux ...") and media (%2 == "CD 2")
-	string message = sformat(_("Insert\n'%1' %2"), product, (medianame + wanted));
+	string message = sformat (_("Insert\n'%1' %2"), product, mediaside);
 
 	// currently unused
-	string media_prompt =_("The correct source medium could not be mounted.");
+	string media_prompt = _("The correct source medium could not be mounted.");
 
 	// --------------------------------------
 	// build up button box

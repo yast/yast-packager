@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep  2 11:29:42 CEST 2003 - kkaempf@suse.de
+
+- add code to ask for front or back side of a media (unfinished).
+
+-------------------------------------------------------------------
 Sun Aug 31 14:58:07 CEST 2003 - arvin@suse.de
 
 - use Popup::ConfirmAbort
