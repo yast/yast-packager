@@ -25,6 +25,7 @@
     import "Wizard";
     import "Popup";
     import "GetInstArgs";
+    import "Label";
 
     list<string> packagelist = [];		// list of packages to install
 
