@@ -24,8 +24,6 @@
     import "SlideShow";
 
     import "Wizard";
-
-    include "showlog_defines.ycp";
     import "Label";
     import "Popup";
 
@@ -59,7 +57,8 @@
 	}
 	// install packages from this media
 
-	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3", media_number, packages_installed, Pkg::TargetGetDU());
+	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3",
+		     media_number, packages_installed, Pkg::TargetGetDU());
 
 	map source_data = Pkg::SourceGeneralData(0);
 	if (source_data != nil)
@@ -92,38 +91,26 @@
 	}
 
 	list errpacks = commit_result[1]:[];
-	if (size (errpacks) > 0 && !AutoInstall::IgnorePkgErr )
+	if (size (errpacks) > 0 && !AutoInstall::IgnorePkgErr)
 	{
 	    // some packages failed installation
 
-	    any retAsk = `no_log;
-
-	    // error popup after package installation, %1 is a numeric value (number of failed packages)
+	    // error popup after package installation, %1 is a numeric
+	    // value (number of failed packages)
 	    string message = sformat(_("%1 packages returned an error.
 View the log file?
 "), size (errpacks));
-	    if ( Popup::AnyQuestion( Popup::NoHeadline(), message, Label::YesButton(), Label::NoButton(), `focus_no))
+
+	    if (Popup::AnyQuestion (Popup::NoHeadline(), message,
+				    Label::YesButton(), Label::NoButton(),
+				    `focus_no))
 	    {
-		retAsk = `yes_short;
+		string text = mergestring (errpacks, "\n");
+		// headline for a popup that displays a list of packages
+		Popup::ShowText (_("List of failed packages"), text);
 	    }
+	}
 
-	    while ( retAsk != `no_log )
-	    {
-		string text = "";
-
-		if ( retAsk == `yes_short )
-		{
-		    text = mergestring (errpacks, "\n");
-		}
-		if ( retAsk == `yes_long )
-		{
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logRPM");
-		}
-
-		retAsk = UI::DisplayLogFile( text, retAsk );
-	    }
-
-	}  // errpacks
 	return commit_result;
     };
 
@@ -131,7 +118,7 @@ View the log file?
     //
     // Fake progress bars for Mode::test
     //
-    global define symbol FakePackager(  list packages, string inst_source, boolean deleting )
+    global define symbol FakePackager( list packages, string inst_source, boolean deleting )
     ``{
 	integer disk_usage = 20;
 	integer disk_capacity = 10000;
