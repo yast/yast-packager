@@ -288,7 +288,8 @@
     // return url to change media URL
 
     global define string MediaChange (string error, string url, string product,
-				      integer current, integer wanted,
+				      integer current, string current_label,
+				      integer wanted, string wanted_label,
 				      boolean double_sided) ``{
 
 	import "Mode";
@@ -299,44 +300,49 @@
 	    SlideShow::StopTimer();
 	}
 
-	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4', wan'%5'",
-		     error, url, product, current, wanted);
+	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7'",
+		     error, url, product, current, current_label, wanted, wanted_label);
 
 	// true if it makes sense to offer an eject button (for cd/dvd only ...)
 	boolean offer_eject_button = false;
 
-        // will be used in conjunction with other text below
-        // prompt for user to insert the correct CD/DVD
-	string medianame = "CD ";
-	if (substring (url, 0, 2) == "cd")
+	if (wanted_label == "")
 	{
-	    offer_eject_button = true;
-	}
-	if (substring (url, 0, 3) == "dvd")
-	{
-	    offer_eject_button = true;
-	    medianame = "DVD ";
-	}
-
-	string mediaside = sformat ("%1", (medianame + wanted));
-
-	if (double_sided)
-	{
-	    // media is double sided, we want the user to insert the 'Side A' of the media
-	    // the complete string will be "<product> <media> <number>, <side>"
-	    // e.g. "'SuSE Linux 9.0' DVD 1, Side A"
-	    string side = _("Side A");
-	    if ((wanted & 1) == 0)
+	    // will be used in conjunction with other text below
+	    // prompt for user to insert the correct CD/DVD
+	    string medianame = "CD ";
+	    if (substring (url, 0, 2) == "cd")
 	    {
-		// media is double sided, we want the user to insert the 'Side B' of the media
-		side = _("Side B");
+		offer_eject_button = true;
 	    }
-	    wanted = (wanted + 1) >> 1;
-	    mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
+	    if (substring (url, 0, 3) == "dvd")
+	    {
+		offer_eject_button = true;
+		medianame = "DVD ";
+	    }
+
+	    string mediaside = sformat ("%1", (medianame + wanted));
+
+	    if (double_sided)
+	    {
+		// media is double sided, we want the user to insert the 'Side A' of the media
+		// the complete string will be "<product> <media> <number>, <side>"
+		// e.g. "'SuSE Linux 9.0' DVD 1, Side A"
+		string side = _("Side A");
+		if ((wanted & 1) == 0)
+		{
+		    // media is double sided, we want the user to insert the 'Side B' of the media
+		    side = _("Side B");
+		}
+		wanted = (wanted + 1) >> 1;
+		mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
+	    }
+
+	    wanted_label = sformat ("%1 %2", product, mediaside);
 	}
 
 	// prompt to insert product (%1 == "SuSE Linux ...") and media (%2 == "CD 2")
-	string message = sformat (_("Insert\n'%1' %2"), product, mediaside);
+	string message = sformat (_("Insert\n'%1' %2"), wanted_label, ""); // FIXME
 
 	// currently unused
 	string media_prompt = _("The correct source medium could not be mounted.");
