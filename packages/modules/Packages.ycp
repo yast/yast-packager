@@ -44,8 +44,9 @@
 
     global string desktop_help_text =
 // help text
-_("<p>SUSE Linux offers you the most efficient and comfortable desktops.
-Select which desktop you would like to install.</p>");
+_("<p>SUSE Linux offers a selection of efficient and comfortable desktops.
+Select which desktop to install.</p>
+");
 
     // Local variables
 
@@ -818,10 +819,11 @@ define boolean SelectDesktop () {
 					// translators: dialog text
 					`Left(`Label (_("The &product; includes two different
 desktop environments.
-Please select the environment which you would like
-to use by default from the list below. If you do not
+Select the environment to use by default 
+from the list below. If you do not
 know which environment is preferred by your company,
-please ask your system administrator."))),
+ask your system administrator.
+"))),
 					`VSpacing(1),
                                         `VWeight(10,`VStretch()),
 					`HBox(
@@ -1023,7 +1025,7 @@ please ask your system administrator."))),
 			}
 			else
 			{
-			    Popup::Error(_("Not enough disk space; Please remove some packages in the single selection."));
+			    Popup::Error(_("Not enough disk space.  Remove some packages in the single selection."));
 			}
 		    }
 		}
