@@ -382,7 +382,7 @@
 
 	// remember if we must re-do the proposal.
 	// If not, there's no need to activate any selections !
-	boolean redo_proposal = (choosen_base_selection == "");
+	boolean redo_proposal = (choosen_base_selection == "") &&  !Mode::autoinst;
 
 	if (redo_proposal
 	    || !SpaceCalculation::CheckDiskSize() )
