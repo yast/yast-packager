@@ -272,6 +272,14 @@
 	    install_list = (list<string>) union (install_list, javaPackages ());
 	}
 
+	// and the most flexible enhancement for other products
+	if (Product::packages_transmogrify != "")
+	{
+	    install_list = (list<string>)
+		WFM::CallFunction (Product::packages_transmogrify,
+				   [ install_list ]);
+	}
+
 	install_list = toset (install_list);
 	y2milestone ("auto-adding packages: %1", install_list);
 	return install_list;
