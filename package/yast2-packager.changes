@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 20 18:46:53 CET 2004 - arvin@suse.de
+
+- during update make backup of /var/log/YaST2 and then remove it
+  before starting real update (bug #31743)
+
+-------------------------------------------------------------------
 Fri Feb 20 18:14:08 CET 2004 - arvin@suse.de
 
 - reduced minimum of free space required on a partition to 1 MB

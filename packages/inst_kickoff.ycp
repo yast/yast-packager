@@ -80,6 +80,41 @@
 			  Update::backup_path + "/*-*-*.tar.{gz,bz2}");
 	}
 
+	if (true)
+	{
+	    string date = timestring ("%Y%m%d", time(), false);
+
+	    y2milestone ("backup of /var/log/YaST2");
+
+	    string filename = "";
+	    integer num = 0;
+
+	    while (num < 42)
+	    {
+		filename = Update::backup_path + "/YaST2-" + date + "-" +
+		    sformat ("%1", num) + ".tar.gz";
+		if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
+		    break;
+		num = num + 1;
+	    }
+
+	    if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
+			      " ; /bin/tar czf " + Installation::destdir +
+			      filename + " " + "var/log/YaST2") != 0)
+	    {
+		y2error ("backup of %1 to %2 failed", "/var/log/YaST2", filename);
+		// an error popup
+		Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
+				       "/var/log/YaST2", "/var/log/YaST2/y2log"));
+	    }
+	    else
+	    {
+		SCR::Execute (.target.bash, "/bin/rm -rf " + Installation::destdir +
+			      "var/log/YaST2");
+		SCR::Execute (.target.mkdir, Installation::destdir + "/var/log/YaST2");
+	    }
+	}
+
 	if (Update::backup_sysconfig)
 	{
 	    string date = timestring ("%Y%m%d", time(), false);
