@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  6 12:00:23 CEST 2001 - kkaempf@suse.de
+
+- fix multiple package installation.
+
+-------------------------------------------------------------------
 Wed Sep  5 12:13:35 CEST 2001 - kkaempf@suse.de
 
 - accept single package or list of packages as command line args.

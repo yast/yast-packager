@@ -251,8 +251,14 @@ do this.</P>");
     }
     else if ( descr_result == `unknown_descr )	// found NO descr
     {
-	UI::MessagePopup (wrong_media_msg);
-	dialog_id = 0;
+	if (MediaUI::ChangeMedium(1, true))
+	{
+	    dialog_id = 1;
+	}
+	else
+	{
+	    dialog_id = 0;
+	}
     }
     else if ( Installation::test_mode )
     {
@@ -347,8 +353,7 @@ must NOT be older than the version of your installed system.\n");
 
 		if ( SCR::Read(.target.size, arg_name) <= 0 )
 		{
-		    list installList = [];
-		    installList = add ( installList, arg_name );
+		    list installList = arg_list;
 		    inputMap = add (inputMap, "install", installList);
 	        }
 		else
