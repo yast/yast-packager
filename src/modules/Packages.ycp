@@ -267,10 +267,11 @@ Select which desktop to install.</p>");
         list<string> akp = [];
         if (extension!="")
         {
-            if (size(ProductFeatures::kernel_packages) > 0 && 
-                    ProductFeatures::kernel_packages != nil)
+	    list<string> kernel_packages = (list<string>)
+		ProductFeatures::GetFeature ("software", "kernel_packages");
+            if (size(kernel_packages) > 0 && kernel_packages != nil)
             {
-                akp = maplist(string p , ProductFeatures::kernel_packages, ``{
+                akp = maplist(string p , kernel_packages, {
                         return (p + "-" + extension);
                         });
             }
@@ -292,11 +293,12 @@ Select which desktop to install.</p>");
             selection_list  =  Pkg::GetSelections( `available, "laptop");
         }
 
-        if (size(ProductFeatures::addon_selections) > 0 &&
-                ProductFeatures::addon_selections!=nil)
+	list<string> addon_selections = (list<string>)
+	    ProductFeatures::GetFeature ("software", "addon_selections");
+        if (size(addon_selections) > 0 && "addon_selections"!=nil)
         {
-            selection_list=(list<string>)union(selection_list, 
-                    ProductFeatures::addon_selections );
+            selection_list=(list<string>)union(selection_list,
+                    addon_selections);
         }
         return selection_list;
     }
@@ -344,10 +346,10 @@ Select which desktop to install.</p>");
 	// and the most flexible enhancement for other products
         // NOTE: not really flexible, because it requires the client
         // in the instsys, instead use <kernel-packages> in the control file.
-	if (ProductFeatures::packages_transmogrify != "")
+	if (ProductFeatures::GetFeature ("software", "packages_transmogrify") != "")
 	{
             list<string> tmp_list = (list<string>)
-		WFM::CallFunction (ProductFeatures::packages_transmogrify,
+		WFM::CallFunction (ProductFeatures::GetStringFeature ("software", "packages_transmogrify"),
 				   [ install_list ]);
 
             // Make sure we did not get a nil from calling the client, i.e.
@@ -358,10 +360,12 @@ Select which desktop to install.</p>");
             }
 	}
 
-        if (size(ProductFeatures::packages) > 0 && ProductFeatures::packages != nil )
+	list<string> packages = (list<string>)
+	    ProductFeatures::GetFeature ("software", "packages");
+        if (size(packages) > 0 && packages != nil )
         {
-            y2milestone("Adding packages from control file: %1", ProductFeatures::packages );
-            install_list = (list<string>) union (install_list, ProductFeatures::packages );
+            y2milestone("Adding packages from control file: %1", packages);
+            install_list = (list<string>) union (install_list, packages);
         }
 
 	install_list = toset (install_list);
@@ -601,9 +605,9 @@ Select which desktop to install.</p>");
 		theSources = [ initial_source ];
 	    }
 
-	    if (ProductFeatures::base_selection_choice == `fixed)
+	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
 	    {
-                Pkg::SetSelection (ProductFeatures::fixed_base_selection);
+                Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
 	    }
 	}
 	else	// cont or normal mode
@@ -915,7 +919,7 @@ ask your system administrator.
 	// If not, there's no need to activate any selections !
 	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
 
-	if (ProductFeatures::base_selection_choice == `fixed)
+	if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
 	{
 	    if (! disk_space_sufficient)
 	    {
@@ -924,7 +928,7 @@ ask your system administrator.
 		ret = add( ret, "warning_level", `blocker );
 	    }
 	}
-	else if (ProductFeatures::base_selection_choice == `auto)
+	else if (ProductFeatures::GetFeature ("software", "selection_type") == `auto)
 	{
 	    if (redo_proposal || ! disk_space_sufficient)
 	    {
@@ -962,7 +966,7 @@ ask your system administrator.
 		boolean fit = false;
 		integer counter = 0;
 
-		if (ProductFeatures::software_proposal == "desktop")
+		if (ProductFeatures::GetFeature ("software", "software_proposal") == "desktop")
 		{
 		    if (!desktop_dialog_shown)
 		    {
@@ -1032,18 +1036,20 @@ ask your system administrator.
 		{
 		    selected_addon_selections = (list<string>)union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
                 }
-                if (size(ProductFeatures::addon_selections) > 0 &&
-                        ProductFeatures::addon_selections!=nil)
+		list<string> addon_selections = (list<string>)
+		    ProductFeatures::GetFeature ("software", "addon_selections");
+                if (size(addon_selections) > 0 &&
+                        addon_selections!=nil)
                 {
                     selected_addon_selections=(list<string>)union(selected_addon_selections, 
-                            ProductFeatures::addon_selections );
+                            addon_selections);
                 }
 	    }
 	}
 	else
 	{
-	    y2error ("unknown value %1 for ProductFeatures::base_selection_choice",
-		     ProductFeatures::base_selection_choice);
+	    y2error ("unknown value %1 for ProductFeatures::GetFeature (software, selection_type)",
+		     (symbol)ProductFeatures::GetFeature ("software", "selection_type"));
 	}
 
 	choosen_base_selection = selected_base_selection;
@@ -1055,7 +1061,7 @@ ask your system administrator.
         if (dp==nil)
             dp = "";
 
-	if (ProductFeatures::inform_about_suboptimal_distribution &&
+	if (ProductFeatures::GetBooleanFeature ("software", "inform_about_suboptimal_distribution") &&
                 Arch::i386 () && issubstring(dp, "DVD"))
 	    add_information_about_suboptimal_distribution (output);
 

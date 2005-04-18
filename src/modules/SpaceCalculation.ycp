@@ -406,7 +406,7 @@
 	if ( size ( message ) > 0 )
 	{
 	    // dont ask user to deselect packages for imap server, product
-	    if ( ProductFeatures::base_selection_choice == `auto)
+	    if ( ProductFeatures::GetFeature ("software", "selection_type") == `auto)
 	    {
 		if (Mode::update ())
 		    message = add (message, "\n" +
