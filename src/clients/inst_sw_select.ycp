@@ -120,7 +120,7 @@ You can then work with a simple graphical desktop. </p>
 ");
 
 //    if (Product::name == "Novell Linux Desktop")
-    if (ProductFeatures::software_proposal == "desktop")
+    if (ProductFeatures::GetFeature ("software", "software_proposal") == "desktop")
 	helptext = Packages::desktop_help_text;
 
     // help text, continued
@@ -131,7 +131,7 @@ To make a more precise selection of software to install, select
 ");
 
     // dont ask user for software selection if imap server, product
-    if ( ProductFeatures::base_selection_choice == `fixed )
+    if ( ProductFeatures::GetFeature ("software", "selection_type") == `fixed )
     {
 	Wizard::SetContents(title,
 			    `HVCenter(`Label(
