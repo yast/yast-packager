@@ -19,7 +19,7 @@
     import "Mode";
 
 
-    list<string> packages = (list<string>)ProductFeatures::GetFeatureProperties("software/packages");
+    list<string> packages = (list<string>)ProductFeatures::GetFeature("software", "packages");
 
     boolean probeSource (string url)
     {
