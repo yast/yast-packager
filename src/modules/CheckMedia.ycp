@@ -35,7 +35,26 @@
 
     // cache .probe.cdrom value
     // avoid reprobind during installation
-    global list<map> cd_cache = nil;
+    list<map> cd_cache = nil;
+
+    global define list<map> DetectedCDDevices()
+    {
+	if (cd_cache == nil)
+	{
+	    // the cache is not initialied, do it now
+	    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
+
+	    if (cds == nil)
+	    {
+		// initialize to empty list
+		cds = [];
+	    }
+
+	    cd_cache = cds;
+	}
+
+	return cd_cache;
+    }
 
     global define boolean Start(string device) {
 	// reset values
@@ -133,4 +152,55 @@
 	return progress;
     }
 
+    /* Return list of ready CD devices for installation. It works properly only
+     * in the first installation stage - it reads content of /etc/install.inf
+     * file. It returns the installation (boot) CD device if it's known or it
+     * probes for all CD devices and returns ready devices (the devices which
+     * contain a medium). If installation source is not CD/DVD it returns
+     * empty list.
+     *
+     * @return list<string> List of CD/DVD device names
+     */
+    global define list<string> GetReadyCDs() {
+	// check whether we are using CD installation source
+	string instmode = (string)SCR::Read(.etc.install_inf.InstMode);
+	y2milestone("Installation mode: %1", instmode);
+
+	list<string> readycddrives = [];
+
+	if (instmode == "cd" || instmode == "dvd")
+	{
+	    // get CD device name
+	    string bootcd = (string)SCR::Read(.etc.install_inf.Cdrom);
+
+	    if (bootcd != nil && bootcd != "")
+	    {
+		readycddrives = [ sformat("/dev/%1", bootcd) ];
+	    }
+	    else
+	    {
+		y2milestone("CD device device is not known, probing...");
+		// booted from another location (network), test all CD drives
+		list<map> cds = DetectedCDDevices();
+
+		if (cds != nil)
+		{
+		    foreach(map cd, cds, {
+			    string devname = cd["dev_name"]:"";
+
+			    // check whether the CD is ready
+			    if (cd["notready"]:false == false && devname != nil && devname != "")
+			    {
+				readycddrives = add(readycddrives, devname);
+			    }
+			}
+		    );
+		}
+	    }
+
+	    y2milestone("Ready CD drives: %1", readycddrives);
+	}
+
+	return readycddrives;
+    }
 }

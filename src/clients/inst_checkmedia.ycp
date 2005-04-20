@@ -31,35 +31,7 @@
 
     if (instmode == "cd" || instmode == "dvd")
     {
-	// get CD device name
-	string bootcd = (string)SCR::Read(.etc.install_inf.Cdrom);
-	list<string> readycddrives = [];
-
-	if (bootcd != nil && bootcd != "")
-	{
-	    readycddrives = [ sformat("/dev/%1", bootcd) ];
-	}
-	else
-	{
-	    // booted from another location (network), test all CD drives
-	    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
-	    CheckMedia::cd_cache = cds;
-
-	    if (cds != nil)
-	    {
-		foreach(map cd, cds, {
-			string devname = cd["dev_name"]:"";
-
-			// check whether the CD is ready
-			if (cd["notready"]:false == false && devname != nil && devname != "")
-			{
-			    readycddrives = add(readycddrives, devname);
-			}
-		    }
-		);
-	    }
-	}
-
+	list<string> readycddrives = CheckMedia::GetReadyCDs();
 	y2milestone("Ready CD drives: %1", readycddrives);
 
 	if (size(readycddrives) > 0)
