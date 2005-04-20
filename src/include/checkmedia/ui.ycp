@@ -132,29 +132,16 @@ define map<string,string> UnmountCD() {
 
     if (Stage::initial())
     {
-	if (CheckMedia::cd_cache == nil)
-	{
-	    // the cache is not initialied, do it now
-	    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
+	list<map> cddevices = CheckMedia::DetectedCDDevices();
+	y2milestone("Detected CD devices: %1", cddevices);
 
-	    if (cds == nil)
-	    {
-		// initialize to empty list
-		cds = [];
-	    }
-
-	    CheckMedia::cd_cache = cds;
-	}
-
-	y2milestone("cd_cache: %1", CheckMedia::cd_cache);
-
-	if (CheckMedia::cd_cache != nil)
+	if (cddevices != nil)
 	{
 	    // reload /proc/mounts file
 	    SCR::UnmountAgent(.proc.mounts);
 
 	    list<map> mounts = (list<map>)SCR::Read(.proc.mounts);
-	    list<string> cddevs = maplist(map cdd, CheckMedia::cd_cache, {return cdd["dev_name"]:"";});
+	    list<string> cddevs = maplist(map cdd, cddevices, {return cdd["dev_name"]:"";});
 
 	    // check which CD drive is mounted
 	    foreach(map mnt, mounts, {

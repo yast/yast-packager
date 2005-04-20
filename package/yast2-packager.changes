@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 20 10:51:05 CEST 2005 - lslezak@suse.cz
+
+- checkmedia - moved CD device probing to CheckMedia.ycp
+  (see #75980)
+
+-------------------------------------------------------------------
 Tue Apr 19 10:59:13 CEST 2005 - jsrain@suse.cz
 
 - more adaptations to new interface of ProductFeatures.ycp
