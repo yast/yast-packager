@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=yast2-inst-source
+Icon=yast-sw_source
 Exec=/sbin/yast2 inst_source
 
 Name=Change Source of Installation

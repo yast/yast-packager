@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=20
 X-SuSE-YaST-AutoInstResource=
 
-Icon=software
+Icon=yast-sw_single
 Exec=/sbin/yast2 sw_single 
 
 Name=Install and Remove Software
