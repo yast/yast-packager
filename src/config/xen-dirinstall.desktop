@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoinstResource=
 
-Icon=system_dirinstall
+Icon=yast-xen-dirinstall
 Exec=/sbin/yast2 dirinstall
 
 Name=Installation into Directory for XEN
