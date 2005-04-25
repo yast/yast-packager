@@ -15,6 +15,7 @@
     module "InstURL";
     import "Linuxrc";
     import "URL";
+    import "CheckMedia";
 
 
     global boolean is_network = true;
@@ -41,15 +42,20 @@
     string GetDevicesOption() {
         string options = "";
         list<map> devicelist = (list<map>) SCR::Read(.probe.cdrom);
-        foreach (map device, devicelist,
-                {
-                string devname = device["dev_name"]:"";
-                if (devname != "")
-                {
-                if (options != "") options = options + ",";
-                options = options + devname;
-                }
-                });
+	list<string> devlist = maplist (map d, devicelist, {
+	    return d["dev_name"]:"";
+	});
+	list<string> ready = CheckMedia::GetReadyCDs ();
+	if (size (ready) != 0)
+	    devlist = ready;
+	foreach (string d, devlist, {
+	    if (d != "")
+	    {
+		if (options != "")
+		    options = options + ",";
+		options = options + d;
+	    }
+	});
         if (options != "")
         {
             options = "devices=" + options;

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Apr 25 08:23:59 CEST 2005 - jsrain@suse.cz
+
+- enhanced selection of CD drive to use for isntallation (#75980)
+
+-------------------------------------------------------------------
 Wed Apr 20 10:51:05 CEST 2005 - lslezak@suse.cz
 
 - checkmedia - moved CD device probing to CheckMedia.ycp
