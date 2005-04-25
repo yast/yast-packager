@@ -17,6 +17,7 @@
 {
     // Set the name of the module
     module "CheckMedia";
+    import "Linuxrc";
     import "Report";
 
     textdomain "packager";
@@ -163,7 +164,7 @@
      */
     global define list<string> GetReadyCDs() {
 	// check whether we are using CD installation source
-	string instmode = (string)SCR::Read(.etc.install_inf.InstMode);
+	string instmode = Linuxrc::InstallInf ("InstMode");
 	y2milestone("Installation mode: %1", instmode);
 
 	list<string> readycddrives = [];
@@ -171,7 +172,7 @@
 	if (instmode == "cd" || instmode == "dvd")
 	{
 	    // get CD device name
-	    string bootcd = (string)SCR::Read(.etc.install_inf.Cdrom);
+	    string bootcd = Linuxrc::InstallInf ("Cdrom");
 
 	    if (bootcd != nil && bootcd != "")
 	    {

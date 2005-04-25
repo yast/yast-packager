@@ -1,3 +1,4 @@
+Read	.target.tmpdir "/tmp"
 Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Server", "Serverdir"]
 Read	.etc.install_inf."InstMode" "ftp"

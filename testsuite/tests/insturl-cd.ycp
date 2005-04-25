@@ -16,6 +16,7 @@
             ]]
     ];
 
+    TESTSUITE_INIT ([READ], nil);
     import "InstURL";
     import "Linuxrc";
     
