@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 27 14:13:46 CEST 2005 - jsrain@suse.cz
+
+- added client for finishing basic installation
+
+-------------------------------------------------------------------
 Mon Apr 25 08:23:59 CEST 2005 - jsrain@suse.cz
 
 - enhanced selection of CD drive to use for isntallation (#75980)
