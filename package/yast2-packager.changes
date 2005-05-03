@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May  3 10:37:30 CEST 2005 - visnov@suse.cz
+
+- replaced 'default', it's a keyword now 
+
+-------------------------------------------------------------------
 Wed Apr 27 14:16:07 CEST 2005 - jsrain@suse.cz
 
 - added client for finishing basic installation
