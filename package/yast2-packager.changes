@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Mon May 16 11:05:08 CEST 2005 - jsrain@suse.cz
 
-- rename 'default' variable
+- rename 'default' variable (Runlevel::default)
+- 2.12.5
 
 -------------------------------------------------------------------
 Tue May  3 10:37:30 CEST 2005 - visnov@suse.cz
