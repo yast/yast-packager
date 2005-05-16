@@ -92,8 +92,8 @@
     Display::Save();
     Console::Save();
 
-    integer runlevel = RunlevelEd::default == ""?
-        3 : tointeger (RunlevelEd::default);
+    integer runlevel = RunlevelEd::default_runlevel == ""?
+        3 : tointeger (RunlevelEd::default_runlevel);
     y2milestone ("setting default runlevel to %1", runlevel);
     SCR::Write (.etc.inittab.id, sformat ("%1:initdefault:", runlevel));
     SCR::Write (.etc.inittab, nil);
