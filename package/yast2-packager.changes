@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 23 12:57:36 CEST 2005 - jsrain@suse.cz
+
+- fixed integration of patch CD (#84735)
+
+-------------------------------------------------------------------
 Mon May 16 11:05:08 CEST 2005 - jsrain@suse.cz
 
 - rename 'default' variable (Runlevel::default)
