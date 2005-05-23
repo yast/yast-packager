@@ -475,6 +475,7 @@ Select which desktop to install.</p>");
 			orderfile);
 		    return;
 		}
+		y2milestone ("Contents of order file: %1", orderlist);
 
 		string instorderfile = Pkg::SourceProvideFile (initial_source, 1, "yast/instorder");
 		if (instorderfile != nil)
@@ -507,7 +508,7 @@ Select which desktop to install.</p>");
 		WFM::Execute (.local.mkdir, metadir);
 		boolean all_sources_ok = true;
                 // copy all data to ramdisk
-		list<list<string> > new_orderlist = filter (list<string> sourcelist, orderlist, {		
+		list<list<string> > new_orderlist = filter (list<string> sourcelist, orderlist, {
                         // just in case more spaces are used as delimiter,
                         // remove all remaining spaces from the list
                         sourcelist = filter(string src, sourcelist,
@@ -553,7 +554,6 @@ Select which desktop to install.</p>");
                     WFM::Execute(.local.bash, "tar -zxvf " +
                             servicepack_metadata + " -C " + spdir);
 
-                    
                     string sp_url = "dir://"+metadir+"/Service-Pack/CD1";
                     orderlist = add(orderlist, ["/", sp_url]);
                     instordermap =  add (instordermap, size(instordermap) + 1, sp_url);
@@ -569,6 +569,16 @@ Select which desktop to install.</p>");
 			string pkgdir = sourcelist[1]:"";
 
 			string meta_url = "dir://"+metadir+"/" + descrdir;
+			// FIXME very ugly, don't know why someone has to mix
+			// directory (from order file) with URL (ca. 15 lines
+			// above)
+			if (servicepack_available)
+			{
+			    if (pkgdir != "")
+			    {
+				meta_url = pkgdir;
+			    }
+			}
 			integer srcid = Pkg::SourceCreate (meta_url, "");		// create and enable source
 			y2milestone ("srcid %1, temp_url '%2'", srcid, meta_url);
 			if (srcid != nil)
@@ -576,14 +586,22 @@ Select which desktop to install.</p>");
 			    theSources = add (theSources, srcid);
 			    theSourceDirectories = add (theSourceDirectories, descrdir);
                             // if second column of yast/order contains ":"
-			    if (find (pkgdir, ":") > 0)					
+			    if (find (pkgdir, ":") > 0)
 			    {
 				base_url = pkgdir;	// then take as URL
+			        // FIXME again, ugly hack to make service pack
+				// work
+				if (servicepack_available && meta_url == pkgdir
+				    && issubstring (meta_url, "dir://"))
+				{
+				    base_url = InstURL::installInf2Url ("/");
+				}
 			    }
 			    else
 			    {
 				base_url = InstURL::installInf2Url (pkgdir);		// else take as sub-dir
 			    }
+			   y2milestone ("New base URL: %1", base_url);
 			    Pkg::SourceChangeUrl (srcid, base_url);		// rewrite URL for *real* source
 
 			    // now find this source in the instorder map and fill
