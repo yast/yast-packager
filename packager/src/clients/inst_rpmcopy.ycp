@@ -1,0 +1,211 @@
+/**
+ * Module: 		inst_rpmcopy.ycp
+ *
+ * Authors:		Klaus Kaempf <kkaempf@suse.de>
+ *			Stefan Hundhammer <sh@suse.de> (slide show)
+ *			Arvin Schnell <arvin@suse.de>
+ *
+ * Purpose:
+ * Install all the RPM packages the user has selected.
+ * Show installation dialogue. Show progress bars.
+ * Request medium change from user.
+ *
+ * Packages module :
+ *			"installed"
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    import "AutoInstall";
+    import "Mode";
+    import "Stage";
+    import "Installation";
+    import "Directory";
+    import "Language";
+    import "PackageInstallation";
+    import "Packages";
+    import "SlideShow";
+    import "SlideShowCallbacks";
+    import "AutoinstSoftware";
+    import "Popup";
+    import "DirInstall";
+
+
+    Pkg::SetLocale (Language::language);
+
+    SlideShow::SetLanguage (Language::language);
+
+    // start target, create new rpmdb if none is existing
+    // FIXME error checking is missing all around here, initialization could actually fail!
+    //Pkg::TargetInit (Installation::destdir, true);
+    if(Pkg::TargetInit (Installation::destdir,true) != true)
+    {
+	// continue-cancel popup
+        if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false)
+        {
+            return `abort;
+        }
+    }
+
+
+    if (Stage::cont ())
+    {
+	// initialize the package agent in continue mode
+	Packages::Init( true );
+    }
+
+    SlideShow::OpenSlideShowDialog ();
+
+    Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
+
+
+    if  (Mode::autoinst ()
+	 && Stage::cont ())
+    {
+	import "AutoinstSoftware";
+
+	// post packages from autoinstall
+	map <string, any> res = Pkg::DoProvide (AutoinstSoftware::post_packages);
+	if (size (res) > 0)
+	{
+	    foreach (string s, any a, res, ``{
+		y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+	    });
+	}
+
+	Pkg::PkgSolve (false);
+    }
+
+    if (!Stage::initial ())
+    {
+	// second stage of package installation, re-read list of remaining binary and source
+	// packages
+
+	list<string> remaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
+	if (remaining == nil)
+	    remaining = [];
+
+	list<string> srcremaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/srcremaining", []]);
+	if (srcremaining == nil)
+	    srcremaining = [];
+
+	string backupPath = (string) SCR::Read(.target.string, [Installation::destdir + "/var/lib/YaST2/backup_path", ""]);
+	if ( backupPath != nil && backupPath != "")
+	{
+	    y2milestone("create package backups in %1",backupPath);
+	    Pkg::CreateBackups (true);
+	    Pkg::SetBackupPath (backupPath);
+	}
+
+	y2milestone ("%1 binary packages remaining", size (remaining));
+	foreach (string pkg, remaining, ``{
+	    Pkg::PkgInstall (pkg);
+	});
+
+	y2milestone ("%1 source packages remaining", size (srcremaining));
+	foreach (string pkg, srcremaining, ``{
+	    Pkg::PkgSrcInstall (pkg);
+	});
+    }
+
+    // Install the software from Medium1 to Mediummax, but not the already
+    // installed base packages.
+    // This part is also used for installation in running system (Stage::cont ())
+
+    integer maxnumbercds = 10;
+    integer current_cd_no = 1;
+
+    if (Stage::initial ())
+    {
+	maxnumbercds = 1;			// only the first CD will be installed
+    }
+    else if (Mode::autoinst () && Stage::cont () && size( AutoinstSoftware::post_packages ) > 0)
+    {
+	// one more compatibility feature to old YaST, post-packages
+	// Simply install a list of package after initial installation (only
+	// makes sense with nfs installatons)
+	current_cd_no = 1;
+    }
+    else if (Stage::cont ())
+    {
+	current_cd_no = 2; // continue with second CD but only in continue mode
+    }
+    else if (DirInstall::installing_into_dir)
+    {
+	current_cd_no = 1;
+    }
+
+    if (Packages::metadir_used)			// all is in ramdisk
+    {
+	current_cd_no = 0;			// we can install all sources now
+	maxnumbercds = 0;
+    }
+
+    symbol result = `next;
+
+    while (current_cd_no <= maxnumbercds)
+    {
+	boolean go_on = true;
+
+	// returns [ int successful, list failed, list remaining ]
+	list commit_result = PackageInstallation::CommitPackages( current_cd_no, 0 );
+
+	integer count = commit_result[0]:0;
+	y2milestone ("%1 packages installed", count);
+
+	list failed = commit_result[1]:[];
+	if (size (failed) > 0)
+	{
+	    y2milestone ("failed: %1", failed);
+	    list previous_failed = (list) SCR::Read (.target.ycp, [Installation::destdir +
+								   "/var/lib/YaST2/failed_packages", []]);
+	    if (size (previous_failed) > 0)
+		failed = union (previous_failed, failed);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed);
+	}
+
+	list remaining = commit_result[2]:[];
+	if (size (remaining) >= 0)
+	{
+	    y2milestone ("remaining: %1", remaining);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining", remaining);
+	}
+	else
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/remaining");
+	}
+
+	list srcremaining = commit_result[3]:[];
+	if (size (srcremaining) >= 0)
+	{
+	    y2milestone ("source remaining: %1", srcremaining);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/srcremaining", srcremaining);
+	}
+	else
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/srcremaining");
+	}
+
+	if (count < 0)					// aborted by user
+	{
+	    result = `abort;
+	    break;
+	}
+
+	// break on first round with Mediums
+	if (Stage::initial () && !Mode::test ())
+	    break;
+
+	current_cd_no = current_cd_no + 1;
+    }
+
+    // sync package manager FIXME
+    Pkg::PkgCommit (9999);
+
+    SlideShow::CloseSlideShowDialog();
+
+    return result;
+}

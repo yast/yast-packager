@@ -1,0 +1,87 @@
+/**
+ * File:
+ *   clients/inst_dirinstall_finish.ycp
+ *
+ * Summary:
+ *   Close dir installation
+ *
+ * Authors:
+ *   Anas Nashif <nashif@suse.de>
+ *
+ * $Id:$
+ *
+ */
+{
+    textdomain "packager";
+    import "DirInstall";
+    import "Installation";
+    import "Directory";
+    import "Progress";
+
+    list<string> progress_stages =
+	[
+	 // progress stages
+	 _("Finalize system configuration"),
+	 // progress stages
+	 _("Prepare system for initial boot")
+	 ];
+
+    integer progress_length = 2;
+    if (DirInstall::makeimage)
+    {
+	// progress stage
+        progress_stages=add(progress_stages, _("Create image file"));
+        progress_length = progress_length + 1;
+    }
+
+    list<string> progress_descriptions =
+	[];
+
+    // help text
+    string help_text = _("<p>Please wait while the system is being configured.</p>");
+
+    Progress::New(
+            // Headline for last dialog of base installation: Install LILO etc.
+            _("Finishing Directory Installation"),
+            "",	// Initial progress bar label - not empty (reserve space!)
+            progress_length,	// progress bar length
+            progress_stages,
+            progress_descriptions,
+            help_text );
+
+
+    Progress::NextStage ();
+    // progress title
+    Progress::Title(_("Configuring installed system"));
+
+    Progress::NextStage ();
+
+    if (DirInstall::runme_at_boot)
+    {
+        string runme_at_boot = Installation::destdir + Directory::vardir + "/runme_at_boot";
+        if (!SCR::Write (.target.string, runme_at_boot, ""))
+        {
+            y2error ("Couldn't create target %1", runme_at_boot );
+        }
+
+    }
+
+
+    if (DirInstall::makeimage && 
+            DirInstall::image_dir != "" && 
+            DirInstall::image_name != "")
+    {
+        Progress::NextStage();
+        string cmd =  sformat("cd %1 && tar -zcf %2 . && cd - ", 
+                DirInstall::target, 
+                DirInstall::image_dir + "/" + DirInstall::image_name + ".tgz");
+        y2debug("cmd: %1", cmd);
+	// progress title
+        Progress::Title(_("Building directory image..."));
+        SCR::Execute(.target.bash, cmd);
+    }
+
+
+    Progress::Finish();
+    return `next;
+}

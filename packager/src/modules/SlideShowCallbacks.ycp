@@ -1,0 +1,213 @@
+/**
+ * Module: 		SlideShowCallbacks.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>
+ *			Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose: 		provides the Callbacks for SlideShow
+ *
+ */
+
+{
+    module "SlideShowCallbacks";
+
+    textdomain "packager";
+
+    import "Installation";
+    import "Label";
+    import "Mode";
+    import "Stage";
+    import "PackageCallbacks";
+    import "Popup";
+    import "SlideShow";
+
+    boolean shutup = false;			// show the disk space warning popup only once
+    boolean _remote_provide = false;
+    boolean user_abort = false;
+
+    /**
+     *  at start of file providal
+     */
+    global void StartProvide( string name, integer archivesize, boolean remote )
+    {
+	if ( remote )
+	{
+	    SlideShow::SlideProvideStart( name );
+	    _remote_provide = true;
+	}
+    }
+
+
+    /**
+     * during file providal
+     */
+    global void ProgressProvide( integer percent )
+    {
+	if (_remote_provide)
+	{
+	    SlideShow::UpdateCurrentPackageProgress ( percent );
+	}
+    }
+
+
+    /**
+     * during file providal
+     */
+    global string DoneProvide( integer error, string reason, string name )
+    {
+	if ( _remote_provide )
+	{
+	    SlideShow::UpdateCurrentPackageProgress( 100 );
+	    _remote_provide = false;
+	}
+	if (error != 0)
+	{
+	    return PackageCallbacks::DoneProvide( error, reason, name );
+	}
+
+	return "";
+    }
+
+
+
+    //--------------------------------------------------------------------------
+    // slide show
+
+
+    /**
+     * Check for user button presses and handle them.
+     *
+     * @return true if user wishes to abort
+     **/
+    void HandleInput()
+    {
+	// any button = SlideShow::debug ? UI::PollInput() : UI::TimeoutUserInput( 10 );
+	any button = UI::PollInput();
+
+	// in case of cancel ask user if he really wants to quit installation
+	if ( button == `abort || button == `cancel )
+	{
+	    if ( Mode::normal () )
+	    {
+		user_abort = Popup::AnyQuestion( Popup::NoHeadline(),
+						// popup yes-no
+						 _("Do you really want\nto quit the installation?"),
+						 Label::YesButton(),
+						 Label::NoButton(),
+						 `focus_no );
+	    }
+	    else if ( Stage::initial () )
+	    {
+		user_abort = Popup::ConfirmAbort( `unusable );
+	    }
+	    else	// Mode::update (), Stage::cont ()
+	    {
+		user_abort = Popup::ConfirmAbort( `incomplete );
+	    }
+	}
+	else
+	{
+	    SlideShow::HandleInput( button );
+	}
+    }
+
+
+    /**
+     * Callback that will be called by the packager for each RPM as it is being installed or deleted.
+     * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
+     * and pass the "deleting" flag as appropriate.
+     *
+     * return true: go on with installation
+     *        false: abort installation
+     **/
+    global boolean DisplayStartInstall( string  pkg_name,
+					       string  pkg_description,
+					       integer pkg_size,
+					       integer disk_usage,
+					       integer disk_capacity,
+					       boolean deleting )
+    {
+	SlideShow::SlideDisplayStart( pkg_name, pkg_description, pkg_size, deleting );
+	HandleInput();
+
+	integer disk_percentage_left = (disk_usage * 100) / disk_capacity;
+
+	// warn user about exhausted diskspace during installation (not if deleting packages)
+	if (! deleting)
+	{
+	    if ( disk_percentage_left > 95 && !shutup)
+	    {
+		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
+						   // yes-no popup
+						   _("The disk space is nearly exhausted.\nContinue with the installation?"),
+						   Label::YesButton(),
+						   Label::NoButton(),
+						   `focus_no );
+
+		if (!cont)
+		    return false;
+		else
+		    shutup = true;
+	    }
+	}
+
+	return ! user_abort;
+    }
+
+
+    /**
+     *  at start of package install
+     */
+    global boolean StartPackage( string name, string summary, integer install_size, boolean is_delete )
+    {
+	PackageCallbacks::_package_name = name;
+
+	return DisplayStartInstall( name,
+				    summary,
+				    install_size,
+				    Pkg::TargetUsed( Installation::destdir ),
+				    Pkg::TargetCapacity( Installation::destdir ),
+				    is_delete);
+    }
+
+
+    /**
+     * ProgressPackage percent
+     **/
+    global symbol ProgressPackage ( integer pkg_percent )
+    {
+	HandleInput();
+	SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
+
+	return nil;
+    };
+
+    /**
+     * at end of install
+     * just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
+     */
+    global string DonePackage( integer error, string reason )
+    {
+	SlideShow::UpdateCurrentPackageProgress (100);
+
+	if (error != 0)
+	{
+	    return PackageCallbacks::DonePackage( error, reason );
+	}
+	return "";
+    }
+
+
+    /**
+     * change of source
+     * source: 0 .. n-1
+     * media:  1 .. n
+     **/
+    global void CallbackSourceChange( integer source, integer media)
+    {
+	PackageCallbacks::SourceChange( source, media );		// inform PackageCallbacks about the change
+	SlideShow::SetCurrentCdNo( source+1, media );
+	SlideShow::UpdateCurrentPackageProgress(0);
+	SlideShow::UpdateAllCdProgress();
+    };
+}

@@ -1,0 +1,567 @@
+/**
+ * File:		inst_source.ycp
+ *
+ * Authors:		Klaus Kaempf <kkaempf@suse.de>
+ *			Gabriele Strattner <gs@suse.de>
+ *			Stefan Schubert <schubi@suse.de>
+ *                      Cornelius Schumacher <cschum@suse.de>
+ *
+ * Purpose:
+ * Displays possibilities to install from NFS, CD or partion
+ * Do the "mount" for testing the input.
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    import "Label";
+    import "URL";
+
+    define string getServerUrl( symbol type, string host,
+				string urlpath, string user,
+				string pass );
+
+    /**
+        Return an HBox with ok and cancel buttons for use by other dialogs.
+        @return An HBox term for use in a CreateDialog call.
+    */
+    define term dialogButtons() ``{
+        return
+            `HBox(
+                `PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
+                `HStretch(),
+                `PushButton( `id( `cancel ), Label::CancelButton() )
+            );
+    }
+
+    /**
+        Open a dialog for editing of authentification information (basically a
+        username and a password.
+    */
+    define void editAuthentification() ``{
+        UI::OpenDialog(
+            `VBox(
+		// label
+                `Label( _("Authentication") ),
+
+                `RadioButtonGroup(`id(`rb),
+                    `VBox(
+			// radio button
+                        `Left( `RadioButton( `id( `anonymous ), _("Anonymous") ) ),
+			// radio button
+                        `Left( `RadioButton( `id( `account ), _("Account") ) ),
+                        `HBox(
+                            `HSpacing( 3 ),
+				// text entry
+                            `TextEntry( `id( `username ), _("User Name") ),
+                            `HSpacing( 2 )
+                        ),
+                        `HBox(
+                            `HSpacing( 3 ),
+				// text entry
+                            `TextEntry( `id( `password ), _("Password") ),
+                            `HSpacing( 2 )
+                        ),
+                        dialogButtons()
+                    )
+                )
+            )
+        );
+
+        any authinput = nil;
+
+        repeat
+        {
+            authinput = UI::UserInput();
+            y2debug( "Auth Input: %1", authinput );
+
+            if ( authinput == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+
+        } until ( authinput == `cancel || authinput == `ok );
+
+        UI::CloseDialog();
+    }
+
+    /**
+        Open a dialog for editing of FTP server information.
+    */
+    define void editFtp() ``{
+        UI::OpenDialog(
+            `VBox(
+		// label
+                `Label( _("FTP Server and Directory") ),
+		// text entry
+                `TextEntry( `id( `server ), _("Server Name") ),
+		// text entry
+                `TextEntry( `id( `dir ), _("Directory on Server") ),
+                `HBox(
+		    // label
+                    `Label( _("Authentication:") ),
+		    // label
+                    `Label( `id( `auth ), _("Anonymous") ),
+		    // push button
+                    `PushButton( `id( `auth_button ), _("Edit...") )
+                ),
+                dialogButtons()
+            )
+        );
+	UI::SetFocus (`id (`server));
+
+        any input = nil;
+
+        repeat
+        {
+            input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `auth_button )
+            {
+                editAuthentification();
+            }
+            else if ( input == `ok )
+            {
+                y2debug( "ok clicked" );
+            }
+
+        } until ( input == `cancel || input == `ok );
+
+        UI::CloseDialog();
+    }
+
+    /**
+        Get a nfs url.
+    */
+    define string getNfsUrl( string host, string urlpath ) ``{
+        if ( substring( urlpath, 0, 1 ) == "/" ) {
+          urlpath = substring( urlpath, 1 );
+        }
+
+        UI::OpenDialog(
+            `VBox(
+		// label
+                `Label( _("NFS Server and Directory") ),
+		// text entry
+                `TextEntry( `id( `server ), _("&Server Name"), host ),
+		// text entry
+                `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
+//                `TextEntry( `id( `mount ), _("&Mount options") ),
+                dialogButtons()
+            )
+        );
+	UI::SetFocus (`id (`server));
+
+        string url = "";
+
+        any input = nil;
+
+        repeat
+        {
+            input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `ok )
+            {
+                string server = (string) UI::QueryWidget( `id( `server ), `Value );
+                string dir = (string) UI::QueryWidget( `id( `dir ), `Value );
+//                string options = UI::QueryWidget( `id( `mount ), `Value );
+
+                url = "nfs://" + server + "/" + dir;
+            }
+
+        } until ( input == `cancel || input == `ok );
+
+        UI::CloseDialog();
+
+        return url;
+    }
+
+    /**
+        Get url for a cd or dvd.
+    */
+    define string getCdUrl() ``{
+        UI::OpenDialog(
+            `VBox(
+		// label
+                `Label( _("CD Installation") ),
+                `RadioButtonGroup( `id( `device ),
+                    `VBox(
+                        `Left( `RadioButton( `id( `cd0 ), "/dev/cdrom", true ) ),
+//                        `Left( `RadioButton( `id( `cd1 ), "/dev/cdrom1" ) ),
+                        `Left( `RadioButton( `id( `dvd ), "/dev/dvd" ) )
+                    )
+                ),
+                dialogButtons()
+            )
+        );
+	UI::SetFocus (`id (`cd0));
+
+        string url = "";
+
+        any input = nil;
+        repeat
+        {
+            input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `ok )
+            {
+                symbol device = (symbol) UI::QueryWidget( `id( `device ), `CurrentButton );
+                if ( device == `cd0 )
+                {
+                    url = "cd:///";
+                }
+                else if ( device == `dvd )
+                {
+                    url = "dvd:///";
+                }
+            }
+
+        } until ( input == `cancel || input == `ok );
+
+        UI::CloseDialog();
+
+        return url;
+    }
+
+    define string getNewServerUrl( symbol protocol )
+    ``{
+      return getServerUrl( protocol, "", "", "", "" );
+    }
+
+    /**
+        Get a URL for a ftp, http or samba server, optionally inclduing
+        user/password information.
+	// FIXME Samba share and workgroup are parts of urlpath
+
+        @param protocol type of server, can be `ftp, `http or `smb.
+    */
+    define string getServerUrl( symbol type, string host,
+                                       string urlpath, string user,
+                                       string pass )
+    ``{
+        if ( substring( urlpath, 0, 1 ) == "/" ) {
+          urlpath = substring( urlpath, 1 );
+        }
+
+	string share = "";
+	string workgroup = "";
+	if (type == `samba)
+	{
+	    list sharepath = regexptokenize (urlpath,
+		"^/*([^/]+)(/.*)?$");
+	    share = sharepath[0]:"";
+	    urlpath = sharepath[1]:"";
+	    if (urlpath == nil)
+		urlpath = "/";
+	    if (workgroup == nil)
+		workgroup = "";
+	    if (regexpmatch (urlpath, "^.*;workgroup=[^;]+$"))
+	    {
+		workgroup = regexpsub (urlpath,
+		    "^.*;workgroup=([^;]+)$", "\\1");
+		urlpath = regexpsub (urlpath, "^(.*);workgroup=[^;]+$", "\\1");
+	    }
+	}
+	// text entry
+	term wg_widget = `TextEntry( `id( `workgroup), _("Workgroup or Domain"),
+					workgroup);
+	// text entry
+	term share_widget = `TextEntry (`id (`share), _("&Share"), share);
+
+        UI::OpenDialog( `opt( `decorated ),
+            `VBox(
+		// label
+                `Label( _("Server and Directory") ),
+                `HBox(
+                    `HSpacing( 0.5 ),
+		    // frame
+                    `Frame( _("P&rotocol"),
+                        `RadioButtonGroup( `id( `rb_type ), `opt (`notify),
+                            `HBox(
+                                `HStretch(),
+				// radio button
+                                `RadioButton( `id( `ftp ), `opt (`notify), _("&FTP") ),
+                                `HStretch(),
+				// radio button
+                                `RadioButton( `id( `http ), `opt (`notify), _("H&TTP") ),
+                                `HStretch(),
+				// radio button
+                                `RadioButton( `id( `samba ), `opt (`notify), _("&SMB/CIFS") ),
+                                `HStretch()
+                            )
+                        )
+                    ),
+                    `HSpacing( 0.5 )
+                ),
+		// text entry
+                `TextEntry( `id( `server ), _("Server &Name"), host ),
+		`ReplacePoint (`id (`share_rp), share_widget),
+		// text entry
+                `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
+                `HBox(
+                    `HSpacing( 0.5 ),
+			// frame
+                    `Frame( _("Au&thentication"),
+                        `VBox(
+                            `Left( `CheckBox( `id( `anonymous ),
+						// check box
+                                              `opt( `notify ), _("&Anonymous"),
+                                              size( user ) == 0 ) ),
+			    `HBox (
+				`ReplacePoint (`id (`workgroup_rp),
+				wg_widget)
+			    ),
+                            `HBox(
+				// text entry
+                                `TextEntry( `id( `username ), _("&User Name"),
+                                            user )
+                            ),
+                            `HBox(
+				// password entry
+                                `Password( `id( `password ), _("&Password"),
+                                           pass )
+                            )
+                        )
+                    ),
+                    `HSpacing( 0.5 )
+                ),
+                dialogButtons()
+            )
+        );
+
+        UI::ChangeWidget( `id( `rb_type ), `CurrentButton, type );
+	UI::SetFocus (`id (`server));
+
+        string url = "";
+
+        any input = nil;
+        repeat
+        {
+
+	    if (UI::QueryWidget (`id (`rb_type), `CurrentButton) == `samba)
+	    {
+		UI::ReplaceWidget (`id (`workgroup_rp), wg_widget);
+		UI::ReplaceWidget (`id (`share_rp), share_widget);
+		UI::ChangeWidget (`id (`workgroup), `Value, workgroup);
+		UI::ChangeWidget (`id (`share), `Value, share);
+	    }
+	    else
+	    {
+		UI::ReplaceWidget (`id (`workgroup_rp), `Empty ());
+		UI::ReplaceWidget (`id (`share_rp), `Empty ());
+	    }
+
+            boolean anonymous = (boolean) UI::QueryWidget( `id( `anonymous ), `Value );
+            UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
+            UI::ChangeWidget( `id( `password ), `Enabled, !anonymous );
+	    if (UI::WidgetExists (`id (`workgroup)))
+	    {
+		UI::ChangeWidget( `id( `workgroup), `Enabled, !anonymous );
+	    }
+
+            input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `ok )
+            {
+                url = "";
+                symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
+                if ( type == `ftp ) {
+                    url = "ftp://";
+                } else if ( type == `http ) {
+                    url = "http://";
+                } else if ( type == `samba ) {
+                    url = "smb://";
+                }
+
+                if ( !anonymous )
+                {
+                    string user = (string) UI::QueryWidget( `id( `username ), `Value );
+                    string password = (string) UI::QueryWidget( `id( `password ), `Value );
+
+                    if ( size( user ) != 0 ) {
+                        url = url + user;
+                        if ( size( password ) != 0 ) {
+                            url = url + ":" + password;
+                        }
+                        url = url + "@";
+                    }
+                }
+
+                string server = (string) UI::QueryWidget( `id( `server ), `Value );
+                string directory = (string) UI::QueryWidget( `id( `dir ), `Value );
+		if (UI::WidgetExists (`id (`share)))
+		{
+		    share = (string)UI::QueryWidget (`id (`share), `Value);
+		    url = url + server + "/" + share + "/" + directory;
+		}
+		else
+		    url = url + server + "/" + directory;
+
+		if (UI::WidgetExists (`id (`workgroup)))
+		     workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
+		if (type == `samba && size (workgroup) > 0)
+		    url = url + ";workgroup=" + workgroup;
+
+
+            }
+        } until ( input == `cancel || input == `ok );
+
+        UI::CloseDialog();
+        return url;
+    }
+
+    /**
+     * Let the user put in a directory url.
+     *
+     * @param default  initial default
+     * @return directory url on success, empty string when the user
+     *   canceled the dialog.
+    */
+    define string getDirectoryUrl( string default ) ``{
+
+        UI::OpenDialog(
+            `VBox(
+		// label
+                `Label( _("Local Directory") ),
+                `HBox(
+			// text entry
+                    `TextEntry( `id( `dir ), _("&Directory Path") ),
+			// push button
+                    `PushButton( `id( `browse ), _("&Browse...") )
+                ),
+                dialogButtons()
+            )
+        );
+
+        UI::ChangeWidget( `id( `dir ), `Value, default );
+	UI::SetFocus (`id (`dir));
+
+        string url = "";
+
+        any input = nil;
+
+        repeat
+        {
+            input = UI::UserInput();
+
+            if ( input == `browse )
+            {
+                url = (string) UI::QueryWidget( `id( `dir ), `Value );
+
+		// dialog caption
+ 		string result = UI::AskForExistingDirectory( url, _("Local Directory") );
+                if ( result != nil )
+                {
+                    UI::ChangeWidget( `id( `dir ), `Value, result );
+                }
+            }
+            else if ( input == `ok )
+            {
+                url = (string) UI::QueryWidget( `id( `dir ), `Value );
+
+                url = "dir://" + url;
+            }
+            else if ( input == `cancel )
+            {
+                url = "";
+            }
+
+        } until ( input == `cancel || input == `ok );
+
+        UI::CloseDialog();
+
+        return url;
+    }
+
+    define string getUrl( string default ) ``{
+        UI::OpenDialog(
+            `VBox(
+		/* Label text */
+                `Label( _("Select Type of URL:") ),
+                `RadioButtonGroup( `id(`url_type),
+                    `VBox(
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `dir ), _("D&irectory"), true ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `ftp ), "&FTP" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `http ), "&HTTP" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `samba ), "&SMB/CIFS" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `nfs ), "&NFS" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `cd ), "&CD" ) ),
+			/* RadioButton label */
+                        `Left( `RadioButton( `id( `dvd ), "&DVD" ) )
+                    )
+                ),
+                dialogButtons()
+            )
+        );
+
+        string url = "";
+	UI::SetFocus (`id (`dir));
+
+        any input = UI::UserInput();
+
+        if ( input == `ok )
+        {
+            symbol type = (symbol) UI::QueryWidget( `id( `url_type), `CurrentButton );
+
+            UI::CloseDialog();
+
+            if ( type == `ftp || type == `http || type == `samba ) {
+                url = getNewServerUrl( type );
+            } else if ( type == `dir ) {
+                url = getDirectoryUrl( default );
+            } else if ( type == `nfs ) {
+                url = getNfsUrl( "", "" );
+            } else if ( type == `cd || type == `dvd ) {
+                url = getCdUrl();
+            }
+        } else {
+            UI::CloseDialog();
+        }
+
+        return url;
+    }
+
+    define string editUrl( string url ) ``{
+        if ( size( url ) == 0 ) return getUrl( "" );
+
+        map parsedUrl = URL::Parse( url );
+
+        string protocol = parsedUrl[ "scheme" ]:"";
+        string urlpath = parsedUrl[ "path" ]:"";
+
+        string newUrl = "";
+
+        if ( protocol == "ftp" || protocol == "http" || protocol == "smb" ) {
+            string host = parsedUrl[ "host" ]:"";
+            string user = parsedUrl[ "user" ]:"";
+            string pass = parsedUrl[ "pass" ]:"";
+            symbol type = `ftp;
+            if ( protocol == "http" ) type = `http;
+            else if ( protocol == "smb" ) type = `samba;
+            newUrl = getServerUrl( type, host, urlpath, user, pass );
+        } else if ( protocol == "nfs" ) {
+            string host = parsedUrl[ "host" ]:"";
+            newUrl = getNfsUrl( host, urlpath );
+        } else if ( protocol == "dir" || protocol == "file" ) {
+            newUrl = getDirectoryUrl( urlpath );
+        } else if ( protocol == "cd" || protocol == "dvd" ) {
+            newUrl = getCdUrl();
+        } else {
+            y2error( "Unsupported URL: %1", url );
+        }
+
+        return newUrl;
+    }
+}

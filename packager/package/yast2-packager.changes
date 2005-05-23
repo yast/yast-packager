@@ -1,0 +1,1818 @@
+-------------------------------------------------------------------
+Mon May 23 12:56:25 CEST 2005 - jsrain@suse.cz
+
+- fixed integration of patch CD (#84735)
+- 2.11.37
+
+-------------------------------------------------------------------
+Mon Mar 14 17:50:30 CET 2005 - nashif@suse.de
+
+- Reverted changes for space checking, needs more work
+- 2.1.36
+
+-------------------------------------------------------------------
+Sat Mar 12 04:42:59 CET 2005 - nashif@suse.de
+
+- Bug #67337: Create /var/lib/YaST2/runme_at_boot
+- Bug #71973: Check for required space when installing into
+  directory
+- Bug #72257: select Xen when installing into directory
+- 2.1.35
+
+
+-------------------------------------------------------------------
+Fri Mar 11 17:38:59 CET 2005 - lslezak@suse.cz
+
+- fixed name of the icon for checkmedia client (#72160)
+- 2.11.34
+
+-------------------------------------------------------------------
+Fri Mar 11 11:02:15 CET 2005 - jsrain@suse.cz
+
+- fixed incorrecto counting of disk space (#71772)
+- fixed generating list of language-dependend packages (#71099)
+- ensure Pkg target is inited before installing a package via
+  command-line (#71761)
+- 2.11.33
+
+-------------------------------------------------------------------
+Mon Mar  7 16:41:05 CET 2005 - jsrain@suse.cz
+
+- fixed counting disk size of packages to install (#67278)
+- 2.11.32
+
+-------------------------------------------------------------------
+Thu Mar  3 12:31:02 CET 2005 - jsrain@suse.cz
+
+- added xen-dirinstall client
+- 2.11.31
+
+-------------------------------------------------------------------
+Wed Mar  2 17:52:44 CET 2005 - sh@suse.de
+
+- Renamed some icons in .desktop files (name clashes)
+
+-------------------------------------------------------------------
+Wed Mar  2 10:46:11 CET 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
+Wed Mar  2 09:19:03 CET 2005 - jsrain@suse.cz
+
+- provide visual feedback before initializing package manager
+
+-------------------------------------------------------------------
+Mon Feb 28 17:16:33 CET 2005 - lslezak@suse.cz
+
+- checkmedia - UI fixes: header layout fixed, improved help text,
+  disabled progress bar, use Close button instead of OK (#66642)
+- 2.11.30
+
+-------------------------------------------------------------------
+Sat Feb 26 16:40:38 CET 2005 - nashif@suse.de
+
+- Added missing import
+- 2.11.29
+
+-------------------------------------------------------------------
+Wed Feb 23 14:50:02 CET 2005 - jsrain@suse.cz
+
+- fixed comments for translators
+- fixed some check_ycp errors
+- changed the form of SMB/CIFS URL according to packagemanager
+  (#53423)
+- 2.11.28
+
+-------------------------------------------------------------------
+Mon Feb 21 17:44:01 CET 2005 - lslezak@suse.cz
+
+- checkmedia - check wheter the drive contains CD1 when
+  the module finishes (#65947)
+- removed "CD/DVD Media Check" link from the installation proposal
+- version 2.11.27
+
+-------------------------------------------------------------------
+Mon Feb 21 16:54:58 CET 2005 - jsrain@suse.cz
+
+- fixed handling of samba URLs containing workgroup (#53423)
+- display Samba as SMB/CIFS (#53423)
+- 2.11.26
+
+-------------------------------------------------------------------
+Fri Feb 18 14:54:59 CET 2005 - lslezak@suse.cz
+
+- checkmedia: unmount CD (allow to change the media) and remount
+  back (#50627)
+
+-------------------------------------------------------------------
+Fri Feb 18 11:27:20 CET 2005 - jsrain@suse.cz
+
+- import Product.ycp in inst_software in order to correctly replace
+  the &product; macro in helps (#46247)
+- 2.11.25
+
+-------------------------------------------------------------------
+Thu Feb 17 18:31:02 CET 2005 - nashif@suse.de
+
+- Adapted creation of samba URLs (#26059)
+- Do not rewrite multiple CD urls (multiple sources on CD) with one
+  sinle URL read from install.inf
+- Testsuites for source URLs
+- V 2.11.24
+
+-------------------------------------------------------------------
+Thu Feb 17 16:43:28 CET 2005 - sh@suse.de
+
+- Fixed bug #51006: sw_single during installation starts with "search"
+- V 2.11.23 
+
+-------------------------------------------------------------------
+Wed Feb 16 11:18:52 CET 2005 - jsrain@suse.cz
+
+- fixed getting URL from install.inf if installation from CDs
+  (#50893)
+- 2.11.22
+
+-------------------------------------------------------------------
+Mon Feb 14 15:41:24 CET 2005 - jsrain@suse.cz
+
+- fixed inst_custom_packages.ycp syntax
+- 2.11.21
+
+-------------------------------------------------------------------
+Mon Feb 14 10:09:56 CET 2005 - lslezak@suse.cz
+
+- checkmedia - fixed automatic start (#50621)
+- 2.11.20
+
+-------------------------------------------------------------------
+Fri Feb 11 15:56:07 CET 2005 - nashif@suse.de
+
+- disabled detecting slp sources 
+- 2.11.19
+
+-------------------------------------------------------------------
+Fri Feb 11 13:40:38 CET 2005 - jsrain@suse.cz
+
+- better warning if out-of-disk-space during update (#50376)
+- 2.11.18
+
+-------------------------------------------------------------------
+Thu Feb 10 13:59:08 CET 2005 - lslezak@suse.cz
+
+- checkmedia - updated help texts, added read check, translate
+  output from checkmedia
+- 2.11.17
+
+-------------------------------------------------------------------
+Wed Feb  9 19:59:44 CET 2005 - nashif@suse.de
+
+- Do not run remove_junk when updating on running system
+
+-------------------------------------------------------------------
+Wed Feb  9 13:50:49 CET 2005 - kkaempf@suse.de
+
+- drop installation of fixed list of packages when PCMCIA is
+  detected. Theses packages are covered by the 'laptop' selections.
+
+-------------------------------------------------------------------
+Wed Feb  9 07:09:47 CET 2005 - nashif@suse.de
+
+- Added module SourceManager and client for 3rd party package
+  installation
+- 2.11.15
+
+-------------------------------------------------------------------
+Tue Feb  8 13:43:41 CET 2005 - kkaempf@suse.de
+
+- add 'laptop' selections to proposal if PCMCIA interface 
+  is detected.
+- 2.11.14
+
+-------------------------------------------------------------------
+Mon Feb  7 14:29:42 CET 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+- 2.11.13
+
+-------------------------------------------------------------------
+Mon Feb  7 09:24:38 CET 2005 - jsrain@suse.cz
+
+- display total size of packages to be installed
+- install pbbuttonsd instead of pmud on PowerBooks
+- 2.11.12
+
+-------------------------------------------------------------------
+Mon Jan 31 17:50:25 CET 2005 - lslezak@suse.cz
+
+- checkmedia - show progress, show link in the software proposal
+  only when using CD/DVD installation source
+- version 2.11.11
+
+-------------------------------------------------------------------
+Fri Jan 28 16:03:26 CET 2005 - lslezak@suse.cz
+
+- Check media feature (#100172)
+- 2.11.10
+
+-------------------------------------------------------------------
+Mon Jan 24 17:17:33 CET 2005 - nashif@suse.de
+
+- Set arguments according to new installation workflow interface
+
+-------------------------------------------------------------------
+Wed Jan 19 15:50:06 CET 2005 - jsrain@suse.cz
+
+- removed unneeded import
+- 2.11.7
+
+-------------------------------------------------------------------
+Tue Jan 11 09:21:05 CET 2005 - jsrain@suse.cz
+
+- improve checks if base selection was changed (#37726)
+- display information what package is downloaded in installation
+  log (#37712)
+- 2.11.6
+
+-------------------------------------------------------------------
+Mon Jan 10 09:46:51 CET 2005 - jsrain@suse.cz
+
+- fixed parser of yast2/order and yast2/instorder files (#39405)
+- displaying more meaningful label if cannot reach network server
+  while installing packages (#28605)
+
+-------------------------------------------------------------------
+Fri Jan  7 11:09:56 CET 2005 - jsrain@suse.cz
+
+- don't use YCP keyword as variable name
+
+-------------------------------------------------------------------
+Wed Jan  5 17:51:09 CET 2005 - jsrain@suse.cz
+
+- adapted to new interface of Kernel.ycp
+- 2.11.5
+
+-------------------------------------------------------------------
+Tue Jan  4 11:31:33 CET 2005 - jsrain@suse.cz
+
+- fixed error reporting when unable to initialize isntallation
+  source during installation (#40876)
+- removed dependency on yast2-bootloader
+
+-------------------------------------------------------------------
+Thu Nov 11 18:10:09 CET 2004 - arvin@suse.de
+
+- always use Directory::logdir
+
+-------------------------------------------------------------------
+Tue Nov 09 14:41:11 CET 2004 - arvin@suse.de
+
+- added missing imports
+
+-------------------------------------------------------------------
+Wed Nov 03 15:07:06 CET 2004 - arvin@suse.de
+
+- fixed return type of SourceChange
+
+-------------------------------------------------------------------
+Wed Oct 27 12:27:01 CEST 2004 - arvin@suse.de
+
+- adapted to new Mode.ycp
+
+-------------------------------------------------------------------
+Mon Oct 11 16:06:33 CEST 2004 - jsrain@suse.cz
+
+- adapted to new Arch:: interface
+- 2.11.0
+
+-------------------------------------------------------------------
+Fri Oct  1 17:13:53 CEST 2004 - sh@suse.de
+
+- Fixed bug #44853 (again): Bad "next CD" msg upon last CD
+- V 2.10.24
+
+-------------------------------------------------------------------
+Thu Sep 30 12:33:34 CEST 2004 - arvin@suse.de
+
+- removed confusing superfluous error message (bug #46411)
+
+-------------------------------------------------------------------
+Wed Sep 29 10:19:54 CEST 2004 - arvin@suse.de
+
+- fixed build
+
+-------------------------------------------------------------------
+Mon Sep 27 21:14:35 CEST 2004 - kkaempf@suse.de
+
+- Read(.probe.system) to get board/vendor specific packages
+  (#35245), V 2.10.22
+
+-------------------------------------------------------------------
+Fri Sep 24 13:59:04 CEST 2004 - sh@suse.de
+
+- V 2.10.21
+- Added some blanks as margin in slide show details table
+
+-------------------------------------------------------------------
+Thu Sep 23 17:58:41 CEST 2004 - nashif@suse.de
+
+- Use service pack even if the product CD has no order/instorder
+  files in "yast2/"
+
+-------------------------------------------------------------------
+Thu Sep 23 15:30:31 CEST 2004 - nashif@suse.de
+
+- Copy service pack archive from the correct location
+
+-------------------------------------------------------------------
+Wed Sep 22 18:31:29 CEST 2004 - sh@suse.de
+
+- V 2.10.18
+- Fixed bug #45824: Bad total slide show times if >2:00:00 per CD
+
+-------------------------------------------------------------------
+Wed Sep 22 16:09:04 CEST 2004 - arvin@suse.de
+
+- allow to disable some callbacks (needed for bug #45647)
+
+-------------------------------------------------------------------
+Thu Sep 16 15:07:53 CEST 2004 - sh@suse.de
+
+- V 2.10.16
+- Reduced logging - no more complaints about no slides on CD2..CD10
+- Fixed bug #44853: Bad "next CD" display when installing from the
+  last CD
+
+-------------------------------------------------------------------
+Wed Sep 15 17:39:08 CEST 2004 - sh@suse.de
+
+- V 2.10.15
+- Added check for 'nil' to avoid crashing back to linuxrc when no
+  base selection is selected (bug #45312)
+
+-------------------------------------------------------------------
+Wed Sep  8 17:18:01 CEST 2004 - sh@suse.de
+
+- Fixed remaining times for CD2..CDx:
+  Local variables shadowed each other
+- Suppressed superfluous warning about non-existent widget `slideText
+- V 2.10.14
+
+-------------------------------------------------------------------
+Tue Sep 07 14:15:02 CEST 2004 - arvin@suse.de
+
+- added proposal step to initialize sources (needed to solve
+  bug #44724)
+
+-------------------------------------------------------------------
+Mon Sep  6 11:55:51 CEST 2004 - visnov@suse.cz
+
+- V 2.10.12
+- ComputeKernelPackages moved to Kernel
+
+-------------------------------------------------------------------
+Fri Sep  3 11:57:27 CEST 2004 - sh@suse.de
+
+- V 2.10.11
+- Fixed bug #44407: Faster restart of sw_single
+  Now asking "Would you like to install more packages"
+  rather than exiting right away
+
+-------------------------------------------------------------------
+Thu Sep  2 18:28:13 CEST 2004 - sh@suse.de
+
+- V 2.10.10
+- Added package counter to slide show details table
+
+-------------------------------------------------------------------
+Mon Aug 30 18:28:56 CEST 2004 - arvin@suse.de
+
+- add nongpl kernel package during installation (bug #44394)
+
+-------------------------------------------------------------------
+Fri Aug 27 22:32:39 CEST 2004 - sh@suse.de
+
+- V 2.10.8
+- Reduced debug logging
+- Removed excessive debugging code
+
+-------------------------------------------------------------------
+Fri Aug 27 22:04:02 CEST 2004 - sh@suse.de
+
+- V 2.10.7
+- First version of new slide show that actually displays slides
+
+-------------------------------------------------------------------
+Fri Aug 27 15:12:12 CEST 2004 - arvin@suse.de
+
+- merged proof read messages
+
+-------------------------------------------------------------------
+Mon Aug 23 16:06:05 CEST 2004 - sh@suse.de
+
+- V 2.10.5
+- Replace &imagedir; with slide_pic_path in slide show
+
+-------------------------------------------------------------------
+Sat Aug 21 00:30:35 CEST 2004 - sh@suse.de
+
+- V 2.10.4
+- First version (in CVS HEAD) with new slide show
+
+-------------------------------------------------------------------
+Wed Aug 18 03:10:35 CEST 2004 - nashif@suse.de
+
+- Using xorg-x11 instead of XFree86.
+
+-------------------------------------------------------------------
+Fri Aug 13 15:45:26 CEST 2004 - kkaempf@suse.de
+
+- add languagePackages() to select yast2-trans-$lang for each
+  selected locales (#42844)
+
+-------------------------------------------------------------------
+Thu Aug 12 06:48:31 CEST 2004 - nashif@suse.de
+
+- merged changes for from 9.1 Branch (SLES,NLD)
+  - Handle Service Pack CDs
+  - Desktop Selection
+
+-------------------------------------------------------------------
+Tue Aug 10 10:17:48 CEST 2004 - jsrain@suse.cz
+
+- report if invalid source media location was entered (if media of
+  other type than UnitedLinux is found) and ask user before adding
+  such source (#43421)
+
+-------------------------------------------------------------------
+Thu Jul 29 19:56:16 CEST 2004 - nashif@suse.de
+
+- Remove Mode::live_eval
+
+-------------------------------------------------------------------
+Wed Jul 14 10:06:38 CEST 2004 - jsrain@suse.cz
+
+- report missing media properly (#42553)
+
+-------------------------------------------------------------------
+Wed Jun 16 14:42:44 CEST 2004 - arvin@suse.de
+
+- removed obsolete document y2c_spkg.html (bug #42048)
+
+-------------------------------------------------------------------
+Fri May 28 14:27:07 CEST 2004 - arvin@suse.de
+
+- nicer dialog with failed packages (bug #37529)
+
+-------------------------------------------------------------------
+Thu May 27 11:03:00 CEST 2004 - arvin@suse.de
+
+- fixed eject button (bug #39872)
+
+-------------------------------------------------------------------
+Tue May 25 18:25:41 CEST 2004 - arvin@suse.de
+
+- maybe fixed slide show (bug #38708)
+
+-------------------------------------------------------------------
+Fri May 21 06:30:56 CEST 2004 - nashif@suse.de
+
+- Use Report for failing messages
+- Also allow space delimited fields in order/instorder
+
+-------------------------------------------------------------------
+Tue May 18 13:20:40 CEST 2004 - sh@suse.de
+
+- Changed slide show layout to make more CDs fit (bug #35612)
+
+-------------------------------------------------------------------
+Tue May 04 11:15:40 CEST 2004 - arvin@suse.de
+
+- merged proofread messages
+
+-------------------------------------------------------------------
+Tue Apr 27 10:04:28 CEST 2004 - jsrain@suse.cz
+
+- update EFI partitioning layout before package update starts
+  (#21644)
+- 2.9.45
+
+-------------------------------------------------------------------
+Thu Apr 22 18:06:29 CEST 2004 - arvin@suse.de
+
+- don't install iprutils on prep (bug #39292)
+
+-------------------------------------------------------------------
+Mon Apr 05 14:54:06 CEST 2004 - arvin@suse.de
+
+- load all network modules during update (bug #38115)
+
+-------------------------------------------------------------------
+Fri Apr 02 15:59:59 CEST 2004 - arvin@suse.de
+
+- finally changed license to GPL for good
+
+-------------------------------------------------------------------
+Thu Apr 01 17:19:10 CEST 2004 - arvin@suse.de
+
+- enhanced media label handling in media change callback
+  (bug #35924)
+
+-------------------------------------------------------------------
+Thu Apr 01 14:31:42 CEST 2004 - arvin@suse.de
+
+- install download callbacks only during slide show (bug #37151)
+
+-------------------------------------------------------------------
+Thu Apr  1 11:34:18 CEST 2004 - kkaempf@suse.de
+
+- skip base selection screen if there is no choice (#37831)
+
+-------------------------------------------------------------------
+Wed Mar 31 12:22:41 CEST 2004 - arvin@suse.de
+
+- added product feature about suboptimal distribution (bug #36823)
+
+-------------------------------------------------------------------
+Tue Mar 30 13:07:11 CEST 2004 - fehr@suse.de
+
+- add storage dependent package to ComputeSystemPackageList (#37279)
+- 2.9.39
+
+-------------------------------------------------------------------
+Mon Mar 29 14:57:23 CEST 2004 - kkaempf@suse.de
+
+- use the fallback kernel (#37326)
+- 2.9.38
+
+-------------------------------------------------------------------
+Sat Mar 27 18:25:51 CET 2004 - arvin@suse.de
+
+- fixed syntax error
+
+-------------------------------------------------------------------
+Fri Mar 26 20:43:49 CET 2004 - arvin@suse.de
+
+- removed useless popup (bug #37042)
+
+-------------------------------------------------------------------
+Wed Mar 24 18:30:53 CET 2004 - arvin@suse.de
+
+- fixed update of default runlevel for old distributions
+
+-------------------------------------------------------------------
+Wed Mar 24 16:49:54 CET 2004 - kkaempf@suse.de
+
+- ppc64-tools -> ppc64-utils (#23386)
+- 2.9.34
+
+-------------------------------------------------------------------
+Tue Mar 23 18:02:41 CET 2004 - arvin@suse.de
+
+- disable reset of packagemanager again (bug #36788)
+
+-------------------------------------------------------------------
+Tue Mar 23 17:51:49 CET 2004 - kkaempf@suse.de
+
+- Fix "progress done" popup (#36783)
+- 2.9.32
+
+-------------------------------------------------------------------
+Tue Mar 23 14:38:34 CET 2004 - arvin@suse.de
+
+- handle installation from name-based virtual hosts (bug #34452)
+
+-------------------------------------------------------------------
+Tue Mar 23 14:17:21 CET 2004 - lnussel@suse.de
+
+- set sort key in desktop file to move module icon to front (#36466)
+
+-------------------------------------------------------------------
+Mon Mar 22 15:44:15 CET 2004 - arvin@suse.de
+
+- reset packagemanager if user resets proposal (bug #35787)
+
+-------------------------------------------------------------------
+Fri Mar 19 16:34:24 CET 2004 - nashif@suse.de
+
+- close all sources, target and reset destdir after die install
+  (#36465)
+
+-------------------------------------------------------------------
+Wed Mar 17 11:49:05 CET 2004 - arvin@suse.de
+
+- added download progress callbacks (bug #31445)
+
+-------------------------------------------------------------------
+Wed Mar 17 10:36:01 CET 2004 - arvin@suse.de
+
+- don't ignore return of Pkg::DoProvide (bug #36022)
+
+-------------------------------------------------------------------
+Tue Mar 16 21:12:24 CET 2004 - kkaempf@suse.de
+
+- run GNOME cleanup before upgrade starts (#36196)
+
+-------------------------------------------------------------------
+Sat Mar 13 19:03:06 CET 2004 - arvin@suse.de
+
+- DVD sides are called "Side A" and "Side B"
+
+-------------------------------------------------------------------
+Fri Mar 12 15:59:02 CET 2004 - arvin@suse.de
+
+- fixed use of Pkg::SourceGeneralData (bug #35712)
+
+-------------------------------------------------------------------
+Fri Mar 12 15:13:58 CET 2004 - sh@suse.de
+
+- Fixed bug #34973: No slide show
+  Now doing late initialization to overcome initialization
+  dependencies
+
+-------------------------------------------------------------------
+Wed Mar 10 01:53:14 CET 2004 - sh@suse.de
+
+- V 2.9.23
+- Migration to new wizard
+- Fixed ycpc complaints
+
+-------------------------------------------------------------------
+Tue Mar  9 18:32:22 CET 2004 - kkaempf@suse.de
+
+- vnc -> tightvnc, drop mesasoft (ro@suse.de)
+- use Report module (nashif@suse.de)
+- 2.9.22
+
+-------------------------------------------------------------------
+Thu Mar  4 22:41:49 CET 2004 - kkaempf@suse.de
+
+- revoke bugfix #35052, this needs another solution
+
+-------------------------------------------------------------------
+Thu Mar  4 20:36:05 CET 2004 - visnov@suse.cz
+
+- 2.9.19
+
+-------------------------------------------------------------------
+Thu Mar  4 17:58:12 CET 2004 - kkaempf@suse.de
+
+- implement full kernel fallback strategy
+
+-------------------------------------------------------------------
+Thu Mar  4 16:36:37 CET 2004 - visnov@suse.cz
+
+- added type info
+
+-------------------------------------------------------------------
+Wed Mar  3 17:48:13 CET 2004 - nashif@suse.de
+
+- Read product features from new feature module
+
+-------------------------------------------------------------------
+Wed Mar  3 12:56:49 CET 2004 - msvec@suse.cz
+
+- fixed textdomain
+- fixed one message to use plural
+
+-------------------------------------------------------------------
+Tue Mar 02 10:55:19 CET 2004 - arvin@suse.de
+
+- make it build
+
+-------------------------------------------------------------------
+Fri Feb 27 05:24:24 CET 2004 - nashif@suse.de
+
+- Move software_proposal from installation
+- Adapted for new Control file
+
+-------------------------------------------------------------------
+Thu Feb 26 09:28:00 CET 2004 - kkaempf@suse.de
+
+- install in one go if packages are coming via network (#35052)
+
+-------------------------------------------------------------------
+Wed Feb 25 18:36:29 CET 2004 - arvin@suse.de
+
+- improved setting of locales of packagemanager
+
+-------------------------------------------------------------------
+Wed Feb 25 18:04:51 CET 2004 - arvin@suse.de
+
+- fixed update mode (bug #34994 and #35007)
+
+-------------------------------------------------------------------
+Tue Feb 24 16:11:25 CET 2004 - arvin@suse.de
+
+- check return value of Pkg::SourceProvideDir (bug #28346)
+
+-------------------------------------------------------------------
+Fri Feb 20 18:46:53 CET 2004 - arvin@suse.de
+
+- during update make backup of /var/log/YaST2 and then remove it
+  before starting real update (bug #31743)
+
+-------------------------------------------------------------------
+Fri Feb 20 18:14:08 CET 2004 - arvin@suse.de
+
+- reduced minimum of free space required on a partition to 1 MB
+  (bug #33074)
+
+-------------------------------------------------------------------
+Fri Feb 20 15:27:39 CET 2004 - arvin@suse.de
+
+- removed yast2-mouse from neededforbuild
+
+-------------------------------------------------------------------
+Fri Feb 20 15:25:39 CET 2004 - cschum@suse.de
+
+- Add support for canceling changes in the installation source
+  configuration.
+
+-------------------------------------------------------------------
+Thu Feb 19 18:26:27 CET 2004 - kkaempf@suse.de
+
+- drop "cpufreqd" and "apmd" on all platforms, now "powersave"
+  will be installed.
+
+-------------------------------------------------------------------
+Thu Feb 19 13:24:03 CET 2004 - mvidner@suse.cz
+
+- changed sort to use "<" instead of "<=" because of the switch to std::sort
+
+-------------------------------------------------------------------
+Mon Feb 16 16:01:35 CET 2004 - arvin@suse.de
+
+- added more flexible package handling for products
+
+-------------------------------------------------------------------
+Mon Feb 16 10:47:36 CET 2004 - arvin@suse.de
+
+- added yast2-x11 to requires (bug #34558)
+
+-------------------------------------------------------------------
+Thu Feb 12 12:28:57 CET 2004 - arvin@suse.de
+
+- fixes for new interpreter
+
+-------------------------------------------------------------------
+Wed Feb 11 16:11:43 CET 2004 - arvin@suse.de
+
+- more control over base selection handling
+
+-------------------------------------------------------------------
+Sat Feb 07 20:23:50 CET 2004 - arvin@suse.de
+
+- removed config files (*.y2cc)
+
+-------------------------------------------------------------------
+Fri Feb  6 13:55:59 CET 2004 - gs@suse.de
+
+- function keys added to buttons of the Source of Installation
+  dialog
+
+-------------------------------------------------------------------
+Thu Feb 05 18:12:20 CET 2004 - arvin@suse.de
+
+- fixed calling of Pkg::TargetInitDU
+
+-------------------------------------------------------------------
+Wed Feb 04 15:59:42 CET 2004 - arvin@suse.de
+
+- fixed some SlideShow callbacks
+
+-------------------------------------------------------------------
+Sun Feb 01 20:13:56 CET 2004 - arvin@suse.de
+
+- fixed return value in inst_kickoff.ycp
+
+-------------------------------------------------------------------
+Sat Jan 31 21:40:17 CET 2004 - arvin@suse.de
+
+- fixed faking of mtab in inst_kickoff.ycp
+- import Directory in inst_kickoff.ycp
+
+-------------------------------------------------------------------
+Mon Jan 19 13:06:17 CET 2004 - arvin@suse.de
+
+- united inst_rpmcopy.ycp and inst_rpmupdate.ycp
+- added inst_kickoff.ycp
+
+-------------------------------------------------------------------
+Fri Jan 16 12:14:48 CET 2004 - arvin@suse.de
+
+- restore callbacks after slideshow
+
+-------------------------------------------------------------------
+Thu Jan 15 16:35:58 CET 2004 - jsrain@suse.de
+
+- Require.ycp and package callbacks initialization moved to
+  yast2.ycp
+
+-------------------------------------------------------------------
+Thu Nov 20 15:59:07 CET 2003 - sh@suse.de
+
+- Break circular dependencies: Moved "import SlideShowCallbacks"
+  from "SlideShow.ycp" to "Packager.ycp"
+
+-------------------------------------------------------------------
+Fri Oct 24 13:24:03 CEST 2003 - arvin@suse.de
+
+- better (more inexpressive) message during rpm database convert
+  (bug #30457)
+
+-------------------------------------------------------------------
+Thu Oct 23 15:03:43 CEST 2003 - jsrain@suse.de
+
+- made more interface of Require global
+
+-------------------------------------------------------------------
+Tue Sep 23 16:51:12 CEST 2003 - arvin@suse.de
+
+- fixed media change callback for double sided media
+
+-------------------------------------------------------------------
+Tue Sep 23 12:50:07 CEST 2003 - sh@suse.de
+
+- Fixed bug #31491: No slide show in exotic update case
+
+-------------------------------------------------------------------
+Tue Sep 23 11:36:59 CEST 2003 - sh@suse.de
+
+- V 2.8.24
+- Fixed bug #31606: Undeclared variable in SlideShow.ycp
+
+-------------------------------------------------------------------
+Sun Sep 21 19:38:02 CEST 2003 - arvin@suse.de
+
+- finished support of double sided media
+
+-------------------------------------------------------------------
+Fri Sep 19 10:34:27 CEST 2003 - kkaempf@suse.de
+
+- add numactl on AMD64-smp systems (#31338)
+
+-------------------------------------------------------------------
+Thu Sep 18 13:57:04 CEST 2003 - sh@suse.de
+
+- V 2.8.22
+- Fixed bug #31140: Predicted SlideShow timings
+
+-------------------------------------------------------------------
+Thu Sep 11 18:00:00 CEST 2003 - kkaempf@suse.de
+
+- move Pkg::SetLocale() to Packages::Init() (#30438)
+
+-------------------------------------------------------------------
+Tue Sep  9 13:06:55 CEST 2003 - kkaempf@suse.de
+
+- install 'cpufreqd' on laptops and
+  single-processor AMD64 systems.
+
+-------------------------------------------------------------------
+Mon Sep 08 15:55:27 CEST 2003 - arvin@suse.de
+
+- sync rpm database
+
+-------------------------------------------------------------------
+Fri Sep  5 16:59:20 CEST 2003 - sh@suse.de
+
+- V 2.8.18
+- Fixed bug #30151: Start pkg mgr in search mode by default
+
+-------------------------------------------------------------------
+Thu Sep 04 17:47:53 CEST 2003 - arvin@suse.de
+
+- proof-read messages
+
+-------------------------------------------------------------------
+Thu Sep  4 16:50:23 CEST 2003 - kkaempf@suse.de
+
+- clear list of yet-to-be-installed packages if all packages
+  are installed.
+
+-------------------------------------------------------------------
+Thu Sep  4 13:06:42 CEST 2003 - kkaempf@suse.de
+
+- acpid is installed by default now
+
+-------------------------------------------------------------------
+Tue Sep  2 11:29:42 CEST 2003 - kkaempf@suse.de
+
+- add code to ask for front or back side of a media (unfinished).
+
+-------------------------------------------------------------------
+Sun Aug 31 14:58:07 CEST 2003 - arvin@suse.de
+
+- use Popup::ConfirmAbort
+
+-------------------------------------------------------------------
+Sat Aug 30 22:56:41 CEST 2003 - arvin@suse.de
+
+- fixed installing of required bootloader on alpha
+
+-------------------------------------------------------------------
+Fri Aug 29 16:13:36 CEST 2003 - arvin@suse.de
+
+- implemented callbacks for converting rpm database (bug #29484)
+
+-------------------------------------------------------------------
+Thu Aug 28 16:41:21 CEST 2003 - arvin@suse.de
+
+- run inst_rpmcopy during update after reboot
+
+-------------------------------------------------------------------
+Tue Aug 26 14:44:16 CEST 2003 - msvec@suse.cz
+
+- add a proper error reporting (#29325)
+- added missing imports
+- 2.8.11
+
+-------------------------------------------------------------------
+Tue Aug 26 15:53:09 CEST 2003 - kkaempf@suse.de
+
+- don't release the sources in sw_single any more, the package-
+  manager handles this.
+
+-------------------------------------------------------------------
+Fri Aug 22 14:41:10 CEST 2003 - lnussel@suse.de
+
+- add code for installing into a directory
+
+-------------------------------------------------------------------
+Fri Aug 22 11:25:17 CEST 2003 - arvin@suse.de
+
+- skip inst_rpmcopy for update
+
+-------------------------------------------------------------------
+Thu Aug 21 17:42:30 CEST 2003 - nashif@suse.de
+
+- Install post-package from CD1 in autoinst mode
+
+-------------------------------------------------------------------
+Tue Aug 19 12:49:16 CEST 2003 - arvin@suse.de
+
+- always use String::FormatSize
+
+-------------------------------------------------------------------
+Tue Aug 19 08:42:32 CEST 2003 - arvin@suse.de
+
+- fixed failed package message (bug #29091)
+
+-------------------------------------------------------------------
+Fri Aug 15 15:18:43 CEST 2003 - arvin@suse.de
+
+- fixed summary of failed packages (bug #28758)
+
+-------------------------------------------------------------------
+Mon Aug  4 16:01:27 CEST 2003 - jsrain@suse.de
+
+- Enhanced Require in order to provide information if
+  RequireAndConflict* was canceled by user or really failed
+- 2.8.6
+
+-------------------------------------------------------------------
+Tue Jul 22 14:03:53 CEST 2003 - cschum@suse.de
+
+- Added "Replace" button to inst_source module (#25260).
+- Let user edit URL in case of error (#21582).
+- 2.8.5
+
+-------------------------------------------------------------------
+Mon Jul 21 14:40:58 CEST 2003 - mvidner@suse.cz
+
+- Require::DoInstallAndRemove...: do not return nil.
+- 2.8.4
+
+-------------------------------------------------------------------
+Thu Jun 26 09:44:23 CEST 2003 - msvec@suse.de
+
+- using Label and Popup modules instead of includes in require.ycp
+- 2.8.3
+
+-------------------------------------------------------------------
+Tue Jun 17 13:26:46 CEST 2003 - jsrain@suse.de
+
+- using Label and Popup modules instead of includes in Require.ycp
+- 2.8.2
+
+-------------------------------------------------------------------
+Wed May  7 10:42:56 CEST 2003 - kkaempf@suse.de
+
+- add scpm, acpid, and irda if laptop (#26561)
+- 2.8.1
+
+-------------------------------------------------------------------
+Tue Apr 01 11:04:54 CEST 2003 - arvin@suse.de
+
+- fixed text in software selection (bug #25507)
+- 2.8.0
+
+-------------------------------------------------------------------
+Mon Mar 17 15:28:52 CET 2003 - kkaempf@suse.de
+
+- drop extra code for certify CD, it's not needed any more.
+- 2.7.33
+
+-------------------------------------------------------------------
+Sun Mar 16 13:38:28 CET 2003 - kkaempf@suse.de
+
+- call SlideShow::InitPkgData() after package status is
+  determined (#25437)
+- 2.7.32
+
+-------------------------------------------------------------------
+Sat Mar 15 22:45:12 CET 2003 - kkaempf@suse.de
+
+- don't call SpaceCalculation::GetPartitionInfo() at runtime,
+  yast2-packagemanager does it itself (#23544)
+- 2.7.31
+
+-------------------------------------------------------------------
+Sat Mar 15 19:43:44 CET 2003 - kkaempf@suse.de
+
+- fix typo in widget type
+- 2.7.30
+
+-------------------------------------------------------------------
+Thu Mar 13 18:56:37 CET 2003 - kkaempf@suse.de
+
+- save the list of remaining source packages to srcremaining,
+  re-read it in 2nd stage install and mark these packages
+  as source-to-install properly. (#25318)
+- 2.7.29
+
+-------------------------------------------------------------------
+Tue Mar 11 16:56:10 CET 2003 - mvidner@suse.de
+
+- Do not run SuSEconfig in [Rr]equire.ycp when adding packages
+  during installation. Real fix for (#25071).
+- 2.7.28
+
+-------------------------------------------------------------------
+Tue Mar 11 16:46:18 CET 2003 - kkaempf@suse.de
+
+- always let TargetInit create everything which doesn't exist.
+  (#24932)
+
+-------------------------------------------------------------------
+Tue Mar 11 15:59:00 CET 2003 - kkaempf@suse.de
+
+- fix parameters of doneProvide() callback (#25081)
+- 2.7.25
+
+-------------------------------------------------------------------
+Tue Mar 11 14:06:18 CET 2003 - kkaempf@suse.de
+
+- do not run SuSEconfig when adding packages during installation
+  (#25071)
+- 2.7.24
+
+-------------------------------------------------------------------
+Tue Mar 11 12:06:33 CET 2003 - sh@suse.de
+
+- Fixed blocker bug #25055: Change CD popup hangs
+
+-------------------------------------------------------------------
+Tue Mar 11 11:03:59 CET 2003 - cschum@suse.de
+
+- Don't wronlgy display an error when adding installation source
+  from local directory (#24996).
+- 2.7.22
+
+-------------------------------------------------------------------
+Mon Mar 10 15:53:58 CET 2003 - kkaempf@suse.de
+
+- fix syntax error in Require.ycp (#24994)
+- 2.7.21
+
+-------------------------------------------------------------------
+Mon Mar 10 13:55:18 CET 2003 - kkaempf@suse.de
+
+- error popups have "Abort", "Retry", "Ignore" as buttons.
+
+-------------------------------------------------------------------
+Mon Mar 10 13:28:47 CET 2003 - mvidner@suse.de
+
+- [Rr]equire.ycp: fixed package installation after YOU (#24744).
+- 2.7.19
+
+-------------------------------------------------------------------
+Sat Mar 08 21:31:03 CET 2003 - arvin@suse.de
+
+- added missing include statements (bug #24881)
+
+-------------------------------------------------------------------
+Thu Mar  6 10:51:24 CET 2003 - kkaempf@suse.de
+
+- prepend msg and button functions with UI:: namespace (#24704)
+
+-------------------------------------------------------------------
+Wed Mar  5 18:58:39 CET 2003 - kkaempf@suse.de
+
+- enhance provideDone and packageDone callbacks to pop up
+  a window on error, displaying the error code and the last
+  10 lines (tail) from y2logRPM. Offer ok/retry/skip/abort
+  buttons and return the button code to the packagemanager.
+  (#23780)
+- 2.7.17
+
+-------------------------------------------------------------------
+Wed Mar  5 17:54:51 CET 2003 - kkaempf@suse.de
+
+- fallback to "k_deflt" if real kernel not available (#16047)
+
+-------------------------------------------------------------------
+Tue Mar  4 18:09:11 CET 2003 - kkaempf@suse.de
+
+- use new state checking functions to decide if the user has
+  changed the selection (#23616)
+
+-------------------------------------------------------------------
+Mon Mar  3 12:59:37 CET 2003 - gs@suse.de
+
+- pass the floppy device to PackageSelector widget (needed to save
+  or load a package selection, bug #23923)
+
+-------------------------------------------------------------------
+Mon Mar 03 12:50:34 CET 2003 - arvin@suse.de
+
+- once more merged proofread texts
+
+-------------------------------------------------------------------
+Fri Feb 28 16:27:42 CET 2003 - kkaempf@suse.de
+
+- don't start source unconditionally (in constructor) any more,
+  but only if explicitly requested (#24201)
+
+-------------------------------------------------------------------
+Fri Feb 28 15:14:51 CET 2003 - kkaempf@suse.de
+
+- fix parameter for Pkg::DoProvide()
+
+-------------------------------------------------------------------
+Fri Feb 28 14:15:08 CET 2003 - kkaempf@suse.de
+
+- hide username:password from URL logging (#24473)
+
+-------------------------------------------------------------------
+Thu Feb 27 12:56:15 CET 2003 - mvidner@suse.de
+
+- require.ycp:
+ * Fix not recognizing installed packages (#23882).
+ * Do not call "Reading package information" until necessary (#20486).
+- 2.7.12
+
+-------------------------------------------------------------------
+Wed Feb 26 17:19:59 CET 2003 - kkaempf@suse.de
+
+- pass language to packagemanager (#23828)
+
+-------------------------------------------------------------------
+Wed Feb 26 12:38:31 CET 2003 - gs@suse.de
+
+- bugfix in space calculation module (bug #24311)
+
+-------------------------------------------------------------------
+Mon Feb 24 17:28:35 CET 2003 - kkaempf@suse.de
+
+- Allow "yast2 -i <tagname>" besides "yast2 -i <packagename>".
+
+-------------------------------------------------------------------
+Mon Feb 24 16:22:39 CET 2003 - cschum@suse.de
+
+- Moved "Enable or Disable" button to own row (#20776).
+
+-------------------------------------------------------------------
+Fri Feb 21 16:08:17 CET 2003 - sh@suse.de
+
+- Fixed bug #23945: SpaceCalculation 14% off
+
+-------------------------------------------------------------------
+Thu Feb 20 11:39:23 CET 2003 - arvin@suse.de
+
+- use title-style capitalization for menu names (bug #23848)
+
+-------------------------------------------------------------------
+Wed Feb 19 15:17:23 CET 2003 - kkaempf@suse.de
+
+- only offer eject button for cd or dvd (#23827)
+- reduce duplicate code
+
+-------------------------------------------------------------------
+Wed Feb 19 11:28:18 CET 2003 - kkaempf@suse.de
+
+- check existance of id(`url) widget before checking its
+  contents (#23786)
+
+-------------------------------------------------------------------
+Wed Feb 19 11:08:16 CET 2003 - kkaempf@suse.de
+
+- keep silent if no backup_path exists (#23784)
+
+-------------------------------------------------------------------
+Tue Feb 18 12:01:00 CET 2003 - kkaempf@suse.de
+
+- stop timer during wait for medium (#21026)
+
+-------------------------------------------------------------------
+Mon Feb 17 14:45:01 CET 2003 - cschum@suse.de
+
+- inst_source: Removed back and abort button because they didn't work.
+- inst_source: Don't show redundant cd selection dialog.
+- inst_source: Show "Adding source ..." dialog while adding a source.
+
+-------------------------------------------------------------------
+Tue Feb 11 12:30:52 CET 2003 - kkaempf@suse.de
+
+- Correct error message (#21754)
+
+-------------------------------------------------------------------
+Mon Feb 10 22:03:56 CET 2003 - nashif@suse.de
+
+- Modified names of autoinstall modules
+- 2.7.5
+
+-------------------------------------------------------------------
+Fri Feb 07 12:26:50 CET 2003 - arvin@suse.de
+
+- add package ppc64-tools on chrp ppp64 boards (bug #23386)
+
+-------------------------------------------------------------------
+Mon Feb 03 17:41:51 CET 2003 - arvin@suse.de
+
+- new pot file handling
+
+-------------------------------------------------------------------
+Thu Jan 30 15:05:45 CET 2003 - arvin@suse.de
+
+- fixed autoinstalling of graphics packages (bug #22936)
+
+-------------------------------------------------------------------
+Tue Jan 28 11:44:03 CET 2003 - arvin@suse.de
+
+- fixed installation from DVD in VMWare (bug #21226)
+
+-------------------------------------------------------------------
+Fri Jan 24 10:10:34 CET 2003 - gs@suse.de
+
+- Calling SuSEConfig after deleting a package only (#22317)
+
+-------------------------------------------------------------------
+Tue Jan 14 16:00:47 CET 2003 - arvin@suse.de
+
+- support installation from DVD for drives that also have other
+  capability (bug #20068)
+
+-------------------------------------------------------------------
+Fri Oct 18 14:13:50 CEST 2002 - kkaempf@suse.de
+
+- de-select last tried selection if none of the base selections
+  fits the current partitioning.
+- remember if a "file provide" progress was started (for remote
+  package sources).
+- 2.6.78
+
+-------------------------------------------------------------------
+Fri Oct 18 12:59:23 CEST 2002 - kkaempf@suse.de
+
+- remember choosen selection only if the selection fits, else
+  force re-calculation of selections (#21077)
+- 2.6.77
+
+-------------------------------------------------------------------
+Thu Oct 17 11:07:47 CEST 2002 - sh@suse.de
+
+- V 2.6.76
+- Recalc current medium progress on medium change
+
+-------------------------------------------------------------------
+Thu Oct 17 10:49:16 CEST 2002 - kkaempf@suse.de
+
+- fix progress bar to stay on correct source
+- 2.6.75
+
+-------------------------------------------------------------------
+Wed Oct 16 17:34:40 CEST 2002 - sh@suse.de
+
+- V 2.6.74
+- Fixed bug #20988: Time estimate for unneeded CD shown
+
+-------------------------------------------------------------------
+Tue Oct 15 11:05:39 CEST 2002 - sh@suse.de
+
+- V 2.6.72
+- Fixed bug #20008: Block installation if insufficient disk space
+  even for minimal system
+
+-------------------------------------------------------------------
+Mon Oct 14 14:13:36 CEST 2002 - sh@suse.de
+
+- Better fix for bug#20686 (partition overflow):
+  Don't reset all SW settings, just warn what partition is
+  overflowed
+
+-------------------------------------------------------------------
+Fri Oct 11 19:28:23 CEST 2002 - sh@suse.de
+
+- Fixed bug #20686: SW selection resets without warning upon
+  partition overflow
+- V2.6.70
+
+-------------------------------------------------------------------
+Fri Oct 11 19:06:56 CEST 2002 - kkaempf@suse.de
+
+- only activate the proposed selections if it's a new proposal.
+  (#20194)
+- 2.6.69
+
+-------------------------------------------------------------------
+Fri Oct 11 16:33:33 CEST 2002 - kkaempf@suse.de
+
+- fix URL construction if installing from harddisk partition
+  (#19803, lnussel@suse.de)
+- 2.6.68
+
+-------------------------------------------------------------------
+Wed Oct  9 16:36:05 CEST 2002 - kkaempf@suse.de
+
+- fix cd progress bar display when installing from
+  multiple source (#20726)
+- 2.6.67
+
+-------------------------------------------------------------------
+Tue Oct  8 21:47:45 CEST 2002 - kkaempf@suse.de
+
+- fix SlideShow to display media sorted by source sorted by
+  installation order (sh@suse.de)
+- 2.6.66
+
+-------------------------------------------------------------------
+Mon Oct  7 20:22:28 CEST 2002 - kkaempf@suse.de
+
+- read "yast/instorder" to specify installation order (#20609)
+- 2.6.65
+
+-------------------------------------------------------------------
+Tue Oct  1 18:37:08 CEST 2002 - kkaempf@suse.de
+
+- pass media number '0' to PkgCommit so all CDs get installed
+  in a single run.
+- 2.6.64
+
+-------------------------------------------------------------------
+Tue Oct  1 18:04:20 CEST 2002 - kkaempf@suse.de
+
+- when slide show is available, display download progress in
+  existing progress bar instead of an extra popup window.
+
+-------------------------------------------------------------------
+Tue Oct  1 10:45:51 CEST 2002 - kkaempf@suse.de
+
+- fix sorting selections by order. Allow multiple selections
+  with equal order.
+
+-------------------------------------------------------------------
+Mon Sep 30 11:54:32 CEST 2002 - kkaempf@suse.de
+
+- declare 'shutup' where needed.
+
+-------------------------------------------------------------------
+Thu Sep 26 13:43:38 CEST 2002 - arvin@suse.de
+
+- more fixes for slide show
+
+-------------------------------------------------------------------
+Wed Sep 25 16:10:59 CEST 2002 - arvin@suse.de
+
+- if necessary append leading slash to serverdir of
+  installation url (bug #20152)
+
+-------------------------------------------------------------------
+Tue Sep 24 15:02:44 CEST 2002 - arvin@suse.de
+
+- workaround to get slide show working on systems with
+  big memory
+
+-------------------------------------------------------------------
+Fri Sep 20 14:05:25 CEST 2002 - kkaempf@suse.de
+
+- add SourceChange callback
+- 2.6.60
+
+-------------------------------------------------------------------
+Thu Sep 19 21:05:57 CEST 2002 - kkaempf@suse.de
+
+- replace unused variable in space calculation
+- 2.6.59
+
+-------------------------------------------------------------------
+Thu Sep 19 14:50:02 CEST 2002 - kkaempf@suse.de
+
+- fix SpaceCalculation, it's all in bytes.
+- usage calculation in packagemanager returns the
+  new usage (current usage + package diff), not the diff only.
+- dont restart packagemanager internally.
+- drop unneeded popup during packager init.
+- 2.6.58
+
+-------------------------------------------------------------------
+Wed Sep 18 18:39:24 CEST 2002 - kkaempf@suse.de
+
+- implement separated installation and product medias.
+- 2.6.57
+
+-------------------------------------------------------------------
+Tue Sep 17 16:16:38 CEST 2002 - kkaempf@suse.de
+
+- read y2logRPM from target directory (#19772)
+
+-------------------------------------------------------------------
+Mon Sep 16 17:17:59 CEST 2002 - mvidner@suse.de
+
+- Added missing translation marks to On/Off (inst. source selection).
+
+-------------------------------------------------------------------
+Mon Sep 16 12:38:31 CEST 2002 - kkaempf@suse.de
+
+- remove unneeded Packages::Save() (#19591)
+- 2.6.56
+
+-------------------------------------------------------------------
+Fri Sep 13 21:34:18 CEST 2002 - kukuk@suse.de
+
+- Revert fix for space calculation, breaks space calculation on
+  update (workaround for #19657)
+
+-------------------------------------------------------------------
+Fri Sep 13 17:55:31 CEST 2002 - lnussel@suse.de
+
+- initialize target system in continue mode too, to make backup work (#19620)
+- 2.6.55
+
+-------------------------------------------------------------------
+Fri Sep 13 17:14:24 CEST 2002 - lnussel@suse.de
+
+- fix wrong function call for space calculation
+- 2.6.54
+
+-------------------------------------------------------------------
+Fri Sep 13 16:38:41 CEST 2002 - mvidner@suse.cz
+
+- Re-fixed #19550: kernel change would never be detected.
+- 2.6.53
+
+-------------------------------------------------------------------
+Fri Sep 13 15:18:02 CEST 2002 - lnussel@suse.de
+
+- treat nil as empty too
+- 2.6.51
+
+-------------------------------------------------------------------
+Fri Sep 13 14:29:41 CEST 2002 - lnussel@suse.de
+
+- read /var/lib/YaST2/backup_path to determine wheter backups have to be created
+- 2.6.51
+
+-------------------------------------------------------------------
+Thu Sep 12 17:32:50 CEST 2002 - kkaempf@suse.de
+
+- release media at end
+- 2.6.49
+
+-------------------------------------------------------------------
+Thu Sep 12 09:53:57 CEST 2002 - kkaempf@suse.de
+
+- call rewriteUrl correctly (#19501)
+- start package at 0%, end at 100% (#19506)
+- popup "please wait" during packagemanager init
+- drop unused CallbackDisplayError()
+- display full slide show during runtime (#19496)
+- correctly evaluate return from package selection (#19055)
+- check if kernel changed in sw_single (#19550)
+- 2.6.48
+
+-------------------------------------------------------------------
+Wed Sep 11 22:46:52 CEST 2002 - kkaempf@suse.de
+
+- save/restore state of packages
+- allow to abort during package installation
+- 2.6.47
+
+-------------------------------------------------------------------
+Wed Sep 11 19:31:37 CEST 2002 - kkaempf@suse.de
+
+- fix callback label display (gs@suse.de) (#19178)
+- 2.6.46
+
+-------------------------------------------------------------------
+Wed Sep 11 18:25:23 CEST 2002 - kkaempf@suse.de
+
+- solve packages installed with "yast2 -i" and popup
+  conflicts if any exist.
+- 2.6.45
+
+-------------------------------------------------------------------
+Wed Sep 11 17:07:59 CEST 2002 - kkaempf@suse.de
+
+- correctly init SpaceCalculation during runtime (#19458)
+- 2.6.44
+
+-------------------------------------------------------------------
+Wed Sep 11 13:35:48 CEST 2002 - kkaempf@suse.de
+
+- evaluate return code from package selection (#19142)
+- 2.6.43
+
+-------------------------------------------------------------------
+Wed Sep 11 13:10:42 CEST 2002 - kkaempf@suse.de
+
+- rewrite cd/dvd url in 2nd stage of installation (#19185)
+- 2.6.42
+
+-------------------------------------------------------------------
+Wed Sep 11 01:26:10 CEST 2002 - kkaempf@suse.de
+
+- drop argument "beginner" in calling sw_single
+- 2.6.41
+
+-------------------------------------------------------------------
+Wed Sep 11 00:38:44 CEST 2002 - kkaempf@suse.de
+
+- full source media manager (cschum@suse.de)
+- show failed packages or full log after PackageInstallation
+- 2.6.40
+
+-------------------------------------------------------------------
+Tue Sep 10 12:58:25 CEST 2002 - kkaempf@suse.de
+
+- Add "url" text entry to media change popup
+- 2.6.39
+
+-------------------------------------------------------------------
+Mon Sep  9 22:34:04 CEST 2002 - kkaempf@suse.de
+
+- show "Ignore" only if prompting with wrong media
+- 2.6.38
+
+-------------------------------------------------------------------
+Mon Sep  9 19:39:01 CEST 2002 - kkaempf@suse.de
+
+- fix handling of installation sources (cschum@suse.de)
+- move source handling to spkg (runtime stuff)
+- init SpaceCalculation at runtime properly
+- 2.6.36
+
+-------------------------------------------------------------------
+Mon Sep  9 16:35:47 CEST 2002 - mvidner@suse.cz
+
+- require.ycp: Fixed DoInstallAndRemove (#18904).
+- 2.6.35
+
+-------------------------------------------------------------------
+Mon Sep  9 14:05:52 CEST 2002 - kkaempf@suse.de
+
+- check base selections in reverse order for matching partition
+  space (default ... minimal). Selection with highest priority
+  matching the current partitioning will be choosen (#18855)
+- 2.6.34
+
+-------------------------------------------------------------------
+Mon Sep  9 14:34:00 CEST 2002 - kkaempf@suse.de
+
+- call solver after activating selections
+- allow installing list of packages from ascii file
+- fix filtering network related data from install.inf
+- 2.6.33
+
+-------------------------------------------------------------------
+Mon Sep  9 13:54:23 CEST 2002 - kkaempf@suse.de
+
+- InstURL: default directory to "/"
+- PackageCallbacks: remove bogus loop
+- 2.6.32
+
+-------------------------------------------------------------------
+Sun Sep  8 23:08:32 CEST 2002 - kkaempf@suse.de
+
+- pass correct locale to packagemanager
+- filter /etc/install.inf entries, linuxrc bug workaround
+- 2.6.31
+
+-------------------------------------------------------------------
+Sat Sep  7 14:12:06 CEST 2002 - kkaempf@suse.de
+
+- adapt media change api
+- 2.6.30
+
+-------------------------------------------------------------------
+Sat Sep  7 10:58:54 CEST 2002 - kkaempf@suse.de
+
+- pass probed devices to URL
+- 2.6.29
+
+-------------------------------------------------------------------
+Fri Sep  6 21:11:50 CEST 2002 - kkaempf@suse.de
+
+- prepare for handling of multiple sources (cschum@suse.de)
+- 2.6.28
+
+-------------------------------------------------------------------
+Fri Sep  6 10:53:01 CEST 2002 - kkaempf@suse.de
+
+- report failed packages properly (#19022)
+- addind missing import to Packages.ycp (nashif@suse.de)
+- 2.6.27
+
+-------------------------------------------------------------------
+Thu Sep  5 21:29:54 CEST 2002 - kkaempf@suse.de
+
+- properly detect cd,dvd drives
+- 2.6.26
+
+-------------------------------------------------------------------
+Thu Sep  5 11:47:22 CEST 2002 - mvidner@suse.cz
+
+- require.ycp: Adapted for the new packagemanager, yet again. (#18904)
+- 2.6.25
+
+-------------------------------------------------------------------
+Wed Sep  4 18:56:15 CEST 2002 - kkaempf@suse.de
+
+- fix run-time package selection
+- 2.6.24
+
+-------------------------------------------------------------------
+Wed Sep  4 15:38:49 CEST 2002 - kkaempf@suse.de
+
+- force /dev/cdrom symlink
+- 2.6.23
+
+-------------------------------------------------------------------
+Wed Sep  4 12:13:48 CEST 2002 - kkaempf@suse.de
+
+- Fix MediaChange callback in PackageCallbacks
+  import old code from MediaUI. Drop MediaUI.
+- 2.6.22
+
+-------------------------------------------------------------------
+Wed Sep  4 08:10:20 CEST 2002 - mvidner@suse.cz
+
+- Re-added require.ycp which got dropped by an accident.
+- 2.6.21
+
+-------------------------------------------------------------------
+Tue Sep  3 22:48:04 CEST 2002 - kkaempf@suse.de
+
+- improved callback handling
+- cleaned up sw_single
+- 2.6.20
+
+-------------------------------------------------------------------
+Thu Aug 29 09:49:05 CEST 2002 - kkaempf@suse.de
+
+- activate selections before entering package manager (#18501)
+- show all selected selections in proposal (#18523)
+
+-------------------------------------------------------------------
+Thu Aug 29 16:14:29 CEST 2002 - kkaempf@suse.de
+
+- symlink /dev/cdrom for DVD too
+- 2.6.19
+
+-------------------------------------------------------------------
+Thu Aug 29 00:40:03 CEST 2002 - kkaempf@suse.de
+
+- Add directory to Url if not given by linuxrc
+- 2.6.18
+
+-------------------------------------------------------------------
+Wed Aug 28 23:31:26 CEST 2002 - kkaempf@suse.de
+
+- drop InstMedia, it's all in packagemanager now
+- 2.6.17
+
+-------------------------------------------------------------------
+Tue Aug 27 18:09:06 CEST 2002 - kkaempf@suse.de
+
+- fix installation workflow to properly report progress
+- 2.6.16
+
+-------------------------------------------------------------------
+Mon Aug 26 15:14:10 CEST 2002 - mvidner@suse.cz
+
+- require.ycp: Adapted for the new packagemanager.
+- require.ycp: New function IsPackageAvailable.
+- 2.6.15
+
+-------------------------------------------------------------------
+Mon Aug 26 10:23:06 CEST 2002 - kkaempf@suse.de
+
+- copy /etc/passwd and /etc/group from inst-sys to target (#18243).
+
+-------------------------------------------------------------------
+Thu Aug 22 16:58:51 CEST 2002 - kkaempf@suse.de
+
+- default to UnitedLinux.sel if default.sel missing
+  default to first available base selection if UnitedLinux.sel
+  missing too.a
+  give up and make a blocker error if no base selection exists.
+  (#18207)
+
+-------------------------------------------------------------------
+Thu Aug 22 01:48:26 CEST 2002 - nashif@suse.de
+
+- disabled testsuite for spkg for now
+- fixed spec
+
+-------------------------------------------------------------------
+Wed Aug 21 18:03:46 CEST 2002 - kkaempf@suse.de
+
+- fix for build
+  V 2.6.12
+
+-------------------------------------------------------------------
+Wed Aug 21 16:46:34 CEST 2002 - kkaempf@suse.de
+
+- initial switch to new packagemanager.
+- V 2.6.11
+
+-------------------------------------------------------------------
+Mon Aug 12 16:14:01 CEST 2002 - kkaempf@suse.de
+
+- fix /etc/install.inf:InstMode reading.
+- fix network parameters reading.
+
+-------------------------------------------------------------------
+Mon Aug 05 19:01:56 CEST 2002 - arvin@suse.de
+
+- changes for new /etc/install.inf agent
+
+-------------------------------------------------------------------
+Mon Aug  5 13:12:29 CEST 2002 - kkaempf@suse.de
+
+- added xf86, mesasoft to required packages for vnc installation
+- provide create_update_inf
+
+-------------------------------------------------------------------
+Fri Aug 02 17:43:31 CEST 2002 - arvin@suse.de
+
+- added yast2-qt to required packages for vnc installation
+
+-------------------------------------------------------------------
+Mon Jul 29 10:54:55 CEST 2002 - arvin@suse.de
+
+- make correct package
+
+-------------------------------------------------------------------
+Fri Jul 26 12:15:00 CEST 2002 - ms@suse.de
+
+- changed use of X11 module. The X11 module does no longer exist
+  to provide the information of "having X11" installed (have_x11) the
+  module X11Version is used
+
+-------------------------------------------------------------------
+Wed Jul 24 11:24:27 CEST 2002 - kkaempf@suse.de
+
+- provide "create_update_inf"
+
+-------------------------------------------------------------------
+Tue Jul 16 13:07:56 CEST 2002 - arvin@suse.de
+
+- include rpm groups names for translation
+
+-------------------------------------------------------------------
+Tue Jul  9 14:02:19 CEST 2002 - mvidner@suse.cz
+
+- fixed Provides/Obsoletes
+
+-------------------------------------------------------------------
+Sat Jul 06 18:01:29 CEST 2002 - arvin@suse.de
+
+- added config files to file list
+
+-------------------------------------------------------------------
+Thu Jul 04 17:41:39 CEST 2002 - arvin@suse.de
+
+- added ag_instsource to file list
+- fixed location of include files
+
+-------------------------------------------------------------------
+Wed Jul 03 13:24:35 CEST 2002 - arvin@suse.de
+
+- merged yast2-agent-package and yast2-agent-targetpkg
+- moved non binary files to /usr/share/YaST2
+
+-------------------------------------------------------------------
+Mon Jul 01 18:30:26 CEST 2002 - arvin@suse.de
+
+- fixed linking on lib64 archs
+
+-------------------------------------------------------------------
+Mon Jul 01 17:25:10 CEST 2002 - arvin@suse.de
+
+- merged libpkg, client-packager (for yast2-core-clients) and
+  some package related scripts (from yast2-inst) to new
+  package yast2-packager
+

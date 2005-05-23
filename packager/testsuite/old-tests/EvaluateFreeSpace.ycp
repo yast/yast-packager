@@ -1,0 +1,91 @@
+/*
+ * Test ChangeCD
+ */
+
+{
+  include "testsuite.ycp";
+
+//  include "package_utils.ycp";
+
+
+  // -------------------------------------------------------------------------
+
+
+  map read = 	$["run": $["df": [
+				  $["dummy":"on",
+				   "free":"Available",
+				   "name":"Mounted",
+				   "prz":"Capacity",
+				   "spec":"Filesystem",
+				   "used":"Used",
+				   "whole":"1024-blocks"],
+				  $["free":"391366",
+				   "name":"/",
+				   "prz":"80%",
+				   "spec":"/dev/sda1",
+				   "used":"1487222",
+				   "whole":"1981000"],
+				  $["free":"1976745",
+				   "name":"/usr",
+				   "prz":"69%",
+				   "spec":"/dev/sda3",
+				   "used":"4227733",
+				   "whole":"6543449"],
+				  $["free":"7364356",
+				   "name":"/suse/gs",
+				   "prz":"94%",
+				   "spec":"wotan:/real-home/gs",
+				   "used":"100635672",
+				   "whole":"108000028"],
+				  $["free":"55126192",
+				   "name":"/mounts/work",
+				   "prz":"62%",
+				   "spec":"Hilbert:/work",
+				   "used":"88241460",
+				   "whole":"143367652"]]
+  ]]; 							 // first READ probes CD drives
+
+  TEST ( ``(EvaluateFreeSpace ( "/", 0)), [ read, $[], $[] ], [] ); 
+
+  read = 	$["run": $["df": [
+				  $["dummy":"on",
+				   "free":"Available",
+				   "name":"Mounted",
+				   "prz":"Capacity",
+				   "spec":"Filesystem",
+				   "used":"Used",
+				   "whole":"1024-blocks"],
+				  $["free":"391366",
+				   "name":"/mnt",
+				   "prz":"80%",
+				   "spec":"/dev/sda1",
+				   "used":"1487222",
+				   "whole":"1981000"],
+				  $["free":"1976745",
+				   "name":"/mnt/usr",
+				   "prz":"69%",
+				   "spec":"/dev/sda3",
+				   "used":"4227733",
+				   "whole":"6543449"],
+				  $["free":"7364356",
+				   "name":"/suse/gs",
+				   "prz":"94%",
+				   "spec":"wotan:/real-home/gs",
+				   "used":"100635672",
+				   "whole":"108000028"],
+				  $["free":"55126192",
+				   "name":"/mounts/work",
+				   "prz":"62%",
+				   "spec":"Hilbert:/work",
+				   "used":"88241460",
+				   "whole":"143367652"]]
+  ]];
+   
+  TEST ( ``(EvaluateFreeSpace ( "/mnt", 0)), [ read, $[], $[] ], [] ); 
+
+
+  // -------------------------------------------------------------------------
+
+  
+
+}
