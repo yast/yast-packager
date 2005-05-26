@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 26 14:15:09 CEST 2005 - jsrain@suse.cz
+
+- cache packages from service pack CD (#85850)
+
+-------------------------------------------------------------------
 Mon May 23 12:57:36 CEST 2005 - jsrain@suse.cz
 
 - fixed integration of patch CD (#84735)
