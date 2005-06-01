@@ -567,9 +567,10 @@ from the source CD to the disk cache")));
             string source_url = "";
             if (source_data != nil) source_url = source_data["url"]:"";
 
-            if (substring (source_url, 0, 4) == "cd:/")
+            if (substring (source_url, 0, 4) == "cd:/"
+		|| substring (source_url, 0, 5) == "dvd:/")
             {
-                y2milestone ("Installing from CDs, trying to set up cache");
+                y2milestone ("Installing from DVD/CDs, trying to set up cache");
                 store_original_source_url = source_url;
                 PrepareSourceCache (cached_source_id);
             }
