@@ -710,7 +710,7 @@ from the source CD to the disk cache")));
 
     if (result != `abort)
     {
-	if (result != `abort)
+	if (Stage::initial ())
 	{
 	    StoreDiskCacheSettings ();
 	}
