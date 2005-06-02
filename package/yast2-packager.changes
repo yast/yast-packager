@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun  2 09:40:10 CEST 2005 - jsrain@suse.cz
+
+- fixed restoring installation source settings after using
+  cached CD (#85850)
+
+-------------------------------------------------------------------
 Wed Jun  1 13:49:27 CEST 2005 - jsrain@suse.cz
 
 - cache service pack CD if installed from DVD (#85850)
