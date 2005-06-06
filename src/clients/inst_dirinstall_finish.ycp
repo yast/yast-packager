@@ -113,9 +113,6 @@
     // replace -r (reboot) option by -h (halt)
     SCR::Execute(.target.bash, "/usr/bin/sed -e 's|^ca::ctrlaltdel:/sbin/shutdown \\(.*\\)-r\\(.*\\)$|ca::ctrlaltdel:/sbin/shutdown \\1-h\\2|' /etc/inittab > /tmp/inittab.sed.$$ && mv /tmp/inittab.sed.$$ /etc/inittab");
 
-    // Stop SCR on target
-    WFM::SCRClose (Installation::scr_handle);
-
     if (DirInstall::makeimage && 
             DirInstall::image_dir != "" && 
             DirInstall::image_name != "")
@@ -130,6 +127,8 @@
         WFM::Execute(.local.bash, cmd);
     }
 
+    // Stop SCR on target
+    WFM::SCRClose (Installation::scr_handle);
 
     Progress::Finish();
     return `next;
