@@ -3,6 +3,7 @@ Tue Jun  7 10:53:39 CEST 2005 - jsrain@suse.cz
 
 - report meaningful error if installation source ID changes
   (#78998)
+- 2.9.41
 
 -------------------------------------------------------------------
 Thu Jun  2 09:40:10 CEST 2005 - jsrain@suse.cz
