@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  7 10:53:39 CEST 2005 - jsrain@suse.cz
+
+- report meaningful error if installation source ID changes
+  (#78998)
+
+-------------------------------------------------------------------
 Mon Jun  6 13:07:12 CEST 2005 - jsrain@suse.cz
 
 - fixed creating an image for directory installation (#86983)
