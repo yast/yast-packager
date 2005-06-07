@@ -340,6 +340,16 @@
 	// true if it makes sense to offer an eject button (for cd/dvd only ...)
 	boolean offer_eject_button = url_scheme == "cd" || url_scheme == "dvd";
 
+	if (issubstring (error, "ERROR(InstSrc:E_bad_id)"))
+	{
+	    // error report
+	    error =
+_("The source at the specified URL now provides a different media ID.
+If the URL is correct, this indicates that the source content has changed. To 
+continue using this source, start <i>Change Source of Installation</i> from 
+the YaST control center and refresh the installation source.");
+	}
+
 	if (wanted_label == "")
 	{
 	    // will be used in conjunction with other text below
