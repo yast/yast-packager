@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jun 15 14:13:47 CEST 2005 - jsrain@suse.cz
+
+- fixed copying of gpg keys during installation (#84175)
+
+-------------------------------------------------------------------
 Tue Jun  7 10:53:39 CEST 2005 - jsrain@suse.cz
 
 - report meaningful error if installation source ID changes
