@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 11 10:01:11 CEST 2005 - jsrain@suse.cz
+
+- removed dependency on vanished Display.ycp to fix build
+
+-------------------------------------------------------------------
 Wed Jun 15 14:13:47 CEST 2005 - jsrain@suse.cz
 
 - fixed copying of gpg keys during installation (#84175)
