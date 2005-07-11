@@ -155,8 +155,9 @@ Select which desktop to install.</p>");
 	// don't setup graphics if running via serial console
 	if (!Linuxrc::serial_console ())
 	{
-	    import "Display";
-	    packages = (list<string>) Display::pacs_to_install;
+	    packages = [ "xorg-x11", "xorg-x11-server", "xorg-x11-server-glx",
+		"libusb", "sax2", "sax2-gui", "sax2-ident", "sax2-tools",
+		"sax2-libsax", "sax2-libsax-perl"];
 	}
 
 	y2milestone ("X11 Packages to install: %1", packages);
