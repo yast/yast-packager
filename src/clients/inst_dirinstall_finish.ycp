@@ -22,7 +22,6 @@
     import "Language";
     import "Timezone";
     import "Console";
-    import "Display";
     import "RunlevelEd";
 
     list<string> progress_stages =
@@ -89,7 +88,6 @@
     Timezone::Save();
     Language::Save();
     Keyboard::Save(true);
-    Display::Save();
     Console::Save();
 
     integer runlevel = RunlevelEd::default_runlevel == ""?
