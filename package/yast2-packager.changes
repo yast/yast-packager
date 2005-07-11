@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 11 16:35:05 CEST 2005 - jsrain@suse.cz
+
+- removed missed dependency on Display.ycp
+
+-------------------------------------------------------------------
 Mon Jul 11 10:01:11 CEST 2005 - jsrain@suse.cz
 
 - removed dependency on vanished Display.ycp to fix build
