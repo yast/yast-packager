@@ -94,16 +94,19 @@
 	    else
 	    {
 		y2milestone("Skipping CD check - 'check' option is not set in the application area");
+		ret = `auto;
 	    }
 	}
 	else
 	{
 	    y2milestone("CD/DVD was not found");
+	    ret = `auto;
 	}
     }
     else
     {
 	y2milestone("No CD installation source found, skipping Media Check");
+	ret = `auto;
     }
 
     /* Finish */
