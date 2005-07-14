@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 14 18:15:27 CEST 2005 - jsrain@suse.cz
+
+- reset the proposal if desktop changes
+
+-------------------------------------------------------------------
 Thu Jul 14 16:30:19 CEST 2005 - jsrain@suse.cz
 
 - adapted for desktop selection from installation wizard
