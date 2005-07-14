@@ -262,18 +262,7 @@
 			y2debug( "get_partition_info: adding partition: %1", part );
 
 			// get free_size on partition in kBytes
-
-			if ( part["type"]:`empty == `pdisk )
-			{
-			    // PowerPC: free_space = number of cyl. ( "region": second value ) * 512
-			    free_size = (part["region",1]:0 * 512);
-			}
-			else
-			{
-			    // others: free space = number of cyl. ( "region": second value ) * cyl_size
-			    free_size = part["region", 1]:0 * (diskinfo["cyl_size"]:1024);
-			}
-
+			free_size = part["size_k"]:0 * 1024;
 			free_size = free_size - min_spare;
 
 			y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
@@ -357,7 +346,7 @@
     /*
      * get current space data for partitions
      * current_partitions = list of maps of
-     * $["format":bool, "free":integer, "name" : string, "region" : list, "used" :integer, "used_fs": symbol]
+     * $["format":bool, "free":integer, "name" : string, "used" :integer, "used_fs": symbol]
      * from Storage module
      * returns list of maps of
      * $["name" : string, "free" : integer, "used" : integer ]
