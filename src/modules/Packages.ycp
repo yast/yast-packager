@@ -48,6 +48,7 @@
     global boolean base_selection_modified = false;
 
     global string preferred_base_selection = nil;
+    global boolean base_selection_changed = false;
 
     // Local variables
 
@@ -747,6 +748,12 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	map ret = $[];
+
+	if (base_selection_changed)
+	{
+	    force_reset = true;
+	    base_selection_changed = false;
+	}
 
 	// popup label
 	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
