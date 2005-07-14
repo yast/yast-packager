@@ -738,14 +738,13 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
     }
 
 
-    /**
-     * Make a proposal for package selection
-     * @param force reset
-     * @param re-initialize
-     * @return map Map for the API proposal
-     */
-    global define map Proposal( boolean force_reset, boolean reinit )
-    {
+/**
+ * Make a proposal for package selection
+ * @param force reset
+ * @param re-initialize
+ * @return map Map for the API proposal
+ */
+global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	map ret = $[];
 
@@ -1018,8 +1017,18 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 		solve_errors = Pkg::PkgSolveErrors ();
 	    }
 	}
+
+	if (simple)
+	{
+	    ret["raw_proposal"] = [
+		sformat ("%1 (%2 total)",
+		    base_data["summary"]:"?",
+		    CountSizeToBeInstalled ())
+	    ];
+	}
+
 	return ret;
-    }
+}
 
 /* EOF */
 }

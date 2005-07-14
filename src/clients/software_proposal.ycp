@@ -42,7 +42,8 @@
 	}
 	y2milestone("package proposal: %1, %2",  force_reset, reinit );
 	ret = Packages::Proposal( force_reset,		// user decision: reset to default
-				  reinit );		// reinitialize due to language or partition change
+				  reinit,		// reinitialize due to language or partition change
+				  false );		// simple version
 
 	if ( language_changed && !force_reset)
 	{

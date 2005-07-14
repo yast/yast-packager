@@ -1,0 +1,54 @@
+/**
+ * Module:		software_proposal.ycp
+ *
+ * Author:		Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose:		Proposal function dispatcher - software.
+ *
+ *			See also file proposal-API.txt for details.
+ */
+{
+    textdomain "packager";
+
+    import "Packages";
+    import "Storage";
+
+    string func  = (string) WFM::Args(0);
+    map    param = (map) WFM::Args(1);
+    map    ret   = $[];
+
+    if ( func == "MakeProposal" )
+    {
+	boolean force_reset      = param["force_reset"     ]:false;
+	boolean language_changed = param["language_changed"]:false;
+
+	ret = Packages::Proposal( false,		// user decision: reset to default
+				  false,		// reinitialize due to language or partition change
+				  true );
+
+	if ( language_changed && !force_reset)
+	{
+	    // if the  language has changed the software proposal is reset to the default settings
+	    if (! haskey (ret, "warning"))
+	    {
+		// the language_changed flag has NOT been set by the NLD frame
+		ret = add( ret, "warning", _("The software proposal is reset to default values.") );
+	    }
+	}
+        if (Packages::solve_errors > 0)
+        {
+             // the proposal for the packages requires manual intervention
+            ret = union (ret, $[
+                        /* warning text */
+                     "warning" : _("Cannot solve dependencies automatically. Manual intervention required"),
+                     "warning_level" : `blocker ]);
+        }
+	return ret;
+    }
+    else
+    {
+	return WFM::CallFunction ("software_proposal", [func, param]);
+    }
+
+    return ret;
+}
