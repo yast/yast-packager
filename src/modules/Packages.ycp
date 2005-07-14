@@ -41,16 +41,13 @@
     global list<integer> theSources = [];		// id codes of sources in priority order
     global list<string> theSourceDirectories = [];	// product directories on sources
     global map<integer,integer> theSourceOrder = $[];	// installation order
-    global boolean desktop_dialog_shown = false;	// flag, that the Desktop software selection frame has been shownw
-    string servicepack_metadata = "/servicepack.tar.gz";
 
-    global string desktop_help_text =
-// help text
-_("<p>&product; offers a selection of efficient and comfortable desktops.
-Select which desktop to install.</p>");
+    string servicepack_metadata = "/servicepack.tar.gz";
 
     // to remember if warning should occurre if switching base selection
     global boolean base_selection_modified = false;
+
+    global string preferred_base_selection = nil;
 
     // Local variables
 
@@ -719,132 +716,6 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
         y2milestone( "INSTALLING software selection: %1", selected_selections );
     }
 
-define boolean SelectDesktop () {
-    // get all available base selections
-    // checked in help below !
-    list<string> available_desktop_selections = Pkg::GetSelections( `available, "base");
-    y2milestone ("available_desktop_selections %1", available_desktop_selections);
-
-    if (!contains (available_desktop_selections, "Gnome"))
-    {
-	y2error( "No desktop selections available for Gnome" );
-	return false;
-    }
-    if (!contains (available_desktop_selections, "Kde"))
-    {
-	y2error( "No desktop selections available Kde" );
-	return false;
-    }
-
-    // get the currently selected base selection
-    list current_desktop_selections = Pkg::GetSelections( `selected, "base");
-    y2milestone ("current_desktop_selections %1", current_desktop_selections);
-
-    // evaluate descriptions
-    map<string, string> selection_description = $[];
-    foreach( string selection, available_desktop_selections, {
-	map selection_data = Pkg::SelectionData (selection);
-	if (selection_data != nil)
-	{
-	    selection_description[selection] = selection_data["summary"]:("'"+selection+"'");
-	}
-    });
-
-    // Construct a box with radiobuttons for each software base configuration
-    term selection_box = `RadioButtonGroup(`id(`selection_box),
-					    `VBox(
-						  `Left(`RadioButton(`id("Gnome"), `opt(`notify), selection_description["Gnome"]:"not defined",
-							contains (current_desktop_selections,"Gnome"))),
-						  `VSpacing(1),
-						  `Left(`RadioButton(`id("Kde"), `opt(`notify), selection_description["Kde"]:"not defined",
-								     contains (current_desktop_selections,"Kde")))
-						  )
-					    );
-
-
-    term ask_desktop_dialog = `HBox(
-                                    `HStretch(),
-				    `VBox (
-                                        `VWeight(30,`VStretch()),
-					// translators: dialog text
-					`Left(`Label (_("The &product; includes two different
-desktop environments.
-Select the environment to use by default
-from the list below. If you do not
-know which environment is preferred by your company,
-ask your system administrator.
-"))),
-					`VSpacing(1),
-                                        `VWeight(10,`VStretch()),
-					`HBox(
-					      `HSpacing(10),
-					       selection_box
-                                         ),
-                                       `VWeight(60,`VStretch())
-                                       ),
-                                   `HStretch()
-				    );
-
-
-    //Wizard::OpenAcceptDialog();
-    Wizard::OpenAcceptStepsDialog();
-    string wizard_mode = Mode::test () ? "installation" : Mode::mode ();
-
-    // UI::WizardCommand() can safely be called even if the respective UI
-    // doesn't support the wizard widget, but for optimization it makes sense
-    // to do expensive operations only when it is available.
-    list<map> stage_mode = [$["stage": "initial" , "mode": wizard_mode ],
-                            $["stage": "continue", "mode": wizard_mode ],
-                            $["stage": "normal", "mode": wizard_mode ]];
-    ProductControl::AddWizardSteps(stage_mode);
-    UI::WizardCommand(`SetCurrentStep( ProductControl::CurrentWizardStep ));
-
-
-    // translators: dialog title
-    Wizard::SetContents ( _("Select Your Default Desktop"), ask_desktop_dialog,
-            desktop_help_text, false, true);
-    UI::ChangeWidget(`id(`accept), `Enabled, false );
-    UI::SetFocus(`id(`abort));
-
-    any ret = nil;
-    string desktop_selection = "";
-    repeat
-    {
-        ret = UI::UserInput();
-        // get the newly selected base configuration
-        desktop_selection = (string) UI::QueryWidget( `id(`selection_box),`CurrentButton );
-
-        if (ret == `cancel)
-        {
-            if (Popup::ConfirmAbort (`painless))
-            {
-                Pkg::RestoreState(false);
-                Wizard::CloseDialog();
-                return false;
-            }
-            else
-            {
-                ret = `again;
-            }
-        }
-
-        if (ret != `cancel && ret != `accept && ret != `again)
-	{
-	    UI::ChangeWidget(`id(`accept), `Enabled, true );
-	}
-    } until (ret == `cancel || ret == `accept);
-
-    if (ret == `accept)
-    {
-	y2milestone ("Setting selection to %1", desktop_selection);
-	SetSelectionAndComputeSystemPackages (desktop_selection);
-    }
-    // Flag that this screen has been finished successfully
-    Wizard::CloseDialog();
-    desktop_dialog_shown = true;
-    return true;
-}
-
 
     global string CountSizeToBeInstalled () {
         integer sz = 0;
@@ -985,14 +856,10 @@ ask your system administrator.
 		boolean fit = false;
 		integer counter = 0;
 
-		if (ProductFeatures::GetFeature ("software", "software_proposal") == "desktop")
+		if (preferred_base_selection != nil)
 		{
-		    if (!desktop_dialog_shown)
-		    {
-			if (!SelectDesktop ())
-                        {
-			    ret = add( ret, "warning_level", `fatal);
-			}
+			SetSelectionAndComputeSystemPackages
+			    (preferred_base_selection);
 			base_selections = Pkg::GetSelections (`selected, "base");
 
 			y2milestone ("Desktop base selection: %1", base_selections);
@@ -1008,7 +875,6 @@ ask your system administrator.
 			    // error popup
 			    Popup::Error(_("Not enough disk space.  Remove some packages in the single selection."));
 			}
-		    }
 		}
 
 		while (!fit

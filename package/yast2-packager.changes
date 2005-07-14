@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 14 15:59:38 CEST 2005 - jsrain@suse.cz
+
+- adapted for desktop selection from installation wizard
+
+-------------------------------------------------------------------
 Mon Jul 11 16:35:05 CEST 2005 - jsrain@suse.cz
 
 - removed missed dependency on Display.ycp

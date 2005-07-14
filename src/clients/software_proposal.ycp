@@ -47,17 +47,10 @@
 	if ( language_changed && !force_reset)
 	{
 	    // if the  language has changed the software proposal is reset to the default settings
-	    if ( !Packages::desktop_dialog_shown )
+	    if (! haskey (ret, "warning"))
 	    {
-	      if (! haskey (ret, "warning"))
-	      {
 		// the language_changed flag has NOT been set by the NLD frame
 		ret = add( ret, "warning", _("The software proposal is reset to default values.") );
-	      }
-	    }
-	    else
-	    {
-		Packages::desktop_dialog_shown = false;
 	    }
 	}
         if (Packages::solve_errors > 0)
