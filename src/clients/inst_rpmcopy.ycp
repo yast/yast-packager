@@ -19,7 +19,6 @@
 {
     textdomain "packager";
 
-    import "AutoInstall";
     import "Mode";
     import "Stage";
     import "Installation";
