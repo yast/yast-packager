@@ -117,7 +117,10 @@ term expert_dialog = `VBox (
     ))
 );
 
-string help = "FIXME";
+// help text 1/1
+string help = _("<p>SUSE Linux offers you the most efficient
+and comfortable desktops.
+Select which desktop you would like to install.</p>");
 
 Wizard::SetContents (_("Desktop Selection"), contents, help,
     GetInstArgs::enable_back(), GetInstArgs::enable_next());
