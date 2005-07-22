@@ -97,7 +97,7 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 		`PushButton (`id (`select), _("&Select..."))
 	    ))
 	)),
-	`VWeight (25, `Empty())
+	`VWeight (15, `Empty())
     ),
     `HWeight (2, `Empty ())
 ));
