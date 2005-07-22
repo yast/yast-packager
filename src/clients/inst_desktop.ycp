@@ -10,7 +10,7 @@
 
 {
 
-textdomain "installation";
+textdomain "packager";
 import "GetInstArgs";
 import "Label";
 import "Packages";
