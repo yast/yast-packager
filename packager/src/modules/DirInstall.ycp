@@ -1,0 +1,81 @@
+/**
+ * File:	modules/DirInstall.ycp
+ * Package:	Instalation into a Directory
+ * Summary:	Instalation into a Directory  settings, input and output functions
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+textdomain "packager";
+module "DirInstall";
+import "Mode";
+import "Stage";
+import "HTML";
+import "ProductControl";
+
+
+global boolean runme_at_boot = false;
+global string target = "/var/tmp/dirinstall";
+
+global boolean makeimage = false;
+global string image_dir = "";
+global string image_name = "";
+
+
+global string dirinstall_control_file =
+        "/usr/share/YaST2/control/dirinstall.xml";
+
+global string xen_dirinstall_control_file =
+	"/usr/share/YaST2/control/xen-dirinstall.xml";
+
+global boolean installing_into_dir = false;
+
+// one of `dir or `xen
+global symbol mode = nil;
+
+
+global void InitProductControl () {
+    if (Stage::normal())
+    {
+        ProductControl::custom_control_file = mode == `xen
+	    ? xen_dirinstall_control_file
+	    : dirinstall_control_file;
+
+        if (!ProductControl::Init())
+        {
+            y2error("control file %1 not found", ProductControl::custom_control_file );
+        }
+    } else {
+       installing_into_dir =false;
+    }
+
+
+}
+
+global void DirInstall()
+{
+    InitProductControl ();
+}
+
+global string Propose() 
+{
+    string color = "red";
+    list<string> tmp = [];
+    // Proposal for dirinstall installation
+    tmp = add (tmp, sformat (_("Target Directory: %1"), HTML::Colorize(DirInstall::target, color)));
+
+    // Proposal for backup during update
+    tmp = add (tmp, sformat (_("Run YaST and SuSEconfig at First Boot: %1"), HTML::Colorize(DirInstall::runme_at_boot
+	// part of label in proposal
+	? _("Yes"):
+	// part of label in proposal
+	_("No"), color) ));
+    // Proposal for dirinstall installation
+    tmp = add (tmp, sformat (_("Create Image: %1"), HTML::Colorize(DirInstall::makeimage ? _("Yes"): _("No"), color) ));
+    return HTML::List (tmp);
+
+}
+
+}

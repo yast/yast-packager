@@ -1,0 +1,115 @@
+/**
+ * File:
+ *   clients/checkmedia-installation.ycp
+ *
+ * Summary:
+ *   Client for checkig media integrity
+ *
+ * Authors:
+ *   Ladislav Slezak <lslezak@suse.cz>
+ *
+ * $Id:$
+ *
+ */
+
+{
+    textdomain "packager";
+
+    import "CheckMedia";
+    import "String";
+
+    /* The main () */
+    y2milestone ("Checkmedia-installation module started");
+    y2milestone ("----------------------------------------");
+
+    /* main ui function */
+    any ret = `next;
+
+    // check whether we are using CD installation source
+    string instmode = (string)SCR::Read(.etc.install_inf.InstMode);
+    y2milestone("Installation mode: %1", instmode);
+
+    if (instmode == "cd" || instmode == "dvd")
+    {
+	list<string> readycddrives = CheckMedia::GetReadyCDs();
+	y2milestone("Ready CD drives: %1", readycddrives);
+
+	if (size(readycddrives) > 0)
+	{
+	    boolean dotest = false;
+
+	    // check whether "offer-extra-media-test" bit is present on any(!) medium
+	    foreach(string drive, readycddrives, {
+		    // read application area on the medium
+		    map out = (map)SCR::Execute(.target.bash_output, sformat("/bin/dd if=%1 bs=1 skip=33651 count=512", drive));
+
+		    map<string,string> application_area = $[];
+
+		    if (out["exit"]:-1 == 0)
+		    {
+			// parse application area
+			string app = out["stdout"]:"";
+
+			app = String::CutBlanks(app);
+			y2milestone("Read application area: %1", out);
+
+			list<string> values = splitstring(app, ";");
+
+			if (values != nil)
+			{
+			    foreach(string val, values, {
+				    list<string> v = splitstring(val, "=");
+
+				    string key = (string)v[0]:nil;
+				    string value = (string)v[1]:nil;
+
+				    if (key != nil)
+				    {
+					application_area[key] = value;
+				    }
+				}
+			    );
+			}
+			y2milestone("Parsed application area: %1", application_area);
+		    }
+
+		    // test 'check' key
+		    if (application_area["check"]:"" == "1")
+		    {
+			dotest = true;
+			// propagate device name to the check media client (preselect the device in the combo box)
+			CheckMedia::preferred_drive = drive;
+		    }
+		}
+	    );
+
+	    if (dotest)
+	    {
+		// start checkmedia client in forced mode
+		y2milestone("Found a medium with MD5 check request.");
+		CheckMedia::forced_start = true;
+		ret = WFM::CallFunction("checkmedia", WFM::Args());
+		CheckMedia::forced_start = false;
+	    }
+	    else
+	    {
+		y2milestone("Skipping CD check - 'check' option is not set in the application area");
+		ret = `auto;
+	    }
+	}
+	else
+	{
+	    y2milestone("CD/DVD was not found");
+	    ret = `auto;
+	}
+    }
+    else
+    {
+	y2milestone("No CD installation source found, skipping Media Check");
+	ret = `auto;
+    }
+
+    /* Finish */
+    y2milestone ("Checkmedia-installation finished");
+    return ret;
+}

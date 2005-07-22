@@ -1,0 +1,58 @@
+[Desktop Entry]
+Type=Application
+Categories=Qt;X-SuSE-YaST;X-SuSE-YaST-Software;
+
+X-KDE-ModuleType=Library
+X-KDE-RootOnly=true
+X-KDE-HasReadOnlyMode=true
+X-KDE-Library=yast2
+X-SuSE-YaST-Call=sw_single
+
+X-SuSE-YaST-Group=Software
+X-SuSE-YaST-Argument=
+X-SuSE-YaST-RootOnly=true
+X-SuSE-YaST-AutoInst=
+X-SuSE-YaST-Geometry=
+X-SuSE-YaST-SortKey=20
+X-SuSE-YaST-AutoInstResource=
+
+Icon=yast-sw_single
+Exec=/sbin/yast2 sw_single 
+
+Name=Install and Remove Software
+GenericName=Install additional software package or remove installed packages.
+Name[cs]=Správce programů
+GenericName[cs]=Instalovat další softwarové balíky nebo odebrat instalované balíky.
+Name[de]=Software installieren oder löschen
+GenericName[de]=Zusätzliche Software-Pakete installieren oder installierte Pakete entfernen.
+Name[es]=Instalar/desinstalar software
+GenericName[es]=Instalar paquetes de software adicionales o eliminar los instalados.
+Name[hu]=Szoftver telepítése, eltávolítása
+GenericName[hu]=További szoftver csomagok telepítése vagy telepített csomagok eltávolítása
+Name[it]=Installare/togliere i pacchetti
+GenericName[it]=Installa ulteriori pacchetti o rimuovi pacchetti installati.
+Name[ko]=소프트웨어 설치/제거
+GenericName[ko]=추가 소프트웨어 패키지 설치 혹은 설치된 패키지 제거
+Name[nl]=Software installeren en verwijderen
+GenericName[nl]=Installeer extra software pakketten of verwijder geïnstalleerde pakketten.
+Name[pt]=Instalar e Remover software
+GenericName[pt]=Instalar pacote de software adicional ou remover pacotes instalados.
+Name[sk]=Inštalácia a odstránenie software
+GenericName[sk]=Doinštalovanie alebo odobratie software
+Name[sv]=Installera och ta bort program
+GenericName[sv]=Installera nya programpaket eller ta bort installerade paket
+Name[bg]=Инсталиране и премахване на приложения
+GenericName[bg]=Инсталиране на допълнителни пакети или премахване на вече инсталирани.
+GenericName[da]=Installér flere programpakker eller fjern installerede programpakker.
+Name[el]=Προσθαφαίρεση Λογισμικού
+GenericName[el]=Εγκαταστήστε επιπλέον πακέτο λογισμικού ή αφαιρέστε εγκατεστημένα πακέτα.
+Name[fr]=Installer et supprimer des logiciels
+GenericName[fr]=Installer des paquetages supplémentaires ou supprimer des paquetages installés.
+Name[ja]=ソフトウェアのインストール/削除
+GenericName[ja]=新しいパッケージのインストールまたは、インストール済のパッケージの削除
+GenericName[lt]=Įdiegti papildomą programinės įrangos paketą arba pašalinti įdiegtą.
+GenericName[ru]=Установить дополнительные программные пакеты или удалить уже установленные.
+Name[sl]=Namesti in odstrani programsko opremo
+GenericName[sl]=Namesti dodaten programski paket ali odstrani nameščene pakete.
+GenericName[tr]=Yeni yazılım paketleri kurun ya da mevcut paketleri kaldırın
+X-KDE-SubstituteUID=true
