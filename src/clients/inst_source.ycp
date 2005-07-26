@@ -75,7 +75,7 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    define symbol createSource( string url ) ``{
+    define symbol createSource( string url, boolean auto_refresh ) ``{
         if ( url != "" )
         {
 	    // Popup::Message( sformat( "URL: %1", url ) );
@@ -136,7 +136,7 @@ in the packages selection, continue."),
 		    }
 		}
                 foreach( integer id, newSources, ``{
-                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true ];
+                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "auto_refresh" : auto_refresh ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
                 } );
                 return `ok;
@@ -294,9 +294,9 @@ on the NFS server.
 	    else if ( input == `samba ) url = "smb://";
 	    else url = "";
 	    do {
-		url = editUrl( url );
+		map url_map = editUrl( url, true );
 		if ( size( url ) == 0 ) break;
-		createResult = createSource( url );
+		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }
@@ -304,27 +304,27 @@ on the NFS server.
         {
             url = "nfs://";
             do {
-                url = editUrl( url );
+                map url_map = editUrl( url, true );
                 if ( size( url ) == 0 ) break;
-                createResult = createSource( url );
+		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }
         else if ( input == `cd )
         {
-            if ( createSource( "cd:///" ) == `ok ) fillTable();
+            if ( createSource( "cd:///", true ) == `ok ) fillTable();
         }
         else if ( input == `dvd )
         {
-            if ( createSource( "dvd:///" ) == `ok ) fillTable();
+            if ( createSource( "dvd:///", true ) == `ok ) fillTable();
         }
 	else if ( input == `local_dir )
 	{
             url = "dir://";
             do {
-                url = editUrl( url );
+                map url_map = editUrl( url, true );
                 if ( size( url ) == 0 ) break;
-                createResult = createSource( url );
+		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
 	}
@@ -377,11 +377,13 @@ All changes will be lost.");
             {
                 map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
+		boolean auto_refresh = sourceState["auto_refresh"]:true;
 
                 do {
-                    url = editUrl( url );
+                    map<string,any> url_map = editUrl( url, auto_refresh );
+		    url = url_map["url"]:"";
                     if ( size( url ) == 0 ) break;
-                    createResult = createSource( url );
+                    createResult = createSource( url, url_map["auto_refresh"]:true );
                     if ( createResult == `ok ) {
 			deleteSource( current );
 			fillTable();
@@ -390,7 +392,11 @@ All changes will be lost.");
             }
 	    else if ( input == `refresh )
             {
-                map generalData = Pkg::SourceGeneralData( id );
+		boolean success = false;
+		do {
+		    success = Pkg::SourceRefreshNow (id);
+		} while (! success);
+/*                map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
 
                 do {
@@ -401,7 +407,7 @@ All changes will be lost.");
                     if ( createResult == `ok ) {
 			fillTable();
                     }
-                } while ( createResult == `again );
+                } while ( createResult == `again );*/
             }
             else if ( input == `delete )
             {
