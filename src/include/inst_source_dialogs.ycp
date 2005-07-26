@@ -19,9 +19,11 @@
     import "Label";
     import "URL";
 
-    define string getServerUrl( symbol type, string host,
+    term auto_refresh_term = `Left (`CheckBox (`id (`auto_refresh), _("Refresh Automatically")));
+
+    define map<string,any> getServerUrl( symbol type, string host,
 				string urlpath, string user,
-				string pass );
+				string pass, boolean auto_refresh );
 
     /**
         Return an HBox with ok and cancel buttons for use by other dialogs.
@@ -136,7 +138,7 @@
     /**
         Get a nfs url.
     */
-    define string getNfsUrl( string host, string urlpath ) ``{
+    define map<string,any> getNfsUrl( string host, string urlpath, boolean auto_refresh ) ``{
         if ( substring( urlpath, 0, 1 ) == "/" ) {
           urlpath = substring( urlpath, 1 );
         }
@@ -154,6 +156,7 @@
             )
         );
 	UI::SetFocus (`id (`server));
+	UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
 
         string url = "";
 
@@ -171,19 +174,23 @@
 //                string options = UI::QueryWidget( `id( `mount ), `Value );
 
                 url = "nfs://" + server + "/" + dir;
+		auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
             }
 
         } until ( input == `cancel || input == `ok );
 
         UI::CloseDialog();
 
-        return url;
+        return $[
+	    "url" : url,
+	    "auto_refresh" : auto_refresh,
+	];
     }
 
     /**
         Get url for a cd or dvd.
     */
-    define string getCdUrl() ``{
+    define map<string,any> getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
 		// label
@@ -195,6 +202,7 @@
                         `Left( `RadioButton( `id( `dvd ), "/dev/dvd" ) )
                     )
                 ),
+		auto_refresh_term,
                 dialogButtons()
             )
         );
@@ -225,12 +233,14 @@
 
         UI::CloseDialog();
 
-        return url;
+	return $[
+	    "url" : url
+	];
     }
 
-    define string getNewServerUrl( symbol protocol )
+    define map<string,any> getNewServerUrl( symbol protocol )
     ``{
-      return getServerUrl( protocol, "", "", "", "" );
+      return getServerUrl( protocol, "", "", "", "", true );
     }
 
     /**
@@ -240,9 +250,9 @@
 
         @param protocol type of server, can be `ftp, `http or `smb.
     */
-    define string getServerUrl( symbol type, string host,
+    define map<string,any> getServerUrl( symbol type, string host,
                                        string urlpath, string user,
-                                       string pass )
+                                       string pass, boolean auto_refresh )
     ``{
         if ( substring( urlpath, 0, 1 ) == "/" ) {
           urlpath = substring( urlpath, 1 );
@@ -330,10 +340,12 @@
                     ),
                     `HSpacing( 0.5 )
                 ),
+		auto_refresh_term,
                 dialogButtons()
             )
         );
 
+	UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
         UI::ChangeWidget( `id( `rb_type ), `CurrentButton, type );
 	UI::SetFocus (`id (`server));
 
@@ -395,6 +407,7 @@
 
                 string server = (string) UI::QueryWidget( `id( `server ), `Value );
                 string directory = (string) UI::QueryWidget( `id( `dir ), `Value );
+		auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
 		if (UI::WidgetExists (`id (`share)))
 		{
 		    share = (string)UI::QueryWidget (`id (`share), `Value);
@@ -413,7 +426,10 @@
         } until ( input == `cancel || input == `ok );
 
         UI::CloseDialog();
-        return url;
+        return $[
+	    "url" : url,
+	    "auto_refresh" : auto_refresh,
+	];
     }
 
     /**
@@ -423,7 +439,7 @@
      * @return directory url on success, empty string when the user
      *   canceled the dialog.
     */
-    define string getDirectoryUrl( string defaulturl ) ``{
+    define map<string,any> getDirectoryUrl( string defaulturl, boolean auto_refresh ) {
 
         UI::OpenDialog(
             `VBox(
@@ -435,10 +451,12 @@
 			// push button
                     `PushButton( `id( `browse ), _("&Browse...") )
                 ),
+		auto_refresh_term,
                 dialogButtons()
             )
         );
 
+	UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
         UI::ChangeWidget( `id( `dir ), `Value, defaulturl );
 	UI::SetFocus (`id (`dir));
 
@@ -466,6 +484,7 @@
                 url = (string) UI::QueryWidget( `id( `dir ), `Value );
 
                 url = "dir://" + url;
+		auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
             }
             else if ( input == `cancel )
             {
@@ -475,11 +494,13 @@
         } until ( input == `cancel || input == `ok );
 
         UI::CloseDialog();
-
-        return url;
+        return $[
+	    "url" : url,
+	    "auto_refresh" : auto_refresh,
+	];
     }
 
-    define string getUrl( string defaulturl ) ``{
+    define map<string,any> getUrl( string defaulturl, boolean auto_refresh ) {
         UI::OpenDialog(
             `VBox(
 		/* Label text */
@@ -506,7 +527,7 @@
             )
         );
 
-        string url = "";
+        map<string,any> url = $[];
 	UI::SetFocus (`id (`dir));
 
         any input = UI::UserInput();
@@ -520,9 +541,9 @@
             if ( type == `ftp || type == `http || type == `samba ) {
                 url = getNewServerUrl( type );
             } else if ( type == `dir ) {
-                url = getDirectoryUrl( defaulturl );
+                url = getDirectoryUrl( defaulturl, auto_refresh );
             } else if ( type == `nfs ) {
-                url = getNfsUrl( "", "" );
+                url = getNfsUrl( "", "", auto_refresh );
             } else if ( type == `cd || type == `dvd ) {
                 url = getCdUrl();
             }
@@ -533,15 +554,15 @@
         return url;
     }
 
-    define string editUrl( string url ) ``{
-        if ( size( url ) == 0 ) return getUrl( "" );
+    define map<string,any> editUrl( string url, boolean auto_refresh ) ``{
+        if ( size( url ) == 0 ) return getUrl( "", auto_refresh );
 
         map parsedUrl = URL::Parse( url );
 
         string protocol = parsedUrl[ "scheme" ]:"";
         string urlpath = parsedUrl[ "path" ]:"";
 
-        string newUrl = "";
+        map<string,any> newUrl = $[];
 
         if ( protocol == "ftp" || protocol == "http" || protocol == "smb" ) {
             string host = parsedUrl[ "host" ]:"";
@@ -550,12 +571,12 @@
             symbol type = `ftp;
             if ( protocol == "http" ) type = `http;
             else if ( protocol == "smb" ) type = `samba;
-            newUrl = getServerUrl( type, host, urlpath, user, pass );
+            newUrl = getServerUrl( type, host, urlpath, user, pass, auto_refresh );
         } else if ( protocol == "nfs" ) {
             string host = parsedUrl[ "host" ]:"";
-            newUrl = getNfsUrl( host, urlpath );
+            newUrl = getNfsUrl( host, urlpath, auto_refresh );
         } else if ( protocol == "dir" || protocol == "file" ) {
-            newUrl = getDirectoryUrl( urlpath );
+            newUrl = getDirectoryUrl( urlpath, auto_refresh );
         } else if ( protocol == "cd" || protocol == "dvd" ) {
             newUrl = getCdUrl();
         } else {
