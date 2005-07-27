@@ -19,7 +19,7 @@ X-SuSE-YaST-AutoinstResource=
 Icon=yast-xen-dirinstall
 Exec=/sbin/yast2 dirinstall
 
-Name=Installation into Directory for XEN
-GenericName=Install System into a Directory for XEN
+Name=Installation in Xen Environment
+GenericName=Create a Xen environment and install into it
 X-KDE-SubstituteUID=true
 

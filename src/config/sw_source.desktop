@@ -19,8 +19,8 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-sw_source
 Exec=/sbin/yast2 inst_source
 
-Name=Change Source of Installation
-GenericName=Choose the source (e.g., CD or network) for the installation of software packages.
+Name=Installation Source
+GenericName=Choose the source for installation of software packages (CD, network, etc.)
 Name[cs]=Změnit instalační zdroj
 GenericName[cs]=Zvolte zdroj (např. CD nebo síť) pro instalaci softwarových balíčků.
 Name[de]=Installationsquelle wechseln

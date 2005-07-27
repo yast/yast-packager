@@ -20,5 +20,5 @@ Icon=yast-checkmedia
 Exec=/sbin/yast2 checkmedia
 
 Name=Media Check
-GenericName=Verify CD/DVD Media Integrity
+GenericName=Verify CD and DVD media integrity
 X-KDE-SubstituteUID=true
