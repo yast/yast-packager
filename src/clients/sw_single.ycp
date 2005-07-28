@@ -155,7 +155,7 @@
        }
 
        // label of popup
-       UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information; One moment please...")));
+       UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
 
        // start package manager
 

@@ -91,7 +91,7 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 	`VWeight (30, `VBox (
 	    `Left (`RadioButton (`id (`other), `opt(`notify, `boldFont),
 		// radio button
-		_( "&Other"),
+		_("&Other"),
 		alt_desktop != `gnome && alt_desktop != `kde
 		    && alt_desktop != nil)),
 	    `Left (`HBox (
@@ -156,7 +156,8 @@ repeat {
 	if (alt_desktop == nil)
 	{
 	    // popup message
-	    Popup::Message (_("Select desktop"));
+	    Popup::Message (_("No desktop was selected. Select one the
+desktops to install"));
 	    ret = nil;
 	}
     }
