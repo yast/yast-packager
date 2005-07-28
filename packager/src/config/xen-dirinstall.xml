@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE productDefines SYSTEM "/usr/share/YaST2/control/control.dtd">
+<productDefines  xmlns="http://www.suse.com/1.0/yast2ns"
+    xmlns:config="http://www.suse.com/1.0/configns">
+
+    <!--
+    $Id: firstboot.xml 20768 2005-01-16 23:42:37Z nashif $
+    Work around for the text domain
+    textdomain="packager"
+    -->
+
+    <textdomain>packager</textdomain>
+    <software>
+        <addon_selections config:type="list">
+            <selection>Xen</selection>
+        </addon_selections>
+    </software>
+
+    <proposals config:type="list">
+        <proposal>
+            <label>XEN Installation</label>
+            <mode>normal</mode>
+            <name>dirinstall</name>
+            <stage>normal</stage>
+            <enable_skip>no</enable_skip>
+            <proposal_modules config:type="list">
+                <proposal_module>dirinstall_options</proposal_module>
+                <proposal_module>software</proposal_module>
+            </proposal_modules>
+        </proposal>
+    </proposals>
+    <workflows  config:type="list">
+        <workflow>
+            <defaults>
+                <enable_back>yes</enable_back>
+                <enable_next>yes</enable_next>
+                <archs>all</archs>
+            </defaults>
+            <stage>normal</stage>
+            <label>Installation</label>
+            <mode>normal</mode>
+            <modules  config:type="list">
+                <module>
+                    <label>Settings</label>
+                    <name>inst_proposal</name>
+                    <proposal>dirinstall</proposal>
+                </module>
+                <module>
+                    <label>Prepare Installation</label>
+                    <name>inst_kickoff</name>
+                </module>
+                <!--
+                <module>
+                    <label>Perform Installation</label>
+                    <name>inst_dirinstall</name>
+                </module>
+                -->
+                <module>
+                    <label>Install Packages</label>
+                    <name>inst_rpmcopy</name>
+                </module>
+                <module>
+                    <label>Finish Installation</label>
+                    <name>inst_dirinstall_finish</name>
+                </module>
+
+            </modules>
+        </workflow>
+    </workflows>
+</productDefines>

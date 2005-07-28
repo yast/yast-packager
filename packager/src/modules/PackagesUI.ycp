@@ -1,0 +1,57 @@
+/**
+ * Module: 		PackagesUI.ycp
+ *
+ * Authors:		Gabriele Strattner (gs@suse.de)
+ *
+ * Purpose: 		Provides a number of common popups
+ *			for the package installation.
+ *
+ * $Id$
+ */
+
+{
+
+    module "PackagesUI";
+    textdomain "packager";
+    import "Label";
+
+
+    //
+    // Popup displays helptext
+    //
+    global define any DisplayHelpMsg( string headline, term helptext, symbol color, integer vdim ) ``{
+
+	term dia_opt = `opt ( `decorated );
+
+	if ( color == `warncolor )
+	{
+	    dia_opt =  `opt ( `decorated, `warncolor );
+	}
+	else if ( color == `infocolor )
+	{
+	    dia_opt =  `opt ( `decorated, `infocolor );
+	}
+
+	term header = `Empty();
+	if ( headline != "" )
+	    header = `Left(`Heading( headline ));
+
+	UI::OpenDialog( dia_opt,
+		    `HBox( `VSpacing(vdim),
+			   `VBox (`HSpacing(50),
+				  header,
+				  `VSpacing(0.2),
+				  helptext,	// e.g. `Richtext()
+				  `PushButton( `id(`ok_help), `opt(`default), Label::OKButton() )
+				  )
+			   )
+		    );
+
+	UI::SetFocus(`id(`ok_help) );
+
+	any r = UI::UserInput();
+	UI::CloseDialog();
+	return r;
+    }
+
+}
