@@ -294,7 +294,7 @@ on the NFS server.
 	    else if ( input == `samba ) url = "smb://";
 	    else url = "";
 	    do {
-		map url_map = editUrl( url, true );
+		map url_map = editUrlRef( url, true );
 		if ( size( url ) == 0 ) break;
 		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
                 if ( createResult == `ok ) fillTable();
@@ -304,7 +304,7 @@ on the NFS server.
         {
             url = "nfs://";
             do {
-                map url_map = editUrl( url, true );
+                map url_map = editUrlRef( url, true );
                 if ( size( url ) == 0 ) break;
 		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
                 if ( createResult == `ok ) fillTable();
@@ -322,7 +322,7 @@ on the NFS server.
 	{
             url = "dir://";
             do {
-                map url_map = editUrl( url, true );
+                map url_map = editUrlRef( url, true );
                 if ( size( url ) == 0 ) break;
 		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
                 if ( createResult == `ok ) fillTable();
@@ -380,7 +380,7 @@ All changes will be lost.");
 		boolean auto_refresh = sourceState["auto_refresh"]:true;
 
                 do {
-                    map<string,any> url_map = editUrl( url, auto_refresh );
+                    map<string,any> url_map = editUrlRef( url, auto_refresh );
 		    url = url_map["url"]:"";
                     if ( size( url ) == 0 ) break;
                     createResult = createSource( url, url_map["auto_refresh"]:true );

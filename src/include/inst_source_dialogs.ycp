@@ -152,11 +152,13 @@
 		// text entry
                 `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
 //                `TextEntry( `id( `mount ), _("&Mount options") ),
+		auto_refresh == nil ? `Empty () : auto_refresh_term,
                 dialogButtons()
             )
         );
 	UI::SetFocus (`id (`server));
-	UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
+	if (UI::WidgetExists (`id (`auto_refresh)))
+	    UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
 
         string url = "";
 
@@ -174,7 +176,8 @@
 //                string options = UI::QueryWidget( `id( `mount ), `Value );
 
                 url = "nfs://" + server + "/" + dir;
-		auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
+		if (UI::WidgetExists (`id (`auto_refresh)))
+		    auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
             }
 
         } until ( input == `cancel || input == `ok );
@@ -340,12 +343,13 @@
                     ),
                     `HSpacing( 0.5 )
                 ),
-		auto_refresh_term,
+		auto_refresh == nil ? `Empty () : auto_refresh_term,
                 dialogButtons()
             )
         );
 
-	UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
+	if (UI::WidgetExists (`id (`auto_refresh)))
+	    UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
         UI::ChangeWidget( `id( `rb_type ), `CurrentButton, type );
 	UI::SetFocus (`id (`server));
 
@@ -407,7 +411,8 @@
 
                 string server = (string) UI::QueryWidget( `id( `server ), `Value );
                 string directory = (string) UI::QueryWidget( `id( `dir ), `Value );
-		auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
+		if (UI::WidgetExists (`id (`auto_refresh)))
+		    auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
 		if (UI::WidgetExists (`id (`share)))
 		{
 		    share = (string)UI::QueryWidget (`id (`share), `Value);
@@ -451,12 +456,13 @@
 			// push button
                     `PushButton( `id( `browse ), _("&Browse...") )
                 ),
-		auto_refresh_term,
+		auto_refresh == nil ? `Empty () : auto_refresh_term,
                 dialogButtons()
             )
         );
 
-	UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
+	if (UI::WidgetExists (`id (`auto_refresh)))
+	    UI::ChangeWidget (`id (`auto_refresh), `Value, auto_refresh);
         UI::ChangeWidget( `id( `dir ), `Value, defaulturl );
 	UI::SetFocus (`id (`dir));
 
@@ -484,7 +490,8 @@
                 url = (string) UI::QueryWidget( `id( `dir ), `Value );
 
                 url = "dir://" + url;
-		auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
+		if (UI::WidgetExists (`id (`auto_refresh)))
+		    auto_refresh = (boolean)UI::QueryWidget (`id (`auto_refresh), `Value);
             }
             else if ( input == `cancel )
             {
@@ -554,7 +561,7 @@
         return url;
     }
 
-    define map<string,any> editUrl( string url, boolean auto_refresh ) ``{
+    define map<string,any> editUrlRef( string url, boolean auto_refresh) ``{
         if ( size( url ) == 0 ) return getUrl( "", auto_refresh );
 
         map parsedUrl = URL::Parse( url );
@@ -585,4 +592,10 @@
 
         return newUrl;
     }
+
+    define string editUrl (string url) {
+	map<string,any> ret = editUrlRef (url, nil);
+	return ret["url"]:"";
+    }
+
 }
