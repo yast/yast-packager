@@ -13,7 +13,7 @@
 
     import "Mode";
     import "Installation";
-
+    import "PackageCallbacksInit";
     import "Wizard";
 
     import "Label";
@@ -24,6 +24,8 @@
     Wizard::SetDesktopIcon("sw_source");
     // dialog caption
     Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+    PackageCallbacksInit::InitPackageCallbacks ();
 
     // constructor of Product is needed in order to initialize the product
     // macro. Takes a lot of time because whole package manager target
@@ -392,10 +394,7 @@ All changes will be lost.");
             }
 	    else if ( input == `refresh )
             {
-		boolean success = false;
-		do {
-		    success = Pkg::SourceRefreshNow (id);
-		} while (! success);
+		Pkg::SourceRefreshNow (id);
 /*                map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
 

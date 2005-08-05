@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug  5 12:49:27 CEST 2005 - jsrain@suse.cz
+
+- added callbacks for source refresh
+- updated the desktop selection dialog
+
+-------------------------------------------------------------------
 Fri Jul 29 12:41:42 CEST 2005 - jsrain@suse.cz
 
 - allow to show source URL without refresh check box needed for YOU
