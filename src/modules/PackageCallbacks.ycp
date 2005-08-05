@@ -513,6 +513,76 @@ Check that the server is accessible."), wanted_label);
 	_current_source = source + 1;
     }
 
+boolean refresh_open = false;
+
+global void StartSourceRefresh (map<string,any> info) {
+    y2milestone ("StartSourceRefresh: %1", info);
+    if (refresh_open)
+	UI::CloseDialog ();
+    string product = info["label"]:"";
+    string url = info["url"]:"";
+    UI::OpenDialog (`Label (
+	sformat (_("Refreshing %1\n(%2)"), product, url)));
+    refresh_open = true;
+}
+
+global symbol ErrorSourceRefresh (map<string,any> info) {
+    if (refresh_open)
+    {
+	UI::CloseDialog ();
+	refresh_open = false;
+    }
+    y2internal ("Error refresh: %1", info);
+    string detail = info["detail"]:"";
+    symbol error = info["error"]:`unknown;
+    // error message - a label followed by a richtext with details
+    string message = _("Error occurred while refreshing the source.");
+    if (error == `NO_SOURCE_FOUND)
+	// error message - a label followed by a richtext with details
+	message = _("Unable to retrieve the remote source description.");
+    else if (error == `INCOMPLETE_SOURCE_DATA)
+	// error message - a label followed by a richtext with details
+	message = _("An error occurred while retrieving the new metadata.");
+
+    UI::OpenDialog (`VBox (
+	`Label (message),
+	`RichText(detail),
+	`HBox (
+	    `PushButton (`id (`RETRY), Label::RetryButton ()),
+	    // push button
+	    `PushButton (`id (`SKIP_REFRESH), _("&Skip Refresh")),
+	    // push button
+	    `PushButton (`id (`DISABLE_SOURCE), _("&Disable Source"))
+	)
+    ));
+    symbol ret = (symbol)UI::UserInput ();
+    UI::CloseDialog ();
+    y2milestone ("Refresh error: Returning %1", ret);
+    return ret;
+}
+
+global void DoneSourceRefresh (map<string,any> info) {
+    y2milestone ("DoneSourceRefresh: %1", info);
+    if (refresh_open)
+    {
+	UI::CloseDialog ();
+	refresh_open = false;
+    }
+    symbol result = info["result"]:`SUCCESS;
+    symbol cause = info["cause"]:`SOURCE_REFRESHED;
+    string detail = info["detail"]:"";
+    if (result == `SKIP_REFRESH)
+    {
+	// message popup
+	Popup::Message (_("Installation source not refreshed."));
+    }
+    else if (result == `DISABLE_SOURCE)
+    {
+	// message popup
+	Popup::Message (_("Installation source disabled."));
+    }
+}
+
 //=============================================================================
 //	constructor and callback init
 //=============================================================================

@@ -11,6 +11,8 @@
 {
 
 textdomain "packager";
+
+import "Directory";
 import "GetInstArgs";
 import "Label";
 import "Packages";
@@ -63,35 +65,56 @@ than three or four lines total.");
 term contents = `RadioButtonGroup (`id (`desktop), `HBox (
     `HWeight(1, `Empty()),	// Distribute excess space 1:2 (left:right)
     `VBox(
-	`VWeight (15, `Empty ()),
-	`VWeight (30, `VBox (
+	`VStretch (),
+	`Label (`opt (`boldFont), _("Choose a graphical desktop environment")),
+	`VStretch (),
+//	`VWeight (5, `Empty ()),
+/*	`VWeight (35, `Label (_(
+"Both KDE and GNOME are powerful and intuitive
+desktop environments. They combine ease of use
+and attractive graphical interfaces with their
+own sets of perfectly integrated applications. 
+  
+Choosing the default GNOME or KDE desktop
+environment will install a broad set of the
+most imporant desktop applications on your
+system."))),*/
+	`VSpacing (1.4),
+//	`VWeight (5, `Empty ()),
+	`VWeight (10, `HBox (
 	    `Left (`RadioButton (`id (`gnome), `opt (`notify, `boldFont),
 		// radio button
 		_("&GNOME"),
-		alt_desktop == `gnome)),
+		alt_desktop == `gnome)),/*,
 	    `Left (`HBox (
 		`HSpacing (3),
 		`Top (`Label (gnome_blurb)),
 		`HSpacing (1),
 		`Top (`Image ("icons/gnome.png", ""))
-	    ))
+	    ))*/
+	    `Right (`Image (
+		Directory::themedir + "/current/desktops/gnome.png", ""))
 	)),
-	`VWeight (30, `VBox (
+	`VSpacing (0.4),
+	`VWeight (10, `HBox (
 	    `Left (`RadioButton (`id (`kde), `opt(`notify, `boldFont),
 		// radio button
 		_("&KDE"),
-		alt_desktop == `kde)),
+		alt_desktop == `kde)),/*,
 	    `Left (`HBox (
 		`HSpacing (3),
 		`Top (`Label (kde_blurb)),
 		`HSpacing (1),
 		`Top (`Image ("icons/kde.png", ""))
-	    ))
+	    ))*/
+	    `Right (`Image (
+		Directory::themedir + "/current/desktops/kde.png", ""))
 	)),
-	`VWeight (30, `VBox (
+	`VSpacing (0.4),
+	`VWeight (10, `HBox (
 	    `Left (`RadioButton (`id (`other), `opt(`notify, `boldFont),
 		// radio button
-		_("&Other"),
+		_("&Special Options"),
 		alt_desktop != `gnome && alt_desktop != `kde
 		    && alt_desktop != nil)),
 	    `Left (`HBox (
@@ -99,7 +122,8 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 		`PushButton (`id (`select), _("&Select..."))
 	    ))
 	)),
-	`VWeight (15, `Empty())
+	`VStretch ()
+//	`VWeight (5, `Empty())
     ),
     `HWeight (2, `Empty ())
 ));
@@ -123,6 +147,18 @@ term expert_dialog = `VBox (
 string help = _("<p>SUSE Linux offers you the most efficient
 and comfortable desktops.
 Select which desktop you would like to install.</p>");
+
+// help text 1/1
+help = _("<p>
+Both KDE and GNOME are powerful and intuitive
+desktop environments. They combine ease of use
+and attractive graphical interfaces with their
+own sets of perfectly integrated applications. 
+</p><p>
+Choosing the default GNOME or KDE desktop
+environment will install a broad set of the
+most imporant desktop applications on your
+system.</p>");
 
 Wizard::SetContents (_("Desktop Selection"), contents, help,
     GetInstArgs::enable_back(), GetInstArgs::enable_next());
@@ -156,8 +192,8 @@ repeat {
 	if (alt_desktop == nil)
 	{
 	    // popup message
-	    Popup::Message (_("No desktop was selected. Select one the
-desktops to install"));
+	    Popup::Message (_("No desktop was selected. Select one of the
+desktops to install."));
 	    ret = nil;
 	}
     }
