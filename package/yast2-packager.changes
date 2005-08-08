@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  8 16:12:46 CEST 2005 - lslezak@suse.cz
+
+- checkmedia - don't print MD5 checksum (#97207)
+
+-------------------------------------------------------------------
 Mon Aug  8 13:08:13 CEST 2005 - jsrain@suse.cz
 
 - fixed spacing in desktop selection dialog (#102537)
