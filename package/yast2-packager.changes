@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Mon Aug  8 12:37:42 CEST 2005 - jsrain@suse.cz
+Mon Aug  8 13:08:13 CEST 2005 - jsrain@suse.cz
 
 - fixed spacing in desktop selection dialog (#102537)
+- force to resolve conflict in software selection dialog (#102539)
 
 -------------------------------------------------------------------
 Fri Aug  5 12:49:27 CEST 2005 - jsrain@suse.cz

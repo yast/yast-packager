@@ -34,7 +34,7 @@
 /**
  * True if base selection change causes need to resolve packages conflict
  */
-boolean need_resolve_conflicts = false;
+boolean need_resolve_conflicts = ! Pkg::PkgSolve(false);
 
     // ------------------------------------------------------------------------
 
