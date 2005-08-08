@@ -2,6 +2,7 @@
 Mon Aug  8 16:15:31 CEST 2005 - jsrain@suse.cz
 
 - add some ACPI modules to initrd (#90345)
+- 2.12.17
 
 -------------------------------------------------------------------
 Mon Aug  8 16:12:46 CEST 2005 - lslezak@suse.cz
