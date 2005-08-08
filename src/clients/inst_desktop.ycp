@@ -67,7 +67,7 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
     `VBox(
 	`VStretch (),
 	`Label (`opt (`boldFont), _("Choose a graphical desktop environment")),
-	`VStretch (),
+//	`VStretch (),
 //	`VWeight (5, `Empty ()),
 /*	`VWeight (35, `Label (_(
 "Both KDE and GNOME are powerful and intuitive
@@ -79,7 +79,7 @@ Choosing the default GNOME or KDE desktop
 environment will install a broad set of the
 most imporant desktop applications on your
 system."))),*/
-	`VSpacing (1.4),
+	`VSpacing (2.4),
 //	`VWeight (5, `Empty ()),
 	`VWeight (10, `HBox (
 	    `Left (`RadioButton (`id (`gnome), `opt (`notify, `boldFont),
