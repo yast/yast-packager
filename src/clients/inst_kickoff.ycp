@@ -20,6 +20,17 @@
     import "ModuleLoading";
     import "Bootloader";
     import "DirInstall";
+    import "Initrd";
+    import "Kernel";
+
+void AcpiToInitrd () {
+    string cmdline = Kernel::GetCmdLine ();
+    if (issubstring (cmdline, "acpi=off"))
+	return;
+    foreach (string m, ["processor", "thermal", "fan"], {
+	Initrd::AddModule (m, "");
+    });
+}
 
 
     /**
@@ -290,6 +301,7 @@
 
 	// fake mtab
 	fake_mtab ();
+	AcpiToInitrd ();
     }
     else
     {
