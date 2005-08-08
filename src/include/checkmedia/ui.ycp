@@ -98,11 +98,17 @@ define list<string> TranslateInfo(list<string> info) {
 
 			if (wrongMD5 != nil)
 			{
-			    // result of the check - failed, %1 is the real MD5 sum
-			    val = sformat(_("Failed (MD5: %1)"), wrongMD5);
-			    y2milestone("computedMD5: %1", wrongMD5);
+			    // result of the check - it has failed
+			    val = _("FAILED");
+			    y2warning("MD5 of the medium: %1", wrongMD5);
 			}
 		    }
+		}
+		// don't print MD5 sum (it doesn't help user)
+		else if (key == "md5")
+		{
+		    y2milestone("Expected MD5 of the medium: %1", val);
+		    key = "";
 		}
 
 		string newstr = trasmap[key]:"";
