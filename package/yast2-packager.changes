@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  9 10:06:36 CEST 2005 - jsrain@suse.cz
+
+- removed yast2-x11 from Requires and nfb (#102621)
+
+-------------------------------------------------------------------
 Mon Aug  8 16:15:31 CEST 2005 - jsrain@suse.cz
 
 - add some ACPI modules to initrd (#90345)
