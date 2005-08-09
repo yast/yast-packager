@@ -4,6 +4,7 @@ Tue Aug  9 17:40:22 CEST 2005 - jsrain@suse.cz
 - removed yast2-x11 from Requires and nfb (#102621)
 - add the required ACPI modules to initrd always (#90345)
 - show information text in the desktop selection dialog (#102943)
+- 2.12.18
 
 -------------------------------------------------------------------
 Mon Aug  8 16:15:31 CEST 2005 - jsrain@suse.cz
