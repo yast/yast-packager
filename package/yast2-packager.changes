@@ -3,6 +3,7 @@ Wed Aug 10 11:30:50 CEST 2005 - jsrain@suse.cz
 
 - remember entered value for source location for "retry" (#102996)
 - fixed pkgdb rebuilding callbacks (#78359)
+- 2.12.19
 
 -------------------------------------------------------------------
 Tue Aug  9 17:40:22 CEST 2005 - jsrain@suse.cz
