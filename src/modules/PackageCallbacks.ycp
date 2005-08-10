@@ -671,6 +671,9 @@ global void DoneSourceRefresh (map<string,any> info) {
 	// message in a progress popup
 	string message = _("Rebuilding package database. This process can take some time.");
 
+	// progress bar label
+	string progress_label = _("Status");
+
 	UI::OpenDialog (`opt(`decorated),
 			`VBox (`Heading (heading) ,
 			       `VBox (
@@ -679,7 +682,7 @@ global void DoneSourceRefresh (map<string,any> info) {
 				      `HBox(
 					    `HSpacing(2),
 					    `ProgressBar (`id(`progress),
-							  _("Status"), 100),
+							  "", 100),
 					    `HSpacing(2)
 					    ),
 				      `VSpacing(1)
