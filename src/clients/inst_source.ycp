@@ -286,6 +286,7 @@ on the NFS server.
 
 	input = Wizard::UserInput();
 	y2debug( "Input: %1", input );
+	y2error( "Input: %1", input );
 
 	symbol createResult = `again;
 
@@ -295,20 +296,27 @@ on the NFS server.
 	    else if ( input == `http ) url = "http://";
 	    else if ( input == `samba ) url = "smb://";
 	    else url = "";
+	    boolean refresh = true;
 	    do {
 		map url_map = editUrlRef( url, true );
+		url = url_map["url"]:"";
+		refresh = url_map["auto_refresh"]:true;
+y2error ("UM: %1, R: %2", url_map, refresh);
 		if ( size( url ) == 0 ) break;
-		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
+		createResult = createSource( url, refresh);
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }
         else if ( input == `nfs )
         {
             url = "nfs://";
+	    boolean refresh = true;
             do {
-                map url_map = editUrlRef( url, true );
+                map url_map = editUrlRef( url, refresh );
+		url = url_map["url"]:"";
+		refresh = url_map["auto_refresh"]:true;
                 if ( size( url ) == 0 ) break;
-		createResult = createSource( url_map["url"]:"", url_map["auto_refresh"]:true );
+		createResult = createSource( url, refresh);
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }

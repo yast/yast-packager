@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 10 10:50:34 CEST 2005 - jsrain@suse.cz
+
+- remember entered value for source location for "retry" (#102996)
+
+-------------------------------------------------------------------
 Tue Aug  9 17:40:22 CEST 2005 - jsrain@suse.cz
 
 - removed yast2-x11 from Requires and nfb (#102621)
