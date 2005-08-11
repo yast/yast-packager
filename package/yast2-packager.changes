@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 11 10:37:19 CEST 2005 - jsrain@suse.cz
+
+- changed the order of offered desktops (#103803)
+- added missing comments for translators
+
+-------------------------------------------------------------------
 Wed Aug 10 11:30:50 CEST 2005 - jsrain@suse.cz
 
 - remember entered value for source location for "retry" (#102996)

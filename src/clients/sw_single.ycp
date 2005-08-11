@@ -222,6 +222,7 @@
 		    y2error ("Tags %1 aren't available",
 		        mergestring (nonexisting, ", "));
 		    Report::Error (sformat (
+			// error report, %1 is a list of packages
 			_("Following packages haven't been found on the medium:\n%1"),
 			mergestring (nonexisting, "\n")));
 		    return `cancel;

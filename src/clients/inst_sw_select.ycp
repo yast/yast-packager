@@ -121,6 +121,7 @@ You can then work with a simple graphical desktop. </p>
 
 //    if (Product::name == "Novell Linux Desktop")
     if (ProductFeatures::GetFeature ("software", "software_proposal") == "desktop")
+	// help text, continued, optional
 	helptext = _("<p>&product; offers a selection of efficient and comfortable desktops.
 Select which desktop to install.</p>");
 
