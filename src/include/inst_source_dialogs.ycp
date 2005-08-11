@@ -19,6 +19,7 @@
     import "Label";
     import "URL";
 
+    // check box
     term auto_refresh_term = `Left (`CheckBox (`id (`auto_refresh), _("Refresh Automatically")));
 
     define map<string,any> getServerUrl( symbol type, string host,

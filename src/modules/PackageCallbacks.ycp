@@ -522,6 +522,7 @@ global void StartSourceRefresh (map<string,any> info) {
     string product = info["label"]:"";
     string url = info["url"]:"";
     UI::OpenDialog (`Label (
+	// popup label (%1 is product name, eg. "SuSE Linux", %2 is source URL)
 	sformat (_("Refreshing %1\n(%2)"), product, url)));
     refresh_open = true;
 }

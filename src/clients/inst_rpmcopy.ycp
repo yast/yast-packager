@@ -429,8 +429,8 @@ source back to CD."));
 		if (ta_out["exit"]:0 != 0)
 		{
 		    UI::CloseDialog ();
-		    // error report
 		    y2error ("copying media files failed");
+		    // error report
 		    Report::Error (sformat (_("Error occurred while copying packages
 from the source CD to the disk")));
 		    return;

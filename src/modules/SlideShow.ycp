@@ -634,6 +634,8 @@
 	//
 
 	string strsize = String::FormatSize (sz);
+	// message in the installatino log, %1 is package name,
+	// %2 is package size
 	string msg = sformat (_("Downloading %1 (%2)"), pkg_name, strsize);
 	string log_line = "\n" + msg;
 	inst_log = inst_log + log_line;
