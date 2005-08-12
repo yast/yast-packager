@@ -20,7 +20,7 @@
     import "URL";
 
     // check box
-    term auto_refresh_term = `Left (`CheckBox (`id (`auto_refresh), _("Refresh Automatically")));
+    term auto_refresh_term = `Left (`CheckBox (`id (`auto_refresh), _("Re&fresh Automatically")));
 
     define map<string,any> getServerUrl( symbol type, string host,
 				string urlpath, string user,
@@ -52,19 +52,19 @@
                 `RadioButtonGroup(`id(`rb),
                     `VBox(
 			// radio button
-                        `Left( `RadioButton( `id( `anonymous ), _("Anonymous") ) ),
+                        `Left( `RadioButton( `id( `anonymous ), _("A&nonymous") ) ),
 			// radio button
-                        `Left( `RadioButton( `id( `account ), _("Account") ) ),
+                        `Left( `RadioButton( `id( `account ), _("&Account") ) ),
                         `HBox(
                             `HSpacing( 3 ),
 				// text entry
-                            `TextEntry( `id( `username ), _("User Name") ),
+                            `TextEntry( `id( `username ), _("User &Name") ),
                             `HSpacing( 2 )
                         ),
                         `HBox(
                             `HSpacing( 3 ),
 				// text entry
-                            `TextEntry( `id( `password ), _("Password") ),
+                            `TextEntry( `id( `password ), _("&Password") ),
                             `HSpacing( 2 )
                         ),
                         dialogButtons()
@@ -99,16 +99,16 @@
 		// label
                 `Label( _("FTP Server and Directory") ),
 		// text entry
-                `TextEntry( `id( `server ), _("Server Name") ),
+                `TextEntry( `id( `server ), _("&Server Name") ),
 		// text entry
-                `TextEntry( `id( `dir ), _("Directory on Server") ),
+                `TextEntry( `id( `dir ), _("&Directory on Server") ),
                 `HBox(
 		    // label
                     `Label( _("Authentication:") ),
 		    // label
                     `Label( `id( `auth ), _("Anonymous") ),
 		    // push button
-                    `PushButton( `id( `auth_button ), _("Edit...") )
+                    `PushButton( `id( `auth_button ), _("E&dit...") )
                 ),
                 dialogButtons()
             )
