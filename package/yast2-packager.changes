@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 12 12:58:30 CEST 2005 - jsrain@suse.cz
+
+- don't ask for selections when packages in proposal selected
+  (#104059)
+
+-------------------------------------------------------------------
 Fri Aug 12 09:28:05 CEST 2005 - jsrain@suse.cz
 
 - fixed several errors in code, added missing shortcuts
