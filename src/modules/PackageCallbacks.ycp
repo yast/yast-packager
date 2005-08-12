@@ -344,10 +344,10 @@
 	{
 	    error =
 	    // error report
-_("The source at the specified URL now provides a different media ID.
+_("<p>The source at the specified URL now provides a different media ID.
 If the URL is correct, this indicates that the source content has changed. To 
 continue using this source, start <i>Change Source of Installation</i> from 
-the YaST control center and refresh the installation source.");
+the YaST control center and refresh the installation source.</p>");
 	}
 
 	if (wanted_label == "")

@@ -1,5 +1,5 @@
 /**
- * Module:	inst_dirinstall.ycp
+ * Module:	dirinstall_options.ycp
  *
  * Authors:	Anas Nashif <nashif@suse.de>
  *
@@ -25,9 +25,9 @@
     term contents = `HVSquash(
 			      `VBox(
 						// text entry
-				    `Left(`TextEntry(`id(`target), _("Root Directory (not \"/\"):"), DirInstall::target)),
+				    `Left(`TextEntry(`id(`target), _("&Root Directory (not \"/\"):"), DirInstall::target)),
 						// check box
-                                    `Left(`CheckBox(`id(`suseconfig), _("Run YaST and SuSEconfig on First Boot"), DirInstall::runme_at_boot)),
+                                    `Left(`CheckBox(`id(`suseconfig), _("Run &YaST and SuSEconfig on First Boot"), DirInstall::runme_at_boot)),
 						// check box
                                     `Left(`CheckBox(`id(`makeimage), `opt(`notify), _("Create Ima&ge"), DirInstall::makeimage)),
 						// text entry
