@@ -63,9 +63,9 @@ figure out some more text about this, but not more
 than three or four lines total.");*/
 
 // help text 1/1
-string help = _("<p>SUSE Linux offers you the most efficient
+string help = _("<p>SUSE Linux offers the most efficient
 and comfortable desktops.
-Select which desktop you would like to install.</p>");
+Select the desktop to install.</p>");
 
 // help text 1/1
 string label = _("Both KDE and GNOME are powerful and intuitive
@@ -74,8 +74,8 @@ and attractive graphical interfaces with their
 own sets of perfectly integrated applications. 
 
 Choosing the default GNOME or KDE desktop
-environment will install a broad set of the
-most imporant desktop applications on your
+environment installs a broad set of the
+most important desktop applications on your
 system.");
 
 term contents = `RadioButtonGroup (`id (`desktop), `HBox (
@@ -83,20 +83,19 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
     `VBox(
 	`VStretch (),
 	// label (in bold font)
-	`Left (`Label (`opt (`boldFont), _("Choose a graphical desktop environment"))),
+	`Left (`Label (`opt (`boldFont), _("Graphical Desktop Environment"))),
 	`VSpacing (1),
 	`Left (`Label (label)),
 //	`VStretch (),
 //	`VWeight (5, `Empty ()),
-/*	`VWeight (35, `Label (_(
-"Both KDE and GNOME are powerful and intuitive
+/*	`VWeight (35, `Label (_("Both KDE and GNOME are powerful and intuitive
 desktop environments. They combine ease of use
 and attractive graphical interfaces with their
 own sets of perfectly integrated applications. 
-  
+
 Choosing the default GNOME or KDE desktop
-environment will install a broad set of the
-most imporant desktop applications on your
+environment installs a broad set of the
+most important desktop applications on your
 system."))),*/
 	`VSpacing (1.4),
 //	`VWeight (5, `Empty ()),
@@ -199,8 +198,8 @@ repeat {
 	if (alt_desktop == nil)
 	{
 	    // popup message
-	    Popup::Message (_("No desktop was selected. Select one of the
-desktops to install."));
+	    Popup::Message (_("No desktop was selected. Select the
+desktop to install."));
 	    ret = nil;
 	}
     }
