@@ -19,7 +19,7 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-sw_single
 Exec=/sbin/yast2 sw_single 
 
-Name=Software
+Name=Software Management
 GenericName=Install additional software packages or remove installed packages
 Name[cs]=Správce programů
 GenericName[cs]=Instalovat další softwarové balíky nebo odebrat instalované balíky.

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 15 09:23:09 CEST 2005 - jsrain@suse.cz
+
+- changed description of software manager (#104076)
+
+-------------------------------------------------------------------
 Fri Aug 12 12:58:30 CEST 2005 - jsrain@suse.cz
 
 - don't ask for selections when packages in proposal selected
