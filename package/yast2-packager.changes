@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 18 13:00:59 CEST 2005 - lslezak@suse.cz
+
+- checkmedia - adapted to the new version of checkmedia utility
+
+-------------------------------------------------------------------
 Thu Aug 18 10:07:50 CEST 2005 - jsrain@suse.cz
 
 - fixed switching automatical source refresh on/off (#104995)
