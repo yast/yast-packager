@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 18 15:09:53 CEST 2005 - jsrain@suse.cz
+
+- fixed list of packages for VNC installation (#105167)
+
+-------------------------------------------------------------------
 Thu Aug 18 13:00:59 CEST 2005 - lslezak@suse.cz
 
 - checkmedia - adapted to the new version of checkmedia utility
