@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 18 10:07:50 CEST 2005 - jsrain@suse.cz
+
+- fixed switching automatical source refresh on/off (#104995)
+
+-------------------------------------------------------------------
 Mon Aug 15 16:36:12 CEST 2005 - jsrain@suse.cz
 
 - make the OK button in alternate desktops popup default button
