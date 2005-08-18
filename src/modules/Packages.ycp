@@ -817,7 +817,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	// If not, there's no need to activate any selections !
 	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
 
-	if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
+	if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
 	{
 	    if (! disk_space_sufficient)
 	    {
@@ -828,6 +828,17 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	}
 	else if (ProductFeatures::GetFeature ("software", "selection_type") == `auto)
 	{
+	    // keep desktop selection until user manually modifies the
+	    // sw selection (#104626)
+	    if ((! disk_space_sufficient) && (preferred_base_selection != nil)
+		&& (! redo_proposal))
+	    {
+		// warning in the summary
+		ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+		ret = add( ret, "warning_level", `blocker );
+		disk_space_sufficient = true;
+	    }
+
 	    if (redo_proposal || ! disk_space_sufficient)
 	    {
 		// make a new proposal or change a proposal,
@@ -839,7 +850,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		    // error message
 		    ret = add( ret, "warning", _("Disk space exhausted -- changing software selection") );
 		    ret = add( ret, "warning_level", `error );
-		    redo_proposal = true; //
+		    redo_proposal = true;
 		}
 
 		// get all base selections, and sort them by reverse order (highest ordered first)
@@ -880,8 +891,10 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 			}
 			else
 			{
-			    // error popup
-			    Popup::Error(_("Not enough disk space.  Remove some packages in the single selection."));
+				fit = true;
+				// warning in the summary
+				ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+				ret = add( ret, "warning_level", `blocker );
 			}
 		}
 
