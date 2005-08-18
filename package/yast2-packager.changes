@@ -5,6 +5,7 @@ Thu Aug 18 17:13:34 CEST 2005 - jsrain@suse.cz
 - added alternative dialog for desktop selection (#104643)
 - don't reset software selection if disk exhausted, just warn user
   and prevent from installing (#104626)
+- 2.12.22
 
 -------------------------------------------------------------------
 Thu Aug 18 13:00:59 CEST 2005 - lslezak@suse.cz
