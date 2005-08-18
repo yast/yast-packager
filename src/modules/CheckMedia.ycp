@@ -114,16 +114,11 @@
 
 	    if (out != nil && size(out) > 0)
 	    {
-		if (false)
-		{
-		    inprogress = true;
-		}
-
 		output = (list<string>)merge(output, out);
 
 		// check whether we need to switch to progress mode
 		string last = out[size(out) - 1]:"";
-		if (regexpmatch(last, "^ *md5: "))
+		if (regexpmatch(last, "^ *pad: "))
 		{
 		    inprogress = true;
 		    y2milestone("Switching into progress mode");
