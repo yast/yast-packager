@@ -187,7 +187,7 @@
 
         return $[
 	    "url" : url,
-	    "auto_refresh" : auto_refresh,
+	    "autorefresh" : auto_refresh,
 	];
     }
 
@@ -434,7 +434,7 @@
         UI::CloseDialog();
         return $[
 	    "url" : url,
-	    "auto_refresh" : auto_refresh,
+	    "autorefresh" : auto_refresh,
 	];
     }
 
@@ -504,7 +504,7 @@
         UI::CloseDialog();
         return $[
 	    "url" : url,
-	    "auto_refresh" : auto_refresh,
+	    "autorefresh" : auto_refresh,
 	];
     }
 
