@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 19 16:12:18 CEST 2005 - jsrain@suse.cz
+
+- changed the way source refresh is set on/off
+
+-------------------------------------------------------------------
 Thu Aug 18 17:13:34 CEST 2005 - jsrain@suse.cz
 
 - fixed list of packages for VNC installation (#105167)

@@ -54,6 +54,7 @@
 			  `id( index ),
 			  // corresponds to the "Enable/Disable" button
 			  source[ "enabled" ]:true ? _("On") : _("Off"),
+			  source["autorefresh"]:true ? _("On") : _("Off"),
 			  productData[ "label" ]:"unknown",
 			  generalData[ "url" ]:""
 			  );
@@ -77,7 +78,7 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    define symbol createSource( string url, boolean auto_refresh ) ``{
+    define symbol createSource( string url ) ``{
         if ( url != "" )
         {
 	    // Popup::Message( sformat( "URL: %1", url ) );
@@ -138,6 +139,10 @@ in the packages selection, continue."),
 		    }
 		}
                 foreach( integer id, newSources, ``{
+		    map src_data = Pkg::SourceGeneralData (id);
+		    boolean auto_refresh = src_data["autorefresh"]:false;
+y2internal ("SD: %1", src_data);
+y2internal ("AR: %1", auto_refresh);
                     map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
                 } );
@@ -164,6 +169,8 @@ in the packages selection, continue."),
     string downButtonLabel = _("D&own");
     // pusg button
     string enableButtonLabel = _("Enab&le or Disable");
+    // push button
+    string refreshOnOffButtonLabel = _("Refre&sh On or Off");
 
     term contents =
         `VBox(
@@ -172,6 +179,8 @@ in the packages selection, continue."),
 				// table header
 			    `header( _("Status"),
 				// table header
+				_("Refresh"),
+				// table header
 				_("Name"),
 				// table header
 				_("URL") ),
@@ -179,7 +188,7 @@ in the packages selection, continue."),
 		    `HSpacing()
 		    ),
 	      `HBox(
-		    `VBox(
+		    `HWeight (1, `VBox(
 			  `HWeight( 1,
 						// menunutton
 				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
@@ -205,13 +214,16 @@ in the packages selection, continue."),
 												  `item(`id(`refresh), refreshButtonLabel )
 												]),
                     `HWeight( 1, `PushButton( `id(`delete), `opt(`hstretch, `key_F5),  deleteButtonLabel ) )
-                ),
+                )),
                 `HSpacing( 10 ),
-                `VBox(
-                    `HWeight( 1, `PushButton( `id(`up), `opt(`hstretch),  upButtonLabel ) ),
-                    `HWeight( 1, `PushButton( `id(`down), `opt(`hstretch),  downButtonLabel ) ),
-                    `PushButton(`id(`enable), `opt(`hstretch, `key_F6),  enableButtonLabel )
-                ),
+                `HWeight (1, `VBox(
+		    `HBox (
+                        `HWeight( 1, `PushButton( `id(`up), `opt(`hstretch),  upButtonLabel ) ),
+                        `HWeight( 1, `PushButton( `id(`down), `opt(`hstretch),  downButtonLabel ) )
+		    ),
+		    `PushButton(`id(`enable), `opt(`hstretch, `key_F6),  enableButtonLabel ),
+		    `PushButton(`id(`refresh_on_off), `opt(`hstretch),  refreshOnOffButtonLabel )
+                )),
                 `VSpacing( 0.5 )
             )
         );
@@ -298,11 +310,9 @@ on the NFS server.
 	    else url = "";
 	    boolean refresh = true;
 	    do {
-		map url_map = editUrlRef( url, true );
-		url = url_map["url"]:"";
-		refresh = url_map["autorefresh"]:true;
+		url = editUrl( url );
 		if ( size( url ) == 0 ) break;
-		createResult = createSource( url, refresh);
+		createResult = createSource( url);
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }
@@ -311,29 +321,27 @@ on the NFS server.
             url = "nfs://";
 	    boolean refresh = true;
             do {
-                map url_map = editUrlRef( url, refresh );
-		url = url_map["url"]:"";
-		refresh = url_map["autorefresh"]:true;
+                url = editUrl( url );
                 if ( size( url ) == 0 ) break;
-		createResult = createSource( url, refresh);
+		createResult = createSource( url);
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
         }
         else if ( input == `cd )
         {
-            if ( createSource( "cd:///", true ) == `ok ) fillTable();
+            if ( createSource( "cd:///" ) == `ok ) fillTable();
         }
         else if ( input == `dvd )
         {
-            if ( createSource( "dvd:///", true ) == `ok ) fillTable();
+            if ( createSource( "dvd:///" ) == `ok ) fillTable();
         }
 	else if ( input == `local_dir )
 	{
             url = "dir://";
             do {
-                map url_map = editUrlRef( url, true );
+                url = editUrl( url );
                 if ( size( url ) == 0 ) break;
-		createResult = createSource( url_map["url"]:"", url_map["autorefresh"]:true );
+		createResult = createSource( url);
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
 	}
@@ -389,10 +397,9 @@ All changes will be lost.");
 		boolean auto_refresh = sourceState["autorefresh"]:true;
 
                 do {
-                    map<string,any> url_map = editUrlRef( url, auto_refresh );
-		    url = url_map["url"]:"";
+                    url = editUrl( url );
                     if ( size( url ) == 0 ) break;
-                    createResult = createSource( url, url_map["autorefresh"]:true );
+                    createResult = createSource( url );
                     if ( createResult == `ok ) {
 			deleteSource( current );
 			fillTable();
@@ -402,6 +409,7 @@ All changes will be lost.");
 	    else if ( input == `refresh )
             {
 		Pkg::SourceRefreshNow (id);
+		fillTable ();
 /*                map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
 
@@ -432,6 +440,16 @@ All changes will be lost.");
                 string newstate = ( state ? _("On") : _("Off") );
                 UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
                 sourceState[ "enabled" ] = state;
+                sourceStatesOut[ current ] = sourceState;
+            }
+            else if ( input == `refresh_on_off )
+            {
+                boolean state = sourceState[ "autorefresh" ]:true;
+                state = !state;
+		// corresponds to the "Enable/Disable" button
+                string newstate = ( state ? _("On") : _("Off") );
+                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
+                sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
             }
             else if ( input == `up )
