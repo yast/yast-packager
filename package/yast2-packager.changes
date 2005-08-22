@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 22 09:32:11 CEST 2005 - jsrain@suse.cz
+
+- do not put ACPI modules to initrd on architectures which do not
+  support ACPI (#105997)
+
+-------------------------------------------------------------------
 Fri Aug 19 16:12:18 CEST 2005 - jsrain@suse.cz
 
 - changed the way source refresh is set on/off
