@@ -24,6 +24,8 @@
     import "Kernel";
 
 void AcpiToInitrd () {
+    if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
+	return;
     foreach (string m, ["processor", "thermal", "fan"], {
 	Initrd::AddModule (m, "");
     });
