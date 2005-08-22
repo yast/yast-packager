@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 22 10:38:04 CEST 2005 - lslezak@suse.cz
+
+- removed XEN dirinstall client (obsoleted by yast2-vm - full
+  installation inside XEN VM) (#105831)
+- 2.12.24
+
+-------------------------------------------------------------------
 Mon Aug 22 09:32:11 CEST 2005 - jsrain@suse.cz
 
 - do not put ACPI modules to initrd on architectures which do not

@@ -22,6 +22,7 @@
     import "DirInstall";
     import "Initrd";
     import "Kernel";
+    import "Arch";
 
 void AcpiToInitrd () {
     if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))

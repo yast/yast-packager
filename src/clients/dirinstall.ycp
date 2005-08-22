@@ -12,7 +12,5 @@
     import "DirInstall";
     include "dirinstall/ui.ycp";
 
-    DirInstall::mode = `dir;
-
     return Run ();
 }
