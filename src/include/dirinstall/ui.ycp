@@ -26,7 +26,6 @@
 
 define symbol Run () {
     y2milestone("current mode: %1", Mode::mode());
-    y2milestone ("Inst type: %1", DirInstall::mode);
     DirInstall::InitProductControl ();
     DirInstall::installing_into_dir = true;
 
