@@ -193,8 +193,10 @@ global boolean CommitSources() {
                     repository.
 ");
             string err = Pkg::LastErrorId();
+	    // popup message, after message header, header of details
             string _msg2 = _("Details:") + "\n" + Pkg::LastError();
-            _msg2 = _msg2 + "\nTry again?";
+	    // end of popup message, question
+            _msg2 = _msg2 + "\n" + _("Try again?");
 
             boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
             if (tryagain )
@@ -514,7 +516,8 @@ from URL '%1'."), url );
 		else
 		    _msg2 = _("Details:") + "\n" + Pkg::LastError();
 	    }
-	    _msg2 = _msg2 + "\nTry again?";
+	    // end of popup message, question
+	    _msg2 = _msg2 + "\n" + _("Try again?");
 
 	    boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
 	    if ( tryagain ) return `again;

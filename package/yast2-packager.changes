@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 24 17:04:08 CEST 2005 - jsrain@suse.cz
+
+- added missing translation mark (#106117)
+
+-------------------------------------------------------------------
 Mon Aug 22 10:38:04 CEST 2005 - lslezak@suse.cz
 
 - removed XEN dirinstall client (obsoleted by yast2-vm - full

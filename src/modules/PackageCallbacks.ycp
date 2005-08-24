@@ -533,7 +533,7 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
 	UI::CloseDialog ();
 	refresh_open = false;
     }
-    y2internal ("Error refresh: %1", info);
+    y2milestone ("Error refresh: %1", info);
     string detail = info["detail"]:"";
     symbol error = info["error"]:`unknown;
     // error message - a label followed by a richtext with details
