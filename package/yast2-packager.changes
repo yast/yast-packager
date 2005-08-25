@@ -2,6 +2,7 @@
 Thu Aug 25 15:36:27 CEST 2005 - jsrain@suse.cz
 
 - fixed unmounting of /sys and /proc during dirinstall (#104659)
+- 2.12.26
 
 -------------------------------------------------------------------
 Wed Aug 24 17:04:08 CEST 2005 - jsrain@suse.cz
