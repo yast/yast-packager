@@ -21,7 +21,9 @@
     import "Wizard";
     import "Progress";
 
+    DirInstall::MountFilesystems ();
 
+/*
     if(Pkg::TargetInit (Installation::destdir,true) != true)
     {
 	// continue-cancel popup
@@ -30,7 +32,7 @@
             return `abort;
         }
     }
-
+*/
 
     /*
     boolean anyToDelete = Pkg::PkgAnyToDelete();

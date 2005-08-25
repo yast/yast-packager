@@ -111,6 +111,9 @@
     // replace -r (reboot) option by -h (halt)
     SCR::Execute(.target.bash, "/usr/bin/sed -e 's|^ca::ctrlaltdel:/sbin/shutdown \\(.*\\)-r\\(.*\\)$|ca::ctrlaltdel:/sbin/shutdown \\1-h\\2|' /etc/inittab > /tmp/inittab.sed.$$ && mv /tmp/inittab.sed.$$ /etc/inittab");
 
+    // umount /proc and /sys before creating image (otherwise tar may fail)
+    DirInstall::UmountFilesystems ();
+
     if (DirInstall::makeimage && 
             DirInstall::image_dir != "" && 
             DirInstall::image_name != "")
