@@ -44,12 +44,10 @@
                     <label>Prepare Installation</label>
                     <name>inst_kickoff</name>
                 </module>
-                <!--
                 <module>
                     <label>Perform Installation</label>
                     <name>inst_dirinstall</name>
                 </module>
-                -->
                 <module>
                     <label>Install Packages</label>
                     <name>inst_rpmcopy</name>

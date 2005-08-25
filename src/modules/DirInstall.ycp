@@ -29,6 +29,13 @@ global string dirinstall_control_file =
 
 global boolean installing_into_dir = false;
 
+list<list<string> > filesystems = [
+    ["/proc", "proc", "proc" ],
+    ["/sys", "sysfs", "sysfs" ],
+];
+
+list<string> mounted_fs = [];
+
 global void InitProductControl () {
     if (Stage::normal())
     {
@@ -67,6 +74,29 @@ global string Propose()
     tmp = add (tmp, sformat (_("Create Image: %1"), HTML::Colorize(DirInstall::makeimage ? _("Yes"): _("No"), color) ));
     return HTML::List (tmp);
 
+}
+
+global void MountFilesystems () {
+    mounted_fs = [];
+    foreach (list<string> descr, filesystems, {
+	string mp = descr[0]:"";
+	string dev = descr[1]:"";
+	string type = descr[2]:"";
+	mp = target + mp;
+	WFM::Execute (.local.bash, sformat ("test -d %1 || mkdir -p %1", mp));
+	WFM::Execute (.local.bash, sformat ("/bin/mount -t %1 %2 %3",
+	    type, dev, mp));
+	mounted_fs = add (mounted_fs, mp);
+    });
+    y2milestone ("Mounted filesystems: %1", mounted_fs);
+}
+
+global void UmountFilesystems () {
+    y2milestone ("Mounted filesystems: %1", mounted_fs);
+    foreach (string mp, mounted_fs, {
+	WFM::Execute (.local.bash, sformat ("/bin/umount %1", mp));
+    });
+    mounted_fs = [];
 }
 
 }

@@ -12,5 +12,8 @@
     import "DirInstall";
     include "dirinstall/ui.ycp";
 
-    return Run ();
+    symbol ret = Run ();
+    y2milestone ("Sequence returned %1", ret);
+    DirInstall::UmountFilesystems ();
+    return ret;
 }
