@@ -711,7 +711,11 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
         y2milestone ("Pkg::ActivateSelections() returns %1", ret);
 
         // add additional (internal) packages, like kernel etc.
-        Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	list<string> system_packages = Packages::ComputeSystemPackageList();
+        Pkg::DoProvide (system_packages);
+	// fnfx and ial conflict (see bug 112949)
+	if (contains (system_packages, "fnfx"))
+	    Pkg::PkgTaboo ("ial");
         Pkg::PkgSolve(false);
 
         list selected_selections = Pkg::GetSelections( `selected, "base");

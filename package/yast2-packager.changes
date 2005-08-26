@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 26 09:22:14 CEST 2005 - jsrain@suse.cz
+
+- deselect package "ial" on Toshiba laptops (#112949)
+
+-------------------------------------------------------------------
 Thu Aug 25 15:36:27 CEST 2005 - jsrain@suse.cz
 
 - fixed unmounting of /sys and /proc during dirinstall (#104659)
