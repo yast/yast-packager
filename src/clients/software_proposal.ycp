@@ -11,6 +11,7 @@
     textdomain "packager";
 
     import "Packages";
+    import "Stage";
     import "Storage";
 
     string func  = (string) WFM::Args(0);
@@ -81,10 +82,13 @@
 	else
 	{
 	    symbol result = `again;
+	    string client_to_call = Stage::initial ()
+		? "inst_sw_select"
+		: "inst_sw_selection_select";
 
 	    while ( result == `again )
 	    {
-		result = (symbol) WFM::CallFunction ("inst_sw_select", [true, true]);
+		result = (symbol) WFM::CallFunction (client_to_call, [true, true]);
 	    }
 
 	    // Fill return map
