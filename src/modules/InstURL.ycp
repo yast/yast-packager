@@ -45,7 +45,19 @@
 	list<string> devlist = maplist (map d, devicelist, {
 	    return d["dev_name"]:"";
 	});
-	list<string> ready = CheckMedia::GetReadyCDs ();
+
+	list<string> ready = [];
+	foreach(map d, devicelist, {
+		string dname = d["dev_name"]:"";
+
+		if (d["notready"]:true == false && dname != nil && dname != "")
+		{
+		    ready = add(ready, dname);
+		}
+	    }
+	);
+
+
 	if (size (ready) != 0)
 	    devlist = ready;
 	foreach (string d, devlist, {

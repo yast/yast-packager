@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  5 17:27:27 CEST 2005 - lslezak@suse.cz
+
+- detect all ready CD drives - enable using of more CD drives for
+  installation (#114762), testsuite updated
+- 2.12.29
+
+-------------------------------------------------------------------
 Fri Sep  2 09:07:23 CEST 2005 - jsrain@suse.cz
 
 - offer software selection when installing into directory (#105818)
