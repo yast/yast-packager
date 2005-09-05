@@ -18,12 +18,8 @@
 
     TESTSUITE_INIT ([READ], nil);
     import "InstURL";
-    import "Linuxrc";
-    import "CheckMedia";
-    
+
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
-    Linuxrc::ResetInstallInf();
     READ["probe","cdrom"] = [ $["dev_name": "/dev/hdb"] , $["dev_name": "/dev/hdd"]];
-    CheckMedia::cd_cache = nil;
     TEST (``(InstURL::RewriteCDUrl("cd:///sp2;devices=/dev/hda")), [READ], nil);
 }
