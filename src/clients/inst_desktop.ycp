@@ -168,10 +168,10 @@ term expert_dialog = `VBox (
 // dialog caption
 Wizard::SetContents (_("Desktop Selection"), contents, help,
     GetInstArgs::enable_back(), GetInstArgs::enable_next());
+Wizard::SetTitleIcon ("yast-desktop-select");
 Wizard::SetFocusToNextButton();
 UI::ChangeWidget(`select, `Enabled, alt_desktop != `gnome
     && alt_desktop != `kde && alt_desktop != nil);
-Wizard::SetTitleIcon ("yast-x11");
 
 symbol ret = nil;
 
