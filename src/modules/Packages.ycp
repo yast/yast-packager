@@ -135,6 +135,7 @@
 	if (Arch::has_smp () && Arch::x86_64 ())
 	{
 	    packages = add (packages, "numactl");
+	    packages = add (packages, "irqbalance");
 	}
 
 	return packages;
