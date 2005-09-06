@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Tue Sep  6 13:10:31 CEST 2005 - jsrain@suse.cz
+Tue Sep  6 13:14:30 CEST 2005 - jsrain@suse.cz
 
 - use correct icon for desktop selection dialog (#105158)
+- install irqbalence on AMD64 SMP systems (#114425)
 
 -------------------------------------------------------------------
 Mon Sep  5 17:27:27 CEST 2005 - lslezak@suse.cz
