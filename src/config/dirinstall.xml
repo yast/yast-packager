@@ -45,7 +45,7 @@
                     <name>inst_kickoff</name>
                 </module>
                 <module>
-                    <label>Perform Installation</label>
+                    <label>Prepare Installation</label>
                     <name>inst_dirinstall</name>
                 </module>
                 <module>

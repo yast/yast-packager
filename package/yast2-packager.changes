@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  8 17:32:48 CEST 2005 - jsrain@suse.cz
+
+- fixed untranslated text in installation wizard (#114934)
+
+-------------------------------------------------------------------
 Tue Sep  6 13:14:30 CEST 2005 - jsrain@suse.cz
 
 - use correct icon for desktop selection dialog (#105158)
