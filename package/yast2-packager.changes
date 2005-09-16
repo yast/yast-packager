@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 16 11:16:57 CEST 2005 - kkaempf@suse.de
+
+- allow slideshow path with long language code (#115589)
+- 2.13.0
+
+-------------------------------------------------------------------
 Thu Sep  8 17:32:48 CEST 2005 - jsrain@suse.cz
 
 - fixed untranslated text in installation wizard (#114934)
