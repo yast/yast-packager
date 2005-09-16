@@ -293,7 +293,7 @@ source back to CD."));
 	    return nil;
 	}
 	cache_dir = ta_out["stdout"]:"";
-	cache_dir = select (splitstring (cache_dir, "\n"), 0, cache_dir);
+	cache_dir = splitstring (cache_dir, "\n")[0]:cache_dir;
 	y2milestone ("Cache dir: %1", cache_dir);
 
 	ta_out = (map)SCR::Execute (.target.bash_output,
