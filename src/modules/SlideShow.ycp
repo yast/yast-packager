@@ -373,15 +373,23 @@
      **/
     list<string> GetSlideList( string lang )
     {
-	if ( size( lang ) > 2 )
-	    lang = substring( lang, 0, 2 );
-
 	string txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
 	list<string> slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
 
 	if ( slide_list == nil )
 	{
 	    y2debug( "Directory %1 does not exist", txt_path );
+	    if ( size( lang ) > 2 )
+	    {
+		lang = substring( lang, 0, 2 );
+		txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
+		slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+	    }
+	}
+
+	if ( slide_list == nil )
+	{
+	    y2milestone( "Slideshow directory %1 does not exist", txt_path );
 	}
 	else
 	{
