@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Mon Sep 26 11:30:33 CEST 2005 - jsrain@suse.cz
+Mon Sep 26 13:04:30 CEST 2005 - jsrain@suse.cz
 
 - do not report void message when adding YUM source (#113688)
+- react correctly on closing button of the window in installation
+  source dialog (#114660)
 
 -------------------------------------------------------------------
 Fri Sep 16 11:16:57 CEST 2005 - kkaempf@suse.de
