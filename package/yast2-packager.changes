@@ -7,6 +7,7 @@ Mon Sep 26 17:35:31 CEST 2005 - jsrain@suse.cz
 - avoid modifying installed system if installing to directory
   (#86283)
 - check whether running as root in 'yast -i' (#75335)
+- 2.13.1
 
 -------------------------------------------------------------------
 Fri Sep 16 11:16:57 CEST 2005 - kkaempf@suse.de
