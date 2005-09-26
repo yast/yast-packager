@@ -14,6 +14,7 @@
     textdomain "packager";
 
     import "Arch";
+    import "Confirm";
     import "Installation";
     import "Directory";
     import "Mode";
@@ -175,6 +176,13 @@
 
    Wizard::CreateDialog();
    Wizard::SetDesktopIcon("sw_single");
+
+   // check whether running as root
+   if (! Confirm::MustBeRoot ())
+   {
+	UI::CloseDialog ();
+	return `abort;
+   }
 
    // check Args
    // set test_mode, test_popup

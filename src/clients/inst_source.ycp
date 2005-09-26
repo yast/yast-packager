@@ -11,6 +11,7 @@
 {
     textdomain "packager";
 
+    import "Confirm";
     import "Mode";
     import "Installation";
     import "PackageCallbacksInit";
@@ -24,6 +25,13 @@
     Wizard::SetDesktopIcon("sw_source");
     // dialog caption
     Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+   // check whether running as root
+   if (! Confirm::MustBeRoot ())
+   {
+	UI::CloseDialog ();
+	return `abort;
+   }
 
     PackageCallbacksInit::InitPackageCallbacks ();
 
