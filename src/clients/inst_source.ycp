@@ -362,7 +362,7 @@ configuration.");
             exit = true;
           }
         }
-        else if ( input == `abort )
+        else if (input == `abort || input == `cancel)
         {
 	  // popup headline
           string headline = _("Abort Installation Source Configuration");
