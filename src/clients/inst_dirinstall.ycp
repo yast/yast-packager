@@ -21,6 +21,7 @@
     import "Wizard";
     import "Progress";
 
+    Pkg::TargetFinish ();
     DirInstall::MountFilesystems ();
 
 /*
