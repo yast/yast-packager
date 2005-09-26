@@ -99,4 +99,8 @@ global void UmountFilesystems () {
     mounted_fs = [];
 }
 
+global void FinishPackageManager () {
+    Pkg::SourceFinishAll ();
+    Pkg::TargetFinish ();
+}
 }
