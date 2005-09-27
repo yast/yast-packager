@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 27 12:58:49 CEST 2005 - jsrain@suse.cz
+
+- do not use confusing labels when modifying CD/DVD installation
+  source (#116321)
+
+-------------------------------------------------------------------
 Mon Sep 26 17:35:31 CEST 2005 - jsrain@suse.cz
 
 - do not report void message when adding YUM source (#113688)
