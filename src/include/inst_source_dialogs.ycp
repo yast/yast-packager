@@ -190,9 +190,11 @@
                 `Label( _("CD Installation") ),
                 `RadioButtonGroup( `id( `device ),
                     `VBox(
-                        `Left( `RadioButton( `id( `cd0 ), "/dev/cdrom", true ) ),
+			// radio button
+                        `Left( `RadioButton( `id( `cd0 ), _("&CD-ROM"), true )),
 //                        `Left( `RadioButton( `id( `cd1 ), "/dev/cdrom1" ) ),
-                        `Left( `RadioButton( `id( `dvd ), "/dev/dvd" ) )
+			// radio button
+                        `Left( `RadioButton( `id( `dvd ), _("&DVD-ROM") ) )
                     )
                 ),
                 dialogButtons()
