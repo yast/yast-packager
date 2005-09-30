@@ -13,6 +13,7 @@
     import "Packages";
     import "Stage";
     import "Storage";
+    import "Language";
 
     string func  = (string) WFM::Args(0);
     map    param = (map) WFM::Args(1);
@@ -36,6 +37,18 @@
 	}
 	// save information about target change time in module Packages
 	Packages::timestamp = Storage::GetTargetChangeTime();
+
+	if (Pkg::GetLocale () != Language::language)
+	{
+	    language_changed = true;
+	    Pkg::SetLocale (Language::language);
+	}
+	if (! contains (Pkg::GetAdditionalLocales (), Language::language))
+	{
+	    language_changed = true;
+	    Pkg::SetAdditionalLocales (
+		add (Pkg::GetAdditionalLocales (), Language::language));
+	}
 
 	if ( language_changed || partition_changed )
 	{
