@@ -4,6 +4,7 @@ Fri Sep 30 14:34:06 CEST 2005 - jsrain@suse.cz
 - fixed confusing popup after software installation (#113640)
 - reinitialize language selection if user returns to initial
   language selection dialog (#114782)
+- 2.13.2
 
 -------------------------------------------------------------------
 Tue Sep 27 12:58:49 CEST 2005 - jsrain@suse.cz
