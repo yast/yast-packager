@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 30 10:09:26 CEST 2005 - jsrain@suse.cz
+
+- fixed confusing popup after software installation (#113640)
+
+-------------------------------------------------------------------
 Tue Sep 27 12:58:49 CEST 2005 - jsrain@suse.cz
 
 - do not use confusing labels when modifying CD/DVD installation

@@ -284,13 +284,9 @@
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
 	   }
        }
-   } while ( ask && Popup::AnyQuestion( Popup::NoHeadline(),
-				       // Popup dialog contents
-				       _("Install more packages?"),
-				       // Button label: User would like to install more packages
-				       _("Install &More"),
-					Label::FinishButton (),
-				       `focus_yes ) );
+   } while ( ask && Popup::YesNo (
+       // Popup dialog contents
+       _("Install or remove more packages?")));
 
    UI::CloseDialog();
 
