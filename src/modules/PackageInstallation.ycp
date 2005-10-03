@@ -107,7 +107,7 @@
 	    }
 	}
 
-	SlideShow::InitPkgData();
+	SlideShow::InitPkgData(false);
 	if (media_number == 0)
 	{
 	    SlideShow::SetCurrentCdNo (1, 1);
