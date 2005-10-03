@@ -135,7 +135,9 @@
 	// warn user about exhausted diskspace during installation (not if deleting packages)
 	if (! deleting)
 	{
-	    if ( disk_percentage_left > 95 && !shutup)
+//	    if ( disk_percentage_left > 95 && !shutup)
+// changed the condition because it fails on large disks (#115235)
+	    if (disk_usage + 2 * pkg_size > disk_capacity && ! shutup)
 	    {
 		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
 						   // yes-no popup
