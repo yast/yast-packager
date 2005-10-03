@@ -34,7 +34,7 @@
 
 
     // used to en-/disable StartPackage, ProgressPackage and DonePackage
-    boolean enable_asterix_package = false;
+    boolean enable_asterix_package = true;
 
 
     //--------------------------------------------------------------------------
