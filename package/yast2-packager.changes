@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct  3 12:43:58 CEST 2005 - jsrain@suse.cz
+
+- reinitialize slideshow data for 2nd round of package installation
+  (#113946)
+
+-------------------------------------------------------------------
 Fri Sep 30 14:34:06 CEST 2005 - jsrain@suse.cz
 
 - fixed confusing popup after software installation (#113640)

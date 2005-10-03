@@ -1492,10 +1492,11 @@
      * times. This may not be called before the pkginfo server is up and
      * running, so this cannot be reliably done from the constructor in all
      * cases.
+     * @param force true to force reinitialization
      **/
-    global void InitPkgData()
+    global void InitPkgData(boolean force)
     {
-	if ( init_pkg_data_complete )
+	if ( init_pkg_data_complete && ! force)
 	    return;
 
 	total_sizes_per_cd_per_src		= Pkg::PkgMediaSizes();

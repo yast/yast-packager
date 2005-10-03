@@ -111,7 +111,7 @@
 
 	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
-	   SlideShow::InitPkgData();	// keep SlideShow quiet
+	   SlideShow::InitPkgData(false);	// keep SlideShow quiet
 
 	   foreach (string package, arg_list, {
 	       if (SCR::Read (.target.size, package) > 0)
@@ -262,7 +262,7 @@
        {
 	   boolean anyToDelete = Pkg::PkgAnyToDelete();
 	   SlideShow::SetLanguage (UI::GetLanguage(true));
-	   SlideShow::InitPkgData();
+	   SlideShow::InitPkgData(true);
 	   SlideShow::OpenSlideShowDialog();
 
 	   import "PackageInstallation";

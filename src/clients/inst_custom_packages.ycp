@@ -64,7 +64,7 @@
     {
         boolean anyToDelete = Pkg::PkgAnyToDelete();
         SlideShow::SetLanguage (UI::GetLanguage(true));
-        SlideShow::InitPkgData();
+        SlideShow::InitPkgData(false);
         SlideShow::OpenSlideShowDialog();
 
         import "PackageInstallation";
