@@ -137,6 +137,15 @@
 	    string full_log = (string) SCR::Read (.target.string, Installation::destdir +
 						  Directory::logdir + "/y2logRPM");
 	    ShowFailedPackages (mergestring (errpacks, "\n"), full_log);
+	    list<string> old_failed_packs = [];
+	    if ((integer)SCR::Read (.target.size,
+		"/var/lib/YaST2/failed_packages") > 0)
+	    {
+		old_failed_packs = (list<string>)
+		    SCR::Read (.target.ycp, "/var/lib/YaST2/failed_packages");
+	    }
+	    SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages",
+		merge (old_failed_packs, errpacks));
 	}
 
 	return commit_result;
