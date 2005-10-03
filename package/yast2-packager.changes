@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Mon Oct  3 16:52:18 CEST 2005 - jsrain@suse.cz
+Mon Oct  3 17:12:50 CEST 2005 - jsrain@suse.cz
 
 - reinitialize slideshow data for 2nd round of package installation
   (#113946)
@@ -7,6 +7,8 @@ Mon Oct  3 16:52:18 CEST 2005 - jsrain@suse.cz
   install a package (#115235)
 - store list of failed packages from installation, offer to install
   them when later installing packages (#114658)
+- enable visual feedback of package (un)installation related
+  callback by default (#73044)
 
 -------------------------------------------------------------------
 Fri Sep 30 14:34:06 CEST 2005 - jsrain@suse.cz
