@@ -207,6 +207,23 @@
 
    do
    {
+	list<string> old_failed_packs = [];
+	if ((integer)SCR::Read (.target.size,
+	    "/var/lib/YaST2/failed_packages") > 0)
+	{
+	    old_failed_packs = (list<string>)
+		SCR::Read (.target.ycp, "/var/lib/YaST2/failed_packages");
+	}
+	if (size (old_failed_packs) > 0 && Popup::YesNo (
+_("During last package installation,
+several package failed to install.
+Install them now?")))
+	{
+	    foreach (string p, old_failed_packs, {
+		Pkg::PkgInstall (p);
+	    });
+	}
+
        if ( found_descr )
        {
 	   if (size (packagelist) == 0)			// packages given ?
@@ -260,6 +277,7 @@
 
        if (result == `next)				// packages selected ?
        {
+	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
 	   boolean anyToDelete = Pkg::PkgAnyToDelete();
 	   SlideShow::SetLanguage (UI::GetLanguage(true));
 	   SlideShow::InitPkgData(true);

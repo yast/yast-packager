@@ -49,6 +49,12 @@ else if (func == "Write")
     // disable all sources and finish target
     Pkg::SourceFinishAll ();
     Pkg::TargetFinish();
+
+    // copy list of failed packages to installed system
+    WFM::Execute (.local.bash, sformat (
+	"test -f %1 && /bin/cp -a %1 %2%1",
+	"/var/lib/YaST2/failed_packages",
+	Installation::destdir));
 }
 else
 {
