@@ -85,7 +85,7 @@
      *
      * ***  This is needed during update !
      */
-    global define list EvaluateFreeSpace (integer spare_percentage) ``{
+    global define list<map<string,any> > EvaluateFreeSpace (integer spare_percentage) ``{
 
 	list<map<string, string> > partition = [];
 	integer min_spare = 1 * 1024* 1024;		// 1 MB
@@ -105,11 +105,11 @@
         }
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
-	list<map<any,any> > part_input = [];
+	list<map<string,any> > part_input = [];
 
 	foreach( map part, partition,
 		 ``{
-	    map part_info = $[];
+	    map<string,any> part_info = $[];
 	    integer free_size = 0;
 	    integer spare_size = 0;
 	    string partName = "";
@@ -200,7 +200,6 @@
      */
 
     define list get_partition_info () ``{
-
 	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
 
@@ -265,10 +264,36 @@
 			free_size = part["size_k"]:0 * 1024;
 			free_size = free_size - min_spare;
 
-			y2milestone ("available partition: mount: %1, free: %2 KB", part["mount"]:"", free_size/1024);
+			integer used = 0;
+			if (! (part["create"]:false || part["format"]:false))
+			{
+			    string tmpdir = (string)SCR::Read (.target.tmpdir);
+			    tmpdir = tmpdir + "/diskspace_mount";
+			    SCR::Execute (.target.bash, sformat (
+				"test -d %1 || mkdir -p %1", tmpdir));
+			    SCR::Execute (.target.bash, sformat (
+				"/bin/mount -o ro %1 %2",
+				part["device"]:"", tmpdir));
+			    list<map<string,string> > partition =
+				(list<map<string, string> >)
+				SCR::Read(.run.df);
+			    foreach (map p, partition, {
+				if (p["name"]:"" == tmpdir)
+				{
+				    y2internal ("P: %1", p);
+				    free_size = tointeger (p["free"]:"0")
+					* 1024;
+				    used = tointeger (p["used"]:"0") * 1024;
+				}
+			    });
+			    SCR::Execute (.target.bash, sformat (
+				"/bin/umount %1", tmpdir));
+			}
+
+			y2milestone ("available partition: mount: %1, free: %2 KB, used: %3 KB", part["mount"]:"", free_size/1024, used/1024);
 			if ( !remove_slash)
 			{
-			    target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":0, "free":free_size]);
+			    target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":used, "free":free_size]);
 			}
 			else
 			{
@@ -284,7 +309,7 @@
 				part_name = mount_name;
 			    }
 
-			    target_partitions = add ( target_partitions, $["name":part_name, "used":0, "free":free_size]);
+			    target_partitions = add ( target_partitions, $["name":part_name, "used":used, "free":free_size]);
 			}
 
 		    }
