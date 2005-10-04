@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Oct  4 14:01:10 CEST 2005 - mir@suse.de
+
+- inst_source_dialogs.ycp: added getUrl2 and editUrl2 which
+  can deal with https if allowHttps is set. Needed for
+  online_update_start.ycp to deal with https
+  (Bug #118781, needs fix for yast2-online-update, too)
+  (backport from 2.9.71)
+- 2.13.3
+
+-------------------------------------------------------------------
 Mon Oct  3 17:12:50 CEST 2005 - jsrain@suse.cz
 
 - reinitialize slideshow data for 2nd round of package installation

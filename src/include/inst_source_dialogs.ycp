@@ -21,7 +21,8 @@
 
     define string getServerUrl( symbol type, string host,
 				string urlpath, string user,
-				string pass );
+				string pass,
+                                boolean allowHttps);
 
     /**
         Return an HBox with ok and cancel buttons for use by other dialogs.
@@ -38,7 +39,7 @@
 
     /**
         Open a dialog for editing of authentification information (basically a
-        username and a password.
+        username and a password.)
     */
     define void editAuthentification() ``{
         UI::OpenDialog(
@@ -232,19 +233,20 @@
 
     define string getNewServerUrl( symbol protocol )
     ``{
-      return getServerUrl( protocol, "", "", "", "" );
+      return getServerUrl( protocol, "", "", "", "", false );
     }
 
     /**
-        Get a URL for a ftp, http or samba server, optionally inclduing
+        Get a URL for a ftp, http, https or samba server, optionally including
         user/password information.
 	// FIXME Samba share and workgroup are parts of urlpath
 
-        @param protocol type of server, can be `ftp, `http or `smb.
+        @param protocol type of server, can be `ftp, `http, `https or `smb.
     */
     define string getServerUrl( symbol type, string host,
-                                       string urlpath, string user,
-                                       string pass)
+                                string urlpath, string user,
+                                string pass,
+                                boolean allowHttps)
     ``{
         if ( substring( urlpath, 0, 1 ) == "/" ) {
           urlpath = substring( urlpath, 1 );
@@ -275,6 +277,27 @@
 	// text entry
 	term share_widget = `TextEntry (`id (`share), _("&Share"), share);
 
+        /* build an hbox with all protocols, depending on allowHttps */
+        term protocolBox = `HBox(
+                                 `HStretch(),
+                                 // radio button
+                                 `RadioButton( `id( `ftp ), _("&FTP") ),
+                                 `HStretch(),
+                                 // radio button
+                                 `RadioButton( `id( `http ), _("H&TTP") ),
+                                 `HStretch()
+                           );
+        if (allowHttps) {
+          protocolBox = add( add (protocolBox,
+                                  // radio button
+                                  `RadioButton( `id( `https ), _("HTT&PS") ) ),
+                             `HStretch() );
+        }
+        protocolBox = add( add( protocolBox,
+                                // radio button
+                                `RadioButton( `id( `samba ), _("&SMB/CIFS") ) ),
+                           `HStretch() );
+
         UI::OpenDialog( `opt( `decorated ),
             `VBox(
 		// label
@@ -284,18 +307,7 @@
 		    // frame
                     `Frame( _("P&rotocol"),
                         `RadioButtonGroup( `id( `rb_type ), `opt (`notify),
-                            `HBox(
-                                `HStretch(),
-				// radio button
-                                `RadioButton( `id( `ftp ), `opt (`notify), _("&FTP") ),
-                                `HStretch(),
-				// radio button
-                                `RadioButton( `id( `http ), `opt (`notify), _("H&TTP") ),
-                                `HStretch(),
-				// radio button
-                                `RadioButton( `id( `samba ), `opt (`notify), _("&SMB/CIFS") ),
-                                `HStretch()
-                            )
+                                           protocolBox
                         )
                     ),
                     `HSpacing( 0.5 )
@@ -377,6 +389,8 @@
                     url = "ftp://";
                 } else if ( type == `http ) {
                     url = "http://";
+                } else if ( type == `https ) {
+                  url = "https://";
                 } else if ( type == `samba ) {
                     url = "smb://";
                 }
@@ -480,31 +494,42 @@
 	return url;
     }
 
-    define string getUrl( string defaulturl) {
-        UI::OpenDialog(
-            `VBox(
-		/* Label text */
-                `Label( _("Select Type of URL:") ),
-                `RadioButtonGroup( `id(`url_type),
-                    `VBox(
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `dir ), _("D&irectory"), true ) ),
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `ftp ), "&FTP" ) ),
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `http ), "&HTTP" ) ),
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `samba ), "&SMB/CIFS" ) ),
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `nfs ), "&NFS" ) ),
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `cd ), "&CD" ) ),
-			/* RadioButton label */
-                        `Left( `RadioButton( `id( `dvd ), "&DVD" ) )
-                    )
-                ),
-                dialogButtons()
-            )
+    define string getUrl2( string url, boolean allowHttps ) ``{
+        term protocolBox =
+          `VBox(
+                /* RadioButton label */
+                `Left( `RadioButton( `id( `dir ), _("D&irectory"), true ) ),
+                /* RadioButton label */
+                `Left( `RadioButton( `id( `ftp ), "&FTP" ) ),
+                /* RadioButton label */
+                `Left( `RadioButton( `id( `http ), "&HTTP" ) )
+                      );
+        if (allowHttps) {
+          protocolBox = add ( protocolBox,
+                              /* RadioButton label */
+                              `Left ( `RadioButton( `id( `https ), "HTT&PS" ) ) );
+        }
+        protocolBox = add ( protocolBox,
+                            /* RadioButton label */
+                            `Left( `RadioButton( `id( `samba ), "&SMB/CIFS" ) ) );
+        protocolBox = add ( protocolBox,
+                            /* RadioButton label */
+                            `Left( `RadioButton( `id( `nfs ), "&NFS" ) ) );
+        protocolBox = add ( protocolBox,
+                            /* RadioButton label */
+                            `Left( `RadioButton( `id( `cd ), "&CD" ) ) );
+        protocolBox = add ( protocolBox,
+                            /* RadioButton label */
+                            `Left( `RadioButton( `id( `dvd ), "&DVD" ) ) );
+
+        UI::OpenDialog(`VBox(
+                             /* Label text */
+                             `Label( _("Select Type of URL:") ),
+                             `RadioButtonGroup( `id(`url_type),
+                                                protocolBox
+                              ),
+                              dialogButtons()
+                       )
         );
 
 	string url = "";
@@ -518,10 +543,10 @@
 
             UI::CloseDialog();
 
-            if ( type == `ftp || type == `http || type == `samba ) {
-                url = getNewServerUrl( type );
+            if ( type == `ftp || type == `http || type == `https || type == `samba ) {
+              url = getServerUrl( type, "", "", "", "", allowHttps );
             } else if ( type == `dir ) {
-                url = getDirectoryUrl( defaulturl);
+                url = getDirectoryUrl( url);
             } else if ( type == `nfs ) {
                 url = getNfsUrl( "", "");
             } else if ( type == `cd || type == `dvd ) {
@@ -534,22 +559,23 @@
         return url;
     }
 
-    define string editUrl( string url) ``{
-        if ( size( url ) == 0 ) return getUrl( "" );
+    define string editUrl2( string url, boolean allowHttps ) ``{                                                                  
+      if ( size( url ) == 0 ) return getUrl2( "", allowHttps );
 
         map parsedUrl = URL::Parse( url );
 
         string protocol = parsedUrl[ "scheme" ]:"";
         string urlpath = parsedUrl[ "path" ]:"";
 
-        if ( protocol == "ftp" || protocol == "http" || protocol == "smb" ) {
+        if ( protocol == "ftp" || protocol == "http" || protocol == "https" || protocol == "smb" ) {
             string host = parsedUrl[ "host" ]:"";
             string user = parsedUrl[ "user" ]:"";
             string pass = parsedUrl[ "pass" ]:"";
             symbol type = `ftp;
             if ( protocol == "http" ) type = `http;
+            else if ( protocol == "https" ) type = `https;
             else if ( protocol == "smb" ) type = `samba;
-            url = getServerUrl( type, host, urlpath, user, pass );
+            url = getServerUrl( type, host, urlpath, user, pass, allowHttps );
         } else if ( protocol == "nfs" ) {
             string host = parsedUrl[ "host" ]:"";
             url = getNfsUrl( host, urlpath );
@@ -564,4 +590,8 @@
         return url;
     }
 
+    define string editUrl( string url) ``{
+        return getUrl2( url, false );
+    }
 }
+
