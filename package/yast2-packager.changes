@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct  4 16:29:53 CEST 2005 - jsrain@suse.cz
+
+- correctly calculate used/free space on disks which are not
+  formatted during installation (#113605)
+
+-------------------------------------------------------------------
 Tue Oct  4 14:01:10 CEST 2005 - mir@suse.de
 
 - inst_source_dialogs.ycp: added getUrl2 and editUrl2 which
