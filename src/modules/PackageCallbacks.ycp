@@ -26,6 +26,8 @@
     global boolean _package_popup = false;
 
     global string _package_name = "";
+    global integer _package_size = 0;
+    global boolean _deleting_package = false;
 
     global integer _current_source = 1;
 
@@ -223,6 +225,8 @@
 	    return true;
 
 	_package_name = name;
+	_package_size = installsize;
+	_deleting_package = is_delete;
 
 	term packagebox = `VBox( `Label(`id(`package), name ),
 				 `VSpacing(),

@@ -1232,8 +1232,40 @@
 
 	if ( ! deleting )
 	{
-	    SubtractPackageSize( pkg_size );
+	    // the actions are performed when package installation finishes
+//	    SubtractPackageSize( pkg_size );
 	    y2milestone( "Installing %1 -- %2", pkg_name, pkg_summary );
+
+//	    if (SwitchToSecondsIfNecessary()
+//		|| RecalcRemainingTimes( false ) )	// no forced recalculation
+//	    {
+//		y2debug( "Updating progress for all CDs" );
+//		UpdateAllCdProgress();
+//	    }
+//	    else
+//	    {
+//		UpdateCurrentCdProgress();
+//	    }
+
+//	    UpdateTotalProgress();
+
+	} // ! deleting
+    }
+
+    /**
+     * package start display update
+     * - this is called at the end of a new package
+     *
+     * @param pkg_name		package name
+     * @param deleting		Flag: deleting (true) or installing (false) package?
+     **/
+    global void SlideDisplayDone ( string	pkg_name,
+				   integer	pkg_size,
+				   boolean	deleting	)
+    {
+	if ( ! deleting )
+	{
+	    SubtractPackageSize( pkg_size );
 
 	    if (SwitchToSecondsIfNecessary()
 		|| RecalcRemainingTimes( false ) )	// no forced recalculation
@@ -1249,8 +1281,8 @@
 	    UpdateTotalProgress();
 
 	} // ! deleting
-    }
 
+    }
 
     /**
      * Add widgets for progress bar etc. around a slide show page
