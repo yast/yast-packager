@@ -101,6 +101,10 @@
 	    SlideShow::UpdateCurrentPackageProgress( 100 );
 	    _remote_provide = false;
 	}
+	if (user_abort)
+	{
+	    return "CANCEL";
+	}
 	if (error != 0)
 	{
 	    return PackageCallbacks::DoneProvide( error, reason, name );
