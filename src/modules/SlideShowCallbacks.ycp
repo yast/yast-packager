@@ -25,54 +25,6 @@
     boolean _remote_provide = false;
     boolean user_abort = false;
 
-    /**
-     *  at start of file providal
-     */
-    global void StartProvide( string name, integer archivesize, boolean remote )
-    {
-	if ( remote )
-	{
-	    SlideShow::SlideProvideStart (name , archivesize);
-	    _remote_provide = true;
-	}
-    }
-
-
-    /**
-     * during file providal
-     */
-    global void ProgressProvide( integer percent )
-    {
-	if (_remote_provide)
-	{
-	    SlideShow::UpdateCurrentPackageProgress ( percent );
-	}
-    }
-
-
-    /**
-     * during file providal
-     */
-    global string DoneProvide( integer error, string reason, string name )
-    {
-	if ( _remote_provide )
-	{
-	    SlideShow::UpdateCurrentPackageProgress( 100 );
-	    _remote_provide = false;
-	}
-	if (error != 0)
-	{
-	    return PackageCallbacks::DoneProvide( error, reason, name );
-	}
-
-	return "";
-    }
-
-
-
-    //--------------------------------------------------------------------------
-    // slide show
-
 
     /**
      * Check for user button presses and handle them.
@@ -110,6 +62,57 @@
 	    SlideShow::HandleInput( button );
 	}
     }
+
+
+    /**
+     *  at start of file providal
+     */
+    global void StartProvide( string name, integer archivesize, boolean remote )
+    {
+	if ( remote )
+	{
+	    SlideShow::SlideProvideStart (name , archivesize);
+	    _remote_provide = true;
+	}
+    }
+
+
+    /**
+     * during file providal
+     */
+    global boolean ProgressProvide( integer percent )
+    {
+	if (_remote_provide)
+	{
+	    SlideShow::UpdateCurrentPackageProgress ( percent );
+	}
+	HandleInput();
+	return ! user_abort;
+    }
+
+
+    /**
+     * during file providal
+     */
+    global string DoneProvide( integer error, string reason, string name )
+    {
+	if ( _remote_provide )
+	{
+	    SlideShow::UpdateCurrentPackageProgress( 100 );
+	    _remote_provide = false;
+	}
+	if (error != 0)
+	{
+	    return PackageCallbacks::DoneProvide( error, reason, name );
+	}
+
+	return "";
+    }
+
+
+
+    //--------------------------------------------------------------------------
+    // slide show
 
 
     /**
@@ -190,6 +193,8 @@
      */
     global string DonePackage( integer error, string reason )
     {
+	if (user_abort)
+	    return "I";
 	SlideShow::UpdateCurrentPackageProgress (100);
 
 	if (error != 0)

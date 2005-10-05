@@ -47,8 +47,17 @@
     {
 	if (remote)
 	{
-	    term providebox = `VBox( `HSpacing(40), `ProgressBar(`id(`progress),
-								 name, 100, 0 ));
+	    term providebox = `VBox(
+		`HSpacing(40),
+		// label
+		`Left (`Label (_("Downloading package"))),
+		`ProgressBar(`id(`progress), name, 100, 0 ),
+		`HBox (
+		    `HStretch (),
+		    `PushButton (`id (`abort), Label::AbortButton ()),
+		    `HStretch ()
+		)
+	    );
 	    UI::OpenDialog( providebox );
 	    _provide_popup = true;
 	}
@@ -59,11 +68,14 @@
     /** during file providal
      *
      */
-    global define void ProgressProvide (integer percent)
+    global define boolean ProgressProvide (integer percent)
     {
 	if (_provide_popup)
+	{
 	    UI::ChangeWidget(`id(`progress), `Value, percent);
-	return;
+	    return UI::PollInput () != `abort;
+	}
+	return true;
     }
 
 
@@ -621,6 +633,12 @@ global void DoneSourceRefresh (map<string,any> info) {
 							  _("Status"), 100),
 					    `HSpacing(2)
 					    ),
+				      `VSpacing(1),
+				      `HBox (
+					`HStretch (),
+					`PushButton (`id (`abort), Label::AbortButton ()),
+					`HStretch ()
+				      ),
 				      `VSpacing(1)
 				      )
 			       )
@@ -630,9 +648,10 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void ProgressDownload (integer percent, integer expected_size)
+    global define boolean ProgressDownload (integer percent, integer expected_size)
     {
 	UI::ChangeWidget (`id(`progress), `Value, percent);
+	return UI::PollInput () != `abort;
     }
 
 
