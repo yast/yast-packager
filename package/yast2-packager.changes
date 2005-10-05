@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Wed Oct  5 11:44:27 CEST 2005 - jsrain@suse.cz
+Wed Oct  5 14:36:25 CEST 2005 - jsrain@suse.cz
 
 - allow to break package download (#115534)
+- fixed installation progress handling (#114653)
 
 -------------------------------------------------------------------
 Tue Oct  4 16:29:53 CEST 2005 - jsrain@suse.cz

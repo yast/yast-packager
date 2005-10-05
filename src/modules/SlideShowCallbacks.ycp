@@ -170,6 +170,8 @@
     global boolean StartPackage( string name, string summary, integer install_size, boolean is_delete )
     {
 	PackageCallbacks::_package_name = name;
+	PackageCallbacks::_package_size = install_size;
+	PackageCallbacks::_deleting_package = is_delete;
 
 	return DisplayStartInstall( name,
 				    summary,
@@ -201,11 +203,19 @@
 	    return "I";
 	SlideShow::UpdateCurrentPackageProgress (100);
 
+	string ret = "";
 	if (error != 0)
 	{
-	    return PackageCallbacks::DonePackage( error, reason );
+	    ret = PackageCallbacks::DonePackage( error, reason );
 	}
-	return "";
+	if (size (ret) == 0 || tolower (substring (ret, 0, 1)) != "r")
+	{
+	    SlideShow::SlideDisplayDone(
+		PackageCallbacks::_package_name,
+		PackageCallbacks::_package_size,
+		PackageCallbacks::_deleting_package);
+	}
+	return ret;
     }
 
 
