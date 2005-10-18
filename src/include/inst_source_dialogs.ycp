@@ -94,6 +94,7 @@
     define void editFtp() ``{
         UI::OpenDialog(
             `VBox(
+		`HSpacing (50),
 		// label
                 `Label( _("FTP Server and Directory") ),
 		// text entry
@@ -144,6 +145,7 @@
 
         UI::OpenDialog(
             `VBox(
+		`HSpacing (50),
 		// label
                 `Label( _("NFS Server and Directory") ),
 		// text entry
@@ -187,6 +189,7 @@
     define string getCdUrl() ``{
         UI::OpenDialog(
             `VBox(
+		`HSpacing (50),
 		// label
                 `Label( _("CD Installation") ),
                 `RadioButtonGroup( `id( `device ),
@@ -300,6 +303,7 @@
 
         UI::OpenDialog( `opt( `decorated ),
             `VBox(
+		`HSpacing (50),
 		// label
                 `Label( _("Server and Directory") ),
                 `HBox(
@@ -443,6 +447,7 @@
 
         UI::OpenDialog(
             `VBox(
+		`HSpacing (50),
 		// label
                 `Label( _("Local Directory") ),
                 `HBox(
@@ -591,7 +596,48 @@
     }
 
     define string editUrl( string url) ``{
-        return getUrl2( url, false );
+        return editUrl2( url, false );
+    }
+
+    string editRawUrl( string url ) {
+        UI::OpenDialog(
+            `VBox(
+		`HSpacing (50),
+		// label
+                `Label( _("Installation Source URL") ),
+		// text entry
+                `TextEntry( `id( `url ), _("&URL"), url ),
+                dialogButtons()
+            )
+        );
+	UI::SetFocus (`id (`url));
+
+        string url = "";
+
+        any input = nil;
+
+        repeat
+        {
+            input = UI::UserInput();
+            y2debug( "Input: %1", input );
+
+            if ( input == `ok )
+            {
+		url = (string)UI::QueryWidget(`id( `url ), `Value );
+		if (url == "")
+		{
+		    UI::SetFocus (`id (`url));
+		    // popup message
+		    Popup::Message (_("URL cannot be empty."));
+		    input = nil;
+		}
+            }
+
+        } until ( input == `cancel || input == `ok );
+
+        UI::CloseDialog();
+
+	return url;
     }
 }
 

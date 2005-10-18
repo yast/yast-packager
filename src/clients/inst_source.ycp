@@ -211,7 +211,9 @@ in the packages selection, continue."),
 						// menunutton item
                                                   `item(`id(`dvd),       _("&DVD...") ),
 						// menunutton item
-                                                  `item(`id(`local_dir), _("&Local Directory...") )
+                                                  `item(`id(`local_dir), _("&Local Directory...") ),
+						// menubutton item
+						`item (`id (`specify_url),_("Specify &URL...")),
                                                 ] )
                     ),
 					// menu button
@@ -350,6 +352,16 @@ on the NFS server.
 		createResult = createSource( url);
                 if ( createResult == `ok ) fillTable();
             } while ( createResult == `again );
+	}
+	else if (input == `specify_url)
+	{
+            url = "";
+	    do {
+                url = editRawUrl( url );
+                if ( size( url ) == 0 ) break;
+		createResult = createSource( url);
+                if ( createResult == `ok ) fillTable();
+	    } while (createResult == `again);
 	}
         else if ( input == `next )
         {
