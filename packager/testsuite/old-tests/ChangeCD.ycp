@@ -1,0 +1,84 @@
+/*
+ * Test ChangeCD
+ */
+
+{
+  include "testsuite.ycp";
+  include "package_utils.ycp";
+
+  map mount = $[];
+  map ret_map = $[];;
+  map installMap = $[];
+  map user_settings = $["arch_ppc": false];
+
+  // -------------------------------------------------------------------------
+
+  DUMP ("Test 1 - three CD ROM drives");
+
+  map umount0 = $["target": $["bash": 2 ]];		// first try to read cdnum failed -> umount
+  map eject0 = $["target": $["bash": 1 ]];
+  map mount1 = $["target": $["bash": 1 ]];		// mount on first CD drive failed
+  map umount1 = $["target": $["bash": 2 ]];
+  map eject1 = $["target": $["bash": 1 ]];
+  map mount2 = $["target": $["bash": 1 ]];		// mount on second CD drive failed
+  map umount2 = $["target": $["bash": 2 ]];		
+  map eject2 = $["target": $["bash": 1 ]];
+  map mount3 = $["target": $["bash": 0 ]];		// mount on third CD drive is OK
+  
+
+  map read_cd = $["probe": $["cdrom":[$["dev_name":"/dev/sr0"],$["dev_name":"/dev/sr1"]]
+               ]]; 							 // first READ probes CD drives
+  map read0 = $["yast2": $["instsource": $["cdnum": nil] ]];		 // initial read (without a previous mount) failed
+  map read1 = $["yast2": $["instsource": $["cdnum": nil] ]];		 // can't read cdnum in first CD drive
+  map read2 = $["yast2": $["instsource": $["cdnum": nil] ]];		 // can't read cdnum in second CD drive
+  map read3 = $["yast2": $["instsource": $["cdnum": 1] ]];		 // read cdnum 1 on CD in third drive -> OK
+  
+  map read_rel= $["yast2": $["instsource": $["cdrelease": 12345 ]]];	 // read release number
+
+  installMap = add (installMap, "bootmode", "CD" );
+  installMap = add (installMap, "cdrom", "cdrom" );
+  
+  user_settings = add( user_settings, "installMap", installMap );
+
+  TEST ( ``(ChangeCD (1, false)), [[read_cd, read0, read1, read2, read3, read_rel],
+				 $[],
+				 [umount0, eject0, mount1, umount1, eject1, mount2, umount2, eject2, mount3] ],
+	                         [] ); 
+  DUMP ( user_settings );
+
+
+  // -------------------------------------------------------------------------
+
+
+  DUMP ("Test 2 - CD 1 in first drive, CD 2 in second");    
+
+  read_cd  = $["probe": $["cdrom":[$["dev_name":"/dev/sr0"]]] ];  // first READ probes CD drives
+
+  read0  = $["yast2": $["instsource": $["cdnum": nil ]]]; 	// initial read failed
+
+  read1  = $["yast2": $["instsource": $["cdnum": 1]] ];		// wrong CD number
+
+  read2  = $["yast2": $["instsource": $["cdnum": 2]] ];		// right number
+
+  read3 = $["yast2": $["instsource": $["cdrelease": 12345]] ];	// release no.
+
+  TEST (``(ChangeCD (2, false)), [[read_cd, read0, read1, read2, read3], $[], $[]], []); 
+
+  DUMP ( user_settings );
+
+  // -------------------------------------------------------------------------
+
+  user_settings = add( user_settings, "installMap", installMap );  
+
+  DUMP ("Test 3 - mount ok but wrong CD number");    
+
+  mount1 = $["target": $["bash": 0 ]];				// mount is ok
+  
+  read1  = $["yast2": $["instsource": $["cdrelease": 123,
+				       "cdnum": 2] ],		// wrong CD number 
+	    "probe": $["cdrom":[$["dev_name":"/dev/sr0"]]]
+            ];
+
+  TEST (``(ChangeCD (1, false)), [read1, $[], mount1], []); 
+  DUMP ( user_settings );
+}

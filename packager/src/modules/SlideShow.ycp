@@ -1,0 +1,1746 @@
+/**
+ * Module:		SlideShow.ycp
+ *
+ * Purpose:		Slide show during package installation
+ *
+ * Author:		Stefan Hundhammer <sh@suse.de>
+ */
+{
+    module "SlideShow";
+
+    textdomain "packager";
+
+    import "Installation";
+    import "Label";
+    import "Language";
+    import "Stage";
+    import "String";
+    import "Wizard";
+
+    global list<list<integer> > total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
+    global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
+    global list<list<integer> > remaining_times_per_cd_per_src	= [];	// remaining times
+    global list<string>		inst_src_names			= [];	// a list of strings identifying each installation source
+    global list<list<integer> > total_pkg_count_per_cd_per_src	= [];	// number of pkgs per inst-src: [ [7, 5, 3], [2, 3, 4] ]
+    global list<list<integer> > remaining_pkg_count_per_cd_per_src = []; // remaining number of pkgs
+    global string	media_type		= "CD";
+    global integer	total_size_installed	= 0;
+    global integer	total_size_to_install	= 0;
+    global integer	total_time_elapsed	= 0;
+    global integer	start_time		= -1;
+    global integer	initial_recalc_delay	= 60;	// const - seconds before initially calculating remaining times
+    global integer	recalc_interval		= 30;	// const - seconds between "remaining time" recalculations
+    global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
+    global integer	max_time_per_cd		= 7200; // const - seconds to cut off predicted time (it's bogus anyway)
+    global integer	size_column		= 1;	// const - column number for remaining size per CD
+    global integer	pkg_count_column	= 2;	// const - column number for remaining number of packages per CD
+    global integer	time_column		= 3;	// const - column number for remaining time per CD
+    global integer	next_recalc_time	= -1;
+    global integer	current_src_no		= -1;	// 1..n
+    global integer	current_cd_no		= -1;	// 1..n
+    global integer	next_src_no		= -1;
+    global integer	next_cd_no		= -1;
+    global boolean	last_cd			= false;
+    global integer	total_cd_count		= 0;
+    global boolean	unit_is_seconds		= false;	// begin with package sizes
+    global integer	bytes_per_second	= 1;
+
+    global integer	current_slide_no	= 0;
+    global integer	slide_start_time	= 0;
+    global integer	slide_min_interval	= 30;	// const - minimum seconds between slide changes
+    global integer	slide_max_interval	= 3*60; // const - maximum seconds between slide changes
+    global string	slide_base_path		= Installation::sourcedir + "/suse/setup/slide";
+
+    global string	slide_txt_path		= "";
+    global string	slide_pic_path		= "";
+    global integer	slide_interval		= slide_min_interval;
+    global list<string> slides			= [];
+    global string	language		= Language::language;
+    global boolean	init_pkg_data_complete	= false;
+    global boolean	widgets_created		= false;
+    global boolean	user_switched_to_details = false;
+    global boolean	opened_own_wizard	= false;
+    global string	inst_log		= "";
+    global boolean	debug			= false;
+
+
+    /**
+     * Constructor
+     **/
+    global void SlideShow()
+    {
+	y2milestone( "SlideShow constructor" );
+	next_recalc_time = time();
+    }
+
+
+    /**
+     * Start the internal (global) timer.
+     **/
+    global void StartTimer()
+    {
+	start_time = time();
+    }
+
+
+    /**
+     * Reset the internal (global) timer.
+     **/
+    global void ResetTimer()
+    {
+	start_time = time();
+    }
+
+
+    /**
+     * Stop the internal (global) timer and account elapsed time.
+     **/
+    global void StopTimer()
+    {
+	if ( start_time < 0 )
+	{
+	    y2error( "StopTimer(): No timer running." );
+	    return;
+	}
+
+	integer elapsed = time() - start_time;
+	start_time	= -1;
+	total_time_elapsed = total_time_elapsed + elapsed;
+	y2debug("StopTimer(): Elapsed this time: %1 sec; total: %2 sec (%3:%4)",
+		 elapsed, total_time_elapsed,
+		 total_time_elapsed / 60,	// min
+		 total_time_elapsed % 60 );	// sec
+    }
+
+
+    /**
+     * Check if currently the "Details" page is shown
+     * @return true if showing details, false otherwise
+     **/
+    boolean ShowingDetails()
+    {
+	return widgets_created && UI::WidgetExists(`detailsPage );
+    }
+
+
+    /**
+     * Check if currently the "Slide Show" page is shown
+     * @return true if showing details, false otherwise
+     **/
+    boolean ShowingSlide()
+    {
+	return widgets_created && UI::WidgetExists(`slidesPage );
+    }
+
+
+    /**
+     * Sum up all list items
+     **/
+    integer ListSum( list<integer> sizes )
+    {
+	integer sum = 0;
+
+	foreach( integer item, sizes, ``{
+	    if ( item != -1 )
+		sum = sum + item;
+	});
+
+	return sum;
+    }
+
+
+    /**
+     * Sum up all positive list items, but cut off individual items at a maximum value.
+     * Negative return values indicate overflow of any individual item at "max_cutoff".
+     * In this case, the real sum is the absolute value of the return value.
+     **/
+    integer ListSumCutOff( list<integer> sizes, integer max_cutoff )
+    {
+	boolean overflow = false;
+	integer sum = 0;
+
+	foreach( integer item, sizes, ``{
+	    if ( item > 0 )
+	    {
+		if ( item > max_cutoff )
+		{
+		    overflow = true;
+		    sum = sum + max_cutoff;
+		}
+		else
+		    sum = sum + item;
+	    }
+	});
+
+	if ( overflow )
+	    sum = -sum;
+
+	return sum;
+    }
+
+
+    integer TotalRemainingSize()
+    {
+	return ListSum( flatten( remaining_sizes_per_cd_per_src ) );
+    }
+
+
+    integer TotalRemainingTime()
+    {
+	return ListSumCutOff( flatten( remaining_times_per_cd_per_src ),
+			      max_time_per_cd );
+    }
+
+
+    integer TotalRemainingPkgCount()
+    {
+	return ListSum( flatten( remaining_pkg_count_per_cd_per_src ) );
+    }
+
+
+    integer TotalInstalledSize()
+    {
+	return total_size_to_install - TotalRemainingSize();
+    }
+
+
+    /**
+     * Format an integer number as (at least) two digits; use leading zeroes if
+     * necessary.
+     * @return number as two-digit string
+     **/
+    string FormatTwoDigits( integer x )
+    {
+	return x < 10 && x >= 0 ?
+	    sformat( "0%1", x ) :
+	    sformat(  "%1", x );
+    }
+
+
+    /**
+     * Format an integer seconds value with min:sec or hours:min:sec
+     **/
+    string FormatTime( integer seconds )
+    {
+	if ( seconds < 0 )
+	    return "";
+
+	if ( seconds < 3600 )	// Less than one hour
+	{
+	    return sformat( "%1:%2", FormatTwoDigits( seconds / 60 ), FormatTwoDigits( seconds % 60 ) );
+	}
+	else	// More than one hour - we don't hope this will ever happen, but who knows?
+	{
+	    integer hours = seconds / 3600;
+	    seconds = seconds % 3600;
+	    return sformat( "%1:%2:%3", hours, FormatTwoDigits( seconds / 60 ), FormatTwoDigits( seconds % 60 ) );
+	}
+    }
+
+
+    /**
+     * Format an integer seconds value with min:sec or hours:min:sec
+     *
+     * Negative values are interpreted as overflow - ">" is prepended and the
+     * absolute value is used.
+     **/
+    string FormatTimeShowOverflow( integer seconds )
+    {
+	string text = "";
+
+	if ( seconds < 0 )	// Overflow (indicated by negative value)
+	{
+	    // When data throughput goes downhill (stalled network connection etc.),
+	    // cut off the predicted time at a reasonable maximum.
+	    // "%1" is a predefined maximum time.
+
+	    text = sformat( _(">%1"), FormatTime( -seconds ) );
+	}
+	else
+	{
+	    text = FormatTime( seconds );
+	}
+
+	return text;
+    }
+
+
+    /**
+     * Format number of remaining bytes to be installed as string.
+     * @param remaining		bytes remaining, -1 for 'done'
+     * @return			string human readable remaining time or byte / kB/ MB size
+     **/
+    string FormatRemainingSize( integer remaining )
+    {
+	if ( remaining <  0 )
+	{
+	    // Nothing more to install from this CD (very concise - little space!!)
+	    return _("Done.");
+	}
+	if ( remaining == 0 )
+	{
+	    return "";
+	}
+
+	return String::FormatSize( remaining );
+    }
+
+
+    /**
+     * Format number of remaining packages to be installed as string.
+     * @param remaining		bytes remaining, -1 for 'done'
+     * @return			string human readable remaining time or byte / kB/ MB size
+     **/
+    string FormatRemainingCount( integer remaining )
+    {
+	if ( remaining <  0 )
+	{
+	    // Nothing more to install from this CD (very concise - little space!!)
+	    return _("Done.");
+	}
+	if ( remaining == 0 )
+	{
+	    return "";
+	}
+
+	return sformat( "%1", remaining );
+    }
+
+
+    string FormatTotalRemaining()
+    {
+	// (Short!) headline for the total remaining time or MBs to install
+	return sformat( _("Remaining:\n%1"),
+			unit_is_seconds ?
+			FormatTimeShowOverflow( TotalRemainingTime() ) :
+			FormatRemainingSize( TotalRemainingSize() ) );
+    }
+
+
+    string FormatNextMedia()
+    {
+	string text = "";
+
+	if ( next_src_no >= 0 && next_cd_no >= 0 )
+	{
+	    string next_media_name = sformat( "%1 %2 %3",
+					      inst_src_names[ next_src_no ]:"",
+					      media_type, next_cd_no+1 );
+
+	    if ( unit_is_seconds )
+	    {
+		// Status line informing about the next CD that will be used
+		// %1: Media type ("CD" / "DVD", ???)
+		// %2: Media name ("SuSE Linux Professional CD 2" )
+		// %3: Time remaining until this media will be needed
+		text = sformat( _("Next %1: %2 -- %3"), media_type, next_media_name,
+				FormatTime( remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1) );
+	    }
+	    else
+	    {
+		// Status line informing about the next CD that will be used
+		// %1: Media type ("CD" / "DVD", ???)
+		// %2: Media name ("SuSE Linux Professional CD 2" )
+		text = sformat( _("Next %1: %2"), media_type, next_media_name );
+	    }
+	}
+
+	return text;
+    }
+
+
+    /**
+     * Normalize a CD size list like [ [ 111, 0, 333 ], [ 211, 222, 0 ] ]
+     * to a flat single list that doesn't contain any 0 items (but -1 if there are any)
+     * If the resulting list would be completely empty, use a simple fallback: [ 1 ]
+     **/
+    list<integer> FlattenNoZeroes( list< list<integer> > sizesPerSourceList )
+    {
+	list <integer> normalizedList =
+	    filter( integer item, flatten( sizesPerSourceList ),
+		    ``{ return item != 0; });
+
+	if ( size( normalizedList ) < 1 )
+	    normalizedList = [ 1 ];
+
+	return normalizedList;
+    }
+
+
+    /**
+     * Get a list of available slides (images) for the slide show.
+     * @return list slides
+     **/
+    list<string> GetSlideList( string lang )
+    {
+	string txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
+	list<string> slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+
+	if ( slide_list == nil )
+	{
+	    y2debug( "Directory %1 does not exist", txt_path );
+	    if ( size( lang ) > 2 )
+	    {
+		lang = substring( lang, 0, 2 );
+		txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
+		slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+	    }
+	}
+
+	if ( slide_list == nil )
+	{
+	    y2milestone( "Slideshow directory %1 does not exist", txt_path );
+	}
+	else
+	{
+	    slide_list = sort( filter( string filename, slide_list, ``{
+		// Check for valid extensions - ignore editor save files and other leftover stuff
+		return regexpmatch( filename, ".*\.(rtf|RTF|html|HTML|htm|HTM)$" );
+	    } ) );
+
+	    y2debug( "GetSlideList(): Slides at %1: %2", txt_path, slide_list );
+	}
+
+	if ( slide_list != nil && size( slide_list ) > 0 )	// Slide texts found
+	{
+	    slide_txt_path	= txt_path;
+	    slide_pic_path	= slide_base_path + "/pic";
+	}
+	else							// No slide texts found
+	{
+	    y2debug( "No slides found at %1", txt_path );
+
+	    if ( lang != "en" )
+	    {
+		y2debug( "Trying to load slides from fallback: en" );
+		slide_list = GetSlideList( "en" );
+	    }
+	}
+
+	return slide_list;
+    }
+
+
+    /**
+     * Check if showing slides is supported.
+     *
+     * Not to be confused with HaveSlides() which checks if there are slides available.
+     **/
+    boolean HaveSlideSupport()
+    {
+	map disp = UI::GetDisplayInfo();
+
+	if (disp != nil		// This shouldn't happen, but who knows?
+	    && disp["HasImageSupport"]:false
+	    && disp["DefaultWidth"]:-1	>= 800
+	    && disp["DefaultHeight"]:-1 >= 600
+	    && disp["Depth"]:-1		>= 8  )
+	{
+	    return true;
+	}
+	else
+	{
+	    return false;
+	}
+    }
+
+
+    /**
+     * Check if slides are available.
+     *
+     * Not to be confused with HaveSlideSupport() which checks
+     * if slides could be displayed if there are any.
+     **/
+    boolean HaveSlides()
+    {
+	return size( slides ) > 0;
+    }
+
+
+    /**
+     * Check if the dialog is currently set up so the user could switch to the slide page.
+     **/
+    boolean HaveSlideWidget()
+    {
+	return UI::WidgetExists(`dumbTab);
+    }
+
+
+    /**
+     * Check if the slide show is available. This must be called before trying
+     * to access any slides; some late initialization is done here.
+     **/
+    global void CheckForSlides()
+    {
+	slides = [];
+
+	map tmp = (map) WFM::Read(.local.stat, slide_base_path);
+	if (! tmp["isdir"]:false)
+	{
+	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+	}
+
+	if ( debug && false )
+	{
+	    y2milestone( "Debug mode - using faster time recalc values" );
+	    initial_recalc_delay	= 7;
+	    recalc_interval		= 5;
+	    slide_min_interval		= 5;
+	}
+
+
+	if ( Stage::initial () || Stage::cont () )
+	{
+	    if ( HaveSlideSupport() )
+	    {
+		y2milestone( "Display OK for slide show" );
+
+		slides = GetSlideList( language );
+	    }
+	    else
+	    {
+		y2warning( "Disabling slide show - insufficient display capabilities" );
+	    }
+	}
+    }
+
+
+    /**
+     * Set the slide show text.
+     * @param text
+     **/
+    void SetSlideText( string text )
+    {
+	if ( UI::WidgetExists(`slideText ) )
+	{
+	    //
+	    // Fix <img src> tags: Replace image path with current slide_pic_path
+	    //
+
+	    while (true)
+	    {
+		string replaced = regexpsub( text, "(.*)&imagedir;(.*)",
+					     sformat("\\1%1\\2", slide_pic_path ) );
+		if ( replaced == nil ) break;
+		text = replaced;
+	    }
+
+	    UI::ChangeWidget(`slideText, `Value, text );
+	}
+    }
+
+
+    /**
+     * Load one slide from files complete with image and textual description.
+     * @param text_file_name file name + path of the text file (rich text / HTML)
+     * @return true if OK, false if error
+     **/
+    boolean LoadSlideFile( string text_file_name )
+    {
+	string text = (string) SCR::Read( .target.string, [text_file_name, ""] );
+
+	if ( text == "" )
+	{
+	    return false;
+	}
+	else
+	{
+	    y2debug( "Loading slide show text from %1", text_file_name);
+	    SetSlideText( text );
+	    return true;
+	}
+    }
+
+
+    /**
+     * Get version info for a package (without build no.)
+     *
+     * @param pkg_name name of the package without path and ".rpm" extension
+     * @return version string
+     **/
+    global string StripReleaseNo( string pkg_name )
+    {
+	integer build_no_pos = findlastof (pkg_name, "-" );	// find trailing build no.
+
+	if ( build_no_pos > 0 )
+	{
+	    // cut off trailing build no.
+	    pkg_name = substring( pkg_name , 0, build_no_pos );
+	}
+
+	return pkg_name;
+    }
+
+
+    /**
+     * set media type "CD" or "DVD"
+     */
+    global void SetMediaType (string new_media_type)
+    {
+	media_type = new_media_type;
+    }
+
+
+    /**
+     * Set the slide show directory
+     */
+    global void SetSlideDir( string dir )
+    {
+	slide_base_path = dir;
+
+	map tmp = (map) WFM::Read (.local.stat, slide_base_path);
+
+	if ( ! tmp["isdir"]:false )
+	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+    }
+
+
+    /**
+     * Perform sanity check for correct initialzation etc.
+     * @param silent	don't complain in log file
+     * @return		true if OK, false if any error
+     **/
+    boolean SanityCheck( boolean silent )
+    {
+	if ( ! init_pkg_data_complete )
+	{
+	    if ( ! silent )
+	    {
+		y2error( "SlideShow::SanityCheck(): Slide show not correctly initialized: " +
+			 "SlideShow::InitPkgData() never called!" );
+	    }
+	    return false;
+	}
+
+	if ( current_src_no < 1 || current_cd_no < 1 )
+	{
+	    y2error( "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
+		     current_src_no, current_cd_no );
+	    y2milestone( "total sizes: %1", total_sizes_per_cd_per_src );
+	    return false;
+	}
+
+	return true;
+    }
+
+
+    /**
+     * Package providal start
+     */
+    global void SlideProvideStart (string pkg_name, integer sz)
+    {
+	if ( ! SanityCheck( false ) )	return;
+	if ( ! ShowingDetails() )	return;
+
+	if ( UI::WidgetExists(`progressCurrentPackage) )
+	{
+	    UI::ChangeWidget(`progressCurrentPackage, `Label, pkg_name);
+	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
+	}
+	//
+	// Update (user visible) installation log
+	//
+
+	string strsize = String::FormatSize (sz);
+	// message in the installatino log, %1 is package name,
+	// %2 is package size
+	string msg = sformat (_("Downloading %1 (%2)"), pkg_name, strsize);
+	string log_line = "\n" + msg;
+	inst_log = inst_log + log_line;
+
+	if ( ShowingDetails() )
+	{
+	    if ( UI::WidgetExists( `instLog ) )
+		UI::ChangeWidget(`instLog, `LastLine, log_line );
+	}
+    }
+
+
+    /**
+     * Set the curent language. Must be called once during initialization.
+     **/
+    global void SetLanguage( string new_language )
+    {
+	language = new_language;
+    }
+
+
+
+    /**
+     * Update internal bookkeeping: subtract size of one package from the
+     * global list of remaining sizes per CD
+     **/
+    void SubtractPackageSize( integer pkg_size )
+    {
+	integer remaining = remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]: 1;
+	remaining = remaining - pkg_size;
+	total_size_installed = total_size_installed + pkg_size;
+
+	if ( remaining <= 0 )
+	{
+	    // -1 is the indicator for "done with this CD" - not to be
+	    // confused with 0 for "nothing to install from this CD".
+	    remaining = -1;
+	}
+
+	remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = remaining;
+	remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] =
+	    remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0 -1;
+
+	if ( unit_is_seconds )
+	{
+	    integer seconds = 0;
+
+	    if ( remaining > 0 && bytes_per_second > 0 )
+		seconds = remaining / bytes_per_second;
+
+	    remaining_times_per_cd_per_src [ current_src_no-1, current_cd_no-1 ] = seconds;
+	}
+
+	if ( debug )
+	    y2milestone( "SubtractPackageSize( %1 ) -> %2", pkg_size, remaining_sizes_per_cd_per_src);
+    }
+
+
+    /**
+     * Return a CD's progress bar ID
+     * @param src_no number of the installation source (from 0 on)
+     * @param cd_no number of the CD within that installation source (from 0 on)
+     **/
+    string CdProgressId( integer src_no, integer cd_no )
+    {
+	return sformat( "Src %1 CD %2", src_no, cd_no );
+    }
+
+
+    /**
+     * Recalculate remaining times per CD based on package sizes remaining
+     * and data rate so far. Recalculation is only done each 'recalc_interval'
+     * seconds unless 'force_recalc' is set to 'true'.
+     *
+     * @param force_recalc force recalculation even if timeout not reached yet
+     * @return true if recalculated, false if not
+     **/
+    boolean RecalcRemainingTimes( boolean force_recalc )
+    {
+	if ( ! force_recalc
+	    && time() < next_recalc_time )
+	{
+	    // Nothing to do (yet) - simply return
+	    return false;
+	}
+
+
+	// Actually do recalculation
+
+	integer elapsed = total_time_elapsed;
+
+	if ( start_time >= 0 )
+	{
+	    elapsed = elapsed + time() - start_time;
+	}
+
+	if ( elapsed == 0 )
+	{
+	    // Called too early - no calculation possible yet.
+	    // This happens regularly during initialization, so an error
+	    // message wouldn't be a good idea here.
+
+	    return false;
+	}
+
+
+	// This is the real thing.
+
+	integer real_bytes_per_second = total_size_installed / elapsed;
+
+	// But this turns out to be way to optimistic - RPM gets slower and
+	// slower while installing. So let's add some safety margin to make
+	// sure initial estimates are on the pessimistic side - the
+	// installation being faster than initially estimated will be a
+	// pleasant surprise to the user. Most users don't like it the other
+	// way round.
+	//
+	// The "pessimistic factor" progressively decreases as the installation
+	// proceeds.  It begins with about 1.7, i.e. the data transfer rate is
+	// halved to what it looks like initially. It decreases to 1.0 towards
+	// the end.
+
+	float pessimistic_factor = 1.0;
+
+	if ( total_size_to_install > 0 )
+	    pessimistic_factor = 1.7 - tofloat( total_size_installed ) / tofloat( total_size_to_install );
+	bytes_per_second = tointeger( tofloat( real_bytes_per_second ) / pessimistic_factor + 0.5 );
+
+	if ( bytes_per_second < 1 )
+	    bytes_per_second = 1;
+
+	remaining_times_per_cd_per_src = [];
+
+	// Recalculate remaining times for the individual CDs
+
+	foreach ( list<integer> remaining_sizes_list, remaining_sizes_per_cd_per_src,
+	``{
+	    list<integer> remaining_times_list = [];
+	    integer remaining_time = -1;
+
+	    foreach ( integer remaining_size, remaining_sizes_list,
+	    ``{
+		remaining_time = remaining_size;
+
+		if ( remaining_size > 0 )
+		{
+		    remaining_time = remaining_size / bytes_per_second;
+
+		    if ( remaining_time < min_time_per_cd )
+		    {
+			// It takes at least this long for the CD drive to spin up and
+			// for RPM to do _anything_. Times below this values are
+			// ridiculously unrealistic.
+			remaining_time = min_time_per_cd;
+		    }
+		    else if ( remaining_time > max_time_per_cd ) // clip off at 2 hours
+		    {
+			// When data throughput goes downhill (stalled network connection etc.),
+			// cut off the predicted time at a reasonable maximum.
+			remaining_time = max_time_per_cd;
+		    }
+		}
+		remaining_times_list = add( remaining_times_list, remaining_time );
+	    });
+
+	    remaining_times_per_cd_per_src = add( remaining_times_per_cd_per_src, remaining_times_list );
+	});
+
+
+	// Recalculate slide interval
+
+	if ( size( slides ) > 0 )
+	{
+	    integer slides_remaining = size( slides ) - current_slide_no - 1;
+
+	    if ( slides_remaining > 0 )
+	    {
+		// The remaining time for the rest of the slides depends on the
+		// remaining time for the current CD only: This is where the
+		// slide images and texts reside. Normally, only CD1 has slides
+		// at all, i.e. the slide show must be finished when CD1 is
+		// done.
+		//
+		// In addition to that, take elapsed time for current slide
+		// into account so all slides get about the same time.
+
+		integer time_remaining = remaining_times_per_cd_per_src[current_src_no-1, current_cd_no-1]:1 + time() - slide_start_time;
+		slide_interval = time_remaining / slides_remaining;
+		y2debug( "New slide interval: %1 - slides remaining: %2 - remaining time: %3",
+			 slide_interval, slides_remaining, time_remaining );
+
+		if ( slide_interval < slide_min_interval )
+		{
+		    slide_interval = slide_min_interval;
+		    y2debug( "Resetting slide interval to min slide interval: %1", slide_interval );
+		}
+
+		if ( slide_interval > slide_max_interval )
+		{
+		    slide_interval = slide_max_interval;
+		    y2debug( "Resetting slide interval to max slide interval: %1", slide_interval );
+		}
+	    }
+	}
+
+	next_recalc_time = time() + recalc_interval;
+
+	return true;
+    }
+
+
+    /**
+     * Create one single item for the CD statistics table
+     **/
+    term TableItem( string id, string col1, string col2, string col3, string col4 )
+    {
+	return `item(`id( id ), col1, col2, col3, col4 );
+    }
+
+
+    /**
+     * Returns a table widget item list for CD statistics
+     **/
+    list<term> CdStatisticsTableItems()
+    {
+	list<term> itemList = [];
+
+	//
+	// Add "Total" item - at the top so it is visible by default even if there are many items
+	//
+
+	{
+	    // List column header for total remaining MB and time to install
+	    string caption 	=  _("Total");
+	    integer remaining 	= TotalRemainingSize();
+	    string rem_size	= FormatRemainingSize( remaining );
+	    string rem_count 	= FormatRemainingCount( TotalRemainingPkgCount() );
+	    string rem_time 	= "";
+
+	    if ( unit_is_seconds && bytes_per_second > 0 )
+	    {
+		rem_time = FormatTimeShowOverflow( TotalRemainingTime() );
+	    }
+
+	    itemList = add( itemList, TableItem( "total", caption, "   " + rem_size, "   " + rem_count, "   " + rem_time ) );
+	}
+
+
+	//
+	// Now go through all installation sources
+	//
+
+	integer src_no = 0;
+
+	foreach ( list<integer> inst_src, remaining_sizes_per_cd_per_src, ``{
+	    y2milestone( "src #%1: %2", src_no, inst_src );
+
+	    if ( ListSum( inst_src ) > 0	 // Ignore sources from where there is nothing is to install
+		 || src_no+1 == current_src_no ) // or if this happens to be the current source
+	    {
+		if ( size( total_sizes_per_cd_per_src ) > 1 )	// Multiple sources?
+		{
+		    //
+		    // Add heading for this installation source
+		    //
+
+		    itemList = add( itemList, TableItem( sformat( "src(%1)", src_no ),
+							 inst_src_names[ src_no ]:"", "", "", "" ) );
+		}
+
+		integer cd_no = 0;
+
+		foreach ( integer remaining, inst_src, ``{
+		    if ( remaining > 0
+			 || ( src_no+1 == current_src_no && cd_no+1 == current_cd_no ) )	// suppress current CD
+		    {
+			string caption  = sformat( "%1 %2", media_type, cd_no+1 );		// "CD 1" - column #0
+			string rem_size = FormatRemainingSize( remaining );			// column #1
+			string rem_count = FormatRemainingCount( remaining_pkg_count_per_cd_per_src[ src_no, cd_no ]:0 );
+			string rem_time = "";
+
+			if ( unit_is_seconds && bytes_per_second > 0 )
+			{
+			    remaining = remaining / bytes_per_second;
+			    rem_time = FormatTime( remaining );					// column #2
+
+			    if ( remaining > max_time_per_cd )		// clip off at 2 hours
+			    {
+				// When data throughput goes downhill (stalled network connection etc.),
+				// cut off the predicted time at a reasonable maximum.
+				// "%1" is a predefined maximum time.
+				rem_time = FormatTimeShowOverflow( -max_time_per_cd );
+			    }
+			}
+
+			itemList = add( itemList,
+					TableItem( sformat("cd(%1,%2)", src_no, cd_no ),	// ID
+						   caption, "   " + rem_size, "   " + rem_count, "   " + rem_time ) );
+		    }
+
+		    cd_no = cd_no + 1;
+		});
+	    }
+
+	    src_no = src_no + 1;
+	});
+
+	if ( debug )
+	{
+	    y2milestone( "Remaining: %1", remaining_sizes_per_cd_per_src );
+	    y2milestone( "CD table item list:\n%1", itemList );
+	}
+
+	return itemList;
+    }
+
+
+
+    /**
+     * Progress display update
+     * This is called via the packager's progress callbacks.
+     *
+     * @param pkg_percent	package percentage
+     **/
+    global void UpdateCurrentPackageProgress( integer pkg_percent )
+    {
+	if ( UI::WidgetExists(`progressCurrentPackage ) )
+	    UI::ChangeWidget(`progressCurrentPackage, `Value, pkg_percent);
+    }
+
+
+
+    /**
+     * Update progress widgets for all CDs.
+     * Uses global statistics variables.
+     **/
+    global void UpdateAllCdProgress()
+    {
+	if ( ! SanityCheck( true ) )	return;
+	if ( ! widgets_created )	return;
+
+	if ( unit_is_seconds )
+	    RecalcRemainingTimes( true );	// force
+
+	if ( UI::WidgetExists(`cdStatisticsTable) )
+	    UI::ChangeWidget(`cdStatisticsTable, `Items, CdStatisticsTableItems() );
+    }
+
+
+    /**
+     * Update progress widgets for the current CD: Label and ProgressBar.
+     * Use global statistics variables for that.
+     **/
+    global void UpdateCurrentCdProgress()
+    {
+	if ( ! SanityCheck( false ) )			return;
+	if ( ! UI::WidgetExists(`cdStatisticsTable) )	return;
+
+
+	//
+	// Update table entries for current CD
+	//
+
+	integer remaining = remaining_sizes_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0;
+	UI::ChangeWidget(`id(`cdStatisticsTable ),
+			 `Item( sformat( "cd(%1,%2)", current_src_no-1, current_cd_no-1), size_column ),
+			 FormatRemainingSize( remaining ) );
+
+	UI::ChangeWidget(`id(`cdStatisticsTable ),
+			 `Item( sformat( "cd(%1,%2)", current_src_no-1, current_cd_no-1), pkg_count_column ),
+			 FormatRemainingCount( remaining_pkg_count_per_cd_per_src [ current_src_no-1, current_cd_no-1 ]:0 ) );
+
+	if ( unit_is_seconds )
+	{
+	    // Convert 'remaining' from size (bytes) to time (seconds)
+
+	    remaining = remaining / bytes_per_second;
+
+	    if ( remaining <= 0 )
+		remaining = 0;
+
+	    if ( remaining > max_time_per_cd )		// clip off at 2 hours
+	    {
+		// When data throughput goes downhill (stalled network connection etc.),
+		// cut off the predicted time at a reasonable maximum.
+		remaining = -max_time_per_cd;
+	    }
+
+	    UI::ChangeWidget(`id(`cdStatisticsTable ),
+			     `Item( sformat( "cd(%1,%2)", current_src_no-1, current_cd_no-1), time_column ),
+			     FormatTimeShowOverflow( remaining ) );
+	}
+
+
+	//
+	// Update "total" table entries
+	//
+
+	UI::ChangeWidget(`id( `cdStatisticsTable ),
+			 `Item( "total", size_column ),
+			 FormatRemainingSize( TotalRemainingSize() ) );
+
+	UI::ChangeWidget(`id( `cdStatisticsTable ),
+			 `Item( "total", pkg_count_column ),
+			 FormatRemainingCount( TotalRemainingPkgCount() ) );
+
+	if ( unit_is_seconds )
+	{
+	    UI::ChangeWidget(`id( `cdStatisticsTable ), `Item( "total", time_column ),
+			     FormatTimeShowOverflow( TotalRemainingTime() ) );
+
+	}
+    }
+
+
+    /**
+     * Update progress widgets
+     **/
+    void UpdateTotalProgress()
+    {
+	if ( UI::WidgetExists(`multiProgressMeter ) )
+	    UI::ChangeWidget(`multiProgressMeter, `Values, FlattenNoZeroes( remaining_sizes_per_cd_per_src ) );
+
+	if ( UI::WidgetExists(`progressTotal ) )
+	    UI::ChangeWidget(`progressTotal, `Value, TotalInstalledSize() );
+
+	UpdateCurrentCdProgress();
+
+	if ( UI::WidgetExists(`nextMedia ) )
+	{
+	    string nextMedia = FormatNextMedia();
+
+	    if ( nextMedia != "" || last_cd )
+	    {
+		UI::ChangeWidget(`nextMedia, `Value, nextMedia );
+		UI::RecalcLayout();
+		last_cd = false;
+	    }
+	}
+
+	if ( UI::WidgetExists(`totalRemainingLabel ) )
+	    UI::ChangeWidget(`totalRemainingLabel, `Value, FormatTotalRemaining() );
+
+	if ( UI::WidgetExists(`multiProgressMeter ) )	// Avoid that in NCurses - too much flicker
+	    UI::RecalcLayout();
+    }
+
+
+    /**
+     * Switch unit to seconds if necessary and recalc everything accordingly.
+     * @return true if just switched from sizes to seconds, false otherwise
+     **/
+    boolean SwitchToSecondsIfNecessary()
+    {
+	if ( unit_is_seconds
+	    || time() < start_time + initial_recalc_delay )
+	{
+	    return false;	// no need to switch
+	}
+
+	RecalcRemainingTimes( true );	// force recalculation
+	unit_is_seconds = true;
+
+	return true;	// just switched
+    }
+
+
+    /**
+     * Load a slide image + text.
+     * @param slide_no number of slide to load
+     **/
+    void LoadSlide( integer slide_no )
+    {
+	if ( slide_no > size( slides ) )
+	{
+	    slide_no = 0;
+	}
+
+	current_slide_no = slide_no;
+
+	string slide_name = slides[slide_no]:"";
+	slide_start_time = time();
+
+	if ( LoadSlideFile( sformat ("%1/%2", slide_txt_path, slide_name ) ) ) return;
+	SetSlideText ("");
+    }
+
+
+    /**
+     * Check if the current slide needs to be changed and do that if
+     * necessary.
+     **/
+    void ChangeSlideIfNecessary()
+    {
+	if ( current_slide_no + 1 < size( slides )
+	    && time() > slide_start_time + slide_interval )
+	{
+	    y2debug( "Loading slide #%1", current_slide_no + 2 );
+	    LoadSlide( current_slide_no + 1 );
+	}
+    }
+
+
+    /**
+     * package start display update
+     * - this is called at the beginning of a new package
+     *
+     * @param pkg_name		package name
+     * @param pkg_summary	package summary (short description)
+     * @param deleting		Flag: deleting (true) or installing (false) package?
+     **/
+    global void SlideDisplayStart( string	pkg_name,
+				   string	pkg_summary,
+				   integer	pkg_size,
+				   boolean	deleting	)
+    {
+	if ( ! SanityCheck( false ) )	return;
+	pkg_name = StripReleaseNo( pkg_name );
+
+	if ( deleting )
+	{
+	    pkg_size = -1;
+
+	    // This is a kind of misuse of insider knowledge: If there are packages to delete, this
+	    // deletion comes first, and only then packages are installed. This, however, greatly
+	    // distorts the estimated times based on data throughput so far: While packages are
+	    // deleted, throughput is zero, and estimated times rise to infinity (they are cut off
+	    // at max_time_per_cd to hide this). So we make sure the time spent deleting packages is
+	    // not counted for estimating remaining times - reset the timer.
+	    //
+	    // Note: This will begin to fail when some day packages are deleted in the middle of the
+	    // installaton process.
+
+	    ResetTimer();
+	}
+
+	if ( pkg_summary == nil )
+	    pkg_summary = "";
+
+	string msg = "";
+
+	if ( deleting )
+	{
+	    // Heading for the progress bar for the current package
+	    // while it is deleted. "%1" is the package name.
+	    msg = sformat( _("Deleting %1"), pkg_name );
+	}
+	else
+	{
+	    msg = sformat( "%1 (%2)", pkg_name, String::FormatSize( pkg_size ) );
+	}
+
+
+	//
+	// Update package progress bar
+	//
+
+	if ( UI::WidgetExists(`progressCurrentPackage) )
+	{
+	    UI::ChangeWidget(`progressCurrentPackage, `Label, msg );
+	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
+	}
+
+
+	//
+	// Update (user visible) installation log
+	//
+
+	string log_line = "\n" + msg;
+
+	if ( pkg_summary != "" )
+	    log_line = log_line + " -- " + pkg_summary;
+
+	inst_log = inst_log + log_line;
+
+	if ( ShowingDetails() )
+	{
+	    if ( UI::WidgetExists( `instLog ) )
+		UI::ChangeWidget(`instLog, `LastLine, log_line );
+	}
+	else
+	{
+	    ChangeSlideIfNecessary();
+	}
+
+
+	if ( ! deleting )
+	{
+	    // the actions are performed when package installation finishes
+//	    SubtractPackageSize( pkg_size );
+	    y2milestone( "Installing %1 -- %2", pkg_name, pkg_summary );
+
+//	    if (SwitchToSecondsIfNecessary()
+//		|| RecalcRemainingTimes( false ) )	// no forced recalculation
+//	    {
+//		y2debug( "Updating progress for all CDs" );
+//		UpdateAllCdProgress();
+//	    }
+//	    else
+//	    {
+//		UpdateCurrentCdProgress();
+//	    }
+
+//	    UpdateTotalProgress();
+
+	} // ! deleting
+    }
+
+    /**
+     * package start display update
+     * - this is called at the end of a new package
+     *
+     * @param pkg_name		package name
+     * @param deleting		Flag: deleting (true) or installing (false) package?
+     **/
+    global void SlideDisplayDone ( string	pkg_name,
+				   integer	pkg_size,
+				   boolean	deleting	)
+    {
+	if ( ! deleting )
+	{
+	    SubtractPackageSize( pkg_size );
+
+	    if (SwitchToSecondsIfNecessary()
+		|| RecalcRemainingTimes( false ) )	// no forced recalculation
+	    {
+		y2debug( "Updating progress for all CDs" );
+		UpdateAllCdProgress();
+	    }
+	    else
+	    {
+		UpdateCurrentCdProgress();
+	    }
+
+	    UpdateTotalProgress();
+
+	} // ! deleting
+
+    }
+
+    /**
+     * Add widgets for progress bar etc. around a slide show page
+     * @param page_id		ID to use for this page (for checking with UI::WidgetExists() )
+     * @param page_contents	The inner widgets (the page contents)
+     * @return			A term describing the widgets
+     **/
+    term AddProgressWidgets( symbol page_id, term page_contents )
+    {
+	term widgets = `Empty();
+
+	if ( UI::HasSpecialWidget(`VMultiProgressMeter ) )
+	{
+	    widgets =
+		`VBox(`id( page_id ),
+		      `VWeight( 1, // lower layout priority so `Label(`nextMedia) gets its desired height
+				`HBox(
+				      page_contents,
+				      `HSpacing( 0.5 ),
+				      `VBox(
+					    `Label(`id(`totalRemainingLabel), FormatTotalRemaining() ),
+					    `VWeight( 1, `VMultiProgressMeter(`id(`multiProgressMeter),
+									      FlattenNoZeroes( total_sizes_per_cd_per_src  ) ) )
+					    )
+				      )
+				),
+		      `VSpacing( 0.3 ),
+		      `Label(`id(`nextMedia ), `opt( `hstretch), FormatNextMedia() )
+		      );
+	}
+	else // No VMultiProgressMeter - use a simpler version (mainly for NCurses UI)
+	{
+	    widgets =
+		`HBox(`id( page_id ),
+		      `HSpacing( 1 ),
+		      `VBox(
+			    `VSpacing( 0.4 ),
+			    `VWeight( 1, // lower layout priority
+				      page_contents ),
+			    // Progress bar for overall progress of software package installation
+			    `ProgressBar(`id(`progressTotal ), _("Total"),
+					 total_size_to_install, TotalInstalledSize() )
+			    // intentionally omitting `Label(`nextMedia) -
+			    // too much flicker upon update (UI::RecalcLayout() ) on NCurses
+			    ),
+		      `HSpacing( 0.5 )
+		      );
+	}
+
+	y2debug( "widget term: \n%1", widgets );
+	return widgets;
+    }
+
+
+    /**
+     * Construct widgets describing a page with the real slide show
+     * (the RichText / HTML page)
+     *
+     * @return	A term describing the widgets
+     **/
+    term SlidePageWidgets()
+    {
+	term widgets =
+	    AddProgressWidgets( `slideShowPage,
+				`RichText(`id(`slideText), "" )
+				);
+	y2debug( "widget term: \n%1", widgets );
+	return widgets;
+    }
+
+
+    /**
+     * Construct widgets for the "details" page
+     *
+     * @return	A term describing the widgets
+     **/
+    term DetailsPageWidgets()
+    {
+	term widgets =
+	    AddProgressWidgets( `detailsPage,
+				`VBox(
+				      `VWeight( 1,
+						`Table( `id(`cdStatisticsTable), `opt(`keepSorting),
+							`header(
+								// Table headings for CD statistics during installation
+								_("Media"),
+								// Table headings for CD statistics during installation
+								`Right( _("Size") ),
+								// Table headings for CD statistics during installation
+								`Right( _("Packages") ),
+								// Table headings for CD statistics during installation
+								`Right(  _("Time") )
+								),
+							CdStatisticsTableItems()
+							)
+						),
+				      `VWeight( 1,
+						`LogView(`id(`instLog ),  "", 6, 0 )
+						),
+				      `ProgressBar(`id(`progressCurrentPackage), " ", 100, 0 )
+				      )
+				);
+
+	y2debug( "widget term: \n%1", widgets );
+	return widgets;
+    }
+
+
+    /**
+     * Switch from the 'details' view to the 'slide show' view.
+     **/
+    global void SwitchToSlideView()
+    {
+	if ( ShowingSlide() )
+	    return;
+
+	if ( UI::WidgetExists(`tabContents ) )
+	{
+	    UI::ChangeWidget(`dumbTab, `CurrentItem, `showSlide );
+	    UI::ReplaceWidget(`tabContents, SlidePageWidgets() );
+	    UpdateTotalProgress();
+	}
+    }
+
+
+    /**
+     * Switch from the 'slide show' view to the 'details' view.
+     **/
+    global void SwitchToDetailsView()
+    {
+	if ( ShowingDetails() )
+	    return;
+
+	if ( UI::WidgetExists(`tabContents ) )
+	{
+	    UI::ChangeWidget(`dumbTab, `CurrentItem, `showDetails );
+	    UI::ReplaceWidget(`tabContents, DetailsPageWidgets() );
+	}
+
+	UpdateTotalProgress();
+	UpdateAllCdProgress();
+
+	if ( UI::WidgetExists( `instLog ) && inst_log != "" )
+	    UI::ChangeWidget(`instLog, `Value, inst_log );
+    }
+
+
+    string HelpText()
+    {
+	// Help text while software packages are being installed (displayed only in rare cases)
+	string help_text = _("<p>Please wait while packages are installed.</p>");
+
+	return help_text;
+    }
+
+
+    void RebuildDialog()
+    {
+	if ( ! SanityCheck( false ) )	return;
+
+	term contents = `Empty();
+
+	if ( UI::HasSpecialWidget(`DumbTab) && HaveSlideSupport()
+	    && HaveSlides() )
+	{
+	    contents =
+		`DumbTab(`id(`dumbTab ),
+			     [
+				// tab
+			      `item(`id(`showSlide   ), _("Slide Sho&w") ),
+				// tab
+			      `item(`id(`showDetails ), _("&Details")	   )
+			      ],
+			  `VBox(
+				`VSpacing( 0.4 ),
+				`VWeight( 1,	// lower layout priority
+					  `HBox(
+						`HSpacing( 1 ),
+						`ReplacePoint(`id(`tabContents), SlidePageWidgets() ),
+						`HSpacing( 0.5 )
+						)
+					  ),
+				`VSpacing( 0.4 )
+				)
+			  );
+
+	}
+	else
+	{
+	    contents = DetailsPageWidgets();
+	}
+
+	Wizard::SetContents(
+			    // Dialog heading while software packages are being installed
+			    _("Package Installation"),
+			    contents,
+			    HelpText(),
+			    false, false );	// has_back, has_next
+
+	widgets_created = true;
+
+	if ( ! HaveSlides() && ShowingSlide() )
+	    SwitchToDetailsView();
+    }
+
+
+
+    /**
+     * Open the slide show base dialog with empty work area (placeholder for
+     * the image) and CD statistics.
+     **/
+    void OpenSlideShowBaseDialog()
+    {
+	if ( ! Wizard::IsWizardDialog() ) // If there is no Wizard dialog open already, open one
+	{
+	    Wizard::OpenNextBackDialog();
+	    opened_own_wizard = true;
+	}
+
+	UI::WizardCommand(`ProtectNextButton( false ) );
+	Wizard::RestoreBackButton();
+	Wizard::RestoreAbortButton();
+	Wizard::RestoreNextButton();
+
+	Wizard::SetContents(
+			    // Dialog heading while software packages are being installed
+			    _("Package Installation"),
+			    `Empty(),		// Wait until InitPkgData() is called from outside
+			    HelpText(),
+			    false, false );	// has_back, has_next
+
+	RebuildDialog();
+	Wizard::SetTitleIcon( "software" );
+    }
+
+
+    /**
+     * Initialize internal pacakge data, such as remaining package sizes and
+     * times. This may not be called before the pkginfo server is up and
+     * running, so this cannot be reliably done from the constructor in all
+     * cases.
+     * @param force true to force reinitialization
+     **/
+    global void InitPkgData(boolean force)
+    {
+	if ( init_pkg_data_complete && ! force)
+	    return;
+
+	total_sizes_per_cd_per_src		= Pkg::PkgMediaSizes();
+	inst_src_names				= Pkg::PkgMediaNames();
+	total_pkg_count_per_cd_per_src		= Pkg::PkgMediaCount();
+
+
+	total_size_to_install			= ListSum( flatten( total_sizes_per_cd_per_src ) );
+	remaining_sizes_per_cd_per_src		= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
+	remaining_pkg_count_per_cd_per_src	= (list<list <integer> >) eval (total_pkg_count_per_cd_per_src);
+	total_cd_count				= size( flatten( total_sizes_per_cd_per_src ) );
+	init_pkg_data_complete			= true;
+
+	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
+	y2milestone( "SlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
+	RebuildDialog();
+    }
+
+
+
+    /**
+     * Try to figure out what media will be needed next
+     * and set next_src_no and next_cd_no accordingly.
+     **/
+    void FindNextMedia()
+    {
+	// Normally we would have to use current_cd_no+1,
+	// but since this uses 1..n and we need 0..n-1
+	// for array subscripts anyway, use it as it is.
+	next_cd_no	= current_cd_no;
+	next_src_no	= current_src_no-1;
+	last_cd		= false;
+
+	while ( next_src_no < size( remaining_sizes_per_cd_per_src ) )
+	{
+	    list<integer> remaining_sizes = remaining_sizes_per_cd_per_src[ next_src_no ]: [];
+
+	    while ( next_cd_no < size( remaining_sizes ) )
+	    {
+		if ( remaining_sizes[ next_cd_no ]:0 > 0 )
+		{
+		    if ( debug )
+			y2milestone( "Next media: src: %1 CD: %2", next_src_no, next_cd_no );
+		    return;
+		}
+		else
+		{
+		    next_cd_no = next_cd_no + 1;
+		}
+	    }
+
+	    next_src_no = next_src_no + 1;
+	}
+
+	if ( debug )
+	    y2milestone( "No next media - all done" );
+
+	next_src_no	= -1;
+	next_cd_no	= -1;
+	last_cd		= true;
+    }
+
+
+    /**
+     * Set the current source and CD number. Must be called for each CD change.
+     * src_no: 1...n
+     * cd_no:  1...n
+     **/
+    global void SetCurrentCdNo( integer src_no, integer cd_no )
+    {
+	y2milestone("SetCurrentCdNo() - src: %1 , CD: %2", src_no, cd_no);
+	current_src_no = src_no;
+	current_cd_no  = cd_no;
+
+	CheckForSlides();
+	FindNextMedia();
+
+	if ( HaveSlides() && HaveSlideSupport() )
+	{
+	    if ( ! HaveSlideWidget() )
+	    {
+		RebuildDialog();
+
+		if ( user_switched_to_details )
+		    SwitchToDetailsView();
+	    }
+
+	    if ( ! user_switched_to_details ) // Don't override explicit user request!
+	    {
+		SwitchToSlideView();
+		LoadSlide(0);
+	    }
+	}
+	else
+	{
+	    if ( ! ShowingDetails() )
+		RebuildDialog();
+	    else
+		UpdateTotalProgress();
+
+	    current_slide_no = 0;
+	}
+    }
+
+
+    /**
+     * Process (slide show) input (button press).
+     **/
+    global void HandleInput( any button )
+    {
+	if ( button == `showDetails && ! ShowingDetails() )
+	{
+	    user_switched_to_details = true ;
+	    SwitchToDetailsView();
+	}
+	else if ( button == `showSlide && ! ShowingSlide() )
+	{
+	    if ( HaveSlides() )
+	    {
+		user_switched_to_details = false;
+		SwitchToSlideView();
+		LoadSlide( current_slide_no );
+	    }
+	    else
+	    {
+		UI::ChangeWidget(`dumbTab, `CurrentItem, `showDetails );
+	    }
+	}
+	else if ( button == `debugHotkey )
+	{
+	    debug = ! debug;
+	    y2milestone( "Debug mode: %1", debug );
+	}
+    }
+
+
+    /**
+     * Install callbacks for slideshow. Should be in SlideShowCallbacks but
+     * that doesn't work at the moment.
+     */
+    global void InstallSlideShowCallbacks()
+    {
+	y2milestone( "InstallSlideShowCallbacks");
+
+	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
+	Pkg::CallbackProgressPackage ("SlideShowCallbacks::ProgressPackage");
+	Pkg::CallbackDonePackage ("SlideShowCallbacks::DonePackage");
+
+	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
+	Pkg::CallbackProgressProvide ("SlideShowCallbacks::ProgressProvide");
+	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
+
+	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
+
+	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
+	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
+	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
+    }
+
+
+    /**
+     * Remove callbacks for slideshow. Should be in SlideShowCallbacks but
+     * that doesn't work at the moment.
+     */
+    global void RemoveSlideShowCallbacks()
+    {
+	y2milestone( "RemoveSlideShowCallbacks");
+
+	Pkg::CallbackStartPackage ("");
+	Pkg::CallbackProgressPackage ("");
+	Pkg::CallbackDonePackage ("");
+
+	Pkg::CallbackStartProvide ("");
+	Pkg::CallbackProgressProvide ("");
+	Pkg::CallbackDoneProvide ("");
+
+	Pkg::CallbackSourceChange ("");
+
+	Pkg::CallbackStartDownload ("");
+	Pkg::CallbackProgressDownload ("");
+	Pkg::CallbackDoneDownload ("");
+    }
+
+
+    /**
+     * Open the slide show dialog.
+     **/
+    global void OpenSlideShowDialog()
+    {
+	InstallSlideShowCallbacks();
+
+	OpenSlideShowBaseDialog();
+	CheckForSlides();
+
+	if ( HaveSlides() )
+	    LoadSlide(0);
+	else
+	    SwitchToDetailsView();
+
+	UpdateAllCdProgress();
+    }
+
+
+    /**
+     * Close the slide show dialog.
+     **/
+    global void CloseSlideShowDialog()
+    {
+	if ( opened_own_wizard )
+	    Wizard::CloseDialog();
+
+	RemoveSlideShowCallbacks();
+    }
+
+}
