@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 18 14:46:10 CEST 2005 - jsrain@suse.cz
+
+- don't allow to set "autorefresh" to "PlainDir" sources (#128379)
+
+-------------------------------------------------------------------
 Wed Oct  5 14:36:25 CEST 2005 - jsrain@suse.cz
 
 - allow to break package download (#115534)
