@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Tue Oct 18 14:46:10 CEST 2005 - jsrain@suse.cz
+Tue Oct 18 16:27:21 CEST 2005 - jsrain@suse.cz
 
 - don't allow to set "autorefresh" to "PlainDir" sources (#128379)
+- made source adding popups wider, added possibility to set URI
+  directly (#120954)
 
 -------------------------------------------------------------------
 Wed Oct  5 14:36:25 CEST 2005 - jsrain@suse.cz
