@@ -450,8 +450,21 @@ All changes will be lost.");
             }
             else if ( input == `refresh_on_off )
             {
+		integer source_id = sourceState["SrcId"]:0;
+		map src_data = Pkg::SourceGeneralData (source_id);
+		string type = src_data["type"]:"UnitedLinux";
+
                 boolean state = sourceState[ "autorefresh" ]:true;
-                state = !state;
+		if (type == "PlainDir" && ! state)
+		{
+		    // popup message
+		    Popup::Message (_("For the selected source, refresh
+cannot be set."));
+		}
+		else
+		{
+		    state = !state;
+		}
 		// corresponds to the "Enable/Disable" button
                 string newstate = ( state ? _("On") : _("Off") );
                 UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
