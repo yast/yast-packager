@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 24 19:15:22 CEST 2005 - lslezak@suse.cz
+
+- installation source module can be closed by window
+  manager (#118233)
+
+-------------------------------------------------------------------
 Mon Oct 24 18:46:05 CEST 2005 - lslezak@suse.cz
 
 - reimplemented callbacks for the command line mode (#91033)
