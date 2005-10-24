@@ -21,6 +21,7 @@
     import "Popup";
     import "PackageCallbacksInit";
     import "URL";
+    import "CommandLine";
 
     global boolean _provide_popup = false;
     global boolean _package_popup = false;
@@ -40,6 +41,8 @@
 
     boolean provide_aborted = false;
 
+    string back_string = "\b\b\b\b\b\b\b\b\b\b";
+    string clear_string = back_string + "          " + back_string;
 
     //--------------------------------------------------------------------------
     // defaults
@@ -51,19 +54,25 @@
     {
 	if (remote)
 	{
-	    term providebox = `VBox(
-		`HSpacing(40),
-		// label
-		`Left (`Label (_("Downloading package"))),
-		`ProgressBar(`id(`progress), name, 100, 0 ),
-		`HBox (
-		    `HStretch (),
-		    `PushButton (`id (`abort), Label::AbortButton ()),
-		    `HStretch ()
-		)
-	    );
-	    UI::OpenDialog( providebox );
-	    _provide_popup = true;
+	    if (Mode::commandline()) {
+		CommandLine::PrintVerbose(sformat(_("Downloading package %1..."), name));
+	    }
+	    else {
+		term providebox = `VBox(
+		    `HSpacing(40),
+		    // label
+		    `Left (`Label (_("Downloading package"))),
+		    `ProgressBar(`id(`progress), name, 100, 0 ),
+		    `HBox (
+			`HStretch (),
+			`PushButton (`id (`abort), Label::AbortButton ()),
+			`HStretch ()
+		    )
+		);
+		UI::OpenDialog( providebox );
+
+		_provide_popup = true;
+	    }
 	}
 	return;
     }
@@ -79,6 +88,10 @@
 	    UI::ChangeWidget(`id(`progress), `Value, percent);
 	    provide_aborted = UI::PollInput () == `abort;
 	    return ! provide_aborted;
+	}
+	else if (Mode::commandline()) {
+	    // there is no popup window, but command line mode is set
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
 	}
 	return true;
     }
@@ -139,6 +152,13 @@
     {
 	if (_provide_popup)
 	    UI::CloseDialog();
+
+	if (Mode::commandline())
+	{
+	    // remove the progress
+	    CommandLine::PrintVerboseNoCR(clear_string);
+	}
+
 	if (provide_aborted)
 	{
 	    provide_aborted = false;
@@ -228,13 +248,18 @@
 	_package_size = installsize;
 	_deleting_package = is_delete;
 
-	term packagebox = `VBox( `Label(`id(`package), name ),
-				 `VSpacing(),
-				 `HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
-				 );
+	if (Mode::commandline()) {
+	    CommandLine::PrintVerbose(sformat(_("Installing package %1..."), name));
+	}
+	else {
+	    term packagebox = `VBox( `Label(`id(`package), name ),
+				     `VSpacing(),
+				     `HBox(`ProgressBar(`id(`progress), " ", 100, 0 ))
+				     );
 
-	UI::OpenDialog( `opt(`decorated), packagebox );
-	_package_popup = true;
+	    UI::OpenDialog( `opt(`decorated), packagebox );
+	    _package_popup = true;
+	}
 	return true;
     }
 
@@ -246,6 +271,16 @@
     {
 	if (_package_popup)
 	    UI::ChangeWidget (`id(`progress), `Value, percent);
+	else if (Mode::commandline()) {
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
+	    if (percent == 100)
+	    {
+		// sleep for a wile
+		sleep(200);
+		// remove the progress
+		CommandLine::PrintVerboseNoCR(clear_string);
+	    }
+	}
 
 	return;
     }
@@ -634,36 +669,55 @@ global void DoneSourceRefresh (map<string,any> info) {
 	// message in a progress popup
 	string message = sformat (_("Downloading: %1"), url);
 
-	UI::OpenDialog (`opt(`decorated),
-			`VBox (`Heading (heading) ,
-			       `VBox (
-				      `Label(message),
-				      `HSpacing(60),
-				      `HBox(
-					    `HSpacing(2),
-					    `ProgressBar (`id(`progress),
-							  _("Status"), 100),
-					    `HSpacing(2)
-					    ),
-				      `VSpacing(1),
-				      `HBox (
-					`HStretch (),
-					`PushButton (`id (`abort), Label::AbortButton ()),
-					`HStretch ()
-				      ),
-				      `VSpacing(1)
-				      )
-			       )
-			);
+	if (Mode::commandline()) {
+	    CommandLine::PrintVerbose(message);
+	}
+	else
+	{
+	    UI::OpenDialog (`opt(`decorated),
+			    `VBox (`Heading (heading) ,
+				   `VBox (
+					  `Label(message),
+					  `HSpacing(60),
+					  `HBox(
+						`HSpacing(2),
+						`ProgressBar (`id(`progress),
+							      _("Status"), 100),
+						`HSpacing(2)
+						),
+					  `VSpacing(1),
+					  `HBox (
+					    `HStretch (),
+					    `PushButton (`id (`abort), Label::AbortButton ()),
+					    `HStretch ()
+					  ),
+					  `VSpacing(1)
+					  )
+				   )
+			    );
 
-	UI::ChangeWidget (`id(`progress), `Value, 0);
+	    UI::ChangeWidget (`id(`progress), `Value, 0);
+	}
     }
 
 
     global define boolean ProgressDownload (integer percent, integer expected_size)
     {
-	UI::ChangeWidget (`id(`progress), `Value, percent);
-	return UI::PollInput () != `abort;
+	if (Mode::commandline()) {
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
+	    if (percent == 100)
+	    {
+		// sleep for a wile
+		sleep(200);
+		// remove the progress
+		CommandLine::PrintVerboseNoCR(clear_string);
+		// print newline when reached 100%
+	    }
+	}
+	else {
+	    UI::ChangeWidget (`id(`progress), `Value, percent);
+	    return UI::PollInput () != `abort;
+	}
     }
 
 
@@ -671,9 +725,17 @@ global void DoneSourceRefresh (map<string,any> info) {
     {
 	if (error_value != 0)
 	{
-	    // error message, %1 is the cause for the error
-	    Popup::Error (sformat (_("Download failed:
+	    if (Mode::commandline()) {
+		//error message, %1 is the cause for the error
+		CommandLine::Print(sformat (_("Download failed:
 %1"), error_text));
+	    }
+	    else
+	    {
+		// error message, %1 is the cause for the error
+		Popup::Error (sformat (_("Download failed:
+%1"), error_text));
+	    }
 	}
 
 	UI::CloseDialog ();
