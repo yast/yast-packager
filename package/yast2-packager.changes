@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 24 18:46:05 CEST 2005 - lslezak@suse.cz
+
+- reimplemented callbacks for the command line mode (#91033)
+- 2.13.7
+
+-------------------------------------------------------------------
 Tue Oct 18 16:27:21 CEST 2005 - jsrain@suse.cz
 
 - don't allow to set "autorefresh" to "PlainDir" sources (#128379)
