@@ -382,7 +382,8 @@ configuration.");
             exit = true;
           }
         }
-        else if (input == `abort || input == `cancel)
+	// Wizard::UserInput returns `back instead of `cancel when window is closed by WM
+        else if (input == `abort || input == `back)
         {
 	  // popup headline
           string headline = _("Abort Installation Source Configuration");
