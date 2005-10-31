@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 31 12:55:16 CET 2005 - jsrain@suse.cz
+
+- fixed copying GPG keys from installation media during
+  installation (#130579)
+
+-------------------------------------------------------------------
 Mon Oct 24 19:15:22 CEST 2005 - lslezak@suse.cz
 
 - installation source module can be closed by window
