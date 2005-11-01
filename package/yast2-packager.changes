@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov  1 11:16:39 CET 2005 - jsrain@suse.cz
+
+- added support for HTTPS installation source (#130710)
+
+-------------------------------------------------------------------
 Mon Oct 31 12:55:16 CET 2005 - jsrain@suse.cz
 
 - fixed copying GPG keys from installation media during
