@@ -17,6 +17,7 @@ import "GetInstArgs";
 import "Label";
 import "Packages";
 import "Popup";
+import "ProductFeatures";
 import "Stage";
 import "Wizard";
 
