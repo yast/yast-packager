@@ -343,7 +343,7 @@ global boolean CreateLocalMetaData (
     // copy GPG keys if there are any
 
     string directory_file = Pkg::SourceProvideFile (
-	initial_source, 1, orderdir + "/directory.yast");
+	SrcId, 1, descrDir + "/directory.yast");
 
     string directory_str = (string)
 	WFM::Read (.local.string, directory_file);
@@ -354,7 +354,7 @@ global boolean CreateLocalMetaData (
     y2milestone ("GPG keys to be copied: %1", directory);
     foreach (string k, directory, {
 	string file = Pkg::SourceProvideFile (
-	    initial_source, 1, orderdir + "/" + k);
+	    SrcId, 1, descrDir + "/" + k);
 	WFM::Execute (.local.bash,
 	    "cp /" + file + " " + localdir);
     });

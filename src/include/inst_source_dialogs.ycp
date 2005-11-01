@@ -596,7 +596,7 @@
     }
 
     define string editUrl( string url) ``{
-        return editUrl2( url, false );
+        return editUrl2( url, true );
     }
 
     string editRawUrl( string url ) {
