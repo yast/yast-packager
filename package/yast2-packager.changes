@@ -1,9 +1,10 @@
 -------------------------------------------------------------------
-Tue Nov  1 11:21:49 CET 2005 - jsrain@suse.cz
+Tue Nov  1 11:27:08 CET 2005 - jsrain@suse.cz
 
 - added support for HTTPS installation source (#130710)
 - do not ask about desktop during installation if base selection
   is fixed in the control file
+- renamed inst_desktop_new.ycp to inst_destkop.ycp
 
 -------------------------------------------------------------------
 Mon Oct 31 12:55:16 CET 2005 - jsrain@suse.cz
