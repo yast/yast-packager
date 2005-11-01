@@ -20,6 +20,11 @@ import "Popup";
 import "Stage";
 import "Wizard";
 
+
+// do not offer the dialog if base selection is fixed
+if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
+    return `auto;
+
 map<symbol,string> desktop2selection = $[
     `gnome : "default-Gnome",
     `kde : "default",
