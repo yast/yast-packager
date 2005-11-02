@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Nov  2 15:24:29 CET 2005 - lslezak@suse.cz
 
-- command line mode support in the error callbacks
+- command line mode support in the error callbacks (#131746)
 - 2.13.9
 
 -------------------------------------------------------------------
