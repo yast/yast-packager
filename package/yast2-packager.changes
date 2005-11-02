@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov  2 15:24:29 CET 2005 - lslezak@suse.cz
+
+- command line mode support in the error callbacks
+- 2.13.9
+
+-------------------------------------------------------------------
 Tue Nov  1 13:10:47 CET 2005 - jsrain@suse.cz
 
 - added support for HTTPS installation source (#130710)

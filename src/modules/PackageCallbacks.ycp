@@ -170,6 +170,38 @@
 	{
 	    string message = sformat (_("Package %1 was not found on the medium."), name);
 
+	    if (Mode::commandline()) {
+		CommandLine::Print(message);
+
+		// ask user in the interactive mode
+		if (CommandLine::Interactive())
+		{
+		    CommandLine::Print("");
+
+		    // command line mode - ask user whether installation of the failed package should be retried
+		    CommandLine::Print(_("Retry installation of the package?"));
+
+		    if (CommandLine::YesNo())
+		    {
+			// return Retry
+			return "R";
+		    }
+
+		    // command line mode - ask user whether the installation should be aborted
+		    CommandLine::Print(_("Abort the installation?"));
+		    if (CommandLine::YesNo())
+		    {
+			// return Abort
+			return "C";
+		    }
+
+		    // otherwise return Ignore (default)
+		    return "";
+		}
+
+		return "";
+	    }
+
 	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
 	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
 	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
@@ -309,47 +341,79 @@
 	    // error popup during package installation, %1 is the name of the package
 	    string message = sformat (_("Installation of package %1 failed."), _package_name);
 
-	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()),
-				     `PushButton(`id(`retry), Label::RetryButton()),
-				     `PushButton(`id(`ignore), Label::IgnoreButton()));
+	    if (Mode::commandline()) {
+		CommandLine::Print(message);
+		CommandLine::Print(info);
 
-	    if ( showLongInfo )
-	    {
-		UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
-		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
-	    }
-	    else
-	    {
-		UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 2, false) );
-		UI::ReplaceWidget(`id(`info), `Empty() );
-	    }
-
-	    any r = nil;
-
-	    repeat {
-		r = UI::UserInput();
-		if ( r == `show )
+		// ask user in the interactive mode
+		if (CommandLine::Interactive())
 		{
-		    showLongInfo = ShowLogInfo (message, button_box);
-		    if (showLongInfo)
+		    CommandLine::Print("");
+
+		    // command line mode - ask user whether installation of the failed package should be retried
+		    CommandLine::Print(_("Retry installation of the package?"));
+
+		    if (CommandLine::YesNo())
 		    {
-			UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+			// return Retry
+			return "R";
 		    }
-		    else
+
+		    // command line mode - ask user whether the installation should be aborted
+		    CommandLine::Print(_("Abort the installation?"));
+		    if (CommandLine::YesNo())
 		    {
-			UI::ReplaceWidget(`id(`info), `Empty() );
+			// return Abort
+			return "C";
 		    }
+
+		    // otherwise return Ignore (default)
+		    return "";
 		}
-	    } until (r == `abort || r == `retry || r == `ignore);
+	    }
+	    else {
+		term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()),
+					 `PushButton(`id(`retry), Label::RetryButton()),
+					 `PushButton(`id(`ignore), Label::IgnoreButton()));
 
-	    y2milestone ("DonePackage %1", r);
+		if ( showLongInfo )
+		{
+		    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
+		    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+		}
+		else
+		{
+		    UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 2, false) );
+		    UI::ReplaceWidget(`id(`info), `Empty() );
+		}
 
-	    UI::CloseDialog();
+		any r = nil;
 
-	    if (r == `abort)
-		return "C";
-	    if (r == `retry)
-		return "R";
+		repeat {
+		    r = UI::UserInput();
+		    if ( r == `show )
+		    {
+			showLongInfo = ShowLogInfo (message, button_box);
+			if (showLongInfo)
+			{
+			    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+			}
+			else
+			{
+			    UI::ReplaceWidget(`id(`info), `Empty() );
+			}
+		    }
+		} until (r == `abort || r == `retry || r == `ignore);
+
+		y2milestone ("DonePackage %1", r);
+
+		UI::CloseDialog();
+
+		if (r == `abort)
+		    return "C";
+		if (r == `retry)
+		    return "R";
+	    }
 
 	    // default: ignore
 	}
@@ -484,6 +548,41 @@ Check that the server is accessible."), wanted_label);
 	    button_box = add (button_box, `PushButton (`id(`eject), _("&Eject")));
 	}
 
+	if (Mode::commandline())
+	{
+	    CommandLine::Print(message);
+	    CommandLine::Print(error);
+
+	    // ask user in the interactive mode
+	    if (CommandLine::Interactive())
+	    {
+		CommandLine::Print("");
+
+		// command line mode - ask user whether installation of the failed package should be retried
+		CommandLine::Print(_("Retry the installation?"));
+
+		if (CommandLine::YesNo())
+		{
+		    // return Retry
+		    return "";
+		}
+
+		// command line mode - ask user whether the installation should be aborted
+		CommandLine::Print(_("Skip the medium?"));
+		if (CommandLine::YesNo())
+		{
+		    // return Skip
+		    return "S";
+		}
+
+		// otherwise ignore the medium
+		CommandLine::Print(_("Ignoring the bad medium..."));
+		return "I";
+	    }
+
+	    return "S";
+	}
+
 	if ( showLongInfo )
 	{
 	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
@@ -580,10 +679,17 @@ global void StartSourceRefresh (map<string,any> info) {
 	UI::CloseDialog ();
     string product = info["label"]:"";
     string url = info["url"]:"";
-    UI::OpenDialog (`Label (
-	// popup label (%1 is product name, eg. "SuSE Linux", %2 is source URL)
-	sformat (_("Refreshing %1\n(%2)"), product, url)));
-    refresh_open = true;
+
+    // popup label (%1 is product name, eg. "SuSE Linux", %2 is source URL)
+    string msg = sformat(_("Refreshing %1\n(%2)"), product, url);
+
+    if (Mode::commandline()) {
+	CommandLine::Print(msg);
+    }
+    else {
+	UI::OpenDialog(`Label(msg));
+	refresh_open = true;
+    }
 }
 
 global symbol ErrorSourceRefresh (map<string,any> info) {
@@ -604,6 +710,40 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
 	// error message - a label followed by a richtext with details
 	message = _("An error occurred while retrieving the new metadata.");
 
+    if (Mode::commandline())
+    {
+	CommandLine::Print(message);
+	CommandLine::Print(detail);
+
+	// ask user in the interactive mode
+	if (CommandLine::Interactive())
+	{
+	    CommandLine::Print("");
+
+	    // command line mode - ask user whether the source refreshment should be retried
+	    CommandLine::Print(_("Retry refresh?"));
+
+	    if (CommandLine::YesNo())
+	    {
+		// return Retry
+		return `RETRY;
+	    }
+
+	    // command line mode - ask user whether the installation should be aborted
+	    CommandLine::Print(_("Disable the source?"));
+	    if (CommandLine::YesNo())
+	    {
+		// return Skip
+		return `DISABLE_SOURCE;
+	    }
+
+	    // otherwise ignore the medium
+	    CommandLine::Print(_("Skipping the refresh..."));
+	    return `SKIP_REFRESH;
+	}
+
+	return `SKIP_REFRESH;
+    }
     UI::OpenDialog (`VBox (
 	`Label (message),
 	`RichText(detail),
@@ -634,12 +774,30 @@ global void DoneSourceRefresh (map<string,any> info) {
     if (result == `SKIP_REFRESH)
     {
 	// message popup
-	Popup::Message (_("Installation source not refreshed."));
+	string msg = _("Installation source not refreshed.");
+
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(msg);
+	}
+	else
+	{
+	    Popup::Message(msg);
+	}
     }
     else if (result == `DISABLE_SOURCE)
     {
 	// message popup
-	Popup::Message (_("Installation source disabled."));
+	string msg = _("Installation source disabled.");
+
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(msg);
+	}
+	else
+	{
+	    Popup::Message(msg);
+	}
     }
 }
 
