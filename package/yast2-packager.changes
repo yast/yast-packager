@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov  8 13:31:25 CET 2005 - lslezak@suse.cz
+
+- URL escaping moved to URL.ycp
+- 2.13.10
+
+-------------------------------------------------------------------
 Wed Nov  2 15:24:29 CET 2005 - lslezak@suse.cz
 
 - command line mode support in the error callbacks (#131746)
