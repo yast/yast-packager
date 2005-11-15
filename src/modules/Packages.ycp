@@ -436,7 +436,9 @@
 
 	if (Stage::initial ())
 	{
-	    Pkg::SetAdditionalLocales ([Language::language]);
+        if( ! Mode::autoinst() ) {
+	        Pkg::SetAdditionalLocales ([Language::language]);
+        }
 	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
 
 	    Pkg::SourceSetRamCache (false);
