@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 15 17:26:06 CET 2005 - ug@suse.de
+
+- don't overwrite additionalLocales in autoinstallation
+- 2.13.11
+
+-------------------------------------------------------------------
 Tue Nov  8 13:31:25 CET 2005 - lslezak@suse.cz
 
 - URL escaping moved to URL.ycp
