@@ -48,7 +48,7 @@
     //--------------------------------------------------------------------------
     // defaults
 
-    term ProgressBox (string heading) {
+    term ProgressBox (string heading, string name, string sz) {
 	term progressbox = `VBox(
 	    `HSpacing(40),
 	    // popup heading
@@ -86,7 +86,7 @@
 	    }
 	    else {
 		// popup heading
-		term providebox = ProgressBox (_("Downloading Package"));
+		term providebox = ProgressBox (_("Downloading Package"), name, sz);
 		UI::OpenDialog(providebox);
 		_provide_popup = true;
 	    }
@@ -296,7 +296,7 @@
 	_package_name = name;
 	_package_size = installsize;
 	_deleting_package = is_delete;
-	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
+	string sz = String::FormatSizeWithPrecision (installsize, 2, false);
 
 	if (Mode::commandline()) {
 	    CommandLine::PrintVerbose(sformat(
@@ -308,7 +308,8 @@
 	else {
 	    term packagebox = ProgressBox (is_delete
 		? _("Uninstalling Package")
-		: _("Installing Package"));
+		: _("Installing Package"),
+		name, sz);
 
 	    UI::OpenDialog( `opt(`decorated), packagebox );
 	    _package_popup = true;
