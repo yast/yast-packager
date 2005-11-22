@@ -21,7 +21,6 @@ import "ProductFeatures";
 import "Stage";
 import "Wizard";
 
-
 // do not offer the dialog if base selection is fixed
 if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
     return `auto;
@@ -41,6 +40,12 @@ map<string,symbol> selection2desktop = mapmap (symbol d, string s,
 
 symbol alt_desktop = nil;
 symbol other_desktop = nil;
+if (Packages::preferred_base_selection == nil)
+{
+    Packages::preferred_base_selection = ProductFeatures::GetStringFeature ("software", "base_selection");
+    if (Packages::preferred_base_selection == "")
+	Packages::preferred_base_selection = nil;
+}
 if (Packages::preferred_base_selection != nil)
 {
     alt_desktop = selection2desktop[Packages::preferred_base_selection]:`kde;
@@ -72,26 +77,6 @@ _("KDE is a powerful and intuitive desktop
 environment that uses Kontact as its mailer
 and Konqueror as its browser and file manager.");
 
-// help text 1/1
-/*
-string help = _("<p>SUSE Linux offers the most efficient
-and comfortable desktops.
-Select the desktop to install.</p>");*/
-
-// help text 1/1
-/*string label = _("Both KDE and GNOME are powerful and intuitive
-desktop environments. They combine ease of use
-and attractive graphical interfaces with their
-own sets of perfectly integrated applications. 
-
-Choosing the default GNOME or KDE desktop
-environment installs a broad set of the
-most important desktop applications on your
-system.");
-
-	// label (in bold font)
-label = _("Graphical Desktop Environment");*/
-
 // help text 1/3
 string help = _("<p>Both <b>KDE</b> and <b>GNOME</b> are powerful and intuitive
 desktop environments. They combine ease of use
@@ -109,14 +94,7 @@ _("<p>Choose <b>Other</b> then press <b>Select</b> to select
 an alternative, such as a text-only system or a minimal graphical
 system with a basic window manager.</p>");
 
-term contents = `RadioButtonGroup (`id (`desktop), `HBox (
-    `HWeight(1, `Empty()),	// Distribute excess space 1:2 (left:right)
-    `VBox(
-	`VStretch (),
-	// label (in bold font)
-//	`Left (`Label (`opt (`boldFont), _("Graphical Desktop Environment"))),
-//	`VSpacing (1.4),
-	`VWeight (10, `VBox (
+term kde = `VBox (
 	    `Left (`RadioButton (`id (`kde), `opt(`notify, `boldFont),
 		// radio button
 		_("&KDE"),
@@ -129,9 +107,9 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 		    Directory::themedir + "/current/icons/48x48/apps/kde.png",
 			"")))
 	    ))
-	)),
-	`VSpacing (0.4),
-	`VWeight (10, `VBox (
+	);
+
+term gnome = `VBox (
 	    `Left (`RadioButton (`id (`gnome), `opt (`notify, `boldFont),
 		// radio button
 		_("&GNOME"),
@@ -144,7 +122,20 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 		    Directory::themedir + "/current/icons/48x48/apps/gnome.png",
 			"")))
 	    )
-	)),
+	);
+
+boolean gnome_first = ProductFeatures::GetStringFeature ("software", "base_selection") == "default-Gnome";
+
+term contents = `RadioButtonGroup (`id (`desktop), `HBox (
+    `HWeight(1, `Empty()),	// Distribute excess space 1:2 (left:right)
+    `VBox(
+	`VStretch (),
+	// label (in bold font)
+//	`Left (`Label (`opt (`boldFont), _("Graphical Desktop Environment"))),
+//	`VSpacing (1.4),
+	`VWeight (10, gnome_first ? gnome : kde),
+	`VSpacing (0.4),
+	`VWeight (10, gnome_first ? kde : gnome),
 	`VSpacing (0.4),
 	`VWeight (10, `HBox (
 	    `Left (`RadioButton (`id (`other), `opt(`notify, `boldFont),
