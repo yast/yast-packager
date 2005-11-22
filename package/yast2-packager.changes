@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Tue Nov 22 10:41:30 CET 2005 - jsrain@suse.cz
+Tue Nov 22 12:51:19 CET 2005 - jsrain@suse.cz
 
 - showing better popup during package download and installation
+- set default desktop according to control file
 
 -------------------------------------------------------------------
 Tue Nov 15 17:26:06 CET 2005 - ug@suse.de
