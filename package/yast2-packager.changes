@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 22 10:41:30 CET 2005 - jsrain@suse.cz
+
+- showing better popup during package download and installation
+
+-------------------------------------------------------------------
 Tue Nov 15 17:26:06 CET 2005 - ug@suse.de
 
 - don't overwrite additionalLocales in autoinstallation
