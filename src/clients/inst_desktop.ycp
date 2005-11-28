@@ -124,8 +124,6 @@ term gnome = `VBox (
 	    )
 	);
 
-boolean gnome_first = ProductFeatures::GetStringFeature ("software", "base_selection") == "default-Gnome";
-
 term contents = `RadioButtonGroup (`id (`desktop), `HBox (
     `HWeight(1, `Empty()),	// Distribute excess space 1:2 (left:right)
     `VBox(
@@ -133,9 +131,9 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 	// label (in bold font)
 //	`Left (`Label (`opt (`boldFont), _("Graphical Desktop Environment"))),
 //	`VSpacing (1.4),
-	`VWeight (10, gnome_first ? gnome : kde),
+	`VWeight (10, gnome),
 	`VSpacing (0.4),
-	`VWeight (10, gnome_first ? kde : gnome),
+	`VWeight (10, kde),
 	`VSpacing (0.4),
 	`VWeight (10, `HBox (
 	    `Left (`RadioButton (`id (`other), `opt(`notify, `boldFont),
