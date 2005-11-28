@@ -15,6 +15,7 @@
     import "Mode";
     import "Installation";
     import "PackageCallbacksInit";
+    import "SLP";
     import "Wizard";
 
     import "Label";
@@ -199,6 +200,8 @@ in the packages selection, continue."),
 						// menunutton
 				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
 						// menunutton item
+                                                  `item(`id(`slp),       _("&Scan using SLP...") ),
+						// menunutton item
                                                   `item(`id(`ftp),       _("&FTP...") ),
 						// menunutton item
                                                   `item(`id(`http),      _("&HTTP...") ),
@@ -308,11 +311,75 @@ on the NFS server.
 
 	input = Wizard::UserInput();
 	y2debug( "Input: %1", input );
-	y2error( "Input: %1", input );
 
 	symbol createResult = `again;
+	
+	if ( input == `slp )
+	{
+	    // translators: popup busy message
+	    UI::OpenDialog (`Label (_("Scanning network...")) );
+	    
+	    list<map> services = SLP::FindSrvs ("install.suse", "");
+	    
+	    UI::CloseDialog ();
+	    
+	    if ( size(services) == 0 )
+	    {
+		Popup::Error ( _("No SLP installation sources found") );
+	    } else
+	    {
+		// show the dialog to pick the source
+		
+		list<term> items = maplist (map service, services, ``{
+		    string url = service["srvurl"]:"";
+		    
+		    url = substring (url, 21);
+		    
+		    // split the URL
+		    map parsed_url = URL::Parse (url);
+		    
+		    return `item (`id (url), toupper ( parsed_url["scheme"]:"http" ), url);
+		});
+		
+		UI::OpenDialog (
+		    `VBox(
+			// translators: popup heading
+			`Heading (_("Choose SLP Source")),
+			`MinSize( 25, 7, 
+			    // translators: table header
+			    `Table (`id(`services), `header(_("Type"), _("URL")), items)
+			), 
+			`HBox (
+			    `PushButton (`id (`ok), `opt(`default), Label::SelectButton ()),
+			    `VSpacing (1),
+			    `PushButton (`id (`cancel), Label::CancelButton ())			    
+			)
+		    )
+		);
+		
+		symbol ret = (symbol)UI::UserInput ();
+		
+		if (ret == `ok)
+		{
+		    string service = (string) UI::QueryWidget (`services, `CurrentItem);
+		    
+		    y2milestone ("Trying to add source '%1'", service);
+		    if (service != nil) 
+		    {
+			// add the installation source
+			createResult = createSource(service);
+			y2milestone ("Adding source result: %1", createResult);
+			
+		    }
+		}
+		
+		UI::CloseDialog ();
 
-	if ( input == `ftp || input == `http || input == `https || input == `samba )
+            	if ( createResult == `ok ) fillTable();
+	    }
+	}
+
+	else if ( input == `ftp || input == `http || input == `https || input == `samba )
 	{
 	    if ( input == `ftp ) url = "ftp://";
 	    else if ( input == `http ) url = "http://";
