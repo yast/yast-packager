@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
-Fri Dec  2 11:21:12 CET 2005 - jsrain@suse.cz
+Fri Dec  2 12:43:06 CET 2005 - jsrain@suse.cz
 
 - do not report that source refresh was skipped if user skipped
   it via pressing a button (#133811)
+- report more information about source if refresh fails (#133811)
 
 -------------------------------------------------------------------
 Mon Nov 28 12:26:23 CET 2005 - jsrain@suse.cz
