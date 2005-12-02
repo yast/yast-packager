@@ -723,6 +723,8 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
     y2milestone ("Error refresh: %1", info);
     string detail = info["detail"]:"";
     symbol error = info["error"]:`unknown;
+    string label = info["label"]:"";
+    string url = info["url"]:"";
     // error message - a label followed by a richtext with details
     string message = _("Error occurred while refreshing the source.");
     if (error == `NO_SOURCE_FOUND)
@@ -735,6 +737,8 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
     if (Mode::commandline())
     {
 	CommandLine::Print(message);
+	CommandLine::Print(label);
+	CommandLine::Print(url);
 	CommandLine::Print(detail);
 
 	// ask user in the interactive mode
@@ -766,6 +770,7 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
 
 	return `SKIP_REFRESH;
     }
+    detail = sformat ("%1<br>%2<br>%3", label, url, detail);
     UI::OpenDialog (`VBox (
 	`Label (message),
 	`RichText(detail),
