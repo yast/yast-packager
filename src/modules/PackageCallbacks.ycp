@@ -793,32 +793,24 @@ global void DoneSourceRefresh (map<string,any> info) {
     symbol result = info["result"]:`SUCCESS;
     symbol cause = info["cause"]:`SOURCE_REFRESHED;
     string detail = info["detail"]:"";
-    if (result == `SKIP_REFRESH)
-    {
-	// message popup
-	string msg = _("Installation source not refreshed.");
 
-	if (Mode::commandline())
-	{
-	    CommandLine::PrintVerbose(msg);
-	}
-	else
-	{
-	    Popup::Message(msg);
-	}
-    }
-    else if (result == `DISABLE_SOURCE)
+    if (Mode::commandline())
     {
-	// message popup
-	string msg = _("Installation source disabled.");
-
-	if (Mode::commandline())
+        // ask user in the interactive mode
+        if (! CommandLine::Interactive())
 	{
-	    CommandLine::PrintVerbose(msg);
-	}
-	else
-	{
-	    Popup::Message(msg);
+	    if (result == `SKIP_REFRESH)
+	    {
+		// message popup
+		string msg = _("Installation source not refreshed.");
+		CommandLine::PrintVerbose(msg);
+	    }
+	    else if (result == `DISABLE_SOURCE)
+	    {
+		// message popup
+		string msg = _("Installation source disabled.");
+		CommandLine::PrintVerbose(msg);
+	    }
 	}
     }
 }
