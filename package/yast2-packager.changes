@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec  2 11:21:12 CET 2005 - jsrain@suse.cz
+
+- do not report that source refresh was skipped if user skipped
+  it via pressing a button (#133811)
+
+-------------------------------------------------------------------
 Mon Nov 28 12:26:23 CET 2005 - jsrain@suse.cz
 
 - display GNOME as the first desktop (#132491)
