@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 16 15:48:54 CET 2005 - jsrain@suse.cz
+
+- removed call of obsolete script gnome-preinstall
+
+-------------------------------------------------------------------
 Fri Dec  2 12:43:06 CET 2005 - jsrain@suse.cz
 
 - do not report that source refresh was skipped if user skipped
