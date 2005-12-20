@@ -111,7 +111,7 @@
 
 	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
-	   SlideShow::InitPkgData(false);	// keep SlideShow quiet
+	   SlideShow::InitPkgData(true);	// force reinitialization
 
 	   foreach (string package, arg_list, {
 	       if (SCR::Read (.target.size, package) > 0)
@@ -280,7 +280,7 @@ Install them now?")))
 	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
 	   boolean anyToDelete = Pkg::PkgAnyToDelete();
 	   SlideShow::SetLanguage (UI::GetLanguage(true));
-	   SlideShow::InitPkgData(true);
+	   SlideShow::InitPkgData(true);	// force reinitialization
 	   SlideShow::OpenSlideShowDialog();
 
 	   import "PackageInstallation";
