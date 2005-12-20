@@ -1531,6 +1531,21 @@
 	if ( init_pkg_data_complete && ! force)
 	    return;
 
+	// Reinititalize some globals (in case this is a second run)
+	total_size_installed	= 0;
+	total_time_elapsed	= 0;
+	start_time		= -1;
+	next_recalc_time	= -1;
+	current_src_no		= -1;	// 1..n
+	current_cd_no		= -1;	// 1..n
+	next_src_no		= -1;
+	next_cd_no		= -1;
+	last_cd			= false;
+	unit_is_seconds		= false;	// begin with package sizes
+	bytes_per_second	= 1;
+	current_slide_no	= 0;
+	slide_start_time	= 0;
+
 	total_sizes_per_cd_per_src		= Pkg::PkgMediaSizes();
 	inst_src_names				= Pkg::PkgMediaNames();
 	total_pkg_count_per_cd_per_src		= Pkg::PkgMediaCount();
@@ -1541,7 +1556,7 @@
 	remaining_pkg_count_per_cd_per_src	= (list<list <integer> >) eval (total_pkg_count_per_cd_per_src);
 	total_cd_count				= size( flatten( total_sizes_per_cd_per_src ) );
 	init_pkg_data_complete			= true;
-
+	
 	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
 	y2milestone( "SlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
 	RebuildDialog();
