@@ -40,7 +40,7 @@
              // the proposal for the packages requires manual intervention
             ret = union (ret, $[
                         /* warning text */
-                     "warning" : _("Cannot solve dependencies automatically. Manual intervention required"),
+                     "warning" : _("Cannot solve dependencies automatically. Manual intervention is required."),
                      "warning_level" : `blocker ]);
         }
 	return ret;

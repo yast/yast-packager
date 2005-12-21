@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Dec 21 10:38:55 CET 2005 - visnov@suse.cz
+
+- Merged proofread texts 
+
+-------------------------------------------------------------------
 Tue Dec 20 16:48:03 CET 2005 - sh@suse.de
 
 - Fixed bug #65913: inst_rpmcopy / slide show needs reinit() call 

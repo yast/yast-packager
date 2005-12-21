@@ -200,7 +200,7 @@ in the packages selection, continue."),
 						// menunutton
 				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
 						// menunutton item
-                                                  `item(`id(`slp),       _("&Scan using SLP...") ),
+                                                  `item(`id(`slp),       _("&Scan Using SLP...") ),
 						// menunutton item
                                                   `item(`id(`ftp),       _("&FTP...") ),
 						// menunutton item
@@ -325,7 +325,7 @@ on the NFS server.
 	    
 	    if ( size(services) == 0 )
 	    {
-		Popup::Error ( _("No SLP installation sources found") );
+		Popup::Error ( _("No SLP installation sources found.") );
 	    } else
 	    {
 		// show the dialog to pick the source

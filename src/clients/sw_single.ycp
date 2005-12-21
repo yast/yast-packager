@@ -215,9 +215,10 @@
 		SCR::Read (.target.ycp, "/var/lib/YaST2/failed_packages");
 	}
 	if (size (old_failed_packs) > 0 && Popup::YesNo (
-_("During last package installation,
+_("During the last package installation,
 several package failed to install.
-Install them now?")))
+Install them now?
+")))
 	{
 	    foreach (string p, old_failed_packs, {
 		Pkg::PkgInstall (p);

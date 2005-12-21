@@ -56,7 +56,7 @@
                         `HBox(
                             `HSpacing( 3 ),
 				// text entry
-                            `TextEntry( `id( `username ), _("User &Name") ),
+                            `TextEntry( `id( `username ), _("User&name") ),
                             `HSpacing( 2 )
                         ),
                         `HBox(
