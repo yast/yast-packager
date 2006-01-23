@@ -160,7 +160,7 @@
 	if (! Pkg::SourceChangeUrl (cached_source_id, store_cache_directory + "/CD1"))
 	{
 	    // error report
-	    Report::Error (_("Error occurred while switching the Service Pack source."));
+	    Report::Error (_("Error occurred while switching the service pack catalog."));
 	}
 	Pkg::SourceSetEnabled (cached_source_id, true);
     }
@@ -415,7 +415,7 @@ source back to CD."));
 		// 3. Copy <cached_source_datadir>/<arch>/<package> from cached source to Installation::destdir+"/{var?}/tmp"
 
 		// translators: this is an information popup, %1 is a number
-		UI::OpenDialog (`Label (sformat (_("Copying files from the source CD%1 to disk..."), media_number)));
+		UI::OpenDialog (`Label (sformat (_("Copying files from CD %1 to disk..."), media_number)));
 
 		y2milestone ("Creating directory %1", sformat ("/bin/mkdir -p %1/CD%2", cache_dir, media_number));
 
