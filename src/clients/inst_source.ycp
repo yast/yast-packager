@@ -95,7 +95,7 @@
 			   `VBox(
 				 `VSpacing( 0.2 ),
 				// label
-				 `Label( _("Adding installation source...") ),
+				 `Label( _("Adding catalog...") ),
 				 `VSpacing( 0.2 )
 				 )
 			   );
@@ -111,7 +111,7 @@ from URL '%1'."), url );
                 if ( err != "ok" ) {
                     if ( err == "instsrc_duplicate" )
 			// message part 2 alt. 1
-                        _msg2 = _("A source for this product already exists.");
+                        _msg2 = _("A catalog for this product already exists.");
                     else
 			// message part 2 alt. 2 followed by description
                         _msg2 = _("Details:") + "\n" + Pkg::LastError();
@@ -242,7 +242,7 @@ in the packages selection, continue."),
         );
 
     // dialog caption
-    string title = _("Software Source Media");
+    string title = _("Media Containing the Software Catalog");
 
     // help
     string help_text = _("<p>
@@ -325,7 +325,7 @@ on the NFS server.
 	    
 	    if ( size(services) == 0 )
 	    {
-		Popup::Error ( _("No SLP installation sources found.") );
+		Popup::Error ( _("No SLP catalogs found.") );
 	    } else
 	    {
 		// show the dialog to pick the source
@@ -344,7 +344,7 @@ on the NFS server.
 		UI::OpenDialog (
 		    `VBox(
 			// translators: popup heading
-			`Heading (_("Choose SLP Source")),
+			`Heading (_("Choose SLP Catalog")),
 			`MinSize( 25, 7, 
 			    // translators: table header
 			    `Table (`id(`services), `header(_("Type"), _("URL")), items)
@@ -456,9 +456,9 @@ configuration.");
         else if (input == `abort || input == `back)
         {
 	  // popup headline
-          string headline = _("Abort Installation Source Configuration");
+          string headline = _("Abort Catalog Configuration");
 	  // popup message
-          string msg = _("Abort the installation source configuration?
+          string msg = _("Abort the catalog configuration?
 All changes will be lost.");
           if ( Popup::YesNoHeadline( headline, msg ) ) {
             exit = true;
@@ -515,7 +515,7 @@ All changes will be lost.");
             else if ( input == `delete )
             {
 		// yes-no popup
-                if ( Popup::YesNo( _("Delete selected installation source from list?") ) )
+                if ( Popup::YesNo( _("Delete selected catalog from list?") ) )
                 {
                     deleteSource( current );
                     fillTable();

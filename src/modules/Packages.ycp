@@ -449,7 +449,7 @@
 	    {
 		y2error ("No source on '%1'", log_url);
 		// error in proposal, %1 is URL
-		pm_init_blocker = sformat (_("No source found at '%1'."),
+		pm_init_blocker = sformat (_("No catalog found at '%1'."),
 		    log_url);
 		return;
 	    }
@@ -545,10 +545,10 @@
 		// cancel initialization if some of the source is missing
 		if (! all_sources_ok)
 		{
-		    y2error ("Unable to initialize all installation sources");
+		    y2error ("Unable to initialize all catalogs");
 		    pm_init_blocker
 			// error in proposal
-			= _("Unable to initialize all installation sources.");
+			= _("Unable to initialize all catalogs.");
 		    return;
 		}
 

@@ -42,7 +42,7 @@ Wizard::SetContents (_("Software Selection"), `VBox(), "",
 Wizard::SetTitleIcon( "software" );
 
 // Intermediate contents of the software selection screen
-UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing installation sources...")));
+UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
 
 // intialize package source to get a list of selections
 Packages::Init (false);
@@ -83,13 +83,12 @@ string title = _("Software Selection");
 string helptext = _("<p>
 The &product; Standard System is a good software
 selection for most users.
-</p>
-");
+</p>");
 
 // help text, continued
-helptext = helptext + _("<p>You will not need to insert all of the CDs that
+helptext = helptext + _("<p>You will not need to insert all of the media that
 come with &product; for this selection. Additional software from the
-other CDs can always be installed later.
+other media can always be installed later.
 </p>");
 
 // help text, continued
@@ -100,16 +99,14 @@ graphical desktop environments</i></b> -- no X11, no KDE, no GNOME.
 Select this option as a base for your own custom selection, for
 dedicated server systems that do not need a graphical desktop, or for
 systems that are short on disk space or memory.
-</p>
-");
+</p>");
 
 // help text, continued
 helptext = helptext + _("<p>
 With the <b>Minimum graphical system</b>, install the &product;
 base system and all packages required for X11, the graphical user
 interface (GUI).
-You can then work with a simple graphical desktop. </p>
-");
+You can then work with a simple graphical desktop. </p>");
 
 //    if (Product::name == "Novell Linux Desktop")
     if (ProductFeatures::GetFeature ("software", "software_proposal") == "desktop")

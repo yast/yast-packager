@@ -43,7 +43,7 @@ to create an installation source that can be used to install
 other systems.</p>
 ");
     // label for showing installation sources
-    string label = _("Registered Installation Sources:");
+    string label = _("Registered Catalogs:");
 
     term contents =
 	`VBox (

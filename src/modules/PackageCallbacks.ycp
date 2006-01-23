@@ -491,9 +491,8 @@
 	    // error report
 _("<p>The source at the specified URL now provides a different media ID.
 If the URL is correct, this indicates that the source content has changed. To 
-continue using this source, start <tt>Change Source of Installation</tt> from 
-the YaST control center and refresh the installation source.</p>
-");
+continue using this source, start <b>Change Source of Installation</b> from 
+the YaST control center and refresh the installation source.</p>\n");
 	}
 
 	if (wanted_label == "")
@@ -547,7 +546,7 @@ Check that the server is accessible."), wanted_label);
 	}
 
 	// currently unused
-	string media_prompt = _("The correct source medium could not be mounted.");
+	string media_prompt = _("The correct catalog medium could not be mounted.");
 
 	// --------------------------------------
 	// build up button box
@@ -727,10 +726,10 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
     string label = info["label"]:"";
     string url = info["url"]:"";
     // error message - a label followed by a richtext with details
-    string message = _("Error occurred while refreshing the source.");
+    string message = _("Error occurred while refreshing the catalog.");
     if (error == `NO_SOURCE_FOUND)
 	// error message - a label followed by a richtext with details
-	message = _("Unable to retrieve the remote source description.");
+	message = _("Unable to retrieve the remote catalog description.");
     else if (error == `INCOMPLETE_SOURCE_DATA)
 	// error message - a label followed by a richtext with details
 	message = _("An error occurred while retrieving the new metadata.");
@@ -757,7 +756,7 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
 	    }
 
 	    // command line mode - ask user whether the installation should be aborted
-	    CommandLine::Print(_("Disable the source?"));
+	    CommandLine::Print(_("Disable the catalog?"));
 	    if (CommandLine::YesNo())
 	    {
 		// return Skip
@@ -780,7 +779,7 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
 	    // push button
 	    `PushButton (`id (`SKIP_REFRESH), _("&Skip Refresh")),
 	    // push button
-	    `PushButton (`id (`DISABLE_SOURCE), _("&Disable Source"))
+	    `PushButton (`id (`DISABLE_SOURCE), _("&Disable Catalog"))
 	)
     ));
     symbol ret = (symbol)UI::UserInput ();
@@ -808,13 +807,13 @@ global void DoneSourceRefresh (map<string,any> info) {
 	    if (result == `SKIP_REFRESH)
 	    {
 		// message popup
-		string msg = _("Installation source not refreshed.");
+		string msg = _("Catalog not refreshed.");
 		CommandLine::PrintVerbose(msg);
 	    }
 	    else if (result == `DISABLE_SOURCE)
 	    {
 		// message popup
-		string msg = _("Installation source disabled.");
+		string msg = _("Catalog disabled.");
 		CommandLine::PrintVerbose(msg);
 	    }
 	}

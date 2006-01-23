@@ -127,7 +127,7 @@ global list<map> ReadSLPSources() {
 global boolean Read() {
 
     /* SourceManager read dialog caption */
-    string caption = _("Initializing Available Sources");
+    string caption = _("Initializing Available Catalogs");
 
     integer steps = 2;
 
@@ -135,14 +135,14 @@ global boolean Read() {
     // We do not set help text here, because it was set outside
     Progress::New( caption, " ", steps, [
 	    /* Progress stage 1/3 */
-	    _("Read configured sources"),
+	    _("Read configured catalogs"),
 	    /* Progress stage 2/3 */
-	    _("Detect available sources via SLP")
+	    _("Detect available catalogs via SLP")
 	], [
 	    /* Progress step 1/3 */
-	    _("Reading configured sources..."),
+	    _("Reading configured catalogs..."),
 	    /* Progress step 2/3 */
-	    _("Detecting available sources..."),
+	    _("Detecting available catalogs..."),
 	    /* Progress finished */
 	    _("Finished")
 	],
@@ -155,7 +155,7 @@ global boolean Read() {
 
 
     /* Error message */
-    if(!ReadSources()) Report::Error(_("Cannot read sources."));
+    if(!ReadSources()) Report::Error(_("Cannot read catalogs."));
 
     // read another database
     if(Abort()) return false;
@@ -163,7 +163,7 @@ global boolean Read() {
 
 
     /* Error message */
-    if(false) Report::Error(_("Cannot detect availabe sources."));
+    if(false) Report::Error(_("Cannot detect availabe catalogs."));
 
     if(Abort()) return false;
     /* Progress finished */
@@ -171,7 +171,7 @@ global boolean Read() {
 
     // slp_sources = ReadSLPSources();
     
-    y2debug ("slp sources: %1", slp_sources);
+    y2debug ("slp catalogs: %1", slp_sources);
 
     if(Abort()) return false;
     modified = false;
@@ -189,7 +189,7 @@ global boolean CommitSources() {
         success = Pkg::SourceEditSet( sourceStatesOut );
         if ( !success ) {
 	    // popup message header
-            string _msg1 = _("Unable to save changes to the source
+            string _msg1 = _("Unable to save changes to the catalog
                     repository.
 ");
             string err = Pkg::LastErrorId();
@@ -219,14 +219,14 @@ global boolean CommitSources() {
 global boolean Write() {
     
     /* SourceManager read dialog caption */
-    string caption = _("Saving Source Configuration");
+    string caption = _("Saving Catalog Configuration");
 
     integer steps = 1;
 
     // We do not set help text here, because it was set outside
     Progress::New(caption, " ", steps, [
 	    /* Progress stage 1/1 */
-	    _("Write source settings"),
+	    _("Write catalog settings"),
 	], [
 	    /* Progress step 1/1 */
 	    _("Writing the settings..."),
@@ -514,7 +514,7 @@ global symbol createSource( string url ) {
 	    UI::OpenDialog(
 			   `VBox(
 				 `VSpacing( 0.2 ),
-				 `Label( _("Adding installation source...") ),
+				 `Label( _("Adding catalog...") ),
 				 `VSpacing( 0.2 )
 				 )
 			   );
@@ -527,13 +527,13 @@ global symbol createSource( string url ) {
 	
 	if ( size( newSources ) == 0  )
 	{
-	    string _msg1 = sformat( _("Unable to create installation source
+	    string _msg1 = sformat( _("Unable to create catalog
 from URL '%1'."), url );
 	    string err = Pkg::LastErrorId();
 	    string _msg2 = "";
 	    if ( err != "ok" ) {
 		if ( err == "instsrc_duplicate" )
-		    _msg2 = _("A source for this product already exists.");
+		    _msg2 = _("A catalog for this product already exists.");
 		else
 		    _msg2 = _("Details:") + "\n" + Pkg::LastError();
 	    }
@@ -826,10 +826,10 @@ boolean HandleMultipleSources( string url )	{
         // cancel initialization if some of the source is missing
         if (! all_sources_ok)
         {
-            y2error ("Unable to initialize all installation sources");
+            y2error ("Unable to initialize all catalogs");
             SourceManager::pm_init_blocker
                 // error in proposal
-                = _("Unable to initialize all installation sources");
+                = _("Unable to initialize all catalogs");
             return false;
         }
 
@@ -897,7 +897,7 @@ global list Summary() {
 
     string summary = "";
     // summary header
-    summary = Summary::AddHeader(summary, _("Configured Sources"));
+    summary = Summary::AddHeader(summary, _("Configured Catalogs"));
     summary = Summary::OpenList(summary);
     numSources = size( sourceStatesOut );
     integer i = 0;
