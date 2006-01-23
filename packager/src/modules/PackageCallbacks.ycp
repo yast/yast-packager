@@ -1,0 +1,1092 @@
+/**
+ * Module:		PackageCallbacks.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>
+ *			Klaus Kaempf <kkaempf@suse.de>
+ *			Arvin Schnell <arvin@suse.de>
+ *
+ * Purpose:		provides the default Callbacks for Pkg::
+ *
+ */
+
+{
+    module "PackageCallbacks";
+
+    textdomain "packager";
+
+    import "Installation";
+    import "Directory";
+    import "Label";
+    import "Mode";
+    import "Popup";
+    import "PackageCallbacksInit";
+    import "URL";
+    import "CommandLine";
+    import "String";
+
+    global boolean _provide_popup = false;
+    global boolean _package_popup = false;
+
+    global string _package_name = "";
+    global integer _package_size = 0;
+    global boolean _deleting_package = false;
+
+    global integer _current_source = 1;
+
+    // make showLongInfo module-global so it gets remembered (cf. #14018)
+    boolean showLongInfo = false;
+
+
+    // used to en-/disable StartPackage, ProgressPackage and DonePackage
+    boolean enable_asterix_package = true;
+
+    boolean provide_aborted = false;
+
+    string back_string = "\b\b\b\b\b\b\b\b\b\b";
+    string clear_string = back_string + "          " + back_string;
+
+    //--------------------------------------------------------------------------
+    // defaults
+
+    term ProgressBox (string heading, string name, string sz) {
+	term progressbox = `VBox(
+	    `HSpacing(40),
+	    // popup heading
+	    `Heading (heading),
+	    `Left (`HBox (
+		`VBox (
+		    `Left (`Label (`opt (`boldFont), _("Package: "))),
+		    `Left (`Label (`opt (`boldFont), _("Size: ")))
+		),
+		`VBox (
+		    `Left (`Label (name)),
+		    `Left (`Label (sz))
+		)
+	    )),
+	    `ProgressBar(`id(`progress), "", 100, 0 ),
+	    `HBox (
+		`HStretch (),
+		`PushButton (`id (`abort), Label::AbortButton ()),
+		`HStretch ()
+	    )
+	);
+	return progressbox;
+    }
+
+    /** at start of file providal
+     *
+     */
+    global define void StartProvide (string name, integer archivesize, boolean remote)
+    {
+	if (remote)
+	{
+	    string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
+	    if (Mode::commandline()) {
+		CommandLine::PrintVerbose(sformat(_("Downloading package %1 (%2)..."), name, sz));
+	    }
+	    else {
+		// popup heading
+		term providebox = ProgressBox (_("Downloading Package"), name, sz);
+		UI::OpenDialog(providebox);
+		_provide_popup = true;
+	    }
+	}
+	return;
+    }
+
+
+    /** during file providal
+     *
+     */
+    global define boolean ProgressProvide (integer percent)
+    {
+	if (_provide_popup)
+	{
+	    UI::ChangeWidget(`id(`progress), `Value, percent);
+	    provide_aborted = UI::PollInput () == `abort;
+	    return ! provide_aborted;
+	}
+	else if (Mode::commandline()) {
+	    // there is no popup window, but command line mode is set
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
+	}
+	return true;
+    }
+
+
+
+    // creates layout for ChangeMediumPopup
+    global define term LayoutPopup ( string message, term button_box,
+				integer vertical_size, boolean info_on )
+    {
+	term dialog_layout =  `VBox(
+				    `HSpacing(40),	// enforce width
+				    `VSpacing(0.1),
+				    `Left(`Label( message)),
+				    `Left(`CheckBox(`id(`show), `opt(`notify),
+						    // check box
+						    _("Show &details"), info_on )),
+				    `VSpacing(0.4),
+				    `HBox(`VSpacing(vertical_size),
+					  `HSpacing(0.1),
+					  `ReplacePoint(`id(`info), `Empty()),
+					  `HSpacing(0.1)
+					  ),
+				    `HBox(`HSpacing(0.1),
+					  button_box,
+					  `HSpacing(0.1)
+					  ),
+				    `VSpacing(0.2)
+				    );
+	return dialog_layout;
+    }
+
+    global define boolean ShowLogInfo (string message, term buttonbox)
+    {
+	if (UI::QueryWidget(`id(`show), `Value ) == true)
+	{
+	    UI::CloseDialog();
+	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, buttonbox, 10, true) );
+	    return true;
+	}
+	else
+	{
+	    UI::CloseDialog();
+	    UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, buttonbox, 2, false) );
+	    UI::ReplaceWidget(`id(`info), `Empty() );
+	}
+	return false;
+    }
+
+
+    /** during file providal
+     *
+     // return "" for ignore
+     // return "R" for retry
+     // return "C" for abort
+     */
+    global define string DoneProvide (integer error, string reason, string name)
+    {
+	if (_provide_popup)
+	    UI::CloseDialog();
+
+	if (Mode::commandline())
+	{
+	    // remove the progress
+	    CommandLine::PrintVerboseNoCR(clear_string);
+	}
+
+	if (provide_aborted)
+	{
+	    provide_aborted = false;
+	    return "CANCEL";
+	}
+	_provide_popup = false;
+
+	if (error != 0)
+	{
+	    string message = sformat (_("Package %1 was not found on the medium."), name);
+
+	    if (Mode::commandline()) {
+		CommandLine::Print(message);
+
+		// ask user in the interactive mode
+		if (CommandLine::Interactive())
+		{
+		    CommandLine::Print("");
+
+		    // command line mode - ask user whether installation of the failed package should be retried
+		    CommandLine::Print(_("Retry installation of the package?"));
+
+		    if (CommandLine::YesNo())
+		    {
+			// return Retry
+			return "R";
+		    }
+
+		    // command line mode - ask user whether the installation should be aborted
+		    CommandLine::Print(_("Abort the installation?"));
+		    if (CommandLine::YesNo())
+		    {
+			// return Abort
+			return "C";
+		    }
+
+		    // otherwise return Ignore (default)
+		    return "";
+		}
+
+		return "";
+	    }
+
+	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
+	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
+
+	    if ( showLongInfo )
+	    {
+		UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
+		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
+	    }
+	    else
+	    {
+		UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 2, false) );
+		UI::ReplaceWidget(`id(`info), `Empty() );
+	    }
+
+	    any r = nil;
+
+	    repeat
+		{
+		    r = UI::UserInput();
+		    if ( r == `show )
+		    {
+			showLongInfo = ShowLogInfo (message, button_box);
+			if (showLongInfo)
+			{
+			    UI::ReplaceWidget(`id(`info),
+					      `RichText (`opt(`plainText),
+							 sformat ("Err: %1:", error) + reason) );
+			}
+			else
+			{
+			    UI::ReplaceWidget(`id(`info), `Empty() );
+			}
+		    }
+		} until (r == `abort || r == `retry || r == `ignore);
+
+	    y2milestone ("DoneProvide %1", r);
+
+	    UI::CloseDialog();
+
+	    if (r == `abort)
+		return "C";
+	    if (r == `retry)
+		return "R";
+
+	    // default: ignore
+	}
+
+	return "";
+    }
+
+
+    /**
+     *  Enable or disable StartPackage, ProgressPackage and DonePackage
+     *  callbacks, but only the progress bar and not the final error
+     *  message.  Returns old value.
+     */
+    global define boolean EnableAsterixPackage (boolean f)
+    {
+	boolean ret = enable_asterix_package;
+	enable_asterix_package = f;
+	return ret;
+    }
+
+
+    /**
+     *  At start of package install.
+     */
+    global define boolean StartPackage (string name, string summary, integer
+					installsize, boolean is_delete)
+    {
+	if (!enable_asterix_package)
+	    return true;
+
+	_package_name = name;
+	_package_size = installsize;
+	_deleting_package = is_delete;
+	string sz = String::FormatSizeWithPrecision (installsize, 2, false);
+
+	if (Mode::commandline()) {
+	    CommandLine::PrintVerbose(sformat(
+		is_delete
+		    ? _("Uninstalling package %1 (%2)...")
+		    : _("Installing package %1 (%2)..."),
+		 name, sz));
+	}
+	else {
+	    term packagebox = ProgressBox (is_delete
+		? _("Uninstalling Package")
+		: _("Installing Package"),
+		name, sz);
+
+	    UI::OpenDialog( `opt(`decorated), packagebox );
+	    _package_popup = true;
+	}
+	return true;
+    }
+
+
+    /**
+     *  During package install.
+     */
+    global define void ProgressPackage (integer percent)
+    {
+	if (_package_popup)
+	    UI::ChangeWidget (`id(`progress), `Value, percent);
+	else if (Mode::commandline()) {
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
+	    if (percent == 100)
+	    {
+		// sleep for a wile
+		sleep(200);
+		// remove the progress
+		CommandLine::PrintVerboseNoCR(clear_string);
+	    }
+	}
+
+	return;
+    }
+
+
+    /**
+     *  After package install.
+     *
+     *  return "" for ignore
+     *  return "R" for retry
+     *  return "C" for abort (not implemented !)
+     */
+    global define string DonePackage (integer error, string reason)
+    {
+	if (_package_popup)
+	    UI::CloseDialog();
+	_package_popup = false;
+
+	if (error != 0)
+	{
+	    string infopath = (string) SCR::Read (.target.tmpdir) + "/rpmlog";
+	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir
+			  + Directory::logdir + "/y2logRPM > " + infopath);
+	    string info = reason + "\n---\n" + (string) SCR::Read (.target.string, [infopath, "-?-"]);
+
+	    // error popup during package installation, %1 is the name of the package
+	    string message = sformat (_("Installation of package %1 failed."), _package_name);
+
+	    if (Mode::commandline()) {
+		CommandLine::Print(message);
+		CommandLine::Print(info);
+
+		// ask user in the interactive mode
+		if (CommandLine::Interactive())
+		{
+		    CommandLine::Print("");
+
+		    // command line mode - ask user whether installation of the failed package should be retried
+		    CommandLine::Print(_("Retry installation of the package?"));
+
+		    if (CommandLine::YesNo())
+		    {
+			// return Retry
+			return "R";
+		    }
+
+		    // command line mode - ask user whether the installation should be aborted
+		    CommandLine::Print(_("Abort the installation?"));
+		    if (CommandLine::YesNo())
+		    {
+			// return Abort
+			return "C";
+		    }
+
+		    // otherwise return Ignore (default)
+		    return "";
+		}
+	    }
+	    else {
+		term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()),
+					 `PushButton(`id(`retry), Label::RetryButton()),
+					 `PushButton(`id(`ignore), Label::IgnoreButton()));
+
+		if ( showLongInfo )
+		{
+		    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
+		    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+		}
+		else
+		{
+		    UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 2, false) );
+		    UI::ReplaceWidget(`id(`info), `Empty() );
+		}
+
+		any r = nil;
+
+		repeat {
+		    r = UI::UserInput();
+		    if ( r == `show )
+		    {
+			showLongInfo = ShowLogInfo (message, button_box);
+			if (showLongInfo)
+			{
+			    UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), info) );
+			}
+			else
+			{
+			    UI::ReplaceWidget(`id(`info), `Empty() );
+			}
+		    }
+		} until (r == `abort || r == `retry || r == `ignore);
+
+		y2milestone ("DonePackage %1", r);
+
+		UI::CloseDialog();
+
+		if (r == `abort)
+		    return "C";
+		if (r == `retry)
+		    return "R";
+	    }
+
+	    // default: ignore
+	}
+
+	return "";
+    }
+
+
+//=============================================================================
+//	MEDIA CHANGE
+//=============================================================================
+
+
+    //-------------------------------------------------------------------------
+    //
+    // media change callback
+    //
+    // if current == -1, show "Ignore"
+    //
+    // return "" for ok, retry
+    // return "E" for eject media
+    // return "I" for ignore bad media
+    // return "S" for skip this media
+    // return "C" for cancel (not implemented !)
+    // return url to change media URL
+
+    global define string MediaChange (string error, string url, string product,
+				      integer current, string current_label,
+				      integer wanted, string wanted_label,
+				      boolean double_sided)
+    {
+	import "Mode";
+
+	if (!Mode::normal ())
+	{
+	    import "SlideShow";
+	    SlideShow::StopTimer();
+	}
+
+	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7'",
+		     error, url, product, current, current_label, wanted, wanted_label);
+
+	map url_tokens = URL::Parse (url);
+	string url_scheme = url_tokens["scheme"]:"";
+	url_scheme = tolower (url_scheme);
+
+	// true if it makes sense to offer an eject button (for cd/dvd only ...)
+	boolean offer_eject_button = url_scheme == "cd" || url_scheme == "dvd";
+
+	if (issubstring (error, "ERROR(InstSrc:E_bad_id)"))
+	{
+	    error =
+	    // error report
+_("<p>The source at the specified URL now provides a different media ID.
+If the URL is correct, this indicates that the source content has changed. To 
+continue using this source, start <b>Change Source of Installation</b> from 
+the YaST control center and refresh the installation source.</p>\n");
+	}
+
+	if (wanted_label == "")
+	{
+	    // will be used in conjunction with other text below
+	    // prompt for user to insert the correct CD/DVD
+	    string medianame = "CD "; // FIXME?
+	    if (url_scheme == "cd")
+	    {
+		medianame = "CD ";
+	    }
+	    if (url_scheme == "dvd")
+	    {
+		medianame = "DVD ";
+	    }
+
+	    string mediaside = sformat ("%1", (medianame + wanted));
+
+	    if (double_sided)
+	    {
+		// media is double sided, we want the user to insert the 'Side A' of the media
+		// the complete string will be "<product> <media> <number>, <side>"
+		// e.g. "'SuSE Linux 9.0' DVD 1, Side A"
+		string side = _("Side A");
+		if ((wanted & 1) == 0)
+		{
+		    // media is double sided, we want the user to insert the 'Side B' of the media
+		    side = _("Side B");
+		}
+		wanted = (wanted + 1) >> 1;
+		mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
+	    }
+
+	    wanted_label = sformat ("%1 %2", product, mediaside);
+	}
+
+	// prompt to insert product (%1 == "SuSE Linux version 9.2 CD 2")
+	string message = sformat (_("Insert\n'%1'"), wanted_label);
+	// with network source it doesn't make sense to ask for disk
+	if (url_scheme == "dir")
+	{
+	    // report error while accessing local directory with product (%1 == "SuSE Linux ...")
+	    message = sformat (_("Cannot access installation media\n%1.
+Check that the directory is accessible."), wanted_label);
+	}
+	else if (url_scheme != "cd" && url_scheme != "dvd")
+	{
+	    // report error while accessing network media of product (%1 == "SuSE Linux ...")
+	    message = sformat (_("Cannot access installation media \n%1.
+Check that the server is accessible."), wanted_label);
+	}
+
+	// currently unused
+	string media_prompt = _("The correct catalog medium could not be mounted.");
+
+	// --------------------------------------
+	// build up button box
+
+	term button_box = `HBox (`PushButton (`id(`retry), `opt(`default), Label::OKButton()));
+
+	if (current == -1)			// wrong media id, offer "Ignore"
+	{
+	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
+	}
+
+	button_box = add (button_box, `PushButton (`id(`cancel), Label::AbortButton()));
+
+	// push button label during media change popup, user can skip
+	// this media (CD) so no packages from this media will be installed
+	button_box = add (button_box, `PushButton (`id(`skip), _("&Skip")));
+
+	if (offer_eject_button)
+	{
+	    // push button label during media change popup, user can eject the CD/DVD
+	    button_box = add (button_box, `PushButton (`id(`eject), _("&Eject")));
+	}
+
+	if (Mode::commandline())
+	{
+	    CommandLine::Print(message);
+	    CommandLine::Print(error);
+
+	    // ask user in the interactive mode
+	    if (CommandLine::Interactive())
+	    {
+		CommandLine::Print("");
+
+		// command line mode - ask user whether installation of the failed package should be retried
+		CommandLine::Print(_("Retry the installation?"));
+
+		if (CommandLine::YesNo())
+		{
+		    // return Retry
+		    return "";
+		}
+
+		// command line mode - ask user whether the installation should be aborted
+		CommandLine::Print(_("Skip the medium?"));
+		if (CommandLine::YesNo())
+		{
+		    // return Skip
+		    return "S";
+		}
+
+		// otherwise ignore the medium
+		CommandLine::Print(_("Ignoring the bad medium..."));
+		return "I";
+	    }
+
+	    return "S";
+	}
+
+	if ( showLongInfo )
+	{
+	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
+	    /* TextEntry label */
+	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
+	    UI::ChangeWidget(`id(`url), `Value, url);
+	}
+	else
+	{
+	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 2, false) );
+	    UI::ReplaceWidget(`id(`info), `Empty() );
+	}
+
+	any r = nil;
+
+	repeat {
+	    r = UI::UserInput();
+	    if ( r == `show )
+	    {
+		showLongInfo = ShowLogInfo (message, button_box);
+		if (showLongInfo)
+		{
+		    /* TextEntry label */
+		    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
+		    UI::ChangeWidget(`id(`url), `Value, url);
+		}
+		else
+		{
+		    UI::ReplaceWidget(`id(`info), `Empty() );
+		}
+	    }
+	    if (r == `retry || r == `url)
+	    {
+		if (showLongInfo)	// id(`url) must exist
+		{
+		    string newurl = (string) UI::QueryWidget(`id(`url), `Value);
+		    if (newurl != url)
+		    {
+			url = newurl;
+			r = `url;
+		    }
+		}
+	    }
+	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore || r == `url);
+
+	y2milestone ("MediaChange %1", r);
+
+	UI::CloseDialog();
+
+	if (!Mode::normal ())
+	{
+	    import "SlideShow";
+	    SlideShow::StartTimer();
+	}
+
+	if (r == `cancel)
+	    return "C";
+	if (r == `ignore)
+	    return "I";
+	if (r == `skip)
+	    return "S";
+	if (r == `eject)
+	    return "E";
+
+	if (!Mode::normal ())
+	{
+	    import "SlideShow";
+	    SlideShow::SetCurrentCdNo (_current_source, wanted);
+	}
+
+	if (r == `url)
+	{
+	    return url;
+	}
+
+	return "";
+    }
+
+
+    /**
+     * dummy source change callback, see SlideShowCallbacks for the real one
+     */
+    global define void SourceChange (integer source, integer medianr)
+    {
+	y2milestone ("SourceChange (%1, %2)", source, medianr);
+	_current_source = source + 1;
+    }
+
+boolean refresh_open = false;
+
+global void StartSourceRefresh (map<string,any> info) {
+    y2milestone ("StartSourceRefresh: %1", info);
+    if (refresh_open)
+	UI::CloseDialog ();
+    string product = info["label"]:"";
+    string url = info["url"]:"";
+
+    // popup label (%1 is product name, eg. "SuSE Linux", %2 is source URL)
+    string msg = sformat(_("Refreshing %1\n(%2)"), product, url);
+
+    if (Mode::commandline()) {
+	CommandLine::Print(msg);
+    }
+    else {
+	UI::OpenDialog(`Label(msg));
+	refresh_open = true;
+    }
+}
+
+global symbol ErrorSourceRefresh (map<string,any> info) {
+    if (refresh_open)
+    {
+	UI::CloseDialog ();
+	refresh_open = false;
+    }
+    y2milestone ("Error refresh: %1", info);
+    string detail = info["detail"]:"";
+    symbol error = info["error"]:`unknown;
+    string label = info["label"]:"";
+    string url = info["url"]:"";
+    // error message - a label followed by a richtext with details
+    string message = _("Error occurred while refreshing the catalog.");
+    if (error == `NO_SOURCE_FOUND)
+	// error message - a label followed by a richtext with details
+	message = _("Unable to retrieve the remote catalog description.");
+    else if (error == `INCOMPLETE_SOURCE_DATA)
+	// error message - a label followed by a richtext with details
+	message = _("An error occurred while retrieving the new metadata.");
+
+    if (Mode::commandline())
+    {
+	CommandLine::Print(message);
+	CommandLine::Print(label);
+	CommandLine::Print(url);
+	CommandLine::Print(detail);
+
+	// ask user in the interactive mode
+	if (CommandLine::Interactive())
+	{
+	    CommandLine::Print("");
+
+	    // command line mode - ask user whether the source refreshment should be retried
+	    CommandLine::Print(_("Retry refresh?"));
+
+	    if (CommandLine::YesNo())
+	    {
+		// return Retry
+		return `RETRY;
+	    }
+
+	    // command line mode - ask user whether the installation should be aborted
+	    CommandLine::Print(_("Disable the catalog?"));
+	    if (CommandLine::YesNo())
+	    {
+		// return Skip
+		return `DISABLE_SOURCE;
+	    }
+
+	    // otherwise ignore the medium
+	    CommandLine::Print(_("Skipping the refresh..."));
+	    return `SKIP_REFRESH;
+	}
+
+	return `SKIP_REFRESH;
+    }
+    detail = sformat ("%1<br>%2<br>%3", label, url, detail);
+    UI::OpenDialog (`VBox (
+	`Label (message),
+	`RichText(detail),
+	`HBox (
+	    `PushButton (`id (`RETRY), Label::RetryButton ()),
+	    // push button
+	    `PushButton (`id (`SKIP_REFRESH), _("&Skip Refresh")),
+	    // push button
+	    `PushButton (`id (`DISABLE_SOURCE), _("&Disable Catalog"))
+	)
+    ));
+    symbol ret = (symbol)UI::UserInput ();
+    UI::CloseDialog ();
+    y2milestone ("Refresh error: Returning %1", ret);
+    return ret;
+}
+
+global void DoneSourceRefresh (map<string,any> info) {
+    y2milestone ("DoneSourceRefresh: %1", info);
+    if (refresh_open)
+    {
+	UI::CloseDialog ();
+	refresh_open = false;
+    }
+    symbol result = info["result"]:`SUCCESS;
+    symbol cause = info["cause"]:`SOURCE_REFRESHED;
+    string detail = info["detail"]:"";
+
+    if (Mode::commandline())
+    {
+        // ask user in the interactive mode
+        if (! CommandLine::Interactive())
+	{
+	    if (result == `SKIP_REFRESH)
+	    {
+		// message popup
+		string msg = _("Catalog not refreshed.");
+		CommandLine::PrintVerbose(msg);
+	    }
+	    else if (result == `DISABLE_SOURCE)
+	    {
+		// message popup
+		string msg = _("Catalog disabled.");
+		CommandLine::PrintVerbose(msg);
+	    }
+	}
+    }
+}
+
+//=============================================================================
+//	constructor and callback init
+//=============================================================================
+
+
+
+    /**
+     * constructor
+     *
+     */
+
+    global define void PackageCallbacks()
+    {
+	y2milestone ( "PackageCallbacks constructor" );
+	PackageCallbacksInit::InitPackageCallbacks ();
+    }
+
+
+    global define void StartDownload (string url, string localfile)
+    {
+	// heading of popup
+	string heading = _("Download");
+
+	// message in a progress popup
+	string message = sformat (_("Downloading: %1"), url);
+
+	if (Mode::commandline()) {
+	    CommandLine::PrintVerbose(message);
+	}
+	else
+	{
+	    UI::OpenDialog (`opt(`decorated),
+			    `VBox (`Heading (heading) ,
+				   `VBox (
+					  `Label(message),
+					  `HSpacing(60),
+					  `HBox(
+						`HSpacing(2),
+						`ProgressBar (`id(`progress),
+							      _("Status"), 100),
+						`HSpacing(2)
+						),
+					  `VSpacing(1),
+					  `HBox (
+					    `HStretch (),
+					    `PushButton (`id (`abort), Label::AbortButton ()),
+					    `HStretch ()
+					  ),
+					  `VSpacing(1)
+					  )
+				   )
+			    );
+
+	    UI::ChangeWidget (`id(`progress), `Value, 0);
+	}
+    }
+
+
+    global define boolean ProgressDownload (integer percent, integer expected_size)
+    {
+	if (Mode::commandline()) {
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
+	    if (percent == 100)
+	    {
+		// sleep for a wile
+		sleep(200);
+		// remove the progress
+		CommandLine::PrintVerboseNoCR(clear_string);
+		// print newline when reached 100%
+	    }
+	}
+	else {
+	    UI::ChangeWidget (`id(`progress), `Value, percent);
+	    return UI::PollInput () != `abort;
+	}
+    }
+
+
+    global define void DoneDownload (integer error_value, string error_text)
+    {
+	if (error_value != 0)
+	{
+	    if (Mode::commandline()) {
+		//error message, %1 is the cause for the error
+		CommandLine::Print(sformat (_("Download failed:
+%1"), error_text));
+	    }
+	    else
+	    {
+		// error message, %1 is the cause for the error
+		Popup::Error (sformat (_("Download failed:
+%1"), error_text));
+	    }
+	}
+
+	UI::CloseDialog ();
+    }
+
+
+    global define void SetDownloadCallbacks ()
+    {
+	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
+	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
+	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
+    }
+
+    global define void ClearDownloadCallbacks ()
+    {
+	Pkg::CallbackStartDownload ("");
+	Pkg::CallbackProgressDownload ("");
+	Pkg::CallbackDoneDownload ("");
+    }
+
+
+    global define void StartRebuildDB ()
+    {
+	// heading of popup
+	string heading = _("Checking Package Database");
+
+	// message in a progress popup
+	string message = _("Rebuilding package database. This process can take some time.");
+
+	// progress bar label
+	string progress_label = _("Status");
+
+	UI::OpenDialog (`opt(`decorated),
+			`VBox (`Heading (heading) ,
+			       `VBox (
+				      `Label(message),
+				      `HSpacing(60),
+				      `HBox(
+					    `HSpacing(2),
+					    `ProgressBar (`id(`progress),
+							  "", 100),
+					    `HSpacing(2)
+					    ),
+				      `VSpacing(1)
+				      )
+			       )
+			);
+
+	UI::ChangeWidget (`id(`progress), `Value, 0);
+    }
+
+
+    global define void ProgressRebuildDB (integer percent)
+    {
+	UI::ChangeWidget (`id(`progress), `Value, percent);
+    }
+
+
+    global define void StopRebuildDB (integer error_value, string error_text)
+    {
+	if (error_value != 0)
+	{
+	    // error message, %1 is the cause for the error
+	    Popup::Error (sformat (_("Rebuilding of package database failed:
+%1"), error_text));
+	}
+
+	UI::CloseDialog ();
+    }
+
+
+    global define void NotifyRebuildDB (string error_text)
+    {
+	// error popup
+	Popup::Error (sformat (_("Error rebuilding database:
+%1"), error_text));
+    }
+
+
+    global define void SetRebuildDBCallbacks ()
+    {
+	Pkg::CallbackStartRebuildDb ("PackageCallbacks::StartRebuildDB");
+	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
+	Pkg::CallbackStopRebuildDb ("PackageCallbacks::StopRebuildDB");
+	Pkg::CallbackNotifyRebuildDb ("PackageCallbacks::NotifyRebuildDB");
+    }
+
+
+
+    global define void StartConvertDB (string unused1)
+    {
+	// heading of popup
+	string heading = _("Checking Package Database");
+
+	// message in a progress popup
+	string message = _("Converting package database. This process can take some time.");
+
+	UI::OpenDialog (`opt(`decorated),
+			`VBox (`Heading (heading) ,
+			       `VBox (
+				      `Label(message),
+				      `HSpacing(60),
+				      `HBox(
+					    `HSpacing(2),
+					    `ProgressBar (`id(`progress),
+							  _("Status"), 100),
+					    `HSpacing(2)
+					    ),
+				      `VSpacing(1)
+				      )
+			       )
+			);
+
+	UI::ChangeWidget (`id(`progress), `Value, 0);
+    }
+
+
+    global define void ProgressConvertDB (integer percent, integer unused1,
+					  integer unused2, integer unused3,
+					  integer unused4)
+    {
+	UI::ChangeWidget (`id(`progress), `Value, percent);
+    }
+
+
+    global define void StopConvertDB (integer error_value, string error_text)
+    {
+	if (error_value != 0)
+	{
+	    // error message, %1 is the cause for the error
+	    Popup::Error (sformat (_("Conversion of package database failed:
+%1"), error_text));
+	}
+
+	UI::CloseDialog ();
+    }
+
+
+    global define string NotifyConvertDB (string message_type, integer unused1,
+					  string detail)
+    {
+	if (message_type == "Nindb")
+	{
+	    // error popup
+	    Popup::Error (sformat (_("Package %1 is already present in the new database."),
+				   detail));
+	    return "";
+	}
+
+	if (message_type == "Eread")
+	{
+	    boolean skip = Popup::YesNoHeadline (Label::ErrorMsg (),
+						// yes-no popup
+						 _("Error reading from old database.
+Ignore this error and continue?"));
+	    return skip ? "SKIP" : "CANCEL";
+	}
+
+	if (message_type == "Ewrite")
+	{
+	    // error popup
+	    Popup::Error (_("Error writing to new database"));
+	    return "";
+	}
+
+	y2error ("unknown message_type %1", message_type);
+    }
+
+
+    global define void SetConvertDBCallbacks ()
+    {
+	Pkg::CallbackStartConvertDb ("PackageCallbacks::StartConvertDB");
+	Pkg::CallbackProgressConvertDb ("PackageCallbacks::ProgressConvertDB");
+	Pkg::CallbackStopConvertDb ("PackageCallbacks::StopConvertDB");
+	Pkg::CallbackNotifyConvertDb ("PackageCallbacks::NotifyConvertDB");
+    }
+}

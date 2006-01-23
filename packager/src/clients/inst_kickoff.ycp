@@ -1,0 +1,349 @@
+/**
+ * Module:	inst_kickoff.ycp
+ *
+ * Authors:	Arvin Schnell <arvin@suse.de>
+ *
+ * Purpose:	Do various tasks before starting with installation of rpms.
+ *
+ */
+
+{
+    textdomain "packager";
+
+    import "Mode";
+    import "Stage";
+    import "Linuxrc";
+    import "Installation";
+    import "Update";
+    import "Popup";
+    import "Directory";
+    import "ModuleLoading";
+    import "Bootloader";
+    import "DirInstall";
+    import "Initrd";
+    import "Kernel";
+    import "Arch";
+
+void AcpiToInitrd () {
+    if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
+	return;
+    foreach (string m, ["processor", "thermal", "fan"], {
+	Initrd::AddModule (m, "");
+    });
+}
+
+
+    /**
+     *  Write a fake mtab to the target system since some %post scripts might
+     *  need it.
+     */
+    define void fake_mtab () ``{
+
+	string tmpdir = (string) SCR::Read (.target.tmpdir);
+
+	string mtabname = "/etc/mtab";
+	string mtab = (string) WFM::Read(.local.string, mtabname);
+
+	SCR::Write(.target.string, tmpdir + "/mtab", mtab);
+	SCR::Execute (.target.bash, "/bin/cat " + tmpdir + "/mtab"
+		      + " | /bin/sed \"s: " + Installation::destdir
+		      + "/: /:\"| /bin/sed \"s: " + Installation::destdir
+		      + ": /:\" > " + Installation::destdir + mtabname);
+
+    }
+
+
+    /**
+     *  Remove some old junk.
+     */
+    define void remove_stuff () ``{
+
+	// remove old junk, script is in yast2-update
+	SCR::Execute (.target.bash, Directory::ybindir + "/remove_junk " +
+		      Installation::destdir);
+
+	// possibly remove /usr/share/info/dir
+	if (!Pkg::TargetFileHasOwner ("/usr/share/info/dir"))
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/usr/share/info/dir");
+	}
+
+    }
+
+
+    /**
+     *  Handle the backup.
+     */
+    define void backup_stuff () ``{
+
+	if (Update::backup_modified)
+	{
+	    Pkg::CreateBackups (true);
+	    Pkg::SetBackupPath (Update::backup_path);
+	    SCR::Write (.target.string, Installation::destdir + "/var/lib/YaST2/backup_path",
+			Update::backup_path);
+	}
+	else
+	{
+	    Pkg::CreateBackups (false);
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/backup_path");
+	}
+
+	if (Update::remove_old_backups)
+	{
+	    SCR::Execute (.target.bash, "/bin/rm -f " + Installation::destdir +
+			  Update::backup_path + "/*-*-*.tar.{gz,bz2}");
+	}
+
+	if (true)
+	{
+	    string date = timestring ("%Y%m%d", time(), false);
+
+	    y2milestone ("backup of " + Directory::logdir);
+
+	    string filename = "";
+	    integer num = 0;
+
+	    while (num < 42)
+	    {
+		filename = Update::backup_path + "/YaST2-" + date + "-" +
+		    sformat ("%1", num) + ".tar.gz";
+		if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
+		    break;
+		num = num + 1;
+	    }
+
+	    if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
+			      " ; /bin/tar czf " + Installation::destdir +
+			      filename + " " + "var/log/YaST2") != 0)
+	    {
+		y2error ("backup of %1 to %2 failed", Directory::logdir, filename);
+		// an error popup
+		Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
+				       Directory::logdir, Directory::logdir + "/y2log"));
+	    }
+	    else
+	    {
+		SCR::Execute (.target.bash, "/bin/rm -rf " + Installation::destdir +
+			      "var/log/YaST2/*");
+	    }
+	}
+
+	if (Update::backup_sysconfig)
+	{
+	    string date = timestring ("%Y%m%d", time(), false);
+
+	    if (SCR::Read (.target.size, Installation::destdir + "/etc/sysconfig") > 0)
+	    {
+		y2milestone ("backup of /etc/sysconfig");
+
+		string filename = "";
+		integer num = 0;
+
+		while (num < 42)
+		{
+		    filename = Update::backup_path + "/etc.sysconfig-" + date + "-" +
+			sformat ("%1", num) + ".tar.gz";
+		    if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
+			break;
+		    num = num + 1;
+		}
+
+		if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
+				  " ; /bin/tar czf " + Installation::destdir +
+				  filename + " " + "etc/sysconfig") != 0)
+		{
+		    y2error ("backup of %1 to %2 failed", "/etc/sysconfig", filename);
+		    // an error popup
+		    Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
+					   "/etc/sysconfig", Directory::logdir + "/y2log"));
+		}
+	    }
+	    else if (SCR::Read (.target.size, Installation::destdir + "/etc/rc.config") > 0 &&
+		     SCR::Read (.target.size, Installation::destdir + "/etc/rc.config.d") > 0)
+	    {
+		y2milestone ("backup of /etc/rc.config.d");
+
+		string filename = "";
+		integer num = 0;
+
+		while (num < 42)
+		{
+		    filename = Update::backup_path + "/etc.rc.config-" + date + "-" +
+			sformat ("%1", num) + ".tar.gz";
+		    if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
+			break;
+		    num = num + 1;
+		}
+
+		if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
+				  " ; /bin/tar czf " + Installation::destdir +
+				  filename + " " + "etc/rc.config" + " " +
+				  "etc/rc.config.d") != 0)
+		{
+		    y2error ("backup of %1 to %2 failed", "/etc/rc.config", filename);
+		    // an error popup
+		    Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
+					   "/etc/rc.config", Directory::logdir + "/y2log"));
+		}
+	    }
+	}
+    }
+
+
+    /**
+     *  Update and convert inittab.
+     */
+    define void update_inittab () ``{
+
+	// /etc/inittab will be overridden by package aaa_base. So we will
+	// have to save the run-level
+	// The runlevel-values have been changed since version 7.0; So we
+	// have to handle older version in a special case.
+
+	string idfile = (string) SCR::Read(.target.tmpdir) + "/idline";
+	if (SCR::Execute (.target.bash, "/bin/grep ^id: " + Installation::destdir +
+			  "/etc/inittab >" + idfile) == 0)
+	{
+	    // idline = "id:X:initdefault:"
+
+	    string idline = (string) SCR::Read(.target.string, idfile);
+
+	    // idsplit = "id", "X", "initdefault", ""
+	    list idsplit = splitstring (idline, ":");
+
+	    integer initdefault = -1;
+	    if (size (idsplit) > 2)
+	    {
+		initdefault = tointeger (idsplit[1]:"3");
+	    }
+
+	    y2milestone ("run-level %1 found", initdefault);
+
+	    if (Update::installedVersion["name"]:"" == "SuSE Linux")
+	    {
+		integer oldmajor = Update::installedVersion["major"]:-1;
+		integer oldminor = Update::installedVersion["minor"]:-1;
+
+		if (oldmajor >= 0 && oldminor >= 0)
+		{
+		    if ((oldmajor < 7) || (oldmajor == 7 && oldminor == 0))
+		    {
+			// position == old, value == new
+			list new_levels = [ 0, 0, 3, 5, 4, 4 ];	// 0->0, 1->0, 2->3, 3->5, 4->4, 5->4
+			initdefault = new_levels[initdefault]:5;
+		    }
+		}
+	    }
+
+	    Update::last_runlevel = initdefault;		// evaluated in inst_finish
+	}
+    }
+
+
+    /**
+     *  Load all network modules.  The package sysconfig requires this during
+     *  update.
+     */
+    define void load_network_modules ()
+    {
+	list <map> cards = (list <map>) SCR::Read (.probe.netcard);
+
+	foreach (map card, cards,
+	{
+	    list <map> drivers = card["drivers"]:[];
+
+	    boolean one_active = false;
+
+	    foreach (map driver, drivers,
+	    {
+		if (driver["active"]:false)
+		    one_active = true;
+	    });
+
+	    if (!one_active)
+	    {
+		string name = drivers[0, "modules", 0, 0]:"";
+		if (name != "")
+		    ModuleLoading::Load (name, "", "Linux", "",
+					 Linuxrc::manual (), true);
+	    }
+	});
+    }
+
+
+    if (!Mode::update ())
+    {
+	// make some directories
+	SCR::Execute(.target.mkdir, Installation::destdir + "/etc");
+	SCR::Execute(.target.mkdir, Installation::destdir + Directory::logdir);
+
+	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+        if (DirInstall::installing_into_dir)
+        {
+            string template_dir= "/var/adm/fillup-templates";
+            // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/passwd.aaa_base " 
+                    + Installation::destdir + "/etc/passwd");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/group.aaa_base " 
+                    + Installation::destdir + "/etc/group");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/shadow.aaa_base " 
+                    + Installation::destdir + "/etc/shadow");
+        } else
+        {
+	    SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir + "/etc");
+	    SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir + "/etc");
+        }
+
+	// fake mtab
+	fake_mtab ();
+	AcpiToInitrd ();
+    }
+    else
+    {
+        if (Stage::normal())
+        {
+            import "Kernel";
+            string kernel = Kernel::ComputePackage ();
+            Kernel::SetInformAboutKernelChange(Pkg::IsSelected (kernel));
+
+            SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);
+            backup_stuff ();
+        }
+        else 
+        {
+
+            // make some directories
+            SCR::Execute (.target.mkdir, Installation::destdir + Directory::logdir);
+            SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);
+
+            // backup some stuff
+            backup_stuff ();
+
+            // remove some stuff
+            // do not remove when updating running system (#49608)
+            remove_stuff ();
+
+            // set update mode to yes
+            SCR::Write(.target.string, Installation::destdir + "/var/lib/YaST2/update_mode", "YES");
+            SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST/update.inf");
+
+            // check passwd and group of target
+            SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_users_groups " +
+                    Installation::destdir);
+
+            // update inittab
+            update_inittab ();
+
+            // load all network modules
+            load_network_modules ();
+
+            // perform actions needed by various bootloaders before packages
+            // get updated
+            Bootloader::PreUpdate ();
+        }
+	AcpiToInitrd ();
+    }
+
+    return `next;
+}

@@ -1,0 +1,13 @@
+{
+    import "InstURL";
+
+    string extradir1 = "";
+    string extradir2 = "extradir";
+    string extradir3 = "/extradir";
+
+    string url1 = InstURL::installInf2Url (extradir1);
+    string url2 = InstURL::installInf2Url (extradir2);
+    string url3 = InstURL::installInf2Url (extradir3);
+
+    return [url1, url2, url3];
+}
