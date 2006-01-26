@@ -1,8 +1,8 @@
 @HEADER-COMMENT@
 
-# neededforbuild  gpp libgpp libtool libxcrypt libxcrypt-devel yast2-devel-packages yast2-installation yast2-storage yast2-storage-lib yast2-country yast2-xml
 
 @HEADER@
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-devel-packages yast2-installation yast2-xml
 Requires:	yast2 yast2-installation checkmedia yast2-country
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
