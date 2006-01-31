@@ -3,6 +3,7 @@ Tue Jan 31 08:38:22 CET 2006 - jsrain@suse.cz
 
 - add function to set packages to be selected prior to installation
   proposal (needed for iSCSI)
+- 2.13.18
 
 -------------------------------------------------------------------
 Wed Jan 25 14:07:14 CET 2006 - olh@suse.de
