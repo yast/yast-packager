@@ -61,11 +61,27 @@
     // count of errors during packages solver
     global integer solve_errors = 0;
 
+    /**
+     * Packages to be selected when proposing the list
+     */
+    list<string> additional_packages = [];
+
 
 
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
      *-----------------------------------------------------------------------*/
+
+    /**
+     * Add a package to list to be selected before proposal
+     * Can be called only before the installation proposal, later doesn't
+     * have any effect
+     * @param package string package to be selected
+     */
+    global void addAdditionalPackage(string package)
+    {
+	additional_packages = add (additional_packages, package);
+    }
 
     /**
      * Compute architecture packages
@@ -318,6 +334,8 @@
 	install_list = (list<string>) union (install_list, modePackages ());
 	install_list = (list<string>) union (install_list,
 	                                     Storage::AddPackageList());
+	install_list = (list<string>) union (install_list,
+					     additional_packages);
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update () || !Mode::autoinst ())
