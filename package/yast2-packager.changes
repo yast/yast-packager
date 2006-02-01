@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  1 12:08:34 CET 2006 - sh@suse.de
+
+- Now using patterns selection during installation
+  (user can go to detailed software selection with "Details" button
+- V 2.13.19
+
+-------------------------------------------------------------------
 Tue Jan 31 08:38:22 CET 2006 - jsrain@suse.cz
 
 - add function to set packages to be selected prior to installation
@@ -26,12 +33,12 @@ Tue Jan  3 11:01:31 CET 2006 - visnov@suse.cz
 -------------------------------------------------------------------
 Wed Dec 21 10:38:55 CET 2005 - visnov@suse.cz
 
-- Merged proofread texts 
+- Merged proofread texts
 
 -------------------------------------------------------------------
 Tue Dec 20 16:48:03 CET 2005 - sh@suse.de
 
-- Fixed bug #65913: inst_rpmcopy / slide show needs reinit() call 
+- Fixed bug #65913: inst_rpmcopy / slide show needs reinit() call
 - V 2.13.15
 
 -------------------------------------------------------------------
@@ -437,7 +444,7 @@ Mon May 16 11:05:08 CEST 2005 - jsrain@suse.cz
 -------------------------------------------------------------------
 Tue May  3 10:37:30 CEST 2005 - visnov@suse.cz
 
-- replaced 'default', it's a keyword now 
+- replaced 'default', it's a keyword now
 - 2.12.4
 
 -------------------------------------------------------------------
@@ -541,10 +548,10 @@ Tue Mar  1 11:05:07 CET 2005 - jsrain@suse.cz
 
 -------------------------------------------------------------------
 Mon Feb 28 17:16:33 CET 2005 - lslezak@suse.cz
- 
+
  - checkmedia - UI fixes: header layout fixed, improved help text,
    disabled progress bar, use Close button instead of OK (#66642)
- 
+
 -------------------------------------------------------------------
 Wed Mar  2 17:52:44 CET 2005 - sh@suse.de
 
@@ -606,7 +613,7 @@ Thu Feb 17 18:31:02 CET 2005 - nashif@suse.de
 Thu Feb 17 16:43:28 CET 2005 - sh@suse.de
 
 - Fixed bug #51006: sw_single during installation starts with "search"
-- V 2.11.23 
+- V 2.11.23
 
 -------------------------------------------------------------------
 Wed Feb 16 11:18:52 CET 2005 - jsrain@suse.cz
@@ -630,7 +637,7 @@ Mon Feb 14 10:09:56 CET 2005 - lslezak@suse.cz
 -------------------------------------------------------------------
 Fri Feb 11 15:56:07 CET 2005 - nashif@suse.de
 
-- disabled detecting slp sources 
+- disabled detecting slp sources
 - 2.11.19
 
 -------------------------------------------------------------------
@@ -667,7 +674,7 @@ Wed Feb  9 07:09:47 CET 2005 - nashif@suse.de
 -------------------------------------------------------------------
 Tue Feb  8 13:43:41 CET 2005 - kkaempf@suse.de
 
-- add 'laptop' selections to proposal if PCMCIA interface 
+- add 'laptop' selections to proposal if PCMCIA interface
   is detected.
 - 2.11.14
 
