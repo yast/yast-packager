@@ -1,53 +1,158 @@
 /**
  * Module: 		inst_packages.ycp
- * Authors:		Gabriele Strattner <gs@suse.de>
- * Purpose:             Show the package installation dialogue.
- *
- * $Id$
+ * Authors:		Stefan Hundhammer <sh@suse.de>
+ * Purpose:             Show the package installation dialog
  */
 
 {
+    textdomain "packager";
+
     import "StorageDevices";
     import "Mode";
     import "Stage";
+    import "Wizard";
 
-    symbol mode = `searchMode;
 
-    y2milestone("inst_packages called with: %1" , WFM::Args() );
-    if (size(WFM::Args()) > 0 && is(WFM::Args(0), symbol))
+    /**
+     * Start the detailed package selection. If 'mode' is non-nil, it will be
+     * passed as an option to the PackageSelector widget.
+     *
+     * Returns `accept or `cancel .
+     **/
+    symbol detailedSelection( symbol mode )
     {
-        mode = (symbol)WFM::Args(0);
-        y2milestone("mode: %1", mode);
-    }
+	Pkg::SaveState();
 
-    string floppyDevice = StorageDevices::FloppyDevice;
+	// Open empty dialog for instant feedback
 
-    if ( Mode::normal () )
-    {
 	UI::OpenDialog(`opt(`defaultsize),
-		       `PackageSelector( `id(`selector), `opt(mode), floppyDevice ) );
+		       `ReplacePoint(`id( `rep),
+				     `Label( "Reading package database..." )
+				     )
+		       );
+
+	// This will take a while: Detailed package data are retrieved
+	// while the package manager is initialized
+	UI::ReplaceWidget(`rep,
+			  mode == nil ?
+			  `PackageSelector(`id(`packages ), StorageDevices::FloppyDevice ) :
+			  `PackageSelector(`id(`packages ), `opt(mode), StorageDevices::FloppyDevice )
+			  );
+
+	symbol result = (symbol) UI::RunPkgSelection(`id(`packages ) );
+	UI::CloseDialog();
+	y2milestone( "Package selector returned  %1", result );
+
+	if (result == `accept)
+	    Pkg::ClearSaveState();
+	else
+	    Pkg::RestoreState(false);
+
+	return result;
+    }
+
+
+    /**
+     * Start the pattern selection dialog. If the UI does not support the
+     * PatternSelector, start the detailed selection with "selections" as the
+     * initial view.
+     **/
+    symbol patternSelection()
+    {
+	if ( ! UI::HasSpecialWidget(`PatternSelector ) )
+	{
+	    return detailedSelection( nil );	// Fallback: detailed selection
+	}
+
+	// Help text for software patterns / selections dialog
+	string help_text
+	    = _( "<p>"
+		 "This dialog allows you to define this system's tasks and what software to install. "
+		 "Available tasks and software for this system are shown by category in the left "
+		 "column.  To view a description for an item, select it in the list."
+		 "</p>" )
+	    + _( "<p>"
+		 "Change the status of an item by clicking its status icon "
+		 "or right-click any icon for a context menu. "
+		 "With the context menu, you can also change the status of all items."
+		 "</p>" )
+	    + _( "<p>"
+		 "<b>Details</b> opens the detailed software package selection "
+		 "where you can view and select individual software packages."
+		 "</p>" )
+	    + _( "<p>"
+		 "The <b>Disk Usage</b> display in the lower right corner shows the remaining disk space "
+		 "after all requested changes will have been performed. "
+		 "Hard disk partitions that are full or nearly full can degrade "
+		 "system performance and in some cases even cause serious problems. "
+		 "The system needs some available disk space to run properly."
+		 "</p>" );
+
+	Wizard::OpenAcceptDialog();
+	Wizard::SetContents(
+			    // Dialog title
+			    // Hint for German translation: "Softwareauswahl und Einsatzzweck des Systems"
+			    _( "Software Selection and System Tasks" ),
+			    `PatternSelector(`id(`patterns ) ),
+			    help_text,
+			    true,	// has_back
+			    true );	// has_next
+
+	Wizard::SetDesktopIcon( "sw_single" );
+
+	symbol result = nil;
+
+	repeat
+	{
+	    result = (symbol) UI::RunPkgSelection(`id(`patterns ) );
+	    y2milestone( "Pattern selector returned %1", result );
+
+	    if ( result == `details )
+	    {
+		result = detailedSelection( nil );
+
+		if ( result == `cancel ) 
+                    // don't get all the way out - the user might just have
+                    // been scared of the gory details.
+		    result = nil;	
+		
+	    }
+
+	} until ( result == `cancel || result == `accept );
+
+	Wizard::CloseDialog();
+
+	return result;
+    }
+
+
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    // MAIN
+    ///////////////////////////////////////////////////////////////////////////
+
+    symbol result = `cancel;
+
+    // if ( Mode::normal() )	// DEBUG
+    if ( Stage::initial() )
+    {
+	result = patternSelection();
     }
     else
     {
-	
-        if (size(WFM::Args()) > 0 && ! Stage::initial() )
-            UI::OpenDialog(`opt(`defaultsize),
-                    `PackageSelector( `id(`selector), `opt(mode), floppyDevice ) );
-        else
-            UI::OpenDialog(`opt(`defaultsize),
-                    `PackageSelector( `id(`selector), floppyDevice ) );
+        if ( size( WFM::Args() ) > 0 && is( WFM::Args(0), symbol ) )
+	{
+	    symbol mode = (symbol) WFM::Args(0);
+	    y2milestone( "inst_packages called with: %1" , mode );
+
+	    result = detailedSelection( mode );
+	}
+	else
+	{
+	    result = detailedSelection( `searchMode );
+	}
     }
 
-    Pkg::SaveState();
-
-    // returns `accept or `cancel
-    symbol result = (symbol) UI::RunPkgSelection(`id(`selector) );
-
-    if (result == `accept)
-	Pkg::ClearSaveState();
-    else
-	Pkg::RestoreState(false);
-
-    UI::CloseDialog();
     return result;
 }
