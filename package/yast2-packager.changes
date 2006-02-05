@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Feb  5 20:42:00 CET 2006 - olh@suse.de
+
+- powerpc-utils is now pulled in via Requires in lilo
+
+-------------------------------------------------------------------
 Wed Feb  1 12:08:34 CET 2006 - sh@suse.de
 
 - Now using patterns selection during installation
