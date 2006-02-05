@@ -133,7 +133,6 @@
 
 	    if (Arch::ppc64 () && Arch::board_chrp ())
 	    {
-		packages = add (packages, "powerpc-utils");
 		packages = add (packages, "iprutils");
 	    }
 	}
