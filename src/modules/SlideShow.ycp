@@ -571,6 +571,30 @@
 	return pkg_name;
     }
 
+    /**
+     * Get package file name from path
+     *
+     * @param pkg_name location of the package
+     * @return string package file name
+     **/
+    global string StripPath(string pkg_name)
+    {
+	if (pkg_name == nil)
+	{
+	    return nil;
+	}
+
+	integer file_pos = findlastof(pkg_name, "/");
+
+	if (file_pos > 0 )
+	{
+	    // return just the file name
+	    pkg_name = substring(pkg_name, file_pos + 1);
+	}
+
+	return pkg_name;
+    }
+
 
     /**
      * set media type "CD" or "DVD"
@@ -1161,6 +1185,11 @@
 				   boolean	deleting	)
     {
 	if ( ! SanityCheck( false ) )	return;
+
+	// remove path
+	pkg_name = StripPath(pkg_name);
+
+	// remove release and .rpm suffix
 	pkg_name = StripReleaseNo( pkg_name );
 
 	if ( deleting )
