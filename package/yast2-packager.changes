@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb  7 18:15:21 CET 2006 - visnov@suse.cz
+
+- close the package eval progress dialog later
+- adapt Slideshow for ZYPP
+
+-------------------------------------------------------------------
 Sun Feb  5 20:42:00 CET 2006 - olh@suse.de
 
 - powerpc-utils is now pulled in via Requires in lilo
