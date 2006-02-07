@@ -806,10 +806,10 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	boolean initial_run = reinit || ! init_called;
 
-	UI::CloseDialog();
 
 	if (pm_init_blocker != nil)
 	{
+	    UI::CloseDialog();
 	    return $[
 		"warning" : pm_init_blocker,
 		"warning_level" : `blocker,
@@ -891,6 +891,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 		if (size (available_base_selections) == 0)
 		{
+
+		    UI::CloseDialog();
+
 		    y2error ("No base selections available");
 		    // Can't find any software data, probably a installation media error
 		    // error message
@@ -944,6 +947,8 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		}
 		if (!fit)
 		{
+		    UI::CloseDialog();
+
 		    y2warning ("No selection fits");
 		    Pkg::ClearSelection (selected_base_selection);
 		    // can't find a set of software packages which fits on the harddisk
@@ -1074,6 +1079,8 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		    CountSizeToBeInstalled ())
 	    ];
 	}
+
+	UI::CloseDialog();
 
 	return ret;
 }
