@@ -562,7 +562,7 @@
     {
 	integer build_no_pos = findlastof (pkg_name, "-" );	// find trailing build no.
 
-	if ( build_no_pos > 0 )
+	if ( build_no_pos != nil && build_no_pos > 0 )
 	{
 	    // cut off trailing build no.
 	    pkg_name = substring( pkg_name , 0, build_no_pos );
