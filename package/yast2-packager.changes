@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 13 20:47:04 CET 2006 - kkaempf@suse.de
+
+- adapt testcase to changed url behaviour
+- V 2.13.23
+
+-------------------------------------------------------------------
 Mon Feb 13 18:20:58 CET 2006 - kkaempf@suse.de
 
 - switch from "path param" to "query param" in URLs passed to
