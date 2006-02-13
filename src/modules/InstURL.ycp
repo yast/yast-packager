@@ -80,11 +80,11 @@
      */
     map GetURLOptions (string url) {
         map<string,string> option_map = $[];
-        integer pos = findfirstof(url, ";");
+        integer pos = findfirstof(url, "?");
         if (pos!=nil)
         {
             string opts = substring(url, pos, size(url));
-            list<string> optpairs = splitstring(opts, ";");
+            list<string> optpairs = splitstring(opts, "?");
             option_map = listmap(string op, optpairs, ``{
                     list<string> tmp = splitstring(op, "=");
                     return($[tmp[0]:"": tmp[1]:""]);
@@ -102,13 +102,13 @@
         if (tokens["scheme"]:"" == "cd" || tokens["scheme"]:"" == "dvd")
         {
             y2milestone("Old options: %1", GetURLOptions(url));
-            integer pos = findfirstof(url, ";");
+            integer pos = findfirstof(url, "?");
             if (pos != nil)
             {
                 string new_options = GetDevicesOption();
                 new_url = substring(url, 0, pos);
                 if (size(new_options) > 0 )
-                    new_url = new_url + ";" + GetDevicesOption();
+                    new_url = new_url + "?" + GetDevicesOption();
                 else
                     new_url = url;
             }
@@ -278,7 +278,7 @@
 
 	if (options != "")
 	{
-	    url = url + ";" + options;
+	    url = url + "?" + options;
 	    y2milestone ("options %1", options);
 	}
 	y2debug ("URL %1", HidePassword(url));
