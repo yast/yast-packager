@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 13 18:20:58 CET 2006 - kkaempf@suse.de
+
+- switch from "path param" to "query param" in URLs passed to
+  the media backend (#150230)
+- V 2.13.22
+
+-------------------------------------------------------------------
 Mon Feb 13 15:11:01 CET 2006 - sh@suse.de
 
 - V 2.13.21
