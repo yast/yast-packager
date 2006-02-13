@@ -4,7 +4,7 @@
     xmlns:config="http://www.suse.com/1.0/configns">
 
     <!--
-    $Id: firstboot.xml 20768 2005-01-16 23:42:37Z nashif $
+    $Id$
     Work around for the text domain
     textdomain="packager"
     -->

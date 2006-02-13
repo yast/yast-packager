@@ -5,7 +5,7 @@
  * Authors:	Anas Nashif <nashif@suse.de>
  * Status:      Work in Progress
  *
- * $Id: SourceManager.ycp,v 1.14 2004/10/26 07:41:14 locilka Exp $
+ * $Id$
  *
  * Representation of the configuration of source-manager.
  * Input and output routines.
