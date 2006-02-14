@@ -21,5 +21,5 @@
 
     TEST (``(InstURL::installInf2Url("")), [READ], nil);
     READ["probe","cdrom"] = [ $["dev_name": "/dev/hdb"] , $["dev_name": "/dev/hdd"]];
-    TEST (``(InstURL::RewriteCDUrl("cd:///sp2;devices=/dev/hda")), [READ], nil);
+    TEST (``(InstURL::RewriteCDUrl("cd:///sp2?devices=/dev/hda")), [READ], nil);
 }
