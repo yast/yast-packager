@@ -2,6 +2,8 @@
 Tue Feb 14 09:55:58 CET 2006 - visnov@suse.cz
 
 - store persistently the sources in inst_source 
+- fix store removal
+- V 2.13.25
 
 -------------------------------------------------------------------
 Tue Feb 14 07:35:11 CET 2006 - visnov@suse.cz
