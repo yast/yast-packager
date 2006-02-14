@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 14 07:35:11 CET 2006 - visnov@suse.cz
+
+- adapt testsuite a bit more
+- V 2.13.24 
+
+-------------------------------------------------------------------
 Mon Feb 13 20:47:04 CET 2006 - kkaempf@suse.de
 
 - adapt testcase to changed url behaviour
