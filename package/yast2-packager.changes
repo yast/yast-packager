@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 14 14:41:50 CET 2006 - visnov@suse.cz
+
+- susetags source type identifier is "YaST" 
+
+-------------------------------------------------------------------
 Tue Feb 14 09:55:58 CET 2006 - visnov@suse.cz
 
 - store persistently the sources in inst_source 

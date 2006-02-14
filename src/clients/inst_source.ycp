@@ -129,7 +129,7 @@ from URL '%1'."), url );
 		list<integer> prod_sources = filter (integer s, newSources, {
 		    map src_data = Pkg::SourceGeneralData (s);
 		    string src_type = src_data["type"]:"";
-		    return (src_type == "UnitedLinux" || src_type == "YUM");
+		    return (src_type == "YaST" || src_type == "YUM");
 		});
 		if (size (prod_sources) == 0)
 		{
@@ -557,7 +557,7 @@ All changes will be lost.");
             {
 		integer source_id = sourceState["SrcId"]:0;
 		map src_data = Pkg::SourceGeneralData (source_id);
-		string type = src_data["type"]:"UnitedLinux";
+		string type = src_data["type"]:"YaST";
 
                 boolean state = sourceState[ "autorefresh" ]:true;
 		if (type == "PlainDir" && ! state)
