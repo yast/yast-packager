@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 14 09:55:58 CET 2006 - visnov@suse.cz
+
+- store persistently the sources in inst_source 
+
+-------------------------------------------------------------------
 Tue Feb 14 07:35:11 CET 2006 - visnov@suse.cz
 
 - adapt testsuite a bit more
