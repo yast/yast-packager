@@ -291,6 +291,8 @@ on the NFS server.
 
     sourceStatesIn = Pkg::SourceEditGet();
 
+    y2milestone( "Found sources: %1", sourceStatesIn);
+    
     sourceStatesOut = sourceStatesIn;
 
     fillTable();
@@ -435,7 +437,13 @@ on the NFS server.
 	}
         else if ( input == `next )
         {
+	  // store the new state
           boolean success = Pkg::SourceEditSet( sourceStatesOut );
+
+	  // store in the persistent libzypp storage
+	  if ( success )
+		success = Pkg::SourceFinishAll();
+
           if ( !success ) {
 		// popup message part 1
                 string _msg1 = _("Unable to save changes to installation source
