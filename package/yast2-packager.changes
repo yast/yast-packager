@@ -1,13 +1,18 @@
 -------------------------------------------------------------------
+Wed Feb 15 14:06:02 CET 2006 - visnov@suse.cz
+
+- V 2.13.26 
+
+-------------------------------------------------------------------
 Tue Feb 14 14:41:50 CET 2006 - visnov@suse.cz
 
-- susetags source type identifier is "YaST" 
+- susetags source type identifier is "YaST" (#150237)
 
 -------------------------------------------------------------------
 Tue Feb 14 09:55:58 CET 2006 - visnov@suse.cz
 
-- store persistently the sources in inst_source 
-- fix store removal
+- store persistently the sources in inst_source (#150237)
+- fix store removal (#150237)
 - V 2.13.25
 
 -------------------------------------------------------------------
