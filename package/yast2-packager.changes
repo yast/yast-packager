@@ -2,6 +2,7 @@
 Wed Feb 15 19:55:10 CET 2006 - jsrain@suse.de
 
 - create /etc/mdadm.conf on update (#146304)
+- 2.13.27
 
 -------------------------------------------------------------------
 Wed Feb 15 14:06:02 CET 2006 - visnov@suse.cz
