@@ -240,6 +240,22 @@ void AcpiToInitrd () {
 	}
     }
 
+    /**
+     * Create /etc/mdadm.conf if it does not exist
+     */
+    void createmdadm () {
+	if ((integer)SCR::Read (.target.size, Installation::destdir + "/etc/mdadm.conf") < 0)
+	{
+	    y2milestone ("/etc/mdadm.conf doesn't exist, creating it");
+	    map out = (map)SCR::Execute (.target.bash_output, "echo DEV partitions > " + Installation::destdir + "/etc/mdadm.conf");
+	    if (out["exit"]:-1 != 0)
+		y2error ("Error occurred while creating /etc/mdadm.conf: %1", out);
+	    out = (map)SCR::Execute (.target.bash_output, "chroot " + Installation::destdir + " mdadm -Ds >> /etc/mdadm.conf");
+	    if (out["exit"]:-1 != 0)
+		y2error ("Error occurred while creating /etc/mdadm.conf: %1", out);
+	}
+    }
+
 
     /**
      *  Load all network modules.  The package sysconfig requires this during
@@ -334,6 +350,9 @@ void AcpiToInitrd () {
 
             // update inittab
             update_inittab ();
+
+	    // create /etc/mdadm.conf if it does not exist
+	    createmdadm();
 
             // load all network modules
             load_network_modules ();
