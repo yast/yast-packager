@@ -325,6 +325,7 @@ void AcpiToInitrd () {
 
             SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);
             backup_stuff ();
+	    createmdadm();
         }
         else 
         {
