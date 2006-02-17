@@ -651,7 +651,7 @@
     /**
      * Package providal start
      */
-    global void SlideProvideStart (string pkg_name, integer sz)
+    global void SlideProvideStart (string pkg_name, integer sz, boolean remote)
     {
 	if ( ! SanityCheck( false ) )	return;
 	if ( ! ShowingDetails() )	return;
@@ -663,8 +663,13 @@
 	}
 	//
 	// Update (user visible) installation log
+	// for remote download only
 	//
+	
+	if( ! remote ) return;
 
+	y2milestone( "Package '%1' is remote", pkg_name );
+	
 	string strsize = String::FormatSize (sz);
 	// message in the installatino log, %1 is package name,
 	// %2 is package size
