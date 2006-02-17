@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Feb 17 15:09:01 CET 2006 - visnov@suse.cz
+
+- properly report package removal problems 
+- V 2.13.28
+
+-------------------------------------------------------------------
+Thu Feb 16 10:49:34 CET 2006 - visnov@suse.cz
+
+- don't show non-remote files as a downloaded ones 
+
+-------------------------------------------------------------------
 Wed Feb 15 19:55:10 CET 2006 - jsrain@suse.de
 
 - create /etc/mdadm.conf on update (#146304)

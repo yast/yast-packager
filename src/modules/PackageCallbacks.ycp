@@ -360,8 +360,12 @@
 			  + Directory::logdir + "/y2logRPM > " + infopath);
 	    string info = reason + "\n---\n" + (string) SCR::Read (.target.string, [infopath, "-?-"]);
 
-	    // error popup during package installation, %1 is the name of the package
-	    string message = sformat (_("Installation of package %1 failed."), _package_name);
+	    string message = sformat ( _deleting_package ? 
+		// error popup during package installation, %1 is the name of the package
+		_("Removal of package %1 failed.")
+		// error popup during package installation, %1 is the name of the package
+		: _("Installation of package %1 failed.")
+	      , _package_name);
 
 	    if (Mode::commandline()) {
 		CommandLine::Print(message);

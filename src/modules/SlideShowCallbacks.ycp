@@ -71,7 +71,7 @@
     {
 	if ( remote )
 	{
-	    SlideShow::SlideProvideStart (name , archivesize);
+	    SlideShow::SlideProvideStart (name , archivesize, remote);
 	    _remote_provide = true;
 	}
     }
