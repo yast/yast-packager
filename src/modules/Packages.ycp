@@ -305,7 +305,7 @@
     {
 	list<string> selection_list = [];
         // also add the 'laptop' selection if PCMCIA detected
-        if (Arch::has_pcmcia ())
+        if (Arch::is_laptop ())
         {
             selection_list  =  Pkg::GetSelections( `available, "laptop");
         }
