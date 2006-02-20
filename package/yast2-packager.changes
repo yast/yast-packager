@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 20 16:06:39 CET 2006 - visnov@suse.cz
+
+- Properly detect laptop (#158813)
+- Improve handling of installation sources (#150237)
+- V 2.13.29
+
+-------------------------------------------------------------------
 Fri Feb 17 15:09:01 CET 2006 - visnov@suse.cz
 
 - properly report package removal problems 
