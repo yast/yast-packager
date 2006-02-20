@@ -129,7 +129,7 @@ from URL '%1'."), url );
 		list<integer> prod_sources = filter (integer s, newSources, {
 		    map src_data = Pkg::SourceGeneralData (s);
 		    string src_type = src_data["type"]:"";
-		    return (src_type == "YaST" || src_type == "YUM" || src_type == "UnitedLinux");
+		    return (src_type == "YaST" || src_type == "YUM");
 		});
 		if (size (prod_sources) == 0)
 		{
@@ -305,8 +305,13 @@ on the NFS server.
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::HideBackButton();
 
-    Pkg::SourceStartManager( false );
-    Pkg::SourceStartCache ( false );
+    boolean restore = Pkg::SourceStartManager( false );
+
+    if( ! restore )
+    {
+	Popup::Error(_("There were errors when restoring the sources configuration.
+Not all sources will be available for configuration."));
+    }
 
     sourceStatesIn = Pkg::SourceEditGet();
 
@@ -557,7 +562,7 @@ All changes will be lost.");
             {
 		integer source_id = sourceState["SrcId"]:0;
 		map src_data = Pkg::SourceGeneralData (source_id);
-		string type = src_data["type"]:"YaST";
+		string type = src_data["type"]:"UnitedLinux";
 
                 boolean state = sourceState[ "autorefresh" ]:true;
 		if (type == "PlainDir" && ! state)
