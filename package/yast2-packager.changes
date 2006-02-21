@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 21 18:56:44 CET 2006 - jsrain@suse.de
+
+- fixed displaying add-on selections (#152332)
+
+-------------------------------------------------------------------
 Tue Feb 21 11:42:48 CET 2006 - kkaempf@suse.de
 
 - append "filesytem" modifier with "&" instead of ";" (#152017)
