@@ -54,7 +54,7 @@
 	{
 	    reinit = true;
 	}
-	y2milestone("package proposal: %1, %2",  force_reset, reinit );
+	y2milestone("package proposal: force reset: %1, reinit: %2, language changed: %3",  force_reset, reinit, language_changed );
 	ret = Packages::Proposal( force_reset,		// user decision: reset to default
 				  reinit,		// reinitialize due to language or partition change
 				  false );		// simple version
