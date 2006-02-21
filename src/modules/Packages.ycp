@@ -1018,10 +1018,18 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		&& (addon_data["category"]:"" != "base")
 		&& addon_data["visible"]:false)
 	    {
-		if ( Pkg::SetSelection( sel ) )
-		    output = add ( output, "+  " + addon_data["summary"]:sel);
-		else
+		if ( ! Pkg::SetSelection( sel ) )
 		    y2error( "Couldn't add selection %1", sel );
+	    }
+	});
+	list<string> display_addon_selections = Pkg::GetSelections (`selected, "");
+	foreach(string sel, display_addon_selections, {
+	    map addon_data = Pkg::SelectionData (sel);
+	    if ((addon_data != nil)				// skip unknown selections
+		&& (addon_data["category"]:"" != "base")
+		&& addon_data["visible"]:false)
+	    {
+		output = add ( output, "+  " + addon_data["summary"]:sel);
 	    }
 	});
 
