@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 21 11:42:48 CET 2006 - kkaempf@suse.de
+
+- append "filesytem" modifier with "&" instead of ";" (#152017)
+- V 2.13.30
+
+-------------------------------------------------------------------
 Mon Feb 20 16:06:39 CET 2006 - visnov@suse.cz
 
 - Properly detect laptop (#158813)
