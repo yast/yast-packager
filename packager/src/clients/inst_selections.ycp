@@ -1,0 +1,226 @@
+/**
+ * File:	clients/inst_selections.ycp
+ * Package:	Packager
+ * Summary:	Selection Selection ;-)
+ * Authors:	Jiri Srain <jsrain@suse.cz>
+ *		Stanislav Visnovsky <visnov@suse.cz>
+ */
+
+{
+
+textdomain "packager";
+
+import "Directory";
+import "GetInstArgs";
+import "Label";
+import "Packages";
+import "Popup";
+import "ProductFeatures";
+import "Stage";
+import "Wizard";
+
+// do not offer the dialog if base selection is fixed
+if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
+    return `auto;
+
+if (Packages::preferred_base_selection == nil)
+{
+    Packages::preferred_base_selection = ProductFeatures::GetStringFeature ("software", "base_selection");
+    if (Packages::preferred_base_selection == "")
+	Packages::preferred_base_selection = nil;
+}
+
+map display = UI::GetDisplayInfo();
+integer space = display["TextMode"]:true ? 1 : 3;
+
+// all the arguments
+map argmap = GetInstArgs::argmap();
+
+// dialog caption
+Wizard::SetContents (_("Software Selection"), `VBox(), "",
+    false, false);
+Wizard::SetTitleIcon( "software" );
+
+// Intermediate contents of the software selection screen
+UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
+
+// intialize package source to get a list of selections
+Packages::Init (false);
+
+UI::CloseDialog ();
+
+// ------------------------------------------------------------------------
+
+// get all available base selections
+// checked in help below !
+list<string> available_base_selections = Pkg::GetSelections( `available, "base" );
+y2milestone ("available_base_selections %1", available_base_selections);
+
+if (size (available_base_selections) == 0)
+{
+    y2error( "No base selections available" );
+}
+
+// if there is only a single base selection, setting up a radio-button dialog
+// box for a single base selection is useless. Skip this completely.
+
+if (size (available_base_selections) == 1)
+{
+    y2milestone ( "Only one base selections available, going directly to single package selection" );
+
+    return `auto;
+}
+
+// we have multiple base selections, let the user choose
+
+// Dialog title for software selection
+string title = _("Software Selection");
+
+// Help text Software Selection dialog
+// Explain selectable system configurations but beware:
+// some of the text in <b>'s, e.g. Default comes from the index file,
+// translations must be consistent with po/index/index.??.po
+string helptext = _("<p>
+The &product; Standard System is a good software
+selection for most users.
+</p>");
+
+// help text, continued
+helptext = helptext + _("<p>You will not need to insert all of the media that
+come with &product; for this selection. Additional software from the
+other media can always be installed later.
+</p>");
+
+// help text, continued
+helptext = helptext + _("<p>
+The <b>Minimal</b> system includes just the bare essentials needed
+to safely run &product;. This selection <b><i>does not include
+graphical desktop environments</i></b> -- no X11, no KDE, no GNOME.
+Select this option as a base for your own custom selection, for
+dedicated server systems that do not need a graphical desktop, or for
+systems that are short on disk space or memory.
+</p>");
+
+// help text, continued
+helptext = helptext + _("<p>
+With the <b>Minimum graphical system</b>, install the &product;
+base system and all packages required for X11, the graphical user
+interface (GUI).
+You can then work with a simple graphical desktop. </p>");
+
+//    if (Product::name == "Novell Linux Desktop")
+    if (ProductFeatures::GetFeature ("software", "software_proposal") == "desktop")
+	// help text, continued, optional
+	helptext = _("<p>&product; offers a selection of efficient and comfortable desktops.
+Select which desktop to install.</p>");
+
+// Construct a box with radiobuttons for each software base configuration
+term baseconfs_box = `VBox();
+
+// sort available_base_selections by order
+// $[ "order" : [ "name", "summary" ], .... ]
+
+map<string, list<string> > sorted_base_selections = $[];
+foreach( string selection, available_base_selections,
+    ``{
+	map selection_data = Pkg::SelectionData (selection);
+	if (selection_data != nil)
+	{
+	    string order = selection_data["order"]:"";
+	    // use selection name as sort criteria if not given
+	    if (order == "")
+		order = selection;
+	    sorted_base_selections[order] = [selection, selection_data["summary"]:("'"+selection+"'")];
+	}
+});
+
+// construct display box in order
+foreach(string order, list<string> data, sorted_base_selections,
+``{
+	{
+	    baseconfs_box = add( baseconfs_box, `Left(`RadioButton(`id(data[0]:""),		// id
+						       `opt(`notify, `autoShortcut),
+						       data[1]:"",				// descrption
+						       Packages::preferred_base_selection == data[0]:"")));
+	}
+});
+
+string wrn_msg = "";
+
+term contents = `HVSquash(
+			      `VBox(
+				    `HSquash(
+					     `VBox(
+						   `Frame(
+							  // Frame caption for software selection
+							  _("Software"),
+							  `VBox(
+								`VSpacing(0.3),
+								`RadioButtonGroup(`id(`baseconf),`opt(`notify), baseconfs_box),
+								`VSpacing(0.3)
+								)
+							  )
+						   )
+					     ),
+				    `VSpacing(0.7),
+				    `Label( `id(`wrn_label), wrn_msg )
+				    )
+			      );
+
+// dialog caption
+Wizard::SetContents (_("Software Selection"), contents, helptext,
+    GetInstArgs::enable_back(), GetInstArgs::enable_next());
+Wizard::SetFocusToNextButton();
+Wizard::SetTitleIcon( "software" );
+
+symbol ret = nil;
+string base_selection = nil;
+
+repeat {
+    map event = UI::WaitForEvent();
+    ret = (symbol)event["ID"]:nil;
+
+    if (event["WidgetClass"]:nil == `RadioButton)
+    {
+	Wizard::EnableNextButton();
+	UI::ChangeWidget (`select, `Enabled,
+	    UI::QueryWidget (`other, `Value));
+    }
+    else if (ret == `next)
+    {
+	// get the newly selected base configuration
+	base_selection = (string) UI::QueryWidget( `id(`baseconf),`CurrentButton );
+	if ( base_selection == nil )
+	    base_selection = "";
+    }
+    if (ret == `abort)
+    {
+	if (Popup::ConfirmAbort (Stage::initial () ? `painless : `incomplete))
+	    return `abort;
+	continue;
+    }
+
+} until (ret == `back || ret == `next);
+
+
+Wizard::EnableNextButton ();
+
+if (ret == `accept)
+    ret = `next;
+
+if (ret == `next)
+{
+    if (Packages::preferred_base_selection != base_selection)
+    {
+	y2milestone ("Setting preferred base selection: %1", base_selection);
+	Packages::base_selection_changed = true;
+	Packages::preferred_base_selection = base_selection;
+    }
+}
+
+return ret;
+
+
+
+/* EOF */
+}

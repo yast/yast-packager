@@ -1,0 +1,87 @@
+/**
+ * Module:	inst_media.ycp
+ *
+ * Authors:	Arvin Schnell <arvin@suse.de>
+ *
+ * Purpose:	Show some stuff about the installation media.
+ */
+{
+    textdomain "packager";
+
+    import "Label";
+    import "Popup";
+    import "Wizard";
+    import "Packages";
+    import "String";
+
+
+    list source_list = [];
+
+    integer num = size (Packages::theSources);
+    if (num <= 0)
+    {
+	y2error ("Invalid source");
+    }
+    else
+    {
+	foreach (integer i, Packages::theSources, {
+	    map new_product = Pkg::SourceProductData (i);
+	    source_list = add (source_list,
+			       `item (`id (i),String::Pad( new_product["productname"]:_("Unknown"), 10 ),
+				      new_product["productversion"]:_("Unknown")));
+	});
+    }
+
+
+    // screen title
+    string title = _("Installation Media");
+
+    // label for showing installation sources
+    string label = _("Registered Catalogs:");
+
+    // help text for dialog to show installation sources
+    string help_text = _("<p>All registered installation sources are shown here.
+</p>
+");
+
+    term contents =
+	`VBox (
+	       `HCenter (
+			 `HSquash (
+				   `VBox (
+					  `HSpacing( 40 ),	// force minimum width
+					  `Left (`Label (label)),
+					  `Table (`id (`sources),
+							// table header
+						  `header (_("Name"),
+							// table header
+							   _("Version")),
+						  source_list)
+					  )
+				   )
+			 ),
+	       `VSpacing (2)
+	       );
+
+
+    Wizard::OpenAcceptDialog ();
+    Wizard::SetContents (title, contents, help_text,
+			 (boolean) WFM::Args(0), (boolean) WFM::Args(1));
+
+    any ret = nil;
+
+    while (true)
+    {
+	ret = Wizard::UserInput ();
+
+	if (ret == `abort && Popup::ConfirmAbort (`painless))
+	    break;
+
+	if (ret == `cancel || ret == `back || ret == `next)
+	    break;
+    }
+
+    Wizard::CloseDialog ();
+
+    return ret;
+}
