@@ -144,7 +144,7 @@
 	    is_network = false;
             string partition = Linuxrc::InstallInf("Partition");
             if (partition != nil )
-	        options = "device=/dev/" + partition + ";filesystem=auto";
+	        options = "device=/dev/" + partition + "&filesystem=auto";
             else
                 y2error("no partition specified");
 	}
