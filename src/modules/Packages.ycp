@@ -842,9 +842,11 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	// remember if we must re-do the proposal.
 	// If not, there's no need to activate any selections !
 	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
+	y2milestone ("Redo proposal: %1", redo_proposal);
 
 	if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
 	{
+	    y2milestone ("Selection type: fixed");
 	    if (! disk_space_sufficient)
 	    {
 		// warning in the summary
@@ -854,9 +856,11 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	}
 	else if (ProductFeatures::GetFeature ("software", "selection_type") == `auto)
 	{
+	    y2milestone ("Selection type: auto");
 	    // keep desktop selection until user manually modifies the
 	    // sw selection (#104626)
-	    if ((! disk_space_sufficient) && (preferred_base_selection != nil)
+	    // always keep selection, and inform user about unsufficient disk space (#
+	    if ((! disk_space_sufficient) /*&& (preferred_base_selection != nil)*/
 		&& (! redo_proposal))
 	    {
 		// warning in the summary
@@ -1042,10 +1046,10 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	// check only disk space, if the selected software selection
 	// fits on the disk
-	if ( !SpaceCalculation::CheckDiskSize() )
+	if ( (!SpaceCalculation::CheckDiskSize()) && ret["warning_level"]:nil != `blocker )
 	{
-//	    ret = $[ "warning" : _("Software selection does not fit on disk"),
-//		   warning_level : `blocker ];
+	    ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+	    ret = add( ret, "warning_level", `blocker );
 	    y2warning ("Software selection does not fit on disk");
 	}
 
@@ -1090,6 +1094,8 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	}
 
 	UI::CloseDialog();
+
+	y2milestone ("Software proposal: %1", ret);
 
 	return ret;
 }

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 22 22:27:23 CET 2006 - jsrain@suse.de
+
+- updated BuildRequires
+- do not reset selection if running out of disk space (#148658)
+
+-------------------------------------------------------------------
 Tue Feb 21 18:56:44 CET 2006 - jsrain@suse.de
 
 - fixed displaying add-on selections (#152332)
