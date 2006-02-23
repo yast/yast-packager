@@ -768,6 +768,34 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 
 
 /**
+ * Select the base product on the media for installation
+ * @return boolean true on success
+ */
+global boolean SelectProduct () {
+    Packages::Init (false); // argument ignored anyway...
+    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+    if (size (products) == 0)
+    {
+	y2milestone ("No product found on media");
+	return true;
+    }
+    list<map<string,any> >selected_products = filter (map<string,any> p, products, {
+	return p["status"]:nil == `selected;
+    });
+    // no product selected -> select them all
+    boolean ret = true;
+    if (size (selected_products) == 0)
+    {
+	y2milestone ("No product selected so far...");
+	foreach (map<string,any> p, products, {
+	    y2milestone ("Selecting product %1", p["name"]:"");
+	    ret = Pkg::ResolvableInstall (p["name"]:"", `product) && ret;
+	});
+    }
+    return ret;
+}
+
+/**
  * Make a proposal for package selection
  * @param force reset
  * @param re-initialize
@@ -805,6 +833,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	}
 
 	boolean initial_run = reinit || ! init_called;
+
+	if (initial_run)
+	    SelectProduct ();
 
 
 	if (pm_init_blocker != nil)
@@ -844,7 +875,24 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
 	y2milestone ("Redo proposal: %1", redo_proposal);
 
-	if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
+	boolean using_patterns = false;
+	if (size (Pkg::ResolvableProperties ("", `pattern, "")) > 0
+	    && size (Pkg::GetSelections (`available, "base")) == 0)
+	{
+	    y2milestone ("No base selection found, but patterns found...");
+	    using_patterns = true;
+	    if (initial_run || redo_proposal)
+	    {
+		map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
+		if (size (res) > 0)
+		{
+		    foreach (string s, any a, res, {
+			y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+		    });
+		}
+	    }
+	}
+	else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
 	{
 	    y2milestone ("Selection type: fixed");
 	    if (! disk_space_sufficient)
@@ -1006,14 +1054,26 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
                 Arch::i386 () && issubstring(dp, "DVD"))
 	    add_information_about_suboptimal_distribution (output);
 
-	map base_data = Pkg::SelectionData (selected_base_selection);
-	if (base_data == nil)
+	map base_data = $[];
+	if (using_patterns)
 	{
-	    y2error ("No data for selection '%1'", selected_base_selection);
-	    base_data = $[];
+	    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+	    foreach (map<string,any> p, products, {
+		if (p["status"]:nil == `selected)
+		    output = add (output, p["name"]:"");
+	    });
 	}
-	y2milestone ("Base %1: %2", selected_base_selection, base_data);
-	output = add (output, base_data["summary"]:"?");
+	else
+	{
+	    base_data = Pkg::SelectionData (selected_base_selection);
+	    if (base_data == nil)
+	    {
+		y2error ("No data for selection '%1'", selected_base_selection);
+		base_data = $[];
+	    }
+	    y2milestone ("Base %1: %2", selected_base_selection, base_data);
+	    output = add (output, base_data["summary"]:"?");
+	}
 
 	// add on
 	foreach(string sel, selected_addon_selections, {
@@ -1026,17 +1086,53 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		    y2error( "Couldn't add selection %1", sel );
 	    }
 	});
-	Pkg::PkgSolve (false);
-	list<string> display_addon_selections = Pkg::GetSelections (`selected, "");
-	foreach(string sel, display_addon_selections, {
-	    map addon_data = Pkg::SelectionData (sel);
-	    if ((addon_data != nil)				// skip unknown selections
-		&& (addon_data["category"]:"" != "base")
-		&& addon_data["visible"]:false)
+
+	if (redo_proposal)
+	{
+	    y2milestone ("activating selections");
+	    boolean act_sel = Pkg::ActivateSelections ();
+
+	    // add additional (internal) packages, like kernel etc.
+	    map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
+	    if (size (res) > 0)
 	    {
-		output = add ( output, "+  " + addon_data["summary"]:sel);
+		foreach (string s, any a, res, {
+		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+		});
 	    }
-	});
+
+	    y2milestone ("activating: %1, returning %2", act_sel, ret);
+	}
+	boolean success = Pkg::PkgSolve (false);
+	if (! success)
+	{
+	    solve_errors = Pkg::PkgSolveErrors ();
+	}
+
+	if (using_patterns)
+	{
+	    if (! simple)
+	    {
+		list<map<string,any> > patterns = Pkg::ResolvableProperties ("", `pattern, "");
+		foreach (map<string,any> p, patterns, {
+		    if (p["status"]:nil == `selected)
+			output = add (output, "+  " + p["name"]:"");
+		});
+	    }
+	}
+	else
+	{
+	    list<string> display_addon_selections = Pkg::GetSelections (`selected, "");
+	    foreach(string sel, display_addon_selections, {
+		map addon_data = Pkg::SelectionData (sel);
+		if ((addon_data != nil)				// skip unknown selections
+		    && (addon_data["category"]:"" != "base")
+		    && addon_data["visible"]:false)
+		{
+		    output = add ( output, "+  " + addon_data["summary"]:sel);
+		}
+	    });
+	}
 
 	y2milestone ("proposal %1", output);
 
@@ -1057,34 +1153,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	// we just proposed a new base selection, activate it !
 
-	if (redo_proposal)
-	{
-	    y2milestone ("activating selections");
-	    boolean act_sel = Pkg::ActivateSelections ();
-
-	    // add additional (internal) packages, like kernel etc.
-	    map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
-	    if (size (res) > 0)
-	    {
-		foreach (string s, any a, res, {
-		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
-		});
-	    }
-
-	    Pkg::PkgSolve (false);
-
-	    y2milestone ("activating: %1, returning %2", act_sel, ret);
-	}
-	if (initial_run || redo_proposal)
-	{
-	    boolean success = Pkg::PkgSolve (false);
-	    if (! success)
-	    {
-		solve_errors = Pkg::PkgSolveErrors ();
-	    }
-	}
-
-	if (simple)
+	if (simple && ! using_patterns)
 	{
 	    ret["raw_proposal"] = [
 		sformat ("%1 (%2 total)",

@@ -251,6 +251,7 @@ if (ret == `next)
 	y2milestone ("Setting preferred base selection: %1", base_selection);
 	Packages::base_selection_changed = true;
 	Packages::preferred_base_selection = base_selection;
+	Pkg::PkgReset ();
     }
 }
 

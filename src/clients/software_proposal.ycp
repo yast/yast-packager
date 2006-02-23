@@ -45,7 +45,8 @@
 	}
 	if (! contains (Pkg::GetAdditionalLocales (), Language::language))
 	{
-	    language_changed = true;
+// FIXME this is temporary fix
+//	    language_changed = true;
 	    Pkg::SetAdditionalLocales (
 		add (Pkg::GetAdditionalLocales (), Language::language));
 	}
