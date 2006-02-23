@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 23 23:40:05 CET 2006 - jsrain@suse.de
+
+- add support for patterns to proposal routines
+
+-------------------------------------------------------------------
 Wed Feb 22 22:27:23 CET 2006 - jsrain@suse.de
 
 - updated BuildRequires
