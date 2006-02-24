@@ -779,6 +779,7 @@ global boolean SelectProduct () {
 	y2milestone ("No product found on media");
 	return true;
     }
+    // FIXME TODO filter for base products
     list<map<string,any> >selected_products = filter (map<string,any> p, products, {
 	return p["status"]:nil == `selected;
     });
