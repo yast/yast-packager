@@ -25,6 +25,13 @@
                                 boolean allowHttps);
 
     /**
+     * check if given path points to ISO file
+     */
+    define boolean path_is_iso (string url) {
+	return substring (url, size (url) - 4, 4) == ".iso";
+    }
+
+    /**
         Return an HBox with ok and cancel buttons for use by other dialogs.
         @return An HBox term for use in a CreateDialog call.
     */
@@ -147,12 +154,13 @@
             `VBox(
 		`HSpacing (50),
 		// label
-                `Label( _("NFS Server and Directory") ),
+                `Label( _("NFS Server Source") ),
 		// text entry
                 `TextEntry( `id( `server ), _("&Server Name"), host ),
 		// text entry
-                `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
-//                `TextEntry( `id( `mount ), _("&Mount options") ),
+                `TextEntry( `id( `dir ), _("&Path to Directory or ISO Image"), urlpath ),
+		// checkbox label
+		`Left (`CheckBox (`id (`ch_iso), _("ISO Image"))),
                 dialogButtons()
             )
         );
@@ -171,9 +179,18 @@
             {
                 string server = (string) UI::QueryWidget( `id( `server ), `Value );
                 string dir = (string) UI::QueryWidget( `id( `dir ), `Value );
-//                string options = UI::QueryWidget( `id( `mount ), `Value );
-
+		boolean iso = (boolean) UI::QueryWidget(`id(`ch_iso),`Value) ||
+		    path_is_iso (dir);
                 url = "nfs://" + server + "/" + dir;
+		if (iso)
+		{
+		    y2milestone ("nfs url: %1", url);
+		    integer last	= findlastof (dir, "/") + 1;
+		    string onlydir	= substring (dir, 0, last);
+		    url	= "iso:/?iso=" + substring (dir, last) + "&url=nfs://"
+			+ server + "/" + onlydir;
+		    y2milestone ("iso url: %1", url);
+		}
             }
 
         } until ( input == `cancel || input == `ok );
@@ -284,24 +301,37 @@
         term protocolBox = `HBox(
                                  `HStretch(),
                                  // radio button
-                                 `RadioButton( `id( `ftp ), _("&FTP") ),
+                                 `RadioButton( `id( `ftp ),`opt(`notify), _("&FTP") ),
                                  `HStretch(),
                                  // radio button
-                                 `RadioButton( `id( `http ), _("H&TTP") ),
+                                 `RadioButton( `id( `http ),`opt(`notify), _("H&TTP") ),
                                  `HStretch()
                            );
         if (allowHttps) {
           protocolBox = add( add (protocolBox,
                                   // radio button
-                                  `RadioButton( `id( `https ), _("HTT&PS") ) ),
+                                  `RadioButton( `id( `https ),`opt(`notify), _("HTT&PS") ) ),
                              `HStretch() );
         }
         protocolBox = add( add( protocolBox,
                                 // radio button
-                                `RadioButton( `id( `samba ), _("&SMB/CIFS") ) ),
+                                `RadioButton( `id( `samba ),`opt(`notify), _("&SMB/CIFS") ) ),
                            `HStretch() );
 
-        UI::OpenDialog( `opt( `decorated ),
+	term get_directory_widget (any typ) {
+	    return typ == `samba ?
+		`VBox (
+		    `TextEntry( `id( `dir ),
+			// text entry
+			_("&Path to Directory or ISO Image"),urlpath),
+		    // checkbox label
+		    `Left (`CheckBox (`id(`ch_iso), _("ISO Image")))
+		) :
+		// text entry
+                `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath );
+	}
+
+        UI::OpenDialog( `opt( `decorated ), `HBox (`HSpacing (0.5),
             `VBox(
 		`HSpacing (50),
 		// label
@@ -319,8 +349,7 @@
 		// text entry
                 `TextEntry( `id( `server ), _("Server &Name"), host ),
 		`ReplacePoint (`id (`share_rp), share_widget),
-		// text entry
-                `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath ),
+		`ReplacePoint (`id(`dir_rp), get_directory_widget(type)),
                 `HBox(
                     `HSpacing( 0.5 ),
 			// frame
@@ -349,7 +378,7 @@
                     `HSpacing( 0.5 )
                 ),
                 dialogButtons()
-            )
+            ), `HSpacing (0.5))
         );
 
         UI::ChangeWidget( `id( `rb_type ), `CurrentButton, type );
@@ -373,6 +402,8 @@
 		UI::ReplaceWidget (`id (`workgroup_rp), `Empty ());
 		UI::ReplaceWidget (`id (`share_rp), `Empty ());
 	    }
+
+	    UI::ReplaceWidget (`id (`dir_rp), get_directory_widget (UI::QueryWidget (`id (`rb_type), `CurrentButton)));
 
             boolean anonymous = (boolean) UI::QueryWidget( `id( `anonymous ), `Value );
             UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
@@ -415,6 +446,19 @@
 
                 string server = (string) UI::QueryWidget( `id( `server ), `Value );
                 string directory = (string) UI::QueryWidget( `id( `dir ), `Value );
+		if ((type == `samba) && (
+			(boolean)(UI::QueryWidget(`id(`ch_iso),`Value)) ||
+		        path_is_iso (directory))
+		    )
+		{
+		    y2milestone ("url: %1, directory: %2", url, directory);
+		    integer last	= findlastof (directory, "/") + 1;
+		    url = sformat ("iso:/?iso=%1&url=%2",
+			substring (directory, last), url);
+		    directory		= substring (directory, 0, last);
+		    y2milestone ("iso url: %1, directory: %2", url, directory);
+		}
+
 		if (UI::WidgetExists (`id (`share)))
 		{
 		    share = (string)UI::QueryWidget (`id (`share), `Value);
@@ -427,7 +471,6 @@
 		     workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
 		if (type == `samba && size (workgroup) > 0)
 		    url = url + ";workgroup=" + workgroup;
-
 
             }
         } until ( input == `cancel || input == `ok );
@@ -449,13 +492,18 @@
             `VBox(
 		`HSpacing (50),
 		// label
-                `Label( _("Local Directory") ),
+                `Label( _("Local Directory or ISO") ),
                 `HBox(
 			// text entry
-                    `TextEntry( `id( `dir ), _("&Directory Path") ),
+                    `TextEntry( `id( `dir ), _("&Path to Directory or ISO Image") ),
+		    `VBox (
+			`Label (""),
 			// push button
-                    `PushButton( `id( `browse ), _("&Browse...") )
+			`PushButton( `id( `browse ), _("&Browse...") )
+		    )
                 ),
+		// checkbox label
+		`Left (`CheckBox (`id (`ch_iso), _("ISO Image"))),
                 dialogButtons()
             )
         );
@@ -470,13 +518,16 @@
         repeat
         {
             input = UI::UserInput();
-
+	    boolean iso   = (boolean)UI::QueryWidget(`id(`ch_iso), `Value);
             if ( input == `browse )
             {
                 url = (string) UI::QueryWidget( `id( `dir ), `Value );
 
-		// dialog caption
- 		string result = UI::AskForExistingDirectory( url, _("Local Directory") );
+		string result = iso ?
+		    // dialog caption
+		    UI::AskForExistingFile (url, "*", _("ISO Image File")) :
+		    // dialog caption
+		    UI::AskForExistingDirectory( url, _("Local Directory") );
                 if ( result != nil )
                 {
                     UI::ChangeWidget( `id( `dir ), `Value, result );
@@ -485,8 +536,9 @@
             else if ( input == `ok )
             {
                 url = (string) UI::QueryWidget( `id( `dir ), `Value );
-
-                url = "dir://" + url;
+		iso = iso || path_is_iso (url);
+		y2milestone ("directory: %1, is iso: %2", url, iso);
+                url = iso ? ("iso:/?iso=" + url) : ("dir://" + url);
             }
             else if ( input == `cancel )
             {

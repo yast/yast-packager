@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 24 13:16:01 CET 2006 - jsuchome@suse.cz
+
+- added dialogs for ISO installation source
+- 2.13.34 
+
+-------------------------------------------------------------------
 Thu Feb 23 23:40:05 CET 2006 - jsrain@suse.de
 
 - add support for patterns to proposal routines
