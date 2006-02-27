@@ -3,6 +3,7 @@ Mon Feb 27 18:31:26 CET 2006 - jsrain@suse.de
 
 - removed order/instorder file handling
 - fixed setting default desktop according to destop dialog (#152709)
+- 2.13.35
 
 -------------------------------------------------------------------
 Fri Feb 24 13:16:01 CET 2006 - jsuchome@suse.cz
