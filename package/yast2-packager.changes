@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 27 16:47:18 CET 2006 - jsrain@suse.de
+
+- removed order/instorder file handling
+
+-------------------------------------------------------------------
 Fri Feb 24 13:16:01 CET 2006 - jsuchome@suse.cz
 
 - added dialogs for ISO installation source
