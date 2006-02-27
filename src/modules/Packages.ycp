@@ -66,6 +66,9 @@
      */
     list<string> additional_packages = [];
 
+    global string window_manager = nil;
+
+    global boolean using_patterns = false;
 
 
     /*-----------------------------------------------------------------------
@@ -726,7 +729,6 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
 	y2milestone ("Redo proposal: %1", redo_proposal);
 
-	boolean using_patterns = false;
 	if (size (Pkg::ResolvableProperties ("", `pattern, "")) > 0
 	    && size (Pkg::GetSelections (`available, "base")) == 0)
 	{

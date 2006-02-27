@@ -38,6 +38,13 @@ map<string,symbol> selection2desktop = mapmap (symbol d, string s,
     return $[ s : d ];
 });
 
+map<symbol,string> desktop2wm = $[
+    `gnome : "gnome",
+    `kde : "kde",
+    `min_x11 : "twm",
+    `text : "twm",
+];
+
 symbol alt_desktop = nil;
 symbol other_desktop = nil;
 if (Packages::preferred_base_selection == nil)
@@ -252,6 +259,9 @@ if (ret == `next)
 	Packages::base_selection_changed = true;
 	Packages::preferred_base_selection = base_selection;
 	Pkg::PkgReset ();
+	string wm = desktop2wm[alt_desktop]:"";
+	y2milestone ("Setting preferred window manager to %1", wm);
+	Packages::window_manager = wm;
     }
 }
 
