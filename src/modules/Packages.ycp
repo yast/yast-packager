@@ -874,7 +874,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		selected_addon_selections = base_data["recommends"]:[];
 
 		// also add the 'laptop' selection if PCMCIA detected
-		if (Arch::has_pcmcia ())
+		if (Arch::has_pcmcia () || Arch::is_laptop ())
 		{
 		    selected_addon_selections = (list<string>)union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
                 }
