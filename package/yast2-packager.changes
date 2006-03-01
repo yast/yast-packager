@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  1 16:58:41 CET 2006 - jsrain@suse.de
+
+- correctly display pattern summary in proposal (#153713)
+
+-------------------------------------------------------------------
 Tue Feb 28 21:29:01 CET 2006 - jsrain@suse.de
 
 - added more checking for laptop (#151813)

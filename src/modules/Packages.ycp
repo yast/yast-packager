@@ -688,9 +688,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	boolean initial_run = reinit || ! init_called;
 
-	if (initial_run)
-	    SelectProduct ();
-
+	SelectProduct ();
 
 	if (pm_init_blocker != nil)
 	{
@@ -913,7 +911,12 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
 	    foreach (map<string,any> p, products, {
 		if (p["status"]:nil == `selected)
-		    output = add (output, p["name"]:"");
+		{
+		    string summary = p["summary"]:"";
+		    if (summary == "")
+			summary = p["name"]:"";
+		    output = add (output, summary);
+		}
 	    });
 	}
 	else
@@ -969,7 +972,12 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		list<map<string,any> > patterns = Pkg::ResolvableProperties ("", `pattern, "");
 		foreach (map<string,any> p, patterns, {
 		    if (p["status"]:nil == `selected)
-			output = add (output, "+  " + p["name"]:"");
+		    {
+			string summary = p["summary"]:"";
+			if (summary == "")
+			   summary = p["name"]:"";
+			output = add (output, "+  " + summary);
+		    }
 		});
 	    }
 	}
