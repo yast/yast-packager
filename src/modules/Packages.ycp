@@ -70,6 +70,27 @@
 
     global boolean using_patterns = false;
 
+/**
+ * Reset package selection, but keep objects of specified type
+ * @param keep a list of symbols specifying type of objects to be kept
+ */
+global void Reset (list<symbol> keep) {
+    list<map<string,any> > restore = [];
+    foreach (symbol type, keep, {
+	list<map<string,any> > selected = Pkg::ResolvableProperties ("", type, "");
+	foreach (map<string,any> s, selected, {
+	    restore = add (restore, $[
+		"type" : type,
+		"name" : s["name"]:""
+	    ]);
+	});
+    });
+    Pkg::PkgReset();
+    foreach (map<string,any> res, restore, {
+	Pkg::ResolvableInstall (res["name"]:"", (symbol)(res["type"]:nil));
+    });
+}
+
 
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
@@ -674,7 +695,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	if ( force_reset )
 	{
 	    Kernel::ProbeKernel();
-	    Pkg::PkgReset ();
+	    Packages::Reset ([`product]);
 	    Packages::Init( true );	// reintialize AND reset package selection too
 	}
 	else if ( reinit )
@@ -912,7 +933,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    foreach (map<string,any> p, products, {
 		if (p["status"]:nil == `selected)
 		{
-		    string summary = p["summary"]:"";
+		    string summary = p["display_name"]:"";
+		    if (summary == "")
+			summary = p["summary"]:"";
 		    if (summary == "")
 			summary = p["name"]:"";
 		    output = add (output, summary);
