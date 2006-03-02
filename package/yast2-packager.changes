@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  2 15:17:58 CET 2006 - visnov@suse.cz
+
+- fix ProvidePackage callback signatures 
+
+-------------------------------------------------------------------
 Wed Mar  1 16:58:41 CET 2006 - jsrain@suse.de
 
 - correctly display pattern summary in proposal (#153713)

@@ -321,7 +321,7 @@
     /**
      *  During package install.
      */
-    global define void ProgressPackage (integer percent)
+    global define boolean ProgressPackage (integer percent)
     {
 	if (_package_popup)
 	    UI::ChangeWidget (`id(`progress), `Value, percent);
@@ -336,7 +336,7 @@
 	    }
 	}
 
-	return;
+	return true;
     }
 
 

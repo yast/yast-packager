@@ -185,12 +185,12 @@
     /**
      * ProgressPackage percent
      **/
-    global symbol ProgressPackage ( integer pkg_percent )
+    global boolean ProgressPackage ( integer pkg_percent )
     {
 	HandleInput();
 	SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
 
-	return nil;
+	return ! user_abort;
     };
 
     /**
