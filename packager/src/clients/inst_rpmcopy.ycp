@@ -1,0 +1,725 @@
+/**
+ * Module: 		inst_rpmcopy.ycp
+ *
+ * Authors:		Klaus Kaempf <kkaempf@suse.de>
+ *			Stefan Hundhammer <sh@suse.de> (slide show)
+ *			Arvin Schnell <arvin@suse.de>
+ *
+ * Purpose:
+ * Install all the RPM packages the user has selected.
+ * Show installation dialogue. Show progress bars.
+ * Request medium change from user.
+ *
+ * Packages module :
+ *			"installed"
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    import "Mode";
+    import "Stage";
+    import "Installation";
+    import "Directory";
+    import "Language";
+    import "PackageInstallation";
+    import "Packages";
+    import "SlideShow";
+    import "SlideShowCallbacks";
+    import "AutoinstSoftware";
+    import "Popup";
+    import "DirInstall";
+    import "Report";
+    import "Kernel";
+
+    // variables related to installation source caching
+
+    /**
+     * File with the information about package cache (between 1st and 2nd
+     * installation stage
+     */
+    string cache_info_path = "/var/lib/YaST2/pkg_cache";
+
+    /**
+     * Is the disk cache used? (to be stored for 2nd stage)
+     */
+    boolean store_using_disk_cache = false;
+
+    /**
+     * Directory containing the cache (to be stored for 2nd stage)
+     */
+    string store_cache_directory = "";
+
+    /**
+     * Original source URL (to be stored for 2nd stage)
+     */
+    string store_original_source_url = "";
+
+    /**
+     * Cached source ID (during second stage)
+     */
+    integer cached_source_id = -1;
+
+    /**
+     * Symlink in the target system (during the first stage)
+     */
+    string cache_symlink = "";
+
+    /**
+     * result of Pkg::PkgMediaSizes() from actual install
+     */
+    list <list <integer> > media_sizes = Pkg::PkgMediaSizes();
+
+    /**
+     * 'datadir' of cached source (usually 'suse', where packages reside
+     */
+    string cached_source_datadir = "suse";
+
+    // functions related to installation source caching
+
+    /**
+     * Get the source ID of the first source to be cached
+     * @return integer cached source ID
+     */
+    integer CachedSourceId ()
+    {
+	integer cached_id = -1;
+	foreach (integer id, Packages::theSources,
+	{
+	    map<string,string> product_data = (map<string,string>)Pkg::SourceProduct (id);
+	    y2milestone ("Id %1: SourceProduct %2", id, product_data);
+	    if (find (product_data["flags"]:"", "cache") >= 0)
+	    {
+		cached_id = id;
+		break;
+	    }
+	});
+	y2milestone ("Detected cached source ID: %1", cached_id);
+
+	if (cached_id >= 0)
+	{
+	    y2milestone ("SourceGeneralData %1", Pkg::SourceGeneralData(cached_id));
+	    y2milestone ("SourceMediaData %1", Pkg::SourceMediaData(cached_id));
+	    y2milestone ("SourceProductData %1", Pkg::SourceProductData(cached_id));
+	    map<string, any> product_data = Pkg::SourceProductData (cached_id);
+	    cached_source_datadir = product_data["datadir"]:"suse";
+	}
+	return cached_id;
+    }
+
+    /**
+     * Store information about the disk cache to the target system
+     */
+    void StoreDiskCacheSettings ()
+    {
+	if (! store_using_disk_cache)
+	{
+	    return;
+	}
+	map settings = $[
+	    "using_disk_cache" : store_using_disk_cache,
+	    "original_source_url" : store_original_source_url,
+	    "cache_directory" : store_cache_directory,
+	];
+	y2milestone ("Storing disk cache settings: %1", settings);
+	SCR::Write (.target.ycp,
+	    Installation::destdir + cache_info_path,
+	    settings);
+
+	// remove the symlink created in the target system - not needed any more
+	map ta_out = (map)SCR::Execute (.target.bash_output,
+	  sformat ("/bin/rm -rf %1", cache_symlink));
+    }
+
+    /**
+     * Restore information about the disk cache at the start of the second
+     * stage, update the symlink and source location
+     */
+    void RestoreDiskCacheSettings ()
+    {
+	map settings = (map)SCR::Read (.target.ycp, [cache_info_path, $[]]);
+	if (settings == nil)
+	{
+	    settings = $[];
+	}
+	y2milestone ("Restored disk cache settings: %1", settings);
+	store_using_disk_cache = settings["using_disk_cache"]:false;
+	store_original_source_url = settings["original_source_url"]:"";
+	store_cache_directory = settings["cache_directory"]:"";
+
+	if (! store_using_disk_cache)
+	{
+	    return;
+	}
+
+	cached_source_id = CachedSourceId ();
+
+	Pkg::SourceSetEnabled (cached_source_id, false);
+	if (! Pkg::SourceChangeUrl (cached_source_id, store_cache_directory + "/CD1"))
+	{
+	    // error report
+	    Report::Error (_("Error occurred while switching the service pack catalog."));
+	}
+	Pkg::SourceSetEnabled (cached_source_id, true);
+    }
+
+    /**
+     * Clean the disk cache up
+     */
+    void CleanupDiskCache ()
+    {
+	if (! store_using_disk_cache)
+	{
+	    return;
+	}
+
+	// 6. Call Pkg::SourceChangeUrl (cached_source_id, source_url) afterwards
+
+	Pkg::SourceSetEnabled (cached_source_id, false);
+	if (! Pkg::SourceChangeUrl (cached_source_id, store_original_source_url))
+	{
+	    // error report
+	    Report::Error (_("Error occurred while switching the cached 
+source back to CD."));
+	}
+	Pkg::SourceSetEnabled (cached_source_id, true);
+
+	// 7. rm -rf Installation::destdir+"/{var?}/tmp"
+	// FIXME: remove _all_ copied CDs
+
+	y2milestone ("Deleting cache at %1 and %2", store_cache_directory, cache_info_path);
+
+	map ta_out = (map)SCR::Execute (.target.bash_output,
+	  sformat ("/bin/rm -rf %1; rm -rf %2", store_cache_directory, cache_info_path));
+	// TODO error checking - or simply be quiet, it is de-facto no problem
+	// for the installation
+    }
+
+    /**
+     * Get the TMP directory to use for packages cache
+     * @return string the directory to use
+     */
+    string GetPkgCacheDirectory ()
+    {
+
+	//---------
+	// find out space on target
+
+	map spaces = Pkg::TargetGetDU ();
+	list mp_info = spaces["/tmp"]:spaces["/tmp/"]:spaces["/"]:[];
+	integer total = mp_info[0]:0;
+	integer current = mp_info[1]:0;
+	integer future = mp_info[2]:0;
+	if (future < current)
+	{
+	    future = current;
+	}
+	integer tmp_space = total - future;
+	if (tmp_space < 0 || mp_info[3]:false)
+	{
+	    tmp_space = 0;
+	}
+
+	mp_info = spaces["/var/tmp"]:spaces["/var/tmp/"]:spaces["/var"]:spaces["/var/"]:spaces["/"]:[];
+	total = mp_info[0]:0;
+	current = mp_info[1]:0;
+	future = mp_info[2]:0;
+	if (future < current)
+	{
+	    future = current;
+	}
+	integer var_tmp_space = total - future;
+	if (var_tmp_space < 0 || mp_info[3]:false)
+	{
+	    var_tmp_space = 0;
+	}
+
+	//-------
+	// /tmp or /var/tmp ?
+
+	string cache_dir = tmp_space > var_tmp_space
+	    ? "/tmp"
+	    : "/var/tmp";
+	integer free_space = tmp_space > var_tmp_space
+	    ? tmp_space
+	    : var_tmp_space;
+
+	//---------
+	// find out needed space for cache
+
+	media_sizes = Pkg::PkgMediaSizes();	     // fill global media_sizes
+	y2milestone ("Media sizes %1", media_sizes);
+
+	list<integer> cached_sizes = media_sizes[0]:[];	 // assumes source ranking == install ranking
+
+	integer needed_space = 0;
+	foreach (integer sp_size, cached_sizes,
+	{
+	    needed_space = needed_space + sp_size;
+	});
+	y2milestone ("Needed space %1 bytes", needed_space);
+
+	if (needed_space > free_space)
+	{
+	    y2warning ("Not enough disk space for caching source data");
+	    return nil;
+	}
+
+	map ta_out = (map)SCR::Execute (.target.bash_output,
+	  sformat ("mkdir -p %1", Installation::destdir + cache_dir));
+	y2milestone ("Created cached dir '%1': %2", Installation::destdir+cache_dir, ta_out);
+	if (ta_out["exit"]:0 != 0)
+	{
+	    Report::Error (sformat (
+		// error report
+		_("Error occurred while creating directory %1:\n%2"),
+		Installation::destdir + cache_dir,
+		ta_out["stderr"]:""));
+	    return nil;
+	}
+
+	string tmp_dir = cache_dir;
+	ta_out = (map)SCR::Execute (.target.bash_output,
+	  sformat ("mktemp -d -p %1", Installation::destdir + cache_dir));
+	y2milestone ("Created temp dir %1: %2", Installation::destdir+cache_dir, ta_out);
+	if (ta_out["exit"]:0 != 0)
+	{
+	    Report::Error (sformat (
+		// error report
+		_("Error occurred while getting temporary directory.\n%1"),
+		ta_out["stderr"]:""));
+	    return nil;
+	}
+	cache_dir = ta_out["stdout"]:"";
+	cache_dir = splitstring (cache_dir, "\n")[0]:cache_dir;
+	y2milestone ("Cache dir: %1", cache_dir);
+
+	ta_out = (map)SCR::Execute (.target.bash_output,
+	    // first line is in target system
+	    // the second one in installation system
+	     sformat ("rm -rf %3%1/%4; ln -s %3%2 %3%1/%4;
+		      rm -rf %1/%4; ln -s %3%2 %1/%4;",
+			tmp_dir,
+			substring (cache_dir, size (Installation::destdir)),
+			Installation::destdir, cached_source_datadir));
+	y2milestone ("rm -rf %3%1/%4; ln -s %3%2 %3%1/%4;
+			rm -rf %1/%4; ln -s %3%2 %1/%4;",
+			tmp_dir,
+			substring (cache_dir, size (Installation::destdir)),
+			Installation::destdir, cached_source_datadir);
+	y2milestone ("Result %1", ta_out);
+	if (ta_out["exit"]:0 != 0)
+	{
+	    Report::Error (sformat (
+		// error report
+		_("Error occurred while getting temporary directory. %1"),
+		ta_out["stderr"]:""));
+	    return nil;
+	}
+	// prepare local paths settings for being stored
+	store_cache_directory = substring (cache_dir, size (Installation::destdir));
+
+	cache_dir = sformat ("%1%2/%3", Installation::destdir, tmp_dir, cached_source_datadir);
+	cache_symlink = cache_dir;
+
+	y2milestone ("Directory for packages cache: %1", cache_dir);
+	return cache_dir;
+    }
+
+    /**
+     * Prepare the disk cache for the cached source
+     * @param source_id integer source ID to be cached
+     */
+    void PrepareSourceCache (integer source_id)
+    {
+	// steps of the implementation
+
+	y2milestone ("PrepareSourceCache (%1)", source_id);
+	// 0. Find out which packages (only names) we need
+	//    build list media_nr, "<arch>/<package_name>.rpm" for all cached RPMs
+
+	list<string> selected_packages = Pkg::GetPackages (`selected, true);
+	list<list <string> > cached_packs = [];
+	map<string, string> cached_archs = $[];
+
+	foreach (string package, selected_packages,
+	{
+	    map<string, any> pkg_props = (map<string, any>)Pkg::PkgProperties (package);
+	    y2milestone ("Package %1, Properties %2", package, pkg_props);
+	    if (pkg_props["srcid"]:-1 == source_id)
+	    {
+		integer media_nr = pkg_props["medianr"]:0;
+		string fullname = pkg_props["location"]:"";
+		string arch = pkg_props["arch"]:"";
+		string pkgpath = cached_source_datadir + "/" + arch + "/" + fullname;
+
+		cached_archs[arch] = arch;			      // remember all encountered architectures
+
+		integer cached_size = size (cached_packs[media_nr]:[]);
+		if (cached_size == 0)
+		{
+		    cached_packs[media_nr] = [pkgpath];		 // create a list
+		}
+		else
+		{
+		    cached_packs[media_nr, cached_size] = pkgpath;      // add to existing list
+		}
+	    }
+	});
+
+	// 1. check where space is available
+	// Installation::destdir+"/tmp"
+	// or Installation::destdir+"/var/tmp" ?
+	// choose the one where more space is available
+
+	string cache_dir = GetPkgCacheDirectory ();
+	if (cache_dir == nil)
+	{
+	    y2error ("Could not get the directory for the cache");
+	    return;
+	}
+
+	// 2. Use PackageCallbacks::MediaChange() to ask for cached cd
+	// (problem: where to get all the strings MediaChange() needs)
+	// Asking Pkg::SourceProvideDir also gives the directory
+	// with the data and should ask for the CD
+
+	// 3a. Find out which source CDs we really need
+
+	list <integer> cached_sizes = media_sizes[0]:[0];       // look at install size of cached source
+	integer media_number = 1;
+
+	y2milestone ("cached_sizes %1", cached_sizes);
+
+	// loop over all medias in the cached size list and copy those which are needed
+
+	foreach (integer current_size, cached_sizes,
+	{
+	    y2milestone ("Need %1 bytes from media #%2", current_size, media_number);
+
+	    if (current_size > 0)
+	    {
+		y2milestone ("Packages %1", cached_packs[media_number]:[]);
+
+		string update_dir = Pkg::SourceProvideDir (source_id, media_number, "/");
+		if (update_dir == nil)
+		{
+		    y2error ("Pkg::SourceProvideDir (%1, %2, %3) failed", source_id, media_number, "/");
+		    // error report
+		    Report::Error (_("Error occurred while getting the directory with updated packages"));
+		    return;
+		}
+
+		// 3. Copy <cached_source_datadir>/<arch>/<package> from cached source to Installation::destdir+"/{var?}/tmp"
+
+		// translators: this is an information popup, %1 is a number
+		UI::OpenDialog (`Label (sformat (_("Copying files from CD %1 to disk..."), media_number)));
+
+		y2milestone ("Creating directory %1", sformat ("/bin/mkdir -p %1/CD%2", cache_dir, media_number));
+
+		map ta_out = (map)SCR::Execute (.target.bash_output,
+		  sformat ("/bin/mkdir -p %1/CD%2", cache_dir, media_number));
+		y2milestone ("mkdir returned %1, copying media files", ta_out);
+		ta_out = (map)SCR::Execute (.target.bash_output,
+		  sformat ("/bin/cp -a %1/media* %2/CD%3", update_dir, cache_dir, media_number));
+		y2milestone ("media copy returned %1", ta_out);
+
+		if (ta_out["exit"]:0 != 0)
+		{
+		    UI::CloseDialog ();
+		    y2error ("copying media files failed");
+		    // error report
+		    Report::Error (sformat (_("Error occurred while copying packages
+from the source CD to the disk")));
+		    return;
+		}
+
+		// create needed arch-subdirs
+
+		foreach (string arch, string dummy, cached_archs, {
+		    y2milestone ("Creating %1", sformat ("%1/CD%2/%3/%4", cache_dir, media_number, cached_source_datadir, arch));
+		    SCR::Execute (.target.bash_output, sformat ("/bin/mkdir -p %1/CD%2/%3/%4", cache_dir, media_number, cached_source_datadir, arch));
+		});
+
+		// copy needed packages
+
+		foreach (string pkgpath, cached_packs[media_number]:[],
+		{
+		    y2milestone ("Copy %1/%2 to %3/CD%4/%2", update_dir, pkgpath, cache_dir, media_number);
+		    ta_out = (map)SCR::Execute (.target.bash_output,
+		      sformat ("/bin/cp %1/%2 %3/CD%4/%2", update_dir, pkgpath, cache_dir, media_number));
+
+		    if (ta_out["exit"]:0 != 0)
+		    {
+			UI::CloseDialog ();
+			// error report
+			Report::Error (sformat (_("Error occurred while copying packages
+from the source CD to the disk cache")));
+			return;
+		    }
+		});
+
+		UI::CloseDialog ();
+
+	    }  // current_size > 0
+
+	    media_number = media_number + 1;
+
+	}); // loop over all cached source media
+
+	// 4. Create URL as cached_url = "dir://"+Installation::destdir+"/{var?}/tmp"
+
+	string cached_url = "dir:/" + cache_dir + "/CD1";
+	y2milestone ("Cache URL: %1", cached_url);
+
+	// 5. Call Pkg::SourceChangeUrl (source_id, cached_url);
+	// keep your fingers crossed
+
+	Pkg::SourceSetEnabled (source_id, false);
+	boolean scu = Pkg::SourceChangeUrl (source_id, cached_url);
+	Pkg::SourceSetEnabled (source_id, true);
+
+	if (! scu)
+	{
+	    // error report
+	    Report::Error (_("Switching to disk cache failed."));
+	    return;
+	}
+
+	y2milestone ("Switch to disk cache successfully finished");
+
+	store_using_disk_cache = true;
+
+    }
+
+    // ------------------------------------------------------------------------------------------------------
+    // end of installation source caching functions
+    // ------------------------------------------------------------------------------------------------------
+
+    Pkg::SetLocale (Language::language);
+
+    SlideShow::SetLanguage (Language::language);
+
+    // start target, create new rpmdb if none is existing
+    // FIXME error checking is missing all around here, initialization could actually fail!
+    //Pkg::TargetInit (Installation::destdir, true);
+    if(Pkg::TargetInit (Installation::destdir,true) != true)
+    {
+	// continue-cancel popup
+        if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false)
+        {
+            return `abort;
+        }
+    }
+
+
+    if (Stage::cont ())
+    {
+	// initialize the package agent in continue mode
+	Packages::Init( true );
+	RestoreDiskCacheSettings ();
+    }
+
+    SlideShow::OpenSlideShowDialog ();
+
+    Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
+
+
+    if  (Mode::autoinst ()
+	 && Stage::cont ())
+    {
+	import "AutoinstSoftware";
+
+	// post packages from autoinstall
+	map <string, any> res = Pkg::DoProvide (AutoinstSoftware::post_packages);
+	if (size (res) > 0)
+	{
+	    foreach (string s, any a, res, ``{
+		y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+	    });
+	}
+
+	Pkg::PkgSolve (false);
+    }
+
+    if (Stage::initial ())  // initial mode, check for source caching
+    {
+        if (find (Kernel::GetCmdLine (), "yastnocache") != -1)
+        {
+            y2milestone ("'yastnocache' found, disabling source cache");
+            cached_source_id = -1;
+        }
+        else
+        {
+            cached_source_id = CachedSourceId ();
+        }
+
+        if (cached_source_id >= 0)
+        {
+            y2milestone ("Installing with cached source, checking inst media");
+
+            map<string,any> source_data = (map<string,any>)Pkg::SourceGeneralData (cached_source_id);
+            y2milestone ("Cached source #%1: %2", cached_source_id, source_data);
+
+            string source_url = "";
+            if (source_data != nil) source_url = source_data["url"]:"";
+
+            if (substring (source_url, 0, 4) == "cd:/"
+		|| substring (source_url, 0, 5) == "dvd:/")
+            {
+                y2milestone ("Installing from DVD/CDs, trying to set up cache");
+                store_original_source_url = source_url;
+                PrepareSourceCache (cached_source_id);
+            }
+            else
+            {
+                y2error ("Cannot get the URL of the cached source, not caching");
+            }
+        }
+    }
+    else                // continue mode, check for remaining packages
+    {
+	// second stage of package installation, re-read list of remaining binary and source
+	// packages
+
+	list<string> remaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
+	if (remaining == nil)
+	    remaining = [];
+
+	list<string> srcremaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/srcremaining", []]);
+	if (srcremaining == nil)
+	    srcremaining = [];
+
+	string backupPath = (string) SCR::Read(.target.string, [Installation::destdir + "/var/lib/YaST2/backup_path", ""]);
+	if ( backupPath != nil && backupPath != "")
+	{
+	    y2milestone("create package backups in %1",backupPath);
+	    Pkg::CreateBackups (true);
+	    Pkg::SetBackupPath (backupPath);
+	}
+
+	y2milestone ("%1 binary packages remaining", size (remaining));
+	foreach (string pkg, remaining, ``{
+	    Pkg::PkgInstall (pkg);
+	});
+
+	y2milestone ("%1 source packages remaining", size (srcremaining));
+	foreach (string pkg, srcremaining, ``{
+	    Pkg::PkgSrcInstall (pkg);
+	});
+    }
+
+    // Install the software from Medium1 to Mediummax, but not the already
+    // installed base packages.
+    // This part is also used for installation in running system (Stage::cont ())
+
+    integer maxnumbercds = 10;
+    integer current_cd_no = 1;
+
+    if (Stage::initial ())
+    {
+	maxnumbercds = 1;			// only the first CD will be installed
+    }
+    else if (Mode::autoinst () && Stage::cont () && size( AutoinstSoftware::post_packages ) > 0)
+    {
+	// one more compatibility feature to old YaST, post-packages
+	// Simply install a list of package after initial installation (only
+	// makes sense with nfs installatons)
+	current_cd_no = 1;
+    }
+    else if (Stage::cont ())
+    {
+	current_cd_no = 2; // continue with second CD but only in continue mode
+    }
+    else if (DirInstall::installing_into_dir)
+    {
+	current_cd_no = 1;
+    }
+
+    if (Packages::metadir_used)			// all is in ramdisk
+    {
+	current_cd_no = 0;			// we can install all sources now
+	maxnumbercds = 0;
+    }
+
+    symbol result = `next;
+
+    while (current_cd_no <= maxnumbercds)
+    {
+	boolean go_on = true;
+
+	// returns [ int successful, list failed, list remaining ]
+	list commit_result = PackageInstallation::CommitPackages( current_cd_no, 0 );
+
+	integer count = commit_result[0]:0;
+	y2milestone ("%1 packages installed", count);
+
+	list failed = commit_result[1]:[];
+	if (size (failed) > 0)
+	{
+	    y2milestone ("failed: %1", failed);
+	    list previous_failed = (list) SCR::Read (.target.ycp, [Installation::destdir +
+								   "/var/lib/YaST2/failed_packages", []]);
+	    if (size (previous_failed) > 0)
+		failed = union (previous_failed, failed);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/failed_packages", failed);
+	}
+
+	list remaining = commit_result[2]:[];
+	if (size (remaining) >= 0)
+	{
+	    y2milestone ("remaining: %1", remaining);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/remaining", remaining);
+	}
+	else
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/remaining");
+	}
+
+	list srcremaining = commit_result[3]:[];
+	if (size (srcremaining) >= 0)
+	{
+	    y2milestone ("source remaining: %1", srcremaining);
+	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/srcremaining", srcremaining);
+	}
+	else
+	{
+	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/srcremaining");
+	}
+
+	if (count < 0)					// aborted by user
+	{
+	    result = `abort;
+	    break;
+	}
+
+	// break on first round with Mediums
+	if (Stage::initial () && !Mode::test ())
+	    break;
+
+	current_cd_no = current_cd_no + 1;
+    }
+
+    // sync package manager FIXME
+    y2milestone ("Calling PkgCommig (%1)", 9999);
+    Pkg::PkgCommit (9999);
+
+    SlideShow::CloseSlideShowDialog();
+
+    if (result != `abort)
+    {
+	if (Stage::initial ())
+	{
+	    StoreDiskCacheSettings ();
+	}
+	else if (Stage::cont ())
+	{
+	     CleanupDiskCache ();
+	}
+    }
+
+
+    return result;
+}

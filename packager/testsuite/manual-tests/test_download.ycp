@@ -1,0 +1,16 @@
+{
+    import "PackageCallbacks";
+
+    PackageCallbacks::StartDownload ("ftp://www.suse.de/pub/SuSE-Linux-4.2/kinternet.rpm",
+				     "/tmp/YaST-0x0000001/kinternet.rpm");
+
+    integer p = 0;
+    while (p < 100)
+    {
+	p = p + 5;
+    	PackageCallbacks::ProgressDownload (p, 100000);
+	sleep (100);
+    }
+
+    PackageCallbacks::DoneDownload (1, "kernel is on vacation");
+}

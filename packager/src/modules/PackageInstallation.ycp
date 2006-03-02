@@ -1,0 +1,216 @@
+/**
+ * Module:		PackageInstallation.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>
+ *
+ */
+
+{
+    module "PackageInstallation";
+    textdomain "packager";
+
+    import "Mode";
+    import "Installation";
+    import "Directory";
+    import "Packages";
+    import "SlideShow";
+
+    import "Label";
+
+
+
+    global define any FakePackager( list<list> packages, string inst_source,
+				    boolean deleting );
+
+
+    /**
+     *  Show a dialog with either the list of failed packages (string a) or
+     *  the complete log (string b).
+     */
+    define void ShowFailedPackages (string a, string b)
+    {
+	term rbuttons = `RadioButtonGroup (
+					   `VBox (
+						  `Left(`RadioButton(`id(`a), `opt(`notify),
+								     // button label
+								     _("&Show Failed Packages List"), true)),
+						  `Left(`RadioButton(`id(`b), `opt(`notify),
+								     // button label
+								     _("&Show Full Log"), false))
+						  )
+					   );
+
+	UI::OpenDialog (
+			`opt(`decorated),
+			`VBox(
+			      `HSpacing(40),
+			      // dialog headline
+			      `Left(`Heading(_("Installation of Some Packages Failed"))),
+			      rbuttons,
+			      `RichText(`id(`text),
+					`opt(`plainText),
+					a),
+			      `PushButton (`id(`ok), `opt(`default, `key_F10),
+					   Label::OKButton ())
+			      )
+			);
+
+	while (true)
+	{
+	    symbol ret = (symbol) UI::UserInput ();
+
+	    if (ret == `a || ret == `b)
+	    {
+		UI::ChangeWidget (`id(`text), `Value, (boolean) UI::QueryWidget (`id(`a), `Value) ? a : b);
+		continue;
+	    }
+
+	    if (ret == `ok)
+		break;
+	}
+
+	UI::CloseDialog ();
+    }
+
+
+    /**
+     *  commitPackages marked for deletion or installation
+     *	Return: [ int successful, list failed, list remaining, list srcremaining ]
+     *
+     **/
+    global define list CommitPackages (integer media_number,
+				       integer packages_installed)
+    {
+	if ( Mode::test () )
+	{
+	    FakePackager( [],
+			"suse",
+			false );		// not deleting packages
+	    return [];
+	}
+	// install packages from this media
+
+	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3",
+		     media_number, packages_installed, Pkg::TargetGetDU());
+
+	list <integer> sources = Pkg::SourceGetCurrent (false);
+	integer source_id = sources[0]:0;
+
+	if (source_id != 0)
+	{
+	    map source_data = Pkg::SourceGeneralData (source_id);
+	    if (source_data != nil)
+	    {
+		string url = source_data["url"]:"cd:///";
+		if (substring (url, 0, 3) == "dvd")
+		    SlideShow::SetMediaType ("DVD");
+	    }
+	}
+
+	SlideShow::InitPkgData(false);
+	if (media_number == 0)
+	{
+	    SlideShow::SetCurrentCdNo (1, 1);
+	}
+	else
+	{
+	    SlideShow::SetCurrentCdNo (1, media_number);
+	}
+	SlideShow::UpdateAllCdProgress ();
+	SlideShow::StartTimer();
+
+	// returns [ int successful, list failed, list remaining, list srcremaining ]
+	y2milestone ("Calling PkgCommig (%1)", media_number);
+	list commit_result = Pkg::PkgCommit (media_number);
+
+	SlideShow::StopTimer();
+
+	if (commit_result == nil)
+	{
+	    y2error ("Bad media number %1", media_number);
+	    return [];
+	}
+
+	// see if installation of some packages failed
+	list<string> errpacks = (list<string>) (commit_result[1]:[]);
+	if (size (errpacks) > 0)
+	{
+	    string full_log = (string) SCR::Read (.target.string, Installation::destdir +
+						  Directory::logdir + "/y2logRPM");
+	    ShowFailedPackages (mergestring (errpacks, "\n"), full_log);
+	    list<string> old_failed_packs = [];
+	    if ((integer)SCR::Read (.target.size,
+		"/var/lib/YaST2/failed_packages") > 0)
+	    {
+		old_failed_packs = (list<string>)
+		    SCR::Read (.target.ycp, "/var/lib/YaST2/failed_packages");
+	    }
+	    SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages",
+		merge (old_failed_packs, errpacks));
+	}
+
+	return commit_result;
+    };
+
+
+    //
+    // Fake progress bars for Mode::test ()
+    //
+    // NOTE: This is currently completely broken.
+    // -- sh 2003-12-15
+    //
+    global define any FakePackager( list<list> packages, string inst_source,
+				    boolean deleting )
+    {
+	integer disk_usage = 20;
+	integer disk_capacity = 10000;
+	any ret = nil;
+	integer number = 0;
+
+	y2debug( "FakePackager - handling %1 packages", size( packages ) );
+
+	foreach( list pac, packages, {
+	    //y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
+
+	    string pkg_name	= pac[0]:"";
+
+	    integer pkg_size	= 42*1024;
+	    integer bytes_installed = 0;
+
+	    if ( pkg_size < 0 )
+	    {
+		// pkginfo doesn't know anything about the kernel RPM, so its
+		// size can't be obtained, e.g. pkg_size is -1. To make up for
+		// this, let's assume a negative starting size to keep things
+		// going for a while (this is test_mode only, anyway).
+		bytes_installed = -857 * 1024;
+	    }
+
+	    while  ( bytes_installed < pkg_size && ret != `cancel && ret != `diskfull )
+	    {
+		integer percent = ( 100 * bytes_installed ) / pkg_size;
+		//	if ( deleting )
+		//	{
+		//	    // Handle deleting packages
+		//	}
+		//	else
+		//	{
+		//	    // Handle installing packages
+		//	}
+		sleep ( 300 ); // millisec
+		bytes_installed = bytes_installed + 300 * 1024;
+	    }
+	    disk_usage = disk_usage+1;
+	    number = number+1;
+
+	} );
+
+	if	( ret == `cancel || ret == `abort )	ret = `cancel;
+	else if ( ret == `diskfull )			ret = `diskfull;
+	else						ret = `ok;
+
+	y2debug( "FakePackager returning with %1", ret );
+	return ret;
+    }
+
+}
