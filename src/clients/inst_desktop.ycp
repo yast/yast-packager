@@ -258,7 +258,7 @@ if (ret == `next)
 	y2milestone ("Setting preferred base selection: %1", base_selection);
 	Packages::base_selection_changed = true;
 	Packages::preferred_base_selection = base_selection;
-	Pkg::PkgReset ();
+	Packages::Reset ([`product]);
 	string wm = desktop2wm[alt_desktop]:"";
 	y2milestone ("Setting preferred window manager to %1", wm);
 	Packages::window_manager = wm;

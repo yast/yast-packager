@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  2 16:23:58 CET 2006 - jsrain@suse.de
+
+- keep selected products on package manager reset (#154631)
+
+-------------------------------------------------------------------
 Thu Mar  2 15:17:58 CET 2006 - visnov@suse.cz
 
 - fix ProvidePackage callback signatures 
