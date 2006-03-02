@@ -120,6 +120,7 @@
 	SlideShow::StartTimer();
 
 	// returns [ int successful, list failed, list remaining, list srcremaining ]
+	y2milestone ("Calling PkgCommig (%1)", media_number);
 	list commit_result = Pkg::PkgCommit (media_number);
 
 	SlideShow::StopTimer();
