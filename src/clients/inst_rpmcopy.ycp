@@ -703,6 +703,7 @@ from the source CD to the disk cache")));
     }
 
     // sync package manager FIXME
+    y2milestone ("Calling PkgCommig (%1)", 9999);
     Pkg::PkgCommit (9999);
 
     SlideShow::CloseSlideShowDialog();
