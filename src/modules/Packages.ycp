@@ -434,6 +434,28 @@ global void Reset (list<symbol> keep) {
 	Pkg::PkgSolve(false);
     }
 
+/**
+ * Check whether content file in the specified source is the same
+ * as the one in the ramdisk
+ * @param source integer the source ID to check
+ * @return boolean true if content files match
+ */
+global boolean CheckContentFile (integer source) {
+    y2milestone ("Checking content file");
+    string instmode = Linuxrc::InstallInf("InstMode");
+    if (! (instmode == nil || instmode == "cd" || instmode == "dvd"))
+    {
+	y2milestone ("Installing via network, not checking the content file");
+	return true;
+    }
+    string media_content = Pkg::SourceProvideFile (source, 1, "/content");
+    string media = (string)SCR::Read (.target.string, media_content);
+    string ramdisk = (string)SCR::Read (.target.string, "/content");
+    boolean ret = (media == ramdisk);
+    y2milestone ("Content files are the same: %1", ret);
+    return ret;
+}
+
     /**
      * Init()
      * Initialize package module and package agent
@@ -489,14 +511,26 @@ global void Reset (list<symbol> keep) {
             list<list<string> > orderlist = [];
             map<integer, string > instordermap = $[];
 
-	    integer initial_source = Pkg::SourceCreate (base_url, "");
-	    if (initial_source == nil)
+	    integer initial_source = nil;
+	    while (initial_source == nil)
 	    {
-		y2error ("No source on '%1'", log_url);
-		// error in proposal, %1 is URL
-		pm_init_blocker = sformat (_("No catalog found at '%1'."),
-		    log_url);
-		return;
+		initial_source = Pkg::SourceCreate (base_url, "");
+		if (initial_source == nil)
+		{
+		    y2error ("No source on '%1'", log_url);
+		    // error in proposal, %1 is URL
+		    pm_init_blocker = sformat (_("No catalog found at '%1'."),
+			log_url);
+		    return;
+		}
+		if (! CheckContentFile (initial_source))
+		{
+		    string label = (string)SCR::Read (.content.PRODUCT);
+		    // message popup, %1 is product name
+		    Popup::Message (sformat (_("Insert %1 CD 1"), label));
+		    Pkg::SourceDelete (initial_source);
+		    initial_source = nil;
+		}
 	    }
 
             /* Check for Service Pack */
