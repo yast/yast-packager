@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar  3 01:00:11 CET 2006 - jsrain@suse.de
+
+- use target system as download area (#151862)
+
+-------------------------------------------------------------------
 Thu Mar  2 16:23:58 CET 2006 - jsrain@suse.de
 
 - keep selected products on package manager reset (#154631)

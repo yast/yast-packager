@@ -544,8 +544,45 @@ from the source CD to the disk cache")));
 	Pkg::PkgSolve (false);
     }
 
-    if (Stage::initial ())  // initial mode, check for source caching
+    if (Stage::initial ())  // initial mode, move download area, check for source caching
     {
+	map spaces = Pkg::TargetGetDU ();
+	list root_info = spaces["/tmp"]:spaces["/tmp/"]:spaces["/"]:[];
+	integer total = root_info[0]:0;
+	integer current = root_info[1]:0;
+	integer future = root_info[2]:0;
+	if (future < current)
+	    future = current;
+	integer tmp_space = total - future;
+	if (tmp_space < 0 || root_info[3]:false)
+	    tmp_space = 0;
+
+	list var_info = spaces["/var/tmp"]:spaces["/var/tmp/"]:spaces["/var"]:spaces["/var/"]:spaces["/"]:[];
+	total = var_info[0]:0;
+	current = var_info[1]:0;
+	future = var_info[2]:0;
+	if (future < current)
+	    future = current;
+	integer var_tmp_space = total - future;
+	if (var_tmp_space < 0 || var_info[3]:false)
+	    var_tmp_space = 0;
+
+	//-------
+	// /tmp or /var/tmp ?
+
+	string download_dir = tmp_space > var_tmp_space
+	    ? "/tmp"
+	    : "/var/tmp";
+	download_dir = Installation::destdir + download_dir;
+	integer space = tmp_space > var_tmp_space
+	    ? tmp_space
+	    : var_tmp_space;
+	if (true) // TODO check the size of the largest package on CD1
+	{
+	    SCR::Execute (.target.bash, sformat ("test -d %1 || mkdir %1", download_dir));
+	    Pkg::SourceMoveDownloadArea (download_dir);
+	}
+
         if (find (Kernel::GetCmdLine (), "yastnocache") != -1)
         {
             y2milestone ("'yastnocache' found, disabling source cache");
