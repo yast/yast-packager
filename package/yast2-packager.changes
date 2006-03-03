@@ -3,6 +3,7 @@ Fri Mar  3 19:43:27 CET 2006 - jsrain@suse.de
 
 - check whether correct media is in drive when initializing package
   maneger (#154344)
+- 2.13.38
 
 -------------------------------------------------------------------
 Fri Mar  3 01:00:11 CET 2006 - jsrain@suse.de
