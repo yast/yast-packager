@@ -670,8 +670,8 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 		sz = sz + usages[2]:0 - usages[1]:0;
 	    });
 	}
-	y2milestone ("Total size of packages to install: %1", sz);
-        return String::FormatSizeWithPrecision (sz, 1, true);
+	y2milestone ("Total size of packages to install (kB): %1", sz);
+        return String::FormatSizeWithPrecision (sz*1024, 1, true);
     }
 
 

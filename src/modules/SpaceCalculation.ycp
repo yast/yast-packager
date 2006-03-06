@@ -410,12 +410,13 @@
 	    {
 		// Warning message, e.g.: Partition /usr needs 35 MB more disk space
 		message = add (message, sformat ( _("Partition \"%1\" needs %2 more disk space."),
-			      dir, String::FormatSize(needed)));
+			      // needed is in kB
+			      dir, String::FormatSize(needed*1024)));
 	    }
 	    used = used + sizelist[2]:0;
 	} );
 
-	y2debug( "Total used space: %1", used );
+	y2debug( "Total used space (kB): %1", used );
 
 	if ( size ( message ) > 0 )
 	{
@@ -465,6 +466,7 @@ _("Please deselect some packages."));
 	    SpaceCalculation::GetPartitionInfo();
 	}
 
+	// used space in kB
 	integer used = 0;
 
 	//$[ "dir" : [ total, usednow, usedfuture ], .... ]
@@ -473,7 +475,8 @@ _("Please deselect some packages."));
 	    used = used + sizelist[2]:0;
 	} );
 	y2milestone ("GetReqSpace Pkg::TargetGetDU() %1", Pkg::TargetGetDU());
-	return ( String::FormatSize (used) );
+	// used is in kB
+	return ( String::FormatSize (used*1024) );
     };
 
 
@@ -501,14 +504,15 @@ _("Please deselect some packages."));
 	    if ( needed > 0 )
 	    {
 		y2warning("Partition \"%1\" needs %2 more disk space.",
-			  dir, String::FormatSize (needed) );
+			  // size is in kB
+			  dir, String::FormatSize (needed*1024) );
 		fit = false;
 	    }
 
 	    used = used + sizelist[2]:0;
 	});
 
-	y2milestone ("Total used space: %1, fits ?: %2", used, fit);
+	y2milestone ("Total used space (kB): %1, fits ?: %2", used, fit);
 
 	return fit;
     };
