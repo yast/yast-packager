@@ -247,32 +247,32 @@
 	    string proxy = Linuxrc::InstallInf("Proxy");
 	    if ((proxy != nil) && (proxy != ""))
 	    {
-		url = url + ";proxy=" + proxy;
+		url = url + "?proxy=" + proxy;
 	    }
 	    string proxyport = Linuxrc::InstallInf("ProxyPort");
 	    if ((proxyport != nil) && (proxyport != ""))
 	    {
-		url = url + ";proxyport=" + proxyport;
+		url = url + "?proxyport=" + proxyport;
 	    }
 	    string proxyproto = Linuxrc::InstallInf("ProxyProto");
 	    if ((proxyproto != nil) && (proxyproto != ""))
 	    {
-		url = url + ";proxyproto=" + proxyproto;
+		url = url + "?proxyproto=" + proxyproto;
 	    }
 	    string proxyuser = Linuxrc::InstallInf("ProxyUser");
 	    if ((proxyuser != nil) && (proxyuser != ""))
 	    {
-		url = url + ";proxyuser=" + proxyuser;
+		url = url + "?proxyuser=" + proxyuser;
 	    }
 	    string proxypassword = Linuxrc::InstallInf("ProxyPassword");
 	    if ((proxypassword != nil) && (proxypassword != ""))
 	    {
-		url = url + ";proxypassword=" + proxypassword;
+		url = url + "?proxypassword=" + proxypassword;
 	    }
 	    string workgroup = Linuxrc::InstallInf ("WorkDomain");
 	    if (workgroup != nil && workgroup != "")
 	    {
-		url = url + ";workgroup=" + workgroup;
+		url = url + "?workgroup=" + workgroup;
 	    }
 	} // is_network
 
