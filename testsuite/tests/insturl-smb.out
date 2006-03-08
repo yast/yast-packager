@@ -33,4 +33,4 @@ Read	.etc.install_inf."Serverdir" "pub"
 Read	.etc.install_inf."Share" "SHARE"
 Read	.etc.install_inf."Username" "suse"
 Read	.etc.install_inf."WorkDomain" "group"
-Return	smb://suse:yast2@192.168.1.1/SHARE/pub;workgroup=group
+Return	smb://suse:yast2@192.168.1.1/SHARE/pub?workgroup=group
