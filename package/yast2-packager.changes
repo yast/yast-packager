@@ -3,6 +3,7 @@ Wed Mar  8 19:17:49 CET 2006 - jsrain@suse.de
 
 - fixed automatical inserting of system packages even if they were
   removed before (#155819)
+- 2.13.40
 
 -------------------------------------------------------------------
 Wed Mar  8 16:56:55 CET 2006 - jsrain@suse.de
