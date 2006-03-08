@@ -66,6 +66,8 @@
      */
     list<string> additional_packages = [];
 
+    boolean system_packages_selected = false;
+
     global string window_manager = nil;
 
     global boolean using_patterns = false;
@@ -89,6 +91,7 @@ global void Reset (list<symbol> keep) {
     foreach (map<string,any> res, restore, {
 	Pkg::ResolvableInstall (res["name"]:"", (symbol)(res["type"]:nil));
     });
+    system_packages_selected = false;
 }
 
 
@@ -731,6 +734,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    Kernel::ProbeKernel();
 	    Packages::Reset ([`product]);
 	    Packages::Init( true );	// reintialize AND reset package selection too
+	    reinit = true;
 	}
 	else if ( reinit )
 	{
@@ -786,9 +790,11 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    && size (Pkg::GetSelections (`available, "base")) == 0)
 	{
 	    y2milestone ("No base selection found, but patterns found...");
+	    redo_proposal = (initial_run && !Mode::autoinst ()) || ! system_packages_selected;
 	    using_patterns = true;
-	    if (initial_run || redo_proposal)
+	    if (initial_run || ! system_packages_selected)
 	    {
+		y2milestone ("Selecting system packages");
 		map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
 		if (size (res) > 0)
 		{
@@ -796,6 +802,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 			y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
 		    });
 		}
+		system_packages_selected = true;
 	    }
 	}
 	else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
@@ -864,6 +871,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 		if (preferred_base_selection != nil)
 		{
+			y2milestone ("Selecting system packages");
 			SetSelectionAndComputeSystemPackages
 			    (preferred_base_selection);
 			base_selections = Pkg::GetSelections (`selected, "base");
@@ -989,7 +997,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	}
 
 	// add on
-	foreach(string sel, selected_addon_selections, {
+	if (! using_patterns)
+	{
+	  foreach(string sel, selected_addon_selections, {
 	    map addon_data = Pkg::SelectionData (sel);
 	    if ((addon_data != nil)				// skip unknown selections
 		&& (addon_data["category"]:"" != "base")
@@ -998,14 +1008,24 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		if ( ! Pkg::SetSelection( sel ) )
 		    y2error( "Couldn't add selection %1", sel );
 	    }
-	});
+	  });
+	}
 
 	if (redo_proposal)
 	{
 	    y2milestone ("activating selections");
 	    boolean act_sel = Pkg::ActivateSelections ();
 
+
+	    y2milestone ("activating: %1, returning %2", act_sel, ret);
+	}
+
+	boolean Pkg::PkgSolve (false); // in order to select packages covered by patterns before
+	// adding system packages - the list may differ
+	if (redo_proposal)
+	{
 	    // add additional (internal) packages, like kernel etc.
+	    y2milestone ("Selecting system packages");
 	    map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
 	    if (size (res) > 0)
 	    {
@@ -1013,10 +1033,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
 		});
 	    }
-
-	    y2milestone ("activating: %1, returning %2", act_sel, ret);
+	    success = Pkg::PkgSolve (false);
 	}
-	boolean success = Pkg::PkgSolve (false);
+
 	if (! success)
 	{
 	    solve_errors = Pkg::PkgSolveErrors ();

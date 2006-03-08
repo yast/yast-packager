@@ -40,7 +40,8 @@
     {
 
 	// add additional (internal) packages, like kernel etc.
-	Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	// they are added by proposal!!!! (#155819)
+//	Pkg::DoProvide (Packages::ComputeSystemPackageList());
 	Pkg::PkgSolve(false);
 
 	while ( ret == `again )
