@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  8 21:06:27 CET 2006 - jsrain@suse.de
+
+- report if selecting package during 2nd stage installation fails
+  (#155471)
+
+-------------------------------------------------------------------
 Wed Mar  8 19:17:49 CET 2006 - jsrain@suse.de
 
 - fixed automatical inserting of system packages even if they were
