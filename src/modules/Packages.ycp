@@ -1020,7 +1020,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    y2milestone ("activating: %1, returning %2", act_sel, ret);
 	}
 
-	boolean Pkg::PkgSolve (false); // in order to select packages covered by patterns before
+	boolean success = Pkg::PkgSolve (false); // in order to select packages covered by patterns before
 	// adding system packages - the list may differ
 	if (redo_proposal)
 	{
