@@ -28,4 +28,4 @@ Read	.etc.install_inf."ProxyUser" "foo"
 Read	.etc.install_inf."Server" "192.168.1.1"
 Read	.etc.install_inf."Serverdir" "pub"
 Read	.etc.install_inf."Username" "suse"
-Return	http://suse:yast2@192.168.1.1:8888/pub;proxy=http://proxy.suse.de;proxyport=8888;proxyuser=foo;proxypassword=bar
+Return	http://suse:yast2@192.168.1.1:8888/pub?proxy=http://proxy.suse.de?proxyport=8888?proxyuser=foo?proxypassword=bar
