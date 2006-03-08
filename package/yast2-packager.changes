@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  8 16:56:55 CET 2006 - jsrain@suse.de
+
+- correctly encode the URL (#155428)
+
+-------------------------------------------------------------------
 Mon Mar  6 13:36:48 CET 2006 - lslezak@suse.cz
 
 - display correct installation size (#154296)
