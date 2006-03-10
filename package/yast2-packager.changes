@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 10 16:35:06 CET 2006 - lslezak@suse.cz
+
+- fixed disk usage summary in update proposal (total installation
+  size was 1024x greater)
+
+-------------------------------------------------------------------
 Fri Mar 10 15:42:49 CET 2006 - visnov@suse.cz
 
 - fix packageprovide callback signature (#155016)
