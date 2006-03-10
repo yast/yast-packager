@@ -309,8 +309,9 @@ on the NFS server.
 
     if( ! restore )
     {
-	Popup::Error(_("There were errors when restoring the sources configuration.
-Not all sources will be available for configuration."));
+	Popup::Error(_("There were errors when restoring the source configuration.
+Not all sources will be available for configuration.
+"));
     }
 
     sourceStatesIn = Pkg::SourceEditGet();
@@ -542,7 +543,7 @@ All changes will be lost.");
             else if ( input == `delete )
             {
 		// yes-no popup
-                if ( Popup::YesNo( _("Delete selected catalog from list?") ) )
+                if ( Popup::YesNo( _("Delete the selected catalog from the list?") ) )
                 {
                     deleteSource( current );
                     fillTable();
