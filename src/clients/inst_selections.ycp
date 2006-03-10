@@ -94,12 +94,13 @@ other media can always be installed later.
 // help text, continued
 helptext = helptext + _("<p>
 The <b>Minimal</b> system includes just the bare essentials needed
-to safely run &product;. This selection <b><i>does not include
-graphical desktop environments</i></b> -- no X11, no KDE, no GNOME.
+to safely run &product;. This selection does not include
+graphical desktop environments--no X11, no KDE, no GNOME.
 Select this option as a base for your own custom selection, for
 dedicated server systems that do not need a graphical desktop, or for
 systems that are short on disk space or memory.
-</p>");
+</p>
+");
 
 // help text, continued
 helptext = helptext + _("<p>
