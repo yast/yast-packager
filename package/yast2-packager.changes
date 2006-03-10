@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 10 15:42:49 CET 2006 - visnov@suse.cz
+
+- fix packageprovide callback signature (#155016)
+
+-------------------------------------------------------------------
 Fri Mar 10 13:22:14 CET 2006 - lslezak@suse.cz
 
 - dirinstall - initialize the package manager (#152311)

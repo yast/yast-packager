@@ -67,13 +67,15 @@
     /**
      *  at start of file providal
      */
-    global void StartProvide( string name, integer archivesize, boolean remote )
+    global boolean StartProvide( string name, integer archivesize, boolean remote )
     {
 	if ( remote )
 	{
 	    SlideShow::SlideProvideStart (name , archivesize, remote);
 	    _remote_provide = true;
 	}
+
+	return true;
     }
 
 
