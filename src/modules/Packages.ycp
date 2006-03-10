@@ -665,6 +665,8 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 	    foreach (string p, packages, {
 		sz = sz + Pkg::PkgSize (p);
 	    });
+	    // convert into kB
+	    sz = sz / 1024;
 	}
 	else // in case of fresh installation, disk is initially empty
 	{
