@@ -76,7 +76,7 @@
     /** at start of file providal
      *
      */
-    global define void StartProvide (string name, integer archivesize, boolean remote)
+    global boolean StartProvide (string name, integer archivesize, boolean remote)
     {
 	if (remote)
 	{
@@ -91,14 +91,14 @@
 		_provide_popup = true;
 	    }
 	}
-	return;
+	return true;
     }
 
 
     /** during file providal
      *
      */
-    global define boolean ProgressProvide (integer percent)
+    global boolean ProgressProvide (integer percent)
     {
 	if (_provide_popup)
 	{
@@ -116,7 +116,7 @@
 
 
     // creates layout for ChangeMediumPopup
-    global define term LayoutPopup ( string message, term button_box,
+    global term LayoutPopup ( string message, term button_box,
 				integer vertical_size, boolean info_on )
     {
 	term dialog_layout =  `VBox(
@@ -141,7 +141,7 @@
 	return dialog_layout;
     }
 
-    global define boolean ShowLogInfo (string message, term buttonbox)
+    global boolean ShowLogInfo (string message, term buttonbox)
     {
 	if (UI::QueryWidget(`id(`show), `Value ) == true)
 	{
@@ -165,7 +165,7 @@
      // return "R" for retry
      // return "C" for abort
      */
-    global define string DoneProvide (integer error, string reason, string name)
+    global string DoneProvide (integer error, string reason, string name)
     {
 	if (_provide_popup)
 	    UI::CloseDialog();
@@ -276,7 +276,7 @@
      *  callbacks, but only the progress bar and not the final error
      *  message.  Returns old value.
      */
-    global define boolean EnableAsterixPackage (boolean f)
+    global boolean EnableAsterixPackage (boolean f)
     {
 	boolean ret = enable_asterix_package;
 	enable_asterix_package = f;
@@ -287,7 +287,7 @@
     /**
      *  At start of package install.
      */
-    global define boolean StartPackage (string name, string summary, integer
+    global boolean StartPackage (string name, string summary, integer
 					installsize, boolean is_delete)
     {
 	if (!enable_asterix_package)
@@ -321,7 +321,7 @@
     /**
      *  During package install.
      */
-    global define boolean ProgressPackage (integer percent)
+    global boolean ProgressPackage (integer percent)
     {
 	if (_package_popup)
 	{
@@ -350,7 +350,7 @@
      *  return "R" for retry
      *  return "C" for abort (not implemented !)
      */
-    global define string DonePackage (integer error, string reason)
+    global string DonePackage (integer error, string reason)
     {
 	if (_package_popup)
 	    UI::CloseDialog();
@@ -469,7 +469,7 @@
     // return "C" for cancel (not implemented !)
     // return url to change media URL
 
-    global define string MediaChange (string error, string url, string product,
+    global string MediaChange (string error, string url, string product,
 				      integer current, string current_label,
 				      integer wanted, string wanted_label,
 				      boolean double_sided)
@@ -694,7 +694,7 @@ Check that the server is accessible."), wanted_label);
     /**
      * dummy source change callback, see SlideShowCallbacks for the real one
      */
-    global define void SourceChange (integer source, integer medianr)
+    global void SourceChange (integer source, integer medianr)
     {
 	y2milestone ("SourceChange (%1, %2)", source, medianr);
 	_current_source = source + 1;
@@ -838,14 +838,14 @@ global void DoneSourceRefresh (map<string,any> info) {
      *
      */
 
-    global define void PackageCallbacks()
+    global void PackageCallbacks()
     {
 	y2milestone ( "PackageCallbacks constructor" );
 	PackageCallbacksInit::InitPackageCallbacks ();
     }
 
 
-    global define void StartDownload (string url, string localfile)
+    global void StartDownload (string url, string localfile)
     {
 	// heading of popup
 	string heading = _("Download");
@@ -885,7 +885,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define boolean ProgressDownload (integer percent, integer expected_size)
+    global boolean ProgressDownload (integer percent, integer expected_size)
     {
 	if (Mode::commandline()) {
 	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
@@ -905,7 +905,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void DoneDownload (integer error_value, string error_text)
+    global void DoneDownload (integer error_value, string error_text)
     {
 	if (error_value != 0)
 	{
@@ -926,14 +926,14 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void SetDownloadCallbacks ()
+    global void SetDownloadCallbacks ()
     {
 	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
 	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
 	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
     }
 
-    global define void ClearDownloadCallbacks ()
+    global void ClearDownloadCallbacks ()
     {
 	Pkg::CallbackStartDownload ("");
 	Pkg::CallbackProgressDownload ("");
@@ -941,7 +941,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void StartRebuildDB ()
+    global void StartRebuildDB ()
     {
 	// heading of popup
 	string heading = _("Checking Package Database");
@@ -972,13 +972,13 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void ProgressRebuildDB (integer percent)
+    global void ProgressRebuildDB (integer percent)
     {
 	UI::ChangeWidget (`id(`progress), `Value, percent);
     }
 
 
-    global define void StopRebuildDB (integer error_value, string error_text)
+    global void StopRebuildDB (integer error_value, string error_text)
     {
 	if (error_value != 0)
 	{
@@ -991,7 +991,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void NotifyRebuildDB (string error_text)
+    global void NotifyRebuildDB (string error_text)
     {
 	// error popup
 	Popup::Error (sformat (_("Error rebuilding database:
@@ -999,7 +999,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void SetRebuildDBCallbacks ()
+    global void SetRebuildDBCallbacks ()
     {
 	Pkg::CallbackStartRebuildDb ("PackageCallbacks::StartRebuildDB");
 	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
@@ -1009,7 +1009,7 @@ global void DoneSourceRefresh (map<string,any> info) {
 
 
 
-    global define void StartConvertDB (string unused1)
+    global void StartConvertDB (string unused1)
     {
 	// heading of popup
 	string heading = _("Checking Package Database");
@@ -1037,7 +1037,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void ProgressConvertDB (integer percent, integer unused1,
+    global void ProgressConvertDB (integer percent, integer unused1,
 					  integer unused2, integer unused3,
 					  integer unused4)
     {
@@ -1045,7 +1045,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define void StopConvertDB (integer error_value, string error_text)
+    global void StopConvertDB (integer error_value, string error_text)
     {
 	if (error_value != 0)
 	{
@@ -1058,7 +1058,7 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 
-    global define string NotifyConvertDB (string message_type, integer unused1,
+    global string NotifyConvertDB (string message_type, integer unused1,
 					  string detail)
     {
 	if (message_type == "Nindb")
@@ -1089,7 +1089,7 @@ Ignore this error and continue?"));
     }
 
 
-    global define void SetConvertDBCallbacks ()
+    global void SetConvertDBCallbacks ()
     {
 	Pkg::CallbackStartConvertDb ("PackageCallbacks::StartConvertDB");
 	Pkg::CallbackProgressConvertDb ("PackageCallbacks::ProgressConvertDB");
