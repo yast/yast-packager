@@ -324,7 +324,10 @@
     global define boolean ProgressPackage (integer percent)
     {
 	if (_package_popup)
+	{
 	    UI::ChangeWidget (`id(`progress), `Value, percent);
+	    return UI::PollInput () != `abort;
+	}
 	else if (Mode::commandline()) {
 	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
 	    if (percent == 100)
