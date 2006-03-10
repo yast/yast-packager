@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 10 13:22:14 CET 2006 - lslezak@suse.cz
+
+- dirinstall - initialize the package manager (#152311)
+
+-------------------------------------------------------------------
 Wed Mar  8 21:06:27 CET 2006 - jsrain@suse.de
 
 - report if selecting package during 2nd stage installation fails

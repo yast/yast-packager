@@ -55,6 +55,7 @@ global void InitProductControl () {
 global void DirInstall()
 {
     InitProductControl ();
+    Pkg::SourceStartManager(true);
 }
 
 global string Propose() 
