@@ -649,8 +649,11 @@ from the source CD to the disk cache")));
 	    if (! Pkg::PkgSrcInstall (pkg))
 		failed_packages = failed_packages + 1;
 	});
-	// error report, %1 is number
-	Report::Error (sformat(_("Failed to select %1 packages for installation"), failed_packages));
+	if (failed_packages > 0)
+	{
+	    // error report, %1 is number
+	    Report::Error (sformat(_("Failed to select %1 packages for installation"), failed_packages));
+	}
     }
 
     // Install the software from Medium1 to Mediummax, but not the already
