@@ -72,6 +72,8 @@
 
     global boolean using_patterns = false;
 
+    global string add_on_products_list = nil;
+
 /**
  * Reset package selection, but keep objects of specified type
  * @param keep a list of symbols specifying type of objects to be kept
@@ -511,8 +513,6 @@ global boolean CheckContentFile (integer source) {
 	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
 
 	    Pkg::SourceSetRamCache (false);
-            list<list<string> > orderlist = [];
-            map<integer, string > instordermap = $[];
 
 	    integer initial_source = nil;
 	    while (initial_source == nil)
@@ -535,6 +535,7 @@ global boolean CheckContentFile (integer source) {
 		    initial_source = nil;
 		}
 	    }
+	    add_on_products_list = Pkg::SourceProvideFile (initial_source, 1, "/add_on_products");
 
             /* Check for Service Pack */
             boolean servicepack_available = false;
@@ -542,16 +543,6 @@ global boolean CheckContentFile (integer source) {
             {
                 y2milestone("Service Pack data available");
                 servicepack_available = true;
-            }
-
-            if (servicepack_available)
-            {
-                /**
-                 * No order file, but service pack is available, so we hack
-                 * our own order/instorder files
-                 */
-	        orderlist = [["/"]];
-                instordermap[1] = "/";
             }
 
 	    y2milestone ("No order file, doing single source installation");
