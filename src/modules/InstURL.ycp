@@ -241,44 +241,52 @@
         }
 
         string url = URL::Build(url_tokens);
+	string option_separator = "?";
 
 	if (is_network)
 	{
 	    string proxy = Linuxrc::InstallInf("Proxy");
 	    if ((proxy != nil) && (proxy != ""))
 	    {
-		url = url + "?proxy=" + proxy;
+		url = url + option_separator + "proxy=" + proxy;
+		option_separator = "&";
 	    }
 	    string proxyport = Linuxrc::InstallInf("ProxyPort");
 	    if ((proxyport != nil) && (proxyport != ""))
 	    {
-		url = url + "?proxyport=" + proxyport;
+		url = url + option_separator + "proxyport=" + proxyport;
+		option_separator = "&";
 	    }
 	    string proxyproto = Linuxrc::InstallInf("ProxyProto");
 	    if ((proxyproto != nil) && (proxyproto != ""))
 	    {
-		url = url + "?proxyproto=" + proxyproto;
+		url = url + option_separator + "proxyproto=" + proxyproto;
+		option_separator = "&";
 	    }
 	    string proxyuser = Linuxrc::InstallInf("ProxyUser");
 	    if ((proxyuser != nil) && (proxyuser != ""))
 	    {
-		url = url + "?proxyuser=" + proxyuser;
+		url = url + option_separator + "proxyuser=" + proxyuser;
+		option_separator = "&";
 	    }
 	    string proxypassword = Linuxrc::InstallInf("ProxyPassword");
 	    if ((proxypassword != nil) && (proxypassword != ""))
 	    {
-		url = url + "?proxypassword=" + proxypassword;
+		url = url + option_separator + "proxypassword=" + proxypassword;
+		option_separator = "&";
 	    }
 	    string workgroup = Linuxrc::InstallInf ("WorkDomain");
 	    if (workgroup != nil && workgroup != "")
 	    {
-		url = url + "?workgroup=" + workgroup;
+		url = url + option_separator + "workgroup=" + workgroup;
+		option_separator = "&";
 	    }
 	} // is_network
 
 	if (options != "")
 	{
-	    url = url + "?" + options;
+	    url = url + option_separator + options;
+	    option_separator = "&";
 	    y2milestone ("options %1", options);
 	}
 	y2debug ("URL %1", HidePassword(url));

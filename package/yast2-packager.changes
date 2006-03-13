@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Mon Mar 13 22:24:26 CET 2006 - jsrain@suse.de
+Mon Mar 13 23:33:12 CET 2006 - jsrain@suse.de
 
 - do not report void error during installation after reboot
+- fixed encodign the URL options (#155428)
 
 -------------------------------------------------------------------
 Mon Mar 13 15:44:29 CET 2006 - visnov@suse.cz
