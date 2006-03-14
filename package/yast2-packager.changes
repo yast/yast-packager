@@ -2,6 +2,7 @@
 Tue Mar 14 17:22:39 CET 2006 - jsrain@suse.de
 
 - do not call PkgCommit if there are no packages left (#156365)
+- 2.13.46
 
 -------------------------------------------------------------------
 Tue Mar 14 16:49:57 CET 2006 - schubi@suse.de
