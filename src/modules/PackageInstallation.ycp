@@ -119,16 +119,34 @@
 	SlideShow::UpdateAllCdProgress ();
 	SlideShow::StartTimer();
 
-	// returns [ int successful, list failed, list remaining, list srcremaining ]
-	y2milestone ("Calling PkgCommig (%1)", media_number);
-	list commit_result = Pkg::PkgCommit (media_number);
-
-	SlideShow::StopTimer();
-
-	if (commit_result == nil)
+	boolean do_commit = true;
+	if (media_number != 0)
 	{
-	    y2error ("Bad media number %1", media_number);
-	    return [];
+	    list<map<string,any> > pkgs = Pkg::ResolvableProperties ("", `package, "");
+	    pkgs = filter (map<string,any> p, pkgs, {
+		return p["status"]:nil == `selected;
+	    });
+	    do_commit = size (pkgs) > 0;
+	}
+
+	list commit_result = [];
+	if (do_commit)
+	{
+	    // returns [ int successful, list failed, list remaining, list srcremaining ]
+	    y2milestone ("Calling PkgCommig (%1)", media_number);
+	    commit_result = Pkg::PkgCommit (media_number);
+
+	    SlideShow::StopTimer();
+
+	    if (commit_result == nil)
+	    {
+		y2error ("Bad media number %1", media_number);
+		return [];
+	    }
+	}
+	else
+	{
+	    y2milestone ("No package from media %1 left for installation", media_number);
 	}
 
 	// see if installation of some packages failed
