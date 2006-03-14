@@ -81,8 +81,8 @@ void AcpiToInitrd () {
 	 *  Bug 157529 
 	 */
 	SCR::Execute (.target.bash, "cd " + Installation::destdir +
-		      " ; /bin/tar cvfj " + Installation::destdir +
-		      "/var/lib/YaST2/rpm_sav.tar.bz2 var/lib/rpm");
+		      " ; /bin/tar cvf " + Installation::destdir +
+		      "/var/lib/YaST2/rpm_sav.tar var/lib/rpm");
 
 	if (Update::backup_modified)
 	{
