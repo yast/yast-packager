@@ -337,6 +337,8 @@ void AcpiToInitrd () {
         }
         else 
         {
+	    // disable all sources at the target
+	    Pkg::TargetDisableSources();
 
             // make some directories
             SCR::Execute (.target.mkdir, Installation::destdir + Directory::logdir);

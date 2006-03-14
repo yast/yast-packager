@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 14 10:51:20 CET 2006 - visnov@suse.cz
+
+- disable sources on the target system for upgrade (#154850)
+- 2.13.44 
+
+-------------------------------------------------------------------
 Mon Mar 13 23:33:12 CET 2006 - jsrain@suse.de
 
 - do not report void error during installation after reboot
