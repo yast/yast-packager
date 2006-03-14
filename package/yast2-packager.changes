@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 14 16:49:57 CET 2006 - schubi@suse.de
+
+- tar does not support bzip2 in the inst-sys
+
+-------------------------------------------------------------------
 Tue Mar 14 10:51:20 CET 2006 - visnov@suse.cz
 
 - disable sources on the target system for upgrade (#154850)
