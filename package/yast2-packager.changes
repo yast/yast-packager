@@ -42,7 +42,7 @@ Fri Mar 10 16:41:52 CET 2006 - lslezak@suse.cz
 Fri Mar 10 16:35:06 CET 2006 - lslezak@suse.cz
 
 - fixed disk usage summary in update proposal (total installation
-  size was 1024x greater)
+  size was 1024x greater) (#156382)
 
 -------------------------------------------------------------------
 Fri Mar 10 15:42:49 CET 2006 - visnov@suse.cz
