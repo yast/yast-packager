@@ -259,10 +259,10 @@ if (ret == `next)
 	Packages::base_selection_changed = true;
 	Packages::preferred_base_selection = base_selection;
 	Packages::Reset ([`product]);
-	string wm = desktop2wm[alt_desktop]:"";
-	y2milestone ("Setting preferred window manager to %1", wm);
-	Packages::window_manager = wm;
     }
+    string wm = desktop2wm[alt_desktop]:"";
+    y2milestone ("Setting preferred window manager to %1", wm);
+    Packages::window_manager = wm;
 }
 
 return ret;
