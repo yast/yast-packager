@@ -97,6 +97,7 @@ global void Reset (list<symbol> keep) {
 }
 
 
+
     /*-----------------------------------------------------------------------
      * LOCALE FUNCTIONS
      *-----------------------------------------------------------------------*/
@@ -1099,5 +1100,17 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	return ret;
 }
 
+/**
+ * Initialize the catalogs with popup feedback
+ */
+global void InitializeCatalogs() {
+    // Intermediate contents of the software selection screen
+    UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
+
+    // intialize package source to get a list of selections
+    Packages::Init (false);
+
+    UI::CloseDialog ();
+}
 /* EOF */
 }

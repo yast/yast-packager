@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 16 23:06:00 CET 2006 - jsrain@suse.de
+
+- provide function to initialize installation sources with
+  graphical feedback
+
+-------------------------------------------------------------------
 Thu Mar 16 17:29:17 CET 2006 - locilka@suse.cz
 
 - better handling of 'yast2 -i $param', if the $param points to the
