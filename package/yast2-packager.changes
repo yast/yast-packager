@@ -2,7 +2,8 @@
 Thu Mar 16 23:06:00 CET 2006 - jsrain@suse.de
 
 - provide function to initialize installation sources with
-  graphical feedback
+  visual feedback
+- 2.13.47
 
 -------------------------------------------------------------------
 Thu Mar 16 17:29:17 CET 2006 - locilka@suse.cz
