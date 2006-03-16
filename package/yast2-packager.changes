@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 16 17:29:17 CET 2006 - locilka@suse.cz
+
+- better handling of 'yast2 -i $param', if the $param points to the
+  file which exists and is bigger than 0, it's parsed, else it is
+  handled as the package-name (#158226)
+
+-------------------------------------------------------------------
 Wed Mar 15 20:02:57 CET 2006 - jsrain@suse.de
 
 - select proper desktop during installation (#155095)

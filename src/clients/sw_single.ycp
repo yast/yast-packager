@@ -29,6 +29,7 @@
     import "Label";
     import "PackageSystem";
     import "Report";
+    import "FileUtils";
 
     list<string> packagelist = [];		// list of packages to install
 
@@ -137,7 +138,7 @@
        {
 	   string arg_name = arg_list[0]:"";
 
-	   if ( SCR::Read(.target.size, arg_name) <= 0 )		// a local file ?
+	   if ( ! FileUtils::IsFile(arg_name) || FileUtils::GetSize(arg_name) <= 0 )		// Check: a local file ? bigger than 0?
 	   {
 	       packagelist = arg_list;					// No: expect package names
 	   }
@@ -150,6 +151,8 @@
 	       {
 		   string packagestr = (string) SCR::Read( .target.string, arg_name);	// string ascii file next
 		   packagelist = splitstring (packagestr, "\n");
+		   // filter empty lines out,  bug #158226
+		   packagelist = filter (string package, packagelist, { return !regexpmatch(package, "^ *$"); });
 	       }
 	   }
 	   y2milestone("packagelist: %1", packagelist );
