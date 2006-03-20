@@ -1195,7 +1195,7 @@
 	pkg_name = StripPath(pkg_name);
 
 	// remove release and .rpm suffix
-	pkg_name = StripReleaseNo( pkg_name );
+	// pkg_name = StripReleaseNo( pkg_name );	// bug #154872
 
 	if ( deleting )
 	{
