@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 20 12:50:43 CET 2006 - locilka@suse.cz
+
+- proper handling with data returned from Pkg::TargetGetDU()
+  boolean -> integer (#159463)
+
+-------------------------------------------------------------------
 Thu Mar 16 23:06:00 CET 2006 - jsrain@suse.de
 
 - provide function to initialize installation sources with

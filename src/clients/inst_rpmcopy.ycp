@@ -554,7 +554,8 @@ from the source CD to the disk cache")));
 	if (future < current)
 	    future = current;
 	integer tmp_space = total - future;
-	if (tmp_space < 0 || root_info[3]:false)
+	// no temp space left or read-only
+	if (tmp_space < 0 || root_info[3]:1 == 1)
 	    tmp_space = 0;
 
 	list var_info = spaces["/var/tmp"]:spaces["/var/tmp/"]:spaces["/var"]:spaces["/var/"]:spaces["/"]:[];
@@ -564,7 +565,8 @@ from the source CD to the disk cache")));
 	if (future < current)
 	    future = current;
 	integer var_tmp_space = total - future;
-	if (var_tmp_space < 0 || var_info[3]:false)
+	// no temp space left or read-only
+	if (var_tmp_space < 0 || var_info[3]:1 == 1)
 	    var_tmp_space = 0;
 
 	//-------
