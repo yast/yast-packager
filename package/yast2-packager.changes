@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 20 17:29:46 CET 2006 - sh@suse.de
+
+- V 2.13.48
+- Fixed bug #154872: Pkg names truncated at "-" 
+
+-------------------------------------------------------------------
 Mon Mar 20 12:50:43 CET 2006 - locilka@suse.cz
 
 - proper handling with data returned from Pkg::TargetGetDU()
