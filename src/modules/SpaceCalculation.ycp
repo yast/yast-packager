@@ -88,8 +88,9 @@
     global define list<map<string,any> > EvaluateFreeSpace (integer spare_percentage) ``{
 
 	list<map<string, string> > partition = [];
-	integer min_spare = 1 * 1024* 1024;		// 1 MB
-	integer max_spare = 1024 * 1024 * 1024;		// 1 GB
+	// the sizes are in kB
+	integer min_spare = 1 * 1024;		// 1 MB
+	integer max_spare = 1024 * 1024;	// 1 GB
 
 	string target = Installation::destdir;
 
@@ -116,6 +117,7 @@
 	    boolean add_part = true;
 
 	    string mountName = part["name"]:"";
+	    string spec = part["spec"]:"";
 
 	    if ( target != "/" )
 	    {
@@ -144,9 +146,12 @@
 		{
 		    part_info = add ( part_info, "name", mountName );
 		}
+		// ignore some mount points
 		else if ( mountName != Installation::sourcedir
 			  && mountName != "/cdrom"
-			  && mountName != "/dev/shm" )
+			  && mountName != "/dev/shm"
+			  && spec != "udev"
+			  && !regexpmatch(mountName, "^/media/") )
 		{
 		    part_info = add ( part_info, "name", substring( mountName, 1 ) );  // remove "/" in front
 		}

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 21 14:29:05 CET 2006 - lslezak@suse.cz
+
+- don't show /dev and /media filesystems in disk usage overview
+  at update, properly report disk usage (#159517)
+
+-------------------------------------------------------------------
 Tue Mar 21 14:20:53 CET 2006 - visnov@suse.cz
 
 - Show also errors from ZYPP why sources cannot be restored (#157880) 
