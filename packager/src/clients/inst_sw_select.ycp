@@ -1,0 +1,82 @@
+/**
+ * Module:		inst_sw_select.ycp
+ *
+ * Authors:		Gabriele Strattner <gs@suse.de>
+ *			Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose:
+ * Displays software selection screen. Show radioboxes for software
+ * main categories. Let the user select the software.
+ *
+ * Packages module read:
+ *
+ * Packages module write:
+ */
+
+{
+    textdomain "packager";
+
+    import "Arch";
+    import "Mode";
+    import "Installation";
+    import "Product";
+    import "ProductFeatures";
+    import "Packages";
+    import "PackagesUI";
+    import "SpaceCalculation";
+    import "Stage";
+
+    import "Wizard";
+    import "Popup";
+
+    include "partitioning/partition_defines.ycp";
+
+    symbol ret = `again;
+
+    boolean retval = Pkg::SaveState();
+    y2milestone ("Save pkg state retval: %1", retval);
+
+    while (ret == `again)
+    {
+
+	// add additional (internal) packages, like kernel etc.
+	// they are added by proposal!!!! (#155819)
+//	Pkg::DoProvide (Packages::ComputeSystemPackageList());
+	Pkg::PkgSolve(false);
+
+	while ( ret == `again )
+	{
+	    ret = (symbol)WFM::CallFunction( "inst_packages", [] );
+
+	    if ( ret == `accept )
+	    {
+		Packages::base_selection_modified = true;
+		ret = `next;
+		Packages::solve_errors = 0; // all have been either solved
+					    // or marked to ignore
+	    }
+	}
+
+	if (ret == `next)
+	{
+	    boolean error_found = SpaceCalculation::ShowPartitionWarning();
+
+	    if ( error_found )
+	    {
+		y2error( "Not enough disk space" );
+		ret = `again;
+	    }
+	}
+    }
+
+    if ( ret == `back || ret == `cancel )
+    {
+	boolean ret = Pkg::RestoreState( false );
+	y2milestone( "RESET to software selection return: %1",  ret );
+    }
+    else
+    {
+	Pkg::ClearSaveState();
+    }
+    return `ret;
+}
