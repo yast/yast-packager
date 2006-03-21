@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 21 17:02:08 CET 2006 - lslezak@suse.cz
+
+- 2.13.50
+
+-------------------------------------------------------------------
 Tue Mar 21 14:29:05 CET 2006 - lslezak@suse.cz
 
 - don't show /dev and /media filesystems in disk usage overview
