@@ -311,7 +311,7 @@ on the NFS server.
     {
 	Popup::Error(_("There were errors when restoring the source configuration.
 Not all sources will be available for configuration.
-"));
+") + "\n" + Pkg::LastError() );
     }
 
     sourceStatesIn = Pkg::SourceEditGet();

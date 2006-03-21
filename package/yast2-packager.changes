@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 21 14:20:53 CET 2006 - visnov@suse.cz
+
+- Show also errors from ZYPP why sources cannot be restored (#157880) 
+
+-------------------------------------------------------------------
 Tue Mar 21 09:43:17 CET 2006 - visnov@suse.cz
 
 - Lookup the add_on_products file as optional (#159116)
