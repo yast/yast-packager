@@ -530,6 +530,8 @@ global boolean CheckContentFile (integer source) {
 		if (! CheckContentFile (initial_source))
 		{
 		    string label = (string)SCR::Read (.content.PRODUCT);
+		    // bug #159754, release the mounted CD
+		    Pkg::SourceReleaseAll();
 		    // message popup, %1 is product name
 		    Popup::Message (sformat (_("Insert %1 CD 1"), label));
 		    Pkg::SourceDelete (initial_source);
