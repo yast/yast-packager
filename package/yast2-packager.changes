@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Mar 27 16:23:21 CEST 2006 - locilka@suse.cz
+
+- YaST installation source is added into ZMD after the installation
+  or update at the end of the inst_rpmcopy client. It checks the
+  ZMD status and starts it if isn't running. The it adds the 'ZYPP'
+  service if such service is not listed and activates it.
+- 2.13.52
+
+-------------------------------------------------------------------
 Wed Mar 22 15:05:24 CET 2006 - locilka@suse.cz
 
 - release media before asked for another (partly fixes #159754)
