@@ -33,6 +33,8 @@
     import "DirInstall";
     import "Report";
     import "Kernel";
+    import "Service";
+    import "Message";
 
     // variables related to installation source caching
 
@@ -498,6 +500,162 @@ from the source CD to the disk cache")));
     // end of installation source caching functions
     // ------------------------------------------------------------------------------------------------------
 
+    // ------------------------------------------------------------------------------------------------------
+    // adding YaST installation source into the ZMD
+
+    /**
+     * Runs a bash command with timeout.
+     * @struct Returns map $[
+     *     "exit" : int_return_code,
+     *     "stdout"  : [ "script", "stdout", "lines" ],
+     *     "stderr"  : [ "script", "stderr", "lines" ],
+     * ]
+     *
+     * @param string command
+     * @param integer timeout in sec.
+     * @return map with out, err and ret_code
+     */
+    map RunCommandWithTimeout (string run_command, integer script_time_out) {
+	y2milestone("Running command \"%1\" in background...", run_command);
+
+	boolean started = (boolean) SCR::Execute(.background.run_output_err, run_command);
+	if (!started) {
+	    y2error("Cannot run '%1'", run_command);
+	    return nil;
+	}
+	
+	list<string> script_out = [];
+	list<string> script_err = [];
+	integer time_spent = 0;
+	integer return_code = nil;
+	boolean cont_loop = true;
+	integer sleep_step = 20;
+	script_time_out = script_time_out * 1000;
+	
+	// while continuing is needed and while it is possible
+	while (cont_loop && ((boolean) SCR::Read(.background.output_open) || (integer) SCR::Read(.background.pid) > 0)) {
+	    // time-out
+	    if (time_spent >= script_time_out) {
+		y2error("Command '%1' timed-out after %2 mces", run_command, time_spent);
+		cont_loop = false;
+	    }
+	    
+	    time_spent = time_spent + sleep_step;
+	    sleep(sleep_step);
+	}
+	y2milestone("Time spent: %1 msec", time_spent);
+
+	// fetching the return code if not timed-out
+	if (cont_loop) {
+	    script_out  = (list<string>) SCR::Read(.background.newout);
+	    script_err  = (list<string>) SCR::Read(.background.newerr);
+	    return_code = (integer) SCR::Read(.background.status);
+	}
+	SCR::Execute(.background.kill, "");
+
+	map command_ret = $[
+	    "exit"   : return_code,
+	    "stdout" : script_out,
+	    "stderr" : script_err,
+	];
+	return command_ret;
+    }
+
+    /**
+     * Returns count of services matching the pattern. Returns 'nil'
+     * if something fails.
+     *
+     * @param string grep_pattern to match the ZYPP service
+     * @return integer count of matching lines
+     */
+    integer CountOfZMDServicesMatching (string grep_pattern) {
+	map ret = RunCommandWithTimeout(
+	    sformat("TERM=dumb /usr/bin/rug service-list; exit $?"),
+	    60
+	);
+	if (ret != nil && ret["stdout"]:nil != nil) {
+	    list <string> matching = filter (string one_line, (list <string>) ret["stdout"]:[], {
+		return regexpmatch(one_line, grep_pattern);
+	    });
+	    return size(matching);
+	} else {
+	    y2error("Counting of services failed, returned %1", ret);
+	    return nil;
+	}
+    }
+
+    /* Adds a ZYPP service into ZMD */
+    boolean AddZYPPServiceIntoZMD () {
+	map ret = RunCommandWithTimeout(
+	    "TERM=dumb /usr/bin/rug service-add --type=zypp /installation; rug subscribe zypp; exit $?",
+	    60
+	);
+	if (ret != nil && ret["exit"]:nil == 0) {
+	    return true;
+	} else {
+	    y2error("Adding ZYPP service failed, returned %1", ret);
+	    return false;
+	}
+    }
+
+    /**
+     * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP source is listed
+     * in the ZMD services, adds one if it is missing.
+     * Everything is done via the .background agent with timeout (number in seconds).
+     */
+    boolean SyncYaSTInstSourceWithZMD () {
+	// Notes for maintainer:
+	//     - using .background agent because of ZMD/rug call that can stuck
+	//     - using 'exit $?' that work well with ZMD/rug and .background together
+	//     - using TERM=dumb to suppress colors, progress bars etc. from ZMD/rug
+
+	y2milestone("--- Syncing YaST inst source with ZMD ---");
+	string zmd_service_name = "/etc/init.d/novell-zmd";
+	string rug_command = "/usr/bin/rug";
+
+	// Check the ZMD status and start if not running, using 'exit $?' because of buggy behavior '.background vs. ZMD'
+	map zmd_status = RunCommandWithTimeout(sformat("TERM=dumb %1 ping 1>/dev/null; exit $?", rug_command), 60);
+	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
+	if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
+	    // Starting the service
+	    map zmd_start = RunCommandWithTimeout(sformat("TERM=dumb %1 start; exit $?", zmd_service_name), 60);
+	    y2milestone("ZMD start: %1", zmd_start);
+	    // Checking the status after start
+	    map zmd_status = RunCommandWithTimeout(sformat("TERM=dumb %1 ping 1>/dev/null; exit $?", rug_command), 60);
+	    y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
+	    if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
+		Report::Error(Message::CannotStartService(zmd_service_name));
+		y2error("Cannot start service %1, returned %2", zmd_service_name, zmd_status);
+		y2milestone("--- Syncing finished ---");
+		return false;
+	    }
+	}
+
+	// Check whether the ZYPP service is already in zmd db or not
+	integer count_of_services = CountOfZMDServicesMatching(".*ZYPP.*/installation.*");
+	if (count_of_services == nil) {
+	    y2warning("Cannot get list of services...");
+	} else if (count_of_services > 0) {
+	    y2milestone("ZYPP service already presented (%1)", count_of_services);
+	    y2milestone("--- Syncing finished ---");
+	    return true;
+	}
+	
+	// Count of services were 'nil' or '0'
+	if (AddZYPPServiceIntoZMD()) {
+	    y2milestone("Adding ZYPP service succeeded");
+	} else {
+	    Report::Error(Message::CannotWriteSettingsTo("ZMD"));
+	    y2error("Adding ZYPP service failed");
+	}
+
+	y2milestone("--- Syncing finished ---");
+	return true;
+    }
+
+    // adding YaST installation source into the ZMD
+    // ------------------------------------------------------------------------------------------------------
+
     Pkg::SetLocale (Language::language);
 
     SlideShow::SetLanguage (Language::language);
@@ -778,7 +936,11 @@ from the source CD to the disk cache")));
 	     CleanupDiskCache ();
 	}
     }
-
+    
+    // Bug 156030 - YaST installation sources must be synced with ZMD
+    UI::OpenDialog(`Label(_("Configuring installed system") + "..."));
+    boolean sync_ret = SyncYaSTInstSourceWithZMD();
+    UI::CloseDialog();
 
     return result;
 }
