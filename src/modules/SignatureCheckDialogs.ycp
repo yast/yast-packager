@@ -1,0 +1,387 @@
+/**
+ * Module:		SignatureCheckDialogs.ycp
+ * Authors:		Lukas Ocilka <locilka@suse.cz>
+ *
+ * Dialogs handling for RPM/Source GPM signatures.
+ *
+ * $Id: SignatureCheckDialogs.ycp 28363 2006-02-24 12:27:15Z locilka $
+ */
+
+{
+    textdomain "packager";
+    
+    module "SignatureCheckDialogs";
+
+    import "Label";
+    import "Popup";
+
+    // Defining icons for dialogs
+    term error_icon    = `Empty();
+    term warning_icon  = `Empty();
+    term question_icon = `Empty();
+
+//    TODO: support icons
+//    /**
+//     * Module constructor
+//     */
+//    global void InitDialogs () {
+//	map ui_capabilities = UI::GetDisplayInfo();
+//	if (ui_capabilities["HasLocalImageSupport"]:false) {
+//	    error_icon    = `HBox(`Image("error", ""), `HSpacing(1));
+//	    warning_icon  = `HBox(`Image("warning", ""), `HSpacing(1));
+//	    question_icon = `HBox(`Image("question", ""), `HSpacing(1));
+//	}
+//    }
+
+    /**
+     * Returns term of yes/no buttons
+     *
+     * @param symbol default button `yes or `no
+     * @return term with buttons
+     */
+    term YesNoButtons (symbol default_button) {
+	term yes_button = `PushButton(`id(`yes), Label::YesButton());
+	term no_button  = `PushButton(`id(`no), Label::NoButton());
+
+	if (default_button == `yes) {
+	    yes_button = `PushButton(`id(`yes), `opt(`default), Label::YesButton());
+	} else {
+	    no_button  = `PushButton(`id(`no), `opt(`default), Label::NoButton());
+	}
+	
+	return `HBox (
+	    yes_button,
+	    `HSpacing(2),
+	    no_button
+	);
+    }
+
+    /**
+     * Returns 'true' (yes), 'false' (no) or 'nil' (cancel)
+     *
+     * @return boolean user input yes==true
+     */
+    boolean WaitForYesNoCancelUserInput() {
+	any user_input = nil;
+	boolean ret = nil;
+
+	while (true) {
+	    user_input = UI::UserInput();
+	    // yes button
+	    if (user_input == `yes) {
+		ret = true;
+		break;
+	    // no button
+	    } else if (user_input == `no) {
+		ret = false;
+		break;
+	    // closing window uisng [x]
+	    } else if (user_input == `cancel) {
+		ret = nil;
+		break;
+	    } else {
+		y2error("Unknown user input: '%1'", user_input);
+		continue;
+	    }
+	}
+
+	return ret;
+    }
+
+    /**
+     * Waits for user input and checks it agains accepted symbols.
+     * Returns the default symbol in case of `cancel (user closes the dialog).
+     *
+     * @param list <symbol> of accepted symbol by UserInput
+     * @param symbol default return for case of `cancel
+     */
+    symbol WaitForSymbolUserInput (list <symbol> list_of_accepted, symbol default_symb) {
+	symbol user_input = nil;
+	symbol ret = nil;
+	
+	while (true) {
+	    user_input = (symbol) UI::UserInput();
+	    if (contains(list_of_accepted, user_input)) {
+		ret = user_input;
+		break;
+	    } else if (user_input == `cancel) {
+		ret = default_symb;
+		break;
+	    } else {
+		y2error("Unknown user input: '%1'", user_input);
+		continue;
+	    }
+	}
+	
+	return ret;
+    }
+
+    /**
+     * Used for unsiged file or package. Opens dialog asking whether user wants
+     * to use this unsigned item.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @return boolean use or don't use ('true' if 'yes')
+     */
+    global boolean UseUnsignedItem (symbol item_type, string item_name) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name
+	    _("The package '%1' is not digitally signed. This means that the origin
+of the integrity of the package can not be verified. Installing the package
+may put the integrity of your system at risk.
+
+Do you want to install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename
+	    _("The file '%1' is not digitally signed. This means that the origin
+of the integrity of the file can not be verified. Using the file
+may put the integrity of your system at risk.
+
+Do you want to use it anyway?")
+	), item_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(warning_icon),
+		    // popup heading
+		    `VCenter(`Heading( _("Signature Check Failed"))),
+		    `HStretch()
+		),
+		`Label(description_text),
+		YesNoButtons(`no)
+	    )
+	);
+
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * Used for corrupted file or package. Opens dialog asking whether user wants
+     * to use this corrupted item.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @return boolean use or don't use ('true' if 'yes')
+     */
+    global boolean UseCorruptedItem (symbol item_type, string item_name) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name
+	    _("The integrity check for package '%1' failed. This means that
+the package has been changed by accident or by an attacker
+since the repository creator has signed it. Installing it
+is a big risk for the integrity and security of your system.
+
+Do you want to install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename
+	    _("The integrity check for file '%1' failed. This means that
+the file has been changed by accident or by an attacker
+since the repository creator has signed it. Installing it
+is a big risk for the integrity and security of your system.
+
+Do you want to use it anyway?")
+	), item_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		// popup heading
+		`HBox (
+		    `VCenter(error_icon),
+		    `VCenter(`Heading( _("Validation Check Failed"))),
+		    `HStretch()
+		),
+		`Label(description_text),
+		YesNoButtons(`no)
+	    )
+	);
+
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * Used for file or package signed by unknown key.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @param string key_id
+     * @return symbol `yes, `no or `retry
+     */
+    global symbol ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name, %2 for the key ID
+	    _("The package '%1' is digitally signed with an unknown GnuPG key '%2'
+and we cannot find that key. This means that a trust relationship to the creator of the package
+can not be established. Installing the package may put the integrity of your system at risk.
+
+Do you want to install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename, %2 for the key ID
+	    _("The file '%1' is digitally signed with an unknown GnuPG key '%2'
+and we cannot find that key. This means that a trust relationship to the creator of the file
+can not be established. Using the file may put the integrity of your system at risk.
+
+Do you want to use it anyway?")
+	), item_name, key_id);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(warning_icon),
+		    // popup heading
+		    `VCenter(`Heading( _("Uknown GnuPG Key"))),
+		    `HStretch()
+		),
+		`Label(description_text),
+		YesNoButtons(`no)
+	    )
+	);
+
+	// This will optionally offer to retrieve the key from gpg keyservers
+	// That's why it returns 'symbol' instead of 'boolean'
+	// But by now it only handles yes/no/cancel
+	symbol ret = (WaitForYesNoCancelUserInput() == true ? `yes : `no);
+	// default value
+	if (ret == nil) ret = `no;
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * Used for file or package signed by a public key. This key is still
+     * not listed in trusted keys.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @param string key_id
+     * @param string key_name
+     * @return symbol `key_import, `install, `skip
+     */
+    global symbol ItemSignedWithPublicSignature (symbol item_type, string item_name, string key_id, string key_name) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name
+	    _("The package '%1' is digitally signed
+with key '%2 (%3)'.
+There is no trust relationship to the owner of the key. You may chose to import
+the key into your set of trusted keys in the Import dialog and then proceed
+with the installation. You can also chose just to install the package anyway,
+but be aware that packages from untrusted sources can put the integrity
+of your system at risk.")
+	    :
+	    // popup question, %1 stands for the filename
+	    _("The file '%1' is digitally signed
+with key '%2 (%3)'.
+There is no trust relationship to the owner of the key. You may chose to import
+the key into your set of trusted keys in the Import dialog and then proceed
+with the installation. You can also chose just to use the file anyway,
+but be aware that packages from untrusted sources can put the integrity
+of your system at risk.")
+	), item_name, key_id, key_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(warning_icon),
+		    // popup heading
+		    `VCenter(`Heading( _("Signed with Untrusted Public Key"))),
+		    `HStretch()
+		),
+		`Label(description_text),
+		`HBox (
+		    // push button
+		    `PushButton(`id(`key_import), _("Key &Import Dialog")),
+		    // push button
+		    `PushButton(`id(`install), _("Install &Anyway")),
+		    // push button
+		    `PushButton(`id(`skip), _("&Skip Package"))
+		)
+	    )
+	);
+	UI::SetFocus(`skip);
+
+	// wait for one of listed ID's, return the default value in case of `cancel
+	symbol ret = WaitForSymbolUserInput([`key_import, `install, `skip], `skip);
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * ImportGPGKeyDialog
+     *
+     * @param string key_id
+     * @param string key_name
+     * @param string key_location
+     * @param string key_detailed_description
+     * @return symbol
+     */
+    global symbol ImportGPGKeyDialog (string key_id, string key_name, string key_location, string key_detailed_description) {
+	// FIXME: add somewhere this additional text
+	// additional warning text (kind of help)
+	string warning_text = sformat(_("The owner of the key may distribute updates, packages and package repositories
+that will be considered trusted by your system and which will be offered for installation
+and update without any further warning. Importing the key thus allows the key owner
+to have a certain amount of control over the software on your system and you should
+only do this if you trust her/him. YaST comes up with a warning dialog for every
+package that's not signed by a trusted (imported) key; this will happen to packages
+by the package creator with key '%1' if you chose not to import."), key_id);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(question_icon),
+		    // popup heading
+		    `VCenter(`Heading(_("Import Public GnuPG Key"))),
+		    `HStretch()
+		),
+		`Label(sformat(
+		    // popup message, %1 stands for GPG key ID, %2 for key name, %3 for key location (URL or ...)
+		    _("The GnuPG key '%1 (%2)' has been found
+on location '%3'.
+
+You can chose to import it into your keyring of trusted public keys - that means
+you trust the owner of the key. You should be sure that you can trust the owner
+and that the key really belongs to that owner before considering to import it."),
+		    key_id, key_name, key_location
+		)),
+		`HBox (
+		    // push button
+		    `PushButton(`id(`import), _("&Import")),
+		    // push button
+		    `PushButton(`id(`details), _("&Details")),
+		    // push button
+		    `PushButton(`id(`dont_import), _("Do &Not Import"))
+		)
+	    )
+	);
+	UI::SetFocus(`details);
+
+	symbol ret = nil;
+	while (ret == nil || ret == `details) {
+	    // wait for one of listed ID's, return the default value in case of `cancel
+	    ret = WaitForSymbolUserInput([`import, `details, `dont_import], `dont_import);
+	    if (contains([`import, `dont_import], ret)) break;
+	    else if (ret == `details) Popup::LongMessage(key_detailed_description);
+	}
+
+	UI::CloseDialog();
+	return ret;
+    }
+}
