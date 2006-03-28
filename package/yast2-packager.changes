@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 28 11:31:31 CEST 2006 - visnov@suse.cz
+
+- fix slideshow in 1st stage (#154324)
+
+-------------------------------------------------------------------
 Mon Mar 27 16:23:21 CEST 2006 - locilka@suse.cz
 
 - YaST installation source is added into ZMD after the installation

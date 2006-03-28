@@ -616,6 +616,8 @@
 
 	if ( ! tmp["isdir"]:false )
 	    slide_base_path = "/var/adm/YaST/InstSrcManager/tmp/CurrentMedia/suse/setup/slide";
+
+	y2milestone( "SetSlideDir: %1", slide_base_path );
     }
 
 
