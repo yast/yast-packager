@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 28 14:10:29 CEST 2006 - visnov@suse.cz
+
+- Show type of installation source if name is not known 
+
+-------------------------------------------------------------------
 Tue Mar 28 13:41:20 CEST 2006 - locilka@suse.cz
 
 - Moving ZMD sync to the pkg_finish client that is called after the

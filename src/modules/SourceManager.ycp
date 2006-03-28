@@ -576,7 +576,8 @@ define string createItem( integer index, map source ) {
     string color = source[ "enabled" ]:true ? "#006600" : "#FF0000";
     sitem = sitem + HTML::Colorize("["+status+"] ",
             color);
-    sitem = sitem + productData[ "label" ]:"unknown";
+    // translators: name of a source if no other idenfication found
+    sitem = sitem + productData[ "label" ]:generalData["type"]:_("unknown");
     sitem = sitem + " ( " + generalData[ "url" ]:"" + ")";
     return sitem;
 }
@@ -598,7 +599,7 @@ define term  createOverviewItem( integer index, map source ) {
 			? _("On")
 		      // corresponds to the "Enable/Disable" button
 			: _("Off"),
-		      productData[ "label" ]:"unknown",
+		      productData[ "label" ]:generalData["type"]:_("Unknown"),
 		      generalData[ "url" ]:""
 		      );    
    
