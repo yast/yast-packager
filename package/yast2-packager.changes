@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 28 13:41:20 CEST 2006 - locilka@suse.cz
+
+- Moving ZMD sync to the pkg_finish client that is called after the
+  switch_scr client (#161299).
+- 2.13.54
+
+-------------------------------------------------------------------
 Tue Mar 28 11:31:31 CEST 2006 - visnov@suse.cz
 
 - fix slideshow in 1st stage (#154324)
