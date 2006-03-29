@@ -264,7 +264,7 @@ Use it anyway?")
 		`HBox (
 		    `VCenter(MessageIcon("warning")),
 		    // popup heading
-		    `VCenter(`Heading( _("Uknown GnuPG Key"))),
+		    `VCenter(`Heading( _("Unknown GnuPG Key"))),
 		    `HStretch()
 		),
 		`MarginBox(0.5, 0.5, `Label(description_text)),
