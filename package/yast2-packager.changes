@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 29 08:59:34 CEST 2006 - locilka@suse.cz
+
+- Moving ZMD sync from pkg_finish to SourceManager module (#161279)
+
+-------------------------------------------------------------------
 Tue Mar 28 17:42:20 CEST 2006 - locilka@suse.cz
 
 - Added the first implementation of SignatureCheckDialogs module.
