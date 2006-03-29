@@ -779,6 +779,32 @@ global list Overview() {
 	}
     }
 
+    /* ZMD service name - used for starting and stopping ZMD */
+    string zmd_service_name = "/etc/init.d/novell-zmd";
+
+    /**
+     * Stops zmd when it 'was not running'.
+     * It's expected that ZMD is running.
+     *
+     * @param boolean was_running
+     * @return boolean true if successful
+     */
+    boolean StopZMDIfItWasNotRunning (boolean was_running) {
+	// It was running, nothing to change
+	if (was_running) return true;
+	
+	y2milestone("Stopping service ZMD %1", zmd_service_name);
+	map zmd_stop = RunCommandWithTimeout(sformat("TERM=dumb %1 stop; exit $?", zmd_service_name), 60);
+	y2milestone("ZMD stop: %1", zmd_stop);
+	if (zmd_stop == nil || zmd_stop["exit"]:nil != 0) {
+	    y2error("Cannot stop service %1", zmd_service_name);
+	    Report::Error(Message::CannotStopService(zmd_service_name));
+	}
+	
+	y2milestone("ZMD stopped");
+	return true;
+    }
+
     /**
      * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP source is listed
      * in the ZMD services, adds one if it is missing.
@@ -791,14 +817,22 @@ global list Overview() {
 	//     - using .background agent because of ZMD/rug call that can stuck
 	//     - using 'exit $?' that work well with ZMD/rug and .background together
 	//     - using TERM=dumb to suppress colors, progress bars etc. from ZMD/rug
+	//     - when the function finishes, it must leave ZMD in the same status (running/stopped)
+	//       as it was when the function started
+	//
+	// WARNIG: this function starts ZMD and expects that LIBZYPP has no lock over
+	//         the RPM database. You can run it only when the RPM is not locked
+	//         otherwise the ZMD will block itself!
 
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
-	string zmd_service_name = "/etc/init.d/novell-zmd";
 	string rug_command = "/usr/bin/rug";
 
 	// Check the ZMD status and start if not running, using 'exit $?' because of buggy behavior '.background vs. ZMD'
 	map zmd_status = RunCommandWithTimeout(sformat("TERM=dumb %1 ping 1>/dev/null; exit $?", rug_command), 60);
 	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
+	// If the ZMD wasn't running, we will try to start it and then we will have to stop it at the end
+	boolean zmd_was_running = ((integer)zmd_status["exit"]:nil==0 ? true:false);
+
 	if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
 	    // Starting the service
 	    map zmd_start = RunCommandWithTimeout(sformat("TERM=dumb %1 start; exit $?", zmd_service_name), 60);
@@ -807,8 +841,11 @@ global list Overview() {
 	    map zmd_status = RunCommandWithTimeout(sformat("TERM=dumb %1 ping 1>/dev/null; exit $?", rug_command), 60);
 	    y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
 	    if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
-		Report::Error(Message::CannotStartService(zmd_service_name));
 		y2error("Cannot start service %1, returned %2", zmd_service_name, zmd_status);
+		Report::Error(Message::CannotStartService(zmd_service_name));
+
+		// In case of timeout
+		if (zmd_status == nil) StopZMDIfItWasNotRunning(zmd_was_running);
 		y2milestone("--- Syncing finished ---");
 		return false;
 	    }
@@ -820,6 +857,9 @@ global list Overview() {
 	    y2warning("Cannot get list of services...");
 	} else if (count_of_services > 0) {
 	    y2milestone("ZYPP service already presented (%1)", count_of_services);
+
+	    // Stop ZMD if needed
+	    StopZMDIfItWasNotRunning(zmd_was_running);
 	    y2milestone("--- Syncing finished ---");
 	    return true;
 	}
@@ -832,6 +872,8 @@ global list Overview() {
 	    y2error("Adding ZYPP service failed");
 	}
 
+	// Stop ZMD if needed
+	StopZMDIfItWasNotRunning(zmd_was_running);
 	y2milestone("--- Syncing finished ---");
 	return true;
     }
