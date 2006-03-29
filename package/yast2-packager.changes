@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Mar 29 11:46:29 CEST 2006 - locilka@suse.cz
+
+- Merged proofread texts for SignatureCheckDialogs
+- Adjusted dialogs for SignatureCheckDialogs to show informative
+  icons/images (warning/error/question).
+- Improved SignatureCheckDialogs UI
+- Stopping ZMD after the Sync is done when is wasn't running before
+  (#161279)
+
+-------------------------------------------------------------------
 Wed Mar 29 08:59:34 CEST 2006 - locilka@suse.cz
 
 - Moving ZMD sync from pkg_finish to SourceManager module (#161279)
