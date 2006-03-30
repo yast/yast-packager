@@ -9,6 +9,12 @@
 {
     textdomain "packager";
 
+    import "PackageLock";
+    // check whether having the packager for ourselves
+    if (! PackageLock::Check ())
+	return `abort;
+
+    // constructor calls Pkg::
     import "DirInstall";
     include "dirinstall/ui.ycp";
 

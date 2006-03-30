@@ -15,6 +15,7 @@
     import "Mode";
     import "Installation";
     import "PackageCallbacksInit";
+    import "PackageLock";
     import "SLP";
     import "Wizard";
 
@@ -28,7 +29,7 @@
     Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
 
    // check whether running as root
-   if (! Confirm::MustBeRoot ())
+   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
    {
 	UI::CloseDialog ();
 	return (any)`abort;
