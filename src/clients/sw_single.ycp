@@ -20,6 +20,7 @@
     import "Mode";
     import "Packages";
     import "PackageCallbacks";
+    import "PackageLock";
     import "SlideShow";
     import "SlideShowCallbacks";
     import "Kernel";
@@ -175,17 +176,18 @@
 
    // =============================================================
 
-   Pkg::SetLocale (UI::GetLanguage (true));
-
    Wizard::CreateDialog();
    Wizard::SetDesktopIcon("sw_single");
 
    // check whether running as root
-   if (! Confirm::MustBeRoot ())
+   // and having the packager for ourselves
+   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
    {
 	UI::CloseDialog ();
 	return `abort;
    }
+
+   Pkg::SetLocale (UI::GetLanguage (true));
 
    // check Args
    // set test_mode, test_popup

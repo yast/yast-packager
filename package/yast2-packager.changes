@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 30 10:51:45 CEST 2006 - mvidner@suse.cz
+
+- Don't run the modules if another process has the zypp lock (#160319).
+- 2.13.56
+
+-------------------------------------------------------------------
 Wed Mar 29 18:46:59 CEST 2006 - locilka@suse.cz
 
 - Enhanced texts in SignatureCheckDialogs module
