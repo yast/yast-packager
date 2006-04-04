@@ -26,7 +26,7 @@ import "HTML";
 import "Arch";
 import "Mode";
 import "Stage";
-
+import "URL";
 
 
 global list<integer> newSources = [];
@@ -765,10 +765,42 @@ global list Overview() {
 	}
     }
 
-    /* Adds a ZYPP service into ZMD */
-    boolean AddZYPPServiceIntoZMD () {
+    /**
+     * Adds a ZYPP service into ZMD
+     * @param src_id installation source id
+     * @return success
+     */
+    boolean AddZYPPServiceIntoZMD (integer src_id) {
+	map gendata = Pkg::SourceGeneralData (src_id);
+	string url = gendata["url"]:"";
+	// ZMD must have unique URIs, so we append the alias
+	string alias = gendata["alias"]:"";
+	y2milestone ("id: %1, url: %2, alias: %3", src_id, url, alias);
+	if (url == "" || alias == "") {
+	    y2error ("ugh");
+	    return false;
+	}
+
+	// URL (un)escapes for us
+	// maybe a bug with "="?
+	map parsed_url = URL::Parse (url);
+	string query = parsed_url["query"]:"";
+	if (query != "") query = query + ";";
+	parsed_url["query"] = query + "alias=" + alias;
+	string test_url = URL::Build (parsed_url);
+	y2milestone ("test zmd url: %1", test_url);
+
+	string separator = (search (url, "?") == nil)? "?": ";";
+	url = url + separator + "alias=" + alias;
+	y2milestone ("zmd url: %1", url);
+
+	string name = alias;
+
 	map ret = RunCommandWithTimeout(
-	    "TERM=dumb /usr/bin/rug service-add --type=zypp /installation; rug subscribe zypp; exit $?",
+	    sformat (
+		"TERM=dumb /usr/bin/rug service-add --type=zypp '%1' '%2' && /usr/bin/rug subscribe '%1'; exit $?",
+		url, name
+		),
 	    60
 	);
 	if (ret != nil && ret["exit"]:nil == 0) {
@@ -851,6 +883,8 @@ global list Overview() {
 	    }
 	}
 
+	// this will not work, /installation is gone
+	if (false) {
 	// Check whether the ZYPP service is already in zmd db or not
 	integer count_of_services = CountOfZMDServicesMatching(".*ZYPP.*/installation.*");
 	if (count_of_services == nil) {
@@ -863,9 +897,15 @@ global list Overview() {
 	    y2milestone("--- Syncing finished ---");
 	    return true;
 	}
+	}
 	
 	// Count of services were 'nil' or '0'
-	if (AddZYPPServiceIntoZMD()) {
+	list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
+	boolean added_ok = true;
+	foreach (integer src_id, src_ids, {
+	    added_ok = AddZYPPServiceIntoZMD (src_id) && added_ok;
+	});
+	if (added_ok) {
 	    y2milestone("Adding ZYPP service succeeded");
 	} else {
 	    Report::Error(Message::CannotWriteSettingsTo("ZMD"));

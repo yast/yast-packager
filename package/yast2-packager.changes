@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  4 16:32:47 CEST 2006 - mvidner@suse.cz
+
+- Call rug sa for all known installation sources,
+  using the URL+alias instead of /installation (#156030).
+
+-------------------------------------------------------------------
 Tue Apr  4 15:33:53 CEST 2006 - locilka@suse.cz
 
 - Added initial Signatures-Handling callbacks (#162858)
