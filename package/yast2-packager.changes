@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
-Tue Apr  4 16:32:47 CEST 2006 - mvidner@suse.cz
+Tue Apr  4 17:03:39 CEST 2006 - mvidner@suse.cz
 
 - Call rug sa for all known installation sources,
   using the URL+alias instead of /installation (#156030).
+- 2.13.58
 
 -------------------------------------------------------------------
 Tue Apr  4 15:33:53 CEST 2006 - locilka@suse.cz
