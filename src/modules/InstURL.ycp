@@ -177,7 +177,23 @@
 
 	} // is_network
 
+	string isoimg = "";
 	string serverdir = Linuxrc::InstallInf("Serverdir");
+	if (Linuxrc::InstallInf("SourceType") == "file")
+	{
+	  if (serverdir != "" && serverdir != nil)
+	  {
+	    list<string> sd_items = splitstring (serverdir, "/");
+	    sd_items = filter (string i, sd_items, {
+		return i != "";
+	    });
+	    integer last = size (sd_items) - 1;
+	    isoimg = sd_items[last]:"";
+	    sd_items[last] = "";
+	    serverdir = mergestring (sd_items, "/");
+	  }
+	}
+
         /*
 	if (((instmode == "hd") || is_network)				// if serverdir needed
 	    && ((serverdir != nil) && (serverdir != "")))		// and is valid
@@ -289,6 +305,12 @@
 	    option_separator = "&";
 	    y2milestone ("options %1", options);
 	}
+
+	if (isoimg != "")
+	{
+	    url = sformat ("iso:/?iso=%1&url=%2", isoimg, url);
+	}
+
 	y2debug ("URL %1", HidePassword(url));
 	return url;
     }
