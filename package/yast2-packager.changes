@@ -3,6 +3,7 @@ Tue Apr  4 19:34:53 CEST 2006 - jsrain@suse.de
 
 - fixed servicepack.tgz integration
 - added support for loopback mounted ISO (#159565)
+- 2.13.59
 
 -------------------------------------------------------------------
 Tue Apr  4 17:03:39 CEST 2006 - mvidner@suse.cz
