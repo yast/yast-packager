@@ -1,0 +1,75 @@
+/**
+ * Module:		SignatureCheckCallbacks.ycp
+ * Authors:		Lukas Ocilka <locilka@suse.cz>
+ *
+ * Callbacks for handling signatures.
+ *
+ * $Id: SignatureCheckCallbacks.ycp 28363 2006-02-24 12:27:15Z locilka $
+ */
+
+{
+    textdomain "packager";
+    
+    module "SignatureCheckCallbacks";
+
+    import "SignatureCheckDialogs";
+    
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string keyid, string keyname). The callback function should ask
+    // user whether the unknown key can be accepted, returned true value means to
+    // accept the file.
+    boolean AcceptUnknownGpgKey (string keyid, string keyname) {
+	// FIXME: one of these two dialogs should be used
+	
+	string filename = "FIXME: 'filename' is undefined variable!";
+	return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid);
+
+	// This function would need more complex handling
+	// it also offers to import the signature into the keyring
+	SignatureCheckDialogs::ItemSignedWithPublicSignature(`file, filename, keyid, keyname);
+	return nil;
+    }
+
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string filename). The callback function should ask user whether the
+    // unsigned file can be accepted, returned true value means to accept the
+    // file.
+    boolean AcceptUnsignedFile (string filename) {
+	return SignatureCheckDialogs::UseUnsignedItem(`file, filename);
+    }
+    
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string filename, string keyid, string keyname). The callback
+    // function should ask user whether the unsigned file can be accepted,
+    // returned true value means to accept the file.
+    boolean AcceptVerificationFailed (string filename, string keyid, string keyname) {
+	// FIXME: the description doesn't match the function name
+	// see also AcceptUnsignedFile() function
+	return SignatureCheckDialogs::UseCorruptedItem(`file, filename);
+    }
+    
+    // Name of the callback handler function. Required callback prototype is void
+    // (string keyid, string keyname). The callback function should inform user
+    // that a trusted key has been added.
+    void TrustedKeyAdded (string keyid, string keyname) {
+	// FIXME: we have no dialog for this message
+	return nil;
+    }
+    
+    // Name of the callback handler function. Required callback prototype is void
+    // (string keyid, string keyname). The callback function should inform user
+    // that a trusted key has been removed.
+    void TrustedKeyRemoved (string keyid, string keyname) {
+	// FIXME: we have no dialog for this message
+	return nil;
+    }
+    
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string keyid, string keyname). The callback function should ask
+    // user whether the key is trusted, returned true value means the key is
+    // trusted.
+    boolean ImportGpgKey (string keyid, string keyname) {
+	// FIXME: description of the function doesn't match the function name!!!
+	return nil;
+    }
+}

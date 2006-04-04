@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  4 15:33:53 CEST 2006 - locilka@suse.cz
+
+- Added initial Signatures-Handling callbacks (#162858)
+- 2.13.57
+
+-------------------------------------------------------------------
 Thu Mar 30 10:51:45 CEST 2006 - mvidner@suse.cz
 
 - Don't run the modules if another process has the zypp lock (#160319).

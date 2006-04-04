@@ -235,9 +235,9 @@ Use it anyway?")
      * @param symbol item_type `file or `package
      * @param string item_name file name or package name
      * @param string key_id
-     * @return symbol `yes, `no or `retry
+     * @return boolean true if 'yes, use file'
      */
-    global symbol ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id) {
+    global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id) {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name, %2 for the key ID
 	    _("The package %1 is digitally signed with an unknown
@@ -273,11 +273,11 @@ Use it anyway?")
 	);
 
 	// This will optionally offer to retrieve the key from gpg keyservers
-	// That's why it returns 'symbol' instead of 'boolean'
+	// That's why it will return 'symbol' instead of 'boolean'
 	// But by now it only handles yes/no/cancel
-	symbol ret = (WaitForYesNoCancelUserInput() == true ? `yes : `no);
+	boolean ret = WaitForYesNoCancelUserInput();
 	// default value
-	if (ret == nil) ret = `no;
+	if (ret == nil) ret = false;
 
 	UI::CloseDialog();
 	return ret;
