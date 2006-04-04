@@ -11,6 +11,7 @@
 
     textdomain "packager";
 
+    import "AddOnProduct";
     import "Arch";
     import "Directory";
     import "InstURL";
@@ -564,6 +565,29 @@ global boolean CheckContentFile (integer source) {
 
 	    y2milestone ("No order file, doing single source installation");
 	    theSources = [ initial_source ];
+
+	    if (servicepack_available)
+	    {
+		string spdir = metadir + "/Service-Pack/CD1";
+		WFM::Execute (.local.mkdir, spdir);
+		y2milestone ("Filling %1", spdir);
+		WFM::Execute(.local.bash, "tar -zxvf " +
+		    servicepack_metadata + " -C " + spdir);
+		if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
+		{
+		    AddOnProduct::WFIntegrate (spdir + "/installation.xml");
+		}
+		string sp_url = "dir:" + spdir;
+		integer sp_source = Pkg::SourceCreate (sp_url, "");
+		if (sp_source == -1)
+		    Report::Error (_("Failed to integrate service pack source"));
+		else
+		{
+		    theSources = add (theSources, sp_source);
+		    y2internal ("Service pack source: %1, changing to URL: %2", sp_source, base_url);
+		    Pkg::SourceChangeUrl (sp_source, base_url);
+		}
+	    }
 
 	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
 	    {

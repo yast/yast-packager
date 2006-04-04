@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr  4 18:05:12 CEST 2006 - jsrain@suse.de
+
+- fixed servicepack.tgz integration
+
+-------------------------------------------------------------------
 Tue Apr  4 17:03:39 CEST 2006 - mvidner@suse.cz
 
 - Call rug sa for all known installation sources,
