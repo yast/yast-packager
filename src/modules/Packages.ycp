@@ -379,7 +379,7 @@ global void Reset (list<symbol> keep) {
             }
         }
 
-	if (Pkg::IsSelected("xorg-x11"))
+	if (Pkg::IsSelected("xorg-x11") && Linuxrc::vnc ())
 	{
 	    install_list = (list<string>) union (install_list, graphicPackages ());
 	}
