@@ -749,7 +749,19 @@ global list Overview() {
      * - using 'exit $?' because of buggy behavior '.background vs. ZMD'
      */
     map RunDumb60 (string command) {
-	return RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", 60);
+	map ret = RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", 60);
+	if (ret == nil) ret = $[];
+	return ret;
+    }
+
+    /**
+     * Detect whether ZMD is running
+     */
+    boolean CheckZMDStatus () {
+	string rug_command = "/usr/bin/rug";
+	map zmd_status = RunDumb60 (rug_command + " ping >/dev/null");
+	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
+	return zmd_status["exit"]:nil == 0;
     }
 
     /**
@@ -761,7 +773,7 @@ global list Overview() {
      */
     integer CountOfZMDServicesMatching (string grep_pattern) {
 	map ret = RunDumb60 ("/usr/bin/rug service-list");
-	if (ret != nil && ret["stdout"]:nil != nil) {
+	if (ret["stdout"]:nil != nil) {
 	    list <string> matching = filter (string one_line, (list <string>) ret["stdout"]:[], {
 		return regexpmatch(one_line, grep_pattern);
 	    });
@@ -809,7 +821,7 @@ global list Overview() {
 		url, name
 		)
 	    );
-	if (ret != nil && ret["exit"]:nil == 0) {
+	if (ret["exit"]:nil == 0) {
 	    return true;
 	} else {
 	    y2error("Adding ZYPP service failed, returned %1", ret);
@@ -834,7 +846,7 @@ global list Overview() {
 	y2milestone("Stopping service ZMD %1", zmd_service_name);
 	map zmd_stop = RunDumb60 (zmd_service_name + " stop");
 	y2milestone("ZMD stop: %1", zmd_stop);
-	if (zmd_stop == nil || zmd_stop["exit"]:nil != 0) {
+	if (zmd_stop["exit"]:nil != 0) {
 	    Report::Error(Message::CannotStopService(zmd_service_name));
 	}
 	
@@ -862,26 +874,22 @@ global list Overview() {
 	//         otherwise the ZMD will block itself!
 
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
-	string rug_command = "/usr/bin/rug";
 
 	// Check the ZMD status and start if not running
-	map zmd_status = RunDumb60 (rug_command + " ping >/dev/null");
-	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
 	// If the ZMD wasn't running, we will try to start it and then we will have to stop it at the end
-	boolean zmd_was_running = ((integer)zmd_status["exit"]:nil==0 ? true:false);
-
-	if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
+	boolean zmd_was_running = CheckZMDStatus ();
+	if (! zmd_was_running) {
 	    // Starting the service
 	    map zmd_start = RunDumb60 (zmd_service_name + " start");
 	    y2milestone("ZMD start: %1", zmd_start);
 	    // Checking the status after start
-	    map zmd_status = RunDumb60 (rug_command + " ping >/dev/null");
-	    y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
-	    if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
+	    boolean zmd_is_running = CheckZMDStatus ();
+	    if (! zmd_is_running) {
 		Report::Error(Message::CannotStartService(zmd_service_name));
 
 		// In case of timeout
-		if (zmd_status == nil) StopZMDIfItWasNotRunning(zmd_was_running);
+//FIXME
+//		if (zmd_status == nil) StopZMDIfItWasNotRunning(zmd_was_running);
 		y2milestone("--- Syncing finished ---");
 		return false;
 	    }
