@@ -438,6 +438,7 @@ global void Reset (list<symbol> keep) {
 	}
 	Pkg::SetSelection (basename);
 	Pkg::ActivateSelections ();
+	Pkg::PkgFreshen();
 	Pkg::PkgSolve(false);
     }
 
@@ -678,6 +679,7 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
         // add additional (internal) packages, like kernel etc.
 	list<string> system_packages = Packages::ComputeSystemPackageList();
         Pkg::DoProvide (system_packages);
+	Pkg::PkgFreshen();
 	// fnfx and ial conflict (see bug 112949)
 	if (contains (system_packages, "fnfx"))
 	    Pkg::PkgTaboo ("ial");
@@ -836,6 +838,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 			y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
 		    });
 		}
+		Pkg::PkgFreshen();
 		system_packages_selected = true;
 	    }
 	}
@@ -908,6 +911,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 			y2milestone ("Selecting system packages");
 			SetSelectionAndComputeSystemPackages
 			    (preferred_base_selection);
+			Pkg::PkgFreshen();
 			base_selections = Pkg::GetSelections (`selected, "base");
 
 			y2milestone ("Desktop base selection: %1", base_selections);
@@ -1067,6 +1071,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
 		});
 	    }
+	    Pkg::PkgFreshen();
 	    success = Pkg::PkgSolve (false);
 	}
 
