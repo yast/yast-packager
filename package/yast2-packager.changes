@@ -1,9 +1,13 @@
 -------------------------------------------------------------------
-Wed Apr  5 17:59:24 CEST 2006 - mvidner@suse.cz
+Wed Apr  5 18:08:46 CEST 2006 - mvidner@suse.cz
 
+- Call SourceManager::SyncYaSTInstSourceWithZMD () in
+  inst_rpmcopy(continue) because inst_suse_register does not run
+  without a network connection (#156030#c30).
 - Do not sync if rug not present.
 - Report rug errors to the user.
 - Delete sources only after we do not need their data for syncing.
+- 2.13.63
 
 -------------------------------------------------------------------
 Wed Apr  5 16:29:09 CEST 2006 - mvidner@suse.cz
