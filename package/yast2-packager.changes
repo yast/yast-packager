@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr  5 17:59:24 CEST 2006 - mvidner@suse.cz
+
+- Do not sync if rug not present.
+- Report rug errors to the user.
+- Delete sources only after we do not need their data for syncing.
+
+-------------------------------------------------------------------
 Wed Apr  5 16:29:09 CEST 2006 - mvidner@suse.cz
 
 - Added SourceManager::SyncAddedAndDeleted and calling it from

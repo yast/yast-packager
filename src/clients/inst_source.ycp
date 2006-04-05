@@ -197,16 +197,24 @@ in the packages selection, continue."),
     boolean Write() {
  	boolean success = Pkg::SourceEditSet( sourceStatesOut );
 
+	// we must sync before the sources are deleted from zypp
+	// otherwise we will not get their details
+	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
+	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
+	boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+	if (have_rug) {
+	    success = success && SourceManager::SyncAddedAndDeleted (added, deleted);
+	}
+	else {
+	    y2milestone ("No rug, not syncing");
+	}
+
 	foreach( integer id, sourcesToDelete, ``{
 	    success = success && Pkg::SourceDelete(id);
 	});
 
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceFinishAll();
-
-	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
-	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
-	success = success && SourceManager::SyncAddedAndDeleted (added, deleted);
 
 	return success;
    }
