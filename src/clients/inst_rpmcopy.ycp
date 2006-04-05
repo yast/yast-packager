@@ -34,6 +34,7 @@
     import "Report";
     import "Kernel";
     import "Service";
+    import "SourceManager";
 
     // variables related to installation source caching
 
@@ -776,7 +777,8 @@ from the source CD to the disk cache")));
 	}
 	else if (Stage::cont ())
 	{
-	     CleanupDiskCache ();
+	    SourceManager::SyncYaSTInstSourceWithZMD (); // #156030
+	    CleanupDiskCache ();
 	}
     }
     
