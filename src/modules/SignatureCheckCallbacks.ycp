@@ -13,46 +13,66 @@
     module "SignatureCheckCallbacks";
 
     import "SignatureCheckDialogs";
-    
-    // Name of the callback handler function. Required callback prototype is
-    // boolean(string keyid, string keyname). The callback function should ask
-    // user whether the unknown key can be accepted, returned true value means to
-    // accept the file.
-    boolean AcceptUnknownGpgKey (string keyid, string keyname) {
-	// FIXME: one of these two dialogs should be used
-	
-	string filename = "FIXME: 'filename' is undefined variable!";
-	return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid);
 
-	// This function would need more complex handling
-	// it also offers to import the signature into the keyring
-	SignatureCheckDialogs::ItemSignedWithPublicSignature(`file, filename, keyid, keyname);
-	return nil;
-    }
+
+    /* ============================ < Callbacks for Sources > ============================ */
 
     // Name of the callback handler function. Required callback prototype is
     // boolean(string filename). The callback function should ask user whether the
     // unsigned file can be accepted, returned true value means to accept the
     // file.
+    //
+    // zypp: askUserToAcceptUnsignedFile
+    //
     boolean AcceptUnsignedFile (string filename) {
 	return SignatureCheckDialogs::UseUnsignedItem(`file, filename);
     }
     
+
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string keyid, string keyname). The callback function should ask
+    // user whether the unknown key can be accepted, returned true value means to
+    // accept the file.
+    //
+    // zypp: askUserToAcceptUnknownKey
+    //
+    // FIXME: variable filename not defined
+    boolean AcceptUnknownGpgKey (string filename, string keyid, string keyname) {
+	// FIXME: unknown_signature !~ keyid + keyname
+	//        or does it match? dialog doesn't mention the key name
+	//	  http://w3.suse.de/~locilka/GnuPGCheckDialogs/yast2-006.png
+	return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid);
+    }
+    
+    // zypp: askUserToTrustKey
+    //
+    // FIXME: no such callback function
+    boolean AskUserToTrustKey (string keyid, string keyname, string key_details) {
+	return SignatureCheckDialogs::ImportUntrustedGPGKeyIntoTrustedDialog(keyid, keyname, key_details);
+    }
+    
     // Name of the callback handler function. Required callback prototype is
     // boolean(string filename, string keyid, string keyname). The callback
-    // function should ask user whether the unsigned file can be accepted,
-    // returned true value means to accept the file.
+    // function should ask user whether the file with falied verification can
+    // be accepted, returned true value means to accept the file.
+    //
+    // zypp: askUserToAcceptVerificationFailed
+    //
     boolean AcceptVerificationFailed (string filename, string keyid, string keyname) {
 	// FIXME: the description doesn't match the function name
 	// see also AcceptUnsignedFile() function
-	return SignatureCheckDialogs::UseCorruptedItem(`file, filename);
+	return SignatureCheckDialogs::UseCorruptedItem(`file, filename, keyid, keyname);
     }
+    
+    /* ============================ < Callbacks for Sources > ============================ */
+    
+
     
     // Name of the callback handler function. Required callback prototype is void
     // (string keyid, string keyname). The callback function should inform user
     // that a trusted key has been added.
     void TrustedKeyAdded (string keyid, string keyname) {
-	// FIXME: we have no dialog for this message
+	y2milestone("Trusted key has been added: %1 (%2)", keyid, keyname);
 	return nil;
     }
     
@@ -60,7 +80,7 @@
     // (string keyid, string keyname). The callback function should inform user
     // that a trusted key has been removed.
     void TrustedKeyRemoved (string keyid, string keyname) {
-	// FIXME: we have no dialog for this message
+	y2milestone("Trusted key has been removed: %1 (%2)", keyid, keyname);
 	return nil;
     }
     

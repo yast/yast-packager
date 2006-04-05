@@ -188,23 +188,29 @@ Use it anyway?")
      * @param string item_name file name or package name
      * @return boolean use or don't use ('true' if 'yes')
      */
-    global boolean UseCorruptedItem (symbol item_type, string item_name) {
+    global boolean UseCorruptedItem (symbol item_type, string item_name, string key_id, string key_name) {
 	string description_text = sformat((item_type == `package ?
-	    // popup question, %1 stands for the package name
-	    _("The integrity check for package %1 failed. This means that
-the package has been changed by accident or by an attacker
-since the repository creator signed it. Installing it
-is a big risk for the integrity and security of your system.
+	    // popup question, %1 stands for the package name, %2 for the key ID, %3 for the key name
+	    _("Package %1 is signed with
+GnuPG key '%1 (%2)'
+but the integrity check failed.
+
+This means that the package has been changed by accident or by an attacker
+since the repository creator signed it. Installing it is a big risk
+for the integrity and security of your system.
 
 Install it anyway?")
 	    :
 	    // popup question, %1 stands for the filename
-	    _("The integrity check for file %1 failed. This means that
-the file has been changed by accident or by an attacker
-since the repository creator signed it. Installing it
-is a big risk for the integrity and security of your system.
+	    _("File %1 is signed with
+GnuPG key '%1 (%2)'
+but the integrity check failed.
 
-Use it anyway?")
+This means that the file has been changed by accident or by an attacker
+since the repository creator signed it. Installing it is a big risk
+for the integrity and security of your system.
+
+Install it anyway?")
 	), item_name);
 
 	UI::OpenDialog(
@@ -444,5 +450,98 @@ the key really belongs to that owner before importing it."),
 
 	UI::CloseDialog();
 	return ret;
+    }
+
+    /**
+     * ImportUntrustedGPGKeyIntoTrustedDialog
+     *
+     * @param string key_id
+     * @param string key_name
+     * @param string key_detailed_description
+     * @return boolean whether zypp should import the key into the keyring of trusted keys
+     */
+    global boolean ImportUntrustedGPGKeyIntoTrustedDialog (string key_id, string key_name, string key_detailed_description) {
+	// additional Richtext (HTML) warning text (kind of help), %1 stands for the key ID
+	string warning_text = sformat(_("<p>The owner of the key may distribute updates,
+packages, and package repositories that your system will trust and offer
+for installation and update without any further warning. In this way,
+importing the key into your keyring of trusted keys allows the key owner
+to have a certain amount of control over the software on your system.</p>
+
+<p>Only trust a key if you are confident that the key really belongs to the owner
+and that the owner can be trusted. With <b>Details</b>, get
+more information on the key, such as a fingerprint and signatures
+that can help you determine the trustworthiness of the key.</p>
+
+<p>A warning dialog opens for every package that
+is not signed by a trusted (imported) key. If you do not import the key,
+packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
+
+	// popup message, %1 stands for GPG key ID, %2 for key name
+	string dialog_text = sformat(_("The GnuPG key '%1 (%2)'
+has been found.
+
+You can choose to import it into your keyring of trusted
+public keys, meaning that you trust the owner of the key.
+You should be sure that you can trust the owner and that
+the key really belongs to that owner before importing it."),
+	    key_id, key_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+		`HBox (
+		    `VSpacing(19),
+		    // left-side help
+		    `HWeight(3,
+			`VBox (
+			    `RichText(warning_text)
+			)
+		    ),
+		    `HSpacing(1.5),
+		    // dialog
+		    `HWeight(5,
+			`VBox(
+			    `Top (
+				`VBox (
+				    `HBox (
+					`VCenter(MessageIcon("question")),
+					// popup heading
+					`VCenter(`Heading(_("Import Untrusted GnuPG Key"))),
+					`HStretch()
+				    ),
+				    // dialog message
+				    `MarginBox(0.5, 0.5, `Label(dialog_text))
+				)
+			    ),
+			// dialog buttons
+			`Bottom(
+			    `HBox (
+				// push button
+				`PushButton(`id(`import), _("&Import")),
+				`HSpacing(1),
+				// push button
+				`PushButton(`id(`details), _("&Details...")),
+				`HSpacing(1),
+				// push button
+				`PushButton(`id(`dont_import), _("Do &Not Import"))
+			    )
+			)
+		    )
+		)
+	    )
+	);
+	UI::SetFocus(`details);
+
+	symbol ret = nil;
+	while (ret == nil || ret == `details) {
+	    // wait for one of listed ID's, return the default value in case of `cancel
+	    ret = WaitForSymbolUserInput([`import, `details, `dont_import], `dont_import);
+	    if (contains([`import, `dont_import], ret)) break;
+	    else if (ret == `details) Popup::LongMessage(key_detailed_description);
+	}
+
+	UI::CloseDialog();
+
+	return ret == `import;
     }
 }
