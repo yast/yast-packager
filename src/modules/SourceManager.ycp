@@ -789,7 +789,7 @@ global list Overview() {
      * @param src_id installation source id
      * @return success
      */
-    boolean AddZYPPServiceIntoZMD (integer src_id) {
+    boolean AddOrDeleteZYPPServiceIntoZMD (integer src_id, boolean adding) {
 	map gendata = Pkg::SourceGeneralData (src_id);
 	string url = gendata["url"]:"";
 	// ZMD must have unique URIs, so we append the alias
@@ -815,16 +815,21 @@ global list Overview() {
 
 	string name = alias;
 
-	map ret = RunDumb60 (
-	    sformat (
+	string command = nil;
+	if (adding) {
+	    command = sformat (
 		"/usr/bin/rug service-add --type=zypp '%1' '%2' && /usr/bin/rug subscribe '%1'",
 		url, name
-		)
-	    );
+		);
+	}
+	else {
+	    command = sformat ("/usr/bin/rug service-delete '%1'", url);
+	}
+	map ret = RunDumb60 (command);
 	if (ret["exit"]:nil == 0) {
 	    return true;
 	} else {
-	    y2error("Adding ZYPP service failed, returned %1", ret);
+	    y2error("%1 ZYPP service failed, returned %2", adding? "Adding": "Deleting", ret);
 	    return false;
 	}
     }
@@ -935,7 +940,7 @@ global list Overview() {
 		list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
 		boolean added_ok = true;
 		foreach (integer src_id, src_ids, {
-		    added_ok = AddZYPPServiceIntoZMD (src_id) && added_ok;
+		    added_ok = AddOrDeleteZYPPServiceIntoZMD (src_id, true /*add*/) && added_ok;
 		});
 		if (added_ok) {
 		    y2milestone("Adding ZYPP service succeeded");
@@ -949,6 +954,24 @@ global list Overview() {
 	ZMDRestore (zmd_handle);
 
 	y2milestone("--- Syncing finished ---");
+	return ret;
+    }
+
+    global boolean SyncAddedAndDeleted (list<integer> added_src_ids,
+					list<integer> deleted_src_ids) {
+	boolean ret = false;
+	map zmd_handle = ZMDStart ();
+	if (ZMDWorking (zmd_handle)) {
+	    ret = true;
+
+	    foreach (integer id, added_src_ids, {
+		ret = AddOrDeleteZYPPServiceIntoZMD (id, true) && ret;
+	    });
+	    foreach (integer id, deleted_src_ids, {
+		ret = AddOrDeleteZYPPServiceIntoZMD (id, false) && ret;
+	    });
+	}
+	ZMDRestore (zmd_handle);
 	return ret;
     }
 

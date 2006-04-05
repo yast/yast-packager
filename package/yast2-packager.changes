@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr  5 16:29:09 CEST 2006 - mvidner@suse.cz
+
+- Added SourceManager::SyncAddedAndDeleted and calling it from
+  inst_source (#156030#c29).
+- 2.13.62
+
+-------------------------------------------------------------------
 Wed Apr  5 15:49:09 CEST 2006 - locilka@suse.cz
 
 - Some new texts and dialogs for SignatureCheckDialogs
