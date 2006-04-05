@@ -743,6 +743,16 @@ global list Overview() {
     }
 
     /**
+     * Run
+     * - with a timeout
+     * - on dumb terminal to disable colors etc
+     * - using 'exit $?' because of buggy behavior '.background vs. ZMD'
+     */
+    map RunDumb60 (string command) {
+	return RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", 60);
+    }
+
+    /**
      * Returns count of services matching the pattern. Returns 'nil'
      * if something fails.
      *
@@ -750,10 +760,7 @@ global list Overview() {
      * @return integer count of matching lines
      */
     integer CountOfZMDServicesMatching (string grep_pattern) {
-	map ret = RunCommandWithTimeout(
-	    sformat("TERM=dumb /usr/bin/rug service-list; exit $?"),
-	    60
-	);
+	map ret = RunDumb60 ("/usr/bin/rug service-list");
 	if (ret != nil && ret["stdout"]:nil != nil) {
 	    list <string> matching = filter (string one_line, (list <string>) ret["stdout"]:[], {
 		return regexpmatch(one_line, grep_pattern);
@@ -796,13 +803,12 @@ global list Overview() {
 
 	string name = alias;
 
-	map ret = RunCommandWithTimeout(
+	map ret = RunDumb60 (
 	    sformat (
-		"TERM=dumb /usr/bin/rug service-add --type=zypp '%1' '%2' && /usr/bin/rug subscribe '%1'; exit $?",
+		"/usr/bin/rug service-add --type=zypp '%1' '%2' && /usr/bin/rug subscribe '%1'",
 		url, name
-		),
-	    60
-	);
+		)
+	    );
 	if (ret != nil && ret["exit"]:nil == 0) {
 	    return true;
 	} else {
@@ -826,10 +832,9 @@ global list Overview() {
 	if (was_running) return true;
 	
 	y2milestone("Stopping service ZMD %1", zmd_service_name);
-	map zmd_stop = RunCommandWithTimeout(sformat("TERM=dumb %1 stop; exit $?", zmd_service_name), 60);
+	map zmd_stop = RunDumb60 (zmd_service_name + " stop");
 	y2milestone("ZMD stop: %1", zmd_stop);
 	if (zmd_stop == nil || zmd_stop["exit"]:nil != 0) {
-	    y2error("Cannot stop service %1", zmd_service_name);
 	    Report::Error(Message::CannotStopService(zmd_service_name));
 	}
 	
@@ -859,21 +864,20 @@ global list Overview() {
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
 	string rug_command = "/usr/bin/rug";
 
-	// Check the ZMD status and start if not running, using 'exit $?' because of buggy behavior '.background vs. ZMD'
-	map zmd_status = RunCommandWithTimeout(sformat("TERM=dumb %1 ping 1>/dev/null; exit $?", rug_command), 60);
+	// Check the ZMD status and start if not running
+	map zmd_status = RunDumb60 (rug_command + " ping >/dev/null");
 	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
 	// If the ZMD wasn't running, we will try to start it and then we will have to stop it at the end
 	boolean zmd_was_running = ((integer)zmd_status["exit"]:nil==0 ? true:false);
 
 	if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
 	    // Starting the service
-	    map zmd_start = RunCommandWithTimeout(sformat("TERM=dumb %1 start; exit $?", zmd_service_name), 60);
+	    map zmd_start = RunDumb60 (zmd_service_name + " start");
 	    y2milestone("ZMD start: %1", zmd_start);
 	    // Checking the status after start
-	    map zmd_status = RunCommandWithTimeout(sformat("TERM=dumb %1 ping 1>/dev/null; exit $?", rug_command), 60);
+	    map zmd_status = RunDumb60 (rug_command + " ping >/dev/null");
 	    y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
 	    if (zmd_status == nil || zmd_status["exit"]:nil != 0) {
-		y2error("Cannot start service %1, returned %2", zmd_service_name, zmd_status);
 		Report::Error(Message::CannotStartService(zmd_service_name));
 
 		// In case of timeout
