@@ -3,6 +3,7 @@ Wed Apr  5 19:13:31 CEST 2006 - jsrain@suse.de
 
 - do not preselect X11 packages if not running VNC installation
   (#163201)
+- 2.13.64
 
 -------------------------------------------------------------------
 Wed Apr  5 18:08:46 CEST 2006 - mvidner@suse.cz
