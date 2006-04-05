@@ -829,7 +829,11 @@ global list Overview() {
 	if (ret["exit"]:nil == 0) {
 	    return true;
 	} else {
-	    y2error("%1 ZYPP service failed, returned %2", adding? "Adding": "Deleting", ret);
+	    string message = adding?
+		// rug is a command name
+		_("rug failed to add a ZYPP service"):
+		_("rug failed to delete a ZYPP service");
+	    Report::LongError (sformat ("%1: %2", message, ret));
 	    return false;
 	}
     }
