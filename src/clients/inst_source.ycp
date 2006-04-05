@@ -17,6 +17,9 @@
     import "PackageCallbacksInit";
     import "PackageLock";
     import "SLP";
+    // SourceManager overlaps quite a bit with inst_source,
+    // so far we only use it for ZMD sync, TODO refactor better
+    import "SourceManager";
     import "Wizard";
 
     import "Label";
@@ -161,6 +164,27 @@ in the packages selection, continue."),
         }
     }
 
+    /**
+     * @param statesOld sourceStates{In or Out}
+     * @param statesNew sourceStates{In or Out}
+     * @return the list of SrcId's that are in statesNew but not statesOld
+     */
+    list<integer> newSources (list<map<string,any> > statesOld,
+			      list<map<string,any> > statesNew) {
+	y2milestone ("From %1 To %2", statesOld, statesNew);
+	list<integer> ret = [];
+	map<integer, boolean> seen = listmap (
+	    map<string, any> src, statesOld,
+	    ``( $[(src["SrcId"]:-1) : true ] ));
+	foreach (map<string, any> src, statesNew, {
+	    integer newid = src["SrcId"]:-1;
+	    if (! seen[newid]:false)
+		ret = add (ret, newid);
+	});
+	y2milestone ("Difference %1", ret);
+	return ret;
+    }
+
     define void deleteSource( integer index ) ``{
 	integer srcid = sourceStatesOut[index, "SrcId"]:-1;
 
@@ -179,6 +203,10 @@ in the packages selection, continue."),
 
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceFinishAll();
+
+	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
+	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
+	success = success && SourceManager::SyncAddedAndDeleted (added, deleted);
 
 	return success;
    }
@@ -492,7 +520,6 @@ configuration.");
 All changes will be lost.");
           if ( Popup::YesNoHeadline( headline, msg ) ) {
             exit = true;
-            Pkg::SourceEditSet( sourceStatesIn );
           }
         }
         else
