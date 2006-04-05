@@ -833,25 +833,57 @@ global list Overview() {
     string zmd_service_name = "/etc/init.d/novell-zmd";
 
     /**
-     * Stops zmd when it 'was not running'.
-     * It's expected that ZMD is running.
-     *
-     * @param boolean was_running
-     * @return boolean true if successful
+     * Start ZMD if it was not running
+     * Report::Error on failure
+     * @return an opaque handle
      */
-    boolean StopZMDIfItWasNotRunning (boolean was_running) {
-	// It was running, nothing to change
-	if (was_running) return true;
-	
-	y2milestone("Stopping service ZMD %1", zmd_service_name);
-	map zmd_stop = RunDumb60 (zmd_service_name + " stop");
-	y2milestone("ZMD stop: %1", zmd_stop);
-	if (zmd_stop["exit"]:nil != 0) {
-	    Report::Error(Message::CannotStopService(zmd_service_name));
+    map ZMDStart () {
+	map zmd_handle = $[];
+	boolean running = CheckZMDStatus ();
+	zmd_handle ["was_running"] = running;
+	if (! running) {
+	    // Starting the service
+	    map zmd_start = RunDumb60 (zmd_service_name + " start");
+	    y2milestone("ZMD start: %1", zmd_start);
 	}
+	// Checking the status after start
+	running = CheckZMDStatus ();
+	zmd_handle ["is_running"] = running;
+	if (! running) {
+	    Report::Error(Message::CannotStartService(zmd_service_name));
+	}
+	return zmd_handle;
+    }
+
+
+    /**
+     * @param zmd_handle what ZMDStart returned
+     * @return can we work with ZMD now
+     */
+    boolean ZMDWorking (map zmd_handle) {
+	return zmd_handle["is_running"]:false;
+    }
+
+    /**
+     * Restore the status before ZMDStart
+     * Report::Error on failure
+     * @param zmd_handle what ZMDStart returned
+     */
+    void ZMDRestore (map zmd_handle) {
+	// It was running, nothing to change
+	if (zmd_handle["was_running"]:false)
+	    return;
 	
+	if (zmd_handle["is_running"]:false)
+	{
+	    y2milestone("Stopping service ZMD %1", zmd_service_name);
+	    map zmd_stop = RunDumb60 (zmd_service_name + " stop");
+	    y2milestone("ZMD stop: %1", zmd_stop);
+	    if (zmd_stop["exit"]:nil != 0) {
+		Report::Error(Message::CannotStopService(zmd_service_name));
+	    }
+	}
 	y2milestone("ZMD stopped");
-	return true;
     }
 
     /**
@@ -875,59 +907,49 @@ global list Overview() {
 
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
 
+	boolean ret = false;
 	// Check the ZMD status and start if not running
-	// If the ZMD wasn't running, we will try to start it and then we will have to stop it at the end
-	boolean zmd_was_running = CheckZMDStatus ();
-	if (! zmd_was_running) {
-	    // Starting the service
-	    map zmd_start = RunDumb60 (zmd_service_name + " start");
-	    y2milestone("ZMD start: %1", zmd_start);
-	    // Checking the status after start
-	    boolean zmd_is_running = CheckZMDStatus ();
-	    if (! zmd_is_running) {
-		Report::Error(Message::CannotStartService(zmd_service_name));
+	// If the ZMD wasn't running, we will try to start it
+	// and then we will have to stop it at the end
+	map zmd_handle = ZMDStart ();
+	if (ZMDWorking (zmd_handle)) {
+	    // now we can work
 
-		// In case of timeout
-//FIXME
-//		if (zmd_status == nil) StopZMDIfItWasNotRunning(zmd_was_running);
-		y2milestone("--- Syncing finished ---");
-		return false;
+	    if (true) {
+		ret = true;
 	    }
-	}
+	    // this will not work, /installation is gone
+	    else {
+		// Check whether the ZYPP service is already in zmd db or not
+		integer count_of_services = CountOfZMDServicesMatching(".*ZYPP.*/installation.*");
+		if (count_of_services == nil) {
+		    y2warning("Cannot get list of services...");
+		} else if (count_of_services > 0) {
+		    y2milestone("ZYPP service already presented (%1)", count_of_services);
+		    ret = true;
+		}
+	    }
 
-	// this will not work, /installation is gone
-	if (false) {
-	// Check whether the ZYPP service is already in zmd db or not
-	integer count_of_services = CountOfZMDServicesMatching(".*ZYPP.*/installation.*");
-	if (count_of_services == nil) {
-	    y2warning("Cannot get list of services...");
-	} else if (count_of_services > 0) {
-	    y2milestone("ZYPP service already presented (%1)", count_of_services);
+	    // ret now indicates whether there's anything left to do
+	    if (ret) {
+		list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
+		boolean added_ok = true;
+		foreach (integer src_id, src_ids, {
+		    added_ok = AddZYPPServiceIntoZMD (src_id) && added_ok;
+		});
+		if (added_ok) {
+		    y2milestone("Adding ZYPP service succeeded");
+		} else {
+		    Report::Error(Message::CannotWriteSettingsTo("ZMD"));
+		    y2error("Adding ZYPP service failed");
+		}
+	    }
+	    ret = true;
+	}
+	ZMDRestore (zmd_handle);
 
-	    // Stop ZMD if needed
-	    StopZMDIfItWasNotRunning(zmd_was_running);
-	    y2milestone("--- Syncing finished ---");
-	    return true;
-	}
-	}
-	
-	// Count of services were 'nil' or '0'
-	list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
-	boolean added_ok = true;
-	foreach (integer src_id, src_ids, {
-	    added_ok = AddZYPPServiceIntoZMD (src_id) && added_ok;
-	});
-	if (added_ok) {
-	    y2milestone("Adding ZYPP service succeeded");
-	} else {
-	    Report::Error(Message::CannotWriteSettingsTo("ZMD"));
-	    y2error("Adding ZYPP service failed");
-	}
-
-	// Stop ZMD if needed
-	StopZMDIfItWasNotRunning(zmd_was_running);
 	y2milestone("--- Syncing finished ---");
-	return true;
+	return ret;
     }
 
     // adding YaST installation source into the ZMD
