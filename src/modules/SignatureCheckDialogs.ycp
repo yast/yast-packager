@@ -532,7 +532,7 @@ the key really belongs to that owner before importing it."),
 		)
 	    )
 	);
-	UI::SetFocus(`details);
+	UI::SetFocus(`dont_import);
 
 	symbol ret = nil;
 	while (ret == nil || ret == `details) {
