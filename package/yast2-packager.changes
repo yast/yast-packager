@@ -2,6 +2,7 @@
 Wed Apr  5 21:28:00 CEST 2006 - jsrain@suse.de
 
 - call Pkg::PkgFreshen in proposal (#156980)
+- 2.13.65
 
 -------------------------------------------------------------------
 Wed Apr  5 19:13:31 CEST 2006 - jsrain@suse.de
