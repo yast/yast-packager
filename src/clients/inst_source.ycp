@@ -66,7 +66,8 @@
 			  // corresponds to the "Enable/Disable" button
 			  source[ "enabled" ]:true ? _("On") : _("Off"),
 			  source["autorefresh"]:true ? _("On") : _("Off"),
-			  productData[ "label" ]:"unknown",
+			  // translators: unknown name for a given source
+			  productData[ "label" ]:generalData[ "type" ]: _("unknown"),
 			  generalData[ "url" ]:""
 			  );
         return item;
