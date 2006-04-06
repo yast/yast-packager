@@ -3,6 +3,8 @@
  * Package:	Package Source Management
  * Summary:	SourceManager settings, input and output functions
  * Authors:	Anas Nashif <nashif@suse.de>
+ *		Lukas Ocilka <locilka@suse.cz>
+ *		Martin Vidner <mvidner@suse.cz>
  * Status:      Work in Progress
  *
  * $Id$
@@ -791,11 +793,12 @@ global list Overview() {
      */
     boolean AddOrDeleteZYPPServiceIntoZMD (integer src_id, boolean adding) {
 	map gendata = Pkg::SourceGeneralData (src_id);
+	string stype = gendata["type"]:"";
 	string url = gendata["url"]:"";
 	// ZMD must have unique URIs, so we append the alias
 	string alias = gendata["alias"]:"";
-	y2milestone ("id: %1, url: %2, alias: %3", src_id, url, alias);
-	if (url == "" || alias == "") {
+	y2milestone ("id: %1, type: %2, url: %3, alias: %4", src_id, stype, url, alias);
+	if (stype == "" || url == "" || alias == "") {
 	    y2error ("ugh");
 	    return false;
 	}
@@ -818,8 +821,8 @@ global list Overview() {
 	string command = nil;
 	if (adding) {
 	    command = sformat (
-		"/usr/bin/rug service-add --type=zypp '%1' '%2' && /usr/bin/rug subscribe '%1'",
-		url, name
+		"/usr/bin/rug service-add --type='%3' '%1' '%2' && /usr/bin/rug subscribe '%1'",
+		url, name, stype
 		);
 	}
 	else {
