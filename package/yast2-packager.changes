@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr  6 19:57:09 CEST 2006 - mvidner@suse.cz
+
+- Only add the alias parameter to rug sa for --type=ZYPP (#164083).
+- 2.13.69
+
+-------------------------------------------------------------------
 Thu Apr  6 19:18:40 CEST 2006 - jsrain@suse.de
 
 - do not display hidden patterns in proposal (#159450)
