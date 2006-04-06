@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  6 15:55:45 CEST 2006 - lslezak@suse.cz
+
+- increased minimum free size for update (from 2% to 5%)
+
+-------------------------------------------------------------------
 Thu Apr  6 15:21:14 CEST 2006 - visnov@suse.cz
 
 - delete broken sources if they cannot be restored (#157100) 

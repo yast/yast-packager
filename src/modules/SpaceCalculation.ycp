@@ -357,7 +357,7 @@
 	}
 	else if ( Mode::update () )
 	{
-	    partition = EvaluateFreeSpace ( 2 ); // 2% free spare for update/upgrade
+	    partition = EvaluateFreeSpace ( 5 ); // 5% free spare for update/upgrade
 	}
 	else if ( Mode::normal () )
 	{
