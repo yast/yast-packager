@@ -1,0 +1,1161 @@
+/**
+ * File:	Packages.ycp
+ * Package:	Package selections
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ * $Id$
+ */
+
+{
+    module "Packages";
+
+    textdomain "packager";
+
+    import "AddOnProduct";
+    import "Arch";
+    import "Directory";
+    import "InstURL";
+    import "SourceManager";
+    import "Kernel";
+    import "Mode";
+    import "Stage";
+    import "Linuxrc";
+    import "Language";
+    import "ProductFeatures";
+    import "ProductControl";
+    import "Report";
+    import "SlideShow";
+    import "SpaceCalculation";
+    import "Storage";
+    import "String";
+    import "Popup";
+    import "Label";
+    import "Wizard";
+    import "DirInstall";
+
+    global boolean install_sources = false;	// Installing source packages ?
+    global integer timestamp = 0;		// last time of getting the target map
+
+    global string metadir = "/yast-install";
+    global boolean metadir_used = false;	// true if meta data and inst-sys is in ramdisk
+
+    global list<integer> theSources = [];		// id codes of sources in priority order
+    global list<string> theSourceDirectories = [];	// product directories on sources
+    global map<integer,integer> theSourceOrder = $[];	// installation order
+
+    string servicepack_metadata = "/servicepack.tar.gz";
+
+    // to remember if warning should occurre if switching base selection
+    global boolean base_selection_modified = false;
+
+    global string preferred_base_selection = nil;
+    global boolean base_selection_changed = false;
+
+    // Local variables
+
+    boolean init_called = false;
+
+    string choosen_base_selection = "";
+
+    string pm_init_blocker = nil;
+
+    // count of errors during packages solver
+    global integer solve_errors = 0;
+
+    /**
+     * Packages to be selected when proposing the list
+     */
+    list<string> additional_packages = [];
+
+    boolean system_packages_selected = false;
+
+    global string window_manager = nil;
+
+    global boolean using_patterns = false;
+
+    global string add_on_products_list = nil;
+
+/**
+ * Reset package selection, but keep objects of specified type
+ * @param keep a list of symbols specifying type of objects to be kept
+ */
+global void Reset (list<symbol> keep) {
+    list<map<string,any> > restore = [];
+    foreach (symbol type, keep, {
+	list<map<string,any> > selected = Pkg::ResolvableProperties ("", type, "");
+	foreach (map<string,any> s, selected, {
+	    restore = add (restore, $[
+		"type" : type,
+		"name" : s["name"]:""
+	    ]);
+	});
+    });
+    Pkg::PkgReset();
+    foreach (map<string,any> res, restore, {
+	Pkg::ResolvableInstall (res["name"]:"", (symbol)(res["type"]:nil));
+    });
+    system_packages_selected = false;
+}
+
+
+
+    /*-----------------------------------------------------------------------
+     * LOCALE FUNCTIONS
+     *-----------------------------------------------------------------------*/
+
+    /**
+     * Add a package to list to be selected before proposal
+     * Can be called only before the installation proposal, later doesn't
+     * have any effect
+     * @param package string package to be selected
+     */
+    global void addAdditionalPackage(string package)
+    {
+	additional_packages = add (additional_packages, package);
+    }
+
+    /**
+     * Compute architecture packages
+     * @return list(string)
+     */
+    define list<string> architecturePackages ()
+    {
+	list<string> packages = [];
+
+	// remove unneeded / add needed packages for ppc
+	if (Arch::ppc ())
+	{
+	    if (Arch::board_iseries ())
+	    {
+		packages = add (packages, "ibmsis");
+		packages = add (packages, "scsi");
+		packages = add (packages, "iprutils");
+	    }
+
+	    if (Arch::board_mac ())
+	    {
+		packages = add (packages, "mouseemu");
+	    }
+
+	    if (Arch::board_mac_new ()
+		|| Arch::board_mac_old ())
+	    {
+		string pmac_board = "";
+		list<map> pmac_compatible = (list<map>) SCR::Read(.probe.cpu);
+		foreach (map pmac_compatible_tmp, pmac_compatible, {
+		    pmac_board = pmac_compatible_tmp["system"]:"";
+		});
+
+		// install pbbuttonsd on PowerBooks and iMacs
+		if (issubstring (pmac_board, "PowerBook")
+		    || issubstring (pmac_board, "PowerMac2,1")
+		    || issubstring (pmac_board, "PowerMac2,2")
+		    || issubstring (pmac_board, "PowerMac4,1")
+		    || issubstring (pmac_board, "iMac,1"))
+		{
+		    packages = add (packages, "pbbuttonsd");
+		    packages = add (packages, "powerprefs");
+		}
+
+		// mol is fun, and needs root access to kmem
+		packages = add (packages, "mol");
+		packages = add (packages, "sudo");
+	    }
+
+	    if (Arch::ppc64 () && Arch::board_chrp ())
+	    {
+		packages = add (packages, "iprutils");
+	    }
+	}
+
+	if (Arch::ia64 ())
+	{
+	    // install fpswa if the firmware has an older version
+	    if (SCR::Execute(.target.bash, "/sbin/fpswa_check_version") != 0)
+	    {
+		packages = add (packages, "fpswa");
+	    }
+	}
+
+	// add numactl on x86_64 with SMP
+	if (Arch::has_smp () && Arch::x86_64 ())
+	{
+	    packages = add (packages, "numactl");
+	    packages = add (packages, "irqbalance");
+	}
+
+	return packages;
+    }
+
+
+    /**
+     * graphicPackages ()
+     * Compute graphic (x11) packages
+     * @return list(string)	list of rpm packages needed
+     */
+    define list<string> graphicPackages ()
+    {
+	list<string> packages = [];
+
+	// don't setup graphics if running via serial console
+	if (!Linuxrc::serial_console ())
+	{
+	    packages = [ "xorg-x11", "xorg-x11-server", "xorg-x11-server-glx",
+		"libusb", "sax2", "sax2-gui", "sax2-ident", "sax2-tools",
+		"sax2-libsax", "sax2-libsax-perl"];
+	}
+
+	y2milestone ("X11 Packages to install: %1", packages);
+	return packages;
+    }
+
+
+    /**
+     * Compute special packages
+     * @return list(string)
+     */
+    define list<string> modePackages ()
+    {
+	list<string> packages = [];
+
+	if (Linuxrc::vnc ())
+	{
+	    packages = add (packages, "tightvnc");
+	    packages = add (packages, "yast2-qt");
+	    packages = add (packages, "xorg-x11");
+	    packages = add (packages, "fvwm2");
+	    packages = add (packages, "sax2-tools");
+	}
+
+	if (Linuxrc::braille ())
+	{
+	    packages = add (packages, "sbl");
+	}
+
+	return packages;
+    }
+
+
+    /**
+     * Compute special java packages
+     * @return list(string)
+     */
+    define list<string> javaPackages ()
+    {
+	if (!Arch::alpha ())
+	    return [];
+
+	list<string> packages = [];
+
+	list cpus = (list) SCR::Read (.probe.cpu);
+	string model = cpus[0, "model"]:"EV4";
+	string cputype = substring (model, 2, 1);
+
+	if ((cputype == "6") || (cputype == "7") || (cputype == "8"))
+	{
+	    packages = ["cpml_ev6"];
+	}
+	else
+	{
+	    packages = ["cpml_ev5"];
+	}
+	return packages;
+    }
+
+
+    /**
+     * Compute language dependant packages
+     * @return list(string)
+     */
+    define list<string> languagePackages ()
+    {
+	list<string> packages = [];
+	list<string> locales = Pkg::GetAdditionalLocales();
+	locales = prepend (locales, Pkg::GetLocale());
+	string transpac = "yast2-trans-";
+
+	foreach (string loc, locales, {
+	    if (Pkg::IsAvailable (transpac + loc))
+		packages = add (packages, transpac + loc);
+	    else if (Pkg::IsAvailable (transpac + substring (loc, 0, 2)))
+		packages = add (packages, transpac + substring (loc, 0, 2));
+	    else
+		y2warning ("No locale package found for %1", loc);
+	});
+	y2milestone ("Language packages: %1", packages);
+	return packages;
+    }
+
+
+    /**
+     * Compute board (vendor) dependant packages
+     * @return list(string)
+     */
+    define list<string> boardPackages ()
+    {
+	list<string> packages = [];
+
+	list <map <string, any> > probe = (list <map <string, any> >)SCR::Read (.probe.system);
+	packages = (list<string>)probe[0,"requires"]:[];
+	y2milestone ("Board/Vendor specific packages: %1", packages);
+
+	return packages;
+    }
+
+
+    /*
+     * Additional kernel packages from control file
+     * @return list<string> Additional Kernel packages
+     */
+    define list<string> ComputeAdditionalKernelPackages ()
+    {
+	string final_kernel = Kernel::GetFinalKernel ();
+        integer pos = findfirstof(final_kernel, "-");
+        string extension = substring(final_kernel, pos, size(final_kernel));
+        list<string> akp = [];
+        if (extension!="")
+        {
+	    list<string> kernel_packages = (list<string>)
+		ProductFeatures::GetFeature ("software", "kernel_packages");
+            if (size(kernel_packages) > 0 && kernel_packages != nil)
+            {
+                akp = maplist(string p , kernel_packages, {
+                        return (p + "-" + extension);
+                        });
+            }
+        }
+        return akp;
+    }
+
+    /*-----------------------------------------------------------------------
+     * GLOBAL FUNCTIONS
+     *-----------------------------------------------------------------------*/
+
+
+    global define list<string> ComputeSystemSelectionList ()
+    {
+	list<string> selection_list = [];
+        // also add the 'laptop' selection if PCMCIA detected
+        if (Arch::is_laptop ())
+        {
+            selection_list  =  Pkg::GetSelections( `available, "laptop");
+        }
+
+	list<string> addon_selections = (list<string>)
+	    ProductFeatures::GetFeature ("software", "addon_selections");
+        if (size(addon_selections) > 0 && "addon_selections"!=nil)
+        {
+            selection_list=(list<string>)union(selection_list,
+                    addon_selections);
+        }
+        return selection_list;
+    }
+
+    /**
+     * Build and return list of packages which depends on the
+     * the current target system and the preselected packages
+     * (architecture, X11....)
+     * @return list<string> packages
+     */
+    global define list<string> ComputeSystemPackageList ()
+    {
+	list<string> install_list =  architecturePackages ();
+
+	install_list = (list<string>) union (install_list, modePackages ());
+	install_list = (list<string>) union (install_list,
+	                                     Storage::AddPackageList());
+	install_list = (list<string>) union (install_list,
+					     additional_packages);
+
+	// Kernel is added in autoinstPackages () if autoinst is enabled
+	if (!Mode::update () || !Mode::autoinst ())
+	{
+            list <string> kernel_pkgs = Kernel::ComputePackages ();
+            list <string> kernel_pkgs_additional = ComputeAdditionalKernelPackages();
+	    install_list = (list <string>) union (install_list, kernel_pkgs);
+            if (size(kernel_pkgs_additional) > 0 && kernel_pkgs_additional != nil)
+            {
+	        install_list = (list <string>) union (install_list, kernel_pkgs_additional);
+            }
+        }
+
+	if (Pkg::IsSelected("xorg-x11") && Linuxrc::vnc ())
+	{
+	    install_list = (list<string>) union (install_list, graphicPackages ());
+	}
+
+	if (Pkg::IsSelected("java"))
+	{
+	    install_list = (list<string>) union (install_list, javaPackages ());
+	}
+
+	install_list = (list<string>) union (install_list, languagePackages ());
+
+	install_list = (list<string>) union (install_list, boardPackages ());
+
+	// and the most flexible enhancement for other products
+        // NOTE: not really flexible, because it requires the client
+        // in the instsys, instead use <kernel-packages> in the control file.
+	if (ProductFeatures::GetFeature ("software", "packages_transmogrify") != "")
+	{
+            list<string> tmp_list = (list<string>)
+		WFM::CallFunction (ProductFeatures::GetStringFeature ("software", "packages_transmogrify"),
+				   [ install_list ]);
+
+            // Make sure we did not get a nil from calling the client, i.e.
+            // if the client does not exist at all..
+            if (tmp_list != nil)
+            {
+                install_list = tmp_list;
+            }
+	}
+
+	list<string> packages = (list<string>)
+	    ProductFeatures::GetFeature ("software", "packages");
+        if (size(packages) > 0 && packages != nil )
+        {
+            y2milestone("Adding packages from control file: %1", packages);
+            install_list = (list<string>) union (install_list, packages);
+        }
+
+	install_list = toset (install_list);
+	y2milestone ("auto-adding packages: %1", install_list);
+	return install_list;
+    }
+
+    /**
+     * SetBaseSelection (string base name)
+     * @param string base selection name
+     * @return boolean
+     */
+    global define boolean SetBaseSelection (string basename)
+    {
+	list base_selections = Pkg::GetSelections (`selected, "base");
+	string current_base_selection = base_selections[0]:"";
+	if (current_base_selection != "")
+	{
+	    Pkg::ClearSelection (current_base_selection);
+	}
+	Pkg::SetSelection (basename);
+	Pkg::ActivateSelections ();
+	Pkg::PkgFreshen();
+	Pkg::PkgSolve(false);
+    }
+
+/**
+ * Check whether content file in the specified source is the same
+ * as the one in the ramdisk
+ * @param source integer the source ID to check
+ * @return boolean true if content files match
+ */
+global boolean CheckContentFile (integer source) {
+    y2milestone ("Checking content file");
+    string instmode = Linuxrc::InstallInf("InstMode");
+    if (! (instmode == nil || instmode == "cd" || instmode == "dvd"))
+    {
+	y2milestone ("Installing via network, not checking the content file");
+	return true;
+    }
+    string media_content = Pkg::SourceProvideFile (source, 1, "/content");
+    string media = (string)SCR::Read (.target.string, media_content);
+    string ramdisk = (string)SCR::Read (.target.string, "/content");
+    boolean ret = (media == ramdisk);
+    y2milestone ("Content files are the same: %1", ret);
+    return ret;
+}
+
+    /**
+     * Init()
+     * Initialize package module and package agent
+     * @return integer: 0 == ok, 1 == retry, -1 == error
+     *
+     */
+    global define void Init( boolean forceInit )
+    {
+	if (init_called)
+	{
+	    y2warning ("Packages::Init() already called");
+	    return;
+	}
+
+	//
+	// Initialize package manager
+	//
+	pm_init_blocker = nil;
+	y2milestone ("Packages::Init(%1)", forceInit);
+	// usual mountpoint for the source medium
+	string base_url = "";
+
+	if ( Mode::test () )
+	{
+	    // Fake values for testing purposes
+	    base_url = "dir:///dist/next-i386";
+	}
+	else
+	{
+	    base_url = InstURL::installInf2Url ("");
+	}
+
+	// check if url contains "@" -> might be username/password, hide from logging
+	string log_url = InstURL::HidePassword(base_url);
+	y2milestone ("Initialize Package Manager: %1", log_url);
+
+	// Set languages for packagemanager. Always set the UI language. Set
+	// language for additional packages only in Stage::initial ().
+
+	Pkg::SetLocale (Language::language);
+
+	if (Stage::initial ())
+	{
+	    // autoyast can configure AdditionalLocales
+	    // we don't want to overwrite this
+	    if( ! Mode::autoinst ())
+	    {
+	        Pkg::SetAdditionalLocales ([Language::language]);
+	    }
+	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
+
+	    Pkg::SourceSetRamCache (false);
+
+	    integer initial_source = nil;
+	    while (initial_source == nil)
+	    {
+		initial_source = Pkg::SourceCreate (base_url, "");
+		if (initial_source == nil)
+		{
+		    y2error ("No source on '%1'", log_url);
+		    // error in proposal, %1 is URL
+		    pm_init_blocker = sformat (_("No catalog found at '%1'."),
+			log_url);
+		    return;
+		}
+		if (! CheckContentFile (initial_source))
+		{
+		    string label = (string)SCR::Read (.content.PRODUCT);
+		    // bug #159754, release the mounted CD
+		    Pkg::SourceReleaseAll();
+		    // message popup, %1 is product name
+		    Popup::Message (sformat (_("Insert %1 CD 1"), label));
+		    Pkg::SourceDelete (initial_source);
+		    initial_source = nil;
+		}
+	    }
+
+            // setup slidedir
+            map productmap = Pkg::SourceProductData (initial_source);
+            string datadir = productmap["datadir"]:"suse";
+	    // FIXME: this is optional
+            string slidedir = Pkg::SourceProvideDir( initial_source, 1, "/" + datadir + "/setup/slide" );
+
+	    // copy all files to our own copy
+ 	    string our_slidedir = (string)WFM::Read( .local.tmpdir, "" );
+
+	    WFM::Execute( .local.bash,  sformat( "cp -r %1/* %2/", slidedir, our_slidedir ) ) ;
+	    y2milestone( "Setting up the slide directory local copy: %1",  our_slidedir);
+            SlideShow::SetSlideDir (our_slidedir);
+
+	    add_on_products_list = Pkg::SourceProvideOptionalFile (initial_source, 1, "/add_on_products");
+
+            /* Check for Service Pack */
+            boolean servicepack_available = false;
+            if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
+            {
+                y2milestone("Service Pack data available");
+                servicepack_available = true;
+            }
+
+	    y2milestone ("No order file, doing single source installation");
+	    theSources = [ initial_source ];
+
+	    if (servicepack_available)
+	    {
+		string spdir = metadir + "/Service-Pack/CD1";
+		WFM::Execute (.local.mkdir, spdir);
+		y2milestone ("Filling %1", spdir);
+		WFM::Execute(.local.bash, "tar -zxvf " +
+		    servicepack_metadata + " -C " + spdir);
+		if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
+		{
+		    AddOnProduct::WFIntegrate (spdir + "/installation.xml");
+		}
+		string sp_url = "dir:" + spdir;
+		integer sp_source = Pkg::SourceCreate (sp_url, "");
+		if (sp_source == -1)
+		    Report::Error (_("Failed to integrate service pack source"));
+		else
+		{
+		    theSources = add (theSources, sp_source);
+		    y2internal ("Service pack source: %1, changing to URL: %2", sp_source, base_url);
+		    Pkg::SourceChangeUrl (sp_source, base_url);
+		}
+	    }
+
+	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
+	    {
+                Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
+	    }
+	}
+	else	// cont or normal mode
+	{
+	    theSources = Pkg::SourceStartCache (true);
+	    if (theSources == nil || size (theSources) <= 0)
+	    {
+		y2error ("Pkg::SourceStartCache failed");
+		theSources = [];
+	    }
+	    else if ( Stage::cont ()    // rewrite URL if cd/dvd since ide-scsi might have changed it
+		     && ((substring (base_url, 0, 2) == "cd")
+			|| (substring (base_url, 0, 3) == "dvd")))
+	    {
+		foreach (integer source, theSources, {
+		    map data = Pkg::SourceGeneralData (source);		// get source data
+		    string url = data["url"]:"";
+		    if ((substring (url, 0, 2) == "cd")			// source comes from cd/dvd
+			|| (substring (url, 0, 3) == "dvd"))
+		    {
+                        string new_url = InstURL::RewriteCDUrl(url);
+			y2milestone ("rewrite url: '%1'->'%2'", url, InstURL::HidePassword(new_url));
+			Pkg::SourceChangeUrl (source, new_url);
+		    }
+		});
+	    }
+	}
+
+	y2milestone ("theSources %1", theSources);
+	y2milestone ("theSourceDirectories %1", theSourceDirectories);
+	if (size (theSources) >= 0)
+	{
+	    init_called = true;
+	}
+	else
+	{
+	    import "PackageCallbacks";
+
+	    // an error message
+	    string errortext = sformat (_("Error while initializing package descriptions.
+Check the log file %1 for more details."), Directory::logdir + "/y2log") +
+		"\n" + Pkg::LastError();
+
+	    // FIXME somewhere get correct current_label and wanted_label
+	    string result = PackageCallbacks::MediaChange (errortext, base_url, "",
+							   0, "", 1, "", false);
+	}
+    }
+
+
+    /**
+     * Warn about suboptimal distribution
+     */
+    define void add_information_about_suboptimal_distribution (list& output)
+    {
+	// this depends on the kernel
+	if (Arch::i386 ())
+	{
+	    string tmp = (string) SCR::Read(.proc.cpuinfo.value."0"."flags");
+	    list flags = (size (tmp) > 0) ? splitstring (tmp, " ") : [];
+
+	    // this depends on the cpu (lm = long mode)
+	    if (contains (flags, "lm"))
+	    {
+		// warning text, part 1
+		output = add (output, _("Your computer is a 64-bit x86-64 system.") + " " +
+		// warning text, part 2
+			      _("However, you are trying to install a 32-bit distribution."));
+	    }
+	}
+    }
+
+
+    define void SetSelectionAndComputeSystemPackages (string selection)
+    {
+        // set the new selection
+        boolean ret = Pkg::SetSelection (selection);
+
+        y2milestone ( "Selecting '%1' returns: %2", selection, ret );
+
+        ret = Pkg::ActivateSelections();
+        y2milestone ("Pkg::ActivateSelections() returns %1", ret);
+
+        // add additional (internal) packages, like kernel etc.
+	list<string> system_packages = Packages::ComputeSystemPackageList();
+        Pkg::DoProvide (system_packages);
+	Pkg::PkgFreshen();
+	// fnfx and ial conflict (see bug 112949)
+	if (contains (system_packages, "fnfx"))
+	    Pkg::PkgTaboo ("ial");
+        Pkg::PkgSolve(false);
+
+        list selected_selections = Pkg::GetSelections( `selected, "base");
+        selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
+        y2milestone( "INSTALLING software selection: %1", selected_selections );
+    }
+
+
+    global string CountSizeToBeInstalled () {
+        integer sz = 0;
+	if (! Mode::installation () && !DirInstall::installing_into_dir )
+	{
+	    list<string> packages = Pkg::GetPackages (`selected, true);
+	    foreach (string p, packages, {
+		sz = sz + Pkg::PkgSize (p);
+	    });
+	    // convert into kB
+	    sz = sz / 1024;
+	}
+	else // in case of fresh installation, disk is initially empty
+	{
+	    map<string,list> du = Pkg::TargetGetDU ();
+	    foreach (string mp, list usages, du, {
+		sz = sz + usages[2]:0 - usages[1]:0;
+	    });
+	}
+	y2milestone ("Total size of packages to install (kB): %1", sz);
+        return String::FormatSizeWithPrecision (sz*1024, 1, true);
+    }
+
+
+/**
+ * Select the base product on the media for installation
+ * @return boolean true on success
+ */
+global boolean SelectProduct () {
+    Packages::Init (false); // argument ignored anyway...
+    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+    if (size (products) == 0)
+    {
+	y2milestone ("No product found on media");
+	return true;
+    }
+    // FIXME TODO filter for base products
+    list<map<string,any> >selected_products = filter (map<string,any> p, products, {
+	return p["status"]:nil == `selected;
+    });
+    // no product selected -> select them all
+    boolean ret = true;
+    if (size (selected_products) == 0)
+    {
+	y2milestone ("No product selected so far...");
+	foreach (map<string,any> p, products, {
+	    y2milestone ("Selecting product %1", p["name"]:"");
+	    ret = Pkg::ResolvableInstall (p["name"]:"", `product) && ret;
+	});
+    }
+    return ret;
+}
+
+/**
+ * Make a proposal for package selection
+ * @param force reset
+ * @param re-initialize
+ * @return map Map for the API proposal
+ */
+global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
+
+	map ret = $[];
+
+	if (base_selection_changed)
+	{
+	    force_reset = true;
+	    base_selection_changed = false;
+	}
+
+	// popup label
+	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
+
+	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
+		     force_reset, reinit, Language::language);
+
+	if ( force_reset )
+	{
+	    Kernel::ProbeKernel();
+	    Packages::Reset ([`product]);
+	    Packages::Init( true );	// reintialize AND reset package selection too
+	    reinit = true;
+	}
+	else if ( reinit )
+	{
+	    Packages::Init( false );	// reinitialize but keep former selection (if possible)
+	}
+	else
+	{
+	    Packages::Init( !init_called ); // reset completely only if necessary
+	}
+
+	boolean initial_run = reinit || ! init_called;
+
+	SelectProduct ();
+
+	if (pm_init_blocker != nil)
+	{
+	    UI::CloseDialog();
+	    return $[
+		"warning" : pm_init_blocker,
+		"warning_level" : `blocker,
+	    ];
+	}
+
+	// start with base selections
+
+	y2milestone ("checking selected selection");
+
+	list base_selections = Pkg::GetSelections (`selected, "base");
+	string selected_base_selection = base_selections[0]:"";
+
+	list<string> selected_addon_selections = Pkg::GetSelections (`selected, "");
+	y2milestone ("selected base is %1, addon is %2", selected_base_selection, selected_addon_selections);
+
+	// when coming from the update branch to the install branch, we might already have
+	// a choosen_base_selection but no selection in the package manager
+	// this will trigger the redo_proposal below
+
+	if (selected_base_selection == "")
+	    choosen_base_selection = "";
+
+	// re-set space calculation
+	y2milestone ("Resetting space calculation");
+	SpaceCalculation::GetPartitionInfo();
+	boolean disk_space_sufficient = SpaceCalculation::CheckDiskSize();
+	y2milestone ("Disk space sufficient: %1", disk_space_sufficient);
+
+	// remember if we must re-do the proposal.
+	// If not, there's no need to activate any selections !
+	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
+	y2milestone ("Redo proposal: %1", redo_proposal);
+
+	if (size (Pkg::ResolvableProperties ("", `pattern, "")) > 0
+	    && size (Pkg::GetSelections (`available, "base")) == 0)
+	{
+	    y2milestone ("No base selection found, but patterns found...");
+	    redo_proposal = (initial_run && !Mode::autoinst ()) || ! system_packages_selected;
+	    using_patterns = true;
+	    if (initial_run || ! system_packages_selected)
+	    {
+		y2milestone ("Selecting system packages");
+		map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
+		if (size (res) > 0)
+		{
+		    foreach (string s, any a, res, {
+			y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+		    });
+		}
+		Pkg::PkgFreshen();
+		system_packages_selected = true;
+	    }
+	}
+	else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
+	{
+	    y2milestone ("Selection type: fixed");
+	    if (! disk_space_sufficient)
+	    {
+		// warning in the summary
+		ret = add( ret, "warning", _("Disk Space Exhausted") );
+		ret = add( ret, "warning_level", `blocker );
+	    }
+	}
+	else if (ProductFeatures::GetFeature ("software", "selection_type") == `auto)
+	{
+	    y2milestone ("Selection type: auto");
+	    // keep desktop selection until user manually modifies the
+	    // sw selection (#104626)
+	    // always keep selection, and inform user about unsufficient disk space (#
+	    if ((! disk_space_sufficient) /*&& (preferred_base_selection != nil)*/
+		&& (! redo_proposal))
+	    {
+		// warning in the summary
+		ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+		ret = add( ret, "warning_level", `blocker );
+		disk_space_sufficient = true;
+	    }
+
+	    if (redo_proposal || ! disk_space_sufficient)
+	    {
+		// make a new proposal or change a proposal,
+		// if it does not fit on the disk anymore
+
+		if ( ! redo_proposal )
+		{
+		    // the selected set of software packages does not fit on the harddisk
+		    // error message
+		    ret = add( ret, "warning", _("Disk space exhausted -- changing software selection") );
+		    ret = add( ret, "warning_level", `error );
+		    redo_proposal = true;
+		}
+
+		// get all base selections, and sort them by reverse order (highest ordered first)
+		list available_base_selections = sort (string x, string y, Pkg::GetSelections (`available, "base"),
+						       ``{
+							   map xmap = Pkg::SelectionData(x);
+							   map ymap = Pkg::SelectionData(y);
+							   return (xmap["order"]:"" > ymap["order"]:"");
+						       }
+						       );
+		y2milestone ("available_base_selections %1", available_base_selections);
+
+		if (size (available_base_selections) == 0)
+		{
+
+		    UI::CloseDialog();
+
+		    y2error ("No base selections available");
+		    // Can't find any software data, probably a installation media error
+		    // error message
+		    return $[ "warning" : _("Cannot read package data from installation media. Media error?"),
+			      "warning_level" : `blocker ];
+		}
+
+		boolean fit = false;
+		integer counter = 0;
+
+		if (preferred_base_selection != nil)
+		{
+			y2milestone ("Selecting system packages");
+			SetSelectionAndComputeSystemPackages
+			    (preferred_base_selection);
+			Pkg::PkgFreshen();
+			base_selections = Pkg::GetSelections (`selected, "base");
+
+			y2milestone ("Desktop base selection: %1", base_selections);
+			selected_base_selection = base_selections[0]:"";
+
+			SetBaseSelection (selected_base_selection);
+			if (SpaceCalculation::CheckDiskSize())
+			{
+			    fit = true;
+			}
+			else
+			{
+				fit = true;
+				// warning in the summary
+				ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+				ret = add( ret, "warning_level", `blocker );
+			}
+		}
+
+		while (!fit
+		       && counter < size(available_base_selections) )
+		{
+		    selected_base_selection = available_base_selections[counter]:"";
+
+		    y2milestone ("Checking space for '%1'", selected_base_selection);
+		    SetBaseSelection (selected_base_selection);
+
+		    if ( !SpaceCalculation::CheckDiskSize() )
+		    {
+			// does not fit --> trying next
+			counter = counter +1;
+		    }
+		    else
+		    {
+			fit = true;
+		    }
+		}
+		if (!fit)
+		{
+		    UI::CloseDialog();
+
+		    y2warning ("No selection fits");
+		    Pkg::ClearSelection (selected_base_selection);
+		    // can't find a set of software packages which fits on the harddisk
+		    // error message
+		    ret = add (ret, "warning" , _("Not enough disk space even for a minimal installation!"));
+		    ret = add (ret, "warning_level" , `blocker);
+		    ret = add (ret, "raw_proposal", []);
+		    return ret;
+		}
+
+		y2warning ("Get recommendations for %1", selected_base_selection);
+
+		map base_data = Pkg::SelectionData (selected_base_selection);
+		if (base_data == nil)
+		{
+		    base_data = $[];
+		}
+		selected_addon_selections = base_data["recommends"]:[];
+
+		// also add the 'laptop' selection if PCMCIA detected
+		if (Arch::has_pcmcia () || Arch::is_laptop ())
+		{
+		    selected_addon_selections = (list<string>)union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
+                }
+		list<string> addon_selections = (list<string>)
+		    ProductFeatures::GetFeature ("software", "addon_selections");
+                if (size(addon_selections) > 0 &&
+                        addon_selections!=nil)
+                {
+                    selected_addon_selections=(list<string>)union(selected_addon_selections, 
+                            addon_selections);
+                }
+	    }
+	}
+	else
+	{
+	    y2error ("unknown value %1 for ProductFeatures::GetFeature (software, selection_type)",
+		     (symbol)ProductFeatures::GetFeature ("software", "selection_type"));
+	}
+
+	choosen_base_selection = selected_base_selection;
+
+	// generate user readable output for proposal
+	list output = [];
+
+        string dp = (string) SCR::Read(.content.DISTPRODUCT);
+        if (dp==nil)
+            dp = "";
+
+	if (ProductFeatures::GetBooleanFeature ("software", "inform_about_suboptimal_distribution") &&
+                Arch::i386 () && issubstring(dp, "DVD"))
+	    add_information_about_suboptimal_distribution (output);
+
+	map base_data = $[];
+	if (using_patterns)
+	{
+	    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+	    foreach (map<string,any> p, products, {
+		if (p["status"]:nil == `selected)
+		{
+		    string summary = p["display_name"]:"";
+		    if (summary == "")
+			summary = p["summary"]:"";
+		    if (summary == "")
+			summary = p["name"]:"";
+		    output = add (output, summary);
+		}
+	    });
+	}
+	else
+	{
+	    base_data = Pkg::SelectionData (selected_base_selection);
+	    if (base_data == nil)
+	    {
+		y2error ("No data for selection '%1'", selected_base_selection);
+		base_data = $[];
+	    }
+	    y2milestone ("Base %1: %2", selected_base_selection, base_data);
+	    output = add (output, base_data["summary"]:"?");
+	}
+
+	// add on
+	if (! using_patterns)
+	{
+	  foreach(string sel, selected_addon_selections, {
+	    map addon_data = Pkg::SelectionData (sel);
+	    if ((addon_data != nil)				// skip unknown selections
+		&& (addon_data["category"]:"" != "base")
+		&& addon_data["visible"]:false)
+	    {
+		if ( ! Pkg::SetSelection( sel ) )
+		    y2error( "Couldn't add selection %1", sel );
+	    }
+	  });
+	}
+
+	if (redo_proposal)
+	{
+	    y2milestone ("activating selections");
+	    boolean act_sel = Pkg::ActivateSelections ();
+
+
+	    y2milestone ("activating: %1, returning %2", act_sel, ret);
+	}
+
+	boolean success = Pkg::PkgSolve (false); // in order to select packages covered by patterns before
+	// adding system packages - the list may differ
+	if (redo_proposal)
+	{
+	    // add additional (internal) packages, like kernel etc.
+	    y2milestone ("Selecting system packages");
+	    map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
+	    if (size (res) > 0)
+	    {
+		foreach (string s, any a, res, {
+		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+		});
+	    }
+	    Pkg::PkgFreshen();
+	    success = Pkg::PkgSolve (false);
+	}
+
+	if (! success)
+	{
+	    solve_errors = Pkg::PkgSolveErrors ();
+	}
+
+	if (using_patterns)
+	{
+	    if (! simple)
+	    {
+		list<map<string,any> > patterns = Pkg::ResolvableProperties ("", `pattern, "");
+		foreach (map<string,any> p, patterns, {
+		    if (p["status"]:nil == `selected)
+		    {
+			string summary = p["summary"]:"";
+			if (summary == "")
+			   summary = p["name"]:"";
+			output = add (output, "+  " + summary);
+		    }
+		});
+	    }
+	}
+	else
+	{
+	    list<string> display_addon_selections = Pkg::GetSelections (`selected, "");
+	    foreach(string sel, display_addon_selections, {
+		map addon_data = Pkg::SelectionData (sel);
+		if ((addon_data != nil)				// skip unknown selections
+		    && (addon_data["category"]:"" != "base")
+		    && addon_data["visible"]:false)
+		{
+		    output = add ( output, "+  " + addon_data["summary"]:sel);
+		}
+	    });
+	}
+
+	y2milestone ("proposal %1", output);
+
+	// part of summary, %1 is size of packages (in MB or GB)
+	output = add (output, sformat (_("Size of Packages to Install: %1"),
+	    CountSizeToBeInstalled ()));
+
+	// check only disk space, if the selected software selection
+	// fits on the disk
+	if ( (!SpaceCalculation::CheckDiskSize()) && ret["warning_level"]:nil != `blocker )
+	{
+	    ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+	    ret = add( ret, "warning_level", `blocker );
+	    y2warning ("Software selection does not fit on disk");
+	}
+
+	ret = add ( ret, "raw_proposal", output );
+
+	// we just proposed a new base selection, activate it !
+
+	if (simple && ! using_patterns)
+	{
+	    ret["raw_proposal"] = [
+		sformat ("%1 (%2 total)",
+		    base_data["summary"]:"?",
+		    CountSizeToBeInstalled ())
+	    ];
+	}
+
+	UI::CloseDialog();
+
+	y2milestone ("Software proposal: %1", ret);
+
+	return ret;
+}
+
+/**
+ * Initialize the catalogs with popup feedback
+ */
+global void InitializeCatalogs() {
+    // Intermediate contents of the software selection screen
+    UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
+
+    // intialize package source to get a list of selections
+    Packages::Init (false);
+
+    UI::CloseDialog ();
+}
+/* EOF */
+}
