@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Thu Apr  6 15:55:45 CEST 2006 - lslezak@suse.cz
 
-- increased minimum free size for update (from 2% to 5%)
+- increased minimum free size for update (from 2% to 5%) (#163197)
+- 2.13.68
 
 -------------------------------------------------------------------
 Thu Apr  6 15:21:14 CEST 2006 - visnov@suse.cz
