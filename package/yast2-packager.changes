@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  6 16:19:19 CEST 2006 - mvidner@suse.cz
+
+- Use Pkg::SourceGeneralData["type"] for rug sa, do not hardcode "zypp".
+
+-------------------------------------------------------------------
 Thu Apr  6 15:55:45 CEST 2006 - lslezak@suse.cz
 
 - increased minimum free size for update (from 2% to 5%) (#163197)
