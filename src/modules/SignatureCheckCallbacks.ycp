@@ -24,9 +24,19 @@
     //
     // zypp: askUserToAcceptUnsignedFile
     //
+    // (+DontShowAgain functionality) -- for one run in memory
+    //
     /* function for CallbackAcceptUnsignedFile() */
     global boolean AcceptUnsignedFile (string filename) {
-	return SignatureCheckDialogs::UseUnsignedItem(`file, filename);
+	string dont_show_dialog_ident = "-AcceptUnsignedFile-";
+    
+	// Show the popup?
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
+	    return SignatureCheckDialogs::UseUnsignedItem(`file, filename, dont_show_dialog_ident);
+	// Return the default value entered by user
+	} else {
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
+	}
     }
     
 
@@ -37,10 +47,20 @@
     //
     // zypp: askUserToAcceptUnknownKey
     //
+    // (+DontShowAgain functionality) -- for one run in memory
+    //
     /* function for CallbackAcceptUnknownGpgKey() */
     global boolean AcceptUnknownGpgKey (string filename, string keyid, string keyname) {
-	// Unknown keyname == "Unknown Key"
-	return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid);
+	string dont_show_dialog_ident = "-AcceptUnknownGpgKey-";
+
+	// Show the popup?
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
+	    // Unknown keyname == "Unknown Key"
+	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, dont_show_dialog_ident);
+	// Return the default value entered by user
+	} else {
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
+	}
     }
     
     // Name of the callback handler function. Required callback prototype is

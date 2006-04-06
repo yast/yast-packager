@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr  6 15:12:36 CEST 2006 - locilka@suse.cz
+
+- Adding Do_not_show_this_dialog_again functionality into some
+  SignatureCheckDialogs.
+- 2.13.66
+
+-------------------------------------------------------------------
 Wed Apr  5 21:28:00 CEST 2006 - jsrain@suse.de
 
 - call Pkg::PkgFreshen in proposal (#156980)
