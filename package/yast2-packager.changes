@@ -2,7 +2,7 @@
 Thu Apr  6 15:21:14 CEST 2006 - visnov@suse.cz
 
 - delete broken sources if they cannot be restored (#157100) 
-- 2.13.66
+- 2.13.67
 
 -------------------------------------------------------------------
 Thu Apr  6 15:12:36 CEST 2006 - locilka@suse.cz
