@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  6 19:18:40 CEST 2006 - jsrain@suse.de
+
+- do not display hidden patterns in proposal (#159450)
+
+-------------------------------------------------------------------
 Thu Apr  6 16:19:19 CEST 2006 - mvidner@suse.cz
 
 - Use Pkg::SourceGeneralData["type"] for rug sa, do not hardcode "zypp".

@@ -1086,7 +1086,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    {
 		list<map<string,any> > patterns = Pkg::ResolvableProperties ("", `pattern, "");
 		foreach (map<string,any> p, patterns, {
-		    if (p["status"]:nil == `selected)
+		    if (p["status"]:nil == `selected && p["user_visible"]:true)
 		    {
 			string summary = p["summary"]:"";
 			if (summary == "")
