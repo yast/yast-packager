@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  6 15:21:14 CEST 2006 - visnov@suse.cz
+
+- delete broken sources if they cannot be restored (#157100) 
+
+-------------------------------------------------------------------
 Thu Apr  6 15:12:36 CEST 2006 - locilka@suse.cz
 
 - Adding Do_not_show_this_dialog_again functionality into some

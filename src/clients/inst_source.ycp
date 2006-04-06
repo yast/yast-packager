@@ -350,6 +350,9 @@ on the NFS server.
 	Popup::Error(_("There were errors when restoring the source configuration.
 Not all sources will be available for configuration.
 ") + "\n" + Pkg::LastError() );
+
+	// delete the broken sources from the persistent store
+	Pkg::SourceCleanupBroken();
     }
 
     sourceStatesIn = Pkg::SourceEditGet();
