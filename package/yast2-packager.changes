@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  7 09:39:29 CEST 2006 - locilka@suse.cz
+
+- Disabling [Details...] button in ImportGPGKeyDialogs when no
+  details are available.
+
+-------------------------------------------------------------------
 Thu Apr  6 19:57:09 CEST 2006 - mvidner@suse.cz
 
 - Only add the alias parameter to rug sa for --type=ZYPP (#164083).
