@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  7 11:39:14 CEST 2006 - kkaempf@suse.de
+
+- call rug with source type 'zypp' instead of 'yast'.
+- 2.13.70
+
+-------------------------------------------------------------------
 Fri Apr  7 09:39:29 CEST 2006 - locilka@suse.cz
 
 - Disabling [Details...] button in ImportGPGKeyDialogs when no
