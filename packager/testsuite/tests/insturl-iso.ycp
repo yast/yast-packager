@@ -1,0 +1,25 @@
+{
+    include "testsuite.ycp";
+    map READ = $[
+        "target" : $[
+            "size" : 1,
+            "tmpdir" : "/tmp",
+        ],
+        "etc" : $[
+            "install_inf": $[
+                "InstMode":"nfs",
+                "Server":"192.168.1.1",
+                "Serverdir":"/install/images/CD1.iso",
+		"SourceType":"file",
+            ]
+        ]
+    ];
+
+    TESTSUITE_INIT ([READ], nil);
+    import "InstURL";
+    import "Linuxrc";
+
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
+    TEST (``(InstURL::installInf2Url("test")), [READ], nil);
+    TEST (``(InstURL::installInf2Url("/test")), [READ], nil);
+}

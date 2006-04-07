@@ -1,0 +1,318 @@
+/**
+ * Module: 		sw_single.ycp
+ *
+ * Authors: 		Gabriele Strattner (gs@suse.de)
+ *			Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose: 		contains dialog loop for workflows:
+ *	"Install/Remove software"
+ *
+ * $Id$
+ */
+
+{
+    textdomain "packager";
+
+    import "Arch";
+    import "Confirm";
+    import "Installation";
+    import "Directory";
+    import "Mode";
+    import "Packages";
+    import "PackageCallbacks";
+    import "PackageLock";
+    import "SlideShow";
+    import "SlideShowCallbacks";
+    import "Kernel";
+    import "Wizard";
+    import "Popup";
+    import "GetInstArgs";
+    import "Label";
+    import "PackageSystem";
+    import "Report";
+    import "FileUtils";
+
+    list<string> packagelist = [];		// list of packages to install
+
+    boolean test_popup = false;
+    boolean skip_source = false;
+
+    // =============================================================
+
+    // check test_popup
+    // test_mode is checked for in Installation constructor
+
+    define list<string> CheckArguments ()
+    {
+	integer arg_n = size (WFM::Args()) - 1;
+
+	list<string> arg_list = [];
+
+	while (arg_n >= 0)
+	{
+	    if (WFM::Args(arg_n) == .test)
+	    {
+		Mode::SetTest ("test");
+	    }
+	    else if (WFM::Args(arg_n) == .testp)
+	    {
+		Mode::SetTest ("test");		// .testp implies .test
+		test_popup = true;
+	    }
+	    else if (is (WFM::Args(arg_n), string))
+	    {
+		arg_list = add (arg_list, tostring (WFM::Args(arg_n)));
+	    }
+	    else if (is (WFM::Args(arg_n), list))
+	    {
+		foreach (any arg, (list)WFM::Args(arg_n), ``{ arg_list = add (arg_list, tostring (arg));});
+	    }
+	    arg_n = arg_n - 1;
+	}
+
+	return arg_list;
+
+    };  // CheckArguments
+
+    //
+    // CheckWhichPackages
+    //
+    // Check arg_list:
+    // If we're called with an absolute package path just install
+    // this package without paying attention to dependencies.
+    //
+    // returns	`done		all done
+    //		`failed		package not found
+    //		`next		workflow "Change source of installation"
+    //		`found_descr	started package manager
+    //		`unknown_descr	found nothing
+    //
+
+   define symbol CheckWhichPackages (list<string> arg_list)
+   {
+	PackageSystem::EnsureTargetInit();
+
+       y2milestone ("CheckWhichPackages (%1)", arg_list);
+       // if sw_single is called with a list of packages or a package name
+
+       string first_arg = "";
+
+       if (size (arg_list) > 0)
+       {
+	   first_arg = arg_list[0]:"";
+       }
+
+       /*
+	* If the first argument is a package ending with .rpm call Pkg::TargetInstall for
+	* each arg.
+	*/
+       if (regexpmatch (first_arg, "\\.rpm$"))		// package name given
+       {
+	   // if sw_single is called with an absolute package-pathname, there is no need to
+	   // mount the source medium or check SuSE version or dependencies
+
+	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
+
+	   SlideShow::InitPkgData(true);	// force reinitialization
+
+	   foreach (string package, arg_list, {
+	       if (SCR::Read (.target.size, package) > 0)
+	       {
+		   y2milestone ("SW_SINGLE: installing %1", package);
+		   Pkg::TargetInstall (package);
+	       }
+	       else
+	       {
+		   // error popup, %1 is the name of the .rpm package
+		   string message = sformat (_("Package %1 was not found on the medium."), package);
+		   y2error ("SW_SINGLE: Package %1 was not found on the medium", package);
+		   Popup::Message (message);
+		   return `failed;
+	       }
+	   });
+
+	   // package is installed without paying attention to SuSE dependencies
+	   // don't call SuSEConfig -> dialog loop ends
+	   return `done;
+       }
+       else if (first_arg != "")		// firstarg given, but not *.rpm
+       {
+	   string arg_name = arg_list[0]:"";
+
+	   if ( ! FileUtils::IsFile(arg_name) || FileUtils::GetSize(arg_name) <= 0 )		// Check: a local file ? bigger than 0?
+	   {
+	       packagelist = arg_list;					// No: expect package names
+	   }
+	   else							// Yes: try to read the file
+	   {
+	       y2milestone("Reading file %1", arg_name );
+	       packagelist = (list<string>) SCR::Read( .target.ycp, arg_name);	// try .ycp list first
+	       if ((packagelist == nil)
+		   || (packagelist == []))
+	       {
+		   string packagestr = (string) SCR::Read( .target.string, arg_name);	// string ascii file next
+		   packagelist = splitstring (packagestr, "\n");
+		   // filter empty lines out,  bug #158226
+		   packagelist = filter (string package, packagelist, { return !regexpmatch(package, "^ *$"); });
+	       }
+	   }
+	   y2milestone("packagelist: %1", packagelist );
+       }
+
+       // label of popup
+       UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
+
+       // start package manager
+
+       Pkg::SourceStartCache(true);
+
+       Pkg::TargetInit (Installation::destdir, false);
+
+       UI::CloseDialog();
+
+       return `found_descr;
+
+   };	// CheckWhichPackages
+
+   // =============================================================
+
+   Wizard::CreateDialog();
+   Wizard::SetDesktopIcon("sw_single");
+
+   // check whether running as root
+   // and having the packager for ourselves
+   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
+   {
+	UI::CloseDialog ();
+	return `abort;
+   }
+
+   Pkg::SetLocale (UI::GetLanguage (true));
+
+   // check Args
+   // set test_mode, test_popup
+
+   list<string> arg_list = CheckArguments();
+
+   // check the arguments and try the mount/search for local description
+   symbol result = CheckWhichPackages (arg_list);
+
+   y2milestone ("SW_SINGLE: result CheckWhichPackages %1", result);
+
+   if ((result == `done)
+       || (result == `failed))
+   {
+       UI::CloseDialog();
+       return `next;
+   }
+
+
+   boolean ask = false;
+   boolean found_descr = result == `found_descr;
+
+   do
+   {
+	list<string> old_failed_packs = [];
+	if ((integer)SCR::Read (.target.size,
+	    "/var/lib/YaST2/failed_packages") > 0)
+	{
+	    old_failed_packs = (list<string>)
+		SCR::Read (.target.ycp, "/var/lib/YaST2/failed_packages");
+	}
+	if (size (old_failed_packs) > 0 && Popup::YesNo (
+_("During the last package installation,
+several package failed to install.
+Install them now?
+")))
+	{
+	    foreach (string p, old_failed_packs, {
+		Pkg::PkgInstall (p);
+	    });
+	}
+
+       if ( found_descr )
+       {
+	   if (size (packagelist) == 0)			// packages given ?
+	   {
+	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
+	       y2milestone ("inst_packages returns %1", result);
+	       if (result == `accept)
+	       {
+		   result = `next;
+		   ask = true;
+	       }
+	   }
+	   else
+	   {
+		list<string>nonexisting = filter (string p, packagelist, {
+		    return ! Pkg::IsAvailable (p);
+		});
+		if (size (nonexisting) > 0)
+		{
+		    string missing = mergestring (nonexisting, ", ");
+		    y2error ("Tags %1 aren't available",
+		        mergestring (nonexisting, ", "));
+		    Report::Error (sformat (
+			// error report, %1 is a list of packages
+			_("Following packages haven't been found on the medium:\n%1"),
+			mergestring (nonexisting, "\n")));
+		    return `cancel;
+		}
+	       foreach (string package, packagelist,		// Yes: install them
+	       {
+		   if (!Pkg::PkgInstall (package))			// select package for installation
+		   {
+		       // oops, package not found ?
+		       Pkg::DoProvide ([package]);			// try as tagname
+		   }
+	       });
+
+	       if (Pkg::PkgSolve (false))				// Solve dependencies
+	       {
+		   result = `next;					// go-on if no conflicts
+	       }
+	       else
+	       {
+		   result = (symbol)WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
+		   y2milestone ("inst_packages returns %1", result);
+		   if (result == `accept)
+		       result = `next;
+	       }
+	   }
+       }
+
+       if (result == `next)				// packages selected ?
+       {
+	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
+	   boolean anyToDelete = Pkg::PkgAnyToDelete();
+	   SlideShow::SetLanguage (UI::GetLanguage(true));
+	   SlideShow::InitPkgData(true);	// force reinitialization
+	   SlideShow::OpenSlideShowDialog();
+
+	   import "PackageInstallation";
+	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
+	   integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
+	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+
+	   SlideShow::CloseSlideShowDialog();
+
+	   if (Mode::normal ()				// run SuSEconfig only in normal system, not during installation
+	       && Installation::destdir == "/"
+	       && ((commit_result[0]:0 > 0)
+		   || anyToDelete))
+	   {
+	       // prepare "you must boot" popup in inst_suseconfig
+	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
+
+	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
+	   }
+       }
+   } while ( ask && Popup::YesNo (
+       // Popup dialog contents
+       _("Install or remove more packages?")));
+
+   UI::CloseDialog();
+
+   return (symbol) result;
+}
