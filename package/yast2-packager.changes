@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  7 12:36:38 CEST 2006 - jsuchome@suse.cz
+
+- import gpg keys before creating source (#164001)
+- 2.13.71 
+
+-------------------------------------------------------------------
 Fri Apr  7 11:39:14 CEST 2006 - kkaempf@suse.de
 
 - call rug with source type 'zypp' instead of 'yast'.
