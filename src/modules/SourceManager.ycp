@@ -794,16 +794,17 @@ global list Overview() {
     boolean AddOrDeleteZYPPServiceIntoZMD (integer src_id, boolean adding) {
 	map gendata = Pkg::SourceGeneralData (src_id);
 	string stype = gendata["type"]:"";
+	if (stype == "YaST") stype = "zypp";	/* 'rug' only accepts yum or zypp  */
 	string url = gendata["url"]:"";
 	// ZMD must have unique URIs, so we append the alias
 	string alias = gendata["alias"]:"";
 	y2milestone ("id: %1, type: %2, url: %3, alias: %4", src_id, stype, url, alias);
 	if (stype == "" || url == "" || alias == "") {
-	    y2error ("ugh");
+	    y2error ("Internal error: stype, url, or alias is empty ?!");
 	    return false;
 	}
 
-	if (stype == "ZYPP") // yum sources do not need+understand the alias
+	if (stype == "zypp") // yum sources do not need+understand the alias
 	{
 	    // URL (un)escapes for us
 	    // maybe a bug with "="?
