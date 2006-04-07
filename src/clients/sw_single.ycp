@@ -164,7 +164,12 @@
 
        // start package manager
 
-       Pkg::SourceStartCache(true);
+	if (Pkg::SourceStartCache(true) == false)
+	{
+	   Report::Warning("Start of the source manager has failed.
+Some installation sources might not be
+available or can be broken.");
+	}
 
        Pkg::TargetInit (Installation::destdir, false);
 
