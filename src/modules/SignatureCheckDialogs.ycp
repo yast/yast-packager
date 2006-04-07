@@ -550,7 +550,10 @@ the key really belongs to that owner before importing it."),
 		)
 	    )
 	);
-	UI::SetFocus(`details);
+
+	// No details available - disable button
+	if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
+	UI::SetFocus(`dont_import);
 
 	symbol ret = nil;
 	while (ret == nil || ret == `details) {
@@ -642,6 +645,9 @@ the key really belongs to that owner before importing it."),
 		)
 	    )
 	);
+
+	// No details available - disable button
+	if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
 	UI::SetFocus(`dont_import);
 
 	symbol ret = nil;
