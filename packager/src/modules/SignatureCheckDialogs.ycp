@@ -1,0 +1,665 @@
+/**
+ * Module:		SignatureCheckDialogs.ycp
+ * Authors:		Lukas Ocilka <locilka@suse.cz>
+ *
+ * Dialogs handling for RPM/Source GPM signatures.
+ *
+ * $Id: SignatureCheckDialogs.ycp 28363 2006-02-24 12:27:15Z locilka $
+ */
+
+{
+    textdomain "packager";
+    
+    module "SignatureCheckDialogs";
+
+    import "Label";
+    import "Popup";
+    import "Message";
+
+    /* --------------------------- Don't show this dialog again Magic --------------------------- */
+
+    map <string, boolean> show_popup = $[];
+    map <string, boolean> popup_ret  = $[];
+
+    /**
+     * Functions sets whether user want's to show the dialog again
+     *
+     * @param string popup_type dialog type
+     * @param boolean show again
+     */
+    global void SetShowThisPopup (string popup_type, boolean show_it) {
+	if (popup_type == nil || show_it == nil) {
+	    y2error("Neither popup_type %1 nor show_it %2 can be nil!", popup_type, show_it);
+	    return;
+	}
+	if (show_it) {
+	    y2debug("User decision to show dialog '%1' again is '%2'", popup_type, show_it);
+	} else {
+	    y2milestone("User decision to show dialog '%1' again is '%2'", popup_type, show_it);
+	}
+	show_popup[popup_type] = show_it;
+    }
+    
+    /**
+     * Function returns whether user want's to show the dialog (again).
+     * true is the default if nothing is set.
+     *
+     * @param string popup_type dialog type
+     * @return boolean show the dialog
+     */
+    global boolean GetShowThisPopup (string popup_type) {
+	if (popup_type == nil) {
+	    y2error("popup_type %1 mustn't be nil!", popup_type);
+	    return true;
+	}
+	// default (if not defined) is 'true'
+	return  show_popup[popup_type]:true;
+    }
+
+    /**
+     * Function sets the default dialog return value
+     * for case when user selected "don't show again"
+     *
+     * @param string popup_type dialog type
+     * @param boolean default_return
+     */
+    global void SetDefaultDialogReturn (string popup_type, boolean default_return) {
+	if (popup_type == nil || default_return == nil) {
+	    y2error("Neither popup_type %1 nor default_return %2 can be nil!", popup_type, default_return);
+	    return;
+	}
+	y2milestone("User decision in default return for '%1' is '%2'",
+	    popup_type, default_return);
+	popup_ret[popup_type] = default_return;
+    }
+
+    /**
+     * Function returns the default popup return value
+     * for case when user selected "don't show again"
+     *
+     * @param string popup_type dialog type
+     * @boolean boolean default dialog return
+     */
+    global boolean GetDefaultDialogReturn (string popup_type) {
+	if (popup_type == nil) {
+	    y2error("popup_type %1 mustn't be nil!", popup_type);
+	    return false;
+	}
+	y2milestone("User decided not to show popup for '%1' again, returning user-decision '%2'",
+	    popup_type, popup_ret[popup_type]:false);
+	return  popup_ret[popup_type]:false;
+    }
+
+    void HandleDoNotShowDialogAgain (boolean default_return, string dont_show_dialog_ident, symbol dont_show_dialog_checkboxid) {
+	boolean dont_show_status = (boolean) UI::QueryWidget(`id(dont_show_dialog_checkboxid), `Value);
+	// Widget doesn't exist
+	if (dont_show_status == nil) {
+	    y2warning("No such UI widget with ID: %1", dont_show_dialog_checkboxid);
+	// Checkbox selected -> Don't show again
+	} else if (dont_show_status == true) {
+	    y2debug("User decision -- don't show the dialog %1 again, setting default return %2",
+		dont_show_dialog_ident, default_return);
+	    SetShowThisPopup(dont_show_dialog_ident, false);
+	    SetDefaultDialogReturn(dont_show_dialog_ident, default_return);
+	// Checkbox not selected -> Show again
+	} else {
+	    SetShowThisPopup(dont_show_dialog_ident, true);
+	}
+    }
+    
+    /* --------------------------- Don't show this dialog again Magic --------------------------- */
+
+    // Defining icons for dialogs
+    map <string, string> msg_icons = $[
+	"error"    : "/usr/share/YaST2/theme/current/icons/32x32/apps/msg_error.png",
+	"warning"  : "/usr/share/YaST2/theme/current/icons/32x32/apps/msg_warning.png",
+	"question" : "/usr/share/YaST2/theme/current/icons/32x32/apps/msg_warning.png",
+    ];
+
+    // UI can show images
+    boolean has_local_image_support = nil;
+
+    /**
+     * Returns term with message icon
+     *
+     * @param string message type "error", "warning" or "question"
+     * @return term `Image(...) with margins
+     */
+    term MessageIcon (string msg_type) {
+	// lazy loading
+	if (has_local_image_support == nil) {
+	    map ui_capabilities = UI::GetDisplayInfo();
+	    has_local_image_support = ui_capabilities["HasLocalImageSupport"]:false;
+	}
+
+	// UI can show images
+	if (has_local_image_support) {
+	    if (msg_icons[msg_type]:nil == nil) {
+		y2warning("Message type %1 not defined", msg_type);
+		return `Empty();
+	    }
+	    return `MarginBox(1, 0.5, `Image(msg_icons[msg_type]:"", "[!]"));
+	} else {
+	    return `Empty();
+	}
+    }
+
+    /**
+     * Returns term of yes/no buttons
+     *
+     * @param symbol default button `yes or `no
+     * @return term with buttons
+     */
+    term YesNoButtons (symbol default_button) {
+	term yes_button = `PushButton(`id(`yes), Label::YesButton());
+	term no_button  = `PushButton(`id(`no), Label::NoButton());
+
+	if (default_button == `yes) {
+	    yes_button = `PushButton(`id(`yes), `opt(`default), Label::YesButton());
+	} else {
+	    no_button  = `PushButton(`id(`no), `opt(`default), Label::NoButton());
+	}
+	
+	return `HBox (
+	    yes_button,
+	    `HSpacing(2),
+	    no_button
+	);
+    }
+
+    /**
+     * Returns 'true' (yes), 'false' (no) or 'nil' (cancel)
+     *
+     * @return boolean user input yes==true
+     */
+    boolean WaitForYesNoCancelUserInput() {
+	any user_input = nil;
+	boolean ret = nil;
+
+	while (true) {
+	    user_input = UI::UserInput();
+	    // yes button
+	    if (user_input == `yes) {
+		ret = true;
+		break;
+	    // no button
+	    } else if (user_input == `no) {
+		ret = false;
+		break;
+	    // closing window uisng [x]
+	    } else if (user_input == `cancel) {
+		ret = nil;
+		break;
+	    } else {
+		y2error("Unknown user input: '%1'", user_input);
+		continue;
+	    }
+	}
+
+	return ret;
+    }
+
+    /**
+     * Waits for user input and checks it agains accepted symbols.
+     * Returns the default symbol in case of `cancel (user closes the dialog).
+     *
+     * @param list <symbol> of accepted symbol by UserInput
+     * @param symbol default return for case of `cancel
+     */
+    symbol WaitForSymbolUserInput (list <symbol> list_of_accepted, symbol default_symb) {
+	symbol user_input = nil;
+	symbol ret = nil;
+	
+	while (true) {
+	    user_input = (symbol) UI::UserInput();
+	    if (contains(list_of_accepted, user_input)) {
+		ret = user_input;
+		break;
+	    } else if (user_input == `cancel) {
+		ret = default_symb;
+		break;
+	    } else {
+		y2error("Unknown user input: '%1'", user_input);
+		continue;
+	    }
+	}
+	
+	return ret;
+    }
+
+    /**
+     * Used for unsiged file or package. Opens dialog asking whether user wants
+     * to use this unsigned item.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @param string dont_show_dialog_ident for the identification in magic "don't show" functions
+     * @return boolean use or don't use ('true' if 'yes')
+     */
+    global boolean UseUnsignedItem (symbol item_type, string item_name, string dont_show_dialog_ident) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name
+	    _("The package %1 is not digitally signed. This means that the origin
+and integrity of the package cannot be verified. Installing the package
+may put the integrity of your system at risk.
+
+Install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename
+	    _("The file %1 is not digitally signed.
+This means that the origin and integrity of the file cannot be verified.
+Using the file may put the integrity of your system at risk.
+
+Use it anyway?")
+	), item_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(MessageIcon("warning")),
+		    // popup heading
+		    `VCenter(`Heading( _("Signature Check Failed"))),
+		    `HStretch()
+		),
+		`MarginBox(0.5, 0.5, `Label(description_text)),
+		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
+		    Message::DoNotShowMessageAgain(),
+		    (GetShowThisPopup(dont_show_dialog_ident) ? false:true)
+		))),
+		YesNoButtons(`no)
+	    )
+	);
+
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+	
+	// Store the don't show value, store the default return value
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again);
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * Used for corrupted file or package. Opens dialog asking whether user wants
+     * to use this corrupted item.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @return boolean use or don't use ('true' if 'yes')
+     */
+    global boolean UseCorruptedItem (symbol item_type, string item_name, string key_id, string key_name) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name, %2 for the key ID, %3 for the key name
+	    _("Package %1 is signed with
+GnuPG key '%2 (%3)'
+but the integrity check failed.
+
+This means that the package has been changed by accident or by an attacker
+since the repository creator signed it. Installing it is a big risk
+for the integrity and security of your system.
+
+Install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename
+	    _("File %1 is signed with
+GnuPG key '%2 (%3)'
+but the integrity check failed.
+
+This means that the file has been changed by accident or by an attacker
+since the repository creator signed it. Installing it is a big risk
+for the integrity and security of your system.
+
+Install it anyway?")
+	), item_name, key_id, key_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		// popup heading
+		`HBox (
+		    `VCenter(MessageIcon("error")),
+		    `VCenter(`Heading( _("Validation Check Failed"))),
+		    `HStretch()
+		),
+		`MarginBox(0.5, 0.5, `Label(description_text)),
+		YesNoButtons(`no)
+	    )
+	);
+
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * Used for file or package signed by unknown key.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @param string key_id
+     * @param string dont_show_dialog_ident for the identification in magic "don't show" functions
+     * @return boolean true if 'yes, use file'
+     */
+    global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id, string dont_show_dialog_ident) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name, %2 for the key ID
+	    _("The package %1 is digitally signed
+with the unknown GnuPG key '%2'.
+
+This means that a trust relationship to the creator of the package
+cannot be established. Installing the package may put the integrity
+of your system at risk.
+
+Install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename, %2 for the key ID
+	    _("The file %1 is digitally signed
+with the unknown GnuPG key '%2'.
+
+This means that a trust relationship to the creator of the file
+cannot be established. Using the file may put the integrity
+of your system at risk.
+
+Use it anyway?")
+	), item_name, key_id);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(MessageIcon("warning")),
+		    // popup heading
+		    `VCenter(`Heading( _("Unknown GnuPG Key"))),
+		    `HStretch()
+		),
+		`MarginBox(0.5, 0.5, `Label(description_text)),
+		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
+		    Message::DoNotShowMessageAgain(),
+		    (GetShowThisPopup(dont_show_dialog_ident) ? false:true)
+		))),
+		YesNoButtons(`no)
+	    )
+	);
+
+	// This will optionally offer to retrieve the key from gpg keyservers
+	// That's why it will return 'symbol' instead of 'boolean'
+	// But by now it only handles yes/no/cancel
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+	
+	// Store the don't show value, store the default return value
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again);
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * Used for file or package signed by a public key. This key is still
+     * not listed in trusted keys.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @param string key_id
+     * @param string key_name
+     * @return symbol `key_import, `install, `skip
+     */
+    global symbol ItemSignedWithPublicSignature (symbol item_type, string item_name, string key_id, string key_name) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name, %2 for the key ID, %3 for the key name
+	    _("The package %1 is digitally signed
+with key '%2 (%3)'.
+
+There is no trust relationship to the owner of the key.
+If you trust the owner, import the key into your set of
+trusted keys with Import Key then proceed
+with the installation.
+
+Installing a package from an unknown source can put
+the integrity of your system at risk. It is safest
+to skip the package.")
+	    :
+	    // popup question, %1 stands for the filename, %2 for the key ID, %3 for the key name
+	    _("The file %1 is digitally signed
+with key '%2 (%3)'.
+
+There is no trust relationship to the owner of the key.
+If you trust the owner, import the key into your set of
+trusted keys with Import Key then proceed with
+the installation.
+
+Installing a file from an unknown source can put
+the integrity of your system at risk. It is safest
+to skip it.")
+	), item_name, key_id, key_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(MessageIcon("warning")),
+		    // popup heading
+		    `VCenter(`Heading( _("Signed with Untrusted Public Key"))),
+		    `HStretch()
+		),
+		`MarginBox(0.5, 0.5, `Label(description_text)),
+		`HBox (
+		    // push button
+		    `PushButton(`id(`key_import), _("&Import Key...")),
+		    `HSpacing(1),
+		    // push button
+		    `PushButton(`id(`install), _("Install &Anyway")),
+		    `HSpacing(1),
+		    // push button
+		    `PushButton(`id(`skip), _("&Skip Package"))
+		)
+	    )
+	);
+	UI::SetFocus(`skip);
+
+	// wait for one of listed ID's, return the default value in case of `cancel
+	symbol ret = WaitForSymbolUserInput([`key_import, `install, `skip], `skip);
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * ImportGPGKeyDialog
+     *
+     * @param string key_id
+     * @param string key_name
+     * @param string key_location
+     * @param string key_detailed_description
+     * @return symbol
+     */
+    global symbol ImportGPGKeyDialog (string key_id, string key_name, string key_location, string key_detailed_description) {
+	// additional Richtext (HTML) warning text (kind of help), %1 stands for the key ID
+	string warning_text = sformat(_("<p>The owner of the key may distribute updates,
+packages, and package repositories that your system will trust and offer
+for installation and update without any further warning. In this way,
+importing the key into your keyring of trusted keys allows the key owner
+to have a certain amount of control over the software on your system.</p>
+
+<p>Only trust a key if you are confident that the key really belongs to the owner
+and that the owner can be trusted. With <b>Details</b>, get
+more information about the key, such as a fingerprint and signatures
+that can help you determine the trustworthiness of the key.</p>
+
+<p>A warning dialog opens for every package that
+is not signed by a trusted (imported) key. If you do not import the key,
+packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
+
+	// popup message, %1 stands for GPG key ID, %2 for key name, %3 for key location (URL or ...)
+	string dialog_text = sformat(_("The GnuPG key '%1 (%2)'
+has been found at %3.
+
+You can choose to import it into your keyring of trusted
+public keys, meaning that you trust the owner of the key.
+You should be sure that you can trust the owner and that
+the key really belongs to that owner before importing it."),
+	    key_id, key_name, key_location);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+		`HBox (
+		    `VSpacing(19),
+		    // left-side help
+		    `HWeight(3,
+			`VBox (
+			    `RichText(warning_text)
+			)
+		    ),
+		    `HSpacing(1.5),
+		    // dialog
+		    `HWeight(5,
+			`VBox(
+			    `Top (
+				`VBox (
+				    `HBox (
+					`VCenter(MessageIcon("question")),
+					// popup heading
+					`VCenter(`Heading(_("Import Public GnuPG Key"))),
+					`HStretch()
+				    ),
+				    // dialog message
+				    `MarginBox(0.5, 0.5, `Label(dialog_text))
+				)
+			    ),
+			// dialog buttons
+			`Bottom(
+			    `HBox (
+				// push button
+				`PushButton(`id(`import), _("&Import")),
+				`HSpacing(1),
+				// push button
+				`PushButton(`id(`details), _("&Details...")),
+				`HSpacing(1),
+				// push button
+				`PushButton(`id(`dont_import), _("Do &Not Import"))
+			    )
+			)
+		    )
+		)
+	    )
+	);
+
+	// No details available - disable button
+	if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
+	UI::SetFocus(`dont_import);
+
+	symbol ret = nil;
+	while (ret == nil || ret == `details) {
+	    // wait for one of listed ID's, return the default value in case of `cancel
+	    ret = WaitForSymbolUserInput([`import, `details, `dont_import], `dont_import);
+	    if (contains([`import, `dont_import], ret)) break;
+	    else if (ret == `details) Popup::LongMessage(key_detailed_description);
+	}
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+     * ImportUntrustedGPGKeyIntoTrustedDialog
+     *
+     * @param string key_id
+     * @param string key_name
+     * @param string key_detailed_description
+     * @return boolean whether zypp should import the key into the keyring of trusted keys
+     */
+    global boolean ImportUntrustedGPGKeyIntoTrustedDialog (string key_id, string key_name, string key_detailed_description) {
+	// additional Richtext (HTML) warning text (kind of help), %1 stands for the key ID
+	string warning_text = sformat(_("<p>The owner of the key may distribute updates,
+packages, and package repositories that your system will trust and offer
+for installation and update without any further warning. In this way,
+importing the key into your keyring of trusted keys allows the key owner
+to have a certain amount of control over the software on your system.</p>
+
+<p>Only trust a key if you are confident that the key really belongs to the owner
+and that the owner can be trusted. With <b>Details</b>, get
+more information about the key, such as a fingerprint and signatures
+that can help you determine the trustworthiness of the key.</p>
+
+<p>A warning dialog opens for every package that
+is not signed by a trusted (imported) key. If you do not import the key,
+packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
+
+	// popup message, %1 stands for GPG key ID, %2 for key name
+	string dialog_text = sformat(_("The GnuPG key '%1 (%2)'
+has been found.
+
+You can choose to import it into your keyring of trusted
+public keys, meaning that you trust the owner of the key.
+You should be sure that you can trust the owner and that
+the key really belongs to that owner before importing it."),
+	    key_id, key_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+		`HBox (
+		    `VSpacing(19),
+		    // left-side help
+		    `HWeight(3,
+			`VBox (
+			    `RichText(warning_text)
+			)
+		    ),
+		    `HSpacing(1.5),
+		    // dialog
+		    `HWeight(5,
+			`VBox(
+			    `Top (
+				`VBox (
+				    `HBox (
+					`VCenter(MessageIcon("question")),
+					// popup heading
+					`VCenter(`Heading(_("Import Untrusted GnuPG Key"))),
+					`HStretch()
+				    ),
+				    // dialog message
+				    `MarginBox(0.5, 0.5, `Label(dialog_text))
+				)
+			    ),
+			// dialog buttons
+			`Bottom(
+			    `HBox (
+				// push button
+				`PushButton(`id(`import), _("&Import")),
+				`HSpacing(1),
+				// push button
+				`PushButton(`id(`details), _("&Details...")),
+				`HSpacing(1),
+				// push button
+				`PushButton(`id(`dont_import), _("Do &Not Import"))
+			    )
+			)
+		    )
+		)
+	    )
+	);
+
+	// No details available - disable button
+	if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
+	UI::SetFocus(`dont_import);
+
+	symbol ret = nil;
+	while (ret == nil || ret == `details) {
+	    // wait for one of listed ID's, return the default value in case of `cancel
+	    ret = WaitForSymbolUserInput([`import, `details, `dont_import], `dont_import);
+	    if (contains([`import, `dont_import], ret)) break;
+	    else if (ret == `details) Popup::LongMessage(key_detailed_description);
+	}
+
+	UI::CloseDialog();
+
+	return ret == `import;
+    }
+}

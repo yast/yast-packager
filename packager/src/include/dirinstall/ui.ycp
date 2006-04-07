@@ -1,0 +1,65 @@
+/**
+ * File:	packager/inst_dir/instintodir.ycp
+ * Module:	System installation
+ * Summary:	Installation into  a directory
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ */
+
+{
+    textdomain "packager";
+
+    import "Mode";
+    Mode::SetMode ("autoinst_config");	// FIXME, messy
+    import "Product";
+    Mode::SetMode ("normal");		// FIXME, messy
+    import "DirInstall";
+    import "ProductControl";
+
+    import "Installation";
+
+    import "Wizard";
+    import "Label";
+    import "Popup";
+    import "Report";
+    import "GetInstArgs";
+
+define symbol Run () {
+    y2milestone("current mode: %1", Mode::mode());
+    DirInstall::InitProductControl ();
+    DirInstall::installing_into_dir = true;
+
+    Wizard::OpenNextBackStepsDialog();
+
+    // check the package manager target
+    Pkg::TargetFinish ();
+    string tmpdir = (string)SCR::Read (.target.tmpdir);
+    tmpdir = tmpdir + "/target";
+    SCR::Execute (.target.mkdir, tmpdir);
+    Pkg::TargetInit (tmpdir, true);
+
+    string wizard_mode = Mode::test () ? "installation" : Mode::mode ();
+
+    list<map> stage_mode = [$["stage": "normal",  "mode": wizard_mode ]];
+    ProductControl::AddWizardSteps(stage_mode);
+
+    // Don't log Report messages by default
+    Report::LogMessages(false);
+    Report::LogErrors(false);
+    Report::LogWarnings(false);
+
+    // calling inst_proposal
+
+    Installation::destdir = DirInstall::target;
+    y2debug("target dir: %1", Installation::destdir);
+    symbol ret = ProductControl::Run();
+    Pkg::SourceFinishAll ();
+    Pkg::TargetFinish();
+    Installation::destdir = "/";
+    Wizard::CloseDialog ();
+
+    return ret;
+}
+
+
+} // EOF

@@ -1,0 +1,273 @@
+/**
+ * File:	clients/inst_desktop.ycp
+ * Package:	Installation
+ * Summary:	Desktop Selection
+ * Authors:	Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+textdomain "packager";
+
+import "Directory";
+import "GetInstArgs";
+import "Label";
+import "Packages";
+import "Popup";
+import "ProductFeatures";
+import "Stage";
+import "Wizard";
+
+// do not offer the dialog if base selection is fixed
+if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
+    return `auto;
+
+map<symbol,string> desktop2selection = $[
+    `gnome : "default-Gnome",
+    `kde : "default",
+    `min_x11 : "Minimal+X11",
+    `text : "Minimal",
+];
+
+map<string,symbol> selection2desktop = mapmap (symbol d, string s,
+    desktop2selection,
+{
+    return $[ s : d ];
+});
+
+map<symbol,string> desktop2wm = $[
+    `gnome : "gnome",
+    `kde : "kde",
+    `min_x11 : "twm",
+    `text : "twm",
+];
+
+symbol alt_desktop = nil;
+symbol other_desktop = nil;
+if (Packages::preferred_base_selection == nil)
+{
+    Packages::preferred_base_selection = ProductFeatures::GetStringFeature ("software", "base_selection");
+    if (Packages::preferred_base_selection == "")
+	Packages::preferred_base_selection = nil;
+}
+if (Packages::preferred_base_selection != nil)
+{
+    alt_desktop = selection2desktop[Packages::preferred_base_selection]:`kde;
+    if (alt_desktop != `kde && alt_desktop != `gnome)
+    {
+	other_desktop = alt_desktop;
+	alt_desktop = `other;
+    }
+}
+
+map display = UI::GetDisplayInfo();
+integer space = display["TextMode"]:true ? 1 : 3;
+
+// all the arguments
+map argmap = GetInstArgs::argmap();
+
+
+
+string gnome_blurb =
+// explanation text for GNOME
+_("GNOME is a powerful and intuitive desktop
+environment that uses Evolution as its mailer,
+Firefox as its browser, and Nautilus as its
+file manager.");
+
+string kde_blurb =
+// explanation text for KDE
+_("KDE is a powerful and intuitive desktop
+environment that uses Kontact as its mailer
+and Konqueror as its browser and file manager.");
+
+// help text 1/3
+string help = _("<p>Both <b>KDE</b> and <b>GNOME</b> are powerful and intuitive
+desktop environments. They combine ease of use
+and attractive graphical interfaces with their
+own sets of perfectly integrated applications.</p>")
++
+// help text 2/3
+_("<p>Choosing the default <b>GNOME</b> or <b>KDE</b> desktop
+environment installs a broad set of the
+most important desktop applications on your
+system.</p>")
++
+// help text 3/3
+_("<p>Choose <b>Other</b> then press <b>Select</b> to select
+an alternative, such as a text-only system or a minimal graphical
+system with a basic window manager.</p>");
+
+term kde = `VBox (
+	    `Left (`RadioButton (`id (`kde), `opt(`notify, `boldFont),
+		// radio button
+		_("&KDE"),
+		alt_desktop == `kde)),
+	    `Left (`HBox (
+		`HSpacing (3),
+		`Top (`Label (kde_blurb)),
+		`HSpacing (1),
+		`Right (`Top (`Image (
+		    Directory::themedir + "/current/icons/48x48/apps/kde.png",
+			"")))
+	    ))
+	);
+
+term gnome = `VBox (
+	    `Left (`RadioButton (`id (`gnome), `opt (`notify, `boldFont),
+		// radio button
+		_("&GNOME"),
+		alt_desktop == `gnome)),
+	    `HBox (
+		`HSpacing (3),
+		`Top (`Label (gnome_blurb)),
+		`HSpacing (1),
+		`Right (`Top (`Image (
+		    Directory::themedir + "/current/icons/48x48/apps/gnome.png",
+			"")))
+	    )
+	);
+
+term contents = `RadioButtonGroup (`id (`desktop), `HBox (
+    `HWeight(1, `Empty()),	// Distribute excess space 1:2 (left:right)
+    `VBox(
+	`VStretch (),
+	// label (in bold font)
+//	`Left (`Label (`opt (`boldFont), _("Graphical Desktop Environment"))),
+//	`VSpacing (1.4),
+	`VWeight (10, gnome),
+	`VSpacing (0.4),
+	`VWeight (10, kde),
+	`VSpacing (0.4),
+	`VWeight (10, `HBox (
+	    `Left (`RadioButton (`id (`other), `opt(`notify, `boldFont),
+		// radio button
+		_("&Other"),
+		alt_desktop != `gnome && alt_desktop != `kde
+		    && alt_desktop != nil)),
+	    `HBox (
+		`HSpacing (3),
+		// push button
+		`PushButton (`id (`select), _("&Select..."))
+	    )
+	)),
+	`VStretch ()
+//	`VWeight (5, `Empty())
+    ),
+    `HWeight (2, `Empty ())
+));
+
+term expert_dialog = `VBox (
+    // frame
+    `MarginBox(2, 0.7, `Frame (_("Alternate Desktops"),
+	`MarginBox (1, 0.5, `RadioButtonGroup (`id (`desktop), `VBox (
+	    `Left (`RadioButton (`id (`min_x11),
+		// radio button
+		_("Minimal &Graphical System"))),
+	    `Left (`RadioButton (`id (`text),
+		// radio button
+		_("&Text Mode")))
+	))
+    ))),
+   `Right (`HBox (
+	`PushButton ( `id (`ok), `opt (`default), Label::OKButton ()),
+	`PushButton ( `id (`cancel), Label::CancelButton ())
+    ))
+);
+
+// dialog caption
+Wizard::SetContents (_("Desktop Selection"), contents, help,
+    GetInstArgs::enable_back(), GetInstArgs::enable_next());
+Wizard::SetTitleIcon ("yast-desktop-select");
+Wizard::SetFocusToNextButton();
+UI::ChangeWidget(`select, `Enabled, alt_desktop != `gnome
+    && alt_desktop != `kde && alt_desktop != nil);
+
+symbol ret = nil;
+
+repeat {
+    map event = UI::WaitForEvent();
+    ret = (symbol)event["ID"]:nil;
+
+    if (event["WidgetClass"]:nil == `RadioButton)
+    {
+	Wizard::EnableNextButton();
+	UI::ChangeWidget (`select, `Enabled,
+	    UI::QueryWidget (`other, `Value));
+    }
+    else if (ret == `next)
+    {
+	alt_desktop = (symbol)UI::QueryWidget (`id (`desktop), `CurrentButton);
+	if (alt_desktop == `other)
+	{
+	    if (other_desktop == nil)
+		ret = `select_next;
+	    else
+		alt_desktop = other_desktop;
+	}
+	if (alt_desktop == nil)
+	{
+	    // popup message
+	    Popup::Message (_("No desktop was selected. Select the
+desktop to install."));
+	    ret = nil;
+	}
+    }
+    if (ret == `select || ret == `select_next)
+    {
+	UI::OpenDialog (expert_dialog);
+	symbol selected = other_desktop;
+	if (selected != `text)
+	    selected = `min_x11;
+	UI::ChangeWidget (`id (`desktop), `CurrentButton, selected);
+	any popup_ret = UI::UserInput ();
+	selected = (symbol)UI::QueryWidget (`id (`desktop), `CurrentButton);
+	UI::CloseDialog ();
+	if (popup_ret == `ok)
+	{
+	    other_desktop = selected;
+	    if (ret == `select_next)
+	    {
+		alt_desktop = other_desktop;
+		ret = `next;
+	    }
+	}
+    }
+    else if (ret == `abort)
+    {
+	if (Popup::ConfirmAbort (Stage::initial () ? `painless : `incomplete))
+	    return `abort;
+	continue;
+    }
+
+} until (ret == `back || ret == `next);
+
+Wizard::EnableNextButton ();
+
+if (ret == `accept)
+    ret = `next;
+
+if (ret == `next)
+{
+    string base_selection = desktop2selection[alt_desktop]:"default";
+    if (Packages::preferred_base_selection != base_selection)
+    {
+	y2milestone ("Setting preferred base selection: %1", base_selection);
+	Packages::base_selection_changed = true;
+	Packages::preferred_base_selection = base_selection;
+	Packages::Reset ([`product]);
+    }
+    string wm = desktop2wm[alt_desktop]:"";
+    y2milestone ("Setting preferred window manager to %1", wm);
+    Packages::window_manager = wm;
+}
+
+return ret;
+
+
+
+/* EOF */
+}
