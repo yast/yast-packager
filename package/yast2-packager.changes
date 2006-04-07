@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  7 14:53:31 CEST 2006 - lslezak@suse.cz
+
+- display a warning when Pkg::SourceStartCache fails (#163267)
+- 2.13.72
+
+-------------------------------------------------------------------
 Fri Apr  7 12:36:38 CEST 2006 - jsuchome@suse.cz
 
 - import gpg keys before creating source (#164001)
