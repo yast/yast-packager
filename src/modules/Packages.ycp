@@ -520,6 +520,11 @@ global boolean CheckContentFile (integer source) {
 	    integer initial_source = nil;
 	    while (initial_source == nil)
 	    {
+		map out = (map) SCR::Execute (.target.bash_output, "/bin/ls -d /*.gpg");
+		foreach (string file, splitstring (out["stdout"]:"", "\n"), {
+		    if (file != "")
+			Pkg::ImportGPGKey (file, true);
+		});
 		initial_source = Pkg::SourceCreate (base_url, "");
 		if (initial_source == nil)
 		{
