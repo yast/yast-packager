@@ -163,12 +163,10 @@
        UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
 
        // start package manager
-
-	if (Pkg::SourceStartCache(true) == false)
+	if (size(Pkg::SourceStartCache(true)) == 0)
 	{
-	   Report::Warning("Start of the source manager has failed.
-Some installation sources might not be
-available or can be broken.");
+	   Report::Warning("No installation source is defined,
+only installed packages will be displayed.");
 	}
 
        Pkg::TargetInit (Installation::destdir, false);
