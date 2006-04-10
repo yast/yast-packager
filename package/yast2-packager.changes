@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 10 17:13:58 CEST 2006 - locilka@suse.cz
+
+- Hide password when reporting the URL for failed adding add-on
+  product (#164881).
+
+-------------------------------------------------------------------
 Mon Apr 10 16:53:24 CEST 2006 - visnov@suse.cz
 
 - adapt slideshow for new pkg-bindings API (#161298)
