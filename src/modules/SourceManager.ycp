@@ -29,6 +29,7 @@ import "Arch";
 import "Mode";
 import "Stage";
 import "URL";
+import "InstURL";
 
 
 global list<integer> newSources = [];
@@ -472,7 +473,7 @@ global symbol createSource( string url ) {
 	if ( size( newSources ) == 0  )
 	{
 	    string _msg1 = sformat( _("Unable to create catalog
-from URL '%1'."), url );
+from URL '%1'."), InstURL::HidePassword(url) );
 	    string err = Pkg::LastErrorId();
 	    string _msg2 = "";
 	    if ( err != "ok" ) {
