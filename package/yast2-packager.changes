@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 10 16:53:24 CEST 2006 - visnov@suse.cz
+
+- adapt slideshow for new pkg-bindings API (#161298)
+- 2.13.73 
+
+-------------------------------------------------------------------
 Fri Apr  7 14:53:31 CEST 2006 - lslezak@suse.cz
 
 - display a warning when Pkg::SourceStartCache fails (#163267)

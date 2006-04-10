@@ -229,7 +229,7 @@
     global void CallbackSourceChange( integer source, integer media)
     {
 	PackageCallbacks::SourceChange( source, media );		// inform PackageCallbacks about the change
-	SlideShow::SetCurrentCdNo( source+1, media );
+	SlideShow::SetCurrentCdNo( source, media );
 	SlideShow::UpdateCurrentPackageProgress(0);
 	SlideShow::UpdateAllCdProgress();
     };

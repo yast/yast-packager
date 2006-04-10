@@ -23,6 +23,7 @@
     global list<string>		inst_src_names			= [];	// a list of strings identifying each installation source
     global list<list<integer> > total_pkg_count_per_cd_per_src	= [];	// number of pkgs per inst-src: [ [7, 5, 3], [2, 3, 4] ]
     global list<list<integer> > remaining_pkg_count_per_cd_per_src = []; // remaining number of pkgs
+    global map<integer,integer> srcid_to_current_src_no = $[];
     global string	media_type		= "CD";
     global integer	total_size_installed	= 0;
     global integer	total_size_to_install	= 0;
@@ -1582,8 +1583,21 @@
 	current_slide_no	= 0;
 	slide_start_time	= 0;
 
+	list< list > src_list = Pkg::PkgMediaNames();
+	inst_src_names = maplist( list src, src_list, ``(src[0]:"CD") );
+
+	y2milestone ("Media names: %1", inst_src_names);
+
+	integer index = 0;
+
+	srcid_to_current_src_no = listmap( list src, src_list, {
+	  index = index + 1;
+	  return $[src[1]:-1 : index];
+	});
+
+	y2milestone ("Source mapping information: %1", srcid_to_current_src_no );
+
 	total_sizes_per_cd_per_src		= Pkg::PkgMediaSizes();
-	inst_src_names				= Pkg::PkgMediaNames();
 	total_pkg_count_per_cd_per_src		= Pkg::PkgMediaCount();
 
 
@@ -1651,7 +1665,7 @@
     global void SetCurrentCdNo( integer src_no, integer cd_no )
     {
 	y2milestone("SetCurrentCdNo() - src: %1 , CD: %2", src_no, cd_no);
-	current_src_no = src_no;
+	current_src_no = srcid_to_current_src_no[src_no]:-1;
 	current_cd_no  = cd_no;
 
 	CheckForSlides();
