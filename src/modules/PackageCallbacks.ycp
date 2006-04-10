@@ -697,7 +697,7 @@ Check that the server is accessible."), wanted_label);
     global void SourceChange (integer source, integer medianr)
     {
 	y2milestone ("SourceChange (%1, %2)", source, medianr);
-	_current_source = source + 1;
+	_current_source = source;
     }
 
 boolean refresh_open = false;
