@@ -586,7 +586,7 @@
 
 	integer file_pos = findlastof(pkg_name, "/");
 
-	if (file_pos > 0 )
+	if (file_pos != nil && file_pos > 0 )
 	{
 	    // return just the file name
 	    pkg_name = substring(pkg_name, file_pos + 1);
