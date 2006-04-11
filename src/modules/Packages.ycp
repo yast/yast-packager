@@ -351,6 +351,22 @@ global void Reset (list<symbol> keep) {
         return selection_list;
     }
 
+global list<string> ComputeSystemPatternList () {
+    list<string> pattern_list = [];
+    // also add the 'laptop' selection if PCMCIA detected
+    if (Arch::is_laptop () || Arch::has_pcmcia ())
+    {
+	foreach (sting pat_name, ["laptop", "Laptop"], {
+	    list<map<string, any> > pat_list = Pkg::ResolvableProperties (pat_name, `pattern, "");
+	    if (size (pat_list) > 0)
+		pattern_list = add (pattern_list, pat_name);
+	});
+    }
+    y2milestone ("System patterns: %1", pattern_list);
+    return pattern_list;
+}
+
+
     /**
      * Build and return list of packages which depends on the
      * the current target system and the preselected packages
@@ -843,6 +859,11 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 			y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
 		    });
 		}
+		y2milestone ("Selecting system patterns");
+		list<string> pats = ComputeSystemPatternList ();
+		foreach (string p, pats, {
+		    Pkg::ResolvableInstall (p, `pattern);
+		});
 		Pkg::PkgFreshen();
 		system_packages_selected = true;
 	    }
