@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 11 18:08:12 CEST 2006 - jsrain@suse.de
+
+- select laptop pattern on laptops (#165155)
+
+-------------------------------------------------------------------
 Tue Apr 11 12:22:33 CEST 2006 - locilka@suse.cz
 
 - Increasing time-out for calling 'rug' from 60 to 120 secs.
