@@ -356,7 +356,7 @@ global list<string> ComputeSystemPatternList () {
     // also add the 'laptop' selection if PCMCIA detected
     if (Arch::is_laptop () || Arch::has_pcmcia ())
     {
-	foreach (sting pat_name, ["laptop", "Laptop"], {
+	foreach (string pat_name, ["laptop", "Laptop"], {
 	    list<map<string, any> > pat_list = Pkg::ResolvableProperties (pat_name, `pattern, "");
 	    if (size (pat_list) > 0)
 		pattern_list = add (pattern_list, pat_name);
