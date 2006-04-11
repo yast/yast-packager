@@ -283,6 +283,63 @@ Use it anyway?")
     }
 
     /**
+     * Used for file or package on signed source but without any checksum.
+     * Opens dialog asking whether user wants to use this item.
+     *
+     * @param symbol item_type `file or `package
+     * @param string item_name file name or package name
+     * @param string dont_show_dialog_ident for the identification in magic "don't show" functions
+     * @return boolean use or don't use ('true' if 'yes')
+     */
+    global boolean UseItemWithNoChecksum (symbol item_type, string item_name, string dont_show_dialog_ident) {
+	string description_text = sformat((item_type == `package ?
+	    // popup question, %1 stands for the package name
+	    _("No checksum for package %1 was found on the source.
+This means that the package is part of the signed source, but the list of checksums
+on this source does not mention this package. Installing the package may put
+the integrity of your system at risk.
+
+Install it anyway?")
+	    :
+	    // popup question, %1 stands for the filename
+	    _("No checksum for file %1 was found on the source.
+This means that the file is part of the signed source, but the list of checksums
+on this source does not mention this package. Installing the file may put
+the integrity of your system at risk.
+
+Use it anyway?")
+	), item_name);
+
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		`HBox (
+		    `VCenter(MessageIcon("warning")),
+		    // popup heading
+		    `VCenter(`Heading( _("No Checksum Found"))),
+		    `HStretch()
+		),
+		`MarginBox(0.5, 0.5, `Label(description_text)),
+		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
+		    Message::DoNotShowMessageAgain(),
+		    (GetShowThisPopup(dont_show_dialog_ident) ? false:true)
+		))),
+		YesNoButtons(`no)
+	    )
+	);
+
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+	
+	// Store the don't show value, store the default return value
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again);
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
      * Used for corrupted file or package. Opens dialog asking whether user wants
      * to use this corrupted item.
      *

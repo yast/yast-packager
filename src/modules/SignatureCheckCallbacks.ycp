@@ -40,6 +40,18 @@
     }
     
 
+    global boolean AcceptFileWithoutChecksum (string filename) {
+	string dont_show_dialog_ident = "-AcceptFileWithoutChecksum-";
+	
+	// Show the popup?
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
+	    return SignatureCheckDialogs::UseItemWithNoChecksum(`file, filename, dont_show_dialog_ident);
+	// Return the default value entered by user
+	} else {
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
+	}
+    }
+
     // Name of the callback handler function. Required callback prototype is
     // boolean(string filename, string keyid, string keyname). The callback
     // function should ask user whether the unknown key can be accepted, returned
