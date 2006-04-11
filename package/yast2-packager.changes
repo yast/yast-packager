@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 11 12:22:33 CEST 2006 - locilka@suse.cz
+
+- Increasing time-out for calling 'rug' from 60 to 120 secs.
+- 2.13.76
+
+-------------------------------------------------------------------
 Tue Apr 11 10:04:30 CEST 2006 - locilka@suse.cz
 
 - Added function for callback Pkg::CallbackAcceptFileWithoutChecksum()
