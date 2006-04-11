@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 11 10:04:30 CEST 2006 - locilka@suse.cz
+
+- Added function for callback Pkg::CallbackAcceptFileWithoutChecksum()
+- 2.13.75
+
+-------------------------------------------------------------------
 Mon Apr 10 17:13:58 CEST 2006 - locilka@suse.cz
 
 - Hide password when reporting the URL for failed adding add-on
