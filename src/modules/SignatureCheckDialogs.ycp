@@ -294,7 +294,7 @@ Use it anyway?")
     global boolean UseItemWithNoChecksum (symbol item_type, string item_name, string dont_show_dialog_ident) {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name
-	    _("No checksum for package %1 was found on the source.
+	    _("No checksum for package %1 was found in the source.
 This means that the package is part of the signed source, but the list of checksums
 on this source does not mention this package. Installing the package may put
 the integrity of your system at risk.
@@ -302,7 +302,7 @@ the integrity of your system at risk.
 Install it anyway?")
 	    :
 	    // popup question, %1 stands for the filename
-	    _("No checksum for file %1 was found on the source.
+	    _("No checksum for file %1 was found in the source.
 This means that the file is part of the signed source, but the list of checksums
 on this source does not mention this package. Installing the file may put
 the integrity of your system at risk.
