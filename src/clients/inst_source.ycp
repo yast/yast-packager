@@ -203,7 +203,14 @@ in the packages selection, continue."),
 	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
 	boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
 	if (have_rug) {
-	    success = success && SourceManager::SyncAddedAndDeleted (added, deleted);
+	    if (success && !SourceManager::SyncAddedAndDeleted (added, deleted))
+	    {
+		// yes/no popup
+		if (!Popup::YesNo (_("Source synchronization with ZMD failed.
+Save changes anyway?")))
+		    success	= false;
+
+	    }
 	}
 	else {
 	    y2milestone ("No rug, not syncing");
@@ -504,14 +511,15 @@ Not all sources will be available for configuration.
         else if ( input == `next )
         {
 	  // store the new state
-          boolean success = Write(); 
+          boolean success = Write();
           if ( !success ) {
 		// popup message part 1
                 string _msg1 = _("Unable to save changes to installation source
 configuration.");
-                string err = Pkg::LastErrorId();
+                string details = Pkg::LastError();
 		// popup message part 2 followed by other info
-                string _msg2 = _("Details:") + "\n" + Pkg::LastError();
+                string _msg2 = details != "" ? (_("Details:") + "\n" + details)
+		    : "";
 		// popup message part 3
                 _msg2 = _msg2 + "\n" + _("Try again?");
 

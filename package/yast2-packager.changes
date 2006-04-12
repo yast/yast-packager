@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 12 12:31:15 CEST 2006 - jsuchome@suse.cz
+
+- enable saving the sources if rug reports errors (#165478)
+- 2.13.80 
+
+-------------------------------------------------------------------
 Wed Apr 12 12:22:31 CEST 2006 - locilka@suse.cz
 
 - Merged text from proofreading
