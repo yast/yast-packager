@@ -28,7 +28,17 @@
      * check if given path points to ISO file
      */
     define boolean path_is_iso (string url) {
+	if (size (url) < 4) return false;
 	return substring (url, size (url) - 4, 4) == ".iso";
+    }
+
+    // add a slash to the part of url, if it is not already present
+    define string slashed (string urlpart) {
+
+        if ( substring( urlpart, 0, 1 ) == "/" ) {
+          return urlpart;
+        }
+	return "/" + urlpart;
     }
 
     /**
@@ -160,7 +170,7 @@
 		// text entry
                 `TextEntry( `id( `dir ), _("&Path to Directory or ISO Image"), urlpath ),
 		// checkbox label
-		`Left (`CheckBox (`id (`ch_iso), _("ISO Image"))),
+		`Left (`CheckBox (`id (`ch_iso), _("ISO Image"), path_is_iso (urlpath))),
                 dialogButtons()
             )
         );
@@ -325,7 +335,7 @@
 			// text entry
 			_("&Path to Directory or ISO Image"),urlpath),
 		    // checkbox label
-		    `Left (`CheckBox (`id(`ch_iso), _("ISO Image")))
+		    `Left (`CheckBox (`id(`ch_iso), _("ISO Image"),path_is_iso (urlpath)))
 		) :
 		// text entry
                 `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath );
@@ -462,10 +472,12 @@
 		if (UI::WidgetExists (`id (`share)))
 		{
 		    share = (string)UI::QueryWidget (`id (`share), `Value);
-		    url = url + server + "/" + share + "/" + directory;
+		    url = url + server + slashed(share) + slashed(directory);
 		}
-		else
+		else if (type == `ftp)
 		    url = url + server + "/" + directory;
+		else
+		    url = url + server + slashed(directory);
 
 		if (UI::WidgetExists (`id (`workgroup)))
 		     workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
@@ -503,7 +515,7 @@
 		    )
                 ),
 		// checkbox label
-		`Left (`CheckBox (`id (`ch_iso), _("ISO Image"))),
+		`Left (`CheckBox (`id (`ch_iso), _("ISO Image"),path_is_iso (defaulturl))),
                 dialogButtons()
             )
         );
@@ -619,8 +631,16 @@
     define string editUrl2( string url, boolean allowHttps ) ``{                                                                  
       if ( size( url ) == 0 ) return getUrl2( "", allowHttps );
 
-        map parsedUrl = URL::Parse( url );
+	if (substring (url, 0, 5) == "iso:/" &&
+	    issubstring (url, "&url="))
+	{
+	    integer url_pt = find (url, "&url=");
+	    string serverpart = substring (url, url_pt + 5);
+	    string isopart = substring (url, 0, url_pt);
+	    url	= serverpart + substring (isopart, find (isopart, "iso=") + 4);
+	}
 
+        map parsedUrl = URL::Parse( url );
         string protocol = parsedUrl[ "scheme" ]:"";
         string urlpath = parsedUrl[ "path" ]:"";
 
