@@ -566,14 +566,18 @@ global boolean CheckContentFile (integer source) {
             map productmap = Pkg::SourceProductData (initial_source);
             string datadir = productmap["datadir"]:"suse";
 	    // FIXME: this is optional
-            string slidedir = Pkg::SourceProvideDir( initial_source, 1, "/" + datadir + "/setup/slide" );
+	    string slidedir_find = "/" + datadir + "/setup/slide";
+            string slidedir = Pkg::SourceProvideDir( initial_source, 1, slidedir_find );
 
-	    // copy all files to our own copy
- 	    string our_slidedir = (string)WFM::Read( .local.tmpdir, "" );
-
-	    WFM::Execute( .local.bash,  sformat( "cp -r %1/* %2/", slidedir, our_slidedir ) ) ;
+	    string our_slidedir = (string)WFM::Read( .local.tmpdir, "" );
+	    if (slidedir == nil) {
+		y2error("No slide directory '%1' found on source '%2'.", slidedir_find, initial_source);
+	    } else {
+		// copy all files to our own copy
+		WFM::Execute( .local.bash,  sformat( "cp -r %1/* %2/", slidedir, our_slidedir ) ) ;
+	    }
 	    y2milestone( "Setting up the slide directory local copy: %1",  our_slidedir);
-            SlideShow::SetSlideDir (our_slidedir);
+	    SlideShow::SetSlideDir (our_slidedir);
 
 	    add_on_products_list = Pkg::SourceProvideOptionalFile (initial_source, 1, "/add_on_products");
 
