@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 12 12:22:31 CEST 2006 - locilka@suse.cz
+
+- Merged text from proofreading
+
+-------------------------------------------------------------------
 Wed Apr 12 11:20:27 CEST 2006 - mvidner@suse.cz
 
 - Increased the timeout for ZMD source syncing to 30 minutes (#165145).
