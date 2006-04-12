@@ -750,11 +750,32 @@ global list Overview() {
      * - with a timeout
      * - on dumb terminal to disable colors etc
      * - using 'exit $?' because of buggy behavior '.background vs. ZMD'
+     * @param command a command
+     * @param seconds timeout
+     * @return map with out, err and ret_code
      */
-    map RunDumb120 (string command) {
+    map RunDumbTimeout (string command, integer seconds) {
 	map ret = RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", 120);
 	if (ret == nil) ret = $[];
 	return ret;
+    }
+
+    /**
+     * Run with a short timeout
+     * @param command a command
+     * @return map with out, err and ret_code
+     */
+    map RunShort (string command) {
+	return RunDumbTimeout (command, 120);
+    }
+
+    /**
+     * Run with a short timeout
+     * @param command a command
+     * @return map with out, err and ret_code
+     */
+    map RunLong (string command) {
+	return RunDumbTimeout (command, 1800);
     }
 
     /**
@@ -762,7 +783,7 @@ global list Overview() {
      */
     boolean CheckZMDStatus () {
 	string rug_command = "/usr/bin/rug";
-	map zmd_status = RunDumb120 (rug_command + " ping >/dev/null");
+	map zmd_status = RunShort (rug_command + " ping >/dev/null");
 	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
 	return zmd_status["exit"]:nil == 0;
     }
@@ -775,7 +796,7 @@ global list Overview() {
      * @return integer count of matching lines
      */
     integer CountOfZMDServicesMatching (string grep_pattern) {
-	map ret = RunDumb120 ("/usr/bin/rug service-list");
+	map ret = RunShort ("/usr/bin/rug service-list");
 	if (ret["stdout"]:nil != nil) {
 	    list <string> matching = filter (string one_line, (list <string>) ret["stdout"]:[], {
 		return regexpmatch(one_line, grep_pattern);
@@ -833,7 +854,7 @@ global list Overview() {
 	else {
 	    command = sformat ("/usr/bin/rug service-delete '%1'", url);
 	}
-	map ret = RunDumb120 (command);
+	map ret = RunLong (command); // #165145
 	if (ret["exit"]:nil == 0) {
 	    return true;
 	} else {
@@ -860,7 +881,7 @@ global list Overview() {
 	zmd_handle ["was_running"] = running;
 	if (! running) {
 	    // Starting the service
-	    map zmd_start = RunDumb120 (zmd_service_name + " start");
+	    map zmd_start = RunShort (zmd_service_name + " start");
 	    y2milestone("ZMD start: %1", zmd_start);
 	}
 	// Checking the status after start
@@ -894,7 +915,7 @@ global list Overview() {
 	if (zmd_handle["is_running"]:false)
 	{
 	    y2milestone("Stopping service ZMD %1", zmd_service_name);
-	    map zmd_stop = RunDumb120 (zmd_service_name + " stop");
+	    map zmd_stop = RunShort (zmd_service_name + " stop");
 	    y2milestone("ZMD stop: %1", zmd_stop);
 	    if (zmd_stop["exit"]:nil != 0) {
 		Report::Error(Message::CannotStopService(zmd_service_name));
