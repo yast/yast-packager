@@ -56,17 +56,6 @@
 					    // or marked to ignore
 	    }
 	}
-
-	if (ret == `next)
-	{
-	    boolean error_found = SpaceCalculation::ShowPartitionWarning();
-
-	    if ( error_found )
-	    {
-		y2error( "Not enough disk space" );
-		ret = `again;
-	    }
-	}
     }
 
     if ( ret == `back || ret == `cancel )
