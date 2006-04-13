@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Thu Apr 13 21:53:59 CEST 2006 - jsrain@suse.de
+Thu Apr 13 21:54:53 CEST 2006 - jsrain@suse.de
 
 - allow to repartition disk if too much software selected (#163316)
+- 2.13.82
 
 -------------------------------------------------------------------
 Wed Apr 12 15:20:32 CEST 2006 - jsuchome@suse.cz
