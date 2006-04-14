@@ -542,7 +542,7 @@ global boolean CheckContentFile (integer source) {
 			Pkg::ImportGPGKey (file, true);
 		});
 		initial_source = Pkg::SourceCreate (base_url, "");
-		if (initial_source == nil)
+		if (initial_source == -1 || initial_source == nil)
 		{
 		    y2error ("No source on '%1'", log_url);
 		    // error in proposal, %1 is URL
