@@ -1112,8 +1112,8 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	if (using_patterns)
 	{
-//	    if (! simple)
-//	    {
+	    if (! simple)
+	    {
 		list<map<string,any> > patterns = Pkg::ResolvableProperties ("", `pattern, "");
 		foreach (map<string,any> p, patterns, {
 		    if (p["status"]:nil == `selected && p["user_visible"]:true)
@@ -1124,7 +1124,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 			output = add (output, "+  " + summary);
 		    }
 		});
-//	    }
+	    }
 	}
 	else
 	{
