@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 18 17:52:12 CEST 2006 - sh@suse.de
+
+- Fixed bug #164869: No dependency check in pattern selector
+  due to duplicated "Accept" button 
+- V 2.13.87
+
+-------------------------------------------------------------------
 Tue Apr 18 16:27:04 CEST 2006 - lslezak@suse.cz
 
 - allow system update although there is not enough free space

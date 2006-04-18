@@ -59,7 +59,8 @@
      **/
     symbol patternSelection()
     {
-	if ( ! UI::HasSpecialWidget(`PatternSelector ) )
+	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
+	     UI::WizardCommand(`Ping() ) == false        )
 	{
 	    return detailedSelection( nil );	// Fallback: detailed selection
 	}
@@ -111,11 +112,11 @@
 	    {
 		result = detailedSelection( nil );
 
-		if ( result == `cancel ) 
+		if ( result == `cancel )
                     // don't get all the way out - the user might just have
                     // been scared of the gory details.
-		    result = nil;	
-		
+		    result = nil;
+
 	    }
 
 	} until ( result == `cancel || result == `accept );
