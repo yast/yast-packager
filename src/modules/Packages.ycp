@@ -100,7 +100,7 @@ global void Reset (list<symbol> keep) {
 /**
  * Initialize add-on products provided by the installation source
  */
-global void InitializeAddOnproducts() {
+global void InitializeAddOnProducts() {
     if (Packages::add_on_products_list != nil)
     {
 	y2milestone ("Found list of add-on products to preselect");
