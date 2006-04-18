@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 18 20:19:06 CEST 2006 - jsrain@suse.de
+
+- provide function to install add-on products specified on medium
+
+-------------------------------------------------------------------
 Tue Apr 18 17:52:12 CEST 2006 - sh@suse.de
 
 - Fixed bug #164869: No dependency check in pattern selector
