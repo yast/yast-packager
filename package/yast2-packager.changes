@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 19 00:29:52 CEST 2006 - jsrain@suse.de
+
+- inform in the log that installation was aborted (#157322)
+
+-------------------------------------------------------------------
 Tue Apr 18 20:19:06 CEST 2006 - jsrain@suse.de
 
 - provide function to install add-on products specified on medium
