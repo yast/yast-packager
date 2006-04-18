@@ -60,7 +60,7 @@
     symbol patternSelection()
     {
 	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
-	     UI::WizardCommand(`Ping() ) == false        )
+	     UI::WizardCommand(`Ping() ) != true	 )
 	{
 	    return detailedSelection( nil );	// Fallback: detailed selection
 	}
