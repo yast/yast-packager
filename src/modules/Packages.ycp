@@ -32,6 +32,7 @@
     import "Label";
     import "Wizard";
     import "DirInstall";
+    import "PackageCallbacksInit";
 
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
@@ -74,6 +75,8 @@
     global boolean using_patterns = false;
 
     global string add_on_products_list = nil;
+
+global boolean SelectProduct ();
 
 /**
  * Reset package selection, but keep objects of specified type
@@ -592,7 +595,9 @@ global boolean CheckContentFile (integer source) {
 	    y2milestone( "Setting up the slide directory local copy: %1",  our_slidedir);
 	    SlideShow::SetSlideDir (our_slidedir);
 
-	    add_on_products_list = Pkg::SourceProvideOptionalFile (initial_source, 1, "/add_on_products");
+	    string tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, "/add_on_products");
+	    add_on_products_list = ((string)SCR::Read (.target.tmpdir)) + "/add_on_products";
+	    WFM::Execute (.local.bash, sformat ("cp %1 %2", tmp_add_on_products, add_on_products_list));
 
             /* Check for Service Pack */
             boolean servicepack_available = false;
