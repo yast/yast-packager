@@ -106,7 +106,7 @@ global void Reset (list<symbol> keep) {
 global void InitializeAddOnProducts() {
     if (Packages::add_on_products_list != nil)
     {
-	y2milestone ("Found list of add-on products to preselect");
+	y2milestone ("Found list of add-on products to preselect: %1", Packages::add_on_products_list);
 	Packages::SelectProduct ();
 	PackageCallbacksInit::SetMediaCallbacks();
 	AddOnProduct::AddPreselectedAddOnProducts (Packages::add_on_products_list);

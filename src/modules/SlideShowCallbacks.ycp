@@ -56,6 +56,10 @@
 	    {
 		user_abort = Popup::ConfirmAbort( `incomplete );
 	    }
+	    if (user_abort)
+	    {
+		SlideShow::AppendMessageToInstLog (_("Aborted"));
+	    }
 	}
 	else
 	{

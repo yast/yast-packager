@@ -696,7 +696,20 @@
 	language = new_language;
     }
 
+    /**
+     * Append message to the installation log
+     */
+    global void AppendMessageToInstLog (string msg)
+    {
+	string log_line = "\n" + msg;
+	inst_log = inst_log + log_line;
 
+	if ( ShowingDetails() )
+	{
+	    if ( UI::WidgetExists( `instLog ) )
+		UI::ChangeWidget(`instLog, `LastLine, log_line );
+	}
+    }
 
     /**
      * Update internal bookkeeping: subtract size of one package from the
