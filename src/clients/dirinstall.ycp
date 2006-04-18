@@ -14,7 +14,13 @@
     if (! PackageLock::Check ())
 	return `abort;
 
-    // constructor calls Pkg::
+    // install package callbacks
+    import "PackageCallbacksInit";
+    PackageCallbacksInit::InitPackageCallbacks();
+
+    // initializa the package manager
+    Pkg::SourceStartManager(true);
+
     import "DirInstall";
     include "dirinstall/ui.ycp";
 
