@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 18 15:11:09 CEST 2006 - lslezak@suse.cz
+
+- DirInstall - don't initialize the sources in the constructor,
+  install the package callbacks in the dirinstall mode (#167281)
+- 2.13.85
+
+-------------------------------------------------------------------
 Fri Apr 14 23:48:32 CEST 2006 - jsrain@suse.de
 
 - reverted displaying selected patterns in simple proposal (#162281)
