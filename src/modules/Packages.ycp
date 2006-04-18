@@ -1155,6 +1155,15 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    y2warning ("Software selection does not fit on disk");
 	}
 
+	// disk usage calculation is not accurate in update mode
+	if ( (!SpaceCalculation::CheckDiskSize()) && ret["warning_level"]:nil == `blocker && Mode::update())
+	{
+	    y2milestone("Insufficient disk space in update mode, using warning level: `warning");
+	    ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
+	    // use `warning instead of `blocker
+	    ret = add( ret, "warning_level", `warning );
+	}
+
 	ret = add ( ret, "raw_proposal", output );
 
 	// we just proposed a new base selection, activate it !
