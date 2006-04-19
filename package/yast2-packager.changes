@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 19 15:04:30 CEST 2006 - jsuchome@suse.cz
+
+- after finishing sources configuration, restart menu.ycp (#162966)
+- 2.13.90
+
+-------------------------------------------------------------------
 Wed Apr 19 14:56:04 CEST 2006 - mvidner@suse.cz
 
 - Fixed a false timeout when calling rug (#165821).
