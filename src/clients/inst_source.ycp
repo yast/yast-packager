@@ -658,5 +658,7 @@ cannot be set."));
 
     y2debug( "Return: %1", input );
 
+    if (input == `next && Mode::normal ())
+	input	= `restart_menu;
     return input;
 }
