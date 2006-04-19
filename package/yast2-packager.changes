@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 19 14:56:04 CEST 2006 - mvidner@suse.cz
+
+- Fixed a false timeout when calling rug (#165821).
+- Really increased the rug timeout (#165145#c11).
+- 2.13.89
+
+-------------------------------------------------------------------
 Wed Apr 19 00:29:52 CEST 2006 - jsrain@suse.de
 
 - inform in the log that installation was aborted (#157322)
