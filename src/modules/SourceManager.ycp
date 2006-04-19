@@ -699,7 +699,7 @@ global list Overview() {
      * @param integer timeout in sec.
      * @return map with out, err and ret_code
      */
-    map RunCommandWithTimeout (string run_command, integer script_time_out) {
+    global map RunCommandWithTimeout (string run_command, integer script_time_out) {
 	y2milestone("Running command \"%1\" in background...", run_command);
 
 	boolean started = (boolean) SCR::Execute(.background.run_output_err, run_command);
@@ -712,16 +712,32 @@ global list Overview() {
 	list<string> script_err = [];
 	integer time_spent = 0;
 	integer return_code = nil;
-	boolean cont_loop = true;
-	integer sleep_step = 20;
+	boolean timed_out = false;
+	integer sleep_step = 200; // ms
 	script_time_out = script_time_out * 1000;
 	
 	// while continuing is needed and while it is possible
-	while (cont_loop && ((boolean) SCR::Read(.background.output_open) || (integer) SCR::Read(.background.pid) > 0)) {
+	while (! timed_out) {
+	    boolean running = (boolean) SCR::Read(.background.isrunning);
+	    // debugging #165821
+	    if (time_spent % 100000 == 0) {
+		y2milestone ("running: %1", running);
+		string flag = "/tmp/SourceManagerTimeout";
+		if (SCR::Read (.target.size, flag) != -1) {
+		    y2milestone ("Emergency exit");
+		    SCR::Execute (.target.remove, flag);
+		    break;
+		}
+	    }
+
+	    if (! running) {
+		break;
+	    }
+
 	    // time-out
 	    if (time_spent >= script_time_out) {
-		y2error("Command '%1' timed-out after %2 mces", run_command, time_spent);
-		cont_loop = false;
+		y2error("Command timed out after %1 msec", time_spent);
+		timed_out = true;
 	    }
 	    
 	    time_spent = time_spent + sleep_step;
@@ -730,7 +746,7 @@ global list Overview() {
 	y2milestone("Time spent: %1 msec", time_spent);
 
 	// fetching the return code if not timed-out
-	if (cont_loop) {
+	if (! timed_out) {
 	    script_out  = (list<string>) SCR::Read(.background.newout);
 	    script_err  = (list<string>) SCR::Read(.background.newerr);
 	    return_code = (integer) SCR::Read(.background.status);
@@ -754,8 +770,8 @@ global list Overview() {
      * @param seconds timeout
      * @return map with out, err and ret_code
      */
-    map RunDumbTimeout (string command, integer seconds) {
-	map ret = RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", 120);
+    global map RunDumbTimeout (string command, integer seconds) {
+	map ret = RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", seconds);
 	if (ret == nil) ret = $[];
 	return ret;
     }
