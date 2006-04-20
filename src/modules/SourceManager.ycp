@@ -848,12 +848,12 @@ global list Overview() {
 	    // maybe a bug with "="?
 	    map parsed_url = URL::Parse (url);
 	    string query = parsed_url["query"]:"";
-	    if (query != "") query = query + ";";
+	    if (query != "") query = query + "&";
 	    parsed_url["query"] = query + "alias=" + alias;
 	    string test_url = URL::Build (parsed_url);
 	    y2milestone ("test zmd url: %1", test_url);
 
-	    string separator = (search (url, "?") == nil)? "?": ";";
+	    string separator = (search (url, "?") == nil)? "?": "&";
 	    url = url + separator + "alias=" + alias;
 	}
 	y2milestone ("zmd url: %1", url);

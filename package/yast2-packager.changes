@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 20 17:41:10 CEST 2006 - mvidner@suse.cz
+
+- The separator for URL query parameters is '&', not ';' (#168030).
+- 2.13.92
+
+-------------------------------------------------------------------
 Thu Apr 20 16:05:04 CEST 2006 - locilka@suse.cz
 
 - GnuPG dialogs enhanced with optional fingeprint parameter,
