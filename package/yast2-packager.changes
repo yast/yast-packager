@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 20 16:05:04 CEST 2006 - locilka@suse.cz
+
+- GnuPG dialogs enhanced with optional fingeprint parameter,
+  dialogs should handle both defined and undefined one (#167519).
+- 2.13.91
+
+-------------------------------------------------------------------
 Wed Apr 19 15:04:30 CEST 2006 - jsuchome@suse.cz
 
 - after finishing sources configuration, restart menu.ycp (#162966)
