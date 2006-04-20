@@ -62,13 +62,13 @@
     // (+DontShowAgain functionality) -- for one run in memory
     //
     /* function for CallbackAcceptUnknownGpgKey() */
-    global boolean AcceptUnknownGpgKey (string filename, string keyid, string keyname) {
+    global boolean AcceptUnknownGpgKey (string filename, string keyid, string keyname, string fingerprint) {
 	string dont_show_dialog_ident = "-AcceptUnknownGpgKey-";
 
 	// Show the popup?
 	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
 	    // Unknown keyname == "Unknown Key"
-	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, dont_show_dialog_ident);
+	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, fingerprint, dont_show_dialog_ident);
 	// Return the default value entered by user
 	} else {
 	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
@@ -83,8 +83,9 @@
     // zypp: askUserToTrustKey
     //
     /* function for CallbackImportGpgKey() */
-    global boolean ImportGpgKey (string keyid, string keyname, string keydetails) {
-	return SignatureCheckDialogs::ImportUntrustedGPGKeyIntoTrustedDialog(keyid, keyname, keydetails);
+    global boolean ImportGpgKey (string keyid, string keyname, string fingerprint) {
+	// There are no details from the callback, maybe in the future
+	return SignatureCheckDialogs::ImportUntrustedGPGKeyIntoTrustedDialog(keyid, keyname, fingerprint, "");
     }
     
     // Name of the callback handler function. Required callback prototype is
@@ -95,8 +96,8 @@
     // zypp: askUserToAcceptVerificationFailed
     //
     /* function for CallbackAcceptVerificationFailed() */
-    global boolean AcceptVerificationFailed (string filename, string keyid, string keyname) {
-	return SignatureCheckDialogs::UseCorruptedItem(`file, filename, keyid, keyname);
+    global boolean AcceptVerificationFailed (string filename, string keyid, string keyname, string fingerprint) {
+	return SignatureCheckDialogs::UseCorruptedItem(`file, filename, keyid, keyname, fingerprint);
     }
     
     /* ============================ < Callbacks for Sources > ============================ */
@@ -106,8 +107,8 @@
     // that a trusted key has been added.
     //
     /* function for CallbackTrustedKeyAdded() */
-    void TrustedKeyAdded (string keyid, string keyname) {
-	y2milestone("Trusted key has been added: %1 (%2)", keyid, keyname);
+    void TrustedKeyAdded (string keyring, string keyid, string keyname, string fingerprint) {
+	y2milestone("Trusted key has been added: %1 / %2 (%3)", keyid, fingerprint, keyname);
 	return nil;
     }
     
@@ -116,8 +117,8 @@
     // that a trusted key has been removed.
     //
     /* function for CallbackTrustedKeyRemoved() */
-    void TrustedKeyRemoved (string keyid, string keyname) {
-	y2milestone("Trusted key has been removed: %1 (%2)", keyid, keyname);
+    void TrustedKeyRemoved (string keyring, string keyid, string keyname, string fingerprint) {
+	y2milestone("Trusted key has been removed: %1 / %2 (%3)", keyid, fingerprint, keyname);
 	return nil;
     }
 }
