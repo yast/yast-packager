@@ -557,7 +557,7 @@ global boolean CheckContentFile (integer source) {
 		    if (file != "")
 			Pkg::ImportGPGKey (file, true);
 		});
-		initial_source = Pkg::SourceCreate (base_url, "");
+		initial_source = Pkg::SourceCreateBase (base_url, "");
 		if (initial_source == -1 || initial_source == nil)
 		{
 		    y2error ("No source on '%1'", log_url);
@@ -764,12 +764,14 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 global boolean SelectProduct () {
     Packages::Init (false); // argument ignored anyway...
     list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+    products = filter (map<string,any> p, products, {
+	return p["category"]:"" == "base";
+    });
     if (size (products) == 0)
     {
-	y2milestone ("No product found on media");
+	y2milestone ("No base product found on media");
 	return true;
     }
-    // FIXME TODO filter for base products
     list<map<string,any> >selected_products = filter (map<string,any> p, products, {
 	return p["status"]:nil == `selected;
     });
