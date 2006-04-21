@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 21 23:18:21 CEST 2006 - jsrain@suse.de
+
+- create 1st source as source containing base product (#160585)
+
+-------------------------------------------------------------------
 Thu Apr 20 17:41:10 CEST 2006 - mvidner@suse.cz
 
 - The separator for URL query parameters is '&', not ';' (#168030).
