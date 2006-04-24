@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 24 16:58:36 CEST 2006 - mvidner@suse.cz
+
+- Always tell rug that zypp owns the source (#168739).
+- 2.13.95
+
+-------------------------------------------------------------------
 Mon Apr 24 12:53:53 CEST 2006 - locilka@suse.cz
 
 - modified help texts for importing GnuPG keys to make removing
