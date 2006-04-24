@@ -16,6 +16,11 @@
     import "Popup";
     import "Message";
 
+    // GnuPG fingerprint used as "Fingerprint: AAA BBB CCC"
+    string f_string = _("Fingerprint");
+    // GnuPG key ID used as "Key ID: 1144AAAA444"
+    string f_k_id   = _("Key ID");
+
     /* --------------------------- Don't show this dialog again Magic --------------------------- */
 
     map <string, boolean> show_popup = $[];
