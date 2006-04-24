@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 24 12:53:53 CEST 2006 - locilka@suse.cz
+
+- modified help texts for importing GnuPG keys to make removing
+  the [Details...] button possible. Leaving the old ones unchanged.
+
+-------------------------------------------------------------------
 Fri Apr 21 23:18:21 CEST 2006 - jsrain@suse.de
 
 - create 1st source as source containing base product (#160585)
