@@ -831,7 +831,7 @@ global list Overview() {
      */
     boolean AddOrDeleteZYPPServiceIntoZMD (integer src_id, boolean adding) {
 	map gendata = Pkg::SourceGeneralData (src_id);
-	string stype = gendata["type"]:"";
+	string stype = gendata["type"]:""; // metadata type
 	if (stype == "YaST") stype = "zypp";	/* 'rug' only accepts yum or zypp  */
 	string url = gendata["url"]:"";
 	// ZMD must have unique URIs, so we append the alias
@@ -842,7 +842,10 @@ global list Overview() {
 	    return false;
 	}
 
-	if (stype == "zypp") // yum sources do not need+understand the alias
+	// yum sources do not need+understand the alias, #164083
+	// The above reason is obsolete but we keep compatibility with
+	// the service-delete zmd helper
+	if (stype == "zypp")
 	{
 	    // URL (un)escapes for us
 	    // maybe a bug with "="?
@@ -859,12 +862,13 @@ global list Overview() {
 	y2milestone ("zmd url: %1", url);
 
 	string name = alias;
+	string owner = "zypp";	// not stype: #168739
 
 	string command = nil;
 	if (adding) {
 	    command = sformat (
 		"/usr/bin/rug service-add --type='%3' '%1' '%2' && /usr/bin/rug subscribe '%1'",
-		url, name, stype
+		url, name, owner
 		);
 	}
 	else {
