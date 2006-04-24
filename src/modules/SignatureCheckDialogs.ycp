@@ -109,6 +109,36 @@
     
     /* --------------------------- Don't show this dialog again Magic --------------------------- */
 
+    /**
+     * Function adds delimiter between after_chars characters in the string
+     *
+     * @param string to be splitted
+     * @param string delimiter
+     * @param integer after characters
+     * @return string with delimiters
+     */
+    string StringSplitter(string whattosplit, string delimiter, integer after_chars) {
+	string splittedstring       = "";
+	integer after_chars_counter = 0;
+	integer max_size            = size(whattosplit);
+	
+	while (true) {
+	    if ((after_chars_counter + after_chars) >= max_size) {
+		splittedstring = splittedstring +
+		    (splittedstring == "" ? "":delimiter) +
+		    substring(whattosplit, after_chars_counter);
+		break;
+	    } else {
+		splittedstring = splittedstring +
+		    (splittedstring == "" ? "":delimiter) +
+		    substring(whattosplit, after_chars_counter, after_chars);
+		after_chars_counter = after_chars_counter + after_chars;
+	    }
+	}
+	
+	return splittedstring;
+    }
+
     // Defining icons for dialogs
     map <string, string> msg_icons = $[
 	"error"    : "/usr/share/YaST2/theme/current/icons/32x32/apps/msg_error.png",
@@ -375,7 +405,7 @@ for the integrity and security of your system.
 Install it anyway?")
 	    ),
 	    item_name,
-	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n %2\n", key_id, fingerprint)),
+	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n %2\n", key_id, StringSplitter(fingerprint, " ", 4))),
 	    key_name
 	);
 
@@ -435,7 +465,7 @@ Use it anyway?")
 	    ),
 	    item_name,
 	    // If fingerprint is defined, show it
-	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n%2", key_id, fingerprint))
+	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n%2", key_id, StringSplitter(fingerprint, " ", 4)))
 	);
 
 	UI::OpenDialog(
@@ -697,7 +727,7 @@ You can choose to import it into your keyring of trusted
 public keys, meaning that you trust the owner of the key.
 You should be sure that you can trust the owner and that
 the key really belongs to that owner before importing it."),
-	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n %2\n", key_id, fingerprint)),
+	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n %2\n", key_id, StringSplitter(fingerprint, " ", 4))),
 	    key_name
 	);
 
