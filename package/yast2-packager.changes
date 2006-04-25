@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Apr 25 17:20:31 CEST 2006 - mvidner@suse.cz
+
+- Rug and zmd timeout should not be necessary having fixed #165821,
+  but 2 minutes is too short. Increasing it to 30 min everywhere just
+  to be safe (#165753).
+- 2.13.97
+
+-------------------------------------------------------------------
 Tue Apr 25 13:47:36 CEST 2006 - locilka@suse.cz
 
 - Improved GnuPG dialogs for changed zypp and pkg-bindings
