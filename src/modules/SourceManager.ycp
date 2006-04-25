@@ -963,6 +963,8 @@ global list Overview() {
 	//         the RPM database. You can run it only when the RPM is not locked
 	//         otherwise the ZMD will block itself!
 
+	// popup progress information
+	UI::OpenDialog (`Label(_("Initializing catalogs...")));
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
 
 	boolean ret = false;
@@ -1007,6 +1009,7 @@ global list Overview() {
 	ZMDRestore (zmd_handle);
 
 	y2milestone("--- Syncing finished ---");
+	UI::CloseDialog();
 	return ret;
     }
 
