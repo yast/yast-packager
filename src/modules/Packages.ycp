@@ -603,7 +603,7 @@ global boolean CheckContentFile (integer source) {
 	    }
 	    else
 	    {
-		add_on_products_list = nil
+		add_on_products_list = nil;
 	    }
 
             /* Check for Service Pack */
