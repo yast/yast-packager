@@ -16,11 +16,6 @@
     import "Popup";
     import "Message";
 
-    // GnuPG fingerprint used as "Fingerprint: AAA BBB CCC"
-    string f_string = _("Fingerprint");
-    // GnuPG key ID used as "Key ID: 1144AAAA444"
-    string f_k_id   = _("Key ID");
-
     /* --------------------------- Don't show this dialog again Magic --------------------------- */
 
     map <string, boolean> show_popup = $[];
@@ -143,6 +138,13 @@
 	
 	return splittedstring;
     }
+
+    /* Standard text strings */
+
+    // GnuPG fingerprint used as "Fingerprint: AAA BBB CCC"
+    string s_fingerprint = _("Fingerprint");
+    // GnuPG key ID used as "Key ID: 1144AAAA444"
+    string s_keyid = _("Key ID");
 
     // Defining icons for dialogs
     map <string, string> msg_icons = $[
@@ -281,9 +283,9 @@ may put the integrity of your system at risk.
 Install it anyway?")
 	    :
 	    // popup question, %1 stands for the filename
-	    _("The file %1 is not digitally signed.
-This means that the origin and integrity of the file cannot be verified.
-Using the file may put the integrity of your system at risk.
+	    _("The file %1
+is not digitally signed. This means that the origin and integrity of the file
+cannot be verified. Using the file may put the integrity of your system at risk.
 
 Use it anyway?")
 	), item_name);
@@ -337,10 +339,10 @@ the integrity of your system at risk.
 Install it anyway?")
 	    :
 	    // popup question, %1 stands for the filename
-	    _("No checksum for file %1 was found in the source.
-This means that the file is part of the signed source, but the list of checksums
-on this source does not mention this package. Installing the file may put
-the integrity of your system at risk.
+	    _("No checksum for file %1
+was found in the source. This means that the file is part of the signed source,
+but the list of checksums on this source does not mention this file. Using the file
+may put the integrity of your system at risk.
 
 Use it anyway?")
 	), item_name);
@@ -387,10 +389,8 @@ Use it anyway?")
      */
     global boolean UseCorruptedItem (symbol item_type, string item_name, string key_id, string key_name, string fingerprint) {
 	string description_text = sformat((item_type == `package ?
-	    // popup question, %1 stands for the package name, %2 for the key ID, %3 for the key name
-	    _("Package %1 is signed with
-GnuPG key '%2 (%3)'
-but the integrity check failed.
+	    // popup question, %1 stands for the package name, %2 for the complete description of the GnuPG key (multiline)
+	    _("Package %1 is signed with the following GnuPG key, but the integrity check failed: %2
 
 This means that the package has been changed by accident or by an attacker
 since the repository creator signed it. Installing it is a big risk
@@ -398,20 +398,25 @@ for the integrity and security of your system.
 
 Install it anyway?")
 	    :
-	    // popup question, %1 stands for the filename
-	    _("File %1 is signed with
-GnuPG key '%2 (%3)'
-but the integrity check failed.
+	    // popup question, %1 stands for the filename, %2 for the complete description of the GnuPG key (multiline)
+	    _("File %1
+is signed with the following GnuPG key, but the integrity check failed: %2
 
 This means that the file has been changed by accident or by an attacker
-since the repository creator signed it. Installing it is a big risk
+since the repository creator signed it. Using it is a big risk
 for the integrity and security of your system.
 
-Install it anyway?")
+Use it anyway?")
 	    ),
 	    item_name,
-	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n %2\n", key_id, StringSplitter(fingerprint, " ", 4))),
-	    key_name
+	    "\n\n" +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
+		sformat(_("ID: %1"), key_id) + "\n" +
+		((fingerprint == nil || fingerprint == "") ?
+		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
+		    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(fingerprint, " ", 4))) +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
+		sformat(_("Name: %1"), key_name)
 	);
 
 	UI::OpenDialog(
@@ -448,9 +453,9 @@ Install it anyway?")
      */
     global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id, string fingerprint, string dont_show_dialog_ident) {
 	string description_text = sformat((item_type == `package ?
-	    // popup question, %1 stands for the package name, %2 for the key ID
+	    // popup question, %1 stands for the package name, %2 for the complex multiline description of the GnuPG key
 	    _("The package %1 is digitally signed
-with the unknown GnuPG key '%2'.
+with the following uknown GnuPG key: %2.
 
 This means that a trust relationship to the creator of the package
 cannot be established. Installing the package may put the integrity
@@ -458,9 +463,9 @@ of your system at risk.
 
 Install it anyway?")
 	    :
-	    // popup question, %1 stands for the filename, %2 for the key ID
-	    _("The file %1 is digitally signed
-with the unknown GnuPG key '%2'.
+	    // popup question, %1 stands for the filename, %2 for the complex multiline description of the GnuPG key
+	    _("The file %1
+is digitally signed with the following uknown GnuPG key: %2.
 
 This means that a trust relationship to the creator of the file
 cannot be established. Using the file may put the integrity
@@ -469,8 +474,12 @@ of your system at risk.
 Use it anyway?")
 	    ),
 	    item_name,
-	    // If fingerprint is defined, show it
-	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n%2", key_id, StringSplitter(fingerprint, " ", 4)))
+	    "\n" +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
+		sformat(_("ID: %1"), key_id) +
+		((fingerprint == nil || fingerprint == "") ?
+		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
+		    "" : sformat("\n" + _("Fingerprint: %1"), StringSplitter(fingerprint, " ", 4)))
 	);
 
 	UI::OpenDialog(
@@ -581,48 +590,38 @@ to skip it.")
      * @param string key_id
      * @param string key_name
      * @param string key_location
-     * @param string key_detailed_description
+     * @param string key_fingerprint
      * @return symbol
      */
-    global symbol ImportGPGKeyDialog (string key_id, string key_name, string key_location, string key_detailed_description) {
-	// additional Richtext (HTML) warning text (kind of help), %1 stands for the key ID
-	string warning_text = sformat(_("<p>The owner of the key may distribute updates,
-packages, and package repositories that your system will trust and offer
-for installation and update without any further warning. In this way,
-importing the key into your keyring of trusted keys allows the key owner
-to have a certain amount of control over the software on your system.</p>
-
-<p>Only trust a key if you are confident that the key really belongs to the owner
-and that the owner can be trusted. With <b>Details</b>, get
-more information about the key, such as a fingerprint and signatures
-that can help you determine the trustworthiness of the key.</p>
-
-<p>A warning dialog opens for every package that
-is not signed by a trusted (imported) key. If you do not import the key,
-packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
-
+    global symbol ImportGPGKeyDialog (string key_id, string key_name, string key_location, string fingerprint) {
 	// additional Richtext (HTML) warning text (kind of help), 1/2
-	string warning_help_text_1 = _("<p>The owner of the key may distribute updates,
+	string warning_text = _("<p>The owner of the key may distribute updates,
 packages, and package repositories that your system will trust and offer
 for installation and update without any further warning. In this way,
 importing the key into your keyring of trusted keys allows the key owner
-to have a certain amount of control over the software on your system.</p>");
+to have a certain amount of control over the software on your system.</p>") +
 
 	// additional Richtext (HTML) warning text (kind of help), 2/2, %1 stands for the GnuPG key ID
-	string warning_help_text_2 = sformat(_("<p>A warning dialog opens for every package that
+	sformat(_("<p>A warning dialog opens for every package that
 is not signed by a trusted (imported) key. If you do not import the key,
 packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
 
-	// popup message, %1 stands for GPG key ID, %2 for key name, %3 for key location (URL or ...)
-	string dialog_text = sformat(_("The GnuPG key '%1 (%2)'
-has been found at %3.
+	// popup message, %1 stands for GPG key complete multiline description, %2 for key location (URL or ...)
+	string dialog_text = sformat(_("The GnuPG key %1
+has been found at %2.
 
 You can choose to import it into your keyring of trusted
 public keys, meaning that you trust the owner of the key.
 You should be sure that you can trust the owner and that
 the key really belongs to that owner before importing it."),
-	    key_id,
-	    key_name,
+	    "\n" +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
+		sformat(_("ID: %1"), key_id) + "\n" +
+		((fingerprint == nil || fingerprint == "") ?
+		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
+		    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(fingerprint, " ", 4))) +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
+		sformat(_("Name: %1"), key_name),
 	    key_location
 	);
 
@@ -659,8 +658,8 @@ the key really belongs to that owner before importing it."),
 				`PushButton(`id(`import), _("&Import")),
 				`HSpacing(1),
 				// push button
-				`PushButton(`id(`details), _("&Details...")),
-				`HSpacing(1),
+				//`PushButton(`id(`details), _("&Details...")),
+				//`HSpacing(1),
 				// push button
 				`PushButton(`id(`dont_import), _("Do &Not Import"))
 			    )
@@ -671,7 +670,7 @@ the key really belongs to that owner before importing it."),
 	);
 
 	// No details available - disable button
-	if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
+	// if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
 	UI::SetFocus(`dont_import);
 
 	symbol ret = nil;
@@ -679,7 +678,7 @@ the key really belongs to that owner before importing it."),
 	    // wait for one of listed ID's, return the default value in case of `cancel
 	    ret = WaitForSymbolUserInput([`import, `details, `dont_import], `dont_import);
 	    if (contains([`import, `dont_import], ret)) break;
-	    else if (ret == `details) Popup::LongMessage(key_detailed_description);
+	    // else if (ret == `details) Popup::LongMessage(key_detailed_description);
 	}
 
 	UI::CloseDialog();
@@ -692,48 +691,36 @@ the key really belongs to that owner before importing it."),
      * @param string key_id
      * @param string key_name
      * @param string fingerprint
-     * @param string key_detailed_description
      * @return boolean whether zypp should import the key into the keyring of trusted keys
      */
-    global boolean ImportUntrustedGPGKeyIntoTrustedDialog (string key_id, string key_name, string fingerprint, string key_detailed_description) {
-	// additional Richtext (HTML) warning text (kind of help), %1 stands for the key ID
-	string warning_text = sformat(_("<p>The owner of the key may distribute updates,
-packages, and package repositories that your system will trust and offer
-for installation and update without any further warning. In this way,
-importing the key into your keyring of trusted keys allows the key owner
-to have a certain amount of control over the software on your system.</p>
-
-<p>Only trust a key if you are confident that the key really belongs to the owner
-and that the owner can be trusted. With <b>Details</b>, get
-more information about the key, such as a fingerprint and signatures
-that can help you determine the trustworthiness of the key.</p>
-
-<p>A warning dialog opens for every package that
-is not signed by a trusted (imported) key. If you do not import the key,
-packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
-
+    global boolean ImportUntrustedGPGKeyIntoTrustedDialog (string key_id, string key_name, string fingerprint) {
 	// additional Richtext (HTML) warning text (kind of help), 1/2
-	string warning_help_text_1 = _("<p>The owner of the key may distribute updates,
+	string warning_text = _("<p>The owner of the key may distribute updates,
 packages, and package repositories that your system will trust and offer
 for installation and update without any further warning. In this way,
 importing the key into your keyring of trusted keys allows the key owner
-to have a certain amount of control over the software on your system.</p>");
+to have a certain amount of control over the software on your system.</p>") +
 
 	// additional Richtext (HTML) warning text (kind of help), 2/2, %1 stands for the GnuPG key ID
-	string warning_help_text_2 = sformat(_("<p>A warning dialog opens for every package that
+	sformat(_("<p>A warning dialog opens for every package that
 is not signed by a trusted (imported) key. If you do not import the key,
 packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
 
 	// popup message, %1 stands for string "GPG key ID\nfingerprint", %2 for key name
-	string dialog_text = sformat(_("The GnuPG key '%1 (%2)'
-has been found.
+	string dialog_text = sformat(_("The following GnuPG key has been found: %1
 
 You can choose to import it into your keyring of trusted
 public keys, meaning that you trust the owner of the key.
 You should be sure that you can trust the owner and that
 the key really belongs to that owner before importing it."),
-	    ((fingerprint == nil || fingerprint == "") ? key_id : sformat("%1\n %2\n", key_id, StringSplitter(fingerprint, " ", 4))),
-	    key_name
+	    "\n" +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
+		sformat(_("ID: %1"), key_id) + "\n" +
+		((fingerprint == nil || fingerprint == "") ?
+		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
+		    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(fingerprint, " ", 4))) +
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
+		sformat(_("Name: %1"), key_name)
 	);
 
 	UI::OpenDialog(
@@ -769,8 +756,8 @@ the key really belongs to that owner before importing it."),
 				`PushButton(`id(`import), _("&Import")),
 				`HSpacing(1),
 				// push button
-				`PushButton(`id(`details), _("&Details...")),
-				`HSpacing(1),
+				//`PushButton(`id(`details), _("&Details...")),
+				//`HSpacing(1),
 				// push button
 				`PushButton(`id(`dont_import), _("Do &Not Import"))
 			    )
@@ -781,7 +768,7 @@ the key really belongs to that owner before importing it."),
 	);
 
 	// No details available - disable button
-	if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
+	// if (key_detailed_description == "") UI::ChangeWidget(`id(`details), `Enabled, false);
 	UI::SetFocus(`dont_import);
 
 	symbol ret = nil;
@@ -789,7 +776,7 @@ the key really belongs to that owner before importing it."),
 	    // wait for one of listed ID's, return the default value in case of `cancel
 	    ret = WaitForSymbolUserInput([`import, `details, `dont_import], `dont_import);
 	    if (contains([`import, `dont_import], ret)) break;
-	    else if (ret == `details) Popup::LongMessage(key_detailed_description);
+	    // else if (ret == `details) Popup::LongMessage(key_detailed_description);
 	}
 
 	UI::CloseDialog();
