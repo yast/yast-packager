@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 25 17:22:44 CEST 2006 - jsrain@suse.de
+
+- fixed checking of add_on_products on CD1
+
+-------------------------------------------------------------------
 Tue Apr 25 17:20:31 CEST 2006 - mvidner@suse.cz
 
 - Rug and zmd timeout should not be necessary having fixed #165821,
