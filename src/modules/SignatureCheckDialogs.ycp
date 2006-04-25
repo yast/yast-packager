@@ -455,7 +455,7 @@ Use it anyway?")
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name, %2 for the complex multiline description of the GnuPG key
 	    _("The package %1 is digitally signed
-with the following uknown GnuPG key: %2.
+with the following unknown GnuPG key: %2.
 
 This means that a trust relationship to the creator of the package
 cannot be established. Installing the package may put the integrity
@@ -465,7 +465,7 @@ Install it anyway?")
 	    :
 	    // popup question, %1 stands for the filename, %2 for the complex multiline description of the GnuPG key
 	    _("The file %1
-is digitally signed with the following uknown GnuPG key: %2.
+is digitally signed with the following unknown GnuPG key: %2.
 
 This means that a trust relationship to the creator of the file
 cannot be established. Using the file may put the integrity
