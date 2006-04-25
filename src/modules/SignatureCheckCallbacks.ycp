@@ -40,6 +40,15 @@
     }
     
 
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string filename) The callback function should ask user whether
+    // the unsigned file can be accepted, returned true value means to accept the file.
+    //
+    // zypp: askUserToAcceptNoDigest
+    //
+    // (+DontShowAgain functionality) -- for one run in memory
+    //
+    /* function for CallbackAcceptFileWithoutChecksum() */
     global boolean AcceptFileWithoutChecksum (string filename) {
 	string dont_show_dialog_ident = "-AcceptFileWithoutChecksum-";
 	
@@ -85,7 +94,7 @@
     /* function for CallbackImportGpgKey() */
     global boolean ImportGpgKey (string keyid, string keyname, string fingerprint) {
 	// There are no details from the callback, maybe in the future
-	return SignatureCheckDialogs::ImportUntrustedGPGKeyIntoTrustedDialog(keyid, keyname, fingerprint, "");
+	return SignatureCheckDialogs::ImportUntrustedGPGKeyIntoTrustedDialog(keyid, keyname, fingerprint);
     }
     
     // Name of the callback handler function. Required callback prototype is

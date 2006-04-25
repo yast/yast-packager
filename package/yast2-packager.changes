@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 25 13:47:36 CEST 2006 - locilka@suse.cz
+
+- Improved GnuPG dialogs for changed zypp and pkg-bindings
+  to display the full URL and not to break visibility.
+- 2.13.96
+
+-------------------------------------------------------------------
 Mon Apr 24 16:58:36 CEST 2006 - mvidner@suse.cz
 
 - Always tell rug that zypp owns the source (#168739).
