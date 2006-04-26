@@ -108,13 +108,22 @@
 	}
 
 	SlideShow::InitPkgData(false);
+
+	// structure: [ ["source_name", id] ]
+	list< list > src_list = Pkg::PkgMediaNames();
+
+	// get ID of the first source
+	integer first_source = src_list[0,1]:1;
+
+	y2milestone("ID of the first source: %1", first_source);
+
 	if (media_number == 0)
 	{
-	    SlideShow::SetCurrentCdNo (1, 1);
+	    SlideShow::SetCurrentCdNo (first_source, 1);
 	}
 	else
 	{
-	    SlideShow::SetCurrentCdNo (1, media_number);
+	    SlideShow::SetCurrentCdNo (first_source, media_number);
 	}
 	SlideShow::UpdateAllCdProgress ();
 	SlideShow::StartTimer();
