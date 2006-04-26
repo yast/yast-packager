@@ -2,6 +2,7 @@
 Wed Apr 26 17:00:41 CEST 2006 - jsrain@suse.de
 
 - fixed setting language adter package manager reset (#162064)
+- 2.13.100
 
 -------------------------------------------------------------------
 Wed Apr 26 14:31:29 CEST 2006 - mvidner@suse.cz
