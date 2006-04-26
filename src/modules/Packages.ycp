@@ -539,12 +539,6 @@ global boolean CheckContentFile (integer source) {
 
 	if (Stage::initial ())
 	{
-	    // autoyast can configure AdditionalLocales
-	    // we don't want to overwrite this
-	    if( ! Mode::autoinst ())
-	    {
-	        Pkg::SetAdditionalLocales ([Language::language]);
-	    }
 	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
 
 	    Pkg::SourceSetRamCache (false);
@@ -834,6 +828,16 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	}
 
 	boolean initial_run = reinit || ! init_called;
+
+	if (initial_run)
+	{
+	    // autoyast can configure AdditionalLocales
+	    // we don't want to overwrite this
+	    if( ! Mode::autoinst ())
+	    {
+		Pkg::SetAdditionalLocales ([Language::language]);
+	    }
+	}
 
 	SelectProduct ();
 
