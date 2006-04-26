@@ -163,10 +163,17 @@
        UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
 
        // start package manager
-	if (size(Pkg::SourceStartCache(true)) == 0)
+       const boolean enabled_only = true;
+       boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
+       if (!mgr_ok)
+       {
+	   Report::LongWarning(_("There was an error in installation source initialization.") + "\n" + Pkg::LastError ());
+       }
+       if (size(Pkg::SourceGetCurrent(enabled_only)) == 0)
 	{
-	   Report::Warning("No installation source is defined,
-only installed packages will be displayed.");
+
+	   Report::Warning(_("No installation source is defined,
+only installed packages will be displayed."));
 	}
 
        Pkg::TargetInit (Installation::destdir, false);
