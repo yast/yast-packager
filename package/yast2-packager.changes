@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 26 17:00:41 CEST 2006 - jsrain@suse.de
+
+- fixed setting language adter package manager reset (#162064)
+
+-------------------------------------------------------------------
 Wed Apr 26 14:31:29 CEST 2006 - mvidner@suse.cz
 
 - Detect source manager init failure and tell the user why the package
