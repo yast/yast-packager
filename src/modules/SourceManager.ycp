@@ -944,6 +944,40 @@ global list Overview() {
 	y2milestone("ZMD stopped");
     }
 
+    integer source_locked = 0;
+    const string source_lock_flag = "/var/lib/zypp/sources-being-processed-by-yast";
+    /**
+     * Start a section where other processes (such as ZMD helpers) should not
+     * access the source database. #170113
+     * The calls may be nested.
+     */
+    global void Lock () {
+	if (source_locked == 0)
+	{
+	    SCR::Write (.target.string, source_lock_flag, "bug 170113");
+	}
+	source_locked = source_locked + 1;
+	y2milestone ("%1", source_locked);
+    }
+
+    /**
+     * Other processes may access the source database again
+     */
+    global void Unlock () {
+	source_locked = source_locked - 1;
+	if (source_locked < 0)
+	{
+	    y2internal ("Too many unlocks!");
+	    source_locked = 0;
+	}
+	if (source_locked == 0)
+	{
+	 SCR::Execute (.target.remove, source_lock_flag);
+	}
+	y2milestone ("%1", source_locked);
+    }
+
+
     /**
      * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP source is listed
      * in the ZMD services, adds one if it is missing.
@@ -966,6 +1000,8 @@ global list Overview() {
 	// popup progress information
 	UI::OpenDialog (`Label(_("Initializing catalogs...")));
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
+
+	Lock ();
 
 	boolean ret = false;
 	// Check the ZMD status and start if not running
@@ -1008,6 +1044,8 @@ global list Overview() {
 	}
 	ZMDRestore (zmd_handle);
 
+	Unlock ();
+
 	y2milestone("--- Syncing finished ---");
 	UI::CloseDialog();
 	return ret;
@@ -1016,6 +1054,7 @@ global list Overview() {
     global boolean SyncAddedAndDeleted (list<integer> added_src_ids,
 					list<integer> deleted_src_ids) {
 	boolean ret = false;
+	Lock ();
 	map zmd_handle = ZMDStart ();
 	if (ZMDWorking (zmd_handle)) {
 	    ret = true;
@@ -1028,6 +1067,7 @@ global list Overview() {
 	    });
 	}
 	ZMDRestore (zmd_handle);
+	Unlock ();
 	return ret;
     }
 
