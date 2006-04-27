@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 27 16:49:42 CEST 2006 - mvidner@suse.cz
+
+- Tell libzypp-zmd-backend not to write sources to zypp db,
+  we are going to do it ourselves (#170113).
+- 2.13.103
+
+-------------------------------------------------------------------
 Thu Apr 27 10:51:14 CEST 2006 - locilka@suse.cz
 
 - Do not create the /etc/mdadm.conf file when it is not needed
