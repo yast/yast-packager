@@ -23,6 +23,7 @@
     import "Initrd";
     import "Kernel";
     import "Arch";
+    import "FileUtils";
 
 void AcpiToInitrd () {
     if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
@@ -241,21 +242,38 @@ void AcpiToInitrd () {
     }
 
     /**
-     * Create /etc/mdadm.conf if it does not exist
+     * Create /etc/mdadm.conf if it does not exist and it's needed
+     * bugs: #169710 and #146304
      */
     void createmdadm () {
-	if ((integer)SCR::Read (.target.size, Installation::destdir + "/etc/mdadm.conf") < 0)
-	{
-	    y2milestone ("/etc/mdadm.conf doesn't exist, creating it");
-	    map out = (map)SCR::Execute (.target.bash_output, "echo DEV partitions > " + Installation::destdir + "/etc/mdadm.conf");
-	    if (out["exit"]:-1 != 0)
-		y2error ("Error occurred while creating /etc/mdadm.conf: %1", out);
-	    out = (map)SCR::Execute (.target.bash_output, "chroot " + Installation::destdir + " mdadm -Ds >> /etc/mdadm.conf");
-	    if (out["exit"]:-1 != 0)
-		y2error ("Error occurred while creating /etc/mdadm.conf: %1", out);
+	string mdamd_configfile = Installation::destdir + "/etc/mdadm.conf";
+	// File exists, no need to create it
+	if (FileUtils::Exists(mdamd_configfile)) {
+	    y2milestone("File /etc/mdadm.conf exists, skipping creation...");
+	    return;
+	}
+
+	// get the current raid configuration
+	map out = (map) SCR::Execute (.target.bash_output, "chroot " + Installation::destdir + " mdadm -Ds");
+	if (out["exit"]:-1 != 0) {
+	    y2error ("Error occurred while getting raid configuration: %1", out);
+	    return;
+	}
+	// There's no current raid configuration, no reason to create that file, bug #169710
+	if (out["stdout"]:"" == "") {
+	    y2milestone("No raid is currently configured, skipping file creation...");
+	    return;
+	}
+	    
+	// File format defined in bug #146304
+	string mdadm_content = "DEV partitions\n" +
+	    out["stdout"]:"" + "\n";
+
+	y2milestone ("/etc/mdadm.conf doesn't exist, creating it");
+	if (! (boolean) SCR::Write (.target.string, mdamd_configfile, mdadm_content)) {
+	    y2error ("Error occurred while creating /etc/mdadm.conf with content '%1'", mdadm_content);
 	}
     }
-
 
     /**
      *  Load all network modules.  The package sysconfig requires this during
