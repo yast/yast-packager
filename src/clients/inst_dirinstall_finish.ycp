@@ -98,18 +98,13 @@
 
     Pkg::SourceCacheCopyTo (Installation::destdir);
 
-    // disable HW services - they are useless and usually failing in UML
-    list<string> disable_services = ["kbd", "hotplug", "hwscan", "powersaved"];
+    // disable some services - they are useless and usually failing in UML/Xen VM
+    list<string> disable_services = ["kbd", "acpid"];
     foreach(string s, disable_services, {
             integer disabled = (integer) SCR::Execute(.target.bash, sformat("/sbin/insserv -r %1", s));
             y2milestone("insserv - service %1 exit status: %2", s, disabled);
             }
            );
-
-    // modify inittab - halt system when Ctrl+Alt+Del is received
-    // can be used by uml_mconsole for safe system shutdown
-    // replace -r (reboot) option by -h (halt)
-    SCR::Execute(.target.bash, "/usr/bin/sed -e 's|^ca::ctrlaltdel:/sbin/shutdown \\(.*\\)-r\\(.*\\)$|ca::ctrlaltdel:/sbin/shutdown \\1-h\\2|' /etc/inittab > /tmp/inittab.sed.$$ && mv /tmp/inittab.sed.$$ /etc/inittab");
 
     // umount /proc and /sys before creating image (otherwise tar may fail)
     DirInstall::UmountFilesystems ();

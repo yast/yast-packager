@@ -24,6 +24,12 @@
     Pkg::TargetFinish ();
     DirInstall::MountFilesystems ();
 
+    // create /dev/zero and /dev/null devices in the target directory,
+    // some packages require them in the postinstall script
+    SCR::Execute(.target.bash, sformat("mkdir -p %1/dev", DirInstall::target));
+    SCR::Execute(.target.bash, sformat("mknod -m 666 %1/dev/zero c 1 5", DirInstall::target));
+    SCR::Execute(.target.bash, sformat("mknod -m 666 %1/dev/null c 1 3", DirInstall::target));
+
 /*
     if(Pkg::TargetInit (Installation::destdir,true) != true)
     {

@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Thu Apr 27 08:13:00 CEST 2006 - lslezak@suse.cz
+
+- dirinstall - create /dev/null and /dev/zero devices in
+  the target directory (some packages require them in the
+  postinstall script) (#158476)
+- dirinstall - updated the list of disabled services, do not
+  modify /etc/inittab - it's not needed for a Xen guest
+  installation
+- 2.13.101
+
+-------------------------------------------------------------------
 Wed Apr 26 17:00:41 CEST 2006 - jsrain@suse.de
 
 - fixed setting language adter package manager reset (#162064)
