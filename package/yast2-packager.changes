@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 27 10:51:14 CEST 2006 - locilka@suse.cz
+
+- Do not create the /etc/mdadm.conf file when it is not needed
+  or when the file already exists (during inst-update) (#169710)
+- 2.13.102
+
+-------------------------------------------------------------------
 Thu Apr 27 08:13:00 CEST 2006 - lslezak@suse.cz
 
 - dirinstall - create /dev/null and /dev/zero devices in
