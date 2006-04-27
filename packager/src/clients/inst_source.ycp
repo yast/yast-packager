@@ -1,0 +1,664 @@
+/**
+ * Module: 		inst_source.ycp
+ *
+ * Author:		Cornelius Schumacher <cschum@suse.de>
+ *
+ * Purpose:
+ * Adding, removing and prioritizing of installation sources for packagemanager.
+ *
+ */
+
+{
+    textdomain "packager";
+
+    import "Confirm";
+    import "Mode";
+    import "Installation";
+    import "PackageCallbacksInit";
+    import "PackageLock";
+    import "SLP";
+    // SourceManager overlaps quite a bit with inst_source,
+    // so far we only use it for ZMD sync, TODO refactor better
+    import "SourceManager";
+    import "Wizard";
+
+    import "Label";
+    import "Popup";
+
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_source");
+    // dialog caption
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+   // check whether running as root
+   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
+   {
+	UI::CloseDialog ();
+	return (any)`abort;
+   }
+
+    PackageCallbacksInit::InitPackageCallbacks ();
+
+    // constructor of Product is needed in order to initialize the product
+    // macro. Takes a lot of time because whole package manager target
+    // is initialized
+    import "Product";
+
+    include "inst_source_dialogs.ycp";
+
+    any 	ret = nil;
+
+    integer numSources = 0;
+
+    list<map<string,any> > sourceStatesIn = [];
+    list<map<string,any> > sourceStatesOut = [];
+    list<integer> sourcesToDelete = [];
+
+    /**
+        Create a table item from a map as returned by the InstSrcManager agent.
+        @param source The map describing the source as returned form the agent.
+        @return An item suitable for addition to a Table.
+    */
+    define term createItem( integer index, map source ) ``{
+        integer id = source[ "SrcId" ]:0;
+        map generalData = Pkg::SourceGeneralData( id );
+        map productData = Pkg::SourceProductData( id );
+        term item = `item(
+			  `id( index ),
+			  // corresponds to the "Enable/Disable" button
+			  source[ "enabled" ]:true ? _("On") : _("Off"),
+			  source["autorefresh"]:true ? _("On") : _("Off"),
+			  // translators: unknown name for a given source
+			  productData[ "label" ]:generalData[ "type" ]: _("unknown"),
+			  generalData[ "url" ]:""
+			  );
+        return item;
+    }
+
+    /**
+     * Fill sources table with entries from the InstSrcManager agent.
+     */
+    define void fillTable() ``{
+        list items = [];
+
+        numSources = size( sourceStatesOut );
+
+        integer i = 0;
+        while ( i < numSources ) {
+            items = add( items, createItem( i, sourceStatesOut[ i ]:$[] ) );
+            i = i + 1;
+        }
+
+        UI::ChangeWidget( `id( `table ), `Items, items );
+    }
+
+    define symbol createSource( string url ) ``{
+        if ( url != "" )
+        {
+	    // Popup::Message( sformat( "URL: %1", url ) );
+            UI::OpenDialog(
+			   `VBox(
+				 `VSpacing( 0.2 ),
+				// label
+				 `Label( _("Adding catalog...") ),
+				 `VSpacing( 0.2 )
+				 )
+			   );
+            list<integer> newSources = Pkg::SourceScan( url, "" );
+            UI::CloseDialog();
+            if ( size( newSources ) == 0  )
+            {
+		// message part 1
+                string _msg1 = sformat( _("Unable to create installation source
+from URL '%1'."), url );
+                string err = Pkg::LastErrorId();
+                string _msg2 = "";
+                if ( err != "ok" ) {
+                    if ( err == "instsrc_duplicate" )
+			// message part 2 alt. 1
+                        _msg2 = _("A catalog for this product already exists.");
+                    else
+			// message part 2 alt. 2 followed by description
+                        _msg2 = _("Details:") + "\n" + Pkg::LastError();
+                }
+		// message part 3
+                _msg2 = _msg2 + "\n" + _("Try again?");
+
+                boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+                if ( tryagain ) return `again;
+                else return `cancel;
+            }
+            else
+            {
+		list<integer> prod_sources = filter (integer s, newSources, {
+		    map src_data = Pkg::SourceGeneralData (s);
+		    string src_type = src_data["type"]:"";
+		    return (src_type == "YaST" || src_type == "YUM");
+		});
+		if (size (prod_sources) == 0)
+		{
+		    if (! Popup::AnyQuestion (
+			Popup::NoHeadline (),
+// continue-back popup
+_("There is no product information available at the given location.
+If you expected to address a product, return back and enter
+the correct location.
+To make rpm packages located at the specified location available
+in the packages selection, continue."),
+			Label::ContinueButton (),
+			Label::BackButton (),
+			`focus_yes))
+		    {
+			return `again;
+		    }
+		}
+                foreach( integer id, newSources, ``{
+		    map src_data = Pkg::SourceGeneralData (id);
+		    boolean auto_refresh = src_data["autorefresh"]:false;
+                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh ];
+                    sourceStatesOut = add( sourceStatesOut, sourceState ); 
+                } );
+                return `ok;
+            }
+        }
+    }
+
+    /**
+     * @param statesOld sourceStates{In or Out}
+     * @param statesNew sourceStates{In or Out}
+     * @return the list of SrcId's that are in statesNew but not statesOld
+     */
+    list<integer> newSources (list<map<string,any> > statesOld,
+			      list<map<string,any> > statesNew) {
+	y2milestone ("From %1 To %2", statesOld, statesNew);
+	list<integer> ret = [];
+	map<integer, boolean> seen = listmap (
+	    map<string, any> src, statesOld,
+	    ``( $[(src["SrcId"]:-1) : true ] ));
+	foreach (map<string, any> src, statesNew, {
+	    integer newid = src["SrcId"]:-1;
+	    if (! seen[newid]:false)
+		ret = add (ret, newid);
+	});
+	y2milestone ("Difference %1", ret);
+	return ret;
+    }
+
+    define void deleteSource( integer index ) ``{
+	integer srcid = sourceStatesOut[index, "SrcId"]:-1;
+
+	if( srcid != -1)
+		sourcesToDelete = add( sourcesToDelete, srcid );
+
+        sourceStatesOut = remove( sourceStatesOut, index );
+    }
+
+    boolean Write() {
+ 	boolean success = Pkg::SourceEditSet( sourceStatesOut );
+
+	// we must sync before the sources are deleted from zypp
+	// otherwise we will not get their details
+	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
+	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
+	boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+	if (have_rug) {
+	    if (success && !SourceManager::SyncAddedAndDeleted (added, deleted))
+	    {
+		// yes/no popup
+		if (!Popup::YesNo (_("Source synchronization with ZMD failed.
+Save changes anyway?")))
+		    success	= false;
+
+	    }
+	}
+	else {
+	    y2milestone ("No rug, not syncing");
+	}
+
+	foreach( integer id, sourcesToDelete, ``{
+	    success = success && Pkg::SourceDelete(id);
+	});
+
+	// store in the persistent libzypp storage
+	success = success && Pkg::SourceFinishAll();
+
+	return success;
+   }
+
+    list items = [];
+
+    // pusg button
+    string replaceButtonLabel = _("&Replace...");
+    // pusg button
+    string refreshButtonLabel = _("Re&fresh...");
+    // pusg button
+    string deleteButtonLabel = _("&Delete");
+    // pusg button
+    string upButtonLabel = _("&Up");
+    // pusg button
+    string downButtonLabel = _("D&own");
+    // pusg button
+    string enableButtonLabel = _("Enab&le or Disable");
+    // push button
+    string refreshOnOffButtonLabel = _("Refre&sh On or Off");
+
+    term contents =
+        `VBox(
+	      `HBox(
+		    `Table( `id( `table ), `opt( `keepSorting ),
+				// table header
+			    `header( _("Status"),
+				// table header
+				_("Refresh"),
+				// table header
+				_("Name"),
+				// table header
+				_("URL") ),
+			    items ),
+		    `HSpacing()
+		    ),
+	      `HBox(
+		    `HWeight (1, `VBox(
+			  `HWeight( 1,
+						// menunutton
+				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
+						// menunutton item
+                                                  `item(`id(`slp),       _("&Scan Using SLP...") ),
+						// menunutton item
+                                                  `item(`id(`ftp),       _("&FTP...") ),
+						// menunutton item
+                                                  `item(`id(`http),      _("&HTTP...") ),
+						// menunutton item
+                                                  `item(`id(`https),      _("HTT&PS...") ),
+						// menunutton item
+                                                  `item(`id(`samba),     _("&SMB/CIFS") ),
+						// menunutton item
+                                                  `item(`id(`nfs),       _("&NFS...") ),
+						// menunutton item
+                                                  `item(`id(`cd),        _("&CD...") ),
+						// menunutton item
+                                                  `item(`id(`dvd),       _("&DVD...") ),
+						// menunutton item
+                                                  `item(`id(`local_dir), _("&Local Directory...") ),
+						// menubutton item
+						`item (`id (`specify_url),_("Specify &URL...")),
+                                                ] )
+                    ),
+					// menu button
+					`MenuButton(  `opt(`hstretch, `key_F4), _("&Edit"),[
+												  `item(`id(`replace), replaceButtonLabel ),
+												  `item(`id(`refresh), refreshButtonLabel )
+												]),
+                    `HWeight( 1, `PushButton( `id(`delete), `opt(`hstretch, `key_F5),  deleteButtonLabel ) )
+                )),
+                `HSpacing( 10 ),
+                `HWeight (1, `VBox(
+		    `HBox (
+                        `HWeight( 1, `PushButton( `id(`up), `opt(`hstretch),  upButtonLabel ) ),
+                        `HWeight( 1, `PushButton( `id(`down), `opt(`hstretch),  downButtonLabel ) )
+		    ),
+		    `PushButton(`id(`enable), `opt(`hstretch, `key_F6),  enableButtonLabel ),
+		    `PushButton(`id(`refresh_on_off), `opt(`hstretch),  refreshOnOffButtonLabel )
+                )),
+                `VSpacing( 0.5 )
+            )
+        );
+
+    // dialog caption
+    string title = _("Media Containing the Software Catalog");
+
+    // help
+    string help_text = _("<p>
+Software packages can be installed from the CD, over a
+network, or from the hard disk.
+</p>
+");
+
+    // help, continued
+    help_text = help_text + _("<p>
+To install packages from <b>CD</b>,
+have the &product; CD set or the DVD available.
+</p>
+");
+
+    // help, continued
+    help_text = help_text + _("<p>
+The &product; CDs can be copied to the <b>hard disk</b>.
+Then use that as the installation source.
+Insert the path name where the first
+CD is located, for example, /data1/<b>CD1</b>.
+Only the base path is required if all CDs are copied
+into one directory.
+</p>
+");
+
+    // help, continued
+    help_text = help_text + _("<p>
+<b>Network</b> installation requires a working network connection.
+Configure YaST2's \"Network Devices\" module first,
+if required.  Specify the directory where the packages from
+the first CD are located, such as /data1/CD1.
+Only the base path is
+required if packages are not divided, for example, /usr/full-i386.
+The directory must be listed in the file <i>/etc/exports</i>
+on the NFS server.
+</p>
+");
+
+    Wizard::SetNextButton(`next, Label::FinishButton() );
+    Wizard::SetContents(title, contents, help_text, false, true);
+    Wizard::HideBackButton();
+
+    boolean restore = Pkg::SourceStartManager( false );
+
+    if( ! restore )
+    {
+	Popup::Error(_("There were errors when restoring the source configuration.
+Not all sources will be available for configuration.
+") + "\n" + Pkg::LastError() );
+
+	// delete the broken sources from the persistent store
+	Pkg::SourceCleanupBroken();
+    }
+
+    sourceStatesIn = Pkg::SourceEditGet();
+
+    y2milestone( "Found sources: %1", sourceStatesIn);
+    
+    sourceStatesOut = sourceStatesIn;
+
+    fillTable();
+
+    any input = nil;
+
+    integer current = -1;
+
+    string url = "";
+
+    boolean exit = false;
+
+    repeat {
+
+	if ( current >= 0 ) {
+	    UI::ChangeWidget( `id( `table ), `CurrentItem, current );
+	}
+
+	input = Wizard::UserInput();
+	y2debug( "Input: %1", input );
+
+	symbol createResult = `again;
+	
+	if ( input == `slp )
+	{
+	    // translators: popup busy message
+	    UI::OpenDialog (`Label (_("Scanning network...")) );
+	    
+	    list<map> services = SLP::FindSrvs ("install.suse", "");
+	    
+	    UI::CloseDialog ();
+	    
+	    if ( size(services) == 0 )
+	    {
+		Popup::Error ( _("No SLP catalogs found.") );
+	    } else
+	    {
+		// show the dialog to pick the source
+		
+		list<term> items = maplist (map service, services, ``{
+		    string url = service["srvurl"]:"";
+		    
+		    url = substring (url, 21);
+		    
+		    // split the URL
+		    map parsed_url = URL::Parse (url);
+		    
+		    return `item (`id (url), toupper ( parsed_url["scheme"]:"http" ), url);
+		});
+		
+		UI::OpenDialog (
+		    `VBox(
+			// translators: popup heading
+			`Heading (_("Choose SLP Catalog")),
+			`MinSize( 25, 7, 
+			    // translators: table header
+			    `Table (`id(`services), `header(_("Type"), _("URL")), items)
+			), 
+			`HBox (
+			    `PushButton (`id (`ok), `opt(`default), Label::SelectButton ()),
+			    `VSpacing (1),
+			    `PushButton (`id (`cancel), Label::CancelButton ())			    
+			)
+		    )
+		);
+		
+		symbol ret = (symbol)UI::UserInput ();
+		
+		if (ret == `ok)
+		{
+		    string service = (string) UI::QueryWidget (`services, `CurrentItem);
+		    
+		    y2milestone ("Trying to add source '%1'", service);
+		    if (service != nil) 
+		    {
+			// add the installation source
+			createResult = createSource(service);
+			y2milestone ("Adding source result: %1", createResult);
+			
+		    }
+		}
+		
+		UI::CloseDialog ();
+
+            	if ( createResult == `ok ) fillTable();
+	    }
+	}
+
+	else if ( input == `ftp || input == `http || input == `https || input == `samba )
+	{
+	    if ( input == `ftp ) url = "ftp://";
+	    else if ( input == `http ) url = "http://";
+	    else if ( input == `https ) url = "https://";
+	    else if ( input == `samba ) url = "smb://";
+	    else url = "";
+	    boolean refresh = true;
+	    do {
+		url = editUrl( url );
+		if ( size( url ) == 0 ) break;
+		createResult = createSource( url);
+                if ( createResult == `ok ) fillTable();
+            } while ( createResult == `again );
+        }
+        else if ( input == `nfs )
+        {
+            url = "nfs://";
+	    boolean refresh = true;
+            do {
+                url = editUrl( url );
+                if ( size( url ) == 0 ) break;
+		createResult = createSource( url);
+                if ( createResult == `ok ) fillTable();
+            } while ( createResult == `again );
+        }
+        else if ( input == `cd )
+        {
+            if ( createSource( "cd:///" ) == `ok ) fillTable();
+        }
+        else if ( input == `dvd )
+        {
+            if ( createSource( "dvd:///" ) == `ok ) fillTable();
+        }
+	else if ( input == `local_dir )
+	{
+            url = "dir://";
+            do {
+                url = editUrl( url );
+                if ( size( url ) == 0 ) break;
+		createResult = createSource( url);
+                if ( createResult == `ok ) fillTable();
+            } while ( createResult == `again );
+	}
+	else if (input == `specify_url)
+	{
+            url = "";
+	    do {
+                url = editRawUrl( url );
+                if ( size( url ) == 0 ) break;
+		createResult = createSource( url);
+                if ( createResult == `ok ) fillTable();
+	    } while (createResult == `again);
+	}
+        else if ( input == `next )
+        {
+	  // store the new state
+          boolean success = Write();
+          if ( !success ) {
+		// popup message part 1
+                string _msg1 = _("Unable to save changes to installation source
+configuration.");
+                string details = Pkg::LastError();
+		// popup message part 2 followed by other info
+                string _msg2 = details != "" ? (_("Details:") + "\n" + details)
+		    : "";
+		// popup message part 3
+                _msg2 = _msg2 + "\n" + _("Try again?");
+
+                boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+                if ( !tryagain ) exit = true;
+          } else {
+            exit = true;
+          }
+        }
+	// Wizard::UserInput returns `back instead of `cancel when window is closed by WM
+        else if (input == `abort || input == `back)
+        {
+	  // popup headline
+          string headline = _("Abort Catalog Configuration");
+	  // popup message
+          string msg = _("Abort the catalog configuration?
+All changes will be lost.");
+          if ( Popup::YesNoHeadline( headline, msg ) ) {
+            exit = true;
+          }
+        }
+        else
+        {
+            current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
+
+            y2debug( "Current item: %1", current );
+
+            map<string, any> sourceState = sourceStatesOut[ current ]:$[];
+            integer id = sourceState[ "SrcId" ]:-1;
+            
+            if ( id < 0 ) {
+              y2internal( "Unable to determine source id" );
+              continue;
+            }
+
+            if ( input == `replace )
+            {
+                map generalData = Pkg::SourceGeneralData( id );
+                string url = generalData[ "url" ]:"";
+		boolean auto_refresh = sourceState["autorefresh"]:true;
+
+                do {
+                    url = editUrl( url );
+                    if ( size( url ) == 0 ) break;
+                    createResult = createSource( url );
+                    if ( createResult == `ok ) {
+			deleteSource( current );
+			fillTable();
+                    }
+                } while ( createResult == `again );
+            }
+	    else if ( input == `refresh )
+            {
+		Pkg::SourceRefreshNow (id);
+		fillTable ();
+/*                map generalData = Pkg::SourceGeneralData( id );
+                string url = generalData[ "url" ]:"";
+
+                do {
+                    // url = editUrl( url );
+                    if ( size( url ) == 0 ) break;
+                    deleteSource( current );
+                    createResult = createSource( url );
+                    if ( createResult == `ok ) {
+			fillTable();
+                    }
+                } while ( createResult == `again );*/
+            }
+            else if ( input == `delete )
+            {
+		// yes-no popup
+                if ( Popup::YesNo( _("Delete the selected catalog from the list?") ) )
+                {
+                    deleteSource( current );
+                    fillTable();
+                }
+            }
+            else if ( input == `enable )
+            {
+                boolean state = sourceState[ "enabled" ]:true;
+                state = !state;
+		// corresponds to the "Enable/Disable" button
+                string newstate = ( state ? _("On") : _("Off") );
+                UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
+                sourceState[ "enabled" ] = state;
+                sourceStatesOut[ current ] = sourceState;
+            }
+            else if ( input == `refresh_on_off )
+            {
+		integer source_id = sourceState["SrcId"]:0;
+		map src_data = Pkg::SourceGeneralData (source_id);
+		string type = src_data["type"]:"UnitedLinux";
+
+                boolean state = sourceState[ "autorefresh" ]:true;
+		if (type == "PlainDir" && ! state)
+		{
+		    // popup message
+		    Popup::Message (_("For the selected source, refresh
+cannot be set."));
+		}
+		else
+		{
+		    state = !state;
+		}
+		// corresponds to the "Enable/Disable" button
+                string newstate = ( state ? _("On") : _("Off") );
+                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
+                sourceState["autorefresh"] = state;
+                sourceStatesOut[ current ] = sourceState;
+            }
+            else if ( input == `up )
+            {
+                if ( current > 0 ) {
+                    map<string, any> tmpState = sourceStatesOut[ current ]:$[];
+                    sourceStatesOut[ current ] = sourceStatesOut[ current - 1 ]:$[];
+                    sourceStatesOut[ current - 1 ] = tmpState;
+                    current = current - 1;
+                }
+                fillTable();
+            }
+            else if ( input == `down )
+            {
+                if ( current < numSources - 1 ) {
+                    map<string, any> tmpState = sourceStatesOut[ current ]:$[];
+                    sourceStatesOut[ current ] = sourceStatesOut[ current + 1 ]:$[];
+                    sourceStatesOut[ current + 1 ] = tmpState;
+                    current = current + 1;
+                }
+                fillTable();
+            }
+        }
+
+    } until ( exit );
+
+    UI::CloseDialog();
+
+    y2debug( "Return: %1", input );
+
+    if (input == `next && Mode::normal ())
+	input	= `restart_menu;
+    return input;
+}

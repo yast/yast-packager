@@ -1,0 +1,27 @@
+{
+    include "testsuite.ycp";
+    map READ = $[
+        "target" : $[
+            "size" : 1,
+            "tmpdir" : "/tmp",
+        ],
+        "etc" : $[
+            "install_inf": $[ 
+                "InstMode":"cd",
+            ]
+        ],
+        "probe":
+            $["cdrom" : [
+                $["dev_name": "/dev/hda"]
+            ]]
+    ];
+
+    TESTSUITE_INIT ([READ], nil);
+    import "InstURL";
+    import "Linuxrc";
+    
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
+    Linuxrc::ResetInstallInf();
+    READ["etc","install_inf","InstMode"] = nil;
+    TEST (``(InstURL::installInf2Url("")), [READ], nil);
+}

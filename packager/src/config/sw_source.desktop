@@ -1,0 +1,56 @@
+[Desktop Entry]
+Type=Application
+Categories=Qt;X-SuSE-YaST;X-SuSE-YaST-Software;
+
+X-KDE-ModuleType=Library
+X-KDE-RootOnly=true
+X-KDE-HasReadOnlyMode=true
+X-KDE-Library=yast2
+X-SuSE-YaST-Call=inst_source
+
+X-SuSE-YaST-Group=Software
+X-SuSE-YaST-Argument=
+X-SuSE-YaST-RootOnly=true
+X-SuSE-YaST-AutoInst=
+X-SuSE-YaST-Geometry=
+X-SuSE-YaST-SortKey=
+X-SuSE-YaST-AutoInstResource=
+
+Icon=yast-sw_source
+Exec=/sbin/yast2 inst_source
+
+Name=Installation Source
+GenericName=Choose the source for installation of software packages (CD, network, etc.)
+Name[cs]=Změnit instalační zdroj
+GenericName[cs]=Zvolte zdroj (např. CD nebo síť) pro instalaci softwarových balíčků.
+Name[de]=Installationsquelle wechseln
+GenericName[de]=Wählen Sie die Quelle (z.B. CD oder Netzwerk) für die Installation der Software-Pakete.
+Name[es]=Cambiar fuente de instalación
+GenericName[es]=Seleccione la fuente para la instalación de paquetes de software (ej. CD o red).
+Name[hu]=Telepítési forrás meghatározása
+GenericName[hu]=Válassza ki a forrást (pl. CD vagy hálózat) a szoftvercsomagok telepítéséhez.
+Name[it]=Cambia sorgente d'installazione
+GenericName[it]=Selezionate l'origine della installazione (p.e.CD o rete) dei pacchetti di software.
+Name[ko]=설치 원본 변경
+GenericName[ko]=설치할 소프트웨어 패키지를 위해서 원본(예. CD 혹은 네트워크)를 선택하십시오.
+Name[nl]=Wijzig installatiebron
+GenericName[nl]=Kies de bron (bijv: CD of netwerk) voor de software pakketten installatie.
+Name[pt]=Modificar fonte da instalação
+GenericName[pt]=Escolha a fonte (ex: CD ou rede) para a instalação ou pacotes de software.
+Name[sk]=Zmena zdroja inštalácie
+GenericName[sk]=Vyberte zdroj (napr. CD alebo sieť) pre inštaláciu balíkov.
+Name[sv]=Ändra installationskälla
+GenericName[sv]=Välj källan (t ex cd eller nätverk) för installationen av programpaket.
+Name[bg]=Промяна на източника на инсталация
+GenericName[bg]=Изберете източника (напр. компактдиск или мрежа) за инсталиране на пакетите.
+Name[el]=Αλλαγή Πηγής Εγκατάστασης
+GenericName[el]=Επιλέξτε την πηγή (π.χ. CD ή δίκτυο) για την εγκατάσταση των πακέτων λογισμικού.
+Name[fr]=Changer le support d'installation
+GenericName[fr]=Choisir la source (par ex. CD ou réseau) pour l'installation des paquetages logiciels.
+Name[ja]=インストールのソースを変更する
+GenericName[ja]=ソフトウェア・パッケージのインストール・ソースを選択して下さい(例えば、 CD あるいはネットワーク)。
+GenericName[lt]=Pasirinkite šaltinį (pvz. CD arba tinklą) programinių paketų diegimui.
+Name[sl]=Spremenite vir namestitve
+GenericName[sl]=Izberite izvor (npr. CD ali omrežje) za namestitev programskih paketov.
+GenericName[tr]=Yazılım paketlerinin kurulumu için kaynağı seçin (CD ya da ağ gibi)
+X-KDE-SubstituteUID=true
