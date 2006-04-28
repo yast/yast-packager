@@ -758,6 +758,8 @@ global list Overview() {
 	    "stdout" : script_out,
 	    "stderr" : script_err,
 	];
+	if (timed_out)
+	    command_ret["timed_out"]	= time_spent;
 	return command_ret;
     }
 
@@ -882,7 +884,15 @@ global list Overview() {
 		// rug is a command name
 		_("rug failed to add a ZYPP service"):
 		_("rug failed to delete a ZYPP service");
-	    Report::LongError (sformat ("%1: %2", message, ret));
+	    message = message + ":";
+	    if (ret["stdout"]:[] != [])
+		message = message + "\n" + mergestring (ret["stdout"]:[], "\n");
+	    if (ret["stderr"]:[] != [])
+		message = message + "\n" + mergestring (ret["stderr"]:[], "\n");
+	    else if (haskey (ret, "timed_out"))
+		// error message
+		message = message + "\n" + sformat (_("Command timed out after %1 msec."), ret["timed_out"]:1000);
+	    Report::LongError (message);
 	    return false;
 	}
     }
