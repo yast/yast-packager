@@ -803,7 +803,8 @@ global list Overview() {
 	string rug_command = "/usr/bin/rug";
 	map zmd_status = RunLong (rug_command + " ping >/dev/null");
 	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
-	return zmd_status["exit"]:nil == 0;
+	// Argh zis suks so mutch! #170549
+	return zmd_status["exit"]:nil == 0 || zmd_status["stderr"]:[] == [];
     }
 
     /**
