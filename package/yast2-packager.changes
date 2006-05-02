@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May  2 21:33:20 CEST 2006 - locilka@suse.cz
+
+- Allways install from all media when Packages::metadir_used is set
+  to true. This adds the missing functionality to the previous fix.
+- 2.13.107
+
+-------------------------------------------------------------------
 Tue May  2 15:08:42 CEST 2006 - locilka@suse.cz
 
 - Splitting inst_rpmcopy source code into smaller functions
