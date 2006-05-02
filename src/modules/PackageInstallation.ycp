@@ -81,6 +81,8 @@
     global define list CommitPackages (integer media_number,
 				       integer packages_installed)
     {
+	y2milestone("CommitPackages called: media nr. %1, packages %2", media_number, packages_installed);
+
 	if ( Mode::test () )
 	{
 	    FakePackager( [],
