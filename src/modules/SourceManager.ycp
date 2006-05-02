@@ -773,7 +773,8 @@ global list Overview() {
      * @return map with out, err and ret_code
      */
     global map RunDumbTimeout (string command, integer seconds) {
-	map ret = RunCommandWithTimeout ("TERM=dumb; " + command + "; exit $?", seconds);
+	// explicit export in case TERM was not in the environment
+	map ret = RunCommandWithTimeout ("export TERM=dumb; " + command + "; exit $?", seconds);
 	if (ret == nil) ret = $[];
 	return ret;
     }
@@ -868,14 +869,17 @@ global list Overview() {
 	string owner = "zypp";	// not stype: #168739
 
 	string command = nil;
+	// Redirect rug stdout to null because (due to a bug in ag_background?)
+	// it can block: #169648
+	// But we still need stderr, this is half-baked.
 	if (adding) {
 	    command = sformat (
-		"/usr/bin/rug service-add --type='%3' '%1' '%2' && /usr/bin/rug subscribe '%1'",
+		"/usr/bin/rug service-add --type='%3' '%1' '%2' >/dev/null && /usr/bin/rug subscribe '%1' >/dev/null",
 		url, name, owner
 		);
 	}
 	else {
-	    command = sformat ("/usr/bin/rug service-delete '%1'", url);
+	    command = sformat ("/usr/bin/rug service-delete '%1' >/dev/null", url);
 	}
 	map ret = RunLong (command); // #165145
 	if (ret["exit"]:nil == 0) {
