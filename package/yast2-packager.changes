@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue May  2 15:08:42 CEST 2006 - locilka@suse.cz
+
+- Splitting inst_rpmcopy source code into smaller functions
+- Calling first stage installation packages commit limited to first
+  media, unlimited in other cases (such as second stage
+  installation) (#170079)
+- 2.13.106
+
+-------------------------------------------------------------------
 Tue May  2 14:43:30 CEST 2006 - mvidner@suse.cz
 
 - Reverted the redirection, ag_background will be changed instead
