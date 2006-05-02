@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Tue May  2 11:08:25 CEST 2006 - mvidner@suse.cz
+Tue May  2 13:11:50 CEST 2006 - mvidner@suse.cz
 
+- Redirect rug stdout to null because it can block (#169648).
 - Sometimes rug ping gives the exit code 0xff_ffff_ffff_ffff so
   declare success if stderr is empty (#170549).
+- 2.13.105
 
 -------------------------------------------------------------------
 Fri Apr 28 09:51:08 CEST 2006 - jsuchome@suse.cz
