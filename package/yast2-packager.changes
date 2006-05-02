@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May  2 14:43:30 CEST 2006 - mvidner@suse.cz
+
+- Reverted the redirection, ag_background will be changed instead
+  (#169648#c39).
+
+-------------------------------------------------------------------
 Tue May  2 13:11:50 CEST 2006 - mvidner@suse.cz
 
 - Redirect rug stdout to null because it can block (#169648).

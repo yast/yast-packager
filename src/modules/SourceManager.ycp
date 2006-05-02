@@ -869,17 +869,14 @@ global list Overview() {
 	string owner = "zypp";	// not stype: #168739
 
 	string command = nil;
-	// Redirect rug stdout to null because (due to a bug in ag_background?)
-	// it can block: #169648
-	// But we still need stderr, this is half-baked.
 	if (adding) {
 	    command = sformat (
-		"/usr/bin/rug service-add --type='%3' '%1' '%2' >/dev/null && /usr/bin/rug subscribe '%1' >/dev/null",
+		"/usr/bin/rug service-add --type='%3' '%1' '%2' && /usr/bin/rug subscribe '%1'",
 		url, name, owner
 		);
 	}
 	else {
-	    command = sformat ("/usr/bin/rug service-delete '%1' >/dev/null", url);
+	    command = sformat ("/usr/bin/rug service-delete '%1'", url);
 	}
 	map ret = RunLong (command); // #165145
 	if (ret["exit"]:nil == 0) {
