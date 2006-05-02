@@ -710,21 +710,22 @@ from the source CD to the disk cache")));
 	// Default - unrestricted
 	map <string, integer> ret = $["maxnumbercds" : 0, "current_cd_no" : 0];
 
-	if (Stage::initial ()) {
+	
+	if (Packages::metadir_used) {
+	    // all is in ramdisk, we can install all sources now, works in every stage
+	    ret["current_cd_no"] = 0;
+	    ret["maxnumbercds"]  = 0;
+	    y2milestone("StartingAndMaxMediaNumber: MetaDir used %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
+	} else if (Stage::initial ()) {
 	    // only the first CD will be installed
 	    ret["current_cd_no"] = 1;
 	    ret["maxnumbercds"]  = 1;
 	    y2milestone("StartingAndMaxMediaNumber: Stage initial %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
 
-	// Four following cases have the same solution, CDstart = 0, CDfinish = 0
+	// Three following cases have the same solution, CDstart = 0, CDfinish = 0
 	// ZYPP should solve what it needs and when.
 	// Leaving it here as the backward compatibility if someone decides to change it back.
 
-	} else if (Packages::metadir_used) {
-	    // all is in ramdisk, we can install all sources now
-	    ret["current_cd_no"] = 0;
-	    ret["maxnumbercds"]  = 0;
-	    y2milestone("StartingAndMaxMediaNumber: MetaDir used %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
 	} else if (Mode::autoinst () && Stage::cont () && size( AutoinstSoftware::post_packages ) > 0) {
 	    // one more compatibility feature to old YaST, post-packages
 	    // Simply install a list of package after initial installation (only
