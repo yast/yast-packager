@@ -884,8 +884,8 @@ global list Overview() {
 	} else {
 	    string message = adding?
 		// rug is a command name
-		_("rug failed to add a ZYPP service"):
-		_("rug failed to delete a ZYPP service");
+		_("Your service was added successfully in YaST, but could not be synchronized with ZenWorks."):
+		_("Your service was deleted successfully in YaST, but could not be synchronized with ZenWorks.");
 	    message = message + ":";
 	    if (ret["stdout"]:[] != [])
 		message = message + "\n" + mergestring (ret["stdout"]:[], "\n");
@@ -893,7 +893,7 @@ global list Overview() {
 		message = message + "\n" + mergestring (ret["stderr"]:[], "\n");
 	    else if (haskey (ret, "timed_out"))
 		// error message
-		message = message + "\n" + sformat (_("Command timed out after %1 msec."), ret["timed_out"]:1000);
+		message = message + "\n" + sformat (_("Command timed out after %1 milliseconds."), ret["timed_out"]:1000);
 	    Report::LongError (message);
 	    return false;
 	}

@@ -625,7 +625,7 @@ global boolean CheckContentFile (integer source) {
 		string sp_url = "dir:" + spdir;
 		integer sp_source = Pkg::SourceCreate (sp_url, "");
 		if (sp_source == -1)
-		    Report::Error (_("Failed to integrate service pack source"));
+		    Report::Error (_("Failed to integrate service pack source."));
 		else
 		{
 		    theSources = add (theSources, sp_source);

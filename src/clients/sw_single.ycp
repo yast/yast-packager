@@ -172,8 +172,8 @@
        if (size(Pkg::SourceGetCurrent(enabled_only)) == 0)
 	{
 
-	   Report::Warning(_("No installation source is defined,
-only installed packages will be displayed."));
+	   Report::Warning(_("No installation source is defined.
+Only installed packages are displayed."));
 	}
 
        Pkg::TargetInit (Installation::destdir, false);
