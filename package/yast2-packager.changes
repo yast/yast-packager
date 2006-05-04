@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  4 13:06:15 CEST 2006 - locilka@suse.cz
+
+- Merged text from proofreading
+- 2.13.108
+
+-------------------------------------------------------------------
 Tue May  2 21:33:20 CEST 2006 - locilka@suse.cz
 
 - Allways install from all media when Packages::metadir_used is set
