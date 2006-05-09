@@ -3,6 +3,7 @@ Tue May  9 15:32:18 CEST 2006 - jsrain@suse.cz
 
 - properly select newer version of packages if service pack is
   added (#172271)
+- 2.13.110
 
 -------------------------------------------------------------------
 Tue May  9 09:22:27 CEST 2006 - jsrain@suse.cz
