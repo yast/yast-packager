@@ -900,24 +900,58 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    y2milestone ("No base selection found, but patterns found...");
 	    redo_proposal = (initial_run && !Mode::autoinst ()) || ! system_packages_selected;
 	    using_patterns = true;
+	    list<string> system_packages = ComputeSystemPackageList();
 	    if (initial_run || ! system_packages_selected)
 	    {
-		y2milestone ("Selecting system packages");
-		map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
-		if (size (res) > 0)
-		{
-		    foreach (string s, any a, res, {
-			y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
-		    });
-		}
-		y2milestone ("Selecting system patterns");
-		list<string> pats = ComputeSystemPatternList ();
-		foreach (string p, pats, {
+		y2milestone ("Selecting system packages %1", system_packages);
+	    }
+	    else
+	    {
+		y2milestone ("Re-selecting new versions of system packages %1", system_packages);
+		// first deselect the package (and filter selected ones)
+		system_packages = filter (string p, system_packages, {
+		    if (Pkg::IsProvided (p) || Pkg::IsSelected (p))
+		    {
+			Pkg::PkgDelete (p);
+			return true;
+		    }
+		    return false;
+		});
+		y2milestone ("System packages to be reselected: %1", system_packages);
+	    }
+	    map <string, any> res = Pkg::DoProvide (system_packages);
+	    if (size (res) > 0)
+	    {
+		foreach (string s, any a, res, {
+		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+		});
+	    }
+	    list<string> system_patterns = ComputeSystemPatternList ();
+	    if (initial_run || ! system_packages_selected)
+	    {
+		y2milestone ("Selecting system patterns %1", system_patterns);
+		foreach (string p, system_patterns, {
 		    Pkg::ResolvableInstall (p, `pattern);
 		});
-		Pkg::PkgFreshen();
-		system_packages_selected = true;
 	    }
+	    else
+	    {
+		y2milestone ("Re-selecting system patterns %1", system_patterns);
+		list<string>pats = filter (string p, system_patterns, {
+		    list<map<string,any> > descrs = Pkg::ResolvableProperties (p, `pattern, "");
+		    descrs = filter (map<string,any> descr, descrs, {
+			return descr["status"]:nil == `selected;
+		    });
+		    return size (descrs) > 0;
+		});
+		y2milestone ("Selected patterns to be reselected: %1", pats);
+		foreach (string p, pats, {
+		    Pkg::ResolvableRemove (p, `pattern);
+		    Pkg::ResolvableInstall (p, `pattern);
+		});
+	    }
+	    system_packages_selected = true;
+	    Pkg::PkgFreshen();
 	}
 	else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
 	{
