@@ -243,11 +243,19 @@ global void InitializeAddOnProducts() {
 	    packages = add (packages, "sax2-tools");
 	}
 
+	if (Linuxrc::InstallInf ("Display_IP") != nil)
+	{
+	    packages = add (packages, "yast2-qt");
+	    packages = add (packages, "xorg-x11");
+	    packages = add (packages, "fvwm2");
+	    packages = add (packages, "sax2-tools");
+	}
+
 	if (Linuxrc::braille ())
 	{
 	    packages = add (packages, "sbl");
 	}
-
+	y2milestone ("Installation mode packages: %1", packages);
 	return packages;
     }
 
@@ -415,10 +423,18 @@ global list<string> ComputeSystemPatternList () {
 	{
 	    install_list = (list<string>) union (install_list, graphicPackages ());
 	}
+	else
+	{
+	    y2milestone ("Not selecting graphic packages");
+	}
 
 	if (Pkg::IsSelected("java"))
 	{
 	    install_list = (list<string>) union (install_list, javaPackages ());
+	}
+	else
+	{
+	    y2milestone ("Not selecting java packages");
 	}
 
 	install_list = (list<string>) union (install_list, languagePackages ());

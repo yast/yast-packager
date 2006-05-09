@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May  9 09:22:27 CEST 2006 - jsrain@suse.cz
+
+- preselect relevant packages for X11 installation (#168056)
+
+-------------------------------------------------------------------
 Thu May  4 13:06:15 CEST 2006 - locilka@suse.cz
 
 - Merged text from proofreading
