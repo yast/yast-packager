@@ -292,6 +292,9 @@ You will lose that selection if you change the basic selection.");
 	// or if the selection has changed
 	if (save_selection != base_selection)
 	{
+	    // remove the previous selection
+	    Pkg::ResolvableNeutral("", `selection, false);
+
 	    // set the new selection
 	    boolean ret = Pkg::SetSelection( base_selection );
 

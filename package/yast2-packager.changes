@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 10 09:31:41 CEST 2006 - lslezak@suse.cz
+
+- dirinstall - deselect the previous selection when the selection
+  is changed (#166962)
+- 2.13.111
+
+-------------------------------------------------------------------
 Tue May  9 15:32:18 CEST 2006 - jsrain@suse.cz
 
 - properly select newer version of packages if service pack is
