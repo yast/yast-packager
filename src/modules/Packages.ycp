@@ -33,6 +33,7 @@
     import "Wizard";
     import "DirInstall";
     import "PackageCallbacksInit";
+    import "Product";
 
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
@@ -927,6 +928,8 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		});
 	    }
 	    list<string> system_patterns = ComputeSystemPatternList ();
+	    system_patterns = (list<string>)
+		toset (merge (system_patterns, Product::patterns));
 	    if (initial_run || ! system_packages_selected)
 	    {
 		y2milestone ("Selecting system patterns %1", system_patterns);
