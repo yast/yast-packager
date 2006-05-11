@@ -3,6 +3,7 @@ Thu May 11 13:51:49 CEST 2006 - jsrain@suse.cz
 
 - disable automatic modprobe just before starting copying the
   RPM packages (#172149)
+- 2.13.113
 
 -------------------------------------------------------------------
 Thu May 11 08:46:06 CEST 2006 - jsrain@suse.cz
