@@ -385,5 +385,12 @@ void AcpiToInitrd () {
 	AcpiToInitrd ();
     }
 
+    if (Stage::initial ())
+    {
+	// see bug 20627 for original purpose of this line,
+	// bug 172149 why it was moved here
+	SCR::Execute (.target.bash, "/bin/echo \"/etc/nothing\" >/proc/sys/kernel/modprobe");
+    }
+
     return `next;
 }
