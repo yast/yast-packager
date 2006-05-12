@@ -1071,11 +1071,13 @@ global list Overview() {
 	if (ZMDWorking (zmd_handle)) {
 	    ret = true;
 
-	    foreach (integer id, added_src_ids, {
-		ret = AddOrDeleteZYPPServiceIntoZMD (id, true) && ret;
-	    });
+	    // first delete, then add,
+	    // otherwise replacing a source with itself fails: #175159
 	    foreach (integer id, deleted_src_ids, {
 		ret = AddOrDeleteZYPPServiceIntoZMD (id, false) && ret;
+	    });
+	    foreach (integer id, added_src_ids, {
+		ret = AddOrDeleteZYPPServiceIntoZMD (id, true) && ret;
 	    });
 	}
 	ZMDRestore (zmd_handle);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May 12 11:23:56 CEST 2006 - mvidner@suse.cz
+
+- When syncing source changes to ZenWorks, first delete and then add,
+  otherwise replacing a source with itself breaks (#175159).
+
+-------------------------------------------------------------------
 Thu May 11 13:51:49 CEST 2006 - jsrain@suse.cz
 
 - disable automatic modprobe just before starting copying the
