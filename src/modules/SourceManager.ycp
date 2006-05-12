@@ -809,26 +809,6 @@ global list Overview() {
     }
 
     /**
-     * Returns count of services matching the pattern. Returns 'nil'
-     * if something fails.
-     *
-     * @param string grep_pattern to match the ZYPP service
-     * @return integer count of matching lines
-     */
-    integer CountOfZMDServicesMatching (string grep_pattern) {
-	map ret = RunLong ("/usr/bin/rug service-list");
-	if (ret["stdout"]:nil != nil) {
-	    list <string> matching = filter (string one_line, (list <string>) ret["stdout"]:[], {
-		return regexpmatch(one_line, grep_pattern);
-	    });
-	    return size(matching);
-	} else {
-	    y2error("Counting of services failed, returned %1", ret);
-	    return nil;
-	}
-    }
-
-    /**
      * Adds a ZYPP service into ZMD
      * @param src_id installation source id
      * @return success
