@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Fri May 12 15:53:45 CEST 2006 - mvidner@suse.cz
+Fri May 12 16:11:29 CEST 2006 - mvidner@suse.cz
 
+- Before synchronizing sources with ZenWorks, check whether we are in
+  sync already (#168740, #175174).
 - When syncing source changes to ZenWorks, first delete and then add,
   otherwise replacing a source with itself breaks (#175159).
 - Removed dead code, fixed the (unused) return value.

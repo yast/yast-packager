@@ -30,6 +30,7 @@ import "Mode";
 import "Stage";
 import "URL";
 import "InstURL";
+import "String";
 
 
 global list<integer> newSources = [];
@@ -808,6 +809,52 @@ global list Overview() {
 	return zmd_status["exit"]:nil == 0 || zmd_status["stderr"]:[] == [];
     }
 
+    list<string> known_urls = nil;
+
+    /**
+     * Force calling rug on next @ref IsUrlKnownToZMD
+     */
+    void ResetKnownServiceCache () {
+	known_urls = nil;
+    }
+
+    /**
+     * Update the cache after a successful rug service-{add,delete} call
+     * @param adding add url or delete it
+     * @param url what
+     */
+    void UpdateKnownServiceCache (boolean adding, string url) {
+	if (adding) {
+	    known_urls = add (known_urls, url);
+	} else {
+	    known_urls = filter (string u, known_urls, ``( u != url ));
+	}
+    }
+
+    /**
+     * Whether the URL is known to rug service-list.
+     * The known services are cached,
+     * the caller should use @ref ResetKnownServiceCache if appropriate
+     * (each time when coming from outside this module at least)
+     * @return boolean or nil if determining the status failed
+     */
+    boolean IsUrlKnownToZMD (string url) {
+	if (known_urls == nil)
+	{
+	    //format: "3|Active|ZYPP|ServiceName|ftp://example.org/update/10.1"
+	    // With empty lines and "Waking up ZMD...Done" as a distraction
+	    map ret = RunLong ("/usr/bin/rug --no-abbrev --terse service-list | cut -d'|' -f5 --only-delimited");
+	    if (ret["stdout"]:nil == nil) {
+		y2error("Listing of services failed, returned %1", ret);
+		return nil;
+	    }
+	    // really individual lines?
+	    known_urls = (list <string>) ret["stdout"]:[];
+	    y2milestone ("known %1", known_urls);
+	}
+	return contains (known_urls, url);
+    }
+
     /**
      * Adds a ZYPP service into ZMD
      * @param src_id installation source id
@@ -845,6 +892,15 @@ global list Overview() {
 	}
 	y2milestone ("zmd url: %1", url);
 
+	// we're done if known and adding or unknown and deleting.
+	// if the status is uncertain (error),
+	// we proceed to be able to report it
+	boolean done_already = adding == IsUrlKnownToZMD (url);
+	if (done_already) {
+	    y2milestone ("already in sync");
+	    return true;
+	}
+
 	string name = alias;
 	string owner = "zypp";	// not stype: #168739
 
@@ -860,6 +916,7 @@ global list Overview() {
 	}
 	map ret = RunLong (command); // #165145
 	if (ret["exit"]:nil == 0) {
+	    UpdateKnownServiceCache (adding, url);
 	    return true;
 	} else {
 	    string message = adding?
@@ -1005,6 +1062,7 @@ global list Overview() {
 
 	    if (true) {
 		list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
+		ResetKnownServiceCache ();
 		boolean added_ok = true;
 		foreach (integer src_id, src_ids, {
 		    added_ok = AddOrDeleteZYPPServiceIntoZMD (src_id, true /*add*/) && added_ok;
@@ -1034,6 +1092,7 @@ global list Overview() {
 	map zmd_handle = ZMDStart ();
 	if (ZMDWorking (zmd_handle)) {
 	    ret = true;
+	    ResetKnownServiceCache ();
 
 	    // first delete, then add,
 	    // otherwise replacing a source with itself fails: #175159
