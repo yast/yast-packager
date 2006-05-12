@@ -25,6 +25,9 @@
     import "Label";
     import "Popup";
 
+    // Do not sync the changes to ZenWorks even if rug is present
+    // This is handy for repairing an already out-of-sync situation
+    boolean norug = WFM::Args(0) == "norug";
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_source");
@@ -201,7 +204,7 @@ in the packages selection, continue."),
 	// otherwise we will not get their details
 	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
 	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
-	boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+	boolean have_rug = !norug && (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
 	if (have_rug) {
 	    if (success && !SourceManager::SyncAddedAndDeleted (added, deleted))
 	    {
