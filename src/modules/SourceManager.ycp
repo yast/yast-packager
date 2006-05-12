@@ -1024,22 +1024,6 @@ global list Overview() {
 	    // now we can work
 
 	    if (true) {
-		ret = true;
-	    }
-	    // this will not work, /installation is gone
-	    else {
-		// Check whether the ZYPP service is already in zmd db or not
-		integer count_of_services = CountOfZMDServicesMatching(".*ZYPP.*/installation.*");
-		if (count_of_services == nil) {
-		    y2warning("Cannot get list of services...");
-		} else if (count_of_services > 0) {
-		    y2milestone("ZYPP service already presented (%1)", count_of_services);
-		    ret = true;
-		}
-	    }
-
-	    // ret now indicates whether there's anything left to do
-	    if (ret) {
 		list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
 		boolean added_ok = true;
 		foreach (integer src_id, src_ids, {
@@ -1051,8 +1035,8 @@ global list Overview() {
 		    Report::Error(Message::CannotWriteSettingsTo("ZMD"));
 		    y2error("Adding ZYPP service failed");
 		}
+		ret = added_ok;
 	    }
-	    ret = true;
 	}
 	ZMDRestore (zmd_handle);
 
