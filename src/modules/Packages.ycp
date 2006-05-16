@@ -928,8 +928,12 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		});
 	    }
 	    list<string> system_patterns = ComputeSystemPatternList ();
-	    system_patterns = (list<string>)
-		toset (merge (system_patterns, Product::patterns));
+	    // autoinstallation has patterns specified in the profile
+	    if (! Mode::autoinst ())
+	    {
+		system_patterns = (list<string>)
+		    toset (merge (system_patterns, Product::patterns));
+	    }
 	    if (initial_run || ! system_packages_selected)
 	    {
 		y2milestone ("Selecting system patterns %1", system_patterns);
