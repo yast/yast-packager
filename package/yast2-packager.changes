@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 16 13:16:08 CEST 2006 - jsrain@suse.cz
+
+- fixed selecting XEN kernel (normal vs. PAE) (#173593)
+- fixed help text to make xgettext extract it (#175930)
+
+-------------------------------------------------------------------
 Fri May 12 16:22:13 CEST 2006 - mvidner@suse.cz
 
 - Before synchronizing sources with ZenWorks, check whether we are in

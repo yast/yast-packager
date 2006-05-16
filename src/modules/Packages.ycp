@@ -1224,6 +1224,39 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    });
 	}
 
+	// check Xen pattern status
+	list<map> xen_patterns  = Pkg::ResolvableProperties("xen_server", `pattern, "");
+
+	// is the Xen pattern selected?
+	boolean xen_selected = false;
+
+	foreach(map pattern, xen_patterns,
+	    {
+		if (pattern["status"]:`unknown == `selected)
+		{
+		    xen_selected = true;
+		}
+	    }
+	);
+
+	if (xen_selected)
+	{
+	    if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
+	    {
+		y2milestone("Selected Xen kernel: kernel-xenpae");
+		// install PAE Xen
+		Pkg::PkgNeutral("kernel-xen");
+		Pkg::PkgInstall("kernel-xenpae");
+	    }
+	    else
+	    {
+		y2milestone("Selected Xen kernel: kernel-xen");
+		// install standard Xen
+		Pkg::PkgNeutral("kernel-xenpae");
+		Pkg::PkgInstall("kernel-xen");
+	    }
+	}
+
 	y2milestone ("proposal %1", output);
 
 	// part of summary, %1 is size of packages (in MB or GB)

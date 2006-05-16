@@ -67,27 +67,27 @@
 
 	// Help text for software patterns / selections dialog
 	string help_text
-	    = _("<p>"
-		 "This dialog allows you to define this system's tasks and what software to install. "
-		 "Available tasks and software for this system are shown by category in the left "
-		 "column.  To view a description for an item, select it in the list."
-		 "</p>")
-	    + _("<p>"
-		 "Change the status of an item by clicking its status icon "
-		 "or right-click any icon for a context menu. "
-		 "With the context menu, you can also change the status of all items."
-		 "</p>")
-	    + _("<p>"
-		 "<b>Details</b> opens the detailed software package selection "
-		 "where you can view and select individual software packages."
-		 "</p>")
-	    + _("<p>"
-		 "The <b>Disk Usage</b> display in the lower right corner shows the remaining disk space "
-		 "after all requested changes will have been performed. "
-		 "Hard disk partitions that are full or nearly full can degrade "
-		 "system performance and in some cases even cause serious problems. "
-		 "The system needs some available disk space to run properly."
-		 "</p>");
+	    = _("<p>
+		 This dialog allows you to define this system's tasks and what software to install.
+		 Available tasks and software for this system are shown by category in the left
+		 column.  To view a description for an item, select it in the list.
+		 </p>")
+	    + _("<p>
+		 Change the status of an item by clicking its status icon
+		 or right-click any icon for a context menu.
+		 With the context menu, you can also change the status of all items.
+		 </p>")
+	    + _("<p>
+		 <b>Details</b> opens the detailed software package selection
+		 where you can view and select individual software packages.
+		 </p>")
+	    + _("<p>
+		 The <b>Disk Usage</b> display in the lower right corner shows the remaining disk space
+		 after all requested changes will have been performed.
+		 Hard disk partitions that are full or nearly full can degrade
+		 system performance and in some cases even cause serious problems.
+		 The system needs some available disk space to run properly.
+		 </p>");
 
 	Wizard::OpenAcceptDialog();
 	Wizard::SetContents(
