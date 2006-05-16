@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 16 15:34:12 CEST 2006 - jsrain@suse.cz
+
+- don't use patterns required by product during autoinstallation
+  (#159466)
+
+-------------------------------------------------------------------
 Tue May 16 13:16:08 CEST 2006 - jsrain@suse.cz
 
 - fixed selecting XEN kernel (normal vs. PAE) (#173593)
