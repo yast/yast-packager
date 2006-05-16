@@ -1,0 +1,32 @@
+/**
+ * File:	packager/inst_dir/instintodir.ycp
+ * Module:	System installation
+ * Summary:	Installation into  a directory
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ */
+
+{
+    textdomain "packager";
+
+    import "PackageLock";
+    // check whether having the packager for ourselves
+    if (! PackageLock::Check ())
+	return `abort;
+
+    // install package callbacks
+    import "PackageCallbacksInit";
+    PackageCallbacksInit::InitPackageCallbacks();
+
+    // initializa the package manager
+    Pkg::SourceStartManager(true);
+
+    import "DirInstall";
+    include "dirinstall/ui.ycp";
+
+    symbol ret = Run ();
+    y2milestone ("Sequence returned %1", ret);
+    DirInstall::UmountFilesystems ();
+    DirInstall::FinishPackageManager ();
+    return ret;
+}
