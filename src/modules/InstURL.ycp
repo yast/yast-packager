@@ -233,6 +233,8 @@
                 // ftp://foo/bar is bar on foo (absolute)
                 // ftp://foo//bar is /bar on foo (relative)
 		// Note: %2f is added by URL.ycp if the path starts with /
+		if (substring (serverdir, 0, 3) == "%2f")
+		    serverdir = "/" + substring (serverdir, 3);
                 fs = serverdir;
 
             } else if (instmode == "smb" && (share != nil) && (share != "")) {
