@@ -2,6 +2,7 @@
 Wed May 17 10:53:12 CEST 2006 - jsrain@suse.cz
 
 - decode %2f from FTP path from install.inf (#169310)
+- 2.13.117
 
 -------------------------------------------------------------------
 Tue May 16 15:34:12 CEST 2006 - jsrain@suse.cz
