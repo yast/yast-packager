@@ -3,6 +3,7 @@ Fri May 19 10:35:24 CEST 2006 - jsrain@suse.cz
 
 - store ProductFeatures before starting package installation
   (#176993)
+- 2.13.118
 
 -------------------------------------------------------------------
 Wed May 17 10:53:12 CEST 2006 - jsrain@suse.cz
