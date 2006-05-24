@@ -639,7 +639,12 @@ global boolean CheckContentFile (integer source) {
 		{
 		    AddOnProduct::WFIntegrate (spdir + "/installation.xml");
 		}
+		if ((integer)WFM::Read (.local.size, spdir + "/y2update.tgz") > 0)
+		{
+		    AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
+		}
 		string sp_url = "dir:" + spdir;
+		PackageCallbacksInit::InitPackageCallbacks ();
 		integer sp_source = Pkg::SourceCreate (sp_url, "");
 		if (sp_source == -1)
 		    Report::Error (_("Failed to integrate service pack source."));
