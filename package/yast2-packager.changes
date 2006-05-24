@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 24 12:54:33 CEST 2006 - jsrain@suse.cz
+
+- properly integrate YCP code for add-on product installation if
+  add-on product media booted (if YCP code present) (#178311)
+
+-------------------------------------------------------------------
 Fri May 19 10:35:24 CEST 2006 - jsrain@suse.cz
 
 - store ProductFeatures before starting package installation
