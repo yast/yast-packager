@@ -224,7 +224,7 @@ Save changes anyway?")))
 	});
 
 	// store in the persistent libzypp storage
-	success = success && Pkg::SourceFinishAll();
+	success = success && Pkg::SourceSaveAll(); // #176013
 
 	return success;
    }

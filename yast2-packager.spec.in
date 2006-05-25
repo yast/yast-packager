@@ -4,6 +4,8 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-installation yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite
 Requires:	yast2 yast2-installation checkmedia yast2-country
+# Pkg::SourceSaveAll
+Requires:	yast2-pkg-bindings >= 2.13.80
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
 Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
