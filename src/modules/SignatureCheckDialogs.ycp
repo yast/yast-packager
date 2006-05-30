@@ -15,29 +15,34 @@
     import "Label";
     import "Popup";
     import "Message";
+    import "DontShowAgain";
 
     /* --------------------------- Don't show this dialog again Magic --------------------------- */
-
-    map <string, boolean> show_popup = $[];
-    map <string, boolean> popup_ret  = $[];
 
     /**
      * Functions sets whether user want's to show the dialog again
      *
      * @param string popup_type dialog type
      * @param boolean show again
+     * @param string popup_url
      */
-    global void SetShowThisPopup (string popup_type, boolean show_it) {
+    global void SetShowThisPopup (string popup_type, boolean show_it, string popup_url) {
 	if (popup_type == nil || show_it == nil) {
 	    y2error("Neither popup_type %1 nor show_it %2 can be nil!", popup_type, show_it);
 	    return;
 	}
+
+	// it's the default
 	if (show_it) {
 	    y2debug("User decision to show dialog '%1' again is '%2'", popup_type, show_it);
+	// store only "don't show"
 	} else {
-	    y2milestone("User decision to show dialog '%1' again is '%2'", popup_type, show_it);
+	    y2milestone("User decision to show dialog '%1' for '%2' again is '%3'", popup_type, popup_url, show_it);
+	    // Show again -> false, so, store it
+	    DontShowAgain::SetShowQuestionAgain($[
+		"q_type" : "inst-source", "q_ident" : popup_type, "q_url" : popup_url
+	    ], show_it);
 	}
-	show_popup[popup_type] = show_it;
     }
     
     /**
@@ -45,15 +50,26 @@
      * true is the default if nothing is set.
      *
      * @param string popup_type dialog type
+     * @param string popup_url if any
      * @return boolean show the dialog
      */
-    global boolean GetShowThisPopup (string popup_type) {
+    global boolean GetShowThisPopup (string popup_type, string popup_url) {
 	if (popup_type == nil) {
 	    y2error("popup_type %1 mustn't be nil!", popup_type);
 	    return true;
 	}
-	// default (if not defined) is 'true'
-	return  show_popup[popup_type]:true;
+
+	// Read the current configuration from system configuration
+	boolean stored = DontShowAgain::GetShowQuestionAgain($[
+	    "q_type" : "inst-source", "q_ident" : popup_type, "q_url" : popup_url
+	]);
+	
+	// Stored in the configuration
+	if (stored != nil)
+	    return stored;
+	// Unknown status, return default
+	else
+	    return true;
     }
 
     /**
@@ -63,14 +79,16 @@
      * @param string popup_type dialog type
      * @param boolean default_return
      */
-    global void SetDefaultDialogReturn (string popup_type, boolean default_return) {
+    global void SetDefaultDialogReturn (string popup_type, boolean default_return, string popup_url) {
 	if (popup_type == nil || default_return == nil) {
 	    y2error("Neither popup_type %1 nor default_return %2 can be nil!", popup_type, default_return);
 	    return;
 	}
-	y2milestone("User decision in default return for '%1' is '%2'",
-	    popup_type, default_return);
-	popup_ret[popup_type] = default_return;
+	y2milestone("User decision in default return for '%1' for '%2' is '%3'",
+	    popup_type, popup_url, default_return);
+	DontShowAgain::SetDefaultReturn($[
+		"q_type" : "inst-source", "q_ident" : popup_type, "q_url" : popup_url,
+	], default_return);
     }
 
     /**
@@ -80,17 +98,22 @@
      * @param string popup_type dialog type
      * @boolean boolean default dialog return
      */
-    global boolean GetDefaultDialogReturn (string popup_type) {
+    global boolean GetDefaultDialogReturn (string popup_type, string popup_url) {
 	if (popup_type == nil) {
 	    y2error("popup_type %1 mustn't be nil!", popup_type);
 	    return false;
 	}
+
+	boolean stored_return = (boolean) DontShowAgain::GetDefaultReturn($[
+	    "q_type" : "inst-source", "q_ident" : popup_type, "q_url" : popup_url,
+	]);
+	
 	y2milestone("User decided not to show popup for '%1' again, returning user-decision '%2'",
-	    popup_type, popup_ret[popup_type]:false);
-	return  popup_ret[popup_type]:false;
+	    popup_type, stored_return);
+	return stored_return;
     }
 
-    void HandleDoNotShowDialogAgain (boolean default_return, string dont_show_dialog_ident, symbol dont_show_dialog_checkboxid) {
+    void HandleDoNotShowDialogAgain (boolean default_return, string dont_show_dialog_ident, symbol dont_show_dialog_checkboxid, string dont_show_url) {
 	boolean dont_show_status = (boolean) UI::QueryWidget(`id(dont_show_dialog_checkboxid), `Value);
 	// Widget doesn't exist
 	if (dont_show_status == nil) {
@@ -99,11 +122,11 @@
 	} else if (dont_show_status == true) {
 	    y2debug("User decision -- don't show the dialog %1 again, setting default return %2",
 		dont_show_dialog_ident, default_return);
-	    SetShowThisPopup(dont_show_dialog_ident, false);
-	    SetDefaultDialogReturn(dont_show_dialog_ident, default_return);
+	    SetShowThisPopup(dont_show_dialog_ident, false, dont_show_url);
+	    SetDefaultDialogReturn(dont_show_dialog_ident, default_return, dont_show_url);
 	// Checkbox not selected -> Show again
 	} else {
-	    SetShowThisPopup(dont_show_dialog_ident, true);
+	    SetShowThisPopup(dont_show_dialog_ident, true, dont_show_url);
 	}
     }
     
@@ -302,7 +325,7 @@ Use it anyway?")
 		`MarginBox(0.5, 0.5, `Label(description_text)),
 		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
 		    Message::DoNotShowMessageAgain(),
-		    (GetShowThisPopup(dont_show_dialog_ident) ? false:true)
+		    (GetShowThisPopup(dont_show_dialog_ident, item_name) ? false:true)
 		))),
 		YesNoButtons(`no)
 	    )
@@ -313,7 +336,7 @@ Use it anyway?")
 	if (ret == nil) ret = false;
 	
 	// Store the don't show value, store the default return value
-	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again);
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again, item_name);
 
 	UI::CloseDialog();
 	return ret;
@@ -359,7 +382,7 @@ Use it anyway?")
 		`MarginBox(0.5, 0.5, `Label(description_text)),
 		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
 		    Message::DoNotShowMessageAgain(),
-		    (GetShowThisPopup(dont_show_dialog_ident) ? false:true)
+		    (GetShowThisPopup(dont_show_dialog_ident, item_name) ? false:true)
 		))),
 		YesNoButtons(`no)
 	    )
@@ -370,7 +393,7 @@ Use it anyway?")
 	if (ret == nil) ret = false;
 	
 	// Store the don't show value, store the default return value
-	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again);
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again, item_name);
 
 	UI::CloseDialog();
 	return ret;
@@ -494,7 +517,7 @@ Use it anyway?")
 		`MarginBox(0.5, 0.5, `Label(description_text)),
 		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
 		    Message::DoNotShowMessageAgain(),
-		    (GetShowThisPopup(dont_show_dialog_ident) ? false:true)
+		    (GetShowThisPopup(dont_show_dialog_ident, item_name) ? false:true)
 		))),
 		YesNoButtons(`no)
 	    )
@@ -508,7 +531,7 @@ Use it anyway?")
 	if (ret == nil) ret = false;
 	
 	// Store the don't show value, store the default return value
-	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again);
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again, item_name);
 
 	UI::CloseDialog();
 	return ret;

@@ -31,11 +31,11 @@
 	string dont_show_dialog_ident = "-AcceptUnsignedFile-";
     
 	// Show the popup?
-	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
 	    return SignatureCheckDialogs::UseUnsignedItem(`file, filename, dont_show_dialog_ident);
 	// Return the default value entered by user
 	} else {
-	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
 	}
     }
     
@@ -53,11 +53,11 @@
 	string dont_show_dialog_ident = "-AcceptFileWithoutChecksum-";
 	
 	// Show the popup?
-	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
 	    return SignatureCheckDialogs::UseItemWithNoChecksum(`file, filename, dont_show_dialog_ident);
 	// Return the default value entered by user
 	} else {
-	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
 	}
     }
 
@@ -75,12 +75,12 @@
 	string dont_show_dialog_ident = "-AcceptUnknownGpgKey-";
 
 	// Show the popup?
-	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident)) {
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
 	    // Unknown keyname == "Unknown Key"
 	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, fingerprint, dont_show_dialog_ident);
 	// Return the default value entered by user
 	} else {
-	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident);
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
 	}
     }
     
