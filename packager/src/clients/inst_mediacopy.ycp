@@ -1,0 +1,130 @@
+/**
+ * Module:	inst_mediacopy.ycp
+ *
+ * Authors:	Anas Nashif <nashif@suse.de>
+ *
+ * Purpose:	Copy Media to local disk
+ */
+{
+    textdomain "packager";
+
+    import "Label";
+    import "Popup";
+    import "Wizard";
+    import "Packages";
+    import "PackageCallbacks";
+    import "PackageCallbacksInit";
+    import "Installation";
+    import "GetInstArgs";
+
+    list source_list = [];
+
+    Packages::Init(false);
+    integer num = size (Packages::theSources);
+    if (num <= 0)
+    {
+	y2error ("Screwed source");
+    }
+    else
+    {
+	foreach (integer i, Packages::theSources, {
+	    map new_product = Pkg::SourceProductData (i);
+	    source_list = add (source_list,
+			       `item (`id (i), new_product["productname"]:"?",
+				      new_product["productversion"]:"?"));
+	});
+    }
+
+    // dialog heading
+    string heading_text = _("Copy Installation Media");
+    // help text
+    string help_text = _("<p>The installation CDs will be copied into the system
+to create an installation source that can be used to install
+other systems.</p>
+");
+    // label for showing installation sources
+    string label = _("Registered Catalogs");
+
+    term contents =
+	`VBox (
+	       `HCenter (
+			 `HSquash (
+				   `VBox (
+					  `HSpacing( 40 ),	// force minimum width
+					  `Left (`Label (label)),
+					  `Table (`id (`sources),
+						  `header (_("Name"),
+							   _("Version")),
+						  source_list)
+					  )
+				   )
+			 ),
+	       `VSpacing (2)
+	       );
+
+    Wizard::SetContents( heading_text, contents, help_text, 
+            GetInstArgs::enable_back(), GetInstArgs::enable_next());
+
+    string dest = "";
+    if (SCR::Read(.target.dir, Installation::destdir + "/export")==nil)
+    {
+        SCR::Execute(.target.mkdir , Installation::destdir + "/export");
+    }
+    dest = Installation::destdir + "/export"; 
+
+    PackageCallbacksInit::SetMediaCallbacks();
+
+    list<integer> s = Pkg::SourceGetCurrent(false);
+    y2milestone("%1", s );
+
+    foreach(integer source , s , {
+            map md = Pkg::SourceMediaData(source);
+            map pd = Pkg::SourceProductData(source);
+            string distprod = pd["label"]:"";
+            list<string> l = splitstring(distprod, " ");
+            distprod = mergestring(l, "-");
+            string updir = (string)SCR::Read (.etc.install_inf.UpdateDir);
+            string _export = "";
+            if (updir==nil)
+            {
+                _export = dest+"/dist";
+            } else {
+                _export = dest+updir;
+            }
+
+            boolean changed_url = false;
+
+            integer i = 1;
+            while (i <= md["media_count"]:0)
+            {
+                string tgt = sformat("%1/%2/CD%3", _export, distprod, i );
+                y2debug("tgt: %1", tgt );
+                //Popup::Message(sformat(_("Before... %1"), i ));
+                any dir =  Pkg::SourceProvideDir(source, i , ".");
+                //Popup::Message(sformat(_("After... %1"), i ));
+                if (dir!=nil)
+                {
+		    // feedback popup 1/2
+                    Popup::ShowFeedback(_("Copying CD contents to a local directory..."),
+		    // feedback popup 2/2
+			_("Please wait..."));
+                    SCR::Execute(.target.mkdir, tgt);
+                    //string cmd = sformat("cd %1 && tar cf - . | (cd %2  && tar xBf -)", dir,  tgt);
+                    string cmd = sformat("cp %1/content %2", dir, tgt);
+                    SCR::Execute(.target.bash, cmd);
+
+                    if (!changed_url)
+                    {
+                        Pkg::SourceChangeUrl (source, "dir://"+tgt);
+                        changed_url = true;
+                    }
+
+                    Popup::ClearFeedback();
+                
+                }
+                i = i + 1;
+            }
+     });
+
+    return `next;
+}
