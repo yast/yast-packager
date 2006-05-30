@@ -483,6 +483,7 @@ global list<string> ComputeSystemPatternList () {
 	string current_base_selection = base_selections[0]:"";
 	if (current_base_selection != "")
 	{
+	    Reset ([`product]);
 	    Pkg::ClearSelection (current_base_selection);
 	}
 	Pkg::SetSelection (basename);

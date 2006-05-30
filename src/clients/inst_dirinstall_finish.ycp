@@ -106,6 +106,8 @@
             }
            );
 
+    // Stop SCR on target
+    WFM::SCRClose (Installation::scr_handle);
     // umount /proc and /sys before creating image (otherwise tar may fail)
     DirInstall::UmountFilesystems ();
 
@@ -122,9 +124,6 @@
         Progress::Title(_("Building directory image..."));
         WFM::Execute(.local.bash, cmd);
     }
-
-    // Stop SCR on target
-    WFM::SCRClose (Installation::scr_handle);
 
     Progress::Finish();
     return `next;

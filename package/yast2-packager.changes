@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 30 16:07:38 CEST 2006 - jsrain@suse.cz
+
+- fixed installation into directory (preselect patterns, don't ask
+  about base selection if pattern-based installation) (#177917)
+
+-------------------------------------------------------------------
 Tue May 30 08:46:50 CEST 2006 - locilka@suse.cz
 
 - Reimplementing the "Do Not Show Again" popups to store this flag
