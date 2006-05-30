@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue May 30 08:46:50 CEST 2006 - locilka@suse.cz
+
+- Reimplementing the "Do Not Show Again" popups to store this flag
+  permanently. It stores URL + dialog type + default return
+  value (#175845).
+- 2.13.121
+
+-------------------------------------------------------------------
 Thu May 25 17:50:04 CEST 2006 - mvidner@suse.cz
 
 - Use Pkg::SourceSaveAll which always saves even if no sources are
