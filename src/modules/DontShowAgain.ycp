@@ -287,7 +287,7 @@
      * @return map <string, map <string, map <string, any> > > with the current configuration
      * @see current_configuration
      */
-    map <string, map <string, map <string, any> > > GetCurrentConfigurationMap () {
+    global map <string, map <string, map <string, any> > > GetCurrentConfigurationMap () {
 	LazyLoadCurrentConf();
 	return current_configuration;
     }
