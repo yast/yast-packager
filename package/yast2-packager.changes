@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed May 31 09:46:20 CEST 2006 - locilka@suse.cz
+
+- Adding simple editor for viewing and removing "Do Not Show Again"
+  entries from the current configuration.
+- Correcting function that removes these entries inside the
+  DontShowAgain module.
+
+-------------------------------------------------------------------
 Tue May 30 16:07:38 CEST 2006 - jsrain@suse.cz
 
 - fixed installation into directory (preselect patterns, don't ask

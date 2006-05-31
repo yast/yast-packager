@@ -75,6 +75,36 @@
     boolean SaveCurrentConfiguration () {
 	LazyLoadCurrentConf();
 
+	// Removing nil entries from the configuration
+	map <string, map <string, map <string, any> > > new_configuration = $[];
+
+	foreach (string dont_show_type, map <string, map <string, any> > records, current_configuration, {
+	    // Defined and known type
+	    if (dont_show_type == "inst-source") {
+		// Every popup type
+		foreach (string popup_type, map <string, any> one_record, records, {
+		    // Every URL
+		    foreach (string url, any record_options, one_record, {
+			// Record mustn't be nil or empty to be reused
+			if (record_options != nil && record_options != $[]) {
+			    // Creating map from the base
+			    if (new_configuration[dont_show_type]:nil == nil)
+				new_configuration[dont_show_type] = $[];
+			    if (new_configuration[dont_show_type, popup_type]:nil == nil)
+				new_configuration[dont_show_type, popup_type] = $[];
+
+			    new_configuration[dont_show_type, popup_type, url] = record_options;
+			}
+		    });
+		});
+	    // Unknown type
+	    } else {
+		new_configuration[dont_show_type] = records;
+	    }
+	});
+
+	current_configuration = new_configuration;
+
 	return SCR::Write(.target.ycp, conf_file, current_configuration);
     }
 
