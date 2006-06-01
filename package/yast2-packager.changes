@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun  1 10:06:00 CEST 2006 - jsrain@suse.cz
+
+- initialize package callbacks earlier to allow install from
+  incorrectly signed installation source (#179567)
+
+-------------------------------------------------------------------
 Wed May 31 09:46:20 CEST 2006 - locilka@suse.cz
 
 - Adding simple editor for viewing and removing "Do Not Show Again"

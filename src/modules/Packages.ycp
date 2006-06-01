@@ -528,6 +528,8 @@ global boolean CheckContentFile (integer source) {
 	    return;
 	}
 
+	PackageCallbacksInit::InitPackageCallbacks ();
+
 	//
 	// Initialize package manager
 	//
@@ -645,7 +647,6 @@ global boolean CheckContentFile (integer source) {
 		    AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
 		}
 		string sp_url = "dir:" + spdir;
-		PackageCallbacksInit::InitPackageCallbacks ();
 		integer sp_source = Pkg::SourceCreate (sp_url, "");
 		if (sp_source == -1)
 		    Report::Error (_("Failed to integrate service pack source."));
