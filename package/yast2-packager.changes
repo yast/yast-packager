@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jun  2 10:52:15 CEST 2006 - jsrain@suse.cz
+
+- log Report messages by default (bug 180862)
+
+-------------------------------------------------------------------
 Thu Jun  1 10:06:00 CEST 2006 - jsrain@suse.cz
 
 - initialize package callbacks earlier to allow install from
