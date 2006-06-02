@@ -43,10 +43,10 @@ define symbol Run () {
     list<map> stage_mode = [$["stage": "normal",  "mode": wizard_mode ]];
     ProductControl::AddWizardSteps(stage_mode);
 
-    // Don't log Report messages by default
-    Report::LogMessages(false);
-    Report::LogErrors(false);
-    Report::LogWarnings(false);
+    // Do log Report messages by default (bug 180862)
+    Report::LogMessages(true);
+    Report::LogErrors(true);
+    Report::LogWarnings(true);
 
     // calling inst_proposal
 
