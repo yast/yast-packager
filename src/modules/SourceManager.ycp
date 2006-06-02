@@ -425,7 +425,9 @@ global define integer getSourceId( string url ) {
 	{
 	    id = sourceStatesOut[i, "SrcId"]:-1;
 	    break;
-	}        
+	}
+
+	i = i + 1;
     }
     
     return id;
@@ -443,6 +445,11 @@ global define map SourceData(integer source) ``{
     map g =  Pkg::SourceGeneralData( source );
     y2milestone("generalData: %1", g);
     map p =  Pkg::SourceProductData( source );
+    if (p == nil)
+    {
+	p = $[];
+    }
+
     y2milestone("productData: %1", p);
     return ((map)union(g,p));
 }
@@ -541,6 +548,8 @@ global void deleteSourceBySrcId( integer SrcId )   {
 	    sourceStatesOut = remove( sourceStatesOut, i );
 	    break;
 	}        
+
+	i = i + 1;
     }
     return;
     

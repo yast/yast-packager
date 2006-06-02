@@ -1252,8 +1252,13 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 	if (xen_selected)
 	{
+	    // run the solver if a package is selected
+	    boolean run_solver = false;
+
 	    if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
 	    {
+		run_solver = !Pkg::IsSelected("kernel-xenpae");
+
 		y2milestone("Selected Xen kernel: kernel-xenpae");
 		// install PAE Xen
 		Pkg::PkgNeutral("kernel-xen");
@@ -1261,10 +1266,18 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    }
 	    else
 	    {
+		run_solver = !Pkg::IsSelected("kernel-xen");
+
 		y2milestone("Selected Xen kernel: kernel-xen");
 		// install standard Xen
 		Pkg::PkgNeutral("kernel-xenpae");
 		Pkg::PkgInstall("kernel-xen");
+	    }
+
+	    y2milestone("run_solver: %1", run_solver);
+	    if (run_solver)
+	    {
+		Pkg::PkgSolve(true);
 	    }
 	}
 
