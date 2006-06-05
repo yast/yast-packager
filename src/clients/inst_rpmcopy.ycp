@@ -804,9 +804,9 @@ from the source CD to the disk cache")));
     symbol result = InstallPackagesFromMedia (current_cd_no, maxnumbercds);
 
     // sync package manager FIXME
-    if (result != `abort)
+    if (result != `abort && ! Stage::initial ())
     {
-	y2milestone ("Calling PkgCommig (%1)", 9999);
+	y2milestone ("Calling PkgCommit (%1)", 9999);
 	Pkg::PkgCommit (9999);
     }
 

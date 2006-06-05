@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun  5 14:04:54 CEST 2006 - jsrain@suse.cz
+
+- do not call Pkg::PkgCommit (9999) in first stage (#181195)
+
+-------------------------------------------------------------------
 Fri Jun  2 16:09:05 CEST 2006 - lslezak@suse.cz
 
 - run the solver after selecting a Xen kernel (#178306)
