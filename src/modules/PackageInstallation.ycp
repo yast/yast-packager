@@ -144,7 +144,7 @@
 	if (do_commit)
 	{
 	    // returns [ int successful, list failed, list remaining, list srcremaining ]
-	    y2milestone ("Calling PkgCommig (%1)", media_number);
+	    y2milestone ("Calling PkgCommit (%1)", media_number);
 	    commit_result = Pkg::PkgCommit (media_number);
 
 	    SlideShow::StopTimer();
