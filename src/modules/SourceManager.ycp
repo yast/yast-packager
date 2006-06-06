@@ -744,6 +744,19 @@ global list Overview() {
 		break;
 	    }
 
+	    // at last, enable aborting the sync
+	    if (Mode::commandline ()) {
+		sleep (sleep_step);
+	    }
+	    else {
+		any ui = UI::TimeoutUserInput (sleep_step);
+		if (ui == `abort) {
+		    y2milestone ("aborted");
+		    timed_out = true;
+		    break;
+		}
+	    }
+
 	    // time-out
 	    if (time_spent >= script_time_out) {
 		y2error("Command timed out after %1 msec", time_spent);
@@ -751,16 +764,19 @@ global list Overview() {
 	    }
 	    
 	    time_spent = time_spent + sleep_step;
-	    sleep(sleep_step);
 	}
 	y2milestone("Time spent: %1 msec", time_spent);
 
 	// fetching the return code if not timed-out
 	if (! timed_out) {
+	    y2milestone ("getting output");
 	    script_out  = (list<string>) SCR::Read(.background.newout);
+	    y2milestone ("getting errors");
 	    script_err  = (list<string>) SCR::Read(.background.newerr);
+	    y2milestone ("getting status");
 	    return_code = (integer) SCR::Read(.background.status);
 	}
+	y2milestone ("killing");
 	SCR::Execute(.background.kill, "");
 
 	map command_ret = $[
@@ -790,16 +806,7 @@ global list Overview() {
     }
 
     /**
-     * Run with a short timeout
-     * @param command a command
-     * @return map with out, err and ret_code
-     */
-    map RunShort (string command) {
-	return RunDumbTimeout (command, 120);
-    }
-
-    /**
-     * Run with a short timeout
+     * Run with a long timeout
      * @param command a command
      * @return map with out, err and ret_code
      */
@@ -914,14 +921,15 @@ global list Overview() {
 	string owner = "zypp";	// not stype: #168739
 
 	string command = nil;
+	// be quiet, #179080
 	if (adding) {
 	    command = sformat (
-		"/usr/bin/rug service-add --type='%3' '%1' '%2' && /usr/bin/rug subscribe '%1'",
+		"/usr/bin/rug --quiet service-add --type='%3' '%1' '%2' && /usr/bin/rug subscribe '%1'",
 		url, name, owner
 		);
 	}
 	else {
-	    command = sformat ("/usr/bin/rug service-delete '%1'", url);
+	    command = sformat ("/usr/bin/rug --quiet service-delete '%1'", url);
 	}
 	map ret = RunLong (command); // #165145
 	if (ret["exit"]:nil == 0) {
@@ -1015,7 +1023,7 @@ global list Overview() {
 	    SCR::Write (.target.string, source_lock_flag, "bug 170113");
 	}
 	source_locked = source_locked + 1;
-	y2milestone ("%1", source_locked);
+	y2milestone ("lock: %1", source_locked);
     }
 
     /**
@@ -1032,7 +1040,7 @@ global list Overview() {
 	{
 	 SCR::Execute (.target.remove, source_lock_flag);
 	}
-	y2milestone ("%1", source_locked);
+	y2milestone ("unlock: %1", source_locked);
     }
 
 
@@ -1055,8 +1063,11 @@ global list Overview() {
 	//         the RPM database. You can run it only when the RPM is not locked
 	//         otherwise the ZMD will block itself!
 
-	// popup progress information
-	UI::OpenDialog (`Label(_("Initializing catalogs...")));
+	UI::OpenDialog (`VBox (
+			    // popup progress information
+			    `Label(_("Initializing catalogs...")),
+			    `PushButton (`id (`abort), Label::AbortButton ())
+			    ));
 	y2milestone("--- Syncing YaST inst source with ZMD ---");
 
 	Lock ();
