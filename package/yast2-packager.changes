@@ -2,6 +2,7 @@
 Tue Jun  6 16:47:46 CEST 2006 - jsrain@suse.cz
 
 - do not report error if slideshow missing on the media (#182008)
+- 2.13.128
 
 -------------------------------------------------------------------
 Tue Jun  6 11:21:30 CEST 2006 - mvidner@suse.cz
