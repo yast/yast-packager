@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun  6 18:55:57 CEST 2006 - mvidner@suse.cz
+
+- Moved SourceManager + deps from yast2-packager to yast2-installation
+  to avoid circular BuildRequires.
+- 2.13.130
+
+-------------------------------------------------------------------
 Tue Jun  6 18:35:33 CEST 2006 - mvidner@suse.cz
 
 - Moved the major part of Register::add_update_sources to
