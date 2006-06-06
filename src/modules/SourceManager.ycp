@@ -1166,6 +1166,36 @@ global list Overview() {
     }
 
     /**
+     * Extract an alias parameter from the URL and check whether we have
+     * such a source already.
+     * @param url a source with an alias parameter (actually optional)
+     * @param alias_to_id a premade mapping, @see get_alias_to_id
+     * @return the source id or -1
+     */
+    integer SourceByAlias (string url, map<string,integer> alias_to_id) {
+	// parse the URL
+	map parsed_url = URL::Parse (url);
+	y2milestone ("parsed: %1", parsed_url);
+	// (reassemble and warn if it differs)
+	string reassembled = URL::Build (parsed_url);
+	if (url != reassembled)
+	{
+	    y2warning ("reassembled differs: %1", reassembled);
+	}
+	// get the alias
+	map<string, string> q_map = ParseUrlQuery (parsed_url["query"]:"");
+	y2milestone ("query: %1", q_map);
+	string alias = q_map["alias"]:"";
+
+	// (empty: box safeguard)
+	if (alias != "" && haskey (alias_to_id, alias))
+	{
+	    return alias_to_id[alias]:-1;
+	}
+	return -1;
+    }
+
+    /**
      * Used by registration.
      */
     global boolean AddUpdateSources (list<string> urls) {
@@ -1185,25 +1215,11 @@ global list Overview() {
 	    // inst_addon_update_sources also calls Pkg::SourceCreate
 	    // but it already skips duplicates
 
-	    // plan: (log each step!)
-	    // parse the URL
-	    map parsed_url = URL::Parse (url);
-	    y2milestone ("parsed: %1", parsed_url);
-	    // (reassemble and warn if it differs)
-	    string reassembled = URL::Build (parsed_url);
-	    if (url != reassembled)
-	    {
-		y2warning ("reassembled differs: %1", reassembled);
-	    }
-	    // get the alias
-	    map<string, string> q_map = ParseUrlQuery (parsed_url["query"]:"");
-	    y2milestone ("query: %1", q_map);
-	    string alias = q_map["alias"]:"";
-	    // check if alias already there (empty: box safeguard)
+	    // check if alias already there
 	    // if yes, delete the old one
-	    if (alias != "" && haskey (aliases, alias))
+	    integer todel = SourceByAlias (url, aliases);
+	    if (todel != -1)
 	    {
-		integer todel = aliases[alias]:-1;
 		y2milestone ("deleting the old copy, source %1", todel); 
 		Pkg::SourceDelete (todel);
 	    }
