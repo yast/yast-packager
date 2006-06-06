@@ -597,7 +597,11 @@ global boolean CheckContentFile (integer source) {
             string datadir = productmap["datadir"]:"suse";
 	    // FIXME: this is optional
 	    string slidedir_find = "/" + datadir + "/setup/slide";
-            string slidedir = Pkg::SourceProvideDir( initial_source, 1, slidedir_find );
+	    string dir = Pkg::SourceProvideOptionalFile (initial_source, 1,
+		slidedir_find + "/directory.yast");
+	    string slidedir = nil;
+	    if (dir != nil)
+		slidedir = Pkg::SourceProvideDir( initial_source, 1, slidedir_find );
 
 	    string our_slidedir = (string)WFM::Read( .local.tmpdir, "" );
 	    if (slidedir == nil) {
