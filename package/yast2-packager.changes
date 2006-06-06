@@ -1,8 +1,11 @@
 -------------------------------------------------------------------
-Tue Jun  6 17:51:32 CEST 2006 - mvidner@suse.cz
+Tue Jun  6 18:35:33 CEST 2006 - mvidner@suse.cz
 
 - Moved the major part of Register::add_update_sources to
-  SourceManager::AddUpdateSources
+  SourceManager::AddUpdateSources.
+- In SourceManager::AddUpdateSources, also tell rug
+  which zypp/yum sources it should add. This enables
+  rejecting broken or untrusted sources (#180820).
 - 2.13.129
 
 -------------------------------------------------------------------

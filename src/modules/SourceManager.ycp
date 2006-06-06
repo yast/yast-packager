@@ -1197,11 +1197,19 @@ global list Overview() {
 
     /**
      * Used by registration.
+     * This is really hairy because we simultaneously add them to zypp and
+     * zenworks, but not if they are not signed. (thus being better than
+     * inst_source)
+     * @param urls update sources to add
      */
     global boolean AddUpdateSources (list<string> urls) {
 	// prepare for lookup of known aliases
 	map<string,integer> aliases = get_alias_to_id ();
 	y2milestone ("alias mapping: %1", aliases);
+
+	Lock ();
+	map zmd_handle = ZMDStart ();
+	ResetKnownServiceCache ();
 
 	// add the sources.
 	// but do not make duplicates (#168740)
@@ -1211,6 +1219,8 @@ global list Overview() {
 	/// servers for SL
 	/// Anyway that means only that #168740 remains unfixed for SL
 	foreach (string url, urls, {
+	    // #180820
+	    boolean is_nu = search (url, "$RCE") != nil;
 	    y2milestone ("Should add an update source: %1", url);
 	    // inst_addon_update_sources also calls Pkg::SourceCreate
 	    // but it already skips duplicates
@@ -1221,12 +1231,25 @@ global list Overview() {
 	    if (todel != -1)
 	    {
 		y2milestone ("deleting the old copy, source %1", todel); 
+		if (!is_nu)
+		{
+		    AddOrDeleteZYPPServiceIntoZMD (todel, false);
+		}
 		Pkg::SourceDelete (todel);
 	    }
 	    // then add the new one
 	    y2milestone ("adding source");
-	    Pkg::SourceCreate (url, "/");
+	    integer toadd = Pkg::SourceCreate (url, "/");
+	    // and add to zenworks too, but only if it succeeded here (#180820)
+	    if (!is_nu && toadd != -1 && toadd != nil)
+	    {
+		AddOrDeleteZYPPServiceIntoZMD (toadd, true);
+	    }
 	});
+
+	ZMDRestore (zmd_handle);
+	Unlock ();
+
 	return true;
     }
 
