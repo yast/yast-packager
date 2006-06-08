@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  7 17:08:10 CEST 2006 - jsuchome@suse.cz
+
+- show detailed error message when adding of source failed (#182462)
+- 2.13.131
+
+-------------------------------------------------------------------
 Tue Jun  6 18:55:57 CEST 2006 - mvidner@suse.cz
 
 - Moved SourceManager + deps from yast2-packager to yast2-installation
