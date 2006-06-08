@@ -115,18 +115,19 @@
 		// message part 1
                 string _msg1 = sformat( _("Unable to create installation source
 from URL '%1'."), url );
+		/* FIXME Pkg::LastErrorId always returns 'ok'
                 string err = Pkg::LastErrorId();
-                string _msg2 = "";
                 if ( err != "ok" ) {
                     if ( err == "instsrc_duplicate" )
 			// message part 2 alt. 1
                         _msg2 = _("A catalog for this product already exists.");
                     else
-			// message part 2 alt. 2 followed by description
-                        _msg2 = _("Details:") + "\n" + Pkg::LastError();
                 }
-		// message part 3
-                _msg2 = _msg2 + "\n" + _("Try again?");
+		*/
+		// message part 2 alt. 2 followed by description
+                string _msg2 = _("Details:") + "\n" + Pkg::LastError() + "\n" +
+		    // message part 3
+		    _("Try again?");
 
                 boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
                 if ( tryagain ) return `again;
