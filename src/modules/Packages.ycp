@@ -712,6 +712,13 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "",
 							   0, "", 1, "", false);
 	}
+	if( Mode::autoinst ())
+	{
+	    // In the autoyast mode it could be that the proposal
+	    // screen will not be displayed. So the product will
+	    // not be set. Bug 178831
+	    SelectProduct ();
+	}
     }
 
 
