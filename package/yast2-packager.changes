@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun  8 13:46:25 CEST 2006 - schubi@suse.de
+
+- Selecting product in the init of Packages.ycp ( only autoyast mode)
+  Bug 178831 
+
+-------------------------------------------------------------------
 Wed Jun  7 17:08:10 CEST 2006 - jsuchome@suse.cz
 
 - show detailed error message when adding of source failed (#182462)
