@@ -3,6 +3,7 @@ Fri Jun  9 09:56:01 CEST 2006 - jsrain@suse.cz
 
 - handle list of all resolvables needed to be selected in 2nd stage
   of the installation (#181198)
+- 2.13.133
 
 -------------------------------------------------------------------
 Thu Jun  8 13:46:25 CEST 2006 - schubi@suse.de
