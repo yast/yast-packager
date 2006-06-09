@@ -508,7 +508,7 @@ from the source CD to the disk cache")));
 	// second stage of package installation, re-read list of remaining binary and source
 	// packages
 
-	list<string> remaining = (list<string>) SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
+	list<map<string,any> > remaining = (list<map<string,any> >) SCR::Read (.target.ycp, ["/var/lib/YaST2/remaining", []]);
 	if (remaining == nil)
 	    remaining = [];
 
@@ -525,9 +525,11 @@ from the source CD to the disk cache")));
 	}
 
 	integer failed_packages = 0;
-	y2milestone ("%1 binary packages remaining", size (remaining));
-	foreach (string pkg, remaining, ``{
-	    if (! Pkg::PkgInstall (pkg))
+	y2milestone ("%1 resolvables remaining", size (remaining));
+	foreach (map<string,any> res, remaining, ``{
+	    string name = res["name"]:"";
+	    symbol kind = res["kind"]:`package;
+	    if (! Pkg::ResolvableInstall (name, kind))
 		failed_packages = failed_packages + 1;
 	});
 
