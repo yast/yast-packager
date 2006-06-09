@@ -1,0 +1,151 @@
+/**
+ * Module: 		display_driver_popup.ycp
+ *
+ * Authors: 		Stefan Schubert (schubi@suse.de)
+ *
+ * Purpose: 		confirming installation of new packages
+ *                      (e.G. drivers while adding an new Add-On CD
+ *                      This file must be on Add-On source (y2update.tgz
+ *                      with the path /usr/share/YaST2/clients/display_driver_popup.ycp
+ *
+ *                      Additional: There must be an installation.xml on the Add-On source
+ *                      with the content:
+ * <?xml version="1.0"?>
+ * <productDefines  xmlns="http://www.suse.com/1.0/yast2ns"
+ *   xmlns:config="http://www.suse.com/1.0/configns">
+ *
+ * <!--
+ * Work around for the text domain
+ * textdomain="control"
+ * -->
+ *
+ *   <textdomain>control</textdomain>
+ *
+ *   <workflows config:type="list">
+ *       <workflow>
+ *           <defaults>
+ *               <archs>all</archs>
+ *           </defaults>
+ *	    <label>Driver Update</label>
+ *           <mode>installation</mode>
+ *           <stage>normal</stage>
+ *           <modules  config:type="list">
+ *               <module>
+ *	            <label>Confirming Installation</label>
+ *                   <name>display_driver_popup</name>
+ *                   <enable_back>yes</enable_back>
+ *                   <enable_next>yes</enable_next>
+ *               </module>
+ *           </modules>
+ *       </workflow>
+ *   </workflows>
+ * </productDefines>
+ *
+ * $Id: display_driver_popup.ycp 30678 2006-05-04 11:06:58Z locilka $
+ */
+
+{
+    textdomain "installation";    
+
+    import "Arch";
+    import "Confirm";
+    import "Installation";
+    import "Directory";
+    import "Mode";
+    import "Packages";
+    import "PackageCallbacks";
+    import "PackageLock";
+    import "SlideShow";
+    import "SlideShowCallbacks";
+    import "Kernel";
+    import "Wizard";
+    import "Popup";
+    import "Label";
+    import "PackageSystem";
+    import "Report";
+    import "FileUtils";
+    import "GetInstArgs";
+
+   // =============================================================
+
+    symbol result = `next;
+    
+   Wizard::CreateDialog();
+   term contents = `Label (_(""));
+   Wizard::SetContents (_("Add-On Product Installation"), contents, _("Adding software which fits to your system."),
+			false, false);
+   Wizard::SetDesktopIcon("vendor");
+
+   // check whether running as root
+   // and having the packager for ourselves
+   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
+   {
+	UI::CloseDialog ();
+	return `abort;
+   }
+
+   Pkg::SetLocale (UI::GetLanguage (true));
+   // evalutate packages
+   Pkg::PkgFreshen();   
+
+
+   if (!Pkg::PkgAnyToInstall())
+   {
+       Report::Message (_("No package has been selected for installation."));
+   }
+   else
+   {
+       list<string> packages = Pkg::GetPackages (`selected, true);
+       if ( Popup::YesNo (sformat (		  
+			_("Following packages will be installed:\n\n%1\n\nContinue installation ?"),
+			mergestring (packages, "\n"))))
+       {
+	   // checking licences
+	   foreach (string package, string licence, Pkg::PkgGetLicensesToConfirm (packages),
+	   {
+	       boolean cont = Popup::AnyQuestionRichText (package,
+							  licence,
+							  50, 15,
+							  Label::AcceptButton(),
+							  Label::CancelButton(),
+							  `yes);
+		if (!cont)
+		{
+		    return (symbol) result;
+		}
+		else
+		{
+		    // save state
+		    Pkg::PkgMarkLicenseConfirmed (package);
+		}
+	   });
+	   
+	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
+	   boolean anyToDelete = Pkg::PkgAnyToDelete();
+	   SlideShow::SetLanguage (UI::GetLanguage(true));
+	   SlideShow::InitPkgData(true);	// force reinitialization
+	   SlideShow::OpenSlideShowDialog();
+
+	   import "PackageInstallation";
+	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
+	   integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
+	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
+
+	   SlideShow::CloseSlideShowDialog();
+
+	   if (commit_result[0]:0 > 0
+	       || anyToDelete)
+	   {
+	       // prepare "you must boot" popup in inst_suseconfig
+	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
+
+	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
+	   }
+       }
+   }
+
+   UI::CloseDialog();
+
+   return (symbol) result;
+}
