@@ -24,6 +24,7 @@
 
     import "Label";
     import "Popup";
+    import "AddOnProduct";
 
     // Do not sync the changes to ZenWorks even if rug is present
     // This is handy for repairing an already out-of-sync situation
@@ -96,6 +97,13 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
+    boolean LicenseAccepted (integer id) {
+	Wizard::CreateDialog ();
+	boolean ret = AddOnProduct::AcceptedLicenseAndInfoFile (id);
+	UI::CloseDialog ();
+	return ret;
+    }
+
     define symbol createSource( string url ) ``{
         if ( url != "" )
         {
@@ -158,10 +166,17 @@ in the packages selection, continue."),
 		    }
 		}
                 foreach( integer id, newSources, ``{
+		  if (! LicenseAccepted (id))
+		  {
+		    Pkg::SourceDelete (id);
+		  }
+		  else
+		  {
 		    map src_data = Pkg::SourceGeneralData (id);
 		    boolean auto_refresh = src_data["autorefresh"]:false;
                     map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
+		  }
                 } );
                 return `ok;
             }
