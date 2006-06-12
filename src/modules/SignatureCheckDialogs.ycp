@@ -16,6 +16,8 @@
     import "Popup";
     import "Message";
     import "DontShowAgain";
+    import "Stage";
+    import "Linuxrc";
 
     /* --------------------------- Don't show this dialog again Magic --------------------------- */
 
@@ -134,13 +136,60 @@
 
     // /etc/sysconfig/security:CHECK_SIGNATURES
 
+    boolean check_signatures = nil; // lazy
+
+    /**
+     * A semi-public helper. Convert the kernel parameter
+     * to the sysconfig string
+     * @return sysconfig value: yes, yast, no
+     */
+    global string CheckSignatures () {
+	string cmdline = Linuxrc::InstallInf ("Cmdline");
+	y2milestone ("Cmdline: %1", cmdline);
+
+	string val = regexpsub (cmdline, "CHECK_SIGNATURES=([[:alpha:]]+)", "\\1");
+	if (val == nil)
+	{
+	    val = regexpsub (cmdline, "no_sig_check=([^[:digit:]]+)", "\\1");
+	    if (val != nil)
+	    {
+		map<string, string> trans = $[
+		    "0": "yes",
+		    "1": "yast",
+		    "2": "no",
+		    ];
+		val = trans[val]:nil;
+	    }
+	}
+	if (val == nil)
+	{
+	    val = "yes";
+	}
+	return val;
+    }
+
     /**
      * Should signatures be checked at all? Check a sysconfig variable
      * (or a kernel parameter for the 1st installation stage).
      * @return do checking?
      */
     global boolean CheckSignaturesInYaST () {
-	return true;
+	if (check_signatures == nil)
+	{
+	    string chs = nil;
+	    if (Stage::initial ())
+	    {
+		chs = CheckSignatures ();
+	    }
+	    else
+	    {
+		// default is "yes"
+		chs = (string) SCR::Read (.sysconfig.security.CHECK_SIGNATURES);
+	    }
+	    y2milestone ("CHECK_SIGNATURES: %1", chs);
+	    check_signatures = chs != "no";
+	}
+	return check_signatures;
     }
 
     /**
