@@ -132,6 +132,17 @@
     
     /* --------------------------- Don't show this dialog again Magic --------------------------- */
 
+    // /etc/sysconfig/security:CHECK_SIGNATURES
+
+    /**
+     * Should signatures be checked at all? Check a sysconfig variable
+     * (or a kernel parameter for the 1st installation stage).
+     * @return do checking?
+     */
+    global boolean CheckSignaturesInYaST () {
+	return true;
+    }
+
     /**
      * Function adds delimiter between after_chars characters in the string
      *
