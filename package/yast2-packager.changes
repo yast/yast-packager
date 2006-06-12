@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 12 16:00:30 CEST 2006 - mvidner@suse.cz
+
+- Respect /etc/sysconfig/security:CHECK_SIGNATURES in callbacks.
+- 2.13.135
+
+-------------------------------------------------------------------
 Mon Jun 12 11:09:01 CEST 2006 - jsrain@suse.cz
 
 - ask user to confirm a license if product added via the
