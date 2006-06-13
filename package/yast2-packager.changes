@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 13 12:49:32 CEST 2006 - ug@suse.de
+
+- a warning popups breaks autoinstallation (#184349)
+- 2.13.136
+
+-------------------------------------------------------------------
 Mon Jun 12 16:00:30 CEST 2006 - mvidner@suse.cz
 
 - Respect /etc/sysconfig/security:CHECK_SIGNATURES in callbacks.
