@@ -21,7 +21,7 @@
     import "Popup";
     import "SlideShow";
 
-    boolean shutup = false;			// show the disk space warning popup only once
+    boolean shutup = ( Mode::autoinst() )?(true):(false);	// show the disk space warning popup only once and never in autoinstall
     boolean _remote_provide = false;
     boolean user_abort = false;
 
