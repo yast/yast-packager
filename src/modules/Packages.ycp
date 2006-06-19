@@ -77,6 +77,8 @@
 
     global string add_on_products_list = nil;
 
+    boolean init_popup_open = false;
+
 global boolean SelectProduct ();
 
 /**
@@ -642,24 +644,34 @@ global boolean CheckContentFile (integer source) {
 		y2milestone ("Filling %1", spdir);
 		WFM::Execute(.local.bash, "tar -zxvf " +
 		    servicepack_metadata + " -C " + spdir);
-		if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
-		{
-		    AddOnProduct::WFIntegrate (spdir + "/installation.xml");
-		}
-		if ((integer)WFM::Read (.local.size, spdir + "/y2update.tgz") > 0)
-		{
-		    AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
-		}
 		string sp_url = "dir:" + spdir;
 		integer sp_source = Pkg::SourceCreate (sp_url, "");
+		// close the popup in order to be able to ask about the license
+		if (init_popup_open)
+		    UI::CloseDialog ();
 		if (sp_source == -1)
 		    Report::Error (_("Failed to integrate service pack source."));
+		else if (! AddOnProduct::AcceptedLicenseAndInfoFile(sp_source))
+		{
+		    y2milestone ("service pack license rejected");
+		    Pkg::SourceDelete (sp_source);
+		}
 		else
 		{
+		    if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
+		    {
+			AddOnProduct::WFIntegrate (spdir + "/installation.xml");
+		    }
+		    if ((integer)WFM::Read (.local.size, spdir + "/y2update.tgz") > 0)
+		    {
+			AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
+		    }
 		    theSources = add (theSources, sp_source);
 		    y2internal ("Service pack source: %1, changing to URL: %2", sp_source, base_url);
 		    Pkg::SourceChangeUrl (sp_source, base_url);
 		}
+		if (init_popup_open)
+		    UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
 	    }
 
 	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
@@ -1342,11 +1354,13 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 global void InitializeCatalogs() {
     // Intermediate contents of the software selection screen
     UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
+    init_popup_open = true;
 
     // intialize package source to get a list of selections
     Packages::Init (false);
 
     UI::CloseDialog ();
+    init_popup_open = false;
 }
 /* EOF */
 }
