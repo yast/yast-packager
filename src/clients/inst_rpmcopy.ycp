@@ -655,6 +655,10 @@ from the source CD to the disk cache")));
 
 	// returns [ int successful, list failed, list remaining ]
 	list commit_result = PackageInstallation::CommitPackages( current_cd_no, 0 );
+	if (size (commit_result) == 0)
+	{
+	    return `abort;
+	}
 
 	integer count = commit_result[0]:0;
 	y2milestone ("%1 packages installed", count);
