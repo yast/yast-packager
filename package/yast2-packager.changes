@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 20 16:41:03 CEST 2006 - jsrain@suse.cz
+
+- abort installation completly if package installation aborted
+  (#186660)
+
+-------------------------------------------------------------------
 Mon Jun 19 13:13:37 CEST 2006 - jsrain@suse.cz
 
 - ask about add-on product license if add-on product was used as
