@@ -3,6 +3,7 @@ Tue Jun 20 16:41:03 CEST 2006 - jsrain@suse.cz
 
 - abort installation completly if package installation aborted
   (#186660)
+- 2.13.138
 
 -------------------------------------------------------------------
 Mon Jun 19 13:13:37 CEST 2006 - jsrain@suse.cz
