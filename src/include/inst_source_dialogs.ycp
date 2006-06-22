@@ -328,17 +328,18 @@
                                 `RadioButton( `id( `samba ),`opt(`notify), _("&SMB/CIFS") ) ),
                            `HStretch() );
 
-	term get_directory_widget (any typ) {
+	term get_directory_widget (any typ, string dir) {
+y2internal ("building widget with type %1", typ);
 	    return typ == `samba ?
 		`VBox (
 		    `TextEntry( `id( `dir ),
 			// text entry
-			_("&Path to Directory or ISO Image"),urlpath),
+			_("&Path to Directory or ISO Image"),dir),
 		    // checkbox label
-		    `Left (`CheckBox (`id(`ch_iso), _("ISO Image"),path_is_iso (urlpath)))
+		    `Left (`CheckBox (`id(`ch_iso), _("ISO Image"),path_is_iso (dir)))
 		) :
 		// text entry
-                `TextEntry( `id( `dir ), _("&Directory on Server"), urlpath );
+                `TextEntry( `id( `dir ), _("&Directory on Server"), dir);
 	}
 
         UI::OpenDialog( `opt( `decorated ), `HBox (`HSpacing (0.5),
@@ -359,7 +360,7 @@
 		// text entry
                 `TextEntry( `id( `server ), _("Server &Name"), host ),
 		`ReplacePoint (`id (`share_rp), share_widget),
-		`ReplacePoint (`id(`dir_rp), get_directory_widget(type)),
+		`ReplacePoint (`id(`dir_rp), get_directory_widget(type,urlpath)),
                 `HBox(
                     `HSpacing( 0.5 ),
 			// frame
@@ -395,8 +396,8 @@
 	UI::SetFocus (`id (`server));
 
         string url = "";
-
         any input = nil;
+
         repeat
         {
 
@@ -413,7 +414,10 @@
 		UI::ReplaceWidget (`id (`share_rp), `Empty ());
 	    }
 
-	    UI::ReplaceWidget (`id (`dir_rp), get_directory_widget (UI::QueryWidget (`id (`rb_type), `CurrentButton)));
+	    UI::ReplaceWidget (`id (`dir_rp), get_directory_widget (
+		UI::QueryWidget (`id (`rb_type), `CurrentButton),
+		(string) UI::QueryWidget (`id( `dir ), `Value ))
+	    );
 
             boolean anonymous = (boolean) UI::QueryWidget( `id( `anonymous ), `Value );
             UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
