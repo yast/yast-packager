@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 22 08:41:24 CEST 2006 - jsuchome@suse.cz
+
+- do not clear directory entry when Anonymous is (un)checked (#186849)
+- 2.13.139 
+
+-------------------------------------------------------------------
 Tue Jun 20 16:41:03 CEST 2006 - jsrain@suse.cz
 
 - abort installation completly if package installation aborted
