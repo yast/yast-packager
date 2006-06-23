@@ -71,8 +71,11 @@
     symbol result = `next;
     
    Wizard::CreateDialog();
-   term contents = `Label (_(""));
-   Wizard::SetContents (_("Add-On Product Installation"), contents, _("Adding software which fits to your system."),
+   term contents = `Label ("");
+   // headline
+   Wizard::SetContents (_("Add-On Product Installation"), contents,
+			// helptext
+			_("Adding software which fits to your system."),
 			false, false);
    Wizard::SetDesktopIcon("vendor");
 
@@ -91,11 +94,13 @@
 
    if (!Pkg::PkgAnyToInstall())
    {
+       // message popup
        Report::Message (_("No package has been selected for installation."));
    }
    else
    {
        list<string> packages = Pkg::GetPackages (`selected, true);
+       // popup which has to be confirmed
        if ( Popup::YesNo (sformat (		  
 			_("Following packages will be installed:\n\n%1\n\nContinue installation ?"),
 			mergestring (packages, "\n"))))
