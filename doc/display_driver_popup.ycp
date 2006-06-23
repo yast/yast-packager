@@ -75,7 +75,7 @@
    // headline
    Wizard::SetContents (_("Add-On Product Installation"), contents,
 			// helptext
-			_("Adding software which fits to your system."),
+			_("Adding software that fits your system."),
 			false, false);
    Wizard::SetDesktopIcon("vendor");
 
@@ -102,7 +102,7 @@
        list<string> packages = Pkg::GetPackages (`selected, true);
        // popup which has to be confirmed
        if ( Popup::YesNo (sformat (		  
-			_("Following packages will be installed:\n\n%1\n\nContinue installation ?"),
+			_("The following packages will be installed:\n\n%1\n\nContinue installation?"),
 			mergestring (packages, "\n"))))
        {
 	   // checking licences
