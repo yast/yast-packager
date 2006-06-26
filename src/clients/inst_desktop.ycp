@@ -20,46 +20,26 @@ import "Popup";
 import "ProductFeatures";
 import "Stage";
 import "Wizard";
+import "DefaultDesktop";
 
 // do not offer the dialog if base selection is fixed
 if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
     return `auto;
 
-map<symbol,string> desktop2selection = $[
-    `gnome : "default-Gnome",
-    `kde : "default",
-    `min_x11 : "Minimal+X11",
-    `text : "Minimal",
-];
+string alt_desktop = DefaultDesktop::Desktop ();
+string other_desktop = nil;
 
-map<string,symbol> selection2desktop = mapmap (symbol d, string s,
-    desktop2selection,
+if (alt_desktop == nil)
 {
-    return $[ s : d ];
-});
-
-map<symbol,string> desktop2wm = $[
-    `gnome : "gnome",
-    `kde : "kde",
-    `min_x11 : "twm",
-    `text : "twm",
-];
-
-symbol alt_desktop = nil;
-symbol other_desktop = nil;
-if (Packages::preferred_base_selection == nil)
-{
-    Packages::preferred_base_selection = ProductFeatures::GetStringFeature ("software", "base_selection");
-    if (Packages::preferred_base_selection == "")
-	Packages::preferred_base_selection = nil;
+    DefaultDesktop::Init ();
+    alt_desktop = DefaultDesktop::Desktop ();
 }
-if (Packages::preferred_base_selection != nil)
+if (alt_desktop != nil)
 {
-    alt_desktop = selection2desktop[Packages::preferred_base_selection]:`kde;
-    if (alt_desktop != `kde && alt_desktop != `gnome)
+    if (alt_desktop != "kde" && alt_desktop != "gnome")
     {
 	other_desktop = alt_desktop;
-	alt_desktop = `other;
+	alt_desktop = "other";
     }
 }
 
@@ -102,10 +82,10 @@ an alternative, such as a text-only system or a minimal graphical
 system with a basic window manager.</p>");
 
 term kde = `VBox (
-	    `Left (`RadioButton (`id (`kde), `opt(`notify, `boldFont),
+	    `Left (`RadioButton (`id ("kde"), `opt(`notify, `boldFont),
 		// radio button
 		_("&KDE"),
-		alt_desktop == `kde)),
+		alt_desktop == "kde")),
 	    `Left (`HBox (
 		`HSpacing (3),
 		`Top (`Label (kde_blurb)),
@@ -117,10 +97,10 @@ term kde = `VBox (
 	);
 
 term gnome = `VBox (
-	    `Left (`RadioButton (`id (`gnome), `opt (`notify, `boldFont),
+	    `Left (`RadioButton (`id ("gnome"), `opt (`notify, `boldFont),
 		// radio button
 		_("&GNOME"),
-		alt_desktop == `gnome)),
+		alt_desktop == "gnome")),
 	    `HBox (
 		`HSpacing (3),
 		`Top (`Label (gnome_blurb)),
@@ -143,10 +123,10 @@ term contents = `RadioButtonGroup (`id (`desktop), `HBox (
 	`VWeight (10, kde),
 	`VSpacing (0.4),
 	`VWeight (10, `HBox (
-	    `Left (`RadioButton (`id (`other), `opt(`notify, `boldFont),
+	    `Left (`RadioButton (`id ("other"), `opt(`notify, `boldFont),
 		// radio button
 		_("&Other"),
-		alt_desktop != `gnome && alt_desktop != `kde
+		alt_desktop != "gnome" && alt_desktop != "kde"
 		    && alt_desktop != nil)),
 	    `HBox (
 		`HSpacing (3),
@@ -164,10 +144,10 @@ term expert_dialog = `VBox (
     // frame
     `MarginBox(2, 0.7, `Frame (_("Alternate Desktops"),
 	`MarginBox (1, 0.5, `RadioButtonGroup (`id (`desktop), `VBox (
-	    `Left (`RadioButton (`id (`min_x11),
+	    `Left (`RadioButton (`id ("min_x11"),
 		// radio button
 		_("Minimal &Graphical System"))),
-	    `Left (`RadioButton (`id (`text),
+	    `Left (`RadioButton (`id ("text"),
 		// radio button
 		_("&Text Mode")))
 	))
@@ -183,8 +163,8 @@ Wizard::SetContents (_("Desktop Selection"), contents, help,
     GetInstArgs::enable_back(), GetInstArgs::enable_next());
 Wizard::SetTitleIcon ("yast-desktop-select");
 Wizard::SetFocusToNextButton();
-UI::ChangeWidget(`select, `Enabled, alt_desktop != `gnome
-    && alt_desktop != `kde && alt_desktop != nil);
+UI::ChangeWidget(`select, `Enabled, alt_desktop != "gnome"
+    && alt_desktop != "kde" && alt_desktop != nil);
 
 symbol ret = nil;
 
@@ -196,12 +176,12 @@ repeat {
     {
 	Wizard::EnableNextButton();
 	UI::ChangeWidget (`select, `Enabled,
-	    UI::QueryWidget (`other, `Value));
+	    UI::QueryWidget (`id ("other"), `Value));
     }
     else if (ret == `next)
     {
-	alt_desktop = (symbol)UI::QueryWidget (`id (`desktop), `CurrentButton);
-	if (alt_desktop == `other)
+	alt_desktop = (string)UI::QueryWidget (`id (`desktop), `CurrentButton);
+	if (alt_desktop == "other")
 	{
 	    if (other_desktop == nil)
 		ret = `select_next;
@@ -219,12 +199,12 @@ desktop to install."));
     if (ret == `select || ret == `select_next)
     {
 	UI::OpenDialog (expert_dialog);
-	symbol selected = other_desktop;
-	if (selected != `text)
-	    selected = `min_x11;
+	string selected = other_desktop;
+	if (selected != "text")
+	    selected = "min_x11";
 	UI::ChangeWidget (`id (`desktop), `CurrentButton, selected);
 	any popup_ret = UI::UserInput ();
-	selected = (symbol)UI::QueryWidget (`id (`desktop), `CurrentButton);
+	selected = (string)UI::QueryWidget (`id (`desktop), `CurrentButton);
 	UI::CloseDialog ();
 	if (popup_ret == `ok)
 	{
@@ -252,17 +232,13 @@ if (ret == `accept)
 
 if (ret == `next)
 {
-    string base_selection = desktop2selection[alt_desktop]:"default";
-    if (Packages::preferred_base_selection != base_selection)
+    if (DefaultDesktop::Desktop () != alt_desktop)
     {
-	y2milestone ("Setting preferred base selection: %1", base_selection);
-	Packages::base_selection_changed = true;
-	Packages::preferred_base_selection = base_selection;
+	y2milestone ("Setting defualt desktop to %1", alt_desktop);
+	DefaultDesktop::SetDesktop (alt_desktop);
+	Packages::ForceFullRepropose ();
 	Packages::Reset ([`product]);
     }
-    string wm = desktop2wm[alt_desktop]:"";
-    y2milestone ("Setting preferred window manager to %1", wm);
-    Packages::window_manager = wm;
 }
 
 return ret;
