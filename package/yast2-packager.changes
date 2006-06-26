@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun 26 08:52:18 CEST 2006 - jsrain@suse.cz
+
+- preselect patterns according to selected desktop (#183944)
+
+-------------------------------------------------------------------
 Thu Jun 22 08:41:24 CEST 2006 - jsuchome@suse.cz
 
 - do not clear directory entry when Anonymous is (un)checked (#186849)

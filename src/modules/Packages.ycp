@@ -34,6 +34,13 @@
     import "DirInstall";
     import "PackageCallbacksInit";
     import "Product";
+    import "DefaultDesktop";
+
+/**
+ * Force full proposal routine next run
+ */
+boolean full_repropose = false;
+
 
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
@@ -50,7 +57,6 @@
     // to remember if warning should occurre if switching base selection
     global boolean base_selection_modified = false;
 
-    global string preferred_base_selection = nil;
     global boolean base_selection_changed = false;
 
     // Local variables
@@ -71,13 +77,18 @@
 
     boolean system_packages_selected = false;
 
-    global string window_manager = nil;
+// DefaultDesktop::PrefferedWindowManager
+//    global string window_manager = nil;
 
     global boolean using_patterns = false;
 
     global string add_on_products_list = nil;
 
     boolean init_popup_open = false;
+
+global void ForceFullRepropose () {
+    full_repropose = true;
+}
 
 global boolean SelectProduct ();
 
@@ -963,6 +974,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    {
 		system_patterns = (list<string>)
 		    toset (merge (system_patterns, Product::patterns));
+		system_patterns = (list<string>)
+		    toset (merge (system_patterns, DefaultDesktop::PatternsToSelect ()));
+		// FIXME handle patterns to deselect as well
 	    }
 	    if (initial_run || ! system_packages_selected)
 	    {
@@ -1054,11 +1068,12 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 		boolean fit = false;
 		integer counter = 0;
 
-		if (preferred_base_selection != nil)
-		{
+// FIXME commented-out selectedion-related code
+//		if (preferred_base_selection != nil)
+//		{
 			y2milestone ("Selecting system packages");
-			SetSelectionAndComputeSystemPackages
-			    (preferred_base_selection);
+//			SetSelectionAndComputeSystemPackages
+//			    (preferred_base_selection);
 			Pkg::PkgFreshen();
 			base_selections = Pkg::GetSelections (`selected, "base");
 
@@ -1077,7 +1092,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 				ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
 				ret = add( ret, "warning_level", `blocker );
 			}
-		}
+//		}
 
 		while (!fit
 		       && counter < size(available_base_selections) )
