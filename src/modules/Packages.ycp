@@ -7,39 +7,50 @@
  */
 
 {
-    module "Packages";
 
-    textdomain "packager";
+module "Packages";
 
-    import "AddOnProduct";
-    import "Arch";
-    import "Directory";
-    import "InstURL";
-    import "SourceManager";
-    import "Kernel";
-    import "Mode";
-    import "Stage";
-    import "Linuxrc";
-    import "Language";
-    import "ProductFeatures";
-    import "ProductControl";
-    import "Report";
-    import "SlideShow";
-    import "SpaceCalculation";
-    import "Storage";
-    import "String";
-    import "Popup";
-    import "Label";
-    import "Wizard";
-    import "DirInstall";
-    import "PackageCallbacksInit";
-    import "Product";
-    import "DefaultDesktop";
+textdomain "packager";
+
+import "AddOnProduct";
+import "Arch";
+import "Directory";
+import "InstURL";
+import "SourceManager";
+import "Kernel";
+import "Mode";
+import "Stage";
+import "Linuxrc";
+import "Language";
+import "ProductFeatures";
+import "ProductControl";
+import "Report";
+import "SlideShow";
+import "SpaceCalculation";
+import "Storage";
+import "String";
+import "Popup";
+import "Label";
+import "Wizard";
+import "DirInstall";
+import "PackageCallbacksInit";
+import "Product";
+import "DefaultDesktop";
 
 /**
  * Force full proposal routine next run
  */
 boolean full_repropose = false;
+
+/**
+ * Installation source has been initialized?
+ */
+boolean init_called = false;
+
+/**
+ * Error which occurred during installation source initialization
+ */
+string init_error = nil;
 
 
     global boolean install_sources = false;	// Installing source packages ?
@@ -61,11 +72,8 @@ boolean full_repropose = false;
 
     // Local variables
 
-    boolean init_called = false;
 
     string choosen_base_selection = "";
-
-    string pm_init_blocker = nil;
 
     // count of errors during packages solver
     global integer solve_errors = 0;
@@ -85,6 +93,165 @@ boolean full_repropose = false;
     global string add_on_products_list = nil;
 
     boolean init_popup_open = false;
+
+
+// summary functions
+
+/**
+ * List selected resolvables of specified kind
+ * @param what symbol specifying the kind of resolvables to select
+ * @param format string format string to print summaries in
+ * @return a list of selected resolvables
+ */
+global list<string> ListSelected (symbol what, string format) {
+    if (format == "" || format == nil)
+	format = "%1";
+    list<map<string,any> > selected = Pkg::ResolvableProperties ("", what, "");
+    selected = filter (map<string,any> r, selected, {
+	return r["status"]:nil == `selected;
+    });
+    list<string> ret = maplist (map<string,any> r, selected, {
+	string disp = r["summary"]:r["name"]:"";
+	return sformat (format, disp);
+    });
+    return ret;
+}
+
+/**
+ * Count the total size of packages to be installed
+ * @return string formatted size of packages to be installed
+ */
+global string CountSizeToBeInstalled () {
+    integer sz = 0;
+    if (! Mode::installation () && !DirInstall::installing_into_dir )
+    {
+	list<string> packages = Pkg::GetPackages (`selected, true);
+	foreach (string p, packages, {
+	    sz = sz + Pkg::PkgSize (p);
+	});
+	// convert into kB
+	sz = sz / 1024;
+    }
+    else // in case of fresh installation, disk is initially empty
+    {
+	map<string,list> du = Pkg::TargetGetDU ();
+	foreach (string mp, list usages, du, {
+	    sz = sz + usages[2]:0 - usages[1]:0;
+	});
+    }
+    y2milestone ("Total size of packages to install (kB): %1", sz);
+    return String::FormatSizeWithPrecision (sz*1024, 1, true);
+}
+
+/**
+ * Return information about suboptimal distribution if relevant
+ * @return string the information string or empty string
+ */
+global string InfoAboutSubOptimalDistribution () {
+    // warn about suboptimal distribution
+    // this depends on the kernel
+    string dp = (string) SCR::Read(.content.DISTPRODUCT);
+    if (dp==nil)
+	dp = "";
+
+    if (ProductFeatures::GetBooleanFeature ("software",
+	"inform_about_suboptimal_distribution") &&
+	Arch::i386 () && issubstring(dp, "DVD"))
+    {
+	string tmp = (string) SCR::Read(.proc.cpuinfo.value."0"."flags");
+	list flags = (size (tmp) > 0) ? splitstring (tmp, " ") : [];
+
+	// this depends on the cpu (lm = long mode)
+	if (contains (flags, "lm"))
+	{
+	    // warning text
+	    return _("Your computer is a 64-bit x86-64 system. However, you are trying to install a 32-bit distribution.");
+	}
+    }
+    return "";
+}
+
+/**
+ * Return the summary output lines
+ * @param flags a list of flags, allowed are `product, `pattern, `selection,
+ *  `size, `desktop
+ * @return a list of the output lines
+ */
+global list<string> SummaryOutput (list<symbol> flags) {
+    list<string> output = [ InfoAboutSubOptimalDistribution () ];
+    if (contains (flags, `product))
+	output = (list<string>)merge (output, ListSelected (`product, ""));
+    if (contains (flags, `desktop))
+	output = (list<string>)add (output, DefaultDesktop::Description ());
+    if (contains (flags, `pattern))
+	output = (list<string>)
+	    merge (output, ListSelected (`pattern, "+  %1"));
+    if (contains (flags, `selection))
+	output = (list<string>)
+	    merge (output, ListSelected (`selection, "+  %1"));
+    if (contains (flags, `desktop))
+	output = (list<string>)add (output,
+	    // part of summary, %1 is size of packages (in MB or GB)
+	    sformat (_("Size of Packages to Install: %1"),
+		CountSizeToBeInstalled ()));
+
+    output = filter (string o, output, {
+	return o != "" && o != nil;
+    });
+
+    return output;
+}
+
+/**
+ * Check if selected software fits on the partitions
+ * @param init boolean true if partition sizes have changed
+ * @return boolean true if selected software fits, false otherwise
+ */
+global boolean CheckDiskSize (boolean init) {
+    if (init)
+    {
+	y2milestone ("Resetting space calculation");
+	SpaceCalculation::GetPartitionInfo();
+    }
+    return SpaceCalculation::CheckDiskSize();
+}
+
+/**
+ * Print the installatino proposal summary
+ * @param flags a list of symbols, see above
+ * @param boolean use_cache if true, use previous proposal if possible
+ * @returnu a map proposal summary
+ */
+global map Summary (list<symbol> flags, boolean use_cache) {
+    if (init_error != nil)
+    {
+	return $[
+	    "warning" : init_error,
+	    "warning_level" : `blocker,
+	];
+    }
+    map ret = $[];
+    if (! CheckDiskSize (! use_cache))
+    {
+	ret = $[
+	    "warning" : ProductFeatures::GetFeature ("software","selection_type") == `fixed
+		// summary warning
+		? _("Not enough disk space.")
+		// summary warning
+		: _("Not enough disk space. Remove some packages in the single selection."),
+	    "warning_level" : Mode::update() ? `warning : `blocker,
+	];
+    }
+    ret["raw_proposal"] = SummaryOutput (flags);
+    return ret;
+}
+
+
+
+
+
+
+// proposal control functions
 
 global void ForceFullRepropose () {
     full_repropose = true;
@@ -528,12 +695,9 @@ global boolean CheckContentFile (integer source) {
 }
 
     /**
-     * Init()
-     * Initialize package module and package agent
-     * @return integer: 0 == ok, 1 == retry, -1 == error
-     *
+     * Initialize the installation sources
      */
-    global define void Init( boolean forceInit )
+    global void Init(boolean unused_param)
     {
 	if (init_called)
 	{
@@ -546,8 +710,8 @@ global boolean CheckContentFile (integer source) {
 	//
 	// Initialize package manager
 	//
-	pm_init_blocker = nil;
-	y2milestone ("Packages::Init(%1)", forceInit);
+	init_error = nil;
+	y2milestone ("Packages::Init()");
 	// usual mountpoint for the source medium
 	string base_url = "";
 
@@ -589,7 +753,7 @@ global boolean CheckContentFile (integer source) {
 		{
 		    y2error ("No source on '%1'", log_url);
 		    // error in proposal, %1 is URL
-		    pm_init_blocker = sformat (_("No catalog found at '%1'."),
+		    init_error = sformat (_("No catalog found at '%1'."),
 			log_url);
 		    return;
 		}
@@ -745,29 +909,6 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
     }
 
 
-    /**
-     * Warn about suboptimal distribution
-     */
-    define void add_information_about_suboptimal_distribution (list& output)
-    {
-	// this depends on the kernel
-	if (Arch::i386 ())
-	{
-	    string tmp = (string) SCR::Read(.proc.cpuinfo.value."0"."flags");
-	    list flags = (size (tmp) > 0) ? splitstring (tmp, " ") : [];
-
-	    // this depends on the cpu (lm = long mode)
-	    if (contains (flags, "lm"))
-	    {
-		// warning text, part 1
-		output = add (output, _("Your computer is a 64-bit x86-64 system.") + " " +
-		// warning text, part 2
-			      _("However, you are trying to install a 32-bit distribution."));
-	    }
-	}
-    }
-
-
     define void SetSelectionAndComputeSystemPackages (string selection)
     {
         // set the new selection
@@ -790,29 +931,6 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
         list selected_selections = Pkg::GetSelections( `selected, "base");
         selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
         y2milestone( "INSTALLING software selection: %1", selected_selections );
-    }
-
-
-    global string CountSizeToBeInstalled () {
-        integer sz = 0;
-	if (! Mode::installation () && !DirInstall::installing_into_dir )
-	{
-	    list<string> packages = Pkg::GetPackages (`selected, true);
-	    foreach (string p, packages, {
-		sz = sz + Pkg::PkgSize (p);
-	    });
-	    // convert into kB
-	    sz = sz / 1024;
-	}
-	else // in case of fresh installation, disk is initially empty
-	{
-	    map<string,list> du = Pkg::TargetGetDU ();
-	    foreach (string mp, list usages, du, {
-		sz = sz + usages[2]:0 - usages[1]:0;
-	    });
-	}
-	y2milestone ("Total size of packages to install (kB): %1", sz);
-        return String::FormatSizeWithPrecision (sz*1024, 1, true);
     }
 
 
@@ -848,519 +966,214 @@ global boolean SelectProduct () {
 }
 
 /**
+ * Select system patterns
+ * @param reselect boolean true to select only those which are alrady selected
+ */
+void SelectSystemPatterns (boolean reselect) {
+    list<string> system_patterns = ComputeSystemPatternList ();
+    // autoinstallation has patterns specified in the profile
+    if (! Mode::autoinst ())
+    {
+	system_patterns = (list<string>)
+	    toset (merge (system_patterns, Product::patterns));
+	system_patterns = (list<string>)
+	    toset (merge (system_patterns, DefaultDesktop::PatternsToSelect ()));
+		// FIXME handle patterns to deselect as well
+    }
+    if (! reselect)
+    {
+	list<string> to_deselect = DefaultDesktop::PatternsToDeselect ();
+	y2milestone ("Deselecting system patterns %1", to_deselect);
+	foreach (string p, to_deselect, {
+	    Pkg::ResolvableRemove (p, `pattern);
+	});
+	y2milestone ("Selecting system patterns %1", system_patterns);
+	foreach (string p, system_patterns, {
+	    Pkg::ResolvableInstall (p, `pattern);
+	});
+    }
+    else
+    {
+	y2milestone ("Re-selecting system patterns %1", system_patterns);
+	list<string>pats = filter (string p, system_patterns, {
+	    list<map<string,any> > descrs = Pkg::ResolvableProperties (p, `pattern, "");
+	    descrs = filter (map<string,any> descr, descrs, {
+		return descr["status"]:nil == `selected;
+	    });
+	    return size (descrs) > 0;
+	});
+	y2milestone ("Selected patterns to be reselected: %1", pats);
+	foreach (string p, pats, {
+	    Pkg::ResolvableRemove (p, `pattern);
+	    Pkg::ResolvableInstall (p, `pattern);
+	});
+    }
+}
+
+/**
+ * Select system packages
+ * @param reselect boolean true to select only those which are alrady selected
+ */
+void SelectSystemPackages (boolean reselect) {
+    list<string> system_packages = ComputeSystemPackageList();
+    if (! reselect)
+    {
+	y2milestone ("Selecting system packages %1", system_packages);
+    }
+    else
+    {
+	y2milestone ("Re-selecting new versions of system packages %1", system_packages);
+	// first deselect the package (and filter selected ones)
+	system_packages = filter (string p, system_packages, {
+	    if (Pkg::IsProvided (p) || Pkg::IsSelected (p))
+	    {
+		Pkg::PkgDelete (p);
+		return true;
+	    }
+	    return false;
+	});
+	y2milestone ("System packages to be reselected: %1", system_packages);
+    }
+    map <string, any> res = Pkg::DoProvide (system_packages);
+    if (size (res) > 0)
+    {
+	foreach (string s, any a, res, {
+	    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
+	});
+    }
+}
+
+/**
+ * Select appropriate XEN kernel if the XEN pattern is selected
+ */
+void SelectXenKernel () {
+    // check Xen pattern status
+    list<map> xen_patterns  = Pkg::ResolvableProperties("xen_server", `pattern, "");
+
+    // is the Xen pattern selected?
+    boolean xen_selected = false;
+
+    foreach(map pattern, xen_patterns,
+    {
+	if (pattern["status"]:`unknown == `selected)
+	{
+	    xen_selected = true;
+	}
+    });
+
+    if (xen_selected)
+    {
+	// run the solver if a package is selected
+	boolean run_solver = false;
+
+	if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
+	{
+	    run_solver = !Pkg::IsSelected("kernel-xenpae");
+
+	    y2milestone("Selected Xen kernel: kernel-xenpae");
+	    // install PAE Xen
+	    Pkg::PkgNeutral("kernel-xen");
+	    Pkg::PkgInstall("kernel-xenpae");
+	}
+	else
+	{
+	    run_solver = !Pkg::IsSelected("kernel-xen");
+
+	    y2milestone("Selected Xen kernel: kernel-xen");
+	    // install standard Xen
+	    Pkg::PkgNeutral("kernel-xenpae");
+	    Pkg::PkgInstall("kernel-xen");
+	}
+
+	y2milestone("run_solver: %1", run_solver);
+	if (run_solver)
+	{
+	    if (! Pkg::PkgSolve(true))
+	    {
+		solve_errors = Pkg::PkgSolveErrors ();
+	    }
+	}
+    }
+}
+
+/**
  * Make a proposal for package selection
  * @param force reset
  * @param re-initialize
- * @return map Map for the API proposal
+ * @return map for the API proposal
  */
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
-
-	map ret = $[];
-
-	if (base_selection_changed)
-	{
-	    force_reset = true;
-	    base_selection_changed = false;
-	}
-
+    UI::OpenDialog(`opt(`decorated ),
 	// popup label
-	UI::OpenDialog(`opt(`decorated ),`Label(_("Evaluating package selection...")));
+	`Label (_("Evaluating package selection...")));
 
-	y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
-		     force_reset, reinit, Language::language);
+    y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
+	force_reset, reinit, Language::language);
 
-	if ( force_reset )
-	{
-	    Kernel::ProbeKernel();
-	    Packages::Reset ([`product]);
-	    Packages::Init( true );	// reintialize AND reset package selection too
-	    reinit = true;
-	}
-	else if ( reinit )
-	{
-	    Packages::Init( false );	// reinitialize but keep former selection (if possible)
-	}
-	else
-	{
-	    Packages::Init( !init_called ); // reset completely only if necessary
-	}
+    if ( force_reset )
+    {
+	Kernel::ProbeKernel();
+	Packages::Reset ([`product]);
+	reinit = true;
+    }
 
-	boolean initial_run = reinit || ! init_called;
+    boolean initial_run = reinit || ! init_called;
+    Init (false);
 
-	if (initial_run)
-	{
-	    // autoyast can configure AdditionalLocales
-	    // we don't want to overwrite this
-	    if( ! Mode::autoinst ())
-	    {
-		Pkg::SetAdditionalLocales ([Language::language]);
-	    }
-	}
-
-	SelectProduct ();
-
-	if (pm_init_blocker != nil)
-	{
-	    UI::CloseDialog();
-	    return $[
-		"warning" : pm_init_blocker,
-		"warning_level" : `blocker,
-	    ];
-	}
-
-	// start with base selections
-
-	y2milestone ("checking selected selection");
-
-	list base_selections = Pkg::GetSelections (`selected, "base");
-	string selected_base_selection = base_selections[0]:"";
-
-	list<string> selected_addon_selections = Pkg::GetSelections (`selected, "");
-	y2milestone ("selected base is %1, addon is %2", selected_base_selection, selected_addon_selections);
-
-	// when coming from the update branch to the install branch, we might already have
-	// a choosen_base_selection but no selection in the package manager
-	// this will trigger the redo_proposal below
-
-	if (selected_base_selection == "")
-	    choosen_base_selection = "";
-
-	// re-set space calculation
-	y2milestone ("Resetting space calculation");
-	SpaceCalculation::GetPartitionInfo();
-	boolean disk_space_sufficient = SpaceCalculation::CheckDiskSize();
-	y2milestone ("Disk space sufficient: %1", disk_space_sufficient);
-
-	// remember if we must re-do the proposal.
-	// If not, there's no need to activate any selections !
-	boolean redo_proposal = (choosen_base_selection == "") && !Mode::autoinst ();
-	y2milestone ("Redo proposal: %1", redo_proposal);
-
-	if (size (Pkg::ResolvableProperties ("", `pattern, "")) > 0
-	    && size (Pkg::GetSelections (`available, "base")) == 0)
-	{
-	    y2milestone ("No base selection found, but patterns found...");
-	    redo_proposal = (initial_run && !Mode::autoinst ()) || ! system_packages_selected;
-	    using_patterns = true;
-	    list<string> system_packages = ComputeSystemPackageList();
-	    if (initial_run || ! system_packages_selected)
-	    {
-		y2milestone ("Selecting system packages %1", system_packages);
-	    }
-	    else
-	    {
-		y2milestone ("Re-selecting new versions of system packages %1", system_packages);
-		// first deselect the package (and filter selected ones)
-		system_packages = filter (string p, system_packages, {
-		    if (Pkg::IsProvided (p) || Pkg::IsSelected (p))
-		    {
-			Pkg::PkgDelete (p);
-			return true;
-		    }
-		    return false;
-		});
-		y2milestone ("System packages to be reselected: %1", system_packages);
-	    }
-	    map <string, any> res = Pkg::DoProvide (system_packages);
-	    if (size (res) > 0)
-	    {
-		foreach (string s, any a, res, {
-		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
-		});
-	    }
-	    list<string> system_patterns = ComputeSystemPatternList ();
-	    // autoinstallation has patterns specified in the profile
-	    if (! Mode::autoinst ())
-	    {
-		system_patterns = (list<string>)
-		    toset (merge (system_patterns, Product::patterns));
-		system_patterns = (list<string>)
-		    toset (merge (system_patterns, DefaultDesktop::PatternsToSelect ()));
-		// FIXME handle patterns to deselect as well
-	    }
-	    if (initial_run || ! system_packages_selected)
-	    {
-		y2milestone ("Selecting system patterns %1", system_patterns);
-		foreach (string p, system_patterns, {
-		    Pkg::ResolvableInstall (p, `pattern);
-		});
-	    }
-	    else
-	    {
-		y2milestone ("Re-selecting system patterns %1", system_patterns);
-		list<string>pats = filter (string p, system_patterns, {
-		    list<map<string,any> > descrs = Pkg::ResolvableProperties (p, `pattern, "");
-		    descrs = filter (map<string,any> descr, descrs, {
-			return descr["status"]:nil == `selected;
-		    });
-		    return size (descrs) > 0;
-		});
-		y2milestone ("Selected patterns to be reselected: %1", pats);
-		foreach (string p, pats, {
-		    Pkg::ResolvableRemove (p, `pattern);
-		    Pkg::ResolvableInstall (p, `pattern);
-		});
-	    }
-	    system_packages_selected = true;
-	    Pkg::PkgFreshen();
-	}
-	else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
-	{
-	    y2milestone ("Selection type: fixed");
-	    if (! disk_space_sufficient)
-	    {
-		// warning in the summary
-		ret = add( ret, "warning", _("Disk Space Exhausted") );
-		ret = add( ret, "warning_level", `blocker );
-	    }
-	}
-	else if (ProductFeatures::GetFeature ("software", "selection_type") == `auto)
-	{
-	    y2milestone ("Selection type: auto");
-	    // keep desktop selection until user manually modifies the
-	    // sw selection (#104626)
-	    // always keep selection, and inform user about unsufficient disk space (#
-	    if ((! disk_space_sufficient) /*&& (preferred_base_selection != nil)*/
-		&& (! redo_proposal))
-	    {
-		// warning in the summary
-		ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
-		ret = add( ret, "warning_level", `blocker );
-		disk_space_sufficient = true;
-	    }
-
-	    if (redo_proposal || ! disk_space_sufficient)
-	    {
-		// make a new proposal or change a proposal,
-		// if it does not fit on the disk anymore
-
-		if ( ! redo_proposal )
-		{
-		    // the selected set of software packages does not fit on the harddisk
-		    // error message
-		    ret = add( ret, "warning", _("Disk space exhausted -- changing software selection") );
-		    ret = add( ret, "warning_level", `error );
-		    redo_proposal = true;
-		}
-
-		// get all base selections, and sort them by reverse order (highest ordered first)
-		list available_base_selections = sort (string x, string y, Pkg::GetSelections (`available, "base"),
-						       ``{
-							   map xmap = Pkg::SelectionData(x);
-							   map ymap = Pkg::SelectionData(y);
-							   return (xmap["order"]:"" > ymap["order"]:"");
-						       }
-						       );
-		y2milestone ("available_base_selections %1", available_base_selections);
-
-		if (size (available_base_selections) == 0)
-		{
-
-		    UI::CloseDialog();
-
-		    y2error ("No base selections available");
-		    // Can't find any software data, probably a installation media error
-		    // error message
-		    return $[ "warning" : _("Cannot read package data from installation media. Media error?"),
-			      "warning_level" : `blocker ];
-		}
-
-		boolean fit = false;
-		integer counter = 0;
-
-// FIXME commented-out selectedion-related code
-//		if (preferred_base_selection != nil)
-//		{
-			y2milestone ("Selecting system packages");
-//			SetSelectionAndComputeSystemPackages
-//			    (preferred_base_selection);
-			Pkg::PkgFreshen();
-			base_selections = Pkg::GetSelections (`selected, "base");
-
-			y2milestone ("Desktop base selection: %1", base_selections);
-			selected_base_selection = base_selections[0]:"";
-
-			SetBaseSelection (selected_base_selection);
-			if (SpaceCalculation::CheckDiskSize())
-			{
-			    fit = true;
-			}
-			else
-			{
-				fit = true;
-				// warning in the summary
-				ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
-				ret = add( ret, "warning_level", `blocker );
-			}
-//		}
-
-		while (!fit
-		       && counter < size(available_base_selections) )
-		{
-		    selected_base_selection = available_base_selections[counter]:"";
-
-		    y2milestone ("Checking space for '%1'", selected_base_selection);
-		    SetBaseSelection (selected_base_selection);
-
-		    if ( !SpaceCalculation::CheckDiskSize() )
-		    {
-			// does not fit --> trying next
-			counter = counter +1;
-		    }
-		    else
-		    {
-			fit = true;
-		    }
-		}
-		if (!fit)
-		{
-		    UI::CloseDialog();
-
-		    y2warning ("No selection fits");
-		    Pkg::ClearSelection (selected_base_selection);
-		    // can't find a set of software packages which fits on the harddisk
-		    // error message
-		    ret = add (ret, "warning" , _("Not enough disk space even for a minimal installation!"));
-		    ret = add (ret, "warning_level" , `blocker);
-		    ret = add (ret, "raw_proposal", []);
-		    return ret;
-		}
-
-		y2warning ("Get recommendations for %1", selected_base_selection);
-
-		map base_data = Pkg::SelectionData (selected_base_selection);
-		if (base_data == nil)
-		{
-		    base_data = $[];
-		}
-		selected_addon_selections = base_data["recommends"]:[];
-
-		// also add the 'laptop' selection if PCMCIA detected
-		if (Arch::has_pcmcia () || Arch::is_laptop ())
-		{
-		    selected_addon_selections = (list<string>)union (selected_addon_selections, Pkg::GetSelections( `available, "laptop"));
-                }
-		list<string> addon_selections = (list<string>)
-		    ProductFeatures::GetFeature ("software", "addon_selections");
-                if (size(addon_selections) > 0 &&
-                        addon_selections!=nil)
-                {
-                    selected_addon_selections=(list<string>)union(selected_addon_selections, 
-                            addon_selections);
-                }
-	    }
-	}
-	else
-	{
-	    y2error ("unknown value %1 for ProductFeatures::GetFeature (software, selection_type)",
-		     (symbol)ProductFeatures::GetFeature ("software", "selection_type"));
-	}
-
-	choosen_base_selection = selected_base_selection;
-
-	// generate user readable output for proposal
-	list output = [];
-
-        string dp = (string) SCR::Read(.content.DISTPRODUCT);
-        if (dp==nil)
-            dp = "";
-
-	if (ProductFeatures::GetBooleanFeature ("software", "inform_about_suboptimal_distribution") &&
-                Arch::i386 () && issubstring(dp, "DVD"))
-	    add_information_about_suboptimal_distribution (output);
-
-	map base_data = $[];
-	if (using_patterns)
-	{
-	    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
-	    foreach (map<string,any> p, products, {
-		if (p["status"]:nil == `selected)
-		{
-		    string summary = p["display_name"]:"";
-		    if (summary == "")
-			summary = p["summary"]:"";
-		    if (summary == "")
-			summary = p["name"]:"";
-		    output = add (output, summary);
-		}
-	    });
-	}
-	else
-	{
-	    base_data = Pkg::SelectionData (selected_base_selection);
-	    if (base_data == nil)
-	    {
-		y2error ("No data for selection '%1'", selected_base_selection);
-		base_data = $[];
-	    }
-	    y2milestone ("Base %1: %2", selected_base_selection, base_data);
-	    output = add (output, base_data["summary"]:"?");
-	}
-
-	// add on
-	if (! using_patterns)
-	{
-	  foreach(string sel, selected_addon_selections, {
-	    map addon_data = Pkg::SelectionData (sel);
-	    if ((addon_data != nil)				// skip unknown selections
-		&& (addon_data["category"]:"" != "base")
-		&& addon_data["visible"]:false)
-	    {
-		if ( ! Pkg::SetSelection( sel ) )
-		    y2error( "Couldn't add selection %1", sel );
-	    }
-	  });
-	}
-
-	if (redo_proposal)
-	{
-	    y2milestone ("activating selections");
-	    boolean act_sel = Pkg::ActivateSelections ();
-
-
-	    y2milestone ("activating: %1, returning %2", act_sel, ret);
-	}
-
-	boolean success = Pkg::PkgSolve (false); // in order to select packages covered by patterns before
-	// adding system packages - the list may differ
-	if (redo_proposal)
-	{
-	    // add additional (internal) packages, like kernel etc.
-	    y2milestone ("Selecting system packages");
-	    map <string, any> res = Pkg::DoProvide (ComputeSystemPackageList());
-	    if (size (res) > 0)
-	    {
-		foreach (string s, any a, res, {
-		    y2warning ("Pkg::DoProvide failed for %1: %2", s, a);
-		});
-	    }
-	    Pkg::PkgFreshen();
-	    success = Pkg::PkgSolve (false);
-	}
-
-	if (! success)
-	{
-	    solve_errors = Pkg::PkgSolveErrors ();
-	}
-
-	if (using_patterns)
-	{
-	    if (! simple)
-	    {
-		list<map<string,any> > patterns = Pkg::ResolvableProperties ("", `pattern, "");
-		foreach (map<string,any> p, patterns, {
-		    if (p["status"]:nil == `selected && p["user_visible"]:true)
-		    {
-			string summary = p["summary"]:"";
-			if (summary == "")
-			   summary = p["name"]:"";
-			output = add (output, "+  " + summary);
-		    }
-		});
-	    }
-	}
-	else
-	{
-	    list<string> display_addon_selections = Pkg::GetSelections (`selected, "");
-	    foreach(string sel, display_addon_selections, {
-		map addon_data = Pkg::SelectionData (sel);
-		if ((addon_data != nil)				// skip unknown selections
-		    && (addon_data["category"]:"" != "base")
-		    && addon_data["visible"]:false)
-		{
-		    output = add ( output, "+  " + addon_data["summary"]:sel);
-		}
-	    });
-	}
-
-	// check Xen pattern status
-	list<map> xen_patterns  = Pkg::ResolvableProperties("xen_server", `pattern, "");
-
-	// is the Xen pattern selected?
-	boolean xen_selected = false;
-
-	foreach(map pattern, xen_patterns,
-	    {
-		if (pattern["status"]:`unknown == `selected)
-		{
-		    xen_selected = true;
-		}
-	    }
-	);
-
-	if (xen_selected)
-	{
-	    // run the solver if a package is selected
-	    boolean run_solver = false;
-
-	    if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
-	    {
-		run_solver = !Pkg::IsSelected("kernel-xenpae");
-
-		y2milestone("Selected Xen kernel: kernel-xenpae");
-		// install PAE Xen
-		Pkg::PkgNeutral("kernel-xen");
-		Pkg::PkgInstall("kernel-xenpae");
-	    }
-	    else
-	    {
-		run_solver = !Pkg::IsSelected("kernel-xen");
-
-		y2milestone("Selected Xen kernel: kernel-xen");
-		// install standard Xen
-		Pkg::PkgNeutral("kernel-xenpae");
-		Pkg::PkgInstall("kernel-xen");
-	    }
-
-	    y2milestone("run_solver: %1", run_solver);
-	    if (run_solver)
-	    {
-		Pkg::PkgSolve(true);
-	    }
-	}
-
-	y2milestone ("proposal %1", output);
-
-	// part of summary, %1 is size of packages (in MB or GB)
-	output = add (output, sformat (_("Size of Packages to Install: %1"),
-	    CountSizeToBeInstalled ()));
-
-	// check only disk space, if the selected software selection
-	// fits on the disk
-	if ( (!SpaceCalculation::CheckDiskSize()) && ret["warning_level"]:nil != `blocker )
-	{
-	    ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
-	    ret = add( ret, "warning_level", `blocker );
-	    y2warning ("Software selection does not fit on disk");
-	}
-
-	// disk usage calculation is not accurate in update mode
-	if ( (!SpaceCalculation::CheckDiskSize()) && ret["warning_level"]:nil == `blocker && Mode::update())
-	{
-	    y2milestone("Insufficient disk space in update mode, using warning level: `warning");
-	    ret = add( ret, "warning", _("Not enough disk space.  Remove some packages in the single selection."));
-	    // use `warning instead of `blocker
-	    ret = add( ret, "warning_level", `warning );
-	}
-
-	ret = add ( ret, "raw_proposal", output );
-
-	// we just proposed a new base selection, activate it !
-
-	if (simple && ! using_patterns)
-	{
-	    ret["raw_proposal"] = [
-		sformat ("%1 (%2 total)",
-		    base_data["summary"]:"?",
-		    CountSizeToBeInstalled ())
-	    ];
-	}
-
+    if (init_error != nil)
+    {
 	UI::CloseDialog();
+	return Summary ([], false);
+    }
 
-	y2milestone ("Software proposal: %1", ret);
+    if (initial_run)
+    {
+	// autoyast can configure AdditionalLocales
+	// we don't want to overwrite this
+	if( ! Mode::autoinst ())
+	{
+	    Pkg::SetAdditionalLocales ([Language::language]);
+	}
+    }
 
-	return ret;
+    SelectProduct ();
+
+    if (ProductFeatures::GetFeature ("software", "selection_type") == `auto)
+    {
+	y2milestone ("Doing pattern-based software selection");
+
+	SelectSystemPackages (system_packages_selected && ! initial_run);
+	SelectSystemPatterns (system_packages_selected && ! initial_run);
+	system_packages_selected = true;
+	Pkg::PkgFreshen();
+    }
+    else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
+    {
+	y2milestone ("Selection type: fixed");
+    }
+    else
+    {
+	y2error ("unknown value %1 for ProductFeatures::GetFeature (software, selection_type)",
+	     (symbol)ProductFeatures::GetFeature ("software", "selection_type"));
+    }
+
+    if (! Pkg::PkgSolve (false))
+    {
+	solve_errors = Pkg::PkgSolveErrors ();
+    }
+
+    SelectXenKernel ();
+
+    map ret = Summary (
+	[ `product, `pattern, `selection, `size, `desktop ],
+	false);
+    // TODO simple proposal
+
+    UI::CloseDialog();
+
+    y2milestone ("Software proposal: %1", ret);
+
+    return ret;
 }
 
 /**
