@@ -521,7 +521,7 @@ Not all sources are available for configuration.
 	{
             url = "";
 	    do {
-                url = editRawUrl( url );
+                url = editUrl( url );
                 if ( size( url ) == 0 ) break;
 		createResult = createSource( url);
                 if ( createResult == `ok ) fillTable();
