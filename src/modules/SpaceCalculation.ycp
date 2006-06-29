@@ -20,10 +20,8 @@
 
     import "Installation";
     import "Mode";
-    import "Stage";
     import "ProductFeatures";
     import "Report";
-    import "Storage";
     import "String";
     import "DirInstall";
 
@@ -205,6 +203,7 @@
      */
 
     define list get_partition_info () ``{
+	import "Storage";
 	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
 

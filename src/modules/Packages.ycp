@@ -27,7 +27,6 @@ import "ProductControl";
 import "Report";
 import "SlideShow";
 import "SpaceCalculation";
-import "Storage";
 import "String";
 import "Popup";
 import "Label";
@@ -580,6 +579,7 @@ global list<string> ComputeSystemPatternList () {
      */
     global define list<string> ComputeSystemPackageList ()
     {
+	import "Storage";
 	list<string> install_list =  architecturePackages ();
 
 	install_list = (list<string>) union (install_list, modePackages ());
