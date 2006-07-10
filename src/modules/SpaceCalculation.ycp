@@ -24,6 +24,7 @@
     import "Report";
     import "String";
     import "DirInstall";
+    import "Stage";
 
     boolean info_called = false;	// list partition_info already initialized?
     list    partition_info = [];	// information about available partitions

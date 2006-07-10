@@ -1,7 +1,12 @@
 -------------------------------------------------------------------
+Mon Jul 10 16:12:44 CEST 2006 - jsrain@suse.cz
+
+- clean-up of selection related stuff
+
+-------------------------------------------------------------------
 Thu Jun 29 10:59:29 CEST 2006 - jsrain@suse.cz
 
-- optimized source dialogs
+- optimized source dialogs (#179447)
 - import Storage later to prevent early run of construcor
 
 -------------------------------------------------------------------

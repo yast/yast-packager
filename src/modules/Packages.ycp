@@ -16,7 +16,6 @@ import "AddOnProduct";
 import "Arch";
 import "Directory";
 import "InstURL";
-import "SourceManager";
 import "Kernel";
 import "Mode";
 import "Stage";
@@ -35,6 +34,7 @@ import "DirInstall";
 import "PackageCallbacksInit";
 import "Product";
 import "DefaultDesktop";
+import "SourceDialogs";
 
 /**
  * Force full proposal routine next run
@@ -90,8 +90,6 @@ string init_error = nil;
     global boolean using_patterns = false;
 
     global string add_on_products_list = nil;
-
-    boolean init_popup_open = false;
 
 
 // summary functions
@@ -536,25 +534,6 @@ global void InitializeAddOnProducts() {
      *-----------------------------------------------------------------------*/
 
 
-    global define list<string> ComputeSystemSelectionList ()
-    {
-	list<string> selection_list = [];
-        // also add the 'laptop' selection if PCMCIA detected
-        if (Arch::is_laptop ())
-        {
-            selection_list  =  Pkg::GetSelections( `available, "laptop");
-        }
-
-	list<string> addon_selections = (list<string>)
-	    ProductFeatures::GetFeature ("software", "addon_selections");
-        if (size(addon_selections) > 0 && "addon_selections"!=nil)
-        {
-            selection_list=(list<string>)union(selection_list,
-                    addon_selections);
-        }
-        return selection_list;
-    }
-
 global list<string> ComputeSystemPatternList () {
     list<string> pattern_list = [];
     // also add the 'laptop' selection if PCMCIA detected
@@ -652,26 +631,6 @@ global list<string> ComputeSystemPatternList () {
 	return install_list;
     }
 
-    /**
-     * SetBaseSelection (string base name)
-     * @param string base selection name
-     * @return boolean
-     */
-    global define boolean SetBaseSelection (string basename)
-    {
-	list base_selections = Pkg::GetSelections (`selected, "base");
-	string current_base_selection = base_selections[0]:"";
-	if (current_base_selection != "")
-	{
-	    Reset ([`product]);
-	    Pkg::ClearSelection (current_base_selection);
-	}
-	Pkg::SetSelection (basename);
-	Pkg::ActivateSelections ();
-	Pkg::PkgFreshen();
-	Pkg::PkgSolve(false);
-    }
-
 /**
  * Check whether content file in the specified source is the same
  * as the one in the ramdisk
@@ -694,72 +653,227 @@ global boolean CheckContentFile (integer source) {
     return ret;
 }
 
-    /**
-     * Initialize the installation sources
-     */
-    global void Init(boolean unused_param)
+/**
+ * Import GPG keys found in the inst-sys
+ */
+void ImportGPGKeys () {
+    map out = (map) SCR::Execute (.target.bash_output, "/bin/ls -d /*.gpg");
+    foreach (string file, splitstring (out["stdout"]:"", "\n"), {
+	if (file != "")
+	    Pkg::ImportGPGKey (file, true);
+    });
+}
+
+string UpdateSourceURL (string url) {
+    string ret = "";
+    while (ret == "")
     {
-	if (init_called)
+	if (Popup::YesNo (_("Failed to initialize the catalog. Try again?")))
 	{
-	    y2warning ("Packages::Init() already called");
-	    return;
-	}
-
-	PackageCallbacksInit::InitPackageCallbacks ();
-
-	//
-	// Initialize package manager
-	//
-	init_error = nil;
-	y2milestone ("Packages::Init()");
-	// usual mountpoint for the source medium
-	string base_url = "";
-
-	if ( Mode::test () )
-	{
-	    // Fake values for testing purposes
-	    base_url = "dir:///dist/next-i386";
+	    ret = SourceDialogs::EditPopup (url);
 	}
 	else
 	{
-	    base_url = InstURL::installInf2Url ("");
+	    // error in proposal, %1 is URL
+	    init_error = sformat (_("No catalog found at '%1'."),
+		InstURL::HidePassword (url));
+	    return "";
 	}
+    }
+    return ret;
+}
 
-	// check if url contains "@" -> might be username/password, hide from logging
-	string log_url = InstURL::HidePassword(base_url);
-	y2milestone ("Initialize Package Manager: %1", log_url);
+list<string> LocaleVersions (string lang) {
+    list<string> ret = [ lang ];
+    list<string> components = splitstring (lang, ".");
+    if (components[0]:"" != lang && components[0]:"" != "")
+    {
+	lang = components[0]:"";
+	ret = add (ret, lang);
+    }
+    components = splitstring (lang, "_");
+    if (components[0]:"" != lang && components[0]:"" != "")
+    {
+	lang = components[0]:"";
+	ret = add (ret, lang);
+    }
+    return ret;
+}
 
-	// Set languages for packagemanager. Always set the UI language. Set
-	// language for additional packages only in Stage::initial ().
+string ContentFileProductLabel () {
+    string language = Language::language;
+    list<string> locales = LocaleVersions (Language::language);
+    string ret = "";
+    foreach (string loc, locales, {
+	if (ret == "")
+	{
+	    string val = (string)SCR::Read (add (.content, "LABEL." + loc));
+	    if (val != "" && val != nil)
+	    {
+		ret = val;
+		return ret;
+	    }
+	}
+    });
+    return (string)SCR::Read (.content.LABEL);
+}
 
-	Pkg::SetLocale (Language::language);
+void SlideShowSetUp (integer source) {
+    // setup slidedir
+    map productmap = Pkg::SourceProductData (source);
+    string datadir = productmap["datadir"]:"suse";
+    string slidedir_find = "/" + datadir + "/setup/slide";
+    string dir = Pkg::SourceProvideOptionalFile (source, 1,
+	slidedir_find + "/directory.yast");
+    string slidedir = nil;
+    if (dir != nil)
+	slidedir = Pkg::SourceProvideDir (source, 1, slidedir_find);
 
+    string our_slidedir = (string)WFM::Read (.local.tmpdir, "");
+    if (slidedir == nil)
+     {
+	y2milestone("No slide directory '%1' found on source '%2'.",
+	    slidedir_find, source);
+    }
+    else
+    {
+	// copy all files to our own copy
+	WFM::Execute (.local.bash,
+	    sformat ("cp -r %1/* %2/", slidedir, our_slidedir)) ;
+    }
+    y2milestone ("Setting up the slide directory local copy: %1",
+	our_slidedir);
+    SlideShow::SetSlideDir (our_slidedir);
+}
+
+integer IntegrateServicePack (boolean show_popup) {
+    /* Check for Service Pack */
+    boolean servicepack_available = false;
+    theSources = [ initial_source ];
+    if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
+    {
+	y2milestone("Service Pack data available");
+	boolean popup_open = false;
+	if (show_popup)
+	{
+	    UI::OpenDialog(`opt(`decorated ),
+		// popup - information label
+		`Label(_("Integrating booted media...")));
+	    popup_open = true;
+	}
+	string spdir = metadir + "/Service-Pack/CD1";
+	WFM::Execute (.local.mkdir, spdir);
+	y2milestone ("Filling %1", spdir);
+	WFM::Execute(.local.bash, "tar -zxvf " +
+	    servicepack_metadata + " -C " + spdir);
+	string sp_url = "dir:" + spdir;
+	integer sp_source = Pkg::SourceCreate (sp_url, "");
+	// close the popup in order to be able to ask about the license
+	if (popup_open)
+	{
+	    popup_open = false;
+	    UI::CloseDialog ();
+	}
+	if (sp_source == -1)
+	{
+	    Report::Error (_("Failed to integrate service pack source."));
+	    return nil;
+	}
+	if (! AddOnProduct::AcceptedLicenseAndInfoFile(sp_source))
+	{
+	    y2milestone ("service pack license rejected");
+	    Pkg::SourceDelete (sp_source);
+	    return nil;
+	}
+	if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
+	{
+	    AddOnProduct::WFIntegrate (spdir + "/installation.xml");
+	}
+	if ((integer)WFM::Read (.local.size, spdir + "/y2update.tgz") > 0)
+	{
+	    AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
+	}
+	theSources = add (theSources, sp_source);
+	y2internal ("Service pack source: %1, changing to URL: %2",
+	     sp_source, base_url);
+	Pkg::SourceChangeUrl (sp_source, base_url);
+    }
+}
+
+/**
+ * Initialize the installation sources
+ * @param show_popup boolean true to display information about initialization
+ */
+global void Initialize(boolean show_popup) {
+    if (init_called)
+    {
+	y2warning ("Packages::Initialize() already called");
+	return;
+    }
+    boolean popup_open = false;
+    if (show_popup)
+    {
+	UI::OpenDialog(`opt(`decorated ),
+	    // popup - information label
+	    `Label(_("Initializing catalogs...")));
+	popup_open = true;
+    }
+
+    PackageCallbacksInit::InitPackageCallbacks ();
+
+    // Initialize package manager
+    init_error = nil;
+    y2milestone ("Packages::Initialize()");
+    // usual mountpoint for the source medium
+    string base_url = "";
+
+    if (Mode::test ())
+    {
+	// Fake values for testing purposes
+	base_url = "dir:///dist/next-i386";
+    }
+    else
+    {
+	base_url = InstURL::installInf2Url ("");
+    }
+
+    // hide password from URL if present
+    string log_url = InstURL::HidePassword(base_url);
+    y2milestone ("Initialize Package Manager: %1", log_url);
+
+    // Set languages for packagemanager. Always set the UI language. Set
+    // language for additional packages only in Stage::initial ().
+    Pkg::SetLocale (Language::language);
+
+    boolean again = true;
+    theSources = Pkg::SourceStartCache (true); // dummy in 1st stage
+    while (again)
+    {
 	if (Stage::initial ())
 	{
-	    Pkg::SourceStartCache (true);			// dummy, so further calls to Pkg::Pkg* don't restart it
-
-	    Pkg::SourceSetRamCache (false);
-
 	    integer initial_source = nil;
+	    ImportGPGKeys ();
 	    while (initial_source == nil)
 	    {
-		map out = (map) SCR::Execute (.target.bash_output, "/bin/ls -d /*.gpg");
-		foreach (string file, splitstring (out["stdout"]:"", "\n"), {
-		    if (file != "")
-			Pkg::ImportGPGKey (file, true);
-		});
 		initial_source = Pkg::SourceCreateBase (base_url, "");
 		if (initial_source == -1 || initial_source == nil)
 		{
 		    y2error ("No source on '%1'", log_url);
-		    // error in proposal, %1 is URL
-		    init_error = sformat (_("No catalog found at '%1'."),
-			log_url);
-		    return;
+		    base_url = UpdateSourceURL (base_url);
+		    if (base_url != "")
+		    {
+			initial_source = nil;
+		    }
+		    else
+		    {
+			if (popup_open)
+			    UI::CloseDialog ();
+			return;
+		    }
 		}
 		if (! CheckContentFile (initial_source))
 		{
-		    string label = (string)SCR::Read (.content.PRODUCT);
+		    string label = ContentFileProductLabel ();
 		    // bug #159754, release the mounted CD
 		    Pkg::SourceReleaseAll();
 		    // message popup, %1 is product name
@@ -769,26 +883,28 @@ global boolean CheckContentFile (integer source) {
 		}
 	    }
 
-            // setup slidedir
-            map productmap = Pkg::SourceProductData (initial_source);
-            string datadir = productmap["datadir"]:"suse";
-	    // FIXME: this is optional
-	    string slidedir_find = "/" + datadir + "/setup/slide";
-	    string dir = Pkg::SourceProvideOptionalFile (initial_source, 1,
-		slidedir_find + "/directory.yast");
-	    string slidedir = nil;
-	    if (dir != nil)
-		slidedir = Pkg::SourceProvideDir( initial_source, 1, slidedir_find );
+	    SlideShowSetUp (initial_source);
 
-	    string our_slidedir = (string)WFM::Read( .local.tmpdir, "" );
-	    if (slidedir == nil) {
-		y2error("No slide directory '%1' found on source '%2'.", slidedir_find, initial_source);
-	    } else {
-		// copy all files to our own copy
-		WFM::Execute( .local.bash,  sformat( "cp -r %1/* %2/", slidedir, our_slidedir ) ) ;
+	    // Set the product before setting up add-on products
+	    // In the autoyast mode it could be that the proposal
+	    // screen will not be displayed. So the product will
+	    // not be set. Bug 178831
+	    SelectProduct ();
+
+	    if (popup_open)
+	    {
+		popup_open = false;
+		UI::CloseDialog ();
 	    }
-	    y2milestone( "Setting up the slide directory local copy: %1",  our_slidedir);
-	    SlideShow::SetSlideDir (our_slidedir);
+	    theSources = [ initial_source ];
+	    integer sp_source = IntegrateServicePack (show_popup);
+	    if (sp_source != nil)
+		theSources = add (theSources, sp_source);
+
+	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
+	    {
+                Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
+	    }
 
 	    string tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, "/add_on_products");
 	    if (tmp_add_on_products != nil)
@@ -801,62 +917,9 @@ global boolean CheckContentFile (integer source) {
 		add_on_products_list = nil;
 	    }
 
-            /* Check for Service Pack */
-            boolean servicepack_available = false;
-            if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
-            {
-                y2milestone("Service Pack data available");
-                servicepack_available = true;
-            }
-
-	    y2milestone ("No order file, doing single source installation");
-	    theSources = [ initial_source ];
-
-	    if (servicepack_available)
-	    {
-		string spdir = metadir + "/Service-Pack/CD1";
-		WFM::Execute (.local.mkdir, spdir);
-		y2milestone ("Filling %1", spdir);
-		WFM::Execute(.local.bash, "tar -zxvf " +
-		    servicepack_metadata + " -C " + spdir);
-		string sp_url = "dir:" + spdir;
-		integer sp_source = Pkg::SourceCreate (sp_url, "");
-		// close the popup in order to be able to ask about the license
-		if (init_popup_open)
-		    UI::CloseDialog ();
-		if (sp_source == -1)
-		    Report::Error (_("Failed to integrate service pack source."));
-		else if (! AddOnProduct::AcceptedLicenseAndInfoFile(sp_source))
-		{
-		    y2milestone ("service pack license rejected");
-		    Pkg::SourceDelete (sp_source);
-		}
-		else
-		{
-		    if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
-		    {
-			AddOnProduct::WFIntegrate (spdir + "/installation.xml");
-		    }
-		    if ((integer)WFM::Read (.local.size, spdir + "/y2update.tgz") > 0)
-		    {
-			AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
-		    }
-		    theSources = add (theSources, sp_source);
-		    y2internal ("Service pack source: %1, changing to URL: %2", sp_source, base_url);
-		    Pkg::SourceChangeUrl (sp_source, base_url);
-		}
-		if (init_popup_open)
-		    UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
-	    }
-
-	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
-	    {
-                Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
-	    }
 	}
-	else	// cont or normal mode
+	else // cont or normal mode
 	{
-	    theSources = Pkg::SourceStartCache (true);
 	    if (theSources == nil || size (theSources) <= 0)
 	    {
 		y2error ("Pkg::SourceStartCache failed");
@@ -885,6 +948,7 @@ global boolean CheckContentFile (integer source) {
 	if (size (theSources) >= 0)
 	{
 	    init_called = true;
+	    again = false;
 	}
 	else
 	{
@@ -899,47 +963,21 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "",
 							   0, "", 1, "", false);
 	}
-	if( Mode::autoinst ())
-	{
-	    // In the autoyast mode it could be that the proposal
-	    // screen will not be displayed. So the product will
-	    // not be set. Bug 178831
-	    SelectProduct ();
-	}
     }
+    if (popup_open)
+	UI::CloseDialog ();
+}
 
-
-    define void SetSelectionAndComputeSystemPackages (string selection)
-    {
-        // set the new selection
-        boolean ret = Pkg::SetSelection (selection);
-
-        y2milestone ( "Selecting '%1' returns: %2", selection, ret );
-
-        ret = Pkg::ActivateSelections();
-        y2milestone ("Pkg::ActivateSelections() returns %1", ret);
-
-        // add additional (internal) packages, like kernel etc.
-	list<string> system_packages = Packages::ComputeSystemPackageList();
-        Pkg::DoProvide (system_packages);
-	Pkg::PkgFreshen();
-	// fnfx and ial conflict (see bug 112949)
-	if (contains (system_packages, "fnfx"))
-	    Pkg::PkgTaboo ("ial");
-        Pkg::PkgSolve(false);
-
-        list selected_selections = Pkg::GetSelections( `selected, "base");
-        selected_selections = union ( selected_selections, Pkg::GetSelections( `selected, "") );
-        y2milestone( "INSTALLING software selection: %1", selected_selections );
-    }
-
+global void Init(boolean unused) {
+    Initialize (true);
+}
 
 /**
  * Select the base product on the media for installation
  * @return boolean true on success
  */
 global boolean SelectProduct () {
-    Packages::Init (false); // argument ignored anyway...
+    Packages::Initalize (true);
     list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
     products = filter (map<string,any> p, products, {
 	return p["category"]:"" == "base";
@@ -975,10 +1013,9 @@ void SelectSystemPatterns (boolean reselect) {
     if (! Mode::autoinst ())
     {
 	system_patterns = (list<string>)
-	    toset (merge (system_patterns, Product::patterns));
+	    merge (system_patterns, DefaultDesktop::PatternsToSelect ());
 	system_patterns = (list<string>)
-	    toset (merge (system_patterns, DefaultDesktop::PatternsToSelect ()));
-		// FIXME handle patterns to deselect as well
+	    toset (merge (system_patterns, Product::patterns));
     }
     if (! reselect)
     {
@@ -1118,7 +1155,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     }
 
     boolean initial_run = reinit || ! init_called;
-    Init (false);
+    Initialize (true);
 
     if (init_error != nil)
     {
@@ -1178,17 +1215,10 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
 /**
  * Initialize the catalogs with popup feedback
+ * Use Packages::Initialize (true) instead
  */
 global void InitializeCatalogs() {
-    // Intermediate contents of the software selection screen
-    UI::OpenDialog(`opt(`decorated ), `Label(_("Initializing catalogs...")));
-    init_popup_open = true;
-
-    // intialize package source to get a list of selections
-    Packages::Init (false);
-
-    UI::CloseDialog ();
-    init_popup_open = false;
+    Packages::Initialize (true);
 }
 /* EOF */
 }
