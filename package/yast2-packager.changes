@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 13 17:32:05 CEST 2006 - olh@suse.de
+
+- introduce a Linuxrc::display_ip and use it instead of Arch::s390
+
+-------------------------------------------------------------------
 Thu Jun 22 08:41:24 CEST 2006 - jsuchome@suse.cz
 
 - do not clear directory entry when Anonymous is (un)checked (#186849)
