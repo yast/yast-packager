@@ -34,10 +34,10 @@ map<string,string> desktop2wm = $[
  * Patterns to be preselected according to selected desktop
  */
 map<string,list<string> > patterns_to_select = $[
-    "gnome" : [ "gnome", "x11" ],
-    "kde" : [ "kde", "x11" ],
-    "min_x11" : [ "x11" ],
-    "text" : [],
+    "gnome" : [ "gnome", "x11", "base" ],
+    "kde" : [ "kde", "x11", "base" ],
+    "min_x11" : [ "x11", "base" ],
+    "text" : [ "base" ],
 ];
 
 /**

@@ -454,8 +454,8 @@ symbol ServerHandle (string key, map event) {
     {
 	boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous),
 	    `Value);
-	UI::ChangeWidget (`id (`user), `Enabled, false);
-	UI::ChangeWidget (`id (`pass), `Enabled, false);
+	UI::ChangeWidget (`id (`username), `Enabled, false);
+	UI::ChangeWidget (`id (`password), `Enabled, false);
 	if (UI::WidgetExists (`id (`workgroup)))
 	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
 	return nil;
@@ -507,7 +507,7 @@ void ServerInit (string key) {
     UI::ChangeWidget (`id (`rb_type), `CurrentButton, type);
     ServerHandle (key, $[ "ID" : `rb_type ]);
 
-    UI::ChangeWidget (`id (`host), `Value, parsed["host"]:"");
+    UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
     string dir = parsed["path"]:"";
     if (type == `samba)
     {
@@ -528,15 +528,15 @@ void ServerInit (string key) {
 	UI::ChangeWidget (`id (`share), `Value, share);
     }
     UI::ChangeWidget (`id (`dir), `Value, dir);
-    UI::ChangeWidget (`id (`user), `Value, parsed["user"]:"");
-    UI::ChangeWidget (`id (`pass), `Value, parsed["pass"]:"");
+    UI::ChangeWidget (`id (`username), `Value, parsed["user"]:"");
+    UI::ChangeWidget (`id (`password), `Value, parsed["pass"]:"");
     boolean anonymous = ! (parsed["user"]:"" != "" || parsed["pass"]:"" != "");
     y2milestone ("Anonymous: %1", anonymous);
     UI::ChangeWidget (`id (`anonymous), `Value, anonymous);
     if (anonymous)
     {
-	UI::ChangeWidget (`id (`user), `Enabled, false);
-	UI::ChangeWidget (`id (`pass), `Enabled, false);
+	UI::ChangeWidget (`id (`username), `Enabled, false);
+	UI::ChangeWidget (`id (`password), `Enabled, false);
 	if (UI::WidgetExists (`id (`workgroup)))
 	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
     }
