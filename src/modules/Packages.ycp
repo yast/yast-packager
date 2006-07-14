@@ -47,6 +47,11 @@ boolean full_repropose = false;
 boolean init_called = false;
 
 /**
+ * Installation source initialization is WIP
+ */
+boolean init_in_progress = false;
+
+/**
  * Error which occurred during installation source initialization
  */
 string init_error = nil;
@@ -746,10 +751,9 @@ void SlideShowSetUp (integer source) {
     SlideShow::SetSlideDir (our_slidedir);
 }
 
-integer IntegrateServicePack (boolean show_popup) {
+integer IntegrateServicePack (boolean show_popup, string base_url) {
     /* Check for Service Pack */
     boolean servicepack_available = false;
-    theSources = [ initial_source ];
     if ((integer)WFM::Read(.local.size, servicepack_metadata) > 0)
     {
 	y2milestone("Service Pack data available");
@@ -805,11 +809,12 @@ integer IntegrateServicePack (boolean show_popup) {
  * @param show_popup boolean true to display information about initialization
  */
 global void Initialize(boolean show_popup) {
-    if (init_called)
+    if (init_called || init_in_progress)
     {
 	y2warning ("Packages::Initialize() already called");
 	return;
     }
+    init_in_progress = true;
     boolean popup_open = false;
     if (show_popup)
     {
@@ -868,6 +873,7 @@ global void Initialize(boolean show_popup) {
 		    {
 			if (popup_open)
 			    UI::CloseDialog ();
+			init_in_progress = false;
 			return;
 		    }
 		}
@@ -897,7 +903,7 @@ global void Initialize(boolean show_popup) {
 		UI::CloseDialog ();
 	    }
 	    theSources = [ initial_source ];
-	    integer sp_source = IntegrateServicePack (show_popup);
+	    integer sp_source = IntegrateServicePack (show_popup, base_url);
 	    if (sp_source != nil)
 		theSources = add (theSources, sp_source);
 
@@ -966,6 +972,7 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
     }
     if (popup_open)
 	UI::CloseDialog ();
+    init_in_progress = false;
 }
 
 global void Init(boolean unused) {
@@ -977,7 +984,7 @@ global void Init(boolean unused) {
  * @return boolean true on success
  */
 global boolean SelectProduct () {
-    Packages::Initalize (true);
+    Packages::Initialize (true);
     list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
     products = filter (map<string,any> p, products, {
 	return p["category"]:"" == "base";
