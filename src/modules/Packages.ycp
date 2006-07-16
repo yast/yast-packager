@@ -426,7 +426,7 @@ global void InitializeAddOnProducts() {
 	    packages = add (packages, "sax2-tools");
 	}
 
-	if (Linuxrc::InstallInf ("Display_IP") != nil)
+	if (Linuxrc::display_ip ())
 	{
 	    packages = add (packages, "yast2-qt");
 	    packages = add (packages, "xorg-x11");
