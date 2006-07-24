@@ -882,10 +882,18 @@ global void Initialize(boolean show_popup) {
 		    string label = ContentFileProductLabel ();
 		    // bug #159754, release the mounted CD
 		    Pkg::SourceReleaseAll();
-		    // message popup, %1 is product name
-		    Popup::Message (sformat (_("Insert %1 CD 1"), label));
 		    Pkg::SourceDelete (initial_source);
 		    initial_source = nil;
+		    if (! Popup::ContinueCancel (
+			// message popup, %1 is product name
+			sformat (_("Insert %1 CD 1"), label)))
+		    {
+			init_error = sformat (_("%1 CD 1 not found"), label);
+			if (popup_open)
+			    UI::CloseDialog ();
+			init_in_progress = false;
+			return;
+		    }
 		}
 	    }
 
@@ -1227,5 +1235,12 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 global void InitializeCatalogs() {
     Packages::Initialize (true);
 }
+
+global boolean InitFailed () {
+    boolean ret = init_error != nil;
+    y2milestone ("Package manager initialization failed: %1", ret);
+    return ret;
+}
+
 /* EOF */
 }

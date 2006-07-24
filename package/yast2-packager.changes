@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 24 10:34:54 CEST 2006 - jsrain@suse.cz
+
+- allow to abort installation if CD1 not in the drive (#167674)
+
+-------------------------------------------------------------------
 Mon Jul 24 08:56:46 CEST 2006 - jsrain@suse.cz
 
 - remove bold highlight in help text (#179420)
