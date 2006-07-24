@@ -410,6 +410,7 @@ Not all sources are available for configuration.
 	
 	if ( input == `slp )
 	{
+	    // FIXME: unify between here and add-on product handling
 	    // translators: popup busy message
 	    UI::OpenDialog (`Label (_("Scanning network...")) );
 	    
@@ -417,9 +418,22 @@ Not all sources are available for configuration.
 	    
 	    UI::CloseDialog ();
 	    
-	    if ( size(services) == 0 )
+	    if (services == nil || size(services) == 0 )
 	    {
-		Popup::Error ( _("No SLP catalogs found.") );
+                if ((! Stage::initial ()) && SuSEFirewall::IsStarted ())
+                {
+                     Report::Message(
+// error popup
+_("No SLP catalogs have been found on your network.
+This could be caused by a running SuSEfirewall2,
+which probably blocks the network scanning."));
+                }
+                else
+                {
+                    Report::Message (
+                        // error popup
+                        _("No SLP catalogs have been found on your network."));
+                }
 	    } else
 	    {
 		// show the dialog to pick the source

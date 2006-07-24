@@ -1,12 +1,10 @@
 -------------------------------------------------------------------
-Mon Jul 24 10:34:54 CEST 2006 - jsrain@suse.cz
-
-- allow to abort installation if CD1 not in the drive (#167674)
-
--------------------------------------------------------------------
-Mon Jul 24 08:56:46 CEST 2006 - jsrain@suse.cz
+Mon Jul 24 13:57:04 CEST 2006 - jsrain@suse.cz
 
 - remove bold highlight in help text (#179420)
+- allow to abort installation if CD1 not in the drive (#167674)
+- report proper message if no catalog found via SLP and firewall
+  is running (#156444)
 
 -------------------------------------------------------------------
 Sun Jul 16 08:54:55 CEST 2006 - olh@suse.de
