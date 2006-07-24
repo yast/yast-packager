@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 24 08:56:46 CEST 2006 - jsrain@suse.cz
+
+- remove bold highlight in help text (#179420)
+
+-------------------------------------------------------------------
 Sun Jul 16 08:54:55 CEST 2006 - olh@suse.de
 
 - introduce a Linuxrc::display_ip and use it instead of Arch::s390
