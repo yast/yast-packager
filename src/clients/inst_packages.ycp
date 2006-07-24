@@ -82,7 +82,7 @@
 		 where you can view and select individual software packages.
 		 </p>")
 	    + _("<p>
-		 The <b>Disk Usage</b> display in the lower right corner shows the remaining disk space
+		 The disk usage display in the lower right corner shows the remaining disk space
 		 after all requested changes will have been performed.
 		 Hard disk partitions that are full or nearly full can degrade
 		 system performance and in some cases even cause serious problems.
