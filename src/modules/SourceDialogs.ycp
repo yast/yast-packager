@@ -114,6 +114,16 @@ string Slashed (string urlpart) {
 }
 
 /**
+ * Remove leading and trailing (and inner) spaces from the host name
+ * @param host string original host name
+ * @return string host without leading and trailing spaces
+ */
+string NormalizeHost (string host) {
+    host = deletechars (host, " \t");
+    return host;
+}
+
+/**
  * Return an HBox with ok and cancel buttons for use by other dialogs.
  * @return An HBox term for use in a CreateDialog call.
  */
@@ -225,7 +235,8 @@ void NFSInit (string key) {
 void NFSStore (string key, map event) {
     map parsed = $[
 	"scheme" : "nfs",
-	"host" : (string)UI::QueryWidget (`id (`server), `Value),
+	"host" : NormalizeHost (
+	    (string)UI::QueryWidget (`id (`server), `Value)),
 	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
     ];
     _url = URL::Build (parsed);
@@ -568,7 +579,8 @@ void ServerStore (string key, map event) {
 	if (size (pass) != 0)
 	    parsed["pass"] = pass;
     }
-    parsed["host"] = (string)UI::QueryWidget (`id (`server), `Value);
+    parsed["host"] = NormalizeHost (
+	(string)UI::QueryWidget (`id (`server), `Value));
     string directory = (string)UI::QueryWidget (`id (`dir), `Value);
     if (type == `samba)
     {
