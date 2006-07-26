@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Wed Jul 26 10:19:26 CEST 2006 - jsrain@suse.cz
+Wed Jul 26 13:31:54 CEST 2006 - jsrain@suse.cz
 
 - provide earlier feedback for sw_single (jsuchome)
+- remove blank spaces from host name (if accidentally entered)
+  (#176762)
 
 -------------------------------------------------------------------
 Mon Jul 24 13:57:04 CEST 2006 - jsrain@suse.cz
