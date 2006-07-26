@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 26 10:19:26 CEST 2006 - jsrain@suse.cz
+
+- provide earlier feedback for sw_single (jsuchome)
+
+-------------------------------------------------------------------
 Mon Jul 24 13:57:04 CEST 2006 - jsrain@suse.cz
 
 - remove bold highlight in help text (#179420)
