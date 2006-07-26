@@ -18,7 +18,6 @@
     import "Installation";
     import "Directory";
     import "Mode";
-    import "Packages";
     import "PackageCallbacks";
     import "PackageLock";
     import "SlideShow";
@@ -31,6 +30,14 @@
     import "PackageSystem";
     import "Report";
     import "FileUtils";
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_single");
+
+    // label of popup
+    UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
+
+    import "Packages";
 
     list<string> packagelist = [];		// list of packages to install
 
@@ -159,9 +166,6 @@
 	   y2milestone("packagelist: %1", packagelist );
        }
 
-       // label of popup
-       UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
-
        // start package manager
        const boolean enabled_only = true;
        boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
@@ -186,13 +190,12 @@ Only installed packages are displayed."));
 
    // =============================================================
 
-   Wizard::CreateDialog();
-   Wizard::SetDesktopIcon("sw_single");
 
    // check whether running as root
    // and having the packager for ourselves
    if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
    {
+	UI::CloseDialog ();
 	UI::CloseDialog ();
 	return `abort;
    }
@@ -212,6 +215,7 @@ Only installed packages are displayed."));
    if ((result == `done)
        || (result == `failed))
    {
+       UI::CloseDialog();
        UI::CloseDialog();
        return `next;
    }
