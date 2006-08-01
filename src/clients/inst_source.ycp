@@ -255,12 +255,6 @@ Save changes anyway?")))
     // pusg button
     string refreshButtonLabel = _("Re&fresh...");
     // pusg button
-    string deleteButtonLabel = _("&Delete");
-    // pusg button
-    string upButtonLabel = _("&Up");
-    // pusg button
-    string downButtonLabel = _("D&own");
-    // pusg button
     string enableButtonLabel = _("Enab&le or Disable");
     // push button
     string refreshOnOffButtonLabel = _("Refre&sh On or Off");
@@ -281,50 +275,42 @@ Save changes anyway?")))
 		    `HSpacing()
 		    ),
 	      `HBox(
-		    `HWeight (1, `VBox(
-			  `HWeight( 1,
-						// menunutton
-				    `MenuButton(  `opt(`hstretch,`key_F3), _("&Add"),[
-						// menunutton item
-                                                  `item(`id(`slp),       _("&Scan Using SLP...") ),
-						// menunutton item
-                                                  `item(`id(`ftp),       _("&FTP...") ),
-						// menunutton item
-                                                  `item(`id(`http),      _("&HTTP...") ),
-						// menunutton item
-                                                  `item(`id(`https),      _("HTT&PS...") ),
-						// menunutton item
-                                                  `item(`id(`samba),     _("&SMB/CIFS") ),
-						// menunutton item
-                                                  `item(`id(`nfs),       _("&NFS...") ),
-						// menunutton item
-                                                  `item(`id(`cd),        _("&CD...") ),
-						// menunutton item
-                                                  `item(`id(`dvd),       _("&DVD...") ),
-						// menunutton item
-                                                  `item(`id(`local_dir), _("&Local Directory...") ),
-						// menubutton item
-						`item (`id (`specify_url),_("Specify &URL...")),
-                                                ] )
-                    ),
-					// menu button
-					`MenuButton(  `opt(`hstretch, `key_F4), _("&Edit"),[
-												  `item(`id(`replace), replaceButtonLabel ),
-												  `item(`id(`refresh), refreshButtonLabel )
-												]),
-                    `HWeight( 1, `PushButton( `id(`delete), `opt(`hstretch, `key_F5),  deleteButtonLabel ) )
-                )),
-                `HSpacing( 10 ),
-                `HWeight (1, `VBox(
-		    `HBox (
-                        `HWeight( 1, `PushButton( `id(`up), `opt(`hstretch),  upButtonLabel ) ),
-                        `HWeight( 1, `PushButton( `id(`down), `opt(`hstretch),  downButtonLabel ) )
-		    ),
-		    `PushButton(`id(`enable), `opt(`hstretch, `key_F6),  enableButtonLabel ),
-		    `PushButton(`id(`refresh_on_off), `opt(`hstretch),  refreshOnOffButtonLabel )
-                )),
+		    `MenuButton(  `opt(`key_F3), Label::AddButton (),[
+			// menunutton item
+                          `item(`id(`slp),       _("&Scan Using SLP...") ),
+			// menunutton item
+                          `item(`id(`ftp),       _("&FTP...") ),
+			// menunutton item
+                          `item(`id(`http),      _("&HTTP...") ),
+			// menunutton item
+                          `item(`id(`https),      _("HTT&PS...") ),
+			// menunutton item
+                          `item(`id(`samba),     _("&SMB/CIFS") ),
+			// menunutton item
+                          `item(`id(`nfs),       _("&NFS...") ),
+			// menunutton item
+                          `item(`id(`cd),        _("&CD...") ),
+			// menunutton item
+                          `item(`id(`dvd),       _("&DVD...") ),
+			// menunutton item
+                          `item(`id(`local_dir), _("&Local Directory...") ),
+			// menubutton item
+			`item (`id (`specify_url),_("Specify &URL...")),
+		    ]),
+		    `MenuButton(  `opt(`key_F4), Label::EditButton (),[
+			`item(`id(`replace), replaceButtonLabel ),
+			`item(`id(`refresh), refreshButtonLabel )
+		    ]),
+		    `PushButton (`id(`delete), `opt(`key_F5),
+			Label::DeleteButton ()),
+		    `HStretch (),
+		    // menu button label
+		    `MenuButton (`opt(`key_F6), _("Source Settings"), [
+			`item(`id(`enable), enableButtonLabel),
+			`item(`id(`refresh_on_off), refreshOnOffButtonLabel)
+		    ])
+		),
                 `VSpacing( 0.5 )
-            )
         );
 
     // dialog caption
