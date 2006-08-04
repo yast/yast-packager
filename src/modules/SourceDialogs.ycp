@@ -37,6 +37,18 @@ string _url = "";
 boolean _allow_https = true;
 
 /**
+ * Help text suffix for some types of the medias
+ */
+string iso_help = _("<p>If the location is a file holding an ISO image
+of the media, set <b>ISO Image</b>.</p>");
+
+/**
+ * Help text suffix for some types of the medias
+ */
+string multi_cd_help = _("<p>If the catalog is on multiple medias,
+set the location of the first media of the set.</p>");
+
+/**
  * Set the URL to work with
  * @param url string URL to run the dialogs with
  */
@@ -208,6 +220,9 @@ map<string,any> PlainURLWidget () {
 	"store" : PlainURLStore,
 	"validate_type" : `function,
 	"validate_function" : PlainURLValidate,
+	// help text
+	"help" : _("<p><big><b>Catalog URL</b></big><br>
+Use <b>URL</b> to specify the URL of the catalog.<p>") + multi_cd_help,
     ];
 }
 
@@ -263,6 +278,12 @@ map<string,any> NFSWidget () {
 	),
 	"init" : NFSInit,
 	"store" : NFSStore,
+	// help text
+	"help" : _("<p><big><b>NFS Server</b></big><br>
+Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
+to specify the NFS server host name and path on the server.<p>")
++ iso_help
++ multi_cd_help,
     ];
 }
 
@@ -310,6 +331,8 @@ map<string,any> CDWidget () {
 	)),
 	"init" : CDInit,
 	"store" : CDStore,
+	"help" : _("<p><big><b>CD or DVD Media</b></big><br>
+Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"),
     ];
 }
 
@@ -388,6 +411,11 @@ map<string,any> DirWidget () {
 	"store" : DirStore,
 	"handle" : DirHandle,
 	"handle_events" : [ `browse ],
+	"help" : _("<p><big><b>Local Directory or ISO</b></big><br>
+Ise <b>Path to Directory or ISO Image</b> to specify the path to the
+directory or the file holding the ISO image of the installation media.</p>")
++ iso_help
++ multi_cd_help,
     ];
 
 }
@@ -631,6 +659,17 @@ map<string,any> ServerWidget () {
 	"init" : ServerInit,
 	"store" : ServerStore,
 	"handle" : ServerHandle,
+	"help" : _("<p><big><b>Server and Directory</b></big><br>
+Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
+to specify the NFS server host name and path on the server.
+To enable authentication, uncheck <b>Anonymous</b> and specify the
+<b>User Name</b> and the <b>Password</b>.<p>
+<p>
+For SMB/CIFS source, specify <b>Share</b> name and <b>Path to Directory
+or ISO Image</b>. 
+If the location is a file holding an ISO image
+of the media, set <b>ISO Image</b>.</p>")
++ multi_cd_help,
     ];
 }
 
@@ -714,14 +753,14 @@ term SelectRadioWidget () {
 }
 
 string SelectWidgetHelp () {
+    // help text
     string help_text = _("<p><big><b>Catalog Media</b></big><br>
-Add-on products can be installed from CD, over a
-network, or from the hard disk.</p>
-");
+The software catalog can be located on CD, on a network server,
+or on the hard disk.</p>");
 
     // help, continued
     help_text = help_text + _("<p>
-To install add-on product from <b>CD</b>,
+To add  <b>CD</b> or <b>DVD</b>,
 have the product CD set or the DVD available.</p>");
 
     // help, continued
@@ -773,6 +812,7 @@ symbol SelectHandle (string key, map event) {
 }
 
 void SelectStore (string key, map event) {
+    _url = "";
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
     if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
 	`local_dir, `specify__url, `slp], selected))
@@ -786,7 +826,6 @@ void SelectStore (string key, map event) {
 	else if ( selected == `dvd ) _url = "dvd:///";
 	else if ( selected == `local_dir ) _url = "dir://";
 	else if ( selected == `slp ) _url = "slp://";
-	else _url = "";
     }
 }
 
@@ -839,11 +878,11 @@ map<string,string> _caption = $[
     // label / dialog caption
     "url" : _("Catalog URL"),
     // label / dialog caption
-    "nfs" : _("NFS Server Source"),
+    "nfs" : _("NFS Server"),
     // label / dialog caption
-    "cd" : _("CD Installation"),
+    "cd" : _("CD or DVD Media"),
     // label / dialog caption
-    "dvd" : _("CD Installation"),
+    "dvd" : _("CD or DVD Media"),
     // label / dialog caption
     "dir" : _("Local Directory or ISO"),
     // label / dialog caption
