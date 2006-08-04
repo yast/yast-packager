@@ -28,6 +28,7 @@
     import "Label";
     import "Popup";
     import "AddOnProduct";
+    import "Sequencer";
 
     // Do not sync the changes to ZenWorks even if rug is present
     // This is handy for repairing an already out-of-sync situation
@@ -53,8 +54,6 @@
     import "Product";
 
     include "inst_source_dialogs.ycp";
-
-    any 	ret = nil;
 
     integer numSources = 0;
 
@@ -87,6 +86,7 @@
      * Fill sources table with entries from the InstSrcManager agent.
      */
     define void fillTable() ``{
+	y2milestone ("Filling source table");
         list items = [];
 
         numSources = size( sourceStatesOut );
@@ -248,12 +248,15 @@ Save changes anyway?")))
 	return success;
    }
 
+
+symbol SummaryDialog () {
+    y2milestone ("Running Summary dialog");
     list items = [];
 
     // pusg button
     string replaceButtonLabel = _("&Replace...");
     // pusg button
-    string refreshButtonLabel = _("Re&fresh...");
+    string refreshButtonLabel = _("Re&fresh Now...");
     // pusg button
     string enableButtonLabel = _("Enab&le or Disable");
     // push button
@@ -275,39 +278,18 @@ Save changes anyway?")))
 		    `HSpacing()
 		    ),
 	      `HBox(
-		    `MenuButton(  `opt(`key_F3), Label::AddButton (),[
-			// menunutton item
-                          `item(`id(`slp),       _("&Scan Using SLP...") ),
-			// menunutton item
-                          `item(`id(`ftp),       _("&FTP...") ),
-			// menunutton item
-                          `item(`id(`http),      _("&HTTP...") ),
-			// menunutton item
-                          `item(`id(`https),      _("HTT&PS...") ),
-			// menunutton item
-                          `item(`id(`samba),     _("&SMB/CIFS") ),
-			// menunutton item
-                          `item(`id(`nfs),       _("&NFS...") ),
-			// menunutton item
-                          `item(`id(`cd),        _("&CD...") ),
-			// menunutton item
-                          `item(`id(`dvd),       _("&DVD...") ),
-			// menunutton item
-                          `item(`id(`local_dir), _("&Local Directory...") ),
-			// menubutton item
-			`item (`id (`specify_url),_("Specify &URL...")),
-		    ]),
-		    `MenuButton(  `opt(`key_F4), Label::EditButton (),[
-			`item(`id(`replace), replaceButtonLabel ),
-			`item(`id(`refresh), refreshButtonLabel )
-		    ]),
+		    `PushButton (`id (`add), `opt(`key_F3),
+			Label::AddButton ()),
+		    `PushButton(`id(`replace), `opt(`key_F4),
+			Label::EditButton ()),
 		    `PushButton (`id(`delete), `opt(`key_F5),
 			Label::DeleteButton ()),
 		    `HStretch (),
 		    // menu button label
 		    `MenuButton (`opt(`key_F6), _("Source Settings"), [
 			`item(`id(`enable), enableButtonLabel),
-			`item(`id(`refresh_on_off), refreshOnOffButtonLabel)
+			`item(`id(`refresh_on_off), refreshOnOffButtonLabel),
+			`item(`id(`refresh), refreshButtonLabel )
 		    ])
 		),
                 `VSpacing( 0.5 )
@@ -358,27 +340,9 @@ on the NFS server.
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::HideBackButton();
 
-    boolean restore = Pkg::SourceStartManager( false );
-
-    if( ! restore )
-    {
-	Popup::Error(_("There were errors when restoring the source configuration.
-Not all sources are available for configuration.
-") + "\n" + Pkg::LastError() );
-
-	// delete the broken sources from the persistent store
-	Pkg::SourceCleanupBroken();
-    }
-
-    sourceStatesIn = Pkg::SourceEditGet();
-
-    y2milestone( "Found sources: %1", sourceStatesIn);
-    
-    sourceStatesOut = sourceStatesIn;
-
     fillTable();
 
-    any input = nil;
+    symbol input = nil;
 
     integer current = -1;
 
@@ -392,145 +356,16 @@ Not all sources are available for configuration.
 	    UI::ChangeWidget( `id( `table ), `CurrentItem, current );
 	}
 
-	input = Wizard::UserInput();
+	input = (symbol)Wizard::UserInput();
 	y2debug( "Input: %1", input );
 
 	symbol createResult = `again;
-	
-	if ( input == `slp )
-	{
-	    // FIXME: unify between here and add-on product handling
-	    // translators: popup busy message
-	    UI::OpenDialog (`Label (_("Scanning network...")) );
-	    
-	    list<map> services = SLP::FindSrvs ("install.suse", "");
-	    
-	    UI::CloseDialog ();
-	    
-	    if (services == nil || size(services) == 0 )
-	    {
-                if ((! Stage::initial ()) && SuSEFirewall::IsStarted ())
-                {
-                     Report::Message(
-// error popup
-_("No SLP catalogs have been found on your network.
-This could be caused by a running SuSEfirewall2,
-which probably blocks the network scanning."));
-                }
-                else
-                {
-                    Report::Message (
-                        // error popup
-                        _("No SLP catalogs have been found on your network."));
-                }
-	    } else
-	    {
-		// show the dialog to pick the source
-		
-		list<term> items = maplist (map service, services, ``{
-		    string url = service["srvurl"]:"";
-		    
-		    url = substring (url, 21);
-		    
-		    // split the URL
-		    map parsed_url = URL::Parse (url);
-		    
-		    return `item (`id (url), toupper ( parsed_url["scheme"]:"http" ), url);
-		});
-		
-		UI::OpenDialog (
-		    `VBox(
-			// translators: popup heading
-			`Heading (_("Choose SLP Catalog")),
-			`MinSize( 25, 7, 
-			    // translators: table header
-			    `Table (`id(`services), `header(_("Type"), _("URL")), items)
-			), 
-			`HBox (
-			    `PushButton (`id (`ok), `opt(`default), Label::SelectButton ()),
-			    `VSpacing (1),
-			    `PushButton (`id (`cancel), Label::CancelButton ())			    
-			)
-		    )
-		);
-		
-		symbol ret = (symbol)UI::UserInput ();
-		
-		if (ret == `ok)
-		{
-		    string service = (string) UI::QueryWidget (`services, `CurrentItem);
-		    
-		    y2milestone ("Trying to add source '%1'", service);
-		    if (service != nil) 
-		    {
-			// add the installation source
-			createResult = createSource(service);
-			y2milestone ("Adding source result: %1", createResult);
-			
-		    }
-		}
-		
-		UI::CloseDialog ();
 
-            	if ( createResult == `ok ) fillTable();
-	    }
-	}
-
-	else if ( input == `ftp || input == `http || input == `https || input == `samba )
+	if (input == `add)
 	{
-	    if ( input == `ftp ) url = "ftp://";
-	    else if ( input == `http ) url = "http://";
-	    else if ( input == `https ) url = "https://";
-	    else if ( input == `samba ) url = "smb://";
-	    else url = "";
-	    boolean refresh = true;
-	    do {
-		url = editUrl( url );
-		if ( size( url ) == 0 ) break;
-		createResult = createSource( url);
-                if ( createResult == `ok ) fillTable();
-            } while ( createResult == `again );
-        }
-        else if ( input == `nfs )
-        {
-            url = "nfs://";
-	    boolean refresh = true;
-            do {
-                url = editUrl( url );
-                if ( size( url ) == 0 ) break;
-		createResult = createSource( url);
-                if ( createResult == `ok ) fillTable();
-            } while ( createResult == `again );
-        }
-        else if ( input == `cd )
-        {
-            if ( createSource( "cd:///" ) == `ok ) fillTable();
-        }
-        else if ( input == `dvd )
-        {
-            if ( createSource( "dvd:///" ) == `ok ) fillTable();
-        }
-	else if ( input == `local_dir )
-	{
-            url = "dir://";
-            do {
-                url = editUrl( url );
-                if ( size( url ) == 0 ) break;
-		createResult = createSource( url);
-                if ( createResult == `ok ) fillTable();
-            } while ( createResult == `again );
+	    return `add;
 	}
-	else if (input == `specify_url)
-	{
-            url = "";
-	    do {
-                url = editUrl( url );
-                if ( size( url ) == 0 ) break;
-		createResult = createSource( url);
-                if ( createResult == `ok ) fillTable();
-	    } while (createResult == `again);
-	}
-        else if ( input == `next )
+	if ( input == `next )
         {
 	  // store the new state
           boolean success = Write();
@@ -652,26 +487,6 @@ cannot be set."));
                 sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
             }
-            else if ( input == `up )
-            {
-                if ( current > 0 ) {
-                    map<string, any> tmpState = sourceStatesOut[ current ]:$[];
-                    sourceStatesOut[ current ] = sourceStatesOut[ current - 1 ]:$[];
-                    sourceStatesOut[ current - 1 ] = tmpState;
-                    current = current - 1;
-                }
-                fillTable();
-            }
-            else if ( input == `down )
-            {
-                if ( current < numSources - 1 ) {
-                    map<string, any> tmpState = sourceStatesOut[ current ]:$[];
-                    sourceStatesOut[ current ] = sourceStatesOut[ current + 1 ]:$[];
-                    sourceStatesOut[ current + 1 ] = tmpState;
-                    current = current + 1;
-                }
-                fillTable();
-            }
         }
 
     } until ( exit );
@@ -680,7 +495,78 @@ cannot be set."));
 
     y2debug( "Return: %1", input );
 
-    if (input == `next && Mode::normal ())
-	input	= `restart_menu;
     return input;
 }
+
+symbol StoreSource () {
+    string url = SourceDialogs::GetURL ();
+    if (url == "slp://")
+    {
+	string service = SourceManager::AddSourceTypeSLP ();
+	y2milestone ("Trying to add source '%1'", service);
+	if (service != nil)
+	{
+	    // add the installation source
+	    symbol createResult = createSource(service);
+	    y2milestone ("Adding source result: %1", createResult);
+	    return `next;
+	}
+	return `back;
+    }
+    if (createSource(url) == `again)
+	return `back;
+    return `next;
+}
+
+boolean restore = Pkg::SourceStartManager( false );
+if( ! restore )
+{
+    Popup::Error(_("There were errors when restoring the source configuration.
+Not all sources are available for configuration.
+") + "\n" + Pkg::LastError() );
+
+    // delete the broken sources from the persistent store
+    Pkg::SourceCleanupBroken();
+}
+
+sourceStatesIn = Pkg::SourceEditGet();
+y2milestone( "Found sources: %1", sourceStatesIn);
+sourceStatesOut = sourceStatesIn;
+
+map<string,any> aliases = $[
+    "summary" : ``(SummaryDialog ()),
+    "type" : ``(SourceDialogs::TypeDialog ()),
+    "edit" : ``(SourceDialogs::EditDialog ()),
+    "store" : ``(StoreSource ())
+];
+
+map sequence = $[
+    "ws_start" : "summary",
+    "summary" : $[
+	`add : "type",
+	`edit : "edit",
+	`abort : `abort,
+	`next : `next,
+    ],
+    "type" : $[
+	`next : "edit",
+	`finish : "store",
+	`abort : `abort,
+    ],
+    "edit" : $[
+	`next : "store",
+	`abort : `abort,
+    ],
+    "store" : $[
+	`next : "summary",
+	`abort : `abort,
+    ],
+];
+
+y2milestone ("Starting source sequence");
+symbol ret = Sequencer::Run (aliases, sequence);
+if (ret == `next && Mode::normal ())
+    ret	= `restart_menu;
+return ret;
+
+} // EOF
