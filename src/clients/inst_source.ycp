@@ -296,14 +296,17 @@ symbol SummaryDialog () {
         );
 
     // dialog caption
-    string title = _("Media Containing the Software Catalog");
+    string title = _("Configured Software Catalogs");
+//    string title = _("Media Containing the Software Catalog");
 
     // help
     string help_text = _("<p>
-Software packages can be installed from the CD, over a
-network, or from the hard disk.
-</p>
-");
+In this dialog, manage configured software catalogs.</p>");
+
+    help_text = help_text + _("<p>
+<b>Adding a New Catalog</b><br>
+To add a new catalog, use <b>Add</b> and specify the software catalog.
+</p>");
 
     // help, continued
     help_text = help_text + _("<p>
@@ -335,6 +338,13 @@ The directory must be listed in the file <i>/etc/exports</i>
 on the NFS server.
 </p>
 ");
+
+    help_text = help_text + _("<p>
+<b>Modifying a Catalog</b>
+To change a catalog media, use <b>Edit</b>. To remove a catalog, use
+<b>Delete</b>. To enable or disable the catalog, set refreshing on the
+initialization time on or off, or refresh it immediatelly, use 
+<b>Source Settings</b>.");
 
     Wizard::SetNextButton(`next, Label::FinishButton() );
     Wizard::SetContents(title, contents, help_text, false, true);
