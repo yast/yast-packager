@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug  4 09:25:21 CEST 2006 - jsrain@suse.cz
+
+- optimized the source management dialog (#190069)
+
+-------------------------------------------------------------------
 Tue Aug  1 13:55:33 CEST 2006 - jsrain@suse.cz
 
 - removed Up/Down buttons from inst_source dialog (#190069)

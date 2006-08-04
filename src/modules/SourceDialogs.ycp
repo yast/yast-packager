@@ -22,6 +22,7 @@ import "Label";
 import "URL";
 import "Popup";
 import "CWM";
+import "SourceManager";
 
 // common functions / data
 
@@ -608,6 +609,7 @@ void ServerStore (string key, map event) {
     }
 }
 
+
 /**
  * Get widget description map
  * @return widget description map
@@ -629,6 +631,174 @@ map<string,any> ServerWidget () {
 	"init" : ServerInit,
 	"store" : ServerStore,
 	"handle" : ServerHandle,
+    ];
+}
+
+/**
+ * Checks whether some network is available in the current moment,
+ * see the bug #170147 for more information.
+ */
+boolean IsAnyNetworkAvailable () {
+        boolean ret = false;
+        
+        string command = "TERM=dumb /sbin/ip -o address show | grep inet | grep -v scope.host";
+        y2milestone("Running %1", command);
+        map cmd_run = (map) SCR::Execute(.target.bash_output, command);
+        y2milestone("Command returned: %1", cmd_run);
+
+        // command failed
+        if (cmd_run["exit"]:-1 != 0) {
+            // some errors were there, we don't know the status, rather return that it's available
+            // `grep` also returns non zero exit code when there is nothing to do...
+            if (cmd_run["stdout"]:"" != "") {
+                y2error("Checking the network failed");
+                ret = true;
+            }
+        // some devices are listed
+        } else if (cmd_run["stdout"]:"" != nil && cmd_run["stdout"]:"" != "") {
+            ret = true;
+        }
+        
+        return ret;    
+}
+
+
+term SelectRadioWidget () {
+    term contents = `HBox (`HStretch (), `VBox (
+	`RadioButtonGroup (`id (`type), `VBox (
+	    `VStretch (),
+	    // radio button
+	    `Left (`RadioButton(`id(`slp),       _("&Scan Using SLP..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`ftp),       _("&FTP..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`http),      _("&HTTP..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`https),      _("HTT&PS..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`samba),     _("&SMB/CIFS"))),
+	    // radio button
+	    `Left (`RadioButton(`id(`nfs),       _("&NFS..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`cd),        _("&CD..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
+	    // radio button
+	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+	    `VStretch ()
+	))), `HStretch ()
+    );
+    if (! IsAnyNetworkAvailable()) {
+	y2milestone ("Network is not available, skipping all Network-related options...");
+
+	contents = `HBox (`HStretch (), `VBox (
+	    `RadioButtonGroup (`id (`type), `VBox (
+		`VStretch (),
+		// radio button
+		`Left (`RadioButton(`id(`cd),        _("&CD..."))),
+		// radio button
+		`Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
+		// radio button
+		`Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
+		// radio button
+		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+		`VStretch ()
+	    ))), `HStretch ()
+	);
+    } else {
+	y2milestone("Network is available, allowing Network-related options...");
+    }
+    return contents;
+}
+
+string SelectWidgetHelp () {
+    string help_text = _("<p><big><b>Catalog Media</b></big><br>
+Add-on products can be installed from CD, over a
+network, or from the hard disk.</p>
+");
+
+    // help, continued
+    help_text = help_text + _("<p>
+To install add-on product from <b>CD</b>,
+have the product CD set or the DVD available.</p>");
+
+    // help, continued
+    help_text = help_text + _("<p>
+The product CDs can be copied to the hard disk.
+Insert the path where the first
+CD is located, for example, /data1/<b>CD1</b>.
+Only the base path is required if all CDs are copied
+into one directory.</p>
+");
+
+    // help, continued
+    help_text = help_text + _("<p>
+Network installation requires a working network connection.
+Specify the directory where the packages from
+the first CD are located, such as /data1/CD1.</p>
+");
+    return help_text;
+}
+
+boolean SelectValidate (string key, map event) {
+    symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+    if (selected == nil)
+    {
+	// error popup
+	Popup::Message (_("Select the media type."));
+	return false;
+    }
+    if (selected == `cd || selected == `dvd)
+    {
+	Pkg::SourceReleaseAll();
+	string msg = selected == `cd
+	    ? _("Insert the add-on product CD")
+	    : _("Insert the add-on product DVD");
+	if (! SourceManager::AskForCD (msg))
+	    return false;
+    }
+    return true;
+}
+
+symbol SelectHandle (string key, map event) {
+    if (! (event["ID"]:nil == `next || event["ID"]:nil == `ok))
+	return nil;
+    symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+    if (selected == nil)
+	return nil;
+    if (selected == `slp || selected == `cd || selected == `dvd)
+	return `finish;
+}
+
+void SelectStore (string key, map event) {
+    symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+    if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
+	`local_dir, `specify__url, `slp], selected))
+    {
+	if ( selected == `ftp ) _url = "ftp://";
+	else if ( selected == `http ) _url = "http://";
+	else if ( selected == `https ) _url = "https://";
+	else if ( selected == `samba ) _url = "smb://";
+	else if ( selected == `nfs ) _url = "nfs://";
+	else if ( selected == `cd ) _url = "cd:///";
+	else if ( selected == `dvd ) _url = "dvd:///";
+	else if ( selected == `local_dir ) _url = "dir://";
+	else if ( selected == `slp ) _url = "slp://";
+	else _url = "";
+    }
+}
+
+map<string,any> SelectWidget () {
+    return $[
+	"widget" : `func,
+	"widget_func" : SelectRadioWidget,
+	"help" : SelectWidgetHelp (),
+	"validate_type" : `function,
+	"validate_function" : SelectValidate,
+	"store" : SelectStore,
+	"handle" : SelectHandle,
     ];
 }
 
@@ -657,6 +827,7 @@ map<string,map<string,any> > Widgets () {
 	    "ftp" : ServerWidget (),
 	    "smb" : ServerWidget (),
 	    "cifs" : ServerWidget (),
+	    "select" : SelectWidget (),
 	];
     return _widgets;
 }
@@ -747,12 +918,12 @@ global string EditPopupNoHTTPS (string url) {
  */
 global symbol EditDialog () {
     string proto = URLScheme (_url);
-    y2milestone ("Displaying popup for protocol %1", proto);
+    y2milestone ("Displaying dialog for protocol %1", proto);
     string caption = _caption[proto]:"";
     return CWM::ShowAndRun ($[
-	"widget_names" : proto,
+	"widget_names" : [proto],
 	"widget_descr" : Widgets (),
-	"contents" : `VBox ( proto ),
+	"contents" : `HBox (`HStretch (), `VBox (`VStretch (), proto, `VStretch ()), `HStretch ()),
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
 	"next_button" : Label::NextButton (),
@@ -760,6 +931,47 @@ global symbol EditDialog () {
     ]);
 }
 
+/**
+ * URL editation popup with the HTTPS option
+ * @return string modified URL or empty string if canceled
+ */
+global string TypePopup () {
+    list<map<string,any> > w = CWM::CreateWidgets (["select"], Widgets ());
+    term contents = PopupContents ("select");
+    contents = CWM::PrepareDialog (contents, w);
+    UI::OpenDialog (contents);
+    symbol ret = CWM::Run (w, $[]);
+    y2milestone ("Ret: %1", ret);
+    UI::CloseDialog ();
+    return "";
+/*
+    if (ret == `ok)
+	return GetURL ();
+    else
+	return "";
+*/
+}
+
+/**
+ * Sample implementation of URL type selection dialog
+ * @return symbol for wizard sequencer
+ */
+global symbol TypeDialog () {
+    y2milestone ("Running source type dialog");
+    // dialog caption
+    string caption = _("Media Type");
+    symbol ret = CWM::ShowAndRun ($[
+	"widget_names" : ["select"],
+	"widget_descr" : Widgets (),
+	"contents" : `VBox ( "select" ),
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"next_button" : Label::NextButton (),
+	"fallback_functions" : $[]
+    ]);
+    y2milestone ("Type dialog returned %1", ret);
+    return ret;
+}
 
 } // EOF
 
