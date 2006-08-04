@@ -2,7 +2,7 @@
 
 
 @HEADER@
-BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-installation yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-installation yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite yast2-slp yast2-firewall
 Requires:	checkmedia yast2-country
 # SourceManager
 Requires:	yast2-installation >= 2.13.122
