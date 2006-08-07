@@ -265,7 +265,7 @@ symbol SummaryDialog () {
     term contents =
         `VBox(
 	      `HBox(
-		    `Table( `id( `table ), `opt( `keepSorting ),
+		    `Table( `id( `table ),/* `opt( `keepSorting ),*/
 				// table header
 			    `header( _("Status"),
 				// table header
