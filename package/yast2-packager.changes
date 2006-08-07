@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  7 09:25:29 CEST 2006 - jsrain@suse.cz
+
+- add possibility to change order of sources (#190069)
+
+-------------------------------------------------------------------
 Fri Aug  4 16:42:14 CEST 2006 - jsrain@suse.cz
 
 - optimized the source management dialog (#190069)
