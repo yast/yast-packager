@@ -529,6 +529,9 @@ from the source CD to the disk cache")));
 	foreach (map<string,any> res, remaining, ``{
 	    string name = res["name"]:"";
 	    symbol kind = res["kind"]:`package;
+	    string arch = res["arch"]:"";
+	    string version = res["version"]:"";
+// TODO: Use appropriate call
 	    if (! Pkg::ResolvableInstall (name, kind))
 		failed_packages = failed_packages + 1;
 	});

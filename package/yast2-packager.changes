@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  8 13:31:29 CEST 2006 - jsrain@suse.cz
+
+- updated KDE blurb in desktop selection dialog (#144612)
+
+-------------------------------------------------------------------
 Mon Aug  7 13:15:26 CEST 2006 - jsrain@suse.cz
 
 - add possibility to change order of sources (#190069)
