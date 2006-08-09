@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  9 13:40:16 CEST 2006 - jsrain@suse.cz
+
+- select packages also according to architecture and version for
+  2nd stage of installation (#186912)
+
+-------------------------------------------------------------------
 Tue Aug  8 13:31:29 CEST 2006 - jsrain@suse.cz
 
 - updated KDE blurb in desktop selection dialog (#144612)

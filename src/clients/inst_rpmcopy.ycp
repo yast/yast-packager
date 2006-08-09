@@ -530,9 +530,8 @@ from the source CD to the disk cache")));
 	    string name = res["name"]:"";
 	    symbol kind = res["kind"]:`package;
 	    string arch = res["arch"]:"";
-	    string version = res["version"]:"";
-// TODO: Use appropriate call
-	    if (! Pkg::ResolvableInstall (name, kind))
+	    string vers = res["version"]:"";
+	    if (! Pkg::ResolvableInstallArchVersion (name, kind, arch, vers))
 		failed_packages = failed_packages + 1;
 	});
 
