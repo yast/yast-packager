@@ -453,21 +453,24 @@ Not all sources are available for configuration.
 		
 		symbol ret = (symbol)UI::UserInput ();
 		
+		string service = nil;
 		if (ret == `ok)
 		{
-		    string service = (string) UI::QueryWidget (`services, `CurrentItem);
-		    
-		    y2milestone ("Trying to add source '%1'", service);
-		    if (service != nil) 
-		    {
-			// add the installation source
-			createResult = createSource(service);
-			y2milestone ("Adding source result: %1", createResult);
-			
-		    }
+		    service = (string) UI::QueryWidget (`services, `CurrentItem);
 		}
-		
+
 		UI::CloseDialog ();
+		// #190245: in createSource, a license will be shown
+		// in the main dialog, so the Choose SLP Catalog popup
+		// must already be closed
+
+		y2milestone ("Trying to add source '%1'", service);
+		if (service != nil) 
+		{
+		    // add the installation source
+		    createResult = createSource(service);
+		    y2milestone ("Adding source result: %1", createResult);
+		}
 
             	if ( createResult == `ok ) fillTable();
 	    }

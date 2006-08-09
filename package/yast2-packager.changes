@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug  9 16:08:35 CEST 2006 - mvidner@suse.cz
+
+- Fixed adding a source with a license via SLP (in the installed
+  system, #190245).
+- 2.13.139.1
+
+-------------------------------------------------------------------
 Thu Jun 22 08:41:24 CEST 2006 - jsuchome@suse.cz
 
 - do not clear directory entry when Anonymous is (un)checked (#186849)
