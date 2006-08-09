@@ -1,0 +1,14 @@
+DISTRIBUTION: sles10-i386,sles10-ia64,sles10-ppc,sles10-s390x,sles10-x86_64
+PACKAGE: yast2-packager
+PACKAGER: mvidner@suse.cz
+BUGZILLA: 190245
+SWAMPID: 5213
+CATEGORY: recommended
+INDICATIONS: Install if you cannot accept a license when using SLP.
+CONTRAINDICATIONS:
+DESCRIPTION:
+When an installation source is added in the installed system
+and the source is found using SLP (Service Location Protocol),
+a modal dialog makes it impossible to click in the window with
+the license (#190245).
+This fixes it.
