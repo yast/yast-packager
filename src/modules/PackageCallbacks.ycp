@@ -23,6 +23,7 @@
     import "URL";
     import "CommandLine";
     import "String";
+    import "Report";
 
     global boolean _provide_popup = false;
     global boolean _package_popup = false;
@@ -1096,4 +1097,97 @@ Ignore this error and continue?"));
 	Pkg::CallbackStopConvertDb ("PackageCallbacks::StopConvertDB");
 	Pkg::CallbackNotifyConvertDb ("PackageCallbacks::NotifyConvertDB");
     }
+
+    /** at start of delta providal
+     *
+     */
+    global boolean StartDeltaProvide (string name, integer archivesize)
+    {
+	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Downloading delta RPM package %1 (%2)..."), name, sz));
+	}
+	else {
+	    // popup heading
+	    term providebox = ProgressBox (_("Downloading Delta RPM package"), name, sz);
+	    UI::OpenDialog(providebox);
+	    _provide_popup = true;
+	}
+	return true;
+    }
+
+    /** at start of delta application
+     *
+     */
+    global boolean StartDeltaApply (string name)
+    {
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Applying delta RPM package %1..."), name));
+	}
+	else {
+	  // popup heading
+	  term progressbox = `VBox(
+	    `HSpacing(40),
+	    // popup heading
+	    `Heading (_("Applying delta RPM package")),
+	    `Left (`HBox (
+		`Left (`Label (`opt (`boldFont), _("Package: "))),
+		`Left (`Label (name))
+	    )),
+	    `ProgressBar(`id(`progress), "", 100, 0 )
+	  );
+	  UI::OpenDialog(progressbox);
+	  _provide_popup = true;
+	}
+	return true;
+    }
+
+    global void ProgressDeltaApply
+
+    /** at start of patch providal
+     *
+     */
+    global boolean StartPatchProvide (string name, integer archivesize)
+    {
+	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Downloading patch RPM package %1 (%2)..."), name, sz));
+	}
+	else {
+	    // popup heading
+	    term providebox = ProgressBox (_("Downloading Patch RPM Package"), name, sz);
+	    UI::OpenDialog(providebox);
+	    _provide_popup = true;
+	}
+	return true;
+    }
+
+    global void FinishPatchDeltaProvide () {
+	if (_provide_popup)
+	{
+	    UI::CloseDialog ();
+	    _provide_popup = false;
+	}
+    }
+
+    global void ProblemDeltaDownload (string descr) {
+	FinishPatchDeltaProvide (); // close popup
+	Report::ShowText (_("Failed to download delta RPM"), descr);
+    }
+
+    global void ProblemDeltaApply (string descr) {
+	FinishPatchDeltaProvide (); // close popup
+	Report::ShowText (_("Failed to apply delta RPM"), descr);
+    }
+
+    global void ProblemPatchDownload (string descr) {
+	FinishPatchDeltaProvide (); // close popup
+	Report::ShowText (_("Failed to download patch RPM"), descr);
+    }
+
+// progress use the same callback as plain package download
+
 }

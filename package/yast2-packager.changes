@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 11 10:45:03 CEST 2006 - jsrain@suse.cz
+
+- added callbacks for patch/delta RPMs
+
+-------------------------------------------------------------------
 Wed Aug  9 16:08:35 CEST 2006 - mvidner@suse.cz
 
 - Fixed adding a source with a license via SLP (in the installed

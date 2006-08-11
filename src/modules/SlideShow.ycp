@@ -650,11 +650,8 @@
 	return true;
     }
 
-
-    /**
-     * Package providal start
-     */
-    global void SlideProvideStart (string pkg_name, integer sz, boolean remote)
+    global void SlideGenericProvideStart (string pkg_name, integer sz,
+	string pattern, boolean remote)
     {
 	if ( ! SanityCheck( false ) )	return;
 	if ( ! ShowingDetails() )	return;
@@ -668,15 +665,12 @@
 	// Update (user visible) installation log
 	// for remote download only
 	//
-	
 	if( ! remote ) return;
-
 	y2milestone( "Package '%1' is remote", pkg_name );
-	
 	string strsize = String::FormatSize (sz);
 	// message in the installatino log, %1 is package name,
 	// %2 is package size
-	string msg = sformat (_("Downloading %1 (%2)"), pkg_name, strsize);
+	string msg = sformat (pattern, pkg_name, strsize);
 	string log_line = "\n" + msg;
 	inst_log = inst_log + log_line;
 
@@ -685,6 +679,40 @@
 	    if ( UI::WidgetExists( `instLog ) )
 		UI::ChangeWidget(`instLog, `LastLine, log_line );
 	}
+
+    }
+
+    global void SlideDeltaApplyStart (string pkg_name) {
+	if ( ! SanityCheck( false ) )	return;
+	if ( ! ShowingDetails() )	return;
+
+	if ( UI::WidgetExists(`progressCurrentPackage) )
+	{
+	    UI::ChangeWidget(`progressCurrentPackage, `Label, pkg_name);
+	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
+	}
+
+	string msg = sformat (_("Applying delta RPM: %1"), pkg_name);
+	string log_line = "\n" + msg;
+	inst_log = inst_log + log_line;
+
+	if ( ShowingDetails() )
+	{
+	    if ( UI::WidgetExists( `instLog ) )
+		UI::ChangeWidget(`instLog, `LastLine, log_line );
+	}
+    }
+
+
+    /**
+     * Package providal start
+     */
+    global void SlideProvideStart (string pkg_name, integer sz, boolean remote)
+    {
+	// message in the installatino log, %1 is package name,
+	// %2 is package size
+	SlideGenericProvideStart (pkg_name, sz, _("Downloading %1 (%2)"),
+	    remote);
     }
 
 
@@ -1764,6 +1792,21 @@
 	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
 	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
 	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
+
+	Pkg::CallbackStartDeltaDownload ("SlideShowCallbacks::StartDeltaProvide");
+	Pkg::CallbackProgressDeltaDownload ("SlideShowCallbacks::ProgressProvide");
+	Pkg::CallbackProblemDeltaDownload ("SlideShowCallbacks::ProblemDeltaDownload");
+	Pkg::CallbackFinishDeltaDownload ("SlideShowCallbacks::FinishPatchDeltaProvide");
+
+	Pkg::CallbackStartDeltaApply ("SlideShowCallbacks::StartDeltaApply");
+	Pkg::CallbackProgressDeltaApply ("SlideShowCallbacks::ProgressDeltaApply");
+	Pkg::CallbackProblemDeltaApply ("SlideShowCallbacks::ProblemDeltaApply");
+	Pkg::CallbackFinishDeltaApply ("SlideShowCallbacks::FinishPatchDeltaProvide");
+
+	Pkg::CallbackStartPatchDownload ("SlideShowCallbacks::StartPatchProvide");
+	Pkg::CallbackProgressPatchDownload ("SlideShowCallbacks::ProgressProvide");
+	Pkg::CallbackProblemPatchDownload ("SlideShowCallbacks::ProblemPatchDownload");
+	Pkg::CallbackFinishPatchDownload ("SlideShowCallbacks::FinishPatchDeltaProvide");
     }
 
 
@@ -1788,6 +1831,21 @@
 	Pkg::CallbackStartDownload ("");
 	Pkg::CallbackProgressDownload ("");
 	Pkg::CallbackDoneDownload ("");
+
+	Pkg::CallbackStartDeltaDownload ("");
+	Pkg::CallbackProgressDeltaDownload ("");
+	Pkg::CallbackProblemDeltaDownload ("");
+	Pkg::CallbackFinishDeltaDownload ("");
+
+	Pkg::CallbackStartDeltaApply ("");
+	Pkg::CallbackProgressDeltaApply ("");
+	Pkg::CallbackProblemDeltaApply ("");
+	Pkg::CallbackFinishDeltaApply ("");
+
+	Pkg::CallbackStartPatchDownload ("");
+	Pkg::CallbackProgressPatchDownload ("");
+	Pkg::CallbackProblemPatchDownload ("");
+	Pkg::CallbackFinishPatchDownload ("");
     }
 
 
