@@ -226,6 +226,66 @@
 
 
     /**
+     *  at start of file providal
+     */
+    global void StartDeltaProvide( string name, integer archivesize )
+    {
+	SlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading delta RPM %1"), true /*remote*/);
+	_remote_provide = true;
+    }
+
+    /**
+     *  at start of file providal
+     */
+    global void StartDeltaApply( string name )
+    {
+	SlideShow::SlideDeltaApplyStart (name);
+	_remote_provide = true;
+    }
+    /**
+     *  at start of file providal
+     */
+    global void StartPatchProvide( string name, integer archivesize )
+    {
+	SlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading patch RPM %1"), true /*remote*/);
+	_remote_provide = true;
+    }
+
+    /**
+     * during file providal
+     */
+    global void ProgressDeltaApply( integer percent )
+    {
+	SlideShow::UpdateCurrentPackageProgress ( percent );
+    }
+
+    /**
+     *  at end of file providal
+     */
+    global void FinishPatchDeltaProvide()
+    {
+	_remote_provide = false;
+    }
+
+    global void ProblemDeltaDownload (string descr) {
+	_remote_provide = false;
+	// error in installation log, %1 is detail error description
+	SlideShow::AppendMessageToInstLog (sformat (_("Failed to download delta RPM: %1"), descr));
+    }
+
+    global void ProblemDeltaApply (string descr) {
+	_remote_provide = false;
+	// error in installation log, %1 is detail error description
+	SlideShow::AppendMessageToInstLog (sformat (_("Failed to apply delta RPM: %1"), descr));
+    }
+
+    global void ProblemPatchDownload (string descr) {
+	_remote_provide = false;
+	// error in installation log, %1 is detail error description
+	SlideShow::AppendMessageToInstLog (sformat (_("Failed to download patch RPM: %1"), descr));
+    }
+
+    /**
      * change of source
      * source: 0 .. n-1
      * media:  1 .. n
