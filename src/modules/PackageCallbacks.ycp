@@ -1148,8 +1148,6 @@ Ignore this error and continue?"));
 	return true;
     }
 
-    global void ProgressDeltaApply
-
     /** at start of patch providal
      *
      */
