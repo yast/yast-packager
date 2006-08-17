@@ -1109,6 +1109,8 @@ Ignore this error and continue?"));
 	    CommandLine::PrintVerbose(sformat(_("Downloading delta RPM package %1 (%2)..."), name, sz));
 	}
 	else {
+	    if (_provide_popup)
+		UI::CloseDialog ();
 	    // popup heading
 	    term providebox = ProgressBox (_("Downloading Delta RPM package"), name, sz);
 	    UI::OpenDialog(providebox);
@@ -1138,6 +1140,8 @@ Ignore this error and continue?"));
 	    )),
 	    `ProgressBar(`id(`progress), "", 100, 0 )
 	  );
+	  if (_provide_popup)
+		UI::CloseDialog ();
 	  UI::OpenDialog(progressbox);
 	  _provide_popup = true;
 	}
@@ -1157,6 +1161,8 @@ Ignore this error and continue?"));
 	    CommandLine::PrintVerbose(sformat(_("Downloading patch RPM package %1 (%2)..."), name, sz));
 	}
 	else {
+	    if (_provide_popup)
+		UI::CloseDialog ();
 	    // popup heading
 	    term providebox = ProgressBox (_("Downloading Patch RPM Package"), name, sz);
 	    UI::OpenDialog(providebox);
