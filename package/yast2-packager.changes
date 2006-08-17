@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 17 17:29:34 CEST 2006 - jsrain@suse.cz
+
+- added callbacks for patch/delta RPMs
+
+-------------------------------------------------------------------
 Wed Aug  9 13:40:16 CEST 2006 - jsrain@suse.cz
 
 - select packages also according to architecture and version for
