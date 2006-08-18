@@ -839,6 +839,7 @@ global void DoneSourceRefresh (map<string,any> info) {
 	    }
 	}
     }
+}
 
     /** at start of delta providal
      *
@@ -935,8 +936,6 @@ global void DoneSourceRefresh (map<string,any> info) {
     }
 
 // progress use the same callback as plain package download
-
-}
 
 //=============================================================================
 //	constructor and callback init

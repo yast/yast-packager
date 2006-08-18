@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 18 10:02:08 CEST 2006 - jsrain@suse.cz
+
+- syntax fix
+
+-------------------------------------------------------------------
 Thu Aug 17 17:29:34 CEST 2006 - jsrain@suse.cz
 
 - added callbacks for patch/delta RPMs
