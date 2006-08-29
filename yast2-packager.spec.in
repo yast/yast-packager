@@ -6,8 +6,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-installation yast2-xm
 Requires:	yast2 checkmedia yast2-country
 # SourceManager
 Requires:	yast2-installation >= 2.13.122
-# Pkg::SourceSaveAll
-Requires:	yast2-pkg-bindings >= 2.13.80
+# progress callbacks for delta rpms
+Requires:	yast2-pkg-bindings >= 2.13.88.1
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
 Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
