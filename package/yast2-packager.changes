@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 29 18:37:18 CEST 2006 - mvidner@suse.cz
+
+- Added a properly versioned dependency on yast2-pkg-bindings (#202397).
+- 2.13.139.3
+
+-------------------------------------------------------------------
 Fri Aug 11 10:45:03 CEST 2006 - jsrain@suse.cz
 
 - added callbacks for patch/delta RPMs
