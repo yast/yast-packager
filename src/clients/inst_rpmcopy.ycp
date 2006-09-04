@@ -35,6 +35,7 @@
     import "Kernel";
     import "Service";
     import "SourceManager";
+    import "Linuxrc";
 
     // variables related to installation source caching
 
@@ -718,16 +719,26 @@ from the source CD to the disk cache")));
 	// Default - unrestricted
 	map <string, integer> ret = $["maxnumbercds" : 0, "current_cd_no" : 0];
 
-	
+	// has the inst-sys been successfuly unmounted?
+	string umount_result = Linuxrc::InstallInf ("umount_result");
+	string media = Linuxrc::InstallInf ("InstMode");
+	y2milestone("umount result: %1, inst source type: %2", umount_result, media);
+
 	if (Packages::metadir_used) {
 	    // all is in ramdisk, we can install all sources now, works in every stage
 	    ret["current_cd_no"] = 0;
 	    ret["maxnumbercds"]  = 0;
 	    y2milestone("StartingAndMaxMediaNumber: MetaDir used %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
 	} else if (Stage::initial ()) {
-	    // only the first CD will be installed
-	    ret["current_cd_no"] = 1;
-	    ret["maxnumbercds"]  = 1;
+	    // is CD or DVD medium mounted? (inst-sys)
+	    if (umount_result != "0" && (media == "cd" || media == "dvd"))
+	    {
+		y2milestone("The installation CD/DVD cannot be changed.");
+		// only the first CD will be installed
+		ret["current_cd_no"] = 1;
+		ret["maxnumbercds"]  = 1;
+	    }
+	    // otherwise use the default setting - install all media
 	    y2milestone("StartingAndMaxMediaNumber: Stage initial %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
 
 	// Three following cases have the same solution, CDstart = 0, CDfinish = 0
@@ -753,6 +764,8 @@ from the source CD to the disk cache")));
 	    ret["maxnumbercds"]   = 0; // was 10
 	    y2milestone("StartingAndMaxMediaNumber: Dir install %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
 	}
+
+	return ret;
     }
 
     // ------------------------------------------------------------------------------------------------------

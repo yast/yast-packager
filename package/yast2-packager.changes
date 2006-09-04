@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  4 13:45:13 CEST 2006 - lslezak@suse.cz
+
+- install all packages in the first stage if it's possible
+  (feature #3425, bugzilla #103800)
+- 2.13.147
+
+-------------------------------------------------------------------
 Fri Aug 18 10:02:08 CEST 2006 - jsrain@suse.cz
 
 - syntax fix
