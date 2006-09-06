@@ -191,7 +191,7 @@ global list<string> SummaryOutput (list<symbol> flags) {
     if (contains (flags, `selection))
 	output = (list<string>)
 	    merge (output, ListSelected (`selection, "+  %1"));
-    if (contains (flags, `desktop))
+    if (contains (flags, `size))
 	output = (list<string>)add (output,
 	    // part of summary, %1 is size of packages (in MB or GB)
 	    sformat (_("Size of Packages to Install: %1"),
@@ -233,6 +233,7 @@ global map Summary (list<symbol> flags, boolean use_cache) {
 	];
     }
     map ret = $[];
+
     if (! CheckDiskSize (! use_cache))
     {
 	ret = $[
@@ -244,6 +245,35 @@ global map Summary (list<symbol> flags, boolean use_cache) {
 	    "warning_level" : Mode::update() ? `warning : `blocker,
 	];
     }
+    else
+    {
+	// check available free space (less than 5% and less than 1GB)
+	list<map> free_space = SpaceCalculation::CheckDiskFreeSpace(5, 1024*1024);
+
+	if (size(free_space) > 0)
+	{
+	    string warning = "";
+
+	    foreach(map df, free_space,
+		{
+		    string partition = df["dir"]:"";
+		    integer free_pct = df["free_percent"]:0;
+		    integer free_kB = df["free_size"]:0;
+
+		    string w = sformat(_("Only %1 (%2%%) free space available on partition %3.<BR>"), String::FormatSize(free_kB*1024), free_pct, partition);
+
+		    warning = warning + w;
+		}
+	    );
+
+	    if (warning != "")
+	    {
+		ret["warning"] = warning;
+		ret["warning_level"] = `warning;
+	    }
+	}
+    }
+
     ret["raw_proposal"] = SummaryOutput (flags);
     return ret;
 }

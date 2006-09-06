@@ -525,4 +525,51 @@ _("Please deselect some packages."));
 
 	return fit;
     };
+
+    /**
+    * Check, if there is enough free space after installing the current selection
+    * @param free_percent minimal free space after installation (in percent)
+    * @return list of partitions which have less than free_percent free size
+    */
+    global define list<map> CheckDiskFreeSpace(integer free_percent, integer max_unsufficient_free_size)
+    {
+	if ( !info_called )
+	{
+	    SpaceCalculation::GetPartitionInfo();
+	}
+
+	y2milestone("min. free space: %1%%, max. unsufficient free space: %2", free_percent, max_unsufficient_free_size);
+
+	list<map> ret = [];
+
+	if (free_percent > 0)
+	{
+	    //$[ "dir" : [ total, usednow, usedfuture ], .... ]
+	    foreach (string dir, list sizelist, Pkg::TargetGetDU(),
+		{
+		    y2milestone ("%1: %2", dir, sizelist);
+
+		    integer total = sizelist[0]:0;
+		    integer used_future = sizelist[2]:0;
+		    integer current_free_size = (total - used_future);
+		    integer current_free_percent = current_free_size*100/total;
+
+		    if (current_free_size > 0)
+		    {
+			if (current_free_percent < free_percent && current_free_size < max_unsufficient_free_size )
+			{
+			    y2warning("Partition %1: less than %2%% free space (%3%%, %4)", dir, current_free_percent, free_percent, current_free_size);
+
+			    ret = add(ret, $["dir":dir, "free_percent":current_free_percent, "free_size":current_free_size ]);
+			}
+		    }
+		}
+	    );
+	}
+
+	y2milestone("Result: %1", ret);
+
+	return ret;
+    };
 }
+
