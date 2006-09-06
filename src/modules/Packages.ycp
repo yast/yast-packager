@@ -82,6 +82,9 @@ string init_error = nil;
     // count of errors during packages solver
     global integer solve_errors = 0;
 
+    // cache the proposal summary
+    global map cached_simple_proposal = nil;
+
     /**
      * Packages to be selected when proposing the list
      */
@@ -1233,6 +1236,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	[ `product, `pattern, `selection, `size, `desktop ],
 	false);
     // TODO simple proposal
+    cached_simple_proposal = ret;
 
     UI::CloseDialog();
 
