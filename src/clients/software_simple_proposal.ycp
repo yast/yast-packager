@@ -23,9 +23,22 @@
 	boolean language_changed = param["language_changed"]:false;
 
 	y2milestone("package proposal: force reset: %1, reinit: %2, language changed: %3",  force_reset, false, language_changed );
-	ret = Packages::Proposal( false,		// user decision: reset to default
-				  false,		// reinitialize due to language or partition change
-				  true );
+
+	// use the cached proposal created by software_proposal.ycp client which is started before software_simple_proposal.ycp
+	if (Packages::cached_simple_proposal != nil)
+	{
+	    ret = Packages::cached_simple_proposal;
+	}
+	else
+	{
+	    y2warning("Something wrong has happened, the proposal cache in not initialized.");
+	    ret = Packages::Proposal( false,		// user decision: reset to default
+				      false,		// reinitialize due to language or partition change
+				      true );
+
+	    // don't cache the value which was created with the above hardcoded parameters
+	    Packages::cached_simple_proposal = nil;
+	}
 
 	if ( language_changed && !force_reset)
 	{
