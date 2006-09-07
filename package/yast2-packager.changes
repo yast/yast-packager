@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Wed Sep  6 08:51:30 CEST 2006 - lslezak@suse.cz
+
+- print a warning in the installation proposal if there is
+  a partition with too low free space (#179953)
+- don't run the solver after selecting a Xen kernel, run it just
+  once when creating the proposal
+- evaluate the package selection only once in the installation
+  proposal, cache the software proposal and evaluate the package
+  selection only when it's necessary (feature #300709)
+- 2.13.148
+
+-------------------------------------------------------------------
 Mon Sep  4 13:45:13 CEST 2006 - lslezak@suse.cz
 
 - install all packages in the first stage if it's possible
