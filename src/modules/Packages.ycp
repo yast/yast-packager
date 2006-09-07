@@ -56,6 +56,14 @@ boolean init_in_progress = false;
  */
 string init_error = nil;
 
+// cache for the proposed summary
+map cached_proposal = nil;
+// the selection used for the cached proposal
+list<string> cached_proposal_packages = [];
+list<map> cached_proposal_patterns = [];
+list<map> cached_proposal_products = [];
+list<map> cached_proposal_patches = [];
+list<map> cached_proposal_selections = [];
 
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
@@ -81,9 +89,6 @@ string init_error = nil;
 
     // count of errors during packages solver
     global integer solve_errors = 0;
-
-    // cache the proposal summary
-    global map cached_simple_proposal = nil;
 
     /**
      * Packages to be selected when proposing the list
@@ -313,6 +318,7 @@ global void Reset (list<symbol> keep) {
     foreach (map<string,any> res, restore, {
 	Pkg::ResolvableInstall (res["name"]:"", (symbol)(res["type"]:nil));
     });
+
     system_packages_selected = false;
 }
 
@@ -1171,6 +1177,44 @@ void SelectXenKernel () {
  * @return map for the API proposal
  */
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
+
+    // if the cache is valid and reset or reinitialization is not required
+    // then the cached proposal can be used
+    if (cached_proposal != nil && force_reset == false && reinit == false)
+    {
+	// selected packages
+	list<string> selected_packages = Pkg::GetPackages(`selected, false);
+
+	// selected patterns
+	list<map> selected_patterns = filter(map p, Pkg::ResolvableProperties("", `pattern, ""), {return p["status"]:`unknown == `selected;});
+
+	// selected products
+	list<map> selected_products = filter(map p, Pkg::ResolvableProperties("", `product, ""), {return p["status"]:`unknown == `selected;});
+
+	// selected patches
+	list<map> selected_patches = filter(map p, Pkg::ResolvableProperties("", `patch, ""), {return p["status"]:`unknown == `selected;});
+
+	// selected selections
+	list<map> selected_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
+
+	// if the package selection has not been changed the cache is up to date
+	if (selected_packages == cached_proposal_packages && selected_patterns == cached_proposal_patterns
+	    && selected_products == cached_proposal_products && selected_patches == cached_proposal_patches
+	    && selected_selections == cached_proposal_selections)
+	{
+	    y2milestone("using cached software proposal");
+	    return cached_proposal;
+	}
+	else
+	{
+	    y2milestone("invalid cache: the software selection has been chaged");
+	}
+    }
+    else
+    {
+	y2milestone("the cached proposal is empty or reset is required");
+    }
+
     UI::OpenDialog(`opt(`decorated ),
 	// popup label
 	`Label (_("Evaluating package selection...")));
@@ -1236,7 +1280,16 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	[ `product, `pattern, `selection, `size, `desktop ],
 	false);
     // TODO simple proposal
-    cached_simple_proposal = ret;
+
+    // cache the proposal
+    cached_proposal = ret;
+
+    // remember the status
+    cached_proposal_packages = Pkg::GetPackages(`selected, false);
+    cached_proposal_patterns = filter(map p, Pkg::ResolvableProperties("", `pattern, ""), {return p["status"]:`unknown == `selected;});
+    cached_proposal_products = filter(map p, Pkg::ResolvableProperties("", `product, ""), {return p["status"]:`unknown == `selected;});
+    cached_proposal_patches = filter(map p, Pkg::ResolvableProperties("", `patch, ""), {return p["status"]:`unknown == `selected;});
+    cached_proposal_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
 
     UI::CloseDialog();
 
