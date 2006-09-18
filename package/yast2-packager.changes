@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 18 16:11:58 CEST 2006 - lslezak@suse.cz
+
+- handlers for the new source callbacks (feature #1466), requires
+  yast2-pkg-bindings >= 2.13.95
+- 2.13.149
+
+-------------------------------------------------------------------
 Wed Sep  6 08:51:30 CEST 2006 - lslezak@suse.cz
 
 - print a warning in the installation proposal if there is
