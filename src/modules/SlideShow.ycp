@@ -1792,10 +1792,6 @@
 
 	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
 
-	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
-	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
-	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
-
 	Pkg::CallbackStartDeltaDownload ("SlideShowCallbacks::StartDeltaProvide");
 	Pkg::CallbackProgressDeltaDownload ("SlideShowCallbacks::ProgressProvide");
 	Pkg::CallbackProblemDeltaDownload ("SlideShowCallbacks::ProblemDeltaDownload");
@@ -1830,10 +1826,6 @@
 	Pkg::CallbackDoneProvide ("");
 
 	Pkg::CallbackSourceChange ("");
-
-	Pkg::CallbackStartDownload ("");
-	Pkg::CallbackProgressDownload ("");
-	Pkg::CallbackDoneDownload ("");
 
 	Pkg::CallbackStartDeltaDownload ("");
 	Pkg::CallbackProgressDeltaDownload ("");

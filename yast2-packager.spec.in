@@ -6,8 +6,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-installation yast2-xm
 Requires:	checkmedia yast2-country
 # SourceManager
 Requires:	yast2-installation >= 2.13.122
-# patch/delta RPM callbacks
-Requires:	yast2-pkg-bindings >= 2.13.92
+# patch/delta RPM callbacks, source callbacks
+Requires:	yast2-pkg-bindings >= 2.13.95
 # Linuxrc::display_ip
 Requires:	yast2 >= 2.13.67
 Provides:	yast2-config-package-manager

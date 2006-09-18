@@ -33,9 +33,7 @@
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_single");
-
-    // label of popup
-    UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
 
     import "Packages";
 
@@ -182,8 +180,6 @@ Only installed packages are displayed."));
 
        Pkg::TargetInit (Installation::destdir, false);
 
-       UI::CloseDialog();
-
        return `found_descr;
 
    };	// CheckWhichPackages
@@ -195,7 +191,6 @@ Only installed packages are displayed."));
    // and having the packager for ourselves
    if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
    {
-	UI::CloseDialog ();
 	UI::CloseDialog ();
 	return `abort;
    }

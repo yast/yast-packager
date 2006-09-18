@@ -558,7 +558,7 @@ _("Please deselect some packages."));
 		    {
 			if (current_free_percent < free_percent && current_free_size < max_unsufficient_free_size )
 			{
-			    y2warning("Partition %1: less than %2%% free space (%3%%, %4)", dir, current_free_percent, free_percent, current_free_size);
+			    y2warning("Partition %1: less than %2%% free space (%3%%, %4)", dir, free_percent, current_free_percent, current_free_size);
 
 			    ret = add(ret, $["dir":dir, "free_percent":current_free_percent, "free_size":current_free_size ]);
 			}

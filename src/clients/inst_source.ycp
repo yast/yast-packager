@@ -110,17 +110,7 @@
     define symbol createSource( string url ) ``{
         if ( url != "" )
         {
-	    // Popup::Message( sformat( "URL: %1", url ) );
-            UI::OpenDialog(
-			   `VBox(
-				 `VSpacing( 0.2 ),
-				// label
-				 `Label( _("Adding catalog...") ),
-				 `VSpacing( 0.2 )
-				 )
-			   );
             list<integer> newSources = Pkg::SourceScan( url, "" );
-            UI::CloseDialog();
             if ( size( newSources ) == 0  )
             {
 		// message part 1
