@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 20 11:05:16 CEST 2006 - lslezak@suse.cz
+
+- checkmedia - show output in a richtext widget, fixed labels
+  (feature #422), adapted to chages in 'checkmedia' output
+- 2.13.150
+
+-------------------------------------------------------------------
 Mon Sep 18 16:11:58 CEST 2006 - lslezak@suse.cz
 
 - handlers for the new source callbacks (feature #1466), requires
