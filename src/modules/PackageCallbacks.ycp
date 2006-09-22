@@ -232,7 +232,7 @@
 	    if ( showLongInfo )
 	    {
 		UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
-		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
+		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat (_("Error: %1:"), error) + reason) );
 	    }
 	    else
 	    {
@@ -252,7 +252,7 @@
 			{
 			    UI::ReplaceWidget(`id(`info),
 					      `RichText (`opt(`plainText),
-							 sformat ("Err: %1:", error) + reason) );
+							 sformat (_("Error: %1:"), error) + reason) );
 			}
 			else
 			{
@@ -757,6 +757,7 @@ void OpenSourcePopup(string text)
     }
 
     _source_open = _source_open + 1;
+    y2internal("OpenSourcePopup: new _source_open: %1", _source_open);
 }
 
 boolean SourcePopupSetProgress(integer value)
@@ -783,6 +784,7 @@ void CloseSourcePopup()
 	y2internal("Closing source progress popup");
 	UI::CloseDialog();
     }
+    y2internal("CloseSourcePopup: new _source_open: %1", _source_open);
 }
 
 global void SourceCreateStart(string url) {
@@ -858,14 +860,15 @@ global symbol SourceCreateError (string url, symbol error, string description) {
     symbol ret = (symbol)UI::UserInput ();
     UI::CloseDialog ();
     y2milestone ("Source create error: Returning %1", ret);
-/*
-    // close the popup if the operation is aborted
-    if (ret == `ABORT)
+
+    if (ret == `RETRY)
     {
-	_source_open = 0;
+	// The start callback will be evaluated again,
+	// but the end callback will be called just once.
+	// This call replaces the missing end callback.
 	CloseSourcePopup();
     }
-*/
+
     return ret;
 }
 
@@ -1001,7 +1004,7 @@ global boolean SourceReportProgress(integer value)
 
 
 global symbol SourceReportError(integer source_id, string url, symbol error, string description) {
-    y2milestone ("Source probe: error: id: %1, url: %2, error: %3, description: %4", source_id, url, error, description);
+    y2milestone ("Source report: error: id: %1, url: %2, error: %3, description: %4", source_id, url, error, description);
 
     // error message - a label followed by a richtext with details
     string message = sformat(_("Source %1"), url);
@@ -1050,7 +1053,16 @@ global symbol SourceReportError(integer source_id, string url, symbol error, str
     ));
     symbol ret = (symbol)UI::UserInput ();
     UI::CloseDialog ();
-    y2milestone ("Source probe error: Returning %1", ret);
+    y2milestone ("Source report error: Returning %1", ret);
+
+    if (ret == `RETRY)
+    {
+	// The start callback will be evaluated again,
+	// but the end callback will be called just once.
+	// This call replaces the missing end callback.
+	CloseSourcePopup();
+    }
+
     return ret;
 }
 
