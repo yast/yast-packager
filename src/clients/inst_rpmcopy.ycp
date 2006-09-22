@@ -831,6 +831,13 @@ from the source CD to the disk cache")));
 	Pkg::PkgCommit (9999);
     }
 
+// TODO FIXME: workaround for #201121 (#202088)
+// reinitialize the package manager from the target
+Pkg::TargetFinish();
+Pkg::TargetInitialize(Installation::destdir);
+Pkg::TargetLoad();
+
+
     SlideShow::CloseSlideShowDialog();
 
     if (result != `abort)

@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Sep 22 13:35:56 CEST 2006 - lslezak@suse.cz
+
+- callback handler - close the error popup window (#206953)
+- reinitialize the package manager after installation
+  (temporary workaround for #201121, #202088)
+- 2.13.151
+
+-------------------------------------------------------------------
 Wed Sep 20 11:05:16 CEST 2006 - lslezak@suse.cz
 
 - checkmedia - show output in a richtext widget, fixed labels

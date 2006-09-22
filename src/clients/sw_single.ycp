@@ -221,6 +221,16 @@ Only installed packages are displayed."));
 
    do
    {
+// the user has restarted the software selection
+// TODO FIXME: workaround for #201121 (#202088)
+// reinitialize the package manager from the target
+if (ask)
+{
+    Pkg::TargetFinish();
+    Pkg::TargetInitialize(Installation::destdir);
+    Pkg::TargetLoad();
+}
+
 	list<string> old_failed_packs = [];
 	if ((integer)SCR::Read (.target.size,
 	    "/var/lib/YaST2/failed_packages") > 0)
