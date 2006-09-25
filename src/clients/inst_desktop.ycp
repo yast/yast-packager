@@ -167,11 +167,11 @@ Wizard::SetFocusToNextButton();
 UI::ChangeWidget(`select, `Enabled, alt_desktop != "gnome"
     && alt_desktop != "kde" && alt_desktop != nil);
 
-symbol ret = nil;
+any ret = nil;
 
 repeat {
     map event = UI::WaitForEvent();
-    ret = (symbol)event["ID"]:nil;
+    ret = event["ID"]:nil;
 
     if (event["WidgetClass"]:nil == `RadioButton)
     {
@@ -242,7 +242,7 @@ if (ret == `next)
     }
 }
 
-return ret;
+return (symbol)ret;
 
 
 

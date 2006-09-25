@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 25 11:16:31 CEST 2006 - jsrain@suse.cz
+
+- fixed incorrect casting string to symbol (#204814)
+
+-------------------------------------------------------------------
 Fri Sep 22 13:35:56 CEST 2006 - lslezak@suse.cz
 
 - callback handler - close the error popup window (#206953)
