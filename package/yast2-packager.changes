@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Sep 27 10:03:18 CEST 2006 - locilka@suse.cz
+
+- YCP modules that originated in yast2-packager and had been in
+  yast2-installation were moved back to yast2-packager. Done in
+  installation version 2.13.155.
+- Removed yast2-installation and yast2-firewall from build
+  requirements.
+- 2.13.152
+
+-------------------------------------------------------------------
 Mon Sep 25 11:16:31 CEST 2006 - jsrain@suse.cz
 
 - fixed incorrect casting string to symbol (#204814)
