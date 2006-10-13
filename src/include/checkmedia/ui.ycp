@@ -69,39 +69,42 @@ define list<string> TranslateInfo(list<string> info) {
 		string val = String::CutBlanks(parts[1]:"");
 
 		map<string,string> trasmap = $[
-		    // %1 = CD identification
-		    "app" : _("Identification: %1"),
-		    // %1 medium number, e.g. CD1,CD2...
-		    "media" : _("Medium: %1"),
-		    // %1 = size of the medium
-		    "size" : _("Size: %1"),
-		    // %1 = MD5 hash value
-		    "md5" : _("Expected MD5: %1"),
-		    // %1 = result of the check
-		    "check" : _("Result: %1"),
-		    // error message
+		    // rich text message, %1 = CD identification
+		    "app" : ("<BIG><B>%1</B></BIG>"),
+		    // rich text message, %1 medium number, e.g. CD1,CD2...
+		    "media" : _("<UL><LI>Medium: %1</LI></UL>"),
+		    // rich text message, %1 = size of the medium
+		    "size" : _("<UL><LI>Size: %1</LI></UL>"),
+		    // rich text message, %1 = result of the check
+		    "check" : _("<UL><LI>Result: %1</LI></UL>"),
+		    // rich text -  error message
 		    "not an iso" : _("The drive does not contain a medium or the ISO file system is broken.")
 		];
 
 		if (key == "check")
 		{
 		    // try to translate result string
+		    // correct MD5
 		    if (val == "md5sum ok")
 		    {
 			// result of the check - success
-			val = _("OK");
+			val = _("<B>OK</B>");
 		    }
-		    else
+		    else if (val == "md5sum wrong")
 		    {
-			// translate failed message
-			string wrongMD5 = regexpsub(val, "md5sum wrong \\((.*)\\)", "\\1");
-
-			if (wrongMD5 != nil)
-			{
-			    // result of the check - it has failed
-			    val = _("FAILED");
-			    y2warning("MD5 of the medium: %1", wrongMD5);
-			}
+			// wrong MD5
+			val = _("<B>Error</B> -- MD5 sum does not match<BR>The medium should not be used.");
+		    }
+		    else if (val == "md5sum not checked")
+		    {
+			// the correct MD5 is unknown
+			val = _("<B>Unknown</B> -- The correct MD5 sum of the medium is unknown.");
+		    }
+		    // progress output
+		    else if (issubstring(val, "%\b\b\b\b"))
+		    {
+			key = "";
+			y2milestone("Ignoring progress output: %1", mergestring(splitstring(val, "\b"), "\\b"));
 		    }
 		}
 		// don't print MD5 sum (it doesn't help user)
@@ -259,6 +262,15 @@ define void RequireFirstMedium() {
     }
 }
 
+string log_content = "";
+
+void LogLine(string line)
+{
+    log_content = log_content + line;
+    UI::ChangeWidget(`id(`log), `Value, log_content);
+    y2debug("content: %1", log_content);
+}
+
 /**
  * Main dialog
  * @return symbol Result from UserInput()
@@ -330,7 +342,8 @@ string label = _("It is recommended to check all installation media to avoid ins
 	`Left(`ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive))),
 	`VSpacing(0.4),
 	// widget label
-	`LogView(`id(`log), _("S&tatus Information"), 12, 0),
+	`Left(`Label(_("Status Information"))),
+	`RichText(`id(`log), `opt(`autoScrollDown), ""),
 	`VSpacing(0.4),
 	// progress bar label
 	`ProgressBar(`id(`progress), _("Progress")),
@@ -340,7 +353,7 @@ string label = _("It is recommended to check all installation media to avoid ins
 	    `PushButton(`id(`start), _("&Start Check")),
 	    `HSpacing(2),
 	    // push button label
-	    `PushButton(`id(`stop), _("S&top"))
+	    `PushButton(`id(`stop), Label::CancelButton())
 	)//,
 //	`VSpacing(1)
     );
@@ -395,14 +408,16 @@ string label = _("It is recommended to check all installation media to avoid ins
 
 		y2milestone("starting media check at drive %1", selecteddrive);
 		// progress message, %1 is CD device name (e.g. /dev/hdc)
-		UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
+		//UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
+
+		//LogLine(sformat(_("Check started (%1)...\n"), selecteddrive));
 
 		// try to read one byte from the medium
 		integer res = (integer)SCR::Execute(.target.bash, sformat("/usr/bin/head -c 1 %1 > /dev/null", selecteddrive));
 		if (res != 0)
 		{
 		    // error message: the medium cannot be read or no medium in the drive; %1 = drive, e.g. /dev/hdc
-		    UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Cannot read medium in the drive %1."), selecteddrive));
+		    LogLine(sformat(_("Cannot read medium in the drive %1."), selecteddrive));
 		}
 		else
 		{
@@ -422,8 +437,8 @@ string label = _("It is recommended to check all installation media to avoid ins
 			    data = TranslateInfo(data);
 
 			    // add new output to the log view
-			    string info = mergestring(data, "\n") + "\n";
-			    UI::ChangeWidget(`id(`log), `LastLine, info);
+			    string info = mergestring(data, "");
+			    LogLine(info);
 			}
 
 			if (progress > 0)
@@ -462,13 +477,13 @@ string label = _("It is recommended to check all installation media to avoid ins
 
 		    if (aborted)
 		    {
-			// the check was aborted
-			UI::ChangeWidget(`id(`log), `LastLine, _("Aborted"));
+			// the check has been canceled
+			LogLine(sformat(_("<UL><LI>Result: %1</LI></UL>"), _("<B>Canceled</B>")));
 		    }
 		}
 
-		// add empty line between outputs
-		UI::ChangeWidget(`id(`log), `LastLine, "\n\n\n");
+		// add empty lines between checks
+		LogLine("<BR><BR>");
 		// set zero progress
 		UI::ChangeWidget(`id(`progress), `Value, 0);
 	    }

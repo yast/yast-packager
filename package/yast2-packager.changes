@@ -1,4 +1,139 @@
-Do not modify this package in trunk without communicating to the maintainer first. SLE10SP1 development is being performed in the SuSE-SLE-10-SP1-Branch branch.
+-------------------------------------------------------------------
+Wed Sep 27 10:03:18 CEST 2006 - locilka@suse.cz
+
+- YCP modules that originated in yast2-packager and had been in
+  yast2-installation were moved back to yast2-packager. Done in
+  installation version 2.13.155.
+- Removed yast2-installation and yast2-firewall from build
+  requirements.
+- 2.13.152
+
+-------------------------------------------------------------------
+Mon Sep 25 11:16:31 CEST 2006 - jsrain@suse.cz
+
+- fixed incorrect casting string to symbol (#204814)
+
+-------------------------------------------------------------------
+Fri Sep 22 13:35:56 CEST 2006 - lslezak@suse.cz
+
+- callback handler - close the error popup window (#206953)
+- reinitialize the package manager after installation
+  (temporary workaround for #201121, #202088)
+- 2.13.151
+
+-------------------------------------------------------------------
+Wed Sep 20 11:05:16 CEST 2006 - lslezak@suse.cz
+
+- checkmedia - show output in a richtext widget, fixed labels
+  (feature #422), adapted to chages in 'checkmedia' output
+- 2.13.150
+
+-------------------------------------------------------------------
+Mon Sep 18 16:11:58 CEST 2006 - lslezak@suse.cz
+
+- handlers for the new source callbacks (feature #1466), requires
+  yast2-pkg-bindings >= 2.13.95
+- 2.13.149
+
+-------------------------------------------------------------------
+Wed Sep  6 08:51:30 CEST 2006 - lslezak@suse.cz
+
+- print a warning in the installation proposal if there is
+  a partition with too low free space (#179953)
+- don't run the solver after selecting a Xen kernel, run it just
+  once when creating the proposal
+- evaluate the package selection only once in the installation
+  proposal, cache the software proposal and evaluate the package
+  selection only when it's necessary (feature #300709)
+- 2.13.148
+
+-------------------------------------------------------------------
+Mon Sep  4 13:45:13 CEST 2006 - lslezak@suse.cz
+
+- install all packages in the first stage if it's possible
+  (feature #3425, bugzilla #103800)
+- 2.13.147
+
+-------------------------------------------------------------------
+Fri Aug 18 10:02:08 CEST 2006 - jsrain@suse.cz
+
+- syntax fix
+- 2.13.146
+
+-------------------------------------------------------------------
+Thu Aug 17 17:29:34 CEST 2006 - jsrain@suse.cz
+
+- added callbacks for patch/delta RPMs
+- 2.13.145
+
+-------------------------------------------------------------------
+Wed Aug  9 13:40:16 CEST 2006 - jsrain@suse.cz
+
+- select packages also according to architecture and version for
+  2nd stage of installation (#186912)
+
+-------------------------------------------------------------------
+Tue Aug  8 13:31:29 CEST 2006 - jsrain@suse.cz
+
+- updated KDE blurb in desktop selection dialog (#144612)
+
+-------------------------------------------------------------------
+Mon Aug  7 13:15:26 CEST 2006 - jsrain@suse.cz
+
+- add possibility to change order of sources (#190069)
+- updated texts in slideshow log (#177502)
+- 2.13.144
+
+-------------------------------------------------------------------
+Fri Aug  4 16:42:14 CEST 2006 - jsrain@suse.cz
+
+- optimized the source management dialog (#190069)
+- updated help texts
+- 2.13.143
+
+-------------------------------------------------------------------
+Tue Aug  1 13:55:33 CEST 2006 - jsrain@suse.cz
+
+- removed Up/Down buttons from inst_source dialog (#190069)
+
+-------------------------------------------------------------------
+Wed Jul 26 13:31:54 CEST 2006 - jsrain@suse.cz
+
+- provide earlier feedback for sw_single (jsuchome)
+- remove blank spaces from host name (if accidentally entered)
+  (#176762)
+- 2.13.142
+
+-------------------------------------------------------------------
+Mon Jul 24 13:57:04 CEST 2006 - jsrain@suse.cz
+
+- remove bold highlight in help text (#179420)
+- allow to abort installation if CD1 not in the drive (#167674)
+- report proper message if no catalog found via SLP and firewall
+  is running (#156444)
+
+-------------------------------------------------------------------
+Sun Jul 16 08:54:55 CEST 2006 - olh@suse.de
+
+- introduce a Linuxrc::display_ip and use it instead of Arch::s390
+- 2.13.141
+
+-------------------------------------------------------------------
+Mon Jul 10 16:12:44 CEST 2006 - jsrain@suse.cz
+
+- clean-up of selection related stuff
+- 2.13.140
+
+-------------------------------------------------------------------
+Thu Jun 29 10:59:29 CEST 2006 - jsrain@suse.cz
+
+- optimized source dialogs (#179447)
+- import Storage later to prevent early run of construcor
+
+-------------------------------------------------------------------
+Mon Jun 26 08:52:18 CEST 2006 - jsrain@suse.cz
+
+- preselect patterns according to selected desktop (#183944)
 
 -------------------------------------------------------------------
 Thu Jun 22 08:41:24 CEST 2006 - jsuchome@suse.cz

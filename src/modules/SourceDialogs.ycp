@@ -1,0 +1,1016 @@
+/**
+ * File:		SourceDialogs.ycp
+ *
+ * Authors:		Jiri Srain <jsrain@suse.cz>
+ *			Klaus Kaempf <kkaempf@suse.de>
+ *			Gabriele Strattner <gs@suse.de>
+ *			Stefan Schubert <schubi@suse.de>
+ *                      Cornelius Schumacher <cschum@suse.de>
+ *
+ * Purpose:
+ * Displays possibilities to install from NFS, CD or partion
+ *
+ * $Id: inst_source_dialogs.ycp 31607 2006-06-22 07:02:01Z jsuchome $
+ */
+
+{
+textdomain "packager";
+
+module "SourceDialogs";
+
+import "Label";
+import "URL";
+import "Popup";
+import "CWM";
+import "SourceManager";
+
+// common functions / data
+
+/**
+ * URL to work with
+ */
+string _url = "";
+
+/**
+ * Allow HTTPS for next source dialog?
+ */
+boolean _allow_https = true;
+
+/**
+ * Help text suffix for some types of the medias
+ */
+string iso_help = _("<p>If the location is a file holding an ISO image
+of the media, set <b>ISO Image</b>.</p>");
+
+/**
+ * Help text suffix for some types of the medias
+ */
+string multi_cd_help = _("<p>If the catalog is on multiple medias,
+set the location of the first media of the set.</p>");
+
+/**
+ * Set the URL to work with
+ * @param url string URL to run the dialogs with
+ */
+global void SetURL (string url) {
+    _url = url;
+}
+
+/**
+ * Return URL after the run of the dialog
+ * @return string the URL
+ */
+global string GetURL () {
+    return _url;
+}
+
+/**
+ * Postprocess URL of an ISO image
+ * @param url string URL in the original form
+ * @return string postprocessed URL
+ */
+string PosprocessISOURL (string url) {
+    y2milestone ("Updating ISO URL %1", url);
+    integer last = findlastof (url, "/") + 1;
+    string onlydir = substring (url, 0, last);
+    url = "iso:/?iso=" + substring (url, last) + "&url=" + onlydir;
+    y2milestone ("Updated URL: %1", url);
+    return url;
+}
+
+/**
+ * Check if URL is an ISO URL
+ * @param url string URL to check
+ * @return boolean true if URL is an ISO URL, false otherwise
+ */
+boolean IsISOURL (string url) {
+    boolean ret = substring (url, 0, 5) == "iso:/" &&
+	issubstring (url, "&url=");
+    y2milestone ("URL %1 is ISO: %2", url, ret);
+    return ret;
+}
+
+/**
+ * Preprocess the ISO URL to be used in the dialogs
+ * @param url string URL to preprocess
+ * @return string preprocessed URL
+ */
+string PreprocessISOURL (string url) {
+    y2milestone ("Preprocessing ISO URL %1", url);
+    integer url_pt = search (url, "&url=");
+    string serverpart = substring (url, url_pt + 5);
+    string isopart = substring (url, 0, url_pt);
+    url = serverpart + substring (isopart, search (isopart, "iso=") + 4);
+    y2milestone ("Updated URL: %1", url);
+    return url;
+}
+
+/**
+ * check if given path points to ISO file
+ * @param url string URL to check
+ * @return boolean true if URL is ISO image
+ */
+boolean PathIsISO (string url) {
+    if (size (url) < 4) return false;
+    return substring (url, size (url) - 4, 4) == ".iso";
+}
+
+/**
+ * Add a slash to the part of url, if it is not already present
+ * @param urlpart string a part of the URL
+ * @return string urlpart with leading slash
+ */
+string Slashed (string urlpart) {
+    if ( substring( urlpart, 0, 1 ) == "/" )
+	return urlpart;
+    return "/" + urlpart;
+}
+
+/**
+ * Remove leading and trailing (and inner) spaces from the host name
+ * @param host string original host name
+ * @return string host without leading and trailing spaces
+ */
+string NormalizeHost (string host) {
+    host = deletechars (host, " \t");
+    return host;
+}
+
+/**
+ * Return an HBox with ok and cancel buttons for use by other dialogs.
+ * @return An HBox term for use in a CreateDialog call.
+ */
+term PopupButtons() {
+    return `HBox(
+	`PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
+	`HStretch(),
+	`PushButton( `id( `cancel ), Label::CancelButton() )
+    );
+}
+
+/**
+ * Get scheme of a URL, also for ISO URL get scheme of the access protocol
+ * @param url string URL to get scheme for
+ * @return string URL scheme
+ */
+string URLScheme (string url) {
+    string scheme = "";
+    if (IsISOURL (url))
+    {
+	string tmp_url = PreprocessISOURL (url);
+	map parsed = URL::Parse (tmp_url);
+	scheme = parsed["scheme"]:"";
+    }
+    else
+    {
+	map parsed = URL::Parse (url);
+	scheme = parsed["scheme"]:"";
+    }
+
+    if (scheme == "" || scheme == nil)
+	scheme = "url";
+    y2milestone ("URL scheme for URL %1: %2", url, scheme);
+    return scheme;
+}
+
+// raw URL editation widget
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void PlainURLInit (string key) {
+    UI::ChangeWidget (`id (`url), `Value, _url);
+    UI::SetFocus (`url);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void PlainURLStore (string key, map event) {
+    _url = (string)UI::QueryWidget (`id (`url), `Value);
+}
+
+boolean PlainURLValidate (string key, map event) {
+    string url = (string)UI::QueryWidget (`id (`url), `Value);
+    if (url == "")
+    {
+	UI::SetFocus (`id (`url));
+	// popup message
+	Popup::Message (_("URL cannot be empty."));
+	return false;
+    }
+    return true;
+}
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> PlainURLWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox (
+	    // text entry
+	    `TextEntry( `id( `url ), _("&URL") )
+	),
+	"init" : PlainURLInit,
+	"store" : PlainURLStore,
+	"validate_type" : `function,
+	"validate_function" : PlainURLValidate,
+	// help text
+	"help" : _("<p><big><b>Catalog URL</b></big><br>
+Use <b>URL</b> to specify the URL of the catalog.<p>") + multi_cd_help,
+    ];
+}
+
+// NFS editation widget
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void NFSInit (string key) {
+    boolean iso = IsISOURL (_url);
+    if (iso)
+	_url = PreprocessISOURL (_url);
+    map parsed = URL::Parse (_url);
+    UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
+    UI::ChangeWidget (`id (`dir), `Value, parsed["path"]:"");
+    UI::ChangeWidget (`id (`ch_iso), `Value, iso);
+    UI::SetFocus (`server);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void NFSStore (string key, map event) {
+    map parsed = $[
+	"scheme" : "nfs",
+	"host" : NormalizeHost (
+	    (string)UI::QueryWidget (`id (`server), `Value)),
+	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
+    ];
+    _url = URL::Build (parsed);
+    boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+    if (iso)
+	_url = PosprocessISOURL (_url);
+}
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> NFSWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox (
+	    // text entry
+            `TextEntry (`id (`server), _("&Server Name")),
+	    // text entry
+            `TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
+	    // checkbox label
+	    `Left (`CheckBox ( `id (`ch_iso), _("ISO Image")))
+	),
+	"init" : NFSInit,
+	"store" : NFSStore,
+	// help text
+	"help" : _("<p><big><b>NFS Server</b></big><br>
+Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
+to specify the NFS server host name and path on the server.<p>")
++ iso_help
++ multi_cd_help,
+    ];
+}
+
+// CD/DVD source widget
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void CDInit (string key) {
+    map parsed = URL::Parse (_url);
+    string scheme = parsed["scheme"]:"";
+    if (scheme == "dvd")
+	UI::ChangeWidget (`id (`cd), `Value, true);
+    else
+	UI::ChangeWidget (`id (`dvd), `Value, true);
+    UI::SetFocus (`cd);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void CDStore (string key, map event) {
+    symbol device = (symbol)UI::QueryWidget (`id (`device), `CurrentButton);
+    if (device == `cd)
+	_url = "cd:///";
+    else
+	_url = "dvd:///";
+}
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> CDWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `RadioButtonGroup (`id (`device), `VBox (
+	    // radio button
+	    `Left (`RadioButton (`id (`cd), _("&CD-ROM"))),
+	    // radio button
+	    `Left (`RadioButton (`id (`dvd ), _("&DVD-ROM")))
+	)),
+	"init" : CDInit,
+	"store" : CDStore,
+	"help" : _("<p><big><b>CD or DVD Media</b></big><br>
+Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"),
+    ];
+}
+
+// File / Directory source widget
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void DirInit (string key) {
+    boolean iso = IsISOURL (_url);
+    if (iso)
+	_url = PreprocessISOURL (_url);
+    map parsed = URL::Parse (_url);
+    UI::ChangeWidget (`id (`dir), `Value, parsed["path"]:"");
+    UI::SetFocus (`dir);
+
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void DirStore (string key, map event) {
+    map parsed = $[
+	"scheme" : "dir",
+	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
+    ];
+    _url = URL::Build (parsed);
+    boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+    if (iso)
+	_url = PosprocessISOURL (_url);
+}
+
+/**
+ * Handle function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ * @return always nil
+ */
+symbol DirHandle (string key, map event) {
+    boolean iso   = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+    string dir = (string)UI::QueryWidget (`id (`dir), `Value);
+    string result = iso
+	// dialog caption
+	?  UI::AskForExistingFile (dir, "*", _("ISO Image File"))
+	// dialog caption
+	: UI::AskForExistingDirectory (dir, _("Local Directory"));
+    if ( result != nil )
+	UI::ChangeWidget (`id (`dir), `Value, result);
+    return nil;
+}
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> DirWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox(
+	    `HBox(
+		// text entry
+                `TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
+		`VBox (
+		    `Label (""),
+		    // push button
+		    `PushButton (`id (`browse), _("&Browse..."))
+		)
+	    ),
+	    // checkbox label
+	    `Left (`CheckBox (`id (`ch_iso), _("ISO Image")))
+	),
+	"init" : DirInit,
+	"store" : DirStore,
+	"handle" : DirHandle,
+	"handle_events" : [ `browse ],
+	"help" : _("<p><big><b>Local Directory or ISO</b></big><br>
+Ise <b>Path to Directory or ISO Image</b> to specify the path to the
+directory or the file holding the ISO image of the installation media.</p>")
++ iso_help
++ multi_cd_help,
+    ];
+
+}
+
+// HTTP(s)/FTP/SMB/CIFS source widget
+
+/**
+ * Handle function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ * @return always nil
+ */
+symbol ServerHandle (string key, map event) {
+    any id = event["ID"]:nil;
+    if (is (id, symbol)
+	&& contains ([`http, `https, `ftp, `samba, `rb_type], (symbol)id))
+    {
+	symbol type = (symbol)UI::QueryWidget (`id (`rb_type), `CurrentButton);
+	string server = UI::WidgetExists (`id (`server))
+	    ? (string)UI::QueryWidget (`id (`server), `Value)
+	    : "";
+	string dir = UI::WidgetExists (`id (`dir))
+	    ? (string)UI::QueryWidget (`id (`dir), `Value)
+	    : "";
+	boolean anonymous = UI::WidgetExists (`id (`anonymous))
+	    ? (boolean)UI::QueryWidget (`id (`anonymous), `Value)
+	    : false;
+	string username = UI::WidgetExists (`id (`username))
+	    ? (string)UI::QueryWidget (`id (`username), `Value)
+	    : "";
+	string password = UI::WidgetExists (`id (`password))
+	    ? (string)UI::QueryWidget (`id (`password), `Value)
+	    : "";
+	term widget = `VBox (
+	    // text entry
+	    `TextEntry (`id (`server), _("Server &Name"), server),
+	    type == `samba
+		// text entry
+		? `TextEntry (`id (`share), _("&Share"))
+		: `Empty (),
+	    type == `samba
+		? `VBox (
+		    `TextEntry (`id (`dir),
+			// text entry
+			_("&Path to Directory or ISO Image"), dir),
+
+		    // checkbox label
+		    `Left (`CheckBox (`id (`ch_iso), _("ISO Image")))
+		)
+		// text entry
+		: `TextEntry( `id( `dir ), _("&Directory on Server"), dir),
+	    `HBox (
+		`HSpacing (0.5),
+		// frame
+		`Frame (_("Au&thentication"), `VBox (
+		    `Left (`CheckBox (`id (`anonymous), `opt (`notify),
+			// check box
+			_("&Anonymous"), anonymous)),
+		    type == `samba
+			// text entry
+			? `TextEntry (`id (`workgroup),
+			    _("Workgroup or Domain"))
+			: `Empty (),
+		    // text entry
+		    `TextEntry (`id (`username), _("&User Name"), username),
+		    // password entry
+		    `Password (`id (`password), _("&Password"), password)
+		)),
+		`HSpacing (0.5)
+	    )
+	);
+	UI::ReplaceWidget (`id (`server_rp), widget);
+	return nil;
+    }
+    if (event["ID"]:nil == `anonymous)
+    {
+	boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous),
+	    `Value);
+	UI::ChangeWidget (`id (`username), `Enabled, false);
+	UI::ChangeWidget (`id (`password), `Enabled, false);
+	if (UI::WidgetExists (`id (`workgroup)))
+	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
+	return nil;
+    }
+}
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void ServerInit (string key) {
+    term protocol_box = `HBox (
+	`HStretch (),
+	// radio button
+	`RadioButton (`id (`ftp),`opt (`notify), _("&FTP")),
+	`HStretch(),
+	// radio button
+	`RadioButton (`id (`http),`opt (`notify), _("H&TTP")),
+	`HStretch()
+    );
+    if (_allow_https)
+    {
+	protocol_box = add (protocol_box,
+	    // radio button
+	    `RadioButton (`id (`https), `opt (`notify), _("HTT&PS"))
+	);
+	protocol_box = add (protocol_box, `HStretch ());
+    }
+    protocol_box = add (protocol_box,
+	// radio button
+	`RadioButton (`id (`samba),`opt (`notify), _("&SMB/CIFS"))
+    );
+    protocol_box = add (protocol_box, `HStretch ());
+    protocol_box = `RadioButtonGroup (`id (`rb_type), `opt (`notify),
+	protocol_box);
+    UI::ReplaceWidget (`id (`rb_type_rp), protocol_box);
+
+    boolean iso = IsISOURL (_url);
+    if (iso)
+	_url = PreprocessISOURL (_url);
+    map parsed = URL::Parse (_url);
+    symbol type = `ftp;
+    if ( parsed["scheme"]:"" == "http" )
+	type = `http;
+    else if ( parsed["scheme"]:"" == "https" )
+	type = `https;
+    else if ( parsed["scheme"]:"" == "smb" )
+	type = `samba;
+    UI::ChangeWidget (`id (`rb_type), `CurrentButton, type);
+    ServerHandle (key, $[ "ID" : `rb_type ]);
+
+    UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
+    string dir = parsed["path"]:"";
+    if (type == `samba)
+    {
+	UI::ChangeWidget (`id (`ch_iso), `Value, iso);
+	list sharepath = regexptokenize (dir, "^/*([^/]+)(/.*)?$");
+	string share = sharepath[0]:"";
+	dir = sharepath[1]:"";
+	if (dir == nil)
+	    dir = "/";
+	string workgroup = "";
+	if (regexpmatch (dir, "^.*;workgroup=[^;]+$"))
+	{
+	    workgroup = regexpsub (dir,
+		"^.*;workgroup=([^;]+)$", "\\1");
+	    dir = regexpsub (dir, "^(.*);workgroup=[^;]+$", "\\1");
+	}
+	UI::ChangeWidget (`id (`workgroup), `Value, workgroup);
+	UI::ChangeWidget (`id (`share), `Value, share);
+    }
+    UI::ChangeWidget (`id (`dir), `Value, dir);
+    UI::ChangeWidget (`id (`username), `Value, parsed["user"]:"");
+    UI::ChangeWidget (`id (`password), `Value, parsed["pass"]:"");
+    boolean anonymous = ! (parsed["user"]:"" != "" || parsed["pass"]:"" != "");
+    y2milestone ("Anonymous: %1", anonymous);
+    UI::ChangeWidget (`id (`anonymous), `Value, anonymous);
+    if (anonymous)
+    {
+	UI::ChangeWidget (`id (`username), `Enabled, false);
+	UI::ChangeWidget (`id (`password), `Enabled, false);
+	if (UI::WidgetExists (`id (`workgroup)))
+	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
+    }
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void ServerStore (string key, map event) {
+    symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
+    map parsed = $[];
+    if ( type == `ftp )
+	parsed["scheme"] = "ftp";
+    else if ( type == `http )
+	parsed["scheme"] = "http";
+    else if ( type == `https )
+	parsed["scheme"] = "https";
+    else if ( type == `samba )
+	parsed["scheme"] = "smb";
+
+    boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous), `Value);
+    if ( !anonymous ) {
+	string user = (string)UI::QueryWidget (`id (`username), `Value);
+	string pass = (string)UI::QueryWidget (`id (`password ), `Value);
+	if (size (user) != 0)
+	    parsed["user"] = user;
+	if (size (pass) != 0)
+	    parsed["pass"] = pass;
+    }
+    parsed["host"] = NormalizeHost (
+	(string)UI::QueryWidget (`id (`server), `Value));
+    string directory = (string)UI::QueryWidget (`id (`dir), `Value);
+    if (type == `samba)
+    {
+	string share = (string)UI::QueryWidget (`id (`share), `Value);
+	directory = Slashed (share) + Slashed (directory);
+    }
+    else if (type != `ftp)
+    // FTP needs to distinguish absolute and relative path
+    {
+	directory = Slashed (directory);
+    }
+    if (UI::WidgetExists (`id (`workgroup)))
+    {
+	string workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
+	if (type == `samba && size (workgroup) > 0)
+	    directory = directory + ";workgroup=" + workgroup;
+    }
+    parsed["path"] = directory;
+    _url = URL::Build (parsed);
+    if (UI::WidgetExists (`id (`ch_iso)))
+    {
+	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+	if (iso)
+	    _url = PosprocessISOURL (_url);
+    }
+}
+
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> ServerWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox (
+	    `HBox (
+		`HSpacing (0.5),
+		// frame
+		`Frame (_("P&rotocol"), `ReplacePoint (`id (`rb_type_rp),
+		    `Empty ())
+		),
+		`HSpacing( 0.5 )
+	    ),
+	    `ReplacePoint (`id (`server_rp), `Empty ())
+	),
+	"init" : ServerInit,
+	"store" : ServerStore,
+	"handle" : ServerHandle,
+	"help" : _("<p><big><b>Server and Directory</b></big><br>
+Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
+to specify the NFS server host name and path on the server.
+To enable authentication, uncheck <b>Anonymous</b> and specify the
+<b>User Name</b> and the <b>Password</b>.<p>
+<p>
+For SMB/CIFS source, specify <b>Share</b> name and <b>Path to Directory
+or ISO Image</b>. 
+If the location is a file holding an ISO image
+of the media, set <b>ISO Image</b>.</p>")
++ multi_cd_help,
+    ];
+}
+
+/**
+ * Checks whether some network is available in the current moment,
+ * see the bug #170147 for more information.
+ */
+boolean IsAnyNetworkAvailable () {
+        boolean ret = false;
+        
+        string command = "TERM=dumb /sbin/ip -o address show | grep inet | grep -v scope.host";
+        y2milestone("Running %1", command);
+        map cmd_run = (map) SCR::Execute(.target.bash_output, command);
+        y2milestone("Command returned: %1", cmd_run);
+
+        // command failed
+        if (cmd_run["exit"]:-1 != 0) {
+            // some errors were there, we don't know the status, rather return that it's available
+            // `grep` also returns non zero exit code when there is nothing to do...
+            if (cmd_run["stdout"]:"" != "") {
+                y2error("Checking the network failed");
+                ret = true;
+            }
+        // some devices are listed
+        } else if (cmd_run["stdout"]:"" != nil && cmd_run["stdout"]:"" != "") {
+            ret = true;
+        }
+        
+        return ret;    
+}
+
+
+term SelectRadioWidget () {
+    term contents = `HBox (`HStretch (), `VBox (
+	`RadioButtonGroup (`id (`type), `VBox (
+	    `VStretch (),
+	    // radio button
+	    `Left (`RadioButton(`id(`slp),       _("&Scan Using SLP..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`ftp),       _("&FTP..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`http),      _("&HTTP..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`https),      _("HTT&PS..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`samba),     _("&SMB/CIFS"))),
+	    // radio button
+	    `Left (`RadioButton(`id(`nfs),       _("&NFS..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`cd),        _("&CD..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
+	    // radio button
+	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+	    `VStretch ()
+	))), `HStretch ()
+    );
+    if (! IsAnyNetworkAvailable()) {
+	y2milestone ("Network is not available, skipping all Network-related options...");
+
+	contents = `HBox (`HStretch (), `VBox (
+	    `RadioButtonGroup (`id (`type), `VBox (
+		`VStretch (),
+		// radio button
+		`Left (`RadioButton(`id(`cd),        _("&CD..."))),
+		// radio button
+		`Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
+		// radio button
+		`Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
+		// radio button
+		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+		`VStretch ()
+	    ))), `HStretch ()
+	);
+    } else {
+	y2milestone("Network is available, allowing Network-related options...");
+    }
+    return contents;
+}
+
+string SelectWidgetHelp () {
+    // help text
+    string help_text = _("<p><big><b>Catalog Media</b></big><br>
+The software catalog can be located on CD, on a network server,
+or on the hard disk.</p>");
+
+    // help, continued
+    help_text = help_text + _("<p>
+To add  <b>CD</b> or <b>DVD</b>,
+have the product CD set or the DVD available.</p>");
+
+    // help, continued
+    help_text = help_text + _("<p>
+The product CDs can be copied to the hard disk.
+Insert the path where the first
+CD is located, for example, /data1/<b>CD1</b>.
+Only the base path is required if all CDs are copied
+into one directory.</p>
+");
+
+    // help, continued
+    help_text = help_text + _("<p>
+Network installation requires a working network connection.
+Specify the directory where the packages from
+the first CD are located, such as /data1/CD1.</p>
+");
+    return help_text;
+}
+
+boolean SelectValidate (string key, map event) {
+    symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+    if (selected == nil)
+    {
+	// error popup
+	Popup::Message (_("Select the media type."));
+	return false;
+    }
+    if (selected == `cd || selected == `dvd)
+    {
+	Pkg::SourceReleaseAll();
+	string msg = selected == `cd
+	    ? _("Insert the add-on product CD")
+	    : _("Insert the add-on product DVD");
+	if (! SourceManager::AskForCD (msg))
+	    return false;
+    }
+    return true;
+}
+
+symbol SelectHandle (string key, map event) {
+    if (! (event["ID"]:nil == `next || event["ID"]:nil == `ok))
+	return nil;
+    symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+    if (selected == nil)
+	return nil;
+    if (selected == `slp || selected == `cd || selected == `dvd)
+	return `finish;
+}
+
+void SelectStore (string key, map event) {
+    _url = "";
+    symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+    if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
+	`local_dir, `specify__url, `slp], selected))
+    {
+	if ( selected == `ftp ) _url = "ftp://";
+	else if ( selected == `http ) _url = "http://";
+	else if ( selected == `https ) _url = "https://";
+	else if ( selected == `samba ) _url = "smb://";
+	else if ( selected == `nfs ) _url = "nfs://";
+	else if ( selected == `cd ) _url = "cd:///";
+	else if ( selected == `dvd ) _url = "dvd:///";
+	else if ( selected == `local_dir ) _url = "dir://";
+	else if ( selected == `slp ) _url = "slp://";
+    }
+}
+
+map<string,any> SelectWidget () {
+    return $[
+	"widget" : `func,
+	"widget_func" : SelectRadioWidget,
+	"help" : SelectWidgetHelp (),
+	"validate_type" : `function,
+	"validate_function" : SelectValidate,
+	"store" : SelectStore,
+	"handle" : SelectHandle,
+    ];
+}
+
+// general data
+
+/**
+ * Individual widgets
+ */
+map<string,map<string,any> > _widgets = $[];
+
+/**
+ * Get individual widgets
+ * @return individual widgets
+ */
+map<string,map<string,any> > Widgets () {
+    if (size (_widgets) == 0)
+	_widgets = $[
+	    "url" : PlainURLWidget (),
+	    "nfs" : NFSWidget (),
+	    "cd" : CDWidget (),
+	    "dvd" : CDWidget (),
+	    "dir" : DirWidget (),
+	    "file" : DirWidget (),
+	    "http" : ServerWidget (),
+	    "https" : ServerWidget (),
+	    "ftp" : ServerWidget (),
+	    "smb" : ServerWidget (),
+	    "cifs" : ServerWidget (),
+	    "select" : SelectWidget (),
+	];
+    return _widgets;
+}
+
+/**
+ * Captions for individual protocols
+ */
+map<string,string> _caption = $[
+    // label / dialog caption
+    "url" : _("Catalog URL"),
+    // label / dialog caption
+    "nfs" : _("NFS Server"),
+    // label / dialog caption
+    "cd" : _("CD or DVD Media"),
+    // label / dialog caption
+    "dvd" : _("CD or DVD Media"),
+    // label / dialog caption
+    "dir" : _("Local Directory or ISO"),
+    // label / dialog caption
+    "file" : _("Local Directory or ISO"),
+    // label / dialog caption
+    "http" : _("Server and Directory"),
+    // label / dialog caption
+    "https" : _("Server and Directory"),
+    // label / dialog caption
+    "ftp" : _("Server and Directory"),
+    // label / dialog caption
+    "smb" : _("Server and Directory"),
+    // label / dialog caption
+    "cifs" : _("Server and Directory"),
+];
+
+// general functions
+
+/**
+ * Get contents of a popup for specified protocol
+ * @param proto string protocol to display popup for
+ * @return term popup contents
+ */
+term PopupContents (string proto) {
+    return `VBox (
+	`HSpacing (50),
+	// label
+	`Label (_caption[proto]:""),
+	proto,
+	PopupButtons ()
+    );
+};
+
+/**
+ * URL editation popup with the HTTPS option
+ * @param url string url URL to edit
+ * @return string modified URL or empty string if canceled
+ */
+global string EditPopup (string url) {
+    SetURL (url);
+    string proto = URLScheme (url);
+    y2milestone ("Displaying popup for protocol %1", proto);
+
+    list<map<string,any> > w = CWM::CreateWidgets ([proto], Widgets ());
+    term contents = PopupContents (proto);
+    contents = CWM::PrepareDialog (contents, w);
+    UI::OpenDialog (contents);
+    symbol ret = CWM::Run (w, $[]);
+    y2milestone ("Ret: %1", ret);
+    UI::CloseDialog ();
+    if (ret == `ok)
+	return GetURL ();
+    else
+	return "";
+}
+
+/**
+ * URL editation popup without the HTTPS option
+ * @param url string url URL to edit
+ * @return string modified URL or empty string if canceled
+ */
+global string EditPopupNoHTTPS (string url) {
+    _allow_https = false;
+    string ret = EditPopup (url);
+    _allow_https = true;
+    return ret;
+}
+
+/**
+ * Sample implementation of URL selection dialog
+ * @return symbol for wizard sequencer
+ */
+global symbol EditDialog () {
+    string proto = URLScheme (_url);
+    y2milestone ("Displaying dialog for protocol %1", proto);
+    string caption = _caption[proto]:"";
+    return CWM::ShowAndRun ($[
+	"widget_names" : [proto],
+	"widget_descr" : Widgets (),
+	"contents" : `HBox (`HStretch (), `VBox (`VStretch (), proto, `VStretch ()), `HStretch ()),
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"next_button" : Label::NextButton (),
+	"fallback_functions" : $[]
+    ]);
+}
+
+/**
+ * URL editation popup with the HTTPS option
+ * @return string modified URL or empty string if canceled
+ */
+global string TypePopup () {
+    list<map<string,any> > w = CWM::CreateWidgets (["select"], Widgets ());
+    term contents = PopupContents ("select");
+    contents = CWM::PrepareDialog (contents, w);
+    UI::OpenDialog (contents);
+    symbol ret = CWM::Run (w, $[]);
+    y2milestone ("Ret: %1", ret);
+    UI::CloseDialog ();
+    return "";
+/*
+    if (ret == `ok)
+	return GetURL ();
+    else
+	return "";
+*/
+}
+
+/**
+ * Sample implementation of URL type selection dialog
+ * @return symbol for wizard sequencer
+ */
+global symbol TypeDialog () {
+    y2milestone ("Running source type dialog");
+    // dialog caption
+    string caption = _("Media Type");
+    symbol ret = CWM::ShowAndRun ($[
+	"widget_names" : ["select"],
+	"widget_descr" : Widgets (),
+	"contents" : `VBox ( "select" ),
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"next_button" : Label::NextButton (),
+	"fallback_functions" : $[]
+    ]);
+    y2milestone ("Type dialog returned %1", ret);
+    return ret;
+}
+
+} // EOF
+
