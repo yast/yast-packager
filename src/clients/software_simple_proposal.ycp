@@ -11,7 +11,6 @@
     textdomain "packager";
 
     import "Packages";
-    import "Storage";
 
     string func  = (string) WFM::Args(0);
     map    param = (map) WFM::Args(1);
@@ -23,6 +22,7 @@
 	boolean language_changed = param["language_changed"]:false;
 
 	y2milestone("package proposal: force reset: %1, reinit: %2, language changed: %3",  force_reset, false, language_changed );
+
 	ret = Packages::Proposal( false,		// user decision: reset to default
 				  false,		// reinitialize due to language or partition change
 				  true );

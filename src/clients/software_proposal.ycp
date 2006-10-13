@@ -11,7 +11,6 @@
     textdomain "packager";
 
     import "Packages";
-    import "Stage";
     import "Storage";
     import "Language";
 
@@ -96,11 +95,7 @@
 	else
 	{
 	    symbol result = `again;
-	    string client_to_call = (Stage::initial ()
-		|| (size (Pkg::ResolvableProperties ("", `pattern, "")) > 0
-		    && size (Pkg::GetSelections (`available, "base")) == 0))
-		? "inst_sw_select"
-		: "inst_sw_selection_select";
+	    string client_to_call = "inst_sw_select";
 
 	    while ( result == `again )
 	    {

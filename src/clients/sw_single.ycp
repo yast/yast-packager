@@ -18,7 +18,6 @@
     import "Installation";
     import "Directory";
     import "Mode";
-    import "Packages";
     import "PackageCallbacks";
     import "PackageLock";
     import "SlideShow";
@@ -31,6 +30,12 @@
     import "PackageSystem";
     import "Report";
     import "FileUtils";
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_single");
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+    import "Packages";
 
     list<string> packagelist = [];		// list of packages to install
 
@@ -159,9 +164,6 @@
 	   y2milestone("packagelist: %1", packagelist );
        }
 
-       // label of popup
-       UI::OpenDialog(`opt(`decorated ), `Label(_("Reading package information...")));
-
        // start package manager
        const boolean enabled_only = true;
        boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
@@ -178,16 +180,12 @@ Only installed packages are displayed."));
 
        Pkg::TargetInit (Installation::destdir, false);
 
-       UI::CloseDialog();
-
        return `found_descr;
 
    };	// CheckWhichPackages
 
    // =============================================================
 
-   Wizard::CreateDialog();
-   Wizard::SetDesktopIcon("sw_single");
 
    // check whether running as root
    // and having the packager for ourselves
@@ -213,6 +211,7 @@ Only installed packages are displayed."));
        || (result == `failed))
    {
        UI::CloseDialog();
+       UI::CloseDialog();
        return `next;
    }
 
@@ -222,6 +221,16 @@ Only installed packages are displayed."));
 
    do
    {
+// the user has restarted the software selection
+// TODO FIXME: workaround for #201121 (#202088)
+// reinitialize the package manager from the target
+if (ask)
+{
+    Pkg::TargetFinish();
+    Pkg::TargetInitialize(Installation::destdir);
+    Pkg::TargetLoad();
+}
+
 	list<string> old_failed_packs = [];
 	if ((integer)SCR::Read (.target.size,
 	    "/var/lib/YaST2/failed_packages") > 0)

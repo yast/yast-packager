@@ -23,8 +23,10 @@
     import "URL";
     import "CommandLine";
     import "String";
+    import "Report";
 
     global boolean _provide_popup = false;
+    global boolean _source_popup = false;
     global boolean _package_popup = false;
 
     global string _package_name = "";
@@ -41,6 +43,7 @@
     boolean enable_asterix_package = true;
 
     boolean provide_aborted = false;
+    boolean source_aborted = false;
 
     string back_string = "\b\b\b\b\b\b\b\b\b\b";
     string clear_string = back_string + "          " + back_string;
@@ -78,6 +81,7 @@
      */
     global boolean StartProvide (string name, integer archivesize, boolean remote)
     {
+	y2internal("StartProvide: name: %1, remote: %2", name, remote);
 	if (remote)
 	{
 	    string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
@@ -100,6 +104,7 @@
      */
     global boolean ProgressProvide (integer percent)
     {
+	y2internal("ProgressProvide: %1", percent);
 	if (_provide_popup)
 	{
 	    UI::ChangeWidget(`id(`progress), `Value, percent);
@@ -167,6 +172,7 @@
      */
     global string DoneProvide (integer error, string reason, string name)
     {
+	y2internal("DoneProvide: %1", error);
 	if (_provide_popup)
 	    UI::CloseDialog();
 
@@ -226,7 +232,7 @@
 	    if ( showLongInfo )
 	    {
 		UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
-		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat ("Err: %1:", error) + reason) );
+		UI::ReplaceWidget(`id(`info), `RichText (`opt(`plainText), sformat (_("Error: %1:"), error) + reason) );
 	    }
 	    else
 	    {
@@ -246,7 +252,7 @@
 			{
 			    UI::ReplaceWidget(`id(`info),
 					      `RichText (`opt(`plainText),
-							 sformat ("Err: %1:", error) + reason) );
+							 sformat (_("Error: %1:"), error) + reason) );
 			}
 			else
 			{
@@ -700,53 +706,130 @@ Check that the server is accessible."), wanted_label);
 	_current_source = source;
     }
 
-boolean refresh_open = false;
+// reference couter to the open popup window
+integer _source_open = 0;
 
-global void StartSourceRefresh (map<string,any> info) {
-    y2milestone ("StartSourceRefresh: %1", info);
-    if (refresh_open)
-	UI::CloseDialog ();
-    string product = info["label"]:"";
-    string url = info["url"]:"";
+void OpenSourcePopup(string text)
+{
+    if (_source_open == 0)
+    {
+	// the popup doesn't exist
+	y2internal("Opening source progress popup: %1", text);
 
-    // popup label (%1 is product name, eg. "SuSE Linux", %2 is source URL)
-    string msg = sformat(_("Refreshing %1\n(%2)"), product, url);
+	// if the text is too long then display only part of the message
+	// and then refresh the label to the full string
+	// reason: display a small popup, but user can resize it to see
+	// the full message
+	integer max_size = 60;
+	string display = text;
+	boolean refresh_label = false;
+
+
+	// truncate long text
+	if (size(display) > max_size)
+	{
+	    // ellipsis appended to a truncated text (if it's too long)
+	    display = substring(text, 0, max_size - 1) + _("...");
+	    refresh_label = true;
+	}
+
+	UI::OpenDialog(
+	    `VBox(
+		`HSpacing(max_size),
+		`Heading(`id(`label), `opt(`hstretch), display),
+		`ProgressBar (`id (`progress), " ", 100, 0)
+	    )
+	);
+
+	// set the full text if needed
+	if (refresh_label)
+	{
+	    UI::ChangeWidget(`label, `Value, text);
+	}
+    }
+    else
+    {
+	// refresh the labels in the popup
+	UI::ChangeWidget(`progress, `Label, text);
+	// reset the progressbar
+	UI::ChangeWidget(`progress, `Value, 0);
+	y2internal("new label: %1", text);
+    }
+
+    _source_open = _source_open + 1;
+    y2internal("OpenSourcePopup: new _source_open: %1", _source_open);
+}
+
+boolean SourcePopupSetProgress(integer value)
+{
+    if (_source_open > 0)
+    {
+	UI::ChangeWidget (`id (`progress), `Value, value);
+	any input = UI::PollInput ();
+	if (input == `abort)
+	    return true;
+    }
+    return false;
+}
+
+void CloseSourcePopup()
+{
+    _source_open = _source_open - 1;
+
+    // set 100% progress
+    SourcePopupSetProgress(100);
+
+    if (_source_open == 0)
+    {
+	y2internal("Closing source progress popup");
+	UI::CloseDialog();
+    }
+    y2internal("CloseSourcePopup: new _source_open: %1", _source_open);
+}
+
+global void SourceCreateStart(string url) {
+    y2milestone ("SourceCreateStart: %1", url);
+
+    // popup label (%1 is source URL)
+    string msg = sformat(_("Creating source %1"), url);
 
     if (Mode::commandline()) {
 	CommandLine::Print(msg);
     }
-    else {
-	UI::OpenDialog(`Label(msg));
-	refresh_open = true;
+    else
+    {
+	OpenSourcePopup(sformat(_("Creating source %1"), url));
     }
 }
 
-global symbol ErrorSourceRefresh (map<string,any> info) {
-    if (refresh_open)
-    {
-	UI::CloseDialog ();
-	refresh_open = false;
-    }
-    y2milestone ("Error refresh: %1", info);
-    string detail = info["detail"]:"";
-    symbol error = info["error"]:`unknown;
-    string label = info["label"]:"";
-    string url = info["url"]:"";
+global boolean SourceCreateProgress(integer percent) {
+    return SourcePopupSetProgress(percent);
+}
+
+global symbol SourceCreateError (string url, symbol error, string description) {
+    y2milestone ("Source create: error: url: %1, error: %2, description: %3", url, error, description);
+
     // error message - a label followed by a richtext with details
-    string message = _("Error occurred while refreshing the catalog.");
-    if (error == `NO_SOURCE_FOUND)
+    string message = _("Error occurred while creating the catalog.");
+
+    if (error == `NOT_FOUND)
 	// error message - a label followed by a richtext with details
 	message = _("Unable to retrieve the remote catalog description.");
-    else if (error == `INCOMPLETE_SOURCE_DATA)
+    else if (error == `IO)
 	// error message - a label followed by a richtext with details
 	message = _("An error occurred while retrieving the new metadata.");
+    else if (error == `INVALID)
+	// error message - a label followed by a richtext with details
+	message = _("The source is not valid.");
+    else if (error == `REJECTED)
+	// error message - a label followed by a richtext with details
+	message = _("The source metadata is invalid.");
 
     if (Mode::commandline())
     {
 	CommandLine::Print(message);
-	CommandLine::Print(label);
 	CommandLine::Print(url);
-	CommandLine::Print(detail);
+	CommandLine::Print(description);
 
 	// ask user in the interactive mode
 	if (CommandLine::Interactive())
@@ -754,78 +837,337 @@ global symbol ErrorSourceRefresh (map<string,any> info) {
 	    CommandLine::Print("");
 
 	    // command line mode - ask user whether the source refreshment should be retried
-	    CommandLine::Print(_("Retry refresh?"));
+	    CommandLine::Print(_("Retry?"));
 
 	    if (CommandLine::YesNo())
 	    {
 		// return Retry
 		return `RETRY;
 	    }
-
-	    // command line mode - ask user whether the installation should be aborted
-	    CommandLine::Print(_("Disable the catalog?"));
-	    if (CommandLine::YesNo())
-	    {
-		// return Skip
-		return `DISABLE_SOURCE;
-	    }
-
-	    // otherwise ignore the medium
-	    CommandLine::Print(_("Skipping the refresh..."));
-	    return `SKIP_REFRESH;
 	}
 
-	return `SKIP_REFRESH;
+	return `ABORT;
     }
-    detail = sformat ("%1<br>%2<br>%3", label, url, detail);
+    string detail = sformat ("%1<br>%2", url, description);
     UI::OpenDialog (`VBox (
 	`Label (message),
 	`RichText(detail),
 	`HBox (
-	    `PushButton (`id (`RETRY), Label::RetryButton ()),
-	    // push button
-	    `PushButton (`id (`SKIP_REFRESH), _("&Skip Refresh")),
-	    // push button
-	    `PushButton (`id (`DISABLE_SOURCE), _("&Disable Catalog"))
+	    `PushButton (`id (`RETRY), Label::RetryButton()),
+	    `PushButton (`id (`ABORT), Label::AbortButton())
 	)
     ));
     symbol ret = (symbol)UI::UserInput ();
     UI::CloseDialog ();
-    y2milestone ("Refresh error: Returning %1", ret);
+    y2milestone ("Source create error: Returning %1", ret);
+
+    if (ret == `RETRY)
+    {
+	// The start callback will be evaluated again,
+	// but the end callback will be called just once.
+	// This call replaces the missing end callback.
+	CloseSourcePopup();
+    }
+
     return ret;
 }
 
-global void DoneSourceRefresh (map<string,any> info) {
-    y2milestone ("DoneSourceRefresh: %1", info);
-    if (refresh_open)
-    {
-	UI::CloseDialog ();
-	refresh_open = false;
+global void SourceCreateEnd(string url, symbol error, string description)
+{
+    CloseSourcePopup();
+
+    y2milestone ("Source create end: error: url: %1, error: %2, description: %3", url, error, description);
+}
+
+
+
+global void SourceProbeStart(string url)
+{
+    y2milestone ("SourceProbeStart: %1", url);
+
+    // popup label (%1 is source URL)
+    string msg = sformat(_("Probing source %1"), url);
+
+    if (Mode::commandline()) {
+	CommandLine::Print(msg);
     }
-    symbol result = info["result"]:`SUCCESS;
-    symbol cause = info["cause"]:`SOURCE_REFRESHED;
-    string detail = info["detail"]:"";
+    else
+    {
+	OpenSourcePopup(_("Probing source..."));
+	OpenSourcePopup(sformat(_("Probing source %1"), url));
+    }
+}
+
+
+global void SourceProbeFailed(string url, string type)
+{
+    y2milestone("Source %1 is not %2 source", url, type);
+}
+
+global void SourceProbeSucceeded(string url, string type)
+{
+    y2milestone("Source %1 is type %2", url, type);
+}
+
+
+global boolean SourceProbeProgress(string url, integer value)
+{
+    return SourcePopupSetProgress(value);
+}
+
+global symbol SourceProbeError(string url, symbol error, string description) {
+
+    y2milestone ("Source probe: error: url: %1, error: %2, description: %3", url, error, description);
+
+    // error message - a label followed by a richtext with details
+    string message = _("Error occurred while probing the source.");
+
+    if (error == `NOT_FOUND)
+	// error message - a label followed by a richtext with details
+	message = _("Unable to retrieve the remote catalog description.");
+    else if (error == `IO)
+	// error message - a label followed by a richtext with details
+	message = _("An error occurred while retrieving the new metadata.");
+    else if (error == `INVALID)
+	// error message - a label followed by a richtext with details
+	message = _("The source is not valid.");
+    else if (error == `NO_ERROR)
+	// error message - a label followed by a richtext with details
+	message = _("Source probing details.");
+    else if (error == `REJECTED)
+	// error message - a label followed by a richtext with details
+	message = _("Source metadata is invalid.");
 
     if (Mode::commandline())
     {
-        // ask user in the interactive mode
-        if (! CommandLine::Interactive())
+	CommandLine::Print(message);
+	CommandLine::Print(url);
+	CommandLine::Print(description);
+
+	// ask user in the interactive mode
+	if (CommandLine::Interactive())
 	{
-	    if (result == `SKIP_REFRESH)
+	    CommandLine::Print("");
+
+	    // command line mode - ask user whether the source refreshment should be retried
+	    CommandLine::Print(_("Retry?"));
+
+	    if (CommandLine::YesNo())
 	    {
-		// message popup
-		string msg = _("Catalog not refreshed.");
-		CommandLine::PrintVerbose(msg);
-	    }
-	    else if (result == `DISABLE_SOURCE)
-	    {
-		// message popup
-		string msg = _("Catalog disabled.");
-		CommandLine::PrintVerbose(msg);
+		// return Retry
+		return `RETRY;
 	    }
 	}
+
+	return `ABORT;
+    }
+    string detail = sformat ("%1<br>%2", url, description);
+    UI::OpenDialog (`VBox (
+	`Label (message),
+	`RichText(detail),
+	`HBox (
+	    `PushButton (`id (`RETRY), Label::RetryButton()),
+	    `PushButton (`id (`ABORT), Label::AbortButton())
+	)
+    ));
+    symbol ret = (symbol)UI::UserInput ();
+    UI::CloseDialog ();
+    y2milestone ("Source probe error: Returning %1", ret);
+    return ret;
+}
+
+global void SourceProbeEnd(string url, symbol error, string description) {
+    CloseSourcePopup();
+    CloseSourcePopup();
+
+    y2milestone ("Source probe end: error: url: %1, error: %2, description: %3", url, error, description);
+}
+
+
+global void SourceReportStart(integer source_id, string url, string task)
+{
+    y2milestone("Source report start: src: %1, URL: %2, task: %3", source_id, url, task);
+
+    if (Mode::commandline()) {
+	CommandLine::Print(task);
+    }
+    else
+    {
+	OpenSourcePopup(task);
     }
 }
+
+global boolean SourceReportProgress(integer value)
+{
+    return SourcePopupSetProgress(value);
+}
+
+
+global symbol SourceReportError(integer source_id, string url, symbol error, string description) {
+    y2milestone ("Source report: error: id: %1, url: %2, error: %3, description: %4", source_id, url, error, description);
+
+    // error message - a label followed by a richtext with details
+    string message = sformat(_("Source %1"), url);
+
+    if (error == `NOT_FOUND)
+	// error message - a label followed by a richtext with details
+	message = _("Unable to retrieve the remote catalog description.");
+    else if (error == `IO)
+	// error message - a label followed by a richtext with details
+	message = _("An error occurred while retrieving the new metadata.");
+    else if (error == `INVALID)
+	// error message - a label followed by a richtext with details
+	message = _("The source is not valid.");
+
+    if (Mode::commandline())
+    {
+	CommandLine::Print(message);
+	CommandLine::Print(url);
+	CommandLine::Print(description);
+
+	// ask user in the interactive mode
+	if (CommandLine::Interactive())
+	{
+	    CommandLine::Print("");
+
+	    // command line mode - ask user whether the source refreshment should be retried
+	    CommandLine::Print(_("Retry?"));
+
+	    if (CommandLine::YesNo())
+	    {
+		// return Retry
+		return `RETRY;
+	    }
+	}
+
+	return `ABORT;
+    }
+    string detail = sformat ("%1<br>%2", url, description);
+    UI::OpenDialog (`VBox (
+	`Label (message),
+	`RichText(detail),
+	`HBox (
+	    `PushButton (`id (`RETRY), Label::RetryButton()),
+	    `PushButton (`id (`ABORT), Label::AbortButton())
+	)
+    ));
+    symbol ret = (symbol)UI::UserInput ();
+    UI::CloseDialog ();
+    y2milestone ("Source report error: Returning %1", ret);
+
+    if (ret == `RETRY)
+    {
+	// The start callback will be evaluated again,
+	// but the end callback will be called just once.
+	// This call replaces the missing end callback.
+	CloseSourcePopup();
+    }
+
+    return ret;
+}
+
+global void SourceReportEnd(integer src_id, string url, string task, symbol error, string description)
+{
+    CloseSourcePopup();
+
+    y2milestone ("Source report end: src: %1, url: %2, task: %3, error: %4, description: %5", src_id, url, task, error, description);
+}
+
+    /** at start of delta providal
+     *
+     */
+    global boolean StartDeltaProvide (string name, integer archivesize)
+    {
+	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Downloading delta RPM package %1 (%2)..."), name, sz));
+	}
+	else {
+	    if (_provide_popup)
+		UI::CloseDialog ();
+	    // popup heading
+	    term providebox = ProgressBox (_("Downloading Delta RPM package"), name, sz);
+	    UI::OpenDialog(providebox);
+	    _provide_popup = true;
+	}
+	return true;
+    }
+
+    /** at start of delta application
+     *
+     */
+    global boolean StartDeltaApply (string name)
+    {
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Applying delta RPM package %1..."), name));
+	}
+	else {
+	  // popup heading
+	  term progressbox = `VBox(
+	    `HSpacing(40),
+	    // popup heading
+	    `Heading (_("Applying delta RPM package")),
+	    `Left (`HBox (
+		`Left (`Label (`opt (`boldFont), _("Package: "))),
+		`Left (`Label (name))
+	    )),
+	    `ProgressBar(`id(`progress), "", 100, 0 )
+	  );
+	  if (_provide_popup)
+		UI::CloseDialog ();
+	  UI::OpenDialog(progressbox);
+	  _provide_popup = true;
+	}
+	return true;
+    }
+
+    /** at start of patch providal
+     *
+     */
+    global boolean StartPatchProvide (string name, integer archivesize)
+    {
+	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Downloading patch RPM package %1 (%2)..."), name, sz));
+	}
+	else {
+	    if (_provide_popup)
+		UI::CloseDialog ();
+	    // popup heading
+	    term providebox = ProgressBox (_("Downloading Patch RPM Package"), name, sz);
+	    UI::OpenDialog(providebox);
+	    _provide_popup = true;
+	}
+	return true;
+    }
+
+    global void FinishPatchDeltaProvide () {
+	if (_provide_popup)
+	{
+	    UI::CloseDialog ();
+	    _provide_popup = false;
+	}
+    }
+
+    global void ProblemDeltaDownload (string descr) {
+	FinishPatchDeltaProvide (); // close popup
+	Report::ShowText (_("Failed to download delta RPM"), descr);
+    }
+
+    global void ProblemDeltaApply (string descr) {
+	FinishPatchDeltaProvide (); // close popup
+	Report::ShowText (_("Failed to apply delta RPM"), descr);
+    }
+
+    global void ProblemPatchDownload (string descr) {
+	FinishPatchDeltaProvide (); // close popup
+	Report::ShowText (_("Failed to download patch RPM"), descr);
+    }
+
+// progress use the same callback as plain package download
 
 //=============================================================================
 //	constructor and callback init
@@ -1096,4 +1438,7 @@ Ignore this error and continue?"));
 	Pkg::CallbackStopConvertDb ("PackageCallbacks::StopConvertDB");
 	Pkg::CallbackNotifyConvertDb ("PackageCallbacks::NotifyConvertDB");
     }
+
+
+// EOF
 }
