@@ -45,7 +45,7 @@
  */
 
 {
-    textdomain "installation";    
+    textdomain "packager";
 
     import "Arch";
     import "Confirm";
@@ -71,7 +71,7 @@
     symbol result = `next;
     
    Wizard::CreateDialog();
-   term contents = `Label (_(""));
+   term contents = `Label ("");
    Wizard::SetContents (_("Add-On Product Installation"), contents, _("Adding software which fits to your system."),
 			false, false);
    Wizard::SetDesktopIcon("vendor");
