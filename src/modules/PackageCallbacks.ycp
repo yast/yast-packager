@@ -28,6 +28,7 @@
     global boolean _provide_popup = false;
     global boolean _source_popup = false;
     global boolean _package_popup = false;
+    global boolean _script_popup = false;
 
     global string _package_name = "";
     global integer _package_size = 0;
@@ -81,7 +82,7 @@
      */
     global boolean StartProvide (string name, integer archivesize, boolean remote)
     {
-	y2internal("StartProvide: name: %1, remote: %2", name, remote);
+	y2milestone("StartProvide: name: %1, remote: %2", name, remote);
 	if (remote)
 	{
 	    string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
@@ -104,7 +105,7 @@
      */
     global boolean ProgressProvide (integer percent)
     {
-	y2internal("ProgressProvide: %1", percent);
+	y2milestone("ProgressProvide: %1", percent);
 	if (_provide_popup)
 	{
 	    UI::ChangeWidget(`id(`progress), `Value, percent);
@@ -172,7 +173,7 @@
      */
     global string DoneProvide (integer error, string reason, string name)
     {
-	y2internal("DoneProvide: %1", error);
+	y2milestone("DoneProvide: %1", error);
 	if (_provide_popup)
 	    UI::CloseDialog();
 
@@ -714,7 +715,7 @@ void OpenSourcePopup(string text)
     if (_source_open == 0)
     {
 	// the popup doesn't exist
-	y2internal("Opening source progress popup: %1", text);
+	y2milestone("Opening source progress popup: %1", text);
 
 	// if the text is too long then display only part of the message
 	// and then refresh the label to the full string
@@ -753,11 +754,11 @@ void OpenSourcePopup(string text)
 	UI::ChangeWidget(`progress, `Label, text);
 	// reset the progressbar
 	UI::ChangeWidget(`progress, `Value, 0);
-	y2internal("new label: %1", text);
+	y2milestone("OpenSourcePopup: new label: %1", text);
     }
 
     _source_open = _source_open + 1;
-    y2internal("OpenSourcePopup: new _source_open: %1", _source_open);
+    y2milestone("OpenSourcePopup: _source_open: %1", _source_open);
 }
 
 boolean SourcePopupSetProgress(integer value)
@@ -781,10 +782,10 @@ void CloseSourcePopup()
 
     if (_source_open == 0)
     {
-	y2internal("Closing source progress popup");
+	y2milestone("Closing source progress popup");
 	UI::CloseDialog();
     }
-    y2internal("CloseSourcePopup: new _source_open: %1", _source_open);
+    y2milestone("CloseSourcePopup: _source_open: %1", _source_open);
 }
 
 global void SourceCreateStart(string url) {
@@ -1167,7 +1168,149 @@ global void SourceReportEnd(integer src_id, string url, string task, symbol erro
 	Report::ShowText (_("Failed to download patch RPM"), descr);
     }
 
-// progress use the same callback as plain package download
+
+    global string FormatPatchName(string patch_name, string patch_version, string patch_arch)
+    {
+	string patch_full_name = (patch_name != nil && patch_name != "") ? patch_name : "";
+
+	if (patch_full_name != "")
+	{
+	    if (patch_version != nil && patch_version != "")
+	    {
+		patch_full_name = patch_full_name + "-" + patch_version;
+	    }
+
+	    if (patch_arch != nil && patch_arch != "")
+	    {
+		patch_full_name = patch_full_name + "." + patch_arch;
+	    }
+
+	}
+
+	return patch_full_name;
+    }
+
+    global void ScriptStart(string patch_name, string patch_version, string patch_arch, string script_path, boolean installation)
+    {
+	string patch_full_name = FormatPatchName(patch_name, patch_version, patch_arch);
+
+	y2milestone("ScriptStart callback: patch: %1, script: %2, installation: %3", patch_full_name, script_path, installation);
+
+	if (Mode::commandline())
+	{
+	    CommandLine::PrintVerbose(sformat(_("Starting script %1 (patch %2)..."), script_path, patch_full_name));
+	}
+	else
+	{
+	    term progressbox = `VBox(
+		`HSpacing(40),
+		// popup heading
+		`Heading(_("Running Script")),
+		`Left(
+		    `HBox
+		    (
+			// label, script name follows
+			`Left(`Label(`opt(`boldFont), _("Script: "))),
+			`Left(`Label(script_path))
+		    ),
+		    (patch_full_name != "") ?
+			`HBox
+			(
+			    // label, patch name follows
+			    `Left(`Label(`opt(`boldFont), _("Patch: "))),
+			    `Left(`Label(patch_full_name))
+			)
+			:
+			`Empty()
+		),
+
+		// label
+		`LogView(`id(`log), _("Output of the Script")),
+
+		`PushButton(`id(`abort), Label::AbortButton())
+	    );
+
+	    if (_script_popup)
+		UI::CloseDialog ();
+
+	    UI::OpenDialog(progressbox);
+	    _script_popup = true;
+	}
+    }
+
+    global boolean ScriptProgress (boolean ping, string output)
+    {
+	y2milestone("ScriptProgress: ping:%1, output: %2", ping, output);
+
+	if (_script_popup)
+	{
+	    if (ping)
+	    {
+		// TODO: refresh progress indicator
+	    }
+
+	    if (output != nil && output != "")
+	    {
+		// add the output to the log widget
+		UI::ChangeWidget(`id(`log), `Value, output);
+	    }
+
+	    any input = UI::PollInput ();
+	    if (input == `abort || input == `close)
+		return false;
+	}
+	return true;
+    }
+
+    global void ScriptProblem(string description)
+    {
+	y2warning("ScriptProblem: %1", description);
+	Popup::Error(description);
+    }
+
+    global void ScriptFinish()
+    {
+	y2milestone("ScriptFinish");
+
+	if (_script_popup)
+	{
+	    UI::CloseDialog();
+	}
+    }
+
+    global void Message(string patch_name, string patch_version, string patch_arch, string message)
+    {
+	string patch_full_name = FormatPatchName(patch_name, patch_version, patch_arch);
+	y2milestone("Message (%1): %2", patch_full_name, message);
+
+	if (patch_full_name != "")
+	{
+	    // label, %1 is patch name with version and architecture
+	    patch_full_name = sformat(_("Patch: %1\n\n"), patch_full_name);
+	}
+
+	Popup::LongMessage(patch_full_name + message);
+    }
+
+    global void SetScriptCallbacks()
+    {
+	Pkg::CallbackScriptStart("PackageCallbacks::ScriptStart");
+	Pkg::CallbackScriptStart("PackageCallbacks::ScriptProgress");
+	Pkg::CallbackScriptStart("PackageCallbacks::ScriptProblem");
+	Pkg::CallbackScriptStart("PackageCallbacks::ScriptFinish");
+
+	Pkg::CallbackMessage("PackageCallbacks::Message");
+    }
+
+    global void ClearScriptCallbacks()
+    {
+	Pkg::CallbackScriptStart("");
+	Pkg::CallbackScriptStart("");
+	Pkg::CallbackScriptStart("");
+	Pkg::CallbackScriptStart("");
+
+	Pkg::CallbackMessage("");
+    }
 
 //=============================================================================
 //	constructor and callback init
