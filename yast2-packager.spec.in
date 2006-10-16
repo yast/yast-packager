@@ -4,8 +4,8 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite yast2-slp
 Requires:	checkmedia yast2-country
-# patch/delta RPM callbacks, source callbacks
-Requires:	yast2-pkg-bindings >= 2.13.95
+# Script callbacks
+Requires:	yast2-pkg-bindings >= 2.13.99
 # Linuxrc::display_ip
 Requires:	yast2 >= 2.13.67
 Provides:	yast2-config-package-manager

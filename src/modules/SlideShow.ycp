@@ -1806,6 +1806,13 @@
 	Pkg::CallbackProgressPatchDownload ("SlideShowCallbacks::ProgressProvide");
 	Pkg::CallbackProblemPatchDownload ("SlideShowCallbacks::ProblemPatchDownload");
 	Pkg::CallbackFinishPatchDownload ("SlideShowCallbacks::FinishPatchDeltaProvide");
+
+	Pkg::CallbackScriptStart("SlideShowCallbacks::ScriptStart");
+	Pkg::CallbackScriptProgress("SlideShowCallbacks::ScriptProgress");
+	Pkg::CallbackScriptProblem("SlideShowCallbacks::ScriptProblem");
+	Pkg::CallbackScriptFinish("SlideShowCallbacks::ScriptFinish");
+
+	Pkg::CallbackMessage("SlideShowCallbacks::Message");
     }
 
 
@@ -1841,6 +1848,13 @@
 	Pkg::CallbackProgressPatchDownload ("");
 	Pkg::CallbackProblemPatchDownload ("");
 	Pkg::CallbackFinishPatchDownload ("");
+
+	Pkg::CallbackScriptStart("");
+	Pkg::CallbackScriptProgress("");
+	Pkg::CallbackScriptProblem("");
+	Pkg::CallbackScriptFinish("");
+
+	Pkg::CallbackMessage("");
     }
 
 
