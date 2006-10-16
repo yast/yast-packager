@@ -77,14 +77,29 @@
 	    filter_dialog = `MarginBox (0.5, 0.5, `Frame (
 		// frame label
 		_("Filter Form"),
-		`HBox (
+		`VSquash (`HBox (
 		    // Only some characters are valid 'A-Z a-z 0-9 .*-'
 		    `HSquash(`TextEntry (`id (`filter_text), "")),
 		    // push button
 		    `PushButton(`id(`filter), _("&Filter")),
 		    `HStretch()
-		)
+		))
 	    ));
+	}
+
+	// bugzilla #209426
+	// window size (in ncurses) based on currently available space
+	map display_info = UI::GetDisplayInfo();
+	integer min_size_x = 76;
+	integer min_size_y = 19;
+	if (display_info["TextMode"]:true) {
+	    min_size_x = tointeger(display_info["Width"]:80)  * 3 / 4;
+	    min_size_y = tointeger(display_info["Height"]:25) * 2 / 3 - 5;
+	    if (min_size_x < 76) min_size_x = 76;
+	    if (min_size_y < 18) min_size_y = 18;
+	    y2milestone("X/x Y/y %1/%2 %3/%4",
+		display_info["Width"]:80, min_size_x,
+		display_info["Height"]:25, min_size_y);
 	}
 
 	UI::OpenDialog (
@@ -95,8 +110,8 @@
 		    `Left (`Heading(`id(`search_heading), _("Choose SLP Catalog")))
 		),
 		filter_dialog,
-		`MinSize(
-		    76, 19,
+		`MarginBox (0.5, 0, `MinSize(
+		    min_size_x, min_size_y,
 		    `Tree (
 			`id (`tree_of_services),
 			`opt (`notify),
@@ -104,7 +119,7 @@
 			_("Available Installation Products"),
 			[]
 		    )
-		),
+		)),
 		`PushButton(`id(`details), _("Details...")),
 		`VSpacing (1),
 		`HBox (
@@ -314,7 +329,7 @@ The selected source has no URL."));
 
 	SetSearchUI (`Label (sformat (
 	    // progress information, %1 stands for number of services
-	    _("Collecting information about %1 services found..."),
+	    _("Collecting information of %1 services found..."),
 	    number_of_services
 	)));
 	
