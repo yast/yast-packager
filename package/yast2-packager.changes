@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 16 16:36:18 CEST 2006 - lslezak@suse.cz
+
+- script callbacks - installation and run-time (feature #100233)
+- 2.13.153
+
+-------------------------------------------------------------------
 Mon Oct 16 11:10:39 CEST 2006 - locilka@suse.cz
 
 - Window listing found SLP sources in ncurses is newly based on the
