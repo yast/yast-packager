@@ -120,6 +120,77 @@
     }
 
 
+    global void ScriptStart(string patch_name, string patch_version, string patch_arch, string script_path, boolean installation)
+    {
+	string patch_full_name = PackageCallbacks::FormatPatchName(patch_name, patch_version, patch_arch);
+	y2milestone("ScriptStart: patch:%1, script:%2, installation:%3", patch_full_name, script_path, installation);
+
+	// reset the progressbar
+	if (UI::WidgetExists(`progressCurrentPackage))
+	{
+	    UI::ChangeWidget(`progressCurrentPackage, `Label, patch_full_name);
+	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
+	}
+
+	// message in the installation log widget, %1 is a patch name which contains the script
+	string log_line = sformat(_("Starting script %1"), patch_full_name);
+
+	SlideShow::AppendMessageToInstLog(log_line);
+    }
+
+    global boolean ScriptProgress (boolean ping, string output)
+    {
+	y2milestone("ScriptProgress: ping:%1, output: %2", ping, output);
+
+	if (output != nil && output != "")
+	{
+	    string log_line = output;
+
+	    // remove the trailing new line character
+	    if (substring(output, size(output) - 1, 1) == "\n")
+	    {
+		output = substring(output, 0, size(output) - 1);
+	    }
+
+	    // add the output to the log widget
+	    SlideShow::AppendMessageToInstLog(output);
+	}
+
+	any input = UI::PollInput ();
+	y2milestone("input: %1", input);
+
+	if (input == `abort || input == `close)
+	    return false;
+
+	return true;
+    }
+
+    global void ScriptProblem(string description)
+    {
+	y2milestone("ScriptProblem: %1", description);
+	Popup::Error(description);
+    }
+
+    global void ScriptFinish()
+    {
+	y2milestone("ScriptFinish");
+    }
+
+    global void Message(string patch_name, string patch_version, string patch_arch, string message)
+    {
+	string patch_full_name = PackageCallbacks::FormatPatchName(patch_name, patch_version, patch_arch);
+	y2milestone("Message (%1): %2", patch_full_name, message);
+
+	if (patch_full_name != "")
+	{
+	    // label, %1 is patch name with version and architecture
+	    patch_full_name = sformat(_("Patch %1\n\n"), patch_full_name);
+	}
+
+	Popup::LongMessage(patch_full_name + message);
+    }
+
+
 
     //--------------------------------------------------------------------------
     // slide show
