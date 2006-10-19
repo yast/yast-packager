@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 19 12:52:52 CEST 2006 - lslezak@suse.cz
+
+- dirinstall - quote directory name, it can contain spaces
+  (locilka@suse.cz) (bug #211576)
+- 2.13.154
+
+-------------------------------------------------------------------
 Mon Oct 16 16:36:18 CEST 2006 - lslezak@suse.cz
 
 - script callbacks - installation and run-time (feature #100233)
