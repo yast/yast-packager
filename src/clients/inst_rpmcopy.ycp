@@ -36,6 +36,7 @@
     import "Service";
     import "SourceManager";
     import "Linuxrc";
+    import "String";
 
     // variables related to installation source caching
 
@@ -93,6 +94,7 @@
 	{
 	    map<string,string> product_data = (map<string,string>)Pkg::SourceProduct (id);
 	    y2milestone ("Id %1: SourceProduct %2", id, product_data);
+	    // FIXME: find()
 	    if (find (product_data["flags"]:"", "cache") >= 0)
 	    {
 		cached_id = id;
@@ -271,7 +273,7 @@ source back to CD."));
 	}
 
 	map ta_out = (map)SCR::Execute (.target.bash_output,
-	  sformat ("mkdir -p %1", Installation::destdir + cache_dir));
+	  sformat ("mkdir -p '%1'", String::Quote (Installation::destdir + cache_dir)));
 	y2milestone ("Created cached dir '%1': %2", Installation::destdir+cache_dir, ta_out);
 	if (ta_out["exit"]:0 != 0)
 	{
@@ -285,7 +287,7 @@ source back to CD."));
 
 	string tmp_dir = cache_dir;
 	ta_out = (map)SCR::Execute (.target.bash_output,
-	  sformat ("mktemp -d -p %1", Installation::destdir + cache_dir));
+	  sformat ("mktemp -d -p '%1'", String::Quote (Installation::destdir + cache_dir)));
 	y2milestone ("Created temp dir %1: %2", Installation::destdir+cache_dir, ta_out);
 	if (ta_out["exit"]:0 != 0)
 	{
@@ -302,16 +304,16 @@ source back to CD."));
 	ta_out = (map)SCR::Execute (.target.bash_output,
 	    // first line is in target system
 	    // the second one in installation system
-	     sformat ("rm -rf %3%1/%4; ln -s %3%2 %3%1/%4;
-		      rm -rf %1/%4; ln -s %3%2 %1/%4;",
+	     sformat ("rm -rf '%3%1/%4'; ln -s '%3%2' '%3%1/%4';
+		      rm -rf '%1/%4'; ln -s '%3%2' '%1/%4';",
 			tmp_dir,
 			substring (cache_dir, size (Installation::destdir)),
-			Installation::destdir, cached_source_datadir));
-	y2milestone ("rm -rf %3%1/%4; ln -s %3%2 %3%1/%4;
-			rm -rf %1/%4; ln -s %3%2 %1/%4;",
+			String::Quote (Installation::destdir), cached_source_datadir));
+	y2milestone ("rm -rf '%3%1/%4'; ln -s '%3%2' '%3%1/%4';
+			rm -rf '%1/%4'; ln -s '%3%2' '%1/%4';",
 			tmp_dir,
 			substring (cache_dir, size (Installation::destdir)),
-			Installation::destdir, cached_source_datadir);
+			String::Quote (Installation::destdir), cached_source_datadir);
 	y2milestone ("Result %1", ta_out);
 	if (ta_out["exit"]:0 != 0)
 	{
@@ -588,6 +590,7 @@ from the source CD to the disk cache")));
 	    Pkg::SourceMoveDownloadArea (download_dir);
 	}
 
+	// FIXME: find()
         if (find (Kernel::GetCmdLine (), "yastnocache") != -1)
         {
             y2milestone ("'yastnocache' found, disabling source cache");
