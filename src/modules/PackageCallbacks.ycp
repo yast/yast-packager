@@ -366,8 +366,8 @@
 	if (error != 0)
 	{
 	    string infopath = (string) SCR::Read (.target.tmpdir) + "/rpmlog";
-	    SCR::Execute (.target.bash, "/usr/bin/tail " + Installation::destdir
-			  + Directory::logdir + "/y2logRPM > " + infopath);
+	    SCR::Execute (.target.bash, "/usr/bin/tail '" + String::Quote (Installation::destdir)
+			  + Directory::logdir + "/y2logRPM' > " + infopath);
 	    string info = reason + "\n---\n" + (string) SCR::Read (.target.string, [infopath, "-?-"]);
 
 	    string message = sformat ( _deleting_package ? 
