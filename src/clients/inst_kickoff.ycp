@@ -25,6 +25,7 @@
     import "Arch";
     import "FileUtils";
     import "ProductFeatures";
+    import "String";
 
 void AcpiToInitrd () {
     if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
@@ -47,10 +48,12 @@ void AcpiToInitrd () {
 	string mtab = (string) WFM::Read(.local.string, mtabname);
 
 	SCR::Write(.target.string, tmpdir + "/mtab", mtab);
-	SCR::Execute (.target.bash, "/bin/cat " + tmpdir + "/mtab"
+	SCR::Execute (.target.bash, "/bin/cat "
+		      + "'" + String::Quote (tmpdir + "/mtab") + "'"
 		      + " | /bin/sed \"s: " + Installation::destdir
 		      + "/: /:\"| /bin/sed \"s: " + Installation::destdir
-		      + ": /:\" > " + Installation::destdir + mtabname);
+		      + ": /:\" "
+		      + "> '" + String::Quote (Installation::destdir) + "'" + mtabname);
 
     }
 
@@ -62,7 +65,7 @@ void AcpiToInitrd () {
 
 	// remove old junk, script is in yast2-update
 	SCR::Execute (.target.bash, Directory::ybindir + "/remove_junk " +
-		      Installation::destdir);
+		      "'" + String::Quote (Installation::destdir) + "'");
 
 	// possibly remove /usr/share/info/dir
 	if (!Pkg::TargetFileHasOwner ("/usr/share/info/dir"))
@@ -93,8 +96,8 @@ void AcpiToInitrd () {
 
 	if (Update::remove_old_backups)
 	{
-	    SCR::Execute (.target.bash, "/bin/rm -f " + Installation::destdir +
-			  Update::backup_path + "/*-*-*.tar.{gz,bz2}");
+	    SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
+			    "/bin/rm -f " + Update::backup_path + "/*-*-*.tar.{gz,bz2}");
 	}
 
 	if (true)
@@ -115,9 +118,8 @@ void AcpiToInitrd () {
 		num = num + 1;
 	    }
 
-	    if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
-			      " ; /bin/tar czf " + Installation::destdir +
-			      filename + " " + "var/log/YaST2") != 0)
+	    if (SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
+			      "/bin/tar czf ." + filename + " " + "var/log/YaST2") != 0)
 	    {
 		y2error ("backup of %1 to %2 failed", Directory::logdir, filename);
 		// an error popup
@@ -126,8 +128,8 @@ void AcpiToInitrd () {
 	    }
 	    else
 	    {
-		SCR::Execute (.target.bash, "/bin/rm -rf " + Installation::destdir +
-			      "var/log/YaST2/*");
+		SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
+		              "/bin/rm -rf var/log/YaST2/*");
 	    }
 	}
 
@@ -151,9 +153,8 @@ void AcpiToInitrd () {
 		    num = num + 1;
 		}
 
-		if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
-				  " ; /bin/tar czf " + Installation::destdir +
-				  filename + " " + "etc/sysconfig") != 0)
+		if (SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
+				  "/bin/tar czf ." + filename + " " + "etc/sysconfig") != 0)
 		{
 		    y2error ("backup of %1 to %2 failed", "/etc/sysconfig", filename);
 		    // an error popup
@@ -178,10 +179,9 @@ void AcpiToInitrd () {
 		    num = num + 1;
 		}
 
-		if (SCR::Execute (.target.bash, "cd " + Installation::destdir +
-				  " ; /bin/tar czf " + Installation::destdir +
-				  filename + " " + "etc/rc.config" + " " +
-				  "etc/rc.config.d") != 0)
+		if (SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
+				  "/bin/tar czf ." + filename + " " +
+				  "etc/rc.config etc/rc.config.d") != 0)
 		{
 		    y2error ("backup of %1 to %2 failed", "/etc/rc.config", filename);
 		    // an error popup
@@ -204,8 +204,9 @@ void AcpiToInitrd () {
 	// have to handle older version in a special case.
 
 	string idfile = (string) SCR::Read(.target.tmpdir) + "/idline";
-	if (SCR::Execute (.target.bash, "/bin/grep ^id: " + Installation::destdir +
-			  "/etc/inittab >" + idfile) == 0)
+	if (SCR::Execute (.target.bash, "/bin/grep ^id: " +
+			 "'" + String::Quote (Installation::destdir) + "/etc/inittab" + "'" +
+			 " >" + idfile) == 0)
 	{
 	    // idline = "id:X:initdefault:"
 
@@ -255,7 +256,9 @@ void AcpiToInitrd () {
 	}
 
 	// get the current raid configuration
-	map out = (map) SCR::Execute (.target.bash_output, "chroot " + Installation::destdir + " mdadm -Ds");
+	map out = (map) SCR::Execute (.target.bash_output,
+	    "chroot '" + String::Quote (Installation::destdir) + "' " +
+	    "mdadm -Ds");
 	if (out["exit"]:-1 != 0) {
 	    y2error ("Error occurred while getting raid configuration: %1", out);
 	    return;
@@ -318,16 +321,18 @@ void AcpiToInitrd () {
         {
             string template_dir= "/var/adm/fillup-templates";
             // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
-            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/passwd.aaa_base " 
-                    + Installation::destdir + "/etc/passwd");
-            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/group.aaa_base " 
-                    + Installation::destdir + "/etc/group");
-            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/shadow.aaa_base " 
-                    + Installation::destdir + "/etc/shadow");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/passwd.aaa_base " +
+		    "'" + String::Quote (Installation::destdir) + "/etc/passwd" + "'");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/group.aaa_base " +
+                    "'" + String::Quote (Installation::destdir) + "/etc/group" + "'");
+            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/shadow.aaa_base " +
+                    "'" + String::Quote (Installation::destdir) + "/etc/shadow" + "'");
         } else
         {
-	    SCR::Execute(.target.bash, "/bin/cp /etc/passwd " + Installation::destdir + "/etc");
-	    SCR::Execute(.target.bash, "/bin/cp /etc/group " + Installation::destdir + "/etc");
+	    SCR::Execute(.target.bash, "/bin/cp /etc/passwd " +
+		    "'" + String::Quote (Installation::destdir) + "/etc" + "'");
+	    SCR::Execute(.target.bash, "/bin/cp /etc/group " +
+		    "'" + String::Quote (Installation::destdir) + "/etc" + "'");
         }
 
 	// fake mtab
@@ -368,7 +373,7 @@ void AcpiToInitrd () {
 
             // check passwd and group of target
             SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_users_groups " +
-                    Installation::destdir);
+                    "'" + String::Quote (Installation::destdir) + "'");
 
             // update inittab
             update_inittab ();
@@ -397,9 +402,9 @@ void AcpiToInitrd () {
     {
 	ProductFeatures::Save();
 	WFM::Execute (.local.bash, sformat (
-	    "/bin/mkdir -p %1/etc/YaST2", Installation::destdir));
+	    "/bin/mkdir -p '%1/etc/YaST2'", String::Quote (Installation::destdir)));
 	WFM::Execute (.local.bash, sformat (
-	    "/bin/cp %1 %2/%1", "/etc/YaST2/ProductFeatures", Installation::destdir));
+	    "/bin/cp '%1' '%2/%1'", "/etc/YaST2/ProductFeatures", String::Quote (Installation::destdir)));
     }
 
     return `next;

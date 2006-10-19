@@ -17,6 +17,7 @@
 textdomain "packager";
 
 import "Installation";
+import "String";
 
 any ret = nil;
 string func = "";
@@ -52,9 +53,9 @@ else if (func == "Write")
 
     // copy list of failed packages to installed system
     WFM::Execute (.local.bash, sformat (
-	"test -f %1 && /bin/cp -a %1 %2%1",
+	"test -f %1 && /bin/cp -a %1 '%2%1'",
 	"/var/lib/YaST2/failed_packages",
-	Installation::destdir));
+	String::Quote (Installation::destdir)));
 }
 else
 {

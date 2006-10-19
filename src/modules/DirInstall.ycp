@@ -14,7 +14,7 @@ import "Mode";
 import "Stage";
 import "HTML";
 import "ProductControl";
-
+import "String";
 
 global boolean runme_at_boot = false;
 global string target = "/var/tmp/dirinstall";
@@ -83,9 +83,9 @@ global void MountFilesystems () {
 	string dev = descr[1]:"";
 	string type = descr[2]:"";
 	mp = target + mp;
-	WFM::Execute (.local.bash, sformat ("test -d %1 || mkdir -p %1", mp));
-	WFM::Execute (.local.bash, sformat ("/bin/mount -t %1 %2 %3",
-	    type, dev, mp));
+	WFM::Execute (.local.bash, sformat ("test -d '%1' || mkdir -p '%1'", String::Quote (mp)));
+	WFM::Execute (.local.bash, sformat ("/bin/mount -t %1 %2 '%3'",
+	    type, dev, String::Quote (mp)));
 	mounted_fs = add (mounted_fs, mp);
     });
     y2milestone ("Mounted filesystems: %1", mounted_fs);
@@ -94,7 +94,7 @@ global void MountFilesystems () {
 global void UmountFilesystems () {
     y2milestone ("Mounted filesystems: %1", mounted_fs);
     foreach (string mp, mounted_fs, {
-	WFM::Execute (.local.bash, sformat ("/bin/umount %1", mp));
+	WFM::Execute (.local.bash, sformat ("/bin/umount '%1'", String::Quote (mp)));
     });
     mounted_fs = [];
 }
