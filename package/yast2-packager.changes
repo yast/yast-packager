@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Oct 23 16:51:08 CEST 2006 - mvidner@suse.cz
+
+- Added a checkbox Synchronize Changes with ZENworks to make the
+  undocumented feature "yast2 inst_source norug" more visible.
+- Added a popup while doing the sync (#201453).
+- 2.13.156
+
+-------------------------------------------------------------------
 Fri Oct 20 17:08:11 CEST 2006 - lslezak@suse.cz
 
 - handle Ignore button properly when a download fails, do not

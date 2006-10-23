@@ -30,9 +30,10 @@
     import "AddOnProduct";
     import "Sequencer";
 
-    // Do not sync the changes to ZenWorks even if rug is present
+    // Do not sync the changes to ZENworks even if rug is present
     // This is handy for repairing an already out-of-sync situation
-    boolean norug = WFM::Args(0) == "norug";
+    boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+    boolean norug = !have_rug || WFM::Args(0) == "norug";
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_source");
@@ -214,8 +215,15 @@ in the packages selection, continue."),
 	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
 	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
 	boolean have_rug = !norug && (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
-	if (have_rug) {
-	    if (success && !SourceManager::SyncAddedAndDeleted (added, deleted))
+	if (success && have_rug) {
+	    UI::OpenDialog (
+		`VBox (
+		    `Label (_("Synchronizing with ZENworks")),
+		    `PushButton (`id (`abort), Label::AbortButton ())
+		    ));
+	    boolean syncok = SourceManager::SyncAddedAndDeleted (added, deleted);
+	    UI::CloseDialog ();
+	    if (!syncok)
 	    {
 		// yes/no popup
 		if (!Popup::YesNo (_("Source synchronization with ZMD failed.
@@ -267,6 +275,11 @@ symbol SummaryDialog () {
 			    items ),
 		    `HSpacing()
 		    ),
+	      // TODO Help
+	      `Left (`CheckBox (`id (`zmdsync),
+				// Checkbox label
+				_("Synchronize Changes with &ZENworks"),
+				!norug)),
 	      `HBox(
 		    `PushButton (`id (`add), `opt(`key_F3),
 			Label::AddButton ()),
@@ -329,6 +342,7 @@ on the NFS server.
 </p>
 ");
 
+    // help, continued
     help_text = help_text + _("<p>
 <b>Modifying a Catalog</b>
 To change a catalog media, use <b>Edit</b>. To remove a catalog, use
@@ -336,9 +350,15 @@ To change a catalog media, use <b>Edit</b>. To remove a catalog, use
 initialization time on or off, or refresh it immediatelly, use 
 <b>Source Settings</b>.");
 
+    // help, continued
+    help_text = help_text + _("<p>
+<b>Synchronize Changes with ZENworks</b> will call <tt>rug</tt>
+to perform the changes also in that package management system.</p>");
+
     Wizard::SetNextButton(`next, Label::FinishButton() );
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::HideBackButton();
+    UI::ChangeWidget (`id (`zmdsync), `Enabled, have_rug);
 
     fillTable();
 
@@ -367,6 +387,7 @@ initialization time on or off, or refresh it immediatelly, use
 	}
 	if ( input == `next )
         {
+	  norug = ! (boolean) UI::QueryWidget (`id (`zmdsync), `Value);
 	  // store the new state
           boolean success = Write();
           if ( !success ) {
