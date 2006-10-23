@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 20 17:08:11 CEST 2006 - lslezak@suse.cz
+
+- handle Ignore button properly when a download fails, do not
+  abort installation (#200084)
+- 2.13.155
+
+-------------------------------------------------------------------
 Thu Oct 19 12:52:52 CEST 2006 - lslezak@suse.cz
 
 - dirinstall - quote directory name, it can contain spaces

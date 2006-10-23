@@ -270,8 +270,10 @@
 		return "C";
 	    if (r == `retry)
 		return "R";
+	    if (r == `ignore)
+		return "I";
 
-	    // default: ignore
+	    y2error("Unknown user input: %1", r);
 	}
 
 	return "";
