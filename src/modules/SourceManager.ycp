@@ -1003,6 +1003,13 @@ global list Overview() {
      */
     map ZMDStart () {
 	map zmd_handle = $[];
+	// #214588: don't complain if it is not installed
+	boolean installed = (integer) SCR::Read (.target.size, zmd_service_name) > 0;
+	if (! installed) {
+	    y2milestone ("ZMD is not installed");
+	    return $[ "was_running": false, "is_running": false ];
+	}
+
 	boolean running = CheckZMDStatus ();
 	zmd_handle ["was_running"] = running;
 	if (! running) {
@@ -1300,6 +1307,8 @@ global list Overview() {
 
 	Lock ();
 	map zmd_handle = ZMDStart ();
+	boolean zmd_working = ZMDWorking (zmd_handle);
+
 	ResetKnownServiceCache ();
 
 	// add the sources.
@@ -1322,7 +1331,7 @@ global list Overview() {
 	    if (todel != -1)
 	    {
 		y2milestone ("deleting the old copy, source %1", todel); 
-		if (!is_nu)
+		if (!is_nu && zmd_working)
 		{
 		    AddOrDeleteZYPPServiceIntoZMD (todel, false);
 		}
@@ -1335,7 +1344,7 @@ global list Overview() {
 	    if (toadd != -1 && toadd != nil)
 	    {
 		ret = add (ret, url); // #180820#c26
-		if (!is_nu)
+		if (!is_nu && zmd_working)
 		{
 		    AddOrDeleteZYPPServiceIntoZMD (toadd, true);
 		}
