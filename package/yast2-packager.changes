@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Tue Oct 24 15:39:46 CEST 2006 - mvidner@suse.cz
+
+- If ZMD is not installed, do not complain about not being able
+  to start it (#214588).
+- 2.13.158
+
+-------------------------------------------------------------------
+Tue Oct 24 13:27:33 CEST 2006 - lslezak@suse.cz
+
+- Fixed SourceProgressCallback() return value (do not abort)
+  (#213628)
+- 2.13.157
+
+-------------------------------------------------------------------
 Mon Oct 23 16:51:08 CEST 2006 - mvidner@suse.cz
 
 - Added a checkbox Synchronize Changes with ZENworks to make the
