@@ -770,9 +770,9 @@ boolean SourcePopupSetProgress(integer value)
 	UI::ChangeWidget (`id (`progress), `Value, value);
 	any input = UI::PollInput ();
 	if (input == `abort)
-	    return true;
+	    return false;
     }
-    return false;
+    return true;
 }
 
 void CloseSourcePopup()
@@ -806,7 +806,10 @@ global void SourceCreateStart(string url) {
 }
 
 global boolean SourceCreateProgress(integer percent) {
-    return SourcePopupSetProgress(percent);
+    boolean ret = SourcePopupSetProgress(percent);
+    y2milestone("SourceCreateProgress(%1) = %2", percent, ret);
+
+    return ret;
 }
 
 global symbol SourceCreateError (string url, symbol error, string description) {
@@ -1002,7 +1005,10 @@ global void SourceReportStart(integer source_id, string url, string task)
 
 global boolean SourceReportProgress(integer value)
 {
-    return SourcePopupSetProgress(value);
+    boolean ret = SourcePopupSetProgress(value);
+    y2milestone("SourceReportProgress(%1) = %2", value, ret);
+
+    return ret;
 }
 
 
