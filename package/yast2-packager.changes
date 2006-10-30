@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 30 15:37:20 CET 2006 - lslezak@suse.cz
+
+- do not show hidden patterns in the installation proposal
+
+-------------------------------------------------------------------
 Mon Oct 30 12:46:38 CET 2006 - locilka@suse.cz
 
 - Moving ProductFeatures::Save() to save_config_finish.ycp
