@@ -33,6 +33,7 @@ import "InstURL";
 import "String";
 import "SuSEFirewall";
 import "SourceManagerSLP";
+import "Linuxrc";
 
 
 global list<integer> newSources = [];
@@ -1421,5 +1422,34 @@ global boolean AskForCD (string message) {
     UI::CloseDialog ();
     return ret == `cont;
 }
+
+/**
+ * Function returns the partiton name which is used as a source for the installation
+ * (IF any partition is used as a source for installation, of course).
+ * Otherwise it returns an empty string "". See bugzilla #208222 for more information.
+ *
+ * @return string partition name
+ */
+global string InstallationSourceOnPartition () {
+    string install_mode = Linuxrc::InstallInf ("InstMode");
+
+    // Hard Disk is used for the installation
+    if (install_mode == "hd") {
+	string install_partition = Linuxrc::InstallInf ("Partition");
+
+	// No partiton is defined - error
+	if (install_partition == "" || install_partition == nil) {
+	    y2error ("Despite the fact that the install-mode is '%1', install-partition is '%2'",
+		install_mode, install_partition
+	    );
+	    return "";
+	} else {
+	    return install_partition;
+	}
+    } else {
+	return "";
+    }
+}
+
 /* EOF */
 }

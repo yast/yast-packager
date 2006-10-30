@@ -3,6 +3,8 @@ Mon Oct 30 12:46:38 CET 2006 - locilka@suse.cz
 
 - Moving ProductFeatures::Save() to save_config_finish.ycp
   (bugzilla #209119).
+- Create SourceManager::InstallationSourceOnPartition function that
+  returns the disk partition used as installation source (if any).
 
 -------------------------------------------------------------------
 Tue Oct 24 15:39:46 CEST 2006 - mvidner@suse.cz
