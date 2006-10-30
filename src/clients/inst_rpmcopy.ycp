@@ -38,6 +38,8 @@
     import "Linuxrc";
     import "String";
 
+    include "packager/storage_include.ycp";
+
     // variables related to installation source caching
 
     /**
@@ -774,6 +776,9 @@ from the source CD to the disk cache")));
     // ------------------------------------------------------------------------------------------------------
     // end of commit installation functions
     // ------------------------------------------------------------------------------------------------------
+
+    // bugzilla #208222
+    ReleaseHDDUsedAsInstallationSource();
 
     Pkg::SetLocale (Language::language);
 
