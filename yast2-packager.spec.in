@@ -33,7 +33,7 @@ Summary:	-
 %defattr(-,root,root)
 %dir @yncludedir@/checkmedia
 %dir @yncludedir@/dirinstall
-@yncludedir@/*.ycp
+%dir @yncludedir@/packager
 @yncludedir@/checkmedia/*
 @yncludedir@/dirinstall/*
 @clientdir@/*.ycp
