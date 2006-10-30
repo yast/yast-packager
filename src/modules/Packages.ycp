@@ -117,6 +117,15 @@ global list<string> ListSelected (symbol what, string format) {
     if (format == "" || format == nil)
 	format = "%1";
     list<map<string,any> > selected = Pkg::ResolvableProperties ("", what, "");
+
+    // ignore hidden patterns
+    if (what == `pattern)
+    {
+	selected = filter (map<string,any> r, selected, {
+	    return r["user_visible"]:nil == true;
+	});
+    }
+
     selected = filter (map<string,any> r, selected, {
 	return r["status"]:nil == `selected;
     });
