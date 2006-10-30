@@ -24,7 +24,6 @@
     import "Kernel";
     import "Arch";
     import "FileUtils";
-    import "ProductFeatures";
     import "String";
 
 void AcpiToInitrd () {
@@ -396,15 +395,6 @@ void AcpiToInitrd () {
 	// see bug 20627 for original purpose of this line,
 	// bug 172149 why it was moved here
 	SCR::Execute (.target.bash, "/bin/echo \"/etc/nothing\" >/proc/sys/kernel/modprobe");
-    }
-
-    if (Stage::initial ())
-    {
-	ProductFeatures::Save();
-	WFM::Execute (.local.bash, sformat (
-	    "/bin/mkdir -p '%1/etc/YaST2'", String::Quote (Installation::destdir)));
-	WFM::Execute (.local.bash, sformat (
-	    "/bin/cp '%1' '%2/%1'", "/etc/YaST2/ProductFeatures", String::Quote (Installation::destdir)));
     }
 
     return `next;
