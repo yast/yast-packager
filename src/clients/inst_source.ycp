@@ -54,7 +54,7 @@
     // is initialized
     import "Product";
 
-    include "inst_source_dialogs.ycp";
+    include "packager/inst_source_dialogs.ycp";
 
     integer numSources = 0;
 

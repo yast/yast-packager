@@ -10,6 +10,10 @@ Mon Oct 30 12:47:28 CET 2006 - locilka@suse.cz
   (bugzilla #209119).
 - Create SourceManager::InstallationSourceOnPartition function that
   returns the disk partition used as installation source (if any).
+- Calling Storage::RemoveDmMapsTo (device) in the begining of
+  inst_rpmcopy (#208222).
+- Fixed include path for packager (/packager).
+- Added RPM dependency on yast2-rpm.
 
 -------------------------------------------------------------------
 Tue Oct 24 15:39:46 CEST 2006 - mvidner@suse.cz
