@@ -8,6 +8,7 @@ Requires:	checkmedia yast2-country
 Requires:	yast2-pkg-bindings >= 2.13.99
 # Linuxrc::display_ip
 Requires:	yast2 >= 2.13.67
+Requires:	yast2-storage
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
 Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
@@ -32,7 +33,7 @@ Summary:	-
 %defattr(-,root,root)
 %dir @yncludedir@/checkmedia
 %dir @yncludedir@/dirinstall
-@yncludedir@/inst_source_dialogs.ycp
+@yncludedir@/*.ycp
 @yncludedir@/checkmedia/*
 @yncludedir@/dirinstall/*
 @clientdir@/*.ycp

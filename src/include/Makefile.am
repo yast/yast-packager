@@ -3,10 +3,11 @@
 #
 
 SUBDIRS = checkmedia dirinstall
-yncludedir = @yncludedir@/
+yncludedir = @yncludedir@/packager
 
 ynclude_DATA =			\
-	inst_source_dialogs.ycp
+	inst_source_dialogs.ycp	\
+	storage_include.ycp
 
 
 EXTRA_DIST = $(ynclude_DATA) 
