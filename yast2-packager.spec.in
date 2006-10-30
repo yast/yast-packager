@@ -36,6 +36,7 @@ Summary:	-
 %dir @yncludedir@/packager
 @yncludedir@/checkmedia/*
 @yncludedir@/dirinstall/*
+@yncludedir@/packager/*
 @clientdir@/*.ycp
 @moduledir@/*
 @desktopdir@/*.desktop
