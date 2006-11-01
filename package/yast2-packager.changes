@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Nov  1 13:10:20 CET 2006 - mvidner@suse.cz
+
+- Ask the user for confirmation before removing broken installation
+  sources. The failure may be permanent (source is gone) or temporary
+  (network is down, proxy problem) (#210514).
+- 2.13.160
+
+-------------------------------------------------------------------
 Mon Oct 30 15:37:20 CET 2006 - lslezak@suse.cz
 
 - do not show hidden patterns in the installation proposal
