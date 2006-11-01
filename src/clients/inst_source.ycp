@@ -542,12 +542,27 @@ symbol StoreSource () {
 boolean restore = Pkg::SourceStartManager( false );
 if( ! restore )
 {
-    Popup::Error(_("There were errors when restoring the source configuration.
+    // #210514 (L3): unconditionally removing the sources is BAD.
+    // Usually it is just a temporary error because of misconfigured proxy.
+    boolean cleanup = Popup::AnyQuestion( // [1]
+	Label::ErrorMsg(),
+	// Error popup (part 1)
+	_("There were errors when restoring the source configuration.
 Not all sources are available for configuration.
-") + "\n" + Pkg::LastError() );
-
+") + Pkg::LastError() + "\n\n" +
+	// Error popup (part 2): Yes/No question.
+	// "immediately" is important: because of stupid design [2],
+	// they will be removed even if the user then chooses Abort :(
+	_("Do you want to immediately remove these sources?"),
+	Label::YesButton(), Label::NoButton(), `focus_no);
+    // Notes irrelevant for translators:
+    // [1]: we want the focus on "No"; Popup::YesNo is too specialized
+    // [2]: using SourceManager and not just PersistentStorage in inst_source
+    
     // delete the broken sources from the persistent store
-    Pkg::SourceCleanupBroken();
+    if (cleanup) {
+	Pkg::SourceCleanupBroken();
+    }
 }
 
 sourceStatesIn = Pkg::SourceEditGet();
