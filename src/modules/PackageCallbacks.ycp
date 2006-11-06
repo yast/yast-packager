@@ -1006,7 +1006,7 @@ global void SourceReportStart(integer source_id, string url, string task)
 global boolean SourceReportProgress(integer value)
 {
     boolean ret = SourcePopupSetProgress(value);
-    y2milestone("SourceReportProgress(%1) = %2", value, ret);
+    y2debug("SourceReportProgress(%1) = %2", value, ret);
 
     return ret;
 }

@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Nov  6 18:07:46 CET 2006 - lslezak@suse.cz
+
+- fixed the default button in the SLP source selection dialog
+  (#214924)
+- allow to enter more character in the filter widget (#216277)
+- fixed SLP attribute scanning
+- 2.14.2
+
+-------------------------------------------------------------------
 Wed Nov  1 13:10:20 CET 2006 - mvidner@suse.cz
 
 - Ask the user for confirmation before removing broken installation
