@@ -18,6 +18,7 @@
     import "SuSEFirewall";
     import "Report";
     import "Label";
+    import "IP";
 
     textdomain "packager";
     module "SourceManagerSLP";
@@ -50,7 +51,7 @@
 	    )
 	);
     }
-    
+
     void CloseSearchUI () {
 	UI::CloseDialog ();
     }
@@ -64,7 +65,7 @@
 	SetSearchUI (`Label (_("Scanning network for installation services...")));
 	y2milestone("scanning network: SLP::FindSrvs(\"install.suse\", \"\")");
 	services = SLP::FindSrvs ("install.suse", "");
-	y2milestone("Done");
+	y2milestone("Done, found %1 sources", size(services));
     }
 
     void CreateSLPListFoundDialog (list <map> & services) {
@@ -81,7 +82,7 @@
 		    // Only some characters are valid 'A-Z a-z 0-9 .*-'
 		    `HSquash(`TextEntry (`id (`filter_text), "")),
 		    // push button
-		    `PushButton(`id(`filter), _("&Filter")),
+		    `PushButton(`id(`filter), `opt(`default), _("&Filter")),
 		    `HStretch()
 		))
 	    ));
@@ -129,15 +130,9 @@
 		)
 	    )
 	);
-	
+
 	if (show_filter) {
-	    UI::ChangeWidget (
-		`id(`filter_text), `ValidChars,
-		    "abcdefghijklmnopqrstuvwxyz" +
-		    toupper ("abcdefghijklmnopqrstuvwxyz") +
-		    "0123456789" +
-		    " .*-"
-	    );
+	    UI::SetFocus(`filter_text);
 	}
     }
 
@@ -149,7 +144,7 @@
 	    UI::ChangeWidget(`id(`details), `Enabled, true);
 	}
     }
-    
+
     void ShowDetailsDialog (list <map> & services) {
 	integer current = (integer) UI::QueryWidget(`id(`tree_of_services), `CurrentItem);
 	if (current == nil || current < 0) {
@@ -167,7 +162,7 @@
 		foreach (any key, any value, service_details, {
 		    details = add (details, `item (`id(nil), tostring (key), tostring (value)));
 		});
-		
+
 		UI::OpenDialog (
 		    `VBox (
 			`Left (`Heading(`id(`details_heading), _("Catalog Details"))),
@@ -192,7 +187,7 @@
 	    }
 	}
     }
-    
+
     /**
      * Initializes the listed SLP services.
      *
@@ -214,16 +209,16 @@
 
 	    if (regexp_string != nil) {
 		// filter out all services that don't match the regexp
-		if (! regexpmatch (one_service["srvurl"]:"", regexp_string)) return;
+		if (! regexpmatch (one_service["label"]:"", regexp_string)) return;
 	    }
-	    
+
 	    service_label = one_service["label"]:"";
 
 	    // define an empty list if it is not defined at all
 	    if (inst_products[service_label]:nil == nil) inst_products[service_label] = [];
 	    inst_products[service_label] = add (inst_products[service_label]:[], service_counter);
 	});
-	
+
 	list <term> tree_of_services = [];
 	list <term> urls_for_product = nil;
 	integer product_counter = -1;
@@ -232,7 +227,7 @@
 	// "SUSE Linux 10.2 x86_64":[10, 195]
 	foreach (string one_product, list <integer> service_ids, inst_products, {
 	    product_counter = product_counter + 1;
-	    
+
 	    if (size(service_ids) == 1) {
 		integer service_id = service_ids[0]:nil;
 		tree_of_services[product_counter] = `item (`id(service_id), one_product);
@@ -241,6 +236,7 @@
 		foreach (integer service_id, service_ids, {
 		    // removing "install.suse..."
 		    service_url = substring(services[service_id, "srvurl"]:"", 21);
+
 		    urls_for_product = add (
 			urls_for_product,
 			`item (`id (service_id), service_url)
@@ -282,6 +278,27 @@ The selected source has no URL."));
 	}
     }
 
+    string EscapeChars(string input, string escape)
+    {
+	string ret = input;
+
+	if (escape != nil && size(escape) > 0)
+	{
+	    integer i = 0;
+	    integer sz = size(escape);
+
+	    while(i < sz)
+	    {
+		string ch = substring(escape, i, 1);
+		y2debug("Escaping %1", ch);
+		ret = mergestring(splitstring(ret, ch), "\\" + ch);
+		i = i + 1;
+	    };
+	}
+
+	return ret;
+    }
+
     string HandleSLPListDialog (list <map> & services) {
 	InitSLPListFoundDialog (services, nil);
 
@@ -290,7 +307,7 @@ The selected source has no URL."));
 
 	while (true) {
 	    ret = UI::UserInput();
-	    
+
 	    if (ret == `cancel) {
 		dialog_ret = nil;
 		break;
@@ -307,8 +324,13 @@ The selected source has no URL."));
 
 	    } else if (ret == `filter) {
 		string regexp_string = (string) UI::QueryWidget (`id(`filter_text), `Value);
-		InitSLPListFoundDialog (services, regexp_string);
+		y2milestone("original regexp_string: %1", regexp_string);
+		// escape special character in the input string
+		// \ must be the first character!
+		regexp_string = EscapeChars(regexp_string, "\\(){}[]+^$|");
+		y2milestone("escaped regexp_string: %1", regexp_string);
 
+		InitSLPListFoundDialog (services, regexp_string);
 	    } else if (ret == `details) {
 		ShowDetailsDialog (services);
 
@@ -332,29 +354,60 @@ The selected source has no URL."));
 	    _("Collecting information of %1 services found..."),
 	    number_of_services
 	)));
-	
+
 	y2milestone("Collecting data about %1 services", number_of_services);
 
 	list <map> new_services = [];
 
+	map<string,string> dns_cache = $[];
+
 	integer counter = -1;
 	foreach (map slp_service, services, {
 	    counter = counter + 1;
-	    string server_ip = slp_service["ip"]:"";
+	    string server_ip = slp_service["pcHost"]:"";
 	    string service_url = slp_service["srvurl"]:"";
 
+	    if (!IP::Check4(server_ip))
+	    {
+		if (haskey(dns_cache, server_ip))
+		{
+		    server_ip = dns_cache[server_ip]:"";
+		}
+		else
+		{
+		    y2milestone("Resolving host '%1'...", server_ip);
+		    map m = (map)SCR::Execute (.target.bash_output, sformat ("/usr/bin/host '%1' | /bin/grep address", server_ip));
+
+		    if (m["exit"]:0 == 0)
+		    {
+			string out = m["stdout"]:"";
+			string ip = regexpsub (out, "has address (.*)$", "\\1");
+			if (ip != nil)
+			{
+			    y2milestone("...resolved to %1", ip);
+			    // cache the IP address
+			    dns_cache[server_ip] = ip;
+
+			    server_ip = ip;
+			}
+		    }
+		}
+	    }
+
+	    // empty server_ip
 	    if (service_url != "" && server_ip != "") {
 		map attrs = SLP::GetUnicastAttrMap (service_url, server_ip);
+
 		if (attrs != nil && attrs != $[]) {
 		    slp_service = union (slp_service, attrs);
 		}
 	    }
-	    
+
 	    new_services[counter] = slp_service;
 	});
-	
+
 	y2milestone("Done");
-	
+
 	services = new_services;
     }
 
