@@ -429,6 +429,7 @@ directory or the file holding the ISO image of the installation media.</p>")
  * @return always nil
  */
 symbol ServerHandle (string key, map event) {
+    y2debug("ServerHandle: %1, %2", key, event);
     any id = event["ID"]:nil;
     if (is (id, symbol)
 	&& contains ([`http, `https, `ftp, `samba, `rb_type], (symbol)id))
@@ -488,14 +489,21 @@ symbol ServerHandle (string key, map event) {
 	    )
 	);
 	UI::ReplaceWidget (`id (`server_rp), widget);
+
+	// update widget status
+	UI::ChangeWidget (`id (`username), `Enabled, !anonymous);
+	UI::ChangeWidget (`id (`password), `Enabled, !anonymous);
+	if (UI::WidgetExists (`id (`workgroup)))
+	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
+
 	return nil;
     }
     if (event["ID"]:nil == `anonymous)
     {
 	boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous),
 	    `Value);
-	UI::ChangeWidget (`id (`username), `Enabled, false);
-	UI::ChangeWidget (`id (`password), `Enabled, false);
+	UI::ChangeWidget (`id (`username), `Enabled, !anonymous);
+	UI::ChangeWidget (`id (`password), `Enabled, !anonymous);
 	if (UI::WidgetExists (`id (`workgroup)))
 	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
 	return nil;
@@ -588,6 +596,8 @@ void ServerInit (string key) {
  * @param event map which caused settings being stored
  */
 void ServerStore (string key, map event) {
+    y2debug("Server store: %1, %2", key, event);
+
     symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
     map parsed = $[];
     if ( type == `ftp )
@@ -608,9 +618,32 @@ void ServerStore (string key, map event) {
 	if (size (pass) != 0)
 	    parsed["pass"] = pass;
     }
-    parsed["host"] = NormalizeHost (
-	(string)UI::QueryWidget (`id (`server), `Value));
+
+    string host = NormalizeHost((string)UI::QueryWidget (`id (`server), `Value));
     string directory = (string)UI::QueryWidget (`id (`dir), `Value);
+
+    // is / in the host name?
+    integer pos = findfirstof(host, "/");
+    if (pos != nil)
+    {
+	// update the hostname and the directory,
+	// URL::Build return empty URL when the hostname is not valid
+	y2milestone("The hostname contains a path: %1", host);
+	string dir = substring(host, pos);
+
+	if (substring(dir, size(dir) - 1, 1) != "/" && substring(directory, 0, 1) != "/")
+	{
+	    dir = dir + "/";
+	}
+
+	directory = dir + directory;
+	host = substring(host, 0, pos);
+
+	y2milestone("Updated hostname: %1, directory: %2", host, directory);
+    }
+
+    parsed["host"] = host;
+
     if (type == `samba)
     {
 	string share = (string)UI::QueryWidget (`id (`share), `Value);
@@ -628,7 +661,9 @@ void ServerStore (string key, map event) {
 	    directory = directory + ";workgroup=" + workgroup;
     }
     parsed["path"] = directory;
+    y2milestone("Entered URL: %1", parsed);
     _url = URL::Build (parsed);
+    y2milestone("URL::Build: %1", _url);
     if (UI::WidgetExists (`id (`ch_iso)))
     {
 	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);

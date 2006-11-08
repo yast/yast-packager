@@ -220,10 +220,10 @@
 		    }
 
 		    // otherwise return Ignore (default)
-		    return "";
+		    return "I";
 		}
 
-		return "";
+		return "I";
 	    }
 
 	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
@@ -276,7 +276,7 @@
 	    y2error("Unknown user input: %1", r);
 	}
 
-	return "";
+	return "I";
     }
 
 
