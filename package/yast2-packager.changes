@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Nov  8 12:54:46 CET 2006 - lslezak@suse.cz
+
+- installation source: split directory name from host name
+  (#211522), refresh "User" and "Password" widget status when
+  scheme is changed
+- callbacks: return correct ignore value in the command line mode 
+- 2.14.3
+
+-------------------------------------------------------------------
 Mon Nov  6 18:07:46 CET 2006 - lslezak@suse.cz
 
 - fixed the default button in the SLP source selection dialog
