@@ -195,15 +195,14 @@ Only installed packages are displayed."));
 	return `abort;
    }
 
-   Pkg::SetLocale (UI::GetLanguage (true));
-
    // check Args
    // set test_mode, test_popup
-
    list<string> arg_list = CheckArguments();
 
    // check the arguments and try the mount/search for local description
    symbol result = CheckWhichPackages (arg_list);
+
+   Pkg::SetLocale (UI::GetLanguage (true));
 
    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", result);
 
@@ -218,18 +217,21 @@ Only installed packages are displayed."));
 
    boolean ask = false;
    boolean found_descr = result == `found_descr;
+   boolean modified = false;
 
    do
    {
-// the user has restarted the software selection
-// TODO FIXME: workaround for #201121 (#202088)
-// reinitialize the package manager from the target
-if (ask)
-{
-    Pkg::TargetFinish();
-    Pkg::TargetInitialize(Installation::destdir);
-    Pkg::TargetLoad();
-}
+	// the user has restarted the software selection
+	// reinitialize the package manager from the target,
+	// (refresh installed/uninstalled status)
+	if (modified)
+	{
+	    Pkg::TargetFinish();
+	    Pkg::TargetInitialize(Installation::destdir);
+	    Pkg::TargetLoad();
+
+	    modified = false;
+	}
 
 	list<string> old_failed_packs = [];
 	if ((integer)SCR::Read (.target.size,
@@ -325,6 +327,9 @@ Install them now?
 	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
 
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
+
+		// refresh of the target is needed
+	        modified = true;
 	   }
        }
    } while ( ask && Popup::YesNo (

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov  9 09:26:22 CET 2006 - lslezak@suse.cz
+
+- sw_single: do not install the UI language when it already has
+  been installed (#206076), do not refresh target when no change
+  has been done (#219330)
+
+-------------------------------------------------------------------
 Wed Nov  8 12:54:46 CET 2006 - lslezak@suse.cz
 
 - installation source: split directory name from host name
