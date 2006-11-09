@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov  9 13:04:10 CET 2006 - lslezak@suse.cz
+
+- install packages for additional languages (invalidate
+  the software proposal cache when the language selection has
+  been changed) (#218769)
+
+-------------------------------------------------------------------
 Thu Nov  9 09:26:22 CET 2006 - lslezak@suse.cz
 
 - sw_single: do not install the UI language when it already has
