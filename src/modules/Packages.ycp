@@ -64,6 +64,7 @@ list<map> cached_proposal_patterns = [];
 list<map> cached_proposal_products = [];
 list<map> cached_proposal_patches = [];
 list<map> cached_proposal_selections = [];
+list<string> cached_proposal_languages = [];
 
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
@@ -1206,10 +1207,14 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	// selected selections
 	list<map> selected_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
 
+	// selected languages
+	list<string> selected_languages = (list<string>)union([Pkg::GetLocale()], Pkg::GetAdditionalLocales());
+
+
 	// if the package selection has not been changed the cache is up to date
 	if (selected_packages == cached_proposal_packages && selected_patterns == cached_proposal_patterns
 	    && selected_products == cached_proposal_products && selected_patches == cached_proposal_patches
-	    && selected_selections == cached_proposal_selections)
+	    && selected_selections == cached_proposal_selections && selected_languages == cached_proposal_languages)
 	{
 	    y2milestone("using cached software proposal");
 	    return cached_proposal;
@@ -1299,6 +1304,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     cached_proposal_products = filter(map p, Pkg::ResolvableProperties("", `product, ""), {return p["status"]:`unknown == `selected;});
     cached_proposal_patches = filter(map p, Pkg::ResolvableProperties("", `patch, ""), {return p["status"]:`unknown == `selected;});
     cached_proposal_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
+    cached_proposal_languages = (list<string>)union([Pkg::GetLocale()], Pkg::GetAdditionalLocales());
 
     UI::CloseDialog();
 
