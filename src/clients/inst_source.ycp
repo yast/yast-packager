@@ -603,6 +603,8 @@ y2milestone ("Starting source sequence");
 symbol ret = Sequencer::Run (aliases, sequence);
 if (ret == `next && Mode::normal ())
     ret	= `restart_menu;
+
+UI::CloseDialog ();
 return ret;
 
 } // EOF
