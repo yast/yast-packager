@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Nov 10 16:05:48 CET 2006 - locilka@suse.cz
+
+- Fixed 'fixed' SLP attribute scanning - key "ip" contains IP of
+  server which sent the information about SLP service, not "pcHost"
+- Removed /usr/bin/host call which is not needed anymore again
+  (used for converting "pcHost" to "ip").
+- Services with no label are now correctly listed as a root-tree
+  items instead of listing under one tree-item with empty label.
+- All changes fixed according to bugzilla #219759.
+- One more UI::CloseDialog() call in inst_source client.
+
+-------------------------------------------------------------------
 Thu Nov  9 13:04:10 CET 2006 - lslezak@suse.cz
 
 - install packages for additional languages (invalidate
