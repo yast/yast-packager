@@ -6,6 +6,13 @@ Mon Nov 13 13:14:07 CET 2006 - locilka@suse.cz
 - Added dependency on yast2-pkg-bindings >= 2.14.0 
 
 -------------------------------------------------------------------
+Mon Nov 13 09:28:04 CET 2006 - mvidner@suse.cz
+
+- ZENworks sync: delete disabled sources, add enabled ones (#182992).
+  Also during system upgrade (#219414).
+- Do not try to sync with ZENworks if there have been no changes (#217697).
+
+-------------------------------------------------------------------
 Fri Nov 10 16:05:48 CET 2006 - locilka@suse.cz
 
 - Fixed 'fixed' SLP attribute scanning - key "ip" contains IP of
