@@ -1137,11 +1137,14 @@ global list Overview() {
 		// #182747
 		RugSetPref ("security-level", "none");
 
-		list<integer> src_ids = Pkg::SourceGetCurrent (true /*enabled only?*/);
+		list<integer> src_ids = Pkg::SourceGetCurrent (false /*also disabled*/);
 		ResetKnownServiceCache ();
 		boolean added_ok = true;
 		foreach (integer src_id, src_ids, {
-		    added_ok = AddOrDeleteZYPPServiceIntoZMD (src_id, true /*add*/) && added_ok;
+		    map gendata = Pkg::SourceGeneralData (src_id);
+		    // #219414, delete disabled ones (previous product version)
+		    boolean add_or_del = gendata["enabled"]:true;
+		    added_ok = AddOrDeleteZYPPServiceIntoZMD (src_id, add_or_del) && added_ok;
 		});
 		if (added_ok) {
 		    y2milestone("Adding ZYPP service succeeded");
