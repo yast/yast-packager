@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 13 13:14:07 CET 2006 - locilka@suse.cz
+
+- Removing information about applied patches and used selections
+  during update (#210552).
+- Added dependency on yast2-pkg-bindings >= 2.14.0 
+
+-------------------------------------------------------------------
 Fri Nov 10 16:05:48 CET 2006 - locilka@suse.cz
 
 - Fixed 'fixed' SLP attribute scanning - key "ip" contains IP of
