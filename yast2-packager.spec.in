@@ -4,7 +4,7 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite yast2-slp
 Requires:	checkmedia yast2-country
-# Pkg::ResolvableRemove(), bug #210552
+# Pkg::TargetStoreRemove(), bug #210552
 Requires:	yast2-pkg-bindings >= 2.14.0
 # Linuxrc::display_ip
 Requires:	yast2 >= 2.13.67
