@@ -2,6 +2,7 @@
 Mon Nov 13 09:28:04 CET 2006 - mvidner@suse.cz
 
 - ZENworks sync: delete disabled sources, add enabled ones (#182992).
+  Also during system upgrade (#219414).
 - Do not try to sync with ZENworks if there have been no changes (#217697).
 
 -------------------------------------------------------------------
