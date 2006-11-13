@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 13 14:56:31 CET 2006 - lslezak@suse.cz
+
+- add a local directory as an installation source (support for
+  "Plaindir" source type) (#168358)
+- 2.14.6
+
+-------------------------------------------------------------------
 Mon Nov 13 13:14:07 CET 2006 - locilka@suse.cz
 
 - Removing information about applied patches and used selections
