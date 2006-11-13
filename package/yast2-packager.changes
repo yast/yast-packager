@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov 13 13:12:20 CET 2006 - locilka@suse.cz
+
+- Removing information about applied patches and used selections
+  during update (#210552).
+
+-------------------------------------------------------------------
 Mon Nov 13 09:28:04 CET 2006 - mvidner@suse.cz
 
 - ZENworks sync: delete disabled sources, add enabled ones (#182992).

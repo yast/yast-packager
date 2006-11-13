@@ -86,6 +86,22 @@
     // functions related to installation source caching
 
     /**
+     * Removes all already installed patches and selections.
+     * See bugzilla #210552 for more information.
+     */
+    void RemoveObsoleteResolvables () {
+        y2milestone ("--------- removing obsolete patches and selections ---------");
+
+        // this removes only information about selections and applied patches
+	// it doesn't remove any package
+        y2milestone ("Removing all information about selections and patches in %1", Installation::destdir);
+        Pkg::TargetStoreRemove (Installation::destdir, `selection);
+	Pkg::TargetStoreRemove (Installation::destdir, `patch);
+
+        y2milestone ("--------- removing obsolete patches and selections ---------");
+    }
+
+    /**
      * Get the source ID of the first source to be cached
      * @return integer cached source ID
      */
@@ -787,7 +803,7 @@ from the source CD to the disk cache")));
     // start target, create new rpmdb if none is existing
     // FIXME error checking is missing all around here, initialization could actually fail!
     //Pkg::TargetInit (Installation::destdir, true);
-    if(Pkg::TargetInit (Installation::destdir,true) != true)
+    if (Pkg::TargetInitialize (Installation::destdir) != true)
     {
 	// continue-cancel popup
         if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false)
@@ -795,7 +811,12 @@ from the source CD to the disk cache")));
             return `abort;
         }
     }
-
+    
+    if (Mode::update()) {
+	// Removes all already installed patches and selections.
+	// See bugzilla #210552 for more information.
+	RemoveObsoleteResolvables();
+    } 
 
     if (Stage::cont ())
     {
