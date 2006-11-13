@@ -178,9 +178,15 @@ in the packages selection, continue."),
     }
 
     /**
+     * Find which sources have to be added or deleted to ZENworks.
+     * #182992: formerly we did not consider the enabled attribute.
+     * But ZENworks cannot completely disable a source (unsubscribing a
+     * catalog merely decreases its priority) so we consider a disabled source
+     * like a deleted one.
      * @param statesOld sourceStates{In or Out}
      * @param statesNew sourceStates{In or Out}
-     * @return the list of SrcId's that are in statesNew but not statesOld
+     * @return the list of SrcId's that are enabled in statesNew
+     *  but are not enabled in statesOld
      */
     list<integer> newSources (list<map<string,any> > statesOld,
 			      list<map<string,any> > statesNew) {
@@ -188,10 +194,11 @@ in the packages selection, continue."),
 	list<integer> ret = [];
 	map<integer, boolean> seen = listmap (
 	    map<string, any> src, statesOld,
-	    ``( $[(src["SrcId"]:-1) : true ] ));
+	    ``( $[(src["SrcId"]:-1) : (src["enabled"]:true) ] ));
 	foreach (map<string, any> src, statesNew, {
 	    integer newid = src["SrcId"]:-1;
-	    if (! seen[newid]:false)
+	    boolean newena = src["enabled"]:true;
+	    if (newena && ! seen[newid]:false)
 		ret = add (ret, newid);
 	});
 	y2milestone ("Difference %1", ret);
