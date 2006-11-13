@@ -215,7 +215,8 @@ in the packages selection, continue."),
 	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
 	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
 	boolean have_rug = !norug && (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
-	if (success && have_rug) {
+	boolean any_changed = added != [] || deleted != []; // #217697
+	if (success && have_rug && any_changed) {
 	    UI::OpenDialog (
 		`VBox (
 		    `Label (_("Synchronizing with ZENworks")),

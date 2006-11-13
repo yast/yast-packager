@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 13 09:28:04 CET 2006 - mvidner@suse.cz
+
+- Do not try to sync with ZENworks if there have been no changes (#217697).
+
+-------------------------------------------------------------------
 Fri Nov 10 16:12:00 CET 2006 - locilka@suse.cz
 
 - Fixed 'fixed' SLP attribute scanning - key "ip" contains IP of
