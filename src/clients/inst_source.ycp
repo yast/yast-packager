@@ -35,6 +35,9 @@
     boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
     boolean norug = !have_rug || WFM::Args(0) == "norug";
 
+    // constant Plaindir
+    string plaindir_type = "Plaindir"; 
+
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_source");
     // dialog caption
@@ -71,6 +74,8 @@
         integer id = source[ "SrcId" ]:0;
         map generalData = Pkg::SourceGeneralData( id );
         map productData = Pkg::SourceProductData( id );
+	y2milestone("generalData: %1", generalData);
+	y2milestone("productData: %1", productData);
         term item = `item(
 			  `id( index ),
 			  // corresponds to the "Enable/Disable" button
@@ -109,9 +114,27 @@
     }
 
     define symbol createSource( string url ) ``{
+	y2milestone("createSource: %1", url);
+
         if ( url != "" )
         {
-            list<integer> newSources = Pkg::SourceScan( url, "" );
+	    // 
+	    //
+	    boolean plaindir = false;
+	    map parsed = URL::Parse(url);
+	    string scheme = parsed["scheme"]:"";
+
+	    if (scheme == "pkg")
+	    {
+		parsed["scheme"] = "dir";
+		url = URL::Build(parsed);
+		plaindir = true;
+	    }
+
+            list<integer> newSources = (plaindir) ?
+		[ Pkg::SourceCreateType(url, "", plaindir_type) ] :
+		Pkg::SourceScan( url, "" );
+
             if ( size( newSources ) == 0  )
             {
 		// message part 1
@@ -446,9 +469,20 @@ All changes will be lost.");
                 map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
 		boolean auto_refresh = sourceState["autorefresh"]:true;
+		boolean plaindir = generalData["type"]:"YaST" == plaindir_type;
 
                 do {
+		    // change schema if the source type is plaindir
+		    // to show the right popup dialog
+		    if (plaindir)
+		    {
+			map parsed = URL::Parse(url);
+			parsed["scheme"] = "pkg";
+			url = URL::Build(parsed);
+		    }
+
                     url = editUrl( url );
+
                     if ( size( url ) == 0 ) break;
                     createResult = createSource( url );
                     if ( createResult == `ok ) {
