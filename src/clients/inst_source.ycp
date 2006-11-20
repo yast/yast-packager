@@ -16,6 +16,7 @@
     import "Installation";
     import "PackageCallbacksInit";
     import "PackageLock";
+    import "PackageSystem";
     import "Report";
     import "SLP";
     import "Stage";
@@ -128,6 +129,14 @@
 		parsed["scheme"] = "dir";
 		url = URL::Build(parsed);
 		plaindir = true;
+	    }
+
+	    // check if SMB/CIFS share can be mounted
+	    if (scheme == "smb" && SCR::Read(.target.size, "/sbin/mount.cifs") < 0)
+	    {
+		y2milestone("SMB/CIFS share cannot be mounted, installing missing 'cifs-mount' package...");
+		// install cifs-mount package
+		PackageSystem::CheckAndInstallPackages(["cifs-mount"]);
 	    }
 
             list<integer> newSources = (plaindir) ?
