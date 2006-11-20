@@ -363,9 +363,13 @@ void DirStore (string key, map event) {
 	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
     ];
     _url = URL::Build (parsed);
-    boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
-    if (iso)
-	_url = PosprocessISOURL (_url);
+
+    if (UI::WidgetExists(`id(`ch_iso)))
+    {
+	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+	if (iso)
+	    _url = PosprocessISOURL (_url);
+    }
 }
 
 /**
@@ -375,7 +379,10 @@ void DirStore (string key, map event) {
  * @return always nil
  */
 symbol DirHandle (string key, map event) {
-    boolean iso   = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+    boolean iso   = (UI::WidgetExists(`id(`ch_iso))) ?
+	(boolean)UI::QueryWidget (`id (`ch_iso), `Value)
+	: false;
+
     string dir = (string)UI::QueryWidget (`id (`dir), `Value);
     string result = iso
 	// dialog caption
@@ -416,6 +423,47 @@ Ise <b>Path to Directory or ISO Image</b> to specify the path to the
 directory or the file holding the ISO image of the installation media.</p>")
 + iso_help
 + multi_cd_help,
+    ];
+
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void PlainDirStore (string key, map event) {
+    map parsed = $[
+	"scheme" : "pkg",
+	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
+    ];
+    _url = URL::Build (parsed);
+}
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> PlainDirWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox(
+	    `HBox(
+		// text entry
+                `TextEntry (`id (`dir), _("&Path to Directory")),
+		`VBox (
+		    `Label (""),
+		    // push button
+		    `PushButton (`id (`browse), _("&Browse..."))
+		)
+	    )
+	),
+	"init" : DirInit,
+	"store" : PlainDirStore,
+	"handle" : DirHandle,
+	"handle_events" : [ `browse ],
+	"help" : _("<p><big><b>Local Directory</b></big><br>
+Use <b>Path to Directory</b> to specify the path to the
+directory holding RPM packages.</p>")
     ];
 
 }
@@ -760,6 +808,8 @@ term SelectRadioWidget () {
 	    // radio button
 	    `Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 	    // radio button
+	    `Left (`RadioButton(`id(`pkg), _("&Package Directory..."))), // TODO: Proposal: move the functionality to "Local Directory", move ISO here
+	    // radio button
 	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
 	    `VStretch ()
 	))), `HStretch ()
@@ -776,6 +826,8 @@ term SelectRadioWidget () {
 		`Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
 		// radio button
 		`Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
+		// radio button
+		`Left (`RadioButton(`id(`pkg), _("&Package Directory..."))),
 		// radio button
 		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
 		`VStretch ()
@@ -850,7 +902,7 @@ void SelectStore (string key, map event) {
     _url = "";
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
     if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
-	`local_dir, `specify__url, `slp], selected))
+	`local_dir, `specify__url, `slp, `pkg], selected))
     {
 	if ( selected == `ftp ) _url = "ftp://";
 	else if ( selected == `http ) _url = "http://";
@@ -860,6 +912,7 @@ void SelectStore (string key, map event) {
 	else if ( selected == `cd ) _url = "cd:///";
 	else if ( selected == `dvd ) _url = "dvd:///";
 	else if ( selected == `local_dir ) _url = "dir://";
+	else if ( selected == `pkg ) _url = "pkg://";	// hack for local PlainDir source
 	else if ( selected == `slp ) _url = "slp://";
     }
 }
@@ -896,6 +949,7 @@ map<string,map<string,any> > Widgets () {
 	    "dvd" : CDWidget (),
 	    "dir" : DirWidget (),
 	    "file" : DirWidget (),
+	    "pkg" : PlainDirWidget(),
 	    "http" : ServerWidget (),
 	    "https" : ServerWidget (),
 	    "ftp" : ServerWidget (),
@@ -922,6 +976,8 @@ map<string,string> _caption = $[
     "dir" : _("Local Directory or ISO"),
     // label / dialog caption
     "file" : _("Local Directory or ISO"),
+    // label / dialog caption
+    "pkg"  : _("Package Directory"),
     // label / dialog caption
     "http" : _("Server and Directory"),
     // label / dialog caption
