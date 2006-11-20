@@ -1303,9 +1303,9 @@ global void SourceReportEnd(integer src_id, string url, string task, symbol erro
     global void SetScriptCallbacks()
     {
 	Pkg::CallbackScriptStart("PackageCallbacks::ScriptStart");
-	Pkg::CallbackScriptStart("PackageCallbacks::ScriptProgress");
-	Pkg::CallbackScriptStart("PackageCallbacks::ScriptProblem");
-	Pkg::CallbackScriptStart("PackageCallbacks::ScriptFinish");
+	Pkg::CallbackScriptProgress("PackageCallbacks::ScriptProgress");
+	Pkg::CallbackScriptProblem("PackageCallbacks::ScriptProblem");
+	Pkg::CallbackScriptFinish("PackageCallbacks::ScriptFinish");
 
 	Pkg::CallbackMessage("PackageCallbacks::Message");
     }
@@ -1313,9 +1313,9 @@ global void SourceReportEnd(integer src_id, string url, string task, symbol erro
     global void ClearScriptCallbacks()
     {
 	Pkg::CallbackScriptStart("");
-	Pkg::CallbackScriptStart("");
-	Pkg::CallbackScriptStart("");
-	Pkg::CallbackScriptStart("");
+	Pkg::CallbackScriptProgress("");
+	Pkg::CallbackScriptProblem("");
+	Pkg::CallbackScriptFinish("");
 
 	Pkg::CallbackMessage("");
     }
