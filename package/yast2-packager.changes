@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Nov 20 16:45:11 CET 2006 - lslezak@suse.cz
+
+- if the installation source is SMB/CIFS share then install
+  'cifs-mount' package to mount the source later; check whether
+  the package is installed when creating a SMB/CIFS source at
+  run-time (#220921)
+- fixed copy&paste typo in PackageCallbacks::SetScriptCallbacks()
+  and CleartScriptCallbacks() functions
+
+-------------------------------------------------------------------
 Mon Nov 13 14:56:31 CET 2006 - lslezak@suse.cz
 
 - add a local directory as an installation source (support for
