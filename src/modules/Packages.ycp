@@ -559,6 +559,28 @@ global void InitializeAddOnProducts() {
     }
 
 
+    /**
+     * Compute packages required to access the installation source
+     * @return list(string) list of the required packages
+     */
+    list<string> sourceAccessPackages()
+    {
+	list<string> ret = [];
+
+	string instmode = Linuxrc::InstallInf("InstMode");
+	y2milestone("Installation mode: %1", instmode);
+
+	if (instmode == "smb" || instmode == "cifs")
+	{
+	    // /sbin/mount.cifs is required to mount a SMB/CIFS share
+	    ret = ["cifs-mount"];
+	}
+
+	y2milestone("Packages for access to the installation source: %1", ret);
+
+	return ret;
+    }
+
     /*
      * Additional kernel packages from control file
      * @return list<string> Additional Kernel packages
@@ -654,6 +676,9 @@ global list<string> ComputeSystemPatternList () {
 	install_list = (list<string>) union (install_list, languagePackages ());
 
 	install_list = (list<string>) union (install_list, boardPackages ());
+
+	// add packages required to access the installation source in the 2nd stage and at run-time
+	install_list = (list<string>) union (install_list, sourceAccessPackages());
 
 	// and the most flexible enhancement for other products
         // NOTE: not really flexible, because it requires the client
