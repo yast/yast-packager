@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 21 10:19:42 CET 2006 - mvidner@suse.cz
+
+- Say "Synchronizing with ZENworks" instead of "Initializing Catalogs"
+  when doing so after the first reboot (#221250).
+
+-------------------------------------------------------------------
 Mon Nov 20 16:45:11 CET 2006 - lslezak@suse.cz
 
 - if the installation source is SMB/CIFS share then install
