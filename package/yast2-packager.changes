@@ -1,8 +1,11 @@
 -------------------------------------------------------------------
-Tue Nov 21 10:19:42 CET 2006 - mvidner@suse.cz
+Tue Nov 21 15:14:06 CET 2006 - mvidner@suse.cz
 
+- Implemented sw_single --remove and sw_single --update (#222757).
+  (Called by yast2-2.14.14)
 - Say "Synchronizing with ZENworks" instead of "Initializing Catalogs"
   when doing so after the first reboot (#221250).
+- 2.14.8
 
 -------------------------------------------------------------------
 Mon Nov 20 16:45:11 CET 2006 - lslezak@suse.cz
