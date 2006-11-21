@@ -37,7 +37,11 @@
 
     import "Packages";
 
-    list<string> packagelist = [];		// list of packages to install
+    list<string> packagelist = [];		// list of packages to act on
+
+    // `install
+    // `remove, `update: used from gnome-main-menu (#222757)
+    symbol action = `install;
 
     boolean test_popup = false;
     boolean skip_source = false;
@@ -66,7 +70,15 @@
 	    }
 	    else if (is (WFM::Args(arg_n), string))
 	    {
-		arg_list = add (arg_list, tostring (WFM::Args(arg_n)));
+		string s = tostring (WFM::Args(arg_n));
+		if (s == "--install")
+		    action = `install;
+		else if (s == "--remove")
+		    action = `remove;
+		else if (s == "--update")
+		    action = `update;
+		else
+		    arg_list = add (arg_list, s);
 	    }
 	    else if (is (WFM::Args(arg_n), list))
 	    {
@@ -75,6 +87,7 @@
 	    arg_n = arg_n - 1;
 	}
 
+	y2milestone ("action: %1", action);
 	return arg_list;
 
     };  // CheckArguments
@@ -184,6 +197,74 @@ Only installed packages are displayed."));
 
    };	// CheckWhichPackages
 
+   // originally stolen from inst_do_net_test.ycp:IsDownloadedVersionNewer
+   /**
+    * Function checks two versions of installed rpm and decides
+    * whether the second one is newer than the first one. This
+    * function ignores non-numerical values in versions.
+    * Version and Release parts are merged!
+    * FIXME make a binding to librpm.
+    * @param string first version
+    * @param string second version
+    * @return boolean true if the second one is newer than the first one
+    */
+   boolean VersionALtB (string a_version, string b_version) {
+       list <string> a_version_l = filter(string s, splitstring(a_version, "-\."), {
+	   return regexpmatch(s, "^[0123456789]+$");
+       });
+       list <string> b_version_l = filter(string s, splitstring(b_version, "-\."), {
+	   return regexpmatch(s, "^[0123456789]+$");
+       });
+	
+       y2milestone("Comparing versions %1 and %2", a_version_l, b_version_l);
+       integer a_size = size (a_version_l);
+       integer b_size = size (b_version_l);
+       integer longer_size = a_size > b_size? a_size: b_size;
+
+       boolean b_version_is_newer = false;
+       integer compare = 0; // <0 if a<b, =0 if a==b, >0 if a>b
+       integer i = 0;
+       while (i < longer_size) {
+	   // -1 will make the desirable outcome of "2" < "2.0"
+	   integer a_item = tointeger(a_version_l[i]:"-1");
+	   integer b_item = tointeger(b_version_l[i]:"-1");
+	   if (a_item < b_item) {
+	       compare = -1;
+	       break;
+	   }
+	   if (a_item > b_item) {
+	       compare = 1;
+	       break;
+	   }
+	   i = i + 1;
+       };
+	
+       y2milestone("%1 <=> %2 -> %3", a_version, b_version, compare);
+       return compare < 0;
+   }
+
+   /**
+    * Check if there is an uninstalled package of the same name with a
+    * higher version. Otherwise we would forcefully reinstall it. #222757#c9
+    */
+   boolean CanBeUpdated (string package) {
+       list< map<string,any> > props = Pkg::ResolvableProperties (package, `package, "" /*any version*/);
+       // find maximum version and remember
+       // if it is installed
+       string max_ver = "0";
+       boolean max_is_installed = false;
+       foreach (map<string,any> prop, props, {
+	   string cur_ver = prop["version"]:"0";
+	   if (VersionALtB (max_ver, cur_ver)) {
+	       max_ver = cur_ver;
+	       // `installed or `selected is ok
+	       max_is_installed = prop["status"]:`available != `available;
+	       y2milestone ("new max: installed: %1", max_is_installed);
+	   }
+       });
+       return !max_is_installed;
+   }
+
    // =============================================================
 
 
@@ -268,7 +349,7 @@ Install them now?
 		list<string>nonexisting = filter (string p, packagelist, {
 		    return ! Pkg::IsAvailable (p);
 		});
-		if (size (nonexisting) > 0)
+		if (action != `remove && size (nonexisting) > 0)
 		{
 		    string missing = mergestring (nonexisting, ", ");
 		    y2error ("Tags %1 aren't available",
@@ -281,10 +362,20 @@ Install them now?
 		}
 	       foreach (string package, packagelist,		// Yes: install them
 	       {
-		   if (!Pkg::PkgInstall (package))			// select package for installation
-		   {
-		       // oops, package not found ?
-		       Pkg::DoProvide ([package]);			// try as tagname
+		   if (action == `install
+		       // TODO `update: tell the user if already up to date
+		       || (action == `update && CanBeUpdated (package))) {
+		       // select package for installation
+		       if (!Pkg::PkgInstall (package)) {
+			   // oops, package not found ? try capability
+			   Pkg::DoProvide ([package]);
+		       }
+		   }
+		   else if (action == `remove) {
+		       if (!Pkg::PkgDelete (package)) {
+			   // package failed, try capability
+			   Pkg::DoRemove ([package]);
+		       }
 		   }
 	       });
 
