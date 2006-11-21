@@ -688,6 +688,12 @@ global list Overview() {
     // ------------------------------------------------------------------------------------------------------
     // adding YaST installation source into the ZMD
 
+    global string SyncLabel () {
+	// yast is running a zenworks command (rug) to
+	// keep the repository references in sync
+	return _("Synchronizing with ZENworks");
+    }
+
     /**
      * Runs a bash command with timeout.
      * @struct Returns map $[
@@ -1115,7 +1121,7 @@ global list Overview() {
 
 	UI::OpenDialog (`VBox (
 			    // popup progress information
-			    `Label(_("Initializing catalogs...")),
+			    `Label(SyncLabel ()), // #221250
 			    `PushButton (`id (`abort), Label::AbortButton ())
 			    ));
 	y2milestone("--- Syncing YaST inst source with ZMD ---");

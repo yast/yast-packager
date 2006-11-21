@@ -257,7 +257,7 @@ in the packages selection, continue."),
 	if (success && have_rug && any_changed) {
 	    UI::OpenDialog (
 		`VBox (
-		    `Label (_("Synchronizing with ZENworks")),
+		    `Label (SourceManager::SyncLabel ()),
 		    `PushButton (`id (`abort), Label::AbortButton ())
 		    ));
 	    boolean syncok = SourceManager::SyncAddedAndDeleted (added, deleted);
