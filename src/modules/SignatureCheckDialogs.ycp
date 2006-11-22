@@ -534,7 +534,7 @@ Use it anyway?")
      * @param string dont_show_dialog_ident for the identification in magic "don't show" functions
      * @return boolean true if 'yes, use file'
      */
-    global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id, string fingerprint, string dont_show_dialog_ident) {
+    global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id, string fingerprint, string key_name, string dont_show_dialog_ident) {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name, %2 for the complex multiline description of the GnuPG key
 	    _("The package %1 is digitally signed
@@ -563,6 +563,9 @@ Use it anyway?")
 		((fingerprint == nil || fingerprint == "") ?
 		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
 		    "" : sformat("\n" + _("Fingerprint: %1"), StringSplitter(fingerprint, " ", 4)))
+
+		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
+		+ ((key_name != nil && key_name != "") ? sformat("\n" + _("Name: %1"), key_name) : "")
 	);
 
 	UI::OpenDialog(

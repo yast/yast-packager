@@ -298,22 +298,9 @@ Only installed packages are displayed."));
 
    boolean ask = false;
    boolean found_descr = result == `found_descr;
-   boolean modified = false;
 
    do
    {
-	// the user has restarted the software selection
-	// reinitialize the package manager from the target,
-	// (refresh installed/uninstalled status)
-	if (modified)
-	{
-	    Pkg::TargetFinish();
-	    Pkg::TargetInitialize(Installation::destdir);
-	    Pkg::TargetLoad();
-
-	    modified = false;
-	}
-
 	list<string> old_failed_packs = [];
 	if ((integer)SCR::Read (.target.size,
 	    "/var/lib/YaST2/failed_packages") > 0)
@@ -418,9 +405,6 @@ Install them now?
 	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
 
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
-
-		// refresh of the target is needed
-	        modified = true;
 	   }
        }
    } while ( ask && Popup::YesNo (
