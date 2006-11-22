@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov 22 09:27:44 CET 2006 - lslezak@suse.cz
+
+- installation source: make the input widgets wider (#222548)
+- package selection: do not use dropped PPC packages (#222909)
+- 2.14.9
+
+-------------------------------------------------------------------
 Tue Nov 21 15:14:06 CET 2006 - mvidner@suse.cz
 
 - Implemented sw_single --remove and sw_single --update (#222757).
