@@ -1050,10 +1050,11 @@ global symbol EditDialog () {
     string proto = URLScheme (_url);
     y2milestone ("Displaying dialog for protocol %1", proto);
     string caption = _caption[proto]:"";
+
     return CWM::ShowAndRun ($[
 	"widget_names" : [proto],
 	"widget_descr" : Widgets (),
-	"contents" : `HBox (`HStretch (), `VBox (`VStretch (), proto, `VStretch ()), `HStretch ()),
+	"contents" :  `HVCenter(`MinWidth( 65, proto ) ),
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
 	"next_button" : Label::NextButton (),
