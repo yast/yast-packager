@@ -373,13 +373,6 @@ global void InitializeAddOnProducts() {
 	// remove unneeded / add needed packages for ppc
 	if (Arch::ppc ())
 	{
-	    if (Arch::board_iseries ())
-	    {
-		packages = add (packages, "ibmsis");
-		packages = add (packages, "scsi");
-		packages = add (packages, "iprutils");
-	    }
-
 	    if (Arch::board_mac ())
 	    {
 		packages = add (packages, "mouseemu");
@@ -410,7 +403,7 @@ global void InitializeAddOnProducts() {
 		packages = add (packages, "sudo");
 	    }
 
-	    if (Arch::ppc64 () && Arch::board_chrp ())
+	    if (Arch::ppc64 () && (Arch::board_chrp () || Arch::board_iseries ()))
 	    {
 		packages = add (packages, "iprutils");
 	    }
