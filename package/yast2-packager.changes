@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Nov 22 12:51:01 CET 2006 - lslezak@suse.cz
+
+- removed the workaround for #202088 (target is reloaded
+  automaticaly, removed the unnecessary reload)
+- show the GPG key name in the trust key dialog (#223170)
+- fixed initialization for YUM sources in slideshow, show output
+  for a YUM source (medium number 0 is allowed) (#220242)
+- 2.14.10
+
+-------------------------------------------------------------------
 Wed Nov 22 09:27:44 CET 2006 - lslezak@suse.cz
 
 - installation source: make the input widgets wider (#222548)
