@@ -333,7 +333,8 @@ _("<P>If you burn the media yourself, use the <B>pad</B> option in your recordin
 ");
 
 // advice check of the media
-string label = _("It is recommended to check all installation media to avoid installation problems.");
+// for translators: split the message to more lines if needed, use max. 50 characters per line
+string label = _("It is recommended to check all installation media\nto avoid installation problems.");
 
     term contents = `VBox(
 	// combobox label
