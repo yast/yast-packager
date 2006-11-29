@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 29 08:36:17 CET 2006 - lslezak@suse.cz
+
+- use Report::LongError(), the error message might be very long
+  (esp. important in ncurses UI) (#222893)
+
+-------------------------------------------------------------------
 Wed Nov 22 12:51:01 CET 2006 - lslezak@suse.cz
 
 - removed the workaround for #202088 (target is reloaded
