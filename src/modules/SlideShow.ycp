@@ -1708,6 +1708,12 @@
      **/
     global void SetCurrentCdNo( integer src_no, integer cd_no )
     {
+	if (cd_no == 0)
+	{
+	    y2milestone("medium number 0, using medium number 1");
+	    cd_no = 1;
+	}
+
 	y2milestone("SetCurrentCdNo() - src: %1 , CD: %2", src_no, cd_no);
 	current_src_no = srcid_to_current_src_no[src_no]:-1;
 	current_cd_no  = cd_no;

@@ -373,13 +373,6 @@ global void InitializeAddOnProducts() {
 	// remove unneeded / add needed packages for ppc
 	if (Arch::ppc ())
 	{
-	    if (Arch::board_iseries ())
-	    {
-		packages = add (packages, "ibmsis");
-		packages = add (packages, "scsi");
-		packages = add (packages, "iprutils");
-	    }
-
 	    if (Arch::board_mac ())
 	    {
 		packages = add (packages, "mouseemu");
@@ -404,13 +397,9 @@ global void InitializeAddOnProducts() {
 		    packages = add (packages, "pbbuttonsd");
 		    packages = add (packages, "powerprefs");
 		}
-
-		// mol is fun, and needs root access to kmem
-		packages = add (packages, "mol");
-		packages = add (packages, "sudo");
 	    }
 
-	    if (Arch::ppc64 () && Arch::board_chrp ())
+	    if (Arch::ppc64 () && (Arch::board_chrp () || Arch::board_iseries ()))
 	    {
 		packages = add (packages, "iprutils");
 	    }
@@ -423,6 +412,12 @@ global void InitializeAddOnProducts() {
 	    {
 		packages = add (packages, "fpswa");
 	    }
+	}
+
+	if (Arch::is_xenU())
+	{
+	    // xen-tools are required for registration of a Xen VM
+	    packages = add (packages, "xen-tools");
 	}
 
 	// add numactl on x86_64 with SMP
