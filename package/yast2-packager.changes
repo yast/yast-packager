@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 29 16:12:44 CET 2006 - lslezak@suse.cz
+
+- split the long label to more lines (#215340)
+
+-------------------------------------------------------------------
 Wed Nov 29 08:36:17 CET 2006 - lslezak@suse.cz
 
 - use Report::LongError(), the error message might be very long
