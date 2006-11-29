@@ -95,7 +95,7 @@
 	// Show the popup?
 	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
 	    // Unknown keyname == "Unknown Key"
-	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, fingerprint, dont_show_dialog_ident);
+	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, fingerprint, keyname, dont_show_dialog_ident);
 	// Return the default value entered by user
 	} else {
 	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
