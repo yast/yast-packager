@@ -397,10 +397,6 @@ global void InitializeAddOnProducts() {
 		    packages = add (packages, "pbbuttonsd");
 		    packages = add (packages, "powerprefs");
 		}
-
-		// mol is fun, and needs root access to kmem
-		packages = add (packages, "mol");
-		packages = add (packages, "sudo");
 	    }
 
 	    if (Arch::ppc64 () && (Arch::board_chrp () || Arch::board_iseries ()))
