@@ -4,6 +4,8 @@ Wed Nov 29 08:36:17 CET 2006 - lslezak@suse.cz
 - use Report::LongError(), the error message might be very long
   (esp. important in ncurses UI) (#222893)
 - do not install "mol" and "sudo" on ppc (#222906)
+- install "xen-tools" in a Xen VM (required for registration)
+  (#223643)
 
 -------------------------------------------------------------------
 Wed Nov 22 12:51:01 CET 2006 - lslezak@suse.cz
