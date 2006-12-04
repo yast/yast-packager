@@ -48,7 +48,8 @@
 		    `Left (`Heading(`id(`search_heading), _("SLP Search")))
 		),
 		`Left (
-		    `ReplacePoint(`id(`search_rp), `Empty())
+		    // progress information
+		    `ReplacePoint(`id(`search_rp), `Label(_("Scanning network for installation services...")))
 		)
 	    )
 	);
@@ -81,8 +82,9 @@
 		// frame label
 		_("Filter Form"),
 		`VSquash (`HBox (
-		    // Only some characters are valid 'A-Z a-z 0-9 .*-'
-		    `HSquash(`TextEntry (`id (`filter_text), "")),
+		    `HSquash(`MinWidth(
+			22, `TextEntry (`id (`filter_text), "")
+		    )),
 		    // push button
 		    `PushButton(`id(`filter), `opt(`default), _("&Filter")),
 		    `HStretch()

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec  4 18:36:44 CET 2006 - locilka@suse.cz
+
+- Wider text entry for filter form in SLP sources.
+
+-------------------------------------------------------------------
 Wed Nov 29 16:12:44 CET 2006 - lslezak@suse.cz
 
 - split the long label to more lines (#215340)
