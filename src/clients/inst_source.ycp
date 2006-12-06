@@ -34,7 +34,7 @@
     // Do not sync the changes to ZENworks even if rug is present
     // This is handy for repairing an already out-of-sync situation
     boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
-    boolean norug = !have_rug || WFM::Args(0) == "norug";
+    boolean norug = !have_rug || (size(WFM::Args()) > 0 && WFM::Args(0) == "norug");
 
     // constant Plaindir
     string plaindir_type = "Plaindir"; 
@@ -561,8 +561,6 @@ cannot be set."));
         }
 
     } until ( exit );
-
-    UI::CloseDialog();
 
     y2debug( "Return: %1", input );
 
