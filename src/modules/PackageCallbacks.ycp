@@ -367,6 +367,8 @@
 
 	if (error != 0)
 	{
+	    y2milestone("DonePackage(error: %1, reason: '%2')", error, reason);
+
 	    string infopath = (string) SCR::Read (.target.tmpdir) + "/rpmlog";
 	    SCR::Execute (.target.bash, "/usr/bin/tail '" + String::Quote (Installation::destdir)
 			  + Directory::logdir + "/y2logRPM' > " + infopath);
