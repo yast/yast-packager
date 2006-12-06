@@ -3,6 +3,7 @@ Wed Dec  6 13:28:52 CET 2006 - lslezak@suse.cz
 
 - inst_source: removed extra UI::CloseDialog() call (#224944),
   check number of arguments
+- 2.15.1
 
 -------------------------------------------------------------------
 Mon Dec  4 18:36:44 CET 2006 - locilka@suse.cz
