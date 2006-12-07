@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec  7 15:32:49 CET 2006 - lslezak@suse.cz
+
+- inst_source: `restart_menu is not needed anymore (#148683)
+
+-------------------------------------------------------------------
 Wed Dec  6 13:28:52 CET 2006 - lslezak@suse.cz
 
 - inst_source: removed extra UI::CloseDialog() call (#224944),
