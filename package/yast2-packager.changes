@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 12 12:40:49 CET 2006 - locilka@suse.cz
+
+- Desktop selection dialog doesn't use [Select] button anymore.
+  Other options are solved by another hidden radio-buttons
+  (#202132).
+
+-------------------------------------------------------------------
 Thu Dec  7 15:32:49 CET 2006 - lslezak@suse.cz
 
 - inst_source: `restart_menu is not needed anymore (#148683)
