@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec 13 14:19:27 CET 2006 - lslezak@suse.cz
+
+- display the correct error description in the error popup when
+  a download fails (#228178)
+- 2.15.2
+
+-------------------------------------------------------------------
 Tue Dec 12 12:40:49 CET 2006 - locilka@suse.cz
 
 - Desktop selection dialog doesn't use [Select] button anymore.
