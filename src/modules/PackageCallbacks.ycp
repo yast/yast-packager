@@ -192,7 +192,22 @@
 
 	if (error != 0)
 	{
+	    // this is for error code 1 ("NOT_FOUND"), %1 is name of a package
 	    string message = sformat (_("Package %1 was not found on the medium."), name);
+
+	    // "IO"
+	    if (error == 2)
+	    {
+		// error message, %1 is a package name
+		message = sformat(_("Package %1 could not be downloaded (input/output error)."), name);
+	    }
+	    // "INVALID"
+	    else if (error == 3)
+	    {
+		// error message, %1 is a package name
+		message = sformat(_("Package %1 is broken, integrity check has failed."), name);
+	    }
+
 
 	    if (Mode::commandline()) {
 		CommandLine::Print(message);
@@ -251,9 +266,26 @@
 			showLongInfo = ShowLogInfo (message, button_box);
 			if (showLongInfo)
 			{
+			    string error_symbol = "ERROR";
+
+			    if (error == 1)
+			    {
+				error_symbol = "NOT_FOUND";
+			    }
+			    else if (error == 2)
+			    {
+				error_symbol = "IO";
+			    }
+			    else if (error == 3)
+			    {
+				error_symbol = "INVALID";
+			    }
+
 			    UI::ReplaceWidget(`id(`info),
 					      `RichText (`opt(`plainText),
-							 sformat (_("Error: %1:"), error) + reason) );
+							// error message, %1 is code of the error,
+							// detail string is appended to the end
+							 sformat (_("Error: %1:"), error_symbol) + reason) );
 			}
 			else
 			{
