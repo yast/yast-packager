@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec 14 15:09:00 CET 2006 - lslezak@suse.cz
+
+- use "Skip" button instead of "Ignore" in the download error
+  popup (#228370)
+
+-------------------------------------------------------------------
 Thu Dec 14 14:04:09 CET 2006 - lslezak@suse.cz
 
 - do not display full path to a package in the installation popup

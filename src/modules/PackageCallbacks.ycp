@@ -243,7 +243,7 @@
 
 	    term button_box = `HBox (`PushButton (`id(`abort), Label::AbortButton()));
 	    button_box = add (button_box, `PushButton(`id(`retry), Label::RetryButton()));
-	    button_box = add (button_box, `PushButton(`id(`ignore), Label::IgnoreButton()));
+	    button_box = add (button_box, `PushButton(`id(`ignore), Label::SkipButton()));
 
 	    if ( showLongInfo )
 	    {
