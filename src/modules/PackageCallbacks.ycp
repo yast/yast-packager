@@ -334,7 +334,17 @@
 	if (!enable_asterix_package)
 	    return true;
 
-	_package_name = name;
+	list<string> parsed_path = splitstring(name, "/");
+
+	if (size(parsed_path) > 0)
+	{
+	    _package_name = parsed_path[size(parsed_path) - 1]:"";
+	}
+	else
+	{
+	    _package_name = name;
+	}
+
 	_package_size = installsize;
 	_deleting_package = is_delete;
 	string sz = String::FormatSizeWithPrecision (installsize, 2, false);
@@ -344,13 +354,13 @@
 		is_delete
 		    ? _("Uninstalling package %1 (%2)...")
 		    : _("Installing package %1 (%2)..."),
-		 name, sz));
+		 _package_name, sz));
 	}
 	else {
 	    term packagebox = ProgressBox (is_delete
 		? _("Uninstalling Package")
 		: _("Installing Package"),
-		name, sz);
+		_package_name, sz);
 
 	    UI::OpenDialog( `opt(`decorated), packagebox );
 	    _package_popup = true;

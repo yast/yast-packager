@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 14 14:04:09 CET 2006 - lslezak@suse.cz
+
+- do not display full path to a package in the installation popup
+- free size warning: prepend '/' to a partition name if it
+  does not begin with '/'
+
+-------------------------------------------------------------------
 Wed Dec 13 14:19:27 CET 2006 - lslezak@suse.cz
 
 - display the correct error description in the error popup when
