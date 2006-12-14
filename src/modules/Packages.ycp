@@ -275,6 +275,13 @@ global map Summary (list<symbol> flags, boolean use_cache) {
 	    foreach(map df, free_space,
 		{
 		    string partition = df["dir"]:"";
+
+		    // add a backslash if it's missing
+		    if (partition == "" || substring(partition, 0, 1) != "/")
+		    {
+			partition = "/" + partition;
+		    }
+
 		    integer free_pct = df["free_percent"]:0;
 		    integer free_kB = df["free_size"]:0;
 
