@@ -6,8 +6,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-style
 Requires:	checkmedia yast2-country
 # Pkg::TargetStoreRemove(), bug #210552; Pkg::SourceCreateType(), bug #168358
 Requires:	yast2-pkg-bindings >= 2.14.0
-# separate processes in ncurses control center
-Requires:	yast2 >= 2.15.0
+# Label::SkipButton()
+Requires:	yast2 >= 2.15.2
 Requires:	yast2-storage
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
