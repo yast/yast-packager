@@ -3,6 +3,8 @@ Thu Dec 14 15:09:00 CET 2006 - lslezak@suse.cz
 
 - use "Skip" button instead of "Ignore" in the download error
   popup (#228370)
+- inst_source: display complete URL dialog when the http source
+  URL has a port specified (#179424)
 
 -------------------------------------------------------------------
 Thu Dec 14 14:04:09 CET 2006 - lslezak@suse.cz
