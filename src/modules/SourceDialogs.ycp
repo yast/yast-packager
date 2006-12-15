@@ -1015,6 +1015,14 @@ term PopupContents (string proto) {
 global string EditPopup (string url) {
     SetURL (url);
     string proto = URLScheme (url);
+
+    map parsed_url = URL::Parse(url);
+    if (parsed_url["port"]:"" != "")
+    {
+	y2milestone("A port found in the URL, using 'url' scheme");
+	proto = "url";
+    }
+
     y2milestone ("Displaying popup for protocol %1", proto);
 
     list<map<string,any> > w = CWM::CreateWidgets ([proto], Widgets ());
