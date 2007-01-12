@@ -27,8 +27,7 @@
 	foreach (integer i, Packages::theSources, {
 	    map new_product = Pkg::SourceProductData (i);
 	    source_list = add (source_list,
-			       `item (`id (i),String::Pad( new_product["productname"]:_("Unknown"), 10 ),
-				      new_product["productversion"]:_("Unknown")));
+			       `item (`id (i), new_product["label"]:_("Unknown")));
 	});
     }
 
@@ -53,9 +52,7 @@
 					  `Left (`Label (label)),
 					  `Table (`id (`sources),
 							// table header
-						  `header (_("Name"),
-							// table header
-							   _("Version")),
+						  `header (_("Name")),
 						  source_list)
 					  )
 				   )
