@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 12 15:40:14 CET 2007 - lslezak@suse.cz
+
+- use "label" in the installation proposal dialog and in
+  the source summary dialog (#231521)
+- 2.13.163
+
+-------------------------------------------------------------------
 Wed Nov 29 08:36:17 CET 2006 - lslezak@suse.cz
 
 - use Report::LongError(), the error message might be very long

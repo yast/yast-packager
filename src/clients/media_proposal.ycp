@@ -52,8 +52,7 @@
 
 	    foreach (integer i, Packages::theSources, {
 		map new_product = Pkg::SourceProductData (i);
-		tmp = add (tmp, new_product["productname"]:"?" + " " +
-			   new_product["productversion"]:"?");
+		tmp = add (tmp, new_product["label"]:"?");
 	    });
 
 	    ret = $[ "preformatted_proposal" : HTML::List (tmp) ];
