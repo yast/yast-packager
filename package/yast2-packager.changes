@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 12 15:40:14 CET 2007 - lslezak@suse.cz
+
+- use "label" in the installation proposal dialog and in
+  the source summary dialog (#231521)
+- 2.15.3
+
+-------------------------------------------------------------------
 Thu Dec 14 15:09:00 CET 2006 - lslezak@suse.cz
 
 - use "Skip" button instead of "Ignore" in the download error
