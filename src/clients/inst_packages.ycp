@@ -135,8 +135,10 @@
 
     symbol result = `cancel;
 
-    // if ( Mode::normal() )	// DEBUG
-    if ( Stage::initial() )
+    y2milestone("Stage: %1, Mode: %2, Args: %3", Stage::stage(), Mode::mode(), WFM::Args());
+
+    // installation or update from a running system (there is a "Pattern Selection" button) (#229951)
+    if ( Stage::initial() || (Stage::normal() && Mode::update()))
     {
 	result = patternSelection();
     }
