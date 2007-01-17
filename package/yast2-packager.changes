@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 17 08:49:57 CET 2007 - lslezak@suse.cz
+
+- show the pattern selection dialog when doing update in a running
+  system (#229951) 
+
+-------------------------------------------------------------------
 Fri Jan 12 15:40:14 CET 2007 - lslezak@suse.cz
 
 - use "label" in the installation proposal dialog and in
