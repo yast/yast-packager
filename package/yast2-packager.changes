@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 19 15:19:10 CET 2007 - kmachalkova@suse.cz
+
+- Make MediaChange dialog more readable in text-mode (#222602) 
+
+-------------------------------------------------------------------
 Fri Jan 12 15:40:14 CET 2007 - lslezak@suse.cz
 
 - use "label" in the installation proposal dialog and in
