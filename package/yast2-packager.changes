@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 19 15:38:37 CET 2007 - kmachalkova@suse.cz
+
+-  Make MediaChange dialog more readable in text-mode (#222602) 
+
+-------------------------------------------------------------------
 Wed Jan 17 08:49:57 CET 2007 - lslezak@suse.cz
 
 - show the pattern selection dialog when doing update in a running
