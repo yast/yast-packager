@@ -126,9 +126,10 @@
 				integer vertical_size, boolean info_on )
     {
 	term dialog_layout =  `VBox(
-				    `HSpacing(40),	// enforce width
+				    `HSpacing(50),	// enforce width
 				    `VSpacing(0.1),
 				    `Left(`Label( message)),
+				    `VSpacing(0.1),
 				    `Left(`CheckBox(`id(`show), `opt(`notify),
 						    // check box
 						    _("Show &details"), info_on )),
@@ -669,7 +670,7 @@ Check that the server is accessible."), wanted_label);
 	{
 	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
 	    /* TextEntry label */
-	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
+	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(`opt(`plainText), error)) );
 	    UI::ChangeWidget(`id(`url), `Value, url);
 	}
 	else
@@ -688,7 +689,7 @@ Check that the server is accessible."), wanted_label);
 		if (showLongInfo)
 		{
 		    /* TextEntry label */
-		    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(error)) );
+		    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(`opt(`plainText), error)) );
 		    UI::ChangeWidget(`id(`url), `Value, url);
 		}
 		else
