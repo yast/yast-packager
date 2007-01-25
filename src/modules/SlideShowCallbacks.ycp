@@ -20,11 +20,13 @@
     import "PackageCallbacks";
     import "Popup";
     import "SlideShow";
+    import "Message";
+    import "Directory";
 
-    boolean shutup = ( Mode::autoinst() )?(true):(false);	// show the disk space warning popup only once and never in autoinstall
     boolean _remote_provide = false;
     boolean user_abort = false;
 
+    string pkg_inprogress = "";
 
     /**
      * Check for user button presses and handle them.
@@ -73,6 +75,8 @@
      */
     global boolean StartProvide( string name, integer archivesize, boolean remote )
     {
+	pkg_inprogress = name;
+
 	if ( remote )
 	{
 	    SlideShow::SlideProvideStart (name , archivesize, remote);
@@ -195,49 +199,155 @@
     //--------------------------------------------------------------------------
     // slide show
 
+    term YesNoButtonBox()
+    {
+	term yes_button = `PushButton(`id(`yes), `opt(`key_F10), Label::YesButton());
+	term no_button  = `PushButton(`id(`no_button), `opt(`default, `key_F9), Label::NoButton());
+
+	return `HBox(
+	    `HStretch(),
+	    `HWeight( 1, yes_button),
+	    `HSpacing(2),
+	    `HWeight( 1, no_button ),
+	    `HStretch()
+	);
+    }
+
+    // never show the disk space warning popup during autoinstallation
+    boolean ask_again = Mode::autoinst() ? false : true;
+    // true == continue with the installtion
+    boolean user_input = true;
+
+    boolean YesNoAgainWarning(string message)
+    {
+	if (!ask_again)
+	{
+	    return user_input;
+	}
+
+	term icon = `Empty();
+
+	// show the warning icon if possible
+	map ui_capabilities = UI::GetDisplayInfo();
+
+	if ( ui_capabilities[ "HasLocalImageSupport" ]:false )
+	{
+	    icon = `Image( Directory::icondir + "32x32/apps/msg_warning.png", "" );
+	}
+
+	term content = `MarginBox(1.5, 0.5,
+	    `VBox(
+		`HBox(
+		    `VCenter(icon),
+		    `HSpacing(1),
+		    `VCenter(`Heading(Label::WarningMsg())),
+		    `HStretch()
+		    ),
+		`VSpacing(0.2),
+		`Left( `Label( message ) ),
+		`VSpacing(0.2),
+		`Left(`CheckBox(`id(`dont_ask), Message::DoNotShowMessageAgain())),
+		`VSpacing(0.5),
+		YesNoButtonBox()
+	    )
+	);
+
+	UI::OpenDialog(`opt(`decorated), content);
+
+	any ret = UI::UserInput();
+
+	ask_again = (boolean) UI::QueryWidget(`id(`dont_ask), `Value);
+
+	if (!ask_again)
+	{
+	    // remember the user input
+	    user_input = (ret == `yes);
+	}
+
+	UI::CloseDialog();
+
+	return ret == `yes;
+    }
+
+
 
     /**
      * Callback that will be called by the packager for each RPM as it is being installed or deleted.
      * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
      * and pass the "deleting" flag as appropriate.
-     *
-     * return true: go on with installation
-     *        false: abort installation
      **/
-    global boolean DisplayStartInstall( string  pkg_name,
-					       string  pkg_description,
-					       integer pkg_size,
-					       integer disk_usage,
-					       integer disk_capacity,
-					       boolean deleting )
+    global void DisplayStartInstall(string pkg_name, string pkg_description, integer pkg_size, boolean deleting )
     {
 	SlideShow::SlideDisplayStart( pkg_name, pkg_description, pkg_size, deleting );
 	HandleInput();
 
-	integer disk_percentage_left = (disk_usage * 100) / disk_capacity;
-
 	// warn user about exhausted diskspace during installation (not if deleting packages)
-	if (! deleting)
+	if (!deleting && ask_again)
 	{
-//	    if ( disk_percentage_left > 95 && !shutup)
-// changed the condition because it fails on large disks (#115235)
-	    if (disk_usage + 2 * pkg_size > disk_capacity && ! shutup)
-	    {
-		boolean cont = Popup::AnyQuestion( Label::WarningMsg(),
-						   // yes-no popup
-						   _("The disk space is nearly exhausted.\nContinue with the installation?"),
-						   Label::YesButton(),
-						   Label::NoButton(),
-						   `focus_no );
+	    map<string, list<integer> > pkgdu = Pkg::PkgDU(pkg_inprogress);
 
-		if (!cont)
-		    return false;
-		else
-		    shutup = true;
+	    y2debug("PkgDU(%1): %2", pkg_inprogress, pkgdu);
+
+	    if (pkgdu != nil)
+	    {
+		// check each mount point
+		foreach(string part, list<integer> data, pkgdu,
+		    {
+			// skip read-only partitions, the package cannot be installed anyway
+			if (data[3]:0 == 1)
+			{
+			    y2debug("Skipping read-only partition %1", part);
+			    continue;
+			}
+
+			string target_dir = Installation::destdir + part;
+			integer disk_available = Pkg::TargetAvailable(target_dir);
+
+			y2debug("partition: %1 (%2), available: %3", part, target_dir, disk_available);
+
+			if (disk_available < data[2]:0)
+			{
+			    y2warning("Not enought free space in %1 (%2): available: %3, required: %4", part, target_dir, disk_available, data[2]:0);
+
+			    boolean cont = YesNoAgainWarning(
+				// warning popup - %1 is directory name (e.g. /boot)
+				sformat(_("The disk space in partition %1 is nearly exhausted.\nContinue with the installation?"), part));
+
+			    if (!cont)
+			    {
+				user_abort = true;
+			    }
+
+			    // don't check the other partitions
+			    break;
+			}
+		    }
+		);
+	    }
+	    else
+	    {
+		// disk usage for each partition is not known
+		// assume that all files will be installed into the root directory
+		integer disk_available = Pkg::TargetAvailable(Installation::destdir);
+
+		y2milestone("Available space (%1): %2", Installation::destdir, disk_available);
+
+		if (disk_available < pkg_size)
+		{
+		    y2warning("Not enough free space in %1: available: %2, required: %3", Installation::destdir, disk_available, pkg_size);
+
+		    boolean cont = YesNoAgainWarning(
+			// yes-no popup
+			_("The disk space is nearly exhausted.\nContinue with the installation?")
+		    );
+
+		    if (!cont)
+		    {
+			user_abort = true;
+		    }
+		}
 	    }
 	}
-
-	return ! user_abort;
     }
 
 
@@ -253,8 +363,6 @@
 	return DisplayStartInstall( name,
 				    summary,
 				    install_size,
-				    Pkg::TargetUsed( Installation::destdir ),
-				    Pkg::TargetCapacity( Installation::destdir ),
 				    is_delete);
     }
 
@@ -265,7 +373,11 @@
     global boolean ProgressPackage ( integer pkg_percent )
     {
 	HandleInput();
-	SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
+
+	if (!user_abort)
+	{
+	    SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
+	}
 
 	return ! user_abort;
     };

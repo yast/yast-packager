@@ -26,6 +26,7 @@ import "Label";
 import "Sequencer";
 import "String";
 import "Stage";
+import "PackageSystem";
 
 define list<term> CDdevices(string preferred) {
     list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
@@ -276,6 +277,13 @@ void LogLine(string line)
  * @return symbol Result from UserInput()
  */
 define symbol MainDialog () {
+
+    string req_package = "checkmedia";
+
+    if (!PackageSystem::CheckAndInstallPackagesInteractive([req_package]))
+    {
+	return `abort;
+    }
 
     // set wizard buttons at first
     if (!CheckMedia::forced_start)

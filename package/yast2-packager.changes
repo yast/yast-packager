@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Jan 25 15:38:58 CET 2007 - lslezak@suse.cz
+
+- improved the disk space check - compute disk usage of a packge
+  for the current partitioning (#222556), ignore read-only
+  partitions (#211735)
+- install 'checkmedia' package in run time, removed RPM
+  dependency (#238670)
+- 2.15.4
+
+-------------------------------------------------------------------
 Fri Jan 19 15:38:37 CET 2007 - kmachalkova@suse.cz
 
 -  Make MediaChange dialog more readable in text-mode (#222602) 
