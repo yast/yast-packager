@@ -283,7 +283,7 @@ Only installed packages are displayed."));
    // check the arguments and try the mount/search for local description
    symbol result = CheckWhichPackages (arg_list);
 
-   Pkg::SetLocale (UI::GetLanguage (true));
+   Pkg::SetTextLocale (UI::GetLanguage (true));
 
    y2milestone ("SW_SINGLE: result CheckWhichPackages %1", result);
 

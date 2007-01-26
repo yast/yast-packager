@@ -522,30 +522,6 @@ global void InitializeAddOnProducts() {
 
 
     /**
-     * Compute language dependant packages
-     * @return list(string)
-     */
-    define list<string> languagePackages ()
-    {
-	list<string> packages = [];
-	list<string> locales = Pkg::GetAdditionalLocales();
-	locales = prepend (locales, Pkg::GetLocale());
-	string transpac = "yast2-trans-";
-
-	foreach (string loc, locales, {
-	    if (Pkg::IsAvailable (transpac + loc))
-		packages = add (packages, transpac + loc);
-	    else if (Pkg::IsAvailable (transpac + substring (loc, 0, 2)))
-		packages = add (packages, transpac + substring (loc, 0, 2));
-	    else
-		y2warning ("No locale package found for %1", loc);
-	});
-	y2milestone ("Language packages: %1", packages);
-	return packages;
-    }
-
-
-    /**
      * Compute board (vendor) dependant packages
      * @return list(string)
      */
@@ -674,8 +650,6 @@ global list<string> ComputeSystemPatternList () {
 	{
 	    y2milestone ("Not selecting java packages");
 	}
-
-	install_list = (list<string>) union (install_list, languagePackages ());
 
 	install_list = (list<string>) union (install_list, boardPackages ());
 
@@ -924,7 +898,7 @@ global void Initialize(boolean show_popup) {
 
     // Set languages for packagemanager. Always set the UI language. Set
     // language for additional packages only in Stage::initial ().
-    Pkg::SetLocale (Language::language);
+    Pkg::SetTextLocale (Language::language);
 
     boolean again = true;
     theSources = Pkg::SourceStartCache (true); // dummy in 1st stage
@@ -1235,7 +1209,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	list<map> selected_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
 
 	// selected languages
-	list<string> selected_languages = (list<string>)union([Pkg::GetLocale()], Pkg::GetAdditionalLocales());
+	list<string> selected_languages = (list<string>)union([Pkg::GetPackageLocale()], Pkg::GetAdditionalLocales());
 
 
 	// if the package selection has not been changed the cache is up to date
@@ -1331,7 +1305,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     cached_proposal_products = filter(map p, Pkg::ResolvableProperties("", `product, ""), {return p["status"]:`unknown == `selected;});
     cached_proposal_patches = filter(map p, Pkg::ResolvableProperties("", `patch, ""), {return p["status"]:`unknown == `selected;});
     cached_proposal_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
-    cached_proposal_languages = (list<string>)union([Pkg::GetLocale()], Pkg::GetAdditionalLocales());
+    cached_proposal_languages = (list<string>)union([Pkg::GetPackageLocale()], Pkg::GetAdditionalLocales());
 
     UI::CloseDialog();
 

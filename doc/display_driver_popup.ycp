@@ -87,7 +87,7 @@
 	return `abort;
    }
 
-   Pkg::SetLocale (UI::GetLanguage (true));
+   Pkg::SetTextLocale (UI::GetLanguage (true));
    // evalutate packages
    Pkg::PkgFreshen();   
 
