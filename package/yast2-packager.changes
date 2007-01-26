@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Jan 26 07:10:05 CET 2007 - lslezak@suse.cz
+
+- removed obsolete module PackageSelectionIO.ycp (reading/writing
+  of the current package selection is implemented in UI)
+- removed Packages::languagePackages() - yast2-trans-* packages are
+  selected by the solver
+- use new Pkg::*Locale functions, do not install language packages
+  when yast2 -i is invoked in another locale (#223624)
+- 2.15.5
+
+-------------------------------------------------------------------
 Thu Jan 25 15:38:58 CET 2007 - lslezak@suse.cz
 
 - improved the disk space check - compute disk usage of a packge

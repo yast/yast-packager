@@ -37,10 +37,10 @@
 	// save information about target change time in module Packages
 	Packages::timestamp = Storage::GetTargetChangeTime();
 
-	if (Pkg::GetLocale () != Language::language)
+	if (Pkg::GetPackageLocale () != Language::language)
 	{
 	    language_changed = true;
-	    Pkg::SetLocale (Language::language);
+	    Pkg::SetPackageLocale (Language::language);
 	}
 	if (! contains (Pkg::GetAdditionalLocales (), Language::language))
 	{

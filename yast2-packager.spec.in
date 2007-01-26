@@ -4,8 +4,8 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite yast2-slp
 Requires:	yast2-country
-# Pkg::TargetStoreRemove(), bug #210552; Pkg::SourceCreateType(), bug #168358
-Requires:	yast2-pkg-bindings >= 2.14.0
+# new Pkg::*Locale() functions (#223624)
+Requires:	yast2-pkg-bindings >= 2.15.4
 # Label::SkipButton()
 Requires:	yast2 >= 2.15.2
 Requires:	yast2-storage
