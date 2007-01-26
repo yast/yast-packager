@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 26 17:36:13 CET 2007 - lslezak@suse.cz
+
+- inst_source - validate the entered path, added ISO image check
+  (#224797)
+
+-------------------------------------------------------------------
 Fri Jan 26 07:10:05 CET 2007 - lslezak@suse.cz
 
 - removed obsolete module PackageSelectionIO.ycp (reading/writing

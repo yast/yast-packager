@@ -23,6 +23,8 @@ import "URL";
 import "Popup";
 import "CWM";
 import "SourceManager";
+import "Message";
+import "Report";
 
 // common functions / data
 
@@ -394,6 +396,76 @@ symbol DirHandle (string key, map event) {
     return nil;
 }
 
+boolean DirISOValidate(string key, map event) {
+    string s = (string)UI::QueryWidget(`id(`dir), `Value);
+    if (s == nil || s == "")
+    {
+	// error popup
+	Popup::Error(Message::RequiredItem());
+	UI::SetFocus(`id(`dir));
+	return false;
+    }
+
+    boolean is_iso = false;
+
+    if (UI::WidgetExists(`id(`ch_iso)))
+    {
+	is_iso = (boolean)UI::QueryWidget(`id(`ch_iso), `Value);
+    }
+
+    map stat = (map)SCR::Read(.target.stat, s);
+
+    y2milestone("stat %1: %2", s, stat);
+
+    if (is_iso)
+    {
+	if (!stat["isreg"]:false)
+	{
+	    // error popup - the entered path is not a regular file
+	    Report::Error(_("The entered path is not a file\nor the file doesn't exist."));
+	    UI::SetFocus(`id(`dir));
+
+	    return false;
+	}
+
+	string file = "/usr/bin/file";
+	// try to detect ISO image by file if it's present
+	if (SCR::Read(.target.size, file) > 0)
+	{
+	    string command = file + " -b -i " + s;
+
+	    map out = (map)SCR::Execute(.target.bash_output, command);
+
+	    string stdout = out["stdout"]:"";
+
+	    if (issubstring(stdout, "application/x-iso9660"))
+	    {
+		y2milestone("ISO 9660 image detected");
+	    }
+	    else
+	    {
+		// continue/cancel popup
+		return Popup::ContinueCancel(sformat(_("File '%1'\ndoesn't seem to be an ISO image.\nContinue?"), s));
+	    }
+	}
+
+	// cannot check ISO, but it's at least a file
+	return true;
+    }
+
+    if (!is_iso && !stat["isdir"]:false)
+    {
+	// error popup - the entered path is not a directory
+	Report::Error(_("The entered path is not a directory\nor the directory doesn't exist."));
+	UI::SetFocus(`id(`dir));
+
+	return false;
+    }
+
+    return true;
+}
+
+
 /**
  * Get widget description map
  * @return widget description map
@@ -418,6 +490,8 @@ map<string,any> DirWidget () {
 	"store" : DirStore,
 	"handle" : DirHandle,
 	"handle_events" : [ `browse ],
+	"validate_type" : `function,
+	"validate_function" : DirISOValidate,
 	"help" : _("<p><big><b>Local Directory or ISO</b></big><br>
 Ise <b>Path to Directory or ISO Image</b> to specify the path to the
 directory or the file holding the ISO image of the installation media.</p>")
@@ -461,6 +535,8 @@ map<string,any> PlainDirWidget () {
 	"store" : PlainDirStore,
 	"handle" : DirHandle,
 	"handle_events" : [ `browse ],
+	"validate_type" : `function,
+	"validate_function" : DirISOValidate,
 	"help" : _("<p><big><b>Local Directory</b></big><br>
 Use <b>Path to Directory</b> to specify the path to the
 directory holding RPM packages.</p>")
