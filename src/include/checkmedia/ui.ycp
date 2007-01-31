@@ -280,7 +280,8 @@ define symbol MainDialog () {
 
     string req_package = "checkmedia";
 
-    if (!PackageSystem::CheckAndInstallPackagesInteractive([req_package]))
+    if (SCR::Read(.target.size, CheckMedia::checkmedia) < 0 &&
+	!PackageSystem::CheckAndInstallPackagesInteractive([req_package]))
     {
 	return `abort;
     }

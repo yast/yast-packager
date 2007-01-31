@@ -22,7 +22,7 @@
 
     textdomain "packager";
 
-    string checkmedia = "/usr/bin/checkmedia";
+    global const string checkmedia = "/usr/bin/checkmedia";
 
     list<string> output = [];
     integer progress = 0;
