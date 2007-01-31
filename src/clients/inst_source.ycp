@@ -199,6 +199,15 @@ in the packages selection, continue."),
 		  {
 		    map src_data = Pkg::SourceGeneralData (id);
 		    boolean auto_refresh = src_data["autorefresh"]:false;
+
+		    // disable autorefresh for ISO images
+		    string src_url = src_data["url"]:"";
+		    if (substring(src_url, 0, 3) == "iso")
+		    {
+			y2milestone("ISO image detected, disabling autorefresh (%1)", src_url);
+			auto_refresh = false;
+		    }
+
                     map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
 		  }
