@@ -1,7 +1,10 @@
 -------------------------------------------------------------------
 Wed Jan 31 08:21:05 CET 2007 - lslezak@suse.cz
 
-- disable autorefresh for a new ISO image source (#223585)
+- inst_source: disable autorefresh for a new ISO image based
+  source (#223585)
+- inst_source: merged "Package Directory" into "Local Directory",
+  added "Local ISO Image" source type (#204943)
 
 -------------------------------------------------------------------
 Fri Jan 26 17:36:13 CET 2007 - lslezak@suse.cz

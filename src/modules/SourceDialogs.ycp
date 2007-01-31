@@ -145,7 +145,7 @@ string NormalizeHost (string host) {
 term PopupButtons() {
     return `HBox(
 	`PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
-	`HStretch(),
+	`HSpacing(2),
 	`PushButton( `id( `cancel ), Label::CancelButton() )
     );
 }
@@ -284,7 +284,6 @@ map<string,any> NFSWidget () {
 	"help" : _("<p><big><b>NFS Server</b></big><br>
 Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
 to specify the NFS server host name and path on the server.<p>")
-+ iso_help
 + multi_cd_help,
     ];
 }
@@ -345,13 +344,25 @@ Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"),
  * @param key string widget key
  */
 void DirInit (string key) {
-    boolean iso = IsISOURL (_url);
-    if (iso)
-	_url = PreprocessISOURL (_url);
     map parsed = URL::Parse (_url);
     UI::ChangeWidget (`id (`dir), `Value, parsed["path"]:"");
     UI::SetFocus (`dir);
 
+    // is it a plain directory?
+    boolean plain_rpm = (parsed["scheme"]:"" == "pkg");
+    UI::ChangeWidget(`id(`ch_plain), `Value, plain_rpm);
+}
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void IsoInit (string key) {
+    _url = PreprocessISOURL(_url);
+    map parsed = URL::Parse(_url);
+
+    UI::ChangeWidget(`id(`dir), `Value, parsed["path"]:"");
+    UI::SetFocus(`dir);
 }
 
 /**
@@ -364,14 +375,28 @@ void DirStore (string key, map event) {
 	"scheme" : "dir",
 	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
     ];
-    _url = URL::Build (parsed);
 
-    if (UI::WidgetExists(`id(`ch_iso)))
+    if ((boolean)UI::QueryWidget (`id (`ch_plain), `Value))
     {
-	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
-	if (iso)
-	    _url = PosprocessISOURL (_url);
+	parsed["scheme"] = "pkg";
     }
+
+    _url = URL::Build (parsed);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void IsoStore (string key, map event) {
+    map parsed = $[
+	"scheme" : "file",
+	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
+    ];
+
+    _url = URL::Build(parsed);
+    _url = PosprocessISOURL(_url);
 }
 
 /**
@@ -381,22 +406,37 @@ void DirStore (string key, map event) {
  * @return always nil
  */
 symbol DirHandle (string key, map event) {
-    boolean iso   = (UI::WidgetExists(`id(`ch_iso))) ?
-	(boolean)UI::QueryWidget (`id (`ch_iso), `Value)
-	: false;
-
     string dir = (string)UI::QueryWidget (`id (`dir), `Value);
-    string result = iso
-	// dialog caption
-	?  UI::AskForExistingFile (dir, "*", _("ISO Image File"))
-	// dialog caption
-	: UI::AskForExistingDirectory (dir, _("Local Directory"));
-    if ( result != nil )
+    // dialog caption
+    string result = UI::AskForExistingDirectory (dir, _("Local Directory"));
+
+    if (result != nil)
+    {
 	UI::ChangeWidget (`id (`dir), `Value, result);
+    }
+
     return nil;
 }
 
-boolean DirISOValidate(string key, map event) {
+/**
+ * Handle function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ * @return always nil
+ */
+symbol IsoHandle (string key, map event) {
+    string dir = (string)UI::QueryWidget(`id(`dir), `Value);
+    // dialog caption
+    string result = UI::AskForExistingFile(dir, "*", _("ISO Image File"));
+
+    if (result != nil)
+    {
+	UI::ChangeWidget(`id (`dir), `Value, result);
+    }
+
+    return nil;
+}
+boolean DirValidate(string key, map event) {
     string s = (string)UI::QueryWidget(`id(`dir), `Value);
     if (s == nil || s == "")
     {
@@ -406,54 +446,11 @@ boolean DirISOValidate(string key, map event) {
 	return false;
     }
 
-    boolean is_iso = false;
-
-    if (UI::WidgetExists(`id(`ch_iso)))
-    {
-	is_iso = (boolean)UI::QueryWidget(`id(`ch_iso), `Value);
-    }
-
     map stat = (map)SCR::Read(.target.stat, s);
 
     y2milestone("stat %1: %2", s, stat);
 
-    if (is_iso)
-    {
-	if (!stat["isreg"]:false)
-	{
-	    // error popup - the entered path is not a regular file
-	    Report::Error(_("The entered path is not a file\nor the file doesn't exist."));
-	    UI::SetFocus(`id(`dir));
-
-	    return false;
-	}
-
-	string file = "/usr/bin/file";
-	// try to detect ISO image by file if it's present
-	if (SCR::Read(.target.size, file) > 0)
-	{
-	    string command = file + " -b -i " + s;
-
-	    map out = (map)SCR::Execute(.target.bash_output, command);
-
-	    string stdout = out["stdout"]:"";
-
-	    if (issubstring(stdout, "application/x-iso9660"))
-	    {
-		y2milestone("ISO 9660 image detected");
-	    }
-	    else
-	    {
-		// continue/cancel popup
-		return Popup::ContinueCancel(sformat(_("File '%1'\ndoesn't seem to be an ISO image.\nContinue?"), s));
-	    }
-	}
-
-	// cannot check ISO, but it's at least a file
-	return true;
-    }
-
-    if (!is_iso && !stat["isdir"]:false)
+    if (!stat["isdir"]:false)
     {
 	// error popup - the entered path is not a directory
 	Report::Error(_("The entered path is not a directory\nor the directory doesn't exist."));
@@ -466,58 +463,57 @@ boolean DirISOValidate(string key, map event) {
 }
 
 
+boolean IsoValidate(string key, map event) {
+    string s = (string)UI::QueryWidget(`id(`dir), `Value);
+    if (s == nil || s == "")
+    {
+	// error popup
+	Popup::Error(Message::RequiredItem());
+	UI::SetFocus(`id(`dir));
+	return false;
+    }
+
+    map stat = (map)SCR::Read(.target.stat, s);
+
+    y2milestone("stat %1: %2", s, stat);
+
+    if (!stat["isreg"]:false)
+    {
+	// error popup - the entered path is not a regular file
+	Report::Error(_("The entered path is not a file\nor the file doesn't exist."));
+	UI::SetFocus(`id(`dir));
+
+	return false;
+    }
+
+    string file = "/usr/bin/file";
+    // try to detect ISO image by file if it's present
+    if (SCR::Read(.target.size, file) > 0)
+    {
+	string command = file + " -b -i " + s;
+
+	map out = (map)SCR::Execute(.target.bash_output, command);
+
+	string stdout = out["stdout"]:"";
+
+	if (issubstring(stdout, "application/x-iso9660"))
+	{
+	    y2milestone("ISO 9660 image detected");
+	}
+	else
+	{
+	    // continue/cancel popup, %1 is a file name
+	    return Popup::ContinueCancel(sformat(_("File '%1'\ndoesn't seem to be an ISO image.\nUse it anyway?"), s));
+	}
+    }
+
+    return true;
+}
 /**
  * Get widget description map
  * @return widget description map
  */
 map<string,any> DirWidget () {
-    return $[
-	"widget" : `custom,
-	"custom_widget" : `VBox(
-	    `HBox(
-		// text entry
-                `TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
-		`VBox (
-		    `Label (""),
-		    // push button
-		    `PushButton (`id (`browse), _("&Browse..."))
-		)
-	    ),
-	    // checkbox label
-	    `Left (`CheckBox (`id (`ch_iso), _("ISO Image")))
-	),
-	"init" : DirInit,
-	"store" : DirStore,
-	"handle" : DirHandle,
-	"handle_events" : [ `browse ],
-	"validate_type" : `function,
-	"validate_function" : DirISOValidate,
-	"help" : _("<p><big><b>Local Directory or ISO</b></big><br>
-Ise <b>Path to Directory or ISO Image</b> to specify the path to the
-directory or the file holding the ISO image of the installation media.</p>")
-+ iso_help
-+ multi_cd_help,
-    ];
-
-}
-
-/**
- * Store function of a widget
- * @param key string widget key
- * @param event map which caused settings being stored
- */
-void PlainDirStore (string key, map event) {
-    map parsed = $[
-	"scheme" : "pkg",
-	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
-    ];
-    _url = URL::Build (parsed);
-}
-/**
- * Get widget description map
- * @return widget description map
- */
-map<string,any> PlainDirWidget () {
     return $[
 	"widget" : `custom,
 	"custom_widget" : `VBox(
@@ -529,17 +525,53 @@ map<string,any> PlainDirWidget () {
 		    // push button
 		    `PushButton (`id (`browse), _("&Browse..."))
 		)
-	    )
+	    ),
+	    // checkbox label
+	    `Left (`CheckBox (`id (`ch_plain), _("&Plain RPM Directory")))
 	),
 	"init" : DirInit,
-	"store" : PlainDirStore,
+	"store" : DirStore,
 	"handle" : DirHandle,
 	"handle_events" : [ `browse ],
 	"validate_type" : `function,
-	"validate_function" : DirISOValidate,
+	"validate_function" : DirValidate,
 	"help" : _("<p><big><b>Local Directory</b></big><br>
 Use <b>Path to Directory</b> to specify the path to the
-directory holding RPM packages.</p>")
+directory. If the directory contains just RPM packages without
+any metadata (i.e. there is no product information) then check option
+<b>Plain RPM Directory</b>.</p>")
++ multi_cd_help,
+    ];
+
+}
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> IsoWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox(
+	    `HBox(
+		// text entry
+                `TextEntry (`id (`dir), _("&Path to ISO Image")),
+		`VBox (
+		    `Label (""),
+		    // push button
+		    `PushButton (`id (`browse), _("&Browse..."))
+		)
+	    )
+	),
+	"init" : IsoInit,
+	"store" : IsoStore,
+	"handle" : IsoHandle,
+	"handle_events" : [ `browse ],
+	"validate_type" : `function,
+	"validate_function" : IsoValidate,
+	"help" : _("<p><big><b>Local ISO Image</b></big><br>
+Use <b>Path to ISO Image</b> to specify the path to the
+ISO image file.</p>")
     ];
 
 }
@@ -884,7 +916,7 @@ term SelectRadioWidget () {
 	    // radio button
 	    `Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 	    // radio button
-	    `Left (`RadioButton(`id(`pkg), _("&Package Directory..."))), // TODO: Proposal: move the functionality to "Local Directory", move ISO here
+	    `Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
 	    // radio button
 	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
 	    `VStretch ()
@@ -903,7 +935,7 @@ term SelectRadioWidget () {
 		// radio button
 		`Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 		// radio button
-		`Left (`RadioButton(`id(`pkg), _("&Package Directory..."))),
+		`Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
 		// radio button
 		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
 		`VStretch ()
@@ -978,7 +1010,7 @@ void SelectStore (string key, map event) {
     _url = "";
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
     if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
-	`local_dir, `specify__url, `slp, `pkg], selected))
+	`local_dir, `specify__url, `slp, `local_iso], selected))
     {
 	if ( selected == `ftp ) _url = "ftp://";
 	else if ( selected == `http ) _url = "http://";
@@ -988,7 +1020,7 @@ void SelectStore (string key, map event) {
 	else if ( selected == `cd ) _url = "cd:///";
 	else if ( selected == `dvd ) _url = "dvd:///";
 	else if ( selected == `local_dir ) _url = "dir://";
-	else if ( selected == `pkg ) _url = "pkg://";	// hack for local PlainDir source
+	else if ( selected == `local_iso ) _url = "file://";
 	else if ( selected == `slp ) _url = "slp://";
     }
 }
@@ -1024,8 +1056,8 @@ map<string,map<string,any> > Widgets () {
 	    "cd" : CDWidget (),
 	    "dvd" : CDWidget (),
 	    "dir" : DirWidget (),
-	    "file" : DirWidget (),
-	    "pkg" : PlainDirWidget(),
+	    "file" : IsoWidget (),
+	    "pkg" : DirWidget(),
 	    "http" : ServerWidget (),
 	    "https" : ServerWidget (),
 	    "ftp" : ServerWidget (),
@@ -1049,11 +1081,11 @@ map<string,string> _caption = $[
     // label / dialog caption
     "dvd" : _("CD or DVD Media"),
     // label / dialog caption
-    "dir" : _("Local Directory or ISO"),
+    "dir" : _("Local Directory"),
     // label / dialog caption
-    "file" : _("Local Directory or ISO"),
+    "file" : _("Local ISO Image"),
     // label / dialog caption
-    "pkg"  : _("Package Directory"),
+    "pkg"  : _("Local Directory"),
     // label / dialog caption
     "http" : _("Server and Directory"),
     // label / dialog caption
@@ -1077,8 +1109,9 @@ term PopupContents (string proto) {
     return `VBox (
 	`HSpacing (50),
 	// label
-	`Label (_caption[proto]:""),
+	`Heading(_caption[proto]:""),
 	proto,
+	`VSpacing(0.5),
 	PopupButtons ()
     );
 };
