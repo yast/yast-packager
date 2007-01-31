@@ -5,6 +5,8 @@ Wed Jan 31 08:21:05 CET 2007 - lslezak@suse.cz
   source (#223585)
 - inst_source: merged "Package Directory" into "Local Directory",
   added "Local ISO Image" source type (#204943)
+- fixed checkmedia test in the first installation stage (#238670)
+- 2.15.6
 
 -------------------------------------------------------------------
 Fri Jan 26 17:36:13 CET 2007 - lslezak@suse.cz
