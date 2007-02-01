@@ -308,6 +308,13 @@ symbol SummaryDialog () {
     // push button
     string refreshOnOffButtonLabel = _("Refre&sh On or Off");
 
+    SourceManager::ReadSyncFlag();
+    boolean sync_zmd = SourceManager::GetSyncFlag();
+    if (sync_zmd == nil)
+    {
+	sync_zmd = true;
+    }
+
     term contents =
         `VBox(
 	      `HBox(
@@ -327,7 +334,7 @@ symbol SummaryDialog () {
 	      `Left (`CheckBox (`id (`zmdsync),
 				// Checkbox label
 				_("Synchronize Changes with &ZENworks"),
-				!norug)),
+				!norug && sync_zmd)),
 	      `HBox(
 		    `PushButton (`id (`add), `opt(`key_F3),
 			Label::AddButton ()),
@@ -436,6 +443,14 @@ to perform the changes also in that package management system.</p>");
 	if ( input == `next )
         {
 	  norug = ! (boolean) UI::QueryWidget (`id (`zmdsync), `Value);
+
+	  // write ZMD status if the widget is enabled
+	  if ((boolean)UI::QueryWidget(`id(`zmdsync), `Enabled))
+	  {
+	    SourceManager::SetSyncFlag(!norug);
+	    SourceManager::WriteSyncFlag();
+	  }
+
 	  // store the new state
           boolean success = Write();
           if ( !success ) {
