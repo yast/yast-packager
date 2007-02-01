@@ -122,6 +122,64 @@ global string AddSourceTypeSLP () {
     return url;
 }
 
+// is ZMD synchronization enabled?
+// nil = unknown (not configured/read)
+boolean zmd_sync = nil;
+
+const string source_config_file = "/var/lib/YaST2/inst_source_config.ycp";
+
+/**
+ * Return ZMD synchronization flag.
+ * @return boolean true/false = ZMD sync is enabled/disabled, nil = unknown (not configured/read)
+ */
+global boolean GetSyncFlag()
+{
+    return zmd_sync;
+}
+
+/**
+ * Read ZMD sync flag from the persistent store (/var/lib/YaST2/inst_source_config.ycp)
+ * @return boolean true = success, false = read/parse error or the file doesn't exist
+ */
+global boolean ReadSyncFlag()
+{
+    map<string, any> inst_config = (map<string, any>)SCR::Read(.target.ycp, source_config_file);
+    zmd_sync = (boolean)inst_config["zmd_sync"]:nil;
+    y2milestone("Read ZMD sync status: %1", zmd_sync);
+
+    return inst_config != nil;
+}
+
+/**
+ * Set ZMD synchronization flag.
+ * @param sync_enabled true/false = enable/disable ZMD sync, nil = unknown (not configured/read)
+ */
+global void SetSyncFlag(boolean sync_enabled)
+{
+    y2milestone("Setting ZMD sync flag: %1", sync_enabled);
+    zmd_sync = sync_enabled;
+}
+
+/**
+ * Write ZMD sync flag to the persistent store
+ * @return boolean true = success
+ */
+global boolean WriteSyncFlag()
+{
+    if (zmd_sync == nil)
+    {
+	y2warning("ZMD sync is set to nil, not storing");
+	return true;
+    }
+    else
+    {
+	y2milestone("Writing ZMD sync status: %1", zmd_sync);
+
+	map<string, any> inst_config = $[ "zmd_sync" : zmd_sync ];
+	return (boolean)SCR::Write(.target.ycp, source_config_file, inst_config);
+    }
+}
+
 /**
  * Read all source-manager settings
  * @return true on success
