@@ -18,7 +18,6 @@
     import "PackageLock";
     import "PackageSystem";
     import "Report";
-    import "SLP";
     import "Stage";
     // SourceManager overlaps quite a bit with inst_source,
     // so far we only use it for ZMD sync, TODO refactor better
@@ -593,19 +592,38 @@ cannot be set."));
 
 symbol StoreSource () {
     string url = SourceDialogs::GetURL ();
+
+    // special case, bugzilla #238680
     if (url == "slp://")
     {
-	string service = SourceManager::AddSourceTypeSLP ();
-	y2milestone ("Trying to add source '%1'", service);
-	if (service != nil)
-	{
-	    // add the installation source
-	    symbol createResult = createSource(service);
-	    y2milestone ("Adding source result: %1", createResult);
-	    return `next;
+	string required_package = "yast2-slp";
+	boolean installed_before = PackageSystem::Installed (required_package);
+
+	if (! Mode::installation () && ! installed_before) {
+	    // Tries to Check and Install packages
+	    if (
+		! PackageSystem::CheckAndInstallPackagesInteractive ([required_package]) ||
+		! PackageSystem::Installed (required_package)
+	    ) {
+		Report::Error (sformat (
+		    // popup error message, %1 is the package name
+		    _("Cannot search for SLP installation sources
+without having %1 package installed"),
+		    required_package
+		));
+		y2warning ("Not searching for SLP sources");
+		return `back;
+	    // New .slp agent has been added
+	    // FIXME: lazy loading of agents will make this obsolete
+	    } else {
+		SCR::RegisterAgent(.slp, `ag_slp(`SlpAgent()));
+	    }
 	}
-	return `back;
+	
+	symbol ret = (symbol) WFM::call("add_inst_source_slptype");
+	return ret;
     }
+
     if (createSource(url) == `again)
 	return `back;
     return `next;
