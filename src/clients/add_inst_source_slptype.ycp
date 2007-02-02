@@ -1,0 +1,33 @@
+/**
+ * File:
+ *  add_inst_source_slptype.ycp
+ *
+ * Module:
+ *  Client for searching for and adding SLP installation sources.
+ *  The purpose is to make yast2-installation independent on yast-slp
+ *  as described in bugzilla #238680.
+ *
+ * Authors:
+ *  Lukas Ocilka <locilka@suse.cz>
+ *
+ * $Id: $
+ *
+ */
+{
+    import "SourceManager";
+    import "SourceManagerSLP";
+
+    string service = SourceManagerSLP::AddSourceTypeSLP ();
+    if (service == nil) {
+	y2milestone("No service selected, returning back...");
+	    
+	return `back;
+    }
+	
+    y2milestone ("Trying to add source '%1'", service);
+    // add the installation source
+    symbol createResult = SourceManager::createSource(service);
+    y2milestone ("Adding source result: %1", createResult);
+	
+    return `next;
+}

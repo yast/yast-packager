@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Feb  2 15:21:29 CET 2007 - locilka@suse.cz
+
+- Separating SLP-related functions to the SourceManagerSLP module.
+- Creating new add_inst_source_slptype client.
+- Handling not installed yast2-slp package in inst_source client.
+- All to make system without yast2-slp package installed possible
+  (#238680).
+
+-------------------------------------------------------------------
 Thu Feb  1 08:56:33 CET 2007 - lslezak@suse.cz
 
 - inst_source - "Synchronize with ZENworks" setting is persistent

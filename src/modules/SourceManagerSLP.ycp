@@ -482,5 +482,16 @@ which probably blocks the network scanning.")
 	return selected_service;
     }
 
+    /**
+     * Function scans for SLP installation servers on the network
+     * @returns symbol one of `back, `next
+     */
+    global string AddSourceTypeSLP () {
+	string url = SourceManagerSLP::SelectOneSLPService();
+	y2milestone("Selected URL: %1", url);
+
+	return url;
+    }
+
 /* EOF */
 }
