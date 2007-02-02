@@ -9,10 +9,18 @@
 {
     textdomain "packager";
 
+    import "Wizard";
+    // open the dialog
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_single");
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
     import "DirInstall";
     import "PackageLock";
     import "Product";
     import "Report";
+    import "Progress";
+    import "Popup";
 
     include "dirinstall/ui.ycp";
 
@@ -20,14 +28,44 @@
     if (! PackageLock::Check ())
 	return `abort;
 
+
+    list<string> stages =
+    [
+	// progress bar item
+	_("Initialize the Package Manager"),
+	// progress bar item
+	_("Select Software"),
+	// progress bar item
+	_("Initialize the Target System")
+    ];
+
+    list<string> stages2 =
+    [
+	// progress bar item
+	_("Initializing the Package Manager..."),
+	// progress bar item
+	_("Selecting Software..."),
+	// progress bar item
+	_("Initializing the Target System...")
+    ];
+
+    // progres bar label
+    Progress::New (_("Initializing..."), " ", size(stages) - 1,
+	    // progres bar label
+	    stages, stages2, _("Please wait..."));
+
+
     // install package callbacks
     import "PackageCallbacksInit";
     PackageCallbacksInit::InitPackageCallbacks();
+
+    Progress::NextStage();
 
     // initializa the package manager
     integer old_src = -1;
     integer new_src = -1;
     boolean using_patterns = false;
+
     Pkg::TargetFinish ();
     Pkg::SourceStartManager(true);
     boolean have_patterns
@@ -35,9 +73,13 @@
     boolean have_selections
 	= size (Pkg::GetSelections (`available, "base")) > 0;
     have_patterns = have_patterns && ! have_selections;
+
+    Progress::NextStage();
+
     if (have_patterns)
     {
 	y2milestone ("Host system is using patterns");
+
 	Pkg::TargetInit ("/", false);
 	list<map<string,any> > prods = Pkg::ResolvableProperties ("", `product, "");
 	list<map<string,any> > base_l = filter (map<string,any> p, prods, {
@@ -56,6 +98,7 @@
 	{
 	    // error report
 	    Report::Error (_("Could not read package information."));
+	    Wizard::CloseDialog();
 	    return `abort;
 	}
 	map<string,any> prod = prods[0]:$[];
@@ -67,7 +110,10 @@
 	if (substring (url, 0, 3) == "cd:" || substring (url, 0, 4) == "dvd:")
 	{
 	    if (! Popup::ContinueCancel (sformat (_("Insert %1 CD 1"), base["summary"]:"")))
+	    {
+		Wizard::CloseDialog();
 		return `back;
+	    }
 	}
 	new_src = Pkg::SourceCreateBase (url, dir);
 	old_src = source;
@@ -96,6 +142,9 @@
     }
 
     symbol ret = Run ();
+
+    Progress::NextStage();
+
     y2milestone ("Sequence returned %1", ret);
     DirInstall::UmountFilesystems ();
     if (using_patterns)
@@ -104,5 +153,7 @@
 	Pkg::SourceSetEnabled (old_src, true);
     }
     DirInstall::FinishPackageManager ();
+
+    Wizard::CloseDialog();
     return ret;
 }
