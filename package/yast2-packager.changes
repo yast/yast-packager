@@ -6,6 +6,7 @@ Thu Feb  1 08:56:33 CET 2007 - lslezak@suse.cz
 - dirinstall - recheck disk space when the target directory
   is changed (#224150), properly initialize partitioning
   (use the mount points only below the target)
+- dirinstall - display a progress dialog at start/finish
 
 -------------------------------------------------------------------
 Wed Jan 31 08:21:05 CET 2007 - lslezak@suse.cz

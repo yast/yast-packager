@@ -19,17 +19,15 @@
     import "Installation";
 
     import "Wizard";
-    import "Label";
-    import "Popup";
     import "Report";
-    import "GetInstArgs";
+    import "Progress";
 
 define symbol Run () {
     y2milestone("current mode: %1", Mode::mode());
     DirInstall::InitProductControl ();
     DirInstall::installing_into_dir = true;
 
-    Wizard::OpenNextBackStepsDialog();
+    Progress::NextStage();
 
     // check the package manager target
     Pkg::TargetFinish ();
@@ -52,11 +50,36 @@ define symbol Run () {
 
     Installation::destdir = DirInstall::GetTarget();
     y2debug("target dir: %1", Installation::destdir);
+
     symbol ret = ProductControl::Run();
+
+    // display a progress during exit
+    list<string> stages =
+    [
+	// progress bar item
+	_("Finish the Package Manager"),
+	// progress bar item
+	_("Clean Up"),
+    ];
+
+    list<string> stages2 =
+    [
+	// progress bar item
+	_("Finishing the Package Manager..."),
+	// progress bar item
+	_("Cleaning Up..."),
+    ];
+
+    // progres bar label
+    Progress::New (_("Finishing..."), " ", size(stages) - 1,
+	    // progres bar label
+	    stages, stages2, _("Please wait..."));
+
+    Progress::NextStage();
+
     Pkg::SourceFinishAll ();
     Pkg::TargetFinish();
     Installation::destdir = "/";
-    Wizard::CloseDialog ();
 
     return ret;
 }
