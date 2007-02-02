@@ -17,7 +17,7 @@ import "ProductControl";
 import "String";
 
 global boolean runme_at_boot = false;
-global string target = "/var/tmp/dirinstall";
+string target = "/var/tmp/dirinstall";
 
 global boolean makeimage = false;
 global string image_dir = "";
@@ -35,6 +35,27 @@ list<list<string> > filesystems = [
 ];
 
 list<string> mounted_fs = [];
+
+integer target_time = 0;
+
+global integer GetTargetChangeTime()
+{
+    return target_time;
+}
+
+global void SetTarget(string tgt)
+{
+    if (target != tgt)
+    {
+	target = tgt;
+	target_time = time();
+    }
+}
+
+global string GetTarget()
+{
+    return target;
+}
 
 global void InitProductControl () {
     if (Stage::normal())

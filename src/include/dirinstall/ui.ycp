@@ -50,7 +50,7 @@ define symbol Run () {
 
     // calling inst_proposal
 
-    Installation::destdir = DirInstall::target;
+    Installation::destdir = DirInstall::GetTarget();
     y2debug("target dir: %1", Installation::destdir);
     symbol ret = ProductControl::Run();
     Pkg::SourceFinishAll ();

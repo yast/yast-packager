@@ -25,7 +25,7 @@
     term contents = `HVSquash(
 			      `VBox(
 						// text entry
-				    `Left(`TextEntry(`id(`target), _("&Root Directory (not \"/\"):"), DirInstall::target)),
+				    `Left(`TextEntry(`id(`target), _("&Root Directory (not \"/\"):"), DirInstall::GetTarget())),
 						// check box
                                     `Left(`CheckBox(`id(`suseconfig), _("Run &YaST and SuSEconfig on First Boot"), DirInstall::runme_at_boot)),
 						// check box
@@ -108,10 +108,10 @@ image, specify the name and the location in the respective fields.</p>
 		continue;
 	    }
 
-
-	    DirInstall::target = target;
+	    DirInstall::SetTarget(target);
             Installation::destdir = target;
 	    DirInstall::runme_at_boot = runme_at_boot;
+
 	    break;
 	}
     }

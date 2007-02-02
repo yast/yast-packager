@@ -118,7 +118,7 @@
     {
         Progress::NextStage();
         string cmd =  sformat("cd '%1' && tar -zcf '%2' . && cd - ", 
-                String::Quote (DirInstall::target),
+                String::Quote (DirInstall::GetTarget()),
                 String::Quote (DirInstall::image_dir + "/" + DirInstall::image_name + ".tgz"));
         y2debug("cmd: %1", cmd);
 	// progress title

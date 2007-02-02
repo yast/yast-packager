@@ -27,7 +27,7 @@
 
 	if (force_reset)
 	{
-	    DirInstall::target = "";
+	    DirInstall::SetTarget("/var/tmp/dirinstall");
             DirInstall::runme_at_boot = false;
 	}
 

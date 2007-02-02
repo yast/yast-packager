@@ -11,6 +11,7 @@
     textdomain "packager";
 
     import "Packages";
+    import "DirInstall";
     import "Storage";
     import "Language";
 
@@ -26,16 +27,30 @@
 	boolean reinit = false;
 	boolean partition_changed = false;
 
-	if ( Packages::timestamp != Storage::GetTargetChangeTime() )
+	if (DirInstall::installing_into_dir)
 	{
-	    // don't set flag partition_changed if it's the first "change"
-	    if ( Packages::timestamp != 0 )
+	    // check the target directory in dirinstall mode
+	    if ( Packages::timestamp != DirInstall::GetTargetChangeTime() )
 	    {
 		partition_changed = true;
 	    }
+	    // save information about target change time in module Packages
+	    Packages::timestamp = DirInstall::GetTargetChangeTime();
 	}
-	// save information about target change time in module Packages
-	Packages::timestamp = Storage::GetTargetChangeTime();
+	else
+	{
+	    // check the partitioning in installation
+	    if ( Packages::timestamp != Storage::GetTargetChangeTime() )
+	    {
+		// don't set flag partition_changed if it's the first "change"
+		if ( Packages::timestamp != 0 )
+		{
+		    partition_changed = true;
+		}
+	    }
+	    // save information about target change time in module Packages
+	    Packages::timestamp = Storage::GetTargetChangeTime();
+	}
 
 	if (Pkg::GetPackageLocale () != Language::language)
 	{
