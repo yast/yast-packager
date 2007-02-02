@@ -3,6 +3,9 @@ Thu Feb  1 08:56:33 CET 2007 - lslezak@suse.cz
 
 - inst_source - "Synchronize with ZENworks" setting is persistent
   now (#230727)
+- dirinstall - recheck disk space when the target directory
+  is changed (#224150), properly initialize partitioning
+  (use the mount points only below the target)
 
 -------------------------------------------------------------------
 Wed Jan 31 08:21:05 CET 2007 - lslezak@suse.cz

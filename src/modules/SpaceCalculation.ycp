@@ -101,7 +101,8 @@
 
         if (DirInstall::installing_into_dir)
         {
-            target = GetDirMountPoint(DirInstall::target, partition );
+            target = GetDirMountPoint(DirInstall::GetTarget(), partition );
+	    y2milestone("Installing into a directory, target directory: %1, target mount point: %2", DirInstall::GetTarget(), target);
         }
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
@@ -118,7 +119,34 @@
 	    string mountName = part["name"]:"";
 	    string spec = part["spec"]:"";
 
-	    if ( target != "/" )
+	    if (DirInstall::installing_into_dir)
+	    {
+		if (substring(mountName, 0, 1) != "/")
+		{
+		    mountName = "/" + mountName;
+		}
+
+		string dir_target = DirInstall::GetTarget();
+
+		y2debug("mountName: %1, dir_target: %2", mountName, dir_target);
+
+		if (size(mountName) > size(dir_target)
+		    && (substring( mountName, 0, size(dir_target)) == dir_target) )
+		{
+		    // remove "/" in front
+		    mountName = substring(mountName, size(dir_target) + 1);
+		    part_info = add(part_info, "name", mountName);
+		}
+		else if (mountName == target)
+		{
+		    part_info = add ( part_info, "name", "/");
+		}
+		else
+		{
+		    add_part = false;
+		}
+	    }
+	    else if ( target != "/")
 	    {
 		if ((size(mountName) >= size(target))
 		    && (substring( mountName, 0, size(target)) == target) )
