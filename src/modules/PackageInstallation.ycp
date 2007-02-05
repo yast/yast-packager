@@ -127,7 +127,7 @@
 	{
 	    SlideShow::SetCurrentCdNo (first_source, media_number);
 	}
-	SlideShow::UpdateAllCdProgress ();
+	SlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
 	boolean do_commit = true;

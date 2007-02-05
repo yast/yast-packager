@@ -478,6 +478,6 @@
 	PackageCallbacks::SourceChange( source, media );		// inform PackageCallbacks about the change
 	SlideShow::SetCurrentCdNo( source, media );
 	SlideShow::UpdateCurrentPackageProgress(0);
-	SlideShow::UpdateAllCdProgress();
+	SlideShow::UpdateAllCdProgress(false);
     };
 }

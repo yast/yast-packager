@@ -641,9 +641,12 @@
 
 	if ( current_src_no < 1 || current_cd_no < 1 )
 	{
-	    y2error( "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
+	    if (!silent)
+	    {
+		y2error(-1, "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
 		     current_src_no, current_cd_no );
-	    y2milestone( "total sizes: %1", total_sizes_per_cd_per_src );
+		y2milestone( "total sizes: %1", total_sizes_per_cd_per_src );
+	    }
 	    return false;
 	}
 
@@ -1056,9 +1059,9 @@
      * Update progress widgets for all CDs.
      * Uses global statistics variables.
      **/
-    global void UpdateAllCdProgress()
+    global void UpdateAllCdProgress(boolean silent_check)
     {
-	if ( ! SanityCheck( true ) )	return;
+	if ( ! SanityCheck( silent_check ) )	return;
 	if ( ! widgets_created )	return;
 
 	if ( unit_is_seconds )
@@ -1073,9 +1076,9 @@
      * Update progress widgets for the current CD: Label and ProgressBar.
      * Use global statistics variables for that.
      **/
-    global void UpdateCurrentCdProgress()
+    global void UpdateCurrentCdProgress(boolean silent_check)
     {
-	if ( ! SanityCheck( false ) )			return;
+	if ( ! SanityCheck( silent_check ) )			return;
 	if ( ! UI::WidgetExists(`cdStatisticsTable) )	return;
 
 
@@ -1138,7 +1141,7 @@
     /**
      * Update progress widgets
      **/
-    void UpdateTotalProgress()
+    void UpdateTotalProgress(boolean silent_check)
     {
 	if ( UI::WidgetExists(`multiProgressMeter ) )
 	    UI::ChangeWidget(`multiProgressMeter, `Values, FlattenNoZeroes( remaining_sizes_per_cd_per_src ) );
@@ -1146,7 +1149,7 @@
 	if ( UI::WidgetExists(`progressTotal ) )
 	    UI::ChangeWidget(`progressTotal, `Value, TotalInstalledSize() );
 
-	UpdateCurrentCdProgress();
+	UpdateCurrentCdProgress(silent_check);
 
 	if ( UI::WidgetExists(`nextMedia ) )
 	{
@@ -1328,7 +1331,7 @@
 //		UpdateCurrentCdProgress();
 //	    }
 
-//	    UpdateTotalProgress();
+//	    UpdateTotalProgress(false);
 
 	} // ! deleting
     }
@@ -1352,14 +1355,14 @@
 		|| RecalcRemainingTimes( false ) )	// no forced recalculation
 	    {
 		y2debug( "Updating progress for all CDs" );
-		UpdateAllCdProgress();
+		UpdateAllCdProgress(false);
 	    }
 	    else
 	    {
-		UpdateCurrentCdProgress();
+		UpdateCurrentCdProgress(false);
 	    }
 
-	    UpdateTotalProgress();
+	    UpdateTotalProgress(false);
 
 	} // ! deleting
 
@@ -1484,7 +1487,7 @@
 	{
 	    UI::ChangeWidget(`dumbTab, `CurrentItem, `showSlide );
 	    UI::ReplaceWidget(`tabContents, SlidePageWidgets() );
-	    UpdateTotalProgress();
+	    UpdateTotalProgress(false);
 	}
     }
 
@@ -1492,7 +1495,7 @@
     /**
      * Switch from the 'slide show' view to the 'details' view.
      **/
-    global void SwitchToDetailsView()
+    global void SwitchToDetailsView(boolean silent_check)
     {
 	if ( ShowingDetails() )
 	    return;
@@ -1503,8 +1506,8 @@
 	    UI::ReplaceWidget(`tabContents, DetailsPageWidgets() );
 	}
 
-	UpdateTotalProgress();
-	UpdateAllCdProgress();
+	UpdateTotalProgress(silent_check);
+	UpdateAllCdProgress(silent_check);
 
 	if ( UI::WidgetExists( `instLog ) && inst_log != "" )
 	    UI::ChangeWidget(`instLog, `Value, inst_log );
@@ -1520,9 +1523,9 @@
     }
 
 
-    void RebuildDialog()
+    void RebuildDialog(boolean silent_check)
     {
-	if ( ! SanityCheck( false ) )	return;
+	if (!SanityCheck(silent_check))	return;
 
 	term contents = `Empty();
 
@@ -1566,7 +1569,7 @@
 	widgets_created = true;
 
 	if ( ! HaveSlides() && ShowingSlide() )
-	    SwitchToDetailsView();
+	    SwitchToDetailsView(false);
     }
 
 
@@ -1595,8 +1598,8 @@
 			    HelpText(),
 			    false, false );	// has_back, has_next
 
-	RebuildDialog();
-	Wizard::SetTitleIcon( "software" );
+	RebuildDialog(true);
+	Wizard::SetTitleIcon("yast-sw_single");
     }
 
 
@@ -1653,7 +1656,7 @@
 	
 	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
 	y2milestone( "SlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
-	RebuildDialog();
+	RebuildDialog(true);
     }
 
 
@@ -1725,10 +1728,10 @@
 	{
 	    if ( ! HaveSlideWidget() )
 	    {
-		RebuildDialog();
+		RebuildDialog(false);
 
 		if ( user_switched_to_details )
-		    SwitchToDetailsView();
+		    SwitchToDetailsView(false);
 	    }
 
 	    if ( ! user_switched_to_details ) // Don't override explicit user request!
@@ -1740,9 +1743,9 @@
 	else
 	{
 	    if ( ! ShowingDetails() )
-		RebuildDialog();
+		RebuildDialog(false);
 	    else
-		UpdateTotalProgress();
+		UpdateTotalProgress(false);
 
 	    current_slide_no = 0;
 	}
@@ -1757,7 +1760,7 @@
 	if ( button == `showDetails && ! ShowingDetails() )
 	{
 	    user_switched_to_details = true ;
-	    SwitchToDetailsView();
+	    SwitchToDetailsView(false);
 	}
 	else if ( button == `showSlide && ! ShowingSlide() )
 	{
@@ -1877,9 +1880,9 @@
 	if ( HaveSlides() )
 	    LoadSlide(0);
 	else
-	    SwitchToDetailsView();
+	    SwitchToDetailsView(true);
 
-	UpdateAllCdProgress();
+	UpdateAllCdProgress(true);
     }
 
 
