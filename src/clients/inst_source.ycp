@@ -82,7 +82,7 @@
 			  source[ "enabled" ]:true ? _("On") : _("Off"),
 			  source["autorefresh"]:true ? _("On") : _("Off"),
 			  // translators: unknown name for a given source
-			  productData[ "label" ]:generalData[ "type" ]: _("unknown"),
+			  productData[ "label" ]:generalData["alias"]:generalData[ "type" ]: _("unknown"),
 			  generalData[ "url" ]:""
 			  );
         return item;
@@ -280,7 +280,7 @@ Save changes anyway?")))
 	    }
 	}
 	else {
-	    y2milestone ("No rug, not syncing");
+	    y2milestone ("No rug or ZMD sync disabled - not syncing");
 	}
 
 	foreach( integer id, sourcesToDelete, ``{

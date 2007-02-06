@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Feb  6 07:17:33 CET 2007 - lslezak@suse.cz
+
+- inst_source - display the alias in the overview if the product
+  is not known (#241032)
+- callbacks - close download popup and source progress popup if
+  an error occurrs (#216950)
+- 2.15.8
+
+-------------------------------------------------------------------
 Mon Feb  5 07:39:41 CET 2007 - lslezak@suse.cz
 
 - dirinstall - properly initialize Slideshow module, supress
