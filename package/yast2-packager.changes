@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  7 11:19:24 CET 2007 - locilka@suse.cz
+
+- Removing devs.rpm in case of update before installation starts.
+- Bind-mounting the current instsys:/dev/ to installedsys:/dev/.
+  Both requested in feature #301903.
+
+-------------------------------------------------------------------
 Wed Feb  7 09:47:49 CET 2007 - lslezak@suse.cz
 
 - slideshow - enable Abort button and reset abort status when
