@@ -64,6 +64,7 @@
     global string	inst_log		= "";
     global boolean	debug			= false;
 
+    boolean user_abort = false;
 
     /**
      * Constructor
@@ -74,6 +75,15 @@
 	next_recalc_time = time();
     }
 
+    global void SetUserAbort(boolean abort)
+    {
+	user_abort = abort;
+    }
+
+    global boolean GetUserAbort()
+    {
+	return user_abort;
+    }
 
     /**
      * Start the internal (global) timer.
@@ -1589,6 +1599,7 @@
 	UI::WizardCommand(`ProtectNextButton( false ) );
 	Wizard::RestoreBackButton();
 	Wizard::RestoreAbortButton();
+	Wizard::EnableAbortButton();
 	Wizard::RestoreNextButton();
 
 	Wizard::SetContents(
@@ -1600,6 +1611,9 @@
 
 	RebuildDialog(true);
 	Wizard::SetTitleIcon("yast-sw_single");
+
+	// reset abort status
+	SetUserAbort(false);
     }
 
 
@@ -1780,6 +1794,7 @@
 	    debug = ! debug;
 	    y2milestone( "Debug mode: %1", debug );
 	}
+	// note: `abort is handled in SlideShowCallbacks::HandleInput()
     }
 
 

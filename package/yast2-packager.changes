@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  7 09:47:49 CET 2007 - lslezak@suse.cz
+
+- slideshow - enable Abort button and reset abort status when
+  the slideshow is started again ('install more packages' has
+  been accepted) (#226041)
+
+-------------------------------------------------------------------
 Tue Feb  6 07:17:33 CET 2007 - lslezak@suse.cz
 
 - inst_source - display the alias in the overview if the product

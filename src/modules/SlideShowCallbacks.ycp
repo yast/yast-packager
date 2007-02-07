@@ -24,7 +24,6 @@
     import "Directory";
 
     boolean _remote_provide = false;
-    boolean user_abort = false;
 
     string pkg_inprogress = "";
 
@@ -43,22 +42,23 @@
 	{
 	    if ( Mode::normal () )
 	    {
-		user_abort = Popup::AnyQuestion( Popup::NoHeadline(),
+		SlideShow::SetUserAbort(Popup::AnyQuestion( Popup::NoHeadline(),
 						// popup yes-no
 						 _("Do you really want\nto quit the installation?"),
 						 Label::YesButton(),
 						 Label::NoButton(),
-						 `focus_no );
+						 `focus_no ));
 	    }
 	    else if ( Stage::initial () )
 	    {
-		user_abort = Popup::ConfirmAbort( `unusable );
+		SlideShow::SetUserAbort(Popup::ConfirmAbort( `unusable ));
 	    }
 	    else	// Mode::update (), Stage::cont ()
 	    {
-		user_abort = Popup::ConfirmAbort( `incomplete );
+		SlideShow::SetUserAbort(Popup::ConfirmAbort( `incomplete ));
 	    }
-	    if (user_abort)
+
+	    if (SlideShow::GetUserAbort())
 	    {
 		SlideShow::AppendMessageToInstLog (_("Aborted"));
 	    }
@@ -97,7 +97,7 @@
 	    SlideShow::UpdateCurrentPackageProgress ( percent );
 	}
 	HandleInput();
-	return ! user_abort;
+	return ! SlideShow::GetUserAbort();
     }
 
 
@@ -111,7 +111,7 @@
 	    SlideShow::UpdateCurrentPackageProgress( 100 );
 	    _remote_provide = false;
 	}
-	if (user_abort)
+	if (SlideShow::GetUserAbort())
 	{
 	    return "CANCEL";
 	}
@@ -315,7 +315,7 @@
 
 			    if (!cont)
 			    {
-				user_abort = true;
+				SlideShow::SetUserAbort(true);
 			    }
 
 			    // don't check the other partitions
@@ -343,7 +343,7 @@
 
 		    if (!cont)
 		    {
-			user_abort = true;
+			SlideShow::SetUserAbort(true);
 		    }
 		}
 	    }
@@ -360,10 +360,13 @@
 	PackageCallbacks::_package_size = install_size;
 	PackageCallbacks::_deleting_package = is_delete;
 
-	return DisplayStartInstall( name,
+	DisplayStartInstall( name,
 				    summary,
 				    install_size,
 				    is_delete);
+
+	// dummy value, libzypp callback is void()
+	return true;
     }
 
 
@@ -374,12 +377,17 @@
     {
 	HandleInput();
 
-	if (!user_abort)
+	if (!SlideShow::GetUserAbort())
 	{
 	    SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
 	}
 
-	return ! user_abort;
+	if (SlideShow::GetUserAbort())
+	{
+	    y2internal("Aborted at %1%%", pkg_percent);
+	}
+
+	return ! SlideShow::GetUserAbort();
     };
 
     /**
@@ -388,7 +396,7 @@
      */
     global string DonePackage( integer error, string reason )
     {
-	if (user_abort)
+	if (SlideShow::GetUserAbort())
 	    return "I";
 	SlideShow::UpdateCurrentPackageProgress (100);
 
