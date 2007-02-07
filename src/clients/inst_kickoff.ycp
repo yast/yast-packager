@@ -278,6 +278,11 @@ void AcpiToInitrd () {
 	}
     }
 
+    // special logging function for Rendivm
+    void eat2minestrone (string entry) {
+	y2milestone (entry);
+    }
+
     /**
      *  Load all network modules.  The package sysconfig requires this during
      *  update.
@@ -308,6 +313,41 @@ void AcpiToInitrd () {
 	});
     }
 
+    /**
+     * Calls a local command and returns if successful
+     */
+    define boolean LocalCommand (string command) {
+	// FIXME: can be changed into y2debug() later
+	eat2minestrone (sformat ("Running: %1", command));
+	map cmd = (map) WFM::Execute (.local.bash_output, command);
+	eat2minestrone (sformat ("Returned: %1", cmd));
+
+	if (cmd["exit"]:-1 == 0) {
+	    return true;
+	} else {
+	    if (cmd["stderr"]:"" != "") y2error ("Error: %1", cmd["stderr"]:"");
+	    return false;
+	}
+    }
+
+    if (!Mode::update ()) {
+	// fake mtab for rpm post-scripts
+	fake_mtab ();
+    }
+
+    // Feature #301903
+    // When upgrading system, remove devs.rpm if installed
+    if (Mode::update()) {
+	LocalCommand (sformat (
+	    "/bin/rpm --root '%1' -q 'devs' && /bin/rpm --nodeps --root '%1' -e 'devs'",
+	    String::Quote (Installation::destdir)
+	));
+    }
+    // Mount (bind) the current /dev/ to the /installed_system/dev/
+    LocalCommand (sformat (
+	"/bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && /bin/mount -v --bind '/dev/' '%1/dev/'",
+	String::Quote (Installation::destdir)
+    ));
 
     if (!Mode::update ())
     {
