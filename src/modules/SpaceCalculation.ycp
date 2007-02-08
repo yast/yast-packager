@@ -178,7 +178,9 @@
 			  && mountName != "/cdrom"
 			  && mountName != "/dev/shm"
 			  && spec != "udev"
-			  && !regexpmatch(mountName, "^/media/") )
+			  && !regexpmatch(mountName, "^/media/")
+			  && !regexpmatch(mountName, "^var/adm/mount/" )
+		    )
 		{
 		    part_info = add ( part_info, "name", substring( mountName, 1 ) );  // remove "/" in front
 		}
