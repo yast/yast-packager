@@ -3,6 +3,8 @@ Thu Feb  8 11:28:28 CET 2007 - lslezak@suse.cz
 
 - ignore mounted sources in SpaceCalculation::EvaluateFreeSpace()
   (#221308)
+- use 'Unsigned Package/File' heading in the callback for
+  handling unsigned files/packages (#171105)
 
 -------------------------------------------------------------------
 Wed Feb  7 11:19:24 CET 2007 - locilka@suse.cz
