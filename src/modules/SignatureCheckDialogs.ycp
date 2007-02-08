@@ -379,7 +379,7 @@ Use it anyway?")
 		`HBox (
 		    `VCenter(MessageIcon("warning")),
 		    // popup heading
-		    `VCenter(`Heading( _("Signature Check Failed"))),
+		    `VCenter(`Heading( (item_type == `package) ? _("Unsigned Package") : _("Unsigned File"))),
 		    `HStretch()
 		),
 		`MarginBox(0.5, 0.5, `Label(description_text)),
