@@ -612,14 +612,22 @@ global list<string> ComputeSystemPatternList () {
      */
     global define list<string> ComputeSystemPackageList ()
     {
-	import "Storage";
 	list<string> install_list =  architecturePackages ();
 
 	install_list = (list<string>) union (install_list, modePackages ());
-	install_list = (list<string>) union (install_list,
-	                                     Storage::AddPackageList());
-	install_list = (list<string>) union (install_list,
-					     additional_packages);
+
+	// add storage packages if yast2-storage installed
+	list<string> storage_packages = (list<string>)WFM::call("wrapper_storage", ["AddPackageList"]);
+	if (storage_packages == nil)
+	{
+	    y2warning("storage_packages is nil, module Storage:: is probably missing");
+	}
+	else
+	{
+	    install_list = (list<string>) union (install_list, storage_packages);
+	}
+
+	install_list = (list<string>) union (install_list, additional_packages);
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update () || !Mode::autoinst ())

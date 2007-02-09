@@ -8,9 +8,8 @@
 {
     textdomain "installation";
 
-    import "Storage";
     import "SourceManager";
-    
+
     /**
      * Function releases the the device when EVMS is used and the install
      * source is disk. See bugzilla 208222 for more details.
@@ -20,9 +19,10 @@
 	if (install_src_partition != "") {
 	    if (! regexpmatch(install_src_partition, "/dev/"))
 		install_src_partition = sformat ("/dev/%1", install_src_partition);
-	
+
 	    y2milestone ("Calling Storage::RemoveDmMapsTo(%1)", install_src_partition);
-	    Storage::RemoveDmMapsTo (install_src_partition);
+	    any ret = WFM::call("wrapper_storage", ["RemoveDmMapsTo", [install_src_partition]]);
+	    y2milestone("Storage::RemoveDmMapsTo(%1) result: %2", install_src_partition, ret);
 	}
     }
 }

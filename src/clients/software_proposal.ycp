@@ -12,7 +12,6 @@
 
     import "Packages";
     import "DirInstall";
-    import "Storage";
     import "Language";
 
     string func  = (string) WFM::Args(0);
@@ -39,8 +38,10 @@
 	}
 	else
 	{
+	    integer storage_timestamp = (integer)WFM::call("wrapper_storage", ["GetTargetChangeTime"]);
+
 	    // check the partitioning in installation
-	    if ( Packages::timestamp != Storage::GetTargetChangeTime() )
+	    if ( Packages::timestamp != storage_timestamp )
 	    {
 		// don't set flag partition_changed if it's the first "change"
 		if ( Packages::timestamp != 0 )
@@ -49,7 +50,7 @@
 		}
 	    }
 	    // save information about target change time in module Packages
-	    Packages::timestamp = Storage::GetTargetChangeTime();
+	    Packages::timestamp = storage_timestamp;
 	}
 
 	if (Pkg::GetPackageLocale () != Language::language)

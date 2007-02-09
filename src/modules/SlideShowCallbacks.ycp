@@ -384,7 +384,7 @@
 
 	if (SlideShow::GetUserAbort())
 	{
-	    y2internal("Aborted at %1%%", pkg_percent);
+	    y2milestone("Aborted at %1%%", pkg_percent);
 	}
 
 	return ! SlideShow::GetUserAbort();
