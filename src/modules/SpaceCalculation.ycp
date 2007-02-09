@@ -234,7 +234,6 @@
      */
 
     define list get_partition_info () ``{
-	import "Storage";
 	// remove leading slash so it matches the packages.DU path
 	boolean remove_slash = true;
 
@@ -267,7 +266,15 @@
 
 	} // !Stage::initial ()
 
-	map<string, map> targets = Storage::GetTargetMap();
+	// installation stage - Storage:: is definitely present
+	// call Storage::GetTargetMap()
+	map<string, map> targets = (map<string, map>)WFM::call("wrapper_storage", ["GetTargetMap"]);
+
+	if (targets == nil)
+	{
+	    y2error("Target map is nil, Storage:: is probably missing");
+	}
+
 	if ( Mode::test () )
 	{
 	    targets = (map<string, map>) SCR::Read(.target.yast2, "test_target_map.ycp");

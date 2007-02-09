@@ -8,7 +8,6 @@ Requires:	yast2-country
 Requires:	yast2-pkg-bindings >= 2.15.4
 # Label::SkipButton()
 Requires:	yast2 >= 2.15.2
-Requires:	yast2-storage
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
 Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg

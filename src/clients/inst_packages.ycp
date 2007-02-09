@@ -7,7 +7,6 @@
 {
     textdomain "packager";
 
-    import "StorageDevices";
     import "Mode";
     import "Stage";
     import "Wizard";
@@ -35,8 +34,8 @@
 	// while the package manager is initialized
 	UI::ReplaceWidget(`rep,
 			  mode == nil ?
-			  `PackageSelector(`id(`packages ), StorageDevices::FloppyDevice ) :
-			  `PackageSelector(`id(`packages ), `opt(mode), StorageDevices::FloppyDevice )
+			  `PackageSelector(`id(`packages ), "") :
+			  `PackageSelector(`id(`packages ), `opt(mode), "")
 			  );
 
 	symbol result = (symbol) UI::RunPkgSelection(`id(`packages ) );
