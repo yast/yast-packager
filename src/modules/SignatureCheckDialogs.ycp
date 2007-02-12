@@ -534,7 +534,7 @@ Use it anyway?")
      * @param string dont_show_dialog_ident for the identification in magic "don't show" functions
      * @return boolean true if 'yes, use file'
      */
-    global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id, string fingerprint, string key_name, string dont_show_dialog_ident) {
+    global boolean ItemSignedWithUnknownSignature (symbol item_type, string item_name, string key_id, string dont_show_dialog_ident) {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name, %2 for the complex multiline description of the GnuPG key
 	    _("The package %1 is digitally signed
@@ -559,13 +559,7 @@ Use it anyway?")
 	    item_name,
 	    "\n" +
 		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
-		sformat(_("ID: %1"), key_id) +
-		((fingerprint == nil || fingerprint == "") ?
-		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
-		    "" : sformat("\n" + _("Fingerprint: %1"), StringSplitter(fingerprint, " ", 4)))
-
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
-		+ ((key_name != nil && key_name != "") ? sformat("\n" + _("Name: %1"), key_name) : "")
+		sformat(_("ID: %1"), key_id)
 	);
 
 	UI::OpenDialog(
@@ -617,9 +611,7 @@ Use it anyway?")
 with key '%2 (%3)'.
 
 There is no trust relationship to the owner of the key.
-If you trust the owner, import the key into your set of
-trusted keys with Import Key then proceed
-with the installation.
+If you trust the owner, mark the key as trusted.
 
 Installing a package from an unknown source can put
 the integrity of your system at risk. It is safest
@@ -630,9 +622,7 @@ to skip the package.")
 with key '%2 (%3)'.
 
 There is no trust relationship to the owner of the key.
-If you trust the owner, import the key into your set of
-trusted keys with Import Key then proceed with
-the installation.
+If you trust the owner, mark the key as trusted.
 
 Installing a file from an unknown source can put
 the integrity of your system at risk. It is safest
@@ -651,12 +641,8 @@ to skip it.")
 		`MarginBox(0.5, 0.5, `Label(description_text)),
 		`HBox (
 		    // push button
-		    `PushButton(`id(`key_import), _("&Import Key...")),
+		    `PushButton(`id(`trust), _("&Trust the Key")),
 		    `HSpacing(1),
-		    // push button
-		    `PushButton(`id(`install), _("Install &Anyway")),
-		    `HSpacing(1),
-		    // push button
 		    `PushButton(`id(`skip), _("&Skip Package"))
 		)
 	    )
@@ -664,7 +650,7 @@ to skip it.")
 	UI::SetFocus(`skip);
 
 	// wait for one of listed ID's, return the default value in case of `cancel
-	symbol ret = WaitForSymbolUserInput([`key_import, `install, `skip], `skip);
+	symbol ret = WaitForSymbolUserInput([`trust, `skip], `skip);
 
 	UI::CloseDialog();
 	return ret;
@@ -779,7 +765,7 @@ the key really belongs to that owner before importing it."),
      * @param string fingerprint
      * @return boolean whether zypp should import the key into the keyring of trusted keys
      */
-    global boolean ImportUntrustedGPGKeyIntoTrustedDialog (string key_id, string key_name, string fingerprint) {
+    global boolean ImportGPGKeyIntoTrustedDialog (string key_id, string key_name, string fingerprint) {
 	// additional Richtext (HTML) warning text (kind of help), 1/2
 	string warning_text = _("<p>The owner of the key may distribute updates,
 packages, and package repositories that your system will trust and offer
