@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 12 09:28:28 CET 2007 - lslezak@suse.cz
+
+- Fixed AcceptUnknownGpgKey() and TrustGpgKey() GPG callback
+  handlers (#242087, #240771)
+- 2.15.10
+
+-------------------------------------------------------------------
 Fri Feb  9 14:04:03 CET 2007 - lslezak@suse.cz
 
 - ignore mounted sources in SpaceCalculation::EvaluateFreeSpace()
