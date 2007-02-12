@@ -85,7 +85,7 @@
     // (+DontShowAgain functionality) -- for one run in memory
     //
     /* function for CallbackAcceptUnknownGpgKey() */
-    global boolean AcceptUnknownGpgKey (string filename, string keyid, string keyname, string fingerprint) {
+    global boolean AcceptUnknownGpgKey (string filename, string keyid) {
 	// Check signatures at all?
 	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
 	    return default_return_unchecked;
@@ -95,7 +95,7 @@
 	// Show the popup?
 	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
 	    // Unknown keyname == "Unknown Key"
-	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, fingerprint, keyname, dont_show_dialog_ident);
+	    return SignatureCheckDialogs::ItemSignedWithUnknownSignature(`file, filename, keyid, dont_show_dialog_ident);
 	// Return the default value entered by user
 	} else {
 	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
@@ -109,6 +109,23 @@
     //
     // zypp: askUserToTrustKey
     //
+    /* function for CallbackTrustGpgKey() */
+    global boolean TrustGpgKey (string filename, string keyid, string keyname, string fingerprint) {
+	// Check signatures at all?
+	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
+	    return default_return_unchecked;
+
+	// There are no details from the callback, maybe in the future
+	return SignatureCheckDialogs::ItemSignedWithPublicSignature(`file, filename, keyid, keyname) == `trust;
+    }
+
+    // Name of the callback handler function. Required callback prototype is
+    // boolean(string keyid, string keyname, string keydetails). The callback
+    // function should ask user whether the key is trusted, returned true value
+    // means the key is trusted.
+    //
+    // zypp: askUserToImportKey
+    //
     /* function for CallbackImportGpgKey() */
     global boolean ImportGpgKey (string keyid, string keyname, string fingerprint) {
 	// Check signatures at all?
@@ -116,7 +133,7 @@
 	    return default_return_unchecked;
 
 	// There are no details from the callback, maybe in the future
-	return SignatureCheckDialogs::ImportUntrustedGPGKeyIntoTrustedDialog(keyid, keyname, fingerprint);
+	return SignatureCheckDialogs::ImportGPGKeyIntoTrustedDialog(keyid, keyname, fingerprint);
     }
     
     // Name of the callback handler function. Required callback prototype is
