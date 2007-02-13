@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb 13 12:51:23 CET 2007 - locilka@suse.cz
+
+- Calling bind mount and removing devs.rpm only in case of upgrade
+  (#244117).
+- 2.15.11
+
+-------------------------------------------------------------------
 Mon Feb 12 09:28:28 CET 2007 - lslezak@suse.cz
 
 - Fixed AcceptUnknownGpgKey() and TrustGpgKey() GPG callback
