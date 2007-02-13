@@ -345,7 +345,7 @@ void AcpiToInitrd () {
 
 	// Mount (bind) the current /dev/ to the /installed_system/dev/
 	LocalCommand (sformat (
-	    "/bin/mkdir -p '%1/dev/' && /bin/mount -v --bind '/dev/' '%1/dev/'",
+	    "/bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && /bin/mount -v --bind '/dev/' '%1/dev/'",
 	    String::Quote (Installation::destdir)
 	));
     }
