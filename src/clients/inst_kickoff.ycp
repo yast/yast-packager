@@ -335,19 +335,21 @@ void AcpiToInitrd () {
 	fake_mtab ();
     }
 
-    // Feature #301903
-    // When upgrading system, remove devs.rpm if installed
+    // Feature #301903, bugzilla #244937
     if (Mode::update()) {
+	// When upgrading system, remove devs.rpm if installed
 	LocalCommand (sformat (
 	    "/bin/rpm --root '%1' -q 'devs' && /bin/rpm --nodeps --root '%1' -e 'devs'",
 	    String::Quote (Installation::destdir)
 	));
+
+	// Mount (bind) the current /dev/ to the /installed_system/dev/
+	LocalCommand (sformat (
+	    "/bin/mkdir -p '%1/dev/' && /bin/mount -v --bind '/dev/' '%1/dev/'",
+	    String::Quote (Installation::destdir)
+	));
     }
-    // Mount (bind) the current /dev/ to the /installed_system/dev/
-    LocalCommand (sformat (
-	"/bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && /bin/mount -v --bind '/dev/' '%1/dev/'",
-	String::Quote (Installation::destdir)
-    ));
+
 
     if (!Mode::update ())
     {
