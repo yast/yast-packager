@@ -2,7 +2,7 @@
 Tue Feb 13 12:51:23 CET 2007 - locilka@suse.cz
 
 - Calling bind mount and removing devs.rpm only in case of upgrade
-  (#244117).
+  (#244937).
 - 2.15.11
 
 -------------------------------------------------------------------
