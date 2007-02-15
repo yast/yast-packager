@@ -29,6 +29,7 @@
     global boolean _source_popup = false;
     global boolean _package_popup = false;
     global boolean _script_popup = false;
+    global boolean _scan_popup = false;
 
     global string _package_name = "";
     global integer _package_size = 0;
@@ -1668,6 +1669,193 @@ Ignore this error and continue?"));
 	Pkg::CallbackNotifyConvertDb ("PackageCallbacks::NotifyConvertDB");
     }
 
+
+
+/**
+ * Callback for start RPM DB scan event
+ */
+global void StartScanDb()
+{
+    y2milestone("Scanning RPM DB...");
+
+    if (Mode::commandline()) {
+	// progress message (command line mode)
+	CommandLine::PrintVerbose(_("Reading RPM DB..."));
+    }
+    else
+    {
+	UI::OpenDialog(
+	    `VBox(
+		`HSpacing(60),
+		// popup heading
+		`Heading(`id(`label_scanDB_popup), `opt(`hstretch), _("Initializing Target System...")),
+		`HBox(
+		    // progress bar label
+		    `ProgressBar (`id (`progress), _("Scanning RPM Database..."), 100, 0),
+		    `HSpacing(1)
+/* TODO: allow Abort
+		    ,
+		    `VBox(
+			`Label(""),
+			`PushButton(`id(`abort), Label::AbortButton())
+		    )
+*/
+		)
+	    )
+	);
+
+	_scan_popup = true;
+    }
+}
+
+/**
+ * Callback for RPM DB scan progress
+ */
+global boolean ProgressScanDb(integer value)
+{
+    if (Mode::commandline())
+    {
+	CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", value));
+    }
+    else
+    {
+	if (_scan_popup && UI::WidgetExists(`id(`label_scanDB_popup)))
+	{
+	    UI::ChangeWidget(`id(`progress), `Value, value);
+	    boolean cont = UI::PollInput () != `abort;
+
+	    if (!cont)
+	    {
+		y2warning("Scan DB aborted");
+	    }
+
+	    return cont;
+	}
+    }
+
+    // continue
+    return true;
+}
+
+/**
+ * Callback for error handling during RPM DB scan
+ */
+global string ErrorScanDb(integer error, string description)
+{
+    y2error("ErrorScanDb callback: error: %1, description: %2", error, description);
+
+    // error message, could not read RPM database
+    string message = _("Initialization of the target failed.");
+
+    if (Mode::commandline())
+    {
+	CommandLine::Print(message);
+	CommandLine::Print(description);
+
+	// ask user in the interactive mode
+	if (CommandLine::Interactive())
+	{
+	    CommandLine::Print("");
+
+	    // command line mode - ask user whether target initializatin can be restarted
+	    CommandLine::Print(_("Retry?"));
+
+	    if (CommandLine::YesNo())
+	    {
+		// return Retry
+		return "R";
+	    }
+	}
+
+	// return Cancel
+	return "C";
+    }
+
+    boolean show_details = false;
+
+    term button_box = `HBox
+    (
+	`PushButton (`id(`abort), Label::AbortButton()),
+	`PushButton(`id(`retry), Label::RetryButton()),
+	`PushButton(`id(`ignore), Label::IgnoreButton())
+    );
+
+    UI::OpenDialog( `opt(`decorated),  LayoutPopup (message, button_box, 1, false) );
+
+    any r = nil;
+
+    repeat
+    {
+	r = UI::UserInput();
+	if ( r == `show )
+	{
+	    show_details = ShowLogInfo (message, button_box);
+	    if (show_details)
+	    {
+		string error_symbol = "UNKNOWN";
+
+		if (error == 0)
+		{
+		    error_symbol = "NO_ERROR";
+		}
+		else if (error == 1)
+		{
+		    error_symbol = "FAILED";
+		}
+
+		UI::ReplaceWidget(`id(`info),
+				  `RichText (`opt(`plainText),
+					    // error message, %1 is code of the error,
+					    // detail string is appended to the end
+					     sformat (_("Error: %1:"), error_symbol) + description) );
+	    }
+	    else
+	    {
+		UI::ReplaceWidget(`id(`info), `Empty() );
+	    }
+	}
+    } until (r == `abort || r == `retry || r == `ignore);
+
+    y2milestone ("ErrorScanDb: user input: %1", r);
+
+    UI::CloseDialog();
+
+    if (r == `abort)
+	return "C";
+    if (r == `retry)
+	return "R";
+    if (r == `ignore)
+	return "I";
+
+    y2error("Unknown user input: %1", r);
+
+    return "C";
+}
+
+/**
+ * Callback for finish RPM DB scan event
+ */
+global void DoneScanDb(integer error, string description)
+{
+    y2milestone("RPM DB scan finished: error: %1, reason: '%2'", error, description);
+
+    if (Mode::commandline()) {
+	// status message (command line mode)
+	CommandLine::PrintVerbose(_("RPM DB read"));
+    }
+    else
+    {
+	if (_scan_popup && UI::WidgetExists(`id(`label_scanDB_popup)))
+	{
+	    UI::CloseDialog();
+	    _scan_popup = false;
+	}
+	else
+	{
+	    y2error("The toplevel dialog is not a scan DB popup!");
+	}
+    }
+}
 
 // EOF
 }
