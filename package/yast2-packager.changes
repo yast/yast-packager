@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 15 07:36:50 CET 2007 - lslezak@suse.cz
+
+- handlers for ScanDB callbacks (RPM DB reading) (#219953)
+- 2.15.12
+
+-------------------------------------------------------------------
 Tue Feb 13 12:51:23 CET 2007 - locilka@suse.cz
 
 - Calling bind mount and removing devs.rpm only in case of upgrade
