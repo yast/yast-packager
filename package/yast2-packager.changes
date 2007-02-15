@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 15 13:11:21 CET 2007 - locilka@suse.cz
+
+- Disabling removing information about installed patches
+  (FATE #301990, Bugzilla #238488).
+- 2.13.165
+
+-------------------------------------------------------------------
 Mon Feb 12 09:28:28 CET 2007 - lslezak@suse.cz
 
 - Fixed AcceptUnknownGpgKey() and TrustGpgKey() GPG callback

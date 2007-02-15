@@ -90,15 +90,17 @@
      * See bugzilla #210552 for more information.
      */
     void RemoveObsoleteResolvables () {
-        y2milestone ("--------- removing obsolete patches and selections ---------");
+        y2milestone ("--------- removing obsolete selections ---------");
 
         // this removes only information about selections and applied patches
 	// it doesn't remove any package
         y2milestone ("Removing all information about selections and patches in %1", Installation::destdir);
         Pkg::TargetStoreRemove (Installation::destdir, `selection);
-	Pkg::TargetStoreRemove (Installation::destdir, `patch);
 
-        y2milestone ("--------- removing obsolete patches and selections ---------");
+	// disabled by FATE #301990, bugzilla #238488
+	// Pkg::TargetStoreRemove (Installation::destdir, `patch);
+
+        y2milestone ("--------- removing obsolete selections ---------");
     }
 
     /**
