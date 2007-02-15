@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 15 13:12:56 CET 2007 - locilka@suse.cz
+
+- Disabling removing information about installed patches
+  (FATE #301990, Bugzilla #238488).
+- 2.15.13
+
+-------------------------------------------------------------------
 Thu Feb 15 07:36:50 CET 2007 - lslezak@suse.cz
 
 - handlers for ScanDB callbacks (RPM DB reading) (#219953)
