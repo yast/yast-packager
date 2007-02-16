@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Feb 16 13:06:45 CET 2007 - lslezak@suse.cz
+
+- Replace the middle part of a long URL/file name by ellipsis
+  to display the most interesting part of the message in
+  the progress popup (#221163)
+- 2.15.14
+
+-------------------------------------------------------------------
 Thu Feb 15 13:12:56 CET 2007 - locilka@suse.cz
 
 - Disabling removing information about installed patches
