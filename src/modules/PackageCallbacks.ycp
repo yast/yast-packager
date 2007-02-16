@@ -713,8 +713,61 @@ Check that the server is accessible."), wanted_label);
 // reference couter to the open popup window
 integer _source_open = 0;
 
+
+string ProcessMessage(string msg, integer max_len)
+{
+
+    list<string> words = splitstring(msg, " ");
+
+    y2internal("words: %1", words);
+
+    words = maplist(string w, words,
+	{
+	    map parsed = URL::Parse(w);
+	    integer req_size = max_len - (size(msg) - size(w));
+
+	    y2internal("parsed: %1", parsed);
+
+	    // is it a valid URL?
+	    if (contains(["ftp", "http", "nfs", "file", "dir", "iso", "smb", "disk"], parsed["scheme"]:""))
+	    {
+		y2internal("Found URL: %1", w);
+
+
+		w = URL::FormatURL(parsed, max_len);
+		y2internal("Converted to: %1", w);
+	    }
+	    // is it a file name?
+	    {
+		if (substring(w, 0, 1) == "/")
+		{
+		    list<string> parts = splitstring(w, "/");
+
+		    if (size(parts) >= 3)
+		    {
+			w = String::FormatFilename(w, req_size);
+		    }
+		}
+	    }
+
+	    return w;
+	}
+    );
+
+    string ret = mergestring(words, " ");
+
+    if (ret != msg)
+    {
+	y2internal("URL conversion: '%1' converted to '%2'", msg, ret);
+    }
+
+    return ret;
+}
+
 void OpenSourcePopup(string text)
 {
+    integer max_size = 60;
+
     if (_source_open == 0)
     {
 	// the popup doesn't exist
@@ -724,16 +777,23 @@ void OpenSourcePopup(string text)
 	// and then refresh the label to the full string
 	// reason: display a small popup, but user can resize it to see
 	// the full message
-	integer max_size = 60;
 	string display = text;
 	boolean refresh_label = false;
 
+	// Qt UI uses bold font, the string must be shortened even more
+	integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 5;
+
+	if (size(display) > max_size - ui_adjustment)
+	{
+	    display = ProcessMessage(display, max_size - ui_adjustment);
+	}
 
 	// truncate long text
-	if (size(display) > max_size)
+	if (size(display) > max_size - ui_adjustment)
 	{
 	    // ellipsis appended to a truncated text (if it's too long)
-	    display = substring(text, 0, max_size - 1) + _("...");
+	    string ellipsis = _("...");
+	    display = substring(display, 0, max_size - ui_adjustment - 1 - size(ellipsis)) + ellipsis;
 	    refresh_label = true;
 	}
 
@@ -753,6 +813,14 @@ void OpenSourcePopup(string text)
     }
     else
     {
+	// Qt uses proportional font, the string might be longer
+	integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 6;
+
+	if (size(text) > max_size + ui_adjustment)
+	{
+	    text = ProcessMessage(text, max_size + ui_adjustment);
+	}
+
 	// refresh the labels in the popup
 	UI::ChangeWidget(`progress, `Label, text);
 	// reset the progressbar
