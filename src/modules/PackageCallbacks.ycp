@@ -777,23 +777,18 @@ string ProcessMessage(string msg, integer max_len)
 
     list<string> words = splitstring(msg, " ");
 
-    y2internal("words: %1", words);
+    y2debug("words: %1", words);
 
     words = maplist(string w, words,
 	{
 	    map parsed = URL::Parse(w);
 	    integer req_size = max_len - (size(msg) - size(w));
 
-	    y2internal("parsed: %1", parsed);
-
 	    // is it a valid URL?
 	    if (contains(["ftp", "http", "nfs", "file", "dir", "iso", "smb", "disk"], parsed["scheme"]:""))
 	    {
-		y2internal("Found URL: %1", w);
-
-
+		// reformat the URL
 		w = URL::FormatURL(parsed, max_len);
-		y2internal("Converted to: %1", w);
 	    }
 	    // is it a file name?
 	    {
@@ -816,7 +811,7 @@ string ProcessMessage(string msg, integer max_len)
 
     if (ret != msg)
     {
-	y2internal("URL conversion: '%1' converted to '%2'", msg, ret);
+	y2milestone("URL conversion: '%1' converted to '%2'", msg, ret);
     }
 
     return ret;
