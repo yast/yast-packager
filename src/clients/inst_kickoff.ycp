@@ -336,7 +336,8 @@ void AcpiToInitrd () {
     }
 
     // Feature #301903, bugzilla #244937
-    if (Mode::update()) {
+    // "/" means updating the running system
+    if (Mode::update() && Installation::destdir != "/") {
 	// When upgrading system, remove devs.rpm if installed
 	LocalCommand (sformat (
 	    "/bin/rpm --root '%1' -q 'devs' && /bin/rpm --nodeps --root '%1' -e 'devs'",
