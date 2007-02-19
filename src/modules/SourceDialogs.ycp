@@ -25,6 +25,7 @@ import "CWM";
 import "SourceManager";
 import "Message";
 import "Report";
+import "NetworkPopup";
 
 // common functions / data
 
@@ -224,7 +225,7 @@ map<string,any> PlainURLWidget () {
 	"validate_function" : PlainURLValidate,
 	// help text
 	"help" : _("<p><big><b>Catalog URL</b></big><br>
-Use <b>URL</b> to specify the URL of the catalog.<p>") + multi_cd_help,
+Use <b>URL</b> to specify the URL of the catalog.</p>") + multi_cd_help,
     ];
 }
 
@@ -264,6 +265,43 @@ void NFSStore (string key, map event) {
 }
 
 /**
+ * Handle function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ * @return always nil
+ */
+symbol NFSHandle (string key, map event) {
+    y2debug("NFSHandle: key: %1, event: %2", key, event);
+
+    if (event["ID"]:nil == `nfs_browse)
+    {
+	string server = (string)UI::QueryWidget (`id (`server), `Value);
+	// dialog caption
+	string result = NetworkPopup::NFSServer(server);
+
+	if (result != nil)
+	{
+	    UI::ChangeWidget (`id (`server), `Value, result);
+	}
+    }
+    else if (event["ID"]:nil == `nfs_exports_browse)
+    {
+	string server = (string)UI::QueryWidget (`id (`server), `Value);
+	string nfs_export = (string)UI::QueryWidget (`id (`dir), `Value);
+	// dialog caption
+	string result = NetworkPopup::NFSExport(server, nfs_export);
+
+	if (result != nil)
+	{
+	    UI::ChangeWidget (`id (`dir), `Value, result);
+	}
+    }
+
+    return nil;
+}
+
+
+/**
  * Get widget description map
  * @return widget description map
  */
@@ -271,19 +309,33 @@ map<string,any> NFSWidget () {
     return $[
 	"widget" : `custom,
 	"custom_widget" : `VBox (
-	    // text entry
-            `TextEntry (`id (`server), _("&Server Name")),
-	    // text entry
-            `TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
+	    `HBox(
+		// text entry
+		`TextEntry (`id (`server), _("&Server Name")),
+		`VBox(
+		    `Label(""),
+		    `PushButton(`id(`nfs_browse), Label::BrowseButton())
+		)
+	    ),
+	    `HBox(
+		// text entry
+		`TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
+		`VBox(
+		    `Label(""),
+		    `PushButton(`id(`nfs_exports_browse), Label::BrowseButton())
+		)
+	    ),
 	    // checkbox label
-	    `Left (`CheckBox ( `id (`ch_iso), _("ISO Image")))
+	    `Left (`CheckBox ( `id (`ch_iso), _("&ISO Image")))
 	),
 	"init" : NFSInit,
 	"store" : NFSStore,
+	"handle" : NFSHandle,
+	"handle_events" : [ `nfs_browse, `nfs_exports_browse ],
 	// help text
 	"help" : _("<p><big><b>NFS Server</b></big><br>
 Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
-to specify the NFS server host name and path on the server.<p>")
+to specify the NFS server host name and path on the server.</p>")
 + multi_cd_help,
     ];
 }
@@ -523,7 +575,7 @@ map<string,any> DirWidget () {
 		`VBox (
 		    `Label (""),
 		    // push button
-		    `PushButton (`id (`browse), _("&Browse..."))
+		    `PushButton (`id (`browse), Label::BrowseButton())
 		)
 	    ),
 	    // checkbox label
@@ -559,7 +611,7 @@ map<string,any> IsoWidget () {
 		`VBox (
 		    `Label (""),
 		    // push button
-		    `PushButton (`id (`browse), _("&Browse..."))
+		    `PushButton (`id (`browse), Label::BrowseButton())
 		)
 	    )
 	),
@@ -620,7 +672,7 @@ symbol ServerHandle (string key, map event) {
 			_("&Path to Directory or ISO Image"), dir),
 
 		    // checkbox label
-		    `Left (`CheckBox (`id (`ch_iso), _("ISO Image")))
+		    `Left (`CheckBox (`id (`ch_iso), _("ISO &Image")))
 		)
 		// text entry
 		: `TextEntry( `id( `dir ), _("&Directory on Server"), dir),
@@ -634,7 +686,7 @@ symbol ServerHandle (string key, map event) {
 		    type == `samba
 			// text entry
 			? `TextEntry (`id (`workgroup),
-			    _("Workgroup or Domain"))
+			    _("&Workgroup or Domain"))
 			: `Empty (),
 		    // text entry
 		    `TextEntry (`id (`username), _("&User Name"), username),
@@ -854,7 +906,7 @@ map<string,any> ServerWidget () {
 Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
 to specify the NFS server host name and path on the server.
 To enable authentication, uncheck <b>Anonymous</b> and specify the
-<b>User Name</b> and the <b>Password</b>.<p>
+<b>User Name</b> and the <b>Password</b>.</p>
 <p>
 For SMB/CIFS source, specify <b>Share</b> name and <b>Path to Directory
 or ISO Image</b>. 

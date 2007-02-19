@@ -4,6 +4,9 @@
  * Authors:	Arvin Schnell <arvin@suse.de>
  *
  * Purpose:	Show some stuff about the installation media.
+ *
+ * $Id:$
+ *
  */
 {
     textdomain "packager";

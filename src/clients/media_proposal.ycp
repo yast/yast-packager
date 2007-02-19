@@ -4,6 +4,9 @@
  * Author:	Arvin Schnell <arvin@suse.de>
  *
  * Purpose:	Initialize the installation media.
+ *
+ * $Id:$
+ *
  */
 {
     textdomain "packager";

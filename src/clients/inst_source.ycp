@@ -6,6 +6,8 @@
  * Purpose:
  * Adding, removing and prioritizing of installation sources for packagemanager.
  *
+ * $Id:$
+ *
  */
 
 {
@@ -402,7 +404,7 @@ on the NFS server.
 To change a catalog media, use <b>Edit</b>. To remove a catalog, use
 <b>Delete</b>. To enable or disable the catalog, set refreshing on the
 initialization time on or off, or refresh it immediatelly, use 
-<b>Source Settings</b>.");
+<b>Source Settings</b>.</p>");
 
     // help, continued
     help_text = help_text + _("<p>

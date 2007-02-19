@@ -4,6 +4,9 @@
  * Purpose:		Slide show during package installation
  *
  * Author:		Stefan Hundhammer <sh@suse.de>
+ *
+ * $Id:$
+ *
  */
 {
     module "SlideShow";

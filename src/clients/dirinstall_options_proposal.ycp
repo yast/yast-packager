@@ -4,6 +4,9 @@
  * Author:	Anas Nashif <nashif@suse.de>
  *
  * Purpose:     Proposal for dirinstall options
+ *
+ * $Id:$
+ *
  */
 {
     textdomain "packager";
