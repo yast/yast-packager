@@ -4,6 +4,9 @@
  * Authors:	Anas Nashif <nashif@suse.de>
  *
  * Purpose:	Copy Media to local disk
+ *
+ * $Id:$
+ *
  */
 {
     textdomain "packager";

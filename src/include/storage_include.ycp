@@ -4,6 +4,8 @@
  * Summary:	Storage calls
  * Authors:	Lukas Ocilka <locilka@suse.cz>
  *
+ * $Id:$
+ *
  */
 {
     textdomain "installation";

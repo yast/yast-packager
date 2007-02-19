@@ -2,6 +2,9 @@
  * Module: 		inst_packages.ycp
  * Authors:		Stefan Hundhammer <sh@suse.de>
  * Purpose:             Show the package installation dialog
+ *
+ * $Id:$
+ *
  */
 
 {
@@ -26,7 +29,7 @@
 
 	UI::OpenDialog(`opt(`defaultsize),
 		       `ReplacePoint(`id( `rep),
-				     `Label( "Reading package database..." )
+				     `Label( _("Reading package database...") )
 				     )
 		       );
 

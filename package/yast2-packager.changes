@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 19 14:10:31 CET 2007 - lslezak@suse.cz
+
+- added Browse buttons for scanning the network in NFS source
+  dialog, use Label::BrowseButton()
+- fixed errors reported by check_ycp
+
+-------------------------------------------------------------------
 Mon Feb 19 13:54:28 CET 2007 - locilka@suse.cz
 
 - Do not call bind mount and do not remove devs.rpm when running

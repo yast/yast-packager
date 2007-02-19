@@ -121,11 +121,11 @@
 			`id (`tree_of_services),
 			`opt (`notify),
 			// tree label (tree of available products)
-			_("Available Installation Products"),
+			_("Available Installation &Products"),
 			[]
 		    )
 		)),
-		`PushButton(`id(`details), _("Details...")),
+		`PushButton(`id(`details), _("&Details...")),
 		`VSpacing (1),
 		`HBox (
 		    `PushButton (`id (`ok), `opt(`default), Label::SelectButton ()),

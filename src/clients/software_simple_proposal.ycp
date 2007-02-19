@@ -6,6 +6,9 @@
  * Purpose:		Proposal function dispatcher - software.
  *
  *			See also file proposal-API.txt for details.
+ *
+ * $Id:$
+ *
  */
 {
     textdomain "packager";
