@@ -303,7 +303,7 @@ symbol SummaryDialog () {
     // pusg button
     string refreshButtonLabel = _("Re&fresh Now...");
     // pusg button
-    string enableButtonLabel = _("Enab&le or Disable");
+    string enableButtonLabel = _("Status &On or Off");
     // push button
     string refreshOnOffButtonLabel = _("Refre&sh On or Off");
 
