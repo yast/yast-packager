@@ -700,6 +700,7 @@ Check that the server is accessible."), wanted_label);
 
 	if (r == `url)
 	{
+	    y2milestone("Redirecting to: %1", url);
 	    return url;
 	}
 
