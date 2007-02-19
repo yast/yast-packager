@@ -328,7 +328,14 @@ Install them now?
 	       if (result == `accept)
 	       {
 		   result = `next;
-		   ask = true;
+		   // ask only when there is something to install/remove
+		   ask = Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove);
+		   y2milestone("Ask to restart the package selector: %1", ask);
+	       }
+	       else
+	       {
+		   // canceled - don't ask again
+		   ask = false;
 	       }
 	   }
 	   else
