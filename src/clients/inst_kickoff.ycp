@@ -341,7 +341,7 @@ void AcpiToInitrd () {
     if (Mode::update()) {
 	// "/" means updating the running system, bugzilla #246389
 	if (Installation::destdir == "/") {
-	    // When upgrading system, remove devs.rpm if installed
+	    // When upgrading system, remove devs.rpm just from rpm database
 	    LocalCommand (
 		"/bin/rpm -q 'devs' && /bin/rpm --nodeps --justdb -e 'devs'"
 	    );
