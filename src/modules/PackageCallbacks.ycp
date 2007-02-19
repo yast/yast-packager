@@ -566,36 +566,42 @@ the YaST control center and refresh the installation source.</p>\n");
 
 	if (wanted_label == "")
 	{
-	    // will be used in conjunction with other text below
-	    // prompt for user to insert the correct CD/DVD
-	    string medianame = "CD "; // FIXME?
-	    if (url_scheme == "cd")
+	    // use only product name for network sources,
+	    // there is no medium 1, 2, ...
+	    if (url_scheme != "cd" && url_scheme != "dvd")
 	    {
-		medianame = "CD ";
+		wanted_label = product;
 	    }
-	    if (url_scheme == "dvd")
+	    else
 	    {
-		medianame = "DVD ";
-	    }
+		// will be used in conjunction with other text below
+		// prompt for user to insert the correct CD/DVD
+		string medianame = "DVD ";
 
-	    string mediaside = sformat ("%1", (medianame + wanted));
-
-	    if (double_sided)
-	    {
-		// media is double sided, we want the user to insert the 'Side A' of the media
-		// the complete string will be "<product> <media> <number>, <side>"
-		// e.g. "'SuSE Linux 9.0' DVD 1, Side A"
-		string side = _("Side A");
-		if ((wanted & 1) == 0)
+		if (url_scheme == "cd")
 		{
-		    // media is double sided, we want the user to insert the 'Side B' of the media
-		    side = _("Side B");
+		    medianame = "CD ";
 		}
-		wanted = (wanted + 1) >> 1;
-		mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
-	    }
 
-	    wanted_label = sformat ("%1 %2", product, mediaside);
+		string mediaside = sformat ("%1", (medianame + wanted));
+
+		if (double_sided)
+		{
+		    // media is double sided, we want the user to insert the 'Side A' of the media
+		    // the complete string will be "<product> <media> <number>, <side>"
+		    // e.g. "'SuSE Linux 9.0' DVD 1, Side A"
+		    string side = _("Side A");
+		    if ((wanted & 1) == 0)
+		    {
+			// media is double sided, we want the user to insert the 'Side B' of the media
+			side = _("Side B");
+		    }
+		    wanted = (wanted + 1) >> 1;
+		    mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
+		}
+
+		wanted_label = sformat ("%1 %2", product, mediaside);
+	    }
 	}
 
 	// prompt to insert product (%1 == "SuSE Linux version 9.2 CD 2")
