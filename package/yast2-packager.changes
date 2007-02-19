@@ -4,6 +4,8 @@ Mon Feb 19 10:22:47 CET 2007 - lslezak@suse.cz
 - do not show "install more" question when the package selection
   has been aborted or the package selection has not been changed
   (#230773)
+- do not display "CD x" medium description in the media change
+  popup if the source is a network source (#156028)
 
 -------------------------------------------------------------------
 Fri Feb 16 13:06:45 CET 2007 - lslezak@suse.cz
