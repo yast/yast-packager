@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 21 17:28:22 CET 2007 - sh@suse.de
+
+- Renamed iconst for desktops (bug #247294):
+  kde.png -> yast-kde.png,
+  gnome.png -> yast-gnome.png 
+
+-------------------------------------------------------------------
 Wed Feb 21 16:20:38 CET 2007 - lslezak@suse.cz
 
 - replace spaces by underscore in alias when it's passed to rug

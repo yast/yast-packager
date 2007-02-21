@@ -91,7 +91,7 @@ term kde = `VBox (
 		`Top (`Label (kde_blurb)),
 		`HSpacing (1),
 		`Right (`Top (`Image (
-		    Directory::themedir + "/current/icons/48x48/apps/kde.png",
+		    Directory::themedir + "/current/icons/48x48/apps/yast-kde.png",
 			"")))
 	    ))
 	);
@@ -106,7 +106,7 @@ term gnome = `VBox (
 		`Top (`Label (gnome_blurb)),
 		`HSpacing (1),
 		`Right (`Top ( `Image (
-		    Directory::themedir + "/current/icons/48x48/apps/gnome.png",
+		    Directory::themedir + "/current/icons/48x48/apps/yast-gnome.png",
 			"")))
 	    )
 	);
