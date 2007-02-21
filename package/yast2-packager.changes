@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 21 18:01:47 CET 2007 - lslezak@suse.cz
+
+- allow to change name (alias) of a source (#228978)
+- 2.15.16
+
+-------------------------------------------------------------------
 Wed Feb 21 17:28:22 CET 2007 - sh@suse.de
 
 - Renamed iconst for desktops (bug #247294):
