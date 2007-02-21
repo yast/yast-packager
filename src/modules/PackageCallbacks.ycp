@@ -572,7 +572,8 @@ the YaST control center and refresh the installation source.</p>\n");
 	    // there is no medium 1, 2, ...
 	    if (url_scheme != "cd" && url_scheme != "dvd")
 	    {
-		wanted_label = product;
+		// label for a network source - %1 product name (e.g. openSUSE 10.2), %2 medium number (e.g. 2)
+		wanted_label = sformat(_("%1 (Medium Number %2)"), product, wanted);
 	    }
 	    else
 	    {
