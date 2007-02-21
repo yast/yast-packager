@@ -6,7 +6,7 @@
  * Purpose:
  * Adding, removing and prioritizing of installation sources for packagemanager.
  *
- * $Id:$
+ * $Id$
  *
  */
 
@@ -84,7 +84,7 @@
 			  source[ "enabled" ]:true ? _("On") : _("Off"),
 			  source["autorefresh"]:true ? _("On") : _("Off"),
 			  // translators: unknown name for a given source
-			  productData[ "label" ]:generalData["alias"]:generalData[ "type" ]: _("unknown"),
+			  generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("unknown"),
 			  generalData[ "url" ]:""
 			  );
         return item;
@@ -256,6 +256,7 @@ in the packages selection, continue."),
     }
 
     boolean Write() {
+	y2internal("New config: %1", sourceStatesOut);
  	boolean success = Pkg::SourceEditSet( sourceStatesOut );
 
 	// we must sync before the sources are deleted from zypp
@@ -282,7 +283,7 @@ Save changes anyway?")))
 	    }
 	}
 	else {
-	    y2milestone ("No rug or ZMD sync disabled - not syncing");
+	    y2milestone ("No rug or ZMD sync disabled - not syncing: success: %1, have_rug: %2, any_changed: %3", success, have_rug, any_changed);
 	}
 
 	foreach( integer id, sourcesToDelete, ``{
@@ -300,14 +301,16 @@ symbol SummaryDialog () {
     y2milestone ("Running Summary dialog");
     list items = [];
 
-    // pusg button
+    // push button - change URL of the selected installation source
     string replaceButtonLabel = _("&Replace...");
-    // pusg button
+    // push button - refresh the selected installation source now
     string refreshButtonLabel = _("Re&fresh Now...");
-    // pusg button
+    // push button - disable/enable the selected installation source
     string enableButtonLabel = _("Status &On or Off");
-    // push button
+    // push button - disable/enable automatic refresh of the selected source
     string refreshOnOffButtonLabel = _("Refre&sh On or Off");
+    // push button - set name of the selected installatino source
+    string setAliasButtonLabel = _("Set &Name...");
 
     SourceManager::ReadSyncFlag();
     boolean sync_zmd = SourceManager::GetSyncFlag();
@@ -348,7 +351,8 @@ symbol SummaryDialog () {
 		    `MenuButton (`opt(`key_F6), _("Source Settings"), [
 			`item(`id(`enable), enableButtonLabel),
 			`item(`id(`refresh_on_off), refreshOnOffButtonLabel),
-			`item(`id(`refresh), refreshButtonLabel )
+			`item(`id(`refresh), refreshButtonLabel ),
+			`item(`id(`set_alias), setAliasButtonLabel)
 		    ])
 		),
                 `VSpacing( 0.5 )
@@ -565,8 +569,8 @@ All changes will be lost.");
 		integer source_id = sourceState["SrcId"]:0;
 		map src_data = Pkg::SourceGeneralData (source_id);
 		string type = src_data["type"]:"UnitedLinux";
-
                 boolean state = sourceState[ "autorefresh" ]:true;
+
 		if (type == "PlainDir" && ! state)
 		{
 		    // popup message
@@ -583,6 +587,43 @@ cannot be set."));
                 sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
             }
+	    else if (input == `set_alias)
+	    {
+		string src_alias = sourceState["alias"]:"";
+
+		y2internal("Current alias: %1", src_alias);
+
+		UI::OpenDialog(
+		    `MarginBox(0.4, 0.2,
+			`VBox(
+			    // label - text entry
+			    `Left(`TextEntry(`id(`alias), _("Name of the Source"), src_alias)),
+			    `HBox(
+				`PushButton(`id(`ok), `opt(`default, `key_F10), Label::OKButton()),
+				`HSpacing(1),
+				`PushButton(`id(`cancel), `opt(`key_F9), Label::CancelButton())
+			    )
+			)
+		    )
+		);
+
+		symbol ret = (symbol)UI::UserInput();
+		src_alias = (string)UI::QueryWidget(`id(`alias), `Value);
+
+		UI::CloseDialog();
+
+		if (ret == `ok)
+		{
+		    y2internal("New alias: %1", src_alias);
+
+		    // refresh value in the table
+		    UI::ChangeWidget( `id( `table ), `Item( current, 2 ), src_alias );
+
+		    // remember the alias
+		    sourceState["alias"] = src_alias;
+		    sourceStatesOut[ current ] = sourceState;
+		}
+	    }
         }
 
     } until ( exit );

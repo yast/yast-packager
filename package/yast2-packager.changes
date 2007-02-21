@@ -3,6 +3,8 @@ Wed Feb 21 16:20:38 CET 2007 - lslezak@suse.cz
 
 - replace spaces by underscore in alias when it's passed to rug
   (#247249)
+- media change callback - display label "(Medium Number x)"
+  for network sources (#156028)
 
 -------------------------------------------------------------------
 Mon Feb 19 14:10:31 CET 2007 - lslezak@suse.cz
