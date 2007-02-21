@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 21 16:20:38 CET 2007 - lslezak@suse.cz
+
+- replace spaces by underscore in alias when it's passed to rug
+  (#247249)
+- 2.13.168
+
+-------------------------------------------------------------------
 Mon Feb 19 10:22:47 CET 2007 - lslezak@suse.cz
 
 - do not show "install more" question when the package selection

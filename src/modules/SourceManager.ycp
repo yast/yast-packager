@@ -920,6 +920,9 @@ global list Overview() {
 	string log_url = InstURL::HidePassword (url);
 	// ZMD must have unique URIs, so we append the alias
 	string alias = gendata["alias"]:"";
+	// use underscore instead of space in service alias
+	alias = String::Replace(alias, " ", "_");
+
 	y2milestone ("id: %1, type: %2, url: %3, alias: %4", src_id, stype, log_url, alias);
 	if (stype == "" || url == "" || alias == "") {
 	    y2error ("Internal error: stype, url, or alias is empty ?!");
