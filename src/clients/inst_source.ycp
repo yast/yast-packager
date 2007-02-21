@@ -596,8 +596,9 @@ cannot be set."));
 		UI::OpenDialog(
 		    `MarginBox(0.4, 0.2,
 			`VBox(
+			    `HSpacing(40),
 			    // label - text entry
-			    `Left(`TextEntry(`id(`alias), _("Name of the Source"), src_alias)),
+			    `TextEntry(`id(`alias), `opt(`hstretch), _("Name of the Source"), src_alias),
 			    `HBox(
 				`PushButton(`id(`ok), `opt(`default, `key_F10), Label::OKButton()),
 				`HSpacing(1),
@@ -607,8 +608,22 @@ cannot be set."));
 		    )
 		);
 
-		symbol ret = (symbol)UI::UserInput();
-		src_alias = (string)UI::QueryWidget(`id(`alias), `Value);
+		symbol ret = nil;
+
+		do
+		{
+		    ret = (symbol)UI::UserInput();
+		    src_alias = (string)UI::QueryWidget(`id(`alias), `Value);
+
+		    if (ret == `ok && (src_alias == nil || src_alias == ""))
+		    {
+			// error popup
+			Report::Error(_("Name of the source cannot be empty."));
+			ret = `again;
+		    }
+		}
+		while (ret != `ok && ret != `cancel && ret != `close);
+
 
 		UI::CloseDialog();
 
