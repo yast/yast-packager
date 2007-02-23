@@ -26,6 +26,7 @@ import "SourceManager";
 import "Message";
 import "Report";
 import "NetworkPopup";
+import "String";
 
 // common functions / data
 
@@ -658,9 +659,18 @@ symbol ServerHandle (string key, map event) {
 	string password = UI::WidgetExists (`id (`password))
 	    ? (string)UI::QueryWidget (`id (`password), `Value)
 	    : "";
+	string port = UI::WidgetExists (`id (`port))
+	    ? (string)UI::QueryWidget (`id (`port), `Value)
+	    : "";
+
 	term widget = `VBox (
-	    // text entry
-	    `TextEntry (`id (`server), _("Server &Name"), server),
+	    `HBox(
+		// text entry
+		`TextEntry (`id (`server), _("Server &Name"), server),
+		(type == `http || type == `https) ?
+		    `HSquash(`TextEntry (`id (`port), _("&Port"), port))
+		    : `Empty()
+	    ),
 	    type == `samba
 		// text entry
 		? `TextEntry (`id (`share), _("&Share"))
@@ -697,6 +707,14 @@ symbol ServerHandle (string key, map event) {
 	    )
 	);
 	UI::ReplaceWidget (`id (`server_rp), widget);
+
+	if (UI::WidgetExists(`id(`port)))
+	{
+	    // maximum port number is 65535
+	    UI::ChangeWidget(`id(`port), `InputMaxLength, 5);
+	    // allow only numbers in the port spec
+	    UI::ChangeWidget(`id(`port), `ValidChars, String::CDigit());
+	}
 
 	// update widget status
 	UI::ChangeWidget (`id (`username), `Enabled, !anonymous);
@@ -796,6 +814,17 @@ void ServerInit (string key) {
 	if (UI::WidgetExists (`id (`workgroup)))
 	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
     }
+
+    // set HTTP/HTTPS port if it's specified
+    if (type == `http || type == `https)
+    {
+	string port_num = parsed["port"]:"";
+
+	if (port_num != nil && port_num != "")
+	{
+	    UI::ChangeWidget(`id(`port), `Value, port_num);
+	}
+    }
 }
 
 /**
@@ -878,6 +907,12 @@ void ServerStore (string key, map event) {
 	if (iso)
 	    _url = PosprocessISOURL (_url);
     }
+
+    // set HTTP/HTTPS port
+    if (type == `http || type == `https)
+    {
+	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
+    }
 }
 
 
@@ -902,6 +937,7 @@ map<string,any> ServerWidget () {
 	"init" : ServerInit,
 	"store" : ServerStore,
 	"handle" : ServerHandle,
+// help text - server dialog
 	"help" : _("<p><big><b>Server and Directory</b></big><br>
 Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
 to specify the NFS server host name and path on the server.
@@ -912,6 +948,9 @@ For SMB/CIFS source, specify <b>Share</b> name and <b>Path to Directory
 or ISO Image</b>. 
 If the location is a file holding an ISO image
 of the media, set <b>ISO Image</b>.</p>")
+// help text - server dialog, there is a "Port" widget
++ _("<p>It's possible to set the <b>Port</b> number for a HTTP/HTTPS source.
+Leave it empty to use the default port.</p>")
 + multi_cd_help,
     ];
 }
@@ -1176,13 +1215,7 @@ term PopupContents (string proto) {
 global string EditPopup (string url) {
     SetURL (url);
     string proto = URLScheme (url);
-
     map parsed_url = URL::Parse(url);
-    if (parsed_url["port"]:"" != "")
-    {
-	y2milestone("A port found in the URL, using 'url' scheme");
-	proto = "url";
-    }
 
     y2milestone ("Displaying popup for protocol %1", proto);
 
