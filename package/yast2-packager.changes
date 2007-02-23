@@ -3,6 +3,7 @@ Fri Feb 23 08:54:05 CET 2007 - lslezak@suse.cz
 
 - it is posible to specify HTTP/HTTP port in the source
   configuration module (#247019), removed workaround for #179424
+- 2.15.17
 
 -------------------------------------------------------------------
 Wed Feb 21 18:01:47 CET 2007 - lslezak@suse.cz
