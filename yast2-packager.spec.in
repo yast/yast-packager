@@ -2,8 +2,8 @@
 
 
 @HEADER@
-BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite yast2-slp
-Requires:	yast2-country
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2 yast2-devtools yast2-testsuite yast2-slp yast2-add-on
+Requires:	yast2-country yast2-add-on
 # get/set alias using Pkg::EditSourceGet/Set()
 Requires:	yast2-pkg-bindings >= 2.15.12
 # URL::FormatURL()
