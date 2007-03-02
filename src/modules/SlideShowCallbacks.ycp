@@ -6,7 +6,7 @@
  *
  * Purpose: 		provides the Callbacks for SlideShow
  *
- * $Id:$
+ * $Id$
  *
  */
 
@@ -300,6 +300,12 @@
 			{
 			    y2debug("Skipping read-only partition %1", part);
 			    continue;
+			}
+
+			// add slash if missing (needed for target_dir)
+			if (part != "/" && size(part) >= 1 && substring(part, 0, 1) != "/")
+			{
+			    part = "/" + part;
 			}
 
 			string target_dir = Installation::destdir + part;
