@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar  1 13:02:59 CET 2007 - lslezak@suse.cz
+
+- add Xen paravirtual drivers to initrd if they are selected for
+  installation (#241564)
+
+-------------------------------------------------------------------
 Mon Feb 26 09:34:42 CET 2007 - jsrain@suse.cz
 
 - added yast2-add-on to dependencies
