@@ -36,6 +36,28 @@ void AcpiToInitrd () {
     });
 }
 
+// add xen paravirtualized drivers to initrd if thery are selected for installation
+void XenPVToInitrd()
+{
+    // is any xen-kmp-* package selected?
+    if (Pkg::IsSelected("xen-kmp-default")
+	|| Pkg::IsSelected("xen-kmp-smp")
+	|| Pkg::IsSelected("xen-kmp-bigsmp")
+	|| Pkg::IsSelected("xen-kmp-kdump"))
+    {
+	// add disk driver
+	Initrd::AddModule ("xen-vbd", "");
+	// add network driver
+	Initrd::AddModule ("xen-vnif", "");
+
+	y2milestone("Added Xen PV drivers to initrd, configured drivers: %1", Initrd::ListModules());
+    }
+    else
+    {
+	y2milestone("No xen-kmp-* package is selected for installation, skipping PV driver installation");
+    }
+}
+
 
     /**
      *  Write a fake mtab to the target system since some %post scripts might
@@ -442,6 +464,9 @@ void AcpiToInitrd () {
         }
 	AcpiToInitrd ();
     }
+
+    // add Xen PV drivers to initrd
+    XenPVToInitrd();
 
     if (Stage::initial ())
     {
