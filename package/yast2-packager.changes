@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar  6 16:46:51 CET 2007 - locilka@suse.cz
+
+- AddOnProduct and ProductLicense finally moved to yast2-packager
+  from yast2-installation to avoid build cycles.
+- 2.15.20
+
+-------------------------------------------------------------------
 Fri Mar  2 13:05:08 CET 2007 - lslezak@suse.cz
 
 - add Xen paravirtual drivers to initrd if they are selected for
