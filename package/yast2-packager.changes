@@ -3,6 +3,7 @@ Wed Mar  7 10:35:27 CET 2007 - locilka@suse.cz
 
 - Added more debugging logs for selecting XEN kernel in case of
   xen pattern selected for installation (#250131).
+- 2.13.170
 
 -------------------------------------------------------------------
 Thu Mar  1 13:02:59 CET 2007 - lslezak@suse.cz
