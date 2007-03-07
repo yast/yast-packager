@@ -1165,12 +1165,14 @@ void SelectXenKernel () {
 
     foreach(map pattern, xen_patterns,
     {
+	y2milestone ("Pattern '%1' status '%2'", pattern["name"]:nil, pattern["status"]:`unknown);
 	if (pattern["status"]:`unknown == `selected)
 	{
 	    xen_selected = true;
 	}
     });
 
+    y2milestone ("XEN Selected: %1", xen_selected);
     if (xen_selected)
     {
 	if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
