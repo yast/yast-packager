@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  7 10:36:41 CET 2007 - locilka@suse.cz
+
+- Added more debugging logs for selecting XEN kernel in case of
+  xen pattern selected for installation (#250131).
+
+-------------------------------------------------------------------
 Tue Mar  6 16:46:51 CET 2007 - locilka@suse.cz
 
 - AddOnProduct and ProductLicense finally moved to yast2-packager
