@@ -27,12 +27,10 @@
      * @return string new URL with hidden password
      */
     global string  HidePassword(string url) {
-        map t = URL::Parse(url);
-        if (size(t["pass"]:"") > 0 )
-        {
-            t["pass"] = "PASSWORD";
-        }
-        return URL::Build(t);
+	// Url::Build(Url::Parse) transforms the URL too much, see #247249#c41
+	// replace ://user:password@ by ://user:PASSWORD@
+	string subd = regexpsub (url, "(://[^/:]*):[^/@]*@,", "://\\1:PASSWORD@");
+	return subd == nil? url: subd;
     }
 
     /**

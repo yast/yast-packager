@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Mar  8 17:48:31 CET 2007 - mvidner@suse.cz
+
+- Escape the URL properly when appending an alias before syncing with
+  ZMD (#247249).
+- Therefore reverted the underscore change from 2.15.16. (#248228).
+- 2.15.21
+
+-------------------------------------------------------------------
 Wed Mar  7 10:36:41 CET 2007 - locilka@suse.cz
 
 - Added more debugging logs for selecting XEN kernel in case of
