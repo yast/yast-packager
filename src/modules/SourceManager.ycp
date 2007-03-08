@@ -920,8 +920,6 @@ global list Overview() {
 	string log_url = InstURL::HidePassword (url);
 	// ZMD must have unique URIs, so we append the alias
 	string alias = gendata["alias"]:"";
-	// use underscore instead of space in service alias
-	alias = String::Replace(alias, " ", "_");
 
 	y2milestone ("id: %1, type: %2, url: %3, alias: %4", src_id, stype, log_url, alias);
 	if (stype == "" || url == "" || alias == "") {
@@ -935,16 +933,13 @@ global list Overview() {
 	if (stype == "zypp")
 	{
 	    // URL (un)escapes for us
-	    // maybe a bug with "="?
+	    // really needed, #247249
 	    map parsed_url = URL::Parse (url);
 	    string query = parsed_url["query"]:"";
 	    if (query != "") query = query + "&";
 	    parsed_url["query"] = query + "alias=" + alias;
 	    string test_url = URL::Build (parsed_url);
-	    y2milestone ("test zmd url: %1", InstURL::HidePassword(test_url));
-
-	    string separator = (search (url, "?") == nil)? "?": "&";
-	    url = url + separator + "alias=" + alias;
+	    url = test_url;
 	}
 	log_url = InstURL::HidePassword (url);
 	y2milestone ("zmd url: %1", log_url);
