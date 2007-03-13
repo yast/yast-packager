@@ -3,6 +3,7 @@ Tue Mar 13 15:20:20 CET 2007 - locilka@suse.cz
 
 - Making AddOnProduct::RedrawWizardSteps function global to be able
   to redraw Wizard look from whereever we need.
+- Directory /usr/share/YaST2/control/ owned by this package.
 - 2.15.23
 
 -------------------------------------------------------------------

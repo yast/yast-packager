@@ -44,5 +44,6 @@ Summary:	-
 @clientdir@/*.ycp
 @moduledir@/*
 @desktopdir@/*.desktop
+%dir /usr/share/YaST2/control
 /usr/share/YaST2/control/*.xml
 %doc @docdir@
