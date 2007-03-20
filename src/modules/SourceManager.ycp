@@ -1038,7 +1038,9 @@ global list Overview() {
 	    else if (haskey (ret, "timed_out"))
 		// error message
 		// FIXME "ms" or plural gettext
-		message = message + "\n" + sformat (_("Command timed out after %1 milliseconds."), ret["timed_out"]:1000);
+		message = message + "\n" + (ret["timed_out"]:1000 < 1000 ? sformat (_("Command timed out after %1 milliseconds."), ret["timed_out"]:1000)
+		// error message
+		: sformat (_("Command timed out after %1 seconds."), (ret["timed_out"]:1000)/1000));
 	    Report::LongError (message);
 	    return false;
 	}
