@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 20 15:23:45 CET 2007 - lslezak@suse.cz
+
+- display timeout value in seconds instead of milliseconds
+  (#223808)
+
+-------------------------------------------------------------------
 Tue Mar 13 15:20:20 CET 2007 - locilka@suse.cz
 
 - Making AddOnProduct::RedrawWizardSteps function global to be able
