@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 22 10:18:12 CET 2007 - lslezak@suse.cz
+
+- display remaining unconfirmed licenses of selected packages
+  (#242298)
+- 2.15.24
+
+-------------------------------------------------------------------
 Tue Mar 20 15:23:45 CET 2007 - lslezak@suse.cz
 
 - display timeout value in seconds instead of milliseconds

@@ -30,6 +30,7 @@
     import "PackageSystem";
     import "Report";
     import "FileUtils";
+    import "PackagesUI";
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_single");
@@ -297,10 +298,13 @@ Only installed packages are displayed."));
 
 
    boolean ask = false;
+   boolean force_restart = false;
    boolean found_descr = result == `found_descr;
 
    do
    {
+       force_restart = false;
+
 	list<string> old_failed_packs = [];
 	if ((integer)SCR::Read (.target.size,
 	    "/var/lib/YaST2/failed_packages") > 0)
@@ -389,6 +393,17 @@ Install them now?
 
        if (result == `next)				// packages selected ?
        {
+	    // ask user to confirm all remaining licenses (#242298)
+	    boolean licenses_accepted = PackagesUI::ConfirmLicenses();
+
+	    // all licenses accepted?
+	    if (!licenses_accepted)
+	    {
+		// no, go back to the package selection
+		force_restart = true;
+		continue;
+	    }
+
 	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
 	   boolean anyToDelete = Pkg::PkgAnyToDelete();
 	   SlideShow::SetLanguage (UI::GetLanguage(true));
@@ -414,9 +429,9 @@ Install them now?
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
 	   }
        }
-   } while ( ask && Popup::YesNo (
+   } while ( force_restart || (ask && Popup::YesNo (
        // Popup dialog contents
-       _("Install or remove more packages?")));
+       _("Install or remove more packages?"))));
 
    UI::CloseDialog();
 
