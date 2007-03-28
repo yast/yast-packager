@@ -1,6 +1,6 @@
 {
 
-// testedfiles: AddOnProduct.ycp
+// testedfiles: WorkflowManager.ycp
 
 include "testsuite.ycp";
 
@@ -20,7 +20,7 @@ map EXEC = $[
 
 TESTSUITE_INIT([READ, WRITE, EXEC], nil);
 
-import "AddOnProduct";
+import "WorkflowManager";
 
 list<map> workflows = [
   $[
@@ -35,6 +35,6 @@ list<map> workflows = [
   ]
 ];
 
-TEST(``(AddOnProduct::PrepareWorkflows(workflows)), [], nil);
+TEST(``(WorkflowManager::PrepareWorkflows(workflows)), [], nil);
 
 }

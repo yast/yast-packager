@@ -5,6 +5,7 @@ Wed Mar 28 15:54:18 CEST 2007 - locilka@suse.cz
   abstract and moved to a new module WorkflowManager to yast2.rpm
   in order to make possible Pattern-based workflow (FATE #129).
 - Adjusted RPM requierements and BuildRequires
+- Adjusted testsuites
 - 2.15.25
 
 -------------------------------------------------------------------
