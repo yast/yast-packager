@@ -13,6 +13,7 @@ module "Packages";
 textdomain "packager";
 
 import "AddOnProduct";
+import "WorkflowManager";
 import "Arch";
 import "Directory";
 import "InstURL";
@@ -35,6 +36,7 @@ import "PackageCallbacksInit";
 import "Product";
 import "DefaultDesktop";
 import "SourceDialogs";
+import "FileUtils";
 
 /**
  * Force full proposal routine next run
@@ -847,11 +849,12 @@ integer IntegrateServicePack (boolean show_popup, string base_url) {
 	    Pkg::SourceDelete (sp_source);
 	    return nil;
 	}
-	if ((integer)WFM::Read (.local.size, spdir + "/installation.xml") > 0)
+	if (FileUtils::Exists (spdir + "/installation.xml"))
 	{
-	    AddOnProduct::WFIntegrate (spdir + "/installation.xml");
+	    WorkflowManager::AddWorkflow (`addon, sp_source, "");
+	    WorkflowManager::MergeWorkflows();
 	}
-	if ((integer)WFM::Read (.local.size, spdir + "/y2update.tgz") > 0)
+	if (FileUtils::Exists (spdir + "/y2update.tgz"))
 	{
 	    AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
 	}

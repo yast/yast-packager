@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Mar 28 15:54:18 CEST 2007 - locilka@suse.cz
+
+- Most of the AddOnProduct functionality has been made more
+  abstract and moved to a new module WorkflowManager to yast2.rpm
+  in order to make possible Pattern-based workflow (FATE #129).
+- 2.15.25
+
+-------------------------------------------------------------------
 Thu Mar 22 10:18:12 CET 2007 - lslezak@suse.cz
 
 - display remaining unconfirmed licenses of selected packages
