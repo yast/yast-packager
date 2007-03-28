@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 28 13:48:02 CEST 2007 - lslezak@suse.cz
+
+- Require yast2-slp >= 2.13.2 (#258303)
+- 2.13.172
+
+-------------------------------------------------------------------
 Thu Mar  8 17:48:31 CET 2007 - mvidner@suse.cz
 
 - Escape the URL properly when appending an alias before syncing with

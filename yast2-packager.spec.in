@@ -9,6 +9,8 @@ Requires:	yast2-pkg-bindings >= 2.13.113
 # URL::FormatURL()
 Requires:	yast2 >= 2.13.97
 Requires:	yast2-storage
+# SLP::GetUnicastAttrMap
+Requires:	yast2-slp >= 2.13.2
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
 Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
