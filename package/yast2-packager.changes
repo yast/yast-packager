@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 28 17:06:38 CEST 2007 - locilka@suse.cz
+
+- Moved some testsuites from yast2-packager to yast2
+- 2.15.26
+
+-------------------------------------------------------------------
 Wed Mar 28 15:54:18 CEST 2007 - locilka@suse.cz
 
 - Most of the AddOnProduct functionality has been made more
