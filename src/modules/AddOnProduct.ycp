@@ -82,6 +82,10 @@ global boolean modified = false;
 
 global list <integer> mode_config_sources = [];
 
+// Bugzilla #239630
+// In installation: check for low-memory machines
+global boolean low_memory_already_reported = false;
+
 /**
  * Adapts the inst-sys from the tarball
  * @param filename string the filename with the tarball to use to the update

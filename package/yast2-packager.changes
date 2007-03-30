@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 30 13:40:51 CEST 2007 - locilka@suse.cz
+
+- Added global variable into AddOnProduct that informs installation
+  whether low-memory issue has been already reported or not
+  (bugzilla #239630).
+
+-------------------------------------------------------------------
 Wed Mar 28 17:06:38 CEST 2007 - locilka@suse.cz
 
 - Moved some testsuites from yast2-packager to yast2
