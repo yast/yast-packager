@@ -52,6 +52,9 @@
     string back_string = "\b\b\b\b\b\b\b\b\b\b";
     string clear_string = back_string + "          " + back_string;
 
+    // max. length of the text in the source popup window
+    integer max_size = 60;
+
     //--------------------------------------------------------------------------
     // defaults
 
@@ -827,84 +830,50 @@ string ProcessMessage(string msg, integer max_len)
     return ret;
 }
 
-void OpenSourcePopup(string text)
+void OpenSourcePopup()
 {
-    integer max_size = 60;
-
     if (_source_open == 0)
     {
-	// the popup doesn't exist
-	y2milestone("Opening source progress popup: %1", text);
-
-	// if the text is too long then display only part of the message
-	// and then refresh the label to the full string
-	// reason: display a small popup, but user can resize it to see
-	// the full message
-	string display = text;
-	boolean refresh_label = false;
-
-	// Qt UI uses bold font, the string must be shortened even more
-	integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 5;
-
-	if (size(display) > max_size - ui_adjustment)
-	{
-	    display = ProcessMessage(display, max_size - ui_adjustment);
-	}
-
-	// truncate long text
-	if (size(display) > max_size - ui_adjustment)
-	{
-	    // ellipsis appended to a truncated text (if it's too long)
-	    string ellipsis = _("...");
-	    display = substring(display, 0, max_size - ui_adjustment - 1 - size(ellipsis)) + ellipsis;
-	    refresh_label = true;
-	}
-
 	UI::OpenDialog(
 	    `VBox(
 		`HSpacing(max_size),
-		`Heading(`id(`label_source_popup), `opt(`hstretch), display),
+		`Heading(`id(`label_source_popup), `opt(`hstretch), " "),
 		`ProgressBar (`id (`progress), " ", 100, 0)
 	    )
 	);
-
-	// set the full text if needed
-	if (refresh_label)
-	{
-	    UI::ChangeWidget(`label, `Value, text);
-	}
-    }
-    else
-    {
-	// Qt uses proportional font, the string might be longer
-	integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 6;
-
-	if (size(text) > max_size + ui_adjustment)
-	{
-	    text = ProcessMessage(text, max_size + ui_adjustment);
-	}
-
-	// refresh the labels in the popup
-	UI::ChangeWidget(`progress, `Label, text);
-	// reset the progressbar
-	UI::ChangeWidget(`progress, `Value, 0);
-	y2milestone("OpenSourcePopup: new label: %1", text);
     }
 
     _source_open = _source_open + 1;
     y2milestone("OpenSourcePopup: _source_open: %1", _source_open);
 }
 
-boolean SourcePopupSetProgress(integer value)
+void SetHeaderSourcePopup(string text)
 {
-    if (_source_open > 0)
+    // Qt UI uses bold font, the string must be shortened even more
+    integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 5;
+
+    if (size(text) > max_size - ui_adjustment)
     {
-	UI::ChangeWidget (`id (`progress), `Value, value);
-	any input = UI::PollInput ();
-	if (input == `abort)
-	    return false;
+	text = ProcessMessage(text, max_size - ui_adjustment);
     }
-    return true;
+
+    UI::ChangeWidget(`label_source_popup, `Value, text);
+    y2milestone("SourcePopup: new header: %1", text);
+}
+
+void SetLabelSourcePopup(string text)
+{
+    // Qt uses proportional font, the string might be longer
+    integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 6;
+
+    if (size(text) > max_size + ui_adjustment)
+    {
+	text = ProcessMessage(text, max_size + ui_adjustment);
+    }
+
+    // refresh the label in the popup
+    UI::ChangeWidget(`progress, `Label, text);
+    y2milestone("SourcePopup: new label: %1", text);
 }
 
 // is the top level window source popup?
@@ -912,6 +881,18 @@ boolean IsSourcePopup()
 {
     return UI::WidgetExists(`id(`progress)) &&
       UI::WidgetExists(`id(`label_source_popup));
+}
+
+boolean SourcePopupSetProgress(integer value)
+{
+    if (_source_open > 0 && IsSourcePopup())
+    {
+	UI::ChangeWidget (`id (`progress), `Value, value);
+	any input = UI::PollInput ();
+	if (input == `abort)
+	    return false;
+    }
+    return true;
 }
 
 void CloseSourcePopup()
@@ -924,9 +905,6 @@ void CloseSourcePopup()
 
     _source_open = _source_open - 1;
 
-    // set 100% progress
-    SourcePopupSetProgress(100);
-
     if (_source_open == 0)
     {
 	y2milestone("Closing source progress popup");
@@ -935,26 +913,23 @@ void CloseSourcePopup()
     y2milestone("CloseSourcePopup: _source_open: %1", _source_open);
 }
 
-// completely close the source popup window (all instances)
-// should be called if an error occurrs
-void CloseSourcePopupAll()
+
+global void SourceCreateInit()
 {
-    if (!IsSourcePopup())
-    {
-	y2error("The toplevel dialog is not a source popup dialog!");
-	return;
-    }
+    y2milestone ("SourceCreateInit");
 
-    _source_open = 0;
-
-    // set 100% progress
-    SourcePopupSetProgress(100);
-
-    y2milestone("Closing source progress popup - all instances");
-    UI::CloseDialog();
+    OpenSourcePopup();
 }
 
-global void SourceCreateStart(string url) {
+global void SourceCreateDestroy()
+{
+    y2milestone ("SourceCreateDestroy");
+
+    CloseSourcePopup();
+}
+
+global void SourceCreateStart(string url)
+{
     y2milestone ("SourceCreateStart: %1", url);
 
     // popup label (%1 is source URL)
@@ -965,7 +940,16 @@ global void SourceCreateStart(string url) {
     }
     else
     {
-	OpenSourcePopup(sformat(_("Creating source %1"), url));
+	y2internal("_source_open: %1", _source_open);
+
+	if (_source_open == 1)
+	{
+	    SetHeaderSourcePopup(msg);
+	}
+	else
+	{
+	    SetLabelSourcePopup(msg);
+	}
     }
 }
 
@@ -1031,14 +1015,13 @@ global symbol SourceCreateError (string url, symbol error, string description) {
     UI::CloseDialog ();
     y2milestone ("Source create error: Returning %1", ret);
 
-    CloseSourcePopupAll();
-
     return ret;
 }
 
 global void SourceCreateEnd(string url, symbol error, string description)
 {
-    CloseSourcePopup();
+    // set 100% progress
+    SourcePopupSetProgress(100);
 
     y2milestone ("Source create end: error: url: %1, error: %2, description: %3", url, error, description);
 }
@@ -1057,8 +1040,18 @@ global void SourceProbeStart(string url)
     }
     else
     {
-	OpenSourcePopup(_("Probing source..."));
-	OpenSourcePopup(sformat(_("Probing source %1"), url));
+	OpenSourcePopup();
+
+	string msg = sformat(_("Probing source %1"), url);
+
+	if (_source_open == 1)
+	{
+	    SetHeaderSourcePopup(msg);
+	}
+	else
+	{
+	    SetLabelSourcePopup(msg);
+	}
     }
 }
 
@@ -1157,7 +1150,16 @@ global void SourceReportStart(integer source_id, string url, string task)
     }
     else
     {
-	OpenSourcePopup(task);
+	y2internal("_source_open: %1", _source_open);
+
+	if (_source_open == 1)
+	{
+	    SetHeaderSourcePopup(task);
+	}
+	else
+	{
+	    SetLabelSourcePopup(task);
+	}
     }
 }
 
@@ -1222,16 +1224,27 @@ global symbol SourceReportError(integer source_id, string url, symbol error, str
     UI::CloseDialog ();
     y2milestone ("Source report error: Returning %1", ret);
 
-    CloseSourcePopupAll();
-
     return ret;
 }
 
 global void SourceReportEnd(integer src_id, string url, string task, symbol error, string description)
 {
-    CloseSourcePopup();
-
     y2milestone ("Source report end: src: %1, url: %2, task: %3, error: %4, description: %5", src_id, url, task, error, description);
+
+    // set 100% progress
+    SourcePopupSetProgress(100);
+}
+
+global void SourceReportInit()
+{
+    y2milestone("Source report init");
+    OpenSourcePopup();
+}
+
+global void SourceReportDestroy()
+{
+    y2milestone("Source report destroy");
+    CloseSourcePopup();
 }
 
     /** at start of delta providal

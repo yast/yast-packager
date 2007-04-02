@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  2 14:31:04 CEST 2007 - lslezak@suse.cz
+
+- Pkg::CallbackSourceCreateInit/Destroy() and
+  Pkg::CallbackSourceReportInit() handlers (#251726)
+- 2.15.27
+
+-------------------------------------------------------------------
 Fri Mar 30 13:40:51 CEST 2007 - locilka@suse.cz
 
 - Added global variable into AddOnProduct that informs installation
