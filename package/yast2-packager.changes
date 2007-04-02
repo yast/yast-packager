@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Apr  2 14:40:41 CEST 2007 - locilka@suse.cz
+
+- Making SLP Catalog Details wider and higher. The exact dialog
+  size depends on selected UI and ammount of information presented
+  in table (#237337).
+- 2.15.28
+
+-------------------------------------------------------------------
 Mon Apr  2 14:31:04 CEST 2007 - lslezak@suse.cz
 
 - Pkg::CallbackSourceCreateInit/Destroy() and

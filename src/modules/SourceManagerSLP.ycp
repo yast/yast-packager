@@ -162,16 +162,52 @@
 		// message popup
 		Report::Message(_("No details are available."));
 	    } else {
+		// maximal size allowed by UI (with a fallback)
+		map display_information = UI::GetDisplayInfo();
+		integer max_width = display_information["Width"]:1200;
+		integer max_heigth = display_information["Height"]:500;
+		// Graphical UI returns 1280x1024, textmode 80x25
+		if (! display_information["TextMode"]:false) {
+		    max_width = max_width / 15;
+		    max_heigth = max_heigth / 18;
+		}
+
+		// maximal length of key and val found
+		integer max_len_key = 0;
+		integer max_len_val = 0;
+
 		list <term> details = [];
+		integer curr_len_key = 0;
+		integer curr_len_val = 0;
+
 		foreach (any key, any value, service_details, {
-		    details = add (details, `item (`id(nil), tostring (key), tostring (value)));
+		    details = add (details, `item (`id (nil), tostring (key), tostring (value)));
+		    curr_len_key = size (tostring (key));
+		    curr_len_val = size (tostring (value));
+
+		    if (curr_len_key != nil && curr_len_key > max_len_key) max_len_key = curr_len_key;
+		    if (curr_len_val != nil && curr_len_val > max_len_val) max_len_val = curr_len_val;
 		});
+		// maximal key + maximal val (presented in table)
+		integer max_len_total = max_len_key + max_len_val;
+
+		// min X in UI
+		integer min_size_x = max_len_total;
+		if (min_size_x > max_width) min_size_x = max_width;
+		if (min_size_x < 60) min_size_x = 60;
+
+		// min Y in UI
+		integer min_size_y = size (details) + 4;
+		if (min_size_y > max_heigth) min_size_y = max_heigth;
+		if (min_size_y < 14) min_size_y = 14;
+
+		y2milestone ("Details min size: %1 x %2", min_size_x, min_size_y);
 
 		UI::OpenDialog (
 		    `VBox (
 			`Left (`Heading(`id(`details_heading), _("Catalog Details"))),
 			`MinSize (
-			    60, 16,
+			    min_size_x, min_size_y,
 			    `Table (
 				`header(
 				    // table header item
