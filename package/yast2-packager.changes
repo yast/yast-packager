@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr  4 15:39:13 CEST 2007 - ug@suse.de
+
+- signature checks for individual add-ons for autoyast
+
+-------------------------------------------------------------------
 Mon Apr  2 14:40:41 CEST 2007 - locilka@suse.cz
 
 - Making SLP Catalog Details wider and higher. The exact dialog
