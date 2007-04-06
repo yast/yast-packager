@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  6 13:31:33 CEST 2007 - lslezak@suse.cz
+
+- added user authentication callback - Authentication() (#190609)
+- 2.15.30
+
+-------------------------------------------------------------------
 Fri Apr  6 12:29:36 CEST 2007 - lslezak@suse.cz
 
 - fixed missing translation mark (#252551)
