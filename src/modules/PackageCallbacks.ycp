@@ -1943,5 +1943,52 @@ global void DoneScanDb(integer error, string description)
     }
 }
 
+
+global map Authentication(string url, string msg, string username, string password)
+{
+    term popup = `VBox(
+	`HSpacing(50),	// enforce width
+	`VSpacing(0.1),
+	// heading in a popup window
+	`Heading(_("User Authentication")),
+	`VSpacing(0.1),
+	`HBox(
+	    `HSpacing(0.1),
+	    `RichText(`opt(`plainText), sformat(_("URL: %1\n\n%2"), url, msg)),
+	    `HSpacing(0.1)
+	),
+	`VSpacing(0.1),
+	`HBox(
+	    `HSpacing(1),
+	    `VBox(
+		// textentry label
+		`TextEntry(`id(`username), _("&User Name"), username),
+		`VSpacing(0.1),
+		// textentry label
+		`Password(`id(`password), _("&Password"), password)
+	    ),
+	    `HSpacing(1)
+	),
+	`VSpacing(0.5),
+	`HBox(
+	    `PushButton (`id(`cont), `opt(`default), Label::ContinueButton()),
+	    `HSpacing(1),
+	    `PushButton(`id(`cancel), Label::CancelButton())
+	),
+	`VSpacing(0.5)
+    );
+
+    UI::OpenDialog(`opt(`decorated), popup);
+
+    symbol ui = (symbol)UI::UserInput();
+
+    username = (string)UI::QueryWidget(`id(`username), `Value);
+    password = (string)UI::QueryWidget(`id(`password), `Value);
+
+    UI::CloseDialog();
+
+    return $[ "username" : username, "password" : password, "continue" : ui == `cont ];
+}
+
 // EOF
 }
