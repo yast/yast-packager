@@ -5,7 +5,7 @@
  *
  * Author:		Stefan Hundhammer <sh@suse.de>
  *
- * $Id:$
+ * $Id$
  *
  */
 {
@@ -1290,7 +1290,9 @@
 	}
 	else
 	{
-	    msg = sformat( "%1 (installed size %2)", pkg_name, String::FormatSize( pkg_size ) );
+	    // package installation - summary text
+	    // %1 is RPM name, %2 is installed (unpacked) size (e.g. 6.20MB)
+	    msg = sformat( _("%1 (installed size %2)"), pkg_name, String::FormatSize( pkg_size ) );
 	}
 
 
