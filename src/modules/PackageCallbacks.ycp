@@ -1774,7 +1774,7 @@ global void StartScanDb()
 	    `VBox(
 		`HSpacing(60),
 		// popup heading
-		`Heading(`id(`label_scanDB_popup), `opt(`hstretch), _("Initializing Target System...")),
+		`Heading(`id(`label_scanDB_popup), `opt(`hstretch), _("Reading Installed Packages")),
 		`HBox(
 		    // progress bar label
 		    `ProgressBar (`id (`progress), _("Scanning RPM Database..."), 100, 0),
