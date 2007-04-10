@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 10 16:52:15 CEST 2007 - lslezak@suse.cz
+
+- use better heading in RPM reading popup (#261278)
+- 2.15.31
+
+-------------------------------------------------------------------
 Fri Apr  6 13:31:33 CEST 2007 - lslezak@suse.cz
 
 - added user authentication callback - Authentication() (#190609)
