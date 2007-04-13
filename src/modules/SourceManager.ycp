@@ -1140,6 +1140,12 @@ global list Overview() {
 		boolean added_ok = true;
 		foreach (integer src_id, src_ids, {
 		    map gendata = Pkg::SourceGeneralData (src_id);
+		    string url = gendata["url"]:"";
+		    boolean is_nu = search (url, "$RCE") != nil; // #262877
+		    if (is_nu) {
+			y2milestone ("Skipping NU URL %1", InstURL::HidePassword (url));
+			continue;
+		    }
 		    // #219414, delete disabled ones (previous product version)
 		    boolean add_or_del = gendata["enabled"]:true;
 		    added_ok = AddOrDeleteZYPPServiceIntoZMD (src_id, add_or_del) && added_ok;
