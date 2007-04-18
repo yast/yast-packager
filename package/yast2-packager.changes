@@ -4,6 +4,7 @@ Tue Apr 17 17:02:23 CEST 2007 - locilka@suse.cz
 - Initializing target in inst_rpmcopy only if some packages need
   to be installed (partly FATE #301924).
 - Replacing obsolete 'find' builtins with 'regexpmatch'.
+- 2.15.32
 
 -------------------------------------------------------------------
 Tue Apr 10 16:52:15 CEST 2007 - lslezak@suse.cz
