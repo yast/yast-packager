@@ -542,7 +542,7 @@ from the source CD to the disk cache")));
 
 	// Packages remaining for installation
 	if (FileUtils::Exists (file_remaining_packages)) {
-	    list <map <string, any> > remaining =
+	    remaining =
 		(list <map <string, any> >) SCR::Read (.target.ycp, [file_remaining_packages, []]);
 	    if (remaining == nil)
 		remaining = [];
@@ -552,7 +552,7 @@ from the source CD to the disk cache")));
 
 	// Sources remaining for installation
 	if (FileUtils::Exists (file_remaining_srcs)) {
-	    list<string> srcremaining =
+	    srcremaining =
 		(list<string>) SCR::Read (.target.ycp, [file_remaining_srcs, []]);
 	    if (srcremaining == nil)
 		srcremaining = [];
@@ -568,7 +568,11 @@ from the source CD to the disk cache")));
      */
     boolean SomePackagesAreRemainForInstallation () {
 	// Either 'remaining' or 'srcremaining' are not empty
-	return (size (remaining) > 0 || size (srcremaining) > 0);
+	integer size_remaining    = (remaining    == nil ? 0 : size (remaining));
+	integer size_srcremaining = (srcremaining == nil ? 0 : size (srcremaining));
+
+	y2milestone ("remaining: %1, srcremaining: %2", size_remaining, size_srcremaining);
+	return (size_remaining > 0 || size_srcremaining > 0);
     }
 
     /**
