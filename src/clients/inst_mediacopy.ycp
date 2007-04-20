@@ -5,7 +5,7 @@
  *
  * Purpose:	Copy Media to local disk
  *
- * $Id:$
+ * $Id$
  *
  */
 {
@@ -19,6 +19,7 @@
     import "PackageCallbacksInit";
     import "Installation";
     import "GetInstArgs";
+    import "String";
 
     list source_list = [];
 
@@ -113,7 +114,11 @@ other systems.</p>
 			_("Please wait..."));
                     SCR::Execute(.target.mkdir, tgt);
                     //string cmd = sformat("cd %1 && tar cf - . | (cd %2  && tar xBf -)", dir,  tgt);
-                    string cmd = sformat("cp %1/content %2", dir, tgt);
+                    string cmd = sformat (
+			"cp '%1/content' '%2'",
+			String::Quote (tostring (dir)),
+			String::Quote (tgt)
+		    );
                     SCR::Execute(.target.bash, cmd);
 
                     if (!changed_url)
