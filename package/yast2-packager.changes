@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 20 08:54:33 CEST 2007 - locilka@suse.cz
+
+- Escaping and quoting .target.back* calls.
+
+-------------------------------------------------------------------
 Tue Apr 17 17:02:23 CEST 2007 - locilka@suse.cz
 
 - Initializing target in inst_rpmcopy only if some packages need
