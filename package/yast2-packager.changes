@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 23 09:14:28 CEST 2007 - lslezak@suse.cz
+
+- install xen-tools-domU package instead of xen-tools in Xen domU
+  (#249157)
+- 2.13.174
+
+-------------------------------------------------------------------
 Fri Apr 13 17:39:04 CEST 2007 - mvidner@suse.cz
 
 - Do not sync NU type repositories to ZMD (#262877).
