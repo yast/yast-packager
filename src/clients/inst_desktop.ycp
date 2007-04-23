@@ -160,6 +160,13 @@ Wizard::SetContents (_("Desktop Selection"), contents, help,
 Wizard::SetTitleIcon ("yast-desktop-select");
 Wizard::SetFocusToNextButton();
 
+// initialize other desktop when going back
+if (alt_desktop == "other")
+{
+    other_desktop = DefaultDesktop::Desktop();
+    EnableOtherOptions();
+}
+
 any ret = nil;
 
 repeat {

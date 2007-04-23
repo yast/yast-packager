@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 23 12:52:33 CEST 2007 - lslezak@suse.cz
+
+- properly initialize desktop configuration dialog when going back
+  in the installation workflow (#264295)
+
+-------------------------------------------------------------------
 Fri Apr 20 08:54:33 CEST 2007 - locilka@suse.cz
 
 - Escaping and quoting .target.back* calls.
