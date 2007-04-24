@@ -258,7 +258,7 @@
 
 	any ret = UI::UserInput();
 
-	ask_again = (boolean) UI::QueryWidget(`id(`dont_ask), `Value);
+	ask_again = !(boolean) UI::QueryWidget(`id(`dont_ask), `Value);
 
 	if (!ask_again)
 	{
