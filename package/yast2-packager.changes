@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 24 16:39:21 CEST 2007 - lslezak@suse.cz
+
+- fixed inverted meaning of the "Do not show again" checkbox
+  (#245734)
+- 2.15.34
+
+-------------------------------------------------------------------
 Mon Apr 23 12:52:33 CEST 2007 - lslezak@suse.cz
 
 - properly initialize desktop configuration dialog when going back
