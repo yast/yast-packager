@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 25 15:49:10 CEST 2007 - mvidner@suse.cz
+
+- Work around a deadlock of zmd and rug by waiting 5 seconds after
+  starting zmd (#234345#c55).
+- 2.13.175
+
+-------------------------------------------------------------------
 Mon Apr 23 09:14:28 CEST 2007 - lslezak@suse.cz
 
 - install xen-tools-domU package instead of xen-tools in Xen domU

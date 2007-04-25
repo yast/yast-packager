@@ -1015,6 +1015,11 @@ global list Overview() {
 	    // Starting the service
 	    map zmd_start = RunLong (zmd_service_name + " start");
 	    y2milestone("ZMD start: %1", zmd_start);
+
+	    // #234345#c55, work around a deadlock of zmd+rug :(
+	    integer delay = 5;
+	    y2milestone("Waiting %1 seconds for ZMD to really wake up", delay);
+	    sleep (delay * 1000);
 	}
 	// Checking the status after start
 	running = CheckZMDStatus ();
