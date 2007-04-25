@@ -8,8 +8,8 @@ BuildRequires:	yast2 >= 2.15.22
 Requires:	yast2-country
 Requires:	yast2-installation >= 2.15.12
 
-# get/set alias using Pkg::EditSourceGet/Set()
-Requires:	yast2-pkg-bindings >= 2.15.12
+# Pkg::SourceGetBrokenSources()
+Requires:	yast2-pkg-bindings >= 2.15.16
 
 # WorkflowManager module
 Requires:	yast2 >= 2.15.22

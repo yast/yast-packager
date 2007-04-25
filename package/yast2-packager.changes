@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Apr 25 14:19:33 CEST 2007 - lslezak@suse.cz
+
+- inst_source.ycp - display broken sources in the overview dialog
+  (#265579)
+- use RichText widget in the broken source popup window (make the
+  message scrollable)
+- 2.15.35
+
+-------------------------------------------------------------------
 Tue Apr 24 16:39:21 CEST 2007 - lslezak@suse.cz
 
 - fixed inverted meaning of the "Do not show again" checkbox
