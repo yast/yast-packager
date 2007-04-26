@@ -1088,8 +1088,15 @@ boolean SelectValidate (string key, map event) {
 }
 
 symbol SelectHandle (string key, map event) {
+    // reset the preselected URL when going back
+    if (event["ID"]:nil == `back)
+    {
+	_url = "";
+    }
+
     if (! (event["ID"]:nil == `next || event["ID"]:nil == `ok))
 	return nil;
+
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
     if (selected == nil)
 	return nil;
@@ -1116,10 +1123,33 @@ void SelectStore (string key, map event) {
     }
 }
 
+
+void SelectInit (string key) {
+    symbol current = nil;
+
+    if (_url == "ftp://") current = `ftp;
+    else if ( _url == "http://" ) current = `http;
+    else if ( _url == "https://" ) current = `https;
+    else if ( _url == "smb://" ) current = `samba;
+    else if ( _url == "nfs://" ) current = `nfs;
+    else if ( _url == "cd:///" ) current = `cd;
+    else if ( _url == "dvd:///" ) current = `dvd;
+    else if ( _url == "dir://" ) current = `local_dir;
+    else if ( _url == "file://" ) current = `local_iso;
+    else if ( _url == "slp://" ) current = `slp;
+    else y2warning ("Unknown URL scheme '%1'", _url);
+
+    if (current != nil)
+    {
+	UI::ChangeWidget (`id (`type), `CurrentButton, current);
+    }
+}
+
 map<string,any> SelectWidget () {
     return $[
 	"widget" : `func,
 	"widget_func" : SelectRadioWidget,
+	"init" : SelectInit,
 	"help" : SelectWidgetHelp (),
 	"validate_type" : `function,
 	"validate_function" : SelectValidate,

@@ -682,9 +682,17 @@ without having %1 package installed"),
 		SCR::RegisterAgent(.slp, `ag_slp(`SlpAgent()));
 	    }
 	}
-	
-	symbol ret = (symbol) WFM::call("add_inst_source_slptype");
-	return ret;
+
+	string service = (string) WFM::call("select_slp_source");
+
+	if (service == nil) {
+	    y2milestone("No SLP service selected, returning back...");
+	    return `back;
+	}
+	else
+	{
+	    url = service;
+	}
     }
 
     if (createSource(url) == `again)
