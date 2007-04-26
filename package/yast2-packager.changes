@@ -2,7 +2,7 @@
 Wed Apr 25 17:14:38 CEST 2007 - lslezak@suse.cz
 
 - display added SLP sources in the overview table (#251182)
-- preselect the choosen medium type going back
+- preselect the choosen medium type when going back
 - 2.15.36
 
 -------------------------------------------------------------------
