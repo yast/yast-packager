@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 26 13:49:53 CEST 2007 - lslezak@suse.cz
+
+- use "Retry" label instead of "OK" in the media change popup
+  (#264705)
+
+-------------------------------------------------------------------
 Wed Apr 25 17:14:38 CEST 2007 - lslezak@suse.cz
 
 - display added SLP sources in the overview table (#251182)
