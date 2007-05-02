@@ -78,13 +78,19 @@
         map productData = Pkg::SourceProductData( id );
 	y2milestone("generalData: %1", generalData);
 	y2milestone("productData: %1", productData);
+
+	string alias = haskey(sourceStatesOut[index]:$[], "alias") ?
+	    sourceStatesOut[index,"alias"]:"" :
+	    // unkown name (alias) of the source
+	    generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("Unknown Name");
+
         term item = `item(
 			  `id( index ),
 			  // corresponds to the "Enable/Disable" button
 			  source[ "enabled" ]:true ? _("On") : _("Off"),
 			  source["autorefresh"]:true ? _("On") : _("Off"),
 			  // translators: unknown name for a given source
-			  generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("unknown"),
+			  alias,
 			  generalData[ "url" ]:""
 			  );
         return item;

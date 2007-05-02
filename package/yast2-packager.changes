@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May  2 16:57:40 CEST 2007 - lslezak@suse.cz
+
+- inst_source - display the current alias when the table content
+  is refreshed (#258776)
+- 2.15.37
+
+-------------------------------------------------------------------
 Thu Apr 26 13:49:53 CEST 2007 - lslezak@suse.cz
 
 - use "Retry" label instead of "OK" in the media change popup
