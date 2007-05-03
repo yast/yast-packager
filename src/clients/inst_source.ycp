@@ -31,29 +31,7 @@
     import "Popup";
     import "AddOnProduct";
     import "Sequencer";
-
-    // Do not sync the changes to ZENworks even if rug is present
-    // This is handy for repairing an already out-of-sync situation
-    boolean have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
-    boolean norug = !have_rug || (size(WFM::Args()) > 0 && WFM::Args(0) == "norug");
-
-    // constant Plaindir
-    string plaindir_type = "Plaindir"; 
-
-    Wizard::CreateDialog();
-    Wizard::SetDesktopIcon("sw_source");
-    // dialog caption
-    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
-
-   // check whether running as root
-   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
-   {
-	UI::CloseDialog ();
-	return (any)`abort;
-   }
-
-    PackageCallbacksInit::InitPackageCallbacks ();
-
+    import "CommandLine";
     // constructor of Product is needed in order to initialize the product
     // macro. Takes a lot of time because whole package manager target
     // is initialized
@@ -66,6 +44,15 @@
     list<map<string,any> > sourceStatesIn = [];
     list<map<string,any> > sourceStatesOut = [];
     list<integer> sourcesToDelete = [];
+
+    // Do not sync the changes to ZENworks even if rug is present
+    // This is handy for repairing an already out-of-sync situation
+    boolean have_rug = nil;
+    boolean norug = nil;
+
+    // constant Plaindir
+    const string plaindir_type = "Plaindir"; 
+
 
     /**
         Create a table item from a map as returned by the InstSrcManager agent.
@@ -706,71 +693,101 @@ without having %1 package installed"),
     return `next;
 }
 
-boolean restore = Pkg::SourceStartManager( false );
-if( ! restore )
+// main function - start the workflow
+symbol StartInstSource()
 {
-    // #210514 (L3): unconditionally removing the sources is BAD.
-    // Usually it is just a temporary error because of misconfigured proxy.
-    boolean cleanup = Popup::AnyQuestionRichText( // [1]
-	Label::ErrorMsg(),
-	// Error popup (part 1)
-	_("<p>There were errors when restoring the source configuration.</p>
+    have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+    norug = !have_rug || (size(WFM::Args()) > 0 && WFM::Args(0) == "norug");
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_source");
+    // dialog caption
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+   // check whether running as root
+   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
+   {
+	UI::CloseDialog ();
+	return `abort;
+   }
+
+    PackageCallbacksInit::InitPackageCallbacks ();
+
+    boolean restore = Pkg::SourceStartManager( false );
+    if( ! restore )
+    {
+	// #210514 (L3): unconditionally removing the sources is BAD.
+	// Usually it is just a temporary error because of misconfigured proxy.
+	boolean cleanup = Popup::AnyQuestionRichText( // [1]
+	    Label::ErrorMsg(),
+	    // Error popup (part 1)
+	    _("<p>There were errors when restoring the source configuration.</p>
 <p>Not all sources are available for configuration.</p>
 ") + "<p>" + Pkg::LastError() + "</p>" +
-	// Error popup (part 2): Yes/No question.
-	// "immediately" is important: because of stupid design [2],
-	// they will be removed even if the user then chooses Abort :(
-	_("<p>Do you want to immediately remove these sources?</p>"),
-	50, 15,
-	Label::YesButton(), Label::NoButton(), `focus_no);
-    // Notes irrelevant for translators:
-    // [1]: we want the focus on "No"; Popup::YesNo is too specialized
-    // [2]: using SourceManager and not just PersistentStorage in inst_source
-    
-    // delete the broken sources from the persistent store
-    if (cleanup) {
-	Pkg::SourceCleanupBroken();
+	    // Error popup (part 2): Yes/No question.
+	    // "immediately" is important: because of stupid design [2],
+	    // they will be removed even if the user then chooses Abort :(
+	    _("<p>Do you want to immediately remove these sources?</p>"),
+	    50, 15,
+	    Label::YesButton(), Label::NoButton(), `focus_no);
+	// Notes irrelevant for translators:
+	// [1]: we want the focus on "No"; Popup::YesNo is too specialized
+	// [2]: using SourceManager and not just PersistentStorage in inst_source
+
+	// delete the broken sources from the persistent store
+	if (cleanup) {
+	    Pkg::SourceCleanupBroken();
+	}
     }
+
+    sourceStatesIn = Pkg::SourceEditGet();
+    y2milestone( "Found sources: %1", sourceStatesIn);
+    sourceStatesOut = sourceStatesIn;
+
+    map<string,any> aliases = $[
+	"summary" : ``(SummaryDialog ()),
+	"type" : ``(SourceDialogs::TypeDialog ()),
+	"edit" : ``(SourceDialogs::EditDialog ()),
+	"store" : ``(StoreSource ())
+    ];
+
+    map sequence = $[
+	"ws_start" : "summary",
+	"summary" : $[
+	    `add : "type",
+	    `edit : "edit",
+	    `abort : `abort,
+	    `next : `next,
+	],
+	"type" : $[
+	    `next : "edit",
+	    `finish : "store",
+	    `abort : `abort,
+	],
+	"edit" : $[
+	    `next : "store",
+	    `abort : `abort,
+	],
+	"store" : $[
+	    `next : "summary",
+	    `abort : `abort,
+	],
+    ];
+
+    y2milestone ("Starting source sequence");
+    symbol ret = Sequencer::Run (aliases, sequence);
+
+    UI::CloseDialog ();
+    return ret;
 }
 
-sourceStatesIn = Pkg::SourceEditGet();
-y2milestone( "Found sources: %1", sourceStatesIn);
-sourceStatesOut = sourceStatesIn;
-
-map<string,any> aliases = $[
-    "summary" : ``(SummaryDialog ()),
-    "type" : ``(SourceDialogs::TypeDialog ()),
-    "edit" : ``(SourceDialogs::EditDialog ()),
-    "store" : ``(StoreSource ())
+map cmdline_description = $[
+    "id"	: "inst_source",
+    /* Command line help text for the installation source module, %1 is "zypper" */
+    "help"	: sformat(_("Installation Sources - this module doesn't support command line interface, use '%1' instead."), "zypper"),
+    "guihandler"        : StartInstSource,
 ];
 
-map sequence = $[
-    "ws_start" : "summary",
-    "summary" : $[
-	`add : "type",
-	`edit : "edit",
-	`abort : `abort,
-	`next : `next,
-    ],
-    "type" : $[
-	`next : "edit",
-	`finish : "store",
-	`abort : `abort,
-    ],
-    "edit" : $[
-	`next : "store",
-	`abort : `abort,
-    ],
-    "store" : $[
-	`next : "summary",
-	`abort : `abort,
-    ],
-];
-
-y2milestone ("Starting source sequence");
-symbol ret = Sequencer::Run (aliases, sequence);
-
-UI::CloseDialog ();
-return ret;
+return CommandLine::Run(cmdline_description);
 
 } // EOF

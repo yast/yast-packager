@@ -31,6 +31,10 @@
     import "Report";
     import "FileUtils";
     import "PackagesUI";
+    import "CommandLine";
+
+symbol StartSWSingle()
+{
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_single");
@@ -436,4 +440,15 @@ Install them now?
    UI::CloseDialog();
 
    return (symbol) result;
+}
+
+map cmdline_description = $[
+    "id"	: "sw_single",
+    /* Command line help text for the software management module, %1 is "zypper" */
+    "help"	: sformat(_("Software installation - this module doesn't support command line interface, use '%1' instead."), "zypper"),
+    "guihandler"        : StartSWSingle,
+];
+
+return CommandLine::Run(cmdline_description);
+
 }

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  3 14:45:14 CEST 2007 - lslezak@suse.cz
+
+- basic command line support for dirinstall (#269889), sw_single
+  (#269908) and inst_source (#269893)
+
+-------------------------------------------------------------------
 Wed May  2 16:57:40 CEST 2007 - lslezak@suse.cz
 
 - inst_source - display the current alias when the table content
