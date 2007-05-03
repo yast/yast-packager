@@ -4,13 +4,17 @@
  * Summary:	Installation into  a directory
  * Authors:	Anas Nashif <nashif@suse.de>
  *
- * $Id:$
+ * $Id$
  *
  */
 
 {
     textdomain "packager";
 
+    import "CommandLine";
+
+symbol StartDirInstall()
+{
     import "Wizard";
     // open the dialog
     Wizard::CreateDialog();
@@ -158,4 +162,15 @@
 
     Wizard::CloseDialog();
     return ret;
+}
+
+map cmdline_description = $[
+    "id"	: "dirinstall",
+    /* Command line help text for the dirinstall module */
+    "help"	: _("Installation into Directory"),
+    "guihandler"        : StartDirInstall,
+];
+
+return CommandLine::Run(cmdline_description);
+
 }
