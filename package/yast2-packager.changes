@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May  4 07:57:56 CEST 2007 - lslezak@suse.cz
+
+- close the "Initializing catalogs..." popup before opening
+  another one (#269920)
+- 2.15.38
+
+-------------------------------------------------------------------
 Thu May  3 14:45:14 CEST 2007 - lslezak@suse.cz
 
 - basic command line support for dirinstall (#269889), sw_single
