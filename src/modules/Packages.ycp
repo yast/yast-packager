@@ -831,13 +831,13 @@ integer IntegrateServicePack (boolean show_popup, string base_url) {
 	WFM::Execute(.local.bash, "tar -zxvf " +
 	    servicepack_metadata + " -C " + spdir);
 	string sp_url = "dir:" + spdir;
-	integer sp_source = Pkg::SourceCreate (sp_url, "");
 	// close the popup in order to be able to ask about the license
 	if (popup_open)
 	{
 	    popup_open = false;
 	    UI::CloseDialog ();
 	}
+	integer sp_source = Pkg::SourceCreate (sp_url, "");
 	if (sp_source == -1)
 	{
 	    Report::Error (_("Failed to integrate service pack source."));
@@ -912,6 +912,13 @@ global void Initialize(boolean show_popup) {
     Pkg::SetTextLocale (Language::language);
 
     boolean again = true;
+
+    if (popup_open)
+    {
+	UI::CloseDialog ();
+	popup_open = false;
+    }
+
     theSources = Pkg::SourceStartCache (true); // dummy in 1st stage
     while (again)
     {
@@ -932,8 +939,6 @@ global void Initialize(boolean show_popup) {
 		    }
 		    else
 		    {
-			if (popup_open)
-			    UI::CloseDialog ();
 			init_in_progress = false;
 			return;
 		    }
@@ -950,8 +955,6 @@ global void Initialize(boolean show_popup) {
 			sformat (_("Insert %1 CD 1"), label)))
 		    {
 			init_error = sformat (_("%1 CD 1 not found"), label);
-			if (popup_open)
-			    UI::CloseDialog ();
 			init_in_progress = false;
 			return;
 		    }
@@ -966,11 +969,6 @@ global void Initialize(boolean show_popup) {
 	    // not be set. Bug 178831
 	    SelectProduct ();
 
-	    if (popup_open)
-	    {
-		popup_open = false;
-		UI::CloseDialog ();
-	    }
 	    theSources = [ initial_source ];
 	    integer sp_source = IntegrateServicePack (show_popup, base_url);
 	    if (sp_source != nil)
@@ -1039,8 +1037,7 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 							   0, "", 1, "", false);
 	}
     }
-    if (popup_open)
-	UI::CloseDialog ();
+
     init_in_progress = false;
 }
 
