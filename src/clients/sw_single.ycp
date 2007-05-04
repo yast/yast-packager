@@ -442,13 +442,27 @@ Install them now?
    return (symbol) result;
 }
 
-map cmdline_description = $[
-    "id"	: "sw_single",
-    /* Command line help text for the software management module, %1 is "zypper" */
-    "help"	: sformat(_("Software installation - this module doesn't support command line interface, use '%1' instead."), "zypper"),
-    "guihandler"        : StartSWSingle,
-];
+/*
+ * Start commandline interface only when the parameter is "help", otherwise start standard GUI.
+ * The reason is that "yast2 -i package" is translated to "yast2 sw_single package",
+ * we don't know wheter "package" is a command or a package name.
+ * Package name is assumed for backward compatibility.
+ */
+if (WFM::Args() == ["help"])
+{
+    map cmdline_description = $[
+	"id"	: "sw_single",
+	/* Command line help text for the software management module, %1 is "zypper" */
+	"help"	: sformat(_("Software installation - this module doesn't support command line interface, use '%1' instead."), "zypper"),
+	"guihandler"        : StartSWSingle,
+    ];
 
-return CommandLine::Run(cmdline_description);
+    return CommandLine::Run(cmdline_description);
+}
+else
+{
+    return StartSWSingle();
+}
 
 }
+
