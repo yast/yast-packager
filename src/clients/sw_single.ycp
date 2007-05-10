@@ -331,13 +331,18 @@ Install them now?
        {
 	   if (size (packagelist) == 0)			// packages given ?
 	   {
+	       // names of taboo packages
+	       list<string> taboo_packages = Pkg::GetPackages(`taboo, true);
+
 	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 	       {
 		   result = `next;
 		   // ask only when there is something to install/remove
-		   ask = Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove);
+		   // or when taboo package has been changed
+		   ask = Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove)
+			|| Pkg::GetPackages(`taboo, true) != taboo_packages;
 		   y2milestone("Ask to restart the package selector: %1", ask);
 	       }
 	       else

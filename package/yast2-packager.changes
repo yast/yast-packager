@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 10 17:40:28 CEST 2007 - lslezak@suse.cz
+
+- Display "Install more packages?" question also when taboo state
+  of a package is changed in the package management (#272690)
+
+-------------------------------------------------------------------
 Fri May  4 07:57:56 CEST 2007 - lslezak@suse.cz
 
 - close the "Initializing catalogs..." popup before opening
