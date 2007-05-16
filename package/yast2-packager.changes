@@ -6,6 +6,8 @@ Wed May 16 12:17:03 CEST 2007 - locilka@suse.cz
   about the products and during installation, we can remove them or
   add them again. Wizard steps are redrawn immediately after adding
   these Add-Ons (#269625).
+- Function Packages::Initialize has been split into more smaller
+  functions for an easier maintenance.
 - 2.15.39
 
 -------------------------------------------------------------------
