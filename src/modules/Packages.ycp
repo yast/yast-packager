@@ -37,6 +37,7 @@ import "Product";
 import "DefaultDesktop";
 import "SourceDialogs";
 import "FileUtils";
+import "PackageCallbacks";
 
 /**
  * Force full proposal routine next run
@@ -871,17 +872,7 @@ integer IntegrateServicePack (boolean show_popup, string base_url) {
     }
 }
 
-/**
- * Initialize the installation sources
- * @param show_popup boolean true to display information about initialization
- */
-global void Initialize(boolean show_popup) {
-    if (init_called || init_in_progress)
-    {
-	y2warning ("Packages::Initialize() already called");
-	return;
-    }
-    init_in_progress = true;
+boolean Initialize_BaseInit (boolean show_popup, string & base_url, string & log_url) {
     boolean popup_open = false;
     if (show_popup)
     {
@@ -896,8 +887,6 @@ global void Initialize(boolean show_popup) {
     // Initialize package manager
     init_error = nil;
     y2milestone ("Packages::Initialize()");
-    // usual mountpoint for the source medium
-    string base_url = "";
 
     if (Mode::test ())
     {
@@ -910,14 +899,12 @@ global void Initialize(boolean show_popup) {
     }
 
     // hide password from URL if present
-    string log_url = InstURL::HidePassword(base_url);
+    log_url = InstURL::HidePassword(base_url);
     y2milestone ("Initialize Package Manager: %1", log_url);
 
     // Set languages for packagemanager. Always set the UI language. Set
     // language for additional packages only in Stage::initial ().
     Pkg::SetTextLocale (Language::language);
-
-    boolean again = true;
 
     if (popup_open)
     {
@@ -925,11 +912,10 @@ global void Initialize(boolean show_popup) {
 	popup_open = false;
     }
 
-    theSources = Pkg::SourceStartCache (true); // dummy in 1st stage
-    while (again)
-    {
-	if (Stage::initial ())
-	{
+    return true;
+}
+
+global void Initialize_StageInitial (boolean show_popup, string base_url, string log_url) {
 	    integer initial_source = nil;
 	    ImportGPGKeys ();
 	    while (initial_source == nil)
@@ -995,10 +981,9 @@ global void Initialize(boolean show_popup) {
 	    {
 		add_on_products_list = nil;
 	    }
+}
 
-	}
-	else // cont or normal mode
-	{
+global void Initialize_StageNonInitial (boolean show_popup, string base_url, string log_url) {
 	    if (theSources == nil || size (theSources) <= 0)
 	    {
 		y2error ("Pkg::SourceStartCache failed");
@@ -1020,10 +1005,46 @@ global void Initialize(boolean show_popup) {
 		    }
 		});
 	    }
+}
+
+/**
+ * Initialize the installation sources
+ * @param show_popup boolean true to display information about initialization
+ */
+global void Initialize(boolean show_popup) {
+    if (init_called || init_in_progress)
+    {
+	y2warning ("Packages::Initialize() already called");
+	return;
+    }
+
+    init_in_progress = true;
+
+    // usual mountpoint for the source medium
+    string base_url = "";
+    // url with hidden password for logging purpose
+    string log_url  = "";
+
+    Initialize_BaseInit (show_popup, base_url, log_url);
+
+    theSources = Pkg::SourceStartCache (true); // dummy in 1st stage
+
+    boolean again = true;
+
+    while (again)
+    {
+	if (Stage::initial ())
+	{
+	    Initialize_StageInitial (show_popup, base_url, log_url);
+	}
+	else // cont or normal mode
+	{
+	    Initialize_StageNonInitial (show_popup, base_url, log_url);
 	}
 
 	y2milestone ("theSources %1", theSources);
 	y2milestone ("theSourceDirectories %1", theSourceDirectories);
+
 	if (size (theSources) >= 0)
 	{
 	    init_called = true;
@@ -1031,8 +1052,6 @@ global void Initialize(boolean show_popup) {
 	}
 	else
 	{
-	    import "PackageCallbacks";
-
 	    // an error message
 	    string errortext = sformat (_("Error while initializing package descriptions.
 Check the log file %1 for more details."), Directory::logdir + "/y2log") +
