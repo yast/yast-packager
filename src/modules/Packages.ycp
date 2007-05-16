@@ -350,7 +350,13 @@ global void InitializeAddOnProducts() {
 	y2milestone ("Found list of add-on products to preselect: %1", Packages::add_on_products_list);
 	Packages::SelectProduct ();
 	PackageCallbacksInit::SetMediaCallbacks();
+
+	// Set the base workflow before adding more AddOnProducts using the add_on_products file
+	// Do not force "base workflow" if there is already any base one stored
+	// bugzilla #269625
+	WorkflowManager::SetBaseWorkflow (false);
 	AddOnProduct::AddPreselectedAddOnProducts (Packages::add_on_products_list);
+
 	Packages::add_on_products_list = nil; // do not select them any more
     }
 }

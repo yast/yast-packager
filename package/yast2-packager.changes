@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed May 16 12:17:03 CEST 2007 - locilka@suse.cz
+
+- Fixed behavior when Add-On products are automatically added by
+  list of products defined in add_on_products file. UI layer knowns
+  about the products and during installation, we can remove them or
+  add them again. Wizard steps are redrawn immediately after adding
+  these Add-Ons (#269625).
+- 2.15.39
+
+-------------------------------------------------------------------
 Thu May 10 17:40:28 CEST 2007 - lslezak@suse.cz
 
 - Display "Install more packages?" question also when taboo state

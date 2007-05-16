@@ -483,7 +483,7 @@ global boolean CheckProductDependencies (list<string> products) {
 }
 
 /**
- * Auto-integrate add-on products in specified file
+ * Auto-integrate add-on products in specified file (usually add_on_products file)
  * @param filelist string a file containing a list of add-on products to integrate
  * @return boolean true on exit
  */
@@ -512,6 +512,18 @@ global boolean AddPreselectedAddOnProducts(string filelist) {
 	    return;
 	}
 	Integrate (src);
+
+	// adding the product to the list of products
+	// bugzilla #269625
+	map <string, string> prod = (map <string, string>) Pkg::SourceProductData (src);
+
+	AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
+	    "media" : src,
+	    "product" : prod["label"]:prod["productname"]:prod["productversion"]:"",
+	    "media_url" : url,
+	    "product_dir" : pth,
+	]);
+
 	if (size (elements) > 0)
 	{
 	    foreach (string e, elements, {
@@ -529,6 +541,9 @@ global boolean AddPreselectedAddOnProducts(string filelist) {
 	    });
 	}
     });
+    
+    // reread agents, redraw wizard steps, etc.
+    ReIntegrateFromScratch();
 }
 
 /* Export/Import --> */
