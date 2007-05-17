@@ -1367,6 +1367,8 @@ global list Overview() {
 
 	ResetKnownServiceCache ();
 
+	boolean target_loaded = false;
+
 	// add the sources.
 	// but do not make duplicates (#168740)
 	// we detect them based on alias that suse_register gives us (#158850#c17)
@@ -1403,6 +1405,21 @@ global list Overview() {
 		if (!is_nu && zmd_working)
 		{
 		    AddOrDeleteZYPPServiceIntoZMD (toadd, true);
+		}
+
+		// call TargetLoad() if there is a patch available
+		if (!target_loaded)
+		{
+		    // is there any patch available?
+		    list patches = Pkg::ResolvableProperties("", `patch, "");
+
+		    if (size(patches) > 0)
+		    {
+			// loaded target is required to get list of applicable patches (#270919)
+			y2milestone("Source %1 provides %2 patches, loading target...", url, size(patches));
+			Pkg::TargetLoad();
+			target_loaded = true;
+		    }
 		}
 	    }
 	});
