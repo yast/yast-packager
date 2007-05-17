@@ -1,9 +1,15 @@
 -------------------------------------------------------------------
+Thu May 17 12:29:56 CEST 2007 - locilka@suse.cz
+
+- Sort licenses alphabetically using an lsort instead of common
+  sort builtin (#274747).
+- 2.15.40
+
+-------------------------------------------------------------------
 Thu May 17 12:20:22 CEST 2007 - lslezak@suse.cz
 
 - Call Pkg::TargetLoad() when there is a patch provided by
   the update source to get applicable patches (#270919)
-- 2.15.40
 
 -------------------------------------------------------------------
 Wed May 16 12:17:03 CEST 2007 - locilka@suse.cz
