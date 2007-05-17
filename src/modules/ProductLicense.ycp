@@ -66,35 +66,44 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	lang_names_orig = $[];
     }
 
-    // $[ "en" : "English", "de" : "Deutsch" ]
-    map<string,string> lang_names = mapmap (string code, list descr,
+    y2milestone ("L: %1", lang_names_orig);
+
+    map<string,string> lang_names = $[];
+
+    // $[ "en" : "English (US)", "de" : "Deutsch" ]
+    lang_names = mapmap (string code, list descr,
 	lang_names_orig,
     {
 	return $[ code : descr[4]:"" ];
     });
 
     /* for the default fallback */
+    if (lang_names[""]:nil == nil) {
+	// language name
+	lang_names[""] = lang_names_orig["en_US", 4]:"";
+    }
 
-    // language name
-    lang_names[""] = _("English");
-    // language name
-    lang_names["en"] = _("English");
+    if (lang_names["en"]:nil == nil) {
+	// language name
+	lang_names["en"] = lang_names_orig["en_US", 4]:"";
+    }
 
     list<list<string> > lang_pairs = maplist (string l, languages, {
-	string name = lang_names[l]:"";
-	if (name == "")
-	{
+	string name_print = lang_names[l]:"";
+
+	if (name_print == "") {
 	    string l_short = substring (l, 0, 2);
+
 	    foreach (string k, string v, lang_names, {
-		if (substring (k, 0, 2) == l_short)
-		{
-		    name = v;
+		if (substring (k, 0, 2) == l_short) {
+		    name_print = v;
 		    return true;
 		}
 		return false;
 	    });
 	}
-	return [ l, name ];
+
+	return [ l, name_print ];
     });
 
     // filter-out languages that don't have any name
@@ -107,8 +116,9 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	}
     });
 
-    lang_pairs = sort (list<string> l1, list<string> l2, lang_pairs, {
-	return l1[1]:"" < l2[1]:"";
+    lang_pairs = sort (list<string> a, list<string> b, lang_pairs, {
+	list lsorted = lsort ([a[1]:"", b[1]:""]);
+	return (lsorted[1]:"" != a[1]:"" || a[1]:"" == b[1]:"");
     });
     list langs = maplist (list<string> descr, lang_pairs, {
 	return `item (`id (descr[0]:""), descr[1]:"", (descr[0]:"" == license_language));
