@@ -411,7 +411,7 @@ on the NFS server.
 <b>Modifying a Catalog</b>
 To change a catalog media, use <b>Edit</b>. To remove a catalog, use
 <b>Delete</b>. To enable or disable the catalog, set refreshing on the
-initialization time on or off, or refresh it immediatelly, use 
+initialization time on or off, or refresh it immediately, use 
 <b>Source Settings</b>.</p>");
 
     // help, continued

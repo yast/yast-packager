@@ -735,7 +735,7 @@ global list Overview() {
     // adding YaST installation source into the ZMD
 
     global string SyncLabel () {
-	// yast is running a zenworks command (rug) to
+	// yast is running a ZENworks command (rug) to
 	// keep the repository references in sync
 	return _("Synchronizing with ZENworks");
     }
@@ -1028,8 +1028,8 @@ global list Overview() {
 	} else {
 	    string message = adding?
 		// rug is a command name
-		_("Your service was added successfully in YaST, but could not be synchronized with ZenWorks."):
-		_("Your service was deleted successfully in YaST, but could not be synchronized with ZenWorks.");
+		_("Your service was added successfully in YaST, but could not be synchronized with ZENworks."):
+		_("Your service was deleted successfully in YaST, but could not be synchronized with ZENworks.");
 	    message = message + ":";
 	    if (ret["stdout"]:[] != [])
 		message = message + "\n" + mergestring (ret["stdout"]:[], "\n");
@@ -1223,7 +1223,7 @@ global list Overview() {
     }
 
     /**
-     * Sync the changed sources to ZenWorks
+     * Sync the changed sources to ZENworks
      * @param added_src_ids ids of sources that were added
      * @param deleted_src_ids ids of sources that were deleted
      * @return success
@@ -1347,7 +1347,7 @@ global list Overview() {
     /**
      * Used by registration.
      * This is really hairy because we simultaneously add them to zypp and
-     * zenworks, but not if they are not signed. (thus being better than
+     * ZENworks, but not if they are not signed. (thus being better than
      * inst_source)
      * @param urls update sources to add
      * @return a list of added URLs
@@ -1398,7 +1398,7 @@ global list Overview() {
 	    // then add the new one
 	    y2milestone ("adding source");
 	    integer toadd = Pkg::SourceCreate (url, "/");
-	    // and add to zenworks too, but only if it succeeded here (#180820)
+	    // and add to ZENworks too, but only if it succeeded here (#180820)
 	    if (toadd != -1 && toadd != nil)
 	    {
 		ret = add (ret, url); // #180820#c26
