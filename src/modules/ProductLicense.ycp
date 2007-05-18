@@ -66,8 +66,6 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	lang_names_orig = $[];
     }
 
-    y2milestone ("L: %1", lang_names_orig);
-
     map<string,string> lang_names = $[];
 
     // $[ "en" : "English (US)", "de" : "Deutsch" ]
