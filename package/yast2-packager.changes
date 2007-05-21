@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 21 13:59:38 CEST 2007 - jsrain@suse.cz
+
+- check if host name specified is valid (#232887)
+
+-------------------------------------------------------------------
 Thu May 17 12:29:56 CEST 2007 - locilka@suse.cz
 
 - Sort licenses alphabetically using an lsort instead of common
