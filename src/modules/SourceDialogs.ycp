@@ -27,6 +27,7 @@ import "Message";
 import "Report";
 import "NetworkPopup";
 import "String";
+import "Hostname";
 
 // common functions / data
 
@@ -827,6 +828,19 @@ void ServerInit (string key) {
     }
 }
 
+boolean ServerValidate (string key, map event) {
+    string host = NormalizeHost ((string)UI::QueryWidget (`id (`server), `Value));
+    if (! Hostname::CheckFQ (host))
+    {
+	UI::SetFocus (`server);
+	Popup::Message (Hostname::ValidFQ ());
+	return false;
+    }
+
+    return true;
+}
+
+
 /**
  * Store function of a widget
  * @param key string widget key
@@ -898,6 +912,13 @@ void ServerStore (string key, map event) {
 	    directory = directory + ";workgroup=" + workgroup;
     }
     parsed["path"] = directory;
+
+    // set HTTP/HTTPS port
+    if (type == `http || type == `https)
+    {
+	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
+    }
+
     y2milestone("Entered URL: %1", parsed);
     _url = URL::Build (parsed);
     y2milestone("URL::Build: %1", _url);
@@ -908,11 +929,6 @@ void ServerStore (string key, map event) {
 	    _url = PosprocessISOURL (_url);
     }
 
-    // set HTTP/HTTPS port
-    if (type == `http || type == `https)
-    {
-	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
-    }
 }
 
 
@@ -935,6 +951,8 @@ map<string,any> ServerWidget () {
 	    `ReplacePoint (`id (`server_rp), `Empty ())
 	),
 	"init" : ServerInit,
+	"validate_type" : `function,
+	"validate_function" : ServerValidate,
 	"store" : ServerStore,
 	"handle" : ServerHandle,
 // help text - server dialog
