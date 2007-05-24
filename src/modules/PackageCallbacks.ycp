@@ -179,7 +179,7 @@
 
     /** during file providal
      *
-     // return "" for ignore
+     // return "I" for ignore
      // return "R" for retry
      // return "C" for abort
      */
@@ -411,7 +411,7 @@
     /**
      *  After package install.
      *
-     *  return "" for ignore
+     *  return "I" for ignore
      *  return "R" for retry
      *  return "C" for abort (not implemented !)
      */
@@ -464,7 +464,7 @@
 		    }
 
 		    // otherwise return Ignore (default)
-		    return "";
+		    return "I";
 		}
 	    }
 	    else {
@@ -514,7 +514,7 @@
 	    // default: ignore
 	}
 
-	return "";
+	return "I";
     }
 
 
