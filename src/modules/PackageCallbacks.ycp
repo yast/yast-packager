@@ -201,7 +201,7 @@
 	if (provide_aborted)
 	{
 	    provide_aborted = false;
-	    return "CANCEL";
+	    return "C";
 	}
 
 	if (error != 0)
