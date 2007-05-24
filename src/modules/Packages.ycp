@@ -133,6 +133,7 @@ global list<string> ListSelected (symbol what, string format) {
     selected = filter (map<string,any> r, selected, {
 	return r["status"]:nil == `selected;
     });
+
     list<string> ret = maplist (map<string,any> r, selected, {
 	string disp = r["summary"]:r["name"]:"";
 	return sformat (format, disp);
@@ -552,6 +553,7 @@ global void InitializeAddOnProducts() {
      */
     list<string> sourceAccessPackages()
     {
+	// TODO: rather check all registered installation sources...
 	list<string> ret = [];
 
 	string instmode = Linuxrc::InstallInf("InstMode");
@@ -562,8 +564,13 @@ global void InitializeAddOnProducts() {
 	    // /sbin/mount.cifs is required to mount a SMB/CIFS share
 	    ret = ["cifs-mount"];
 	}
+	else if (instmode == "nfs")
+	{
+	    // portmap is required to mount an NFS export
+	    ret = ["portmap"];
+	}
 
-	y2milestone("Packages for access to the installation source: %1", ret);
+	y2milestone("Packages for accessing the installation source: %1", ret);
 
 	return ret;
     }
