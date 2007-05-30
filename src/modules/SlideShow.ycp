@@ -993,8 +993,7 @@
 	foreach ( list<integer> inst_src, remaining_sizes_per_cd_per_src, ``{
 	    y2milestone( "src #%1: %2", src_no, inst_src );
 
-	    if ( ListSum( inst_src ) > 0	 // Ignore sources from where there is nothing is to install
-		 || src_no+1 == current_src_no ) // or if this happens to be the current source
+	    if (ListSum(inst_src) > 0)	 // Ignore sources from where there is nothing is to install
 	    {
 		if ( size( total_sizes_per_cd_per_src ) > 1 )	// Multiple sources?
 		{
