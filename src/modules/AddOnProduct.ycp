@@ -61,6 +61,7 @@ boolean system_workflows_prepared = false;
  *     "media" : 4, // ID of the source
  *     "product_dir" : "/",
  *     "product" : "openSUSE version XX.Y",
+ *     "autoyast_product" : "'PRODUCT' tag for AutoYaST Export",
  *   ],
  *   ...
  * ]
@@ -520,6 +521,7 @@ global boolean AddPreselectedAddOnProducts(string filelist) {
 	AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
 	    "media" : src,
 	    "product" : prod["label"]:prod["productname"]:prod["productversion"]:"",
+	    "autoyast_product" : prod["productname"]:"",
 	    "media_url" : url,
 	    "product_dir" : pth,
 	]);
@@ -548,12 +550,41 @@ global boolean AddPreselectedAddOnProducts(string filelist) {
 
 /* Export/Import --> */
 
+/**
+ * Returns map describing all used add-ons.
+ *
+ * @return map
+ *
+ * @struct This is an XML file created from exported map:
+ * <add-on>
+ *   <add_on_products config:type="list">
+ *     <listentry>
+ *       <media_url>ftp://server.name/.../</media_url>
+ *       <product>NEEDS_TO_MATCH_"PRODUCT"_TAG_FROM_content_FILE!</product>
+ *       <product_dir>/</product_dir>
+ *     </listentry>
+ *     ...
+ *   </add_on_products>
+ * </add-on>
+ */
 global map Export () {
+    y2milestone ("Add-Ons Input: %1", add_on_products);
+
     list<map<string,any> > exp = maplist (map<string,any> p, add_on_products, {
 	if (haskey (p, "media"))
 	    p = remove (p, "media");
+
+	// bugzilla #279893
+	if (haskey (p, "autoyast_product")) {
+	    p["product"] = p["autoyast_product"]:"";
+	    p = remove (p, "autoyast_product");
+	}
+
 	return p;
     });
+
+    y2milestone ("Add-Ons Output: %2", exp);
+
     return $[
 	"add_on_products" : exp,
     ];
