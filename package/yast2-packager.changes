@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Jun  1 15:58:06 CEST 2007 - locilka@suse.cz
+
+- Adjusted Add-On module to store also a "PRODUCT" tag from the 
+  product content file to be later used by AutoYaST cloning.
+- Add-On Export uses that "autoyast_product" ("PRODUCT") instead of
+  the "product" key which is used for other purposes, mostly for
+  UI (#279893).
+
+-------------------------------------------------------------------
 Wed May 30 14:16:09 CEST 2007 - lslezak@suse.cz
 
 - do not show an installation source in the package installation
