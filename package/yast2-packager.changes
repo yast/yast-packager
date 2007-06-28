@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun 28 21:34:57 CEST 2007 - jsrain@suse.cz
+
+- updated for live CD installation
+
+-------------------------------------------------------------------
 Fri Jun  1 15:58:06 CEST 2007 - locilka@suse.cz
 
 - Adjusted Add-On module to store also a "PRODUCT" tag from the 
