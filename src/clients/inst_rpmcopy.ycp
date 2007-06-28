@@ -846,7 +846,7 @@ from the source CD to the disk cache")));
 
     // Initialize and check whether some packages need to be installed
     // stop proceeding the script if they don't (Second stage)
-    if (Stage::cont()) {
+    if (Stage::cont() && ! Mode::live_installation ()) {
 	InitRemainingPackages();
 	if (SomePackagesAreRemainForInstallation() != true) {
 	    y2milestone ("No packages need to be installed, skipping...");
@@ -871,7 +871,7 @@ from the source CD to the disk cache")));
 	RemoveObsoleteResolvables();
     } 
 
-    if (Stage::cont()) {
+    if (Stage::cont() && ! Mode::live_installation ()) {
 	// initialize the package agent in continue mode
 	Packages::Init( true );
 	RestoreDiskCacheSettings ();
@@ -891,7 +891,7 @@ from the source CD to the disk cache")));
 	InstInitAndInitialSourceCaching();
 
     // continue mode, set remaining packages to be installed
-    } else {
+    } else if (! Mode::live_installation ()){
 	InstallRemainingAndBinarySource();
     }
 
