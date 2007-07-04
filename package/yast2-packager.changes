@@ -4,6 +4,7 @@ Wed Jul  4 10:57:55 CEST 2007 - locilka@suse.cz
 - Callback function for setting the trust level to the GnuPG key
   has been merged with a function for importing the same key. By
   now, if key is trusted, it's also imported (#282254).
+- 2.15.43
 
 -------------------------------------------------------------------
 Thu Jun 28 21:34:57 CEST 2007 - jsrain@suse.cz
