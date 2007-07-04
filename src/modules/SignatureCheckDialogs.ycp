@@ -595,6 +595,13 @@ Use it anyway?")
     }
 
     /**
+     * List of trusted keys
+     *
+     * @see bugzilla #282254
+     */
+    list <string> list_of_trusted_keys = [];
+
+    /**
      * Used for file or package signed by a public key. This key is still
      * not listed in trusted keys.
      *
@@ -641,7 +648,7 @@ to skip it.")
 		`MarginBox(0.5, 0.5, `Label(description_text)),
 		`HBox (
 		    // push button
-		    `PushButton(`id(`trust), _("&Trust the Key")),
+		    `PushButton(`id(`trust), _("&Trust and Import the Key")),
 		    `HSpacing(1),
 		    `PushButton(`id(`skip), Label::SkipButton())
 		)
@@ -651,6 +658,13 @@ to skip it.")
 
 	// wait for one of listed ID's, return the default value in case of `cancel
 	symbol ret = WaitForSymbolUserInput([`trust, `skip], `skip);
+
+	if (ret == `trust) {
+	    // later, if asking whether to import the key, the key is trusted
+	    // so it will be also imported
+	    // bugzilla #282254
+	    list_of_trusted_keys = add (list_of_trusted_keys, key_id);
+	}
 
 	UI::CloseDialog();
 	return ret;
@@ -766,6 +780,12 @@ the key really belongs to that owner before importing it."),
      * @return boolean whether zypp should import the key into the keyring of trusted keys
      */
     global boolean ImportGPGKeyIntoTrustedDialog (string key_id, string key_name, string fingerprint) {
+	// bugzilla #282254
+	if (key_id != "" && key_id != nil && contains (list_of_trusted_keys, key_id)) {
+	    y2milestone ("Key '%1' is trusted, importing...", key_id);
+	    return true;
+	}
+
 	// additional Richtext (HTML) warning text (kind of help), 1/2
 	string warning_text = _("<p>The owner of the key may distribute updates,
 packages, and package repositories that your system will trust and offer
