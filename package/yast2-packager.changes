@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Jul  9 15:52:53 CEST 2007 - locilka@suse.cz
+
+- Added new OneClickInstallStandard module written in Perl to
+  support XML format specified by One Click Install Standard
+  http://en.opensuse.org/Standards/One_Click_Install - Only
+  repositories are supported now.
+- Added perl-XML-Simple to the spec file as 'Requires'.
+
+-------------------------------------------------------------------
 Wed Jul  4 10:57:55 CEST 2007 - locilka@suse.cz
 
 - Callback function for setting the trust level to the GnuPG key
