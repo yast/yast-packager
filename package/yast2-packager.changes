@@ -7,6 +7,7 @@ Mon Jul  9 15:52:53 CEST 2007 - locilka@suse.cz
   repositories are supported now.
 - Added perl-XML-Simple to the spec file as 'Requires'.
 - Added testsuite for OneClickInstallStandard module.
+- 2.15.44
 
 -------------------------------------------------------------------
 Wed Jul  4 10:57:55 CEST 2007 - locilka@suse.cz
