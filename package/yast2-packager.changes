@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Jul 12 13:02:41 CEST 2007 - locilka@suse.cz
+
+- Client inst_productsources moved here from yast2-installation.
+- Adjusted Requires: tag to match inst_productsources' needs.
+- Added productsources.desktop to the Software in Control Center.
+- Client inst_productsources changed to use OneClickInstallStandard
+  YaST module (and its XML format).
+- 2.15.45
+
+-------------------------------------------------------------------
 Mon Jul  9 15:52:53 CEST 2007 - locilka@suse.cz
 
 - Added new OneClickInstallStandard module written in Perl to
