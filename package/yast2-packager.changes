@@ -6,6 +6,7 @@ Thu Jul 12 13:02:41 CEST 2007 - locilka@suse.cz
 - Added productsources.desktop to the Software in Control Center.
 - Client inst_productsources changed to use OneClickInstallStandard
   YaST module (and its XML format).
+- Added helps into the inst_productsources.
 - 2.15.45
 
 -------------------------------------------------------------------
