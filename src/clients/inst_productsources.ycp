@@ -23,24 +23,26 @@
      *
      * Format of Suggested sources:
      * <?xml version="1.0"?>
-     * <productDefines xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-     *   <servers config:type="list">
-     *     <repo>
-     *       <name>Some name</name>
-     *       <summary>Summary...</summary>
-     *       <description>Description...</description>
-     *       <recommended config:type="boolean">false</recommended>
-     *       <url>http://some.server/some.dir/10.3/</url>
-     *     </repo>
-     *     <repo>
-     *       <name>Another name</name>
-     *       <summary>Summary...</summary>
-     *       <description>Description...</description>
-     *       <recommended config:type="boolean">false</recommended>
-     *       <url>http://another.server/another.dir/10.3/</url>
-     *     </repo>
-     *   </servers>
-     * </productDefines>     
+     * <metapackage xmlns:os="http://opensuse.org/Standards/One_Click_Install" xmlns="http://opensuse.org/Standards/One_Click_Install">
+     *   <group distversion="openSUSE Factory">
+     *     <repositories>
+     *       <repository recommended="true" format="yast">
+     *         <name>Some name</name>
+     *         <name lang="en_GB">Some name</name>
+     *         <summary>Summary...</summary>
+     *         <summary lang="en_GB">Summary...</summary>
+     *         <description>Description...</description>
+     *         <url>http://some.server/some.dir/10.3/</url>
+     *       </repository>
+     *       <repository recommended="false" format="yast">
+     *         <name>Another name</name>
+     *         <summary>Summary...</summary>
+     *         <description>Description...</description>
+     *         <url>http://another.server/another.dir/10.3/</url>
+     *       </repository>
+     *     </repositories>
+     *   </group>
+     * </metapackage>
      */
 
     textdomain "installation";
@@ -375,7 +377,8 @@ Would you like to configure it?"),
 	    actions_todo,
 	    actions_doing,
 	    // TRANSLATORS: dialog help
-	    _("<p>FIXME: help will be added later...</p>")
+	    _("<p>Please wait, while packager is being initialized
+and list of servers dowloaded from web.</p>")
 	);
 	Wizard::SetTitleIcon ("yast-network");
 
@@ -632,13 +635,28 @@ Would you like to configure it?"),
 		    `RichText (`id ("addon_description"), "")
 		)
 	    ),
-	    // TRANSLATORS: dialog help
-	    _("<p>FIXME: help will be added later...</p>"),
+	    // TRANSLATORS: dialog help 1/3
+	    _("<p>Here you can see default product repositories downloaded from Internet.
+Click on the repository to see its details.</p>") +
+	    (Stage::initial() ?
+		// TRANSLATORS: dialog help 2/3 (version for installation)
+		_("<p>If you want one or more additional repositories to be used,
+select those you want and click <b>Next</b></p>")
+		:
+		// TRANSLATORS: dialog help 2/3 (version for running system)
+		_("<p>If you want one or more additional repositories to be used,
+select those you want and click <b>Finish</b></p>")
+	    ) +
+	    // TRANSLATORS: dialog help 3/3
+	    _("<p>To remove a used repository, just unselect it.</p>"),
 	    (Mode::installation() ? GetInstArgs::enable_back():false),
 	    (Mode::installation() ? GetInstArgs::enable_next():true)
 	);
 	Wizard::SetTitleIcon ("yast-sw_source");
-	if (! Stage::initial()) Wizard::DisableBackButton();
+	if (! Stage::initial()) {
+	    Wizard::DisableBackButton();
+	    Wizard::SetNextButton (`next, Label::FinishButton());
+	}
 	
 	repos_already_used = $[];
 	InitRopositoriesWidget ("");
@@ -797,7 +815,7 @@ Would you like to configure it?"),
 	    actions_todo,
 	    actions_doing,
 	    // TRANSLATORS: dialog help
-	    _("<p>FIXME: help will be added later...</p>")
+	    _("<p>Please wait, while the source manager downloads repository-details...</p>")
 	);
 	Wizard::SetTitleIcon ("yast-sw_source");
 
