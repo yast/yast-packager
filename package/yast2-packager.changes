@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 18 18:05:18 CEST 2007 - locilka@suse.cz
+
+- Added support for relative URLs in the add_on_products file by
+  handling a new URL type: relurl://... (FATE #302123).
+
+-------------------------------------------------------------------
 Wed Jul 18 16:29:42 CEST 2007 - lslezak@suse.cz
 
 - added Progress callbacks
