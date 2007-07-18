@@ -1990,5 +1990,115 @@ global map Authentication(string url, string msg, string username, string passwo
     return $[ "username" : username, "password" : password, "continue" : ui == `cont ];
 }
 
+// TODO: use the ID in the prgress popup callbacks,
+// then callbacks may be nested...
+
+list<string> tick_labels = [ "/", "-", "\\", "|" ];
+boolean tick_progress = false;
+integer current_tick = 0;
+
+void NextTick()
+{
+    current_tick = current_tick + 1;
+    if (current_tick >= size(tick_labels))
+    {
+	current_tick = 0;
+    }
+}
+
+// is the top level progress popup?
+boolean IsProgressPopup()
+{
+    return UI::WidgetExists(`id(`progress_widget)) &&
+      UI::WidgetExists(`id(`callback_progress_popup));
+}
+
+global void ProgressStart(integer id, string task, boolean in_percent, integer min, integer max, integer val_raw, integer val_percent)
+{
+    y2milestone ("ProgressStart: %1", id);
+
+    tick_progress = !in_percent;
+    current_tick = 0;
+
+    if (Mode::commandline())
+    {
+	CommandLine::Print(task);
+    }
+    else
+    {
+	if (IsProgressPopup())
+	{
+	    // huh, the popup is already there?
+	    UI::CloseDialog();
+	}
+
+	UI::OpenDialog(
+	    `VBox(
+		`HSpacing(`id(`callback_progress_popup), max_size),
+		(in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
+		    : `Label(`id(`progress_widget), tick_labels[current_tick]:"/"),
+		`VSpacing(0.5),
+		`PushButton (`id (`abort), Label::AbortButton ())
+	    )
+	);
+
+    }
+}
+
+global void ProgressEnd(integer id)
+{
+    y2milestone("ProgressFinish: %1", id);
+
+    if (!Mode::commandline() && IsProgressPopup())
+    {
+	UI::CloseDialog();
+    }
+}
+
+global boolean ProgressProgress(integer id, integer val_raw, integer val_percent)
+{
+    y2milestone ("ProgressProgress: %1, %2%% ", id, val_percent);
+
+    if (Mode::commandline())
+    {
+	if (tick_progress)
+	{
+	    string tick_label = tick_labels[current_tick]:"/";
+	    CommandLine::PrintVerboseNoCR(clear_string + tick_label);
+	    NextTick();
+	}
+	else
+	{
+	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", val_percent));
+	}
+    }
+    else
+    {
+	if (IsProgressPopup())
+	{
+	    if (tick_progress)
+	    {
+		string tick_label = tick_labels[current_tick]:"/";
+		UI::ChangeWidget (`id(`progress_widget), `Value, tick_label);
+		NextTick();
+	    }
+	    else
+	    {
+		UI::ChangeWidget (`id(`progress_widget), `Value, val_percent);
+	    }
+
+	    // aborted ?
+	    any input = UI::PollInput ();
+	    if (input == `abort)
+	    {
+		y2warning("Callback %1 has been aborted at %2%% (raw: %3)", id, val_percent, val_raw);
+		return false;
+	    }
+	}
+    }
+
+    return true;
+}
+
 // EOF
 }
