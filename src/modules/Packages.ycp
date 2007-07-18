@@ -1070,6 +1070,9 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 	}
     }
 
+    // FATE #302123
+    AddOnProduct::SetBaseProductURL (base_url);
+
     init_in_progress = false;
 }
 
