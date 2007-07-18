@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Jul 18 16:29:42 CEST 2007 - lslezak@suse.cz
+
+- added Progress callbacks
+- use "name" key for changing the name
+- removed obsoleted code (no "broken" sources anymore)
+- SourceManager::CreateLocalMetaData() has been removed (it's
+  obsoleted and unused in any yast module)
+- 2.15.46
+
+-------------------------------------------------------------------
 Thu Jul 12 13:02:41 CEST 2007 - locilka@suse.cz
 
 - Client inst_productsources moved here from yast2-installation.

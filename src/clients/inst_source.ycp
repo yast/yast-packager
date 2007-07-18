@@ -66,8 +66,8 @@
 	y2milestone("generalData: %1", generalData);
 	y2milestone("productData: %1", productData);
 
-	string alias = haskey(sourceStatesOut[index]:$[], "alias") ?
-	    sourceStatesOut[index,"alias"]:"" :
+	string alias = haskey(sourceStatesOut[index]:$[], "name") ?
+	    sourceStatesOut[index,"name"]:"" :
 	    // unkown name (alias) of the source
 	    generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("Unknown Name");
 
@@ -97,17 +97,6 @@
             items = add( items, createItem( i, sourceStatesOut[ i ]:$[] ) );
             i = i + 1;
         }
-
-	// add broken sources to the table
-	list<string> brokenSources = Pkg::SourceGetBrokenSources();
-	foreach(string alias, brokenSources,
-	    {
-		// table item - replacement for broken sources (instead of URL)
-		term table_item = `item(`id(i), "", "", alias, _("*** Broken Source ***"));
-		items = add(items , table_item);
-		i = i + 1;
-	    }
-	);
 
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
@@ -213,7 +202,7 @@ in the packages selection, continue."),
 			auto_refresh = false;
 		    }
 
-                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh ];
+                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh, "name" : src_data["name"]:"" ];
                     sourceStatesOut = add( sourceStatesOut, sourceState ); 
 		  }
                 } );
@@ -500,12 +489,6 @@ All changes will be lost.");
             map<string, any> sourceState = sourceStatesOut[ current ]:$[];
             integer id = sourceState[ "SrcId" ]:-1;
 
-	    boolean id_found = (id >= 0);
-	    // disable edit buttons for broken sources
-	    UI::ChangeWidget (`id (`replace), `Enabled, id_found);
-	    UI::ChangeWidget (`id (`menu_button), `Enabled, id_found);
-	    UI::ChangeWidget (`id (`delete), `Enabled, id_found);
-
             if ( id < 0) {
               y2internal("Unable to determine source id, broken source?");
               continue;
@@ -587,7 +570,7 @@ cannot be set."));
             }
 	    else if (input == `set_alias)
 	    {
-		string src_alias = sourceState["alias"]:"";
+		string src_alias = sourceState["name"]:"";
 
 		y2internal("Current alias: %1", src_alias);
 
@@ -633,7 +616,7 @@ cannot be set."));
 		    UI::ChangeWidget( `id( `table ), `Item( current, 2 ), src_alias );
 
 		    // remember the alias
-		    sourceState["alias"] = src_alias;
+		    sourceState["name"] = src_alias;
 		    sourceStatesOut[ current ] = sourceState;
 		}
 	    }
@@ -713,30 +696,22 @@ symbol StartInstSource()
 
     PackageCallbacksInit::InitPackageCallbacks ();
 
-    boolean restore = Pkg::SourceStartManager( false );
+    boolean restore = Pkg::SourceRestore();
     if( ! restore )
     {
-	// #210514 (L3): unconditionally removing the sources is BAD.
-	// Usually it is just a temporary error because of misconfigured proxy.
-	boolean cleanup = Popup::AnyQuestionRichText( // [1]
+	boolean cont = Popup::AnyQuestionRichText(
 	    Label::ErrorMsg(),
-	    // Error popup (part 1)
+	    // Error popup
 	    _("<p>There were errors when restoring the source configuration.</p>
 <p>Not all sources are available for configuration.</p>
-") + "<p>" + Pkg::LastError() + "</p>" +
-	    // Error popup (part 2): Yes/No question.
-	    // "immediately" is important: because of stupid design [2],
-	    // they will be removed even if the user then chooses Abort :(
-	    _("<p>Do you want to immediately remove these sources?</p>"),
+") + "<p>" + Pkg::LastError() + "</p>",
 	    50, 15,
-	    Label::YesButton(), Label::NoButton(), `focus_no);
-	// Notes irrelevant for translators:
-	// [1]: we want the focus on "No"; Popup::YesNo is too specialized
-	// [2]: using SourceManager and not just PersistentStorage in inst_source
+	    Label::ContinueButton(), Label::CancelButton(), `focus_no
+	);
 
-	// delete the broken sources from the persistent store
-	if (cleanup) {
-	    Pkg::SourceCleanupBroken();
+	// really continue?
+	if (!cont) {
+	    return `abort;
 	}
     }
 
