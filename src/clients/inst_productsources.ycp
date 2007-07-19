@@ -380,19 +380,19 @@ and list of servers dowloaded from web.</p>")
 
 	if (! NetworkRunning()) {
 	    y2warning ("Cannot proceed, no network configured...");
-	    return `abort;
+	    return `nosources;
 	}
 	
 	Progress::NextStage();
 
 	if (! ReadControlFile()) {
 	    y2milestone ("Feature not supported by the product");
-	    return `abort;
+	    return `nosources;
 	}
 	
 	if (! DownloadAndParseSources()) {
 	    y2error ("Cannot download or parse repositories");
-	    return `abort;
+	    return `nosources;
 	}
 
 	if (! Stage::initial()) {
@@ -861,6 +861,7 @@ select those you want and click <b>Finish</b></p>")
 	    "ws_start"	: "read",
 	    "read"	: $[
 		`next	: "sources",
+		`nosources : `next,
 		`abort	: `abort,
 	    ],
 	    "sources"	: $[
