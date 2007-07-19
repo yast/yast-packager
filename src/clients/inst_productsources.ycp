@@ -118,7 +118,12 @@ Would you like to configure it?"),
 	    
 	    y2milestone ("User wants to setup the network");
 	    // Call network-setup client
-	    WFM::call("inst_network_setup");
+	    any netret = WFM::call("inst_network_setup");
+	    
+	    if (netret == `abort) {
+		y2milestone ("Aborting the network setup");
+		break;
+	    }
 	}
 
 	return ret;
