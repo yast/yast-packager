@@ -21,7 +21,7 @@
      */
     boolean default_return_unchecked = true;
 
-    /* ============================ < Callbacks for Sources > ============================ */
+    /* ============================ < Callbacks for Repositories > ============================ */
 
     // Name of the callback handler function. Required callback prototype is
     // boolean(string filename). The callback function should ask user whether the
@@ -152,7 +152,7 @@
 	return SignatureCheckDialogs::UseCorruptedItem(`file, filename, keyid, keyname, fingerprint);
     }
     
-    /* ============================ < Callbacks for Sources > ============================ */
+    /* ============================ < Callbacks for Repositories > ============================ */
     
     // Name of the callback handler function. Required callback prototype is void
     // (string keyid, string keyname). The callback function should inform user

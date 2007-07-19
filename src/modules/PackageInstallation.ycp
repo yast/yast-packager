@@ -3,7 +3,7 @@
  *
  * Authors:		Gabriele Strattner <gs@suse.de>
  *
- * $Id:$
+ * $Id$
  *
  */
 
@@ -116,10 +116,10 @@
 	// structure: [ ["source_name", id] ]
 	list< list > src_list = Pkg::PkgMediaNames();
 
-	// get ID of the first source
+	// get ID of the first repository
 	integer first_source = src_list[0,1]:1;
 
-	y2milestone("ID of the first source: %1", first_source);
+	y2milestone("ID of the first repository: %1", first_source);
 
 	if (media_number == 0)
 	{

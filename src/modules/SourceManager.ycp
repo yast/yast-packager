@@ -1,6 +1,6 @@
 /**
  * File:	modules/SourceManager.ycp
- * Package:	Package Source Management
+ * Package:	Package Repository Management
  * Summary:	SourceManager settings, input and output functions
  * Authors:	Anas Nashif <nashif@suse.de>
  *		Lukas Ocilka <locilka@suse.cz>
@@ -175,7 +175,7 @@ global boolean WriteSyncFlag()
 global boolean Read() {
 
     /* SourceManager read dialog caption */
-    string caption = _("Initializing Available Catalogs");
+    string caption = _("Initializing Available Repositories");
 
     integer steps = 2;
 
@@ -183,14 +183,14 @@ global boolean Read() {
     // We do not set help text here, because it was set outside
     Progress::New( caption, " ", steps, [
 	    /* Progress stage 1/3 */
-	    _("Read configured catalogs"),
+	    _("Read configured repositories"),
 	    /* Progress stage 2/3 */
-	    _("Detect available catalogs via SLP")
+	    _("Detect available repositories via SLP")
 	], [
 	    /* Progress step 1/3 */
-	    _("Reading configured catalogs..."),
+	    _("Reading configured repositories..."),
 	    /* Progress step 2/3 */
-	    _("Detecting available catalogs..."),
+	    _("Detecting available repositories..."),
 	    /* Progress finished */
 	    _("Finished")
 	],
@@ -203,7 +203,7 @@ global boolean Read() {
 
 
     /* Error message */
-    if(!ReadSources()) Report::Error(_("Cannot read catalogs."));
+    if(!ReadSources()) Report::Error(_("Cannot read repositories."));
 
     // read another database
     if(Abort()) return false;
@@ -211,7 +211,7 @@ global boolean Read() {
 
 
     /* Error message */
-    if(false) Report::Error(_("Cannot detect available catalogs."));
+    if(false) Report::Error(_("Cannot detect available repositories."));
 
     if(Abort()) return false;
     /* Progress finished */
@@ -219,7 +219,7 @@ global boolean Read() {
 
     // slp_sources = ReadSLPSources();
     
-    y2debug ("slp catalogs: %1", slp_sources);
+    y2debug ("slp repositories: %1", slp_sources);
 
     if(Abort()) return false;
     modified = false;
@@ -227,7 +227,7 @@ global boolean Read() {
 }
 
 /**
- * Commit changed sources
+ * Commit changed repositories
  */ 
 global boolean CommitSources() {
     y2debug("In: %1  Out: %2",   sourceStatesIn, sourceStatesOut );
@@ -237,7 +237,7 @@ global boolean CommitSources() {
         success = Pkg::SourceEditSet( sourceStatesOut );
         if ( !success ) {
 	    // popup message header
-            string _msg1 = _("Unable to save changes to the catalog
+            string _msg1 = _("Unable to save changes to the repository
                     repository.
 ");
 	    // popup message, after message header, header of details
@@ -260,20 +260,20 @@ global boolean CommitSources() {
 }
 
 /**
- * Write all source-manager settings
+ * Write all repository-manager settings
  * @return true on success
  */
 global boolean Write() {
     
     /* SourceManager read dialog caption */
-    string caption = _("Saving Catalog Configuration");
+    string caption = _("Saving Repository Configuration");
 
     integer steps = 1;
 
     // We do not set help text here, because it was set outside
     Progress::New(caption, " ", steps, [
 	    /* Progress stage 1/1 */
-	    _("Write catalog settings"),
+	    _("Write repository settings"),
 	], [
 	    /* Progress step 1/1 */
 	    _("Writing the settings..."),
@@ -304,7 +304,7 @@ global boolean Write() {
 }
 
 /**
- * Get all source-manager settings from the first parameter
+ * Get all repository-manager settings from the first parameter
  * (For use by autoinstallation.)
  * @param settings The YCP structure to be imported.
  * @return boolean True on success
@@ -314,7 +314,7 @@ global boolean Import (map settings) {
 }
 
 /**
- * Dump the source-manager settings to a single map
+ * Dump the repository-manager settings to a single map
  * (For use by autoinstallation.)
  * @return map Dumped settings (later acceptable by Import ())
  */
@@ -323,7 +323,7 @@ global map Export () {
 }
 
 /**
- * Get Source ID by index 
+ * Get Repository ID by index 
  */
 global integer GetSrcIdByIndex(integer idx)   {
     
@@ -333,7 +333,7 @@ global integer GetSrcIdByIndex(integer idx)   {
 }
 
 /**
- * Set current used source URL by index 
+ * Set current used repository URL by index 
  */
 global void SetUrlByIndex(integer idx)   {
     
@@ -344,7 +344,7 @@ global void SetUrlByIndex(integer idx)   {
 
 
 /**
- * Get Source ID when only URL is known 
+ * Get Repository ID when only URL is known 
  */
 global define integer getSourceId( string url ) {
     
@@ -372,7 +372,7 @@ global define integer getSourceId( string url ) {
 
 
 /**
- * Gather Source Metadata
+ * Gather Repository Metadata
  */
 global define map SourceData(integer source) ``{
     map g =  Pkg::SourceGeneralData( source );
@@ -388,7 +388,7 @@ global define map SourceData(integer source) ``{
 }
 
 /**
- * Create a Source from an URL
+ * Create a repository from an URL
  */
 global symbol createSource( string url ) {
     
@@ -400,7 +400,7 @@ global symbol createSource( string url ) {
 	    UI::OpenDialog(
 			   `VBox(
 				 `VSpacing( 0.2 ),
-				 `Label( _("Adding catalog...") ),
+				 `Label( _("Adding repository...") ),
 				 `VSpacing( 0.2 )
 				 )
 			   );
@@ -413,7 +413,7 @@ global symbol createSource( string url ) {
 	
 	if ( size( newSources ) == 0  )
 	{
-	    string _msg1 = sformat( _("Unable to create catalog
+	    string _msg1 = sformat( _("Unable to create repository
 from URL '%1'."), InstURL::HidePassword(url) );
 
 	    string _msg2 = _("Details:") + "\n" + Pkg::LastError();
@@ -459,11 +459,11 @@ in the packages selection, continue."),
 }
 
 /**
- * Delete Source by Source ID
+ * Delete repository by Repository ID
  */
 global void deleteSourceBySrcId( integer SrcId )   {
 
-    y2debug("removing source: %1 %2", SrcId,   sourceStatesOut );
+    y2debug("removing repository: %1 %2", SrcId,   sourceStatesOut );
     numSources = size( sourceStatesOut );
     integer i = 0;
     
@@ -484,7 +484,7 @@ global void deleteSourceBySrcId( integer SrcId )   {
 
 
 /**
- * Delete Source by Source Index
+ * Delete Repository by the repository index
  */
 global void deleteSourceByIndex (integer idx ) {
     
@@ -493,7 +493,7 @@ global void deleteSourceByIndex (integer idx ) {
 }
     
 /**
- * Delete Source by Source URL
+ * Delete Repository by repository URL
  */
 global void deleteSourceByUrl (string url ) {
     deleteSourceBySrcId(getSourceId(url));    
@@ -516,7 +516,7 @@ define string createItem( integer index, map source ) {
     string color = source[ "enabled" ]:true ? "#006600" : "#FF0000";
     sitem = sitem + HTML::Colorize("["+status+"] ",
             color);
-    // translators: name of a source if no other idenfication found
+    // translators: name of a repository if no other idenfication found
     sitem = sitem + productData[ "label" ]:generalData["type"]:_("unknown");
     sitem = sitem + " ( " + generalData[ "url" ]:"" + ")";
     return sitem;
@@ -524,7 +524,7 @@ define string createItem( integer index, map source ) {
 
 
 /**
- * Create Source Item for Overview
+ * Create Repository Item for Overview
  */
 define term  createOverviewItem( integer index, map source ) {
     integer id = source[ "SrcId" ]:0;
@@ -548,7 +548,7 @@ define term  createOverviewItem( integer index, map source ) {
 
 
 /**
- * Handle Multiple source URLs (order/instorder)
+ * Handle Multiple repositories URLs (order/instorder)
  */ 
 boolean HandleMultipleSources( string url )	{
 
@@ -565,7 +565,7 @@ boolean HandleMultipleSources( string url )	{
     integer initial_source = Pkg::SourceScan(url, "")[0]:nil;
     if (initial_source == nil)
     {
-        y2error ("No source on '%1'", url);
+        y2error ("No repository in '%1'", url);
         return false;
     }
 
@@ -581,7 +581,7 @@ global list Summary() {
 
     string summary = "";
     // summary header
-    summary = Summary::AddHeader(summary, _("Configured Catalogs"));
+    summary = Summary::AddHeader(summary, _("Configured Repositories"));
     summary = Summary::OpenList(summary);
     numSources = size( sourceStatesOut );
     integer i = 0;
@@ -595,7 +595,7 @@ global list Summary() {
   
     list unconf = maplist(map s, slp_sources, ``{
 	string id = substring(s["srvurl"]:"", 21);
-	y2debug("source url : %1", id );
+	y2debug("repository url : %1", id );
 	// part of item in summary
 	return(`item(`id(id), s["attr", "label"]:_("Unknown")
 	    // part of item in summary meaning "switched on"
@@ -622,7 +622,7 @@ global list Overview() {
 }
 
     // ------------------------------------------------------------------------------------------------------
-    // adding YaST installation source into the ZMD
+    // adding YaST repository into the ZMD
 
     global string SyncLabel () {
 	// yast is running a ZENworks command (rug) to
@@ -851,7 +851,7 @@ global list Overview() {
 
     /**
      * Adds a ZYPP service into ZMD
-     * @param src_id installation source id
+     * @param src_id repository id
      * @return success
      */
     boolean AddOrDeleteZYPPServiceIntoZMD (integer src_id, boolean adding) {
@@ -869,7 +869,7 @@ global list Overview() {
 	    return false;
 	}
 
-	// yum sources do not need+understand the alias, #164083
+	// yum repositories do not need+understand the alias, #164083
 	// The above reason is obsolete but we keep compatibility with
 	// the service-delete zmd helper
 	if (stype == "zypp")
@@ -1006,7 +1006,7 @@ global list Overview() {
     const string source_lock_flag = "/var/lib/zypp/sources-being-processed-by-yast";
     /**
      * Start a section where other processes (such as ZMD helpers) should not
-     * access the source database. #170113
+     * access the repository database. #170113
      * The calls may be nested.
      */
     global void Lock () {
@@ -1019,7 +1019,7 @@ global list Overview() {
     }
 
     /**
-     * Other processes may access the source database again
+     * Other processes may access the repository database again
      */
     global void Unlock () {
 	source_locked = source_locked - 1;
@@ -1037,7 +1037,7 @@ global list Overview() {
 
 
     /**
-     * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP source is listed
+     * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP repository is listed
      * in the ZMD services, adds one if it is missing.
      * Everything is done via the .background agent with timeout (number in seconds).
      *
@@ -1060,7 +1060,7 @@ global list Overview() {
 			    `Label(SyncLabel ()), // #221250
 			    `PushButton (`id (`abort), Label::AbortButton ())
 			    ));
-	y2milestone("--- Syncing YaST inst source with ZMD ---");
+	y2milestone("--- Syncing YaST repositories with ZMD ---");
 
 	Lock ();
 
@@ -1074,7 +1074,7 @@ global list Overview() {
 
 	    if (true) {
 		string zmd_security_level = RugGetPref ("security-level");
-		// The user has already decided to trust the inst sources
+		// The user has already decided to trust the inst repositories
 		// otherwise we would not be here. Do not ask again.
 		// #182747
 		RugSetPref ("security-level", "none");
@@ -1113,9 +1113,9 @@ global list Overview() {
     }
 
     /**
-     * Sync the changed sources to ZENworks
-     * @param added_src_ids ids of sources that were added
-     * @param deleted_src_ids ids of sources that were deleted
+     * Sync the changed repositories to ZENworks
+     * @param added_src_ids ids of repositories that were added
+     * @param deleted_src_ids ids of repositories that were deleted
      * @return success
      */
     global boolean SyncAddedAndDeleted (list<integer> added_src_ids,
@@ -1131,7 +1131,7 @@ global list Overview() {
 	    RugSetPref ("security-level", "none"); // #190403
 
 	    // first delete, then add,
-	    // otherwise replacing a source with itself fails: #175159
+	    // otherwise replacing a repository with itself fails: #175159
 	    foreach (integer id, deleted_src_ids, {
 		ret = AddOrDeleteZYPPServiceIntoZMD (id, false) && ret;
 	    });
@@ -1175,7 +1175,7 @@ global list Overview() {
 
     /**
      * @param attr SourceGeneralData item
-     * @return For existing sources, get a mapping from an attribute to the id
+     * @return For existing repositories, get a mapping from an attribute to the id
      */
     map<string,integer> get_attr_to_id (string attr) {
 	list<integer> src_ids = Pkg::SourceGetCurrent (false/*enabled only?*/);
@@ -1188,14 +1188,14 @@ global list Overview() {
     }
 
     /**
-     * @return For existing sources, get a mapping from the alias to the id
+     * @return For existing repositories, get a mapping from the alias to the id
      */
     map<string,integer> get_alias_to_id () {
 	return get_attr_to_id ("alias");
     }
 
     /**
-     * @return For existing sources, get a mapping from the URL to the id
+     * @return For existing repositories, get a mapping from the URL to the id
      */
     map<string,integer> get_url_to_id () {
 	return get_attr_to_id ("url");
@@ -1203,10 +1203,10 @@ global list Overview() {
 
     /**
      * Extract an alias parameter from the URL and check whether we have
-     * such a source already.
-     * @param url a source with an alias parameter (actually optional)
+     * such a repository already.
+     * @param url a repository with an alias parameter (actually optional)
      * @param alias_to_id a premade mapping, @see get_alias_to_id
-     * @return the source id or -1
+     * @return the repository id or -1
      */
     integer SourceByAliasOrUrl (string url,
 				map<string,integer> alias_to_id,
@@ -1239,7 +1239,7 @@ global list Overview() {
      * This is really hairy because we simultaneously add them to zypp and
      * ZENworks, but not if they are not signed. (thus being better than
      * inst_source)
-     * @param urls update sources to add
+     * @param urls URLs to add
      * @return a list of added URLs
      */
     global list<string> AddUpdateSources (list<string> urls) {
@@ -1259,7 +1259,7 @@ global list Overview() {
 
 	boolean target_loaded = false;
 
-	// add the sources.
+	// add the repositories
 	// but do not make duplicates (#168740)
 	// we detect them based on alias that suse_register gives us (#158850#c17)
 	/// (but only for SLE... :-/ )
@@ -1269,7 +1269,7 @@ global list Overview() {
 	foreach (string url, urls, {
 	    // #180820
 	    boolean is_nu = search (url, "$RCE") != nil;
-	    y2milestone ("Should add an update source: %1", url);
+	    y2milestone ("Should add an update repository: %1", url);
 	    // inst_addon_update_sources also calls Pkg::SourceCreate
 	    // but it already skips duplicates
 
@@ -1278,7 +1278,7 @@ global list Overview() {
 	    integer todel = SourceByAliasOrUrl (url, aliases, by_url);
 	    if (todel != -1)
 	    {
-		y2milestone ("deleting the old copy, source %1", todel); 
+		y2milestone ("deleting the old copy, repository %1", todel); 
 		if (!is_nu && zmd_working)
 		{
 		    AddOrDeleteZYPPServiceIntoZMD (todel, false);
@@ -1286,7 +1286,7 @@ global list Overview() {
 		Pkg::SourceDelete (todel);
 	    }
 	    // then add the new one
-	    y2milestone ("adding source");
+	    y2milestone ("adding repository");
 	    integer toadd = Pkg::SourceCreate (url, "/");
 	    // and add to ZENworks too, but only if it succeeded here (#180820)
 	    if (toadd != -1 && toadd != nil)
@@ -1306,7 +1306,7 @@ global list Overview() {
 		    if (size(patches) > 0)
 		    {
 			// loaded target is required to get list of applicable patches (#270919)
-			y2milestone("Source %1 provides %2 patches, loading target...", url, size(patches));
+			y2milestone("Repository %1 provides %2 patches, loading target...", url, size(patches));
 			Pkg::TargetLoad();
 			target_loaded = true;
 		    }
@@ -1320,7 +1320,7 @@ global list Overview() {
 	return ret;
     }
 
-    // adding YaST installation source into the ZMD
+    // adding YaST repository into the ZMD
     // ------------------------------------------------------------------------------------------------------
 
 /**
@@ -1386,8 +1386,8 @@ global boolean AskForCD (string message) {
 }
 
 /**
- * Function returns the partiton name which is used as a source for the installation
- * (IF any partition is used as a source for installation, of course).
+ * Function returns the partiton name which is used as a repository for the installation
+ * (IF any partition is used as a repository for installation, of course).
  * Otherwise it returns an empty string "". See bugzilla #208222 for more information.
  *
  * @return string partition name

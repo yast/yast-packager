@@ -427,7 +427,7 @@ void XenPVToInitrd()
         }
         else 
         {
-	    // disable all sources at the target
+	    // disable all repositories at the target
 	    Pkg::TargetDisableSources();
 
             // make some directories

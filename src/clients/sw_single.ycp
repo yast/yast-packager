@@ -187,12 +187,12 @@ symbol StartSWSingle()
        boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
        if (!mgr_ok)
        {
-	   Report::LongWarning(_("There was an error in installation source initialization.") + "\n" + Pkg::LastError ());
+	   Report::LongWarning(_("There was an error in repository initialization.") + "\n" + Pkg::LastError ());
        }
        if (size(Pkg::SourceGetCurrent(enabled_only)) == 0)
 	{
 
-	   Report::Warning(_("No installation source is defined.
+	   Report::Warning(_("No repository is defined.
 Only installed packages are displayed."));
 	}
 

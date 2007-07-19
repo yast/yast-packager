@@ -41,7 +41,7 @@
 
     include "packager/storage_include.ycp";
 
-    // variables related to installation source caching
+    // variables related to repository caching
 
     /**
      * File with the information about package cache (between 1st and 2nd
@@ -60,12 +60,12 @@
     string store_cache_directory = "";
 
     /**
-     * Original source URL (to be stored for 2nd stage)
+     * Original repository URL (to be stored for 2nd stage)
      */
     string store_original_source_url = "";
 
     /**
-     * Cached source ID (during second stage)
+     * Cached repository ID (during second stage)
      */
     integer cached_source_id = -1;
 
@@ -80,11 +80,11 @@
     list <list <integer> > media_sizes = Pkg::PkgMediaSizes();
 
     /**
-     * 'datadir' of cached source (usually 'suse', where packages reside
+     * 'datadir' of cached repository (usually 'suse', where packages reside
      */
     string cached_source_datadir = "suse";
 
-    // functions related to installation source caching
+    // functions related to repository caching
 
     /**
      * Removes all already installed patches and selections.
@@ -185,7 +185,7 @@
 	if (! Pkg::SourceChangeUrl (cached_source_id, store_cache_directory + "/CD1"))
 	{
 	    // error report
-	    Report::Error (_("Error occurred while switching the service pack catalog."));
+	    Report::Error (_("Error occurred while switching the service pack repository."));
 	}
 	Pkg::SourceSetEnabled (cached_source_id, true);
     }
@@ -207,7 +207,7 @@
 	{
 	    // error report
 	    Report::Error (_("Error occurred while switching the cached 
-source back to CD."));
+repository back to CD."));
 	}
 	Pkg::SourceSetEnabled (cached_source_id, true);
 
@@ -288,7 +288,7 @@ source back to CD."));
 
 	if (needed_space > free_space)
 	{
-	    y2warning ("Not enough disk space for caching source data");
+	    y2warning ("Not enough disk space for caching repository data");
 	    return nil;
 	}
 
@@ -520,7 +520,7 @@ from the source CD to the disk cache")));
     }
 
     // ------------------------------------------------------------------------------------------------------
-    // end of installation source caching functions
+    // end of repository caching functions
     // ------------------------------------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------------------------------------
@@ -550,7 +550,7 @@ from the source CD to the disk cache")));
 		file_remaining_packages, size (remaining));
 	}
 
-	// Sources remaining for installation
+	// repositories remaining for installation
 	if (FileUtils::Exists (file_remaining_srcs)) {
 	    srcremaining =
 		(list<string>) SCR::Read (.target.ycp, [file_remaining_srcs, []]);
@@ -655,7 +655,7 @@ from the source CD to the disk cache")));
 
         if (! regexpmatch (Kernel::GetCmdLine (), "yastnocache"))
         {
-            y2milestone ("'yastnocache' found, disabling source cache");
+            y2milestone ("'yastnocache' found, disabling repository cache");
             cached_source_id = -1;
         }
         else
@@ -665,10 +665,10 @@ from the source CD to the disk cache")));
 
         if (cached_source_id >= 0)
         {
-            y2milestone ("Installing with cached source, checking inst media");
+            y2milestone ("Installing with cached repository, checking inst media");
 
             map<string,any> source_data = (map<string,any>)Pkg::SourceGeneralData (cached_source_id);
-            y2milestone ("Cached source #%1: %2", cached_source_id, source_data);
+            y2milestone ("Cached repository #%1: %2", cached_source_id, source_data);
 
             string source_url = "";
             if (source_data != nil) source_url = source_data["url"]:"";
@@ -682,7 +682,7 @@ from the source CD to the disk cache")));
             }
             else
             {
-                y2error ("Cannot get the URL of the cached source, not caching");
+                y2error ("Cannot get the URL of the cached repository, not caching");
             }
         }
     }
@@ -756,7 +756,7 @@ from the source CD to the disk cache")));
 	list srcremaining = commit_result[3]:[];
 	if (size (srcremaining) >= 0)
 	{
-	    y2milestone ("source remaining: %1", srcremaining);
+	    y2milestone ("repository remaining: %1", srcremaining);
 	    SCR::Write (.target.ycp, Installation::destdir + "/var/lib/YaST2/srcremaining", srcremaining);
 	}
 	else
@@ -787,10 +787,10 @@ from the source CD to the disk cache")));
 	// has the inst-sys been successfuly unmounted?
 	string umount_result = Linuxrc::InstallInf ("umount_result");
 	string media = Linuxrc::InstallInf ("InstMode");
-	y2milestone("umount result: %1, inst source type: %2", umount_result, media);
+	y2milestone("umount result: %1, inst repository type: %2", umount_result, media);
 
 	if (Packages::metadir_used) {
-	    // all is in ramdisk, we can install all sources now, works in every stage
+	    // all is in ramdisk, we can install all repositories now, works in every stage
 	    ret["current_cd_no"] = 0;
 	    ret["maxnumbercds"]  = 0;
 	    y2milestone("StartingAndMaxMediaNumber: MetaDir used %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
@@ -886,7 +886,7 @@ from the source CD to the disk cache")));
 	AutoinstPostPackages();
     }
 
-    // initial mode, move download area, check for source caching
+    // initial mode, move download area, check for repository caching
     if (Stage::initial ()) {
 	InstInitAndInitialSourceCaching();
 

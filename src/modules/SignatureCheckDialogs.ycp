@@ -2,7 +2,7 @@
  * Module:		SignatureCheckDialogs.ycp
  * Authors:		Lukas Ocilka <locilka@suse.cz>
  *
- * Dialogs handling for RPM/Source GPM signatures.
+ * Dialogs handling for RPM/Repository GPM signatures.
  *
  * $Id: SignatureCheckDialogs.ycp 28363 2006-02-24 12:27:15Z locilka $
  */
@@ -403,7 +403,7 @@ Use it anyway?")
     }
 
     /**
-     * Used for file or package on signed source but without any checksum.
+     * Used for file or package on signed repository but without any checksum.
      * Opens dialog asking whether user wants to use this item.
      *
      * @param symbol item_type `file or `package
@@ -414,17 +414,17 @@ Use it anyway?")
     global boolean UseItemWithNoChecksum (symbol item_type, string item_name, string dont_show_dialog_ident) {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name
-	    _("No checksum for package %1 was found in the source.
-This means that the package is part of the signed source, but the list of checksums
-on this source does not mention this package. Installing the package may put
+	    _("No checksum for package %1 was found in the repository.
+This means that the package is part of the signed repository, but the list of checksums
+in this repository does not mention this package. Installing the package may put
 the integrity of your system at risk.
 
 Install it anyway?")
 	    :
 	    // popup question, %1 stands for the filename
 	    _("No checksum for file %1
-was found in the source. This means that the file is part of the signed source,
-but the list of checksums on this source does not mention this file. Using the file
+was found in the repository. This means that the file is part of the signed repository,
+but the list of checksums in this repository does not mention this file. Using the file
 may put the integrity of your system at risk.
 
 Use it anyway?")
@@ -620,7 +620,7 @@ with key '%2 (%3)'.
 There is no trust relationship to the owner of the key.
 If you trust the owner, mark the key as trusted.
 
-Installing a package from an unknown source can put
+Installing a package from an unknown repository can put
 the integrity of your system at risk. It is safest
 to skip the package.")
 	    :
@@ -631,7 +631,7 @@ with key '%2 (%3)'.
 There is no trust relationship to the owner of the key.
 If you trust the owner, mark the key as trusted.
 
-Installing a file from an unknown source can put
+Installing a file from an unknown repository can put
 the integrity of your system at risk. It is safest
 to skip it.")
 	), item_name, key_id, key_name);

@@ -485,7 +485,7 @@
     }
 
     /**
-     * change of source
+     * change of repository
      * source: 0 .. n-1
      * media:  1 .. n
      **/

@@ -119,7 +119,7 @@
 	LazyLoadCurrentConf();
 	string q_type = params["q_type"]:nil;
 
-	// <--- Installation Sources --->
+	// <--- repositories --->
 	/*
 	 * Parameters, $[
 	 *     "q_type"  : "inst-source",             // mandatory
@@ -144,7 +144,7 @@
 	    }
 	    
 	    return (boolean) current_configuration[q_type, q_ident, q_url, "show_again"]:nil;
-	// <--- Installation Sources --->
+	// <--- repositories --->
 
 	// Add another types here...
 	} else {
@@ -169,7 +169,7 @@
 	// Always set to 'true' if the configuration is changed
 	boolean conf_changed = false;
 
-	// <--- Installation Sources --->
+	// <--- repositories --->
 	/*
 	 * Parameters, $[
 	 *     "q_type"  : "inst-source",             // mandatory
@@ -200,7 +200,7 @@
 	    // save the new value into the configuration
 	    conf_changed = true;
 	    current_configuration[q_type, q_ident, q_url, "show_again"] = new_value;
-	// <--- Installation Sources --->
+	// <--- repositories --->
 
 	// Add another types here...
 	} else {
@@ -224,7 +224,7 @@
 	LazyLoadCurrentConf();
 	string q_type = params["q_type"]:nil;
 	
-	// <--- Installation Sources --->
+	// <--- repositories --->
 	/*
 	 * Parameters, $[
 	 *     "q_type"  : "inst-source",             // mandatory
@@ -232,7 +232,7 @@
 	 *     "q_url" : "URL"                        // optional
 	 * ];
 	 */
-	// <--- Installation Sources --->
+	// <--- repositories --->
 	if (q_type == "inst-source") {
 	    string q_ident = params["q_ident"]:nil;
 	    string q_url   = params["q_url"]:nil;
@@ -251,7 +251,7 @@
 	    y2error("'%1' is an unknown type", q_type);
 	    return nil;
 	}
-	// <--- Installation Sources --->
+	// <--- repositories --->
     }
 
     /**
@@ -268,7 +268,7 @@
 	// Always set to 'true' if the configuration is changed
 	boolean conf_changed = false;
 
-	// <--- Installation Sources --->
+	// <--- repositories --->
 	/*
 	 * Parameters, $[
 	 *     "q_type"  : "inst-source",             // mandatory
@@ -299,7 +299,7 @@
 	    // save the new value into the configuration
 	    conf_changed = true;
 	    current_configuration[q_type, q_ident, q_url, "return"] = default_return;
-	// <--- Installation Sources --->
+	// <--- repositories --->
 
 	// Add another types here...
 	} else {

@@ -3,7 +3,7 @@
  *  select_slp_source.ycp
  *
  * Module:
- *  Client for selecting SLP installation source.
+ *  Client for selecting SLP repository.
  *  The purpose is to make inst_source.ycp independent on yast-slp
  *
  * Authors:

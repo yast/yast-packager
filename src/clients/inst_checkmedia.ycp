@@ -25,7 +25,7 @@
     /* main ui function */
     any ret = `next;
 
-    // check whether we are using CD installation source
+    // check whether we are using CD repository
     string instmode = (string)SCR::Read(.etc.install_inf.InstMode);
     y2milestone("Installation mode: %1", instmode);
 
@@ -105,7 +105,7 @@
     }
     else
     {
-	y2milestone("No CD installation source found, skipping Media Check");
+	y2milestone("No CD repository found, skipping Media Check");
 	ret = `auto;
     }
 
