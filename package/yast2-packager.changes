@@ -8,7 +8,7 @@ Thu Jul 19 15:23:22 CEST 2007 - locilka@suse.cz
 - Modified RPM dependencies.
 - Removed obsolete testsuite for OneClickInstallStandard module.
 - Adapted inst_productsources to the new OneClickInstallStandard.
-- Adjusted spec file to the new source files.
+- Adjusted spec file to the new source files (all items: #292643).
 
 -------------------------------------------------------------------
 Thu Jul 19 07:25:14 CEST 2007 - lslezak@suse.cz
