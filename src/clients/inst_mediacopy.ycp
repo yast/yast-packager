@@ -23,7 +23,8 @@
 
     list source_list = [];
 
-    Packages::Init(false);
+    // full initialization is required for Pkg::SourceMediaData()
+    Packages::Init(true);
     integer num = size (Packages::theSources);
     if (num <= 0)
     {
