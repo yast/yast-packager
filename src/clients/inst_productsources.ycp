@@ -45,7 +45,7 @@
      * </metapackage>
      */
 
-    textdomain "installation";
+    textdomain "packager";
     
     import "Wizard";
     import "Sequencer";
