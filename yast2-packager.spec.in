@@ -57,6 +57,8 @@ Summary:	-
 @clientdir@/*.ycp
 @moduledir@/*
 @desktopdir@/*.desktop
+@scrconfdir@/*
+@execcompdir@/servers_non_y2/ag_*
 %dir /usr/share/YaST2/control
 /usr/share/YaST2/control/*.xml
 %doc @docdir@
