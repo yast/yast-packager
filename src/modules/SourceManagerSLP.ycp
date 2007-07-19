@@ -8,7 +8,7 @@
  * $Id:$
  *
  * This module provides a complete set of functions that allows you to search
- * and select a new SLP source.
+ * and select a new SLP repository.
  */
 {
     import "SLP";
@@ -68,7 +68,7 @@
 	SetSearchUI (`Label (_("Scanning network for installation services...")));
 	y2milestone("scanning network: SLP::FindSrvs(\"install.suse\", \"\")");
 	services = SLP::FindSrvs ("install.suse", "");
-	y2milestone("Done, found %1 sources", size(services));
+	y2milestone("Done, found %1 repositories", size(services));
     }
 
     void CreateSLPListFoundDialog (list <map> & services) {
@@ -112,7 +112,7 @@
 		`HBox (
 		    `HSquash (`MarginBox (0.5, 0.2, Icon ("yast-you_server"))),
 		    // translators: popup heading
-		    `Left (`Heading(`id(`search_heading), _("Choose SLP Catalog")))
+		    `Left (`Heading(`id(`search_heading), _("Choose SLP Repository")))
 		),
 		filter_dialog,
 		`MarginBox (0.5, 0, `MinSize(
@@ -205,7 +205,7 @@
 
 		UI::OpenDialog (
 		    `VBox (
-			`Left (`Heading(`id(`details_heading), _("Catalog Details"))),
+			`Left (`Heading(`id(`details_heading), _("Repository Details"))),
 			`MinSize (
 			    min_size_x, min_size_y,
 			    `Table (
@@ -255,7 +255,7 @@
 		if (one_service["srvurl"]:"" != "") {
 		    service_label = sformat (
 			"%1: %2",
-			_("Catalog URL"),
+			_("Repository URL"),
 			substring (one_service["srvurl"]:"", 21)
 		    );
 		} else {
@@ -312,7 +312,7 @@
 	if (current == nil || current < 0) {
 	    // message popup
 	    Report::Message (_("Please, select one of offered options.
-This product has more installation sources available."));
+This product has more repositories available."));
 
 	    return nil;
 	} else {
@@ -325,7 +325,7 @@ This product has more installation sources available."));
 		);
 		// popup error
 		Report::Error (_("An internal error occurred.
-The selected source has no URL."));
+The selected repository has no URL."));
 		return nil;
 	    } else {
 		return service_url;
@@ -486,7 +486,7 @@ The selected source has no URL."));
 	SearchForSLPServices (slp_services_found);
 
 	if (slp_services_found == nil || size(slp_services_found) == 0) {
-	    y2warning("No SLP catalogs found");
+	    y2warning("No SLP repositories found");
 	} else {
 	    SearchForSLPServicesInfo(slp_services_found);
 	}
@@ -494,18 +494,18 @@ The selected source has no URL."));
 
 	// no servers found
 	if (slp_services_found == nil || size(slp_services_found) == 0) {
-	    y2warning ("No SLP catalogs were found");
+	    y2warning ("No SLP repositories were found");
 	    if ((! Stage::initial ()) && SuSEFirewall::IsStarted ()) {
 		Report::Message (
 		    // error popup
-		    _("No SLP catalogs have been found on your network.
+		    _("No SLP repositories have been found on your network.
 This could be caused by a running SuSEfirewall2,
 which probably blocks the network scanning.")
 		);
 	    } else {
 		Report::Message (
 		    // error popup
-		    _("No SLP catalogs have been found on your network.")
+		    _("No SLP repositories have been found on your network.")
 		);
 	    }
 	    return nil;

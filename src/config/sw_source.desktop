@@ -19,6 +19,6 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-sw_source
 Exec=/sbin/yast2 inst_source
 
-Name=Installation Source
-GenericName=Choose the source for installation of software packages (CD, network, etc.)
+Name=Installation Repositories
+GenericName=Choose the repositories for installation of software packages (CD, network, etc.)
 X-KDE-SubstituteUID=true

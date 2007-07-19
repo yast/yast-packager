@@ -99,7 +99,7 @@ symbol StartDirInstall()
 	}
 	y2milestone ("Found base product: %1", base);
 	prods = Pkg::ResolvableProperties (base["name"]:"", `product, "");
-	y2milestone ("Found appropriate base products in sources: %1", prods);
+	y2milestone ("Found appropriate base products in repositories: %1", prods);
 	if (size (prods) == 0)
 	{
 	    // error report

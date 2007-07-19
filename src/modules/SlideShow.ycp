@@ -23,7 +23,7 @@
     global list<list<integer> > total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
     global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
     global list<list<integer> > remaining_times_per_cd_per_src	= [];	// remaining times
-    global list<string>		inst_src_names			= [];	// a list of strings identifying each installation source
+    global list<string>		inst_src_names			= [];	// a list of strings identifying each repository
     global list<list<integer> > total_pkg_count_per_cd_per_src	= [];	// number of pkgs per inst-src: [ [7, 5, 3], [2, 3, 4] ]
     global list<list<integer> > remaining_pkg_count_per_cd_per_src = []; // remaining number of pkgs
     global map<integer,integer> srcid_to_current_src_no = $[];
@@ -796,8 +796,8 @@
 
     /**
      * Return a CD's progress bar ID
-     * @param src_no number of the installation source (from 0 on)
-     * @param cd_no number of the CD within that installation source (from 0 on)
+     * @param src_no number of the repository (from 0 on)
+     * @param cd_no number of the CD within that repository (from 0 on)
      **/
     string CdProgressId( integer src_no, integer cd_no )
     {
@@ -985,7 +985,7 @@
 
 
 	//
-	// Now go through all installation sources
+	// Now go through all repositories
 	//
 
 	integer src_no = 0;
@@ -993,12 +993,12 @@
 	foreach ( list<integer> inst_src, remaining_sizes_per_cd_per_src, ``{
 	    y2milestone( "src #%1: %2", src_no, inst_src );
 
-	    if (ListSum(inst_src) > 0)	 // Ignore sources from where there is nothing is to install
+	    if (ListSum(inst_src) > 0)	 // Ignore repositories from where there is nothing is to install
 	    {
-		if ( size( total_sizes_per_cd_per_src ) > 1 )	// Multiple sources?
+		if ( size( total_sizes_per_cd_per_src ) > 1 )	// Multiple repositories?
 		{
 		    //
-		    // Add heading for this installation source
+		    // Add heading for this repository
 		    //
 
 		    itemList = add( itemList, TableItem( sformat( "src(%1)", src_no ),
@@ -1660,7 +1660,7 @@
 	  return $[src[1]:-1 : index];
 	});
 
-	y2milestone ("Source mapping information: %1", srcid_to_current_src_no );
+	y2milestone ("Repository  mapping information: %1", srcid_to_current_src_no );
 
 	total_sizes_per_cd_per_src		= Pkg::PkgMediaSizes();
 	total_pkg_count_per_cd_per_src		= Pkg::PkgMediaCount();
@@ -1723,7 +1723,7 @@
 
 
     /**
-     * Set the current source and CD number. Must be called for each CD change.
+     * Set the current repository and CD number. Must be called for each CD change.
      * src_no: 1...n
      * cd_no:  1...n
      **/

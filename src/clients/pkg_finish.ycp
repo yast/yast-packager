@@ -47,7 +47,7 @@ else if (func == "Write")
 {
     Pkg::SourceCacheCopyTo (Installation::destdir);
 
-    // disable all sources and finish target
+    // disable all repositories and finish target
     Pkg::SourceFinishAll ();
     Pkg::TargetFinish();
 

@@ -119,7 +119,7 @@
     /**
      * Convert install.inf to a URL useable by the package manager
      * @param extra_dir append path to original URL
-     * @return string new Source URL
+     * @return string new repository URL
      */
     global string installInf2Url (string extra_dir) {
 	string options = "";

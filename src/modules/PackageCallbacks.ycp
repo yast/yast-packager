@@ -52,7 +52,7 @@
     string back_string = "\b\b\b\b\b\b\b\b\b\b";
     string clear_string = back_string + "          " + back_string;
 
-    // max. length of the text in the source popup window
+    // max. length of the text in the repository popup window
     integer max_size = 60;
 
     //--------------------------------------------------------------------------
@@ -563,19 +563,19 @@
 	{
 	    error =
 	    // error report
-_("<p>The source at the specified URL now provides a different media ID.
-If the URL is correct, this indicates that the source content has changed. To 
-continue using this source, start <b>Change Source of Installation</b> from 
-the YaST control center and refresh the installation source.</p>\n");
+_("<p>The repository at the specified URL now provides a different media ID.
+If the URL is correct, this indicates that the repository content has changed. To 
+continue using this repository, start <b>Installation Repositories</b> from 
+the YaST control center and refresh the repository.</p>\n");
 	}
 
 	if (wanted_label == "")
 	{
-	    // use only product name for network sources,
+	    // use only product name for network repository
 	    // there is no medium 1, 2, ...
 	    if (url_scheme != "cd" && url_scheme != "dvd")
 	    {
-		// label for a network source - %1 product name (e.g. openSUSE 10.2), %2 medium number (e.g. 2)
+		// label for a network repository - %1 product name (e.g. openSUSE 10.2), %2 medium number (e.g. 2)
 		wanted_label = sformat(_("%1 (Medium Number %2)"), product, wanted);
 	    }
 	    else
@@ -612,7 +612,7 @@ the YaST control center and refresh the installation source.</p>\n");
 
 	// prompt to insert product (%1 == "SuSE Linux version 9.2 CD 2")
 	string message = sformat (_("Insert\n'%1'"), wanted_label);
-	// with network source it doesn't make sense to ask for disk
+	// with network repository it doesn't make sense to ask for disk
 	if (url_scheme == "dir")
 	{
 	    // report error while accessing local directory with product (%1 == "SuSE Linux ...")
@@ -627,7 +627,7 @@ Check that the server is accessible."), wanted_label);
 	}
 
 	// currently unused
-	string media_prompt = _("The correct catalog medium could not be mounted.");
+	string media_prompt = _("The correct repository medium could not be mounted.");
 
 	// --------------------------------------
 	// build up button box
@@ -773,7 +773,7 @@ Check that the server is accessible."), wanted_label);
 
 
     /**
-     * dummy source change callback, see SlideShowCallbacks for the real one
+     * dummy repository change callback, see SlideShowCallbacks for the real one
      */
     global void SourceChange (integer source, integer medianr)
     {
@@ -899,7 +899,7 @@ void CloseSourcePopup()
 {
     if (!IsSourcePopup())
     {
-	y2error("The toplevel dialog is not a source popup dialog!");
+	y2error("The toplevel dialog is not a repository popup dialog!");
 	return;
     }
 
@@ -907,7 +907,7 @@ void CloseSourcePopup()
 
     if (_source_open == 0)
     {
-	y2milestone("Closing source progress popup");
+	y2milestone("Closing repository progress popup");
 	UI::CloseDialog();
     }
     y2milestone("CloseSourcePopup: _source_open: %1", _source_open);
@@ -932,8 +932,8 @@ global void SourceCreateStart(string url)
 {
     y2milestone ("SourceCreateStart: %1", url);
 
-    // popup label (%1 is source URL)
-    string msg = sformat(_("Creating source %1"), url);
+    // popup label (%1 is repository URL)
+    string msg = sformat(_("Creating Repository %1"), url);
 
     if (Mode::commandline()) {
 	CommandLine::Print(msg);
@@ -964,20 +964,20 @@ global symbol SourceCreateError (string url, symbol error, string description) {
     y2milestone ("Source create: error: url: %1, error: %2, description: %3", url, error, description);
 
     // error message - a label followed by a richtext with details
-    string message = _("Error occurred while creating the catalog.");
+    string message = _("Error occurred while creating the repository.");
 
     if (error == `NOT_FOUND)
 	// error message - a label followed by a richtext with details
-	message = _("Unable to retrieve the remote catalog description.");
+	message = _("Unable to retrieve the remote repository description.");
     else if (error == `IO)
 	// error message - a label followed by a richtext with details
 	message = _("An error occurred while retrieving the new metadata.");
     else if (error == `INVALID)
 	// error message - a label followed by a richtext with details
-	message = _("The source is not valid.");
+	message = _("The repository is not valid.");
     else if (error == `REJECTED)
 	// error message - a label followed by a richtext with details
-	message = _("The source metadata is invalid.");
+	message = _("The repository metadata is invalid.");
 
     if (Mode::commandline())
     {
@@ -990,7 +990,7 @@ global symbol SourceCreateError (string url, symbol error, string description) {
 	{
 	    CommandLine::Print("");
 
-	    // command line mode - ask user whether the source refreshment should be retried
+	    // command line mode - ask user whether the repository refreshment should be retried
 	    CommandLine::Print(_("Retry?"));
 
 	    if (CommandLine::YesNo())
@@ -1032,8 +1032,8 @@ global void SourceProbeStart(string url)
 {
     y2milestone ("SourceProbeStart: %1", url);
 
-    // popup label (%1 is source URL)
-    string msg = sformat(_("Probing source %1"), url);
+    // popup label (%1 is repository URL)
+    string msg = sformat(_("Probing Repository %1"), url);
 
     if (Mode::commandline()) {
 	CommandLine::Print(msg);
@@ -1042,7 +1042,7 @@ global void SourceProbeStart(string url)
     {
 	OpenSourcePopup();
 
-	string msg = sformat(_("Probing source %1"), url);
+	string msg = sformat(_("Probing Repository %1"), url);
 
 	if (_source_open == 1)
 	{
@@ -1058,12 +1058,12 @@ global void SourceProbeStart(string url)
 
 global void SourceProbeFailed(string url, string type)
 {
-    y2milestone("Source %1 is not %2 source", url, type);
+    y2milestone("Repository %1 is not %2 repository", url, type);
 }
 
 global void SourceProbeSucceeded(string url, string type)
 {
-    y2milestone("Source %1 is type %2", url, type);
+    y2milestone("Repository %1 is type %2", url, type);
 }
 
 
@@ -1077,23 +1077,23 @@ global symbol SourceProbeError(string url, symbol error, string description) {
     y2milestone ("Source probe: error: url: %1, error: %2, description: %3", url, error, description);
 
     // error message - a label followed by a richtext with details
-    string message = _("Error occurred while probing the source.");
+    string message = _("Error occurred while probing the repository.");
 
     if (error == `NOT_FOUND)
 	// error message - a label followed by a richtext with details
-	message = _("Unable to retrieve the remote catalog description.");
+	message = _("Unable to retrieve the remote repository description.");
     else if (error == `IO)
 	// error message - a label followed by a richtext with details
 	message = _("An error occurred while retrieving the new metadata.");
     else if (error == `INVALID)
 	// error message - a label followed by a richtext with details
-	message = _("The source is not valid.");
+	message = _("The repository is not valid.");
     else if (error == `NO_ERROR)
 	// error message - a label followed by a richtext with details
-	message = _("Source probing details.");
+	message = _("Repository probing details.");
     else if (error == `REJECTED)
 	// error message - a label followed by a richtext with details
-	message = _("Source metadata is invalid.");
+	message = _("Repository metadata is invalid.");
 
     if (Mode::commandline())
     {
@@ -1106,7 +1106,7 @@ global symbol SourceProbeError(string url, symbol error, string description) {
 	{
 	    CommandLine::Print("");
 
-	    // command line mode - ask user whether the source refreshment should be retried
+	    // command line mode - ask user whether the repository refreshment should be retried
 	    CommandLine::Print(_("Retry?"));
 
 	    if (CommandLine::YesNo())
@@ -1176,17 +1176,17 @@ global symbol SourceReportError(integer source_id, string url, symbol error, str
     y2milestone ("Source report: error: id: %1, url: %2, error: %3, description: %4", source_id, url, error, description);
 
     // error message - a label followed by a richtext with details
-    string message = sformat(_("Source %1"), url);
+    string message = sformat(_("Repository %1"), url);
 
     if (error == `NOT_FOUND)
 	// error message - a label followed by a richtext with details
-	message = _("Unable to retrieve the remote catalog description.");
+	message = _("Unable to retrieve the remote repository description.");
     else if (error == `IO)
 	// error message - a label followed by a richtext with details
 	message = _("An error occurred while retrieving the new metadata.");
     else if (error == `INVALID)
 	// error message - a label followed by a richtext with details
-	message = _("The source is not valid.");
+	message = _("The repository is not valid.");
 
     if (Mode::commandline())
     {
@@ -1199,7 +1199,7 @@ global symbol SourceReportError(integer source_id, string url, symbol error, str
 	{
 	    CommandLine::Print("");
 
-	    // command line mode - ask user whether the source refreshment should be retried
+	    // command line mode - ask user whether the repository refreshment should be retried
 	    CommandLine::Print(_("Retry?"));
 
 	    if (CommandLine::YesNo())

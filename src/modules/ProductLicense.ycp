@@ -227,7 +227,7 @@ map<string,string> LicenseFiles (string dir, list<string> patterns) {
 
 /**
  * Ask user to confirm license agreement
- * @param src_id integer source to get the license from
+ * @param src_id integer repository to get the license from
  * @param dir string directory to look for the license in if src_id is nil
  *   and not 1st stage installation
  * @param patterns a list of patterns for the files, regular expressions
@@ -264,7 +264,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     // Add-on-product license
     else
     {
-	y2milestone ("Getting license info from source %1", src_id);
+	y2milestone ("Getting license info from repository %1", src_id);
 	// using a separate license directory for all products
 	tmpdir = sformat("%1/product-license/%2/", (string) SCR::Read(.target.tmpdir), src_id);
 	license_dir = tmpdir;

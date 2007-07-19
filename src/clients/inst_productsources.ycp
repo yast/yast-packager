@@ -1,7 +1,7 @@
 {
     /***
      * This is a stand-alone YaST client that allows you to add suggested
-     * installation sources (repositories) to the libzypp.
+     * repositories (repositories) to the libzypp.
      *
      * How it works:
      * - First a list of servers/links is extracted from the YaST control file
@@ -319,7 +319,7 @@ Would you like to configure it?"),
 	list_of_servers = [];
 
 	if (! DownloadFile (main_link, UseDownloadFile())) {
-	    y2error ("Unable to download list of external sources");
+	    y2error ("Unable to download list of external repositories");
 	    return false;
 	}
 	
@@ -333,11 +333,11 @@ Would you like to configure it?"),
 		y2milestone ("Downloading list of repos from %1", one_server["link"]:"");
 
 		if (! DownloadFile (one_server["link"]:"", UseDownloadFile())) {
-		    y2error ("Unable to download list of external sources");
+		    y2error ("Unable to download list of external repositories");
 		    return;
 		}
 		if (! ParseListOfSources (UseDownloadFile(), one_server["link"]:"")) {
-		    y2error ("Unable to parse list of sources");
+		    y2error ("Unable to parse list of repositories");
 		    return;
 		}
 	    }
@@ -351,7 +351,7 @@ Would you like to configure it?"),
 		// TRANSLATORS: progress step
 		_("Check network configuration"),
 		// TRANSLATORS: progress step
-		_("Download list of external installation sources"),
+		_("Download list of external repositories"),
 		// TRANSLATORS: progress step
 	];
 
@@ -359,19 +359,19 @@ Would you like to configure it?"),
 		// TRANSLATORS: progress step
 		_("Checking network configuration..."),
 		// TRANSLATORS: progress step
-		_("Downloading list of external installation sources..."),
+		_("Downloading list of external repositories..."),
 	];
 
 	if (! Stage::initial()) {
 	    // TRANSLATORS: progress step
-	    actions_todo = add (actions_todo, _("Initialize the source manager"));
+	    actions_todo = add (actions_todo, _("Initialize the repository manager"));
 	    // TRANSLATORS: progress step
-	    actions_doing = add (actions_doing, _("Initializing the source manager..."));
+	    actions_doing = add (actions_doing, _("Initializing the repository manager..."));
 	}
 
 	Progress::New (
 	    // TRANSLATORS: dialog caption
-	    _("Reading List of External Installation Sources"),
+	    _("Reading List of External Repositories"),
 	    " ",
 	    size (actions_todo),
 	    actions_todo,
@@ -397,7 +397,7 @@ and list of servers dowloaded from web.</p>")
 	}
 	
 	if (! DownloadAndParseSources()) {
-	    y2error ("Cannot downoload or parse sources");
+	    y2error ("Cannot download or parse repositories");
 	    return `abort;
 	}
 
@@ -474,7 +474,7 @@ and list of servers dowloaded from web.</p>")
 
 	    counter = counter + 1;
 	    if (url == "") {
-		y2error ("InstSource %1 has no 'url'", one_repo);
+		y2error ("Repository %1 has no 'url'", one_repo);
 		return;
 	    }
 
@@ -482,11 +482,11 @@ and list of servers dowloaded from web.</p>")
 	    integer src_id = IsAddOnAlreadySelected (one_repo["url"]:"", one_repo["path"]:"/");
 	    boolean already_used = false;
 
-	    // source has been already initialized
+	    // repository has been already initialized
 	    if (src_id > -1) {
 		repos_already_used[repo_id] = src_id;
 		already_used = true;
-	    // source has been already selected
+	    // repository has been already selected
 	    } else if (IsSelectedInDialog (repo_id)) {
 		already_used = true;
 	    }
@@ -540,9 +540,9 @@ and list of servers dowloaded from web.</p>")
 	StoreSelectedInDialog();
 	repos_to_be_used = already_selected_in_dialog;
 
-	// FIXME: handle no sources selected (warning)
+	// FIXME: handle no repositories selected (warning)
 
-	// FIXME: a lot of sources selected (warning)
+	// FIXME: a lot of repositories selected (warning)
 
 	return true;
     }
@@ -610,7 +610,7 @@ and list of servers dowloaded from web.</p>")
     symbol SourcesDialog () {
 	Wizard::SetContents (
 	    // TRANSLATORS: dialog caption
-	    _("List of External Installation Sources"),
+	    _("List of External Repositories"),
 	    `VBox (
 		`HBox (
 		    `HVSquash(`MinWidth(20, `TextEntry (`id ("filter_text"), ""))),
@@ -624,12 +624,12 @@ and list of servers dowloaded from web.</p>")
 		    `MultiSelectionBox(
 			`id ("addon_repos"), `opt (`notify, `hstretch),
 			// TRANSLATORS: multi-selection box
-			_("&List of Installation Sources"), []
+			_("&List of Repositories"), []
 		    )
 		),
 		`VSpacing (0.5),
 		// TRANSLATORS: Rich-text widget (HTML)
-		`Left (`Label (_("Installation Source Description"))),
+		`Left (`Label (_("Repository Description"))),
 		`VWeight (
 		    1,
 		    `RichText (`id ("addon_description"), "")
@@ -683,7 +683,7 @@ select those you want and click <b>Finish</b></p>")
 		} else {
 		    if (Popup::ContinueCancelHeadline (
 			// TRANSLATORS: popup header
-			_("Aborting Configuration of External Installation Source"),
+			_("Aborting Configuration of External Repository"),
 			// TRANSLATORS: popup question
 			_("Are you sure you want to abort the configuration?")
 		    )) break;
@@ -707,8 +707,8 @@ select those you want and click <b>Finish</b></p>")
 	if (src_id == nil) {
 	    Report::Error (sformat (
 		// TRANSLATORS: pop-up error message
-		// %1 is replaced with an installation source name or URL
-		_("Adding source %1 failed"),
+		// %1 is replaced with a repository name or URL
+		_("Adding repository %1 failed"),
 		list_of_repos[CreateRepoId(url,pth), "name"]:url
 	    ));
 	    // FIXME: retry ?
@@ -754,7 +754,7 @@ select those you want and click <b>Finish</b></p>")
 	//y2milestone ("ReposAlreadyUsed: %1", repos_already_used);
 	//y2milestone ("ReposToBeUsed: %1", repos_to_be_used);
 
-	// go through all already initialized sources
+	// go through all already initialized repositories
 	// add unselected repository to 'repos_to_be_deleted'
 	// remove already selected repository from 'repos_to_be_used'
 
@@ -779,29 +779,29 @@ select those you want and click <b>Finish</b></p>")
 	    y2milestone ("Repos to be deleted: %1", repos_to_be_deleted);
 
 	    // TRANSLATORS: progress step
-	    actions_todo = [_("Delete unselected external installation sources")];
+	    actions_todo = [_("Delete unselected external repositories")];
 	    // TRANSLATORS: progress step
-	    actions_doing = [_("Deleting unselected external installation sources...")];
+	    actions_doing = [_("Deleting unselected external repositories...")];
 	}
 
 	if (size (repos_to_be_used) > 12) {
 	    at_once = true;
 	    // TRANSLATORS: progress step
-	    actions_todo = add (actions_todo, _("Add all selected external installation sources"));
+	    actions_todo = add (actions_todo, _("Add all selected external repositories"));
 	    // TRANSLATORS: progress step
-	    actions_doing = add (actions_doing, _("Adding all selected external installation sources..."));
+	    actions_doing = add (actions_doing, _("Adding all selected external repositories..."));
 	} else {
 	    foreach (string repo_id, repos_to_be_used, {
 		actions_todo = add (actions_todo, sformat (
 		    // TRANSLATORS: progress step
-		    // %1 is replaced with installation source name or URL
-		    _("Add installation source: %1"),
+		    // %1 is replaced with repository name or URL
+		    _("Add repository: %1"),
 		    list_of_repos[repo_id, "name"]:repo_id
 		));
 		actions_doing = add (actions_doing, sformat (
 		    // TRANSLATORS: progress step,
-		    // %1 is replaced with installation source name or URL
-		    _("Adding installation source: %1 ..."),
+		    // %1 is replaced with repository name or URL
+		    _("Adding repository: %1 ..."),
 		    list_of_repos[repo_id, "name"]:repo_id
 		));
 	    });
@@ -809,13 +809,13 @@ select those you want and click <b>Finish</b></p>")
 
 	Progress::New (
 	    // TRANSLATORS: dialog caption
-	    _("Writing List of External Installation Sources"),
+	    _("Writing List of External repositories"),
 	    " ",
 	    size (actions_todo),
 	    actions_todo,
 	    actions_doing,
 	    // TRANSLATORS: dialog help
-	    _("<p>Please wait, while the source manager downloads repository-details...</p>")
+	    _("<p>Please wait, while the repository manager downloads repository details...</p>")
 	);
 	Wizard::SetTitleIcon ("yast-sw_source");
 
@@ -823,7 +823,7 @@ select those you want and click <b>Finish</b></p>")
 	    Progress::NextStage();
 	    foreach (integer src_id, repos_to_be_deleted, {
 		boolean success = Pkg::SourceDelete (src_id);
-		if (! success) y2error ("Couldn't delete source %1", src_id);
+		if (! success) y2error ("Couldn't delete repository %1", src_id);
 
 		AddOnProduct::Disintegrate (src_id);
 		// filter it also from the list of Add-Ons
@@ -845,7 +845,7 @@ select those you want and click <b>Finish</b></p>")
 	// Redraw installation wizard
 	if (Stage::initial()) {
 	    UpdateWizardSteps();
-	// Store sources
+	// Store repositories
 	} else {
 	    Pkg::SourceFinishAll();
 	}

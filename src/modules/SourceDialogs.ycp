@@ -37,7 +37,7 @@ import "Hostname";
 string _url = "";
 
 /**
- * Allow HTTPS for next source dialog?
+ * Allow HTTPS for next repository dialog?
  */
 boolean _allow_https = true;
 
@@ -50,7 +50,7 @@ of the media, set <b>ISO Image</b>.</p>");
 /**
  * Help text suffix for some types of the medias
  */
-string multi_cd_help = _("<p>If the catalog is on multiple medias,
+string multi_cd_help = _("<p>If the repository is on multiple medias,
 set the location of the first media of the set.</p>");
 
 /**
@@ -226,8 +226,8 @@ map<string,any> PlainURLWidget () {
 	"validate_type" : `function,
 	"validate_function" : PlainURLValidate,
 	// help text
-	"help" : _("<p><big><b>Catalog URL</b></big><br>
-Use <b>URL</b> to specify the URL of the catalog.</p>") + multi_cd_help,
+	"help" : _("<p><big><b>Repository URL</b></big><br>
+Use <b>URL</b> to specify the URL of the repository.</p>") + multi_cd_help,
     ];
 }
 
@@ -342,7 +342,7 @@ to specify the NFS server host name and path on the server.</p>")
     ];
 }
 
-// CD/DVD source widget
+// CD/DVD repository widget
 
 /**
  * Init function of a widget
@@ -391,7 +391,7 @@ Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"),
     ];
 }
 
-// File / Directory source widget
+// File / Directory repository widget
 
 /**
  * Init function of a widget
@@ -630,7 +630,7 @@ ISO image file.</p>")
 
 }
 
-// HTTP(s)/FTP/SMB/CIFS source widget
+// HTTP(s)/FTP/SMB/CIFS repository widget
 
 /**
  * Handle function of a widget
@@ -962,12 +962,12 @@ to specify the NFS server host name and path on the server.
 To enable authentication, uncheck <b>Anonymous</b> and specify the
 <b>User Name</b> and the <b>Password</b>.</p>
 <p>
-For SMB/CIFS source, specify <b>Share</b> name and <b>Path to Directory
+For SMB/CIFS repository, specify <b>Share</b> name and <b>Path to Directory
 or ISO Image</b>. 
 If the location is a file holding an ISO image
 of the media, set <b>ISO Image</b>.</p>")
 // help text - server dialog, there is a "Port" widget
-+ _("<p>It's possible to set the <b>Port</b> number for a HTTP/HTTPS source.
++ _("<p>It's possible to set the <b>Port</b> number for a HTTP/HTTPS repository.
 Leave it empty to use the default port.</p>")
 + multi_cd_help,
     ];
@@ -1058,8 +1058,8 @@ term SelectRadioWidget () {
 
 string SelectWidgetHelp () {
     // help text
-    string help_text = _("<p><big><b>Catalog Media</b></big><br>
-The software catalog can be located on CD, on a network server,
+    string help_text = _("<p><big><b>Repository Media</b></big><br>
+The software repository can be located on CD, on a network server,
 or on the hard disk.</p>");
 
     // help, continued
@@ -1212,7 +1212,7 @@ map<string,map<string,any> > Widgets () {
  */
 map<string,string> _caption = $[
     // label / dialog caption
-    "url" : _("Catalog URL"),
+    "url" : _("Repository URL"),
     // label / dialog caption
     "nfs" : _("NFS Server"),
     // label / dialog caption
@@ -1338,7 +1338,7 @@ global string TypePopup () {
  * @return symbol for wizard sequencer
  */
 global symbol TypeDialog () {
-    y2milestone ("Running source type dialog");
+    y2milestone ("Running repository type dialog");
     // dialog caption
     string caption = _("Media Type");
     symbol ret = CWM::ShowAndRun ($[

@@ -5,7 +5,7 @@
  *
  * Purpose:	Show some stuff about the installation media.
  *
- * $Id:$
+ * $Id$
  *
  */
 {
@@ -23,7 +23,7 @@
     integer num = size (Packages::theSources);
     if (num <= 0)
     {
-	y2error ("Invalid source");
+	y2error ("Invalid repository");
     }
     else
     {
@@ -38,11 +38,11 @@
     // screen title
     string title = _("Installation Media");
 
-    // label for showing installation sources
-    string label = _("Registered Catalogs");
+    // label for showing repositories
+    string label = _("Registered Repositories");
 
-    // help text for dialog to show installation sources
-    string help_text = _("<p>All registered installation sources are shown here.
+    // help text for dialog to show repositories
+    string help_text = _("<p>All registered repositories are shown here.
 </p>
 ");
 

@@ -45,17 +45,17 @@ import "PackageCallbacks";
 boolean full_repropose = false;
 
 /**
- * Installation source has been initialized?
+ * repository has been initialized?
  */
 boolean init_called = false;
 
 /**
- * Installation source initialization is WIP
+ * repository initialization is WIP
  */
 boolean init_in_progress = false;
 
 /**
- * Error which occurred during installation source initialization
+ * Error which occurred during repository initialization
  */
 string init_error = nil;
 
@@ -75,8 +75,8 @@ list<string> cached_proposal_languages = [];
     global string metadir = "/yast-install";
     global boolean metadir_used = false;	// true if meta data and inst-sys is in ramdisk
 
-    global list<integer> theSources = [];		// id codes of sources in priority order
-    global list<string> theSourceDirectories = [];	// product directories on sources
+    global list<integer> theSources = [];		// id codes of repositories in priority order
+    global list<string> theSourceDirectories = [];	// product directories on repositories
     global map<integer,integer> theSourceOrder = $[];	// installation order
 
     string servicepack_metadata = "/servicepack.tar.gz";
@@ -344,7 +344,7 @@ global void Reset (list<symbol> keep) {
 }
 
 /**
- * Initialize add-on products provided by the installation source
+ * Initialize add-on products provided by the repository
  */
 global void InitializeAddOnProducts() {
     if (Packages::add_on_products_list != nil)
@@ -548,12 +548,12 @@ global void InitializeAddOnProducts() {
 
 
     /**
-     * Compute packages required to access the installation source
+     * Compute packages required to access the repository
      * @return list(string) list of the required packages
      */
     list<string> sourceAccessPackages()
     {
-	// TODO: rather check all registered installation sources...
+	// TODO: rather check all registered repositories...
 	list<string> ret = [];
 
 	string instmode = Linuxrc::InstallInf("InstMode");
@@ -570,7 +570,7 @@ global void InitializeAddOnProducts() {
 	    ret = ["portmap"];
 	}
 
-	y2milestone("Packages for accessing the installation source: %1", ret);
+	y2milestone("Packages for accessing the repository: %1", ret);
 
 	return ret;
     }
@@ -677,7 +677,7 @@ global list<string> ComputeSystemPatternList () {
 
 	install_list = (list<string>) union (install_list, boardPackages ());
 
-	// add packages required to access the installation source in the 2nd stage and at run-time
+	// add packages required to access the repository in the 2nd stage and at run-time
 	install_list = (list<string>) union (install_list, sourceAccessPackages());
 
 	// and the most flexible enhancement for other products
@@ -711,9 +711,9 @@ global list<string> ComputeSystemPatternList () {
     }
 
 /**
- * Check whether content file in the specified source is the same
+ * Check whether content file in the specified repository is the same
  * as the one in the ramdisk
- * @param source integer the source ID to check
+ * @param source integer the repository ID to check
  * @return boolean true if content files match
  */
 global boolean CheckContentFile (integer source) {
@@ -747,14 +747,14 @@ string UpdateSourceURL (string url) {
     string ret = "";
     while (ret == "")
     {
-	if (Popup::YesNo (_("Failed to initialize the catalog. Try again?")))
+	if (Popup::YesNo (_("Failed to initialize the repository. Try again?")))
 	{
 	    ret = SourceDialogs::EditPopup (url);
 	}
 	else
 	{
 	    // error in proposal, %1 is URL
-	    init_error = sformat (_("No catalog found at '%1'."),
+	    init_error = sformat (_("No repository found at '%1'."),
 		InstURL::HidePassword (url));
 	    return "";
 	}
@@ -811,7 +811,7 @@ void SlideShowSetUp (integer source) {
     string our_slidedir = (string)WFM::Read (.local.tmpdir, "");
     if (slidedir == nil)
      {
-	y2milestone("No slide directory '%1' found on source '%2'.",
+	y2milestone("No slide directory '%1' found in repository '%2'.",
 	    slidedir_find, source);
     }
     else
@@ -854,7 +854,7 @@ integer IntegrateServicePack (boolean show_popup, string base_url) {
 	integer sp_source = Pkg::SourceCreate (sp_url, "");
 	if (sp_source == -1)
 	{
-	    Report::Error (_("Failed to integrate service pack source."));
+	    Report::Error (_("Failed to integrate service pack repository."));
 	    return nil;
 	}
 	if (! AddOnProduct::AcceptedLicenseAndInfoFile(sp_source))
@@ -873,7 +873,7 @@ integer IntegrateServicePack (boolean show_popup, string base_url) {
 	    AddOnProduct::UpdateInstSys (spdir + "/y2update.tgz");
 	}
 	theSources = add (theSources, sp_source);
-	y2internal ("Service pack source: %1, changing to URL: %2",
+	y2internal ("Service pack repository: %1, changing to URL: %2",
 	     sp_source, base_url);
 	Pkg::SourceChangeUrl (sp_source, base_url);
     }
@@ -885,7 +885,7 @@ boolean Initialize_BaseInit (boolean show_popup, string & base_url, string & log
     {
 	UI::OpenDialog(`opt(`decorated ),
 	    // popup - information label
-	    `Label(_("Initializing catalogs...")));
+	    `Label(_("Initializing repositories...")));
 	popup_open = true;
     }
 
@@ -930,7 +930,7 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 		initial_source = Pkg::SourceCreateBase (base_url, "");
 		if (initial_source == -1 || initial_source == nil)
 		{
-		    y2error ("No source on '%1'", log_url);
+		    y2error ("No repository in '%1'", log_url);
 		    base_url = UpdateSourceURL (base_url);
 		    if (base_url != "")
 		    {
@@ -1001,9 +1001,9 @@ global void Initialize_StageNonInitial (boolean show_popup, string base_url, str
 			|| (substring (base_url, 0, 3) == "dvd")))
 	    {
 		foreach (integer source, theSources, {
-		    map data = Pkg::SourceGeneralData (source);		// get source data
+		    map data = Pkg::SourceGeneralData (source);		// get repository data
 		    string url = data["url"]:"";
-		    if ((substring (url, 0, 2) == "cd")			// source comes from cd/dvd
+		    if ((substring (url, 0, 2) == "cd")			// repository comes from cd/dvd
 			|| (substring (url, 0, 3) == "dvd"))
 		    {
                         string new_url = InstURL::RewriteCDUrl(url);
@@ -1015,7 +1015,7 @@ global void Initialize_StageNonInitial (boolean show_popup, string base_url, str
 }
 
 /**
- * Initialize the installation sources
+ * Initialize the repositories
  * @param show_popup boolean true to display information about initialization
  */
 global void Initialize(boolean show_popup) {
@@ -1027,7 +1027,7 @@ global void Initialize(boolean show_popup) {
 
     init_in_progress = true;
 
-    // usual mountpoint for the source medium
+    // usual mountpoint for the medium
     string base_url = "";
     // url with hidden password for logging purpose
     string log_url  = "";
@@ -1360,7 +1360,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 }
 
 /**
- * Initialize the catalogs with popup feedback
+ * Initialize the repositories with popup feedback
  * Use Packages::Initialize (true) instead
  */
 global void InitializeCatalogs() {

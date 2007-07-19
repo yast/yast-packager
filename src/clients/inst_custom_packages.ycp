@@ -28,7 +28,7 @@
         symbol ret = SourceManager::createSource(url);
         if (ret != `ok )
         {
-            y2error ("no sources available on media");
+            y2error ("no repositories available on media");
             return false;
         } else {
             SourceManager::CommitSources();
