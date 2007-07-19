@@ -73,6 +73,11 @@
 
     include "installation/misc.ycp";
 
+    if (GetInstArgs::going_back()) {
+	y2milestone ("Going back...");
+	return `back;
+    }
+
     string main_link = "";
 
     map <string, map> list_of_repos = $[];
