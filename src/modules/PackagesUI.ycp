@@ -67,14 +67,25 @@
 
 	y2milestone("Licenses to confirm: %1", licenses);
 
+	map display_info = UI::GetDisplayInfo();
+	integer size_x = tointeger(display_info["Width"]:800);
+        integer size_y = tointeger(display_info["Height"]:600);
+        if (size_x >= 800 && size_y >= 600) {
+                size_x = 80;
+               size_y = 20;
+        } else {
+                size_x = 54;
+                size_y = 15;
+        }
+
 	foreach (string package,  string license, licenses, {
 		term popup = `VBox (
-		    `HSpacing (80),
+		    `HSpacing (size_x),
 		    // dialog heading, %1 is package name
 		    `Heading (sformat (_("Confirm Package License: %1"),
 			package)),
 		    `HBox (
-			`VSpacing (20),
+			`VSpacing (size_y),
 			`RichText (`id (`lic), license)
 		    ),
 		    `HBox (

@@ -20,6 +20,17 @@
      */
     global void show_info_txt(string info_file)
     {
+       map display_info = UI::GetDisplayInfo();
+       integer size_x = tointeger(display_info["Width"]:800);
+       integer size_y = tointeger(display_info["Height"]:600);
+       if (size_x >= 800 && size_y >= 600) {
+		size_x = 78;
+		size_y = 18;
+	} else {
+		size_x = 54;
+		size_y = 15;
+	}
+
 	if ( SCR::Read(.target.size, info_file ) <= 0 )
 	{
 	    y2milestone( "No %1", info_file );
@@ -49,7 +60,7 @@
 
 	UI::OpenDialog(
 		       `VBox(
-			     `MinSize(78, 18, `RichText(`opt(`plainText), info_text ) ),
+			     `MinSize(size_x, size_y, `RichText(`opt(`plainText), info_text ) ),
 			     use_timeout ? 
 			     `Label(`id(`timeout), sformat( "   %1   ", timeout_seconds ) )
 			     : `VSpacing( 0.2 ),
