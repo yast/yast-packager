@@ -1,0 +1,64 @@
+/**
+ * Module:	OneClickInstallStandard.pm
+ * Authors:	Lukas Ocilka <locilka@suse.cz>
+ * Summary:	Module for parsing One Click Install Standard
+ *		http://en.opensuse.org/Standards/One_Click_Install
+ */
+{
+    module "OneClickInstallStandard";
+
+    textdomain "packager";
+
+    import "FileUtils";
+
+    /**
+     * Converts XML file to a list of maps with all repositories described in the XML content.
+     *
+     * @param XML file
+     * @return list <map, <string, any> >
+     *
+     * @struct $[
+     *         "distversion" : "openSUSE Factory",
+     *         "url" : "full url of the repository (http://.../)",
+     *         "format" : "yast",
+     *         "recommended" : true,
+     *         "description" : "repository description",
+     *         "localized_description" : $[
+     *             "en_GB" : "repository description (localized to en_GB)",
+     *             ...
+     *         ],
+     *         "summary" : "repository summary",
+     *         "localized_summary" : $[
+     *             "en_GB" : "repository summary (localized to en_GB)",
+     *             ...
+     *         ],
+     *         "name" : "repository name",
+     *         "localized_name" : $[
+     *             "en_GB" : "repository name (localized to en_GB)",
+     *             ...
+     *         ],
+     *         "mirrors" : [
+     *             $[
+     *                 "url" : "full url of the mirror (http://.../)",
+     *                 "location" : "?",
+     *                 "score" : number,
+     *             ]
+     *             ...
+     *         ]
+     * ]
+     */
+    global list <map <string, any> > GetRepositoriesFromXML (string filename) {
+	if (! FileUtils::Exists (filename)) {
+	    y2error ("No such file: '%1'", filename);
+	    return nil;
+	}
+
+	list <map <string, any> > ret = (list <map <string, any> >) SCR::Read (.xmlrepos, filename);
+
+	if (ret == nil) {
+	    y2error ("Wrong XML file: %1", filename);
+	}
+
+	return ret;
+    }
+}

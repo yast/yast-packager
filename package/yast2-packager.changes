@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jul 19 15:23:22 CEST 2007 - locilka@suse.cz
+
+- New agent .xmlrepos for parsing XML files according to One Click
+  Install Standard.
+- Module OneClickInstallStandard rewritten from Perl to YCP to
+  use new .xmlrepos agent.
+
+-------------------------------------------------------------------
 Thu Jul 19 07:25:14 CEST 2007 - lslezak@suse.cz
 
 - dialog sizes adapted to support resolutions lower than 800x600
