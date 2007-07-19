@@ -282,14 +282,8 @@ Would you like to configure it?"),
 	    return false;
 	}
 
-	string xml_file_as_string = (string) SCR::Read (.target.string, download_file);
-	if (xml_file_as_string == nil || xml_file_as_string == "") {
-	    y2error ("Cannot read file %1 or file empty", xml_file_as_string);
-	    return false;
-	}
-
 	list <map <string, any> > xml_file_content =
-	    OneClickInstallStandard::GetRepositoriesFromXML (xml_file_as_string);
+	    OneClickInstallStandard::GetRepositoriesFromXML (download_file);
 
 	if (xml_file_content == nil) {
 	    y2error ("Parsing file %1 failed", download_file);
