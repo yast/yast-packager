@@ -6,6 +6,8 @@ Thu Jul 19 15:23:22 CEST 2007 - locilka@suse.cz
 - Module OneClickInstallStandard rewritten from Perl to YCP to
   use new .xmlrepos agent.
 - Modified RPM dependencies.
+- Removed obsolete testsuite for OneClickInstallStandard module.
+- Adapted inst_productsources to the new OneClickInstallStandard.
 
 -------------------------------------------------------------------
 Thu Jul 19 07:25:14 CEST 2007 - lslezak@suse.cz
