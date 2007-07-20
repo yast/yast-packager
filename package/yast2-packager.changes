@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 20 13:35:31 CEST 2007 - locilka@suse.cz
+
+- Added support for relative URLs in add_on_products file
+  (FATE #302123).
+
+-------------------------------------------------------------------
 Wed Apr 25 15:49:10 CEST 2007 - mvidner@suse.cz
 
 - Work around a deadlock of zmd and rug by waiting 5 seconds after
