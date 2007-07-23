@@ -53,6 +53,7 @@
     // constant Plaindir
     const string plaindir_type = "Plaindir"; 
 
+    boolean download_meta = true;
 
     /**
         Create a table item from a map as returned by the InstSrcManager agent.
@@ -108,7 +109,7 @@
 	return ret;
     }
 
-    define symbol createSource( string url ) ``{
+    define symbol createSource( string url, boolean download ) ``{
 	y2milestone("createSource: %1", url);
 
         if ( url != "" )
@@ -133,28 +134,117 @@
 		PackageSystem::CheckAndInstallPackages(["cifs-mount"]);
 	    }
 
-            list<integer> newSources = (plaindir) ?
-		[ Pkg::SourceCreateType(url, "", plaindir_type) ] :
-		Pkg::SourceScan( url, "" );
+	    list<list<string> > new_repos = Pkg::RepositoryScan(url);
+	    y2internal("new_repos: %1", new_repos);
+
+	    // add at least one product if the scan result is empty (no product info available)
+	    if (size(new_repos) == 0)
+	    {
+		// use url as the name
+		new_repos = [ [ url, "/" ] ];
+	    }
+
+            list<integer> newSources = [];
+	    boolean auto_refresh = true;
+
+	    // disable autorefresh for ISO images
+	    const string iso_suffix = ".iso";
+	    if (substring(url, size(url) - size(iso_suffix), size(iso_suffix)) == iso_suffix)
+	    {
+		y2milestone("ISO image detected, disabling autorefresh (%1)", url);
+		auto_refresh = false;
+	    }
+
+	    boolean enter_again = false;
+
+	    foreach(list<string> repo, new_repos,
+		{
+		    if (enter_again)
+			continue;
+
+		    string name = repo[0]:"";
+		    string prod_dir = repo[1]:"/";
+
+		    string prod_url = url;
+
+		    if (substring(prod_url, size(prod_url) - 1, 1) != "/")
+		    {
+			prod_url = prod_url + "/";
+		    }
+
+		    if (substring(prod_dir, 0, 1) == "/")
+		    {
+			prod_dir = substring(prod_dir, 1);
+		    }
+
+		    prod_url = prod_url + prod_dir;
+
+		    // probe repository type (do not probe plaindir repo)
+		    string repo_type = (plaindir) ? plaindir_type : Pkg::RepositoryProbe(prod_url);
+
+		    y2internal("Repository type (%1): %2", prod_url, repo_type);
+
+		    // the probing has failed
+		    if (repo_type == nil || repo_type == "NONE")
+		    {
+			if (scheme == "dir")
+			{
+			    if (! Popup::AnyQuestion (
+				Popup::NoHeadline (),
+				// continue-back popup
+    _("There is no product information available at the given location.
+If you expected to address a product, return back and enter
+the correct location.
+To make rpm packages located at the specified location available
+in the packages selection, continue."),
+				Label::ContinueButton (),
+				Label::BackButton (),
+				`focus_no))
+			    {
+				enter_again = true;
+				continue;
+			    }
+
+			    repo_type = plaindir_type;
+			    y2warning("Probing has failed, using Plaindir repository type.");
+			}
+			else
+			{
+			    continue;
+			}
+		    }
+
+		    // map with repository parameters: $[ "enabled" : boolean,
+		    // "autorefresh" : boolean, "name" : string, "alias" : string,
+		    // "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
+		    map<string,any> repo_prop = $[];
+
+		    repo_prop["enabled"] = true;
+		    repo_prop["autorefresh"] = auto_refresh;
+		    repo_prop["name"] = name;
+		    repo_prop["prod_dir"] = repo[1]:"/";
+		    // repo_prop["alias"] = name; TODO check for existing alias is needed
+		    repo_prop["base_urls"] = [ url ];
+		    repo_prop["type"] = repo_type;
+
+		    integer new_repo_id = Pkg::RepositoryAdd(repo_prop);
+		    y2internal("New repository: %1", new_repo_id);
+
+		    newSources = add(newSources, new_repo_id);
+		}
+	    );
+
+	    // broken repository or wrong URL - enter the URL again
+	    if (enter_again)
+		return `again;
 
             if ( size( newSources ) == 0  )
             {
-		// message part 1
+		// popup message part 1
                 string _msg1 = sformat( _("Unable to create repository
 from URL '%1'."), url );
-		/* FIXME Pkg::LastErrorId always returns 'ok'
-                string err = Pkg::LastErrorId();
-                if ( err != "ok" ) {
-                    if ( err == "instsrc_duplicate" )
-			// message part 2 alt. 1
-                        _msg2 = _("A repository for this product already exists.");
-                    else
-                }
-		*/
-		// message part 2 alt. 2 followed by description
-                string _msg2 = _("Details:") + "\n" + Pkg::LastError() + "\n" +
-		    // message part 3
-		    _("Try again?");
+		// popup message part 2
+                string _msg2 = _("Try again?");
 
                 boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
                 if ( tryagain ) return `again;
@@ -162,28 +252,6 @@ from URL '%1'."), url );
             }
             else
             {
-		list<integer> prod_sources = filter (integer s, newSources, {
-		    map src_data = Pkg::SourceGeneralData (s);
-		    string src_type = src_data["type"]:"";
-		    return (src_type == "YaST" || src_type == "YUM" || src_type == plaindir_type);
-		});
-		if (size (prod_sources) == 0)
-		{
-		    if (! Popup::AnyQuestion (
-			Popup::NoHeadline (),
-// continue-back popup
-_("There is no product information available at the given location.
-If you expected to address a product, return back and enter
-the correct location.
-To make rpm packages located at the specified location available
-in the packages selection, continue."),
-			Label::ContinueButton (),
-			Label::BackButton (),
-			`focus_yes))
-		    {
-			return `again;
-		    }
-		}
                 foreach( integer id, newSources, ``{
 		  if (! LicenseAccepted (id))
 		  {
@@ -192,24 +260,17 @@ in the packages selection, continue."),
 		  else
 		  {
 		    map src_data = Pkg::SourceGeneralData (id);
-		    boolean auto_refresh = src_data["autorefresh"]:false;
+		    y2milestone("Addded repository: %1", src_data);
 
-		    // disable autorefresh for ISO images
-		    string src_url = src_data["url"]:"";
-		    if (substring(src_url, 0, 3) == "iso")
-		    {
-			y2milestone("ISO image detected, disabling autorefresh (%1)", src_url);
-			auto_refresh = false;
-		    }
-
-                    map<string, any> sourceState = $[ "SrcId": id, "enabled": true, "autorefresh" : auto_refresh, "name" : src_data["name"]:"" ];
-                    sourceStatesOut = add( sourceStatesOut, sourceState ); 
+                    map<string, any> sourceState = $[ "SrcId": id, "enabled": src_data["enabled"]:true, "autorefresh" : src_data["autorefresh"]:true, "name" : src_data["name"]:"", "do_refresh" : download ];
+                    sourceStatesOut = add( sourceStatesOut, sourceState );
 		  }
                 } );
                 return `ok;
             }
         }
     }
+
 
     /**
      * Find which repositories have to be added or deleted to ZENworks.
@@ -282,6 +343,19 @@ Save changes anyway?")))
 	foreach( integer id, sourcesToDelete, ``{
 	    success = success && Pkg::SourceDelete(id);
 	});
+
+
+	foreach(map<string,any> src_state, sourceStatesOut,
+	    {
+		if (src_state["do_refresh"]:false)
+		{
+		    integer srcid = src_state["SrcId"]:-1;
+		    y2milestone("Downloading metadata for source %1", srcid);
+
+		    Pkg::SourceRefreshNow(srcid);
+		}
+	    }
+	);
 
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceSaveAll(); // #176013
@@ -402,10 +476,13 @@ To change a repository media, use <b>Edit</b>. To remove a repository, use
 initialization time on or off, immediate refreshing or renaming the repository, use 
 <b>Repository Settings</b>.</p>");
 
-    // help, continued
-    help_text = help_text + _("<p>
+    if (have_rug)
+    {
+	// help, continued
+	help_text = help_text + _("<p>
 <b>Synchronize Changes with ZENworks</b> will call <tt>rug</tt>
 to perform the changes also in that package management system.</p>");
+    }
 
     Wizard::SetNextButton(`next, Label::FinishButton() );
     Wizard::SetContents(title, contents, help_text, false, true);
@@ -438,14 +515,17 @@ to perform the changes also in that package management system.</p>");
 	}
 	if ( input == `next )
         {
-	  norug = ! (boolean) UI::QueryWidget (`id (`zmdsync), `Value);
+	    if (have_rug)
+	    {
+		norug = ! (boolean) UI::QueryWidget (`id (`zmdsync), `Value);
 
-	  // write ZMD status if the widget is enabled
-	  if ((boolean)UI::QueryWidget(`id(`zmdsync), `Enabled))
-	  {
-	    SourceManager::SetSyncFlag(!norug);
-	    SourceManager::WriteSyncFlag();
-	  }
+		// write ZMD status if the widget is enabled
+		if ((boolean)UI::QueryWidget(`id(`zmdsync), `Enabled))
+		{
+		    SourceManager::SetSyncFlag(!norug);
+		    SourceManager::WriteSyncFlag();
+		}
+	    }
 
 	  // store the new state
           boolean success = Write();
@@ -469,14 +549,23 @@ configuration.");
 	// Wizard::UserInput returns `back instead of `cancel when window is closed by WM
         else if (input == `abort || input == `back)
         {
-	  // popup headline
-          string headline = _("Abort Repository Configuration");
-	  // popup message
-          string msg = _("Abort the repository configuration?
+	    // no change, do not confirm exit
+	    if (sourceStatesOut == sourceStatesIn)
+	    {
+		exit = true;
+	    }
+	    else
+	    {
+		// popup headline
+		string headline = _("Abort Repository Configuration");
+		// popup message
+		string msg = _("Abort the repository configuration?
 All changes will be lost.");
-          if ( Popup::YesNoHeadline( headline, msg ) ) {
-            exit = true;
-          }
+		if ( Popup::YesNoHeadline( headline, msg ) )
+		{
+		    exit = true;
+		}
+	    }
         }
         else
         {
@@ -512,7 +601,8 @@ All changes will be lost.");
                     url = editUrl( url );
 
                     if ( size( url ) == 0 ) break;
-                    createResult = createSource( url );
+		    // copy the refresh flag
+                    createResult = createSource( url, sourceState["do_refresh"]:false );
                     if ( createResult == `ok ) {
 			deleteSource( current );
 			fillTable();
@@ -669,9 +759,19 @@ without having %1 package installed"),
 	}
     }
 
-    if (createSource(url) == `again)
+    if (createSource(url, download_meta) == `again)
 	return `back;
     return `next;
+}
+
+symbol TypeDialog()
+{
+    SourceDialogs::SetDownloadOption(true);
+    map<string,any> td = SourceDialogs::TypeDialogDownloadOpt();
+
+    symbol ret = td["ui"]:`next;
+    download_meta = td["download"]:true;
+    return ret;
 }
 
 // main function - start the workflow
@@ -718,7 +818,7 @@ symbol StartInstSource()
 
     map<string,any> aliases = $[
 	"summary" : ``(SummaryDialog ()),
-	"type" : ``(SourceDialogs::TypeDialog ()),
+	"type" : ``(TypeDialog()),
 	"edit" : ``(SourceDialogs::EditDialog ()),
 	"store" : ``(StoreSource ())
     ];
