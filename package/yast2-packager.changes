@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Jul 23 17:46:47 CEST 2007 - lslezak@suse.cz
+
+- inst_source - add multiple installation repositories at one
+  (download and parse all metadata at the end) (FATE #301730,
+  bug #208461)
+- added an option to completely skip metadata downloading when
+  registering a repository (FATE #301894)
+- 2.15.48
+
+-------------------------------------------------------------------
 Mon Jul 23 07:52:15 CEST 2007 - lslezak@suse.cz
 
 - Hide "Synchronize with Zenworks" option when ZMD is not available

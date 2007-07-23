@@ -36,6 +36,9 @@ import "Hostname";
  */
 string _url = "";
 
+// value of the "download" check box
+boolean _download_metadata = true;
+
 /**
  * Allow HTTPS for next repository dialog?
  */
@@ -1002,7 +1005,7 @@ boolean IsAnyNetworkAvailable () {
 }
 
 
-term SelectRadioWidget () {
+term SelectRadioWidgetOpt (boolean download_widget) {
     term contents = `HBox (`HStretch (), `VBox (
 	`RadioButtonGroup (`id (`type), `VBox (
 	    `VStretch (),
@@ -1028,6 +1031,12 @@ term SelectRadioWidget () {
 	    `Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
 	    // radio button
 	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+	    // check box
+	    (download_widget) ? `VBox(
+		`VSpacing(2),
+		`Left (`CheckBox (`id (`download_metadata), _("&Download repository description files"), _download_metadata))
+		)
+		: `Empty(),
 	    `VStretch ()
 	))), `HStretch ()
     );
@@ -1047,6 +1056,12 @@ term SelectRadioWidget () {
 		`Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
 		// radio button
 		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+		// check box
+		(download_widget) ? `VBox(
+		    `VSpacing(2),
+		    `Left (`CheckBox (`id (`download_metadata), _("&Download repository description files"), _download_metadata))
+		    )
+		    : `Empty(),
 		`VStretch ()
 	    ))), `HStretch ()
 	);
@@ -1056,9 +1071,20 @@ term SelectRadioWidget () {
     return contents;
 }
 
+term SelectRadioWidget()
+{
+    return SelectRadioWidgetOpt(false);
+}
+
+term SelectRadioWidgetDL()
+{
+    return SelectRadioWidgetOpt(true);
+}
+
+
 string SelectWidgetHelp () {
     // help text
-    string help_text = _("<p><big><b>Repository Media</b></big><br>
+    string help_text = _("<p><big><b>Media Type</b></big><br>
 The software repository can be located on CD, on a network server,
 or on the hard disk.</p>");
 
@@ -1116,6 +1142,9 @@ symbol SelectHandle (string key, map event) {
 	return nil;
 
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
+
+    //  TODO: disable "download" option when CD or DVD source is selected
+
     if (selected == nil)
 	return nil;
     if (selected == `slp || selected == `cd || selected == `dvd)
@@ -1176,6 +1205,45 @@ map<string,any> SelectWidget () {
     ];
 }
 
+global boolean GetDownloadOption()
+{
+    return _download_metadata;
+}
+
+global void SetDownloadOption(boolean download)
+{
+    _download_metadata = download;
+}
+
+void SelectStoreDl (string key, map event)
+{
+    SelectStore(key, event);
+
+    _download_metadata = ((boolean)UI::QueryWidget (`id (`download_metadata), `Value));
+}
+
+string SelectWidgetHelpDl()
+{
+    return _("<p><b>Download Files</b><br>
+Each repository has description files which describe content of the repository.
+Check option <b>Download repository description files</b> to download the files
+when closing this Yast module. If the option is unchecked Yast will
+automatically download the files when it needs them later. </p>");
+}
+
+map<string,any> SelectWidgetDL () {
+    return $[
+	"widget" : `func,
+	"widget_func" : SelectRadioWidgetDL,
+	"init" : SelectInit,
+	"help" : SelectWidgetHelp() + SelectWidgetHelpDl(),
+	"validate_type" : `function,
+	"validate_function" : SelectValidate,
+	"store" : SelectStoreDl,
+	"handle" : SelectHandle,
+    ];
+}
+
 // general data
 
 /**
@@ -1203,6 +1271,7 @@ map<string,map<string,any> > Widgets () {
 	    "smb" : ServerWidget (),
 	    "cifs" : ServerWidget (),
 	    "select" : SelectWidget (),
+	    "select_dl" : SelectWidgetDL (),
 	];
     return _widgets;
 }
@@ -1350,6 +1419,31 @@ global symbol TypeDialog () {
 	"next_button" : Label::NextButton (),
 	"fallback_functions" : $[]
     ]);
+    y2milestone ("Type dialog returned %1", ret);
+    return ret;
+}
+
+/**
+ * Sample implementation of URL type selection dialog
+ * @return symbol for wizard sequencer
+ */
+global map<string,any> TypeDialogDownloadOpt() {
+    y2milestone ("Running repository type dialog with download option");
+
+    // dialog caption
+    string caption = _("Media Type");
+    symbol ui = CWM::ShowAndRun ($[
+	"widget_names" : ["select_dl"],
+	"widget_descr" : Widgets (),
+	"contents" : `VBox ( "select_dl" ),
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"next_button" : Label::NextButton (),
+	"fallback_functions" : $[]
+    ]);
+
+    map<string,any> ret = $[ "ui" : ui, "download" : _download_metadata ];
+
     y2milestone ("Type dialog returned %1", ret);
     return ret;
 }
