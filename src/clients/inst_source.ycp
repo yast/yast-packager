@@ -327,11 +327,12 @@ symbol SummaryDialog () {
 			    items ),
 		    `HSpacing()
 		    ),
-	      // TODO Help
-	      `Left (`CheckBox (`id (`zmdsync),
+		    (have_rug) ?
+		    `Left (`CheckBox (`id (`zmdsync),
 				// Checkbox label
 				_("Synchronize Changes with &ZENworks"),
-				!norug && sync_zmd)),
+				!norug && sync_zmd))
+		    : `Empty(),
 	      `HBox(
 		    `PushButton (`id (`add), `opt(`key_F3),
 			Label::AddButton ()),
@@ -409,7 +410,6 @@ to perform the changes also in that package management system.</p>");
     Wizard::SetNextButton(`next, Label::FinishButton() );
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::HideBackButton();
-    UI::ChangeWidget (`id (`zmdsync), `Enabled, have_rug);
 
     fillTable();
 

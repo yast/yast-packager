@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 23 07:52:15 CEST 2007 - lslezak@suse.cz
+
+- Hide "Synchronize with Zenworks" option when ZMD is not available
+  (#292631)
+
+-------------------------------------------------------------------
 Thu Jul 19 15:23:22 CEST 2007 - locilka@suse.cz
 
 - New agent .xmlrepos for parsing XML files according to One Click
