@@ -100,17 +100,6 @@
 	list <integer> sources = Pkg::SourceGetCurrent (false);
 	integer source_id = sources[0]:0;
 
-	if (source_id != 0)
-	{
-	    map source_data = Pkg::SourceGeneralData (source_id);
-	    if (source_data != nil)
-	    {
-		string url = source_data["url"]:"cd:///";
-		if (substring (url, 0, 3) == "dvd")
-		    SlideShow::SetMediaType ("DVD");
-	    }
-	}
-
 	SlideShow::InitPkgData(false);
 
 	// structure: [ ["source_name", id] ]

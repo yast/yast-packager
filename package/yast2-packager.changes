@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jul 24 16:20:34 CEST 2007 - lslezak@suse.cz
+
+- use generic "Medium X" label instead of unreliable "CD"/"DVD"
+  detection (the detection was based on the URL scheme of the
+  repository) (#281857)
+- always display source name in the table
+
+-------------------------------------------------------------------
 Mon Jul 23 17:46:47 CEST 2007 - lslezak@suse.cz
 
 - inst_source - add multiple installation repositories at one
