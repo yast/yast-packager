@@ -11,8 +11,8 @@ Requires:	perl-XML-Bare yast2-perl-bindings
 Requires:	yast2-country
 Requires:	yast2-installation >= 2.15.12
 
-# use "name" key instead of "alias" for changing repo name
-Requires:	yast2-pkg-bindings >= 2.15.31
+# Pkg::Repository*()
+Requires:	yast2-pkg-bindings >= 2.15.32
 
 # Mode::live_installation
 Requires:	yast2 >= 2.15.38

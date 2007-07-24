@@ -27,7 +27,8 @@
     global list<list<integer> > total_pkg_count_per_cd_per_src	= [];	// number of pkgs per inst-src: [ [7, 5, 3], [2, 3, 4] ]
     global list<list<integer> > remaining_pkg_count_per_cd_per_src = []; // remaining number of pkgs
     global map<integer,integer> srcid_to_current_src_no = $[];
-    global string	media_type		= "CD";
+    // the string is follwed by a media number, e.g. "Medium 1"
+    global string	media_type		= _("Medium");
     global integer	total_size_installed	= 0;
     global integer	total_size_to_install	= 0;
     global integer	total_time_elapsed	= 0;
@@ -995,15 +996,9 @@
 
 	    if (ListSum(inst_src) > 0)	 // Ignore repositories from where there is nothing is to install
 	    {
-		if ( size( total_sizes_per_cd_per_src ) > 1 )	// Multiple repositories?
-		{
-		    //
-		    // Add heading for this repository
-		    //
-
-		    itemList = add( itemList, TableItem( sformat( "src(%1)", src_no ),
-							 inst_src_names[ src_no ]:"", "", "", "" ) );
-		}
+		// Add heading for this repository
+		itemList = add( itemList, TableItem( sformat( "src(%1)", src_no ),
+						     inst_src_names[ src_no ]:"", "", "", "" ) );
 
 		integer cd_no = 0;
 
