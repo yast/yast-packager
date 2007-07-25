@@ -5,6 +5,7 @@ Tue Jul 24 16:20:34 CEST 2007 - lslezak@suse.cz
   detection (the detection was based on the URL scheme of the
   repository) (#281857)
 - always display source name in the table
+- 2.15.49
 
 -------------------------------------------------------------------
 Mon Jul 23 17:46:47 CEST 2007 - lslezak@suse.cz
