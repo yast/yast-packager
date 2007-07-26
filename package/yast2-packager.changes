@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 26 07:51:50 CEST 2007 - lslezak@suse.cz
+
+- inst_source - use product name or URL as alias for a new
+  repository (instead of a timestamp)
+- added inst_repo.ycp (alias to inst_source)
+
+-------------------------------------------------------------------
 Tue Jul 24 16:20:34 CEST 2007 - lslezak@suse.cz
 
 - use generic "Medium X" label instead of unreliable "CD"/"DVD"

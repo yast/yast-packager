@@ -1,0 +1,9 @@
+/**
+ * Author:	Ladislav Slezak <lslezak@suse.cz>
+ * Summary:	Alias for "inst_source" module
+ * $Id:$
+ */
+{
+    string target = "inst_source";
+    return WFM::CallFunction (target, WFM::Args ());
+}
