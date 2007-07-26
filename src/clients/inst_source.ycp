@@ -214,6 +214,28 @@ in the packages selection, continue."),
 			}
 		    }
 
+		    string alias = name;
+		    // replace " " -> "_" (avoid spaces in .repo file name)
+		    alias = mergestring(splitstring(alias, " "), "_");
+		    string alias_orig = alias;
+
+		    // all current aliases
+		    list<string> aliases = maplist(integer i, Pkg::SourceGetCurrent(false),
+			{
+			    map info = Pkg::SourceGeneralData(i);
+			    return info["alias"]:"";
+			}
+		    );
+
+		    // repository alias must be unique
+		    // if it already exists add "_<number>" suffix to it
+		    integer idx = 1;
+		    while (contains(aliases, alias))
+		    {
+			alias = sformat("%1_%2", alias_orig, idx);
+			idx = idx + 1;
+		    }
+
 		    // map with repository parameters: $[ "enabled" : boolean,
 		    // "autorefresh" : boolean, "name" : string, "alias" : string,
 		    // "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
@@ -223,12 +245,12 @@ in the packages selection, continue."),
 		    repo_prop["autorefresh"] = auto_refresh;
 		    repo_prop["name"] = name;
 		    repo_prop["prod_dir"] = repo[1]:"/";
-		    // repo_prop["alias"] = name; TODO check for existing alias is needed
+		    repo_prop["alias"] = alias;
 		    repo_prop["base_urls"] = [ url ];
 		    repo_prop["type"] = repo_type;
 
 		    integer new_repo_id = Pkg::RepositoryAdd(repo_prop);
-		    y2internal("New repository: %1", new_repo_id);
+		    y2internal("New repository: %1: %2", new_repo_id, repo_prop);
 
 		    newSources = add(newSources, new_repo_id);
 		}
