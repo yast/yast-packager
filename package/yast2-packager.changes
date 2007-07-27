@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 27 11:06:56 CEST 2007 - jsrain@suse.cz
+
+- redesigned the repository management dialog (Fate #302072)
+
+-------------------------------------------------------------------
 Thu Jul 26 07:51:50 CEST 2007 - lslezak@suse.cz
 
 - inst_source - use product name or URL as alias for a new

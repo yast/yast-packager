@@ -75,13 +75,36 @@
         term item = `item(
 			  `id( index ),
 			  // corresponds to the "Enable/Disable" button
-			  source[ "enabled" ]:true ? _("On") : _("Off"),
-			  source["autorefresh"]:true ? _("On") : _("Off"),
+			  source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
+//			  source["autorefresh"]:true ? _("On") : _("Off"),
 			  // translators: unknown name for a given source
-			  alias,
-			  generalData[ "url" ]:""
+			  alias
+//			  generalData[ "url" ]:""
 			  );
         return item;
+    }
+
+    map<string,any> getSourceInfo (integer index, map source) {
+        integer id = source[ "SrcId" ]:0;
+        map generalData = Pkg::SourceGeneralData( id );
+        map productData = Pkg::SourceProductData( id );
+	y2milestone("generalData: %1", generalData);
+	y2milestone("productData: %1", productData);
+
+	string alias = haskey(sourceStatesOut[index]:$[], "name") ?
+	    sourceStatesOut[index,"name"]:"" :
+	    // unkown name (alias) of the source
+	    generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("Unknown Name");
+
+	map<string,any> out = $[
+	    "enabled" : source["enabled"]:true,
+	    "autorefresh" : source["autorefresh"]:true,
+	    "name" : alias,
+	    "url" : generalData[ "url" ]:"",
+	    "type" : generalData["type"]:"",
+	];
+        return out;
+
     }
 
     /**
@@ -102,6 +125,32 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
+    void fillRepoInfo(integer index, map source) {
+	map<string,any> info = getSourceInfo (index, source);
+	UI::ReplaceWidget (`id (`repo_rp), `VBox (
+	    // heading - in case repo name not found
+	    `Left (`Heading (info["name"]:_("Unknown repository name"))),
+	    // label, %1 is URL
+	    `Left (`Label (sformat (_("URL: %1"),
+		// label to be used instead of URL if not found
+		info["url"]:_("Unknown")))),
+	    // label, %1 is repo category (eg. YUM)
+	    `Left (`Label (sformat (_("Category: %1"),
+		// label to be used instead of repo category if not known
+		info["type"]:_("Unknown"))))
+	));
+	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
+	UI::ChangeWidget (`id (`autorefresh), `Value, info["autorefresh"]:true);
+    }
+
+    void fillCurrentRepoInfo () {
+	integer selected = (integer)UI::QueryWidget (`id (`table), `CurrentItem);
+	if (selected == nil)
+	    return;
+	map data = sourceStatesOut[selected]:$[];
+	fillRepoInfo (selected, data);
+    }
+
     boolean LicenseAccepted (integer id) {
 	Wizard::CreateDialog ();
 	boolean ret = AddOnProduct::AcceptedLicenseAndInfoFile (id);
@@ -109,7 +158,7 @@
 	return ret;
     }
 
-    define symbol createSource( string url, boolean download ) ``{
+    define symbol createSource( string url, boolean download, string preffered_name ) ``{
 	y2milestone("createSource: %1", url);
 
         if ( url != "" )
@@ -163,6 +212,8 @@
 			continue;
 
 		    string name = repo[0]:"";
+		    if (preffered_name != nil && preffered_name != "")
+			name = preffered_name;
 		    string prod_dir = repo[1]:"/";
 
 		    string prod_url = url;
@@ -413,22 +464,36 @@ symbol SummaryDialog () {
 	      `HBox(
 		    `Table(`id(`table),`opt(`notify, `immediate),
 				// table header
-			    `header( _("Status"),
+			    `header( _("Enabled"),
 				// table header
-				_("Refresh"),
+//				_("Refresh"),
 				// table header
-				_("Name"),
+				_("Name")),
 				// table header
-				_("URL") ),
+//				_("URL") ),
 			    items ),
 		    `HSpacing()
-		    ),
-		    (have_rug) ?
-		    `Left (`CheckBox (`id (`zmdsync),
+		),
+		`HBox (
+		    `Frame ("", `HBox (`HSpacing (1), `VBox (
+			`ReplacePoint (`id (`repo_rp), `VBox (
+			    `Left (`Heading ("Repo Name")),
+			    `Left (`Label ("URL:")),
+			    `Left (`Label ("Category:"))
+			)),
+			`VSpacing (0.4),
+			`Left (`Label (_("Properties"))),
+			`Left (`CheckBox (`id (`enable), `opt (`notify), _("Enabled"))),
+			`Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("AutoRefresh"))),
+			(have_rug) ?
+			    `Left (`CheckBox (`id (`zmdsync),
 				// Checkbox label
 				_("Synchronize Changes with &ZENworks"),
 				!norug && sync_zmd))
-		    : `Empty(),
+			    : `Empty()
+		    ))),
+		    `HSpacing ()
+		),
 	      `HBox(
 		    `PushButton (`id (`add), `opt(`key_F3),
 			Label::AddButton ()),
@@ -437,13 +502,16 @@ symbol SummaryDialog () {
 		    `PushButton (`id(`delete), `opt(`key_F5),
 			Label::DeleteButton ()),
 		    `HStretch (),
+/*
 		    // menu button label
 		    `MenuButton (`id(`menu_button), `opt(`key_F6), _("Repository Settings"), [
-			`item(`id(`enable), enableButtonLabel),
-			`item(`id(`refresh_on_off), refreshOnOffButtonLabel),
+//			`item(`id(`enable), enableButtonLabel),
+//			`item(`id(`refresh_on_off), refreshOnOffButtonLabel),
 			`item(`id(`refresh), refreshButtonLabel ),
 			`item(`id(`set_alias), setAliasButtonLabel)
 		    ])
+*/
+		    `PushButton (`id (`refresh), refreshButtonLabel )
 		),
                 `VSpacing( 0.5 )
         );
@@ -511,6 +579,7 @@ to perform the changes also in that package management system.</p>");
     Wizard::HideBackButton();
 
     fillTable();
+    fillCurrentRepoInfo();
 
     symbol input = nil;
 
@@ -524,6 +593,7 @@ to perform the changes also in that package management system.</p>");
 
 	if ( current >= 0 ) {
 	    UI::ChangeWidget( `id( `table ), `CurrentItem, current );
+	    fillCurrentRepoInfo ();
 	}
 
 	input = (symbol)Wizard::UserInput();
@@ -619,22 +689,39 @@ All changes will be lost.");
 			parsed["scheme"] = "pkg";
 			url = URL::Build(parsed);
 		    }
-
+		    SourceDialogs::SetRepoName (sourceState["name"]:"");
+		    string old_url = url;
                     url = editUrl( url );
 
                     if ( size( url ) == 0 ) break;
-		    // copy the refresh flag
-                    createResult = createSource( url, sourceState["do_refresh"]:false );
-                    if ( createResult == `ok ) {
+		    if (url != old_url)
+		    {
+		      y2milestone ("URL changed, recreating the source");
+		      // copy the refresh flag
+                      createResult = createSource( url, sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
+                      if ( createResult == `ok ) {
 			deleteSource( current );
 			fillTable();
-                    }
+			fillCurrentRepoInfo();
+                      }
+		    }
+		    else
+		    {
+			y2milestone ("URL is the same, not recreating the source");
+			sourceState["name"] = SourceDialogs::GetRepoName ();
+			sourceStatesOut[ current ] = sourceState;
+			fillTable();
+			fillCurrentRepoInfo();
+			createResult = `ok;
+		    }
+
                 } while ( createResult == `again );
             }
 	    else if ( input == `refresh )
             {
 		Pkg::SourceRefreshNow (id);
 		fillTable ();
+		fillCurrentRepoInfo();
             }
             else if ( input == `delete )
             {
@@ -643,6 +730,7 @@ All changes will be lost.");
                 {
 		     deleteSource( current );
                     fillTable();
+		    fillCurrentRepoInfo();
                 }
             }
             else if ( input == `enable )
@@ -650,12 +738,12 @@ All changes will be lost.");
                 boolean state = sourceState[ "enabled" ]:true;
                 state = !state;
 		// corresponds to the "Enable/Disable" button
-                string newstate = ( state ? _("On") : _("Off") );
+                string newstate = ( state ? UI::Glyph (`CheckMark) : "");
                 UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
                 sourceState[ "enabled" ] = state;
                 sourceStatesOut[ current ] = sourceState;
             }
-            else if ( input == `refresh_on_off )
+            else if ( input == `autorefresh)
             {
 		integer source_id = sourceState["SrcId"]:0;
 		map src_data = Pkg::SourceGeneralData (source_id);
@@ -673,11 +761,12 @@ cannot be set."));
 		    state = !state;
 		}
 		// corresponds to the "Enable/Disable" button
-                string newstate = ( state ? _("On") : _("Off") );
-                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
+//                string newstate = ( state ? _("On") : _("Off") );
+//                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
                 sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
             }
+/* moved to source edit dialog
 	    else if (input == `set_alias)
 	    {
 		string src_alias = sourceState["name"]:"";
@@ -730,6 +819,7 @@ cannot be set."));
 		    sourceStatesOut[ current ] = sourceState;
 		}
 	    }
+*/
         }
 
     } until ( exit );
@@ -741,6 +831,7 @@ cannot be set."));
 
 symbol StoreSource () {
     string url = SourceDialogs::GetURL ();
+    string name = SourceDialogs::GetRepoName ();
 
     // special case, bugzilla #238680
     if (url == "slp://")
@@ -781,7 +872,7 @@ without having %1 package installed"),
 	}
     }
 
-    if (createSource(url, download_meta) == `again)
+    if (createSource(url, download_meta, name) == `again)
 	return `back;
     return `next;
 }
@@ -793,6 +884,13 @@ symbol TypeDialog()
 
     symbol ret = td["ui"]:`next;
     download_meta = td["download"]:true;
+    return ret;
+}
+
+symbol EditDialog()
+{
+    SourceDialogs::SetRepoName ("");
+    symbol ret = SourceDialogs::EditDialog ();
     return ret;
 }
 
@@ -841,7 +939,7 @@ symbol StartInstSource()
     map<string,any> aliases = $[
 	"summary" : ``(SummaryDialog ()),
 	"type" : ``(TypeDialog()),
-	"edit" : ``(SourceDialogs::EditDialog ()),
+	"edit" : ``(EditDialog ()),
 	"store" : ``(StoreSource ())
     ];
 
