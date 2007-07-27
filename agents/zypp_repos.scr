@@ -1,0 +1,15 @@
+/**
+ * File:	zypp_repos.scr
+ *
+ * Summary:	Agent for reading zypp repos in a defined directory
+ *
+ * Authors:	Lukas Ocilka <locilka@suse.cz>
+ *
+ * Example:	SCR::Read (.zypp_repos, "/etc/zypp/repo.d/")
+ *
+ * $Id:$
+ */
+
+.zypp_repos
+
+`ag_zypp_repos ()
