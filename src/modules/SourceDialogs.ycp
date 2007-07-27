@@ -36,6 +36,11 @@ import "Hostname";
  */
 string _url = "";
 
+/**
+ * Repo name to work with
+ */
+string _repo_name = "";
+
 // value of the "download" check box
 boolean _download_metadata = true;
 
@@ -70,6 +75,22 @@ global void SetURL (string url) {
  */
 global string GetURL () {
     return _url;
+}
+
+/**
+ * Set the RepoName to work with
+ * @param repo_name string RepoName to run the dialogs with
+ */
+global void SetRepoName (string repo_name) {
+    _repo_name = repo_name;
+}
+
+/**
+ * Return RepoName after the run of the dialog
+ * @return string the RepoName
+ */
+global string GetRepoName () {
+    return _repo_name;
 }
 
 /**
@@ -179,6 +200,56 @@ string URLScheme (string url) {
 	scheme = "url";
     y2milestone ("URL scheme for URL %1: %2", url, scheme);
     return scheme;
+}
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void RepoNameInit (string key) {
+    UI::ChangeWidget (`id (`repo_name), `Value, _repo_name);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void RepoNameStore (string key, map event) {
+    _repo_name = (string)UI::QueryWidget (`id (`repo_name), `Value);
+}
+
+boolean RepoNameValidate (string key, map event) {
+    string repo_name = (string)UI::QueryWidget (`id (`repo_name), `Value);
+    if (repo_name == "" && _repo_name != "") // do not fail on new repo creation
+    {
+	UI::SetFocus (`id (`repo_name));
+	// popup message
+	Popup::Message (_("Name of the repository cannot be empty."));
+	return false;
+    }
+    return true;
+}
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> RepoNameWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox (
+	    // text entry
+	    `TextEntry( `id( `repo_name ), _("&Repository Name") )
+	),
+	"init" : RepoNameInit,
+	"store" : RepoNameStore,
+	"validate_type" : `function,
+	"validate_function" : RepoNameValidate,
+	// help text
+	"help" : _("<p><big><b>Repository Name</b></big><br>
+Use <b>Repository Name</b> to specify the name of the repository.</p>")
+    ];
+
 }
 
 // raw URL editation widget
@@ -1258,6 +1329,7 @@ map<string,map<string,any> > _widgets = $[];
 map<string,map<string,any> > Widgets () {
     if (size (_widgets) == 0)
 	_widgets = $[
+	    "repo_name" : RepoNameWidget(),
 	    "url" : PlainURLWidget (),
 	    "nfs" : NFSWidget (),
 	    "cd" : CDWidget (),
@@ -1318,6 +1390,7 @@ term PopupContents (string proto) {
 	`HSpacing (50),
 	// label
 	`Heading(_caption[proto]:""),
+	"repo_name",
 	proto,
 	`VSpacing(0.5),
 	PopupButtons ()
@@ -1336,7 +1409,7 @@ global string EditPopup (string url) {
 
     y2milestone ("Displaying popup for protocol %1", proto);
 
-    list<map<string,any> > w = CWM::CreateWidgets ([proto], Widgets ());
+    list<map<string,any> > w = CWM::CreateWidgets (["repo_name", proto], Widgets ());
     term contents = PopupContents (proto);
     contents = CWM::PrepareDialog (contents, w);
     UI::OpenDialog (contents);
@@ -1371,9 +1444,9 @@ global symbol EditDialog () {
     string caption = _caption[proto]:"";
 
     return CWM::ShowAndRun ($[
-	"widget_names" : [proto],
+	"widget_names" : ["repo_name", proto],
 	"widget_descr" : Widgets (),
-	"contents" :  `HVCenter(`MinWidth( 65, proto ) ),
+	"contents" :  `HVCenter(`MinWidth( 65, `VBox ("repo_name", proto ) ) ),
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
 	"next_button" : Label::NextButton (),
