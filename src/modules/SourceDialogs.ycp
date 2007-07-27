@@ -1391,6 +1391,7 @@ term PopupContents (string proto) {
 	// label
 	`Heading(_caption[proto]:""),
 	"repo_name",
+	`VSpacing(0.5),
 	proto,
 	`VSpacing(0.5),
 	PopupButtons ()

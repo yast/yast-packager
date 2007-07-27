@@ -1,7 +1,16 @@
 -------------------------------------------------------------------
+Fri Jul 27 11:16:09 CEST 2007 - lslezak@suse.cz
+
+- use "Software Repositories" label in Y2CC (#215198)
+- Updated Progress callback handler to handle a "raw" progress
+- 2.15.50
+
+-------------------------------------------------------------------
 Fri Jul 27 11:06:56 CEST 2007 - jsrain@suse.cz
 
-- redesigned the repository management dialog (Fate #302072)
+- redesigned the repository management dialog (Fate #302072),
+  repository name can be changed together with the URL, do not
+  reset the name (#258783)
 
 -------------------------------------------------------------------
 Thu Jul 26 07:51:50 CEST 2007 - lslezak@suse.cz

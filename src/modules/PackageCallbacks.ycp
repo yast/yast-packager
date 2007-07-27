@@ -1995,7 +1995,9 @@ global map Authentication(string url, string msg, string username, string passwo
 
 list<string> tick_labels = [ "/", "-", "\\", "|" ];
 boolean tick_progress = false;
+boolean val_progress = false;
 integer current_tick = 0;
+string progress_task = "";
 
 void NextTick()
 {
@@ -2013,12 +2015,14 @@ boolean IsProgressPopup()
       UI::WidgetExists(`id(`callback_progress_popup));
 }
 
-global void ProgressStart(integer id, string task, boolean in_percent, integer min, integer max, integer val_raw, integer val_percent)
+global void ProgressStart(integer id, string task, boolean in_percent, boolean is_alive, integer min, integer max, integer val_raw, integer val_percent)
 {
     y2milestone ("ProgressStart: %1", id);
 
-    tick_progress = !in_percent;
+    tick_progress = is_alive;
+    val_progress = (!in_percent && !is_alive);
     current_tick = 0;
+    progress_task = task;
 
     if (Mode::commandline())
     {
@@ -2036,7 +2040,7 @@ global void ProgressStart(integer id, string task, boolean in_percent, integer m
 	    `VBox(
 		`HSpacing(`id(`callback_progress_popup), max_size),
 		(in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
-		    : `Label(`id(`progress_widget), tick_labels[current_tick]:"/"),
+		    : `Label(`id(`progress_widget), sformat("%1: %2", task, (tick_progress) ? tick_labels[current_tick]:"/" : val_raw)),
 		`VSpacing(0.5),
 		`PushButton (`id (`abort), Label::AbortButton ())
 	    )
@@ -2076,11 +2080,17 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
     {
 	if (IsProgressPopup())
 	{
-	    if (tick_progress)
+	    if (tick_progress || val_progress)
 	    {
-		string tick_label = tick_labels[current_tick]:"/";
-		UI::ChangeWidget (`id(`progress_widget), `Value, tick_label);
-		NextTick();
+		string label = (tick_progress) ? tick_labels[current_tick]:"/"
+		    : sformat("%1: %2", progress_task, val_raw);
+
+		UI::ChangeWidget (`id(`progress_widget), `Value, label);
+
+		if (tick_progress)
+		{
+		    NextTick();
+		}
 	    }
 	    else
 	    {
