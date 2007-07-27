@@ -12,8 +12,6 @@ use lib "/usr/lib/YaST2/agents_non_y2";
 use ycp;
 use XML::Bare;
 
-our %TYPEINFO;
-
 sub GetListFromVariable {
     my $variable = shift || {};
 
@@ -174,7 +172,7 @@ while (<STDIN>) {
 	}
 
 	y2milestone ("Reading: '".$file."'");
-	open FILE, $file || do {
+	open (FILE, $file) || do {
 	    y2error ("Cannot open file ".$file.": ".$!);
 	    next;
 	};

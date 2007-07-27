@@ -1,0 +1,69 @@
+#!/usr/bin/perl -w
+
+#
+# Name:		ag_zypp_repos
+# Authors:	Lukas Ocilka <locilka@suse.cz>
+# Summary:	Reads directory of zypp repositories and parses files
+#		found. Returns them as a map.
+#
+
+use strict;
+use lib "/usr/lib/YaST2/agents_non_y2";
+use ycp;
+
+while (<STDIN>) {
+    my ($command, $path, $dir) = ycp::ParseCommand ($_);
+
+    if ($command eq "Read") {
+	if (! defined $dir || $dir eq "") {
+	    $dir = '/etc/zypp/repos.d/';
+	    y2milestone ("Using default dir: ".$dir);
+	}
+	    
+	if (! -d $dir) {
+	    y2error ("Directory ".$dir." doesn't exist!");
+	    ycp::Return (undef);
+	    next;
+	}
+
+	y2milestone ("Reading: '".$dir."'");
+
+	my @zypp_repos = ();
+
+	opendir (DIR, $dir);
+	my @files = grep (!/^\.{1,2}$/, readdir(DIR));
+	closedir(DIR);
+
+	foreach my $file (@files) {
+	    my $this_entry = {};
+
+	    $file = $dir.'/'.$file;
+	    y2milestone ("Parsing file: ".$file);
+	    open (FILE, $file) || do {
+		y2error ("Cannot open file ".$file.": ".$!);
+		next;
+	    };
+	    my @lines = <FILE>;
+	    close FILE;
+
+	    foreach my $line (@lines) {
+		chop $line;
+		
+		if ($line =~ /^[ \t]*\[([^\]]+)\][ \t]*$/) {
+		    $this_entry->{'id'} = $1;
+		} elsif ($line =~ /^([^=]+)[ \t]*=[ \t]*(.*)$/) {
+		    $this_entry->{$1} = $2;
+		}
+	    }
+
+	    push @zypp_repos, $this_entry;
+	}
+
+	ycp::Return (\@zypp_repos);
+    } elsif ($command eq "result") {
+	exit 0;
+    } else {
+	my $return_value = sprintf( "Unknown instruction %s", $command);
+	ycp::Return ($return_value);
+    }
+}

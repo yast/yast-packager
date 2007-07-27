@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 27 14:15:40 CEST 2007 - locilka@suse.cz
+
+- Added new SCR agents ag_anyxml and ag_zypp_repos (FATE #301785).
+
+-------------------------------------------------------------------
 Fri Jul 27 11:16:09 CEST 2007 - lslezak@suse.cz
 
 - use "Software Repositories" label in Y2CC (#215198)
