@@ -157,8 +157,8 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	    `Left (
 		// TRANSLATORS: addition license information
 		// FATE #302018
-		`Label (_("If you want to review/print this license, you can
-find it at first media in file '/media.1/license.zip'"))
+		`Label (_("If you like to print this license,
+check the EULA.txt file on the first media."))
 	    ),
 	    `HSpacing (2*space)
 	),
