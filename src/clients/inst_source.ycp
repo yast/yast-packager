@@ -553,24 +553,14 @@ into one directory.
 </p>
 ");
 
-    // help, continued
-    help_text = help_text + _("<p>
-<b>Network</b> installation requires a working network connection.
-Configure YaST2's \"Network Devices\" module first,
-if required.  Specify the directory where the packages from
-the first CD are located, such as /data1/CD1.
-Only the base path is
-required if packages are in one directory, for example, /usr/full-i386.
-</p>
-");
 
     // help, continued
     help_text = help_text + _("<p>
-<b>Modifying a Repository</b>
-To change a repository media, use <b>Edit</b>. To remove a repository, use
-<b>Delete</b>. To enable or disable the repository, set refreshing on the
-initialization time on or off, immediate refreshing or renaming the repository, use 
-<b>Repository Settings</b>.</p>");
+<b>Modifying a Repository Status</b>
+To change a repository location, use <b>Edit</b>. To remove a repository, use
+<b>Delete</b>. To enable or disable the repository or to change the refresh status in the
+initialization time select the repository in the table and use the check boxes below.
+</p>");
 
     if (have_rug)
     {
