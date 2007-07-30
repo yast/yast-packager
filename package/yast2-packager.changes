@@ -1,8 +1,11 @@
 -------------------------------------------------------------------
 Mon Jul 30 13:29:10 CEST 2007 - lslezak@suse.cz
 
-- do not abort after pressing [Continue] when a zypp lock exists,
-  use a separate error popup dialog (workaround for #293356)
+- sw_single - do not abort after pressing [Continue] when a zypp
+  lock exists, use a separate error popup dialog (workaround
+  for #293356)
+- inst_source - updated help text (#291004)
+- 2.15.51
 
 -------------------------------------------------------------------
 Mon Jul 30 13:14:28 CEST 2007 - locilka@suse.cz
