@@ -123,7 +123,7 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
     });
 
     term contents = `VBox (
-	`VSpacing (space),
+	`VSpacing (1),
 	`HBox (
 	    `HSpacing (2*space),
 	    `VBox (
@@ -151,7 +151,18 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 		`HSpacing (2*space)
 	    )
 	),
-	`VSpacing(2)
+	`VSpacing(1),
+	`HBox (
+	    `HSpacing (2*space),
+	    `Left (
+		// TRANSLATORS: addition license information
+		// FATE #302018
+		`Label (_("If you want to review/print this license, you can
+find it at first media in file '/media.1/license.zip'"))
+	    ),
+	    `HSpacing (2*space)
+	),
+	`VSpacing (1)
     );
 
     // help text
