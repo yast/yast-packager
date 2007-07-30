@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 30 13:14:28 CEST 2007 - locilka@suse.cz
+
+- Community servers are not used during the installation (Bugzilla
+  #293811).
+
+-------------------------------------------------------------------
 Mon Jul 30 11:41:35 CEST 2007 - jsrain@suse.cz
 
 - allow to display release notes while installing packages

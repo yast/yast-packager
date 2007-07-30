@@ -14,12 +14,17 @@
      *   <servers config:type="list">
      *     <item>
      *       <link>http://some.server/some_link.xml</link>
+     *	     <official config:type="boolean">true</official>
      *     </item>
      *     <item>
      *       <link>ftp://some.other.server/some_link.xml</link>
+     *       <official config:type="boolean">false</official>
      *     </item>
      *   </servers>
      * </productDefines>
+     *
+     * Only official (trusted) links are used during installation.
+     * See Bugzilla #293811.
      *
      * Format of Suggested sources:
      * <?xml version="1.0"?>
@@ -282,6 +287,19 @@ Would you like to configure it?"),
 	}
 
 	list_of_servers = xml_file_content["servers"]:[];
+
+	// bugzilla #293811
+	// only official (trusted) links are used during installation
+	if (Stage::initial()) {
+	    list_of_servers = filter (map one_server, list_of_servers, {
+		if (one_server["official"]:false == true) {
+		    return true;
+		} else {
+		    y2milestone ("Sever %1 is not used during installation...", one_server);
+		    return false;
+		}
+	    });
+	}
 
 	return true;
     }
