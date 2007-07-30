@@ -275,8 +275,20 @@ Only installed packages are displayed."));
 
    // check whether running as root
    // and having the packager for ourselves
-   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
+   if (! Confirm::MustBeRoot ())
    {
+	UI::CloseDialog ();
+	return `abort;
+   }
+
+    // TODO: the check dialog contains only [Continue] [Retry] buttons
+    // there is no [Abort] (#293356)
+   if (!PackageLock::Check())
+   {
+	// error message - SW management is already in use, access denied
+	// the yast module cannot be started
+	Report::Error(_("The software management module cannot work
+without access to the software management system."));
 	UI::CloseDialog ();
 	return `abort;
    }

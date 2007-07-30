@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 30 13:29:10 CEST 2007 - lslezak@suse.cz
+
+- do not abort after pressing [Continue] when a zypp lock exists,
+  use a separate error popup dialog (workaround for #293356)
+
+-------------------------------------------------------------------
 Mon Jul 30 13:14:28 CEST 2007 - locilka@suse.cz
 
 - Community servers are not used during the installation (Bugzilla
