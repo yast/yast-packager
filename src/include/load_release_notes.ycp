@@ -1,0 +1,64 @@
+/**
+ * File:	installation/include/load_release_notes.ycp
+ * Module:	Installation
+ * Summary:	Load release notes from media
+ * Authors:	Arvin Schnell <arvin@suse.de>
+ *              Jiri Srain <jsrain@suse.cz>
+ *
+ * Load release notes from media
+ *
+ * $Id: release_notes_popup.ycp 34411 2006-11-15 13:45:11Z locilka $
+ */
+
+{
+    textdomain "installation";
+
+    import "Language";
+    import "Report";
+    import "Stage";
+
+    /* release notes */
+    string media_text = "";
+
+
+// FIXME get rid of similar funciton in instlalation/clients/release_notes_popup.ycp
+
+    /* function to load release notes */
+    define boolean load_release_notes (integer source_id)
+    {
+        string path_to_relnotes = "/docu";
+	string path_templ = path_to_relnotes + "/RELEASE-NOTES.%1.rtf";
+	y2debug ("Path template: %1", path_templ);
+	string tmp = sformat (path_templ, Language::language);
+	y2debug ("Trying to get %1", tmp);
+	tmp = Pkg::SourceProvideOptionalFile (source_id, 1, tmp);
+	if (tmp == nil)
+	{
+	    tmp = sformat (path_templ, substring (Language::language, 0, 2));
+	    y2debug ("Trying to get %1", tmp);
+	    tmp = Pkg::SourceProvideOptionalFile (source_id, 1, tmp);
+	}
+	if (tmp == nil)
+	{
+	    tmp = sformat (path_templ, "en");
+	    y2debug ("Trying to get %1", tmp);
+	    tmp = Pkg::SourceProvideFile (source_id, 1, tmp);
+	}
+	if (tmp == nil)
+	    return false;
+
+	media_text = (string)SCR::Read (.target.string, [tmp, ""]);
+	if (media_text != "" && media_text != nil)
+	    return true;
+	return false;
+    };
+
+    string media_prefix = 
+// beginning of the rich text with the release notes
+_("<p><b>These are the release notes made for the first initial release. They are
+part of the installation media. During installation, if a connection
+to the Internet is available, you can download updated release notes
+from the SUSE Linux Web server.</b></p>");
+
+}
+
