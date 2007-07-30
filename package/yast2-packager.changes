@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jul 30 16:21:44 CEST 2007 - locilka@suse.cz
+
+- Adding new informative text where to find just displayed license
+  (FATE #302018).
+- 2.15.52
+
+-------------------------------------------------------------------
 Mon Jul 30 13:29:10 CEST 2007 - lslezak@suse.cz
 
 - sw_single - do not abort after pressing [Continue] when a zypp
