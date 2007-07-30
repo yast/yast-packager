@@ -39,6 +39,8 @@ import "SourceDialogs";
 import "FileUtils";
 import "PackageCallbacks";
 
+include "packager/load_release_notes.ycp";
+
 /**
  * Force full proposal routine next run
  */
@@ -823,6 +825,11 @@ void SlideShowSetUp (integer source) {
     y2milestone ("Setting up the slide directory local copy: %1",
 	our_slidedir);
     SlideShow::SetSlideDir (our_slidedir);
+    if (load_release_notes (source))
+    {
+	SlideShow::relnotes = media_prefix + media_text;
+    }
+
 }
 
 integer IntegrateServicePack (boolean show_popup, string base_url) {

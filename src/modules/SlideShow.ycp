@@ -70,6 +70,8 @@
 
     boolean user_abort = false;
 
+    global string relnotes = nil;
+
     /**
      * Constructor
      **/
@@ -145,6 +147,15 @@
     boolean ShowingSlide()
     {
 	return widgets_created && UI::WidgetExists(`slidesPage );
+    }
+
+    /**
+     * Check if currently the "Release Notes" page is shown
+     * @return true if showing details, false otherwise
+     **/
+    boolean ShowingRelNotes()
+    {
+	return widgets_created && UI::WidgetExists(`relNotesPage);
     }
 
 
@@ -1483,6 +1494,14 @@
 	return widgets;
     }
 
+    term RelNotesPageWidgets() {
+	term widgets = AddProgressWidgets (`relNotesPage,
+		`RichText (relnotes)
+	);
+	y2debug( "widget term: \n%1", widgets );
+	return widgets;
+    }
+
 
     /**
      * Switch from the 'details' view to the 'slide show' view.
@@ -1522,6 +1541,22 @@
 	    UI::ChangeWidget(`instLog, `Value, inst_log );
     }
 
+    /**
+     * Switch to the 'release notes' view.
+     **/
+    global void SwitchToReleaseNotesView()
+    {
+	if ( ShowingRelNotes() )
+	    return;
+
+	if ( UI::WidgetExists(`tabContents ) )
+	{
+	    UI::ChangeWidget(`dumbTab, `CurrentItem, `showRelNotes );
+	    UI::ReplaceWidget(`tabContents, RelNotesPageWidgets() );
+	    UpdateTotalProgress(false);
+	}
+    }
+
 
     string HelpText()
     {
@@ -1541,14 +1576,18 @@
 	if ( UI::HasSpecialWidget(`DumbTab) && HaveSlideSupport()
 	    && HaveSlides() )
 	{
+	    list tabs = [
+                                // tab
+                              `item(`id(`showSlide   ), _("Slide Sho&w") ),
+                                // tab
+                              `item(`id(`showDetails ), _("&Details")      )
+			];
+	    if (relnotes != nil && relnotes != "")
+				// tab
+		tabs = add (tabs, `item (`id (`showRelNotes), _("Release &Notes")));
+
 	    contents =
-		`DumbTab(`id(`dumbTab ),
-			     [
-				// tab
-			      `item(`id(`showSlide   ), _("Slide Sho&w") ),
-				// tab
-			      `item(`id(`showDetails ), _("&Details")	   )
-			      ],
+		`DumbTab(`id(`dumbTab ), tabs,
 			  `VBox(
 				`VSpacing( 0.4 ),
 				`VWeight( 1,	// lower layout priority
@@ -1787,6 +1826,11 @@
 	    {
 		UI::ChangeWidget(`dumbTab, `CurrentItem, `showDetails );
 	    }
+	}
+	else if ( button == `showRelNotes && ! ShowingRelNotes() )
+	{
+	    user_switched_to_details = false;
+	    SwitchToReleaseNotesView();
 	}
 	else if ( button == `debugHotkey )
 	{

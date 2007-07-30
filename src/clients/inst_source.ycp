@@ -483,9 +483,12 @@ symbol SummaryDialog () {
 			    `Left (`Label ("Category:"))
 			)),
 			`VSpacing (0.4),
+			// label
 			`Left (`Label (_("Properties"))),
+			// check box
 			`Left (`CheckBox (`id (`enable), `opt (`notify), _("Enabled"))),
-			`Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Autorefresh"))),
+			// check box
+			`Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Automatically Refresh"))),
 			`VSpacing (0.4),
 			(have_rug) ?
 			    `Left (`CheckBox (`id (`zmdsync),
