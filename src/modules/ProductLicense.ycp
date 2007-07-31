@@ -23,6 +23,7 @@ import "Wizard";
 import "Mode";
 import "FileUtils";
 import "ProductFeatures";
+import "String";
 
 // IMPORTANT: maintainer of yast2-installation is responsible for this module
 
@@ -190,7 +191,9 @@ the configuration will be aborted.</p>
  */
 void CleanUpLicense (string tmpdir) {
     if (tmpdir != nil)
-	SCR::Execute (.target.bash_output, sformat("rm -rf '%1'", tmpdir));
+	SCR::Execute (.target.bash_output,
+	    sformat ("rm -rf '%1'", String::Quote(tmpdir))
+	);
 }
 
 /**
@@ -202,6 +205,9 @@ void CleanUpLicense (string tmpdir) {
  */
 map<string,string> LicenseFiles (string dir, list<string> patterns) {
     map<string,string> ret = $[];
+
+    if (dir == nil) return ret;
+
     list<string> files = (list<string>)SCR::Read (.target.dir, dir);
     y2milestone ("All files in license directory: %1", files);
 
@@ -234,7 +240,78 @@ map<string,string> LicenseFiles (string dir, list<string> patterns) {
     return ret;
 }
 
+string tmpdir = nil;
+string license_dir = nil;
+string info_file = nil;
 
+void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
+    y2milestone ("Searching for licenses...");
+
+    // Base-product license not in installation
+    if (! Stage::initial() && src_id == nil) {
+	y2milestone ("Using default license directory %1", fallback_dir);
+	license_dir = fallback_dir;
+	if (FileUtils::Exists ("/info.txt"))
+	    info_file = "/info.txt";
+
+    // First-Stage & Add-on-product license
+    } else {
+	y2milestone ("Getting license info from repository %1", src_id);
+
+	info_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/info.txt");
+
+	// FATE #302018
+	// Licenses are unzipped under 1stMedia:/media.1/license/
+	// Don't unzip, just use the directory
+	license_dir = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/license/license.txt");
+	if (license_dir != nil) {
+	    license_dir = Pkg::SourceProvideDir (src_id, 1, "/media.1/license/");
+	    // return from the function
+	    return;
+	}
+	y2milestone ("Licenses in /media.1/license/... not supported");
+
+	// New format didn't work, try the old one 1stMedia:/media.1/license.zip
+	// using a separate license directory for all products
+	tmpdir = sformat ("%1/product-license/%2/", (string) SCR::Read(.target.tmpdir), src_id);
+	license_dir = tmpdir;
+	string license_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/license.zip");
+
+	// no license present
+	if (license_file == nil) {
+	    y2milestone ("No license present");
+	    license_dir = nil;
+	    tmpdir = nil;
+	    // return from the function
+	    return;
+	}
+
+	y2milestone("Product has a license");
+	map out = (map)SCR::Execute (.target.bash_output,
+	    sformat (
+		"
+rm -rf '%1' && \
+mkdir -p '%1' && \
+cd '%1' && \
+unzip -qqo '%2'
+",
+		String::Quote (tmpdir),
+		String::Quote (license_file)
+	    )
+	);
+
+	// Extracting license failed, cannot accept the license
+	if (out["exit"]:0 != 0) {
+	    y2error("Cannot unzip license -> %1", out);
+	    // popup error
+	    Report::Error (_("An error occurred while preparing the installation system."));
+	    CleanUpLicense (tmpdir);
+	    license_dir = nil;
+	} else {
+	    license_dir = tmpdir;
+	}
+    }
+}
 
 /**
  * Ask user to confirm license agreement
@@ -251,59 +328,12 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     list<string> patterns, string action, boolean enable_back,
     boolean base_product)
 {
-    string tmpdir = nil;
-    string info_file = nil;
     string lic_lang = "";
-    map<string,string> licenses = $[];
-    list<string> available_langs = [];
-    string license_dir = nil;
+    map <string, string> licenses = $[];
+    list <string> available_langs = [];
 
-    // Base-product license
-    if (src_id == nil)
-    {
-	if (Stage::initial ())
-	{
-	    license_dir = Directory::vardir + "/license";
-	}
-	else
-	{
-	    license_dir = dir;
-	}
-	if (FileUtils::Exists ("/info.txt"))
-	    info_file = "/info.txt";
-    }
-    // Add-on-product license
-    else
-    {
-	y2milestone ("Getting license info from repository %1", src_id);
-	// using a separate license directory for all products
-	tmpdir = sformat("%1/product-license/%2/", (string) SCR::Read(.target.tmpdir), src_id);
-	license_dir = tmpdir;
-	string license_file = Pkg::SourceProvideOptionalFile (src_id, 1,
-	    "/media.1/license.zip");
+    GetSourceLicenseDirectory (src_id, dir);
 
-	// license is part of the add-on product
-	if (license_file != nil) {
-	    y2milestone("Product has a license");
-	    map out = (map)SCR::Execute (.target.bash_output, sformat ("
-rm -rf '%1' && \
-mkdir -p '%1' && \
-cd '%1' && \
-unzip -qqo '%2'
-", tmpdir, license_file));
-
-	    // Extracting license failed, cannot accept the license
-	    if (out["exit"]:0 != 0)
-	    {
-		y2error("Cannot unzip license -> %1", out);
-		// popup error
-		Report::Error (_("An error occurred while preparing the installation system."));
-		CleanUpLicense(tmpdir);
-		return nil; // FIXME
-	    }
-	}
-	info_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/info.txt");
-    }
     licenses = LicenseFiles (license_dir,
 	["license.txt", "license\\.%1\\.txt"]);
     if (info_file == nil && size (licenses) == 0)
@@ -345,11 +375,11 @@ unzip -qqo '%2'
     DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
     // Display info as a popup if exists
     if (info_file != nil)
-	InstShowInfo::show_info_txt(info_file);
+	InstShowInfo::show_info_txt (info_file);
 
     if (lic_lang == nil)
     {
-	CleanUpLicense(tmpdir);
+	if (tmpdir != nil) CleanUpLicense (tmpdir);
 	return `auto;
     }
 

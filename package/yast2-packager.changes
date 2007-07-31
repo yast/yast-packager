@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 31 14:24:52 CEST 2007 - locilka@suse.cz
+
+- New location of licenses on the media - in /media.1/license/
+  directory in uncompressed state (FATE #302018). Staying backward
+  compatible by supporting /media.1/license.zip as well.
+
+-------------------------------------------------------------------
 Mon Jul 30 16:21:44 CEST 2007 - locilka@suse.cz
 
 - Adding new informative text where to find just displayed license
