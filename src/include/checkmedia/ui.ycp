@@ -132,80 +132,6 @@ define list<string> TranslateInfo(list<string> info) {
     return ret;
 }
 
-/**
- * Unmount CD drives in the first installation stage
- * @return map map with unmounted drives (key: device name, value: mount point)
- */
-define map<string,string> UnmountCD() {
-    // key: device, value: mountpoint
-    map<string,string> unmounted = $[];
-
-    if (Stage::initial())
-    {
-	list<map> cddevices = CheckMedia::DetectedCDDevices();
-	y2milestone("Detected CD devices: %1", cddevices);
-
-	if (cddevices != nil)
-	{
-	    // reload /proc/mounts file
-	    SCR::UnmountAgent(.proc.mounts);
-
-	    list<map> mounts = (list<map>)SCR::Read(.proc.mounts);
-	    list<string> cddevs = maplist(map cdd, cddevices, {return cdd["dev_name"]:"";});
-
-	    // check which CD drive is mounted
-	    foreach(map mnt, mounts, {
-		    string mpoint = mnt["file"]:"";
-		    string device = mnt["spec"]:"";
-
-		    if (mpoint != nil && device != nil && contains(cddevs, device))
-		    {
-			boolean succ = (boolean) SCR::Execute(.target.umount, mpoint);
-			if (succ == true)
-			{
-			    unmounted = add(unmounted, device, mpoint);
-			    y2milestone("Unmounted device: %1 (%2)", device, mpoint);
-			}
-			else
-			{
-			    y2warning("Could not unmount device %1 (%2)", device, mpoint);
-			}
-		    }
-		}
-	    );
-	}
-    }
-
-    y2milestone("unmounted: %1", unmounted);
-
-    return unmounted;
-}
-
-define boolean MountCD(map<string,string> mountedCDs) {
-    y2milestone("mountedCDs: %1", mountedCDs);
-    boolean ret = true;
-
-    if (Stage::initial() && size(mountedCDs) > 0)
-    {
-	// remount all unmounted devices back
-	foreach(string device, string mpoint, mountedCDs, {
-		boolean succ = (boolean)SCR::Execute(.target.mount, [device, mpoint], "-o ro");
-		if (succ)
-		{
-		    y2milestone("Remounted device %1 (%2)", device, mpoint);
-		}
-		else
-		{
-		    y2error("Mount failed: %1 (%2)", device, mpoint);
-		    ret = false;
-		}
-	    }
-	);
-    }
-
-    return ret;
-}
-
 // mount CD drive and check whether there is directory 'media.1' (the first medium) and 'boot' (bootable product CD)
 define boolean InsertedCD1() {
     boolean ret = true;
@@ -301,8 +227,12 @@ define symbol MainDialog () {
 	Wizard::HideAbortButton();
     }
 
-    // umount CD drives (only in the first stage)
-    map<string,string> unmountedCD = UnmountCD();
+    // umount CD drives (release all sources)
+    if (Stage::initial())
+    {
+	// release all media
+	Pkg::SourceReleaseAll();
+    }
 
     // dialog header
     string caption = _("Media Check");
@@ -509,9 +439,6 @@ string label = _("It is recommended to check all installation media\nto avoid in
 	// is the first medium in drive?
 	RequireFirstMedium();
     }
-
-    // remount umounted CD drives back
-    MountCD(unmountedCD);
 
     return ret;
 }
