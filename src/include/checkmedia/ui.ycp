@@ -402,9 +402,6 @@ string label = _("It is recommended to check all installation media\nto avoid in
 			    {
 				CheckMedia::Stop();
 
-				// remount umounted CD drives back
-				MountCD(unmountedCD);
-
 				return `abort;
 			    }
 			}
