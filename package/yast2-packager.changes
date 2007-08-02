@@ -6,6 +6,7 @@ Thu Aug  2 11:08:37 CEST 2007 - lslezak@suse.cz
   a different repository can registered
 - improved download progress callback handlers (#292629)
 - fixed "tick" callback progress
+- beep when another medium is needed (#45527, FATE #120296)
 
 -------------------------------------------------------------------
 Tue Jul 31 14:24:52 CEST 2007 - locilka@suse.cz

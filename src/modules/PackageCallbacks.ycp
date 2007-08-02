@@ -699,6 +699,9 @@ Check that the server is accessible."), wanted_label);
 	    UI::ReplaceWidget(`id(`info), `Empty() );
 	}
 
+	// notification
+	UI::Beep();
+
 	any r = nil;
 
 	repeat {
