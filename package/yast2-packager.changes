@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Aug  2 11:08:37 CEST 2007 - lslezak@suse.cz
+
+- inst_source - download metadata for CD/DVD repositories
+  immedately, the medium can be changed later and accidentaly
+  a different repository can registered
+- improved download progress callback handlers (#292629)
+- fixed "tick" callback progress
+
+-------------------------------------------------------------------
 Tue Jul 31 14:24:52 CEST 2007 - locilka@suse.cz
 
 - New location of licenses on the media - in /media.1/license/

@@ -804,6 +804,7 @@ string ProcessMessage(string msg, integer max_len)
 		w = URL::FormatURL(parsed, max_len);
 	    }
 	    // is it a file name?
+	    else
 	    {
 		if (substring(w, 0, 1) == "/")
 		{
@@ -1503,42 +1504,85 @@ global void SourceReportDestroy()
     }
 
 
+    global boolean IsDownloadProgressPopup()
+    {
+	return (!Mode::commandline()) &&
+	    UI::WidgetExists(`id(`download_progress_popup_window)) &&
+	    UI::WidgetExists(`id(`progress));
+    }
+
+    global void CloseDownloadProgressPopup()
+    {
+	if (IsDownloadProgressPopup())
+	{
+	    UI::CloseDialog();
+	}
+    }
+
+    global void InitDownload(string task)
+    {
+	if (!Mode::commandline())
+	{
+	    if (!IsDownloadProgressPopup())
+	    {
+		// heading of popup
+		string heading = _("Downloading");
+
+		UI::OpenDialog (`opt(`decorated),
+				`VBox (`Heading (`id(`download_progress_popup_window), heading) ,
+				       `VBox (
+					      `HSpacing(60),
+					      `HBox(
+						    `HSpacing(1),
+						    `ProgressBar (`id(`progress),
+								  task, 100),
+						    `HSpacing(1)
+						    ),
+					      `VSpacing(0.5),
+					      `HBox (
+						`HStretch (),
+						`PushButton (`id (`abort), Label::AbortButton ()),
+						`HStretch ()
+					      ),
+					      `VSpacing(0.5)
+					      )
+				       )
+				);
+	    }
+
+	    UI::ChangeWidget (`id(`progress), `Value, 0);
+	}
+    }
+
+    global void DestDownload()
+    {
+	CloseDownloadProgressPopup();
+    }
+
     global void StartDownload (string url, string localfile)
     {
+	y2milestone("Downloading %1 to %2", url, localfile);
+
 	// heading of popup
-	string heading = _("Download");
+	string heading = _("Downloading");
+
+	// reformat the URL
+	string url_report = URL::FormatURL(URL::Parse(url), max_size);
 
 	// message in a progress popup
-	string message = sformat (_("Downloading: %1"), url);
+	string message = sformat (_("Downloading: %1"), url_report);
 
 	if (Mode::commandline()) {
 	    CommandLine::PrintVerbose(message);
 	}
 	else
 	{
-	    UI::OpenDialog (`opt(`decorated),
-			    `VBox (`Heading (heading) ,
-				   `VBox (
-					  `Label(message),
-					  `HSpacing(60),
-					  `HBox(
-						`HSpacing(2),
-						`ProgressBar (`id(`progress),
-							      _("Status"), 100),
-						`HSpacing(2)
-						),
-					  `VSpacing(1),
-					  `HBox (
-					    `HStretch (),
-					    `PushButton (`id (`abort), Label::AbortButton ()),
-					    `HStretch ()
-					  ),
-					  `VSpacing(1)
-					  )
-				   )
-			    );
-
-	    UI::ChangeWidget (`id(`progress), `Value, 0);
+	    if (IsDownloadProgressPopup())
+	    {
+		// change the label
+		UI::ChangeWidget(`id(`progress), `Label, message);
+		UI::ChangeWidget (`id(`progress), `Value, 0);
+	    }
 	}
     }
 
@@ -1579,16 +1623,16 @@ global void SourceReportDestroy()
 %1"), error_text));
 	    }
 	}
-
-	UI::CloseDialog ();
     }
 
 
     global void SetDownloadCallbacks ()
     {
+	Pkg::CallbackInitDownload ("PackageCallbacks::InitDownload");
 	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
 	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
 	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
+	Pkg::CallbackDestDownload ("PackageCallbacks::DestDownload");
     }
 
     global void ClearDownloadCallbacks ()
@@ -2037,12 +2081,21 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 	}
 
 	UI::OpenDialog(
-	    `VBox(
-		`HSpacing(`id(`callback_progress_popup), max_size),
-		(in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
-		    : `Label(`id(`progress_widget), sformat("%1: %2", task, (tick_progress) ? tick_labels[current_tick]:"/" : val_raw)),
-		`VSpacing(0.5),
-		`PushButton (`id (`abort), Label::AbortButton ())
+	    `HBox(
+		`HSpacing(1),
+		`VBox(
+		    `VSpacing(0.5),
+		    `HSpacing(`id(`callback_progress_popup), max_size),
+		    (in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
+			: `VBox(
+			    `Label(task),
+			    `Label(`id(`progress_widget), (tick_progress) ? tick_labels[current_tick]:"/" : val_raw)
+			),
+		    `VSpacing(0.5),
+		    `PushButton (`id (`abort), Label::AbortButton ()),
+		    `VSpacing(0.5)
+		),
+		`HSpacing(1)
 	    )
 	);
 
