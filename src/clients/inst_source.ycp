@@ -301,9 +301,18 @@ in the packages selection, continue."),
 		    repo_prop["type"] = repo_type;
 
 		    integer new_repo_id = Pkg::RepositoryAdd(repo_prop);
-		    y2internal("New repository: %1: %2", new_repo_id, repo_prop);
+		    y2milestone("Added repository: %1: %2", new_repo_id, repo_prop);
 
 		    newSources = add(newSources, new_repo_id);
+
+		    if (contains(["cd", "dvd"], tolower(URL::Parse(url)["scheme"]:"")))
+		    {
+			// for CD/DVD repo download the metadata immediately,
+			// the medium is in the drive right now, it can be changed later
+			// and accidentaly added a different repository
+			y2milestone("Adding a CD or DVD repository, refreshing now...");
+			Pkg::SourceRefreshNow(new_repo_id);
+		    }
 		}
 	    );
 

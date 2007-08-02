@@ -244,10 +244,12 @@ map<string,any> RepoNameWidget () {
 	"init" : RepoNameInit,
 	"store" : RepoNameStore,
 	"validate_type" : `function,
+	// TODO FIXME: RepoName can be empty if the URL has been changed,
+	// yast will use the product name or the URL in this case (the repository is recreated)
 	"validate_function" : RepoNameValidate,
 	// help text
 	"help" : _("<p><big><b>Repository Name</b></big><br>
-Use <b>Repository Name</b> to specify the name of the repository.</p>")
+Use <b>Repository Name</b> to specify the name of the repository. If it is empty Yast will use the product name (if available) or the URL as the name.</p>")
     ];
 
 }
