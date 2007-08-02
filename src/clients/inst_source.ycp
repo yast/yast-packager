@@ -63,14 +63,12 @@
     define term createItem( integer index, map source ) ``{
         integer id = source[ "SrcId" ]:0;
         map generalData = Pkg::SourceGeneralData( id );
-        map productData = Pkg::SourceProductData( id );
-	y2milestone("generalData: %1", generalData);
-	y2milestone("productData: %1", productData);
+	y2milestone("generalData(%1): %2", id, generalData);
 
 	string alias = haskey(sourceStatesOut[index]:$[], "name") ?
 	    sourceStatesOut[index,"name"]:"" :
 	    // unkown name (alias) of the source
-	    generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("Unknown Name");
+	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name");
 
         term item = `item(
 			  `id( index ),
@@ -87,14 +85,12 @@
     map<string,any> getSourceInfo (integer index, map source) {
         integer id = source[ "SrcId" ]:0;
         map generalData = Pkg::SourceGeneralData( id );
-        map productData = Pkg::SourceProductData( id );
-	y2milestone("generalData: %1", generalData);
-	y2milestone("productData: %1", productData);
+	y2milestone("generalData(%1): %2", id, generalData);
 
 	string alias = haskey(sourceStatesOut[index]:$[], "name") ?
 	    sourceStatesOut[index,"name"]:"" :
 	    // unkown name (alias) of the source
-	    generalData[ "alias" ]:productData["label"]:generalData[ "type" ]: _("Unknown Name");
+	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name");
 
 	map<string,any> out = $[
 	    "enabled" : source["enabled"]:true,
