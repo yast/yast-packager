@@ -150,7 +150,13 @@ sub GetRepositoriesFromXML {
 		}
 	    }
 
-	    push @repos, $this_repo;
+	    # URL must be defined
+	    # The XML content might be, for instance, 404 Error Page, etc.
+	    if (defined $this_repo->{'url'} && $this_repo->{'url'} ne "") {
+		push @repos, $this_repo;
+	    } else {
+		y2warning ("Ignoring repository, no URL defined");
+	    }
 	}
     }
 

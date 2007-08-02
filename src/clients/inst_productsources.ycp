@@ -15,6 +15,7 @@
      *     <item>
      *       <link>http://some.server/some_link.xml</link>
      *	     <official config:type="boolean">true</official>
+     *       <installation_repo config:type="boolean">true</installation_repo>
      *     </item>
      *     <item>
      *       <link>ftp://some.other.server/some_link.xml</link>
@@ -23,7 +24,7 @@
      *   </servers>
      * </productDefines>
      *
-     * Only official (trusted) links are used during installation.
+     * Only installation_repo=true (trusted) links are used during installation.
      * See Bugzilla #293811.
      *
      * Format of Suggested sources:
@@ -75,6 +76,7 @@
     import "AddOnProduct";
     import "GetInstArgs";
     import "OneClickInstallStandard";
+    import "Language";
 
     include "installation/misc.ycp";
 
@@ -91,6 +93,9 @@
 
     // List of IDs of URLs to be added
     list <string> repos_to_be_used = [];
+
+    string language_long  = "";
+    string language_short = "";
 
     // Map of already used suggested repositories
     // $[ "($url|$path)" : src_id ]
@@ -253,6 +258,11 @@ Would you like to configure it?"),
 
 	    server_response = FTP::Get (from, to);
 
+	} else if (regexpmatch (from, "^[hH][tT][tT][pP][sS]://")) {
+	    from = regexpsub (from, "^[hH][tT][tT][pP][sS]://(.*)", "https://\\1");
+
+	    server_response = HTTP::Get (from, to);
+
 	} else {
 	    y2error ("Not a supported type: %1", from);
 	    return false;
@@ -289,10 +299,10 @@ Would you like to configure it?"),
 	list_of_servers = xml_file_content["servers"]:[];
 
 	// bugzilla #293811
-	// only official (trusted) links are used during installation
+	// only installation_repo (trusted) links are used during installation
 	if (Stage::initial()) {
 	    list_of_servers = filter (map one_server, list_of_servers, {
-		if (one_server["official"]:false == true) {
+		if (one_server["installation_repo"]:false == true) {
 		    return true;
 		} else {
 		    y2milestone ("Sever %1 is not used during installation...", one_server);
@@ -368,6 +378,16 @@ Would you like to configure it?"),
 	return true;
     }
 
+    string GetCurrentLang () {
+	map cmd = (map) SCR::Execute (.target.bash_output, "echo -n $LANG");
+	string ret = tostring (cmd["stdout"]:"");
+
+	if (ret == "C" || ret == "") ret = nil;
+
+	y2milestone ("Using lang: %1", ret);
+	return ret;
+    }
+
     symbol ReadDialog () {
 	list <string> actions_todo = [
 		// TRANSLATORS: progress step
@@ -408,18 +428,41 @@ and list of servers dowloaded from web.</p>")
 
 	if (! NetworkRunning()) {
 	    y2warning ("Cannot proceed, no network configured...");
+	    // TRANSLATORS: error report
+	    Report::Error (_("Cannot download list of repositories,
+no network is configured."));
+
 	    return `nosources;
 	}
 	
 	Progress::NextStage();
 
+	// language used for possible translations
+	if (! Stage::initial())
+	    language_long = GetCurrentLang ();
+
+	// fallback if no LANG variable set
+	if (language_long == nil)
+	    language_long = Language::language;
+
+	language_short = substring (language_long, 0, 2);
+	y2milestone ("Preferred language: %1 %2", language_long, language_short);
+
 	if (! ReadControlFile()) {
 	    y2milestone ("Feature not supported by the product");
+	    // TRANSLATORS: light-warning message
+	    Report::Message (_("No product URL defined to download
+list of repositories from."));
+
 	    return `nosources;
 	}
 	
 	if (! DownloadAndParseSources()) {
 	    y2error ("Cannot download or parse repositories");
+	    // TRANSLATORS: warning message
+	    Report::Warning (_("Unable to download list of repositories
+or no repositories defined."));
+
 	    return `nosources;
 	}
 
@@ -432,6 +475,53 @@ and list of servers dowloaded from web.</p>")
 	sleep (600);
 	
 	return `next;
+    }
+
+    /**
+     * Returns a localized string using given parametters.
+     *
+     * @param string current_id to identify the source in list_of_repos map
+     * @param list <string> possible_keys containing which keys in the map
+     *        should be tried (something is always better than amty string)
+     *
+     * @struct $[
+     *     // key
+     *     "description" : "repository description",
+     *     // "localized" + key
+     *     "localized_description" : $[
+     *         "en_GB" : "repository description (localized to en_GB)",
+     *         ...
+     *     ],
+     * ]
+     */
+    string GetLocalizedString (string current_id, list <string> possible_keys) {
+	string ret = "";
+
+	foreach (string possible_key, possible_keys, {
+	    string loc_key = sformat ("localized_%1", possible_key);
+
+	    if (list_of_repos[current_id, loc_key, language_long]:"" != "") {
+		ret = list_of_repos[current_id, loc_key, language_long]:"";
+		break;
+	    } else if (list_of_repos[current_id, loc_key, language_short]:"" != "") {
+		ret = list_of_repos[current_id, loc_key, language_long]:"";
+		break;
+	    }
+	});
+
+	if (ret != "") return ret;
+
+	foreach (string possible_key, possible_keys, {
+	    if (list_of_repos[current_id, possible_key]:"" != "") {
+		ret = list_of_repos[current_id, possible_key]:"";
+		break;
+	    } else if (list_of_repos[current_id, possible_key]:"" != "") {
+		ret = list_of_repos[current_id, possible_key]:"";
+		break;
+	    }
+	});
+
+	return ret;
     }
 
     void PrintRepositoryDescription () {
@@ -458,8 +548,8 @@ and list of servers dowloaded from web.</p>")
 </p>"),
 	    list_of_repos[current_id, "url"]:"",
 	    list_of_repos[current_id, "url_from"]:"",
-	    list_of_repos[current_id, "summary"]:list_of_repos[current_id, "name"]:"",
-	    list_of_repos[current_id, "description"]:""
+	    GetLocalizedString (current_id, ["summary", "name"]),
+	    GetLocalizedString (current_id, ["description"])
 	);
 
 	UI::ChangeWidget (`id ("addon_description"), `Value, description);
@@ -515,7 +605,7 @@ and list of servers dowloaded from web.</p>")
 
 	    items[counter] = `item (
 		`id (repo_id),
-		one_repo["name"]:one_repo["url"]:"",
+		GetLocalizedString (repo_id, ["name", "url"]),
 		already_used
 	    );
 	    
@@ -818,13 +908,13 @@ select those you want and click <b>Finish</b></p>")
 		    // TRANSLATORS: progress step
 		    // %1 is replaced with repository name or URL
 		    _("Add repository: %1"),
-		    list_of_repos[repo_id, "name"]:repo_id
+		    GetLocalizedString (repo_id, ["name", "url"])
 		));
 		actions_doing = add (actions_doing, sformat (
 		    // TRANSLATORS: progress step,
 		    // %1 is replaced with repository name or URL
 		    _("Adding repository: %1 ..."),
-		    list_of_repos[repo_id, "name"]:repo_id
+		    GetLocalizedString (repo_id, ["name", "url"])
 		));
 	    });
 	}
