@@ -509,16 +509,17 @@ global symbol DoInstall() {
 global boolean Integrate (integer srcid) {
     y2milestone ("Integrating repository %1", srcid);
 
-    // Adds workflow to the Workflow Store if any workflow exists
-    WorkflowManager::AddWorkflow (`addon, srcid, "");
-
     // Updating inst-sys
     string y2update = Pkg::SourceProvideOptionalFile (srcid, 1, "/y2update.tgz");
+
     if (y2update == nil) {
 	y2milestone ("No YaST update found on the media");
     } else {
 	UpdateInstSys (y2update);
     }
+
+    // Adds workflow to the Workflow Store if any workflow exists
+    WorkflowManager::AddWorkflow (`addon, srcid, "");
 
     return true;
 }
