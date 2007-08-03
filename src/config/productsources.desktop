@@ -19,6 +19,6 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-sw_source
 Exec=/sbin/yast2 inst_productsources
 
-Name=Additional Product Repositories
-GenericName=Download and choose the default repositories from web
+Name=Community Repositories
+GenericName=Download and choose the community repositories from web
 X-KDE-SubstituteUID=true
