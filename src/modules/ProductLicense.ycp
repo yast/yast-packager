@@ -158,8 +158,8 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	    `Left (
 		// TRANSLATORS: addition license information
 		// FATE #302018
-		`Label (_("If you like to print this license,
-check the EULA.txt file on the first media."))
+		`Label (_("If you want to print this EULA, you can find it
+on the first media in the directory '/media.1/licenses/'"))
 	    ),
 	    `HSpacing (2*space)
 	),
@@ -263,9 +263,14 @@ void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
 	// FATE #302018
 	// Licenses are unzipped under 1stMedia:/media.1/license/
 	// Don't unzip, just use the directory
-	license_dir = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/license/license.txt");
+	license_dir = Pkg::SourceProvideDirectory (
+	    src_id, 1,
+	    "/media.1/license/",
+	    true, /* optional */
+	    false /* no subdirs */
+	);
 	if (license_dir != nil) {
-	    license_dir = Pkg::SourceProvideDir (src_id, 1, "/media.1/license/");
+	    y2milestone ("Using directory %1 for licenses", license_dir);
 	    // return from the function
 	    return;
 	}
