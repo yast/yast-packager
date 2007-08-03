@@ -10,6 +10,9 @@ Thu Aug  2 21:13:04 CEST 2007 - locilka@suse.cz
   first stage installation (instead of 'official').
 - Reporting when list of repositories is empty, cannot be
   downloaded or parsed (#294997).
+- Using new pkg-bindings functionality to provide optional
+  directory with licenses (#302018).
+- New text for License dialog (FATE #302018 comment #36).
 
 -------------------------------------------------------------------
 Thu Aug  2 11:08:37 CEST 2007 - lslezak@suse.cz
