@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  6 15:06:37 CEST 2007 - lslezak@suse.cz
+
+- fixed repository probing (merging URL and product directory has
+  been moved to pkg-bindings)
+
+-------------------------------------------------------------------
 Mon Aug  6 09:39:01 CEST 2007 - locilka@suse.cz
 
 - Added text into the license-confirmation dialog about where to
