@@ -193,8 +193,8 @@
 	    boolean auto_refresh = true;
 
 	    // disable autorefresh for ISO images
-	    const string iso_suffix = ".iso";
-	    if (substring(url, size(url) - size(iso_suffix), size(iso_suffix)) == iso_suffix)
+	    const string iso_prefix = "iso:";
+	    if (substring(url, 0, size(iso_prefix)) == iso_prefix)
 	    {
 		y2milestone("ISO image detected, disabling autorefresh (%1)", url);
 		auto_refresh = false;

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  6 18:43:44 CEST 2007 - lslezak@suse.cz
+
+- properly detect ISO image (disable autorefresh)
+
+-------------------------------------------------------------------
 Mon Aug  6 15:06:37 CEST 2007 - lslezak@suse.cz
 
 - fixed repository probing (merging URL and product directory has
