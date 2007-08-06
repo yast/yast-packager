@@ -11,8 +11,8 @@ Requires:	perl-XML-Bare yast2-perl-bindings
 Requires:	yast2-country
 Requires:	yast2-installation >= 2.15.12
 
-# changed ProgressStart callback signature
-Requires:	yast2-pkg-bindings >= 2.15.35
+# New function: Pkg::SourceProvideDirectory
+Requires:	yast2-pkg-bindings >= 2.15.38
 
 # Mode::live_installation
 Requires:	yast2 >= 2.15.38
