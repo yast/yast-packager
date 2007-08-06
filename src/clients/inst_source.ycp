@@ -212,24 +212,10 @@
 			name = preffered_name;
 		    string prod_dir = repo[1]:"/";
 
-		    string prod_url = url;
-
-		    if (substring(prod_url, size(prod_url) - 1, 1) != "/")
-		    {
-			prod_url = prod_url + "/";
-		    }
-
-		    if (substring(prod_dir, 0, 1) == "/")
-		    {
-			prod_dir = substring(prod_dir, 1);
-		    }
-
-		    prod_url = prod_url + prod_dir;
-
 		    // probe repository type (do not probe plaindir repo)
-		    string repo_type = (plaindir) ? plaindir_type : Pkg::RepositoryProbe(prod_url);
+		    string repo_type = (plaindir) ? plaindir_type : Pkg::RepositoryProbe(url, prod_dir);
 
-		    y2internal("Repository type (%1): %2", prod_url, repo_type);
+		    y2milestone("Repository type (%1,%2): %3", url, prod_dir, repo_type);
 
 		    // the probing has failed
 		    if (repo_type == nil || repo_type == "NONE")
