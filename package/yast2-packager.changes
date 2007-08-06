@@ -3,6 +3,9 @@ Mon Aug  6 09:39:01 CEST 2007 - locilka@suse.cz
 
 - Added text into the license-confirmation dialog about where to
   find the license on the media (FATE #302018).
+- Using new Pkg::RepositoryAdd and Pkg::SourceRefreshNow functions
+  that enables installation to set the repository name and alias
+  before it is used (#297422).
 
 -------------------------------------------------------------------
 Thu Aug  2 21:13:04 CEST 2007 - locilka@suse.cz
