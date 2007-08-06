@@ -818,7 +818,7 @@ select those you want and click <b>Finish</b></p>")
 	integer src_id = Pkg::RepositoryAdd ($[
 	    "enabled" : true,
 	    "name" : repo_name,
-	    "base_urls" : url,
+	    "base_urls" : [url],
 	    "prod_dir" : pth,
 	    "alias" : url,
 	]);
@@ -828,7 +828,7 @@ select those you want and click <b>Finish</b></p>")
 		// TRANSLATORS: pop-up error message
 		// %1 is replaced with a repository name or URL
 		_("Adding repository %1 failed"),
-		list_of_repos[CreateRepoId(url,pth), "name"]:url
+		(repo_name != "" ? repo_name : url)
 	    ));
 	    // FIXME: retry ?
 	    return false;
@@ -864,7 +864,7 @@ select those you want and click <b>Finish</b></p>")
     symbol WriteDialog () {
 	list <string> actions_todo = [];
 	list <string> actions_doing = [];
-	boolean at_once = nil;
+	boolean at_once = false;
 
 	list <integer> repos_to_be_deleted = [];
 
@@ -963,11 +963,9 @@ select those you want and click <b>Finish</b></p>")
 	    CreateSource (
 		list_of_repos[repo_id, "url"]:"",
 		list_of_repos[repo_id, "path"]:"/",
-		GetLocalizedString (repo_id, ["summary", "name"])
+		GetLocalizedString (repo_id, ["name"])
 	    );
 	});
-
-	
 
 	// Redraw installation wizard
 	if (Stage::initial()) {
@@ -978,7 +976,11 @@ select those you want and click <b>Finish</b></p>")
 	}
 
 	Progress::Finish();
-	sleep (600);
+	if (Stage::initial()) {
+	    sleep (600);
+	} else {
+	    sleep (2000);
+	}
 	
 	return `next;
     }
