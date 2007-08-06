@@ -118,6 +118,13 @@ To reject the license of the package, click <b>I Disagree</b></p>.");
 			    `VBox (
 				`HSpacing (70),
 				`RichText (help),
+				// FATE #302018
+				
+				// TRANSLATORS: Licenses to confirm can be found here.
+				// do not use more than 76 characters per line, keep it as short as possible
+				`Label (_("If you like to print this license,
+check the EULA.txt file on the first media.")),
+				`VSpacing(1),
 				`HBox (
 				    `HStretch (),
 				    // push button

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  6 09:39:01 CEST 2007 - locilka@suse.cz
+
+- Added text into the license-confirmation dialog about where to
+  find the license on the media (FATE #302018).
+
+-------------------------------------------------------------------
 Thu Aug  2 21:13:04 CEST 2007 - locilka@suse.cz
 
 - Support for localized strings in remote repositories
