@@ -814,8 +814,15 @@ select those you want and click <b>Finish</b></p>")
 	return (symbol) dialog_ret;
     }
 
-    boolean CreateSource (string url, string pth) {
-	integer src_id = Pkg::SourceCreate (url, pth);
+    boolean CreateSource (string url, string pth, string repo_name) {
+	integer src_id = Pkg::RepositoryAdd ($[
+	    "enabled" : true,
+	    "name" : repo_name,
+	    "base_urls" : url,
+	    "prod_dir" : pth,
+	    "alias" : url,
+	]);
+
 	if (src_id == nil) {
 	    Report::Error (sformat (
 		// TRANSLATORS: pop-up error message
@@ -831,6 +838,8 @@ select those you want and click <b>Finish</b></p>")
 	    Pkg::SourceDelete (src_id);
 	    return false;
 	}
+
+	Pkg::SourceRefreshNow (src_id);
 
 	if (Stage::initial()) {
 	    AddOnProduct::Integrate (src_id);
@@ -951,9 +960,15 @@ select those you want and click <b>Finish</b></p>")
 	foreach (string repo_id, repos_to_be_used, {
 	    // If not at once, call one stage per repository
 	    if (! at_once) Progress::NextStage();
-	    CreateSource (list_of_repos[repo_id, "url"]:"", list_of_repos[repo_id, "path"]:"/");
+	    CreateSource (
+		list_of_repos[repo_id, "url"]:"",
+		list_of_repos[repo_id, "path"]:"/",
+		GetLocalizedString (repo_id, ["summary", "name"])
+	    );
 	});
+
 	
+
 	// Redraw installation wizard
 	if (Stage::initial()) {
 	    UpdateWizardSteps();
@@ -964,7 +979,7 @@ select those you want and click <b>Finish</b></p>")
 
 	Progress::Finish();
 	sleep (600);
-
+	
 	return `next;
     }
 
