@@ -28,6 +28,7 @@ import "Report";
 import "NetworkPopup";
 import "String";
 import "Hostname";
+import "IP";
 
 // common functions / data
 
@@ -908,9 +909,12 @@ boolean ServerValidate (string key, map event) {
     string host = NormalizeHost ((string)UI::QueryWidget (`id (`server), `Value));
     if (! Hostname::CheckFQ (host))
     {
-	UI::SetFocus (`server);
-	Popup::Message (Hostname::ValidFQ ());
-	return false;
+	if (!IP::Check(host))
+	{
+	    UI::SetFocus (`server);
+	    Popup::Error(sformat("%1\n\n%2", Hostname::ValidFQ (), IP::Valid4()));
+	    return false;
+	}
     }
 
     return true;
