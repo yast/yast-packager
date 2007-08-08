@@ -4,6 +4,7 @@ Mon Aug  6 18:43:44 CEST 2007 - lslezak@suse.cz
 - properly detect ISO image (disable autorefresh)
 - show download progress when installing packages (#297843)
 - allow entering an IP address in the server name widget (#288445)
+- 2.15.55
 
 -------------------------------------------------------------------
 Mon Aug  6 15:06:37 CEST 2007 - lslezak@suse.cz
