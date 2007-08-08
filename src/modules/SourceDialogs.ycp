@@ -1230,6 +1230,7 @@ symbol SelectHandle (string key, map event) {
 
 void SelectStore (string key, map event) {
     _url = "";
+    _repo_name = "";
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
     if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
 	`local_dir, `specify__url, `slp, `local_iso], selected))
