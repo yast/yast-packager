@@ -102,6 +102,11 @@
 	return ! SlideShow::GetUserAbort();
     }
 
+    global boolean ProgressDownload(integer percent, integer dummy)
+    {
+	return ProgressProvide(percent);
+    }
+
 
     /**
      * during file providal

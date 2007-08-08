@@ -2,6 +2,7 @@
 Mon Aug  6 18:43:44 CEST 2007 - lslezak@suse.cz
 
 - properly detect ISO image (disable autorefresh)
+- show download progress when installing packages (#297843)
 
 -------------------------------------------------------------------
 Mon Aug  6 15:06:37 CEST 2007 - lslezak@suse.cz
