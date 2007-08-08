@@ -664,8 +664,11 @@ All changes will be lost.");
             {
                 map generalData = Pkg::SourceGeneralData( id );
                 string url = generalData[ "url" ]:"";
+		string old_url = url;
 		boolean auto_refresh = sourceState["autorefresh"]:true;
 		boolean plaindir = generalData["type"]:"YaST" == plaindir_type;
+
+		SourceDialogs::SetRepoName (sourceState["name"]:"");
 
                 do {
 		    // change schema if the repository type is plaindir
@@ -676,8 +679,6 @@ All changes will be lost.");
 			parsed["scheme"] = "pkg";
 			url = URL::Build(parsed);
 		    }
-		    SourceDialogs::SetRepoName (sourceState["name"]:"");
-		    string old_url = url;
                     url = editUrl( url );
 
                     if ( size( url ) == 0 ) break;
@@ -876,7 +877,6 @@ symbol TypeDialog()
 
 symbol EditDialog()
 {
-    SourceDialogs::SetRepoName ("");
     symbol ret = SourceDialogs::EditDialog ();
     return ret;
 }

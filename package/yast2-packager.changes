@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  8 10:45:35 CEST 2007 - lslezak@suse.cz
+
+- do not loose the repository name when adding has failed (#297774)
+- fixed repository editing when download has failed
+
+-------------------------------------------------------------------
 Mon Aug  6 18:43:44 CEST 2007 - lslezak@suse.cz
 
 - properly detect ISO image (disable autorefresh)
