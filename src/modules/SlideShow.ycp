@@ -686,7 +686,8 @@
 
 	if ( UI::WidgetExists(`progressCurrentPackage) )
 	{
-	    UI::ChangeWidget(`progressCurrentPackage, `Label, pkg_name);
+	    UI::ChangeWidget(`progressCurrentPackage, `Label, remote ?
+		sformat(_("Downloading %1 (download size %2)"), pkg_name, String::FormatSize(sz)) : pkg_name);
 	    UI::ChangeWidget(`progressCurrentPackage, `Value, 0);
 	}
 	//
@@ -1856,6 +1857,7 @@
 	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
 	Pkg::CallbackProgressProvide ("SlideShowCallbacks::ProgressProvide");
 	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
+	Pkg::CallbackProgressDownload("SlideShowCallbacks::ProgressDownload");
 
 	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
 
