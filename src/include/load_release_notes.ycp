@@ -53,10 +53,10 @@
 	return false;
     };
 
-    string media_prefix = 
+    string media_prefix =
 // beginning of the rich text with the release notes
 _("<p><b>These are the release notes made for the first initial release. They are
-part of the installation media. During installation, if a connection
+part of the installation media. During the configuration steps, if a connection
 to the Internet is available, you can download updated release notes
 from the SUSE Linux Web server.</b></p>");
 
