@@ -186,7 +186,15 @@
 	    if (size(new_repos) == 0)
 	    {
 		// use url as the name
-		new_repos = [ [ url, "/" ] ];
+		string url_name = url;
+
+		// limit alias and name lenght to 25 characters
+		if (size(url_name) > 25)
+		{
+		    url_name = URL::FormatURL(URL::Parse(url), 25);
+		}
+
+		new_repos = [ [ url_name, "/" ] ];
 	    }
 
             list<integer> newSources = [];
