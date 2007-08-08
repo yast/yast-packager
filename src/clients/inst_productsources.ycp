@@ -77,6 +77,7 @@
     import "GetInstArgs";
     import "OneClickInstallStandard";
     import "Language";
+    import "String";
 
     include "installation/misc.ycp";
 
@@ -84,6 +85,9 @@
 	y2milestone ("Going back...");
 	return `back;
     }
+
+    // (Applicable only in inst-sys)
+    boolean preselect_recommended = true;
 
     string main_link = "";
 
@@ -434,6 +438,25 @@ no network is configured."));
 
 	    return `nosources;
 	}
+
+	// In the installation, recommended repositories will be preselected
+	if (Stage::initial()) {
+	    // Set preselect_recommended to the correct state
+	    string filename = sformat ("%1/productsources_already_called", Directory::tmpdir);
+
+	    // Client must have been already called
+	    if (FileUtils::Exists (filename)) {
+		preselect_recommended = false;
+	    // Really for the very first time
+	    } else {
+		preselect_recommended = true;
+		SCR::Execute (.target.bash, sformat ("touch '%1'", String::Quote (filename)));
+		y2milestone ("Running for the first time...");
+	    }
+	// ...but never on the running system
+	} else {
+	    preselect_recommended = false;
+	}
 	
 	Progress::NextStage();
 
@@ -533,6 +556,19 @@ or no repositories defined."));
 	    return;
 	}
 
+	string recommended = (list_of_repos[current_id, "recommended"]:false == true ?
+	    sformat(
+		// TRANSLATORS: HTML-formatted summary text
+		// %1 is replaced with "Yes" (currently only "Yes")
+		// see *4
+		_("<b>Recommended:</b> %1<br>"),
+		// TRANSLATORS: used for "Recommended: Yes" (see *4)
+		_("Yes")
+	    )
+	    :
+	    ""
+	);
+
 	string description = sformat (
 	    // TRANSLATORS: This is a complex HTML-formatted information about selecetd external repository
 	    // It contains "key: value" pair, one per line, separated by <br> tags
@@ -540,16 +576,19 @@ or no repositories defined."));
 	    // %2 is replaced with an URL from which we've got this repository information
 	    // %3 is replaced with a summary text for the selected repository
 	    // %4 is replaced with a description text for the selected repository
+	    // %5 is replaced with an emty string or "Recommended: Yes" (*4)
 	    _("<p>
 <b>URL:</b> %1<br>
 <b>Linked from:</b> %2<br>
 <b>Summary:</b> %3<br>
-<b>Description:</b> %4
+<b>Description:</b> %4<br>
+%5
 </p>"),
 	    list_of_repos[current_id, "url"]:"",
 	    list_of_repos[current_id, "url_from"]:"",
 	    GetLocalizedString (current_id, ["summary", "name"]),
-	    GetLocalizedString (current_id, ["description"])
+	    GetLocalizedString (current_id, ["description"]),
+	    recommended
 	);
 
 	UI::ChangeWidget (`id ("addon_description"), `Value, description);
@@ -565,14 +604,60 @@ or no repositories defined."));
 	return contains (already_selected_in_dialog, repo_id);
     }
 
-    void InitRopositoriesWidget (string filter_string) {
-	list <term> items = [];
-	
-	repos_visible_now = [];
+    // visible but not selected items
+    // used for filter together with recommended repos
+    // not to select them 'again' when filter matches
+    list <string> currently_NOT_selected = [];
 
-	integer counter = -1;
+    /*
+     * This function fills up the table repositories found on a web servers
+     * linked from control file.
+     *
+     * Order of appearance:
+     *   Running system: sorted by repository name
+     *   Inst-Sys:       sorted by "recommended tag", then by name
+     *
+     * Preselections:
+     *   Running sustem: no repositories are preselected
+     *   Inst-Sys:       "recommended" repositories are prelected
+     *                   but only for the first time when running this client
+     *
+     * @see bugzilla #297628
+     */
+    void InitRopositoriesWidget (string filter_string, boolean first_init, string current_item) {
+	list <term> items = [];
+	list <string> recommended_items = [];
+	repos_visible_now = [];
+    	integer counter = -1;
+
+	// used for recommended repos
+	boolean some_repo_already_selected = false;
+
+//	boolean current_item_is_listed = false;
+
 	foreach (string url, map one_repo, list_of_repos, {
-	    // do filter
+	    string repo_id = CreateRepoId (one_repo["url"]:"", one_repo["path"]:"/");
+	    integer src_id = IsAddOnAlreadySelected (one_repo["url"]:"", one_repo["path"]:"/");
+	    boolean already_used = false;
+
+	    // repository has been already initialized
+	    if (src_id > -1) {
+		repos_already_used[repo_id] = src_id;
+		already_used = true;
+	    // repository has been already selected
+	    } else if (IsSelectedInDialog (repo_id)) {
+		already_used = true;
+	    }
+
+	    // If this variable is true, no recoomended repos are preselected
+	    if (already_used) {
+		some_repo_already_selected = true;
+	    // List of not-selected repos
+	    } else if (! first_init) {
+		currently_NOT_selected = add (currently_NOT_selected, repo_id);
+	    }
+
+	    // do filter (filter after some_repo_already_selected is set)
 	    if (filter_string != "") {
 		// neither "url" nor "name" matching
 		if (
@@ -590,18 +675,22 @@ or no repositories defined."));
 		return;
 	    }
 
-	    string repo_id = CreateRepoId (one_repo["url"]:"", one_repo["path"]:"/");
-	    integer src_id = IsAddOnAlreadySelected (one_repo["url"]:"", one_repo["path"]:"/");
-	    boolean already_used = false;
+	    boolean recommended = false;
 
-	    // repository has been already initialized
-	    if (src_id > -1) {
-		repos_already_used[repo_id] = src_id;
-		already_used = true;
-	    // repository has been already selected
-	    } else if (IsSelectedInDialog (repo_id)) {
-		already_used = true;
+	    // Only in stage initial and if no other repository is selected:
+	    // preselect recommended repositories...
+	    // always fill-up this list -- later used for sorting using 'recommended' tag
+	    // Bugzilla #297628
+	    if (Stage::initial()) {
+		recommended = one_repo["recommended"]:false;
+		if (recommended) {
+		    recommended_items = add (recommended_items, repo_id);
+		}
 	    }
+
+//	    // was 'current' and remains 'current'
+//	    if (repo_id == current_item)
+//		current_item_is_listed = true;
 
 	    items[counter] = `item (
 		`id (repo_id),
@@ -612,12 +701,47 @@ or no repositories defined."));
 	    repos_visible_now[counter] = repo_id;
 	});
 
-	// FIXME: use lsort instead
 	items = sort (term one_item_a, term one_item_b, items, ``(one_item_a[1]:"" < one_item_b[1]:""));
+
+	// Preselect the recommended repositories when ne repository has been selected yet
+	if (preselect_recommended) {
+	    list <term> tmp_items = items;
+	    integer counter = -1;
+	    string current_repoid = "";
+
+	    foreach (term one_item, tmp_items, {
+		counter = counter + 1;
+		current_repoid = one_item[0,0]:"---";
+
+		// recommended_items contain list of all recommended items (visible on the screen)
+		if (contains (recommended_items, current_repoid)) {
+		    y2milestone ("Preselecting: %1", current_repoid);
+		    one_item[2] = true;
+		    items[counter] = one_item;
+		}
+	    });
+	}
+
+	// In the initial stage, repos are additionally sorted whether they are recommended or not
+	if (Stage::initial()) {
+	    items = sort (term one_item_a, term one_item_b, items, ``(
+		contains (recommended_items, one_item_a[0,0]:"") > contains (recommended_items, one_item_b[0,0]:"")
+	    ));
+	}
 
 	UI::ChangeWidget (`id ("addon_repos"), `Items, items);
 
+// disabled
+//	if (current_item_is_listed) {
+//	    UI::ChangeWidget (`id ("addon_repos"), `CurrentItem, current_item);
+//	} else if (size (items) > 0) {
+//	    UI::ChangeWidget (`id ("addon_repos"), `CurrentItem, items[0,0,0]:"");
+//	}
+
 	PrintRepositoryDescription();
+
+	// Preselect recommended repos only once
+	preselect_recommended = false;
     }
 
     void StoreSelectedInDialog () {
@@ -711,10 +835,12 @@ or no repositories defined."));
 	StoreSelectedInDialog();
 
 	string filter_string = (string) UI::QueryWidget (`id ("filter_text"), `Value);
+	string current_item = (string) UI::QueryWidget (`id ("addon_repos"), `CurrentItem);
+
 	filter_string = EscapeChars (filter_string);
 	filter_string = MakeCaseInsensitiveRegexp (filter_string);
 
-	InitRopositoriesWidget (filter_string);
+	InitRopositoriesWidget (filter_string, false, current_item);
 
 	UI::SetFocus (`id ("filter_text"));
     }
@@ -771,7 +897,7 @@ select those you want and click <b>Finish</b></p>")
 	}
 	
 	repos_already_used = $[];
-	InitRopositoriesWidget ("");
+	InitRopositoriesWidget ("", true, nil);
 
 	any dialog_ret = nil;
 
@@ -816,7 +942,7 @@ select those you want and click <b>Finish</b></p>")
 
     boolean CreateSource (string url, string pth, string repo_name) {
 	integer src_id = Pkg::RepositoryAdd ($[
-	    "enabled" : true,
+	    "enabled" : false,
 	    "name" : repo_name,
 	    "base_urls" : [url],
 	    "prod_dir" : pth,
@@ -840,6 +966,8 @@ select those you want and click <b>Finish</b></p>")
 	}
 
 	Pkg::SourceRefreshNow (src_id);
+
+	Pkg::SourceSetEnabled (src_id, true);
 
 	if (Stage::initial()) {
 	    AddOnProduct::Integrate (src_id);
