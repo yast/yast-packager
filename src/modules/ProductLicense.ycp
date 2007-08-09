@@ -47,6 +47,9 @@ term GetLicenseContent (string lic_lang, map <string, string> & licenses) {
 	    return rt;
 }
 
+// filename printed in the license dialog
+string license_file_print = nil;
+
 /**
  * Displays License with Help and ( ) Yes / ( ) No radio buttons
  * @param string file with the license
@@ -155,11 +158,18 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	`VSpacing(1),
 	`HBox (
 	    `HSpacing (2*space),
-	    `Left (
-		// TRANSLATORS: addition license information
-		// FATE #302018
-		`Label (_("If you want to print this EULA, you can find it
-on the first media in the directory '/media.1/licenses/'"))
+	    (license_file_print != nil ?
+		`Left (
+		    // FATE #302018
+		    `Label (
+			// TRANSLATORS: addition license information
+			// %1 is replaced with the filename
+			sformat(_("If you want to print this EULA, you can find it
+on the first media in the file %1"), license_file_print)
+		    )
+		)
+		:
+		`Empty ()
 	    ),
 	    `HSpacing (2*space)
 	),
@@ -244,43 +254,113 @@ string tmpdir = nil;
 string license_dir = nil;
 string info_file = nil;
 
-void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
-    y2milestone ("Searching for licenses...");
+// Functions for handling different locations of licenses -->
 
-    // Base-product license not in installation
-    if (! Stage::initial() && src_id == nil) {
-	y2milestone ("Using default license directory %1", fallback_dir);
-	license_dir = fallback_dir;
-	if (FileUtils::Exists ("/info.txt"))
-	    info_file = "/info.txt";
 
-    // First-Stage & Add-on-product license
+boolean UnpackLicenseTgzFileToDirectory (string unpack_file, string to_directory) {
+    // License file exists
+    if (FileUtils::Exists (unpack_file)) {
+	map out = (map) SCR::Execute (.target.bash_output,
+	    sformat ("
+rm -rf '%1' && \
+mkdir -p '%1' && \
+cd '%1' && \
+tar -xzf '%2'
+",
+		String::Quote (to_directory),
+		String::Quote (unpack_file)
+	    )
+	);
+
+	// Extracting license failed, cannot accept the license
+	if (out["exit"]:0 != 0) {
+	    y2error("Cannot untar license -> %1", out);
+	    // popup error
+	    Report::Error (_("An error occurred while preparing the installation system."));
+	    CleanUpLicense (to_directory);
+	    return false;
+	}
+
+	// Success
+	return true;
+
+    // Nothing to unpack
     } else {
+	y2error ("No such file: %1", unpack_file);
+	return false;
+    }
+}
+
+void SearchForLicense_FirstStageBaseProduct (integer src_id, string fallback_dir) {
+    y2milestone ("Getting license from installation product");
+
+    string license_file = "/license.tar.gz";
+
+    if (FileUtils::Exists (license_file)) {
+	y2milestone("Installation Product has a license");
+
+	tmpdir = sformat ("%1/product-license/base-product/", (string) SCR::Read (.target.tmpdir));
+
+	if (UnpackLicenseTgzFileToDirectory (license_file, tmpdir)) {
+	    license_dir = tmpdir;
+	    license_file_print = "license.tar.gz";
+	} else {
+		license_file = nil;
+	}
+    } else {
+	y2milestone ("Installation Product doesn't have a license");
+
+	license_file = nil;
+    }
+
+    if (FileUtils::Exists ("/info.txt"))
+        info_file = "/info.txt";
+}
+
+void SearchForLicense_NormalRunBaseProduct (integer src_id, string fallback_dir) {
+    y2milestone ("Using default license directory %1", fallback_dir);
+
+    if (FileUtils::Exists (fallback_dir)) {
+	license_dir = fallback_dir;
+    } else {
+	y2warning ("Fallback dir doesn't exist %1", fallback_dir);
+	license_dir = nil;
+    }
+
+    if (FileUtils::Exists ("/info.txt"))
+        info_file = "/info.txt";
+}
+
+void SearchForLicense_AddOnProduct (integer src_id, string fallback_dir) {
 	y2milestone ("Getting license info from repository %1", src_id);
 
 	info_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/info.txt");
 
-	// FATE #302018
-	// Licenses are unzipped under 1stMedia:/media.1/license/
-	// Don't unzip, just use the directory
-	license_dir = Pkg::SourceProvideDirectory (
-	    src_id, 1,
-	    "/media.1/license/",
-	    true, /* optional */
-	    false /* no subdirs */
-	);
-	if (license_dir != nil) {
-	    y2milestone ("Using directory %1 for licenses", license_dir);
-	    // return from the function
-	    return;
-	}
-	y2milestone ("Licenses in /media.1/license/... not supported");
-
-	// New format didn't work, try the old one 1stMedia:/media.1/license.zip
 	// using a separate license directory for all products
 	tmpdir = sformat ("%1/product-license/%2/", (string) SCR::Read(.target.tmpdir), src_id);
+
+	// FATE #302018 comment #54
+	string license_file_location = "/license.tar.gz";
+	string license_file = Pkg::SourceProvideOptionalFile (src_id, 1, license_file_location);
+
+	if (license_file != nil) {
+	    y2milestone ("Using file %1 with licenses", license_file);
+
+	    if (UnpackLicenseTgzFileToDirectory (license_file, tmpdir)) {
+		license_dir = tmpdir;
+		license_file_print = "license.tar.gz";
+	    } else {
+		license_file = nil;
+	    }
+	    
+	    return;
+	}
+
+	y2milestone ("Licenses in %1... not supported", license_file_location);
+
+	// New format didn't work, try the old one 1stMedia:/media.1/license.zip
 	license_dir = tmpdir;
-	string license_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/license.zip");
+	license_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/license.zip");
 
 	// no license present
 	if (license_file == nil) {
@@ -314,8 +394,44 @@ unzip -qqo '%2'
 	    license_dir = nil;
 	} else {
 	    license_dir = tmpdir;
+	    license_file_print = "/media.1/license.zip";
 	}
+}
+
+// Functions for handling different locations of licenses <--
+
+void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
+    y2milestone ("Searching for licenses...");
+    license_file_print = nil;
+
+    // Base-product - license not in installation
+    //   * Stage is not initial
+    //   * source ID is not defined
+    if (! Stage::initial() && src_id == nil) {
+
+	SearchForLicense_NormalRunBaseProduct (src_id, fallback_dir);
+
+    // Base-product - first-stage installation
+    //   * Stage is initial
+    //   * Source ID is not set
+    // bugzilla #298342
+    } else if (Stage::initial() && src_id == nil) {
+
+	SearchForLicense_FirstStageBaseProduct (src_id, fallback_dir);
+
+    // Add-on-product license
+    //   * Source ID is set
+    } else if (src_id != nil && src_id > -1) {
+
+	SearchForLicense_AddOnProduct (src_id, fallback_dir);
+
+    // Fallback
+    } else {
+	y2warning ("Source ID not defined, using fallback dir '%1'", fallback_dir);
+	license_dir = fallback_dir;
     }
+
+    y2milestone ("ProductLicense settings: license_dir: %1, tmpdir: %2, info_file: %3", license_dir, tmpdir, info_file);
 }
 
 /**
