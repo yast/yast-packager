@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Aug  9 15:52:19 CEST 2007 - locilka@suse.cz
+
+- Adapted License handling to search for /license.tar.gz with
+  /media.1/license.zip as a backward compatibility/fallback.
+- Modified text informing where to find the license
+  (both bugzilla #298342 and FATE #302018).
+- 2.15.57
+
+-------------------------------------------------------------------
 Wed Aug  8 17:02:28 CEST 2007 - lslezak@suse.cz
 
 - shorten URL used as alias or name
