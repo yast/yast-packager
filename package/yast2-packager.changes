@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 10 12:32:47 CEST 2007 - jsrain@suse.cz
+
+- fixed textdomain of load_release_notes.ycp
+
+-------------------------------------------------------------------
 Fri Aug 10 10:47:07 CEST 2007 - lslezak@suse.cz
 
 - removed extra RPM DB reload (workaround for #201121), not needed

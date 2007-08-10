@@ -11,7 +11,7 @@
  */
 
 {
-    textdomain "installation";
+    textdomain "packager";
 
     import "Language";
     import "Report";
