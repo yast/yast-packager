@@ -913,12 +913,6 @@ from the source CD to the disk cache")));
 	Pkg::PkgCommit (9999);
     }
 
-    // reinitialize the package manager from the target,
-    // refresh installed/uninstalled status (#201121)
-    Pkg::TargetFinish();
-    Pkg::TargetInitialize(Installation::destdir);
-    Pkg::TargetLoad();
-
     SlideShow::CloseSlideShowDialog();
 
     if (result != `abort)
