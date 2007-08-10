@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 10 10:47:07 CEST 2007 - lslezak@suse.cz
+
+- removed extra RPM DB reload (workaround for #201121), not needed
+  anymore (#296457)
+
+-------------------------------------------------------------------
 Thu Aug  9 15:52:19 CEST 2007 - locilka@suse.cz
 
 - Adapted License handling to search for /license.tar.gz with
