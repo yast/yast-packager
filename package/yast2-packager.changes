@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Aug 10 12:41:32 CEST 2007 - locilka@suse.cz
+
+- Using "Online Repositories" for Internet/Web-based/Additional/...
+  repositories downloaded from web during the first stage
+  installation (#296407).
+- 2.15.58
+
+-------------------------------------------------------------------
 Fri Aug 10 12:32:47 CEST 2007 - jsrain@suse.cz
 
 - fixed textdomain of load_release_notes.ycp
