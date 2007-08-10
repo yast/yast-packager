@@ -123,7 +123,7 @@
 		// TRANSLATORS: popup header
 		_("Network is not Configured"),
 		// TRANSLATORS: popup question
-		_("Additional sources defined by product require an Internet connection.
+		_("Online sources defined by product require an Internet connection.
 
 Would you like to configure it?"),
 		Label::YesButton(),
@@ -355,7 +355,7 @@ Would you like to configure it?"),
 	list_of_servers = [];
 
 	if (! DownloadFile (main_link, UseDownloadFile())) {
-	    y2error ("Unable to download list of external repositories");
+	    y2error ("Unable to download list of online repositories");
 	    return false;
 	}
 	
@@ -369,7 +369,7 @@ Would you like to configure it?"),
 		y2milestone ("Downloading list of repos from %1", one_server["link"]:"");
 
 		if (! DownloadFile (one_server["link"]:"", UseDownloadFile())) {
-		    y2error ("Unable to download list of external repositories");
+		    y2error ("Unable to download list of online repositories");
 		    return;
 		}
 		if (! ParseListOfSources (UseDownloadFile(), one_server["link"]:"")) {
@@ -397,7 +397,7 @@ Would you like to configure it?"),
 		// TRANSLATORS: progress step
 		_("Check network configuration"),
 		// TRANSLATORS: progress step
-		_("Download list of external repositories"),
+		_("Download list of online repositories"),
 		// TRANSLATORS: progress step
 	];
 
@@ -405,7 +405,7 @@ Would you like to configure it?"),
 		// TRANSLATORS: progress step
 		_("Checking network configuration..."),
 		// TRANSLATORS: progress step
-		_("Downloading list of external repositories..."),
+		_("Downloading list of online repositories..."),
 	];
 
 	if (! Stage::initial()) {
@@ -417,7 +417,7 @@ Would you like to configure it?"),
 
 	Progress::New (
 	    // TRANSLATORS: dialog caption
-	    _("Reading List of External Repositories"),
+	    _("Reading List of Online Repositories"),
 	    " ",
 	    size (actions_todo),
 	    actions_todo,
@@ -848,7 +848,7 @@ or no repositories defined."));
     symbol SourcesDialog () {
 	Wizard::SetContents (
 	    // TRANSLATORS: dialog caption
-	    _("List of External Repositories"),
+	    _("List of Online Repositories"),
 	    `VBox (
 		`HBox (
 		    `HVSquash(`MinWidth(20, `TextEntry (`id ("filter_text"), ""))),
@@ -874,15 +874,15 @@ or no repositories defined."));
 		)
 	    ),
 	    // TRANSLATORS: dialog help 1/3
-	    _("<p>Here you can see default product repositories downloaded from Internet.
+	    _("<p>Here you can see default online repositories downloaded from Internet.
 Click on the repository to see its details.</p>") +
 	    (Stage::initial() ?
 		// TRANSLATORS: dialog help 2/3 (version for installation)
-		_("<p>If you want one or more additional repositories to be used,
+		_("<p>If you want one or more online repositories to be used,
 select those you want and click <b>Next</b></p>")
 		:
 		// TRANSLATORS: dialog help 2/3 (version for running system)
-		_("<p>If you want one or more additional repositories to be used,
+		_("<p>If you want one or more online repositories to be used,
 select those you want and click <b>Finish</b></p>")
 	    ) +
 	    // TRANSLATORS: dialog help 3/3
@@ -921,7 +921,7 @@ select those you want and click <b>Finish</b></p>")
 		} else {
 		    if (Popup::ContinueCancelHeadline (
 			// TRANSLATORS: popup header
-			_("Aborting Configuration of External Repository"),
+			_("Aborting Configuration of Online Repository"),
 			// TRANSLATORS: popup question
 			_("Are you sure you want to abort the configuration?")
 		    )) break;
@@ -981,7 +981,7 @@ select those you want and click <b>Finish</b></p>")
 
 	    AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
 		"media" : src_id,
-		"product" : prod["label"]:prod["productname"]:prod["productversion"]:list_of_repos[repo_id,"name"]:"",
+		"product" : repo_name,
 		"autoyast_product" : prod["productname"]:"",
 		"media_url" : url,
 		"product_dir" : pth,
@@ -1028,17 +1028,17 @@ select those you want and click <b>Finish</b></p>")
 	    y2milestone ("Repos to be deleted: %1", repos_to_be_deleted);
 
 	    // TRANSLATORS: progress step
-	    actions_todo = [_("Delete unselected external repositories")];
+	    actions_todo = [_("Delete unselected online repositories")];
 	    // TRANSLATORS: progress step
-	    actions_doing = [_("Deleting unselected external repositories...")];
+	    actions_doing = [_("Deleting unselected online repositories...")];
 	}
 
 	if (size (repos_to_be_used) > 12) {
 	    at_once = true;
 	    // TRANSLATORS: progress step
-	    actions_todo = add (actions_todo, _("Add all selected external repositories"));
+	    actions_todo = add (actions_todo, _("Add all selected online repositories"));
 	    // TRANSLATORS: progress step
-	    actions_doing = add (actions_doing, _("Adding all selected external repositories..."));
+	    actions_doing = add (actions_doing, _("Adding all selected online repositories..."));
 	} else {
 	    foreach (string repo_id, repos_to_be_used, {
 		actions_todo = add (actions_todo, sformat (
@@ -1058,7 +1058,7 @@ select those you want and click <b>Finish</b></p>")
 
 	Progress::New (
 	    // TRANSLATORS: dialog caption
-	    _("Writing List of External repositories"),
+	    _("Writing List of Online Repositories"),
 	    " ",
 	    size (actions_todo),
 	    actions_todo,
