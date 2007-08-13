@@ -749,7 +749,12 @@ string UpdateSourceURL (string url) {
     string ret = "";
     while (ret == "")
     {
-	if (Popup::YesNo (_("Failed to initialize the repository. Try again?")))
+
+	string msg = sformat( _("Unable to create repository
+from URL '%1'."), InstURL::HidePassword(url) ) + "\n\n" + _("Details:")
+	+ "\n" + Pkg::LastError() + "\n\n" + _("Try again?");
+
+	if (Popup::YesNo (msg))
 	{
 	    ret = SourceDialogs::EditPopup (url);
 	}
