@@ -3,6 +3,7 @@ Mon Aug 13 14:18:02 CEST 2007 - lslezak@suse.cz
 
 - report details when initialization of the installation repository
   fails (#299716)
+- 2.15.59
 
 -------------------------------------------------------------------
 Fri Aug 10 12:41:32 CEST 2007 - locilka@suse.cz
