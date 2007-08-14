@@ -616,14 +616,16 @@ the YaST control center and refresh the repository.</p>\n");
 	if (url_scheme == "dir")
 	{
 	    // report error while accessing local directory with product (%1 == "SuSE Linux ...")
-	    message = sformat (_("Cannot access installation media\n%1.
-Check that the directory is accessible."), wanted_label);
+	    message = sformat (_("Cannot access installation media
+%1.
+Check whether the directory is accessible."), wanted_label);
 	}
 	else if (url_scheme != "cd" && url_scheme != "dvd")
 	{
 	    // report error while accessing network media of product (%1 == "SuSE Linux ...")
-	    message = sformat (_("Cannot access installation media \n%1.
-Check that the server is accessible."), wanted_label);
+	    message = sformat (_("Cannot access installation media 
+%1.
+Check whether the server is accessible."), wanted_label);
 	}
 
 	// currently unused

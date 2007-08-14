@@ -39,7 +39,7 @@ if (func == "Info")
     return (any)$[
 	"steps" : 1,
 	// progress step title
-	"title" : _("Saving package manager configuration..."),
+	"title" : _("Saving the package manager configuration..."),
 	"when" : [ `installation, `update, `autoinst ],
     ];
 }

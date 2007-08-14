@@ -84,7 +84,7 @@
 	    if (! haskey (ret, "warning"))
 	    {
 		// the language_changed flag has NOT been set by the NLD frame
-		ret = add( ret, "warning", _("The software proposal is reset to default values.") );
+		ret = add( ret, "warning", _("The software proposal is reset to the default values.") );
 	    }
 	}
         if (Packages::solve_errors > 0)

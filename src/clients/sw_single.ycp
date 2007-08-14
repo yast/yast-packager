@@ -187,7 +187,7 @@ symbol StartSWSingle()
        boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
        if (!mgr_ok)
        {
-	   Report::LongWarning(_("There was an error in repository initialization.") + "\n" + Pkg::LastError ());
+	   Report::LongWarning(_("There was an error in the repository initialization.") + "\n" + Pkg::LastError ());
        }
        if (size(Pkg::SourceGetCurrent(enabled_only)) == 0)
 	{
@@ -470,7 +470,7 @@ if (WFM::Args() == ["help"])
     map cmdline_description = $[
 	"id"	: "sw_single",
 	/* Command line help text for the software management module, %1 is "zypper" */
-	"help"	: sformat(_("Software installation - this module doesn't support command line interface, use '%1' instead."), "zypper"),
+	"help"	: sformat(_("Software installation - this module doesn't support the command line interface, use '%1' instead."), "zypper"),
 	"guihandler"        : StartSWSingle,
     ];
 

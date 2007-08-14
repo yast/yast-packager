@@ -423,8 +423,9 @@ Would you like to configure it?"),
 	    actions_todo,
 	    actions_doing,
 	    // TRANSLATORS: dialog help
-	    _("<p>Please wait, while packager is being initialized
-and list of servers dowloaded from web.</p>")
+	    _("<p>Please wait while the packager is being initialized
+and the list of servers dowloaded from Web.</p>
+")
 	);
 	Wizard::SetTitleIcon ("yast-network");
 
@@ -434,7 +435,7 @@ and list of servers dowloaded from web.</p>")
 	    y2warning ("Cannot proceed, no network configured...");
 	    // TRANSLATORS: error report
 	    Report::Error (_("Cannot download list of repositories,
-no network is configured."));
+no network configured."));
 
 	    return `nosources;
 	}
@@ -879,14 +880,16 @@ Click on the repository to see its details.</p>") +
 	    (Stage::initial() ?
 		// TRANSLATORS: dialog help 2/3 (version for installation)
 		_("<p>If you want one or more online repositories to be used,
-select those you want and click <b>Next</b></p>")
+select those you want and click <b>Next</b>.</p>
+")
 		:
 		// TRANSLATORS: dialog help 2/3 (version for running system)
 		_("<p>If you want one or more online repositories to be used,
-select those you want and click <b>Finish</b></p>")
+select those you want and click <b>Finish</b>.</p>
+")
 	    ) +
 	    // TRANSLATORS: dialog help 3/3
-	    _("<p>To remove a used repository, just unselect it.</p>"),
+	    _("<p>To remove a used repository, just deselect it.</p>"),
 	    (Mode::installation() ? GetInstArgs::enable_back():false),
 	    (Mode::installation() ? GetInstArgs::enable_next():true)
 	);
@@ -1028,9 +1031,9 @@ select those you want and click <b>Finish</b></p>")
 	    y2milestone ("Repos to be deleted: %1", repos_to_be_deleted);
 
 	    // TRANSLATORS: progress step
-	    actions_todo = [_("Delete unselected online repositories")];
+	    actions_todo = [_("Delete deselected online repositories")];
 	    // TRANSLATORS: progress step
-	    actions_doing = [_("Deleting unselected online repositories...")];
+	    actions_doing = [_("Deleting deselected online repositories...")];
 	}
 
 	if (size (repos_to_be_used) > 12) {
@@ -1064,7 +1067,7 @@ select those you want and click <b>Finish</b></p>")
 	    actions_todo,
 	    actions_doing,
 	    // TRANSLATORS: dialog help
-	    _("<p>Please wait, while the repository manager downloads repository details...</p>")
+	    _("<p>Please wait while the repository manager downloads the repository details...</p>")
 	);
 	Wizard::SetTitleIcon ("yast-sw_source");
 
