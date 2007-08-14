@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 14 11:00:20 CEST 2007 - jsuchome@suse.cz
+
+- double-click in the sources table toggles enabled/disabled status
+  (#299787)
+- 2.15.60
+
+-------------------------------------------------------------------
 Mon Aug 13 14:18:02 CEST 2007 - lslezak@suse.cz
 
 - report details when initialization of the installation repository
