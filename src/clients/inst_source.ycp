@@ -461,7 +461,7 @@ symbol SummaryDialog () {
     term contents =
         `VBox(
 	      `HBox(
-		    `Table(`id(`table),`opt(`notify, `immediate),
+		    `Table(`id(`table),`opt(`notify),
 				// table header
 			    `header( _("Enabled"),
 				// table header
@@ -729,7 +729,7 @@ All changes will be lost.");
 		    fillCurrentRepoInfo();
                 }
             }
-            else if ( input == `enable )
+            else if (input == `enable || input == `table)
             {
                 boolean state = sourceState[ "enabled" ]:true;
                 state = !state;
