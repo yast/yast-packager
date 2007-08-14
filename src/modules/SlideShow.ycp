@@ -1562,7 +1562,7 @@
     string HelpText()
     {
 	// Help text while software packages are being installed (displayed only in rare cases)
-	string help_text = _("<p>Please wait while packages are installed.</p>");
+	string help_text = _("<p>Please wait while packages are being installed.</p>");
 
 	return help_text;
     }

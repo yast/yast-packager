@@ -206,7 +206,7 @@
 	if (! Pkg::SourceChangeUrl (cached_source_id, store_original_source_url))
 	{
 	    // error report
-	    Report::Error (_("Error occurred while switching the cached 
+	    Report::Error (_("An error occurred while switching the cached 
 repository back to CD."));
 	}
 	Pkg::SourceSetEnabled (cached_source_id, true);
@@ -299,7 +299,8 @@ repository back to CD."));
 	{
 	    Report::Error (sformat (
 		// error report
-		_("Error occurred while creating directory %1:\n%2"),
+		_("An error occurred while creating directory %1:
+%2"),
 		Installation::destdir + cache_dir,
 		ta_out["stderr"]:""));
 	    return nil;
@@ -313,7 +314,7 @@ repository back to CD."));
 	{
 	    Report::Error (sformat (
 		// error report
-		_("Error occurred while getting temporary directory.\n%1"),
+		_("An error occurred while getting temporary directory. %1"),
 		ta_out["stderr"]:""));
 	    return nil;
 	}
@@ -339,7 +340,7 @@ repository back to CD."));
 	{
 	    Report::Error (sformat (
 		// error report
-		_("Error occurred while getting temporary directory. %1"),
+		_("An error occurred while getting temporary directory. %1"),
 		ta_out["stderr"]:""));
 	    return nil;
 	}
@@ -433,7 +434,7 @@ repository back to CD."));
 		{
 		    y2error ("Pkg::SourceProvideDir (%1, %2, %3) failed", source_id, media_number, "/");
 		    // error report
-		    Report::Error (_("Error occurred while getting the directory with updated packages"));
+		    Report::Error (_("An error occurred while getting the directory with updated packages"));
 		    return;
 		}
 
@@ -456,7 +457,7 @@ repository back to CD."));
 		    UI::CloseDialog ();
 		    y2error ("copying media files failed");
 		    // error report
-		    Report::Error (sformat (_("Error occurred while copying packages
+		    Report::Error (sformat (_("An error occurred while copying packages
 from the source CD to the disk")));
 		    return;
 		}
@@ -480,7 +481,7 @@ from the source CD to the disk")));
 		    {
 			UI::CloseDialog ();
 			// error report
-			Report::Error (sformat (_("Error occurred while copying packages
+			Report::Error (sformat (_("An error occurred while copying packages
 from the source CD to the disk cache")));
 			return;
 		    }

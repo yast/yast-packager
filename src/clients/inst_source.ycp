@@ -543,8 +543,8 @@ have the CD set or the DVD available.
 
     // help, continued
     help_text = help_text + _("<p>
-The CDs can be copied to the <b>hard disk</b>
-Then use that as the repository.
+The CDs can be copied to <b>hard disk</b>
+and then used as a repository.
 Insert the path name where the first
 CD is located, for example, /data1/<b>CD1</b>.
 Only the base path is required if all CDs are copied
@@ -557,16 +557,17 @@ into one directory.
     help_text = help_text + _("<p>
 <b>Modifying a Repository Status</b>
 To change a repository location, use <b>Edit</b>. To remove a repository, use
-<b>Delete</b>. To enable or disable the repository or to change the refresh status in the
-initialization time select the repository in the table and use the check boxes below.
-</p>");
+<b>Delete</b>. To enable or disable the repository or to change the refresh status at initialization time, select the repository in the table and use the check boxes below.
+</p>
+");
 
     if (have_rug)
     {
 	// help, continued
 	help_text = help_text + _("<p>
 <b>Synchronize Changes with ZENworks</b> will call <tt>rug</tt>
-to perform the changes also in that package management system.</p>");
+to also perform the changes in that package management system.</p>
+");
     }
 
     Wizard::SetNextButton(`next, Label::FinishButton() );
@@ -618,7 +619,7 @@ to perform the changes also in that package management system.</p>");
           boolean success = Write();
           if ( !success ) {
 		// popup message part 1
-                string _msg1 = _("Unable to save changes to repository
+                string _msg1 = _("Unable to save changes to the repository
 configuration.");
                 string details = Pkg::LastError();
 		// popup message part 2 followed by other info
@@ -794,7 +795,7 @@ cannot be set."));
 		    if (ret == `ok && (src_alias == nil || src_alias == ""))
 		    {
 			// error popup
-			Report::Error(_("Name of the repository cannot be empty."));
+			Report::Error(_("The name of the repository cannot be empty."));
 			ret = `again;
 		    }
 		}
@@ -915,8 +916,7 @@ symbol StartInstSource()
 	boolean cont = Popup::AnyQuestionRichText(
 	    Label::ErrorMsg(),
 	    // Error popup
-	    _("<p>There were errors when restoring the repository configuration.</p>
-") + "<p>" + Pkg::LastError() + "</p>",
+	    _("<p>There were errors while restoring the repository configuration.</p>\n") + "<p>" + Pkg::LastError() + "</p>",
 	    50, 15,
 	    Label::ContinueButton(), Label::CancelButton(), `focus_no
 	);
@@ -971,7 +971,7 @@ symbol StartInstSource()
 map cmdline_description = $[
     "id"	: "inst_source",
     /* Command line help text for the repository module, %1 is "zypper" */
-    "help"	: sformat(_("Installation Repositories - this module doesn't support command line interface, use '%1' instead."), "zypper"),
+    "help"	: sformat(_("Installation Repositories - this module doesn't support the command line interface, use '%1' instead."), "zypper"),
     "guihandler"        : StartInstSource,
 ];
 

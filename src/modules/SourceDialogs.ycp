@@ -59,8 +59,9 @@ of the media, set <b>ISO Image</b>.</p>");
 /**
  * Help text suffix for some types of the medias
  */
-string multi_cd_help = _("<p>If the repository is on multiple medias,
-set the location of the first media of the set.</p>");
+string multi_cd_help = _("<p>If the repository is on multiple media,
+set the location of the first media of the set.</p>
+");
 
 /**
  * Set the URL to work with
@@ -226,7 +227,7 @@ boolean RepoNameValidate (string key, map event) {
     {
 	UI::SetFocus (`id (`repo_name));
 	// popup message
-	Popup::Message (_("Name of the repository cannot be empty."));
+	Popup::Message (_("The name of the repository cannot be empty."));
 	return false;
     }
     return true;
@@ -250,7 +251,8 @@ map<string,any> RepoNameWidget () {
 	"validate_function" : RepoNameValidate,
 	// help text
 	"help" : _("<p><big><b>Repository Name</b></big><br>
-Use <b>Repository Name</b> to specify the name of the repository. If it is empty Yast will use the product name (if available) or the URL as the name.</p>")
+Use <b>Repository Name</b> to specify the name of the repository. If it is empty, YaST will use the product name (if available) or the URL as the name.</p>
+")
     ];
 
 }
@@ -1047,8 +1049,9 @@ or ISO Image</b>.
 If the location is a file holding an ISO image
 of the media, set <b>ISO Image</b>.</p>")
 // help text - server dialog, there is a "Port" widget
-+ _("<p>It's possible to set the <b>Port</b> number for a HTTP/HTTPS repository.
-Leave it empty to use the default port.</p>")
++ _("<p>It is possible to set the <b>Port</b> number for a HTTP/HTTPS repository.
+Leave it empty to use the default port.</p>
+")
 + multi_cd_help,
     ];
 }
@@ -1304,9 +1307,10 @@ string SelectWidgetHelpDl()
 {
     return _("<p><b>Download Files</b><br>
 Each repository has description files which describe content of the repository.
-Check option <b>Download repository description files</b> to download the files
-when closing this Yast module. If the option is unchecked Yast will
-automatically download the files when it needs them later. </p>");
+Check the <b>Download repository description files</b> to download the files
+when closing this YaST module. If the option is unchecked, YaST will
+automatically download the files when it needs them later. </p>
+");
 }
 
 map<string,any> SelectWidgetDL () {

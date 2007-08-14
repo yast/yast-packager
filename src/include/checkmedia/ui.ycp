@@ -94,7 +94,7 @@ define list<string> TranslateInfo(list<string> info) {
 		    else if (val == "md5sum wrong")
 		    {
 			// wrong MD5
-			val = _("<B>Error</B> -- MD5 sum does not match<BR>The medium should not be used.");
+			val = _("<B>Error</B> -- MD5 sum does not match<BR>This medium should not be used.");
 		    }
 		    else if (val == "md5sum not checked")
 		    {
@@ -241,8 +241,8 @@ define symbol MainDialog () {
     string help = _("<P><B>Media Check</B></P>") +
     // help text - media check 2/7
 _("<P>When you have a problem with
-installation and are using a CD or DVD installation medium, you should check
-whether the medium could be broken.</P>
+the installation and are using a CD or DVD installation medium, you should check
+whether the medium is be broken.</P>
 ") +
 
     // help text - media check 3/7
@@ -262,9 +262,8 @@ _("After the check you can insert the next medium and start the procedure again.
 The order of the media is irrelevant.") +
 
     // help text - media check 6/7
-_("<P><B>Note:</B> You cannot change the medium if it is used by the system. If
-it happens during installation, start manual installation and select the media
-verification item in the menu.</P> 
+_("<P><B>Note:</B> You cannot change the medium while it is used by the system. If
+it happens during installation, start the manual installation and select the media verification item in the menu.</P> 
 ") +
 
     // help text - media check 7/6

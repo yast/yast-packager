@@ -544,7 +544,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 		}
 	    } else {
 		// popup question
-		if (Popup::ContinueCancel(_("Really abort add-on product installation?"))) {
+		if (Popup::ContinueCancel(_("Really abort the add-on product installation?"))) {
 		    y2milestone("Aborting...");
 		    return `abort;
 		}
@@ -564,7 +564,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 		// text changed due to bug #162499
 		string refuse_popup_text = base_product
 		    // text asking whether to refuse a license (Yes-No popup)
-		    ? _("Refusing the license agreement cancels installation.
+		    ? _("Refusing the license agreement cancels the installation.
 Really refuse the agreement?")
 		    // text asking whether to refuse a license (Yes-No popup)
 		    : _("Refusing the license agreement cancels the add-on
@@ -584,7 +584,7 @@ product installation. Really refuse the agreement?");
 		    {
 			return `halt;
 			// timed ok/cancel popup
-			if (!Popup::TimedOKCancel(_("System is shutting down..."), 10))
+			if (!Popup::TimedOKCancel(_("The system is shutting down..."), 10))
 			{
 			    continue;
 			}

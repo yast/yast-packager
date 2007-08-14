@@ -311,7 +311,7 @@
 
 	if (current == nil || current < 0) {
 	    // message popup
-	    Report::Message (_("Please, select one of offered options.
+	    Report::Message (_("Please select one of offered options.
 This product has more repositories available."));
 
 	    return nil;
