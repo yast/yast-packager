@@ -479,7 +479,7 @@ symbol SummaryDialog () {
     term contents =
         `VBox(
 	      `HBox(
-		    `Table(`id(`table),`opt(`notify),
+		    `Table(`id(`table),`opt(`notify, `immediate),
 				// table header
 			    `header( _("Enabled"),
 				// table header
@@ -610,8 +610,11 @@ to also perform the changes in that package management system.</p>
 	    fillCurrentRepoInfo ();
 	}
 
-	input = (symbol)Wizard::UserInput();
+	map event = UI::WaitForEvent();
+	input	= event["ID"]:`nothing;
 	y2debug( "Input: %1", input );
+	if (input == `table && event["EventReason"]:"" == "Activated")
+	    input	= `enable;
 
 	symbol createResult = `again;
 
@@ -748,7 +751,7 @@ All changes will be lost.");
 		    fillCurrentRepoInfo();
                 }
             }
-            else if (input == `enable || input == `table)
+            else if (input == `enable)
             {
                 boolean state = sourceState[ "enabled" ]:true;
                 state = !state;
