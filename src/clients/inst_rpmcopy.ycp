@@ -847,7 +847,7 @@ from the source CD to the disk cache")));
 
     // Initialize and check whether some packages need to be installed
     // stop proceeding the script if they don't (Second stage)
-    if (Stage::cont() && ! Mode::live_installation ()) {
+    if (Stage::cont() && ! Mode::live_installation () && !Mode::autoinst() ) {
 	InitRemainingPackages();
 	if (SomePackagesAreRemainForInstallation() != true) {
 	    y2milestone ("No packages need to be installed, skipping...");
