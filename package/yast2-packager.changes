@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 16 12:08:22 CEST 2007 - ug@suse.de
+
+- check wether packages have to be installed turned off for
+  autoinstallation (#300215)
+- 2.15.62
+
+-------------------------------------------------------------------
 Thu Aug 16 11:29:15 CEST 2007 - lslezak@suse.cz
 
 - disable autorefresh for CD repositories (#300928)
