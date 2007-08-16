@@ -1,9 +1,9 @@
 /**
  * Author:	Ladislav Slezak <lslezak@suse.cz>
- * Summary:	Alias for "inst_source" module
+ * Summary:	Alias for "repositories" module
  * $Id:$
  */
 {
-    string target = "inst_source";
+    string target = "repositories";
     return WFM::CallFunction (target, WFM::Args ());
 }
