@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 16 13:01:06 CEST 2007 - jsuchome@suse.cz
+
+- inst_source.ycp renamed to repositories.ycp  (#300923)
+- fixed double-click in the sources table
+- 2.15.63
+
+-------------------------------------------------------------------
 Thu Aug 16 12:08:22 CEST 2007 - ug@suse.de
 
 - check wether packages have to be installed turned off for
