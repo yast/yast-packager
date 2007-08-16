@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 16 11:29:15 CEST 2007 - lslezak@suse.cz
+
+- disable autorefresh for CD repositories (#300928)
+- use the last directory name from URL as name (#299816)
+- display more details when adding a source fails
+
+-------------------------------------------------------------------
 Tue Aug 14 17:10:21 CEST 2007 - jsuchome@suse.cz
 
 - Merged proofread texts

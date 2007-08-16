@@ -185,16 +185,26 @@
 	    // add at least one product if the scan result is empty (no product info available)
 	    if (size(new_repos) == 0)
 	    {
-		// use url as the name
-		string url_name = url;
+		string url_path = URL::Parse(url)["path"]:"";
+		list<string> p_elems = splitstring(url_path, "/");
+		const string fallback = _("Repository");
 
-		// limit alias and name lenght to 25 characters
-		if (size(url_name) > 25)
+		if (size(p_elems) > 1)
 		{
-		    url_name = URL::FormatURL(URL::Parse(url), 25);
+		    url_path = p_elems[size(p_elems) - 1]:fallback;
+
+		    if (url_path == nil || url_path == "" )
+		    {
+			url_path = p_elems[size(p_elems) - 2]:fallback;
+
+			if (url_path == nil || url_path == "" )
+			{
+			    url_path = fallback;
+			}
+		    }
 		}
 
-		new_repos = [ [ url_name, "/" ] ];
+		new_repos = [ [ url_path, "/" ] ];
 	    }
 
             list<integer> newSources = [];
@@ -205,6 +215,14 @@
 	    if (substring(url, 0, size(iso_prefix)) == iso_prefix)
 	    {
 		y2milestone("ISO image detected, disabling autorefresh (%1)", url);
+		auto_refresh = false;
+	    }
+
+	    // CD or DVD repository?
+	    boolean cd_scheme = contains(["cd", "dvd"], tolower(URL::Parse(url)["scheme"]:""));
+	    if (cd_scheme)
+	    {
+		y2milestone("CD/DVD repository detected, disabling autorefresh (%1)", url);
 		auto_refresh = false;
 	    }
 
@@ -295,7 +313,7 @@ in the packages selection, continue."),
 
 		    newSources = add(newSources, new_repo_id);
 
-		    if (contains(["cd", "dvd"], tolower(URL::Parse(url)["scheme"]:"")))
+		    if (cd_scheme)
 		    {
 			// for CD/DVD repo download the metadata immediately,
 			// the medium is in the drive right now, it can be changed later
@@ -318,7 +336,7 @@ from URL '%1'."), url );
 		// popup message part 2
                 string _msg2 = _("Try again?");
 
-                boolean tryagain = Popup::YesNo( _msg1 + "\n" + _msg2 );
+                boolean tryagain = Popup::YesNo( _msg1 + "\n" + Pkg::LastError() + "\n" + _msg2 );
                 if ( tryagain ) return `again;
                 else return `cancel;
             }
