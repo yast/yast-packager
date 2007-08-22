@@ -27,6 +27,7 @@ import "Sequencer";
 import "String";
 import "Stage";
 import "PackageSystem";
+import "GetInstArgs";
 
 define list<term> CDdevices(string preferred) {
     list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
@@ -300,7 +301,7 @@ string label = _("It is recommended to check all installation media\nto avoid in
     Wizard::SetContents(caption,
 	contents,
 	help,
-	true, true
+	GetInstArgs::enable_back(), GetInstArgs::enable_next()
     );
 
     symbol ret = nil;
