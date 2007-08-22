@@ -3,6 +3,8 @@ Wed Aug 22 10:27:15 CEST 2007 - locilka@suse.cz
 
 - Make possible to abort in the the Read/Write dialog of Online
   Repositories (#298050).
+- [ Back ] [ Cancel ] [ Accept ] buttons in Software Selection
+  dialog (#298056).
 
 -------------------------------------------------------------------
 Thu Aug 16 13:01:06 CEST 2007 - jsuchome@suse.cz
