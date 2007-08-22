@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 22 16:22:21 CEST 2007 - lslezak@suse.cz
+
+- better error handling when adding Online Repositories (#302385)
+
+-------------------------------------------------------------------
 Wed Aug 22 10:27:15 CEST 2007 - locilka@suse.cz
 
 - Make possible to abort in the the Read/Write dialog of Online
