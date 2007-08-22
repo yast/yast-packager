@@ -13,6 +13,7 @@
     import "Mode";
     import "Stage";
     import "Wizard";
+    import "Label";
 
 
     /**
@@ -91,14 +92,21 @@
 		 The system needs some available disk space to run properly.
 		 </p>");
 
-	Wizard::OpenAcceptDialog();
+	// bugzilla #298056
+	// [ Back ] [ Cancel ] [ Accept ] buttons with [ Back ] disabled
+	Wizard::OpenNextBackDialog();
+	Wizard::SetBackButton  (`back,   Label::BackButton());
+	Wizard::SetAbortButton (`cancel, Label::CancelButton());
+	Wizard::SetNextButton  (`accept, Label::AcceptButton());
+	Wizard::DisableBackButton();
+
 	Wizard::SetContents(
 			    // Dialog title
 			    // Hint for German translation: "Softwareauswahl und Einsatzzweck des Systems"
 			    _("Software Selection and System Tasks"),
 			    `PatternSelector(`id(`patterns ) ),
 			    help_text,
-			    true,	// has_back
+			    false,	// has_back
 			    true );	// has_next
 
 	Wizard::SetDesktopIcon( "sw_single" );
