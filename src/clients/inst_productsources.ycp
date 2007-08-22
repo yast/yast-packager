@@ -109,6 +109,35 @@
 	return sformat ("(%1|%2)", s_url, s_path);
     }
 
+    // Function returns whether user wants to abort the installation / configuration
+    // true  - abort
+    // false - do not abort
+    //
+    // Bugzilla #298049
+    boolean UserWantsToAbort () {
+	any ret = UI::PollInput();
+
+	if (ret != `abort)
+	    return false;
+
+	boolean function_ret = false;
+
+	// `abort pressed
+	if (Stage::initial()) {
+	    function_ret = (Popup::ConfirmAbort (`painless));
+	} else {
+	    function_ret = (Popup::ContinueCancelHeadline (
+		// TRANSLATORS: popup header
+		_("Aborting Configuration of Online Repository"),
+		// TRANSLATORS: popup question
+		_("Are you sure you want to abort the configuration?")
+	    ));
+	}
+
+	y2milestone ("User decided to abort: %1", function_ret);
+	return function_ret;
+    }
+
     boolean NetworkRunning () {
 	boolean ret = false;
 
@@ -431,6 +460,8 @@ and the list of servers dowloaded from Web.</p>
 
 	Progress::NextStage();
 
+	if (UserWantsToAbort()) return `abort;
+
 	if (! NetworkRunning()) {
 	    y2warning ("Cannot proceed, no network configured...");
 	    // TRANSLATORS: error report
@@ -439,6 +470,8 @@ no network configured."));
 
 	    return `nosources;
 	}
+
+	if (UserWantsToAbort()) return `abort;
 
 	// In the installation, recommended repositories will be preselected
 	if (Stage::initial()) {
@@ -461,6 +494,8 @@ no network configured."));
 	
 	Progress::NextStage();
 
+	if (UserWantsToAbort()) return `abort;
+
 	// language used for possible translations
 	if (! Stage::initial())
 	    language_long = GetCurrentLang ();
@@ -472,6 +507,8 @@ no network configured."));
 	language_short = substring (language_long, 0, 2);
 	y2milestone ("Preferred language: %1 %2", language_long, language_short);
 
+	if (UserWantsToAbort()) return `abort;
+
 	if (! ReadControlFile()) {
 	    y2milestone ("Feature not supported by the product");
 	    // TRANSLATORS: light-warning message
@@ -480,6 +517,8 @@ list of repositories from."));
 
 	    return `nosources;
 	}
+
+	if (UserWantsToAbort()) return `abort;
 	
 	if (! DownloadAndParseSources()) {
 	    y2error ("Cannot download or parse repositories");
@@ -490,10 +529,14 @@ or no repositories defined."));
 	    return `nosources;
 	}
 
+	if (UserWantsToAbort()) return `abort;
+
 	if (! Stage::initial()) {
 	    Progress::NextStage();
 	    InitializeSources();
 	}
+
+	if (UserWantsToAbort()) return `abort;
 	
 	Progress::Finish();
 	sleep (600);
@@ -1071,6 +1114,8 @@ select those you want and click <b>Finish</b>.</p>
 	);
 	Wizard::SetTitleIcon ("yast-sw_source");
 
+	if (UserWantsToAbort()) return `abort;
+
 	if (repos_to_be_deleted != []) {
 	    Progress::NextStage();
 	    foreach (integer src_id, repos_to_be_deleted, {
@@ -1085,18 +1130,25 @@ select those you want and click <b>Finish</b>.</p>
 	    });
 	}
 
+	if (UserWantsToAbort()) return `abort;
+
 	// One progress stage for all repositories
 	if (at_once) Progress::NextStage();
 
 	foreach (string repo_id, repos_to_be_used, {
 	    // If not at once, call one stage per repository
 	    if (! at_once) Progress::NextStage();
+
+	    if (UserWantsToAbort()) return `abort;
+
 	    CreateSource (
 		list_of_repos[repo_id, "url"]:"",
 		list_of_repos[repo_id, "path"]:"/",
 		GetLocalizedString (repo_id, ["name"])
 	    );
 	});
+
+	if (UserWantsToAbort()) return `abort;
 
 	// Redraw installation wizard
 	if (Stage::initial()) {
