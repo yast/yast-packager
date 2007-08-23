@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 23 18:31:31 CEST 2007 - locilka@suse.cz
+
+- Displaying license in a separate Wizard dialog not to rewrite the
+  progress or other dialogs below (#303922).
+
+-------------------------------------------------------------------
 Thu Aug 23 16:35:51 CEST 2007 - sh@suse.de
 
 - Beautification for bug #299787: Preserve spacings even with
