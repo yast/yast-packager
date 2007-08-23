@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 23 16:35:51 CEST 2007 - sh@suse.de
+
+- Beautification for bug #299787: Preserve spacings even with
+  over-long repo names
+- 2.15.66 
+
+-------------------------------------------------------------------
 Wed Aug 22 16:22:21 CEST 2007 - lslezak@suse.cz
 
 - better error handling when adding Online Repositories (#302385)

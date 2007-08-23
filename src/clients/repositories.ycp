@@ -121,20 +121,30 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
+    term repoInfoTerm(string name, string url, string category) {
+	term infoTerm =
+	    `VBox (
+		   `Left (`Heading ( name     ) ),
+		   `Left (`Label   ( url      ) ),
+		   `Left (`Label   ( category ) )
+		   );
+
+	return infoTerm;
+    }
+
     void fillRepoInfo(integer index, map source) {
 	map<string,any> info = getSourceInfo (index, source);
-	UI::ReplaceWidget (`id (`repo_rp), `VBox (
-	    // heading - in case repo name not found
-	    `Left (`Heading (info["name"]:_("Unknown repository name"))),
-	    // label, %1 is URL
-	    `Left (`Label (sformat (_("URL: %1"),
-		// label to be used instead of URL if not found
-		info["url"]:_("Unknown")))),
-	    // label, %1 is repo category (eg. YUM)
-	    `Left (`Label (sformat (_("Category: %1"),
-		// label to be used instead of repo category if not known
-		info["type"]:_("Unknown"))))
-	));
+
+	// heading - in case repo name not found
+	string name = info["name"]:_("Unknown repository name");
+
+	// label to be used instead of URL if not found
+	string url  = sformat (_("URL: %1"), info["url"]:_("Unknown") );
+
+	// label, %1 is repo category (eg. YUM)
+	string category = sformat (_("Category: %1"), info["type"]:_("Unknown"));
+	
+	UI::ReplaceWidget (`id (`repo_rp), repoInfoTerm( name, url, category ) );
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
 	UI::ChangeWidget (`id (`autorefresh), `Value, info["autorefresh"]:true);
     }
@@ -492,31 +502,34 @@ symbol SummaryDialog () {
 		    `HSpacing()
 		),
 		`HBox (
-		    `HSpacing(0.35),
-		    `Frame ("", `HBox (`HSpacing (1), `VBox (
-			`ReplacePoint (`id (`repo_rp), `VBox (
-			    `Left (`Heading ("Repo Name")),
-			    `Left (`Label ("URL:")),
-			    `Left (`Label ("Category:"))
-			)),
-			`VSpacing (0.4),
-			// label
-			`Left (`Label (_("Properties"))),
-			// check box
-			`Left (`CheckBox (`id (`enable), `opt (`notify), _("Enabled"))),
-			// check box
-			`Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Automatically Refresh"))),
-			`VSpacing (0.4),
-			(have_rug) ?
-			    `Left (`CheckBox (`id (`zmdsync),
-				// Checkbox label
-				_("Synchronize Changes with &ZENworks"),
-				!norug && sync_zmd))
-			    : `Empty()
-		    ))),
-		    `HSpacing (1.35)
-		),
-		`VSpacing(0.3),
+		       `HSpacing(0.35),
+		       `HWeight (1, `Frame ("",
+			       `HBox (
+				      `HSpacing (1),
+				      `HWeight( 1, `VBox (
+					     `ReplacePoint (`id (`repo_rp),
+							    repoInfoTerm( "", "", "" )),
+					     `VSpacing (0.4),
+					     // label
+					     `Left (`Label (_("Properties"))),
+					     // check box
+					     `Left (`CheckBox (`id (`enable), `opt (`notify), _("Enabled"))),
+					     // check box
+					     `Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Automatically Refresh"))),
+					     `VSpacing (0.4),
+					     (have_rug) ?
+					     `Left (`CheckBox (`id (`zmdsync),
+							       // Checkbox label
+							       _("Synchronize Changes with &ZENworks"),
+							       !norug && sync_zmd))
+					     : `Empty()
+					     )),
+				      `HSpacing (0.4)
+				      )
+			       )),
+		       `HSpacing (1.35)
+		       ),
+	      `VSpacing(0.3),
 	      `HBox(
 		    `PushButton (`id (`add), `opt(`key_F3),
 			Label::AddButton ()),
