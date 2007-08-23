@@ -493,16 +493,24 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	lic_lang = available_langs[0]:"";
 
     y2milestone ("Preselected language: '%1'", lic_lang);
-    DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
-    // Display info as a popup if exists
-    if (info_file != nil)
-	InstShowInfo::show_info_txt (info_file);
 
     if (lic_lang == nil)
     {
 	if (tmpdir != nil) CleanUpLicense (tmpdir);
 	return `auto;
     }
+
+    // bugzilla #303922
+    if (Stage::initial()) {
+	Wizard::OpenNextBackStepsDialog();
+    } else {
+	Wizard::OpenNextBackDialog();
+    }
+
+    DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
+    // Display info as a popup if exists
+    if (info_file != nil)
+	InstShowInfo::show_info_txt (info_file);
 
     // initial loop
     symbol ret = `first;
@@ -520,7 +528,8 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	if (timeout) {
 	    sleep (2000);
 	    y2milestone("AutoYaST: License has been accepted after timeout...");
-	    return `accepted;
+	    ret = `accepted;
+	    break;
 	}
 
 	ret = (symbol) UI::UserInput();
@@ -533,6 +542,8 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	    UI::ReplaceWidget (`id (`license_rp), GetLicenseContent (lic_lang, licenses));
 	}
 
+	// FIXME: rewrite this if () ... else if () ... else {};
+	//        to something readable, please!
 	symbol accept = (symbol) UI::QueryWidget(`id(`eula), `CurrentButton);
 	// Aborting the license dialog
 	if (ret == `abort) {
@@ -540,13 +551,15 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	    if (base_product) {
 		if (Popup::ConfirmAbort (`painless)) {
 		    y2milestone("Aborting...");
-		    return `abort;
+		    ret = `abort;
+		    break;
 		}
 	    } else {
 		// popup question
 		if (Popup::ContinueCancel(_("Really abort the add-on product installation?"))) {
 		    y2milestone("Aborting...");
-		    return `abort;
+		    ret = `abort;
+		    break;
 		}
 	    }
 	}
@@ -559,7 +572,8 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 		if (action == "continue")
 		{
 		    y2milestone ("action in case of license refusal is continue, not asking user");
-		    return `accepted;
+		    ret = `accepted;
+		    break;
 		}
 		// text changed due to bug #162499
 		string refuse_popup_text = base_product
@@ -577,12 +591,19 @@ product installation. Really refuse the agreement?");
 		{
 		    y2milestone("License has been declined.");
 		    if (action == "abort")
-			return `abort;
+		    {
+			ret = `abort;
+			break;
+		    }
 		    else if (action == "continue")
-			return `accepted;
+		    {
+			ret = `accepted;
+			break;
+		    }
 		    else if (action == "halt")
 		    {
-			return `halt;
+			ret = `halt;
+			break;
 			// timed ok/cancel popup
 			if (!Popup::TimedOKCancel(_("The system is shutting down..."), 10))
 			{
@@ -590,13 +611,15 @@ product installation. Really refuse the agreement?");
 			}
 			else
 			{
-			    return `halt;
+			    ret = `halt;
+			    break;
 			}
 		    }
 		    else
 		    {
 			y2error ("Unknown action %1", action);
-			return `abort;
+			ret = `abort;
+			break;
 		    }
 		}
 	    }
@@ -604,7 +627,8 @@ product installation. Really refuse the agreement?");
 	    else if (accept == `yes)
 	    {
 		y2milestone("License has been accepted.");
-		return `accepted;
+		ret = `accepted;
+		break;
 	    }
 	    else
 	    {
@@ -615,12 +639,17 @@ product installation. Really refuse the agreement?");
         }
 	else if (ret == `back)
 	{
-	    return `back;
+	    ret = `back;
+	    break;
 	}
     }
 
     CleanUpLicense(tmpdir);
 
+    // bugzilla #303922
+    Wizard::CloseDialog();
+
+    return ret;
 }
 
 global symbol AskAddOnLicenseAgreement (integer src_id) {
