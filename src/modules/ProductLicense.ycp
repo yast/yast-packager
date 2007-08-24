@@ -145,10 +145,12 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 		`HSpacing (2*space),
 		`VBox(
 		    `Left(`RadioButton(`id(`yes),
+			`opt(`notify),
 			// radio button
 			_("&Yes, I Agree to the License Agreement")
 		    )),
 		    `Left(`RadioButton(`id(`no),
+			`opt(`notify),
 			// radio button
 			_("N&o, I Do Not Agree")
 		    ))
@@ -184,7 +186,7 @@ the configuration will be aborted.</p>
 ");
 
     Wizard::SetContents(caption, contents, help,
-	back, true);
+	back, false);
     // bugzilla #203543
     if (size(langs) <= 1) {
 	UI::ChangeWidget (`id(`lang), `Enabled, false);
@@ -541,12 +543,15 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 
 	ret = (symbol) UI::UserInput();
 
-	if (ret == `lang)
-	{
+	if (ret == `lang) {
 	    // read the selected language
 	    lic_lang = (string) UI::QueryWidget (`id (`lang), `Value);
 
 	    UI::ReplaceWidget (`id (`license_rp), GetLicenseContent (lic_lang, licenses));
+	// bugzilla #303828
+	// disabled next button unless yes/no is selected
+	} else if (ret == `yes || ret == `no) {
+	    Wizard::EnableNextButton();
 	}
 
 	// FIXME: rewrite this if () ... else if () ... else {};

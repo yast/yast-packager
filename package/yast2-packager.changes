@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 24 15:12:19 CEST 2007 - locilka@suse.cz
+
+- Disable the [ Next ] button in the License dialog until either
+  "Agree" or "Dont't Agree" is selected (#303828).
+- 2.15.67
+
+-------------------------------------------------------------------
 Thu Aug 23 18:31:31 CEST 2007 - locilka@suse.cz
 
 - Displaying license in a separate Wizard dialog not to rewrite the
