@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 24 16:21:26 CEST 2007 - locilka@suse.cz
+
+- Fixed "If you like to print this license..." by moving it to the
+  correct place (#304334).
+- 2.15.68
+
+-------------------------------------------------------------------
 Fri Aug 24 15:12:19 CEST 2007 - locilka@suse.cz
 
 - Disable the [ Next ] button in the License dialog until either
