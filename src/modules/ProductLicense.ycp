@@ -24,6 +24,7 @@ import "Mode";
 import "FileUtils";
 import "ProductFeatures";
 import "String";
+import "WorkflowManager";
 
 // IMPORTANT: maintainer of yast2-installation is responsible for this module
 
@@ -501,10 +502,16 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     }
 
     // bugzilla #303922
-    if (Stage::initial()) {
-	Wizard::OpenNextBackStepsDialog();
-    } else {
-	Wizard::OpenNextBackDialog();
+    // src_id == nil (the initial product license)
+    if (src_id != nil) {
+	// use wizard with steps
+        if (Stage::initial()) {
+	    Wizard::OpenNextBackStepsDialog();
+	    WorkflowManager::RedrawWizardSteps();
+	// use normal wizard
+	} else {
+	    Wizard::OpenNextBackDialog();
+	}
     }
 
     DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
@@ -647,7 +654,9 @@ product installation. Really refuse the agreement?");
     CleanUpLicense(tmpdir);
 
     // bugzilla #303922
-    Wizard::CloseDialog();
+    if (src_id != nil) {
+	Wizard::CloseDialog();
+    }
 
     return ret;
 }
