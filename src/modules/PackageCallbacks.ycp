@@ -2119,7 +2119,7 @@ global void ProgressEnd(integer id)
 
 global boolean ProgressProgress(integer id, integer val_raw, integer val_percent)
 {
-    y2milestone ("ProgressProgress: %1, %2%% ", id, val_percent);
+    y2debug("ProgressProgress: %1, %2%% ", id, val_percent);
 
     if (Mode::commandline())
     {
