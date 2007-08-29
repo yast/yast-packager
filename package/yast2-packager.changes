@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 29 16:35:46 CEST 2007 - lslezak@suse.cz
+
+- fully initialize the target system when adding an update
+  repository (#304310)
+- 2.15.69
+
+-------------------------------------------------------------------
 Fri Aug 24 16:21:26 CEST 2007 - locilka@suse.cz
 
 - Fixed "If you like to print this license..." by moving it to the
