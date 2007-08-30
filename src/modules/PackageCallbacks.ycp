@@ -1566,7 +1566,7 @@ global void SourceReportDestroy()
 
     global void StartDownload (string url, string localfile)
     {
-	y2milestone("Downloading %1 to %2", url, localfile);
+	y2debug("Downloading %1 to %2", url, localfile);
 
 	// heading of popup
 	string heading = _("Downloading");
