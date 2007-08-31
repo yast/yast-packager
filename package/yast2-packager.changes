@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 31 12:45:59 CEST 2007 - lslezak@suse.cz
+
+- check exit status and report errors when adding online
+  repositories (#306272)
+- 2.15.70
+
+-------------------------------------------------------------------
 Wed Aug 29 16:35:46 CEST 2007 - lslezak@suse.cz
 
 - fully initialize the target system when adding an update
