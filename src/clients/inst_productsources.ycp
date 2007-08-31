@@ -1021,9 +1021,29 @@ select those you want and click <b>Finish</b>.</p>
 	    return false;
 	}
 
-	Pkg::SourceRefreshNow (src_id);
+	if (!Pkg::SourceRefreshNow (src_id))
+	{
+	    Report::Error (sformat (
+		// TRANSLATORS: pop-up error message
+		// %1 is replaced with a repository name or URL
+		_("Adding repository %1 failed"),
+		(repo_name != "" ? repo_name : url))
+		+ "\n" + Pkg::LastError();
+	    );
+	    return false;
+	}
 
-	Pkg::SourceSetEnabled (src_id, true);
+	if (!Pkg::SourceSetEnabled (src_id, true))
+	{
+	    Report::Error (sformat (
+		// TRANSLATORS: pop-up error message
+		// %1 is replaced with a repository name or URL
+		_("Adding repository %1 failed"),
+		(repo_name != "" ? repo_name : url))
+		+ "\n" + Pkg::LastError();
+	    );
+	    return false;
+	}
 
 	if (Stage::initial()) {
 	    AddOnProduct::Integrate (src_id);
