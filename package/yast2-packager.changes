@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 31 17:34:40 CEST 2007 - locilka@suse.cz
+
+- Added commandline support for inst_productsources (#304720).
+- 2.15.71
+
+-------------------------------------------------------------------
 Fri Aug 31 12:45:59 CEST 2007 - lslezak@suse.cz
 
 - check exit status and report errors when adding online
