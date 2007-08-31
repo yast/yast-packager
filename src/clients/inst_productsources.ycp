@@ -67,6 +67,7 @@
     import "Progress";
     import "Stage";
     import "Report";
+    import "CommandLine";
 
     import "FileUtils";
     import "HTTP";
@@ -84,6 +85,14 @@
     if (GetInstArgs::going_back()) {
 	y2milestone ("Going back...");
 	return `back;
+    }
+
+    list args = WFM::Args();
+    y2milestone("args: %1", args);
+    
+    if (Mode::normal() && size (args)>0) {
+	CommandLine::Run ($["id":"inst_productsources"]);
+	return `auto;
     }
 
     // (Applicable only in inst-sys)
