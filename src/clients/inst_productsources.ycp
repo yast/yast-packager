@@ -1028,7 +1028,7 @@ select those you want and click <b>Finish</b>.</p>
 		// %1 is replaced with a repository name or URL
 		_("Adding repository %1 failed"),
 		(repo_name != "" ? repo_name : url))
-		+ "\n" + Pkg::LastError();
+		+ "\n" + Pkg::LastError()
 	    );
 	    return false;
 	}
@@ -1040,7 +1040,7 @@ select those you want and click <b>Finish</b>.</p>
 		// %1 is replaced with a repository name or URL
 		_("Adding repository %1 failed"),
 		(repo_name != "" ? repo_name : url))
-		+ "\n" + Pkg::LastError();
+		+ "\n" + Pkg::LastError()
 	    );
 	    return false;
 	}
