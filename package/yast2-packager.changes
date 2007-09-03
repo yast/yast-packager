@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep  3 09:44:32 CEST 2007 - locilka@suse.cz
+
+- Added support for LiveCD installation into ProductLicense module
+  (#299732).
+
+-------------------------------------------------------------------
 Fri Aug 31 17:34:40 CEST 2007 - locilka@suse.cz
 
 - Added commandline support for inst_productsources (#304720).

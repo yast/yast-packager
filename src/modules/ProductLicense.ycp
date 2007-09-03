@@ -320,6 +320,31 @@ void SearchForLicense_FirstStageBaseProduct (integer src_id, string fallback_dir
         info_file = "/info.txt";
 }
 
+void SearchForLicense_LiveCDInstallation (integer src_id, string fallback_dir) {
+    y2milestone ("LiveCD License");
+
+    if (FileUtils::Exists ("/license.tar.gz")) {
+	tmpdir = sformat ("%1/product-license/LiveCD/", (string) SCR::Read (.target.tmpdir));
+	string license_file = "/license.tar.gz";
+
+	if (UnpackLicenseTgzFileToDirectory (license_file, tmpdir)) {
+	    license_dir = tmpdir;
+	    license_file_print = "license.tar.gz";
+	} else {
+	    CleanUpLicense (tmpdir);
+	    license_file = nil;
+	}
+    } else {
+	license_dir = nil;
+    }
+
+    if (FileUtils::Exists ("/README.BETA")) {
+	info_file = "/README.BETA";
+    } else {
+	info_file = nil;
+    }
+}
+
 void SearchForLicense_NormalRunBaseProduct (integer src_id, string fallback_dir) {
     y2milestone ("Using default license directory %1", fallback_dir);
 
@@ -353,7 +378,7 @@ void SearchForLicense_AddOnProduct (integer src_id, string fallback_dir) {
 		license_dir = tmpdir;
 		license_file_print = "license.tar.gz";
 	    } else {
-		license_file = nil;
+		license_dir = nil;
 	    }
 	    
 	    return;
@@ -407,10 +432,16 @@ void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
     y2milestone ("Searching for licenses...");
     license_file_print = nil;
 
+    // Bugzilla #299732
+    // Base Product - LiveCD installation
+    if (Mode::live_installation()) {
+
+	SearchForLicense_LiveCDInstallation (src_id, fallback_dir);
+
     // Base-product - license not in installation
     //   * Stage is not initial
     //   * source ID is not defined
-    if (! Stage::initial() && src_id == nil) {
+    } else if (! Stage::initial() && src_id == nil) {
 
 	SearchForLicense_NormalRunBaseProduct (src_id, fallback_dir);
 
