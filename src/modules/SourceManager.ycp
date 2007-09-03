@@ -1303,6 +1303,7 @@ global list Overview() {
 		    string fallback_url = URL::Build(parsed_url);
 
 		    toadd = Pkg::SourceCreate (fallback_url, "/");
+		    url = fallback_url;
 		}
 	    }
 
