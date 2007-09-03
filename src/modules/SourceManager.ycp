@@ -1286,8 +1286,26 @@ global list Overview() {
 		Pkg::SourceDelete (todel);
 	    }
 	    // then add the new one
-	    y2milestone ("adding repository");
+	    y2milestone ("Adding update repository...");
 	    integer toadd = Pkg::SourceCreate (url, "/");
+
+	    // adding failed, try http fallback for ftp repo (#227059)
+	    if (toadd == nil || toadd < 0)
+	    {
+		map parsed_url = URL::Parse(url);
+		string scheme = parsed_url["scheme"]:"";
+
+		if (tolower(scheme) == "ftp")
+		{
+		    y2milestone("Cannot add FTP update repository, trying HTTP...");
+
+		    parsed_url["scheme"] = "http";
+		    string fallback_url = URL::Build(parsed_url);
+
+		    toadd = Pkg::SourceCreate (fallback_url, "/");
+		}
+	    }
+
 	    // and add to ZENworks too, but only if it succeeded here (#180820)
 	    if (toadd != -1 && toadd != nil)
 	    {
