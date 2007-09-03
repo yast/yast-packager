@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  3 10:41:35 CEST 2007 - lslezak@suse.cz
+
+- try HTTP scheme when registering an FTP update source fails due
+  to too restrictive firewall (#227059)
+- 2.15.72
+
+-------------------------------------------------------------------
 Mon Sep  3 09:44:32 CEST 2007 - locilka@suse.cz
 
 - Added support for LiveCD installation into ProductLicense module
