@@ -32,7 +32,9 @@
     global boolean _package_popup = false;
     global boolean _script_popup = false;
     global boolean _scan_popup = false;
-
+    global string _tick_movie = "/usr/share/YaST2/theme/current/animations/ticks-loop3.mng";
+    global integer _tick_movie_x = 7;
+    global integer _tick_movie_y = 1;
     global string _package_name = "";
     global integer _package_size = 0;
     global boolean _deleting_package = false;
@@ -2085,6 +2087,17 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 	    UI::CloseDialog();
 	}
 
+        term progressw = `Empty();
+        if ( UI::GetDisplayInfo()["HasAnimationSupport"]:false )
+        {
+          progressw = `HVCenter(`MinSize( _tick_movie_x, _tick_movie_y, `ReplacePoint(`id(`rp_progress), `Image(`id (`progress_widget), `opt(`animated), _tick_movie, "progress_widget" ))));
+        }
+        else
+        {
+          string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
+          progressw = `Label(label);
+        }
+
 	UI::OpenDialog(
 	    `HBox(
 		`HSpacing(1),
@@ -2094,9 +2107,9 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 		    (in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
 			: `VBox(
 			    `Label(task),
-			    `Label(`id(`progress_widget), (tick_progress) ? tick_labels[current_tick]:"/" : val_raw)
+			    progressw
 			),
-		    `VSpacing(0.5),
+		    `VSpacing(0.2),
 		    `PushButton (`id (`abort), Label::AbortButton ()),
 		    `VSpacing(0.5)
 		),
@@ -2139,11 +2152,19 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
 	if (IsProgressPopup())
 	{
 	    if (tick_progress || val_progress)
-	    {
-		string label = (tick_progress) ? tick_labels[current_tick]:"/"
-		    : sformat("%1: %2", progress_task, val_raw);
+            {
+                term progressw = `Empty();
+                if ( UI::GetDisplayInfo()["HasAnimationSupport"]:false )
+                {
+                  progressw = `HVCenter(`MinSize( _tick_movie_x, _tick_movie_y, `Image(`id (`progress_widget), `opt(`animated), _tick_movie, "progress_widget" )));
+                }
+                else
+                {
+                  string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
+                  progressw = `Label(label);
+                }
 
-		UI::ChangeWidget (`id(`progress_widget), `Value, label);
+		UI::ReplaceWidget (`id(`rp_progress), progressw );
 
 		if (tick_progress)
 		{
