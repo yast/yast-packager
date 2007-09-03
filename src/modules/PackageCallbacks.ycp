@@ -32,7 +32,7 @@
     global boolean _package_popup = false;
     global boolean _script_popup = false;
     global boolean _scan_popup = false;
-    global string _tick_movie = "/usr/share/YaST2/theme/current/animations/ticks-loop3.mng";
+    global string _tick_movie = "/usr/share/YaST2/theme/current/animations/ticks-loop3.gif";
     global integer _tick_movie_x = 7;
     global integer _tick_movie_y = 1;
     global string _package_name = "";
@@ -56,6 +56,8 @@
 
     // max. length of the text in the repository popup window
     integer max_size = 60;
+
+    integer tick_time = 0;
 
     //--------------------------------------------------------------------------
     // defaults
@@ -2117,6 +2119,7 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 	    )
 	);
 
+	tick_time = 0;
     }
 }
 
@@ -2164,7 +2167,20 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
                   progressw = `Label(label);
                 }
 
-		UI::ReplaceWidget (`id(`rp_progress), progressw );
+		// restart the animation only when at least 3 seconds elapsed,
+		// don't restart it too often
+		integer tm = time();
+		y2debug("Time elapsed since the last tick callback: %1", tm - tick_time);
+		if (tm - tick_time > 3)
+		{
+		    UI::ReplaceWidget (`id(`rp_progress), progressw );
+		    tick_time = tm;
+		}
+		else
+		{
+		    y2debug("Ignoring the tick callback");
+		}
+
 
 		if (tick_progress)
 		{

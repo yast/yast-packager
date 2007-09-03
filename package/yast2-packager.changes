@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep  3 16:36:13 CEST 2007 - lslezak@suse.cz
+
+- use gif animation for the busy indicator (works also in Gtk UI)
+  (#296945), do not restart the animation too often (wait at least
+  3 seconds)
+- 2.15.74
+
+-------------------------------------------------------------------
 Mon Sep  3 14:07:53 CEST 2007 - lslezak@suse.cz
 
 - better busy indicator for tick callback (#296945)
