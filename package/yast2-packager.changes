@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep  3 14:07:53 CEST 2007 - lslezak@suse.cz
+
+- better busy indicator for tick callback (#296945)
+- 2.15.73
+
+-------------------------------------------------------------------
 Mon Sep  3 10:41:35 CEST 2007 - lslezak@suse.cz
 
 - try HTTP scheme when registering an FTP update source fails due
