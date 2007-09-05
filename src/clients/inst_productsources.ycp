@@ -68,6 +68,7 @@
     import "Stage";
     import "Report";
     import "CommandLine";
+    import "PackageCallbacks";
 
     import "FileUtils";
     import "HTTP";
@@ -81,6 +82,11 @@
     import "String";
 
     include "installation/misc.ycp";
+
+    if (AddOnProduct::skip_add_ons) {
+	y2milestone ("Skipping module (as requested before)");
+	return `auto;
+    }
 
     if (GetInstArgs::going_back()) {
 	y2milestone ("Going back...");
@@ -116,6 +122,43 @@
 
     string CreateRepoId (string s_url, string s_path) {
 	return sformat ("(%1|%2)", s_url, s_path);
+    }
+
+
+
+    // See bugzilla #307680
+    // Proxy needs to be read from sysconfig and
+    // set by setenv() builtin
+    void InitProxySettings () {
+	y2milestone ("Adjusting proxy settings");
+
+	map <string, string> proxy_items = $[
+	    "http_proxy":"HTTP_PROXY", "FTP_PROXY":"FTP_PROXY",
+	    "HTTPS_PROXY":"HTTPS_PROXY", "NO_PROXY":"NO_PROXY",
+	];
+	boolean use_proxy = false;
+
+	SCR::RegisterAgent (
+	    .current_proxy_settings,
+	    `ag_ini(
+		`SysConfigFile("/etc/sysconfig/proxy")
+	    )
+	);
+
+	use_proxy = (SCR::Read(.sysconfig.proxy.PROXY_ENABLED) != "no");
+
+	string item_value = "";
+	foreach (string proxy_item, string sysconfig_item, proxy_items, {
+	    item_value = (string) SCR::Read (add (.sysconfig.proxy, sysconfig_item));
+	    if (item_value == nil) item_value = "";
+
+	    if (use_proxy == true && item_value != "") {
+		y2milestone ("Adjusting '%1'='%2'", proxy_item, item_value);
+		setenv (proxy_item, item_value);
+	    }
+	});
+
+	SCR::UnregisterAgent (.current_proxy_settings);
     }
 
     // Function returns whether user wants to abort the installation / configuration
@@ -312,6 +355,10 @@ Would you like to configure it?"),
 
 	y2milestone ("Server response: %1", server_response);
 
+	if (server_response == nil) {
+	    return false;
+	}
+
 	return true;
     }
 
@@ -424,7 +471,7 @@ Would you like to configure it?"),
 	map cmd = (map) SCR::Execute (.target.bash_output, "echo -n $LANG");
 	string ret = tostring (cmd["stdout"]:"");
 
-	if (ret == "C" || ret == "") ret = nil;
+	if (ret == "C" || ret == "" || ret == "POSIX") ret = nil;
 
 	y2milestone ("Using lang: %1", ret);
 	return ret;
@@ -471,6 +518,23 @@ and the list of servers dowloaded from Web.</p>
 
 	if (UserWantsToAbort()) return `abort;
 
+	// Bugzilla #305554
+	// Check if there is enough memory (only in inst-sys)
+	// Called via WFM::call because of breaking RPM dependencies
+	// on yast2-add-on package.
+	if (Stage::initial()) {
+	    any client_ret = WFM::call ("inst_check_memsize");
+
+	    if (client_ret == `skip) {
+		// do not use them next time
+		Installation::add_on_selected = false;
+		Installation::productsources_selected = false;
+		y2milestone ("Skipping inst_productsources");
+
+		return `skip;
+	    }
+	}
+
 	if (! NetworkRunning()) {
 	    y2warning ("Cannot proceed, no network configured...");
 	    // TRANSLATORS: error report
@@ -502,6 +566,15 @@ no network configured."));
 	}
 	
 	Progress::NextStage();
+	
+	if (UserWantsToAbort()) return `abort;
+
+	// hotfix for bug #307680
+	// yast2-transfer ignores proxy settings
+	// will be fixed globally after 10.3
+	if (Mode::normal()) {
+	    InitProxySettings();
+	}
 
 	if (UserWantsToAbort()) return `abort;
 
@@ -513,7 +586,14 @@ no network configured."));
 	if (language_long == nil)
 	    language_long = Language::language;
 
-	language_short = substring (language_long, 0, 2);
+	if (language_long != nil) {
+	    if (size(language_long) >= 2) {
+		language_short = substring (language_long, 0, 2);
+	    } else {
+		language_short = language_long;
+	    }
+	}
+
 	y2milestone ("Preferred language: %1 %2", language_long, language_short);
 
 	if (UserWantsToAbort()) return `abort;
@@ -1218,6 +1298,8 @@ select those you want and click <b>Finish</b>.</p>
 	    "ws_start"	: "read",
 	    "read"	: $[
 		`next	: "sources",
+		// not enough memory
+		`skip	: `next,
 		`nosources : `next,
 		`abort	: `abort,
 	    ],

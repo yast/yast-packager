@@ -1,0 +1,27 @@
+/**
+ * File:	clients/inst_check_memsize.ycp
+ * Package:	Installation
+ * Summary:	Checking whether system has enough memory (bugzilla #305554)
+ * Authors:	Lukas Ocilka <locilka@suse.cz>
+ *
+ * $Id:$
+ *
+ */
+
+{
+    include "add-on/misc.ycp";
+
+    // Memory is low
+    if (HasInsufficientMemory()) {
+	// User wants to continue
+	if (ContinueIfInsufficientMemory ()) {
+	    return `continue;
+	// User wants to skip
+	} else {
+	    return `skip;
+	}
+    }
+
+    // Enough memory
+    return `continue;
+}

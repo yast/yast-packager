@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Wed Sep  5 13:41:41 CEST 2007 - locilka@suse.cz
+
+- Reading and using proxy settings before inst_productsources
+  starts downloading files (#307680).
+- Initializing packager callbacks in inst_productsources on
+  a running system (#307652).
+- Warning when inst_productsources is called in installation and
+  the inst-sys has not enough memory (#305554).
+- Adjusted RPM dependencies.
+- 2.15.75
+
+-------------------------------------------------------------------
 Mon Sep  3 16:41:26 CEST 2007 - locilka@suse.cz
 
 - Correctly evaluating relurl:// parameters, such as
