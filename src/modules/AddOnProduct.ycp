@@ -89,6 +89,11 @@ global map<string,any> current_addon = $[];
 // In installation: check for low-memory machines
 global boolean low_memory_already_reported = false;
 
+// Bugzilla #305554
+// Both online-repositories and add-ons use the same function and variable
+// if true, both are skipped at once without asking
+global boolean skip_add_ons = false;
+
 // --> FATE #302123: Allow relative paths in "add_on_products" file
 string base_product_url = nil;
 
