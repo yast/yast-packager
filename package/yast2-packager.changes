@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep  7 14:30:32 CEST 2007 - locilka@suse.cz
+
+- Fixed SlideShow initialization, using Pkg::SourceProvideDirectory
+  instead of obsolete Pkg::SourceProvideDir (#305097).
+- 2.15.76
+
+-------------------------------------------------------------------
 Wed Sep  5 13:41:41 CEST 2007 - locilka@suse.cz
 
 - Reading and using proxy settings before inst_productsources
