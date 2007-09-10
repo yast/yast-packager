@@ -709,6 +709,19 @@ ISO image file.</p>")
 
 }
 
+void InitFocusServerInit (symbol server_type) {
+    switch (server_type) {
+	case (`ftp)	: UI::SetFocus (`server);
+	    break;
+	case (`http)	: UI::SetFocus (`server);
+	    break;
+	case (`https)	: UI::SetFocus (`server);
+	    break;
+	case (`samba)	: UI::SetFocus (`server);
+	    break;
+    }
+}
+
 // HTTP(s)/FTP/SMB/CIFS repository widget
 
 /**
@@ -801,6 +814,8 @@ symbol ServerHandle (string key, map event) {
 	UI::ChangeWidget (`id (`password), `Enabled, !anonymous);
 	if (UI::WidgetExists (`id (`workgroup)))
 	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
+
+	InitFocusServerInit ((symbol) id);
 
 	return nil;
     }
@@ -905,6 +920,8 @@ void ServerInit (string key) {
 	    UI::ChangeWidget(`id(`port), `Value, port_num);
 	}
     }
+
+    InitFocusServerInit (type);
 }
 
 boolean ServerValidate (string key, map event) {
