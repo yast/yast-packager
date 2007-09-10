@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Fri Sep  7 14:30:32 CEST 2007 - locilka@suse.cz
+Mon Sep 10 10:55:07 CEST 2007 - locilka@suse.cz
 
 - Fixed SlideShow initialization, using Pkg::SourceProvideDirectory
   instead of obsolete Pkg::SourceProvideDir (#305097).
+- Calling SetFocus in SourceDialogs for http, https, samba, and ftp
+  repositories to adjust the initial tab-order correctly (#305074).
 - 2.15.76
 
 -------------------------------------------------------------------
