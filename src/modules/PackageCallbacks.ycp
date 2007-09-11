@@ -2097,7 +2097,7 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
         else
         {
           string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
-          progressw = `Label(label);
+          progressw = `ReplacePoint(`id(`rp_progress), `Label(`id(`progress_widget), label));
         }
 
 	UI::OpenDialog(
@@ -2164,14 +2164,14 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
                 else
                 {
                   string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
-                  progressw = `Label(label);
+		  progressw = `Label(`id(`progress_widget), label);
                 }
 
 		// restart the animation only when at least 3 seconds elapsed,
 		// don't restart it too often
 		integer tm = time();
 		y2debug("Time elapsed since the last tick callback: %1", tm - tick_time);
-		if (tm - tick_time > 3)
+		if (tm - tick_time > 3 || !UI::GetDisplayInfo()["HasAnimationSupport"]:true)
 		{
 		    UI::ReplaceWidget (`id(`rp_progress), progressw );
 		    tick_time = tm;
