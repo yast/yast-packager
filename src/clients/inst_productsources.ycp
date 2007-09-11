@@ -124,7 +124,33 @@
 	return sformat ("(%1|%2)", s_url, s_path);
     }
 
+    // See bugzilla #309317
+    string GetUniqueAlias (string alias_orig) {
+	if (alias_orig == nil) alias_orig = "";
 
+	// all current aliases
+        list <string> aliases = maplist (integer i, Pkg::SourceGetCurrent(false), {
+    	    map info = Pkg::SourceGeneralData (i);
+            return info["alias"]:"";
+        });
+
+	// default
+	string alias = alias_orig;
+
+	// repository alias must be unique
+        // if it already exists add "_<number>" suffix to it
+        integer idx = 1;
+        while (contains (aliases, alias)) {
+    	    alias = sformat("%1_%2", alias_orig, idx);
+            idx = idx + 1;
+        }
+
+	if (alias_orig != alias) {
+	    y2milestone ("Alias '%1' changed to '%2'", alias_orig, alias);
+	}
+
+	return alias;
+    }
 
     // See bugzilla #307680
     // Proxy needs to be read from sysconfig and
@@ -1089,7 +1115,9 @@ select those you want and click <b>Finish</b>.</p>
 		"name" : repo_name,
 		"base_urls" : [url],
 		"prod_dir" : pth,
-		"alias" : url,
+		// alias needs to be unique
+		// bugzilla #309317
+		"alias" : GetUniqueAlias (url),
 		"type" : repo_type,
 	    ]);
 	}
