@@ -2,6 +2,7 @@
 Tue Sep 11 16:02:49 CEST 2007 - locilka@suse.cz
 
 - Online repositories need to be added with unique alias (#309317).
+- Better error handling in checkmedia feature (#305495).
 - 2.15.77
 
 -------------------------------------------------------------------
