@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 11 15:41:07 CEST 2007 - lslezak@suse.cz
+
+- Properly create the progress popup in ncurses so it can be closed
+  at the end (#309376), fixed refresh in ncurses
+
+-------------------------------------------------------------------
 Mon Sep 10 10:55:07 CEST 2007 - locilka@suse.cz
 
 - Fixed SlideShow initialization, using Pkg::SourceProvideDirectory
