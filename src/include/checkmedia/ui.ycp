@@ -140,8 +140,17 @@ define boolean InsertedCD1() {
 
     if (instmode == "cd" || instmode == "dvd")
     {
+	string cdrom_device = (string) SCR::Read(.etc.install_inf.Cdrom);
+
+	// bugzilla #305495
+	if (cdrom_device == nil || cdrom_device == "") {
+	    y2error ("No Cdrom present in install.inf");
+	    // try to recover
+	    return true;
+	}
+
 	// get CD device name
-	string bootcd = "/dev/" + (string)SCR::Read(.etc.install_inf.Cdrom);
+	string bootcd = "/dev/" + cdrom_device;
 
 	// is the device mounted?
 	list<map> mounts = (list<map>)SCR::Read(.proc.mounts);
