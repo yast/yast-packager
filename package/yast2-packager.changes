@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Sep 12 16:16:08 CEST 2007 - locilka@suse.cz
+
+- Fixed evaluation of $short_language localization key in online
+  repositories.
+- Adapted ag_xmlrepos to understand xml:lang="..." additionally to
+  lang="..." (both #299230).
+- 2.15.78
+
+-------------------------------------------------------------------
 Tue Sep 11 16:02:49 CEST 2007 - locilka@suse.cz
 
 - Online repositories need to be added with unique alias (#309317).
