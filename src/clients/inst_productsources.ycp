@@ -490,6 +490,9 @@ Would you like to configure it?"),
 	    }
 	});
 
+	// just for debugging purposes
+	y2debug ("%1", list_of_repos);
+
 	return true;
     }
 
@@ -609,8 +612,14 @@ no network configured."));
 	    language_long = GetCurrentLang ();
 
 	// fallback if no LANG variable set
-	if (language_long == nil)
+	if (language_long == nil || language_long == "")
 	    language_long = Language::language;
+
+	// de_DE.UTF-8 --> de_DE
+	integer dot_pos = search (language_long, ".");
+	if (dot_pos != nil) {
+	    language_long = substring (language_long, 0, dot_pos);
+	}
 
 	if (language_long != nil) {
 	    if (size(language_long) >= 2) {
@@ -679,6 +688,7 @@ or no repositories defined."));
     string GetLocalizedString (string current_id, list <string> possible_keys) {
 	string ret = "";
 
+	// try localized strings at first
 	foreach (string possible_key, possible_keys, {
 	    string loc_key = sformat ("localized_%1", possible_key);
 
@@ -686,18 +696,16 @@ or no repositories defined."));
 		ret = list_of_repos[current_id, loc_key, language_long]:"";
 		break;
 	    } else if (list_of_repos[current_id, loc_key, language_short]:"" != "") {
-		ret = list_of_repos[current_id, loc_key, language_long]:"";
+		ret = list_of_repos[current_id, loc_key, language_short]:"";
 		break;
 	    }
 	});
 
 	if (ret != "") return ret;
 
+	// try default strings
 	foreach (string possible_key, possible_keys, {
 	    if (list_of_repos[current_id, possible_key]:"" != "") {
-		ret = list_of_repos[current_id, possible_key]:"";
-		break;
-	    } else if (list_of_repos[current_id, possible_key]:"" != "") {
 		ret = list_of_repos[current_id, possible_key]:"";
 		break;
 	    }

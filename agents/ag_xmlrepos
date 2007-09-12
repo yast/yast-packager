@@ -20,7 +20,7 @@ sub GetListFromVariable {
     } elsif ($variable =~ /^HASH\(/) {
 	return [$variable];
     } else {
-	warn "Unknown: ".$variable."\n";
+	y2error ("Unknown: ".$variable);
 	return [];
     }
 }
@@ -141,7 +141,16 @@ sub GetRepositoriesFromXML {
 		my $variable_list = GetListFromVariable ($one_repo->{$key} || {});
 
 		foreach my $repo_keys (@{$variable_list}) {
-		    my $lang = $repo_keys->{'lang'}->{'value'} || $default_lang;
+		    my $lang = "";
+
+		    if (defined $repo_keys->{'lang'}->{'value'}) {
+			$lang = $repo_keys->{'lang'}->{'value'};
+		    } elsif (defined $repo_keys->{'xml:lang'}->{'value'}) {
+			$lang = $repo_keys->{'xml:lang'}->{'value'};
+		    } else {
+			$lang = $default_lang;
+		    }
+
 		    $this_repo->{'localized_'.$key}->{$lang} = $repo_keys->{'value'} || "";
 		}
 		
