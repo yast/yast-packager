@@ -26,6 +26,9 @@ Requires:	yast2-transfer
 # XML module (inst_productsources.ycp)
 Requires:	yast2-xml
 
+# Bugzilla #305503 - storing/checking MD5 of licenses
+Requires:	/usr/bin/md5sum
+
 # setenv() builtin
 Conflicts:	yast2-core < 2.15.10
 
