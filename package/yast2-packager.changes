@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Sep 14 09:12:23 CEST 2007 - locilka@suse.cz
+
+- Fixed behavior when the same licence had to be accepted several
+  times - for every single repository added. Now, the same licence
+  has to be accepted only once (during one YaST run) (#305503).
+- Adjusted RPM dependency (md5sum binary) (#305503).
+- 2.15.79
+
+-------------------------------------------------------------------
 Wed Sep 12 16:16:08 CEST 2007 - locilka@suse.cz
 
 - Fixed evaluation of $short_language localization key in online

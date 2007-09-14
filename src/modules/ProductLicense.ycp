@@ -30,9 +30,88 @@ import "WorkflowManager";
 
 textdomain "packager";
 
+// list of already accepted licenses
+list <string> already_accepted_licenses = [];
+
+/**
+ * Creates a unique identification from filename
+ * (MD5sum + file size)
+ *
+ * @param string filename
+ * @return string unique ID
+ */
+string GetLicenseIdentString (string filename) {
+    if (! FileUtils::Exists (filename)) {
+	y2error ("License '%1' doesn't exist", filename);
+	return nil;
+    }
+
+    string ret = "";
+
+    string cmd = sformat ("md5sum '%1'", String::Quote (filename));
+    map cmd_out = (map) SCR::Execute (.target.bash_output, cmd);
+
+    if (cmd_out["exit"]:-1 != 0) {
+	y2error ("Command >%1< returned %2", cmd, cmd_out);
+	return nil;
+    }
+
+    string filemd5 = cmd_out["stdout"]:"";
+    if (regexpmatch (filemd5, "[^ \t]+[ \t]+.*$")) {
+	// Format: '19ea7ea41de37314f71c6849ddd259d5 /the/file'
+	filemd5 = regexpsub (filemd5, "^([^ \t]+)[ \t]+.*$", "\\1");
+    } else {
+	y2warning ("Strange md5out: '%1'", filemd5);
+    }
+
+    ret = sformat("%1-%2", filemd5, FileUtils::GetSize (filename));
+
+    y2milestone ("License ident for '%1' is '%2'", filename, ret);
+
+    return ret;
+}
+
+/**
+ * Checks whether the license (file) has been already accepted
+ *
+ * @param string filename
+ * @return boolean whether the license has been accepted before
+ */
+boolean IsLicenseAlreadyAccepted (string license_ident) {
+    if (license_ident == nil || license_ident == "") {
+	y2error ("Wrong license ID '%1'", license_ident);
+	return false;
+    }
+
+    return contains (already_accepted_licenses, license_ident);
+}
+
+/**
+ * Sets that the license (file) has been already accepted
+ *
+ * @param string filename
+ */
+void LicenseHasBeenAccepted (string license_ident) {
+    if (license_ident == nil || license_ident == "") {
+	y2error ("Wrong license ID '%1'", license_ident);
+	return;
+    }
+
+    y2milestone ("Adding License ID '%1' as already accepted", license_ident);
+    already_accepted_licenses = add (already_accepted_licenses, license_ident);
+}
+
+string WhichLicenceFile (string license_language, map <string, string> & licenses) {
+    string license_file = licenses[license_language]:"";
+
+    y2milestone ("Using license file: %1", license_file);
+
+    return license_file;
+}
+
 term GetLicenseContent (string lic_lang, map <string, string> & licenses) {
-	    string license_file = licenses[lic_lang]:"";
-	    y2milestone ("Using license file: %1", license_file);
+	    string license_file = WhichLicenceFile (lic_lang, licenses);
+
 	    string license_text = (string) SCR::Read(.target.string, license_file);
 	    if (license_text == nil)
 	    {
@@ -534,6 +613,35 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	return `auto;
     }
 
+    // Check whether such license hasn't been already accepted
+    // Bugzilla #305503
+    string license_ident_lang = nil;
+
+    // We need to store the oroginal -- not localized license ID (if possible)
+    foreach (string check_this, ["", "en", lic_lang], {
+	if (contains (available_langs, check_this)) {
+	    license_ident_lang = license_ident_lang;
+	    y2milestone ("Using localization '%1' (for license ID)", license_ident_lang);
+	    break;
+	}
+    });
+
+    // fallback
+    if (license_ident_lang == nil) license_ident_lang = lic_lang;
+
+    string base_license = WhichLicenceFile (license_ident_lang, licenses);
+    string license_ident = GetLicenseIdentString (base_license);
+
+    // defined, properly ($md5sum(32)-(1)$size(1..n))
+    if (license_ident != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
+	y2milestone ("License has been already accepted");
+
+	CleanUpLicense (tmpdir);
+	return `accepted;
+    } else {
+	y2milestone ("License needs to be accepted");
+    }
+
     // bugzilla #303922
     // src_id == nil (the initial product license)
     if (src_id != nil) {
@@ -687,7 +795,12 @@ product installation. Really refuse the agreement?");
 	}
     }
 
-    CleanUpLicense(tmpdir);
+    if (ret == `accepted && license_ident != nil) {
+	// store already accepted license ID
+	LicenseHasBeenAccepted (license_ident);
+    }
+
+    CleanUpLicense (tmpdir);
 
     // bugzilla #303922
     if (src_id != nil) {
