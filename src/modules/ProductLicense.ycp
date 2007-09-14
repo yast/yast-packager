@@ -620,7 +620,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     // We need to store the oroginal -- not localized license ID (if possible)
     foreach (string check_this, ["", "en", lic_lang], {
 	if (contains (available_langs, check_this)) {
-	    license_ident_lang = license_ident_lang;
+	    license_ident_lang = check_this;
 	    y2milestone ("Using localization '%1' (for license ID)", license_ident_lang);
 	    break;
 	}
