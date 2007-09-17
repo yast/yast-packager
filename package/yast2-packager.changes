@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 17 12:53:25 CEST 2007 - lslezak@suse.cz
+
+- inst_rpmcopy.ycp - check for nil result of Pkg::PkgCommit(),
+  display an error message (#293428)
+- 2.15.80
+
+-------------------------------------------------------------------
 Fri Sep 14 09:12:23 CEST 2007 - locilka@suse.cz
 
 - Fixed behavior when the same licence had to be accepted several
