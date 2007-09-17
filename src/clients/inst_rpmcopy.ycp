@@ -724,8 +724,13 @@ from the source CD to the disk cache")));
 
 	// returns [ int successful, list failed, list remaining ]
 	list commit_result = PackageInstallation::CommitPackages( current_cd_no, 0 );
-	if (size (commit_result) == 0)
+
+	if (commit_result == nil || size (commit_result) == 0)
 	{
+	    y2error("Commit failed");
+	    // TODO: use better message, this is a reused string due to text-freeze
+	    Report::Error(_("Installation of Some Packages Failed"));
+
 	    return `abort;
 	}
 
