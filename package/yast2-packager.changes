@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 24 13:49:41 CEST 2007 - lslezak@suse.cz
+
+- relese the source after it is added, allow changing the CD medium
+  in the drive (#293428)
+- 2.15.81
+
+-------------------------------------------------------------------
 Mon Sep 17 12:53:25 CEST 2007 - lslezak@suse.cz
 
 - inst_rpmcopy.ycp - check for nil result of Pkg::PkgCommit(),

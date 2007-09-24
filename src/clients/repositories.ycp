@@ -337,7 +337,10 @@ in the packages selection, continue."),
 
 	    // broken repository or wrong URL - enter the URL again
 	    if (enter_again)
+	    {
+		Pkg::SourceReleaseAll();
 		return `again;
+	    }
 
             if ( size( newSources ) == 0  )
             {
@@ -367,6 +370,10 @@ from URL '%1'."), url );
                     sourceStatesOut = add( sourceStatesOut, sourceState );
 		  }
                 } );
+
+		// relese (unmount) the medium
+		Pkg::SourceReleaseAll();
+
                 return `ok;
             }
         }
