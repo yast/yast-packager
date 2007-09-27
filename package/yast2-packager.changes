@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 27 16:20:59 CEST 2007 - lslezak@suse.cz
+
+- fixed a wrong wording in the mediacheck help text (#304677)
+
+-------------------------------------------------------------------
 Mon Sep 24 13:49:41 CEST 2007 - lslezak@suse.cz
 
 - relese the source after it is added, allow changing the CD medium

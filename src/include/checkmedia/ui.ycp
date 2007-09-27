@@ -252,7 +252,7 @@ define symbol MainDialog () {
     // help text - media check 2/7
 _("<P>When you have a problem with
 the installation and are using a CD or DVD installation medium, you should check
-whether the medium is be broken.</P>
+whether the medium is broken.</P>
 ") +
 
     // help text - media check 3/7
