@@ -17,11 +17,70 @@
 textdomain "packager";
 
 import "Installation";
+import "Mode";
+import "Stage";
 import "String";
+import "FileUtils";
 
 any ret = nil;
 string func = "";
 map param = $[];
+
+// During upgrade, old sources are reinitialized
+// either as enabled or disabled.
+// The old sources from targed should go away.
+void BackUpAllTargetSources () {
+    import "Directory";
+
+    string repos_dir = "/etc/zypp/repos.d";
+
+    if (! FileUtils::Exists (repos_dir)) {
+        y2error ("Directory %1 doesn't exist!", repos_dir);
+        return;
+    }
+
+    list <string> current_repos = (list<string>) SCR::Read (.target.dir, repos_dir);
+
+    if (current_repos == nil || size (current_repos) == 0) {
+        y2warning ("There are currently no repos in %1 conf dir", repos_dir);
+        return;
+    } else {
+        y2milestone ("These repos currently exist on a target: %1", current_repos);
+    }
+
+    map cmd = (map) WFM::Execute (.local.bash_output, "date +%Y%m%d-%H%M%S");
+    list <string> a_name_list = splitstring(cmd["stdout"]:"the_latest", "\n");
+    string archive_name = "repos_" + a_name_list[0]:"" + ".tgz";
+
+    string shellcommand = sformat (
+        "mkdir -p '%1' && cd '%1' && /bin/tar -czf '%2' '%3'",
+        String::Quote (Directory::vardir + "/repos.d_backup/"),
+        String::Quote (archive_name),
+        String::Quote (repos_dir)
+    );
+    cmd = (map) SCR::Execute (.target.bash_output, shellcommand);
+
+    if (cmd["exit"]:-1 != 0) {
+        y2error ("Unable to backup current repos; Command >%1< returned: %2",
+            shellcommand, cmd
+        );
+    }
+
+    boolean success = nil;
+
+    foreach (string one_repo, current_repos, {
+        one_repo = repos_dir + "/" + one_repo;
+        y2milestone ("Removing target repository %1", one_repo);
+        success = (boolean) SCR::Execute (.target.remove, one_repo);
+
+        if (success != true) {
+            y2error ("Cannot remove %1 file", one_repo);
+        }
+    });
+
+    y2milestone ("All old repositories were removed from the target");
+
+}
 
 /* Check arguments */
 if(size(WFM::Args()) > 0 && is(WFM::Args(0), string)) {
@@ -46,6 +105,11 @@ if (func == "Info")
 else if (func == "Write")
 {
     Pkg::SourceCacheCopyTo (Installation::destdir);
+
+    // Remove (backup) all sources not used during the update
+    if (Stage::initial() && Mode::update()) {
+	BackUpAllTargetSources();
+    }
 
     // disable all repositories and finish target
     Pkg::SourceFinishAll ();
