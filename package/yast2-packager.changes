@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Oct  3 17:42:05 CEST 2007 - locilka@suse.cz
+
+- During upgrade, old repositories are removed (they are already
+  readded either enabled or disabled during the initial stage
+  of the upgrade).
+- Before removing, repositories are backed up in
+  /var/lib/YaST2/repos.d_backup directory (both #326325).
+
+-------------------------------------------------------------------
 Thu Sep 27 16:20:59 CEST 2007 - lslezak@suse.cz
 
 - fixed a wrong wording in the mediacheck help text (#304677)
