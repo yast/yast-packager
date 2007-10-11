@@ -46,25 +46,12 @@ string GetLicenseIdentString (string filename) {
 	return nil;
     }
 
-    string ret = "";
-
-    string cmd = sformat ("md5sum '%1'", String::Quote (filename));
-    map cmd_out = (map) SCR::Execute (.target.bash_output, cmd);
-
-    if (cmd_out["exit"]:-1 != 0) {
-	y2error ("Command >%1< returned %2", cmd, cmd_out);
+    string filemd5 = FileUtils::MD5sum (filename);
+    if (filemd5 == nil) {
 	return nil;
     }
 
-    string filemd5 = cmd_out["stdout"]:"";
-    if (regexpmatch (filemd5, "[^ \t]+[ \t]+.*$")) {
-	// Format: '19ea7ea41de37314f71c6849ddd259d5 /the/file'
-	filemd5 = regexpsub (filemd5, "^([^ \t]+)[ \t]+.*$", "\\1");
-    } else {
-	y2warning ("Strange md5out: '%1'", filemd5);
-    }
-
-    ret = sformat("%1-%2", filemd5, FileUtils::GetSize (filename));
+    string ret = sformat("%1-%2", filemd5, FileUtils::GetSize (filename));
 
     y2milestone ("License ident for '%1' is '%2'", filename, ret);
 

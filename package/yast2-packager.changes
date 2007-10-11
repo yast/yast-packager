@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct 11 11:51:20 CEST 2007 - locilka@suse.cz
+
+- Using the new FileUtils::MD5sum function.
+- Adjusted RPM dependencies.
+
+-------------------------------------------------------------------
 Wed Oct  3 17:42:05 CEST 2007 - locilka@suse.cz
 
 - During upgrade, old repositories are removed (they are already
