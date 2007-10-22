@@ -3,6 +3,8 @@ Thu Oct 11 11:51:20 CEST 2007 - locilka@suse.cz
 
 - Using the new FileUtils::MD5sum function.
 - Adjusted RPM dependencies.
+- Calling inst_suse_register instead of suse_register client in
+  AddOnProduct module (#297264).
 
 -------------------------------------------------------------------
 Wed Oct  3 17:42:05 CEST 2007 - locilka@suse.cz
