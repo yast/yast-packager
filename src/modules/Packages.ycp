@@ -1224,7 +1224,7 @@ void SelectXenKernel () {
     y2milestone ("XEN Selected: %1", xen_selected);
     if (xen_selected)
     {
-	if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
+	if (contains (Kernel::GetPackages (), "kernel-pae"))
 	{
 	    y2milestone("Selected Xen kernel: kernel-xenpae");
 	    // install PAE Xen
