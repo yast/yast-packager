@@ -2,6 +2,8 @@
 Fri Oct 26 12:52:12 CEST 2007 - lslezak@suse.cz
 
 - package kernel-bigsmp has been renamed to kernel-pae
+- handle `close event (dialog closed by WM) (#335472)
+- 2.16.0
 
 -------------------------------------------------------------------
 Thu Oct 11 11:51:20 CEST 2007 - locilka@suse.cz

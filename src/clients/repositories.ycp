@@ -677,8 +677,11 @@ configuration.");
           }
         }
 	// Wizard::UserInput returns `back instead of `cancel when window is closed by WM
-        else if (input == `abort || input == `back)
+        else if (input == `abort || input == `cancel)
         {
+	    // handle cancel as abort
+	    input = `abort;
+
 	    // no change, do not confirm exit
 	    if (sourceStatesOut == sourceStatesIn)
 	    {
