@@ -804,39 +804,135 @@ string ContentFileProductLabel () {
     return (string)SCR::Read (.content.LABEL);
 }
 
-void SlideShowSetUp (integer source) {
+integer base_source_id = nil;
+
+boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_for_dir,
+    string lang_long, string lang_short, string fallback_lang) {
+    // directory used as a source of texts
+    string providedir = nil;
+
+    // one of the localizations (long or short)
+    string used_loc_dir = "";
+
+    foreach (string try_this_lang, [lang_long, lang_short, fallback_lang], {
+	if (try_this_lang == nil || try_this_lang == "")
+	    return;
+
+	string test_dir = sformat ("%1/txt/%2", search_for_dir, try_this_lang);
+	y2milestone ("Checking '%1'", test_dir);
+	providedir = Pkg::SourceProvideDirectory (source, 1, test_dir, true, true);
+
+	if (providedir != nil) {
+	    y2milestone ("%1 lang found", try_this_lang);
+	    used_loc_dir = try_this_lang;
+	    // don't check for other langs
+	    break;
+	}
+    });
+
+    // no wanted localization found
+    if (providedir == nil) {
+	y2milestone ("Neither %1 nor %2 localization found", lang_long, lang_short);
+	return false;
+    }
+
+    // where texts are stored later
+    string loc_slidedir = sformat ("%1/txt/%2/", our_slidedir, used_loc_dir);
+    WFM::Execute (.local.bash, sformat ("mkdir -p '%1'", String::Quote (loc_slidedir)));
+
+    // copy all files to our own cache
+    y2milestone ("Copying %1/* to %2", providedir, String::Quote (loc_slidedir));
+    WFM::Execute (.local.bash, sformat ("cp -r %1/* '%2'", providedir, String::Quote (loc_slidedir)));
+
+    // where images are stored
+    string imagesdir = sformat ("%1/pic", search_for_dir);
+
+    imagesdir = Pkg::SourceProvideDirectory (source, 1, imagesdir, true, true);
+
+    if (imagesdir != nil) {
+	// where images should be cached
+	string our_imagesdir = sformat ("%1/pic/", our_slidedir);
+	WFM::Execute (.local.bash, sformat ("mkdir -p '%1'", String::Quote (our_imagesdir)));
+
+	y2milestone ("Copying %1/* to '%2'", imagesdir, String::Quote (our_imagesdir));
+	WFM::Execute (.local.bash, sformat ("cp -r %1/* '%2'", imagesdir, String::Quote (our_imagesdir)));
+    } else {
+	y2error ("No such dir: %1", imagesdir);
+    }
+
+    return true;
+}
+
+global void SlideShowSetUp (string wanted_language) {
+    integer source = base_source_id;
+
+    string lang_long = "";
+    string lang_short = "";
+
+    // de_DE.UTF-8 -> de_DE
+    // es_ES       -> es_ES
+    // blah        -> ""
+    if (wanted_language != nil && wanted_language != "") {
+	y2milestone ("Selected language: %1", wanted_language);
+
+	if (regexpmatch (wanted_language, "^.+_.+$")) {
+	    lang_long = wanted_language;
+	} else if (wanted_language != nil && wanted_language != "" && regexpmatch (wanted_language, "^.+_.+\..*$")) {
+	    lang_long = regexpsub (wanted_language, "^(.+)_(.+)\..*", "\\1_\\2");
+	}
+
+	if (lang_long != nil && lang_long != "" && regexpmatch (lang_long, ".*_.*")) {
+	    lang_short = regexpsub (lang_long, "(.*)_.*", "\\1");
+	} else if (wanted_language != nil && wanted_language != "") {
+	    lang_short = wanted_language;
+	}
+
+	y2milestone ("Slide Show lang_long: %1, lang_short: %2", lang_long, lang_short);
+    } else {
+	y2error ("Wrong language definition: %1", wanted_language);
+    }
+
     // setup slidedir
     map productmap = Pkg::SourceProductData (source);
     string datadir = productmap["datadir"]:"suse";
 
+    // target slideshow directory
+    string our_slidedir = sformat ("%1/slidedir/", (string) WFM::Read (.local.tmpdir, ""));
+    WFM::Execute (.local.bash, sformat ("mkdir -p '%1'", our_slidedir));
+
     // media directory
     // bugzilla #305097
+    //
+    // bugzilla #326327
+    // try to download only slides that are needed (by selected language)
+    // no images are cached
     string search_for_dir = sformat ("/%1/setup/slide/", datadir);
-    string slidedir = Pkg::SourceProvideDirectory (source, 1, search_for_dir, true, true);
+    boolean success = FindAndCopySlideDir (our_slidedir, source, search_for_dir, lang_long, lang_short, SlideShow::fallback_lang);
 
-    // target slideshow directory
-    string our_slidedir = (string) WFM::Read (.local.tmpdir, "");
+    // fallback solution disabled
+/*
+    if (success != true) {
+	y2milestone ("Using fallback solution, language is not supported");
+	string fallback_slidedir = Pkg::SourceProvideDirectory (source, 1, search_for_dir, true, true);
 
-    if (slidedir == nil) {
-	y2milestone ("No slide directory '%1' found in repository '%2'.",
-	    search_for_dir, source);
-    } else {
-	// copy all files to our own copy
-	y2milestone ("Copying %1/* to %2/", slidedir, our_slidedir);
-
-	WFM::Execute (.local.bash,
-	    sformat ("cp -r %1/* %2/", slidedir, our_slidedir)) ;
+	if (fallback_slidedir == nil) {
+	    y2milestone ("No slide directory '%1' found in repository '%2'.",
+		search_for_dir, source);
+	} else {
+	    // copy all files to our own cache
+	    y2milestone ("Copying %1/* to %2/", fallback_slidedir, String::Quote (our_slidedir));
+	    WFM::Execute (.local.bash, sformat ("cp -r %1/* '%2/'", fallback_slidedir, String::Quote (our_slidedir)));
+	}
     }
-    y2milestone ("Setting up the slide directory local copy: %1",
-	our_slidedir);
+*/
 
+    y2milestone ("Setting up the slide directory local copy: %1", our_slidedir);
     SlideShow::SetSlideDir (our_slidedir);
 
     if (load_release_notes (source))
     {
 	SlideShow::relnotes = media_prefix + media_text;
     }
-
 }
 
 integer IntegrateServicePack (boolean show_popup, string base_url) {
@@ -974,7 +1070,8 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 		}
 	    }
 
-	    SlideShowSetUp (initial_source);
+	    base_source_id = initial_source;
+	    y2milestone ("Base source ID: %1", base_source_id);
 
 	    // Set the product before setting up add-on products
 	    // In the autoyast mode it could be that the proposal
@@ -1224,7 +1321,7 @@ void SelectXenKernel () {
     y2milestone ("XEN Selected: %1", xen_selected);
     if (xen_selected)
     {
-	if (contains (Kernel::GetPackages (), "kernel-pae"))
+	if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
 	{
 	    y2milestone("Selected Xen kernel: kernel-xenpae");
 	    // install PAE Xen

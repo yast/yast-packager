@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 30 09:29:39 CET 2007 - locilka@suse.cz
+
+- Downloading only one localized slideshow (with 'en' localization
+  as a fallback) instead of downloading the whole directory with
+  slides (#326327).
+
+-------------------------------------------------------------------
 Fri Oct 26 12:52:12 CEST 2007 - lslezak@suse.cz
 
 - package kernel-bigsmp has been renamed to kernel-pae
