@@ -846,6 +846,9 @@ from the source CD to the disk cache")));
     // bugzilla #208222
     ReleaseHDDUsedAsInstallationSource();
 
+    // bugzilla #326327
+    Packages::SlideShowSetUp (Language::language);
+
     Pkg::SetTextLocale (Language::language);
 
     SlideShow::SetLanguage (Language::language);

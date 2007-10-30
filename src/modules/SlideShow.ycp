@@ -19,6 +19,7 @@
     import "Stage";
     import "String";
     import "Wizard";
+    import "FileUtils";
 
     global list<list<integer> > total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
     global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
@@ -58,6 +59,7 @@
 
     global string	slide_txt_path		= "";
     global string	slide_pic_path		= "";
+    global string	fallback_lang		= "en";
     global integer	slide_interval		= slide_min_interval;
     global list<string> slides			= [];
     global string	language		= Language::language;
@@ -399,8 +401,12 @@
      **/
     list<string> GetSlideList( string lang )
     {
+	list<string> slide_list = nil;
+
 	string txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
-	list<string> slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+	if (FileUtils::Exists (txt_path)) {
+	    slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+	}
 
 	if ( slide_list == nil )
 	{
@@ -409,7 +415,10 @@
 	    {
 		lang = substring( lang, 0, 2 );
 		txt_path = sformat( "%1/txt/%2", slide_base_path, lang );
-		slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+
+		if (FileUtils::Exists (txt_path)) {
+		    slide_list = (list<string>) SCR::Read (.target.dir, txt_path );
+		}
 	    }
 	}
 
@@ -419,6 +428,8 @@
 	}
 	else
 	{
+	    y2milestone ("Using slides from '%1' (%2 slides)", txt_path, size (slide_list));
+
 	    slide_list = sort( filter( string filename, slide_list, ``{
 		// Check for valid extensions - ignore editor save files and other leftover stuff
 		return regexpmatch( filename, ".*\.(rtf|RTF|html|HTML|htm|HTM)$" );
@@ -431,15 +442,18 @@
 	{
 	    slide_txt_path	= txt_path;
 	    slide_pic_path	= slide_base_path + "/pic";
+
+	    y2milestone ("Using TXT: %1, PIC: %2", slide_txt_path, slide_pic_path);
 	}
 	else							// No slide texts found
 	{
 	    y2debug( "No slides found at %1", txt_path );
 
-	    if ( lang != "en" )
+	    // function calls itself!
+	    if ( lang != fallback_lang )
 	    {
-		y2debug( "Trying to load slides from fallback: en" );
-		slide_list = GetSlideList( "en" );
+		y2debug( "Trying to load slides from fallback: %1", fallback_lang );
+		slide_list = GetSlideList( fallback_lang );
 	    }
 	}
 
