@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Oct 31 14:13:07 CET 2007 - locilka@suse.cz
+
+- installedVersion and updateVersion moved from 'Update' to
+  'Installation' YCP module to remove dependencies.
+- Removed support for converting inittab from SUSE Linux 7.0 and
+  older during upgrade.
+- 2.16.1
+
+-------------------------------------------------------------------
 Tue Oct 30 09:29:39 CET 2007 - locilka@suse.cz
 
 - Downloading only one localized slideshow (with 'en' localization
