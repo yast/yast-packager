@@ -12,7 +12,6 @@
     textdomain "packager";
 
     import "HTML";
-    import "Update";
     import "Mode";
     import "Language";
     import "Packages";

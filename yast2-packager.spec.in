@@ -3,7 +3,9 @@
 
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2-devtools yast2-testsuite yast2-slp
-BuildRequires:	yast2 >= 2.16.2
+
+# Installation::installedVersion && Installation::updateVersion
+BuildRequires:	yast2 >= 2.16.4
 
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings
