@@ -26,6 +26,7 @@
     import "Arch";
     import "FileUtils";
     import "String";
+    import "Update";
 
 void AcpiToInitrd () {
     if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
@@ -290,7 +291,7 @@ void XenPVToInitrd()
      */
     define boolean LocalCommand (string command) {
 	map cmd = (map) WFM::Execute (.local.bash_output, command);
-	y2milestone (sformat ("Command %1 returned: %1", command, cmd));
+	y2milestone ("Command %1 returned: %2", command, cmd);
 
 	if (cmd["exit"]:-1 == 0) {
 	    return true;
