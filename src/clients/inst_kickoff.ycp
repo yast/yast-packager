@@ -26,7 +26,6 @@
     import "Arch";
     import "FileUtils";
     import "String";
-    import "Update";
 
 void AcpiToInitrd () {
     if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
@@ -104,12 +103,12 @@ void XenPVToInitrd()
      */
     define void backup_stuff () ``{
 
-	if (Update::backup_modified)
+	if (Installation::update_backup_modified)
 	{
 	    Pkg::CreateBackups (true);
-	    Pkg::SetBackupPath (Update::backup_path);
+	    Pkg::SetBackupPath (Installation::update_backup_path);
 	    SCR::Write (.target.string, Installation::destdir + "/var/lib/YaST2/backup_path",
-			Update::backup_path);
+			Installation::update_backup_path);
 	}
 	else
 	{
@@ -117,10 +116,10 @@ void XenPVToInitrd()
 	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/backup_path");
 	}
 
-	if (Update::remove_old_backups)
+	if (Installation::update_remove_old_backups)
 	{
 	    SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
-			    "/bin/rm -f " + Update::backup_path + "/*-*-*.tar.{gz,bz2}");
+			    "/bin/rm -f " + Installation::update_backup_path + "/*-*-*.tar.{gz,bz2}");
 	}
 
 	if (true)
@@ -134,7 +133,7 @@ void XenPVToInitrd()
 
 	    while (num < 42)
 	    {
-		filename = Update::backup_path + "/YaST2-" + date + "-" +
+		filename = Installation::update_backup_path + "/YaST2-" + date + "-" +
 		    sformat ("%1", num) + ".tar.gz";
 		if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
 		    break;
@@ -156,7 +155,7 @@ void XenPVToInitrd()
 	    }
 	}
 
-	if (Update::backup_sysconfig)
+	if (Installation::update_backup_sysconfig)
 	{
 	    string date = timestring ("%Y%m%d", time(), false);
 
@@ -169,7 +168,7 @@ void XenPVToInitrd()
 
 		while (num < 42)
 		{
-		    filename = Update::backup_path + "/etc.sysconfig-" + date + "-" +
+		    filename = Installation::update_backup_path + "/etc.sysconfig-" + date + "-" +
 			sformat ("%1", num) + ".tar.gz";
 		    if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
 			break;
@@ -195,7 +194,7 @@ void XenPVToInitrd()
 
 		while (num < 42)
 		{
-		    filename = Update::backup_path + "/etc.rc.config-" + date + "-" +
+		    filename = Installation::update_backup_path + "/etc.rc.config-" + date + "-" +
 			sformat ("%1", num) + ".tar.gz";
 		    if (SCR::Read (.target.size, Installation::destdir + filename) == -1)
 			break;
@@ -368,7 +367,7 @@ void XenPVToInitrd()
             string kernel = Kernel::ComputePackage ();
             Kernel::SetInformAboutKernelChange(Pkg::IsSelected (kernel));
 
-            SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);
+            SCR::Execute (.target.mkdir, Installation::destdir + Installation::update_backup_path);
             backup_stuff ();
 	    createmdadm();
         }
@@ -379,7 +378,7 @@ void XenPVToInitrd()
 
             // make some directories
             SCR::Execute (.target.mkdir, Installation::destdir + Directory::logdir);
-            SCR::Execute (.target.mkdir, Installation::destdir + Update::backup_path);
+            SCR::Execute (.target.mkdir, Installation::destdir + Installation::update_backup_path);
 
             // backup some stuff
             backup_stuff ();
