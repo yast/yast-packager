@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov  2 17:22:16 CET 2007 - locilka@suse.cz
+
+- Removed dependency on yast2-bootloader, Bootloader::PreUpdate()
+  does nothing.
+
+-------------------------------------------------------------------
 Thu Nov  1 16:41:52 CET 2007 - locilka@suse.cz
 
 - Update/backup-related variables were moved from Update::* to
