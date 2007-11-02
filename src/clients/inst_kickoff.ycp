@@ -19,7 +19,6 @@
     import "Popup";
     import "Directory";
     import "ModuleLoading";
-    import "Bootloader";
     import "DirInstall";
     import "Initrd";
     import "Kernel";
@@ -403,7 +402,8 @@ void XenPVToInitrd()
 
             // perform actions needed by various bootloaders before packages
             // get updated
-            Bootloader::PreUpdate ();
+            // Bootloader::PreUpdate ();
+	    // -- this function call does NOTHING!
         }
 	AcpiToInitrd ();
     }
