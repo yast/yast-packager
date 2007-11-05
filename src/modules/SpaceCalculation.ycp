@@ -100,8 +100,8 @@
 
         if (Installation::dirinstall_installing_into_dir)
         {
-            target = GetDirMountPoint(DirInstall::GetTarget(), partition );
-	    y2milestone("Installing into a directory, target directory: %1, target mount point: %2", DirInstall::GetTarget(), target);
+            target = GetDirMountPoint(Installation::dirinstall_target, partition );
+	    y2milestone("Installing into a directory, target directory: %1, target mount point: %2", Installation::dirinstall_target, target);
         }
 
 	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
@@ -125,7 +125,7 @@
 		    mountName = "/" + mountName;
 		}
 
-		string dir_target = DirInstall::GetTarget();
+		string dir_target = Installation::dirinstall_target;
 
 		y2debug("mountName: %1, dir_target: %2", mountName, dir_target);
 

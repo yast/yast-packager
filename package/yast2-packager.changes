@@ -3,6 +3,7 @@ Mon Nov  5 11:23:33 CET 2007 - locilka@suse.cz
 
 - Part of the package content has been moved to a new package
   yast2-dirinstall.
+- Fixed (added) generation of autodocs.
 - 2.16.3
 
 -------------------------------------------------------------------
