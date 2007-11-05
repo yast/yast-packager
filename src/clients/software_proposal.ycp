@@ -14,8 +14,8 @@
     textdomain "packager";
 
     import "Packages";
-    import "DirInstall";
     import "Language";
+    import "Installation";
 
     string func  = (string) WFM::Args(0);
     map    param = (map) WFM::Args(1);
@@ -29,15 +29,15 @@
 	boolean reinit = false;
 	boolean partition_changed = false;
 
-	if (DirInstall::installing_into_dir)
+	if (Installation::dirinstall_installing_into_dir)
 	{
 	    // check the target directory in dirinstall mode
-	    if ( Packages::timestamp != DirInstall::GetTargetChangeTime() )
+	    if ( Packages::timestamp != Installation::dirinstall_target_time )
 	    {
 		partition_changed = true;
 	    }
 	    // save information about target change time in module Packages
-	    Packages::timestamp = DirInstall::GetTargetChangeTime();
+	    Packages::timestamp = Installation::dirinstall_target_time;
 	}
 	else
 	{
