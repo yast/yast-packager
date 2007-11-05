@@ -31,13 +31,13 @@ import "String";
 import "Popup";
 import "Label";
 import "Wizard";
-import "DirInstall";
 import "PackageCallbacksInit";
 import "Product";
 import "DefaultDesktop";
 import "SourceDialogs";
 import "FileUtils";
 import "PackageCallbacks";
+import "Installation";
 
 include "packager/load_release_notes.ycp";
 
@@ -149,7 +149,7 @@ global list<string> ListSelected (symbol what, string format) {
  */
 global string CountSizeToBeInstalled () {
     integer sz = 0;
-    if (! Mode::installation () && !DirInstall::installing_into_dir )
+    if (! Mode::installation () && !Installation::dirinstall_installing_into_dir )
     {
 	list<string> packages = Pkg::GetPackages (`selected, true);
 	foreach (string p, packages, {
