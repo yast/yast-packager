@@ -19,7 +19,6 @@
     import "Popup";
     import "Directory";
     import "ModuleLoading";
-    import "DirInstall";
     import "Initrd";
     import "Kernel";
     import "Arch";
@@ -336,7 +335,7 @@ void XenPVToInitrd()
 	SCR::Execute(.target.mkdir, Installation::destdir + Directory::logdir);
 
 	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
-        if (DirInstall::installing_into_dir)
+        if (Installation::dirinstall_installing_into_dir)
         {
             string template_dir= "/var/adm/fillup-templates";
             // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl

@@ -30,7 +30,6 @@
     import "SlideShowCallbacks";
     import "AutoinstSoftware";
     import "Popup";
-    import "DirInstall";
     import "Report";
     import "Kernel";
     import "Service";
@@ -829,7 +828,7 @@ from the source CD to the disk cache")));
 	    ret["current_cd_no"]  = 0;
 	    ret["maxnumbercds"]   = 0;
 	    y2milestone("StartingAndMaxMediaNumber: Stage cont %1/%2", ret["current_cd_no"]:nil, ret["maxnumbercds"]:nil);
-	} else if (DirInstall::installing_into_dir) {
+	} else if (Installation::dirinstall_installing_into_dir) {
 	    // All in one
 	    ret["current_cd_no"]  = 0; // was 1
 	    ret["maxnumbercds"]   = 0; // was 10
