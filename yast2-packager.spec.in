@@ -2,7 +2,7 @@
 
 
 @HEADER@
-BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel update-desktop-files yast2-devtools yast2-testsuite yast2-slp
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
 
 # Installation::installedVersion && Installation::updateVersion
 # Update::* moved to Installation::update_*
@@ -61,16 +61,12 @@ Summary:	-
 %files
 %defattr(-,root,root)
 %dir @yncludedir@/checkmedia
-%dir @yncludedir@/dirinstall
 %dir @yncludedir@/packager
 @yncludedir@/checkmedia/*
-@yncludedir@/dirinstall/*
 @yncludedir@/packager/*
 @clientdir@/*.ycp
 @moduledir@/*
 @desktopdir@/*.desktop
 @scrconfdir@/*
 @execcompdir@/servers_non_y2/ag_*
-%dir /usr/share/YaST2/control
-/usr/share/YaST2/control/*.xml
 %doc @docdir@

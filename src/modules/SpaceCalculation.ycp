@@ -23,7 +23,6 @@
     import "ProductFeatures";
     import "Report";
     import "String";
-    import "DirInstall";
     import "Stage";
 
     boolean info_called = false;	// list partition_info already initialized?
@@ -99,7 +98,7 @@
 	// filter out headline and other invalid entries
 	partition = filter( map<string, string> part, partition, ``( substring ( part["name"]:"", 0, 1 ) == "/" ) );
 
-        if (DirInstall::installing_into_dir)
+        if (Installation::dirinstall_installing_into_dir)
         {
             target = GetDirMountPoint(DirInstall::GetTarget(), partition );
 	    y2milestone("Installing into a directory, target directory: %1, target mount point: %2", DirInstall::GetTarget(), target);
@@ -119,7 +118,7 @@
 	    string mountName = part["name"]:"";
 	    string spec = part["spec"]:"";
 
-	    if (DirInstall::installing_into_dir)
+	    if (Installation::dirinstall_installing_into_dir)
 	    {
 		if (substring(mountName, 0, 1) != "/")
 		{

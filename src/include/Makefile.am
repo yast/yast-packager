@@ -2,7 +2,7 @@
 # Makefile.am for packager/src
 #
 
-SUBDIRS = checkmedia dirinstall
+SUBDIRS = checkmedia
 yncludedir = @yncludedir@/packager
 
 ynclude_DATA =			\

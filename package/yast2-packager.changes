@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov  5 11:23:33 CET 2007 - locilka@suse.cz
+
+- Part of the package content has been moved to a new package
+  yast2-dirinstall.
+- 2.16.3
+
+-------------------------------------------------------------------
 Fri Nov  2 17:22:16 CET 2007 - locilka@suse.cz
 
 - Removed dependency on yast2-bootloader, Bootloader::PreUpdate()
