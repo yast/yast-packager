@@ -28,7 +28,6 @@
     import "Packages";
     import "SlideShow";
     import "SlideShowCallbacks";
-    import "AutoinstSoftware";
     import "Popup";
     import "Report";
     import "Kernel";
@@ -37,6 +36,7 @@
     import "Linuxrc";
     import "String";
     import "FileUtils";
+    import "AutoinstData";
 
     include "packager/storage_include.ycp";
 
@@ -688,10 +688,8 @@ from the source CD to the disk cache")));
     }
 
     void AutoinstPostPackages () {
-	import "AutoinstSoftware";
-
 	// post packages from autoinstall
-	map <string, any> res = Pkg::DoProvide (AutoinstSoftware::post_packages);
+	map <string, any> res = Pkg::DoProvide (AutoinstData::post_packages);
 	if (size (res) > 0)
 	{
 	    foreach (string s, any a, res, ``{
@@ -815,7 +813,7 @@ from the source CD to the disk cache")));
 	// ZYPP should solve what it needs and when.
 	// Leaving it here as the backward compatibility if someone decides to change it back.
 
-	} else if (Mode::autoinst () && Stage::cont () && size( AutoinstSoftware::post_packages ) > 0) {
+	} else if (Mode::autoinst () && Stage::cont () && size( AutoinstData::post_packages ) > 0) {
 	    // one more compatibility feature to old YaST, post-packages
 	    // Simply install a list of package after initial installation (only
 	    // makes sense with nfs installatons)
