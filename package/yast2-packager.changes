@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov  7 12:48:52 CET 2007 - locilka@suse.cz
+
+- AutoinstSoftware::post_packages moved to
+  AutoinstData::post_packages to break cyclic dependencies.
+- 2.16.4
+
+-------------------------------------------------------------------
 Mon Nov  5 11:23:33 CET 2007 - locilka@suse.cz
 
 - Part of the package content has been moved to a new package
