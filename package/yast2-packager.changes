@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov  8 16:53:48 CET 2007 - locilka@suse.cz
+
+- Extended AskLicenseAgreement function not to skip already
+  accepted license if such behavior requested (because of 'going
+  back' in the installation workflow).
+
+-------------------------------------------------------------------
 Wed Nov  7 12:48:52 CET 2007 - locilka@suse.cz
 
 - AutoinstSoftware::post_packages moved to

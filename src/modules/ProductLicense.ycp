@@ -544,10 +544,13 @@ void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
  * @param boolean enable_back sets the back_button status
  * @param boolean base_product defines whether it is a base or add-on product
  *   true means base product, false add-on product
+ * @param require_agreement means that even if the license (or the very same license)
+ *   has been already accepetd, ask user to accept it again (because of 'going back'
+ *   in the installation proposal).
  */
 global symbol AskLicenseAgreement (integer src_id, string dir,
     list<string> patterns, string action, boolean enable_back,
-    boolean base_product)
+    boolean base_product, boolean require_agreement)
 {
     string lic_lang = "";
     map <string, string> licenses = $[];
@@ -619,8 +622,9 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     string base_license = WhichLicenceFile (license_ident_lang, licenses);
     string license_ident = GetLicenseIdentString (base_license);
 
+    // agreement might be required even if license has been already accepted
     // defined, properly ($md5sum(32)-(1)$size(1..n))
-    if (license_ident != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
+    if (require_agreement != true && license_ident != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
 	y2milestone ("License has been already accepted");
 
 	CleanUpLicense (tmpdir);
@@ -802,7 +806,7 @@ global symbol AskAddOnLicenseAgreement (integer src_id) {
 	[ "license\\.txt", "license\\.%1\\.txt" ],
 	"abort",
 	// back button is disabled
-	false, false);
+	false, false, false);
 }
 
 global symbol AskFirstStageLicenseAgreement (string action) {
@@ -817,13 +821,13 @@ global symbol AskFirstStageLicenseAgreement (string action) {
 	[ "license\\.txt", "license\\.%1\\.txt" ],
 	action,
 	// back button is enabled
-	enable_back, true);
+	enable_back, true, true);
 }
 
 global symbol AskInstalledLicenseAgreement (string directory,
     list<string> patterns, string action)
 {
-    return AskLicenseAgreement (nil, directory, patterns, action, false, true);
+    return AskLicenseAgreement (nil, directory, patterns, action, false, true, false);
 
 }
 
