@@ -604,7 +604,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     // Bugzilla #305503
     string license_ident_lang = nil;
 
-    // We need to store the oroginal -- not localized license ID (if possible)
+    // We need to store the original -- not localized license ID (if possible)
     foreach (string check_this, ["", "en", lic_lang], {
 	if (contains (available_langs, check_this)) {
 	    license_ident_lang = check_this;
