@@ -20,7 +20,8 @@ Requires:	yast2-pkg-bindings >= 2.15.38
 
 # FileUtils::MD5sum
 # AutoinstData
-Requires:	yast2 >= 2.16.8
+# ag_anyxml moved there
+Requires:	yast2 >= 2.16.11
 
 # unzipping license file
 Requires:	unzip
