@@ -427,6 +427,7 @@ string label = _("It is recommended to check all installation media to avoid ins
 		    boolean aborted = false;
 		    while(loop)
 		    {
+			loop = CheckMedia::Running();
 			CheckMedia::Process();
 
 			integer progress = CheckMedia::Progress();
@@ -447,8 +448,6 @@ string label = _("It is recommended to check all installation media to avoid ins
 			}
 
 			symbol ui = (symbol)UI::PollInput();
-
-			loop = CheckMedia::Running();
 
 			if (ui == `stop || ui == `cancel)
 			{
