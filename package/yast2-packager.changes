@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 19 14:07:08 CET 2007 - lslezak@suse.cz
+
+- checkmedia: always print the result of the check - fixed a race
+  condition (#309003)
+- 2.16.6
+
+-------------------------------------------------------------------
 Fri Nov 16 11:00:34 CET 2007 - locilka@suse.cz
 
 - SCR agent for any_XML has been moved from yast2-packager-2.16.5
