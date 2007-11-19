@@ -28,6 +28,7 @@ import "String";
 import "Stage";
 import "PackageSystem";
 import "GetInstArgs";
+import "Directory";
 
 define list<term> CDdevices(string preferred) {
     list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
@@ -72,7 +73,8 @@ define list<string> TranslateInfo(list<string> info) {
 
 		map<string,string> trasmap = $[
 		    // rich text message, %1 = CD identification
-		    "app" : ("<BIG><B>%1</B></BIG>"),
+		    "app" : "<IMG SRC=\"" + Directory::themedir + "/current/icons/22x22/apps/yast-checkmedia.png\">&nbsp;&nbsp;&nbsp;"
+			+ _("<BIG><B>%1</B></BIG>"),
 		    // rich text message, %1 medium number, e.g. CD1,CD2...
 		    "media" : _("<UL><LI>Medium: %1</LI></UL>"),
 		    // rich text message, %1 = size of the medium
@@ -80,7 +82,7 @@ define list<string> TranslateInfo(list<string> info) {
 		    // rich text message, %1 = result of the check
 		    "check" : _("<UL><LI>Result: %1</LI></UL>"),
 		    // rich text -  error message
-		    "not an iso" : _("The drive does not contain a medium or the ISO file system is broken.")
+		    "not an iso" : "<FONT COLOR=red>" + _("The drive does not contain a medium or the ISO file system is broken.") + "</FONT>"
 		];
 
 		if (key == "check")
@@ -90,12 +92,12 @@ define list<string> TranslateInfo(list<string> info) {
 		    if (val == "md5sum ok")
 		    {
 			// result of the check - success
-			val = _("<B>OK</B>");
+			val = "<FONT COLOR=\"dark green\">" + _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>";
 		    }
 		    else if (val == "md5sum wrong")
 		    {
 			// wrong MD5
-			val = _("<B>Error</B> -- MD5 sum does not match<BR>This medium should not be used.");
+			val = "<FONT COLOR=red>" + _("<B>Error</B> -- MD5 sum does not match<BR>This medium should not be used.") + "</FONT>";
 		    }
 		    else if (val == "md5sum not checked")
 		    {
@@ -366,7 +368,7 @@ string label = _("It is recommended to check all installation media\nto avoid in
 		if (res != 0)
 		{
 		    // error message: the medium cannot be read or no medium in the drive; %1 = drive, e.g. /dev/hdc
-		    LogLine(sformat(_("Cannot read medium in the drive %1."), selecteddrive));
+		    LogLine("<FONT COLOR=red>" + sformat(_("Cannot read medium in the drive %1."), selecteddrive) + "</FONT>");
 		}
 		else
 		{

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 19 15:43:04 CET 2007 - lslezak@suse.cz
+
+- checkmedia: colorize the output to make the result (esp. errors)
+  more visible (part of #309003)
+- 2.16.7
+
+-------------------------------------------------------------------
 Mon Nov 19 14:07:08 CET 2007 - lslezak@suse.cz
 
 - checkmedia: always print the result of the check - fixed a race
