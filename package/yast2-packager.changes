@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 19 14:07:08 CET 2007 - lslezak@suse.cz
+
+- checkmedia: always print the result of the check - fixed a race
+  condition (#248935)
+- 2.13.176
+
+-------------------------------------------------------------------
 Fri Jul 20 13:35:31 CEST 2007 - locilka@suse.cz
 
 - Added support for relative URLs in add_on_products file
