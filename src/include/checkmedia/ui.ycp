@@ -30,6 +30,12 @@ import "PackageSystem";
 import "GetInstArgs";
 import "Directory";
 
+// selected input file (used when checking a file instead of physical CD/DVD medium)
+string iso_filename = "";
+
+// checking file (ISO image) instead of a medium is in progress
+boolean checking_file = false;
+
 define list<term> CDdevices(string preferred) {
     list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
     list<term> ret = [];
@@ -74,7 +80,7 @@ define list<string> TranslateInfo(list<string> info) {
 		map<string,string> trasmap = $[
 		    // rich text message, %1 = CD identification
 		    "app" : "<IMG SRC=\"" + Directory::themedir + "/current/icons/22x22/apps/yast-checkmedia.png\">&nbsp;&nbsp;&nbsp;"
-			+ _("<BIG><B>%1</B></BIG>"),
+			+ _("<BIG><B>%1</B></BIG>") + (checking_file ? sformat("  (%1)", iso_filename) : ""),
 		    // rich text message, %1 medium number, e.g. CD1,CD2...
 		    "media" : _("<UL><LI>Medium: %1</LI></UL>"),
 		    // rich text message, %1 = size of the medium
@@ -133,6 +139,24 @@ define list<string> TranslateInfo(list<string> info) {
     y2milestone("Translated info: %1", ret);
 
     return ret;
+}
+
+// does the medium contain MD5 checksum in the application area?
+boolean md5sumTagPresent(string input)
+{
+    string command = sformat("dd if=%1 bs=1 skip=33651 count=512", input);
+
+    map res = (map)SCR::Execute(.target.bash_output, command);
+
+    if (res["exit"]:-1 != 0)
+    {
+	y2warning("command failed: %1", command);
+	return nil;
+    }
+
+    y2milestone("Read application area: %1", res["stdout"]:"");
+
+    return regexpmatch(res["stdout"]:"", "md5sum=");
 }
 
 // mount CD drive and check whether there is directory 'media.1' (the first medium) and 'boot' (bootable product CD)
@@ -258,10 +282,10 @@ whether the medium is broken.</P>
 ") +
 
     // help text - media check 3/7
-_("<P>Select a drive, insert a medium into the drive, and press <B>Start Check</B>
-to perform the check. The check can take several minutes depending on
-speed of the drive and size of the medium. The check verifies the MD5 checksum.</P>
-") +
+_("<P>Select a drive, insert a medium into the drive or press <B>Start Check</B>
+or use <B>Check ISO File</B> and select an ISO file.
+The check can take several minutes depending on speed of the
+drive and size of the medium. The check verifies the MD5 checksum.</P> ") +
 
     // help text - media check 4/7
 _("<P>If the check of the medium fails, you should not continue the installation.
@@ -290,7 +314,22 @@ string label = _("It is recommended to check all installation media\nto avoid in
 	// combobox label
 	CheckMedia::forced_start ? `VBox(`Left(`Label(label)), `VSpacing(0.6)) : `Empty(),
 	// combo box
-	`Left(`ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive))),
+	`HBox(
+	    `ComboBox(`id(`cddevices), _("&CD or DVD Drive"), CDdevices(CheckMedia::preferred_drive)),
+	    `VBox(
+		// empty label for aligning the widgets
+		`Label(""),
+		// push button label
+		`PushButton(`id(`start), _("&Start Check"))
+	    ),
+	    `HStretch(),
+	    `VBox(
+		// empty label for aligning the widgets
+		`Label(""),
+		// push button label
+		`PushButton(`id(`iso_file), _("Check ISO File..."))
+	    )
+	),
 	`VSpacing(0.4),
 	// widget label
 	`Left(`Label(_("Status Information"))),
@@ -298,15 +337,9 @@ string label = _("It is recommended to check all installation media\nto avoid in
 	`VSpacing(0.4),
 	// progress bar label
 	`ProgressBar(`id(`progress), _("Progress")),
-	`VSpacing(1),
-	`HBox(
-	    // push button label
-	    `PushButton(`id(`start), _("&Start Check")),
-	    `HSpacing(2),
-	    // push button label
-	    `PushButton(`id(`stop), Label::CancelButton())
-	)//,
-//	`VSpacing(1)
+	`VSpacing(0.4),
+	// push button label
+	`PushButton(`id(`stop), Label::CancelButton())
     );
 
     Wizard::SetContents(caption,
@@ -349,9 +382,27 @@ string label = _("It is recommended to check all installation media\nto avoid in
 		break;
 	    }
 	}
-	else if (ret == `start)
+	else if (ret == `start || ret == `iso_file)
 	{
-	    string selecteddrive = (string)UI::QueryWidget(`id(`cddevices), `Value);
+	    string selecteddrive = "";
+
+	    checking_file = (ret == `iso_file);
+
+	    if (checking_file)
+	    {
+		// window title - open file dialog
+		selecteddrive = UI::AskForExistingFile(iso_filename, "*.iso", _("Select an ISO File to Check"));
+
+		// remember for the next run
+		if (selecteddrive != nil)
+		{
+		    iso_filename = selecteddrive;
+		}
+	    }
+	    else
+	    {
+		selecteddrive = (string)UI::QueryWidget(`id(`cddevices), `Value);
+	    }
 
 	    if (selecteddrive != nil && selecteddrive != "")
 	    {
@@ -372,6 +423,17 @@ string label = _("It is recommended to check all installation media\nto avoid in
 		}
 		else
 		{
+		    if (md5sumTagPresent(selecteddrive) == false)
+		    {
+			if (!Popup::ContinueCancel(_("The medium does not contain MD5 checksum.
+The content of the medium cannot be verified.
+
+Only readability of the medium will be checked.")))
+			{
+			    continue;
+			}
+		    }
+
 		    CheckMedia::Start(selecteddrive);
 
 		    boolean loop = true;

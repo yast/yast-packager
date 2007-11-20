@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 20 10:40:30 CET 2007 - lslezak@suse.cz
+
+- checkmedia: added support for checking ISO files, display
+  a warning if the medium doesn't contain MD5 checksum in the
+  application area
+
+-------------------------------------------------------------------
 Mon Nov 19 15:43:04 CET 2007 - lslezak@suse.cz
 
 - checkmedia: colorize the output to make the result (esp. errors)
