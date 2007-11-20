@@ -38,6 +38,7 @@ import "SourceDialogs";
 import "FileUtils";
 import "PackageCallbacks";
 import "Installation";
+import "URL";
 
 include "packager/load_release_notes.ycp";
 
@@ -186,7 +187,7 @@ global integer CountSizeToBeDownloaded() {
     foreach(integer repo, repos,
 	{
 	    string url = Pkg::SourceGeneralData(repo)["url"]:"";
-	    string scheme = URL::Parse()["scheme"]:"";
+	    string scheme = URL::Parse(url)["scheme"]:"";
 
 	    if (tolower(scheme) == "http" || tolower(scheme) == "ftp")
 	    {
@@ -205,20 +206,23 @@ global integer CountSizeToBeDownloaded() {
 
     list<string> packages = Pkg::GetPackages (`selected, true);
 
-    foreach (string p, packages, {
-	list<map> properties = Pkg::ResolvablePropertiesEx(p, `package, "");
+    foreach (string p, packages,
+	{
+	    list<map> properties = Pkg::ResolvableProperties(p, `package, "");
 
-	foreach(map prop, properties,
-	    {
-		// the package is selected for installation
-		if (prop["status"] == `selected && contains(remote_repos, prop["source"]:-1))
+	    foreach(map prop, properties,
 		{
-		    y2debug("Found remote package %1-%2 (%3) from repository %4", p, prop["version"]:"", prop["download_size"]:0, prop["source"]:-1);
+		    // the package is selected for installation
+		    if (prop["status"]:`unknown == `selected && contains(remote_repos, prop["source"]:-1))
+		    {
+			y2debug("Found remote package %1-%2 (%3) from repository %4", p, prop["version"]:"", prop["download_size"]:0, prop["source"]:-1);
 
-		    ret = ret + prop["download_size"]:0;
+			ret = ret + prop["download_size"]:0;
+		    }
 		}
-	    }
-	);
+	    );
+	}
+    );
 
     y2milestone("Total size of packages to download: %1 (%2 B)", String::FormatSizeWithPrecision(ret, 1, true), ret);
 
@@ -289,8 +293,7 @@ global list<string> SummaryOutput (list<symbol> flags) {
 		// installation proposal - SW summary, %1 is download size of the selected packages
 		// which will be installed from an ftp or http repository (in MB or GB)
 		sformat (_("Size of Packages to Download: %1"),
-		    return String::FormatSizeWithPrecision(download_size, 1, true);
-		)
+		    String::FormatSizeWithPrecision(download_size, 1, true))
 	    );
 	}
     }
