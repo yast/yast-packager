@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 20 13:04:37 CET 2007 - lslezak@suse.cz
+
+- fixed a missing import and syntax errors in Packages.ycp
+- 2.16.9
+
+-------------------------------------------------------------------
 Tue Nov 20 10:40:30 CET 2007 - lslezak@suse.cz
 
 - checkmedia: added support for checking ISO files, display
