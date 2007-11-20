@@ -4,6 +4,10 @@ Tue Nov 20 10:40:30 CET 2007 - lslezak@suse.cz
 - checkmedia: added support for checking ISO files, display
   a warning if the medium doesn't contain MD5 checksum in the
   application area
+- display the total download size from http and ftp repositories
+  in the installation proposal (#331538)
+- describe the items in the SW proposal
+- 2.16.8
 
 -------------------------------------------------------------------
 Mon Nov 19 15:43:04 CET 2007 - lslezak@suse.cz

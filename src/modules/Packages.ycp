@@ -170,6 +170,62 @@ global string CountSizeToBeInstalled () {
 }
 
 /**
+ * Count the total size of packages to be installed
+ * @return string formatted size of packages to be installed
+ */
+global integer CountSizeToBeDownloaded() {
+    integer ret = 0;
+
+    // get list of remote repositories
+    // consider only http and ftp protocols as remote
+
+    // all enabled sources
+    list<integer> repos = Pkg::SourceGetCurrent(true);
+    list<integer> remote_repos = [];
+
+    foreach(integer repo, repos,
+	{
+	    string url = Pkg::SourceGeneralData(repo)["url"]:"";
+	    string scheme = URL::Parse()["scheme"]:"";
+
+	    if (tolower(scheme) == "http" || tolower(scheme) == "ftp")
+	    {
+		y2milestone("Found remote repository %1: %2", repo, url);
+		remote_repos = add(remote_repos, repo);
+	    }
+	}
+    );
+
+    // shortcut, no remote repository found
+    if (size(remote_repos) == 0)
+    {
+	y2milestone("No remote repository found");
+	return 0;
+    }
+
+    list<string> packages = Pkg::GetPackages (`selected, true);
+
+    foreach (string p, packages, {
+	list<map> properties = Pkg::ResolvablePropertiesEx(p, `package, "");
+
+	foreach(map prop, properties,
+	    {
+		// the package is selected for installation
+		if (prop["status"] == `selected && contains(remote_repos, prop["source"]:-1))
+		{
+		    y2debug("Found remote package %1-%2 (%3) from repository %4", p, prop["version"]:"", prop["download_size"]:0, prop["source"]:-1);
+
+		    ret = ret + prop["download_size"]:0;
+		}
+	    }
+	);
+
+    y2milestone("Total size of packages to download: %1 (%2 B)", String::FormatSizeWithPrecision(ret, 1, true), ret);
+
+    return ret;
+}
+
+/**
  * Return information about suboptimal distribution if relevant
  * @return string the information string or empty string
  */
@@ -206,9 +262,12 @@ global string InfoAboutSubOptimalDistribution () {
 global list<string> SummaryOutput (list<symbol> flags) {
     list<string> output = [ InfoAboutSubOptimalDistribution () ];
     if (contains (flags, `product))
-	output = (list<string>)merge (output, ListSelected (`product, ""));
+	// installation proposal - SW summary, %1 is name of the installed product
+	// (e.g. openSUSE 10.3, SUSE Linux Enterprise ...)
+	output = (list<string>)merge (output, ListSelected (`product, _("Product: %1")));
     if (contains (flags, `desktop))
-	output = (list<string>)add (output, DefaultDesktop::Description ());
+	// installation proposal - SW summary, %1 is name of the selected desktop (e.g. KDE)
+	output = (list<string>)add (output, sformat(_("Desktop: %1"), DefaultDesktop::Description ()));
     if (contains (flags, `pattern))
 	output = (list<string>)
 	    merge (output, ListSelected (`pattern, "+  %1"));
@@ -216,10 +275,25 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	output = (list<string>)
 	    merge (output, ListSelected (`selection, "+  %1"));
     if (contains (flags, `size))
+    {
 	output = (list<string>)add (output,
-	    // part of summary, %1 is size of packages (in MB or GB)
+	    // installation proposal - SW summary, %1 is size of the selected packages (in MB or GB)
 	    sformat (_("Size of Packages to Install: %1"),
 		CountSizeToBeInstalled ()));
+
+	// add download size
+	integer download_size = CountSizeToBeDownloaded();
+	if (download_size > 0)
+	{
+	    output = (list<string>)add (output,
+		// installation proposal - SW summary, %1 is download size of the selected packages
+		// which will be installed from an ftp or http repository (in MB or GB)
+		sformat (_("Size of Packages to Download: %1"),
+		    return String::FormatSizeWithPrecision(download_size, 1, true);
+		)
+	    );
+	}
+    }
 
     output = filter (string o, output, {
 	return o != "" && o != nil;
