@@ -80,6 +80,7 @@
     import "OneClickInstallStandard";
     import "Language";
     import "String";
+    import "URL";
 
     include "installation/misc.ycp";
 
@@ -256,6 +257,27 @@ Would you like to configure it?"),
     }
 
     /**
+     * Removes slashes from the end of the URL (or just string).
+     * Needed to fix bug #329629.
+     */
+    string NormalizeURL (string url_string) {
+        if (url_string == nil || url_string == "")
+            return url_string;
+
+        if (regexpmatch (url_string, "/+$")) {
+            url_string = regexpsub (url_string, "(.*)/+$", "\\1");
+        }
+
+	// URL is escaped
+	if (regexpmatch (url_string, "%")) {
+	    // unescape it
+	    url_string = URL::UnEscapeString (url_string, URL::transform_map_filename);
+	}
+
+        return url_string;
+    }
+
+    /**
      * Returns whether this URL/Path is already added as a source
      * -1 == not added
      * 0 or 1 or 2 ... or 'n' means 'added as source $id'
@@ -271,7 +293,11 @@ Would you like to configure it?"),
 
 	integer ret = -1;
 
+	s_url = NormalizeURL (s_url);
+
 	foreach (map one_add_on, AddOnProduct::add_on_products, {
+	    one_add_on["media_url"] = NormalizeURL (one_add_on["media_url"]:"");
+
 	    if (one_add_on["media_url"]:nil == s_url && one_add_on["product_dir"]:nil == s_path) {
 		ret = one_add_on["media"]:-1;
 		break;
