@@ -106,6 +106,17 @@
             i = i + 1;
         }
 
+	// add broken sources to the table
+	list<string> brokenSources = Pkg::SourceGetBrokenSources();
+	foreach(string alias, brokenSources,
+	    {
+		// table item - replacement for broken sources (instead of URL)
+		term table_item = `item(`id(i), "", "", alias, _("*** Broken Source ***"));
+		items = add(items , table_item);
+		i = i + 1;
+	    }
+	);
+
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
@@ -308,7 +319,7 @@ symbol SummaryDialog () {
     term contents =
         `VBox(
 	      `HBox(
-		    `Table( `id( `table ),/* `opt( `keepSorting ),*/
+		    `Table(`id(`table),`opt(`notify, `immediate),
 				// table header
 			    `header( _("Status"),
 				// table header
@@ -334,7 +345,7 @@ symbol SummaryDialog () {
 			Label::DeleteButton ()),
 		    `HStretch (),
 		    // menu button label
-		    `MenuButton (`opt(`key_F6), _("Source Settings"), [
+		    `MenuButton (`id(`menu_button), `opt(`key_F6), _("Source Settings"), [
 			`item(`id(`enable), enableButtonLabel),
 			`item(`id(`refresh_on_off), refreshOnOffButtonLabel),
 			`item(`id(`refresh), refreshButtonLabel ),
@@ -473,9 +484,15 @@ All changes will be lost.");
 
             map<string, any> sourceState = sourceStatesOut[ current ]:$[];
             integer id = sourceState[ "SrcId" ]:-1;
-            
-            if ( id < 0 ) {
-              y2internal( "Unable to determine source id" );
+
+	    boolean id_found = (id >= 0);
+	    // disable edit buttons for broken sources
+	    UI::ChangeWidget (`id (`replace), `Enabled, id_found);
+	    UI::ChangeWidget (`id (`menu_button), `Enabled, id_found);
+	    UI::ChangeWidget (`id (`delete), `Enabled, id_found);
+
+            if ( id < 0) {
+              y2internal("Unable to determine source id, broken source?");
               continue;
             }
 
@@ -510,25 +527,13 @@ All changes will be lost.");
             {
 		Pkg::SourceRefreshNow (id);
 		fillTable ();
-/*                map generalData = Pkg::SourceGeneralData( id );
-                string url = generalData[ "url" ]:"";
-
-                do {
-                    // url = editUrl( url );
-                    if ( size( url ) == 0 ) break;
-                    deleteSource( current );
-                    createResult = createSource( url );
-                    if ( createResult == `ok ) {
-			fillTable();
-                    }
-                } while ( createResult == `again );*/
             }
             else if ( input == `delete )
             {
 		// yes-no popup
                 if ( Popup::YesNo( _("Delete the selected catalog from the list?") ) )
                 {
-                    deleteSource( current );
+		     deleteSource( current );
                     fillTable();
                 }
             }
@@ -653,16 +658,17 @@ if( ! restore )
 {
     // #210514 (L3): unconditionally removing the sources is BAD.
     // Usually it is just a temporary error because of misconfigured proxy.
-    boolean cleanup = Popup::AnyQuestion( // [1]
+    boolean cleanup = Popup::AnyQuestionRichText( // [1]
 	Label::ErrorMsg(),
 	// Error popup (part 1)
-	_("There were errors when restoring the source configuration.
+	"<p>" + _("There were errors when restoring the source configuration.
 Not all sources are available for configuration.
-") + Pkg::LastError() + "\n\n" +
+") + "</p><p>" + Pkg::LastError() + "</p>" +
 	// Error popup (part 2): Yes/No question.
 	// "immediately" is important: because of stupid design [2],
 	// they will be removed even if the user then chooses Abort :(
-	_("Do you want to immediately remove these sources?"),
+	"<p>" + _("Do you want to immediately remove these sources?") + "</p>",
+	50, 15,
 	Label::YesButton(), Label::NoButton(), `focus_no);
     // Notes irrelevant for translators:
     // [1]: we want the focus on "No"; Popup::YesNo is too specialized

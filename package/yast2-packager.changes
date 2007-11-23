@@ -2,6 +2,11 @@
 Fri Nov 23 10:25:46 CET 2007 - lslezak@suse.cz
 
 - allow to change name (alias) of a source (FATE #300645)
+- inst_source.ycp - display broken sources in the overview dialog
+  (#285580)
+- use RichText widget in the broken source popup window (make the
+  message scrollable)
+- 2.13.177
 
 -------------------------------------------------------------------
 Mon Nov 19 14:07:08 CET 2007 - lslezak@suse.cz
