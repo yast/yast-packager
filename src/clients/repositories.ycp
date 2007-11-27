@@ -56,6 +56,49 @@
 
     boolean download_meta = true;
 
+    void RemoveDeletedAddNewRepos () {
+	list<map<string,any> > ret = [];
+
+	list <integer> current_sources = Pkg::SourceGetCurrent (false);
+	list <integer> known_repos = [];
+	list <integer> deleted_repos = [];
+
+	// sources deleted during this script run
+	foreach (map<string,any> one_source, sourceStatesIn, {
+	    integer src_id = tointeger (one_source["SrcId"]:nil);
+	    if (src_id != nil) deleted_repos = add (deleted_repos, src_id);
+	});
+
+	// sources is a copy of sourceStatesOut
+	foreach (map<string,any> one_source, sourceStatesOut, {
+	    integer src_id = tointeger (one_source["SrcId"]:nil);
+
+	    if (contains (current_sources, src_id)) {
+		if (src_id != nil) known_repos = add (known_repos, src_id);
+		ret = add (ret, one_source);
+	    } else {
+		y2milestone ("Source %1 has been removed already", one_source);
+	    }
+	});
+
+	foreach (integer one_srcid, current_sources, {
+	    // already known repository
+	    if (contains (known_repos, one_srcid)) return;
+	    // already deleted repository
+	    if (contains (deleted_repos, one_srcid)) return;
+
+	    // repository has been added recently (by some external functionality
+	    // that doesn't use these internal variables)
+	    map <string,any> generalData = Pkg::SourceGeneralData (one_srcid);
+	    generalData["enabled"] = true;
+	    generalData["SrcId"] = one_srcid;
+	    y2milestone ("New repository found: %1", generalData);
+	    ret = add (ret, generalData);
+	});
+
+	sourceStatesOut = ret;
+    }
+
     /**
         Create a table item from a map as returned by the InstSrcManager agent.
         @param source The map describing the source as returned form the agent.
@@ -110,6 +153,10 @@
     define void fillTable() ``{
 	y2milestone ("Filling repository table");
         list items = [];
+
+	// because Online Repositories / Community Repositories don't use
+	// these internal data maps
+	RemoveDeletedAddNewRepos();
 
         numSources = size( sourceStatesOut );
 
@@ -411,8 +458,10 @@ from URL '%1'."), url );
     define void deleteSource( integer index ) ``{
 	integer srcid = sourceStatesOut[index, "SrcId"]:-1;
 
-	if( srcid != -1)
-		sourcesToDelete = add( sourcesToDelete, srcid );
+	if (srcid != -1) {
+	    sourcesToDelete = add (sourcesToDelete, srcid);
+	    SourceManager::just_removed_sources = add (SourceManager::just_removed_sources, srcid);
+	}
 
         sourceStatesOut = remove( sourceStatesOut, index );
     }
@@ -611,7 +660,7 @@ to also perform the changes in that package management system.</p>
 
     Wizard::SetNextButton(`next, Label::FinishButton() );
     Wizard::SetContents(title, contents, help_text, false, true);
-    Wizard::HideBackButton();
+    Wizard::DisableBackButton();
 
     fillTable();
     fillCurrentRepoInfo();
@@ -912,6 +961,13 @@ without having %1 package installed"),
 	{
 	    url = service;
 	}
+    }
+    else if (url == "commrepos://")
+    {
+	any commrepos = WFM::call ("inst_productsources", [$["skip_already_used_repos":true]]);
+	y2milestone ("Community Repositories returned: %1", commrepos);
+
+	return `next;
     }
 
     if (createSource(url, download_meta, name) == `again)

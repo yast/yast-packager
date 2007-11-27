@@ -54,6 +54,10 @@ global map url_tokens = $[];
 
 global string currentUrl = "";
 
+// Sources that are removed in memory but still not in libzypp
+// They will be removed in Write() at the end
+global list <integer> just_removed_sources = [];
+
 /**
  * Prototypes
  */

@@ -69,6 +69,7 @@
     import "Report";
     import "CommandLine";
     import "PackageCallbacks";
+    import "SourceManager";
 
     import "FileUtils";
     import "HTTP";
@@ -95,15 +96,32 @@
     }
 
     list args = WFM::Args();
-    y2milestone("args: %1", args);
+    y2milestone("Script args: %1", args);
+
+    // similar to commandline mode but actually it's called from another YaST script
+    map script_noncmdline_args = $[];
+
+    if (is (args[0]:$[], map)) {
+	script_noncmdline_args = (map) args[0]:$[];
+    }
     
-    if (Mode::normal() && size (args)>0) {
+    if (Mode::normal() && size (args)>0 && size(script_noncmdline_args)==0) {
 	CommandLine::Run ($["id":"inst_productsources"]);
 	return `auto;
     }
 
     // (Applicable only in inst-sys)
     boolean preselect_recommended = true;
+
+    boolean skip_already_used_repos = false;
+
+    boolean script_called_from_another = false;
+
+    if (script_noncmdline_args["skip_already_used_repos"]:nil == true) {
+	y2milestone ("Already used repos will be hidden");
+	skip_already_used_repos = true;
+	script_called_from_another = true;
+    }
 
     string main_link = "";
 
@@ -303,6 +321,11 @@ Would you like to configure it?"),
 		break;
 	    }
 	});
+
+	if (contains (SourceManager::just_removed_sources, ret)) {
+	    y2milestone ("Just deleted: %1", ret);
+	    ret = -1;
+	}
 
 	return ret;
     }
@@ -837,6 +860,15 @@ or no repositories defined."));
 	    if (src_id > -1) {
 		repos_already_used[repo_id] = src_id;
 		already_used = true;
+
+		// in some modes, it's required to hide alerady used repos
+		if (skip_already_used_repos) {
+		    if (contains (SourceManager::just_removed_sources, src_id)) {
+			y2milestone ("Not skipping repo %1, known as removed ID %2", repo_id, src_id);
+		    } else {
+			return;
+		    }
+		}
 	    // repository has been already selected
 	    } else if (IsSelectedInDialog (repo_id)) {
 		already_used = true;
@@ -1081,14 +1113,21 @@ select those you want and click <b>Finish</b>.</p>
 ")
 	    ) +
 	    // TRANSLATORS: dialog help 3/3
-	    _("<p>To remove a used repository, just deselect it.</p>"),
+	    (skip_already_used_repos != true ? _("<p>To remove a used repository, just deselect it.</p>"):""),
 	    (Mode::installation() ? GetInstArgs::enable_back():false),
 	    (Mode::installation() ? GetInstArgs::enable_next():true)
 	);
 	Wizard::SetTitleIcon ("yast-sw_source");
+
 	if (! Stage::initial()) {
 	    Wizard::DisableBackButton();
-	    Wizard::SetNextButton (`next, Label::FinishButton());
+
+	    if (script_called_from_another) {
+		Wizard::SetAbortButton (`cancel, Label::CancelButton());
+		Wizard::SetNextButton (`next, Label::AcceptButton());
+	    } else {
+		Wizard::SetNextButton (`next, Label::FinishButton());
+	    }
 	}
 	
 	repos_already_used = $[];
@@ -1114,12 +1153,16 @@ select those you want and click <b>Finish</b>.</p>
 		if (Stage::initial()) {
 		    if (Popup::ConfirmAbort (`painless)) break;
 		} else {
-		    if (Popup::ContinueCancelHeadline (
+		    if (script_called_from_another) {
+			break;
+		    } else if (Popup::ContinueCancelHeadline (
 			// TRANSLATORS: popup header
 			_("Aborting Configuration of Online Repository"),
 			// TRANSLATORS: popup question
 			_("Are you sure you want to abort the configuration?")
-		    )) break;
+		    )) {
+			break;
+		    }
 		}
 	    } else if (dialog_ret == "addon_repos") {
 		PrintRepositoryDescription();
@@ -1131,6 +1174,7 @@ select those you want and click <b>Finish</b>.</p>
 	}
 
 	Wizard::EnableBackButton();
+	Wizard::RestoreAbortButton();
 
 	return (symbol) dialog_ret;
     }
@@ -1234,7 +1278,11 @@ select those you want and click <b>Finish</b>.</p>
 	// add unselected repository to 'repos_to_be_deleted'
 	// remove already selected repository from 'repos_to_be_used'
 
-	foreach (string id_used, integer src_id, repos_already_used, {
+	// Currently, Mode::normal doesn't show already used repos
+	// (when 'skip_already_used_repos' is 'true')
+	// and thus doesn't support removing them
+	if (skip_already_used_repos != true) {
+	  foreach (string id_used, integer src_id, repos_already_used, {
 	    // was used, but isn't anymore
 	    if (! contains (repos_to_be_used, id_used)) {
 		repos_to_be_deleted = add (repos_to_be_deleted, src_id);
@@ -1246,7 +1294,8 @@ select those you want and click <b>Finish</b>.</p>
 		    return (id_used != id_already_used);
 		});
 	    }
-	});
+	  });
+	}
 
 	//y2milestone ("WillBeDeleted: %1", repos_to_be_deleted);
 	//y2milestone ("WillBeUsed: %1", repos_to_be_used);
@@ -1281,6 +1330,11 @@ select those you want and click <b>Finish</b>.</p>
 		    GetLocalizedString (repo_id, ["name", "url"])
 		));
 	    });
+	}
+
+	if (size (actions_todo) == 0) {
+	    y2milestone ("Nothing to do...");
+	    return `next;
 	}
 
 	Progress::New (
