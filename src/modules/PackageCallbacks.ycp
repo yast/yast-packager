@@ -26,6 +26,7 @@
     import "CommandLine";
     import "String";
     import "Report";
+    import "Icon";
 
     global boolean _provide_popup = false;
     global boolean _source_popup = false;
@@ -143,7 +144,12 @@
 	term dialog_layout =  `VBox(
 				    `HSpacing(50),	// enforce width
 				    `VSpacing(0.1),
-				    `Left(`Label( message)),
+				    `HBox (
+					// maybe more icon types could be used
+					// "info, "warning", "error"
+					Icon::Image ("warning", $["margin_right":2]),
+					`Left(`Label( message))
+				    ),
 				    `VSpacing(0.1),
 				    `Left(`CheckBox(`id(`show), `opt(`notify),
 						    // check box
