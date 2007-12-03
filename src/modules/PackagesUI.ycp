@@ -88,11 +88,6 @@
 			`VSpacing (size_y),
 			`RichText (`id (`lic), license)
 		    ),
-		    // FATE #302018
-		    // TRANSLATORS: Licenses to confirm can be found here.
-		    // do not use more than 76 characters per line, keep it as short as possible
-		    `Left(`Label (_("If you like to print this license,
-check the EULA.txt file on the first media."))),
 		    `VSpacing(1),
 		    `HBox (
 			`PushButton (`id (`help), Label::HelpButton ()),

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec  3 13:48:25 CET 2007 - locilka@suse.cz
+
+- Removed "If you like to print this license..." (#327542).
+
+-------------------------------------------------------------------
 Tue Nov 27 13:50:39 CET 2007 - locilka@suse.cz
 
 - Module 'Community Repositories' merged into 'Repositories'. It's
