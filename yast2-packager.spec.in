@@ -7,7 +7,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml perl-XML-Writer u
 # Installation::installedVersion && Installation::updateVersion
 # Update::* moved to Installation::update_*
 # AutoinstData
-BuildRequires:	yast2 >= 2.16.8
+# Module Icon
+BuildRequires:	yast2 >= 2.16.16
 
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings
@@ -21,7 +22,8 @@ Requires:	yast2-pkg-bindings >= 2.15.38
 # FileUtils::MD5sum
 # AutoinstData
 # ag_anyxml moved there
-Requires:	yast2 >= 2.16.11
+# Module Icon
+Requires:	yast2 >= 2.16.16
 
 # unzipping license file
 Requires:	unzip
