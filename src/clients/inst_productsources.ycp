@@ -340,9 +340,8 @@ Would you like to configure it?"),
 	if (!PackageLock::Check()) return false;
 
 	Pkg::TargetInitialize (Installation::destdir);
-	// not necessary
-	// Pkg::TargetLoad();
-	Pkg::SourceStartManager (true);
+	// the fastest way
+	Pkg::SourceRestore();
 
 	if (! Mode::installation()) {
 	    // repos_already_used
@@ -571,14 +570,20 @@ Would you like to configure it?"),
 		_("Downloading list of online repositories..."),
 	];
 
+	list <string> icons_for_progress = [
+	    "yast-network.png",
+	    "yast-restore.png",
+	];
+
 	if (! Stage::initial()) {
 	    // TRANSLATORS: progress step
 	    actions_todo = add (actions_todo, _("Initialize the repository manager"));
 	    // TRANSLATORS: progress step
 	    actions_doing = add (actions_doing, _("Initializing the repository manager..."));
+	    icons_for_progress = add (icons_for_progress, "yast-sw_source.png");
 	}
 
-	Progress::New (
+	Progress::NewProgressIcons (
 	    // TRANSLATORS: dialog caption
 	    _("Reading List of Online Repositories"),
 	    " ",
@@ -588,7 +593,8 @@ Would you like to configure it?"),
 	    // TRANSLATORS: dialog help
 	    _("<p>Please wait while the packager is being initialized
 and the list of servers dowloaded from Web.</p>
-")
+"),
+	    [icons_for_progress]
 	);
 	Wizard::SetTitleIcon ("yast-network");
 
