@@ -27,6 +27,8 @@
     import "String";
     import "Report";
     import "Icon";
+    import "Wizard";
+    import "Progress";
 
     global boolean _provide_popup = false;
     global boolean _source_popup = false;
@@ -88,6 +90,13 @@
 	return progressbox;
     }
 
+    boolean FullScreen()
+    {
+	boolean ret = UI::WidgetExists(`subprogress_replace_point);
+	y2debug("Running in fullscreen mode: %1", ret);
+	return ret;
+    }
+
     /** at start of file providal
      *
      */
@@ -106,10 +115,19 @@
 		    UI::CloseDialog();
 		}
 
-		// popup heading
-		term providebox = ProgressBox (_("Downloading Package"), name, sz);
-		UI::OpenDialog(providebox);
-		_provide_popup = true;
+		if (FullScreen())
+		{
+		    //FIXME
+		    Progress::SubprogressType(`progress, archivesize);
+		    Progress::SubprogressTitle("");
+		}
+		else
+		{
+		    // popup heading
+		    term providebox = ProgressBox (_("Downloading Package"), name, sz);
+		    UI::OpenDialog(providebox);
+		    _provide_popup = true;
+		}
 	    }
 	}
 	return true;
@@ -583,40 +601,33 @@ the YaST control center and refresh the repository.</p>\n");
 	{
 	    // use only product name for network repository
 	    // there is no medium 1, 2, ...
-	    if (url_scheme != "cd" && url_scheme != "dvd")
+	    if (double_sided)
 	    {
-		// label for a network repository - %1 product name (e.g. openSUSE 10.2), %2 medium number (e.g. 2)
-		wanted_label = sformat(_("%1 (Medium Number %2)"), product, wanted);
+		// media is double sided, we want the user to insert the 'Side A' of the media
+		// the complete string will be "<product> <media> <number>, <side>"
+		// e.g. "'SuSE Linux 9.0' DVD 1, Side A"
+		string side = _("Side A");
+		if ((wanted & 1) == 0)
+		{
+		    // media is double sided, we want the user to insert the 'Side B' of the media
+		    side = _("Side B");
+		}
+		wanted = (wanted + 1) >> 1;
+		wanted_label = (tolower(url_scheme) == "cd" || tolower(url_scheme) == "dvd") ?
+		    // label for a repository - %1 product name (e.g. "openSUSE 10.2"), %2 medium number (e.g. 2)
+		    // %3 side (e.g. "Side A")
+		    sformat("%1 (Disc %2, %3)", product, wanted, side)
+		    // label for a repository - %1 product name (e.g. "openSUSE 10.2"), %2 medium number (e.g. 2)
+		    // %3 side (e.g. "Side A")
+		    : sformat("%1 (Medium %2, %3)", product, wanted, side);
 	    }
 	    else
 	    {
-		// will be used in conjunction with other text below
-		// prompt for user to insert the correct CD/DVD
-		string medianame = "DVD ";
-
-		if (url_scheme == "cd")
-		{
-		    medianame = "CD ";
-		}
-
-		string mediaside = sformat ("%1", (medianame + wanted));
-
-		if (double_sided)
-		{
-		    // media is double sided, we want the user to insert the 'Side A' of the media
-		    // the complete string will be "<product> <media> <number>, <side>"
-		    // e.g. "'SuSE Linux 9.0' DVD 1, Side A"
-		    string side = _("Side A");
-		    if ((wanted & 1) == 0)
-		    {
-			// media is double sided, we want the user to insert the 'Side B' of the media
-			side = _("Side B");
-		    }
-		    wanted = (wanted + 1) >> 1;
-		    mediaside = sformat ("%1", (medianame + wanted)) + ", " + side;
-		}
-
-		wanted_label = sformat ("%1 %2", product, mediaside);
+		wanted_label = (tolower(url_scheme) == "cd" || tolower(url_scheme) == "dvd") ?
+		    // label for a repository - %1 product name (e.g. openSUSE 10.2), %2 medium number (e.g. 2)
+		    sformat(_("%1 (Disc %2)"), product, wanted)
+		    // label for a repository - %1 product name (e.g. openSUSE 10.2), %2 medium number (e.g. 2)
+		    : sformat(_("%1 (Medium %2)"), product, wanted);
 	    }
 	}
 
@@ -1538,7 +1549,11 @@ global void SourceReportDestroy()
     {
 	if (!Mode::commandline())
 	{
-	    if (!IsDownloadProgressPopup())
+	    if (FullScreen())
+	    {
+		Progress::SubprogressTitle(task);
+	    }
+	    else if (!IsDownloadProgressPopup())
 	    {
 		// heading of popup
 		string heading = _("Downloading");
@@ -1563,15 +1578,17 @@ global void SourceReportDestroy()
 					      )
 				       )
 				);
+		UI::ChangeWidget (`id(`progress), `Value, 0);
 	    }
-
-	    UI::ChangeWidget (`id(`progress), `Value, 0);
 	}
     }
 
     global void DestDownload()
     {
-	CloseDownloadProgressPopup();
+	if (!FullScreen())
+	{
+	    CloseDownloadProgressPopup();
+	}
     }
 
     global void StartDownload (string url, string localfile)
@@ -1598,6 +1615,12 @@ global void SourceReportDestroy()
 		UI::ChangeWidget(`id(`progress), `Label, message);
 		UI::ChangeWidget (`id(`progress), `Value, 0);
 	    }
+	    else if (FullScreen())
+	    {
+		Progress::SubprogressType(`progress, 100);
+		Progress::SubprogressTitle(message);
+		Progress::SubprogressValue(0);
+	    }
 	}
     }
 
@@ -1616,7 +1639,15 @@ global void SourceReportDestroy()
 	    }
 	}
 	else {
-	    UI::ChangeWidget (`id(`progress), `Value, percent);
+	    if (FullScreen())
+	    {
+		Progress::SubprogressValue(percent);
+	    }
+	    else
+	    {
+		UI::ChangeWidget (`id(`progress), `Value, percent);
+	    }
+
 	    return UI::PollInput () != `abort;
 	}
     }
@@ -1652,9 +1683,11 @@ global void SourceReportDestroy()
 
     global void ClearDownloadCallbacks ()
     {
+	Pkg::CallbackInitDownload ("");
 	Pkg::CallbackStartDownload ("");
 	Pkg::CallbackProgressDownload ("");
 	Pkg::CallbackDoneDownload ("");
+	Pkg::CallbackDestDownload ("");
     }
 
 
@@ -1829,27 +1862,34 @@ global void StartScanDb()
     }
     else
     {
-	UI::OpenDialog(
-	    `VBox(
-		`HSpacing(60),
-		// popup heading
-		`Heading(`id(`label_scanDB_popup), `opt(`hstretch), _("Reading Installed Packages")),
-		`HBox(
-		    // progress bar label
-		    `ProgressBar (`id (`progress), _("Scanning RPM Database..."), 100, 0),
-		    `HSpacing(1)
-/* TODO: allow Abort
-		    ,
-		    `VBox(
-			`Label(""),
-			`PushButton(`id(`abort), Label::AbortButton())
+	if (!FullScreen())
+	{
+	    UI::OpenDialog(
+		`VBox(
+		    `HSpacing(60),
+		    // popup heading
+		    `Heading(`id(`label_scanDB_popup), `opt(`hstretch), _("Reading Installed Packages")),
+		    `HBox(
+			// progress bar label
+			`ProgressBar (`id (`progress), _("Scanning RPM Database..."), 100, 0),
+			`HSpacing(1)
+    /* TODO: allow Abort
+			,
+			`VBox(
+			    `Label(""),
+			    `PushButton(`id(`abort), Label::AbortButton())
+			)
+    */
 		    )
-*/
 		)
-	    )
-	);
+	    );
 
-	_scan_popup = true;
+	    _scan_popup = true;
+	}
+	else
+	{
+	    Progress::Title(_("Scanning RPM Database..."));
+	}
     }
 }
 
@@ -1875,6 +1915,10 @@ global boolean ProgressScanDb(integer value)
 	    }
 
 	    return cont;
+	}
+	else if (FullScreen())
+	{
+	    Progress::Step(value);
 	}
     }
 
@@ -1995,7 +2039,7 @@ global void DoneScanDb(integer error, string description)
 	    UI::CloseDialog();
 	    _scan_popup = false;
 	}
-	else
+	else if (!FullScreen())
 	{
 	    y2error("The toplevel dialog is not a scan DB popup!");
 	}
@@ -2074,6 +2118,9 @@ boolean IsProgressPopup()
       UI::WidgetExists(`id(`callback_progress_popup));
 }
 
+// ProgressStart/End events may be nested, remember the types of progresses 
+list<map> progress_stack = [];
+
 global void ProgressStart(integer id, string task, boolean in_percent, boolean is_alive, integer min, integer max, integer val_raw, integer val_percent)
 {
     y2milestone ("ProgressStart: %1", id);
@@ -2089,41 +2136,53 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
     }
     else
     {
-	if (IsProgressPopup())
+	symbol subprogress_type = (tick_progress) ? `tick : `progress;
+	progress_stack = add(progress_stack, $[ "type" : subprogress_type, "task" : task ]);
+
+	if (IsProgressPopup() && size(progress_stack) <= 1)
 	{
 	    // huh, the popup is already there?
+	    y2warning("Progress popup already opened...");
 	    UI::CloseDialog();
 	}
 
-        term progressw = `Empty();
-        if ( UI::GetDisplayInfo()["HasAnimationSupport"]:false )
-        {
-          progressw = `HVCenter(`MinSize( _tick_movie_x, _tick_movie_y, `ReplacePoint(`id(`rp_progress), `Image(`id (`progress_widget), `opt(`animated), _tick_movie, "progress_widget" ))));
-        }
-        else
-        {
-          string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
-          progressw = `ReplacePoint(`id(`rp_progress), `Label(`id(`progress_widget), label));
-        }
+	if (FullScreen())
+	{
+	    Progress::SubprogressType(subprogress_type, 100);
+	    Progress::SubprogressTitle(task);
+	}
+	else
+	{
+	    term progressw = `Empty();
+	    if ( UI::GetDisplayInfo()["HasAnimationSupport"]:false )
+	    {
+	      progressw = `HVCenter(`MinSize( _tick_movie_x, _tick_movie_y, `ReplacePoint(`id(`rp_progress), `Image(`id (`progress_widget), `opt(`animated), _tick_movie, "progress_widget" ))));
+	    }
+	    else
+	    {
+	      string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
+	      progressw = `ReplacePoint(`id(`rp_progress), `Label(`id(`progress_widget), label));
+	    }
 
-	UI::OpenDialog(
-	    `HBox(
-		`HSpacing(1),
-		`VBox(
-		    `VSpacing(0.5),
-		    `HSpacing(`id(`callback_progress_popup), max_size),
-		    (in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
-			: `VBox(
-			    `Label(task),
-			    progressw
-			),
-		    `VSpacing(0.2),
-		    `PushButton (`id (`abort), Label::AbortButton ()),
-		    `VSpacing(0.5)
-		),
-		`HSpacing(1)
-	    )
-	);
+	    UI::OpenDialog(
+		`HBox(
+		    `HSpacing(1),
+		    `VBox(
+			`VSpacing(0.5),
+			`HSpacing(`id(`callback_progress_popup), max_size),
+			(in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
+			    : `VBox(
+				`Label(task),
+				progressw
+			    ),
+			`VSpacing(0.2),
+			`PushButton (`id (`abort), Label::AbortButton ()),
+			`VSpacing(0.5)
+		    ),
+		    `HSpacing(1)
+		)
+	    );
+	}
 
 	tick_time = 0;
     }
@@ -2133,9 +2192,31 @@ global void ProgressEnd(integer id)
 {
     y2milestone("ProgressFinish: %1", id);
 
+    // remove the last element from the progress stack
+    progress_stack = remove(progress_stack, size(progress_stack) - 1);
+
     if (!Mode::commandline() && IsProgressPopup())
     {
-	UI::CloseDialog();
+	if (size(progress_stack) == 0)
+	{
+	    UI::CloseDialog();
+	}
+    }
+    else if (FullScreen())
+    {
+	symbol progress_type = `none;
+	if (size(progress_stack) > 0)
+	{
+	    progress_type = progress_stack[size(progress_stack) - 1, "type"]:`none;
+	}
+
+	Progress::SubprogressType(progress_type, 100);
+
+	if (size(progress_stack) > 0)
+	{
+	    string task = progress_stack[size(progress_stack) - 1, "task"]:"";
+	    Progress::SubprogressTitle(task);
+	}
     }
 }
 
@@ -2206,9 +2287,79 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
 		return false;
 	    }
 	}
+	else if (FullScreen())
+	{
+	    // fullscreen callbacks
+	    Progress::SubprogressValue(val_percent);
+	}
     }
 
     return true;
+}
+
+
+integer last_percent = 0;
+
+/**
+ * Hanler for ProcessStart callback - handle start of a package manager process
+ * @param task Decription of the task
+ * @param stages Descriptions of the stages
+ * @param help Help text describing the process
+ */
+global void ProcessStart(string task, list<string> stages, string help)
+{
+   y2milestone("Process: Start: task: %1, stages: %2, help: %3", task, stages, help);
+
+   if (Progress::status())
+   {
+       Wizard::CreateDialog();
+       Wizard::SetDesktopIcon("sw_single");
+
+       // set 100% as max value
+       Progress::New(task, "", 100, stages, [], help);
+       Progress::Title(task);
+       last_percent = 0;
+   }
+}
+
+/**
+ * Hander for ProcessProgress callback - report total progress
+ * @param percent Total progress in percent
+ */
+global boolean ProcessProgress(integer percent)
+{
+    y2debug("Process: %1%%", percent);
+    Progress::Step(percent);
+    last_percent = percent;
+
+    return true;
+}
+
+/**
+ * Hander for ProcessNextStage callback - the current stage has been finished
+ */
+global void ProcessNextStage()
+{
+    y2milestone("Process: NextStage");
+    // NextStage() increases also progress (+1 step) which is not desired,
+    // reset to the last percent reported
+    Progress::NextStageStep(last_percent);
+}
+
+/**
+ * Hander for ProcessDone callback - the process has been finished
+ */
+global void ProcessDone()
+{
+    y2milestone("Process: Finished");
+
+    // set 100% if it hasn't been reached
+    if (last_percent < 100)
+    {
+	Progress::Finish();
+    }
+
+    Wizard::CloseDialog();
 }
 
 // EOF
