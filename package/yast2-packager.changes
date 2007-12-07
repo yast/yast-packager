@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Dec  7 13:50:55 CET 2007 - lslezak@suse.cz
+
+- added Process callbacks (fullscreen progress with stages)
+- package manager initialization runs in the main window instead
+  of popups
+- use generic string "Disc" for both CD and DVD repositories
+  (#336881)
+- 2.16.11
+
+-------------------------------------------------------------------
 Tue Dec  4 14:58:07 CET 2007 - locilka@suse.cz
 
 - Speeding up Community Repositories (No need to refresh cache).
