@@ -241,8 +241,7 @@ global boolean CommitSources() {
         success = Pkg::SourceEditSet( sourceStatesOut );
         if ( !success ) {
 	    // popup message header
-            string _msg1 = _("Unable to save changes to the repository
-                    repository.
+            string _msg1 = _("Unable to save changes to the repository.
 ");
 	    // popup message, after message header, header of details
             string _msg2 = _("Details:") + "\n" + Pkg::LastError();

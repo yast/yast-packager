@@ -247,7 +247,7 @@
 	    // Network is not running
 	    if (! Popup::AnyQuestion (
 		// TRANSLATORS: popup header
-		_("Network is not Configured"),
+		_("Network is not configured"),
 		// TRANSLATORS: popup question
 		_("Online sources defined by product require an Internet connection.
 
@@ -1105,8 +1105,9 @@ or no repositories defined."));
 		)
 	    ),
 	    // TRANSLATORS: dialog help 1/3
-	    _("<p>Here you can see default online repositories downloaded from Internet.
-Click on the repository to see its details.</p>") +
+	    _("<p>Here you can see default online repositories downloaded from the Internet.
+Click on the repository to see its details.</p>
+") +
 	    (Stage::initial() ?
 		// TRANSLATORS: dialog help 2/3 (version for installation)
 		_("<p>If you want one or more online repositories to be used,

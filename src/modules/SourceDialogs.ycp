@@ -586,7 +586,9 @@ boolean DirValidate(string key, map event) {
     if (!stat["isdir"]:false)
     {
 	// error popup - the entered path is not a directory
-	Report::Error(_("The entered path is not a directory\nor the directory doesn't exist."));
+	Report::Error(_("The entered path is not a directory
+or the directory does not exist.
+"));
 	UI::SetFocus(`id(`dir));
 
 	return false;
@@ -613,7 +615,9 @@ boolean IsoValidate(string key, map event) {
     if (!stat["isreg"]:false)
     {
 	// error popup - the entered path is not a regular file
-	Report::Error(_("The entered path is not a file\nor the file doesn't exist."));
+	Report::Error(_("The entered path is not a file
+or the file does not exist.
+"));
 	UI::SetFocus(`id(`dir));
 
 	return false;
@@ -636,7 +640,10 @@ boolean IsoValidate(string key, map event) {
 	else
 	{
 	    // continue/cancel popup, %1 is a file name
-	    return Popup::ContinueCancel(sformat(_("File '%1'\ndoesn't seem to be an ISO image.\nUse it anyway?"), s));
+	    return Popup::ContinueCancel(sformat(_("File '%1'
+does not seem to be an ISO image.
+Use it anyway?
+"), s));
 	}
     }
 
@@ -1061,10 +1068,11 @@ to specify the NFS server host name and path on the server.
 To enable authentication, uncheck <b>Anonymous</b> and specify the
 <b>User Name</b> and the <b>Password</b>.</p>
 <p>
-For SMB/CIFS repository, specify <b>Share</b> name and <b>Path to Directory
+For the SMB/CIFS repository, specify <b>Share</b> name and <b>Path to Directory
 or ISO Image</b>. 
 If the location is a file holding an ISO image
-of the media, set <b>ISO Image</b>.</p>")
+of the media, set <b>ISO Image</b>.</p>
+")
 // help text - server dialog, there is a "Port" widget
 + _("<p>It is possible to set the <b>Port</b> number for a HTTP/HTTPS repository.
 Leave it empty to use the default port.</p>
