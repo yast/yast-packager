@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec 10 12:16:45 CET 2007 - locilka@suse.cz
+
+- Dependency on yast2-country replaced with yast2-country-data
+  to minimize dependencies.
+
+-------------------------------------------------------------------
 Fri Dec  7 13:50:55 CET 2007 - lslezak@suse.cz
 
 - added Process callbacks (fullscreen progress with stages)
