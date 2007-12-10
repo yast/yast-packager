@@ -2,7 +2,7 @@
 
 
 @HEADER@
-BuildRequires:	gcc-c++ libxcrypt-devel yast2-country yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
 
 # Progress::Subprogress*()
 BuildRequires:	yast2 >= 2.16.17
@@ -10,7 +10,8 @@ BuildRequires:	yast2 >= 2.16.17
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings
 
-Requires:	yast2-country
+# Newly added RPM
+Requires:	yast2-country-data >= 2.16.3
 Requires:	yast2-installation >= 2.15.12
 
 # New function: Pkg::SourceProvideDirectory
