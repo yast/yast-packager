@@ -1447,6 +1447,7 @@ global void SourceReportDestroy()
 	    if (ping)
 	    {
 		// TODO: refresh progress indicator
+		y2debug ("-ping-");
 	    }
 
 	    if (output != nil && output != "")
