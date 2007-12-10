@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 10 15:46:05 CET 2007 - lslezak@suse.cz
+
+- merged proofread texts (2007-18-23)
+
+-------------------------------------------------------------------
 Mon Dec 10 12:16:45 CET 2007 - locilka@suse.cz
 
 - Dependency on yast2-country replaced with yast2-country-data

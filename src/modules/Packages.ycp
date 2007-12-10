@@ -1041,7 +1041,7 @@ integer IntegrateServicePack (boolean show_popup, string base_url) {
 	integer sp_source = Pkg::SourceCreate (sp_url, "");
 	if (sp_source == -1)
 	{
-	    Report::Error (_("Failed to integrate service pack repository."));
+	    Report::Error (_("Failed to integrate the service pack repository."));
 	    return nil;
 	}
 	if (! AddOnProduct::AcceptedLicenseAndInfoFile(sp_source))
