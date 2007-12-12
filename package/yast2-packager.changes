@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 12 16:23:13 CET 2007 - lslezak@suse.cz
+
+- bug fixes in the new callbacks
+- 2.16.12
+
+-------------------------------------------------------------------
 Mon Dec 10 17:05:24 CET 2007 - locilka@suse.cz
 
 - PATTERNS tag in Add-On content file can contain list of patterns
