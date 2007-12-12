@@ -967,7 +967,7 @@ global void SourceCreateStart(string url)
     }
     else
     {
-	y2internal("_source_open: %1", _source_open);
+	y2milestone("_source_open: %1", _source_open);
 
 	if (_source_open == 1)
 	{
@@ -1177,7 +1177,7 @@ global void SourceReportStart(integer source_id, string url, string task)
     }
     else
     {
-	y2internal("_source_open: %1", _source_open);
+	y2milestone("_source_open: %1", _source_open);
 
 	if (_source_open == 1)
 	{
@@ -1550,11 +1550,7 @@ global void SourceReportDestroy()
     {
 	if (!Mode::commandline())
 	{
-	    if (FullScreen())
-	    {
-		Progress::SubprogressTitle(task);
-	    }
-	    else if (!IsDownloadProgressPopup())
+	    if (!FullScreen() && !IsDownloadProgressPopup())
 	    {
 		// heading of popup
 		string heading = _("Downloading");
@@ -2299,7 +2295,7 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
 }
 
 
-integer last_percent = 0;
+integer last_stage = 0;
 
 /**
  * Hanler for ProcessStart callback - handle start of a package manager process
@@ -2319,7 +2315,7 @@ global void ProcessStart(string task, list<string> stages, string help)
        // set 100% as max value
        Progress::New(task, "", 100, stages, [], help);
        Progress::Title(task);
-       last_percent = 0;
+       last_stage = 0;
    }
 }
 
@@ -2331,7 +2327,6 @@ global boolean ProcessProgress(integer percent)
 {
     y2debug("Process: %1%%", percent);
     Progress::Step(percent);
-    last_percent = percent;
 
     return true;
 }
@@ -2341,10 +2336,10 @@ global boolean ProcessProgress(integer percent)
  */
 global void ProcessNextStage()
 {
-    y2milestone("Process: NextStage");
-    // NextStage() increases also progress (+1 step) which is not desired,
-    // reset to the last percent reported
-    Progress::NextStageStep(last_percent);
+    y2milestone("Setting stage: %1", last_stage);
+    Progress::Stage(last_stage, "", -1);
+
+    last_stage = last_stage + 1;
 }
 
 /**
@@ -2354,11 +2349,8 @@ global void ProcessDone()
 {
     y2milestone("Process: Finished");
 
-    // set 100% if it hasn't been reached
-    if (last_percent < 100)
-    {
-	Progress::Finish();
-    }
+    // set 100%
+    Progress::Finish();
 
     Wizard::CloseDialog();
 }
