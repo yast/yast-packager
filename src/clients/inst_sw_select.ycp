@@ -36,9 +36,6 @@
 
     symbol ret = `again;
 
-    boolean retval = Pkg::SaveState();
-    y2milestone ("Save pkg state retval: %1", retval);
-
     while (ret == `again)
     {
 
@@ -61,14 +58,5 @@
 	}
     }
 
-    if ( ret == `back || ret == `cancel )
-    {
-	boolean ret = Pkg::RestoreState( false );
-	y2milestone( "RESET to software selection return: %1",  ret );
-    }
-    else
-    {
-	Pkg::ClearSaveState();
-    }
-    return `ret;
+    return ret;
 }
