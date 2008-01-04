@@ -24,10 +24,7 @@
      **/
     symbol detailedSelection( symbol mode )
     {
-	Pkg::SaveState();
-
-	// Open empty dialog for instant feedback
-
+	// Open an empty dialog for immediate feedback
 	UI::OpenDialog(`opt(`defaultsize),
 		       `ReplacePoint(`id( `rep),
 				     `Label( _("Reading package database...") )
@@ -45,11 +42,6 @@
 	symbol result = (symbol) UI::RunPkgSelection(`id(`packages ) );
 	UI::CloseDialog();
 	y2milestone( "Package selector returned  %1", result );
-
-	if (result == `accept)
-	    Pkg::ClearSaveState();
-	else
-	    Pkg::RestoreState(false);
 
 	return result;
     }

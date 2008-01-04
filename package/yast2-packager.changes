@@ -3,6 +3,9 @@ Fri Jan  4 10:51:33 CET 2008 - lslezak@suse.cz
 
 - PackageCallbacks: do not remove the subprogress widget, try to
   reuse it later if possible (#350584)
+- do not call Pkg::SaveState() and Pkg::RestoreState(), the state
+  is saved/restored by the package selector widget
+- 2.16.13
 
 -------------------------------------------------------------------
 Wed Dec 12 16:23:13 CET 2007 - lslezak@suse.cz
