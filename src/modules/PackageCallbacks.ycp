@@ -117,9 +117,8 @@
 
 		if (FullScreen())
 		{
-		    //FIXME
-		    Progress::SubprogressType(`progress, archivesize);
-		    Progress::SubprogressTitle("");
+		    Progress::SubprogressType(`progress, 100);
+		    Progress::SubprogressTitle(sformat(_("Downloading package %1 (%2)..."), name, sz));
 		}
 		else
 		{
@@ -1616,7 +1615,6 @@ global void SourceReportDestroy()
 	    {
 		Progress::SubprogressType(`progress, 100);
 		Progress::SubprogressTitle(message);
-		Progress::SubprogressValue(0);
 	    }
 	}
     }
@@ -2201,17 +2199,12 @@ global void ProgressEnd(integer id)
     }
     else if (FullScreen())
     {
-	symbol progress_type = `none;
 	if (size(progress_stack) > 0)
 	{
-	    progress_type = progress_stack[size(progress_stack) - 1, "type"]:`none;
-	}
-
-	Progress::SubprogressType(progress_type, 100);
-
-	if (size(progress_stack) > 0)
-	{
+	    symbol progress_type = progress_stack[size(progress_stack) - 1, "type"]:`none;
 	    string task = progress_stack[size(progress_stack) - 1, "task"]:"";
+
+	    Progress::SubprogressType(progress_type, 100);
 	    Progress::SubprogressTitle(task);
 	}
     }
