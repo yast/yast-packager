@@ -1,0 +1,224 @@
+/**
+ * File:	modules/KeyManager.ycp
+ * Package:	GPG Key Management
+ * Summary:	Manages GPG keys in the package manager
+ * Authors:	Ladislav Slezák <lslezak@novell.com>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+textdomain "packager";
+module "KeyManager";
+
+// the current state
+list<map<string,any> > known_keys = [];
+
+// keys to delete
+list<map<string,any> > deleted_keys = [];
+
+// keys to import from a file
+list<map<string,any> > import_from_file = [];
+
+boolean modified = false;
+
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Reset the internal state of the module. The current configuration and all
+ * changes are deleted.
+ */
+global void Reset()
+{
+    known_keys = [];
+    deleted_keys = [];
+    import_from_file = [];
+    modified = false;
+}
+
+/**
+ * Read the current configuration from the package manager
+ * @return list the current configuration, nil when an error occurr
+ */
+list<map<string,any> > ReadCurrentKeys()
+{
+    // read known keys
+    list<map<string,any> > ret = Pkg::GPGKeys(false);
+
+    if (ret != nil)
+    {
+	// add trusted keys
+	ret = (list<map<string,any> >)merge(ret, Pkg::GPGKeys(true));
+    }
+
+    y2milestone("Read configuration: %1", ret);
+
+    return ret;
+}
+
+
+/**
+ * Read the current configuration from the package manager. The previous changes are lost (@see Reset).
+ * The target system of the package manager must be initialized before reading GPG keys!
+ * @return boolean true on success
+ */
+global boolean Read()
+{
+    if (size(known_keys) > 0)
+    {
+	y2warning("Rereading GPG keys from the package manager");
+	Reset();
+    }
+
+    known_keys = ReadCurrentKeys();
+
+    if (known_keys == nil)
+    {
+	known_keys = [];
+	return false;
+    }
+
+    return true;
+}
+
+/**
+ * Apply the changes, update the current status
+ * @return boolean true on success
+ */
+global boolean Write()
+{
+    if (!modified)
+    {
+	y2milestone("No change, nothing to write");
+	return true;
+    }
+
+    y2milestone("Writing key management configuration");
+
+    boolean ret = true;
+
+    // delete the keys marked for removal
+    foreach(map<string,any> deleted_key, deleted_keys,
+	{
+	    y2milestone("Deleting key %1 ('%2')", deleted_key["id"]:"", deleted_key["name"]:"");
+	    ret = Pkg::DeleteGPGKey(deleted_key["id"]:"", deleted_key["trusted"]:false) && ret;
+	}
+    );
+
+    // TODO modify keys (change the trusted flag)
+
+    // TODO import new keys
+
+    // update the current status
+    Reset();
+    Read();
+
+    return ret;
+}
+
+/**
+ * Has been something changed?
+ * @return boolean true if something has been changed
+ */
+global boolean Modified()
+{
+    return modified;
+}
+
+/**
+ * Return the current keys.
+ * @return list list of known GPG keys ($[ "id" : string, "name" : string, "trusted" : boolean ])
+ */
+global list<map<string,any> > GetKeys()
+{
+    return known_keys;
+}
+
+/**
+ * Modify a key
+ * @param new_key A map with the key data, the key with the same Key ID is modified. (Only "trusted" flag can be changed.)
+ * @return true on success
+ */
+global boolean ModifyKey(map<string,any> new_key)
+{
+    boolean ret = true;
+
+    if (new_key != nil)
+    {
+	// update the key
+	known_keys = maplist(map<string,any> k, known_keys,
+	    {
+		if (k["id"]:"" == new_key["id"]:"")
+		{
+		    k["trusted"] = new_key["trusted"]:false;
+		}
+
+		return k;
+	    }
+	);
+    }
+
+    return ret;
+}
+
+/**
+ * Delete the key from the package manager
+ * @param key_id ID of the key to delete
+ * @return boolean true on success
+ */
+global boolean DeleteKey(string key_id)
+{
+    if (key_id == nil || key_id == "")
+    {
+	y2error("Invalid key ID: %1", key_id);
+	return false;
+    }
+
+    // index of the key
+    integer found = nil;
+    integer i = 0;
+
+    // copy the key from known keys to the deleted list
+    foreach(map<string,any> key, known_keys,
+	{
+	    if (key["id"]:"" == key_id)
+	    {
+		deleted_keys = add(deleted_keys, key);
+		found = i;
+	    }
+
+	    i = i + 1;
+	}
+    );
+
+    // remove from known keys when found
+    if (found != nil)
+    {
+	known_keys = remove(known_keys, found);
+    }
+
+    return (found != nil);
+}
+
+
+/**
+ * Import key from a file
+ * @param file path to the file
+ */
+global boolean ImportFromFile(string file)
+{
+    // TODO check whether the file is valid, copy the file to the tmpdir
+    string tmpfile = "";
+
+    // store the import request for later use in Write()
+    import_from_file = add(import_from_file, $[ "file" : tmpfile ]);
+
+    // TODO add to the current config
+
+    return true;
+}
+
+/* EOF */
+}
