@@ -84,7 +84,7 @@ boolean EditKeyProperties(map<string,any> key)
 			`Left(`Label(sformat(_("Key ID: %1"), key["id"]:""))),
 			`Left(`Label(sformat(_("Name: %1"), key["name"]:""))),
 			`VSpacing(0.3),
-			`Left(`CheckBox(`id(`trusted), _("&Trusted"), key["trusted"]:false)),
+			`Left(`CheckBox(`id(`trusted), _("&The Key is Trusted"), key["trusted"]:false)),
 			`VSpacing(0.2)
 		    )
 		),
@@ -118,16 +118,18 @@ boolean EditKeyProperties(map<string,any> key)
     return ret;
 }
 
+// remember the details about the added key from AddGPGKey(),
+// the details are displayed in NewKeySummary()
+map<string,any> added_key = $[];
+
 symbol AddGPGKey()
 {
-    string filename = "";
-
     term contents = `VBox(
 	`Frame(`id(`fr), _("Select a GPG Key"),
 	    `MarginBox(1, 0.3,
 		`VBox(
 		    `HBox(
-			`TextEntry(`id(`file), Label::FileName(), filename),
+			`TextEntry(`id(`file), Label::FileName()),
 			`VBox(
 			    `Label(""),
 			    `PushButton(`id(`browse), Label::BrowseButton())
@@ -150,16 +152,9 @@ In this dialog, manage known GPG public keys.</p>");
 
     help_text = help_text + _("<p>
 <b>Adding a New GPG Key</b><br>
-To add a new GPG key, use <b>Add</b> and specify the path to the key file.
+To add a new GPG key specify the path to the key file.
+Check the <B>Trusted</B> check box if the key is trusted.
 </p>");
-
-    // help, continued
-    help_text = help_text + _("<p>
-<b>Modifying a GPG Key Status</b>
-To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
-<b>Delete</b>.
-</p>
-");
 
     Wizard::SetNextButton(`next, Label::OKButton());
     Wizard::SetContents(title, contents, help_text, true, true);
@@ -183,12 +178,25 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 	}
 	else if (ret == `next)
 	{
-	    // TODO: validate the entered file
+	    // validate the entered file
+	    string keyfile = (string) UI::QueryWidget(`id(`file), `Value);
+	    y2internal("Entered: %1", keyfile);
+
+	    if (keyfile == nil || keyfile == "")
+	    {
+		Report::Error(_("Enter a filename"));
+		UI::SetFocus(`id(`file));
+		ret = `_dummy;
+		continue;
+	    }
 
 	    boolean trusted = (boolean) UI::QueryWidget(`id(`trusted), `Value);
+	    added_key = KeyManager::ImportFromFile(keyfile, trusted);
 
-	    // TODO: add the key
-
+	    if (added_key == nil || size(added_key) == 0)
+	    {
+		ret = `_dummy;
+	    }
 	}
 
     }
@@ -197,6 +205,13 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
     Wizard::RestoreNextButton();
 
     return ret;
+}
+
+// display details about the imported GPG key
+symbol NewKeySummary()
+{
+    // TODO FIXME
+    return `next;
 }
 
 
@@ -296,7 +311,8 @@ symbol RunGPGKeyMgmt(boolean standalone)
 
     map<string,any> aliases = $[
 	"summary" : ``(KeySummary()),
-	"add" : [``(AddGPGKey()), true ]
+	"add" : [``(AddGPGKey()), true ],
+	"new_key_summary" : [``(NewKeySummary()), true ]
     ];
 
     map sequence = $[
@@ -307,6 +323,10 @@ symbol RunGPGKeyMgmt(boolean standalone)
 	    `add  : "add"
 	],
 	"add" : $[
+	    `next : "new_key_summary",
+	    `abort : `abort
+	],
+	"new_key_summary" : $[
 	    `next : "summary",
 	    `abort : `abort
 	]
