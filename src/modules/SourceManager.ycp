@@ -33,6 +33,7 @@ import "InstURL";
 import "String";
 import "SuSEFirewall";
 import "Linuxrc";
+import "FileUtils";
 
 
 global list<integer> newSources = [];
@@ -135,6 +136,11 @@ global boolean GetSyncFlag()
  */
 global boolean ReadSyncFlag()
 {
+    if (!FileUtils::Exists(source_config_file))
+    {
+	return false;
+    }
+
     map<string, any> inst_config = (map<string, any>)SCR::Read(.target.ycp, source_config_file);
     zmd_sync = (boolean)inst_config["zmd_sync"]:nil;
     y2milestone("Read ZMD sync status: %1", zmd_sync);

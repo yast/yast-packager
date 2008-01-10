@@ -39,6 +39,7 @@
     import "Product";
 
     include "packager/inst_source_dialogs.ycp";
+    include "packager/key_manager_dialogs.ycp";
 
     integer numSources = 0;
 
@@ -517,6 +518,8 @@ Save changes anyway?")))
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceSaveAll(); // #176013
 
+	success = success && KeyManager::Write();
+
 	return success;
    }
 
@@ -570,9 +573,9 @@ symbol SummaryDialog () {
 					     // label
 					     `Left (`Label (_("Properties"))),
 					     // check box
-					     `Left (`CheckBox (`id (`enable), `opt (`notify), _("Enabled"))),
+					     `Left (`CheckBox (`id (`enable), `opt (`notify), _("&Enabled"))),
 					     // check box
-					     `Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Automatically Refresh"))),
+					     `Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Automatically &Refresh"))),
 					     `VSpacing (0.4),
 					     (have_rug) ?
 					     `Left (`CheckBox (`id (`zmdsync),
@@ -604,6 +607,7 @@ symbol SummaryDialog () {
 			`item(`id(`set_alias), setAliasButtonLabel)
 		    ])
 */
+		    `PushButton (`id (`key_mgr), _("&GPG Keys...")),
 		    `PushButton (`id (`refresh), refreshButtonLabel )
 		),
                 `VSpacing( 0.5 )
@@ -749,6 +753,13 @@ All changes will be lost.");
 		}
 	    }
         }
+	else if (input == `key_mgr)
+	{
+	    exit = true;
+	    //return `key_mgr;
+	    // start the GPG key manager
+	    //RunGPGKeyMgmt();
+	}
         else
         {
             current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
@@ -1028,6 +1039,9 @@ symbol StartInstSource()
 	}
     }
 
+    // read known GPG keys
+    KeyManager::Read();
+
     sourceStatesIn = Pkg::SourceEditGet();
     y2milestone( "Found repositories: %1", sourceStatesIn);
     sourceStatesOut = sourceStatesIn;
@@ -1036,7 +1050,8 @@ symbol StartInstSource()
 	"summary" : ``(SummaryDialog ()),
 	"type" : ``(TypeDialog()),
 	"edit" : ``(EditDialog ()),
-	"store" : ``(StoreSource ())
+	"store" : ``(StoreSource ()),
+	"keymgr" : [``(RunGPGKeyMgmt(false)), true]
     ];
 
     map sequence = $[
@@ -1044,8 +1059,13 @@ symbol StartInstSource()
 	"summary" : $[
 	    `add : "type",
 	    `edit : "edit",
+	    `key_mgr : "keymgr",
 	    `abort : `abort,
 	    `next : `next,
+	],
+	"keymgr" : $[
+	    `next : "summary",
+	    `abort : `abort
 	],
 	"type" : $[
 	    `next : "edit",

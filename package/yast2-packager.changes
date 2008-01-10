@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 10 13:20:04 CET 2008 - lslezak@suse.cz
+
+- added preliminary support for GPG key management (FATE #300754)
+
+-------------------------------------------------------------------
 Fri Jan  4 10:51:33 CET 2008 - lslezak@suse.cz
 
 - PackageCallbacks: do not remove the subprogress widget, try to

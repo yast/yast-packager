@@ -1,0 +1,102 @@
+/**
+ * File:	key_manager.ycp
+ *
+ * Author:	Ladislav Slezak <lslezak@novell.com>
+ *
+ * Purpose:	Manages GPG keys in the package manager
+ *
+ * $Id$
+ */
+
+{
+textdomain "packager";
+
+import "PackageCallbacks";
+import "Wizard";
+import "Label";
+import "Report";
+import "CommandLine";
+import "Popup";
+import "PackageLock";
+import "KeyManager";
+import "Installation";
+import "Sequencer";
+
+include "packager/key_manager_dialogs.ycp";
+
+symbol Read()
+{
+    // TODO: the check dialog contains only [Continue] [Retry] buttons
+    // there is no [Abort] (#293356)
+    if (!PackageLock::Check())
+    {
+	// error message - SW management is already in use, access denied
+	// the yast module cannot be started
+	Report::Error(_("The GPG key management module cannot work
+without access to the software management system."));
+	Wizard::CloseDialog ();
+	return `abort;
+    }
+
+    // init the target - read the keys
+    if (!Pkg::TargetInitialize(Installation::destdir))
+    {
+	y2error("The target cannot be initialized, aborting...");
+	return `abort;
+    }
+
+    // read the current keys
+    if (!KeyManager::Read())
+    {
+	y2error("The key configuration cannot be read, aborting...");
+	return `abort;
+    }
+
+    return `next;
+}
+
+// main function - start the workflow
+symbol Main()
+{
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("sw_source");
+    // dialog caption
+    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+    map<string,any> aliases = $[
+	"read"	: ``(Read()),
+	"edit" : ``(RunGPGKeyMgmt(true)),
+//	TODO "write" : Write()
+    ];
+
+    map sequence = $[
+	"ws_start" : "read",
+	"read"	: $[
+	    `next : "edit"
+	],
+	"edit" : $[
+	    `abort : `abort,
+	    `next : `next,
+	],
+//	"write" : $[
+//	    `next : "summary",
+//	    `abort : `abort,
+//	],
+    ];
+
+    y2milestone ("Starting the key management sequence");
+    symbol ret = Sequencer::Run (aliases, sequence);
+
+    Wizard::CloseDialog ();
+    return ret;
+}
+
+map cmdline_description = $[
+    "id"	: "key_mgmgt",
+    "guihandler" : Main
+];
+
+return CommandLine::Run(cmdline_description);
+
+}
+
