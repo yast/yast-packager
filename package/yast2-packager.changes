@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 10 15:10:12 CET 2008 - lslezak@suse.cz
+
+- fixed a bad tag in a help text (#351062)
+- 2.13.178
+
+-------------------------------------------------------------------
 Fri Nov 23 10:25:46 CET 2007 - lslezak@suse.cz
 
 - allow to change name (alias) of a source (FATE #300645)

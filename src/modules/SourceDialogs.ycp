@@ -222,7 +222,7 @@ map<string,any> PlainURLWidget () {
 	"validate_function" : PlainURLValidate,
 	// help text
 	"help" : _("<p><big><b>Catalog URL</b></big><br>
-Use <b>URL</b> to specify the URL of the catalog.<p>") + multi_cd_help,
+Use <b>URL</b> to specify the URL of the catalog.</p>") + multi_cd_help,
     ];
 }
 
