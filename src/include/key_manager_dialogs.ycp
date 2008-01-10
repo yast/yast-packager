@@ -1,0 +1,321 @@
+/**
+ * File:	key_manager.ycp
+ *
+ * Author:	Ladislav Slezak <lslezak@novell.com>
+ *
+ * Purpose:	Manages GPG keys in the package manager
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "packager";
+
+import "Wizard";
+import "Label";
+import "Popup";
+import "KeyManager";
+
+
+boolean gpg_mgr_standalone_mode = false;
+
+/**
+ * @return list table contents
+ */
+list createTableItems()
+{
+    list ret = [];
+
+    foreach(map<string,any> key, KeyManager::GetKeys(),
+	{
+	    term item = `item(`id(key["id"]:""),
+		key["trusted"]:false ? UI::Glyph (`CheckMark) : "",
+		key["id"]:"",
+		key["name"]:""
+	    );
+
+	    ret = add(ret, item);
+	}
+    );
+
+    y2debug("table content: %1", ret);
+
+    return ret;
+}
+
+void RefreshKeyTable(string current_item)
+{
+    list items = createTableItems();
+    UI::ChangeWidget(`id(`table), `Items, items);
+
+    if (current_item != nil)
+    {
+	UI::ChangeWidget(`id(`table), `CurrentItem, current_item);
+    }
+}
+
+map<string,any> SearchGPGKey(string key_id)
+{
+    map<string,any> ret = nil;
+
+    // search the properties of the key
+    foreach(map<string,any> key, KeyManager::GetKeys(),
+	{
+	    if (key["id"]:"" == key_id)
+	    {
+		ret = key;
+		break;
+	    }
+	}
+    );
+
+    return ret;
+}
+
+
+boolean EditKeyProperties(map<string,any> key)
+{
+    UI::OpenDialog(
+	`MarginBox(1, 0.3,
+	    `VBox(
+		`Frame(_("GPG Key Properties"),
+		    `VBox(
+			`Left(`Label(sformat(_("Key ID: %1"), key["id"]:""))),
+			`Left(`Label(sformat(_("Name: %1"), key["name"]:""))),
+			`VSpacing(0.3),
+			`Left(`CheckBox(`id(`trusted), _("&Trusted"), key["trusted"]:false)),
+			`VSpacing(0.2)
+		    )
+		),
+		`VSpacing(0.2),
+		`HBox(
+		    `PushButton(`id(`ok),`opt(`key_F10, `default), Label::OKButton()),
+		    `HSpacing(2),
+		    `PushButton(`id(`cancel), `opt(`key_F9), Label::CancelButton())
+		)
+	    )
+	)
+    );
+
+    symbol ui = (symbol)UI::UserInput();
+    boolean ret = false;
+
+    if (ui == `ok)
+    {
+	boolean new_value = (boolean)UI::QueryWidget(`id(`trusted), `Value);
+	if (new_value != key["trusted"]:false)
+	{
+	    key["trusted"] = new_value;
+	    KeyManager::ModifyKey(key);
+	}
+
+	ret = true;
+    }
+
+    UI::CloseDialog();
+
+    return ret;
+}
+
+symbol AddGPGKey()
+{
+    string filename = "";
+
+    term contents = `VBox(
+	`Frame(`id(`fr), _("Select a GPG Key"),
+	    `MarginBox(1, 0.3,
+		`VBox(
+		    `HBox(
+			`TextEntry(`id(`file), Label::FileName(), filename),
+			`VBox(
+			    `Label(""),
+			    `PushButton(`id(`browse), Label::BrowseButton())
+			)
+		    ),
+		    `VSpacing(0.2),
+		    `Left(`CheckBox(`id(`trusted), _("&The Key is Trusted"), false)),
+		    `VSpacing(0.3)
+		)
+	    )
+	)
+    );
+
+    // dialog caption
+    string title = _("Adding a GPG Public Key");
+
+    // help
+    string help_text = _("<p>
+In this dialog, manage known GPG public keys.</p>");
+
+    help_text = help_text + _("<p>
+<b>Adding a New GPG Key</b><br>
+To add a new GPG key, use <b>Add</b> and specify the path to the key file.
+</p>");
+
+    // help, continued
+    help_text = help_text + _("<p>
+<b>Modifying a GPG Key Status</b>
+To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
+<b>Delete</b>.
+</p>
+");
+
+    Wizard::SetNextButton(`next, Label::OKButton());
+    Wizard::SetContents(title, contents, help_text, true, true);
+
+    symbol ret = nil;
+
+    do
+    {
+	ret = (symbol) UI::UserInput();
+
+	if (ret == `browse)
+	{
+	    string currentfile = (string) UI::QueryWidget(`id(`file), `Value);
+	    // header in file selection popup
+	    string newfile = (string) UI::AskForExistingFile(currentfile, "*", _("Select the GPG Key To Import"));
+
+	    if (newfile != nil)
+	    {
+		UI::ChangeWidget(`id(`file), `Value, newfile);
+	    }
+	}
+	else if (ret == `next)
+	{
+	    // TODO: validate the entered file
+
+	    boolean trusted = (boolean) UI::QueryWidget(`id(`trusted), `Value);
+
+	    // TODO: add the key
+
+	}
+
+    }
+    while (!contains([`back, `abort, `next], ret));
+
+    Wizard::RestoreNextButton();
+
+    return ret;
+}
+
+
+symbol KeySummary()
+{
+    y2milestone ("Running Summary dialog");
+
+    list items = createTableItems();
+
+    term contents = `VBox(
+	`Table(`id(`table),
+	    // table header
+	    `header(`Center(_("Trusted")), `Right(_("Key ID")), _("Name")), items
+	),
+	`VSpacing(0.3),
+	`HBox(
+	    `PushButton(`id(`add),`opt(`key_F3), Label::AddButton()),
+	    `PushButton(`id(`edit), `opt(`key_F4), Label::EditButton()),
+	    `PushButton(`id(`delete), `opt(`key_F5), Label::DeleteButton())
+	),
+	`VSpacing( 0.5 )
+    );
+
+    // dialog caption
+    string title = _("GPG Public Key Management");
+
+    // help
+    string help_text = _("<p>
+In this dialog, manage known GPG public keys.</p>");
+
+    help_text = help_text + _("<p>
+<b>Adding a New GPG Key</b><br>
+To add a new GPG key, use <b>Add</b> and specify the path to the key file.
+</p>");
+
+    // help, continued
+    help_text = help_text + _("<p>
+<b>Modifying a GPG Key Status</b>
+To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
+<b>Delete</b>.
+</p>
+");
+
+    // check the mode
+    Wizard::SetNextButton(`next, gpg_mgr_standalone_mode ? Label::FinishButton() : Label::OKButton());
+    Wizard::SetContents(title, contents, help_text, !gpg_mgr_standalone_mode, true);
+
+    symbol ret = nil;
+
+    do
+    {
+	map event = UI::WaitForEvent();
+	ret = event["ID"]:`nothing;
+
+	string key_id = (string)UI::QueryWidget(`id(`table), `CurrentItem);
+	y2milestone("Selected key: %1, action: %2", key_id, ret);
+
+	// add a new key
+	if (ret == `add)
+	{
+	    // add a new key
+	    // TODO
+	}
+	// change key properties
+	else if (ret == `edit)
+	{
+	    map<string,any> key = SearchGPGKey(key_id);
+
+	    if (key != nil && EditKeyProperties(key))
+	    {
+		RefreshKeyTable(key_id);
+	    }
+	}
+	// remove the key
+	else if (ret == `delete)
+	{
+	    map<string,any> key = SearchGPGKey(key_id);
+
+	    if (Popup::YesNo(sformat(_("Really delete key '%1'
+'%2'?"), key_id, key["name"]:"")))
+	    {
+		KeyManager::DeleteKey(key_id);
+		RefreshKeyTable(nil);
+	    }
+	}
+    }
+    while (!contains([`back, `abort, `next, `add], ret));
+
+    Wizard::RestoreNextButton();
+
+    return ret;
+}
+
+symbol RunGPGKeyMgmt(boolean standalone)
+{
+    gpg_mgr_standalone_mode = standalone;
+
+    map<string,any> aliases = $[
+	"summary" : ``(KeySummary()),
+	"add" : [``(AddGPGKey()), true ]
+    ];
+
+    map sequence = $[
+	"ws_start" : "summary",
+	"summary" : $[
+	    `abort : `abort,
+	    `next : `next,
+	    `add  : "add"
+	],
+	"add" : $[
+	    `next : "summary",
+	    `abort : `abort
+	]
+    ];
+
+    y2milestone ("Starting the key management sequence (standalone: %1)", standalone);
+    symbol ret = Sequencer::Run (aliases, sequence);
+
+    return ret;
+}
+
+}
