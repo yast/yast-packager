@@ -13,6 +13,10 @@
 textdomain "packager";
 module "KeyManager";
 
+import "Report";
+import "Directory";
+import "String";
+
 // the current state
 list<map<string,any> > known_keys = [];
 
@@ -20,7 +24,7 @@ list<map<string,any> > known_keys = [];
 list<map<string,any> > deleted_keys = [];
 
 // keys to import from a file
-list<map<string,any> > import_from_file = [];
+list<string> import_from_file = [];
 
 boolean modified = false;
 
@@ -111,8 +115,10 @@ global boolean Write()
 
     // TODO import new keys
 
-    // update the current status
+    // all changes are saved, reset them
     Reset();
+
+    // update the current status
     Read();
 
     return ret;
@@ -206,18 +212,69 @@ global boolean DeleteKey(string key_id)
 /**
  * Import key from a file
  * @param file path to the file
+ * @param trusted true if the key is trusted
+ * @return map map with the key, nil when import fails (invalid key, not existing file, already imported key...)
  */
-global boolean ImportFromFile(string file)
+global map<string,any> ImportFromFile(string file, boolean trusted)
 {
-    // TODO check whether the file is valid, copy the file to the tmpdir
-    string tmpfile = "";
+    // check whether the file is valid, copy the file to the tmpdir
+    map<string,any> key = Pkg::CheckGPGKeyFile(file);
+    y2internal("File content: %1", key);
 
-    // store the import request for later use in Write()
-    import_from_file = add(import_from_file, $[ "file" : tmpfile ]);
+    if (key != nil && size(key) > 0)
+    {
+	// update the trusted flag
+	key["trusted"] = trusted;
+    }
+    else
+    {
+	Report::Error(sformat(_("File '%1'
+doesn't contain a valid GPG key."), file));
+	return nil;
+    }
 
-    // TODO add to the current config
+    boolean known = false;
 
-    return true;
+    // check whether the key is already known
+    foreach(map<string,any> k, known_keys,
+	{
+	    if (k["id"]:"" == key["id"]:"")
+	    {
+		known = true;
+	    }
+	}
+    );
+
+    if (known)
+    {
+	// %1 is key ID (e.g. A84EDAE89C800ACA), %2 is key name (e.g. "SuSE Package Signing Key <build@suse.de>")
+	Report::Error(sformat(_("Key '%1'
+'%2'
+is already known, cannot be added again."), key["id"]:"", key["name"]:""));
+	return nil;
+    }
+
+    // copy the key to the temporary directory (in fact the keys are imported in Write())
+    string tmpfile = sformat("%1/tmp_gpg_key.%2", Directory::tmpdir, size(known_keys));
+    string command = sformat("/bin/cp -- '%1' '%2'", String::Quote(file), String::Quote(tmpfile));
+
+    y2internal("Copying the key: %1", command);
+
+    integer out = (integer)SCR::Execute(.target.bash, command);
+
+    if (out != 0)
+    {
+	Report::Error(_("Cannot copy the key to the temporary directory."));
+	return nil;
+    }
+
+    // store the import request
+    import_from_file = add(import_from_file, tmpfile);
+
+    // add the new key to the current config
+    known_keys = add(known_keys, key);
+
+    return key;
 }
 
 /* EOF */

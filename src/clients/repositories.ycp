@@ -1065,7 +1065,7 @@ symbol StartInstSource()
 	],
 	"keymgr" : $[
 	    `next : "summary",
-	    `abort : `abort
+	    `abort : "summary"
 	],
 	"type" : $[
 	    `next : "edit",
