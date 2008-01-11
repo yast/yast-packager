@@ -13,29 +13,38 @@
 textdomain "packager";
 
 import "Wizard";
+import "WizardHW";
 import "Label";
 import "Popup";
 import "KeyManager";
-
+import "String";
 
 boolean gpg_mgr_standalone_mode = false;
 
 /**
+ * Creates a summary table with GPG key configuration
  * @return list table contents
  */
-list createTableItems()
+list<map<string,any> > createHWTable()
 {
-    list ret = [];
+    list<map<string,any> > ret = [];
 
     foreach(map<string,any> key, KeyManager::GetKeys(),
 	{
-	    term item = `item(`id(key["id"]:""),
-		key["trusted"]:false ? UI::Glyph (`CheckMark) : "",
-		key["id"]:"",
-		key["name"]:""
-	    );
+	    list<string> descr = [];
 
-	    ret = add(ret, item);
+	    // escape <> characters in the name
+	    descr = add(descr, sformat(_("Name: %1"), String::EscapeTags(key["name"]:"")));
+	    descr = add(descr, sformat(_("Finger Print: %1"), key["fingerprint"]:""));
+
+	    map<string,any> r = $[
+		"id" : key["id"]:"",
+		"table_descr" : [ key["trusted"]:false ? UI::Glyph (`CheckMark) : "",
+		    key["id"]:"", key["name"]:"" ],
+		"rich_descr" : WizardHW::CreateRichTextDescription(sformat(_("Key: %1"), key["id"]:""), descr)
+	    ];
+
+	    ret = add(ret, r);
 	}
     );
 
@@ -44,14 +53,21 @@ list createTableItems()
     return ret;
 }
 
-void RefreshKeyTable(string current_item)
+/**
+ * Set/refresh the table content
+ */
+void SetItems(string selected_key)
 {
-    list items = createTableItems();
-    UI::ChangeWidget(`id(`table), `Items, items);
+    // create description for WizardHW
+    list<map<string,any> > items = createHWTable();
+    y2debug("items: %1", items);
 
-    if (current_item != nil)
+    WizardHW::SetContents(items);
+
+    if (selected_key != nil)
     {
-	UI::ChangeWidget(`id(`table), `CurrentItem, current_item);
+	// set the previously selected key
+	WizardHW::SetSelectedItem(selected_key);
     }
 }
 
@@ -73,7 +89,9 @@ map<string,any> SearchGPGKey(string key_id)
     return ret;
 }
 
-
+/**
+ * Display a dialog for editing the properties of the selected GPG key
+ */
 boolean EditKeyProperties(map<string,any> key)
 {
     UI::OpenDialog(
@@ -122,6 +140,9 @@ boolean EditKeyProperties(map<string,any> key)
 // the details are displayed in NewKeySummary()
 map<string,any> added_key = $[];
 
+/**
+ * Display a dialog for adding a GPG key
+ */
 symbol AddGPGKey()
 {
     term contents = `VBox(
@@ -214,26 +235,12 @@ symbol NewKeySummary()
     return `next;
 }
 
-
+/**
+ * Display the main dialog for GPG key management
+ */
 symbol KeySummary()
 {
     y2milestone ("Running Summary dialog");
-
-    list items = createTableItems();
-
-    term contents = `VBox(
-	`Table(`id(`table),
-	    // table header
-	    `header(`Center(_("Trusted")), `Right(_("Key ID")), _("Name")), items
-	),
-	`VSpacing(0.3),
-	`HBox(
-	    `PushButton(`id(`add),`opt(`key_F3), Label::AddButton()),
-	    `PushButton(`id(`edit), `opt(`key_F4), Label::EditButton()),
-	    `PushButton(`id(`delete), `opt(`key_F5), Label::DeleteButton())
-	),
-	`VSpacing( 0.5 )
-    );
 
     // dialog caption
     string title = _("GPG Public Key Management");
@@ -255,34 +262,46 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 </p>
 ");
 
-    // check the mode
-    Wizard::SetNextButton(`next, gpg_mgr_standalone_mode ? Label::FinishButton() : Label::OKButton());
-    Wizard::SetContents(title, contents, help_text, !gpg_mgr_standalone_mode, true);
+    // table header
+    WizardHW::CreateHWDialog(title, help_text, [_("Trusted"), _("Key ID"), _("Name")], []);
+
+    // set the navigation keys according to the current mode
+    if (gpg_mgr_standalone_mode)
+    {
+	Wizard::DisableBackButton();
+	Wizard::SetNextButton(`next, Label::FinishButton());
+    }
+    else
+    {
+	Wizard::EnableBackButton();
+	Wizard::SetNextButton(`next, Label::OKButton());
+    }
 
     symbol ret = nil;
 
+    // set the table content
+    SetItems(nil);
+
     do
     {
-	map event = UI::WaitForEvent();
-	ret = event["ID"]:`nothing;
+	map<string,any> ev = WizardHW::WaitForEvent();
+	y2milestone("WaitForEvent: %1", ev);
 
-	string key_id = (string)UI::QueryWidget(`id(`table), `CurrentItem);
+	ret = (symbol)ev["event","ID"]:nil;
+
+	// the selected key
+	string key_id = ev["selected"]:"";
+
 	y2milestone("Selected key: %1, action: %2", key_id, ret);
 
-	// add a new key
-	if (ret == `add)
-	{
-	    // add a new key
-	    // TODO
-	}
 	// change key properties
-	else if (ret == `edit)
+	if (ret == `edit)
 	{
 	    map<string,any> key = SearchGPGKey(key_id);
 
 	    if (key != nil && EditKeyProperties(key))
 	    {
-		RefreshKeyTable(key_id);
+		SetItems(key_id);
 	    }
 	}
 	// remove the key
@@ -294,17 +313,18 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 '%2'?"), key_id, key["name"]:"")))
 	    {
 		KeyManager::DeleteKey(key_id);
-		RefreshKeyTable(nil);
+		SetItems(nil);
 	    }
 	}
     }
     while (!contains([`back, `abort, `next, `add], ret));
 
-    Wizard::RestoreNextButton();
-
     return ret;
 }
 
+/**
+ * Run the GPG key management workflow
+ */
 symbol RunGPGKeyMgmt(boolean standalone)
 {
     gpg_mgr_standalone_mode = standalone;
