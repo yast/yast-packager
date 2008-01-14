@@ -88,24 +88,6 @@ void SetItems(string selected_key)
     }
 }
 
-map<string,any> SearchGPGKey(string key_id)
-{
-    map<string,any> ret = nil;
-
-    // search the properties of the key
-    foreach(map<string,any> key, KeyManager::GetKeys(),
-	{
-	    if (key["id"]:"" == key_id)
-	    {
-		ret = key;
-		break;
-	    }
-	}
-    );
-
-    return ret;
-}
-
 /**
  * Display a dialog for editing the properties of the selected GPG key
  */
@@ -299,13 +281,6 @@ Check the <B>Trusted</B> check box if the key is trusted.
     return ret;
 }
 
-// display details about the imported GPG key
-symbol NewKeySummary()
-{
-    // TODO FIXME
-    return `next;
-}
-
 /**
  * Display the main dialog for GPG key management
  */
@@ -368,7 +343,7 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 	// change key properties
 	if (ret == `edit)
 	{
-	    map<string,any> key = SearchGPGKey(key_id);
+	    map<string,any> key = KeyManager::SearchGPGKey(key_id);
 
 	    if (key != nil && EditKeyProperties(key))
 	    {
@@ -378,7 +353,7 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 	// remove the key
 	else if (ret == `delete)
 	{
-	    map<string,any> key = SearchGPGKey(key_id);
+	    map<string,any> key = KeyManager::SearchGPGKey(key_id);
 
 	    if (Popup::YesNo(sformat(_("Really delete key '%1'
 '%2'?"), key_id, key["name"]:"")))

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 14 17:25:07 CET 2008 - lslezak@suse.cz
+
+- display details about the GPG key selected for import, UI fully
+  works, importing/removing a key works in Write()
+- 2.16.14
+
+-------------------------------------------------------------------
 Thu Jan 10 13:20:04 CET 2008 - lslezak@suse.cz
 
 - added preliminary support for GPG key management (FATE #300754)
