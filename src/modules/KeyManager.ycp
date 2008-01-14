@@ -88,6 +88,29 @@ global boolean Read()
 }
 
 /**
+ * Search a GPG key in the known keys
+ * @param key_id ID of the key
+ * @return map Data about the key or nil if the key was not found
+ */
+global map<string,any> SearchGPGKey(string key_id)
+{
+    map<string,any> ret = nil;
+
+    // search the properties of the key
+    foreach(map<string,any> key, known_keys,
+	{
+	    if (key["id"]:"" == key_id)
+	    {
+		ret = key;
+		break;
+	    }
+	}
+    );
+
+    return ret;
+}
+
+/**
  * Apply the changes, update the current status
  * @return boolean true on success
  */
@@ -111,8 +134,6 @@ global boolean Write()
 	}
     );
 
-    // TODO modify keys (change the trusted flag)
-
     // import the new keys
     foreach(string tmpfile, boolean trusted, import_from_file,
 	{
@@ -121,6 +142,32 @@ global boolean Write()
 	    ret = Pkg::ImportGPGKey(tmpfile, trusted) && ret;
 	}
     );
+
+    // modify keys (change the trusted flag)
+    // get the current settings
+    list<map<string,any> > current_keys = ReadCurrentKeys();
+    foreach(map<string,any> key, current_keys,
+	{
+	    map<string,any> found_key = SearchGPGKey(key["id"]:"");
+	    // is the trusted flag different?
+	    if (found_key != nil && found_key["trusted"]:false != key["trusted"]:false)
+	    {
+		y2milestone("Key %1 ('%2'): new trusted state: %3", found_key["id"]:"",
+		    found_key["name"]:"", found_key["trusted"]:false);
+
+		// the current state is trusted
+		if (found_key["trusted"]:false)
+		{
+		    // TODO move to the trusted keyring
+		}
+		else
+		{
+		    // TODO move from the trusted keyring
+		}
+	    }
+	}
+    );
+
 
     // all changes are saved, reset them
     Reset();
