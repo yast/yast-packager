@@ -18,6 +18,7 @@ import "Label";
 import "Popup";
 import "KeyManager";
 import "String";
+import "FileUtils";
 
 boolean gpg_mgr_standalone_mode = false;
 
@@ -156,6 +157,25 @@ boolean EditKeyProperties(map<string,any> key)
 // the details are displayed in NewKeySummary()
 map<string,any> added_key = $[];
 
+void refreshNewKeyDetails(string file)
+{
+    map<string,any> key = $[];
+
+    // at first check whether the file exists at all
+    if (FileUtils::Exists(file))
+    {
+	// check whether the file contains a valid GPG key
+	key = Pkg::CheckGPGKeyFile(file);
+	y2milestone("File content: %1", key);
+    }
+
+    UI::ChangeWidget(`id(`key_id), `Value, key["id"]:"");
+    UI::ChangeWidget(`id(`key_name), `Value, key["name"]:"");
+    UI::ChangeWidget(`id(`key_fp), `Value, key["fingerprint"]:"");
+    UI::ChangeWidget(`id(`key_creadted), `Value, key["created"]:"");
+    UI::ChangeWidget(`id(`key_expires), `Value, key["expires"]:"");
+}
+
 /**
  * Display a dialog for adding a GPG key
  */
@@ -166,7 +186,7 @@ symbol AddGPGKey()
 	    `MarginBox(1, 0.3,
 		`VBox(
 		    `HBox(
-			`TextEntry(`id(`file), Label::FileName()),
+			`TextEntry(`id(`file), `opt(`notify,`immediate), Label::FileName()),
 			`VBox(
 			    `Label(""),
 			    `PushButton(`id(`browse), Label::BrowseButton())
@@ -175,6 +195,29 @@ symbol AddGPGKey()
 		    `VSpacing(0.2),
 		    `Left(`CheckBox(`id(`trusted), _("&The Key is Trusted"), false)),
 		    `VSpacing(0.3)
+		)
+	    )
+	),
+	`VSpacing(1),
+	`Frame(_("Properties of the GPG Key"),
+	    `MarginBox(1, 0.3,
+		`HBox(
+		    `HSquash(
+			`VBox(
+			    `Left(`Label(_("Key ID: "))),
+			    `Left(`Label(_("Name: "))),
+			    `Left(`Label(_("Finger Print: "))),
+			    `Left(`Label(_("Created: "))),
+			    `Left(`Label(_("Expires: ")))
+			)
+		    ),
+		    `VBox(
+			`Label(`id(`key_id), `opt(`hstretch), ""),
+			`Label(`id(`key_name), `opt(`hstretch), ""),
+			`Label(`id(`key_fp), `opt(`hstretch), ""),
+			`Label(`id(`key_creadted), `opt(`hstretch), ""),
+			`Label(`id(`key_expires), `opt(`hstretch), "")
+		    )
 		)
 	    )
 	)
@@ -202,22 +245,34 @@ Check the <B>Trusted</B> check box if the key is trusted.
     {
 	ret = (symbol) UI::UserInput();
 
+	y2debug("UserInput: %1", ret);
+
 	if (ret == `browse)
 	{
 	    string currentfile = (string) UI::QueryWidget(`id(`file), `Value);
 	    // header in file selection popup
-	    string newfile = (string) UI::AskForExistingFile(currentfile, "*", _("Select the GPG Key To Import"));
+	    string newfile = (string) UI::AskForExistingFile(currentfile, "*", _("Select a GPG Key To Import"));
 
 	    if (newfile != nil)
 	    {
 		UI::ChangeWidget(`id(`file), `Value, newfile);
+		refreshNewKeyDetails(newfile);
 	    }
+	}
+	else if (ret == `file)
+	{
+	    string keyfile = (string) UI::QueryWidget(`id(`file), `Value);
+
+	    y2debug("The file has changed: %1", keyfile);
+
+	    // refresh the information
+	    refreshNewKeyDetails(keyfile);
 	}
 	else if (ret == `next)
 	{
 	    // validate the entered file
 	    string keyfile = (string) UI::QueryWidget(`id(`file), `Value);
-	    y2internal("Entered: %1", keyfile);
+	    y2milestone("Selected file: %1", keyfile);
 
 	    if (keyfile == nil || keyfile == "")
 	    {
@@ -329,7 +384,15 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 '%2'?"), key_id, key["name"]:"")))
 	    {
 		KeyManager::DeleteKey(key_id);
+		// refresh the table
 		SetItems(nil);
+
+		// hack - refresh (clear) the rich text part of the dialog
+		// TODO: fix a bug in WizardHW?
+		if (size(KeyManager::GetKeys()) == 0)
+		{
+		    SetItems("");
+		}
 	    }
 	}
     }
@@ -347,8 +410,7 @@ symbol RunGPGKeyMgmt(boolean standalone)
 
     map<string,any> aliases = $[
 	"summary" : ``(KeySummary()),
-	"add" : [``(AddGPGKey()), true ],
-	"new_key_summary" : [``(NewKeySummary()), true ]
+	"add" : [``(AddGPGKey()), true ]
     ];
 
     map sequence = $[
@@ -359,10 +421,6 @@ symbol RunGPGKeyMgmt(boolean standalone)
 	    `add  : "add"
 	],
 	"add" : $[
-	    `next : "new_key_summary",
-	    `abort : `abort
-	],
-	"new_key_summary" : $[
 	    `next : "summary",
 	    `abort : `abort
 	]
