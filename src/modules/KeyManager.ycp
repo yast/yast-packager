@@ -23,8 +23,8 @@ list<map<string,any> > known_keys = [];
 // keys to delete
 list<map<string,any> > deleted_keys = [];
 
-// keys to import from a file
-list<string> import_from_file = [];
+// keys to import from a file (file name => trusted flag)
+map<string,boolean> import_from_file = $[];
 
 boolean modified = false;
 
@@ -38,7 +38,7 @@ global void Reset()
 {
     known_keys = [];
     deleted_keys = [];
-    import_from_file = [];
+    import_from_file = $[];
     modified = false;
 }
 
@@ -113,7 +113,14 @@ global boolean Write()
 
     // TODO modify keys (change the trusted flag)
 
-    // TODO import new keys
+    // import the new keys
+    foreach(string tmpfile, boolean trusted, import_from_file,
+	{
+	    y2milestone("Importing key from '%1', trusted: %2", tmpfile, trusted);
+
+	    ret = Pkg::ImportGPGKey(tmpfile, trusted) && ret;
+	}
+    );
 
     // all changes are saved, reset them
     Reset();
@@ -250,7 +257,7 @@ doesn't contain a valid GPG key."), file));
 	// %1 is key ID (e.g. A84EDAE89C800ACA), %2 is key name (e.g. "SuSE Package Signing Key <build@suse.de>")
 	Report::Error(sformat(_("Key '%1'
 '%2'
-is already known, cannot be added again."), key["id"]:"", key["name"]:""));
+is already known, it cannot be added again."), key["id"]:"", key["name"]:""));
 	return nil;
     }
 
@@ -269,7 +276,7 @@ is already known, cannot be added again."), key["id"]:"", key["name"]:""));
     }
 
     // store the import request
-    import_from_file = add(import_from_file, tmpfile);
+    import_from_file = add(import_from_file, tmpfile, trusted);
 
     // add the new key to the current config
     known_keys = add(known_keys, key);
