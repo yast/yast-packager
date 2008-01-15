@@ -515,11 +515,14 @@ Save changes anyway?")))
 	    }
 	);
 
+	y2internal("success: %1", success);
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceSaveAll(); // #176013
 
-	success = success && KeyManager::Write();
+	y2internal("success: %1", success);
+	success = KeyManager::Write() && success;
 
+	y2internal("success: %1", success);
 	return success;
    }
 

@@ -24,7 +24,7 @@ list<map<string,any> > known_keys = [];
 list<map<string,any> > deleted_keys = [];
 
 // keys to import from a file (file name => trusted flag)
-map<string,boolean> import_from_file = $[];
+list<map<string,any> > import_from_file = [];
 
 boolean modified = false;
 
@@ -38,7 +38,7 @@ global void Reset()
 {
     known_keys = [];
     deleted_keys = [];
-    import_from_file = $[];
+    import_from_file = [];
     modified = false;
 }
 
@@ -48,14 +48,8 @@ global void Reset()
  */
 list<map<string,any> > ReadCurrentKeys()
 {
-    // read known keys
-    list<map<string,any> > ret = Pkg::GPGKeys(false);
-
-    if (ret != nil)
-    {
-	// add trusted keys
-	ret = (list<map<string,any> >)merge(ret, Pkg::GPGKeys(true));
-    }
+    // read trusted keys
+    list<map<string,any> > ret = Pkg::GPGKeys(true);
 
     y2milestone("Read configuration: %1", ret);
 
@@ -135,45 +129,18 @@ global boolean Write()
     );
 
     // import the new keys
-    foreach(string tmpfile, boolean trusted, import_from_file,
+    foreach(map<string,any> new_key, import_from_file,
 	{
-	    y2milestone("Importing key from '%1', trusted: %2", tmpfile, trusted);
+	    y2milestone("Importing key %1 from '%2', trusted: %3", new_key["id"]:"", new_key["file"]:"", new_key["trusted"]:false);
 
-	    ret = Pkg::ImportGPGKey(tmpfile, trusted) && ret;
+	    ret = Pkg::ImportGPGKey(new_key["file"]:"", new_key["trusted"]:false) && ret;
 	}
     );
-
-    // modify keys (change the trusted flag)
-    // get the current settings
-    list<map<string,any> > current_keys = ReadCurrentKeys();
-    foreach(map<string,any> key, current_keys,
-	{
-	    map<string,any> found_key = SearchGPGKey(key["id"]:"");
-	    // is the trusted flag different?
-	    if (found_key != nil && found_key["trusted"]:false != key["trusted"]:false)
-	    {
-		y2milestone("Key %1 ('%2'): new trusted state: %3", found_key["id"]:"",
-		    found_key["name"]:"", found_key["trusted"]:false);
-
-		// the current state is trusted
-		if (found_key["trusted"]:false)
-		{
-		    // TODO move to the trusted keyring
-		}
-		else
-		{
-		    // TODO move from the trusted keyring
-		}
-	    }
-	}
-    );
-
 
     // all changes are saved, reset them
-    Reset();
-
-    // update the current status
-    Read();
+    deleted_keys = [];
+    import_from_file = [];
+    modified = false;
 
     return ret;
 }
@@ -194,33 +161,6 @@ global boolean Modified()
 global list<map<string,any> > GetKeys()
 {
     return known_keys;
-}
-
-/**
- * Modify a key
- * @param new_key A map with the key data, the key with the same Key ID is modified. (Only "trusted" flag can be changed.)
- * @return true on success
- */
-global boolean ModifyKey(map<string,any> new_key)
-{
-    boolean ret = true;
-
-    if (new_key != nil)
-    {
-	// update the key
-	known_keys = maplist(map<string,any> k, known_keys,
-	    {
-		if (k["id"]:"" == new_key["id"]:"")
-		{
-		    k["trusted"] = new_key["trusted"]:false;
-		}
-
-		return k;
-	    }
-	);
-    }
-
-    return ret;
 }
 
 /**
@@ -259,6 +199,20 @@ global boolean DeleteKey(string key_id)
 	known_keys = remove(known_keys, found);
     }
 
+    boolean found_in_imported = false;
+
+    // remove from imported keys (deleting a key scheduled for import)
+    import_from_file = filter(map<string,any> new_key, import_from_file,
+	{
+	    boolean found_key = (new_key["id"]:"" == key_id);
+	    found_in_imported = found_in_imported || found_key;
+
+	    return found_key;
+	}
+    );
+
+    modified = true;
+
     return (found != nil);
 }
 
@@ -273,7 +227,7 @@ global map<string,any> ImportFromFile(string file, boolean trusted)
 {
     // check whether the file is valid, copy the file to the tmpdir
     map<string,any> key = Pkg::CheckGPGKeyFile(file);
-    y2internal("File content: %1", key);
+    y2milestone("File content: %1", key);
 
     if (key != nil && size(key) > 0)
     {
@@ -308,11 +262,29 @@ is already known, it cannot be added again."), key["id"]:"", key["name"]:""));
 	return nil;
     }
 
+    boolean found_in_deleted = false;
+    // check if the key is scheduled for removal
+    deleted_keys = filter(map<string,any> deleted_key, deleted_keys,
+	{
+	    boolean key_found = (deleted_key["id"]:"" == key["id"]:"");
+	    found_in_deleted = found_in_deleted || key_found;
+
+	    return !key_found;
+	}
+    );
+
+    // the key was known, move it to the known list
+    if (found_in_deleted)
+    {
+	known_keys = add(known_keys, key);
+	return key;
+    }
+
     // copy the key to the temporary directory (in fact the keys are imported in Write())
     string tmpfile = sformat("%1/tmp_gpg_key.%2", Directory::tmpdir, size(known_keys));
     string command = sformat("/bin/cp -- '%1' '%2'", String::Quote(file), String::Quote(tmpfile));
 
-    y2internal("Copying the key: %1", command);
+    y2milestone("Copying the key: %1", command);
 
     integer out = (integer)SCR::Execute(.target.bash, command);
 
@@ -323,10 +295,12 @@ is already known, it cannot be added again."), key["id"]:"", key["name"]:""));
     }
 
     // store the import request
-    import_from_file = add(import_from_file, tmpfile, trusted);
+    import_from_file = add(import_from_file, $[ "file" : tmpfile, "trusted" : trusted, "id" : key["id"]:"" ]);
 
     // add the new key to the current config
     known_keys = add(known_keys, key);
+
+    modified = true;
 
     return key;
 }
