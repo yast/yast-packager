@@ -97,7 +97,12 @@
    {
        list<string> packages = Pkg::GetPackages (`selected, true);
        if ( Popup::YesNo (sformat (		  
-			_("Following packages will be installed:\n\n%1\n\nContinue installation ?"),
+			_("The following packages will be installed:
+
+%1
+
+Continue installation ?
+"),
 			mergestring (packages, "\n"))))
        {
 	   // checking licences
