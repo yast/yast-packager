@@ -56,8 +56,7 @@ list<map<string,any> > createHWTable()
 
 	    map<string,any> r = $[
 		"id" : key["id"]:"",
-		"table_descr" : [ key["trusted"]:false ? UI::Glyph (`CheckMark) : "",
-		    key["id"]:"", key["name"]:"" ],
+		"table_descr" : [ key["id"]:"", key["name"]:"" ],
 		"rich_descr" : WizardHW::CreateRichTextDescription(sformat(_("Key: %1"), key["id"]:""), descr)
 	    ];
 
@@ -86,53 +85,9 @@ void SetItems(string selected_key)
 	// set the previously selected key
 	WizardHW::SetSelectedItem(selected_key);
     }
-}
 
-/**
- * Display a dialog for editing the properties of the selected GPG key
- */
-boolean EditKeyProperties(map<string,any> key)
-{
-    UI::OpenDialog(
-	`MarginBox(1, 0.3,
-	    `VBox(
-		`Frame(_("GPG Key Properties"),
-		    `VBox(
-			`Left(`Label(sformat(_("Key ID: %1"), key["id"]:""))),
-			`Left(`Label(sformat(_("Name: %1"), key["name"]:""))),
-			`VSpacing(0.3),
-			`Left(`CheckBox(`id(`trusted), _("&The Key is Trusted"), key["trusted"]:false)),
-			`VSpacing(0.2)
-		    )
-		),
-		`VSpacing(0.2),
-		`HBox(
-		    `PushButton(`id(`ok),`opt(`key_F10, `default), Label::OKButton()),
-		    `HSpacing(2),
-		    `PushButton(`id(`cancel), `opt(`key_F9), Label::CancelButton())
-		)
-	    )
-	)
-    );
-
-    symbol ui = (symbol)UI::UserInput();
-    boolean ret = false;
-
-    if (ui == `ok)
-    {
-	boolean new_value = (boolean)UI::QueryWidget(`id(`trusted), `Value);
-	if (new_value != key["trusted"]:false)
-	{
-	    key["trusted"] = new_value;
-	    KeyManager::ModifyKey(key);
-	}
-
-	ret = true;
-    }
-
-    UI::CloseDialog();
-
-    return ret;
+    // properties of a key cannot be changed, disable Edit button
+    UI::ChangeWidget(`id(`edit), `Enabled, false);
 }
 
 // remember the details about the added key from AddGPGKey(),
@@ -168,15 +123,12 @@ symbol AddGPGKey()
 	    `MarginBox(1, 0.3,
 		`VBox(
 		    `HBox(
-			`TextEntry(`id(`file), `opt(`notify,`immediate), Label::FileName()),
+			`TextEntry(`id(`file), `opt(`notify), Label::FileName()),
 			`VBox(
 			    `Label(""),
 			    `PushButton(`id(`browse), Label::BrowseButton())
 			)
-		    ),
-		    `VSpacing(0.2),
-		    `Left(`CheckBox(`id(`trusted), _("&The Key is Trusted"), false)),
-		    `VSpacing(0.3)
+		    )
 		)
 	    )
 	),
@@ -264,8 +216,8 @@ Check the <B>Trusted</B> check box if the key is trusted.
 		continue;
 	    }
 
-	    boolean trusted = (boolean) UI::QueryWidget(`id(`trusted), `Value);
-	    added_key = KeyManager::ImportFromFile(keyfile, trusted);
+	    // always add as trusted
+	    added_key = KeyManager::ImportFromFile(keyfile, true);
 
 	    if (added_key == nil || size(added_key) == 0)
 	    {
@@ -309,7 +261,7 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 ");
 
     // table header
-    WizardHW::CreateHWDialog(title, help_text, [_("Trusted"), _("Key ID"), _("Name")], []);
+    WizardHW::CreateHWDialog(title, help_text, [_("Key ID"), _("Name")], []);
 
     // set the navigation keys according to the current mode
     if (gpg_mgr_standalone_mode)
@@ -340,18 +292,8 @@ To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use
 
 	y2milestone("Selected key: %1, action: %2", key_id, ret);
 
-	// change key properties
-	if (ret == `edit)
-	{
-	    map<string,any> key = KeyManager::SearchGPGKey(key_id);
-
-	    if (key != nil && EditKeyProperties(key))
-	    {
-		SetItems(key_id);
-	    }
-	}
 	// remove the key
-	else if (ret == `delete)
+	if (ret == `delete)
 	{
 	    map<string,any> key = KeyManager::SearchGPGKey(key_id);
 

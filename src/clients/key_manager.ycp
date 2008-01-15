@@ -55,6 +55,11 @@ without access to the software management system."));
     return `next;
 }
 
+symbol Write()
+{
+    return KeyManager::Write() ? `next : `abort;
+}
+
 // main function - start the workflow
 symbol Main()
 {
@@ -66,7 +71,7 @@ symbol Main()
     map<string,any> aliases = $[
 	"read"	: ``(Read()),
 	"edit" : ``(RunGPGKeyMgmt(true)),
-//	TODO "write" : Write()
+	"write" : ``(Write())
     ];
 
     map sequence = $[
@@ -76,12 +81,12 @@ symbol Main()
 	],
 	"edit" : $[
 	    `abort : `abort,
-	    `next : `next,
+	    `next : "write",
 	],
-//	"write" : $[
-//	    `next : "summary",
-//	    `abort : `abort,
-//	],
+	"write" : $[
+	    `next : `next,
+	    `abort : `abort,
+	],
     ];
 
     y2milestone ("Starting the key management sequence");
