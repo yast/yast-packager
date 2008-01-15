@@ -63,7 +63,8 @@ string kde_blurb =
 _("KDE is a powerful and intuitive desktop
 environment that uses Kontact as its mailer,
 Konqueror as its file manager, and offers
-both Firefox and Konqueror as its Web browser.");
+both, Firefox and Konqueror as its web browser.
+");
 
 // help text 1/3
 string help = _("<p>Both <b>KDE</b> and <b>GNOME</b> are powerful and intuitive

@@ -55,7 +55,7 @@
     }
     
     void SetDialogContents () {
-	// dialog caption
+	// dialog caption - do not use any rich text tags, it's displayed using big bold font
 	string caption = _("Editor for 'Do Not Show Again'");
 
 	// help text

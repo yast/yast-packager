@@ -419,8 +419,9 @@ map<string,any> DirWidget () {
 	"handle" : DirHandle,
 	"handle_events" : [ `browse ],
 	"help" : _("<p><big><b>Local Directory or ISO</b></big><br>
-Ise <b>Path to Directory or ISO Image</b> to specify the path to the
-directory or the file holding the ISO image of the installation media.</p>")
+Use <b>Path to Directory or ISO Image</b> to specify the path to the
+directory or the file holding the ISO image of the installation media.</p>
+")
 + iso_help
 + multi_cd_help,
     ];
