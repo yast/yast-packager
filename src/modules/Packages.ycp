@@ -1008,7 +1008,11 @@ global void SlideShowSetUp (string wanted_language) {
 
     if (load_release_notes (source))
     {
-	SlideShow::relnotes = media_prefix + media_text;
+	// TRANSLATORS: beginning of the rich text with the release notes
+	SlideShow::relnotes = _("<p><b>These are the release notes made for the first initial release. They are
+part of the installation media. During the configuration steps, if a connection
+to the Internet is available, you can download updated release notes
+from the SUSE Linux Web server.</b></p>") + media_text;
     }
 }
 

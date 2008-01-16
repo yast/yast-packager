@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 16 15:21:17 CET 2008 - locilka@suse.cz
+
+- Always use ProvideOptionalFile for downloading the Release Notes
+  (#352887).
+
+-------------------------------------------------------------------
 Tue Jan 15 13:49:28 CET 2008 - lslezak@suse.cz
 
 - write key manager configuration, display/edit only trusted keys
