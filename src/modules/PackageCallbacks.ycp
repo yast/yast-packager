@@ -35,9 +35,6 @@
     global boolean _package_popup = false;
     global boolean _script_popup = false;
     global boolean _scan_popup = false;
-    global string _tick_movie = "/usr/share/YaST2/theme/current/animations/ticks-loop3.gif";
-    global integer _tick_movie_x = 7;
-    global integer _tick_movie_y = 1;
     global string _package_name = "";
     global integer _package_size = 0;
     global boolean _deleting_package = false;
@@ -59,8 +56,6 @@
 
     // max. length of the text in the repository popup window
     integer max_size = 60;
-
-    integer tick_time = 0;
 
     //--------------------------------------------------------------------------
     // defaults
@@ -2148,17 +2143,6 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 	}
 	else
 	{
-	    term progressw = `Empty();
-	    if ( UI::GetDisplayInfo()["HasAnimationSupport"]:false )
-	    {
-	      progressw = `HVCenter(`MinSize( _tick_movie_x, _tick_movie_y, `ReplacePoint(`id(`rp_progress), `Image(`id (`progress_widget), `opt(`animated), _tick_movie, "progress_widget" ))));
-	    }
-	    else
-	    {
-	      string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
-	      progressw = `ReplacePoint(`id(`rp_progress), `Label(`id(`progress_widget), label));
-	    }
-
 	    UI::OpenDialog(
 		`HBox(
 		    `HSpacing(1),
@@ -2166,10 +2150,7 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 			`VSpacing(0.5),
 			`HSpacing(`id(`callback_progress_popup), max_size),
 			(in_percent) ? `ProgressBar (`id (`progress_widget), task, 100, val_percent)
-			    : `VBox(
-				`Label(task),
-				progressw
-			    ),
+			    : `BusyIndicator(`id(`progress_widget), task, 3000),
 			`VSpacing(0.2),
 			`PushButton (`id (`abort), Label::AbortButton ()),
 			`VSpacing(0.5)
@@ -2178,8 +2159,6 @@ global void ProgressStart(integer id, string task, boolean in_percent, boolean i
 		)
 	    );
 	}
-
-	tick_time = 0;
     }
 }
 
@@ -2233,36 +2212,7 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
 	{
 	    if (tick_progress || val_progress)
             {
-                term progressw = `Empty();
-                if ( UI::GetDisplayInfo()["HasAnimationSupport"]:false )
-                {
-                  progressw = `HVCenter(`MinSize( _tick_movie_x, _tick_movie_y, `Image(`id (`progress_widget), `opt(`animated), _tick_movie, "progress_widget" )));
-                }
-                else
-                {
-                  string label = (tick_progress) ? tick_labels[current_tick]:"/" : sformat("%1: %2", progress_task, val_raw);
-		  progressw = `Label(`id(`progress_widget), label);
-                }
-
-		// restart the animation only when at least 3 seconds elapsed,
-		// don't restart it too often
-		integer tm = time();
-		y2debug("Time elapsed since the last tick callback: %1", tm - tick_time);
-		if (tm - tick_time > 3 || !UI::GetDisplayInfo()["HasAnimationSupport"]:true)
-		{
-		    UI::ReplaceWidget (`id(`rp_progress), progressw );
-		    tick_time = tm;
-		}
-		else
-		{
-		    y2debug("Ignoring the tick callback");
-		}
-
-
-		if (tick_progress)
-		{
-		    NextTick();
-		}
+		UI::ChangeWidget(`id(`progress_widget), `Alive, true);
 	    }
 	    else
 	    {

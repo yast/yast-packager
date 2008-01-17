@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Jan 17 13:43:42 CET 2008 - lslezak@suse.cz
+
+- use a `BusyIndicator widget instead of the animated icon
+- use a map parameter in the GPG key related callbacks,
+  display created and expiration dates in the popups,
+  display a warning if the key is expired
+- implemented AcceptWrongDigest and AcceptUnknownDigest callbacks
+- 2.16.15
+
+-------------------------------------------------------------------
 Wed Jan 16 15:21:17 CET 2008 - locilka@suse.cz
 
 - Always use ProvideOptionalFile for downloading the Release Notes
