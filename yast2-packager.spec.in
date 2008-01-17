@@ -6,8 +6,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 
 # Progress::Subprogress*()
 BuildRequires:	yast2 >= 2.16.17
-# New functions: GPG key management
-BuildRequires:	yast2-pkg-bindings >= 2.16.10
+# changed signatures of GPG calbacks
+BuildRequires:	yast2-pkg-bindings >= 2.16.11
 
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings

@@ -19,7 +19,7 @@
      * Default return when signatures shouldn't be checked
      * @see SignatureCheckDialogs::CheckSignaturesInYaST()
      */
-    boolean default_return_unchecked = true;
+    const boolean default_return_unchecked = true;
 
     /* ============================ < Callbacks for Repositories > ============================ */
 
@@ -75,6 +75,53 @@
 	}
     }
 
+
+/**
+ * Callback handler function. Required callback prototype is <code>boolean(string filename, string requested_digest, string found_digest)</code>. The callback function should ask user whether the wrong digest can be accepted, returned true value means to accept the file.
+ * @return boolean
+ */
+    // zypp: askUserToAcceptWrongDigest
+    global boolean AcceptWrongDigest(string filename, string requested_digest, string found_digest)
+    {
+	// Check signatures at all?
+	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
+	    return default_return_unchecked;
+
+	const string dont_show_dialog_ident = "-AcceptWrongDigest-";
+
+	// Show the popup?
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
+	    return SignatureCheckDialogs::UseFileWithWrongDigest(filename, requested_digest, found_digest, dont_show_dialog_ident);
+	} else {
+	    // Return the default value entered by user
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
+	}
+    }
+
+/**
+ * Callback handler function. Required callback prototype is <code>boolean(string filename, string name)</code>. The callback function should ask user whether the uknown digest can be accepted, returned true value means to accept the digest.
+ * @return boolean
+ */
+
+    // zypp: askUserToAccepUnknownDigest
+    global boolean AcceptUnknownDigest(string filename, string digest)
+    {
+	// Check signatures at all?
+	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
+	    return default_return_unchecked;
+
+	const string dont_show_dialog_ident = "-AcceptUnknownDigest-";
+
+	// Show the popup?
+	if (SignatureCheckDialogs::GetShowThisPopup(dont_show_dialog_ident, filename)) {
+	    return SignatureCheckDialogs::UseFileWithUnknownDigest(filename, digest, dont_show_dialog_ident);
+	} else {
+	    // Return the default value entered by user
+	    return SignatureCheckDialogs::GetDefaultDialogReturn(dont_show_dialog_ident, filename);
+	}
+    }
+
+
     // Name of the callback handler function. Required callback prototype is
     // boolean(string filename, string keyid, string keyname). The callback
     // function should ask user whether the unknown key can be accepted, returned
@@ -103,55 +150,58 @@
     }
     
     // Name of the callback handler function. Required callback prototype is
-    // boolean(string keyid, string keyname, string keydetails). The callback
+    // boolean(map<string,any> key). The callback
     // function should ask user whether the key is trusted, returned true value
     // means the key is trusted.
     //
     // zypp: askUserToTrustKey
     //
     /* function for CallbackTrustGpgKey() */
-    global boolean TrustGpgKey (string filename, string keyid, string keyname, string fingerprint) {
+    global boolean TrustGpgKey (map<string,any> key)
+    {
 	// Check signatures at all?
 	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
 	    return default_return_unchecked;
 
 	// There are no details from the callback, maybe in the future
-	return SignatureCheckDialogs::ItemSignedWithPublicSignature(`file, filename, keyid, keyname) == `trust;
+	return SignatureCheckDialogs::ImportGPGKeyDialog(key) == `import;
     }
 
     // Name of the callback handler function. Required callback prototype is
-    // boolean(string keyid, string keyname, string keydetails). The callback
+    // boolean(map<string,any> key). The callback
     // function should ask user whether the key is trusted, returned true value
     // means the key is trusted.
     //
     // zypp: askUserToImportKey
     //
     /* function for CallbackImportGpgKey() */
-    global boolean ImportGpgKey (string keyid, string keyname, string fingerprint) {
+    global boolean ImportGpgKey (map<string,any> key)
+    {
 	// Check signatures at all?
 	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
 	    return default_return_unchecked;
 
 	// There are no details from the callback, maybe in the future
-	return SignatureCheckDialogs::ImportGPGKeyIntoTrustedDialog(keyid, keyname, fingerprint);
+	return SignatureCheckDialogs::ImportGPGKeyIntoTrustedDialog(key);
     }
     
     // Name of the callback handler function. Required callback prototype is
-    // boolean(string filename, string keyid, string keyname). The callback
+    // boolean(string filename, map<string,any> key). The callback
     // function should ask user whether the unsigned file can be accepted,
     // returned true value means to accept the file.
     //
     // zypp: askUserToAcceptVerificationFailed
     //
     /* function for CallbackAcceptVerificationFailed() */
-    global boolean AcceptVerificationFailed (string filename, string keyid, string keyname, string fingerprint) {
+    global boolean AcceptVerificationFailed (string filename, map<string,any> key)
+    {
 	// Check signatures at all?
 	if (SignatureCheckDialogs::CheckSignaturesInYaST() == false)
 	    return default_return_unchecked;
 
-	return SignatureCheckDialogs::UseCorruptedItem(`file, filename, keyid, keyname, fingerprint);
+	return SignatureCheckDialogs::UseCorruptedItem(`file, filename, key);
     }
-    
+
     /* ============================ < Callbacks for Repositories > ============================ */
     
     // Name of the callback handler function. Required callback prototype is void
@@ -159,8 +209,9 @@
     // that a trusted key has been added.
     //
     /* function for CallbackTrustedKeyAdded() */
-    void TrustedKeyAdded (string keyring, string keyid, string keyname, string fingerprint) {
-	y2milestone("Trusted key has been added: %1 / %2 (%3)", keyid, fingerprint, keyname);
+    void TrustedKeyAdded (map<string,any> key)
+    {
+	y2milestone("Trusted key has been added: %1 / %2 (%3)", key["id"]:"", key["fingerprint"]:"", key["name"]:"");
 	return nil;
     }
     
@@ -169,8 +220,9 @@
     // that a trusted key has been removed.
     //
     /* function for CallbackTrustedKeyRemoved() */
-    void TrustedKeyRemoved (string keyring, string keyid, string keyname, string fingerprint) {
-	y2milestone("Trusted key has been removed: %1 / %2 (%3)", keyid, fingerprint, keyname);
+    void TrustedKeyRemoved (map<string,any> key)
+    {
+	y2milestone("Trusted key has been removed: %1 / %2 (%3)", key["id"]:"", key["fingerprint"]:"", key["name"]:"");
 	return nil;
     }
 }

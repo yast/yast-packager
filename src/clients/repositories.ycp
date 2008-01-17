@@ -502,7 +502,6 @@ Save changes anyway?")))
 	    success = success && Pkg::SourceDelete(id);
 	});
 
-
 	foreach(map<string,any> src_state, sourceStatesOut,
 	    {
 		if (src_state["do_refresh"]:false)
@@ -510,19 +509,16 @@ Save changes anyway?")))
 		    integer srcid = src_state["SrcId"]:-1;
 		    y2milestone("Downloading metadata for source %1", srcid);
 
-		    Pkg::SourceRefreshNow(srcid);
+		    success = success && Pkg::SourceRefreshNow(srcid);
 		}
 	    }
 	);
 
-	y2internal("success: %1", success);
+	success = success && KeyManager::Write();
+
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceSaveAll(); // #176013
 
-	y2internal("success: %1", success);
-	success = KeyManager::Write() && success;
-
-	y2internal("success: %1", success);
 	return success;
    }
 

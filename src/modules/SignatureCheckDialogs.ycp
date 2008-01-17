@@ -459,18 +459,30 @@ Use it anyway?")
 	return ret;
     }
 
+    string GPGKeyAsString(map<string,any> key)
+    {
+	// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
+	return sformat(_("ID: %1"), key["id"]:"") + "\n" +
+	((key["fingerprint"]:"" == nil || key["fingerprint"]:"" == "") ?
+	    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
+	    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(key["fingerprint"]:"", " ", 4))) +
+	// Part of the GnuPG key description in popup, %1 is a GnuPG key name
+	sformat(_("Name: %1"), key["name"]:"")
+	+ (key["created"]:"" != "" ? "\n" + sformat(_("Created: %1"), key["created"]:"") : "")
+	+ (key["expires"]:"" != "" ? "\n" + sformat(_("Expires: %1"), key["expires"]:"") : "");
+    }
+
     /**
      * Used for corrupted file or package. Opens dialog asking whether user wants
      * to use this corrupted item.
      *
      * @param symbol item_type `file or `package
      * @param string item_name file name or package name
-     * @param string key_id
-     * @param string key_name
-     * @param string fingerprint
+     * @param map key Used key
      * @return boolean use or don't use ('true' if 'yes')
      */
-    global boolean UseCorruptedItem (symbol item_type, string item_name, string key_id, string key_name, string fingerprint) {
+    global boolean UseCorruptedItem (symbol item_type, string item_name, map<string,any> key)
+    {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name, %2 for the complete description of the GnuPG key (multiline)
 	    _("Package %1 is signed with the following GnuPG key, but the integrity check failed: %2
@@ -492,14 +504,7 @@ for the integrity and security of your system.
 Use it anyway?")
 	    ),
 	    item_name,
-	    "\n\n" +
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
-		sformat(_("ID: %1"), key_id) + "\n" +
-		((fingerprint == nil || fingerprint == "") ?
-		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
-		    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(fingerprint, " ", 4))) +
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
-		sformat(_("Name: %1"), key_name)
+	    "\n\n" + GPGKeyAsString(key)
 	);
 
 	UI::OpenDialog(
@@ -611,7 +616,8 @@ Use it anyway?")
      * @param string key_name
      * @return symbol `key_import, `install, `skip
      */
-    global symbol ItemSignedWithPublicSignature (symbol item_type, string item_name, string key_id, string key_name) {
+    global symbol ItemSignedWithPublicSignature (symbol item_type, string item_name, map<string,any> key)
+    {
 	string description_text = sformat((item_type == `package ?
 	    // popup question, %1 stands for the package name, %2 for the key ID, %3 for the key name
 	    _("The package %1 is digitally signed
@@ -634,7 +640,7 @@ If you trust the owner, mark the key as trusted.
 Installing a file from an unknown repository can put
 the integrity of your system at risk. It is safest
 to skip it.")
-	), item_name, key_id, key_name);
+	), item_name, key["id"]:"", key["name"]:"");
 
 	UI::OpenDialog(
 	    `opt(`decorated),
@@ -663,7 +669,7 @@ to skip it.")
 	    // later, if asking whether to import the key, the key is trusted
 	    // so it will be also imported
 	    // bugzilla #282254
-	    list_of_trusted_keys = add (list_of_trusted_keys, key_id);
+	    list_of_trusted_keys = add (list_of_trusted_keys, key["id"]:"");
 	}
 
 	UI::CloseDialog();
@@ -679,7 +685,8 @@ to skip it.")
      * @param string key_fingerprint
      * @return symbol
      */
-    global symbol ImportGPGKeyDialog (string key_id, string key_name, string key_location, string fingerprint) {
+    global symbol ImportGPGKeyDialog (map<string,any> key)
+    {
 	// additional Richtext (HTML) warning text (kind of help), 1/2
 	string warning_text = _("<p>The owner of the key may distribute updates,
 packages, and package repositories that your system will trust and offer
@@ -690,7 +697,24 @@ to have a certain amount of control over the software on your system.</p>") +
 	// additional Richtext (HTML) warning text (kind of help), 2/2, %1 stands for the GnuPG key ID
 	sformat(_("<p>A warning dialog opens for every package that
 is not signed by a trusted (imported) key. If you do not import the key,
-packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
+packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key["id"]:"");
+
+	// expiration warning
+	string exp_str = "";
+
+	integer expires = key["expires_raw"]:0;
+	if (expires > 0 && time() > expires)
+	{
+	    // %x = date only (without time)
+	    map out = (map)SCR::Execute(.target.bash_output, "date +%x");
+	    string current_date = out["stdout"]:"";
+	    y2milestone( "Current date: %1", current_date);
+
+	    // warning label - the key to import is expired
+	    // %1 is current date (formatted according to the current locale)
+	    exp_str = "\n" + sformat(_("WARNING: The key is expired!
+Current date: %1"), current_date);
+	}
 
 	// popup message, %1 stands for GPG key complete multiline description, %2 for key location (URL or ...)
 	string dialog_text = sformat(_("The GnuPG key %1
@@ -701,14 +725,8 @@ public keys, meaning that you trust the owner of the key.
 You should be sure that you can trust the owner and that
 the key really belongs to that owner before importing it."),
 	    "\n" +
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
-		sformat(_("ID: %1"), key_id) + "\n" +
-		((fingerprint == nil || fingerprint == "") ?
-		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
-		    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(fingerprint, " ", 4))) +
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
-		sformat(_("Name: %1"), key_name),
-	    key_location
+	    GPGKeyAsString(key) + exp_str,
+	    key["path"]:""
 	);
 
 	UI::OpenDialog(
@@ -767,6 +785,13 @@ the key really belongs to that owner before importing it."),
 	    // else if (ret == `details) Popup::LongMessage(key_detailed_description);
 	}
 
+	if (ret == `import) {
+	    // later, if asking whether to import the key, the key is trusted
+	    // so it will be also imported
+	    // bugzilla #282254
+	    list_of_trusted_keys = add (list_of_trusted_keys, key["id"]:"");
+	}
+
 	UI::CloseDialog();
 	return ret;
     }
@@ -779,10 +804,11 @@ the key really belongs to that owner before importing it."),
      * @param string fingerprint
      * @return boolean whether zypp should import the key into the keyring of trusted keys
      */
-    global boolean ImportGPGKeyIntoTrustedDialog (string key_id, string key_name, string fingerprint) {
+    global boolean ImportGPGKeyIntoTrustedDialog (map<string,any> key)
+    {
 	// bugzilla #282254
-	if (key_id != "" && key_id != nil && contains (list_of_trusted_keys, key_id)) {
-	    y2milestone ("Key '%1' is trusted, importing...", key_id);
+	if (key["id"]:"" != "" && key["id"]:"" != nil && contains (list_of_trusted_keys, key["id"]:"")) {
+	    y2milestone ("Key '%1' is trusted, importing...", key["id"]:"");
 	    return true;
 	}
 
@@ -796,7 +822,7 @@ to have a certain amount of control over the software on your system.</p>") +
 	// additional Richtext (HTML) warning text (kind of help), 2/2, %1 stands for the GnuPG key ID
 	sformat(_("<p>A warning dialog opens for every package that
 is not signed by a trusted (imported) key. If you do not import the key,
-packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key_id);
+packages created by the owner of key <tt>%1</tt> show this warning.</p>"), key["id"]:"");
 
 	// popup message, %1 stands for string "GPG key ID\nfingerprint", %2 for key name
 	string dialog_text = sformat(_("The following GnuPG key has been found: %1
@@ -806,13 +832,7 @@ public keys, meaning that you trust the owner of the key.
 You should be sure that you can trust the owner and that
 the key really belongs to that owner before importing it."),
 	    "\n" +
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key ID
-		sformat(_("ID: %1"), key_id) + "\n" +
-		((fingerprint == nil || fingerprint == "") ?
-		    // Part of the GnuPG key description in popup, %1 is a GnuPG key fingerprint
-		    "" : sformat(_("Fingerprint: %1") + "\n", StringSplitter(fingerprint, " ", 4))) +
-		// Part of the GnuPG key description in popup, %1 is a GnuPG key name
-		sformat(_("Name: %1"), key_name)
+	    GPGKeyAsString(key)
 	);
 
 	UI::OpenDialog(
@@ -874,5 +894,100 @@ the key really belongs to that owner before importing it."),
 	UI::CloseDialog();
 
 	return ret == `import;
+    }
+
+    boolean RunSimpleErrorPopup(string heading, string description_text,
+	string dont_show_dialog_ident, string dont_show_dialog_param)
+    {
+	UI::OpenDialog(
+	    `opt(`decorated),
+	    `VBox(
+		// popup heading
+		`HBox (
+		    `VCenter(MessageIcon("error")),
+		    // dialog heading - displayed in a big bold font
+		    `VCenter(`Heading(heading)),
+		    `HStretch()
+		),
+		`MarginBox(0.5, 0.5, `Label(description_text)),
+		`Left(`MarginBox(0, 1.2, `CheckBox(`id(`dont_show_again),
+		    Message::DoNotShowMessageAgain(),
+		    (GetShowThisPopup(dont_show_dialog_ident, dont_show_dialog_param) ? false:true)
+		))),
+		YesNoButtons(`no)
+	    )
+	);
+
+	boolean ret = WaitForYesNoCancelUserInput();
+	// default value
+	if (ret == nil) ret = false;
+
+	// Store the don't show value, store the default return value
+	HandleDoNotShowDialogAgain(ret, dont_show_dialog_ident, `dont_show_again, dont_show_dialog_param);
+
+	UI::CloseDialog();
+
+	return ret;
+    }
+
+    /**
+     * Ask user to accept wrong digest
+     * @param filename Name of the file
+     * @param requested_digest Expected checksum
+     * @param found_digest Current checksum
+     * @param dont_show_dialog_ident Uniq ID for "don't show again"
+     * @return boolean true when user accepts the file
+     */
+    global boolean UseFileWithWrongDigest(string filename, string requested_digest, string found_digest, string dont_show_dialog_ident)
+    {
+	const string description_text =
+	    // popup question, %1 stands for the filename, %2 is expected checksum
+	    // %3 is the current checksum (e.g. "803a8ff00d00c9075a1bd223a480bcf92d2481c1")
+	    sformat(_("The expected checksum of file %1
+is %2,
+but the current checksum is %3.
+
+This means that the file has been changed by accident or by an attacker
+since the repository creator signed it. Using it is a big risk
+for the integrity and security of your system.
+
+Use it anyway?"),
+	    filename,
+	    requested_digest,
+	    found_digest
+	);
+
+	// dialog heading - displayed in a big bold font
+	const string heading = _("Wrong Digest");
+
+	return RunSimpleErrorPopup(heading, description_text, dont_show_dialog_ident, filename);
+    }
+
+    /**
+     * Ask user to accept a file with unknown checksum
+     * @param filename Name of the file
+     * @param digest Current checksum
+     * @param dont_show_dialog_ident Uniq ID for "don't show again"
+     * @return boolean true when user accepts the file
+     */
+    global boolean UseFileWithUnknownDigest(string filename, string digest, string dont_show_dialog_ident)
+    {
+	const string description_text =
+	    // popup question, %1 stands for the filename, %2 is expected digest, %3 is the current digest
+	    sformat(_("The checksum of file %1
+is %2,
+but the expected checksum is not known.
+
+This means that the origin and integrity of the file
+cannot be verified. Using the file may put the integrity of your system at risk.
+
+Use it anyway?"),
+	    filename,
+	    digest
+	);
+	// dialog heading - displayed in a big bold font
+	const string heading = _("Unknown Digest");
+
+	return RunSimpleErrorPopup(heading, description_text, dont_show_dialog_ident, filename);
     }
 }
