@@ -32,13 +32,28 @@
     import "FileUtils";
     import "PackagesUI";
     import "CommandLine";
+    import "Progress";
 
 symbol StartSWSingle()
 {
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_single");
-    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+    // a stage in the progress dialog
+    list<string> stages = [_("Initialize the Target System"), _("Load the Configured Repositories")];
+
+    // an extra step is needed in dir inst mode
+    if (Installation::destdir != "/")
+    {
+	y2internal("Extra step is needed");
+	// %1 is path to the target system (e.g. /tmp/dirinstall
+	sformat(_("Reset the target system to %1"), Installation::destdir);
+    }
+
+    // a stage in the progress dialog
+    Progress::New(_("Starting the Package Manager"), "", 2, stages, [], "");
+    Progress::NextStage();
 
     import "Packages";
 
@@ -113,7 +128,7 @@ symbol StartSWSingle()
 
    define symbol CheckWhichPackages (list<string> arg_list)
    {
-	PackageSystem::EnsureTargetInit();
+       PackageSystem::EnsureTargetInit();
 
        y2milestone ("CheckWhichPackages (%1)", arg_list);
        // if sw_single is called with a list of packages or a package name
@@ -184,6 +199,8 @@ symbol StartSWSingle()
 
        // start package manager
        const boolean enabled_only = true;
+
+	Progress::NextStage();
        boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
        if (!mgr_ok)
        {
@@ -196,7 +213,14 @@ symbol StartSWSingle()
 Only installed packages are displayed."));
 	}
 
-       Pkg::TargetInit (Installation::destdir, false);
+	// reset the target if needed (e.g. dirinstall mode)
+	// EnsureTargetInit() uses "/" as root
+	if (Installation::destdir != "/")
+	{
+	    y2milestone("Setting a new target: %1", Installation::destdir);
+	    Progress::NextStage();
+	    Pkg::TargetInit (Installation::destdir, false);
+	}
 
        return `found_descr;
 
@@ -299,6 +323,8 @@ without access to the software management system."));
 
    // check the arguments and try the mount/search for local description
    symbol result = CheckWhichPackages (arg_list);
+
+   Progress::Finish();
 
    Pkg::SetTextLocale (UI::GetLanguage (true));
 

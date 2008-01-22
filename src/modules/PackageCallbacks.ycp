@@ -87,7 +87,7 @@
 
     boolean FullScreen()
     {
-	boolean ret = UI::WidgetExists(`subprogress_replace_point);
+	boolean ret = UI::WidgetExists(`progress_replace_point);
 	y2debug("Running in fullscreen mode: %1", ret);
 	return ret;
     }
@@ -2240,6 +2240,8 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
 
 integer last_stage = 0;
 
+integer close_wizard = 0;
+
 /**
  * Hanler for ProcessStart callback - handle start of a package manager process
  * @param task Decription of the task
@@ -2250,16 +2252,21 @@ global void ProcessStart(string task, list<string> stages, string help)
 {
    y2milestone("Process: Start: task: %1, stages: %2, help: %3", task, stages, help);
 
-   if (Progress::status())
-   {
-       Wizard::CreateDialog();
-       Wizard::SetDesktopIcon("sw_single");
+    if (Progress::status())
+    {
+	if (!Progress::IsRunning())
+	{
+	    Wizard::CreateDialog();
+	    Wizard::SetDesktopIcon("sw_single");
 
-       // set 100% as max value
-       Progress::New(task, "", 100, stages, [], help);
-       Progress::Title(task);
-       last_stage = 0;
-   }
+	    close_wizard = close_wizard + 1;
+	}
+
+	// set 100% as max value
+	Progress::New(task, "", 100, stages, [], help);
+	Progress::Title(task);
+	last_stage = 0;
+    }
 }
 
 /**
@@ -2295,7 +2302,12 @@ global void ProcessDone()
     // set 100%
     Progress::Finish();
 
-    Wizard::CloseDialog();
+    if (close_wizard == 1)
+    {
+	Wizard::CloseDialog();
+    }
+
+    close_wizard = close_wizard - 1;
 }
 
 // EOF

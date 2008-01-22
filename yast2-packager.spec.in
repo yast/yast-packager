@@ -19,8 +19,8 @@ Requires:	yast2-installation >= 2.15.12
 # New functions: GPG key management
 Requires:	yast2-pkg-bindings >= 2.16.10
 
-# Progress::Subprogress*()
-Requires:	yast2 >= 2.16.17
+# recursive Progress::New()
+Requires:	yast2 >= 2.16.22
 
 # unzipping license file
 Requires:	unzip

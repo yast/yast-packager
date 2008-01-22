@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Jan 22 14:56:19 CET 2008 - lslezak@suse.cz
+
+- callbacks - do not open a new progress window if there is
+  a progress already running (the progress will be nested in such
+  case) (#352007)
+- sw_single - use Progress:: to display the total progress at
+  start, reinitialize the target only if it is necessary
+- 2.16.16
+
+-------------------------------------------------------------------
 Thu Jan 17 13:43:42 CET 2008 - lslezak@suse.cz
 
 - use a `BusyIndicator widget instead of the animated icon
