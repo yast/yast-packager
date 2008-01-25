@@ -69,6 +69,23 @@ set the location of the first media of the set.</p>
  */
 global void SetURL (string url) {
     _url = url;
+
+    map parsed = URL::Parse(_url);
+
+    // check if it's HDD or USB
+    // convert it to the internal representation
+    if (parsed["scheme"]:"" == "hd")
+    {
+	string query = parsed["query"]:"";
+
+	if (regexpmatch(query, "device=/dev/disk/by-id/usb-"))
+	{
+	    parsed["scheme"] = "usb";
+
+	    _url = URL::Build (parsed);
+	    y2milestone("URL %1 is an USB device, changing the scheme to %2", url, _url);
+	}
+    }
 }
 
 /**
@@ -76,7 +93,24 @@ global void SetURL (string url) {
  * @return string the URL
  */
 global string GetURL () {
-    return _url;
+    map parsed = URL::Parse(_url);
+    y2internal("_url: %1, parse: %2", _url, parsed);
+
+    // usb scheme is not valid, it's used only internally
+    // convert it for external clients
+    if (parsed["scheme"]:"" == "usb")
+    {
+	parsed["scheme"] = "hd";
+
+	if (parsed["path"]:"" == "")
+	{
+	    parsed["path"] = "/";
+	}
+
+	string ret_url = URL::Build (parsed);
+	return ret_url;
+    }
+    else return _url;
 }
 
 /**
@@ -241,7 +275,7 @@ map<string,any> RepoNameWidget () {
 	"widget" : `custom,
 	"custom_widget" : `VBox (
 	    // text entry
-	    `TextEntry( `id( `repo_name ), _("&Repository Name") )
+	    `InputField( `id( `repo_name ), _("&Repository Name") )
 	),
 	"init" : RepoNameInit,
 	"store" : RepoNameStore,
@@ -683,6 +717,332 @@ any metadata (i.e. there is no product information) then check option
 + multi_cd_help,
     ];
 
+}
+
+list<string> DetectPartitions(string disk_id)
+{
+    string command = sformat("ls %1-part*", disk_id);
+
+    map out = (map)SCR::Execute(.target.bash_output, command);
+
+    if (out["exit"]:-1 != 0)
+    {
+	y2error("Command %1 failed", command);
+	return [];
+    }
+
+    list<string> ret = splitstring(out["stdout"]:"", "\n");
+    integer ret_size = size(ret);
+
+    // remove empty string at the end
+    if (ret_size > 0 && ret[ret_size - 1]:"dummy" == "")
+    {
+	ret = remove(ret, ret_size - 1);
+    }
+
+    return ret;
+}
+
+string GetDeviceID(list<string> devices)
+{
+    string ret = "";
+
+    foreach(string dev, devices,
+	{
+	    if (regexpmatch(dev, "^/dev/disk/by-id/"))
+	    {
+		ret = dev;
+	    }
+	}
+    );
+
+    return ret;
+}
+
+list<map<string,any> > DetectDisk(boolean usb_only)
+{
+    list<map> disks = (list<map>)SCR::Read(.probe.disk);
+
+    y2internal("Detected disks: %1", disks);
+
+    disks = filter(map disk, disks,
+	{
+	    return ((disk["driver"]:"" == "usb-storage") && usb_only)
+		|| ((disk["driver"]:"" != "usb-storage") && !usb_only);
+	}
+    );
+
+    y2internal("Filtered disks: %1", disks);
+
+    list<map<string,any> > ret = [];
+
+    foreach(map disk, disks,
+	{
+	    string dev_id = GetDeviceID(disk["dev_names"]:[]);
+
+	    ret = add(ret,
+		$[
+		    "model" : disk["model"]:"",
+		    // compute the size (number of sectors * size of sector)
+		    "size" : (disk["resource","size",0,"x"]:0) * (disk["resource","size",0,"y"]:0),
+		    "dev" : disk["dev_name"]:"",
+		    "dev_by_id" : dev_id,
+		    "partitions" : DetectPartitions(dev_id)
+		]
+	    );
+	}
+    );
+
+    y2internal("Disk configuration: %1", ret);
+
+    return ret;
+}
+
+list<map<string,any> > DetectUSBDisk()
+{
+    return DetectDisk(true);
+}
+
+list<map<string,any> > DetectHardDisk()
+{
+    return DetectDisk(false);
+}
+
+list<term> DiskSelectionList(list<map<string,any> > disks, string selected)
+{
+    list<term> ret = [];
+    boolean found = false;
+
+    foreach(map<string,any> disk, disks,
+	{
+	    string label = disk["model"]:"";
+
+	    // add size if it's known and there is just one partition
+	    // TODO detect size of each partition
+	    integer sz = disk["size"]:0;
+	    if (sz > 0 && size(disk["partitions"]:[]) == 1)
+	    {
+		label = label + " - " + String::FormatSize(sz);
+	    }
+
+	    string dev = disk["dev"]:"";
+
+	    foreach(string part, (list<string>)disk["partitions"]:[],
+		{
+		    string partnum = regexpsub(part, ".*-part([0-9])*$", "\\1");
+		    string disk_label = label + sformat(" (%1%2)", dev, partnum);
+		    found = found || (part == selected);
+
+		    ret = add(ret, `item(`id(part), disk_label, part == selected));
+		}
+	    );
+	}
+    );
+
+    if (!found && regexpmatch(selected, "^/dev/disk/by-id/usb-"))
+    {
+	y2milestone("USB disk %1 is not currently attached, adding the raw device to the list", selected);
+
+	// remove the /dev prefix
+	string dev_name = regexpsub(selected, "^/dev/disk/by-id/usb-(.*)", "\\1");
+	ret = add(ret, `item(`id(selected), dev_name, true));
+    }
+
+    return ret;
+}
+
+
+void SetFileSystems(string selected_fs)
+{
+    list<string> fs_list = ["auto", "vfat", "ntfs", "ntfs-3g", "ext2", "ext3", "reiserfs", "xfs", "jfs", "iso9660"];
+
+    list<term> items = maplist(string fs, fs_list,
+	{
+	    return `item(`id(fs), fs, fs == selected_fs);
+	}
+    );
+
+    UI::ChangeWidget(`id(`fs), `Items, items);
+}
+
+map<string,string> ParseURLQuery(string query)
+{
+    list<string> qs = splitstring(query, "&");
+
+    map<string,string> ret = $[];
+
+    foreach(string q, qs,
+	{
+	    list<string> parts = splitstring(q, "=");
+
+	    if (size(parts) != 2)
+	    {
+		y2warning("Query doesn't contain a single '=' character: %1", q);
+	    }
+
+	    ret[parts[0]:""] = parts[1]:"";
+	}
+    );
+
+    y2internal("Parsed query: %1", ret);
+
+    return ret;
+}
+
+// common code for USBInit() and DiskInit()
+void InitDiskWidget(list<map<string,any> > disks)
+{
+    map parsed = URL::Parse(_url);
+    map<string,string> query = ParseURLQuery(parsed["query"]:"");
+
+    UI::ChangeWidget(`id(`disk), `Items, DiskSelectionList(disks, query["device"]:""));
+
+    SetFileSystems(query["filesystem"]:"auto");
+
+    UI::ChangeWidget(`id(`dir), `Value, parsed["path"]:"");
+    UI::SetFocus (`disk);
+
+/*
+FIXME:
+    // is it a plain directory?
+    boolean plain_rpm = (parsed["scheme"]:"" == "pkg");
+    UI::ChangeWidget(`id(`ch_plain), `Value, plain_rpm);
+*/
+}
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void USBInit (string key) {
+    // detect disks
+    list<map<string,any> > usb_disks = DetectUSBDisk();
+    InitDiskWidget(usb_disks);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void USBStore (string key, map event) {
+
+    // build URL like this: usb:///openSUSE?device=/dev/sdb8&filesystem=auto
+    string query = sformat("device=%1&filesystem=%2",
+	(string)UI::QueryWidget (`id (`disk), `Value),
+	(string)UI::QueryWidget (`id (`fs), `Value));
+
+    string dir = (string)UI::QueryWidget (`id (`dir), `Value);
+
+    map parsed = $[
+	"scheme" : "usb",
+	"path" : dir,
+	"query" : query
+    ];
+
+    _url = URL::Build (parsed);
+
+    y2milestone("New USB url: %1", _url);
+}
+
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> USBWidget ()
+{
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox(
+	    // combobox title
+	    `ComboBox(`id (`disk), `opt(`hstretch), _("&USB Mass Storage Device")
+	    // the spacing is added to make the widget wider
+	    + "                                                   "),
+	    `ComboBox(`id (`fs), `opt(`editable), _("&File System")),
+	    `InputField(`id(`dir), _("Dire&ctory"))
+	),
+	"init" : USBInit,
+	"store" : USBStore,
+	"help" : _("<p><big><b>USB Stick or Disk</b></big><br>
+Select the USB device where the repository is located.
+Use <b>Path to Directory</b> to specify the directory of the repository.
+If the path is omitted the system will use the root directory of the disk.
+If the directory contains just RPM packages without
+any metadata (i.e. there is no product information) then check option
+<b>Plain RPM Directory</b>.</p>")
+
+// 'auto' is a value in the combo box widget, do not translate it!
++ _("<p>The file system which is used on the device will be automatically
+detected if file system 'auto' is selected. If the detection fails or a you
+want to use a certain file system then select it from the list.</p>")
+    ];
+}
+
+/**
+ * Init function of a widget
+ * @param key string widget key
+ */
+void DiskInit (string key) {
+    // refresh the cache
+    list<map<string,any> > disks = DetectHardDisk();
+    InitDiskWidget(disks);
+}
+
+/**
+ * Store function of a widget
+ * @param key string widget key
+ * @param event map which caused settings being stored
+ */
+void DiskStore (string key, map event) {
+
+    // build URL like this: usb:///openSUSE?device=/dev/sdb8&filesystem=auto
+    string query = sformat("device=%1&filesystem=%2",
+	(string)UI::QueryWidget (`id (`disk), `Value),
+	(string)UI::QueryWidget (`id (`fs), `Value));
+
+    string dir = (string)UI::QueryWidget (`id (`dir), `Value);
+
+    map parsed = $[
+	"scheme" : "hd",
+	"path" : dir,
+	"query" : query
+    ];
+
+    _url = URL::Build (parsed);
+
+    y2milestone("New Disk url: %1", _url);
+}
+
+/**
+ * Get widget description map
+ * @return widget description map
+ */
+map<string,any> DiskWidget ()
+{
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox(
+	    // combobox title
+	    `ComboBox(`id (`disk), `opt(`hstretch), _("&Disk Device")),
+	    `ComboBox(`id (`fs), `opt(`editable), _("&File System")),
+	    `InputField(`id(`dir), _("Dire&ctory"))
+	),
+	"init" : DiskInit,
+	"store" : DiskStore,
+	"help" : _("<p><big><b>Disk</b></big><br>
+Select the disk where the repository is located.
+Use <b>Path to Directory</b> to specify the directory of the repository.
+If the path is omitted the system will use the root directory of the disk.
+If the directory contains just RPM packages without
+any metadata (i.e. there is no product information) then check option
+<b>Plain RPM Directory</b>.</p>")
+
+// 'auto' is a value in the combo box widget, do not translate it!
++ _("<p>The file system which is used on the device will be automatically
+detected if file system 'auto' is selected. If the detection fails or a you
+want to use a certain file system then select it from the list.</p>")
+    ];
 }
 
 /**
@@ -1133,6 +1493,10 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    // radio button
 	    `Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
 	    // radio button
+	    `Left (`RadioButton(`id(`hd),       _("&Hard Disk..."))),
+	    // radio button
+	    `Left (`RadioButton(`id(`usb),       _("&USB Mass Storage (USB Stick, Disk)..."))),
+	    // radio button
 	    `Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 	    // radio button
 	    `Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
@@ -1157,6 +1521,10 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 		`Left (`RadioButton(`id(`cd),        _("&CD..."))),
 		// radio button
 		`Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
+		// radio button
+		`Left (`RadioButton(`id(`hd),       _("&Hard Disk..."))),
+		// radio button
+		`Left (`RadioButton(`id(`usb),       _("&USB Stick or Disk..."))),
 		// radio button
 		`Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 		// radio button
@@ -1235,6 +1603,16 @@ boolean SelectValidate (string key, map event) {
 	if (! SourceManager::AskForCD (msg))
 	    return false;
     }
+    else if (selected == `usb)
+    {
+	list<map<string,any> > usb_disks = DetectUSBDisk();
+
+	if (size(usb_disks) == 0)
+	{
+	    Report::Error(_("No USB disk was detected."));
+	    return false;
+	}
+    }
     return true;
 }
 
@@ -1262,7 +1640,7 @@ void SelectStore (string key, map event) {
     _url = "";
     _repo_name = "";
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
-    if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd,
+    if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd, `usb, `hd,
 	`local_dir, `specify__url, `slp, `local_iso, `comm_repos], selected))
     {
 	if ( selected == `ftp ) _url = "ftp://";
@@ -1272,6 +1650,8 @@ void SelectStore (string key, map event) {
 	else if ( selected == `nfs ) _url = "nfs://";
 	else if ( selected == `cd ) _url = "cd:///";
 	else if ( selected == `dvd ) _url = "dvd:///";
+	else if ( selected == `hd ) _url = "hd://";
+	else if ( selected == `usb ) _url = "usb://";
 	else if ( selected == `local_dir ) _url = "dir://";
 	else if ( selected == `local_iso ) _url = "file://";
 	else if ( selected == `slp ) _url = "slp://";
@@ -1290,6 +1670,8 @@ void SelectInit (string key) {
     else if ( _url == "nfs://" ) current = `nfs;
     else if ( _url == "cd:///" ) current = `cd;
     else if ( _url == "dvd:///" ) current = `dvd;
+    else if ( _url == "hd://" ) current = `hd;
+    else if ( _url == "usb://" ) current = `usb;
     else if ( _url == "dir://" ) current = `local_dir;
     else if ( _url == "file://" ) current = `local_iso;
     else if ( _url == "slp://" ) current = `slp;
@@ -1375,6 +1757,8 @@ map<string,map<string,any> > Widgets () {
 	    "nfs" : NFSWidget (),
 	    "cd" : CDWidget (),
 	    "dvd" : CDWidget (),
+	    "hd" : DiskWidget (),
+	    "usb" : USBWidget (),
 	    "dir" : DirWidget (),
 	    "file" : IsoWidget (),
 	    "pkg" : DirWidget(),
@@ -1401,6 +1785,10 @@ map<string,string> _caption = $[
     "cd" : _("CD or DVD Media"),
     // label / dialog caption
     "dvd" : _("CD or DVD Media"),
+    // label / dialog caption
+    "hd" : _("Hard Disk"),
+    // label / dialog caption
+    "usb" : _("USB Stick or Disk"),
     // label / dialog caption
     "dir" : _("Local Directory"),
     // label / dialog caption
@@ -1446,8 +1834,7 @@ term PopupContents (string proto) {
  */
 global string EditPopup (string url) {
     SetURL (url);
-    string proto = URLScheme (url);
-    map parsed_url = URL::Parse(url);
+    string proto = URLScheme (_url);
 
     y2milestone ("Displaying popup for protocol %1", proto);
 
