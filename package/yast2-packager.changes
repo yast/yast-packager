@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 25 13:48:18 CET 2008 - lslezak@suse.cz
+
+- added support for adding repositories on a hard disk or on
+  an USB storage device (USB stick, USB disk...) (FATE #302382)
+- Disk URL can be edited (#287672)
+
+-------------------------------------------------------------------
 Tue Jan 22 14:56:19 CET 2008 - lslezak@suse.cz
 
 - callbacks - do not open a new progress window if there is
