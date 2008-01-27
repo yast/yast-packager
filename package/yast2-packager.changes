@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Jan 27 20:58:18 CET 2008 - coolo@suse.de
+
+- fixing changelog order
+
+-------------------------------------------------------------------
 Fri Jan 25 13:48:18 CET 2008 - lslezak@suse.cz
 
 - added support for adding repositories on a hard disk or on
