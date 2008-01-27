@@ -3068,6 +3068,11 @@ Thu Mar  3 12:31:02 CET 2005 - jsrain@suse.cz
 - added xen-dirinstall client
 
 -------------------------------------------------------------------
+Wed Mar  2 17:52:44 CET 2005 - sh@suse.de
+
+- Renamed some icons in .desktop files (name clashes)
+
+-------------------------------------------------------------------
 Wed Mar  2 10:46:11 CET 2005 - jsrain@suse.cz
 
 - merged texts from proofread
@@ -3087,11 +3092,6 @@ Mon Feb 28 17:16:33 CET 2005 - lslezak@suse.cz
 
  - checkmedia - UI fixes: header layout fixed, improved help text,
    disabled progress bar, use Close button instead of OK (#66642)
-
--------------------------------------------------------------------
-Wed Mar  2 17:52:44 CET 2005 - sh@suse.de
-
-- Renamed some icons in .desktop files (name clashes)
 
 -------------------------------------------------------------------
 Sat Feb 26 16:40:38 CET 2005 - nashif@suse.de
@@ -3947,17 +3947,17 @@ Thu Aug 28 16:41:21 CEST 2003 - arvin@suse.de
 - run inst_rpmcopy during update after reboot
 
 -------------------------------------------------------------------
+Tue Aug 26 15:53:09 CEST 2003 - kkaempf@suse.de
+
+- don't release the sources in sw_single any more, the package-
+  manager handles this.
+
+-------------------------------------------------------------------
 Tue Aug 26 14:44:16 CEST 2003 - msvec@suse.cz
 
 - add a proper error reporting (#29325)
 - added missing imports
 - 2.8.11
-
--------------------------------------------------------------------
-Tue Aug 26 15:53:09 CEST 2003 - kkaempf@suse.de
-
-- don't release the sources in sw_single any more, the package-
-  manager handles this.
 
 -------------------------------------------------------------------
 Fri Aug 22 14:41:10 CEST 2003 - lnussel@suse.de
@@ -4603,7 +4603,7 @@ Mon Sep  9 14:05:52 CEST 2002 - kkaempf@suse.de
 - 2.6.34
 
 -------------------------------------------------------------------
-Mon Sep  9 14:34:00 CEST 2002 - kkaempf@suse.de
+Mon Sep  9 14:04:00 CEST 2002 - kkaempf@suse.de
 
 - call solver after activating selections
 - allow installing list of packages from ascii file
@@ -4694,16 +4694,16 @@ Tue Sep  3 22:48:04 CEST 2002 - kkaempf@suse.de
 - 2.6.20
 
 -------------------------------------------------------------------
-Thu Aug 29 09:49:05 CEST 2002 - kkaempf@suse.de
-
-- activate selections before entering package manager (#18501)
-- show all selected selections in proposal (#18523)
-
--------------------------------------------------------------------
 Thu Aug 29 16:14:29 CEST 2002 - kkaempf@suse.de
 
 - symlink /dev/cdrom for DVD too
 - 2.6.19
+
+-------------------------------------------------------------------
+Thu Aug 29 09:49:05 CEST 2002 - kkaempf@suse.de
+
+- activate selections before entering package manager (#18501)
+- show all selected selections in proposal (#18523)
 
 -------------------------------------------------------------------
 Thu Aug 29 00:40:03 CEST 2002 - kkaempf@suse.de
