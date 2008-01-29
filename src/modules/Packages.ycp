@@ -270,8 +270,8 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	// (e.g. openSUSE 10.3, SUSE Linux Enterprise ...)
 	output = (list<string>)merge (output, ListSelected (`product, _("Product: %1")));
     if (contains (flags, `desktop))
-	// installation proposal - SW summary, %1 is name of the selected desktop (e.g. KDE)
-	output = (list<string>)add (output, sformat(_("Desktop: %1"), DefaultDesktop::Description ()));
+	// installation proposal - SW summary, %1 is name of the selected desktop or system type (e.g. KDE)
+	output = (list<string>)add (output, sformat(_("System Type: %1"), DefaultDesktop::Description ()));
     if (contains (flags, `pattern))
 	output = (list<string>)
 	    merge (output, ListSelected (`pattern, "+  %1"));
