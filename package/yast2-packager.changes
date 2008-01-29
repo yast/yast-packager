@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 29 20:14:27 CET 2008 - locilka@suse.cz
+
+- Unified DefaultDesktop module and software/desktop selection
+  dialog in installation.
+- 2.16.17
+
+-------------------------------------------------------------------
 Sun Jan 27 20:58:18 CET 2008 - coolo@suse.de
 
 - fixing changelog order

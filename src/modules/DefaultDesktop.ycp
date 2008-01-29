@@ -14,6 +14,66 @@ textdomain "packager";
 
 import "ProductFeatures";
 
+
+// Could be defined in control file
+// @see GetAllDesktopsMap
+map <string, map> all_desktops = $[
+    "gnome" :  $[
+        "order" : 1,
+        // TRANSLATORS: Dialog label
+        "label" : _("GNOME Desktop"),
+        "patterns" : ["gnome", "x11", "base"],
+        "icon" : "pattern-gnome",
+    ],
+    "kde" : $[
+        "order" : 1,
+	// TRANSLATORS: Dialog label
+        "label" : _("KDE Desktop"),
+        "patterns" : ["kde", "x11", "base"],
+        "icon" : "pattern-kde",
+    ],
+    "xfce" : $[
+        "order" : 4,
+        // TRANSLATORS: Dialog label
+        "label" : _("XFCE Desktop"),
+        "patterns" : ["xfce", "x11", "base"],
+        "icon" : "yast-tv",
+    ],
+    "min_x" : $[
+        "order" : 6,
+        // TRANSLATORS: Dialog label
+        "label" : _("Minimal X-Windows"),
+        "patterns" : ["x11", "base"],
+        "icon" : "yast-x11",
+    ],
+    "textmode" : $[
+        "order" : 8,
+        // TRANSLATORS: Dialog label
+        "label" : _("Minimal Server Selection (Text Mode)"),
+        "patterns" : ["base"],
+        "icon" : "yast-sshd",
+    ],
+];
+
+/**
+ * Returns map of pre-defined default system tasks
+ *
+ * @return map <string, map> all_system_tasks
+ *
+ * @struct $[
+ *     "desktop ID" : $[
+ *         "order" : integer,
+ *         "label" : _("Desktop Name Visible in Dialog"),
+ *         "description" : _("Description text of the desktop"),
+ *         "patterns" : ["list", "of", "related", "patterns"],
+ *         "icon" : "some-icon", // filename from the 32x32 directory of the current theme (without .png suffix)
+ *     ],
+ * ]
+ */
+global map <string, map> GetAllDesktopsMap () {
+    return all_desktops;
+}
+
 /**
  * Desktop which was selected in the desktop selection dialog
  * "kde", "gnome", "min_x11", "text"
@@ -31,37 +91,6 @@ map<string,string> desktop2wm = $[
 ];
 
 /**
- * Patterns to be preselected according to selected desktop
- */
-map<string,list<string> > patterns_to_select = $[
-    "gnome" : [ "gnome", "x11", "base" ],
-    "kde" : [ "kde", "x11", "base" ],
-    "min_x11" : [ "x11", "base" ],
-    "text" : [ "base" ],
-];
-
-/**
- * Patterns NOT to be preselected according to selected desktop
- */
-map<string,list<string> > patterns_to_deselect = $[
-    "gnome" : [ "kde" ],
-    "kde" : [ "gnome" ],
-    "min_x11" : [ "kde, gnome" ],
-    "text" : [ "kde, gnome", "x11" ],
-];
-
-/**
- * Map of desktop descriptions
- */
-map<string,string> desktop_descr = $[
-    "kde" : _("KDE"),
-    "gnome" : _("GNOME"),
-    "min_x11" : _("Minimal Graphical System"),
-    "text" : _("Text Mode"),
-];
-
-
-/**
  * Get the currently set default desktop, nil if none set
  * @return string "kde", "gnome", "min_x11", "text", nil
  */
@@ -74,7 +103,7 @@ global string Desktop () {
  * @param desktop a string, one of "kde", "gnome", "min_x11", "text" or nil
  */
 global void SetDesktop (string new_desktop) {
-    if (new_desktop != nil && ! haskey (desktop2wm, new_desktop))
+    if (new_desktop != nil && ! haskey (all_desktops, new_desktop))
 	y2error ("Attempting to set desktop to unknown %1", new_desktop);
     else
 	desktop = new_desktop;
@@ -93,7 +122,7 @@ global string PrefferedWindowManager () {
  * @return a list of patterns
  */
 global list<string> PatternsToSelect () {
-    return patterns_to_select[desktop]:[];
+    return all_desktops[desktop, "patterns"]:[];
 }
 
 /**
@@ -101,7 +130,25 @@ global list<string> PatternsToSelect () {
  * @return a list of patterns
  */
 global list<string> PatternsToDeselect () {
-    return patterns_to_deselect[desktop]:[];
+    // patterns which must be selected
+    list <string> patterns_to_select = PatternsToSelect();
+
+    list <string> patterns_to_deselect = [];
+
+    // go through all known system task definitions
+    foreach (string one_desktop, map desktop_descr, all_desktops, {
+	// all patterns required by a system type
+	foreach (string one_pattern, desktop_descr["patterns"]:[], {
+	    // if not required, add it to 'to deselect'
+	    if (one_pattern != nil && ! contains (patterns_to_select, one_pattern)) {
+		patterns_to_deselect = add (patterns_to_deselect, one_pattern);
+	    }
+	});
+    });
+
+    y2milestone ("Patterns to deselect '%1' -> %2", desktop, patterns_to_deselect);
+
+    return patterns_to_deselect;
 }
 
 /**
@@ -109,7 +156,8 @@ global list<string> PatternsToDeselect () {
  * @return string the description of the desktop
  */
 global string Description () {
-    return desktop_descr[desktop]:"";
+    // TRANSLATORS: dialog label
+    return all_desktops[desktop, "label"]:_("No system type selected");
 }
 
 /**
