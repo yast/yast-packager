@@ -96,7 +96,7 @@ string WhichLicenceFile (string license_language, map <string, string> & license
     return license_file;
 }
 
-term GetLicenseContent (string lic_lang, map <string, string> & licenses) {
+global term GetLicenseContent (string lic_lang, map <string, string> & licenses) {
 	    string license_file = WhichLicenceFile (lic_lang, licenses);
 
 	    string license_text = (string) SCR::Read(.target.string, license_file);
@@ -117,18 +117,9 @@ term GetLicenseContent (string lic_lang, map <string, string> & licenses) {
 // filename printed in the license dialog
 string license_file_print = nil;
 
-/**
- * Displays License with Help and ( ) Yes / ( ) No radio buttons
- * @param string file with the license
- */
-void DisplayLicenseDialog (list<string> languages, boolean back, string license_language, map <string, string> & licenses) {
+term GetLicenseDialogTerm (list<string> languages, string license_language, map <string, string> & licenses) {
     string license_text = "";
-    map display = UI::GetDisplayInfo();
-    integer space = display["TextMode"]:true ? 1 : 3;
     term rt = GetLicenseContent (license_language, licenses);
-
-    // dialog caption
-    string caption = _("License Agreement");
 
     // bug #204791, no more "languages.ycp" client
     map<string,list> lang_names_orig = Language::GetLanguagesMap (false);
@@ -193,16 +184,37 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	return `item (`id (descr[0]:""), descr[1]:"", (descr[0]:"" == license_language));
     });
 
+    term lang_selector_options = `opt (`notify);
+    // Disable in case there is no language to select
+    // bugzilla #203543
+    if (size (langs) <= 1) {
+	lang_selector_options = add (lang_selector_options, `disabled);
+    }
+
+    return `VBox (
+	// combo box
+	`Left (`ComboBox (`id (`lang), lang_selector_options, _("&Language"),
+	    langs)),
+	`ReplacePoint (`id (`license_rp), rt)
+    );
+}
+
+/**
+ * Displays License with Help and ( ) Yes / ( ) No radio buttons
+ * @param string file with the license
+ */
+void DisplayLicenseDialog (list<string> languages, boolean back, string license_language, map <string, string> & licenses) {
+    map display = UI::GetDisplayInfo();
+    integer space = display["TextMode"]:true ? 1 : 3;
+
+    // dialog caption
+    string caption = _("License Agreement");
+
     term contents = `VBox (
 	`VSpacing (1),
 	`HBox (
 	    `HSpacing (2*space),
-	    `VBox (
-		// combo box
-		`Left (`ComboBox (`id (`lang), `opt (`notify), _("&Language"),
-		    langs)),
-		`ReplacePoint (`id (`license_rp), rt)
-	    ),
+	    GetLicenseDialogTerm (languages, license_language, licenses),
 	    `HSpacing (2*space)
 	),
 	`VSpacing (2),
@@ -253,11 +265,7 @@ the configuration will be aborted.</p>
 
     Wizard::SetContents(caption, contents, help,
 	back, false);
-    // bugzilla #203543
-    if (size(langs) <= 1) {
-	UI::ChangeWidget (`id(`lang), `Enabled, false);
-    }
-
+    
     Wizard::SetTitleIcon ("yast-license");
     Wizard::SetFocusToNextButton();
 }
@@ -534,28 +542,10 @@ void GetSourceLicenseDirectory (integer src_id, string fallback_dir) {
     y2milestone ("ProductLicense settings: license_dir: %1, tmpdir: %2, info_file: %3", license_dir, tmpdir, info_file);
 }
 
-/**
- * Ask user to confirm license agreement
- * @param src_id integer repository to get the license from
- * @param dir string directory to look for the license in if src_id is nil
- *   and not 1st stage installation
- * @param patterns a list of patterns for the files, regular expressions
- *   with %1 for the language
- * @param boolean enable_back sets the back_button status
- * @param boolean base_product defines whether it is a base or add-on product
- *   true means base product, false add-on product
- * @param require_agreement means that even if the license (or the very same license)
- *   has been already accepetd, ask user to accept it again (because of 'going back'
- *   in the installation proposal).
- */
-global symbol AskLicenseAgreement (integer src_id, string dir,
-    list<string> patterns, string action, boolean enable_back,
-    boolean base_product, boolean require_agreement)
-{
-    string lic_lang = "";
-    map <string, string> licenses = $[];
-    list <string> available_langs = [];
+string lic_lang = "";
 
+symbol InitLicenseData (integer src_id, string dir, map <string, string> & licenses,
+    list <string> & available_langs, boolean require_agreement, string & license_ident) {
     GetSourceLicenseDirectory (src_id, dir);
 
     licenses = LicenseFiles (license_dir,
@@ -638,46 +628,34 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     if (src_id != nil) {
 	// use wizard with steps
         if (Stage::initial()) {
-	    Wizard::OpenNextBackStepsDialog();
-	    WorkflowManager::RedrawWizardSteps();
+	    // Wizard::OpenNextBackStepsDialog();
+	    // WorkflowManager::RedrawWizardSteps();
+	    y2milestone ("Initial stage, not opening any window...");
 	// use normal wizard
 	} else {
 	    Wizard::OpenNextBackDialog();
 	}
     }
 
-    DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
-    // Display info as a popup if exists
-    if (info_file != nil)
-	InstShowInfo::show_info_txt (info_file);
+    return `cont;
+}
 
-    // initial loop
-    symbol ret = `first;
+// Should have been named 'UpdateLicenseContentBasedOnSelectedLanguage' :->
+void UpdateLicenseContent (map <string, string> & licenses) {
+    // read the selected language
+    lic_lang = (string) UI::QueryWidget (`id (`lang), `Value);
+    UI::ReplaceWidget (`id (`license_rp), GetLicenseContent (lic_lang, licenses));
+}
 
-    // set timeout for autoinstallation
-    // bugzilla #206706
-    boolean timeout = false;
-    if (Mode::autoinst()) {
-	timeout = true;
-    }
+symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_product, string action) {
+    symbol ret = nil;
 
     while (true)
     {
-	// bugzilla #206706
-	if (timeout) {
-	    sleep (2000);
-	    y2milestone("AutoYaST: License has been accepted after timeout...");
-	    ret = `accepted;
-	    break;
-	}
-
 	ret = (symbol) UI::UserInput();
 
 	if (ret == `lang) {
-	    // read the selected language
-	    lic_lang = (string) UI::QueryWidget (`id (`lang), `Value);
-
-	    UI::ReplaceWidget (`id (`license_rp), GetLicenseContent (lic_lang, licenses));
+	    UpdateLicenseContent (licenses);
 	// bugzilla #303828
 	// disabled next button unless yes/no is selected
 	} else if (ret == `yes || ret == `no) {
@@ -786,6 +764,57 @@ product installation. Really refuse the agreement?");
 	}
     }
 
+    return ret;
+}
+
+/**
+ * Ask user to confirm license agreement
+ * @param src_id integer repository to get the license from
+ * @param dir string directory to look for the license in if src_id is nil
+ *   and not 1st stage installation
+ * @param patterns a list of patterns for the files, regular expressions
+ *   with %1 for the language
+ * @param boolean enable_back sets the back_button status
+ * @param boolean base_product defines whether it is a base or add-on product
+ *   true means base product, false add-on product
+ * @param require_agreement means that even if the license (or the very same license)
+ *   has been already accepetd, ask user to accept it again (because of 'going back'
+ *   in the installation proposal).
+ */
+global symbol AskLicenseAgreement (integer src_id, string dir,
+    list<string> patterns, string action, boolean enable_back,
+    boolean base_product, boolean require_agreement)
+{
+    lic_lang = "";
+    map <string, string> licenses = $[];
+    list <string> available_langs = [];
+    string license_ident = "";
+
+    symbol init_ret = InitLicenseData (src_id, dir, licenses, available_langs, require_agreement, license_ident);
+
+    if (init_ret == `auto || init_ret == `accepted) {
+	y2milestone ("Returning %1", init_ret);
+	return init_ret;
+    }
+
+    DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
+
+    // Display info as a popup if exists
+    if (info_file != nil)
+	InstShowInfo::show_info_txt (info_file);
+
+    // initial loop
+    symbol ret = nil;
+
+    // set timeout for autoinstallation
+    // bugzilla #206706
+    if (Mode::autoinst()) {
+	y2milestone("AutoYaST: License has been accepted automatically");
+	ret = `accepted;
+    } else {
+	ret = HandleLicenseDialogRet (licenses, base_product, action);
+    }
+
     if (ret == `accepted && license_ident != nil) {
 	// store already accepted license ID
 	LicenseHasBeenAccepted (license_ident);
@@ -794,7 +823,7 @@ product installation. Really refuse the agreement?");
     CleanUpLicense (tmpdir);
 
     // bugzilla #303922
-    if (src_id != nil) {
+    if (!Stage::initial() && src_id != nil) {
 	Wizard::CloseDialog();
     }
 
@@ -822,6 +851,69 @@ global symbol AskFirstStageLicenseAgreement (string action) {
 	action,
 	// back button is enabled
 	enable_back, true, true);
+}
+
+boolean info_file_already_seen = false;
+
+/**
+ * Called from the first stage Welcome dialog by clicking on a button
+ */
+global boolean ShowFullScreenLicenseInInstallation (any replace_point_ID) {
+    lic_lang = "";
+    map <string, string> licenses = $[];
+    list <string> available_langs = [];
+    string license_ident = "";
+
+    symbol init_ret = InitLicenseData (nil, "", licenses, available_langs, true, license_ident);
+
+    // Replaces the dialog content with Languages combo-box
+    // and the current license text (richtext)
+    UI::ReplaceWidget (
+	`id (replace_point_ID),
+	GetLicenseDialogTerm (available_langs, lic_lang, licenses)
+    );
+
+    symbol ret = nil;
+
+    while (true)
+    {
+	ret = (symbol) UI::UserInput();
+
+	if (ret == `lang) {
+	    UpdateLicenseContent (licenses);
+	} else {
+	    break;
+	}
+    }
+
+    return true;
+}
+
+/**
+ * Used in the first-stage Welcome dialog
+ */
+global boolean ShowLicenseInInstallation (any replace_point_ID) {
+    lic_lang = "";
+    map <string, string> licenses = $[];
+    list <string> available_langs = [];
+    string license_ident = "";
+
+    symbol init_ret = InitLicenseData (nil, "", licenses, available_langs, true, license_ident);
+
+    term rt = GetLicenseContent (lic_lang, licenses);
+    UI::ReplaceWidget (`id (replace_point_ID), rt);
+
+    // Display info as a popup if exists
+    if (info_file != nil && ! info_file_already_seen) {
+	if (Mode::autoinst()) {
+	    y2milestone ("Autoinstallation: Skipping info file...");
+	} else {
+	    InstShowInfo::show_info_txt (info_file);
+	    info_file_already_seen = true;
+	}
+    }
+
+    return true;
 }
 
 global symbol AskInstalledLicenseAgreement (string directory,

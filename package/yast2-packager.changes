@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 31 11:17:06 CET 2008 - locilka@suse.cz
+
+- Reworked ProductLicense module to handle first-stage installation
+  license.
+- 2.16.18
+
+-------------------------------------------------------------------
 Tue Jan 29 20:14:27 CET 2008 - locilka@suse.cz
 
 - Unified DefaultDesktop module and software/desktop selection
