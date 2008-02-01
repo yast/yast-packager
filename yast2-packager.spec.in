@@ -4,8 +4,9 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
 
-# Progress::Subprogress*()
-BuildRequires:	yast2 >= 2.16.17
+# URL::MakeParamsFromMap and URL::MakeMapFromParams
+BuildRequires:	yast2 >= 2.16.25
+
 # changed signatures of GPG calbacks
 BuildRequires:	yast2-pkg-bindings >= 2.16.11
 
@@ -19,8 +20,8 @@ Requires:	yast2-installation >= 2.15.12
 # New functions: GPG key management
 Requires:	yast2-pkg-bindings >= 2.16.10
 
-# recursive Progress::New()
-Requires:	yast2 >= 2.16.22
+# URL::MakeParamsFromMap and URL::MakeMapFromParams
+Requires:	yast2 >= 2.16.25
 
 # unzipping license file
 Requires:	unzip

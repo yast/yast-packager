@@ -36,6 +36,7 @@ import "FileUtils";
 import "Directory";
 import "String";
 import "WorkflowManager";
+import "URL";
 
 // variables for installation with product
 /**
@@ -107,47 +108,6 @@ global void SetBaseProductURL (string url) {
 
 global string GetBaseProductURL () {
     return base_product_url;
-}
-
-/**
- * Reads list of HTTP params and returns them as map
- *
- * @params string params
- * @return map <string, string> params
- *
- * @example
- *	MakeMapFromParams ("device=sda3&login=aaa&password=bbb") -> $[
- *		"device"   : "sda3",
- *		"login"    : "aaa",
- *		"password" : "bbb"
- *	]
- */
-map <string, string> MakeMapFromParams (string params) {
-    list <string> params_list = splitstring (params, "&");
-
-    params_list = filter (string one_param, params_list, {
-	return (one_param != "" && one_param != nil);
-    });
-
-    map <string, string> ret = $[];
-    integer eq_pos = nil;
-    string opt = "";
-    string val = "";
-
-    foreach (string one_param, params_list, {
-	eq_pos = search (one_param, "=");
-
-	if (eq_pos == nil) {
-	    ret[one_param] = "";
-	} else {
-	    opt = substring (one_param, 0, eq_pos);
-	    val = substring (one_param, (eq_pos + 1));
-
-	    ret[opt] = val;
-	}
-    });
-
-    return ret;
 }
 
 /**
@@ -236,27 +196,14 @@ global string GetAbsoluteURL (string base_url, string url) {
 	url = regexpsub (url, "^(.*)/\\./(.*)", "\\1/\\2");
     }
 
-    map <string, string> base_params_map  = MakeMapFromParams (base_params);
-    map <string, string> added_params_map = MakeMapFromParams (added_params);
+    map <string, string> base_params_map  = URL::MakeMapFromParams (base_params);
+    map <string, string> added_params_map = URL::MakeMapFromParams (added_params);
     map <string, string> final_params_map = (map <string, string>) union (base_params_map, added_params_map);
 
     if (size (final_params_map) > 0) {
 	y2milestone ("%1 merge %2 -> %3", base_params_map, added_params_map, final_params_map);
 
-	string url_add = "";
-
-	foreach (string opt, string val, final_params_map, {
-	    url_add =
-		url_add +
-		// add '&' if needed
-		(size (url_add) > 0 ? "&" : "") +
-		opt +
-		// define 'opt=val' if val is set
-		// otherwise don't use '=val' at all
-		(size (val) > 0 ? "=" + val : "");
-	});
-
-	url = url + "?" + url_add;
+	url = url + "?" + URL::MakeParamsFromMap (final_params_map);
     }
 
     y2milestone ("Final URL: '%1'", url);
