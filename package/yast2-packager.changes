@@ -3,6 +3,7 @@ Fri Feb  1 13:10:37 CET 2008 - locilka@suse.cz
 
 - Using new URL functions in AddOnProduct.
 - Adjusted RPM dependencies.
+- 2.16.19
 
 -------------------------------------------------------------------
 Thu Jan 31 11:17:06 CET 2008 - locilka@suse.cz
