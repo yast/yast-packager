@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb  5 10:26:40 CET 2008 - locilka@suse.cz
+
+- Fixed filtering in Community Repositories - filtering now uses
+  localized strings (bnc #358001).
+
+-------------------------------------------------------------------
 Fri Feb  1 13:10:37 CET 2008 - locilka@suse.cz
 
 - Using new URL functions in AddOnProduct.

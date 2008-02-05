@@ -232,6 +232,12 @@
 	}
 
 	y2milestone ("User decided to abort: %1", function_ret);
+
+	// Clean-up the progress
+	if (function_ret == true) {
+	    Progress::Finish();
+	}
+
 	return function_ret;
     }
 
@@ -846,7 +852,7 @@ or no repositories defined."));
      *
      * @see bugzilla #297628
      */
-    void InitRopositoriesWidget (string filter_string, boolean first_init, string current_item) {
+    void InitRepositoriesWidget (string filter_string, boolean first_init, string current_item) {
 	list <term> items = [];
 	list <string> recommended_items = [];
 	repos_visible_now = [];
@@ -888,13 +894,17 @@ or no repositories defined."));
 		currently_NOT_selected = add (currently_NOT_selected, repo_id);
 	    }
 
+	    // bugzilla #358001
+	    // filter works with localized names
+	    string localized_name = GetLocalizedString (repo_id, ["name", "url"]);
+
 	    // do filter (filter after some_repo_already_selected is set)
 	    if (filter_string != "") {
 		// neither "url" nor "name" matching
 		if (
 		    ! regexpmatch (one_repo["url"]:"", filter_string)
 		    &&
-		    ! regexpmatch (one_repo["name"]:"", filter_string)
+		    ! regexpmatch (localized_name, filter_string)
 		) {
 		    return;
 		}
@@ -925,7 +935,7 @@ or no repositories defined."));
 
 	    items[counter] = `item (
 		`id (repo_id),
-		GetLocalizedString (repo_id, ["name", "url"]),
+		localized_name,
 		already_used
 	    );
 	    
@@ -1071,7 +1081,7 @@ or no repositories defined."));
 	filter_string = EscapeChars (filter_string);
 	filter_string = MakeCaseInsensitiveRegexp (filter_string);
 
-	InitRopositoriesWidget (filter_string, false, current_item);
+	InitRepositoriesWidget (filter_string, false, current_item);
 
 	UI::SetFocus (`id ("filter_text"));
     }
@@ -1082,7 +1092,7 @@ or no repositories defined."));
 	    _("List of Online Repositories"),
 	    `VBox (
 		`HBox (
-		    `HVSquash(`MinWidth(20, `TextEntry (`id ("filter_text"), ""))),
+		    `HVSquash(`MinWidth(20, `InputField (`id ("filter_text"), `opt(`hstretch), ""))),
 		    // TRANSLATORS: push button
 		    `Bottom(`PushButton (`id ("do_filter"), `opt(`default), _("&Filter"))),
 		    `HStretch()
@@ -1138,7 +1148,7 @@ select those you want and click <b>Finish</b>.</p>
 	}
 	
 	repos_already_used = $[];
-	InitRopositoriesWidget ("", true, nil);
+	InitRepositoriesWidget ("", true, nil);
 
 	any dialog_ret = nil;
 
