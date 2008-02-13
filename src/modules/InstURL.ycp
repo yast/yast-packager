@@ -122,6 +122,13 @@
      * @return string new repository URL
      */
     global string installInf2Url (string extra_dir) {
+	string repo_url = Linuxrc::InstallInf ("YaSTRepoURL");
+	if (repo_url != "" && repo_url != nil)
+	{
+	    y2milestone ("Using URL directly from install.inf: %1", repo_url);
+	    return repo_url;
+	}
+
 	string options = "";
         map url_tokens =  $[];
 
