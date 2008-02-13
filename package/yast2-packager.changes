@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 13 12:19:26 CET 2008 - jsrain@suse.cz
+
+- Allow to specify whole installation repo URL (in zypp-like
+  format) in /etc/install.inf
+
+-------------------------------------------------------------------
 Tue Feb  5 10:26:40 CET 2008 - locilka@suse.cz
 
 - Fixed filtering in Community Repositories - filtering now uses
