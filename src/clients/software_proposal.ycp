@@ -128,6 +128,9 @@
     }
     else if ( func == "Description" )
     {
+	// disable proposal if doing image-only installation
+	if (Installation::image_only)
+	    return nil;
 	// Fill return map.
 	//
 	// Static values do just nicely here, no need to call a function.
