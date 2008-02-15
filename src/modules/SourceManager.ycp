@@ -655,8 +655,9 @@ global list Overview() {
     global map RunCommandWithTimeout (string run_command, string log_command, integer script_time_out) {
 	y2milestone("Running command \"%1\" in background...", log_command);
 
-	boolean started = (boolean) SCR::Execute(.background.run_output_err, run_command);
-	if (!started) {
+	integer processID = (integer)SCR::Execute(.process.start_shell, run_command);
+
+	if (processID == 0) {
 	    y2error("Cannot run '%1'", run_command);
 	    return nil;
 	}
@@ -671,7 +672,9 @@ global list Overview() {
 	
 	// while continuing is needed and while it is possible
 	while (! timed_out) {
-	    boolean running = (boolean) SCR::Read(.background.isrunning);
+	    boolean running = (boolean) SCR::Read(.process.running, processID);
+	    // read output into buffers in the agent, might unblock the process
+	    SCR::Execute(.process.buffer, processID);
 	    // debugging #165821
 	    if (time_spent % 100000 == 0) {
 		y2milestone ("running: %1", running);
@@ -713,14 +716,17 @@ global list Overview() {
 	// fetching the return code if not timed-out
 	if (! timed_out) {
 	    y2milestone ("getting output");
-	    script_out  = (list<string>) SCR::Read(.background.newout);
+	    script_out  = splitstring((string)SCR::Read(.process.read, processID), "\n");
 	    y2milestone ("getting errors");
-	    script_err  = (list<string>) SCR::Read(.background.newerr);
+	    script_err  = splitstring((string)SCR::Read(.process.read_stderr, processID), "\n");
 	    y2milestone ("getting status");
-	    return_code = (integer) SCR::Read(.background.status);
+	    return_code = (integer) SCR::Read(.process.status, processID);
 	}
 	y2milestone ("killing");
-	SCR::Execute(.background.kill, "");
+	SCR::Execute(.process.kill, processID);
+
+	// release the process from the agent
+	SCR::Execute(.process.release, processID);
 
 	map command_ret = $[
 	    "exit"   : return_code,
@@ -736,7 +742,7 @@ global list Overview() {
      * Run
      * - with a timeout
      * - on dumb terminal to disable colors etc
-     * - using 'exit $?' because of buggy behavior '.background vs. ZMD'
+     * - using 'exit $?' because of buggy behavior '.background vs. ZMD' (FIXME still needed???)
      * @param command a command
      * @param log_command a command to log
      * @param seconds timeout
@@ -1048,14 +1054,14 @@ global list Overview() {
     /**
      * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP repository is listed
      * in the ZMD services, adds one if it is missing.
-     * Everything is done via the .background agent with timeout (number in seconds).
+     * Everything is done via the .process agent with timeout (number in seconds).
      *
      * @return boolean whether the syncing succeeds
      */
     global boolean SyncYaSTInstSourceWithZMD () {
 	// Notes for maintainer:
-	//     - using .background agent because of ZMD/rug call that can stuck
-	//     - using 'exit $?' that work well with ZMD/rug and .background together
+	//     - using .process agent because of ZMD/rug call that can stuck
+	//     - using 'exit $?' that work well with ZMD/rug and .background together (FIXME still needed???)
 	//     - using TERM=dumb to suppress colors, progress bars etc. from ZMD/rug
 	//     - when the function finishes, it must leave ZMD in the same status (running/stopped)
 	//       as it was when the function started
