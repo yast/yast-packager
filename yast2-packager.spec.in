@@ -35,6 +35,9 @@ Requires:	yast2-xml
 # Bugzilla #305503 - storing/checking MD5 of licenses
 Requires:	/usr/bin/md5sum
 
+# .process agent
+Requires: 	yast2-core >= 2.16.35
+
 # setenv() builtin
 Conflicts:	yast2-core < 2.15.10
 

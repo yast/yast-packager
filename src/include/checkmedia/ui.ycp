@@ -79,7 +79,7 @@ define list<string> TranslateInfo(list<string> info) {
 
 		map<string,string> trasmap = $[
 		    // rich text message, %1 = CD identification
-		    "app" : "<IMG SRC=\"" + Directory::themedir + "/current/icons/22x22/apps/yast-checkmedia.png\">&nbsp;&nbsp;&nbsp;"
+		    "app" : "<P><IMG SRC=\"" + Directory::themedir + "/current/icons/22x22/apps/yast-checkmedia.png\">&nbsp;&nbsp;&nbsp;"
 			+ _("<BIG><B>%1</B></BIG>") + (checking_file ? sformat("  (%1)", iso_filename) : ""),
 		    // rich text message, %1 medium number, e.g. CD1,CD2...
 		    "media" : _("<UL><LI>Medium: %1</LI></UL>"),
@@ -98,7 +98,7 @@ define list<string> TranslateInfo(list<string> info) {
 		    if (val == "md5sum ok")
 		    {
 			// result of the check - success
-			val = "<FONT COLOR=\"dark green\">" + _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>";
+			val = "<FONT COLOR=\"darkGreen\">" + _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>";
 		    }
 		    else if (val == "md5sum wrong")
 		    {
@@ -491,8 +491,23 @@ Only readability of the medium will be checked.")))
 		    }
 		}
 
-		// add empty lines between checks
-		LogLine("<BR><BR>");
+		// process remaining output
+		CheckMedia::Process();
+		list<string> data = CheckMedia::Info();
+
+		if (data != nil && size(data) > 0)
+		{
+		    data = TranslateInfo(data);
+
+		    // add new output to the log view
+		    string info = mergestring(data, "");
+		    LogLine(info);
+		}
+
+		CheckMedia::Release();
+
+		// finish the paragraph
+		LogLine("<BR></P>");
 		// set zero progress
 		UI::ChangeWidget(`id(`progress), `Value, 0);
 	    }
