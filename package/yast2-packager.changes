@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 15 13:59:09 CET 2008 - jsrain@suse.cz
+
+- added handling installation from images (without RPMs)
+
+-------------------------------------------------------------------
 Wed Feb 13 12:19:26 CET 2008 - jsrain@suse.cz
 
 - Allow to specify whole installation repo URL (in zypp-like

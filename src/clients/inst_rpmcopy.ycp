@@ -840,6 +840,9 @@ from the source CD to the disk cache")));
     // end of commit installation functions
     // ------------------------------------------------------------------------------------------------------
 
+    if (Installation::image_only)
+	return `auto;
+
     // bugzilla #208222
     ReleaseHDDUsedAsInstallationSource();
 
