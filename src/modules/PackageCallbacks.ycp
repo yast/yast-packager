@@ -2240,7 +2240,7 @@ global boolean ProgressProgress(integer id, integer val_raw, integer val_percent
 
 integer last_stage = 0;
 
-integer close_wizard = 0;
+list<boolean> opened_wizard = [];
 
 /**
  * Hanler for ProcessStart callback - handle start of a package manager process
@@ -2251,15 +2251,19 @@ integer close_wizard = 0;
 global void ProcessStart(string task, list<string> stages, string help)
 {
    y2milestone("Process: Start: task: %1, stages: %2, help: %3", task, stages, help);
+   y2milestone("Progress: status: %1, isrunning: %2", Progress::status(), Progress::IsRunning());
+
+   boolean opened = false;
 
     if (Progress::status())
     {
 	if (!Progress::IsRunning())
 	{
+	    y2milestone("Opening Wizard window...");
 	    Wizard::CreateDialog();
 	    Wizard::SetDesktopIcon("sw_single");
 
-	    close_wizard = close_wizard + 1;
+	    opened = true;
 	}
 
 	// set 100% as max value
@@ -2267,6 +2271,9 @@ global void ProcessStart(string task, list<string> stages, string help)
 	Progress::Title(task);
 	last_stage = 0;
     }
+
+    opened_wizard = add(opened_wizard, opened);
+    y2milestone("Wizard stack: %1", opened_wizard);
 }
 
 /**
@@ -2299,15 +2306,21 @@ global void ProcessDone()
 {
     y2milestone("Process: Finished");
 
+    integer idx = size(opened_wizard) - 1;
+
+    boolean close = opened_wizard[idx]:false;
+    opened_wizard = remove(opened_wizard, idx);
+
+    y2milestone("Close Wizard window: %1, new stack: %2", close, opened_wizard);
+
     // set 100%
     Progress::Finish();
 
-    if (close_wizard == 1)
+    if (close)
     {
+	y2milestone("Closing Wizard window...");
 	Wizard::CloseDialog();
     }
-
-    close_wizard = close_wizard - 1;
 }
 
 // EOF
