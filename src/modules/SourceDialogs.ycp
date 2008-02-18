@@ -301,7 +301,7 @@ map<string,any> RepoNameWidget () {
 	"widget" : `custom,
 	"custom_widget" : `VBox (
 	    // text entry
-	    `InputField( `id( `repo_name ), _("&Repository Name") )
+	    `InputField( `id( `repo_name ), `opt(`hstretch), _("&Repository Name") )
 	),
 	"init" : RepoNameInit,
 	"store" : RepoNameStore,
@@ -957,11 +957,11 @@ map<string,any> USBWidget ()
 	"widget" : `custom,
 	"custom_widget" : `VBox(
 	    // combobox title
-	    `ComboBox(`id (`disk), `opt(`hstretch), _("&USB Mass Storage Device")
+	    `Left(`ComboBox(`id (`disk), /*`opt(`hstretch),*/ _("&USB Mass Storage Device")
 	    // the spacing is added to make the widget wider
-	    + "                                                   "),
-	    `ComboBox(`id (`fs), `opt(`editable), _("&File System")),
-	    `InputField(`id(`dir), _("Dire&ctory")),
+	    + "                                                   ")),
+	    `Left(`ComboBox(`id (`fs), `opt(`editable), _("&File System"))),
+	    `Left(`InputField(`id(`dir), _("Dire&ctory"))),
 	    `Left(`CheckBox(`id(`ch_plain), _("&Plain RPM Directory")))
 	),
 	"init" : USBInit,
@@ -1164,9 +1164,10 @@ symbol ServerHandle (string key, map event) {
 			    _("&Workgroup or Domain"))
 			: `Empty (),
 		    // text entry
-		    `TextEntry (`id (`username), _("&User Name"), username),
+		    `VSpacing(0.5),
+		    `InputField(`id (`username), `opt(`hstretch), _("&User Name"), username),
 		    // password entry
-		    `Password (`id (`password), _("&Password"), password)
+		    `Password (`id (`password), `opt(`hstretch), _("&Password"), password)
 		)),
 		`HSpacing (0.5)
 	    )
