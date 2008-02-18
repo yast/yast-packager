@@ -50,7 +50,7 @@ map <string, map> all_desktops = $[
         "order" : 8,
         // TRANSLATORS: Dialog label
         "label" : _("Minimal Server Selection (Text Mode)"),
-        "patterns" : ["base"],
+        "patterns" : ["enhanced_base"],
         "icon" : "yast-sshd",
     ],
 ];
