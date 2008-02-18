@@ -784,9 +784,9 @@ All changes will be lost.");
 		    url = SourceDialogs::EditPopupType(url, plaindir);
 
                     if ( size( url ) == 0 ) break;
-		    if (url != old_url)
+		    if (url != old_url || plaindir != SourceDialogs::IsPlainDir())
 		    {
-		      y2milestone ("URL changed, recreating the source");
+		      y2milestone ("URL or plaindir flag changed, recreating the source");
 		      // copy the refresh flag
                       createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
                       if ( createResult == `ok ) {
