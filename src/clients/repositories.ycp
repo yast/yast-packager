@@ -213,21 +213,18 @@
 	return ret;
     }
 
-    define symbol createSource( string url, boolean download, string preffered_name ) ``{
-	y2milestone("createSource: %1", url);
+    define symbol createSource( string url, boolean plaindir, boolean download, string preffered_name ) ``{
+	y2milestone("createSource: %1, plaindir: %2, download: %3, name: %4", url, plaindir, download, preffered_name);
 
         if ( url != "" )
         {
 	    // for Plaindir repository we have to use SourceCreateType() binding
-	    boolean plaindir = false;
 	    map parsed = URL::Parse(url);
 	    string scheme = parsed["scheme"]:"";
 
-	    if (scheme == "pkg")
+	    if (plaindir == true)
 	    {
-		parsed["scheme"] = "dir";
-		url = URL::Build(parsed);
-		plaindir = true;
+		y2milestone("Using PlainDir repository type");
 	    }
 
 	    // check if SMB/CIFS share can be mounted
@@ -784,22 +781,14 @@ All changes will be lost.");
 		SourceDialogs::SetRepoName (sourceState["name"]:"");
 
                 do {
-		    // change schema if the repository type is plaindir
-		    // to show the right popup dialog
-		    if (plaindir)
-		    {
-			map parsed = URL::Parse(url);
-			parsed["scheme"] = "pkg";
-			url = URL::Build(parsed);
-		    }
-                    url = editUrl( url );
+		    url = SourceDialogs::EditPopupType(url, plaindir);
 
                     if ( size( url ) == 0 ) break;
 		    if (url != old_url)
 		    {
 		      y2milestone ("URL changed, recreating the source");
 		      // copy the refresh flag
-                      createResult = createSource( url, sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
+                      createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
                       if ( createResult == `ok ) {
 			deleteSource( current );
 			fillTable();
@@ -933,6 +922,7 @@ cannot be set."));
 symbol StoreSource () {
     string url = SourceDialogs::GetURL ();
     string name = SourceDialogs::GetRepoName ();
+    boolean plaindir = SourceDialogs::IsPlainDir();
 
     // special case, bugzilla #238680
     if (url == "slp://")
@@ -980,7 +970,7 @@ without having %1 package installed"),
 	return `next;
     }
 
-    if (createSource(url, download_meta, name) == `again)
+    if (createSource(url, plaindir, download_meta, name) == `again)
 	return `back;
     return `next;
 }
