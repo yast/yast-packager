@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 18 12:03:06 CET 2008 - coolo@suse.de
+
+- use pattern:enhanced_base for "Minimal" desktop (bnc#351027)
+
+-------------------------------------------------------------------
 Mon Feb 18 10:35:12 CET 2008 - lslezak@suse.cz
 
 - SourceDialogs.ycp - added support for plaindir repositories
