@@ -19,26 +19,12 @@
 {
     textdomain "packager";
 
-    import "Arch";
-    import "Mode";
-    import "Installation";
-    import "Product";
-    import "ProductFeatures";
     import "Packages";
-    import "PackagesUI";
-    import "SpaceCalculation";
-    import "Stage";
-
-    import "Wizard";
-    import "Popup";
-
-    include "partitioning/partition_defines.ycp";
 
     symbol ret = `again;
 
     while (ret == `again)
     {
-
 	// add additional (internal) packages, like kernel etc.
 	// they are added by proposal!!!! (#155819)
 //	Pkg::DoProvide (Packages::ComputeSystemPackageList());
