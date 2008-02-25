@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 25 14:28:10 CET 2008 - sh@suse.de
+
+- Require yast2_ui_pkg in .spec file (bnc #363958)
+- V 2.16.21 
+
+-------------------------------------------------------------------
 Tue Feb 19 07:11:10 CET 2008 - lslezak@suse.cz
 
 - PackageCallbacks - properly close Wizard window (#359235)
