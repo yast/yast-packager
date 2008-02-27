@@ -20,5 +20,5 @@ Icon=yast-sw_source
 Exec=/sbin/yast2 repositories
 
 Name=Software Repositories
-GenericName=Choose the repositories for installation of software packages (CD, network, etc.)
+GenericName=Choose the repositories for installation of software packages (CD, network, etc.), add the community repositories
 X-KDE-SubstituteUID=true
