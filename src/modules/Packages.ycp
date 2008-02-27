@@ -1381,44 +1381,6 @@ void SelectSystemPackages (boolean reselect) {
 }
 
 /**
- * Select appropriate XEN kernel if the XEN pattern is selected
- */
-void SelectXenKernel () {
-    // check Xen pattern status
-    list<map> xen_patterns  = Pkg::ResolvableProperties("xen_server", `pattern, "");
-
-    // is the Xen pattern selected?
-    boolean xen_selected = false;
-
-    foreach(map pattern, xen_patterns,
-    {
-	y2milestone ("Pattern '%1' status '%2'", pattern["name"]:nil, pattern["status"]:`unknown);
-	if (pattern["status"]:`unknown == `selected)
-	{
-	    xen_selected = true;
-	}
-    });
-
-    y2milestone ("XEN Selected: %1", xen_selected);
-    if (xen_selected)
-    {
-	if (contains (Kernel::GetPackages (), "kernel-bigsmp"))
-	{
-	    y2milestone("Selected Xen kernel: kernel-xenpae");
-	    // install PAE Xen
-	    Pkg::PkgNeutral("kernel-xen");
-	    Pkg::PkgInstall("kernel-xenpae");
-	}
-	else
-	{
-	    // install standard Xen
-	    Pkg::PkgNeutral("kernel-xenpae");
-	    Pkg::PkgInstall("kernel-xen");
-	}
-    }
-}
-
-/**
  * Make a proposal for package selection
  * @param force reset
  * @param re-initialize
@@ -1520,8 +1482,6 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	y2error ("unknown value %1 for ProductFeatures::GetFeature (software, selection_type)",
 	     (symbol)ProductFeatures::GetFeature ("software", "selection_type"));
     }
-
-    SelectXenKernel ();
 
     if (! Pkg::PkgSolve (false))
     {
