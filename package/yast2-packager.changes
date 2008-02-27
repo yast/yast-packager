@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 27 10:46:23 CET 2008 - lslezak@suse.cz
+
+- repositories - added 'community repos' text into the description
+  (#346718)
+- SourceManager.ycp - removed obsoleted .process agent call
+
+-------------------------------------------------------------------
 Mon Feb 25 14:28:10 CET 2008 - sh@suse.de
 
 - Require yast2_ui_pkg in .spec file (bnc #363958)

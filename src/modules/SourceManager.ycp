@@ -673,8 +673,6 @@ global list Overview() {
 	// while continuing is needed and while it is possible
 	while (! timed_out) {
 	    boolean running = (boolean) SCR::Read(.process.running, processID);
-	    // read output into buffers in the agent, might unblock the process
-	    SCR::Execute(.process.buffer, processID);
 	    // debugging #165821
 	    if (time_spent % 100000 == 0) {
 		y2milestone ("running: %1", running);
