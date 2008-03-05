@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Mar  5 16:16:50 CET 2008 - lslezak@suse.cz
+
+- added Pkg::CallbackStartRefresh() and Pkg::CallbackDoneRefresh()
+  handlers, ask user to skip repository refresh at start up
+  (FATE #30962, bnc #231745)
+- added menu buttons for refreshing all repositories (#344633)
+- 2.16.23
+
+-------------------------------------------------------------------
 Wed Feb 27 10:46:23 CET 2008 - lslezak@suse.cz
 
 - repositories - added 'community repos' text into the description

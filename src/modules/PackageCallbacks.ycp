@@ -57,6 +57,9 @@
     // max. length of the text in the repository popup window
     integer max_size = 60;
 
+    boolean autorefreshing = false;
+    boolean autorefreshing_aborted = false;
+
     //--------------------------------------------------------------------------
     // defaults
 
@@ -563,6 +566,12 @@
 				      integer wanted, string wanted_label,
 				      boolean double_sided)
     {
+	if (autorefreshing && autorefreshing_aborted)
+	{
+	    y2milestone("Refresh aborted");
+	    return "C";
+	}
+
 	import "Mode";
 
 	if (!Mode::normal ())
@@ -1524,6 +1533,41 @@ global void SourceReportDestroy()
 	PackageCallbacksInit::InitPackageCallbacks ();
     }
 
+    global symbol AskAbortRefresh()
+    {
+	UI::OpenDialog(
+	    `MarginBox(1, 0.5,
+		`VBox(
+		// a popup question with "Continue", "Skip" and "Abort" buttons
+		`Label(_("The repositories are being refreshed.
+Continue with refreshing?
+
+Note: If the refresh is skipped some packages
+might be missing or out of date.")),
+		`HBox(
+			`PushButton(`id(`continue), `opt(`default), Label::ContinueButton()),
+			`HSpacing(2),
+			`PushButton(`id(`skip), _("Skip Refresh"))
+		    )
+		)
+	    )
+	);
+
+	UI::SetFocus(`id(`continue));
+
+	symbol ui = (symbol) UI::UserInput();
+
+	UI::CloseDialog();
+
+	if (ui == `close)
+	{
+	    ui = `continue;
+	}
+
+	y2milestone("User request: %1", ui);
+
+	return ui;
+    }
 
     global boolean IsDownloadProgressPopup()
     {
@@ -1584,7 +1628,7 @@ global void SourceReportDestroy()
 
     global void StartDownload (string url, string localfile)
     {
-	y2debug("Downloading %1 to %2", url, localfile);
+	y2milestone("Downloading %1 to %2", url, localfile);
 
 	// heading of popup
 	string heading = _("Downloading");
@@ -1617,6 +1661,12 @@ global void SourceReportDestroy()
 
     global boolean ProgressDownload (integer percent, integer expected_size)
     {
+	if (autorefreshing && autorefreshing_aborted)
+	{
+	    y2milestone("Refresh aborted");
+	    return false;
+	}
+
 	if (Mode::commandline()) {
 	    CommandLine::PrintVerboseNoCR(clear_string + sformat("%1%%", percent));
 	    if (percent == 100)
@@ -1638,7 +1688,31 @@ global void SourceReportDestroy()
 		UI::ChangeWidget (`id(`progress), `Value, percent);
 	    }
 
-	    return UI::PollInput () != `abort;
+	    boolean download_aborted = UI::PollInput () == `abort;
+
+	    if (download_aborted && autorefreshing)
+	    {
+		// display "Continue", "Skip Refresh" dialog
+		symbol answer = AskAbortRefresh();
+
+		if (answer == `continue)
+		{
+		    download_aborted = false;
+		}
+		else if (answer == `skip)
+		{
+		    download_aborted = true;
+		    autorefreshing_aborted = true;
+
+		    Pkg::SkipRefresh();
+		}
+		else
+		{
+		    y2error("Unknown input value: %1", answer);
+		}
+	    }
+
+	    return !download_aborted;
 	}
     }
 
@@ -1647,20 +1721,51 @@ global void SourceReportDestroy()
     {
 	if (error_value != 0)
 	{
-	    if (Mode::commandline()) {
-		//error message, %1 is the cause for the error
-		CommandLine::Print(sformat (_("Download failed:
-%1"), error_text));
+	    if (autorefreshing && autorefreshing_aborted)
+	    {
+		y2milestone("Refresh aborted");
 	    }
 	    else
 	    {
-		// error message, %1 is the cause for the error
-		Popup::Error (sformat (_("Download failed:
-%1"), error_text));
+		if (Mode::commandline()) {
+		    //error message, %1 is the cause for the error
+		    CommandLine::Print(sformat (_("Download failed:
+    %1"), error_text));
+		}
+		else
+		{
+		    // error message, %1 is the cause for the error
+		    Popup::Error (sformat (_("Download failed:
+    %1"), error_text));
+		}
 	    }
 	}
     }
 
+    global void RefreshStarted()
+    {
+	y2milestone("Autorefreshing repositories...");
+
+	if (UI::WidgetExists(`id(`abort)))
+	{
+	    UI::ChangeWidget(`id(`abort), `Label, _("Skip Autorefresh"));
+	}
+
+	autorefreshing = true;
+	autorefreshing_aborted = false;
+    }
+
+    global void RefreshDone()
+    {
+	if (UI::WidgetExists(`id(`abort)))
+	{
+	    UI::ChangeWidget(`id(`abort), `Label, Label::AbortButton());
+	}
+
+	y2milestone("Autorefresh done");
+	autorefreshing = false;
+	autorefreshing_aborted = false;
+    }
 
     global void SetDownloadCallbacks ()
     {
@@ -1669,6 +1774,8 @@ global void SourceReportDestroy()
 	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
 	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
 	Pkg::CallbackDestDownload ("PackageCallbacks::DestDownload");
+	Pkg::CallbackStartRefresh("PackageCallbacks::RefreshStarted");
+	Pkg::CallbackDoneRefresh("PackageCallbacks::RefreshDone");
     }
 
     global void ClearDownloadCallbacks ()
@@ -1678,6 +1785,8 @@ global void SourceReportDestroy()
 	Pkg::CallbackProgressDownload ("");
 	Pkg::CallbackDoneDownload ("");
 	Pkg::CallbackDestDownload ("");
+	Pkg::CallbackStartRefresh("");
+	Pkg::CallbackDoneRefresh("");
     }
 
 

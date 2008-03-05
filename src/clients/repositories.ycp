@@ -37,6 +37,7 @@
     // macro. Takes a lot of time because whole package manager target
     // is initialized
     import "Product";
+    import "Progress";
 
     include "packager/inst_source_dialogs.ycp";
     include "packager/key_manager_dialogs.ycp";
@@ -594,17 +595,15 @@ symbol SummaryDialog () {
 		    `PushButton (`id(`delete), `opt(`key_F5),
 			Label::DeleteButton ()),
 		    `HStretch (),
-/*
-		    // menu button label
-		    `MenuButton (`id(`menu_button), `opt(`key_F6), _("Repository Settings"), [
-//			`item(`id(`enable), enableButtonLabel),
-//			`item(`id(`refresh_on_off), refreshOnOffButtonLabel),
-			`item(`id(`refresh), refreshButtonLabel ),
-			`item(`id(`set_alias), setAliasButtonLabel)
-		    ])
-*/
 		    `PushButton (`id (`key_mgr), _("&GPG Keys...")),
-		    `PushButton (`id (`refresh), refreshButtonLabel )
+		    // menu button label
+		    `MenuButton (`id(`menu_button), `opt(`key_F6), _("Refresh"), [
+			`item(`id(`refresh), refreshButtonLabel ),
+			// menu button label
+			`item(`id(`autorefresh_all), _("Refresh All Autor&efreshed")),
+			// menu button label
+			`item(`id(`refresh_enabled), _("Refresh All &Enabled"))
+		    ])
 		),
                 `VSpacing( 0.5 )
         );
@@ -810,8 +809,68 @@ All changes will be lost.");
 	    else if ( input == `refresh )
             {
 		Pkg::SourceRefreshNow (id);
-		fillTable ();
-		fillCurrentRepoInfo();
+            }
+	    else if ( input == `autorefresh_all || input == `refresh_enabled)
+            {
+		y2milestone("Refreshing all %1 repositories...", input == `refresh_enabled ? "enabled" : "autorefreshed");
+
+		boolean refresh_autorefresh_only = input == `autorefresh_all;
+		integer to_refresh = 0;
+
+		foreach(map<string,any> src_state, sourceStatesOut,
+		    {
+			if (src_state["enabled"]:false && (!refresh_autorefresh_only || src_state["autorefresh"]:false))
+			{
+			    string url = Pkg::SourceGeneralData(src_state["SrcId"]:-1)["url"]:"";
+			    string schema = tolower(substring(url, 0, 3));
+
+			    if (schema != "cd:" && schema != "dvd")
+			    {
+				to_refresh = to_refresh + 1;
+			    }
+			}
+		    }
+		);
+
+		y2milestone("%1 repositories will be refreshed", to_refresh);
+
+		if (to_refresh > 0)
+		{
+		    Wizard::CreateDialog ();
+		    Progress::New("Refreshing Repositories", "", to_refresh + 1, [ "Refresh Repositories" ], [], "TODO HELP");
+
+		    foreach(map<string,any> src_state, sourceStatesOut,
+			{
+			    if (src_state["enabled"]:false && (!refresh_autorefresh_only || src_state["autorefresh"]:false))
+			    {
+				integer srcid = src_state["SrcId"]:-1;
+				string name = src_state["name"]:"";
+
+				string url = Pkg::SourceGeneralData(src_state["SrcId"]:-1)["url"]:"";
+				string schema = tolower(substring(url, 0, 3));
+
+				if (schema != "cd:" && schema != "dvd")
+				{
+				    y2milestone("Autorefreshing repository %1 (%2)", srcid, name);
+
+				    // progress bar label
+				    Progress::Title(sformat(_("Refreshing Repository %1..."), name));
+
+				    Pkg::SourceRefreshNow(srcid);
+
+				    Progress::NextStep();
+				}
+				else
+				{
+				    y2milestone("Skipping a CD/DVD repository %1 (%2)", srcid, name);
+				}
+			    }
+			}
+		    );
+
+		    Progress::Finish();
+		    Wizard::CloseDialog();
+		}
             }
             else if ( input == `delete )
             {
