@@ -60,6 +60,9 @@
     boolean autorefreshing = false;
     boolean autorefreshing_aborted = false;
 
+    boolean textmode = UI::GetDisplayInfo()["TextMode"]:false;
+    integer display_width = UI::GetDisplayInfo()["Width"]:0;
+
     //--------------------------------------------------------------------------
     // defaults
 
@@ -880,7 +883,7 @@ void OpenSourcePopup()
 void SetHeaderSourcePopup(string text)
 {
     // Qt UI uses bold font, the string must be shortened even more
-    integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 5;
+    integer ui_adjustment = textmode ? 0 : 5;
 
     if (size(text) > max_size - ui_adjustment)
     {
@@ -894,7 +897,7 @@ void SetHeaderSourcePopup(string text)
 void SetLabelSourcePopup(string text)
 {
     // Qt uses proportional font, the string might be longer
-    integer ui_adjustment = UI::GetDisplayInfo()["TextMode"]:false ? 0 : 6;
+    integer ui_adjustment = textmode ? 0 : 6;
 
     if (size(text) > max_size + ui_adjustment)
     {
@@ -1626,6 +1629,8 @@ might be missing or out of date.")),
 	}
     }
 
+    string download_file = "";
+
     global void StartDownload (string url, string localfile)
     {
 	y2milestone("Downloading %1 to %2", url, localfile);
@@ -1635,6 +1640,8 @@ might be missing or out of date.")),
 
 	// reformat the URL
 	string url_report = URL::FormatURL(URL::Parse(url), max_size);
+	// remember the URL
+	download_file = url_report;
 
 	// message in a progress popup
 	string message = sformat (_("Downloading: %1"), url_report);
@@ -1658,8 +1665,7 @@ might be missing or out of date.")),
 	}
     }
 
-
-    global boolean ProgressDownload (integer percent, integer expected_size)
+    global boolean ProgressDownload (integer percent, integer bps_avg, integer bps_current)
     {
 	if (autorefreshing && autorefreshing_aborted)
 	{
@@ -1679,13 +1685,39 @@ might be missing or out of date.")),
 	    }
 	}
 	else {
+	    string msg_rate = "";
+
+	    if (bps_current > 0)
+	    {
+		// do not show the average download rate if the space is limited
+		if (textmode && display_width < 100)
+		{
+		    bps_avg = -1;
+		}
+
+		string format = textmode ? ("%1 - " + download_file) : (download_file + " - %1");
+
+		// progress bar label, %1 is URL with optional download rate
+		msg_rate = sformat(_("Downloading: %1"), String::FormatRateMessage(format, bps_avg, bps_current));
+	    }
+
 	    if (FullScreen())
 	    {
 		Progress::SubprogressValue(percent);
+
+		if (size(msg_rate) > 0)
+		{
+		    Progress::SubprogressTitle(msg_rate);
+		}
 	    }
 	    else
 	    {
 		UI::ChangeWidget (`id(`progress), `Value, percent);
+
+		if (size(msg_rate) > 0)
+		{
+		    UI::ChangeWidget (`id(`progress), `Label, msg_rate);
+		}
 	    }
 
 	    boolean download_aborted = UI::PollInput () == `abort;

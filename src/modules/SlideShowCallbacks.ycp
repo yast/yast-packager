@@ -92,19 +92,19 @@
     /**
      * during file providal
      */
-    global boolean ProgressProvide( integer percent )
+    global boolean ProgressProvide(integer percent, integer bps_avg, integer bps_current)
     {
 	if (_remote_provide)
 	{
-	    SlideShow::UpdateCurrentPackageProgress ( percent );
+	    SlideShow::UpdateCurrentPackageRateProgress ( percent, bps_avg, bps_current );
 	}
 	HandleInput();
 	return ! SlideShow::GetUserAbort();
     }
 
-    global boolean ProgressDownload(integer percent, integer dummy)
+    global boolean ProgressDownload(integer percent, integer bps_avg, integer bps_current)
     {
-	return ProgressProvide(percent);
+	return ProgressProvide(percent, bps_avg, bps_current);
     }
 
 
