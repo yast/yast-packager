@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 11 13:28:00 CET 2008 - lslezak@suse.cz
+
+- display download rate in callbacks (#168935)
+- 2.16.24
+
+-------------------------------------------------------------------
 Wed Mar  5 16:16:50 CET 2008 - lslezak@suse.cz
 
 - added Pkg::CallbackStartRefresh() and Pkg::CallbackDoneRefresh()
