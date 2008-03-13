@@ -86,13 +86,14 @@ string desktop = nil;
 map<string,string> desktop2wm = $[
     "gnome" : "gnome",
     "kde" : "kde",
-    "min_x11" : "twm",
-    "text" : "twm",
+    "xfce" : "twm",
+    "min_x" : "twm",
+    "textmode" : "twm",
 ];
 
 /**
  * Get the currently set default desktop, nil if none set
- * @return string "kde", "gnome", "min_x11", "text", nil
+ * @return string "kde", "gnome", "xfce", "min_x", "textmode", nil
  */
 global string Desktop () {
     return desktop;
@@ -100,7 +101,7 @@ global string Desktop () {
 
 /**
  * Set the default desktop
- * @param desktop a string, one of "kde", "gnome", "min_x11", "text" or nil
+ * @param desktop a string, one of "kde", "gnome", "min_x", "textmode" or nil
  */
 global void SetDesktop (string new_desktop) {
     if (new_desktop != nil && ! haskey (all_desktops, new_desktop))
