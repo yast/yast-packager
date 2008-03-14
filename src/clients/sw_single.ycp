@@ -383,6 +383,16 @@ Install them now?
 			|| Pkg::GetPackages(`taboo, true) != taboo_packages;
 		   y2milestone("Ask to restart the package selector: %1", ask);
 	       }
+	       // start the repository manager
+	       else if (result == `repo_mgr)
+	       {
+		    symbol repo_result = (symbol)WFM::CallFunction( "repositories", [ `sw_single_mode ]);
+
+		    if (repo_result != `abort)
+		    {
+			force_restart = true;
+		    }
+	       }
 	       else
 	       {
 		   // canceled - don't ask again
