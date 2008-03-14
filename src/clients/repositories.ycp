@@ -42,6 +42,8 @@
     include "packager/inst_source_dialogs.ycp";
     include "packager/key_manager_dialogs.ycp";
 
+    boolean full_mode = false;
+
     integer numSources = 0;
 
     list<map<string,any> > sourceStatesIn = [];
@@ -657,7 +659,15 @@ to also perform the changes in that package management system.</p>
 ");
     }
 
-    Wizard::SetNextButton(`next, Label::FinishButton() );
+    if (full_mode)
+    {
+	Wizard::SetNextButton(`next, Label::OKButton() );
+    }
+    else
+    {
+	Wizard::SetNextButton(`next, Label::FinishButton() );
+    }
+
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::DisableBackButton();
 
@@ -809,6 +819,13 @@ All changes will be lost.");
 	    else if ( input == `refresh )
             {
 		Pkg::SourceRefreshNow (id);
+
+		if (full_mode && sourceState["enabled"]:false)
+		{
+		    // force loading of the resolvables
+		    Pkg::SourceSetEnabled(id, false);
+		    Pkg::SourceSetEnabled(id, true);
+		}
             }
 	    else if ( input == `autorefresh_all || input == `refresh_enabled)
             {
@@ -858,6 +875,13 @@ All changes will be lost.");
 
 				    Pkg::SourceRefreshNow(srcid);
 
+				    if (full_mode && src_state["enabled"]:false)
+				    {
+					// force loading of the resolvables
+					Pkg::SourceSetEnabled(srcid, false);
+					Pkg::SourceSetEnabled(srcid, true);
+				    }
+
 				    Progress::NextStep();
 				}
 				else
@@ -891,6 +915,11 @@ All changes will be lost.");
                 UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
                 sourceState[ "enabled" ] = state;
                 sourceStatesOut[ current ] = sourceState;
+
+		if (full_mode)
+		{
+		    Pkg::SourceSetEnabled(sourceState["SrcId"]:-1, state);
+		}
             }
             else if ( input == `autorefresh)
             {
@@ -1143,6 +1172,21 @@ map cmdline_description = $[
     "help"	: sformat(_("Installation Repositories - this module doesn't support the command line interface, use '%1' instead."), "zypper"),
     "guihandler"        : StartInstSource,
 ];
+
+if (WFM::Args() == [ `sw_single_mode ])
+{
+    y2internal("Started from sw_single, switching the mode");
+
+    full_mode = true;
+    boolean progress_state = Progress::set(false);
+    any ret = StartInstSource();
+
+    // load objects from the new repositories
+    Pkg::SourceLoad();
+    Progress::set(progress_state);
+
+    return ret;
+}
 
 return CommandLine::Run(cmdline_description);
 
