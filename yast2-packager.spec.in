@@ -7,8 +7,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 # enhanced String::FormatRateMessage()
 BuildRequires:	yast2 >= 2.16.34
 
-# changed signature of ProgressProvide calback
-BuildRequires:	yast2-pkg-bindings >= 2.16.17
+# changed signature of MediaChange calback
+BuildRequires:	yast2-pkg-bindings >= 2.16.19
 
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings
@@ -17,8 +17,8 @@ Requires:	perl-XML-Bare yast2-perl-bindings
 Requires:	yast2-country-data >= 2.16.3
 Requires:	yast2-installation >= 2.15.12
 
-# changed signature of ProgressProvide calback
-Requires:	yast2-pkg-bindings >= 2.16.17
+# changed signature of MediaChange calback
+Requires:	yast2-pkg-bindings >= 2.16.19
 
 # URL::MakeParamsFromMap and URL::MakeMapFromParams
 Requires:	yast2 >= 2.16.25

@@ -550,6 +550,29 @@
 //	MEDIA CHANGE
 //=============================================================================
 
+global define list<term> CDdevices(string preferred) {
+    list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
+    list<term> ret = [];
+
+    if (cds != nil)
+    {
+	foreach(map cd, cds, {
+		string dev = cd["dev_name"]:"";
+		string model = cd["model"]:"";
+		boolean deflt = (preferred == dev);
+
+		if (dev != nil && dev != "" && model != nil)
+		{
+		    ret = add(ret, `item(`id(dev), (deflt ? "➤ " : "") + model + sformat(" (%1)", dev)));
+		}
+	    }
+	);
+    }
+
+    y2milestone("Detected CD devices: %1", ret);
+
+    return ret;
+}
 
     //-------------------------------------------------------------------------
     //
@@ -567,7 +590,7 @@
     global string MediaChange (string error, string url, string product,
 				      integer current, string current_label,
 				      integer wanted, string wanted_label,
-				      boolean double_sided)
+				      boolean double_sided, list<string> devices, integer current_device)
     {
 	if (autorefreshing && autorefreshing_aborted)
 	{
@@ -583,8 +606,8 @@
 	    SlideShow::StopTimer();
 	}
 
-	y2milestone ("MediaChange err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7'",
-		     error, url, product, current, current_label, wanted, wanted_label);
+	y2milestone ("MediaChange error: err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7', devs: %8, curr_dev: %9",
+		     error, url, product, current, current_label, wanted, wanted_label, devices, current_device);
 
 	map url_tokens = URL::Parse (url);
 	string url_scheme = url_tokens["scheme"]:"";
@@ -676,8 +699,20 @@ Check whether the server is accessible."), wanted_label);
 
 	if (offer_eject_button)
 	{
-	    // push button label during media change popup, user can eject the CD/DVD
-	    button_box = add (button_box, `PushButton (`id(`eject), _("&Eject")));
+	    // detect the CD/DVD devices
+	    list<term> cds = CDdevices(devices[current_device]:"");
+
+	    // display a menu button if there are more CD devices
+	    if (size(cds) > 1)
+	    {
+		// menu button label - used for more then one device
+		button_box = add (button_box, `MenuButton(_("&Eject"), cds));
+	    }
+	    else
+	    {
+		// push button label - in the media change popup, user can eject the CD/DVD
+		button_box = add (button_box, `PushButton (`id(`eject), _("&Eject")));
+	    }
 	}
 
 	if (Mode::commandline())
@@ -719,7 +754,7 @@ Check whether the server is accessible."), wanted_label);
 	{
 	    UI::OpenDialog( `opt(`decorated), LayoutPopup (message, button_box, 10, true) );
 	    /* TextEntry label */
-	    UI::ReplaceWidget(`id(`info), `VBox (`TextEntry (`id(`url), _("&URL")), `RichText(`opt(`plainText), error)) );
+	    UI::ReplaceWidget(`id(`info), `VBox (`InputField(`id(`url), `opt(`hstretch), _("&URL")), `RichText(`opt(`plainText), error)) );
 	    UI::ChangeWidget(`id(`url), `Value, url);
 	}
 	else
@@ -732,6 +767,8 @@ Check whether the server is accessible."), wanted_label);
 	UI::Beep();
 
 	any r = nil;
+
+	string eject_device = "";
 
 	repeat {
 	    r = UI::UserInput();
@@ -749,7 +786,7 @@ Check whether the server is accessible."), wanted_label);
 		    UI::ReplaceWidget(`id(`info), `Empty() );
 		}
 	    }
-	    if (r == `retry || r == `url)
+	    else if (r == `retry || r == `url)
 	    {
 		if (showLongInfo)	// id(`url) must exist
 		{
@@ -760,6 +797,12 @@ Check whether the server is accessible."), wanted_label);
 			r = `url;
 		    }
 		}
+	    }
+	    else if (is(r, string) && regexpmatch((string)r, "^/dev/"))
+	    {
+		y2milestone("Eject request for %1", r);
+		eject_device = (string)r;
+		r = `eject;
 	    }
 	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore || r == `url);
 
@@ -786,7 +829,30 @@ Check whether the server is accessible."), wanted_label);
 	if (r == `skip)
 	    return "S";
 	if (r == `eject)
-	    return "E";
+	{
+	    if (eject_device == "")
+	    {
+		return "E";
+	    }
+	    else
+	    {
+		// get the index in the list
+		integer dindex = -1;
+
+		string found = find(string d, devices, {dindex = dindex + 1; return d == eject_device;});
+
+		if (found != nil)
+		{
+		    y2milestone("Device %1 has index %2", eject_device, dindex);
+		    return "E" + tostring(dindex);
+		}
+		else
+		{
+		    y2warning("Device %1 not found in the list, using default", eject_device);
+		    return "E";
+		}
+	    }
+	}
 
 	if (!Mode::normal ())
 	{

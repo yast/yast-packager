@@ -1258,7 +1258,7 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 
 	    // FIXME somewhere get correct current_label and wanted_label
 	    string result = PackageCallbacks::MediaChange (errortext, base_url, "",
-							   0, "", 1, "", false);
+							   0, "", 1, "", false, [], 0);
 	}
     }
 
