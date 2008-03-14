@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 14 14:44:37 CET 2008 - juhliarik@suse.cz
+
+- added calling inst_bootloader from inst_kickoff (FATE #302660) 
+
+-------------------------------------------------------------------
 Fri Mar 14 09:33:47 CET 2008 - lslezak@suse.cz
 
 - support for ejecting specified CD/DVD device, handle multiple
@@ -100,6 +105,7 @@ Tue Jan 29 20:14:27 CET 2008 - locilka@suse.cz
 - 2.16.17
 
 -------------------------------------------------------------------
+>>>>>>> .r45460
 Sun Jan 27 20:58:18 CET 2008 - coolo@suse.de
 
 - fixing changelog order
