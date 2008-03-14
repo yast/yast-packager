@@ -86,7 +86,7 @@
 			22, `TextEntry (`id (`filter_text), "")
 		    )),
 		    // push button
-		    `PushButton(`id(`filter), `opt(`default), _("&Filter")),
+		    `PushButton(`id(`filter), _("&Filter")),
 		    `HStretch()
 		))
 	    ));
