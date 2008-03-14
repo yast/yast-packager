@@ -8,7 +8,7 @@ Fri Mar 14 09:33:47 CET 2008 - lslezak@suse.cz
 -------------------------------------------------------------------
 Tue Mar 11 13:28:00 CET 2008 - lslezak@suse.cz
 
-- display download rate in callbacks (#168935)
+- display download rate in callbacks (bnc#168935)
 - 2.16.24
 
 -------------------------------------------------------------------
