@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 14 09:33:47 CET 2008 - lslezak@suse.cz
+
+- support for ejecting specified CD/DVD device, handle multiple
+  devices (fate#120298)
+- 2.16.25
+
+-------------------------------------------------------------------
 Tue Mar 11 13:28:00 CET 2008 - lslezak@suse.cz
 
 - display download rate in callbacks (#168935)
