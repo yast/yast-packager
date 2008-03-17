@@ -22,3 +22,4 @@ Exec=/sbin/yast2 sw_single
 Name=Software Management
 GenericName=Install additional software packages or remove installed packages
 X-KDE-SubstituteUID=true
+StartupNotify=true
