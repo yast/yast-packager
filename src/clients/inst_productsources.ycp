@@ -1141,7 +1141,7 @@ select those you want and click <b>Finish</b>.</p>
 
 	    if (script_called_from_another) {
 		Wizard::SetAbortButton (`cancel, Label::CancelButton());
-		Wizard::SetNextButton (`next, Label::AcceptButton());
+		Wizard::SetNextButton (`next, Label::OKButton());
 	    } else {
 		Wizard::SetNextButton (`next, Label::FinishButton());
 	    }

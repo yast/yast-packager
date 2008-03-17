@@ -89,7 +89,7 @@
 	Wizard::OpenNextBackDialog();
 	Wizard::SetBackButton  (`back,   Label::BackButton());
 	Wizard::SetAbortButton (`cancel, Label::CancelButton());
-	Wizard::SetNextButton  (`accept, Label::AcceptButton());
+	Wizard::SetNextButton  (`accept, Label::OKButton());
 	Wizard::DisableBackButton();
 
 	Wizard::SetContents(
