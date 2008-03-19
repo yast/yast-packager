@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 19 15:21:02 CET 2008 - lslezak@suse.cz
+
+- do not probe CD/DVD devices after pressing [Eject] (probing
+  closes just the ejected device)
+- added "Automatic Eject" checkbox (fate#301228)
+
+-------------------------------------------------------------------
 Wed Mar 19 09:57:34 CET 2008 - lslezak@suse.cz
 
 - Slideshow - dropped vertical multi progress bar, display

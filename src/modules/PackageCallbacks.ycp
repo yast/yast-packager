@@ -29,6 +29,8 @@
     import "Icon";
     import "Wizard";
     import "Progress";
+    import "DontShowAgain";
+    import "FileUtils";
 
     global boolean _provide_popup = false;
     global boolean _source_popup = false;
@@ -62,6 +64,62 @@
 
     boolean textmode = UI::GetDisplayInfo()["TextMode"]:false;
     integer display_width = UI::GetDisplayInfo()["Width"]:0;
+
+    /* Location of the persistent storage */
+    const string conf_file = Directory::vardir + "/package_callbacks.conf";
+    map config = nil;
+
+    // auto ejecting is in progress
+    boolean doing_eject = false;
+
+    // functions related to the persistent storage
+    void LoadConfig()
+    {
+	if (FileUtils::Exists(conf_file) && FileUtils::IsFile(conf_file))
+	{
+	    y2milestone("Reading config file %1", conf_file);
+	    map read_conf = (map) SCR::Read(.target.ycp, conf_file);
+
+	    config = (read_conf != nil) ? read_conf : $[];
+	    y2milestone("Current config: %1", config);
+	}
+	else
+	{
+	    y2milestone("No configuration found (file %1 is missing)", conf_file);
+	}
+
+	if (config == nil)
+	{
+	    config = $[];
+	}
+    }
+
+    any GetConfig(string key)
+    {
+	if (config == nil)
+	{
+	    LoadConfig();
+	}
+
+	return config[key]:nil;
+    }
+
+    void SetConfig(string key, any value)
+    {
+	if (config == nil)
+	{
+	    LoadConfig();
+	}
+
+	y2milestone("Config: setting %1 to %2", key, value);
+	config[key] = value;
+    }
+
+    boolean SaveConfig()
+    {
+	y2milestone("Saving the current config to %1", conf_file);
+	return (boolean)SCR::Write(.target.ycp, conf_file, config);
+    }
 
     //--------------------------------------------------------------------------
     // defaults
@@ -550,6 +608,8 @@
 //	MEDIA CHANGE
 //=============================================================================
 
+list<term> detected_cd_devices = [];
+
 global define list<term> CDdevices(string preferred) {
     list<map> cds = (list<map>)SCR::Read(.probe.cdrom);
     list<term> ret = [];
@@ -572,6 +632,24 @@ global define list<term> CDdevices(string preferred) {
     y2milestone("Detected CD devices: %1", ret);
 
     return ret;
+}
+
+// check and save the autoeject configuration if needed
+void CheckAndSaveAutoEject()
+{
+    boolean autoeject = (boolean)UI::QueryWidget(`id(`auto_eject), `Value);
+
+    boolean current = (boolean)GetConfig("automatic_eject");
+    if (current == nil)
+    {
+	current = false;
+    }
+
+    if (autoeject != current)
+    {
+	SetConfig("automatic_eject", autoeject);
+	SaveConfig();
+    }
 }
 
     //-------------------------------------------------------------------------
@@ -615,6 +693,17 @@ global define list<term> CDdevices(string preferred) {
 
 	// true if it makes sense to offer an eject button (for cd/dvd only ...)
 	boolean offer_eject_button = url_scheme == "cd" || url_scheme == "dvd";
+
+	// do automatic eject
+	if (offer_eject_button && (boolean)GetConfig("automatic_eject") == true)
+	{
+	    if (!doing_eject)
+	    {
+		y2milestone("Automatically ejecting the medium...");
+		doing_eject = true;
+		return "E";
+	    }
+	}
 
 	if (issubstring (error, "ERROR(InstSrc:E_bad_id)"))
 	{
@@ -699,21 +788,42 @@ Check whether the server is accessible."), wanted_label);
 
 	if (offer_eject_button)
 	{
-	    // detect the CD/DVD devices
-	    list<term> cds = CDdevices(devices[current_device]:"");
+	    if (!doing_eject)
+	    {
+		detected_cd_devices = CDdevices(devices[current_device]:"");
+	    }
+
+	    // detect the CD/DVD devices if the ejecting is not in progress,
+	    // the CD detection closes the ejected tray!
+	    list<term> cds = detected_cd_devices;
 
 	    // display a menu button if there are more CD devices
-	    if (size(cds) > 1)
+	    term eject_button =
+		(size(cds) > 1) ?
+		    // menu button label - used for more then one device
+		    `MenuButton(_("&Eject"), cds)
+		    // push button label - in the media change popup, user can eject the CD/DVD
+		    : `PushButton (`id(`eject), _("&Eject"));
+
+	    boolean auto_eject = (boolean)GetConfig("automatic_eject");
+	    if (auto_eject == nil)
 	    {
-		// menu button label - used for more then one device
-		button_box = add (button_box, `MenuButton(_("&Eject"), cds));
+		auto_eject = false;
 	    }
-	    else
-	    {
-		// push button label - in the media change popup, user can eject the CD/DVD
-		button_box = add (button_box, `PushButton (`id(`eject), _("&Eject")));
-	    }
+
+	    button_box = `HBox(
+		`VBox(
+		    `VStretch(),
+		    button_box
+		),
+		`VBox(
+		    `Left(`HBox(`HSpacing(0.4),`CheckBox(`id(`auto_eject), _("A&utomatic Eject"), auto_eject))),
+		    `Left(eject_button)
+		)
+	    );
 	}
+
+	doing_eject = false;
 
 	if (Mode::commandline())
 	{
@@ -806,6 +916,13 @@ Check whether the server is accessible."), wanted_label);
 	    }
 	} until (r == `cancel || r == `retry || r == `eject || r == `skip || r == `ignore || r == `url);
 
+	// remember the state of autoeject option
+	if (offer_eject_button)
+	{
+	    // check and save the autoeject configuration if needed
+	    CheckAndSaveAutoEject();
+	}
+
 	y2milestone ("MediaChange %1", r);
 
 	UI::CloseDialog();
@@ -830,6 +947,8 @@ Check whether the server is accessible."), wanted_label);
 	    return "S";
 	if (r == `eject)
 	{
+	    doing_eject = true;
+
 	    if (eject_device == "")
 	    {
 		return "E";
