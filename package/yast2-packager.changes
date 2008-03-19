@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 19 09:57:34 CET 2008 - lslezak@suse.cz
+
+- Slideshow - dropped vertical multi progress bar, display
+  remaining size and time in the main progress bar (fate#303437)
+
+-------------------------------------------------------------------
 Mon Mar 17 14:08:23 CET 2008 - lslezak@suse.cz
 
 - unified button labels (use "OK" instead of "Accept")
