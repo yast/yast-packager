@@ -1214,6 +1214,17 @@
 	}
     }
 
+    string GetProgressLabel()
+    {
+	string rem_string = "";
+	integer tot_rem_t = TotalRemainingTime();
+
+	rem_string = ( unit_is_seconds && bytes_per_second > 0 && tot_rem_t > 0) ?
+	    sformat("%1 / %2", FormatRemainingSize(TotalRemainingSize()), FormatTimeShowOverflow(tot_rem_t))
+	    : FormatRemainingSize(TotalRemainingSize());
+
+	return sformat(_("Remaining: %1"), rem_string);
+    }
 
     /**
      * Update progress widgets
@@ -1224,7 +1235,10 @@
 	    UI::ChangeWidget(`multiProgressMeter, `Values, FlattenNoZeroes( remaining_sizes_per_cd_per_src ) );
 
 	if ( UI::WidgetExists(`progressTotal ) )
+	{
 	    UI::ChangeWidget(`progressTotal, `Value, TotalInstalledSize() );
+	    UI::ChangeWidget(`progressTotal, `Label, GetProgressLabel() );
+	}
 
 	UpdateCurrentCdProgress(silent_check);
 
@@ -1455,45 +1469,20 @@
      **/
     term AddProgressWidgets( symbol page_id, term page_contents )
     {
-	term widgets = `Empty();
-
-	if ( UI::HasSpecialWidget(`VMultiProgressMeter ) )
-	{
-	    widgets =
-		`VBox(`id( page_id ),
-		      `VWeight( 1, // lower layout priority so `Label(`nextMedia) gets its desired height
-				`HBox(
-				      page_contents,
-				      `HSpacing( 0.5 ),
-				      `VBox(
-					    `Label(`id(`totalRemainingLabel), FormatTotalRemaining() ),
-					    `VWeight( 1, `VMultiProgressMeter(`id(`multiProgressMeter),
-									      FlattenNoZeroes( total_sizes_per_cd_per_src  ) ) )
-					    )
-				      )
-				),
-		      `VSpacing( 0.3 ),
-		      `Label(`id(`nextMedia ), `opt( `hstretch), FormatNextMedia() )
-		      );
-	}
-	else // No VMultiProgressMeter - use a simpler version (mainly for NCurses UI)
-	{
-	    widgets =
-		`HBox(`id( page_id ),
-		      `HSpacing( 1 ),
-		      `VBox(
-			    `VSpacing( 0.4 ),
-			    `VWeight( 1, // lower layout priority
-				      page_contents ),
-			    // Progress bar for overall progress of software package installation
-			    `ProgressBar(`id(`progressTotal ), _("Total"),
-					 total_size_to_install, TotalInstalledSize() )
-			    // intentionally omitting `Label(`nextMedia) -
-			    // too much flicker upon update (UI::RecalcLayout() ) on NCurses
-			    ),
-		      `HSpacing( 0.5 )
-		      );
-	}
+	term widgets =
+	    `HBox(`id( page_id ),
+		`HSpacing( 1 ),
+		`VBox(
+		    `VWeight( 1, // lower layout priority
+			page_contents ),
+			// Progress bar for overall progress of software package installation
+			`ProgressBar(`id(`progressTotal ), GetProgressLabel(),
+				     total_size_to_install, TotalInstalledSize() )
+			// intentionally omitting `Label(`nextMedia) -
+			// too much flicker upon update (UI::RecalcLayout() ) on NCurses
+		),
+		`HSpacing( 0.5 )
+	    );
 
 	y2debug( "widget term: \n%1", widgets );
 	return widgets;
