@@ -731,7 +731,7 @@ the YaST control center and refresh the repository.</p>\n");
 		    side = _("Side B");
 		}
 		wanted = (wanted + 1) >> 1;
-		wanted_label = (tolower(url_scheme) == "cd" || tolower(url_scheme) == "dvd") ?
+		wanted_label = (url_scheme == "cd" || url_scheme == "dvd") ?
 		    // label for a repository - %1 product name (e.g. "openSUSE 10.2"), %2 medium number (e.g. 2)
 		    // %3 side (e.g. "Side A")
 		    sformat("%1 (Disc %2, %3)", product, wanted, side)
@@ -805,21 +805,17 @@ Check whether the server is accessible."), wanted_label);
 		    // push button label - in the media change popup, user can eject the CD/DVD
 		    : `PushButton (`id(`eject), _("&Eject"));
 
+	    button_box = add(button_box, eject_button);
+
 	    boolean auto_eject = (boolean)GetConfig("automatic_eject");
 	    if (auto_eject == nil)
 	    {
 		auto_eject = false;
 	    }
 
-	    button_box = `HBox(
-		`VBox(
-		    `VStretch(),
-		    button_box
-		),
-		`VBox(
-		    `Left(`HBox(`HSpacing(0.4),`CheckBox(`id(`auto_eject), _("A&utomatic Eject"), auto_eject))),
-		    `Left(eject_button)
-		)
+	    button_box = `VBox(
+		`Left(`CheckBox(`id(`auto_eject), _("A&utomatically Eject CD/DVD Medium"), auto_eject)),
+		button_box
 	    );
 	}
 
