@@ -274,10 +274,12 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	output = (list<string>)add (output, sformat(_("System Type: %1"), DefaultDesktop::Description ()));
     if (contains (flags, `pattern))
 	output = (list<string>)
-	    merge (output, ListSelected (`pattern, "+  %1"));
+//	    merge (output, ListSelected (`pattern, "+  %1"));
+	    add (output, _("Patterns:<br>") + mergestring (ListSelected (`pattern, "+  %1"), "<br>"));
     if (contains (flags, `selection))
 	output = (list<string>)
-	    merge (output, ListSelected (`selection, "+  %1"));
+//	    merge (output, ListSelected (`selection, "+  %1"));
+	    add (output, _("Selections:<br>") + mergestring (ListSelected (`selection, "+  %1"), "<br>"));
     if (contains (flags, `size))
     {
 	output = (list<string>)add (output,
