@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 20 14:10:18 CET 2008 - lslezak@suse.cz
+
+- when changing URL of a repository allow to change the URL as
+  a whole (fate#120332)
+
+-------------------------------------------------------------------
 Wed Mar 19 15:21:02 CET 2008 - lslezak@suse.cz
 
 - do not probe CD/DVD devices after pressing [Eject] (probing
