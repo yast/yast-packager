@@ -372,19 +372,60 @@ Use <b>URL</b> to specify the URL of the repository.</p>") + multi_cd_help,
 
 // NFS editation widget
 
+term nfs_details_content =
+`VBox(
+    `HBox(
+	// text entry
+	`TextEntry (`id (`server), _("&Server Name")),
+	`VBox(
+	    `Label(""),
+	    `PushButton(`id(`nfs_browse), Label::BrowseButton())
+	)
+    ),
+    `HBox(
+	// text entry
+	`TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
+	`VBox(
+	    `Label(""),
+	    `PushButton(`id(`nfs_exports_browse), Label::BrowseButton())
+	)
+    ),
+    // checkbox label
+    `Left (`CheckBox ( `id (`ch_iso), _("&ISO Image")))
+);
+
+term nfs_complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("URL of the Repository"));
+
 /**
  * Init function of a widget
  * @param key string widget key
  */
 void NFSInit (string key) {
-    boolean iso = IsISOURL (_url);
-    if (iso)
-	_url = PreprocessISOURL (_url);
-    map parsed = URL::Parse (_url);
-    UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
-    UI::ChangeWidget (`id (`dir), `Value, parsed["path"]:"");
-    UI::ChangeWidget (`id (`ch_iso), `Value, iso);
-    UI::SetFocus (`server);
+    // check the current edit type
+    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    y2internal("Current edit type: %1", current_type);
+
+    UI::ReplaceWidget(`id(`edit_content), (current_type == `edit_url_parts) ? nfs_details_content : nfs_complete_content);
+
+    if (current_type == `edit_url_parts)
+    {
+	boolean iso = IsISOURL (_url);
+
+	string repo_url = _url;
+
+	if (iso)
+	    repo_url = PreprocessISOURL(repo_url);
+
+	map parsed = URL::Parse (repo_url);
+	UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
+	UI::ChangeWidget (`id (`dir), `Value, parsed["path"]:"");
+	UI::ChangeWidget (`id (`ch_iso), `Value, iso);
+	UI::SetFocus (`server);
+    }
+    else
+    {
+	UI::ChangeWidget(`id(`complete_url), `Value, _url);
+    }
 }
 
 /**
@@ -393,16 +434,26 @@ void NFSInit (string key) {
  * @param event map which caused settings being stored
  */
 void NFSStore (string key, map event) {
-    map parsed = $[
-	"scheme" : "nfs",
-	"host" : NormalizeHost (
-	    (string)UI::QueryWidget (`id (`server), `Value)),
-	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
-    ];
-    _url = URL::Build (parsed);
-    boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
-    if (iso)
-	_url = PosprocessISOURL (_url);
+    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    y2milestone("Current edit type: %1", current_type);
+
+    if (current_type == `edit_url_parts)
+    {
+	map parsed = $[
+	    "scheme" : "nfs",
+	    "host" : NormalizeHost (
+		(string)UI::QueryWidget (`id (`server), `Value)),
+	    "path" : (string)UI::QueryWidget (`id (`dir), `Value),
+	];
+	_url = URL::Build (parsed);
+	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+	if (iso)
+	    _url = PosprocessISOURL (_url);
+    }
+    else
+    {
+	_url = (string)UI::QueryWidget(`id(`complete_url), `Value);
+    }
 }
 
 /**
@@ -437,10 +488,17 @@ symbol NFSHandle (string key, map event) {
 	    UI::ChangeWidget (`id (`dir), `Value, result);
 	}
     }
+    else if ((event["ID"]:nil == `edit_url_parts || event["ID"]:nil == `edit_complete_url) && event["EventReason"]:"" == "ValueChanged")
+    {
+	y2milestone("Changing dialog type");
+
+	// reinitialize the dialog (set the current values)
+	NFSInit(nil);
+    }
+
 
     return nil;
 }
-
 
 /**
  * Get widget description map
@@ -450,29 +508,18 @@ map<string,any> NFSWidget () {
     return $[
 	"widget" : `custom,
 	"custom_widget" : `VBox (
-	    `HBox(
-		// text entry
-		`TextEntry (`id (`server), _("&Server Name")),
-		`VBox(
-		    `Label(""),
-		    `PushButton(`id(`nfs_browse), Label::BrowseButton())
+	    `RadioButtonGroup (`id (`edit_type),
+		`HBox (
+		    `RadioButton(`id(`edit_url_parts), `opt(`notify), _("Edit Parts of the URL"), true),
+		    `HSpacing(2),
+		    `RadioButton(`id(`edit_complete_url), `opt(`notify), _("Edit Complete URL"))
 		)
 	    ),
-	    `HBox(
-		// text entry
-		`TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
-		`VBox(
-		    `Label(""),
-		    `PushButton(`id(`nfs_exports_browse), Label::BrowseButton())
-		)
-	    ),
-	    // checkbox label
-	    `Left (`CheckBox ( `id (`ch_iso), _("&ISO Image")))
+	    `ReplacePoint(`id(`edit_content), `Empty())
 	),
 	"init" : NFSInit,
 	"store" : NFSStore,
 	"handle" : NFSHandle,
-	"handle_events" : [ `nfs_browse, `nfs_exports_browse ],
 	// help text
 	"help" : _("<p><big><b>NFS Server</b></big><br>
 Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
@@ -1096,6 +1143,115 @@ void InitFocusServerInit (symbol server_type) {
 
 // HTTP(s)/FTP/SMB/CIFS repository widget
 
+// forward declarations
+void ServerInit (string key);
+void ServerStore (string key, map event);
+
+// dialog contents for different views
+
+term details_content =
+`VBox(
+    `HBox (
+	`HSpacing (0.5),
+	// frame
+	`Frame (_("P&rotocol"), `ReplacePoint (`id (`rb_type_rp),
+	    `Empty ())
+	),
+	`HSpacing( 0.5 )
+    ),
+    `ReplacePoint (`id (`server_rp), `Empty ())
+);
+
+term complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("URL of the Repository"));
+
+void ServerStoreParts()
+{
+    symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
+    map parsed = $[];
+    if ( type == `ftp )
+	parsed["scheme"] = "ftp";
+    else if ( type == `http )
+	parsed["scheme"] = "http";
+    else if ( type == `https )
+	parsed["scheme"] = "https";
+    else if ( type == `samba )
+	parsed["scheme"] = "smb";
+
+    boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous), `Value);
+    if ( !anonymous ) {
+	string user = (string)UI::QueryWidget (`id (`username), `Value);
+	string pass = (string)UI::QueryWidget (`id (`password ), `Value);
+	if (size (user) != 0)
+	    parsed["user"] = user;
+	if (size (pass) != 0)
+	    parsed["pass"] = pass;
+    }
+
+    string host = NormalizeHost((string)UI::QueryWidget (`id (`server), `Value));
+    string directory = (string)UI::QueryWidget (`id (`dir), `Value);
+
+    // is / in the host name?
+    integer pos = findfirstof(host, "/");
+    if (pos != nil)
+    {
+	// update the hostname and the directory,
+	// URL::Build return empty URL when the hostname is not valid
+	y2milestone("The hostname contains a path: %1", host);
+	string dir = substring(host, pos);
+
+	if (substring(dir, size(dir) - 1, 1) != "/" && substring(directory, 0, 1) != "/")
+	{
+	    dir = dir + "/";
+	}
+
+	directory = dir + directory;
+	host = substring(host, 0, pos);
+
+	y2milestone("Updated hostname: %1, directory: %2", host, directory);
+    }
+
+    parsed["host"] = host;
+
+    if (type == `samba)
+    {
+	string share = (string)UI::QueryWidget (`id (`share), `Value);
+	directory = Slashed (share) + Slashed (directory);
+    }
+    else if (type != `ftp)
+    // FTP needs to distinguish absolute and relative path
+    {
+	directory = Slashed (directory);
+    }
+    if (UI::WidgetExists (`id (`workgroup)))
+    {
+	string workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
+	if (type == `samba && size (workgroup) > 0)
+	    directory = directory + ";workgroup=" + workgroup;
+    }
+    parsed["path"] = directory;
+
+    // set HTTP/HTTPS port
+    if (type == `http || type == `https)
+    {
+	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
+    }
+
+    y2milestone("Entered URL: %1", parsed);
+    _url = URL::Build (parsed);
+    y2milestone("URL::Build: %1", _url);
+    if (UI::WidgetExists (`id (`ch_iso)))
+    {
+	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+	if (iso)
+	    _url = PosprocessISOURL (_url);
+    }
+}
+
+void ServerStoreComplete()
+{
+    _url = (string)UI::QueryWidget(`id(`complete_url), `Value);
+}
+
 /**
  * Handle function of a widget
  * @param key string widget key
@@ -1103,10 +1259,14 @@ void InitFocusServerInit (symbol server_type) {
  * @return always nil
  */
 symbol ServerHandle (string key, map event) {
-    y2debug("ServerHandle: %1, %2", key, event);
+    y2internal("ServerHandle: %1, %2", key, event);
+
+    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    y2internal("Current edit type: %1", current_type);
+
     any id = event["ID"]:nil;
     if (is (id, symbol)
-	&& contains ([`http, `https, `ftp, `samba, `rb_type], (symbol)id))
+	&& contains ([`http, `https, `ftp, `samba, `rb_type], (symbol)id) && current_type == `edit_url_parts)
     {
 	symbol type = (symbol)UI::QueryWidget (`id (`rb_type), `CurrentButton);
 	string server = UI::WidgetExists (`id (`server))
@@ -1192,7 +1352,7 @@ symbol ServerHandle (string key, map event) {
 
 	return nil;
     }
-    if (event["ID"]:nil == `anonymous)
+    if (event["ID"]:nil == `anonymous && current_type == `edit_url_parts)
     {
 	boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous),
 	    `Value);
@@ -1202,6 +1362,13 @@ symbol ServerHandle (string key, map event) {
 	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
 	return nil;
     }
+    else if ((id == `edit_url_parts || id == `edit_complete_url) && event["EventReason"]:"" == "ValueChanged")
+    {
+	y2milestone("Changing dialog type");
+
+	// reinitialize the dialog (set the current values)
+	ServerInit(nil);
+    }
 }
 
 /**
@@ -1209,109 +1376,131 @@ symbol ServerHandle (string key, map event) {
  * @param key string widget key
  */
 void ServerInit (string key) {
-    term protocol_box = `HBox (
-	`HStretch (),
-	// radio button
-	`RadioButton (`id (`ftp),`opt (`notify), _("&FTP")),
-	`HStretch(),
-	// radio button
-	`RadioButton (`id (`http),`opt (`notify), _("H&TTP")),
-	`HStretch()
-    );
-    if (_allow_https)
+
+    // check the current edit type
+    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    y2internal("Current edit type: %1", current_type);
+
+    UI::ReplaceWidget(`id(`edit_content), (current_type == `edit_url_parts) ? details_content : complete_content);
+
+    y2internal("UI replaced");
+
+    if (current_type == `edit_url_parts)
     {
+	term protocol_box = `HBox (
+	    `HStretch (),
+	    // radio button
+	    `RadioButton (`id (`ftp),`opt (`notify), _("&FTP")),
+	    `HStretch(),
+	    // radio button
+	    `RadioButton (`id (`http),`opt (`notify), _("H&TTP")),
+	    `HStretch()
+	);
+	if (_allow_https)
+	{
+	    protocol_box = add (protocol_box,
+		// radio button
+		`RadioButton (`id (`https), `opt (`notify), _("HTT&PS"))
+	    );
+	    protocol_box = add (protocol_box, `HStretch ());
+	}
 	protocol_box = add (protocol_box,
 	    // radio button
-	    `RadioButton (`id (`https), `opt (`notify), _("HTT&PS"))
+	    `RadioButton (`id (`samba),`opt (`notify), _("&SMB/CIFS"))
 	);
 	protocol_box = add (protocol_box, `HStretch ());
-    }
-    protocol_box = add (protocol_box,
-	// radio button
-	`RadioButton (`id (`samba),`opt (`notify), _("&SMB/CIFS"))
-    );
-    protocol_box = add (protocol_box, `HStretch ());
-    protocol_box = `RadioButtonGroup (`id (`rb_type), `opt (`notify),
-	protocol_box);
-    UI::ReplaceWidget (`id (`rb_type_rp), protocol_box);
+	protocol_box = `RadioButtonGroup (`id (`rb_type), `opt (`notify),
+	    protocol_box);
+	UI::ReplaceWidget (`id (`rb_type_rp), protocol_box);
 
-    boolean iso = IsISOURL (_url);
-    if (iso)
-	_url = PreprocessISOURL (_url);
-    map parsed = URL::Parse (_url);
-    symbol type = `ftp;
-    if ( parsed["scheme"]:"" == "http" )
-	type = `http;
-    else if ( parsed["scheme"]:"" == "https" )
-	type = `https;
-    else if ( parsed["scheme"]:"" == "smb" )
-	type = `samba;
-    UI::ChangeWidget (`id (`rb_type), `CurrentButton, type);
-    ServerHandle (key, $[ "ID" : `rb_type ]);
+	boolean iso = IsISOURL (_url);
+	if (iso)
+	    _url = PreprocessISOURL (_url);
+	map parsed = URL::Parse (_url);
+	symbol type = `ftp;
+	if ( parsed["scheme"]:"" == "http" )
+	    type = `http;
+	else if ( parsed["scheme"]:"" == "https" )
+	    type = `https;
+	else if ( parsed["scheme"]:"" == "smb" )
+	    type = `samba;
+	UI::ChangeWidget (`id (`rb_type), `CurrentButton, type);
 
-    UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
-    string dir = parsed["path"]:"";
-    if (type == `samba)
-    {
-	UI::ChangeWidget (`id (`ch_iso), `Value, iso);
-	list sharepath = regexptokenize (dir, "^/*([^/]+)(/.*)?$");
-	string share = sharepath[0]:"";
-	dir = sharepath[1]:"";
-	if (dir == nil)
-	    dir = "/";
-	string workgroup = "";
-	if (regexpmatch (dir, "^.*;workgroup=[^;]+$"))
+	ServerHandle (key, $[ "ID" : `rb_type ]);
+
+	UI::ChangeWidget (`id (`server), `Value, parsed["host"]:"");
+	string dir = parsed["path"]:"";
+	if (type == `samba)
 	{
-	    workgroup = regexpsub (dir,
-		"^.*;workgroup=([^;]+)$", "\\1");
-	    dir = regexpsub (dir, "^(.*);workgroup=[^;]+$", "\\1");
+	    UI::ChangeWidget (`id (`ch_iso), `Value, iso);
+	    list sharepath = regexptokenize (dir, "^/*([^/]+)(/.*)?$");
+	    string share = sharepath[0]:"";
+	    dir = sharepath[1]:"";
+	    if (dir == nil)
+		dir = "/";
+	    string workgroup = "";
+	    if (regexpmatch (dir, "^.*;workgroup=[^;]+$"))
+	    {
+		workgroup = regexpsub (dir,
+		    "^.*;workgroup=([^;]+)$", "\\1");
+		dir = regexpsub (dir, "^(.*);workgroup=[^;]+$", "\\1");
+	    }
+	    UI::ChangeWidget (`id (`workgroup), `Value, workgroup);
+	    UI::ChangeWidget (`id (`share), `Value, share);
 	}
-	UI::ChangeWidget (`id (`workgroup), `Value, workgroup);
-	UI::ChangeWidget (`id (`share), `Value, share);
-    }
-    UI::ChangeWidget (`id (`dir), `Value, dir);
-    UI::ChangeWidget (`id (`username), `Value, parsed["user"]:"");
-    UI::ChangeWidget (`id (`password), `Value, parsed["pass"]:"");
-    boolean anonymous = ! (parsed["user"]:"" != "" || parsed["pass"]:"" != "");
-    y2milestone ("Anonymous: %1", anonymous);
-    UI::ChangeWidget (`id (`anonymous), `Value, anonymous);
-    if (anonymous)
-    {
-	UI::ChangeWidget (`id (`username), `Enabled, false);
-	UI::ChangeWidget (`id (`password), `Enabled, false);
-	if (UI::WidgetExists (`id (`workgroup)))
-	    UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
-    }
-
-    // set HTTP/HTTPS port if it's specified
-    if (type == `http || type == `https)
-    {
-	string port_num = parsed["port"]:"";
-
-	if (port_num != nil && port_num != "")
+	UI::ChangeWidget (`id (`dir), `Value, dir);
+	UI::ChangeWidget (`id (`username), `Value, parsed["user"]:"");
+	UI::ChangeWidget (`id (`password), `Value, parsed["pass"]:"");
+	boolean anonymous = ! (parsed["user"]:"" != "" || parsed["pass"]:"" != "");
+	y2milestone ("Anonymous: %1", anonymous);
+	UI::ChangeWidget (`id (`anonymous), `Value, anonymous);
+	if (anonymous)
 	{
-	    UI::ChangeWidget(`id(`port), `Value, port_num);
+	    UI::ChangeWidget (`id (`username), `Enabled, false);
+	    UI::ChangeWidget (`id (`password), `Enabled, false);
+	    if (UI::WidgetExists (`id (`workgroup)))
+		UI::ChangeWidget (`id (`workgroup), `Enabled, !anonymous);
 	}
-    }
 
-    InitFocusServerInit (type);
+	// set HTTP/HTTPS port if it's specified
+	if (type == `http || type == `https)
+	{
+	    string port_num = parsed["port"]:"";
+
+	    if (port_num != nil && port_num != "")
+	    {
+		UI::ChangeWidget(`id(`port), `Value, port_num);
+	    }
+	}
+
+	InitFocusServerInit (type);
+    }
+    else
+    {
+	UI::ChangeWidget(`id(`complete_url), `Value, _url);
+    }
 }
 
 boolean ServerValidate (string key, map event) {
-    string host = NormalizeHost ((string)UI::QueryWidget (`id (`server), `Value));
-    if (! Hostname::CheckFQ (host))
+    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    y2internal("Current edit type: %1", current_type);
+
+    if (current_type == `edit_url_parts)
     {
-	if (!IP::Check(host))
+	string host = NormalizeHost ((string)UI::QueryWidget (`id (`server), `Value));
+	if (! Hostname::CheckFQ (host))
 	{
-	    UI::SetFocus (`server);
-	    Popup::Error(sformat("%1\n\n%2", Hostname::ValidFQ (), IP::Valid4()));
-	    return false;
+	    if (!IP::Check(host))
+	    {
+		UI::SetFocus (`server);
+		Popup::Error(sformat("%1\n\n%2", Hostname::ValidFQ (), IP::Valid4()));
+		return false;
+	    }
 	}
     }
 
     return true;
 }
-
 
 /**
  * Store function of a widget
@@ -1321,86 +1510,17 @@ boolean ServerValidate (string key, map event) {
 void ServerStore (string key, map event) {
     y2debug("Server store: %1, %2", key, event);
 
-    symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
-    map parsed = $[];
-    if ( type == `ftp )
-	parsed["scheme"] = "ftp";
-    else if ( type == `http )
-	parsed["scheme"] = "http";
-    else if ( type == `https )
-	parsed["scheme"] = "https";
-    else if ( type == `samba )
-	parsed["scheme"] = "smb";
+    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    y2internal("Current edit type: %1", current_type);
 
-    boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous), `Value);
-    if ( !anonymous ) {
-	string user = (string)UI::QueryWidget (`id (`username), `Value);
-	string pass = (string)UI::QueryWidget (`id (`password ), `Value);
-	if (size (user) != 0)
-	    parsed["user"] = user;
-	if (size (pass) != 0)
-	    parsed["pass"] = pass;
-    }
-
-    string host = NormalizeHost((string)UI::QueryWidget (`id (`server), `Value));
-    string directory = (string)UI::QueryWidget (`id (`dir), `Value);
-
-    // is / in the host name?
-    integer pos = findfirstof(host, "/");
-    if (pos != nil)
+    if (current_type == `edit_url_parts)
     {
-	// update the hostname and the directory,
-	// URL::Build return empty URL when the hostname is not valid
-	y2milestone("The hostname contains a path: %1", host);
-	string dir = substring(host, pos);
-
-	if (substring(dir, size(dir) - 1, 1) != "/" && substring(directory, 0, 1) != "/")
-	{
-	    dir = dir + "/";
-	}
-
-	directory = dir + directory;
-	host = substring(host, 0, pos);
-
-	y2milestone("Updated hostname: %1, directory: %2", host, directory);
+	ServerStoreParts();
     }
-
-    parsed["host"] = host;
-
-    if (type == `samba)
+    else
     {
-	string share = (string)UI::QueryWidget (`id (`share), `Value);
-	directory = Slashed (share) + Slashed (directory);
+	ServerStoreComplete();
     }
-    else if (type != `ftp)
-    // FTP needs to distinguish absolute and relative path
-    {
-	directory = Slashed (directory);
-    }
-    if (UI::WidgetExists (`id (`workgroup)))
-    {
-	string workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
-	if (type == `samba && size (workgroup) > 0)
-	    directory = directory + ";workgroup=" + workgroup;
-    }
-    parsed["path"] = directory;
-
-    // set HTTP/HTTPS port
-    if (type == `http || type == `https)
-    {
-	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
-    }
-
-    y2milestone("Entered URL: %1", parsed);
-    _url = URL::Build (parsed);
-    y2milestone("URL::Build: %1", _url);
-    if (UI::WidgetExists (`id (`ch_iso)))
-    {
-	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
-	if (iso)
-	    _url = PosprocessISOURL (_url);
-    }
-
 }
 
 
@@ -1412,15 +1532,15 @@ map<string,any> ServerWidget () {
     return $[
 	"widget" : `custom,
 	"custom_widget" : `VBox (
-	    `HBox (
-		`HSpacing (0.5),
-		// frame
-		`Frame (_("P&rotocol"), `ReplacePoint (`id (`rb_type_rp),
-		    `Empty ())
-		),
-		`HSpacing( 0.5 )
+	    `RadioButtonGroup (`id (`edit_type),
+		`HBox (
+		    `RadioButton(`id(`edit_url_parts), `opt(`notify), _("Edit Parts of the URL"), true),
+		    `HSpacing(2),
+		    `RadioButton(`id(`edit_complete_url), `opt(`notify), _("Edit Complete URL"))
+		)
 	    ),
-	    `ReplacePoint (`id (`server_rp), `Empty ())
+	    `VSpacing(0.3),
+	    `ReplacePoint(`id(`edit_content), `Empty())
 	),
 	"init" : ServerInit,
 	"validate_type" : `function,
