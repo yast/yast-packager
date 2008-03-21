@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 21 17:29:04 CET 2008 - lslezak@suse.cz
+
+- media change callback - autoretry downloading after timeout
+  (3 attempts, 30 seconds each) (bnc#328822)
+- 2.16.27
+
+-------------------------------------------------------------------
 Thu Mar 20 14:27:15 CET 2008 - jsrain@suse.cz
 
 - do not use double-bullet in the pattern list (fate#120376)

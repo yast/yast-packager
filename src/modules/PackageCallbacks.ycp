@@ -72,6 +72,16 @@
     // auto ejecting is in progress
     boolean doing_eject = false;
 
+    // seconds for automatic retry after a timeout
+    const integer retry_timeout = 30;
+    // number of automatic retries
+    const integer retry_attempts = 3;
+
+    // current values for retry functionality
+    string retry_url = "";
+    integer current_retry_timeout = retry_timeout;
+    integer current_retry_attempt = retry_attempts;
+
     // functions related to the persistent storage
     void LoadConfig()
     {
@@ -665,7 +675,7 @@ void CheckAndSaveAutoEject()
     // return "C" for cancel (not implemented !)
     // return url to change media URL
 
-    global string MediaChange (string error, string url, string product,
+    global string MediaChange (string error_code, string error, string url, string product,
 				      integer current, string current_label,
 				      integer wanted, string wanted_label,
 				      boolean double_sided, list<string> devices, integer current_device)
@@ -685,7 +695,7 @@ void CheckAndSaveAutoEject()
 	}
 
 	y2milestone ("MediaChange error: err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7', devs: %8, curr_dev: %9",
-		     error, url, product, current, current_label, wanted, wanted_label, devices, current_device);
+	    error_code + ":" + error, url, product, current, current_label, wanted, wanted_label, devices, current_device);
 
 	map url_tokens = URL::Parse (url);
 	string url_scheme = url_tokens["scheme"]:"";
@@ -821,6 +831,39 @@ Check whether the server is accessible."), wanted_label);
 
 	doing_eject = false;
 
+	// Autoretry code
+	boolean doing_auto_retry = false;
+
+	if (error_code == "IO_SOFT")
+	{
+	    // this a different file, reset the retry counter
+	    if (retry_url != url)
+	    {
+		retry_url = url;
+		current_retry_attempt = retry_attempts;
+	    }
+
+	    // is the maximum retry count reached?
+	    if (current_retry_attempt > 0)
+	    {
+		// reset the counter
+		current_retry_timeout = retry_timeout;
+		button_box = `VBox(
+		    `Left(`Label(`id(`auto_retry), sformat(_("Automatically Retry After %1 Seconds"), current_retry_timeout))),
+		    button_box
+		);
+
+		doing_auto_retry = true;
+	    }
+	}
+
+	y2milestone("Autoretry: %1", doing_auto_retry);
+
+	if (doing_auto_retry)
+	{
+	    y2milestone("Autoretry attempt: %1", current_retry_attempt);
+	}
+
 	if (Mode::commandline())
 	{
 	    CommandLine::Print(message);
@@ -877,7 +920,47 @@ Check whether the server is accessible."), wanted_label);
 	string eject_device = "";
 
 	repeat {
-	    r = UI::UserInput();
+
+	    if (doing_auto_retry)
+	    {
+		r = UI::TimeoutUserInput(1000);
+	    }
+	    else
+	    {
+		r = UI::UserInput();
+	    }
+
+	    // timout in autoretry mode?
+	    if ( doing_auto_retry)
+	    {
+		if (r == `timeout)
+		{
+		    // decrease timeout counter
+		    current_retry_timeout  = current_retry_timeout - 1;
+
+		    if (current_retry_timeout == 0)
+		    {
+			y2milestone("The time is out, doing automatic retry...");
+			// do the retry
+			r = `retry;
+
+			// decrease attempt counter
+			current_retry_attempt = current_retry_attempt - 1;
+		    }
+		    else
+		    {
+			// popup string - refresh the displayed counter
+			UI::ChangeWidget(`id(`auto_retry), `Label, sformat(_("Automatically Retry After %1 Seconds"), current_retry_timeout));
+		    }
+		}
+		else
+		{
+		    // user has pressed a button, reset the retry counter in the next timeout
+		    y2milestone("User input: %1, resetting autoretry url", r);
+		    retry_url = "";
+		}
+	    }
+
 	    if ( r == `show )
 	    {
 		showLongInfo = ShowLogInfo (message, button_box);
