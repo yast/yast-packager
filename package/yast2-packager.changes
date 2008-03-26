@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 26 16:08:59 CET 2008 - lslezak@suse.cz
+
+- media check - added "Eject" button (bnc#294097)
+
+-------------------------------------------------------------------
 Wed Mar 26 08:16:48 CET 2008 - lslezak@suse.cz
 
 - media check - updated and improved help text (bnc#132881)
