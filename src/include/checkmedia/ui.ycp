@@ -273,36 +273,37 @@ define symbol MainDialog () {
     // dialog header
     string caption = _("Media Check");
 
-    // help text - media check (header) 1/7
+    // help text - media check (header) 1/8
     string help = _("<P><B>Media Check</B></P>") +
-    // help text - media check 2/7
+    // help text - media check 2/8
 _("<P>When you have a problem with
 the installation and are using a CD or DVD installation medium, you should check
 whether the medium is broken.</P>
 ") +
 
-    // help text - media check 3/7
-_("<P>Select a drive, insert a medium into the drive or press <B>Start Check</B>
+    // help text - media check 3/8
+_("<P>Select a drive, insert a medium into the drive and press <B>Start Check</B>
 or use <B>Check ISO File</B> and select an ISO file.
 The check can take several minutes depending on speed of the
 drive and size of the medium. The check verifies the MD5 checksum.</P> ") +
 
-    // help text - media check 4/7
+    // help text - media check 4/8
 _("<P>If the check of the medium fails, you should not continue the installation.
 It may fail or you may lose your data. You should replace the broken
 medium.</P>
 ") +
 
-    // help text - media check 5/7
+    // help text - media check 5/8
 _("After the check you can insert the next medium and start the procedure again.
 The order of the media is irrelevant.") +
 
-    // help text - media check 6/7
-_("<P><B>Note:</B> You cannot change the medium while it is used by the system. If
-it happens during installation, start the manual installation and select the media verification item in the menu.</P> 
-") +
+    // help text - media check 6/8
+_("<P><B>Note:</B> You cannot change the medium while it is used by the system.</P>") +
 
-    // help text - media check 7/6
+    // help text - media check 7/8
+_("<P>To check media before starting installation use the media check item in the boot menu.</P>") +
+
+    // help text - media check 8/8
 _("<P>If you burn the media yourself, use the <B>pad</B> option in your recording software. It avoids read errors at the end of media during the check.</P>
 ");
 
