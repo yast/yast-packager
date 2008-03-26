@@ -32,6 +32,8 @@
     import "Sequencer";
     import "CommandLine";
     import "Progress";
+    import "Directory";
+    import "URL";
 
     include "packager/inst_source_dialogs.ycp";
     include "packager/key_manager_dialogs.ycp";
@@ -118,10 +120,9 @@
 			  `id( index ),
 			  // corresponds to the "Enable/Disable" button
 			  source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
-//			  source["autorefresh"]:true ? _("On") : _("Off"),
 			  // translators: unknown name for a given source
-			  alias
-//			  generalData[ "url" ]:""
+			  alias,
+			  generalData[ "url" ]:""
 			  );
         return item;
     }
@@ -169,9 +170,21 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    string repoInfoRichText(string name, string url, string category)
+    string repoInfoRichText(string name, string raw_url, string category)
     {
-	return sformat("<P><B><BIG>%1</BIG></B></P><P>%2</P><P>%3</P>", name, url, category);
+	string schema  = tolower(URL::Parse(raw_url)["scheme"]:"");
+	string icon_tag = "<IMG SRC=\"" + Directory::themedir + "/current/icons/22x22/apps/"
+	    + ((schema == "cd" || schema == "dvd" || schema == "iso") ? "yast-cd_update.png" : "yast-http-server.png")
+	    + "\">&nbsp;&nbsp;&nbsp;";
+
+	if (raw_url == "")
+	{
+	    raw_url = _("Unknown");
+	}
+
+	string url  = sformat (_("URL: %1"), raw_url);
+
+	return sformat("<P>%1<B><BIG>%2</BIG></B></P><P>%3</P><P>%4</P>", icon_tag, name, url, category);
     }
 
     term repoInfoTerm(string name, string url, string category)
@@ -183,7 +196,7 @@
 	     `Left(`Label(`id(`category), `opt(`hstretch), category ))
 	     )
 	:
-	`VSquash(`RichText(`id(`repo_info), repoInfoRichText("", "", "")));
+	`VSquash(`RichText(`id(`repo_info), ""));
     }
 
     void fillRepoInfo(integer index, map source) {
@@ -206,7 +219,7 @@
 	}
 	else
 	{
-	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, url, category));
+	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, info["url"]:"", category));
 	}
 
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
@@ -564,11 +577,9 @@ symbol SummaryDialog () {
 				// table header
 			    `header( _("Enabled"),
 				// table header
-//				_("Refresh"),
+				_("Name"),
 				// table header
-				_("Name")),
-				// table header
-//				_("URL") ),
+				_("URL") ),
 			    items ),
 		    `HSpacing()
 		),
