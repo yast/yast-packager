@@ -64,7 +64,7 @@ symbol Write()
 symbol Main()
 {
     Wizard::CreateDialog();
-    Wizard::SetDesktopIcon("sw_source");
+    Wizard::SetDesktopIcon("security");
     // dialog caption
     Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
 
