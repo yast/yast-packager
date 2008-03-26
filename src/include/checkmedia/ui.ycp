@@ -320,8 +320,11 @@ string label = _("It is recommended to check all installation media\nto avoid in
 	    `VBox(
 		// empty label for aligning the widgets
 		`Label(""),
-		// push button label
-		`PushButton(`id(`start), _("&Start Check"))
+		`HBox(
+		    // push button label
+		    `PushButton(`id(`start), _("&Start Check")),
+		    `PushButton(`id(`eject), _("&Eject"))
+		)
 	    ),
 	    `HStretch(),
 	    `VBox(
@@ -512,6 +515,16 @@ Only readability of the medium will be checked.")))
 		// set zero progress
 		UI::ChangeWidget(`id(`progress), `Value, 0);
 	    }
+	}
+	else if (ret == `eject)
+	{
+	    string selecteddrive = (string)UI::QueryWidget(`id(`cddevices), `Value);
+	    string command = "/bin/eject " + selecteddrive;
+
+	    y2milestone("Executing '%1'", command);
+
+	    map res = (map)SCR::Execute(.target.bash_output, command);
+	    y2milestone("Result: %1", res);
 	}
 	else
 	{
