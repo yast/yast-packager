@@ -19,6 +19,7 @@ import "Popup";
 import "KeyManager";
 import "String";
 import "FileUtils";
+import "Directory";
 
 boolean gpg_mgr_standalone_mode = false;
 
@@ -54,10 +55,13 @@ list<map<string,any> > createHWTable()
 
 	    descr = add(descr, exp_str);
 
+	    string icon_tag = "<IMG SRC=\"" + Directory::icondir
+		+ "/22x22/apps/yast-security.png\">&nbsp;&nbsp;&nbsp;";
+
 	    map<string,any> r = $[
 		"id" : key["id"]:"",
 		"table_descr" : [ key["id"]:"", key["name"]:"" ],
-		"rich_descr" : WizardHW::CreateRichTextDescription(sformat(_("Key: %1"), key["id"]:""), descr)
+		"rich_descr" : WizardHW::CreateRichTextDescription(icon_tag + sformat(_("Key: %1"), key["id"]:""), descr)
 	    ];
 
 	    ret = add(ret, r);

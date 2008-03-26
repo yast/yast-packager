@@ -31,8 +31,8 @@
 
 	return `Image (
 	    sformat (
-		"%1/current/icons/22x22/apps/%2.png",
-		Directory::themedir,
+		"%1/22x22/apps/%2.png",
+		Directory::icondir,
 		icon_name
 	    ),
 	    "[x]"

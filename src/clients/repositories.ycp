@@ -173,7 +173,7 @@
     string repoInfoRichText(string name, string raw_url, string category)
     {
 	string schema  = tolower(URL::Parse(raw_url)["scheme"]:"");
-	string icon_tag = "<IMG SRC=\"" + Directory::themedir + "/current/icons/22x22/apps/"
+	string icon_tag = "<IMG SRC=\"" + Directory::icondir + "/22x22/apps/"
 	    + ((schema == "cd" || schema == "dvd" || schema == "iso") ? "yast-cd_update.png" : "yast-http-server.png")
 	    + "\">&nbsp;&nbsp;&nbsp;";
 
@@ -1150,6 +1150,11 @@ if (WFM::Args() == [ `sw_single_mode ])
     Progress::set(progress_state);
 
     return ret;
+}
+else
+{
+    y2milestone("Initializing the target...");
+    Pkg::TargetInit("/", true);
 }
 
 return CommandLine::Run(cmdline_description);

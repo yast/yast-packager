@@ -2,6 +2,8 @@
 Wed Mar 26 16:08:59 CET 2008 - lslezak@suse.cz
 
 - media check - added "Eject" button (bnc#294097)
+- repositories - initialize the target in the standalone mode
+  to load GPG keys
 
 -------------------------------------------------------------------
 Wed Mar 26 08:16:48 CET 2008 - lslezak@suse.cz
