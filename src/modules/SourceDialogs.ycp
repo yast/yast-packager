@@ -403,7 +403,7 @@ term nfs_complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("
 void NFSInit (string key) {
     // check the current edit type
     symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
-    y2internal("Current edit type: %1", current_type);
+    y2debug("Current edit type: %1", current_type);
 
     UI::ReplaceWidget(`id(`edit_content), (current_type == `edit_url_parts) ? nfs_details_content : nfs_complete_content);
 
@@ -1259,10 +1259,10 @@ void ServerStoreComplete()
  * @return always nil
  */
 symbol ServerHandle (string key, map event) {
-    y2internal("ServerHandle: %1, %2", key, event);
+    y2milestone("ServerHandle: %1, %2", key, event);
 
     symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
-    y2internal("Current edit type: %1", current_type);
+    y2debug("Current edit type: %1", current_type);
 
     any id = event["ID"]:nil;
     if (is (id, symbol)
@@ -1379,11 +1379,9 @@ void ServerInit (string key) {
 
     // check the current edit type
     symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
-    y2internal("Current edit type: %1", current_type);
+    y2debug("Current edit type: %1", current_type);
 
     UI::ReplaceWidget(`id(`edit_content), (current_type == `edit_url_parts) ? details_content : complete_content);
-
-    y2internal("UI replaced");
 
     if (current_type == `edit_url_parts)
     {
@@ -1483,7 +1481,7 @@ void ServerInit (string key) {
 
 boolean ServerValidate (string key, map event) {
     symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
-    y2internal("Current edit type: %1", current_type);
+    y2debug("Current edit type: %1", current_type);
 
     if (current_type == `edit_url_parts)
     {
@@ -1511,7 +1509,7 @@ void ServerStore (string key, map event) {
     y2debug("Server store: %1, %2", key, event);
 
     symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
-    y2internal("Current edit type: %1", current_type);
+    y2debug("Current edit type: %1", current_type);
 
     if (current_type == `edit_url_parts)
     {
