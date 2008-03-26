@@ -21,11 +21,9 @@
     import "PackageLock";
     import "PackageSystem";
     import "Report";
-    import "Stage";
     // SourceManager overlaps quite a bit with inst_source,
     // so far we only use it for ZMD sync, TODO refactor better
     import "SourceManager";
-    import "SuSEFirewall";
     import "Wizard";
 
     import "Label";
@@ -33,10 +31,6 @@
     import "AddOnProduct";
     import "Sequencer";
     import "CommandLine";
-    // constructor of Product is needed in order to initialize the product
-    // macro. Takes a lot of time because whole package manager target
-    // is initialized
-    import "Product";
     import "Progress";
 
     include "packager/inst_source_dialogs.ycp";
@@ -954,66 +948,9 @@ cannot be set."));
 		{
 		    state = !state;
 		}
-		// corresponds to the "Enable/Disable" button
-//                string newstate = ( state ? _("On") : _("Off") );
-//                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
                 sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
             }
-/* moved to source edit dialog
-	    else if (input == `set_alias)
-	    {
-		string src_alias = sourceState["name"]:"";
-
-		y2internal("Current alias: %1", src_alias);
-
-		UI::OpenDialog(
-		    `MarginBox(0.4, 0.2,
-			`VBox(
-			    `HSpacing(40),
-			    // label - text entry
-			    `TextEntry(`id(`alias), `opt(`hstretch), _("Name of the Repository"), src_alias),
-			    `HBox(
-				`PushButton(`id(`ok), `opt(`default, `key_F10), Label::OKButton()),
-				`HSpacing(1),
-				`PushButton(`id(`cancel), `opt(`key_F9), Label::CancelButton())
-			    )
-			)
-		    )
-		);
-
-		symbol ret = nil;
-
-		do
-		{
-		    ret = (symbol)UI::UserInput();
-		    src_alias = (string)UI::QueryWidget(`id(`alias), `Value);
-
-		    if (ret == `ok && (src_alias == nil || src_alias == ""))
-		    {
-			// error popup
-			Report::Error(_("The name of the repository cannot be empty."));
-			ret = `again;
-		    }
-		}
-		while (ret != `ok && ret != `cancel && ret != `close);
-
-
-		UI::CloseDialog();
-
-		if (ret == `ok)
-		{
-		    y2internal("New alias: %1", src_alias);
-
-		    // refresh value in the table
-		    UI::ChangeWidget( `id( `table ), `Item( current, 2 ), src_alias );
-
-		    // remember the alias
-		    sourceState["name"] = src_alias;
-		    sourceStatesOut[ current ] = sourceState;
-		}
-	    }
-*/
         }
 
     } until ( exit );
