@@ -2,6 +2,7 @@
 Wed Mar 26 08:16:48 CET 2008 - lslezak@suse.cz
 
 - media check - updated and improved help text (bnc#132881)
+- repositories - URL can be selected and copied (bnc#334757)
 
 -------------------------------------------------------------------
 Fri Mar 21 17:29:04 CET 2008 - lslezak@suse.cz

@@ -44,6 +44,8 @@
 
     boolean full_mode = false;
 
+    boolean textmode = UI::GetDisplayInfo()["TextMode"]:false;
+
     integer numSources = 0;
 
     list<map<string,any> > sourceStatesIn = [];
@@ -173,15 +175,21 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    term repoInfoTerm(string name, string url, string category) {
-	term infoTerm =
-	    `VBox (
-		   `Left (`Heading ( name     ) ),
-		   `Left (`Label   ( url      ) ),
-		   `Left (`Label   ( category ) )
-		   );
+    string repoInfoRichText(string name, string url, string category)
+    {
+	return sformat("<P><B><BIG>%1</BIG></B></P><P>%2</P><P>%3</P>", name, url, category);
+    }
 
-	return infoTerm;
+    term repoInfoTerm(string name, string url, string category)
+    {
+	return textmode ?
+	`VBox (
+	     `Left(`Heading(`id(`name), `opt(`hstretch), name)),
+	     `Left(`Label(`id(`url), `opt(`hstretch), url)),
+	     `Left(`Label(`id(`category), `opt(`hstretch), category ))
+	     )
+	:
+	`VSquash(`RichText(`id(`repo_info), repoInfoRichText("", "", "")));
     }
 
     void fillRepoInfo(integer index, map source) {
@@ -195,8 +203,18 @@
 
 	// label, %1 is repo category (eg. YUM)
 	string category = sformat (_("Category: %1"), info["type"]:_("Unknown"));
-	
-	UI::ReplaceWidget (`id (`repo_rp), repoInfoTerm( name, url, category ) );
+
+	if (textmode)
+	{
+	    UI::ChangeWidget(`id(`name), `Label, name);
+	    UI::ChangeWidget(`id(`url), `Label, url);
+	    UI::ChangeWidget(`id(`category), `Label, category);
+	}
+	else
+	{
+	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, url, category));
+	}
+
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
 	UI::ChangeWidget (`id (`autorefresh), `Value, info["autorefresh"]:true);
     }
@@ -566,9 +584,7 @@ symbol SummaryDialog () {
 			       `HBox (
 				      `HSpacing (1),
 				      `HWeight( 1, `VBox (
-					     `ReplacePoint (`id (`repo_rp),
-							    repoInfoTerm( "", "", "" )),
-					     `VSpacing (0.4),
+					     repoInfoTerm("", "", ""),
 					     // label
 					     `Left (`Label (_("Properties"))),
 					     // check box
