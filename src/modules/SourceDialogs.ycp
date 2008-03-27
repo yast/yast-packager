@@ -1602,6 +1602,10 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    `Left (`RadioButton(`id(`slp),       _("&Scan Using SLP..."))),
 	    // radio button
 	    `Left (`RadioButton(`id(`comm_repos), _("Commun&ity Repositories"))),
+	    `VSpacing(0.4),
+	    // radio button
+	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+	    `VSpacing(0.4),
 	    // radio button
 	    `Left (`RadioButton(`id(`ftp),       _("&FTP..."))),
 	    // radio button
@@ -1624,8 +1628,6 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    `Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 	    // radio button
 	    `Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
-	    // radio button
-	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
 	    // check box
 	    (download_widget) ? `VBox(
 		`VSpacing(2),
@@ -1642,6 +1644,9 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    `RadioButtonGroup (`id (`type), `VBox (
 		`VStretch (),
 		// radio button
+		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
+		`VSpacing(0.4),
+		// radio button
 		`Left (`RadioButton(`id(`cd),        _("&CD..."))),
 		// radio button
 		`Left (`RadioButton(`id(`dvd),       _("&DVD..."))),
@@ -1653,8 +1658,6 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 		`Left (`RadioButton(`id(`local_dir), _("&Local Directory..."))),
 		// radio button
 		`Left (`RadioButton(`id(`local_iso), _("&Local ISO Image..."))),
-		// radio button
-		`Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
 		// check box
 		(download_widget) ? `VBox(
 		    `VSpacing(2),
@@ -1807,8 +1810,11 @@ void SelectInit (string key) {
     else if ( _url == "file://" ) current = `local_iso;
     else if ( _url == "slp://" ) current = `slp;
     else if ( _url == "commrepos://" ) current = `comm_repos;
-
-    else y2warning ("Unknown URL scheme '%1'", _url);
+    else
+    {
+	y2warning ("Unknown URL scheme '%1'", _url);
+	current = `specify_url;
+    }
 
     if (current != nil)
     {
