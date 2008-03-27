@@ -56,6 +56,9 @@
     // constant Plaindir
     const string plaindir_type = "Plaindir"; 
 
+    // default (minimal) priority of a repository
+    const integer default_priority = 99;
+
     boolean download_meta = true;
 
     void RemoveDeletedAddNewRepos () {
@@ -101,6 +104,11 @@
 	sourceStatesOut = ret;
     }
 
+    string PriorityToString(integer priority)
+    {
+	return (priority == default_priority) ? _("Default") : tostring(priority);
+    }
+
     /**
         Create a table item from a map as returned by the InstSrcManager agent.
         @param source The map describing the source as returned form the agent.
@@ -116,8 +124,11 @@
 	    // unkown name (alias) of the source
 	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name");
 
+	integer priority = source["priority"]:default_priority;
+
         term item = `item(
 			  `id( index ),
+			  PriorityToString(priority),
 			  // corresponds to the "Enable/Disable" button
 			  source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
 			  // translators: unknown name for a given source
@@ -137,12 +148,15 @@
 	    // unkown name (alias) of the source
 	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name");
 
+	// get the editable propertis from 'source' parameter,
+	// get the fixed propertis from the package manager
 	map<string,any> out = $[
 	    "enabled" : source["enabled"]:true,
 	    "autorefresh" : source["autorefresh"]:true,
 	    "name" : alias,
 	    "url" : generalData[ "url" ]:"",
 	    "type" : generalData["type"]:"",
+	    "priority" : source["priority"]:default_priority,
 	];
         return out;
 
@@ -224,6 +238,7 @@
 
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
 	UI::ChangeWidget (`id (`autorefresh), `Value, info["autorefresh"]:true);
+	UI::ChangeWidget (`id (`priority), `Value, info["priority"]:default_priority);
     }
 
     void fillCurrentRepoInfo () {
@@ -264,7 +279,7 @@
 	    }
 
 	    list<list<string> > new_repos = Pkg::RepositoryScan(url);
-	    y2internal("new_repos: %1", new_repos);
+	    y2milestone("new_repos: %1", new_repos);
 
 	    // add at least one product if the scan result is empty (no product info available)
 	    if (size(new_repos) == 0)
@@ -493,7 +508,7 @@ from URL '%1'."), url );
     }
 
     boolean Write() {
-	y2internal("New config: %1", sourceStatesOut);
+	y2milestone("New config: %1", sourceStatesOut);
  	boolean success = Pkg::SourceEditSet( sourceStatesOut );
 
 	// we must sync before the repositories are deleted from zypp
@@ -550,7 +565,6 @@ Save changes anyway?")))
 
 symbol SummaryDialog () {
     y2milestone ("Running Summary dialog");
-    list items = [];
 
     // push button - change URL of the selected repository
     string replaceButtonLabel = _("&Replace...");
@@ -574,13 +588,16 @@ symbol SummaryDialog () {
         `VBox(
 	      `HBox(
 		    `Table(`id(`table),`opt(`notify, `immediate),
-				// table header
-			    `header( _("Enabled"),
-				// table header
+			    `header(
+				// table header - priority of the repository - keep the translation as short as possible!
+				_("Priority"),
+				// table header - is the repo enabled? - keep the translation as short as possible!
+				_("Enabled"),
+				// table header - name of the repo
 				_("Name"),
-				// table header
+				// table header - URL of the repo
 				_("URL") ),
-			    items ),
+			    [] ),
 		    `HSpacing()
 		),
 		`HBox (
@@ -593,9 +610,17 @@ symbol SummaryDialog () {
 					     // label
 					     `Left (`Label (_("Properties"))),
 					     // check box
-					     `Left (`CheckBox (`id (`enable), `opt (`notify), _("&Enabled"))),
-					     // check box
-					     `Left (`CheckBox (`id (`autorefresh), `opt (`notify), _("Automatically &Refresh"))),
+					     `HBox(
+						`HSquash(
+						    `VBox(
+							 `Left (`CheckBox (`id (`enable), `opt(`notify), _("&Enabled"))),
+							 // check box
+							 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
+						    )
+						),
+						`HSquash(`IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 99, default_priority)),
+						`HStretch()
+					     ),
 					     `VSpacing (0.4),
 					     (have_rug) ?
 					     `Left (`CheckBox (`id (`zmdsync),
@@ -665,7 +690,7 @@ into one directory.
 
     // help, continued
     help_text = help_text + _("<p>
-<b>Modifying a Repository Status</b>
+<b>Modifying a Repository Status</b><br>
 To change a repository location, use <b>Edit</b>. To remove a repository, use
 <b>Delete</b>. To enable or disable the repository or to change the refresh status at initialization time, select the repository in the table and use the check boxes below.
 </p>
@@ -679,6 +704,10 @@ To change a repository location, use <b>Edit</b>. To remove a repository, use
 to also perform the changes in that package management system.</p>
 ");
     }
+
+    // help text, continued
+    help_text = help_text + _("<P><B>Priority of a Repository</B><BR>
+Priority of a repository is an integer value between 0 (the highest priority) and 99 (the lowest priority). Default priority is 99. If a package is available in more repositories the repository with the highest priority is used.</P>");
 
     if (full_mode)
     {
@@ -709,6 +738,8 @@ to also perform the changes in that package management system.</p>
 	    UI::ChangeWidget( `id( `table ), `CurrentItem, current );
 	    fillCurrentRepoInfo ();
 	}
+
+	current = -1;
 
 	map event = UI::WaitForEvent();
 	input	= event["ID"]:`nothing;
@@ -933,7 +964,7 @@ All changes will be lost.");
                 state = !state;
 		// corresponds to the "Enable/Disable" button
                 string newstate = ( state ? UI::Glyph (`CheckMark) : "");
-                UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
+                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
                 sourceState[ "enabled" ] = state;
                 sourceStatesOut[ current ] = sourceState;
 
@@ -961,7 +992,27 @@ cannot be set."));
 		}
                 sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
+
+		// do not refresh the item in the table
+		current = -1;
             }
+	    else if (input == `priority)
+	    {
+		// refresh the value in the table
+		integer new_priority = (integer)UI::QueryWidget(`id(`priority), `Value);
+		y2debug("New priority: %1", new_priority);
+
+		UI::ChangeWidget( `id( `table ), `Item( current, 0 ), PriorityToString(new_priority));
+                sourceState[ "priority" ] = new_priority;
+                sourceStatesOut[ current ] = sourceState;
+
+		// do not refresh the item in the table
+		current = -1;
+	    }
+	    else
+	    {
+		y2warning("Unknown user input: %1", input);
+	    }
         }
 
     } until ( exit );
@@ -1043,6 +1094,22 @@ symbol EditDialog()
     return ret;
 }
 
+list<map<string,any> > SortReposByPriority(list<map<string,any> > repos)
+{
+    // check the input
+    if (repos == nil)
+    {
+	return repos;
+    }
+
+    // sort the maps by "repos" key (in ascending order)
+    list<map<string,any> > ret = sort(map<string,any> repo1, map<string,any> repo2, repos, {return repo1["priority"]:default_priority < repo2["priority"]:default_priority;});
+
+    y2internal("SortReposByPriority: %1 -> %2", repos, ret);
+
+    return ret;
+}
+
 // main function - start the workflow
 symbol StartInstSource()
 {
@@ -1083,7 +1150,7 @@ symbol StartInstSource()
     // read known GPG keys
     KeyManager::Read();
 
-    sourceStatesIn = Pkg::SourceEditGet();
+    sourceStatesIn = SortReposByPriority(Pkg::SourceEditGet());
     y2milestone( "Found repositories: %1", sourceStatesIn);
     sourceStatesOut = sourceStatesIn;
 
