@@ -24,6 +24,7 @@
     // SourceManager overlaps quite a bit with inst_source,
     // so far we only use it for ZMD sync, TODO refactor better
     import "SourceManager";
+    import "SourceDialogs";
     import "Wizard";
 
     import "Label";
@@ -1081,6 +1082,8 @@ without having %1 package installed"),
 symbol TypeDialog()
 {
     SourceDialogs::SetDownloadOption(true);
+    // reset the stored URL
+    SourceDialogs::SetURL("");
     map<string,any> td = SourceDialogs::TypeDialogDownloadOpt();
 
     symbol ret = td["ui"]:`next;
