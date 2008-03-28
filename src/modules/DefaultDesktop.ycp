@@ -42,7 +42,7 @@ map <string, map> all_desktops = $[
     "min_x" : $[
         "order" : 6,
         // TRANSLATORS: Dialog label
-        "label" : _("Minimal X-Windows"),
+        "label" : _("Minimal X Window"),
         "patterns" : ["x11", "base"],
         "icon" : "yast-x11",
     ],
