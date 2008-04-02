@@ -4,11 +4,11 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
 
-# enhanced String::FormatRateMessage()
-BuildRequires:	yast2 >= 2.16.34
+# package callbacks
+BuildRequires:	yast2 >= 2.16.42
 
-# "priority" support
-BuildRequires:	yast2-pkg-bindings >= 2.16.22
+# new registration of callbacks
+BuildRequires:	yast2-pkg-bindings >= 2.16.23
 
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings
@@ -17,11 +17,11 @@ Requires:	perl-XML-Bare yast2-perl-bindings
 Requires:	yast2-country-data >= 2.16.3
 Requires:	yast2-installation >= 2.15.12
 
-# "priority" support
-Requires:	yast2-pkg-bindings >= 2.16.22
+# new registration of callbacks
+Requires:	yast2-pkg-bindings >= 2.16.23
 
-# URL::MakeParamsFromMap and URL::MakeMapFromParams
-Requires:	yast2 >= 2.16.25
+# package callbacks
+Requires:	yast2 >= 2.16.42
 
 # unzipping license file
 Requires:	unzip
