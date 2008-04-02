@@ -1890,96 +1890,12 @@
 
 
     /**
-     * Install callbacks for slideshow. Should be in SlideShowCallbacks but
-     * that doesn't work at the moment.
-     */
-    global void InstallSlideShowCallbacks()
-    {
-	y2milestone( "InstallSlideShowCallbacks");
-
-	Pkg::CallbackStartPackage ("SlideShowCallbacks::StartPackage");
-	Pkg::CallbackProgressPackage ("SlideShowCallbacks::ProgressPackage");
-	Pkg::CallbackDonePackage ("SlideShowCallbacks::DonePackage");
-
-	Pkg::CallbackStartProvide ("SlideShowCallbacks::StartProvide");
-	Pkg::CallbackProgressProvide ("SlideShowCallbacks::ProgressProvide");
-	Pkg::CallbackDoneProvide ("SlideShowCallbacks::DoneProvide");
-	Pkg::CallbackProgressDownload("SlideShowCallbacks::ProgressDownload");
-
-	Pkg::CallbackSourceChange ("SlideShowCallbacks::CallbackSourceChange");
-
-	Pkg::CallbackStartDeltaDownload ("SlideShowCallbacks::StartDeltaProvide");
-	Pkg::CallbackProgressDeltaDownload ("SlideShowCallbacks::ProgressProvide");
-	Pkg::CallbackProblemDeltaDownload ("SlideShowCallbacks::ProblemDeltaDownload");
-	Pkg::CallbackFinishDeltaDownload ("SlideShowCallbacks::FinishPatchDeltaProvide");
-
-	Pkg::CallbackStartDeltaApply ("SlideShowCallbacks::StartDeltaApply");
-	Pkg::CallbackProgressDeltaApply ("SlideShowCallbacks::ProgressDeltaApply");
-	Pkg::CallbackProblemDeltaApply ("SlideShowCallbacks::ProblemDeltaApply");
-	Pkg::CallbackFinishDeltaApply ("SlideShowCallbacks::FinishPatchDeltaProvide");
-
-	Pkg::CallbackStartPatchDownload ("SlideShowCallbacks::StartPatchProvide");
-	Pkg::CallbackProgressPatchDownload ("SlideShowCallbacks::ProgressProvide");
-	Pkg::CallbackProblemPatchDownload ("SlideShowCallbacks::ProblemPatchDownload");
-	Pkg::CallbackFinishPatchDownload ("SlideShowCallbacks::FinishPatchDeltaProvide");
-
-	Pkg::CallbackScriptStart("SlideShowCallbacks::ScriptStart");
-	Pkg::CallbackScriptProgress("SlideShowCallbacks::ScriptProgress");
-	Pkg::CallbackScriptProblem("SlideShowCallbacks::ScriptProblem");
-	Pkg::CallbackScriptFinish("SlideShowCallbacks::ScriptFinish");
-
-	Pkg::CallbackMessage("SlideShowCallbacks::Message");
-    }
-
-
-    /**
-     * Remove callbacks for slideshow. Should be in SlideShowCallbacks but
-     * that doesn't work at the moment.
-     */
-    global void RemoveSlideShowCallbacks()
-    {
-	y2milestone( "RemoveSlideShowCallbacks");
-
-	Pkg::CallbackStartPackage ("");
-	Pkg::CallbackProgressPackage ("");
-	Pkg::CallbackDonePackage ("");
-
-	Pkg::CallbackStartProvide ("");
-	Pkg::CallbackProgressProvide ("");
-	Pkg::CallbackDoneProvide ("");
-
-	Pkg::CallbackSourceChange ("");
-
-	Pkg::CallbackStartDeltaDownload ("");
-	Pkg::CallbackProgressDeltaDownload ("");
-	Pkg::CallbackProblemDeltaDownload ("");
-	Pkg::CallbackFinishDeltaDownload ("");
-
-	Pkg::CallbackStartDeltaApply ("");
-	Pkg::CallbackProgressDeltaApply ("");
-	Pkg::CallbackProblemDeltaApply ("");
-	Pkg::CallbackFinishDeltaApply ("");
-
-	Pkg::CallbackStartPatchDownload ("");
-	Pkg::CallbackProgressPatchDownload ("");
-	Pkg::CallbackProblemPatchDownload ("");
-	Pkg::CallbackFinishPatchDownload ("");
-
-	Pkg::CallbackScriptStart("");
-	Pkg::CallbackScriptProgress("");
-	Pkg::CallbackScriptProblem("");
-	Pkg::CallbackScriptFinish("");
-
-	Pkg::CallbackMessage("");
-    }
-
-
-    /**
      * Open the slide show dialog.
      **/
     global void OpenSlideShowDialog()
     {
-	InstallSlideShowCallbacks();
+	// call SlideShowCallbacks::InstallSlideShowCallbacks()
+	WFM::call("wrapper_slideshow_callbacks", ["InstallSlideShowCallbacks"]);
 
 	OpenSlideShowBaseDialog();
 	CheckForSlides();
@@ -2001,7 +1917,8 @@
 	if ( opened_own_wizard )
 	    Wizard::CloseDialog();
 
-	RemoveSlideShowCallbacks();
+	// call SlideShowCallbacks::RemoveSlideShowCallbacks()
+	WFM::call("wrapper_slideshow_callbacks", ["RemoveSlideShowCallbacks"]);
     }
 
 }

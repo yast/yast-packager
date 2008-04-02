@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  2 15:24:24 CEST 2008 - lslezak@suse.cz
+
+- adapted callback registration implementation - use references
+ to functions (fate#302296)
+
+-------------------------------------------------------------------
 Fri Mar 28 08:49:19 CET 2008 - lslezak@suse.cz
 
 - use correct "X Window" label (bnc#371552)

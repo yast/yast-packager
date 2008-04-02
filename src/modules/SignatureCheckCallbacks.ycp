@@ -209,7 +209,7 @@
     // that a trusted key has been added.
     //
     /* function for CallbackTrustedKeyAdded() */
-    void TrustedKeyAdded (map<string,any> key)
+    global void TrustedKeyAdded (map<string,any> key)
     {
 	y2milestone("Trusted key has been added: %1 / %2 (%3)", key["id"]:"", key["fingerprint"]:"", key["name"]:"");
 	return nil;
@@ -220,7 +220,7 @@
     // that a trusted key has been removed.
     //
     /* function for CallbackTrustedKeyRemoved() */
-    void TrustedKeyRemoved (map<string,any> key)
+    global void TrustedKeyRemoved (map<string,any> key)
     {
 	y2milestone("Trusted key has been removed: %1 / %2 (%3)", key["id"]:"", key["fingerprint"]:"", key["name"]:"");
 	return nil;

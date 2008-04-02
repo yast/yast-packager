@@ -21,7 +21,6 @@
     import "Label";
     import "Mode";
     import "Popup";
-    import "PackageCallbacksInit";
     import "URL";
     import "CommandLine";
     import "String";
@@ -29,8 +28,8 @@
     import "Icon";
     import "Wizard";
     import "Progress";
-    import "DontShowAgain";
     import "FileUtils";
+    import "SignatureCheckCallbacks";
 
     global boolean _provide_popup = false;
     global boolean _source_popup = false;
@@ -169,7 +168,7 @@
     /** at start of file providal
      *
      */
-    global boolean StartProvide (string name, integer archivesize, boolean remote)
+    global void StartProvide (string name, integer archivesize, boolean remote)
     {
 	y2milestone("StartProvide: name: %1, remote: %2", name, remote);
 	if (remote)
@@ -198,8 +197,8 @@
 		}
 	    }
 	}
-	return true;
     }
+
 
 
     /** during file providal
@@ -221,6 +220,11 @@
 	return true;
     }
 
+    // redirect ProgressDeltaApply callback (a different signature is required)
+    global void ProgressDeltaApply(integer percent)
+    {
+	ProgressProvide(percent);
+    }
 
 
     // creates layout for ChangeMediumPopup
@@ -438,11 +442,11 @@
     /**
      *  At start of package install.
      */
-    global boolean StartPackage (string name, string summary, integer
+    global void StartPackage (string name, string summary, integer
 					installsize, boolean is_delete)
     {
 	if (!enable_asterix_package)
-	    return true;
+	    return;
 
 	list<string> parsed_path = splitstring(name, "/");
 
@@ -475,7 +479,6 @@
 	    UI::OpenDialog( `opt(`decorated), packagebox );
 	    _package_popup = true;
 	}
-	return true;
     }
 
 
@@ -684,14 +687,6 @@ void CheckAndSaveAutoEject()
 	{
 	    y2milestone("Refresh aborted");
 	    return "C";
-	}
-
-	import "Mode";
-
-	if (!Mode::normal ())
-	{
-	    import "SlideShow";
-	    SlideShow::StopTimer();
 	}
 
 	y2milestone ("MediaChange error: err'%1', url'%2', prd'%3', cur'%4'/'%5', wan'%6'/'%7', devs: %8, curr_dev: %9",
@@ -1012,12 +1007,6 @@ Check whether the server is accessible."), wanted_label);
 	    _provide_popup = false;
 	}
 
-	if (!Mode::normal ())
-	{
-	    import "SlideShow";
-	    SlideShow::StartTimer();
-	}
-
 	if (r == `cancel)
 	    return "C";
 	if (r == `ignore)
@@ -1050,12 +1039,6 @@ Check whether the server is accessible."), wanted_label);
 		    return "E";
 		}
 	    }
-	}
-
-	if (!Mode::normal ())
-	{
-	    import "SlideShow";
-	    SlideShow::SetCurrentCdNo (_current_source, wanted);
 	}
 
 	if (r == `url)
@@ -1547,7 +1530,7 @@ global void SourceReportDestroy()
     /** at start of delta providal
      *
      */
-    global boolean StartDeltaProvide (string name, integer archivesize)
+    global void StartDeltaProvide (string name, integer archivesize)
     {
 	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
 	if (Mode::commandline())
@@ -1562,13 +1545,12 @@ global void SourceReportDestroy()
 	    UI::OpenDialog(providebox);
 	    _provide_popup = true;
 	}
-	return true;
     }
 
     /** at start of delta application
      *
      */
-    global boolean StartDeltaApply (string name)
+    global void StartDeltaApply (string name)
     {
 	if (Mode::commandline())
 	{
@@ -1591,13 +1573,12 @@ global void SourceReportDestroy()
 	  UI::OpenDialog(progressbox);
 	  _provide_popup = true;
 	}
-	return true;
     }
 
     /** at start of patch providal
      *
      */
-    global boolean StartPatchProvide (string name, integer archivesize)
+    global void StartPatchProvide (string name, integer archivesize)
     {
 	string sz = String::FormatSizeWithPrecision (archivesize, 2, false);
 	if (Mode::commandline())
@@ -1612,7 +1593,6 @@ global void SourceReportDestroy()
 	    UI::OpenDialog(providebox);
 	    _provide_popup = true;
 	}
-	return true;
     }
 
     global void FinishPatchDeltaProvide () {
@@ -1761,43 +1741,6 @@ global void SourceReportDestroy()
 	}
 
 	Popup::LongMessage(patch_full_name + message);
-    }
-
-    global void SetScriptCallbacks()
-    {
-	Pkg::CallbackScriptStart("PackageCallbacks::ScriptStart");
-	Pkg::CallbackScriptProgress("PackageCallbacks::ScriptProgress");
-	Pkg::CallbackScriptProblem("PackageCallbacks::ScriptProblem");
-	Pkg::CallbackScriptFinish("PackageCallbacks::ScriptFinish");
-
-	Pkg::CallbackMessage("PackageCallbacks::Message");
-    }
-
-    global void ClearScriptCallbacks()
-    {
-	Pkg::CallbackScriptStart("");
-	Pkg::CallbackScriptProgress("");
-	Pkg::CallbackScriptProblem("");
-	Pkg::CallbackScriptFinish("");
-
-	Pkg::CallbackMessage("");
-    }
-
-//=============================================================================
-//	constructor and callback init
-//=============================================================================
-
-
-
-    /**
-     * constructor
-     *
-     */
-
-    global void PackageCallbacks()
-    {
-	y2milestone ( "PackageCallbacks constructor" );
-	PackageCallbacksInit::InitPackageCallbacks ();
     }
 
     global symbol AskAbortRefresh()
@@ -2063,26 +2006,15 @@ might be missing or out of date.")),
 	autorefreshing_aborted = false;
     }
 
-    global void SetDownloadCallbacks ()
-    {
-	Pkg::CallbackInitDownload ("PackageCallbacks::InitDownload");
-	Pkg::CallbackStartDownload ("PackageCallbacks::StartDownload");
-	Pkg::CallbackProgressDownload ("PackageCallbacks::ProgressDownload");
-	Pkg::CallbackDoneDownload ("PackageCallbacks::DoneDownload");
-	Pkg::CallbackDestDownload ("PackageCallbacks::DestDownload");
-	Pkg::CallbackStartRefresh("PackageCallbacks::RefreshStarted");
-	Pkg::CallbackDoneRefresh("PackageCallbacks::RefreshDone");
-    }
-
     global void ClearDownloadCallbacks ()
     {
-	Pkg::CallbackInitDownload ("");
-	Pkg::CallbackStartDownload ("");
-	Pkg::CallbackProgressDownload ("");
-	Pkg::CallbackDoneDownload ("");
-	Pkg::CallbackDestDownload ("");
-	Pkg::CallbackStartRefresh("");
-	Pkg::CallbackDoneRefresh("");
+	Pkg::CallbackInitDownload (nil);
+	Pkg::CallbackStartDownload (nil);
+	Pkg::CallbackProgressDownload (nil);
+	Pkg::CallbackDoneDownload (nil);
+	Pkg::CallbackDestDownload (nil);
+	Pkg::CallbackStartRefresh(nil);
+	Pkg::CallbackDoneRefresh(nil);
     }
 
 
@@ -2136,20 +2068,18 @@ might be missing or out of date.")),
     }
 
 
-    global void NotifyRebuildDB (string error_text)
+    global void NotifyRebuildDB ()
     {
-	// error popup
-	Popup::Error (sformat (_("Error rebuilding database:
-%1"), error_text));
+	// FIXME: not used anymore
     }
 
 
     global void SetRebuildDBCallbacks ()
     {
-	Pkg::CallbackStartRebuildDb ("PackageCallbacks::StartRebuildDB");
-	Pkg::CallbackProgressRebuildDb ("PackageCallbacks::ProgressRebuildDB");
-	Pkg::CallbackStopRebuildDb ("PackageCallbacks::StopRebuildDB");
-	Pkg::CallbackNotifyRebuildDb ("PackageCallbacks::NotifyRebuildDB");
+	Pkg::CallbackStartRebuildDb (PackageCallbacks::StartRebuildDB);
+	Pkg::CallbackProgressRebuildDb (PackageCallbacks::ProgressRebuildDB);
+	Pkg::CallbackStopRebuildDb (PackageCallbacks::StopRebuildDB);
+	Pkg::CallbackNotifyRebuildDb (PackageCallbacks::NotifyRebuildDB);
     }
 
 
@@ -2182,9 +2112,7 @@ might be missing or out of date.")),
     }
 
 
-    global void ProgressConvertDB (integer percent, integer unused1,
-					  integer unused2, integer unused3,
-					  integer unused4)
+    global void ProgressConvertDB (integer percent, string file)
     {
 	UI::ChangeWidget (`id(`progress), `Value, percent);
     }
@@ -2203,43 +2131,18 @@ might be missing or out of date.")),
     }
 
 
-    global string NotifyConvertDB (string message_type, integer unused1,
-					  string detail)
+    global void NotifyConvertDB()
     {
-	if (message_type == "Nindb")
-	{
-	    // error popup
-	    Popup::Error (sformat (_("Package %1 is already present in the new database."),
-				   detail));
-	    return "";
-	}
-
-	if (message_type == "Eread")
-	{
-	    boolean skip = Popup::YesNoHeadline (Label::ErrorMsg (),
-						// yes-no popup
-						 _("Error reading from old database.
-Ignore this error and continue?"));
-	    return skip ? "SKIP" : "CANCEL";
-	}
-
-	if (message_type == "Ewrite")
-	{
-	    // error popup
-	    Popup::Error (_("Error writing to new database"));
-	    return "";
-	}
-
-	y2error ("unknown message_type %1", message_type);
+	// FIXME not used anymore
     }
 
 
     global void SetConvertDBCallbacks ()
     {
-	Pkg::CallbackStartConvertDb ("PackageCallbacks::StartConvertDB");
-	Pkg::CallbackProgressConvertDb ("PackageCallbacks::ProgressConvertDB");
-	Pkg::CallbackStopConvertDb ("PackageCallbacks::StopConvertDB");
-	Pkg::CallbackNotifyConvertDb ("PackageCallbacks::NotifyConvertDB");
+	Pkg::CallbackStartConvertDb (PackageCallbacks::StartConvertDB);
+	Pkg::CallbackProgressConvertDb (PackageCallbacks::ProgressConvertDB);
+	Pkg::CallbackStopConvertDb (PackageCallbacks::StopConvertDB);
+	Pkg::CallbackNotifyConvertDb (PackageCallbacks::NotifyConvertDB);
     }
 
 
@@ -2442,7 +2345,7 @@ global void DoneScanDb(integer error, string description)
 }
 
 
-global map Authentication(string url, string msg, string username, string password)
+global map<string,any> Authentication(string url, string msg, string username, string password)
 {
     term popup = `VBox(
 	`HSpacing(50),	// enforce width
@@ -2727,6 +2630,213 @@ global void ProcessDone()
 	Wizard::CloseDialog();
     }
 }
+
+/**
+ * Register callbacks for media change
+ */
+global define void SetMediaCallbacks () {
+    Pkg::CallbackMediaChange (PackageCallbacks::MediaChange);
+    Pkg::CallbackSourceChange (PackageCallbacks::SourceChange);
+}
+
+
+global void ClearScriptCallbacks()
+{
+    Pkg::CallbackScriptStart(nil);
+    Pkg::CallbackScriptProgress(nil);
+    Pkg::CallbackScriptProblem(nil);
+    Pkg::CallbackScriptFinish(nil);
+
+    Pkg::CallbackMessage(nil);
+}
+
+global void SetScriptCallbacks()
+{
+    Pkg::CallbackScriptStart(PackageCallbacks::ScriptStart);
+    Pkg::CallbackScriptProgress(PackageCallbacks::ScriptProgress);
+    Pkg::CallbackScriptProblem(PackageCallbacks::ScriptProblem);
+    Pkg::CallbackScriptFinish(PackageCallbacks::ScriptFinish);
+
+    Pkg::CallbackMessage(PackageCallbacks::Message);
+}
+
+global void SetScanDBCallbacks ()
+{
+    Pkg::CallbackStartScanDb (PackageCallbacks::StartScanDb);
+    Pkg::CallbackProgressScanDb (PackageCallbacks::ProgressScanDb);
+    Pkg::CallbackErrorScanDb (PackageCallbacks::ErrorScanDb);
+    Pkg::CallbackDoneScanDb (PackageCallbacks::DoneScanDb);
+}
+
+global void ResetScanDBCallbacks ()
+{
+    Pkg::CallbackStartScanDb (nil);
+    Pkg::CallbackProgressScanDb (nil);
+    Pkg::CallbackErrorScanDb (nil);
+    Pkg::CallbackDoneScanDb (nil);
+}
+
+global void SetDownloadCallbacks ()
+{
+    Pkg::CallbackInitDownload (PackageCallbacks::InitDownload);
+    Pkg::CallbackStartDownload (PackageCallbacks::StartDownload);
+    Pkg::CallbackProgressDownload (PackageCallbacks::ProgressDownload);
+    Pkg::CallbackDoneDownload (PackageCallbacks::DoneDownload);
+    Pkg::CallbackDestDownload (PackageCallbacks::DestDownload);
+    Pkg::CallbackStartRefresh(PackageCallbacks::RefreshStarted);
+    Pkg::CallbackDoneRefresh(PackageCallbacks::RefreshDone);
+}
+
+global void ResetDownloadCallbacks ()
+{
+    Pkg::CallbackInitDownload (nil);
+    Pkg::CallbackStartDownload (nil);
+    Pkg::CallbackProgressDownload (nil);
+    Pkg::CallbackDoneDownload (nil);
+    Pkg::CallbackDestDownload (nil);
+    Pkg::CallbackStartRefresh(nil);
+    Pkg::CallbackDoneRefresh(nil);
+}
+
+global void SetSourceCreateCallbacks()
+{
+    // source create callbacks
+    Pkg::CallbackSourceCreateStart(PackageCallbacks::SourceCreateStart);
+    Pkg::CallbackSourceCreateProgress(PackageCallbacks::SourceCreateProgress);
+    Pkg::CallbackSourceCreateError(PackageCallbacks::SourceCreateError);
+    Pkg::CallbackSourceCreateEnd(PackageCallbacks::SourceCreateEnd);
+    Pkg::CallbackSourceCreateInit(PackageCallbacks::SourceCreateInit);
+    Pkg::CallbackSourceCreateDestroy(PackageCallbacks::SourceCreateDestroy);
+}
+
+global void SetSourceProbeCallbacks()
+{
+    // source probing callbacks
+    Pkg::CallbackSourceProbeStart(PackageCallbacks::SourceProbeStart);
+    Pkg::CallbackSourceProbeFailed(PackageCallbacks::SourceProbeFailed);
+    Pkg::CallbackSourceProbeSucceeded(PackageCallbacks::SourceProbeSucceeded);
+    Pkg::CallbackSourceProbeProgress(PackageCallbacks::SourceProbeProgress);
+    Pkg::CallbackSourceProbeError(PackageCallbacks::SourceProbeError);
+    Pkg::CallbackSourceProbeEnd(PackageCallbacks::SourceProbeEnd);
+}
+
+global void SetProcessCallbacks()
+{
+    // register process callbacks (total progress)
+    Pkg::CallbackProcessStart(PackageCallbacks::ProcessStart);
+    Pkg::CallbackProcessProgress(PackageCallbacks::ProcessProgress);
+    Pkg::CallbackProcessNextStage(PackageCallbacks::ProcessNextStage);
+    Pkg::CallbackProcessDone(PackageCallbacks::ProcessDone);
+}
+
+global void SetProvideCallbacks()
+{
+    Pkg::CallbackStartProvide (PackageCallbacks::StartProvide);
+    Pkg::CallbackProgressProvide (PackageCallbacks::ProgressProvide);
+    Pkg::CallbackDoneProvide (PackageCallbacks::DoneProvide);
+    Pkg::CallbackStartPackage (PackageCallbacks::StartPackage);
+    Pkg::CallbackProgressPackage (PackageCallbacks::ProgressPackage);
+    Pkg::CallbackDonePackage (PackageCallbacks::DonePackage);
+}
+
+global void SetPatchCallbacks()
+{
+    Pkg::CallbackStartDeltaDownload (PackageCallbacks::StartDeltaProvide);
+    Pkg::CallbackProgressDeltaDownload (PackageCallbacks::ProgressProvide);
+    Pkg::CallbackProblemDeltaDownload (PackageCallbacks::ProblemDeltaDownload);
+    Pkg::CallbackFinishDeltaDownload (PackageCallbacks::FinishPatchDeltaProvide);
+
+    Pkg::CallbackStartDeltaApply (PackageCallbacks::StartDeltaApply);
+    Pkg::CallbackProgressDeltaApply (PackageCallbacks::ProgressDeltaApply);
+    Pkg::CallbackProblemDeltaApply (PackageCallbacks::ProblemDeltaApply);
+    Pkg::CallbackFinishDeltaApply (PackageCallbacks::FinishPatchDeltaProvide);
+
+    Pkg::CallbackStartPatchDownload (PackageCallbacks::StartPatchProvide);
+    Pkg::CallbackProgressPatchDownload (PackageCallbacks::ProgressProvide);
+    Pkg::CallbackProblemPatchDownload (PackageCallbacks::ProblemPatchDownload);
+    Pkg::CallbackFinishPatchDownload (PackageCallbacks::FinishPatchDeltaProvide);
+}
+
+global void SetSourceReportCallbacks()
+{
+    // source report callbacks
+    Pkg::CallbackSourceReportStart(PackageCallbacks::SourceReportStart);
+    Pkg::CallbackSourceReportProgress(PackageCallbacks::SourceReportProgress);
+    Pkg::CallbackSourceReportError(PackageCallbacks::SourceReportError);
+    Pkg::CallbackSourceReportEnd(PackageCallbacks::SourceReportEnd);
+    Pkg::CallbackSourceReportInit(PackageCallbacks::SourceReportInit);
+    Pkg::CallbackSourceReportDestroy(PackageCallbacks::SourceReportDestroy);
+}
+
+global void SetProgressReportCallbacks()
+{
+    Pkg::CallbackProgressReportStart(PackageCallbacks::ProgressStart);
+    Pkg::CallbackProgressReportProgress(PackageCallbacks::ProgressProgress);
+    Pkg::CallbackProgressReportEnd(PackageCallbacks::ProgressEnd);
+}
+
+/**
+ * Register package manager callbacks
+ */
+global void InitPackageCallbacks() {
+
+    SetProcessCallbacks();
+
+    SetProvideCallbacks();
+
+    SetPatchCallbacks();
+
+    SetSourceCreateCallbacks();
+
+    SetSourceProbeCallbacks();
+
+    SetSourceReportCallbacks();
+
+    SetProgressReportCallbacks();
+
+    // authentication callback
+    Pkg::CallbackAuthentication(PackageCallbacks::Authentication);
+
+    // @see bugzilla #183821
+    // Do not register these callbacks in case of AutoInstallation
+    if (Mode::autoinst() != true) {
+	// Signature-related callbacks
+	Pkg::CallbackAcceptUnsignedFile		(SignatureCheckCallbacks::AcceptUnsignedFile);
+	Pkg::CallbackAcceptUnknownGpgKey	(SignatureCheckCallbacks::AcceptUnknownGpgKey);
+	Pkg::CallbackImportGpgKey		(SignatureCheckCallbacks::ImportGpgKey);
+	Pkg::CallbackAcceptNonTrustedGpgKey	(SignatureCheckCallbacks::TrustGpgKey);
+	Pkg::CallbackAcceptVerificationFailed	(SignatureCheckCallbacks::AcceptVerificationFailed);
+	Pkg::CallbackTrustedKeyAdded		(SignatureCheckCallbacks::TrustedKeyAdded);
+	Pkg::CallbackTrustedKeyRemoved		(SignatureCheckCallbacks::TrustedKeyRemoved);
+	Pkg::CallbackAcceptFileWithoutChecksum	(SignatureCheckCallbacks::AcceptFileWithoutChecksum);
+	Pkg::CallbackAcceptWrongDigest		(SignatureCheckCallbacks::AcceptWrongDigest);
+	Pkg::CallbackAcceptUnknownDigest	(SignatureCheckCallbacks::AcceptUnknownDigest);
+    }
+
+    SetMediaCallbacks ();
+
+    SetScriptCallbacks();
+
+    SetScanDBCallbacks();
+
+    SetDownloadCallbacks();
+}
+
+//=============================================================================
+//	constructor and callback init
+//=============================================================================
+
+
+    /**
+     * constructor
+     */
+
+    global void PackageCallbacks()
+    {
+	y2milestone ( "PackageCallbacks constructor" );
+	InitPackageCallbacks();
+    }
+
 
 // EOF
 }
