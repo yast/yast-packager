@@ -2,7 +2,9 @@
 Wed Apr  2 15:24:24 CEST 2008 - lslezak@suse.cz
 
 - adapted callback registration implementation - use references
- to functions (fate#302296)
+  to functions (fate#302296)
+- moved package callbacks from yast2-packager to yast2 package
+- 2.16.30
 
 -------------------------------------------------------------------
 Fri Mar 28 08:49:19 CET 2008 - lslezak@suse.cz

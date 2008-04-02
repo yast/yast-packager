@@ -1,0 +1,47 @@
+/**
+ * Module:		wrapper_slideshow_callbacks.ycp
+ *
+ * Authors:		Ladislav Slezak <lslezak@novell.com>
+ *
+ * Purpose:		A wrapper for SlideShowCallbacks:: module,
+ *			required for removing the cyclic import dependency
+ *			between SlideShowCallbacks.ycp and SlideShow.ycp
+ *
+ * $Id$
+ */
+
+{
+    string func  = (string)WFM::Args(0);
+    list   param = [];
+
+    // get parameters if available
+    if (size(WFM::Args()) >= 2)
+    {
+	param = (list) WFM::Args(1);
+    }
+
+    any ret = nil;
+
+    y2milestone("SlideShowCallbacks:: wrapper: func: %1, args: %2", func, param);
+
+    import "SlideShowCallbacks";
+
+    // call the required function
+    if (func == "InstallSlideShowCallbacks")
+    {
+	ret = SlideShowCallbacks::InstallSlideShowCallbacks();
+    }
+    else if (func == "RemoveSlideShowCallbacks")
+    {
+	ret = SlideShowCallbacks::RemoveSlideShowCallbacks();
+    }
+    else
+    {
+	// the required function is not known
+	y2error("unknown function: %1", func);
+    }
+
+    y2milestone("SlideShowCallbacks wrapper: result: %1", ret);
+
+    return ret;
+}
