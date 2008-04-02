@@ -699,7 +699,7 @@ global boolean ReIntegrateFromScratch () {
 // Should have been done before (by calling AddOnProduct::Integrate()
 //    foreach (map<string,any> prod, AddOnProduct::add_on_products, {
 //        integer srcid = (integer) prod["media"]:nil;
-//        
+//
 //        if (srcid == nil) {
 //            y2error ("Wrong definition of Add-on product: %1, cannot reintegrate", srcid);
 //            return;
@@ -798,7 +798,7 @@ global boolean AddPreselectedAddOnProducts (string filelist) {
 	    });
 	}
     });
-    
+
     // reread agents, redraw wizard steps, etc.
     ReIntegrateFromScratch();
 }
@@ -911,6 +911,69 @@ global boolean ReadTmpExportFilename () {
     }
 }
 
+
+boolean AcceptUnsignedFile(string file)
+{
+    y2milestone("Accepting unsigned file %1", file);
+    return true;
+}
+
+boolean RejectUnsignedFile(string file)
+{
+    y2milestone("Rejecting unsigned file %1", file);
+    return false;
+}
+
+boolean AcceptFileWithoutChecksum(string file)
+{
+    y2milestone("Accepting file without checksum: %1", file);
+    return true;
+}
+
+boolean RejectFileWithoutChecksum(string file)
+{
+    y2milestone("Rejecting file without checksum: %1", file);
+    return false;
+}
+
+boolean AcceptVerificationFailed(string file, map<string,any> key)
+{
+    y2milestone("Accepting failed verification of file %1 with key %2", file, key);
+    return true;
+}
+
+boolean RejectVerificationFailed(string file, map<string,any> key)
+{
+    y2milestone("Rejecting failed verification of file %1 with key %2", file, key);
+    return false;
+}
+
+
+global boolean AcceptUnknownGpgKeyCallback( string filename, string keyid )
+{
+    y2milestone("AcceptUnknownGpgKeyCallback %1: %2", filename, keyid);
+
+    return ( current_addon["signature-handling","accept_unknown_gpg_key","all"]:false ||
+             contains( current_addon["signature-handling","accept_unknown_gpg_key","keys"]:[], keyid ) );
+}
+
+global boolean ImportGpgKeyCallback(map<string,any> key)
+{
+    y2milestone("ImportGpgKeyCallback: %1", key);
+
+    return ( current_addon["signature-handling","import_gpg_key","all"]:false ||
+             contains( current_addon["signature-handling","import_gpg_key","keys"]:[], key["id"]:"" ) );
+}
+
+global boolean AcceptNonTrustedGpgKeyCallback(map<string,any> key)
+{
+    y2milestone("AcceptNonTrustedGpgKeyCallback %1", key);
+
+    return ( current_addon["signature-handling","accept_non_trusted_gpg_key","all"]:false ||
+             contains( current_addon["signature-handling","accept_non_trusted_gpg_key","keys"]:[], key["id"]:"" ) );
+}
+
+
 /* <-- Export/Import */
 
 /*
@@ -956,44 +1019,26 @@ global void SetSignatureCallbacks( string product ) {
         current_addon = addon; // remember the current addon for the Callbacks
         if( haskey( addon["signature-handling"]:$[], "accept_unsigned_file" ) )
             Pkg::CallbackAcceptUnsignedFile(
-                addon["signature-handling","accept_unsigned_file"]:false ? "AutoInstall::callbackTrue" : "AutoInstall::callbackFalse"
+                addon["signature-handling","accept_unsigned_file"]:false ? AcceptUnsignedFile : RejectUnsignedFile
             );
         if( haskey( addon["signature-handling"]:$[], "accept_file_without_checksum" ) )
             Pkg::CallbackAcceptFileWithoutChecksum(
-                addon["signature-handling","accept_file_without_checksum"]:false ? "AutoInstall::callbackTrue" : "AutoInstall::callbackFalse"
+                addon["signature-handling","accept_file_without_checksum"]:false ? AcceptFileWithoutChecksum : RejectFileWithoutChecksum
             );
         if( haskey( addon["signature-handling"]:$[], "accept_verification_failed") )
             Pkg::CallbackAcceptVerificationFailed(
-                addon["signature-handling","accept_verification_failed"]:false ? "AutoInstall::callbackTrue" : "AutoInstall::callbackFalse"
+                addon["signature-handling","accept_verification_failed"]:false ? AcceptVerificationFailed : RejectVerificationFailed
             );
         if( haskey( addon["signature-handling"]:$[], "accept_unknown_gpg_key") )
-            Pkg::CallbackAcceptUnknownGpgKey("AddOnProduct::AcceptUnknownGpgKeyCallback");
+            Pkg::CallbackAcceptUnknownGpgKey(AddOnProduct::AcceptUnknownGpgKeyCallback);
         if( haskey( addon["signature-handling"]:$[], "import_gpg_key") )
-            Pkg::CallbackImportGpgKey("AddOnProduct::ImportGpgKeyCallback");
+            Pkg::CallbackImportGpgKey(AddOnProduct::ImportGpgKeyCallback);
         if( haskey( addon["signature-handling"]:$[], "accept_non_trusted_gpg_key") )
-            Pkg::CallbackAcceptNonTrustedGpgKey("AddOnProduct::AcceptNonTrustedGpgKeyCallback");
+            Pkg::CallbackAcceptNonTrustedGpgKey(AddOnProduct::AcceptNonTrustedGpgKeyCallback);
 
         break;
     });
     return;
-}
-
-global boolean AcceptUnknownGpgKeyCallback( string filename, string keyid ) {
-    y2milestone("AcceptUnknownGpgKeyCallback %1 %2",filename, keyid);
-    return ( current_addon["signature-handling","accept_unknown_gpg_key","all"]:false || 
-             contains( current_addon["signature-handling","accept_unknown_gpg_key","keys"]:[], keyid ) );
-}
-
-global boolean ImportGpgKeyCallback( string keyid, string keyname, string keydetails ) {
-    y2milestone("ImportGpgKeyCallback %1 %2 %3", keyid, keyname, keydetails );
-    return ( current_addon["signature-handling","import_gpg_key","all"]:false || 
-             contains( current_addon["signature-handling","import_gpg_key","keys"]:[], keyid ) );
-}
-
-global boolean AcceptNonTrustedGpgKeyCallback( string filename, string keyid, string keyname, string fingerprint ) {
-    y2milestone("AcceptNonTrustedGpgKeyCallback %1 %2 %3 %4", filename, keyid, keyname, fingerprint );
-    return ( current_addon["signature-handling","accept_non_trusted_gpg_key","all"]:false ||
-             contains( current_addon["signature-handling","accept_non_trusted_gpg_key","keys"]:[], keyid ) );
 }
 
 } // module end
