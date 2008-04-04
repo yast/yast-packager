@@ -31,7 +31,7 @@ import "String";
 import "Popup";
 import "Label";
 import "Wizard";
-import "PackageCallbacksInit";
+import "PackageCallbacks";
 import "Product";
 import "DefaultDesktop";
 import "SourceDialogs";
@@ -432,7 +432,7 @@ global void InitializeAddOnProducts() {
     {
 	y2milestone ("Found list of add-on products to preselect: %1", Packages::add_on_products_list);
 	Packages::SelectProduct ();
-	PackageCallbacksInit::SetMediaCallbacks();
+	PackageCallbacks::SetMediaCallbacks();
 
 	// Set the base workflow before adding more AddOnProducts using the add_on_products file
 	// Do not force "base workflow" if there is already any base one stored
@@ -1082,7 +1082,7 @@ boolean Initialize_BaseInit (boolean show_popup, string & base_url, string & log
 	popup_open = true;
     }
 
-    PackageCallbacksInit::InitPackageCallbacks ();
+    PackageCallbacks::InitPackageCallbacks ();
 
     // Initialize package manager
     init_error = nil;

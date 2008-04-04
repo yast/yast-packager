@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  4 15:02:45 CEST 2008 - jsrain@suse.cz
+
+- avoid calling PackageCallbacksInit::InitPackageCallbacks () to
+  prevent testsuites of other packages from failing
+
+-------------------------------------------------------------------
 Wed Apr  2 15:24:24 CEST 2008 - lslezak@suse.cz
 
 - adapted callback registration implementation - use references

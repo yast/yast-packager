@@ -17,7 +17,7 @@
     import "Confirm";
     import "Mode";
     import "Installation";
-    import "PackageCallbacksInit";
+    import "PackageCallbacks";
     import "PackageLock";
     import "PackageSystem";
     import "Report";
@@ -1131,7 +1131,7 @@ symbol StartInstSource()
 	return `abort;
    }
 
-    PackageCallbacksInit::InitPackageCallbacks ();
+    PackageCallbacks::InitPackageCallbacks ();
 
     boolean restore = Pkg::SourceRestore();
     if( ! restore )
