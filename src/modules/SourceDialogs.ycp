@@ -1023,7 +1023,7 @@ any metadata (i.e. there is no product information) then check option
 
 // 'auto' is a value in the combo box widget, do not translate it!
 + _("<p>The file system which is used on the device will be automatically
-detected if file system 'auto' is selected. If the detection fails or a you
+detected if file system 'auto' is selected. If the detection fails or you
 want to use a certain file system then select it from the list.</p>")
     ];
 }
@@ -1092,7 +1092,7 @@ any metadata (i.e. there is no product information) then check option
 
 // 'auto' is a value in the combo box widget, do not translate it!
 + _("<p>The file system which is used on the device will be automatically
-detected if file system 'auto' is selected. If the detection fails or a you
+detected if file system 'auto' is selected. If the detection fails or you
 want to use a certain file system then select it from the list.</p>")
     ];
 }
