@@ -2,6 +2,8 @@
 Mon Apr  7 15:54:52 CEST 2008 - lslezak@suse.cz
 
 - fixed a typo in the help text (bnc#376311)
+- added 'Recommends: checkmedia' dependency to ensure 'checkmedia'
+  package is on the medium (bnc#372976)
 
 -------------------------------------------------------------------
 Fri Apr  4 15:02:45 CEST 2008 - jsrain@suse.cz
