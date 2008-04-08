@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr  8 12:39:18 CEST 2008 - lslezak@suse.cz
+
+- removed 'Software Repositories' from the yast control center
+  (it can be started from 'Software Management', it's description
+  has been updated) (fate#302991)
+
+-------------------------------------------------------------------
 Mon Apr  7 15:54:52 CEST 2008 - lslezak@suse.cz
 
 - fixed a typo in the help text (bnc#376311)
