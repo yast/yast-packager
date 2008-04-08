@@ -20,6 +20,6 @@ Icon=yast-sw_single
 Exec=/sbin/yast2 sw_single 
 
 Name=Software Management
-GenericName=Install additional software packages or remove installed packages
+GenericName=Install or remove software packages and manage software repositories
 X-KDE-SubstituteUID=true
 StartupNotify=true
