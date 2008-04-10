@@ -273,13 +273,23 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	// installation proposal - SW summary, %1 is name of the selected desktop or system type (e.g. KDE)
 	output = (list<string>)add (output, sformat(_("System Type: %1"), DefaultDesktop::Description ()));
     if (contains (flags, `pattern))
-	output = (list<string>)
-//	    merge (output, ListSelected (`pattern, "+  %1"));
-	    add (output, _("Patterns:<br>") + mergestring (ListSelected (`pattern, "+  %1"), "<br>"));
+    {
+	list<string> patterns = ListSelected (`pattern, "+  %1");
+
+	if (size(patterns) > 0)
+	{
+	    output = (list<string>) add (output, _("Patterns:<br>") + mergestring (patterns, "<br>"));
+	}
+    }
     if (contains (flags, `selection))
-	output = (list<string>)
-//	    merge (output, ListSelected (`selection, "+  %1"));
-	    add (output, _("Selections:<br>") + mergestring (ListSelected (`selection, "+  %1"), "<br>"));
+    {
+	list<string> selections = ListSelected (`selection, "+  %1");
+
+	if (size(selections) > 0)
+	{
+	    output = (list<string>) add (output, _("Selections:<br>") + mergestring (selections, "<br>"));
+	}
+    }
     if (contains (flags, `size))
     {
 	output = (list<string>)add (output,

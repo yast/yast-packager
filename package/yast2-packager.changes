@@ -3,6 +3,8 @@ Thu Apr 10 13:33:28 CEST 2008 - lslezak@suse.cz
 
 - repositories - do not initialize the package manager when
   started from sw_single (it's already done)
+- SW proposal - do not display selection summary if there is no
+  selection
 
 -------------------------------------------------------------------
 Thu Apr 10 13:07:25 CEST 2008 - locilka@suse.cz
