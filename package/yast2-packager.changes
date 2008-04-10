@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 10 13:33:28 CEST 2008 - lslezak@suse.cz
+
+- repositories - do not initialize the package manager when
+  started from sw_single (it's already done)
+
+-------------------------------------------------------------------
 Thu Apr 10 13:07:25 CEST 2008 - locilka@suse.cz
 
 - InstInitSourceMoveDownloadArea has been moved into a separate
