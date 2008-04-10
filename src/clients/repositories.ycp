@@ -1121,8 +1121,12 @@ symbol StartInstSource()
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_source");
-    // dialog caption
-    Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+
+    if (!full_mode)
+    {
+	// dialog caption
+	Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+    }
 
    // check whether running as root
    if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
@@ -1131,9 +1135,12 @@ symbol StartInstSource()
 	return `abort;
    }
 
-    PackageCallbacks::InitPackageCallbacks ();
+    if (!full_mode)
+    {
+	PackageCallbacks::InitPackageCallbacks ();
+    }
 
-    boolean restore = Pkg::SourceRestore();
+    boolean restore = (!full_mode) ? Pkg::SourceRestore() : true;
     if( ! restore )
     {
 	boolean cont = Popup::AnyQuestionRichText(
