@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 10 13:07:25 CEST 2008 - locilka@suse.cz
+
+- InstInitSourceMoveDownloadArea has been moved into a separate
+  module in SourceManager in order to use it from installation from
+  images too.
+
+-------------------------------------------------------------------
 Tue Apr  8 12:39:18 CEST 2008 - lslezak@suse.cz
 
 - removed 'Software Repositories' from the yast control center
