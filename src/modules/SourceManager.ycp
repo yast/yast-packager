@@ -1489,7 +1489,7 @@ global string InstallationSourceOnPartition () {
             : var_tmp_space;
         if (true) // TODO check the size of the largest package on CD1
         {
-            integer successful = (integer) SCR::Execute (.target.bash, sformat ("test -d '%1' || mkdir '%1'", String::Quote (download_dir)));
+            integer successful = (integer) SCR::Execute (.target.bash, sformat ("test -d '%1' || mkdir -p '%1'", String::Quote (download_dir)));
 	    if (successful == 0) {
         	Pkg::SourceMoveDownloadArea (download_dir);
 	    } else {

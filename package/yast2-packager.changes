@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 11 15:55:32 CEST 2008 - locilka@suse.cz
+
+- Fixing InstInitSourceMoveDownloadArea: mkdir -p is better than
+  without -p.
+
+-------------------------------------------------------------------
 Fri Apr 11 14:25:56 CEST 2008 - lslezak@suse.cz
 
 - SlideShowCallbacks - fixed return value of ProgressDownload()
