@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 11 14:25:56 CEST 2008 - lslezak@suse.cz
+
+- SlideShowCallbacks - fixed return value of ProgressDownload()
+  callback function, check abort status
+
+-------------------------------------------------------------------
 Thu Apr 10 13:33:28 CEST 2008 - lslezak@suse.cz
 
 - repositories - do not initialize the package manager when

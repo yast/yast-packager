@@ -103,7 +103,10 @@
 
     global boolean ProgressDownload(integer percent, integer bps_avg, integer bps_current)
     {
-	return SlideShow::UpdateCurrentPackageRateProgress(percent, bps_avg, bps_current);
+	SlideShow::UpdateCurrentPackageRateProgress(percent, bps_avg, bps_current);
+
+	HandleInput();
+	return ! SlideShow::GetUserAbort();
     }
 
 
