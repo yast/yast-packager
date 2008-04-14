@@ -28,8 +28,15 @@ map <string, map> all_desktops = $[
     "kde" : $[
         "order" : 1,
 	// TRANSLATORS: Dialog label
-        "label" : _("KDE Desktop"),
+        "label" : _("KDE4 Desktop"),
         "patterns" : ["kde", "x11", "base"],
+        "icon" : "pattern-kde-laptop",
+    ],
+    "kde3" : $[
+        "order" : 1,
+	// TRANSLATORS: Dialog label
+        "label" : _("KDE3 Desktop"),
+        "patterns" : ["kde3", "x11", "base"],
         "icon" : "pattern-kde",
     ],
     "xfce" : $[
