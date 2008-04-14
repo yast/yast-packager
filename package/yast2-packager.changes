@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Apr 14 15:28:43 CEST 2008 - locilka@suse.cz
+
+- Added KDE3 to a System Type selection (bnc #379157).
+
+-------------------------------------------------------------------
 Fri Apr 11 15:55:32 CEST 2008 - locilka@suse.cz
 
 - Fixing InstInitSourceMoveDownloadArea: mkdir -p is better than
