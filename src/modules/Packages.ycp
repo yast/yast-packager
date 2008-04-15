@@ -952,6 +952,20 @@ boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_
     return true;
 }
 
+boolean FindAndCopySlideDirWithoutCallbacks(string our_slidedir, integer source, string search_for_dir,
+    string lang_long, string lang_short, string fallback_lang)
+{
+    // disable callbacks
+    PackageCallbacks::RegisterEmptyProgressCallbacks();
+
+    boolean ret = FindAndCopySlideDir (our_slidedir, source, search_for_dir, lang_long, lang_short, fallback_lang);
+
+    // restore callbacks
+    PackageCallbacks::RestorePreviousProgressCallbacks();
+
+    return ret;
+}
+
 global void SlideShowSetUp (string wanted_language) {
     integer source = base_source_id;
 
@@ -996,7 +1010,7 @@ global void SlideShowSetUp (string wanted_language) {
     // try to download only slides that are needed (by selected language)
     // no images are cached
     string search_for_dir = sformat ("/%1/setup/slide/", datadir);
-    boolean success = FindAndCopySlideDir (our_slidedir, source, search_for_dir, lang_long, lang_short, SlideShow::fallback_lang);
+    FindAndCopySlideDirWithoutCallbacks(our_slidedir, source, search_for_dir, lang_long, lang_short, SlideShow::fallback_lang);
 
     // fallback solution disabled
 /*
