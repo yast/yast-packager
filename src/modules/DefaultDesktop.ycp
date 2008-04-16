@@ -44,7 +44,7 @@ map <string, map> all_desktops = $[
         // TRANSLATORS: Dialog label
         "label" : _("XFCE Desktop"),
         "patterns" : ["xfce", "x11", "base"],
-        "icon" : "yast-tv",
+        "icon" : "pattern-xfce",
     ],
     "min_x" : $[
         "order" : 6,
