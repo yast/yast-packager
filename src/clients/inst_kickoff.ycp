@@ -327,30 +327,46 @@ void XenPVToInitrd()
 	}
     }
 
-
+    // installation, for instance...
     if (!Mode::update ())
     {
 	// make some directories
 	SCR::Execute(.target.mkdir, Installation::destdir + "/etc");
 	SCR::Execute(.target.mkdir, Installation::destdir + Directory::logdir);
 
-	// hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
-        if (Installation::dirinstall_installing_into_dir)
-        {
+        if (Installation::dirinstall_installing_into_dir) {
             string template_dir= "/var/adm/fillup-templates";
-            // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
-            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/passwd.aaa_base " +
-		    "'" + String::Quote (Installation::destdir) + "/etc/passwd" + "'");
-            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/group.aaa_base " +
-                    "'" + String::Quote (Installation::destdir) + "/etc/group" + "'");
-            SCR::Execute(.target.bash, "/bin/cp " + template_dir + "/shadow.aaa_base " +
-                    "'" + String::Quote (Installation::destdir) + "/etc/shadow" + "'");
-        } else
-        {
-	    SCR::Execute(.target.bash, "/bin/cp /etc/passwd " +
-		    "'" + String::Quote (Installation::destdir) + "/etc" + "'");
-	    SCR::Execute(.target.bash, "/bin/cp /etc/group " +
-		    "'" + String::Quote (Installation::destdir) + "/etc" + "'");
+
+	    // hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+	    foreach (string filename, ["passwd", "group", "shadow"], {
+		string filename_copy_to = sformat ("%1/etc/%2", Installation::destdir, filename);
+
+		if (FileUtils::Exists (filename_copy_to)) {
+		    y2milestone ("File %1 exists, not rewriting", filename_copy_to);
+		} else {
+		    filename = sformat ("%1/%2.aaa_base", template_dir, filename);
+		    y2milestone ("Copying %1 to %2", filename, filename_copy_to);
+		    SCR::Execute (.target.bash,
+			sformat ("cp -a '%1' '%2'", String::Quote (filename), String::Quote (filename_copy_to))
+		    );
+		}
+	    });
+
+        } else {
+	    // See bnc #381227
+	    // files might have been copied alredy from image
+	    foreach (string filename, ["/etc/passwd", "/etc/group"], {
+		string filename_copy_to = sformat ("%1/%2", Installation::destdir, filename);
+
+		if (FileUtils::Exists (filename_copy_to)) {
+		    y2milestone ("File %1 exists, not rewriting", filename_copy_to);
+		} else {
+		    y2milestone ("Copying %1 to %2", filename, filename_copy_to);
+		    SCR::Execute (.target.bash,
+			sformat ("cp -a '%1' '%2'", String::Quote (filename), String::Quote (filename_copy_to))
+		    );
+		}
+	    });
         }
 
 	// fake mtab
