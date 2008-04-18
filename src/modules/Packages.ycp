@@ -150,35 +150,48 @@ global list<string> ListSelected (symbol what, string format) {
  */
 global string CountSizeToBeInstalled () {
     integer sz = 0;
-    if (! Mode::installation () && !Installation::dirinstall_installing_into_dir )
-    {
-	list<string> packages = Pkg::GetPackages (`selected, true);
-	foreach (string p, packages, {
-	    sz = sz + Pkg::PkgSize (p);
-	});
-	// convert into kB
-	sz = sz / 1024;
-    }
-    else // in case of fresh installation, disk is initially empty
-    {
-	map<string,list> du = Pkg::TargetGetDU ();
-	foreach (string mp, list usages, du, {
-	    sz = sz + usages[2]:0 - usages[1]:0;
-	});
-    }
-    y2milestone ("Total size of packages to install (kB): %1", sz);
-    return String::FormatSizeWithPrecision (sz*1024, 1, true);
+    list<list<integer> > media_sizes = Pkg::PkgMediaSizes();
+
+    foreach (list<integer> inst_sizes, media_sizes,
+	{
+	    foreach (integer inst_size, inst_sizes,
+		{
+		    sz = sz + inst_size;
+		}
+	    );
+	}
+    );
+
+    y2milestone ("Total size of packages to install %1 (%2kB)", sz, sz / 1024 );
+    return String::FormatSizeWithPrecision (sz, 1, true);
+}
+
+map<integer,integer> SrcMapping()
+{
+    map<integer,integer> srcid_to_current_src_no = $[];
+    integer index = 0;
+
+    list< list > src_list = Pkg::PkgMediaNames();
+    y2debug("source names: %1", src_list);
+
+    srcid_to_current_src_no = listmap( list src, src_list, {
+      index = index + 1;
+      return $[src[1]:-1 : index];
+    });
+
+    y2milestone ("Repository mapping information: %1", srcid_to_current_src_no );
+    return srcid_to_current_src_no;
 }
 
 /**
  * Count the total size of packages to be installed
- * @return string formatted size of packages to be installed
+ * @return integer size of packages to be installed (in bytes)
  */
 global integer CountSizeToBeDownloaded() {
     integer ret = 0;
 
     // get list of remote repositories
-    // consider only http and ftp protocols as remote
+    // consider only http(s) and ftp protocols as remote
 
     // all enabled sources
     list<integer> repos = Pkg::SourceGetCurrent(true);
@@ -187,9 +200,9 @@ global integer CountSizeToBeDownloaded() {
     foreach(integer repo, repos,
 	{
 	    string url = Pkg::SourceGeneralData(repo)["url"]:"";
-	    string scheme = URL::Parse(url)["scheme"]:"";
+	    string scheme = tolower(URL::Parse(url)["scheme"]:"");
 
-	    if (tolower(scheme) == "http" || tolower(scheme) == "ftp")
+	    if (scheme == "http" || scheme == "https" || scheme == "ftp")
 	    {
 		y2milestone("Found remote repository %1: %2", repo, url);
 		remote_repos = add(remote_repos, repo);
@@ -204,28 +217,24 @@ global integer CountSizeToBeDownloaded() {
 	return 0;
     }
 
-    list<string> packages = Pkg::GetPackages (`selected, true);
+    map<integer,integer> repo_mapping = SrcMapping();
 
-    foreach (string p, packages,
+    list<list<integer> > media_sizes = Pkg::PkgMediaPackageSizes();
+    y2debug("Media sizes: %1", media_sizes);
+
+    foreach(integer repoid, remote_repos,
 	{
-	    list<map> properties = Pkg::ResolvableProperties(p, `package, "");
+	    list<integer> repo_media_sizes = media_sizes[(repo_mapping[repoid]:-1) - 1]:[];
 
-	    foreach(map prop, properties,
+	    foreach(integer media_size, repo_media_sizes,
 		{
-		    // the package is selected for installation
-		    if (prop["status"]:`unknown == `selected && contains(remote_repos, prop["source"]:-1))
-		    {
-			y2debug("Found remote package %1-%2 (%3) from repository %4", p, prop["version"]:"", prop["download_size"]:0, prop["source"]:-1);
-
-			ret = ret + prop["download_size"]:0;
-		    }
+		    ret = ret + media_size;
 		}
 	    );
 	}
     );
 
-    y2milestone("Total size of packages to download: %1 (%2 B)", String::FormatSizeWithPrecision(ret, 1, true), ret);
-
+    y2milestone("Total size of packages to download: %1 (%2kB)", ret, ret / 1024);
     return ret;
 }
 

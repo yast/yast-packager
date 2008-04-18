@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Apr 18 14:24:07 CEST 2008 - lslezak@suse.cz
+
+- Use Pkg::PkgMediaSizes() and Pkg::PkgMediaPackageSizes() for
+  computing total install and download size instead of quering
+  each selected package separately (speeds up the proposal summary
+  from 15-20 seconds to less than 1 second)
+- this is also a workaround for broken disk usage in libzypp
+  (bnc#375104)
+- 2.16.35
+
+-------------------------------------------------------------------
 Wed Apr 16 13:37:41 CEST 2008 - locilka@suse.cz
 
 - Using pattern-xfce for XFCE Desktop selection (bnc #377584).
