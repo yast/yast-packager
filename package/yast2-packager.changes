@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr 18 15:37:30 CEST 2008 - locilka@suse.cz
+
+- Do not overwrite passwd and shadow files if they already exist on
+  a system (e.g., from images) (bnc #381227).
+- 2.16.36
+
+-------------------------------------------------------------------
 Fri Apr 18 14:24:07 CEST 2008 - lslezak@suse.cz
 
 - Use Pkg::PkgMediaSizes() and Pkg::PkgMediaPackageSizes() for
