@@ -13,7 +13,7 @@ module "DefaultDesktop";
 textdomain "packager";
 
 import "ProductFeatures";
-
+import "Installation";
 
 // Could be defined in control file
 // @see GetAllDesktopsMap
@@ -79,6 +79,47 @@ map <string, map> all_desktops = $[
  */
 global map <string, map> GetAllDesktopsMap () {
     return all_desktops;
+}
+
+/**
+ * Return list installed desktops or desktop selected for installation.
+ *
+ * @see GetAllDesktopsMap
+ */
+global list <string> SelectedDesktops () {
+    Pkg::TargetInit (Installation::destdir, true);
+    Pkg::SourceStartManager (true);
+    Pkg::PkgSolve (true);
+
+    list <string> all_sel_or_inst_patterns = maplist (map <string, any> one_pattern, Pkg::ResolvableProperties ("", `pattern, ""), {
+	if (one_pattern["status"]:`unknown == `selected || one_pattern["status"]:`unknown == `installed) {
+	    return one_pattern["name"]:"";
+	}
+    });
+
+    // all selected or installed patterns
+    all_sel_or_inst_patterns = filter (string one_pattern, all_sel_or_inst_patterns, {
+	return (one_pattern != nil);
+    });
+
+    list <string> selected_desktops = [];
+    boolean selected = true;
+
+    foreach (string desktop_name, map desktop_def, all_desktops, {
+	selected = true;
+
+	foreach (string one_pattern, desktop_def["patterns"]:[], {
+	    if (! contains (all_sel_or_inst_patterns, one_pattern)) {
+		selected = false;
+		return;
+	    }
+	});
+
+	if (selected)
+	    selected_desktops = add (selected_desktops, desktop_name);
+    });
+
+    return selected_desktops;
 }
 
 /**
