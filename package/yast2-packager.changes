@@ -4,6 +4,7 @@ Mon Apr 21 14:17:55 CEST 2008 - locilka@suse.cz
 - Added new function DefaultDesktop::SelectedDesktops() to list all
   installed desktops or desktop selected for installation
   (bnc #380774).
+- 2.16.37
 
 -------------------------------------------------------------------
 Fri Apr 18 15:37:30 CEST 2008 - locilka@suse.cz
