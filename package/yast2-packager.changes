@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 21 14:17:55 CEST 2008 - locilka@suse.cz
+
+- Added new function DefaultDesktop::SelectedDesktops() to list all
+  installed desktops or desktop selected for installation
+  (bnc #380774).
+
+-------------------------------------------------------------------
 Fri Apr 18 15:37:30 CEST 2008 - locilka@suse.cz
 
 - Do not overwrite passwd and shadow files if they already exist on
