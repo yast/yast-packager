@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 23 15:05:22 CEST 2008 - lslezak@suse.cz
+
+- do not check product category (it is obsoleted), install all
+  products (bnc#359538)
+
+-------------------------------------------------------------------
 Mon Apr 21 14:17:55 CEST 2008 - locilka@suse.cz
 
 - Added new function DefaultDesktop::SelectedDesktops() to list all

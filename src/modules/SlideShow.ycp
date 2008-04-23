@@ -1484,6 +1484,8 @@
 		`HSpacing( 0.5 )
 	    );
 
+	y2milestone("total_size_to_install: %1", total_size_to_install);
+
 	y2debug( "widget term: \n%1", widgets );
 	return widgets;
     }
@@ -1749,6 +1751,7 @@
 
 
 	total_size_to_install			= ListSum( flatten( total_sizes_per_cd_per_src ) );
+	y2milestone("total_size_to_install: %1", total_size_to_install);
 	remaining_sizes_per_cd_per_src		= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
 	remaining_pkg_count_per_cd_per_src	= (list<list <integer> >) eval (total_pkg_count_per_cd_per_src);
 	total_cd_count				= size( flatten( total_sizes_per_cd_per_src ) );

@@ -1314,14 +1314,13 @@ global void Init(boolean unused) {
 global boolean SelectProduct () {
     Packages::Initialize (true);
     list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
-    products = filter (map<string,any> p, products, {
-	return p["category"]:"" == "base";
-    });
+
     if (size (products) == 0)
     {
-	y2milestone ("No base product found on media");
+	y2milestone ("No product found on media");
 	return true;
     }
+
     list<map<string,any> >selected_products = filter (map<string,any> p, products, {
 	return p["status"]:nil == `selected;
     });
@@ -1335,6 +1334,7 @@ global boolean SelectProduct () {
 	    ret = Pkg::ResolvableInstall (p["name"]:"", `product) && ret;
 	});
     }
+
     return ret;
 }
 
