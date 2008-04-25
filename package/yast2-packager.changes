@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 25 18:16:07 CEST 2008 - locilka@suse.cz
+
+- New desktop selection dialog (bnc #379157).
+- 2.16.39
+
+-------------------------------------------------------------------
 Fri Apr 25 08:03:38 CEST 2008 - lslezak@suse.cz
 
 - restored 'Software Repositories' icon in the control center

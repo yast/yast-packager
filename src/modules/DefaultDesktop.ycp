@@ -2,6 +2,7 @@
  * File:	DefaultDesktop.ycp
  * Package:	Handling of default desktop selection
  * Authors:	Jiri Srain <jsrain@suse.cz>
+ *		Lukas Ocilka <locilka@suse.cz>
  *
  * $Id: Packages.ycp 31512 2006-06-19 11:14:09Z jsrain $
  */
@@ -21,23 +22,29 @@ map <string, map> all_desktops = $[
     "gnome" :  $[
         "order" : 1,
         // TRANSLATORS: Dialog label
-        "label" : _("GNOME Desktop"),
+        "label" : _("GNOME"),
         "patterns" : ["gnome", "x11", "base"],
         "icon" : "pattern-gnome",
+        "description" : _("GNOME 2.22 is the latest desktop from the GNOME Project.
+It combines stability and maturity with incremental innovations."),
     ],
     "kde" : $[
         "order" : 1,
 	// TRANSLATORS: Dialog label
-        "label" : _("KDE4 Desktop"),
+        "label" : _("KDE 4.0"),
         "patterns" : ["kde", "x11", "base"],
-        "icon" : "pattern-kde-laptop",
+        "icon" : "pattern-kde4",
+        "description" : _("KDE 4.0 is the most recent evolution of KDE. It comes with many
+new KDE technologies, but it is less mature than the other desktops."),
     ],
     "kde3" : $[
         "order" : 1,
 	// TRANSLATORS: Dialog label
-        "label" : _("KDE3 Desktop"),
+        "label" : _("KDE 3.5"),
         "patterns" : ["kde3", "x11", "base"],
         "icon" : "pattern-kde",
+        "description" : _("KDE 3.5 is the previous generation of K Desktop Environment.
+It is mature and stable."),
     ],
     "xfce" : $[
         "order" : 4,
