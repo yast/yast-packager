@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 25 08:03:38 CEST 2008 - lslezak@suse.cz
+
+- restored 'Software Repositories' icon in the control center
+  (bnc#381255)
+
+-------------------------------------------------------------------
 Wed Apr 23 15:05:22 CEST 2008 - lslezak@suse.cz
 
 - do not check product category (it is obsoleted), install all
