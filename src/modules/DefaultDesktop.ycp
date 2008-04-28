@@ -80,7 +80,7 @@ It is mature and stable."),
  *         "label" : _("Desktop Name Visible in Dialog"),
  *         "description" : _("Description text of the desktop"),
  *         "patterns" : ["list", "of", "related", "patterns"],
- *         "icon" : "some-icon", // filename from the 32x32 directory of the current theme (without .png suffix)
+ *         "icon" : "some-icon", // filename from the 64x64 directory of the current theme (without .png suffix)
  *     ],
  * ]
  */
@@ -131,7 +131,7 @@ global list <string> SelectedDesktops () {
 
 /**
  * Desktop which was selected in the desktop selection dialog
- * "kde", "gnome", "min_x11", "text"
+ * "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
  */
 string desktop = nil;
 
@@ -141,14 +141,16 @@ string desktop = nil;
 map<string,string> desktop2wm = $[
     "gnome" : "gnome",
     "kde" : "kde",
-    "xfce" : "twm",
+    "kde3" : "kde",
+    // bnc #298558
+    "xfce" : "startxfce4",
     "min_x" : "twm",
     "textmode" : "twm",
 ];
 
 /**
  * Get the currently set default desktop, nil if none set
- * @return string "kde", "gnome", "xfce", "min_x", "textmode", nil
+ * @return string "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
  */
 global string Desktop () {
     return desktop;
