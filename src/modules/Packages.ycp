@@ -131,6 +131,24 @@ global list<string> ListSelected (symbol what, string format) {
 	selected = filter (map<string,any> r, selected, {
 	    return r["user_visible"]:nil == true;
 	});
+
+	// order patterns according to "order" flag
+	selected = sort(map<string,any> x, map<string,any> y, selected,
+	    {
+		integer xo = tointeger(x["order"]:"");
+		integer yo = tointeger(y["order"]:"");
+
+		if (xo == nil || yo == nil)
+		{
+		    // order is not an integer, compare as strings
+		    return x["order"]:"" < y["order"]:"";
+		}
+		else
+		{
+		    return xo < yo;
+		}
+	    }
+	);
     }
 
     selected = filter (map<string,any> r, selected, {
