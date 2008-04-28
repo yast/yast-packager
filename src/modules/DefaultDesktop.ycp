@@ -43,7 +43,7 @@ new KDE technologies, but it is less mature than the other desktops."),
         "label" : _("KDE 3.5"),
         "patterns" : ["kde3", "x11", "base"],
         "icon" : "pattern-kde",
-        "description" : _("KDE 3.5 is the previous generation of K Desktop Environment.
+        "description" : _("KDE 3.5 is the previous generation of the K Desktop Environment.
 It is mature and stable."),
     ],
     "xfce" : $[
