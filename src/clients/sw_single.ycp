@@ -157,7 +157,19 @@ symbol StartSWSingle()
 	       if (SCR::Read (.target.size, package) > 0)
 	       {
 		   y2milestone ("SW_SINGLE: installing %1", package);
-		   Pkg::TargetInstall (package);
+		   boolean installed = Pkg::TargetInstall (package);
+
+		   if (!installed)
+		   {
+		       // Error message:
+		       // %1 = package name (may include complete RPM file name)
+		       // %2 = error message
+		       Report::Error(sformat(_("Package %1 could not be installed.
+
+Details:
+%2
+"), package, Pkg::LastError()));
+		   }
 	       }
 	       else
 	       {
@@ -333,7 +345,6 @@ without access to the software management system."));
    if ((result == `done)
        || (result == `failed))
    {
-       UI::CloseDialog();
        UI::CloseDialog();
        return `next;
    }
