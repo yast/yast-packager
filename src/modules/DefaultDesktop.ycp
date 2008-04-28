@@ -20,6 +20,9 @@ import "Installation";
 // @see GetAllDesktopsMap
 map <string, map> all_desktops = $[
     "gnome" :  $[
+	"desktop" : "gnome",
+	"logon" : "gdm",
+	"cursor" : "DMZ",
         "order" : 1,
         // TRANSLATORS: Dialog label
         "label" : _("GNOME"),
@@ -29,6 +32,10 @@ map <string, map> all_desktops = $[
 It combines stability and maturity with incremental innovations."),
     ],
     "kde" : $[
+	// bnc #381821
+	"desktop" : "startkde4",
+	"logon" : "kdm4",
+	"cursor" : "DMZ",
         "order" : 1,
 	// TRANSLATORS: Dialog label
         "label" : _("KDE 4.0"),
@@ -38,6 +45,10 @@ It combines stability and maturity with incremental innovations."),
 new KDE technologies, but it is less mature than the other desktops."),
     ],
     "kde3" : $[
+	// bnc #381821
+	"desktop" : "startkde3",
+	"logon" : "kdm3",
+	"cursor" : "DMZ",
         "order" : 1,
 	// TRANSLATORS: Dialog label
         "label" : _("KDE 3.5"),
@@ -47,6 +58,10 @@ new KDE technologies, but it is less mature than the other desktops."),
 It is mature and stable."),
     ],
     "xfce" : $[
+	// bnc #298558
+	"desktop" : "startxfce4",
+	"logon" : "xdm",
+	"cursor" : "DMZ",
         "order" : 4,
         // TRANSLATORS: Dialog label
         "label" : _("XFCE Desktop"),
@@ -54,6 +69,9 @@ It is mature and stable."),
         "icon" : "pattern-xfce",
     ],
     "min_x" : $[
+	"desktop" : "twm",
+	"logon" : "xdm",
+	"cursor" : "DMZ",
         "order" : 6,
         // TRANSLATORS: Dialog label
         "label" : _("Minimal X Window"),
@@ -61,6 +79,9 @@ It is mature and stable."),
         "icon" : "yast-x11",
     ],
     "textmode" : $[
+	"desktop" : "twm",
+	"logon" : "xdm",
+	"cursor" : "DMZ",
         "order" : 8,
         // TRANSLATORS: Dialog label
         "label" : _("Minimal Server Selection (Text Mode)"),
@@ -76,6 +97,7 @@ It is mature and stable."),
  *
  * @struct $[
  *     "desktop ID" : $[
+ *         "desktop" : "desktop to start", // DEFAULT_WM
  *         "order" : integer,
  *         "label" : _("Desktop Name Visible in Dialog"),
  *         "description" : _("Description text of the desktop"),
@@ -135,18 +157,7 @@ global list <string> SelectedDesktops () {
  */
 string desktop = nil;
 
-/**
- * Window manager to be set according to selected desktop
- */
-map<string,string> desktop2wm = $[
-    "gnome" : "gnome",
-    "kde" : "kde",
-    "kde3" : "kde",
-    // bnc #298558
-    "xfce" : "startxfce4",
-    "min_x" : "twm",
-    "textmode" : "twm",
-];
+
 
 /**
  * Get the currently set default desktop, nil if none set
@@ -172,7 +183,7 @@ global void SetDesktop (string new_desktop) {
  * @return string preffered window/desktop manager, empty if no one
  */
 global string PrefferedWindowManager () {
-    return desktop2wm[desktop]:"";
+    return all_desktops[desktop,"desktop"]:"";
 }
 
 /**

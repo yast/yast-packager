@@ -3,6 +3,10 @@ Mon Apr 28 09:51:02 CEST 2008 - locilka@suse.cz
 
 - Fixed KDE 3.5 description (bnc #379157).
 - Selecting Xfce will set DEFAULT_WM to 'startxfce4' (bnc #298558).
+- Handling KDE3 vs KDE4 in default logon and window managers
+  (bnc #381821).
+- Some more desktop-related configuration data moved to
+  DefaultDesktop module from desktop_finish client.
 
 -------------------------------------------------------------------
 Fri Apr 25 18:16:07 CEST 2008 - locilka@suse.cz
