@@ -1236,7 +1236,8 @@
 
 	if ( UI::WidgetExists(`progressTotal ) )
 	{
-	    UI::ChangeWidget(`progressTotal, `Value, TotalInstalledSize() );
+	    // progress is in kB
+	    UI::ChangeWidget(`progressTotal, `Value, TotalInstalledSize() >> 10);
 	    UI::ChangeWidget(`progressTotal, `Label, GetProgressLabel() );
 	}
 
@@ -1477,7 +1478,8 @@
 			page_contents ),
 			// Progress bar for overall progress of software package installation
 			`ProgressBar(`id(`progressTotal ), GetProgressLabel(),
-				     total_size_to_install, TotalInstalledSize() )
+				    // progress is in kB due to 32 bit UI limit
+				    total_size_to_install >> 10, TotalInstalledSize() >> 10)
 			// intentionally omitting `Label(`nextMedia) -
 			// too much flicker upon update (UI::RecalcLayout() ) on NCurses
 		),
