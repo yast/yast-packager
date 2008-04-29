@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 29 08:49:10 CEST 2008 - coolo@suse.de
+
+- resubmitting package with correct version
+
+-------------------------------------------------------------------
 Mon Apr 28 17:03:41 CEST 2008 - lslezak@suse.cz
 
 - sw_single - removed extra UI::CloseDialog() call (bnc#382580),
