@@ -1352,6 +1352,7 @@ symbol ServerHandle (string key, map event) {
 
 	return nil;
     }
+
     if (event["ID"]:nil == `anonymous && current_type == `edit_url_parts)
     {
 	boolean anonymous = (boolean)UI::QueryWidget (`id (`anonymous),
@@ -1365,6 +1366,16 @@ symbol ServerHandle (string key, map event) {
     else if ((id == `edit_url_parts || id == `edit_complete_url) && event["EventReason"]:"" == "ValueChanged")
     {
 	y2milestone("Changing dialog type");
+
+	// store the current values (note: the radio button just has been switched, compare to the opposite value!)
+	if (id == `edit_url_parts)
+	{
+	    ServerStoreComplete();
+	}
+	else
+	{
+	    ServerStoreParts();
+	}
 
 	// reinitialize the dialog (set the current values)
 	ServerInit(nil);

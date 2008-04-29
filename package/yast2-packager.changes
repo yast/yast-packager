@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 29 10:25:08 CEST 2008 - lslezak@suse.cz
+
+- repository manager - remember the URL when switching from "parts"
+  view to "full" view (bnc#383984)
+
+-------------------------------------------------------------------
 Tue Apr 29 09:13:08 CEST 2008 - lslezak@suse.cz
 
 - use sizes in kB in the total progressbar in slideshow (progress
