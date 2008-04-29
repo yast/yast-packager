@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Apr 29 09:13:08 CEST 2008 - lslezak@suse.cz
+
+- use sizes in kB in the total progressbar in slideshow (progress
+  bar widget uses 32 bit integers only), fixes "tick" progress
+  mode when install size is greater than 2GB (bnc#380867)
+- 2.16.41
+
+-------------------------------------------------------------------
 Tue Apr 29 08:49:10 CEST 2008 - coolo@suse.de
 
 - resubmitting package with correct version
