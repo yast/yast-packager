@@ -111,6 +111,12 @@ else if (func == "Write")
 	BackUpAllTargetSources();
     }
 
+    // See bnc #384827, #381360
+    if (Mode::update()) {
+	y2milestone ("Adding default repositories");
+	WFM::call ("inst_extrasources");
+    }
+
     // disable all repositories and finish target
     Pkg::SourceFinishAll ();
     Pkg::TargetFinish();
