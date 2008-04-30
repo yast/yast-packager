@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 30 15:23:38 CEST 2008 - lslezak@suse.cz
+
+- don't show "Repository" menu in the package manager during
+  installation (bnc#381956)
+- 2.16.43
+
+-------------------------------------------------------------------
 Tue Apr 29 17:00:06 CEST 2008 - locilka@suse.cz
 
 - Calling inst_extrasources in pkg_finish to get default

@@ -22,7 +22,7 @@
      *
      * Returns `accept or `cancel .
      **/
-    symbol detailedSelection( symbol mode )
+    symbol detailedSelection( symbol mode, boolean enable_repo_mgr )
     {
 	// Open an empty dialog for immediate feedback
 	UI::OpenDialog(`opt(`defaultsize),
@@ -35,8 +35,15 @@
 	// while the package manager is initialized
 	UI::ReplaceWidget(`rep,
 			  mode == nil ?
-			  `PackageSelector(`id(`packages ), "") :
-			  `PackageSelector(`id(`packages ), `opt(mode), "")
+			  (enable_repo_mgr ?
+			    `PackageSelector(`id(`packages), `opt(`repoMgr), "")
+			    : `PackageSelector(`id(`packages), "")
+			  ) :
+
+			  (enable_repo_mgr ?
+			    `PackageSelector(`id(`packages ), `opt(mode, `repoMgr), "")
+			    : `PackageSelector(`id(`packages ), `opt(mode), "")
+			  )
 			  );
 
 	symbol result = (symbol) UI::RunPkgSelection(`id(`packages ) );
@@ -57,7 +64,7 @@
 	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
 	     UI::WizardCommand(`Ping() ) != true	 )
 	{
-	    return detailedSelection( nil );	// Fallback: detailed selection
+	    return detailedSelection( nil, !Stage::initial() );	// Fallback: detailed selection
 	}
 
 	// Help text for software patterns / selections dialog
@@ -112,7 +119,7 @@
 
 	    if ( result == `details )
 	    {
-		result = detailedSelection( nil );
+		result = detailedSelection( nil, !Stage::initial() );
 
 		if ( result == `cancel )
                     // don't get all the way out - the user might just have
@@ -151,11 +158,18 @@
 	    symbol mode = (symbol) WFM::Args(0);
 	    y2milestone( "inst_packages called with: %1" , mode );
 
-	    result = detailedSelection( mode );
+	    boolean repo_mgr = false;
+
+	    if (size(WFM::Args()) > 1 && is( WFM::Args(1), symbol))
+	    {
+		repo_mgr = WFM::Args(1) == `repoMgr;
+	    }
+
+	    result = detailedSelection( mode , repo_mgr );
 	}
 	else
 	{
-	    result = detailedSelection( `searchMode );
+	    result = detailedSelection( `searchMode, false );
 	}
     }
 
