@@ -897,6 +897,9 @@ from the source CD to the disk cache")));
 	{
 	    SourceManager::SyncYaSTInstSourceWithZMD (); // #156030
 	    CleanupDiskCache ();
+
+	    // some new SCR asgents might have been installed
+	    SCR::RegisterNewAgents();
 	}
     }
     
