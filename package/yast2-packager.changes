@@ -3,6 +3,7 @@ Tue Apr 29 17:00:06 CEST 2008 - locilka@suse.cz
 
 - Calling inst_extrasources in pkg_finish to get default
   repositories added in case of upgrade (bnc #384827, bnc #381360).
+- 2.16.42
 
 -------------------------------------------------------------------
 Tue Apr 29 10:25:08 CEST 2008 - lslezak@suse.cz
