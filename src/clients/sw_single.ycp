@@ -383,7 +383,7 @@ Install them now?
 	       // names of taboo packages
 	       list<string> taboo_packages = Pkg::GetPackages(`taboo, true);
 
-	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
+	       result = (symbol)WFM::CallFunction( "inst_packages", [`searchMode, `repoMgr]);	// No: ask user via package selection widget
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 	       {
