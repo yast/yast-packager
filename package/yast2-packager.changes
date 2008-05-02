@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May  2 17:38:32 CEST 2008 - lslezak@suse.cz
+
+- repositories.ycp - do not disable Progress:: when started from
+  sw_single (bnc#381673)
+- fixed command line mode init
+- 2.16.44
+
+-------------------------------------------------------------------
 Wed Apr 30 15:23:38 CEST 2008 - lslezak@suse.cz
 
 - don't show "Repository" menu in the package manager during

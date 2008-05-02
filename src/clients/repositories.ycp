@@ -41,7 +41,10 @@
 
     boolean full_mode = false;
 
-    boolean textmode = UI::GetDisplayInfo()["TextMode"]:false;
+    boolean textmode()
+    {
+	return Mode::commandline() ? true : UI::GetDisplayInfo()["TextMode"]:false;
+    }
 
     integer numSources = 0;
 
@@ -204,7 +207,7 @@
 
     term repoInfoTerm(string name, string url, string category)
     {
-	return textmode ?
+	return textmode() ?
 	`VBox (
 	     `Left(`Heading(`id(`name), `opt(`hstretch), name)),
 	     `Left(`Label(`id(`url), `opt(`hstretch), url)),
@@ -226,7 +229,7 @@
 	// label, %1 is repo category (eg. YUM)
 	string category = sformat (_("Category: %1"), info["type"]:_("Unknown"));
 
-	if (textmode)
+	if (textmode())
 	{
 	    UI::ChangeWidget(`id(`name), `Label, name);
 	    UI::ChangeWidget(`id(`url), `Label, url);
@@ -907,7 +910,8 @@ All changes will be lost.");
 		if (to_refresh > 0)
 		{
 		    Wizard::CreateDialog ();
-		    Progress::New("Refreshing Repositories", "", to_refresh + 1, [ "Refresh Repositories" ], [], "TODO HELP");
+		    // TODO: add help text
+		    Progress::New(_("Refreshing Repositories"), "", to_refresh + 1, [ _("Refresh Repositories") ], [], "");
 
 		    foreach(map<string,any> src_state, sourceStatesOut,
 			{
@@ -1219,18 +1223,26 @@ if (WFM::Args() == [ `sw_single_mode ])
     y2internal("Started from sw_single, switching the mode");
 
     full_mode = true;
-    boolean progress_state = Progress::set(false);
     any ret = StartInstSource();
 
     // load objects from the new repositories
-    Pkg::SourceLoad();
-    Progress::set(progress_state);
+    if (ret != `abort)
+    {
+        Pkg::SourceLoad();
+    }
 
     return ret;
 }
 else
 {
     y2milestone("Initializing the target...");
+
+    // disable callbasks in command line mode
+    if (size(WFM::Args()) > 0)
+    {
+	Mode::SetUI ("commandline");
+    }
+
     Pkg::TargetInit("/", true);
 }
 
