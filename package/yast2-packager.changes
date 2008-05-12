@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 12 17:35:40 CEST 2008 - lslezak@suse.cz
+
+- lock 64-bit packages on PPC32 during installation (bnc#336678)
+- 2.16.46
+
+-------------------------------------------------------------------
 Mon May 12 16:43:20 CEST 2008 - jsrain@suse.cz
 
 - copy the openSUSE product information from the media to the
