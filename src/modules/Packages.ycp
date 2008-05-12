@@ -1513,6 +1513,25 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	{
 	    Pkg::SetAdditionalLocales ([Language::language]);
 	}
+
+	// lock 64-bit packages on PPC32 (bnc#336678)
+	if (Arch::ppc32())
+	{
+	    y2milestone("PPC32 detected, locking 64-bit packages...");
+
+	    map<string,any> lock =
+	     $[
+		"solvable:name" : [ "64bit" ]
+	     ];
+
+	    y2milestone("added lock %1: %2", lock, Pkg::AddLock(lock));
+
+	    lock =
+	     $[
+		"solvable:name" : [ "ppc64" ]
+	     ];
+	    y2milestone("added lock %1: %2", lock, Pkg::AddLock(lock));
+	}
     }
 
     SelectProduct ();
