@@ -38,6 +38,7 @@
 
     include "packager/inst_source_dialogs.ycp";
     include "packager/key_manager_dialogs.ycp";
+    include "packager/repositories_include.ycp";
 
     boolean full_mode = false;
 
@@ -48,8 +49,6 @@
 
     integer numSources = 0;
 
-    list<map<string,any> > sourceStatesIn = [];
-    list<map<string,any> > sourceStatesOut = [];
     list<integer> sourcesToDelete = [];
 
     // Do not sync the changes to ZENworks even if rug is present
@@ -57,13 +56,8 @@
     boolean have_rug = nil;
     boolean norug = nil;
 
-    // constant Plaindir
-    const string plaindir_type = "Plaindir"; 
-
     // default (minimal) priority of a repository
     const integer default_priority = 99;
-
-    boolean download_meta = true;
 
     void RemoveDeletedAddNewRepos () {
 	list<map<string,any> > ret = [];
@@ -252,225 +246,6 @@
 	map data = sourceStatesOut[selected]:$[];
 	fillRepoInfo (selected, data);
     }
-
-    boolean LicenseAccepted (integer id) {
-	Wizard::CreateDialog ();
-	boolean ret = AddOnProduct::AcceptedLicenseAndInfoFile (id);
-	UI::CloseDialog ();
-	return ret;
-    }
-
-    define symbol createSource( string url, boolean plaindir, boolean download, string preffered_name ) ``{
-	y2milestone("createSource: %1, plaindir: %2, download: %3, name: %4", url, plaindir, download, preffered_name);
-
-        if ( url != "" )
-        {
-	    // for Plaindir repository we have to use SourceCreateType() binding
-	    map parsed = URL::Parse(url);
-	    string scheme = parsed["scheme"]:"";
-
-	    if (plaindir == true)
-	    {
-		y2milestone("Using PlainDir repository type");
-	    }
-
-	    // check if SMB/CIFS share can be mounted
-	    if (scheme == "smb" && SCR::Read(.target.size, "/sbin/mount.cifs") < 0)
-	    {
-		y2milestone("SMB/CIFS share cannot be mounted, installing missing 'cifs-mount' package...");
-		// install cifs-mount package
-		PackageSystem::CheckAndInstallPackages(["cifs-mount"]);
-	    }
-
-	    list<list<string> > new_repos = Pkg::RepositoryScan(url);
-	    y2milestone("new_repos: %1", new_repos);
-
-	    // add at least one product if the scan result is empty (no product info available)
-	    if (size(new_repos) == 0)
-	    {
-		string url_path = URL::Parse(url)["path"]:"";
-		list<string> p_elems = splitstring(url_path, "/");
-		const string fallback = _("Repository");
-
-		if (size(p_elems) > 1)
-		{
-		    url_path = p_elems[size(p_elems) - 1]:fallback;
-
-		    if (url_path == nil || url_path == "" )
-		    {
-			url_path = p_elems[size(p_elems) - 2]:fallback;
-
-			if (url_path == nil || url_path == "" )
-			{
-			    url_path = fallback;
-			}
-		    }
-		}
-
-		new_repos = [ [ url_path, "/" ] ];
-	    }
-
-            list<integer> newSources = [];
-	    boolean auto_refresh = true;
-
-	    // disable autorefresh for ISO images
-	    const string iso_prefix = "iso:";
-	    if (substring(url, 0, size(iso_prefix)) == iso_prefix)
-	    {
-		y2milestone("ISO image detected, disabling autorefresh (%1)", url);
-		auto_refresh = false;
-	    }
-
-	    // CD or DVD repository?
-	    boolean cd_scheme = contains(["cd", "dvd"], tolower(URL::Parse(url)["scheme"]:""));
-	    if (cd_scheme)
-	    {
-		y2milestone("CD/DVD repository detected, disabling autorefresh (%1)", url);
-		auto_refresh = false;
-	    }
-
-	    boolean enter_again = false;
-
-	    foreach(list<string> repo, new_repos,
-		{
-		    if (enter_again)
-			continue;
-
-		    string name = repo[0]:"";
-		    if (preffered_name != nil && preffered_name != "")
-			name = preffered_name;
-		    string prod_dir = repo[1]:"/";
-
-		    // probe repository type (do not probe plaindir repo)
-		    string repo_type = (plaindir) ? plaindir_type : Pkg::RepositoryProbe(url, prod_dir);
-
-		    y2milestone("Repository type (%1,%2): %3", url, prod_dir, repo_type);
-
-		    // the probing has failed
-		    if (repo_type == nil || repo_type == "NONE")
-		    {
-			if (scheme == "dir")
-			{
-			    if (! Popup::AnyQuestion (
-				Popup::NoHeadline (),
-				// continue-back popup
-    _("There is no product information available at the given location.
-If you expected to address a product, return back and enter
-the correct location.
-To make rpm packages located at the specified location available
-in the packages selection, continue."),
-				Label::ContinueButton (),
-				Label::BackButton (),
-				`focus_no))
-			    {
-				enter_again = true;
-				continue;
-			    }
-
-			    repo_type = plaindir_type;
-			    y2warning("Probing has failed, using Plaindir repository type.");
-			}
-			else
-			{
-			    continue;
-			}
-		    }
-
-		    string alias = name;
-		    // replace " " -> "_" (avoid spaces in .repo file name)
-		    alias = mergestring(splitstring(alias, " "), "_");
-		    string alias_orig = alias;
-
-		    // all current aliases
-		    list<string> aliases = maplist(integer i, Pkg::SourceGetCurrent(false),
-			{
-			    map info = Pkg::SourceGeneralData(i);
-			    return info["alias"]:"";
-			}
-		    );
-
-		    // repository alias must be unique
-		    // if it already exists add "_<number>" suffix to it
-		    integer idx = 1;
-		    while (contains(aliases, alias))
-		    {
-			alias = sformat("%1_%2", alias_orig, idx);
-			idx = idx + 1;
-		    }
-
-		    // map with repository parameters: $[ "enabled" : boolean,
-		    // "autorefresh" : boolean, "name" : string, "alias" : string,
-		    // "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
-		    map<string,any> repo_prop = $[];
-
-		    repo_prop["enabled"] = true;
-		    repo_prop["autorefresh"] = auto_refresh;
-		    repo_prop["name"] = name;
-		    repo_prop["prod_dir"] = repo[1]:"/";
-		    repo_prop["alias"] = alias;
-		    repo_prop["base_urls"] = [ url ];
-		    repo_prop["type"] = repo_type;
-
-		    integer new_repo_id = Pkg::RepositoryAdd(repo_prop);
-		    y2milestone("Added repository: %1: %2", new_repo_id, repo_prop);
-
-		    newSources = add(newSources, new_repo_id);
-
-		    if (cd_scheme)
-		    {
-			// for CD/DVD repo download the metadata immediately,
-			// the medium is in the drive right now, it can be changed later
-			// and accidentaly added a different repository
-			y2milestone("Adding a CD or DVD repository, refreshing now...");
-			Pkg::SourceRefreshNow(new_repo_id);
-		    }
-		}
-	    );
-
-	    // broken repository or wrong URL - enter the URL again
-	    if (enter_again)
-	    {
-		Pkg::SourceReleaseAll();
-		return `again;
-	    }
-
-            if ( size( newSources ) == 0  )
-            {
-		// popup message part 1
-                string _msg1 = sformat( _("Unable to create repository
-from URL '%1'."), url );
-		// popup message part 2
-                string _msg2 = _("Try again?");
-
-                boolean tryagain = Popup::YesNo( _msg1 + "\n" + Pkg::LastError() + "\n" + _msg2 );
-                if ( tryagain ) return `again;
-                else return `cancel;
-            }
-            else
-            {
-                foreach( integer id, newSources, ``{
-		  if (! LicenseAccepted (id))
-		  {
-		    Pkg::SourceDelete (id);
-		  }
-		  else
-		  {
-		    map src_data = Pkg::SourceGeneralData (id);
-		    y2milestone("Addded repository: %1", src_data);
-
-                    map<string, any> sourceState = $[ "SrcId": id, "enabled": src_data["enabled"]:true, "autorefresh" : src_data["autorefresh"]:true, "name" : src_data["name"]:"", "do_refresh" : download ];
-                    sourceStatesOut = add( sourceStatesOut, sourceState );
-		  }
-                } );
-
-		// relese (unmount) the medium
-		Pkg::SourceReleaseAll();
-
-                return `ok;
-            }
-        }
-    }
-
 
     /**
      * Find which repositories have to be added or deleted to ZENworks.
@@ -1025,80 +800,6 @@ cannot be set."));
     y2debug( "Return: %1", input );
 
     return input;
-}
-
-symbol StoreSource () {
-    string url = SourceDialogs::GetURL ();
-    string name = SourceDialogs::GetRepoName ();
-    boolean plaindir = SourceDialogs::IsPlainDir();
-
-    // special case, bugzilla #238680
-    if (url == "slp://")
-    {
-	string required_package = "yast2-slp";
-	boolean installed_before = PackageSystem::Installed (required_package);
-
-	if (! Mode::installation () && ! installed_before) {
-	    // Tries to Check and Install packages
-	    if (
-		! PackageSystem::CheckAndInstallPackagesInteractive ([required_package]) ||
-		! PackageSystem::Installed (required_package)
-	    ) {
-		Report::Error (sformat (
-		    // popup error message, %1 is the package name
-		    _("Cannot search for SLP repositories
-without having %1 package installed"),
-		    required_package
-		));
-		y2warning ("Not searching for SLP repositories");
-		return `back;
-	    // New .slp agent has been added
-	    // FIXME: lazy loading of agents will make this obsolete
-	    } else {
-		SCR::RegisterAgent(.slp, `ag_slp(`SlpAgent()));
-	    }
-	}
-
-	string service = (string) WFM::call("select_slp_source");
-
-	if (service == nil) {
-	    y2milestone("No SLP service selected, returning back...");
-	    return `back;
-	}
-	else
-	{
-	    url = service;
-	}
-    }
-    else if (url == "commrepos://")
-    {
-	any commrepos = WFM::call ("inst_productsources", [$["skip_already_used_repos":true]]);
-	y2milestone ("Community Repositories returned: %1", commrepos);
-
-	return `next;
-    }
-
-    if (createSource(url, plaindir, download_meta, name) == `again)
-	return `back;
-    return `next;
-}
-
-symbol TypeDialog()
-{
-    SourceDialogs::SetDownloadOption(true);
-    // reset the stored URL
-    SourceDialogs::SetURL("");
-    map<string,any> td = SourceDialogs::TypeDialogDownloadOpt();
-
-    symbol ret = td["ui"]:`next;
-    download_meta = td["download"]:true;
-    return ret;
-}
-
-symbol EditDialog()
-{
-    symbol ret = SourceDialogs::EditDialog ();
-    return ret;
 }
 
 list<map<string,any> > SortReposByPriority(list<map<string,any> > repos)
