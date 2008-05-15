@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 15 16:06:22 CEST 2008 - locilka@suse.cz
+
+- Some functions from repositories.ycp were moved to a separate
+  include file to share them (bnc #368207).
+- 2.16.47
+
+-------------------------------------------------------------------
 Mon May 12 17:35:40 CEST 2008 - lslezak@suse.cz
 
 - lock 64-bit packages on PPC32 during installation (bnc#336678)

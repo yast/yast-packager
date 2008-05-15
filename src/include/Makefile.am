@@ -9,7 +9,8 @@ ynclude_DATA =			\
 	inst_source_dialogs.ycp	\
 	storage_include.ycp	\
 	load_release_notes.ycp	\
-	key_manager_dialogs.ycp
+	key_manager_dialogs.ycp	\
+	repositories_include.ycp
 
 
 EXTRA_DIST = $(ynclude_DATA) 
