@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri May 16 12:20:01 CEST 2008 - lslezak@suse.cz
+
+- Slideshow - display progress dialog when only deleteing packages
+  (bnc#391198)
+- Slideshow - set the total progress at least to 1 to avoid
+  the tick progress mode
+- 2.16.48
+
+-------------------------------------------------------------------
 Thu May 15 16:06:22 CEST 2008 - locilka@suse.cz
 
 - Some functions from repositories.ycp were moved to a separate

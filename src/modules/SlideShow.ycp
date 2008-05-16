@@ -684,7 +684,12 @@
 
 	if ( current_src_no < 1 || current_cd_no < 1 )
 	{
-	    if (!silent)
+	    // nothing to install but something is going to be deleted, so it's OK
+	    if (Pkg::IsAnyResolvable(`package, `to_remove))
+	    {
+		return true;
+	    }
+	    else if (!silent)
 	    {
 		y2error(-1, "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
 		     current_src_no, current_cd_no );
@@ -1470,6 +1475,14 @@
      **/
     term AddProgressWidgets( symbol page_id, term page_contents )
     {
+	integer progress_max_kB = total_size_to_install >> 10;
+
+	// max value cannot be 0, it means "tick" progress
+	if (progress_max_kB <= 0)
+	{
+	    progress_max_kB = 1;
+	}
+
 	term widgets =
 	    `HBox(`id( page_id ),
 		`HSpacing( 1 ),
@@ -1479,7 +1492,7 @@
 			// Progress bar for overall progress of software package installation
 			`ProgressBar(`id(`progressTotal ), GetProgressLabel(),
 				    // progress is in kB due to 32 bit UI limit
-				    total_size_to_install >> 10, TotalInstalledSize() >> 10)
+				    progress_max_kB, TotalInstalledSize() >> 10)
 			// intentionally omitting `Label(`nextMedia) -
 			// too much flicker upon update (UI::RecalcLayout() ) on NCurses
 		),
