@@ -397,7 +397,7 @@ symbol SummaryDialog () {
 							 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
 						    )
 						),
-						`HSquash(`IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 99, default_priority)),
+						`HSquash(`IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 200, default_priority)),
 						`HStretch()
 					     ),
 					     `VSpacing (0.4),
