@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 19 17:56:46 CEST 2008 - locilka@suse.cz
+
+- Fixed Community Repositories module behavior when called from
+  Add-Ons in the initial installation (bnc #392111).
+- 2.16.50
+
+-------------------------------------------------------------------
 Mon May 19 14:58:26 CEST 2008 - lslezak@suse.cz
 
 - the repository manager - allow to set priority of a repository

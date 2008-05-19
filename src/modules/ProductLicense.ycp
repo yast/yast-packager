@@ -107,9 +107,9 @@ global term GetLicenseContent (string lic_lang, map <string, string> & licenses)
 	    }
 	    term rt = `Empty();
 	    if (regexpmatch(license_text, "</.*>"))
-		rt = `RichText(`id( `welcome_text), license_text);
+		rt = `MinWidth (80, `RichText(`id( `welcome_text), license_text));
 	    else
-		rt = `RichText(`id( `welcome_text), `opt(`plainText), license_text);
+		rt = `MinWidth (80, `RichText(`id( `welcome_text), `opt(`plainText), license_text));
 
 	    return rt;
 }

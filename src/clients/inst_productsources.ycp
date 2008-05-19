@@ -1145,6 +1145,19 @@ select those you want and click <b>Finish</b>.</p>
 	    } else {
 		Wizard::SetNextButton (`next, Label::FinishButton());
 	    }
+	} else {
+	    // Next button must be always enabled
+	    // bnc #392111
+	    Wizard::RestoreNextButton();
+	    Wizard::EnableNextButton();
+	    Wizard::DisableBackButton();
+
+	    // from add-ons
+	    if (script_called_from_another) {
+		Wizard::SetAbortButton (`cancel, Label::CancelButton());
+	    } else {
+		Wizard::RestoreAbortButton ();
+	    }
 	}
 	
 	repos_already_used = $[];
@@ -1168,7 +1181,14 @@ select those you want and click <b>Finish</b>.</p>
 	    } else if (dialog_ret == `abort || dialog_ret == `cancel) {
 		dialog_ret = `abort;
 		if (Stage::initial()) {
-		    if (Popup::ConfirmAbort (`painless)) break;
+		    // from add-ons
+		    if (script_called_from_another) {
+			y2milestone ("Back to add-ons");
+			break;
+		    // from workflow
+		    } else if (Popup::ConfirmAbort (`painless)) {
+			break;
+		    }
 		} else {
 		    if (script_called_from_another) {
 			break;
