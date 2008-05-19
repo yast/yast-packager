@@ -387,8 +387,8 @@ global map Summary (list<symbol> flags, boolean use_cache) {
     }
     else
     {
-	// check available free space (less than 5% and less than 1GB)
-	list<map> free_space = SpaceCalculation::CheckDiskFreeSpace(5, 1024*1024);
+	// check available free space (less than 25% and less than 750MB) (see bnc#178357)
+	list<map> free_space = SpaceCalculation::CheckDiskFreeSpace(25, 750*1024);
 
 	if (size(free_space) > 0)
 	{
