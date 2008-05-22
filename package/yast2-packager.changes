@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 22 14:54:42 CEST 2008 - locilka@suse.cz
+
+- Creating backup of files in /etc/ owned by pam package
+  before installation-upgrade starts (bnc #393066).
+- 2.16.51
+
+-------------------------------------------------------------------
 Thu May 22 10:06:26 CEST 2008 - lslezak@suse.cz
 
 - do not load repositories from the target system in repair mode
