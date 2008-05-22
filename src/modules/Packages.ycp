@@ -1279,7 +1279,7 @@ global void Initialize(boolean show_popup) {
 
     Initialize_BaseInit (show_popup, base_url, log_url);
 
-    theSources = Pkg::SourceStartCache (true); // dummy in 1st stage
+    theSources = Stage::initial() ? [] : Pkg::SourceStartCache (true); // dummy in 1st stage
 
     boolean again = true;
 
