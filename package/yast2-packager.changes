@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 22 10:06:26 CEST 2008 - lslezak@suse.cz
+
+- do not load repositories from the target system in repair mode
+  (bnc#392508)
+
+-------------------------------------------------------------------
 Mon May 19 17:56:46 CEST 2008 - locilka@suse.cz
 
 - Fixed Community Repositories module behavior when called from
