@@ -99,7 +99,7 @@ void XenPVToInitrd()
     /**
      *  Handle the backup.
      */
-    define void backup_stuff () ``{
+    define void backup_stuff () {
 
 	if (Installation::update_backup_modified)
 	{
@@ -114,17 +114,20 @@ void XenPVToInitrd()
 	    SCR::Execute (.target.remove, Installation::destdir + "/var/lib/YaST2/backup_path");
 	}
 
+	// Removing all old backups
 	if (Installation::update_remove_old_backups)
 	{
+	    y2milestone ("Removing old backups *-*-*.tar.{gz,bz2} from %1", Installation::update_backup_path);
 	    SCR::Execute (.target.bash, "cd '" + String::Quote (Installation::destdir) + "'; " +
 			    "/bin/rm -f " + Installation::update_backup_path + "/*-*-*.tar.{gz,bz2}");
 	}
 
+	// timestamp
+	string date = timestring ("%Y%m%d", time(), false);
+
 	if (true)
 	{
-	    string date = timestring ("%Y%m%d", time(), false);
-
-	    y2milestone ("backup of " + Directory::logdir);
+	    y2milestone ("Creating backup of %1", Directory::logdir);
 
 	    string filename = "";
 	    integer num = 0;
@@ -155,8 +158,7 @@ void XenPVToInitrd()
 
 	if (Installation::update_backup_sysconfig)
 	{
-	    string date = timestring ("%Y%m%d", time(), false);
-
+	    // backup /etc/sysconfig
 	    if (SCR::Read (.target.size, Installation::destdir + "/etc/sysconfig") > 0)
 	    {
 		y2milestone ("backup of /etc/sysconfig");
@@ -182,6 +184,7 @@ void XenPVToInitrd()
 					   "/etc/sysconfig", Directory::logdir + "/y2log"));
 		}
 	    }
+	    // backup of /etc/rc.config*
 	    else if (SCR::Read (.target.size, Installation::destdir + "/etc/rc.config") > 0 &&
 		     SCR::Read (.target.size, Installation::destdir + "/etc/rc.config.d") > 0)
 	    {
@@ -208,6 +211,42 @@ void XenPVToInitrd()
 		    Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
 					   "/etc/rc.config", Directory::logdir + "/y2log"));
 		}
+	    }
+	}
+
+	// Backup /etc/pam.d/ unconditionally
+	// bnc #393066
+	if (Mode::update()) {
+	    string filename = "";
+	    integer num = 0;
+
+	    while (num < 42) {
+		filename = Installation::update_backup_path + "/etc.pam.d-" + date + "-" + sformat ("%1", num) + ".tar.gz";
+
+		// avoid from filename conflicts
+		if (! FileUtils::Exists (Installation::destdir + filename))
+		    break;
+		num = num + 1;
+	    }
+
+	    string what_to_backup = "etc/pam.d etc/security etc/securetty etc/environment";
+
+	    // enters the Installation::destdir
+	    // and creates backup of etc/pam.d directory in Installation::update_backup_path
+	    string cmd = sformat (
+		"cd '%1'; /bin/tar --ignore-failed-read -czf '.%2' %3",
+		String::Quote (Installation::destdir),
+		String::Quote (filename),
+		what_to_backup
+	    );
+
+	    y2milestone ("Creating backup of %1 in %2", what_to_backup, Installation::destdir + filename);
+
+	    if (SCR::Execute (.target.bash, cmd) != 0) {
+		y2error ("backup command failed: %1", cmd);
+		// an error popup
+		Popup::Error (sformat (_("Backup of %1 failed. See %2 for details."),
+		    "/etc/pam.d", Directory::logdir + "/y2log"));
 	    }
 	}
     }
@@ -354,7 +393,7 @@ void XenPVToInitrd()
 
         } else {
 	    // See bnc #381227
-	    // files might have been copied alredy from image
+	    // files might have been copied already from image
 	    foreach (string filename, ["/etc/passwd", "/etc/group"], {
 		string filename_copy_to = sformat ("%1/%2", Installation::destdir, filename);
 
