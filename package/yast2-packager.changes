@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 23 15:28:19 CEST 2008 - lslezak@suse.cz
+
+- reserve more space for the table in the repository manager,
+  esp. needed in the GTK UI (bnc#392807)
+- 2.16.52
+
+-------------------------------------------------------------------
 Thu May 22 14:54:42 CEST 2008 - locilka@suse.cz
 
 - Creating backup of files in /etc/ owned by pam package
