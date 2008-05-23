@@ -366,6 +366,7 @@ symbol SummaryDialog () {
     term contents =
         `VBox(
 	      `HBox(
+		    `VSpacing(9),
 		    `Table(`id(`table),`opt(`notify, `immediate),
 			    `header(
 				// table header - priority of the repository - keep the translation as short as possible!
