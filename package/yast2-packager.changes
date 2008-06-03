@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun  3 15:09:36 CEST 2008 - lslezak@suse.cz
+
+- Display the error message properly in the media change popup.
+  (bnc#395328)
+- 2.16.53
+
+-------------------------------------------------------------------
 Fri May 23 15:28:19 CEST 2008 - lslezak@suse.cz
 
 - reserve more space for the table in the repository manager,
