@@ -511,7 +511,7 @@
 	    SlideShow::StopTimer();
 	}
 
-	string ret = PackageCallbacks::MediaChange(error_code, error_code, url, product, current, current_label, wanted,
+	string ret = PackageCallbacks::MediaChange(error_code, error, url, product, current, current_label, wanted,
 	    wanted_label, double_sided, devices, current_device);
 
 	if (!Mode::normal ())
