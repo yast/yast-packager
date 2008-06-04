@@ -1220,7 +1220,10 @@ void ServerStoreParts()
     else if (type != `ftp)
     // FTP needs to distinguish absolute and relative path
     {
-	directory = Slashed (directory);
+	// do not add the slash if host and directory is empty
+	// (avoid e.g. http:// -> http:/// when switching from the parts to the complete view)
+	if (host != "" || directory != "")
+	    directory = Slashed (directory);
     }
     if (UI::WidgetExists (`id (`workgroup)))
     {
@@ -1251,6 +1254,10 @@ void ServerStoreComplete()
 {
     _url = (string)UI::QueryWidget(`id(`complete_url), `Value);
 }
+
+// use selected editing URL part, remember the value in case the URL is wrong
+// and the dialog needs to displayed again
+boolean editing_parts = true;
 
 /**
  * Handle function of a widget
@@ -1377,6 +1384,8 @@ symbol ServerHandle (string key, map event) {
 	    ServerStoreParts();
 	}
 
+	editing_parts  = (id == `edit_url_parts);
+
 	// reinitialize the dialog (set the current values)
 	ServerInit(nil);
     }
@@ -1387,9 +1396,12 @@ symbol ServerHandle (string key, map event) {
  * @param key string widget key
  */
 void ServerInit (string key) {
-
     // check the current edit type
-    symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
+    symbol current_type = editing_parts ? `edit_url_parts : `edit_complete_url;
+
+    // set the stored value
+    UI::ChangeWidget(`id(`edit_type), `Value, current_type);
+
     y2debug("Current edit type: %1", current_type);
 
     UI::ReplaceWidget(`id(`edit_content), (current_type == `edit_url_parts) ? details_content : complete_content);
@@ -1522,7 +1534,9 @@ void ServerStore (string key, map event) {
     symbol current_type = (symbol)UI::QueryWidget(`id(`edit_type), `Value);
     y2debug("Current edit type: %1", current_type);
 
-    if (current_type == `edit_url_parts)
+    editing_parts = (current_type == `edit_url_parts);
+
+    if (editing_parts)
     {
 	ServerStoreParts();
     }
@@ -1531,7 +1545,6 @@ void ServerStore (string key, map event) {
 	ServerStoreComplete();
     }
 }
-
 
 /**
  * Get widget description map
@@ -1543,9 +1556,9 @@ map<string,any> ServerWidget () {
 	"custom_widget" : `VBox (
 	    `RadioButtonGroup (`id (`edit_type),
 		`HBox (
-		    `RadioButton(`id(`edit_url_parts), `opt(`notify), _("Edit Parts of the URL"), true),
+		    `RadioButton(`id(`edit_url_parts), `opt(`notify), _("Edit Parts of the URL"), editing_parts),
 		    `HSpacing(2),
-		    `RadioButton(`id(`edit_complete_url), `opt(`notify), _("Edit Complete URL"))
+		    `RadioButton(`id(`edit_complete_url), `opt(`notify), _("Edit Complete URL"), !editing_parts)
 		)
 	    ),
 	    `VSpacing(0.3),
@@ -1782,7 +1795,7 @@ void SelectStore (string key, map event) {
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
 
     if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd, `usb, `hd,
-	`local_dir, `specify__url, `slp, `local_iso, `comm_repos], selected))
+	`local_dir, `specify_url, `slp, `local_iso, `comm_repos], selected))
     {
 	if ( selected == `ftp ) _url = "ftp://";
 	else if ( selected == `http ) _url = "http://";
@@ -2030,8 +2043,8 @@ global string EditPopupNoHTTPS (string url) {
  * Sample implementation of URL selection dialog
  * @return symbol for wizard sequencer
  */
-global symbol EditDialog () {
-    string proto = URLScheme (_url);
+global symbol EditDialogProtocol(string proto)
+{
     y2milestone ("Displaying dialog for protocol %1", proto);
     string caption = _caption[proto]:"";
 
@@ -2044,6 +2057,15 @@ global symbol EditDialog () {
 	"next_button" : Label::NextButton (),
 	"fallback_functions" : $[]
     ]);
+}
+/**
+ * Sample implementation of URL selection dialog
+ * @return symbol for wizard sequencer
+ */
+global symbol EditDialog () {
+    string proto = URLScheme (_url);
+
+    return EditDialogProtocol(proto);
 }
 
 /**

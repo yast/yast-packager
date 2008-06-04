@@ -2,6 +2,8 @@
 Wed Jun  4 17:26:06 CEST 2008 - lslezak@suse.cz
 
 - use PackageLock::Connect() - display [Abort] button (bnc#293356)
+- fixed editing of an invalid repository URL (bnc#386384),
+  set the selected repository type when going back
 
 -------------------------------------------------------------------
 Wed Jun  4 13:19:01 CEST 2008 - lslezak@suse.cz

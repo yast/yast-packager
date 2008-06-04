@@ -248,6 +248,11 @@ from URL '%1'."), url );
                 return `ok;
             }
         }
+	else
+	{
+	    y2error(-1, "Empty URL! Backtrace:");
+	    return `again;
+	}
     }
 
 symbol StoreSource () {
@@ -306,16 +311,22 @@ without having %1 package installed"),
     return `next;
 }
 
-symbol TypeDialog()
+symbol TypeDialogOpts(boolean download, string url)
 {
-    SourceDialogs::SetDownloadOption(true);
-    // reset the stored URL
-    SourceDialogs::SetURL("");
+    SourceDialogs::SetDownloadOption(download);
+    SourceDialogs::SetURL(url);
+
     map<string,any> td = SourceDialogs::TypeDialogDownloadOpt();
 
     symbol ret = td["ui"]:`next;
     download_meta = td["download"]:true;
     return ret;
+}
+
+symbol TypeDialog()
+{
+    // download metadata, reset the stored URL
+    return TypeDialogOpts(true, "");
 }
 
 symbol EditDialog()

@@ -814,7 +814,61 @@ list<map<string,any> > SortReposByPriority(list<map<string,any> > repos)
     // sort the maps by "repos" key (in ascending order)
     list<map<string,any> > ret = sort(map<string,any> repo1, map<string,any> repo2, repos, {return repo1["priority"]:default_priority < repo2["priority"]:default_priority;});
 
-    y2internal("SortReposByPriority: %1 -> %2", repos, ret);
+    y2milestone("SortReposByPriority: %1 -> %2", repos, ret);
+
+    return ret;
+}
+
+// remember the original selected URL scheme
+string selected_url_scheme = "";
+
+symbol StartTypeDialog()
+{
+    string seturl = selected_url_scheme;
+
+    if (seturl != nil && seturl != "")
+    {
+	seturl = selected_url_scheme + "://";
+    }
+
+    symbol ret = TypeDialogOpts(true, seturl);
+
+    if (ret == `back)
+    {
+	selected_url_scheme = "";
+    }
+    else
+    {
+	selected_url_scheme = URL::Parse(SourceDialogs::GetURL())["scheme"]:"";
+	y2milestone("Selected URL scheme: %1", selected_url_scheme);
+
+	if (selected_url_scheme == nil || selected_url_scheme == "")
+	{
+	    selected_url_scheme = "url";
+	}
+    }
+
+    return ret;
+}
+
+symbol StartEditDialog()
+{
+    y2milestone("Edit URL with protocol %1", selected_url_scheme);
+    symbol ret = SourceDialogs::EditDialogProtocol(selected_url_scheme);
+    y2milestone("Result: %1", ret);
+
+    return ret;
+}
+
+symbol StartStoreSource()
+{
+    symbol ret = StoreSource();
+
+    if (ret == `next || ret == `abort || ret == `close)
+    {
+	y2milestone("Resetting selected URL scheme");
+	selected_url_scheme = "";
+    }
 
     return ret;
 }
@@ -872,9 +926,9 @@ symbol StartInstSource()
 
     map<string,any> aliases = $[
 	"summary" : ``(SummaryDialog ()),
-	"type" : ``(TypeDialog()),
-	"edit" : ``(EditDialog ()),
-	"store" : ``(StoreSource ()),
+	"type" : ``(StartTypeDialog()),
+	"edit" : ``(StartEditDialog ()),
+	"store" : ``(StartStoreSource ()),
 	"keymgr" : [``(RunGPGKeyMgmt(false)), true]
     ];
 
@@ -922,7 +976,7 @@ map cmdline_description = $[
 
 if (WFM::Args() == [ `sw_single_mode ])
 {
-    y2internal("Started from sw_single, switching the mode");
+    y2milestone("Started from sw_single, switching the mode");
 
     full_mode = true;
     any ret = StartInstSource();
