@@ -1259,27 +1259,10 @@ global void Initialize_StageNonInitial (boolean show_popup, string base_url, str
 	    }
 }
 
-// lock packages if needed
+// lock some packages if needed
 void LockPackages()
 {
-    // lock 64-bit packages on PPC32 (bnc#336678)
-    if (Arch::ppc32())
-    {
-	y2milestone("PPC32 detected, locking 64-bit packages...");
-
-	map<string,any> lock =
-	 $[
-	    "solvable:name" : [ "64bit" ]
-	 ];
-
-	y2milestone("added lock %1: %2", lock, Pkg::AddLock(lock));
-
-	lock =
-	 $[
-	    "solvable:name" : [ "ppc64" ]
-	 ];
-	y2milestone("added lock %1: %2", lock, Pkg::AddLock(lock));
-    }
+    // currently there is no need to lock any package...
 }
 
 /**
