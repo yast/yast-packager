@@ -26,14 +26,10 @@ include "packager/key_manager_dialogs.ycp";
 
 symbol Read()
 {
-    // TODO: the check dialog contains only [Continue] [Retry] buttons
-    // there is no [Abort] (#293356)
-    if (!PackageLock::Check())
+    if (!PackageLock::Connect(false)["connected"]:false)
     {
-	// error message - SW management is already in use, access denied
+	// SW management is already in use, access denied
 	// the yast module cannot be started
-	Report::Error(_("The GPG key management module cannot work
-without access to the software management system."));
 	Wizard::CloseDialog ();
 	return `abort;
     }

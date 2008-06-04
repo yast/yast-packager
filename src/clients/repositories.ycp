@@ -835,7 +835,7 @@ symbol StartInstSource()
     }
 
    // check whether running as root
-   if (! Confirm::MustBeRoot () || ! PackageLock::Check ())
+   if (! Confirm::MustBeRoot () || !PackageLock::Connect(false)["connected"]:false)
    {
 	UI::CloseDialog ();
 	return `abort;

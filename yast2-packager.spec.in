@@ -4,8 +4,8 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
 
-# empty package callbacks
-BuildRequires:	yast2 >= 2.16.52
+# PackageLock::Connect()
+BuildRequires:	yast2 >= 2.16.72
 
 # "order" flag for pattern resolvables
 BuildRequires:	yast2-pkg-bindings >= 2.16.31
@@ -20,8 +20,8 @@ Requires:	yast2-installation >= 2.15.12
 # "order" flag for pattern resolvables
 Requires:	yast2-pkg-bindings >= 2.16.31
 
-# empty package callbacks
-Requires:	yast2 >= 2.16.52
+# PackageLock::Connect()
+Requires:	yast2 >= 2.16.72
 
 # unzipping license file
 Requires:	unzip
