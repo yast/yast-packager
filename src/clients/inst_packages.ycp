@@ -21,6 +21,8 @@
      **/
     symbol detailedSelection( symbol mode )
     {
+	y2milestone("Running detailed selection, mode: %1", mode);
+
 	Pkg::SaveState();
 
 	// Open empty dialog for instant feedback
@@ -59,6 +61,8 @@
      **/
     symbol patternSelection()
     {
+	y2milestone("Running pattern selection dialog");
+
 	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
 	     UI::WizardCommand(`Ping() ) != true	 )
 	{
@@ -135,23 +139,47 @@
 
     symbol result = `cancel;
 
-    // if ( Mode::normal() )	// DEBUG
-    if ( Stage::initial() )
+    // installation or update from a running system (there is a "Pattern Selection" button) (#229951)
+    if (size(WFM::Args()) == 0 && (Stage::initial() || (Stage::normal() && Mode::update())))
     {
 	result = patternSelection();
     }
     else
     {
-        if ( size( WFM::Args() ) > 0 && is( WFM::Args(0), symbol ) )
+        if ( size( WFM::Args() ) > 0 && is( WFM::Args(0), map ) )
 	{
-	    symbol mode = (symbol) WFM::Args(0);
-	    y2milestone( "inst_packages called with: %1" , mode );
+	    y2milestone("inst_packages called with options: %1", WFM::Args());
 
-	    result = detailedSelection( mode );
+	    symbol mode = nil;
+
+	    // the options may be passed in a map or in a list
+	    if (is(WFM::Args(0), map))
+	    {
+		map opts = (map) WFM::Args(0);
+		mode = opts["dialog_type"]:`searchMode;
+	    }
+	    else if (is(WFM::Args(0), symbol))
+	    {
+		mode = (symbol)WFM::Args(0);
+	    }
+
+	    if (mode == nil)
+	    {
+		mode = `searchMode;
+	    }
+
+	    if (mode == `patternSelector || mode == `pattern)
+	    {
+		result = patternSelection();
+	    }
+	    else
+	    {
+		result = detailedSelection(mode);
+	    }
 	}
 	else
 	{
-	    result = detailedSelection( `searchMode );
+	    result = detailedSelection(`searchMode);
 	}
     }
 

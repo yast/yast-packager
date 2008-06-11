@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 11 09:59:53 CEST 2008 - lslezak@suse.cz
+
+- added options for sw_single client, display proper workflow for
+  add-ons (bnc#377154)
+
+-------------------------------------------------------------------
 Tue Jan 15 14:41:10 CET 2008 - lslezak@suse.cz
 
 - merged proofread texts (proofed-2008-01-14)
