@@ -8,6 +8,13 @@
  *	"Install/Remove software"
  *
  * $Id$
+ *
+ * Note: sw_single accepts a map parameter: $[ "dialog_type" : symbol,
+ *   "repo_mgmt" : boolean ]
+ *
+ * "dialog_type" can be `patternSelector, `searchMode, `summaryMode
+ * "repo_mgmt" enables "Repositories" -> "Repository Manager..." menu option
+ * "ask_again" ask again after installing/removing a package
  */
 
 {
@@ -306,6 +313,76 @@ Only installed packages are displayed."));
        return !max_is_installed;
    }
 
+    // ask again after installing/removing a package?
+    boolean ask_again = true;
+
+    void SetAskOption()
+    {
+	foreach(any a, WFM::Args(),
+	    {
+		if (is(a, map))
+		{
+		    map m = (map)a;
+		    if (haskey(m, "ask_again"))
+		    {
+			ask_again = m["ask_again"]:true;
+		    }
+		}
+	    }
+	);
+
+	if (ask_again == nil)
+	{
+	    ask_again = true;
+	}
+
+	y2milestone("Ask after installing/removing: %1", ask_again);
+    }
+
+    map GetPackagerOptions()
+    {
+	// defaults
+	symbol mode = nil;
+	boolean repo_management = nil;
+
+	y2milestone("Args: %1", WFM::Args());
+
+	foreach(any a, WFM::Args(),
+	    {
+		if (is(a, map))
+		{
+		    map m = (map)a;
+
+		    if (haskey(m, "dialog_type"))
+		    {
+			mode = m["dialog_type"]:`searchMode;
+		    }
+
+		    if (haskey(m, "repo_mgmt"))
+		    {
+			repo_management = m["repo_mgmt"]:false;
+		    }
+		}
+	    }
+	);
+
+	// use default parameters for missing or invalid values
+	if (mode == nil)
+	{
+	    mode = `searchMode;
+	}
+	if (repo_management == nil)
+	{
+	    repo_management = Mode::normal();
+	}
+
+	map ret = $[ "dialog_type" : mode, "repo_mgmt" : repo_management ];
+
+	y2milestone("inst_packages config: %1", ret);
+
+	return ret;
+   }
+
    // =============================================================
 
 
@@ -379,15 +456,21 @@ Install them now?
 	       // names of taboo packages
 	       list<string> taboo_packages = Pkg::GetPackages(`taboo, true);
 
-	       result = (symbol)WFM::CallFunction( "inst_packages", [`searchMode, `repoMgr]);	// No: ask user via package selection widget
+		map opts = GetPackagerOptions();
+		y2milestone("Using packager widget options: %1", opts);
+
+		// set ask_again variable
+		SetAskOption();
+
+	       result = (symbol)WFM::CallFunction( "inst_packages", [opts]);	// No: ask user via package selection widget
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 	       {
 		   result = `next;
 		   // ask only when there is something to install/remove
 		   // or when taboo package has been changed
-		   ask = Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove)
-			|| Pkg::GetPackages(`taboo, true) != taboo_packages;
+		   ask = ask_again && (Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove)
+			|| Pkg::GetPackages(`taboo, true) != taboo_packages);
 		   y2milestone("Ask to restart the package selector: %1", ask);
 	       }
 	       // start the repository manager

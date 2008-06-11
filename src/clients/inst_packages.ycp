@@ -24,6 +24,8 @@
      **/
     symbol detailedSelection( symbol mode, boolean enable_repo_mgr )
     {
+	y2milestone("Running detailed selection, mode: %1, display repo management: %2", mode, enable_repo_mgr);
+
 	// Open an empty dialog for immediate feedback
 	UI::OpenDialog(`opt(`defaultsize),
 		       `ReplacePoint(`id( `rep),
@@ -61,6 +63,8 @@
      **/
     symbol patternSelection()
     {
+	y2milestone("Running pattern selection dialog");
+
 	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
 	     UI::WizardCommand(`Ping() ) != true	 )
 	{
@@ -147,29 +151,58 @@
     y2milestone("Stage: %1, Mode: %2, Args: %3", Stage::stage(), Mode::mode(), WFM::Args());
 
     // installation or update from a running system (there is a "Pattern Selection" button) (#229951)
-    if ( Stage::initial() || (Stage::normal() && Mode::update()))
+    if (size(WFM::Args()) == 0 && (Stage::initial() || (Stage::normal() && Mode::update())))
     {
 	result = patternSelection();
     }
     else
     {
-        if ( size( WFM::Args() ) > 0 && is( WFM::Args(0), symbol ) )
+        if ( size( WFM::Args() ) > 0 && is( WFM::Args(0), map ) )
 	{
-	    symbol mode = (symbol) WFM::Args(0);
-	    y2milestone( "inst_packages called with: %1" , mode );
+	    y2milestone("inst_packages called with options: %1", WFM::Args());
 
-	    boolean repo_mgr = false;
+	    symbol mode = nil;
+	    boolean repo_mgr = nil;
 
-	    if (size(WFM::Args()) > 1 && is( WFM::Args(1), symbol))
+	    // the options may be passed in a map or in a list
+	    if (is(WFM::Args(0), map))
 	    {
-		repo_mgr = WFM::Args(1) == `repoMgr;
+		map opts = (map) WFM::Args(0);
+		mode = opts["dialog_type"]:`searchMode;
+		repo_mgr = opts["repo_mgr"]:false;
+	    }
+	    else if (is(WFM::Args(0), symbol))
+	    {
+		mode = (symbol)WFM::Args(0);
+
+		if (is(WFM::Args(1), symbol))
+		{
+		    repo_mgr = WFM::Args(1) == `repoMgr;
+		}
 	    }
 
-	    result = detailedSelection( mode , repo_mgr );
+	    if (mode == nil)
+	    {
+		mode = `searchMode;
+	    }
+
+	    if (repo_mgr == nil)
+	    {
+		repo_mgr = Mode::normal();
+	    }
+
+	    if (mode == `patternSelector || mode == `pattern)
+	    {
+		result = patternSelection();
+	    }
+	    else
+	    {
+		result = detailedSelection(mode , repo_mgr);
+	    }
 	}
 	else
 	{
-	    result = detailedSelection( `searchMode, false );
+	    result = detailedSelection(`searchMode, false);
 	}
     }
 

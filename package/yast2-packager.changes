@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 11 10:24:54 CEST 2008 - lslezak@suse.cz
+
+- added options for sw_single client, display proper workflow for
+  add-ons (bnc#377154)
+
+-------------------------------------------------------------------
 Wed Jun  4 17:26:06 CEST 2008 - lslezak@suse.cz
 
 - use PackageLock::Connect() - display [Abort] button (bnc#293356)
