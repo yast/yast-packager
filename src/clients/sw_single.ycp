@@ -8,6 +8,12 @@
  *	"Install/Remove software"
  *
  * $Id$
+ *
+ * Note: sw_single accepts a map parameter: $[ "dialog_type" : symbol,
+ *   "repo_mgmt" : boolean ]
+ *
+ * "dialog_type" can be `patternSelector, `searchMode, `summaryMode
+ * "ask_again" ask again after installing/removing a package
  */
 
 {
@@ -265,6 +271,65 @@ Only installed packages are displayed."));
        return !max_is_installed;
    }
 
+    // ask again after installing/removing a package?
+    boolean ask_again = true;
+
+    void SetAskOption()
+    {
+	foreach(any a, WFM::Args(),
+	    {
+		if (is(a, map))
+		{
+		    map m = (map)a;
+		    if (haskey(m, "ask_again"))
+		    {
+			ask_again = m["ask_again"]:true;
+		    }
+		}
+	    }
+	);
+
+	if (ask_again == nil)
+	{
+	    ask_again = true;
+	}
+
+	y2milestone("Ask after installing/removing: %1", ask_again);
+    }
+
+    map GetPackagerOptions()
+    {
+	// defaults
+	symbol mode = nil;
+
+	y2milestone("WFM::Args: %1", WFM::Args());
+
+	foreach(any a, WFM::Args(),
+	    {
+		if (is(a, map))
+		{
+		    map m = (map)a;
+
+		    if (haskey(m, "dialog_type"))
+		    {
+			mode = m["dialog_type"]:`searchMode;
+		    }
+		}
+	    }
+	);
+
+	// use default parameters for missing or invalid values
+	if (mode == nil)
+	{
+	    mode = `searchMode;
+	}
+	map ret = $[ "dialog_type" : mode ];
+
+	y2milestone("inst_packages options: %1", ret);
+
+	return ret;
+   }
+
    // =============================================================
 
 
@@ -323,13 +388,19 @@ Install them now?
        {
 	   if (size (packagelist) == 0)			// packages given ?
 	   {
-	       result = (symbol)WFM::CallFunction( "inst_packages", []);	// No: ask user via package selection widget
+		map opts = GetPackagerOptions();
+
+		// set ask_again variable
+		SetAskOption();
+
+	       result = (symbol)WFM::CallFunction( "inst_packages", [opts]);	// No: ask user via package selection widget
+
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 	       {
 		   result = `next;
 		   // ask only when there is something to install/remove
-		   ask = Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove);
+		   ask = ask_again && (Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove));
 		   y2milestone("Ask to restart the package selector: %1", ask);
 	       }
 	       else
