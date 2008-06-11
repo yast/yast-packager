@@ -37,6 +37,7 @@ import "Directory";
 import "String";
 import "WorkflowManager";
 import "URL";
+import "Mode";
 
 // variables for installation with product
 /**
@@ -279,9 +280,41 @@ global boolean AcceptedLicenseAndInfoFile (integer src_id) {
     return true;
 }
 
+boolean AnyPatternInRepo()
+{
+    list<map> patterns = Pkg::ResolvableProperties("", `pattern, "");
+
+    y2milestone("Total number of patterns: %1", size(patterns));
+
+    patterns = filter(map pat, patterns,
+	{
+	    return (pat["source"]:nil == src_id);
+	}
+    );
+
+    y2milestone("Found %1 add-on patterns", size(patterns));
+    y2debug("Found add-on patterns: %1", patterns);
+
+    return size(patterns) > 0;
+}
+
 symbol DoInstall_NoControlFile () {
     y2milestone("File /installation.xml not found, running sw_single for this repository");
-    WFM::CallFunction ("sw_single", []);
+
+    // display pattern the dialog when there is a pattern provided by the addon
+    // otherwise use search mode
+    symbol mode = AnyPatternInRepo() ? `patternSelector : `searchMode;
+    // enable repository management if not in installation mode
+    boolean enable_repo_management = Mode::normal();
+
+    map args = $[ "dialog_type" : mode, "repo_mgmt" : enable_repo_management, "ask_again" : false ];
+    y2milestone("Arguments for sw_single: %1", args);
+
+    any ret = WFM::CallFunction ("sw_single", [args]);
+    y2milestone("sw_single returned: %1", ret);
+
+    if (ret == `abort || ret == `cancel || ret == `close)
+	return `abort;
 
     return `register;
 }
@@ -530,7 +563,9 @@ global symbol DoInstall() {
 	ret = DoInstall_WithControlFile (control);
     }
 
-    if (ret != nil) {
+    y2milestone("Result of the add-on installation: %1", ret);
+
+    if (ret != nil && ret != `abort) {
 	// registers Add-On product if requested
 	RegisterAddOnProduct (src_id);
     }
@@ -552,6 +587,10 @@ global symbol DoInstall() {
 map <integer, list <string> > patterns_preselected_by_addon = $[];
 
 boolean SelectProductPatterns (string content_file, integer src_id) {
+
+    // TODO FIXME: really needed?
+    // Installing the product from the resitory should do the same!
+
     string cmd = sformat (
 	"grep '^PATTERNS[\t ]\+' '%1' | sed 's/^PATTERNS[\t ]\+//'",
 	String::Quote (content_file)
