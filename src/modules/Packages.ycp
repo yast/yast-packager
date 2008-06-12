@@ -284,6 +284,37 @@ global string InfoAboutSubOptimalDistribution () {
     return "";
 }
 
+string SummaryHelp(list<symbol> flags)
+{
+    string ret = "";
+
+    if (contains(flags, `pattern))
+    {
+	// help text for software proposal
+	ret = ret + _("<P>The pattern list states which functionality will be available after installing the system.</P>");
+    }
+
+    if (contains(flags, `size))
+    {
+	ret = ret +
+	// (see bnc#178357 why these numbers)
+	// translators: help text for software proposal
+	_("<P>The propsal contains total size of files which will be installed to the system. However, the system will contain some other files (temporary and working files) so the used space will be slighltly larger than the proposed value. Therefore it is a good idea to have at least 25% (or 300MB) free space before starting the installation.</P>") +
+	// help text for software proposal
+	_("<P>The total size to download is size of packages which will be downloaded from remote (network) repositories. This value is important when the connection is slow or when there is a data limit for downloading.</P>");
+
+    }
+
+    // add a header if the result is not empty
+    if (ret != "")
+    {
+	// help text for software proposal - header
+	ret = _("<P><B>Software Proposal</B></P>") + ret;
+    }
+
+    return ret;
+}
+
 /**
  * Return the summary output lines
  * @param flags a list of flags, allowed are `product, `pattern, `selection,
@@ -331,7 +362,7 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	    output = (list<string>)add (output,
 		// installation proposal - SW summary, %1 is download size of the selected packages
 		// which will be installed from an ftp or http repository (in MB or GB)
-		sformat (_("Size of Packages to Download: %1"),
+		sformat (_("Downloading from Remote Repositories: %1"),
 		    String::FormatSizeWithPrecision(download_size, 1, true))
 	    );
 	}
@@ -422,6 +453,7 @@ global map Summary (list<symbol> flags, boolean use_cache) {
     }
 
     ret["raw_proposal"] = SummaryOutput (flags);
+    ret["help"] = SummaryHelp(flags);
     return ret;
 }
 

@@ -487,7 +487,7 @@ to also perform the changes in that package management system.</p>
 
     // help text, continued
     help_text = help_text + _("<P><B>Priority of a Repository</B><BR>
-Priority of a repository is an integer value between 0 (the highest priority) and 99 (the lowest priority). Default priority is 99. If a package is available in more repositories the repository with the highest priority is used.</P>");
+Priority of a repository is an integer value between 0 (the highest priority) and 200 (the lowest priority). Default priority is 99. If a package is available in more repositories the repository with the highest priority is used.</P>");
 
     if (full_mode)
     {
