@@ -289,74 +289,84 @@
 
 	    foreach( map part, part_info,
 		     ``{
-		integer free_size = 0;
+		symbol used_fs = part["used_fs"]:`unknown;
 
-		if (part["mount"]:nil != nil
-		    && substring( part["mount"]:"", 0, 1 ) == "/" )
+		// ignore VFAT and NTFS partitions (bnc#)
+		if (used_fs == `vfat || used_fs == `ntfs)
 		{
-		    if (part["create"]:nil == true
-			|| part["delete"]:nil == false
-			|| (part["create"]:nil == nil
-			    && part["delete"]:nil == nil ) )
+		    y2warning("Ignoring partition %1 with %2 filesystem", part["device"]:"", used_fs);
+		}
+		else
+		{
+		    integer free_size = 0;
+
+		    if (part["mount"]:nil != nil
+			&& substring( part["mount"]:"", 0, 1 ) == "/" )
 		    {
-			y2debug( "get_partition_info: adding partition: %1", part );
-
-			// get free_size on partition in kBytes
-			free_size = part["size_k"]:0 * 1024;
-			free_size = free_size - min_spare;
-
-			integer used = 0;
-			if (! (part["create"]:false || part["format"]:false))
+			if (part["create"]:nil == true
+			    || part["delete"]:nil == false
+			    || (part["create"]:nil == nil
+				&& part["delete"]:nil == nil ) )
 			{
-			    string tmpdir = (string)SCR::Read (.target.tmpdir);
-			    tmpdir = tmpdir + "/diskspace_mount";
-			    SCR::Execute (.target.bash, sformat (
-				"test -d %1 || mkdir -p %1", tmpdir));
-			    SCR::Execute (.target.bash, sformat (
-				"/bin/mount -o ro %1 %2",
-				part["device"]:"", tmpdir));
-			    list<map<string,string> > partition =
-				(list<map<string, string> >)
-				SCR::Read(.run.df);
-			    foreach (map p, partition, {
-				if (p["name"]:"" == tmpdir)
-				{
-				    y2internal ("P: %1", p);
-				    free_size = tointeger (p["free"]:"0")
-					* 1024;
-				    used = tointeger (p["used"]:"0") * 1024;
-				}
-			    });
-			    SCR::Execute (.target.bash, sformat (
-				"/bin/umount %1", tmpdir));
-			}
+			    y2debug( "get_partition_info: adding partition: %1", part );
 
-			// convert into kB for TargetInitDU
-			free_size = free_size / 1024;
-			used = used / 1024;
+			    // get free_size on partition in kBytes
+			    free_size = part["size_k"]:0 * 1024;
+			    free_size = free_size - min_spare;
 
-			y2milestone ("available partition: mount: %1, free: %2 KB, used: %3 KB", part["mount"]:"", free_size, used);
-			if ( !remove_slash)
-			{
-			    target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":used, "free":free_size]);
-			}
-			else
-			{
-			    string part_name = "";
-			    string mount_name = part["mount"]:"";
-
-			    if ( mount_name != "/" )
+			    integer used = 0;
+			    if (! (part["create"]:false || part["format"]:false))
 			    {
-				part_name = substring( mount_name, 1, size(mount_name) );
+				string tmpdir = (string)SCR::Read (.target.tmpdir);
+				tmpdir = tmpdir + "/diskspace_mount";
+				SCR::Execute (.target.bash, sformat (
+				    "test -d %1 || mkdir -p %1", tmpdir));
+				SCR::Execute (.target.bash, sformat (
+				    "/bin/mount -o ro %1 %2",
+				    part["device"]:"", tmpdir));
+				list<map<string,string> > partition =
+				    (list<map<string, string> >)
+				    SCR::Read(.run.df);
+				foreach (map p, partition, {
+				    if (p["name"]:"" == tmpdir)
+				    {
+					y2internal ("P: %1", p);
+					free_size = tointeger (p["free"]:"0")
+					    * 1024;
+					used = tointeger (p["used"]:"0") * 1024;
+				    }
+				});
+				SCR::Execute (.target.bash, sformat (
+				    "/bin/umount %1", tmpdir));
+			    }
+
+			    // convert into kB for TargetInitDU
+			    free_size = free_size / 1024;
+			    used = used / 1024;
+
+			    y2milestone ("available partition: mount: %1, free: %2 KB, used: %3 KB", part["mount"]:"", free_size, used);
+			    if ( !remove_slash)
+			    {
+				target_partitions = add (target_partitions, $["name":part["mount"]:"", "used":used, "free":free_size]);
 			    }
 			    else
 			    {
-				part_name = mount_name;
+				string part_name = "";
+				string mount_name = part["mount"]:"";
+
+				if ( mount_name != "/" )
+				{
+				    part_name = substring( mount_name, 1, size(mount_name) );
+				}
+				else
+				{
+				    part_name = mount_name;
+				}
+
+				target_partitions = add ( target_partitions, $["name":part_name, "used":used, "free":free_size]);
 			    }
 
-			    target_partitions = add ( target_partitions, $["name":part_name, "used":used, "free":free_size]);
 			}
-
 		    }
 		}
 	    } ); // foreach (`part)
