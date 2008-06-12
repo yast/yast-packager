@@ -5,6 +5,7 @@ Thu Jun 12 11:56:14 CEST 2008 - lslezak@suse.cz
   package selector (bnc#395289)
 - added help text for the software proposal (bnc#393004)
 - fixed help text in repositories.ycp (priority is 0-200)
+- the repository manager - use OK/Cancel buttons (bnc#398481)
 
 -------------------------------------------------------------------
 Wed Jun 11 10:24:54 CEST 2008 - lslezak@suse.cz
