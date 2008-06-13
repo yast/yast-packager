@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jun 13 07:51:22 CEST 2008 - lslezak@suse.cz
+
+- install icewm instead of fvwm2 in vnc installation mode
+  (bnc#399591)
+- do not check for missing yast2-slp package when doing an update
+  (bnc#399191)
+
+-------------------------------------------------------------------
 Thu Jun 12 11:56:14 CEST 2008 - lslezak@suse.cz
 
 - Ignore VFAT and NTFS partitions in the installation stage in the
