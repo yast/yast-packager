@@ -169,7 +169,7 @@
 	    {
 		map opts = (map) WFM::Args(0);
 		mode = opts["dialog_type"]:`searchMode;
-		repo_mgr = opts["repo_mgr"]:false;
+		repo_mgr = opts["repo_mgmt"]:false;
 	    }
 	    else if (is(WFM::Args(0), symbol))
 	    {
