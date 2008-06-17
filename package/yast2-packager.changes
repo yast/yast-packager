@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 17 15:08:53 CEST 2008 - lslezak@suse.cz
+
+- use Pkg::SourceSaveAll() instead of Pkg::SourceFinishAll()
+  (bnc#395738) 
+- 2.17.0
+
+-------------------------------------------------------------------
 Fri Jun 13 07:51:22 CEST 2008 - lslezak@suse.cz
 
 - install icewm instead of fvwm2 in vnc installation mode

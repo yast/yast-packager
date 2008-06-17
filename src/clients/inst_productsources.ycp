@@ -1427,7 +1427,7 @@ select those you want and click <b>Finish</b>.</p>
 	    UpdateWizardSteps();
 	// Store repositories
 	} else {
-	    Pkg::SourceFinishAll();
+	    Pkg::SourceSaveAll();
 	}
 
 	Progress::Finish();
