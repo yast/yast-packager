@@ -1625,6 +1625,8 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    // radio button
 	    `Left (`RadioButton(`id(`slp),       _("&Scan Using SLP..."))),
 	    // radio button
+	    `Left (`RadioButton(`id(`updates), _("Register &Update Repositories..."))),
+	    // radio button
 	    `Left (`RadioButton(`id(`comm_repos), _("Commun&ity Repositories"))),
 	    `VSpacing(0.4),
 	    // radio button
@@ -1783,7 +1785,7 @@ symbol SelectHandle (string key, map event) {
 
     if (selected == nil)
 	return nil;
-    if (selected == `slp || selected == `cd || selected == `dvd || selected == `comm_repos)
+    if (selected == `slp || selected == `cd || selected == `dvd || selected == `comm_repos || selected == `updates)
 	return `finish;
 }
 
@@ -1795,7 +1797,7 @@ void SelectStore (string key, map event) {
     symbol selected = (symbol)UI::QueryWidget (`id (`type), `CurrentButton);
 
     if (contains ([`ftp, `http, `https, `samba, `nfs, `cd, `dvd, `usb, `hd,
-	`local_dir, `specify_url, `slp, `local_iso, `comm_repos], selected))
+	`local_dir, `specify_url, `slp, `local_iso, `comm_repos, `updates], selected))
     {
 	if ( selected == `ftp ) _url = "ftp://";
 	else if ( selected == `http ) _url = "http://";
@@ -1810,6 +1812,7 @@ void SelectStore (string key, map event) {
 	else if ( selected == `local_iso ) _url = "file://";
 	else if ( selected == `slp ) _url = "slp://";
 	else if ( selected == `comm_repos ) _url = "commrepos://";
+	else if ( selected == `updates ) _url = "updates://";
     }
     else
     {
@@ -1834,6 +1837,7 @@ void SelectInit (string key) {
     else if ( _url == "file://" ) current = `local_iso;
     else if ( _url == "slp://" ) current = `slp;
     else if ( _url == "commrepos://" ) current = `comm_repos;
+    else if ( _url == "updates://" ) current = `updates;
     else
     {
 	y2warning ("Unknown URL scheme '%1'", _url);
