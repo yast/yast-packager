@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 18 15:35:31 CEST 2008 - lslezak@suse.cz
+
+- ask user when uninstalling a package via command line option
+  (bnc#399795)
+
+-------------------------------------------------------------------
 Tue Jun 17 15:08:53 CEST 2008 - lslezak@suse.cz
 
 - use Pkg::SourceSaveAll() instead of Pkg::SourceFinishAll()

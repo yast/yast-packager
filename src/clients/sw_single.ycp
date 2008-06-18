@@ -524,13 +524,25 @@ Install them now?
 		   }
 	       });
 
+		// confirm removal by user (bnc#399795)
+	       if (action == `remove)
+	       {
+		    map opts = $[ "dialog_type" : `summaryMode, "repo_mgmt" : true ];
+		    y2milestone("Using packager widget options: %1", opts);
+
+		    result = (symbol)WFM::CallFunction( "inst_packages", [opts]);
+
+		    if (result != `accept)
+			return `abort;
+	       }
+
 	       if (Pkg::PkgSolve (false))				// Solve dependencies
 	       {
 		   result = `next;					// go-on if no conflicts
 	       }
 	       else
 	       {
-		   result = (symbol)WFM::CallFunction( "inst_packages", []);	// Ask user if conflicts
+		   result = (symbol)WFM::CallFunction( "inst_packages", [ $["repo_mgmt" : true] ]);	// Ask user if conflicts
 		   y2milestone ("inst_packages returns %1", result);
 		   if (result == `accept)
 		       result = `next;
