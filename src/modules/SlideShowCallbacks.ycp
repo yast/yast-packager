@@ -133,10 +133,10 @@
     }
 
 
-    global void ScriptStart(string patch_name, string patch_version, string patch_arch, string script_path, boolean installation)
+    global void ScriptStart(string patch_name, string patch_version, string patch_arch, string script_path)
     {
 	string patch_full_name = PackageCallbacks::FormatPatchName(patch_name, patch_version, patch_arch);
-	y2milestone("ScriptStart: patch:%1, script:%2, installation:%3", patch_full_name, script_path, installation);
+	y2milestone("ScriptStart: patch:%1, script:%2", patch_full_name, script_path);
 
 	// reset the progressbar
 	if (UI::WidgetExists(`progressCurrentPackage))
@@ -178,10 +178,14 @@
 	return true;
     }
 
-    global void ScriptProblem(string description)
+    global string ScriptProblem(string description)
     {
 	y2milestone("ScriptProblem: %1", description);
 	Popup::Error(description);
+
+	// Abort
+	// TODO: support also Ignore and Retry
+	return "A";
     }
 
     global void ScriptFinish()
