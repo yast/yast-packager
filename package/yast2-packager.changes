@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Jun 18 17:47:15 CEST 2008 - lslezak@suse.cz
+
+- add an update repository obtained via suse_register (fate#302990)
+- adapted to the new patch messages and patch scripts callbacks
+  (bnc#401220)
+- 2.17.1
+
+-------------------------------------------------------------------
 Wed Jun 18 15:35:31 CEST 2008 - lslezak@suse.cz
 
 - ask user when uninstalling a package via command line option
