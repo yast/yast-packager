@@ -23,6 +23,7 @@ import "SuSERelease";
 import "Directory";
 import "FileUtils";
 import "URL";
+import "XML";
 
 string temporary_file = Directory::tmpdir + "/package_search_webpin.xml";
 
@@ -43,6 +44,77 @@ string GuessCurrentDistribution () {
 
     already_guessed = sformat ("%1_%2", rel_name, rel_version);
     return already_guessed;
+}
+
+string ModifyDistro (string distro) {
+    // FIXMEEEEEEEEEEEEEEE!!!!!!
+    if (distro == "openSUSE_110") {
+	distro = "openSUSE 11.0";
+    }
+
+    return distro;
+}
+
+global boolean PrepareOneClickInstallDescription (list <map> packages_to_install, string save_to_file) {
+    if (FileUtils::Exists (save_to_file)) {
+	y2warning ("File %1 already exists, removing", save_to_file);
+	SCR::Execute (.target.remove, save_to_file);
+    }
+
+    string distro = "";
+    string repoURL = "";
+
+    map write_xml = $[
+	"metapackage" : $["xmlns" : "http://opensuse.org/Standards/One_Click_Install"]
+    ];
+
+    map repositories = $[];
+    map packages = $[];
+
+    foreach (map one_package, packages_to_install, {
+	distro = one_package["distro"]:"";
+	repoURL = one_package["repoURL"]:"";
+
+	repositories[distro] = add (repositories[distro]:[], repoURL);
+
+	packages[distro] = add (packages[distro]:[], $[
+	    "item" : [$[
+		"name" : [$[ "content" : one_package["name"]:"" ]],
+		"summary" : [$[ "content" : one_package["summary"]:"" ]],
+	    ]]
+	]);
+    });
+
+    foreach (string distro, list <string> distro_repos, (map <string, list <string> >) repositories, {
+	map group = $[
+	    "distversion" : ModifyDistro (distro),
+	    "remainSubscribed" : $[ "content" : "false" ],
+	    "repositories" : toset (maplist (string one_repo, distro_repos, {
+		return $[ "repository" : [$[
+		    "name" : [$[ "content" : one_repo ]],
+		    "summary" : [$[ "content" : _("Unknown repository") ]],
+		    "description" : [$[ "content" : _("No further information available, use at your own risk.") ]],
+		]]];
+	    })),
+	    "software" : toset (packages[distro]:[]),
+	];
+
+	write_xml["metapackage", "group"] = group;
+    });
+
+    y2milestone ("Writing: %1", write_xml);
+
+    SCR::Write (.anyxml, $[
+	"xml" : write_xml,
+	"file" : save_to_file,
+	"args" : $[
+	    "RootName" : "metapackage",
+	    "KeepRoot" : true,
+	    "XMLDecl" : "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>",
+	],
+    ]);
+
+    return true;
 }
 
 /**
@@ -122,6 +194,8 @@ global list <map> SearchForPackages (string search_for, string distribution, map
     }
 
 	map search_result = (map) SCR::Read (.anyxml, temporary_file);
+
+	y2milestone ("Search result: %1", search_result);
 
 	integer counter = -1;
 	map one_entry = $[];
