@@ -1,0 +1,145 @@
+{
+  textdomain "packager";
+
+  import "Wizard";
+  import "Progress";
+  import "Sequencer";
+
+  boolean AbortFunction() {
+    any ret = UI::PollInput();
+
+    if (ret == `abort)
+	return true;
+    else
+	return false;
+  }
+
+  symbol ReadDialog() {
+    list <string> steps = [
+	_("Check Network Configuration"),
+	_("Initialize Package Manager (nebo tak neco")
+    ];
+
+    list <string> actions = [
+	_("Checking Network Configuration ..."),
+	_("Initializing Package Manager ... ")
+    ];
+
+    Progress::New(
+	_("Reading Package Search Setup"),
+	" ",
+	size(steps),
+	steps,
+	actions,
+	_("Some very boring help text")
+     );
+
+     Progress::NextStage();
+     if (AbortFunction()) return `abort;
+     sleep(100);
+
+     Progress::NextStage();
+     if (AbortFunction()) return `abort;
+     sleep(100);
+
+     Progress::Finish();
+     return `next;
+  }
+
+  symbol MainDialog() {
+    Wizard::SetContents (
+            // TRANSLATORS: dialog caption
+            _("Package Search"),
+            `VBox (
+                `HBox (
+                    `VBox(
+			`MinWidth(20, `TextEntry (`id ("search_text"), "Search &Expression")),
+                    // TRANSLATORS: push button
+                        `Left(`PushButton (`id ("search"), `opt(`default), _("&Search"))),
+                        `VStretch()
+		    ),
+		    `MultiSelectionBox(
+		        `id("search_in"),
+		       _("Search in"),
+		       [ _("Name"), _("Description"), _("Contents") ]
+		     )//,
+                ),
+				//`RadioButtonGroup(
+		//    `id(`rb),
+		//    `VBox(
+		//        `Left(`Label( _("Search Repositories"))),
+		//        `Frame( "",
+		//	    `VBox(
+		//                `Left(`RadioButton(`id("current_product"),_("Current product") ) ),
+		//                `Left(`RadioButton(`id("factory"),_("Factory") ) ),
+		//                `VStretch()
+		//	    )
+		//         )
+		//    )
+		//)
+	    //)
+		//),
+                `VWeight (
+                    2,
+                    `MultiSelectionBox(
+                        `id ("results"), `opt (`notify, `hstretch),
+                        // TRANSLATORS: multi-selection box
+                        _("&Found Packages"), []
+                    )
+                ),
+		`Left( `Label( _("Package Description")) ),
+		`VWeight(
+		    1,
+		    `RichText(`id("description"), "Some very boring pkg descr")
+		)
+	    ),
+	    _("Some very boring help text"),
+	    //We don't need back button
+	    false,
+	    true
+    );
+
+    Wizard::SetNextButton(`next, _("Install"));
+
+    any dialog_ret = nil;
+    while (true) {
+	dialog_ret = UI::UserInput();
+	break;
+    }
+
+    return (symbol) dialog_ret;
+
+  }
+
+  symbol MainSequence () {
+        map aliases = $[
+            "read"      : ``( ReadDialog() ),
+            "main"   : ``( MainDialog() ),
+        ];
+
+        map sequence = $[
+            "ws_start"  : "read",
+            "read"      : $[
+                `next   : "main",
+                `abort  : `abort,
+            ],
+            "main"   : $[
+                `abort  : `abort,
+            ],
+        ];
+
+	any seq_ret = Sequencer::Run( aliases, sequence );
+
+	return (symbol) seq_ret;
+  }
+
+
+  Wizard::CreateDialog();
+
+  symbol client_ret = MainSequence();
+
+  Wizard::CloseDialog();
+
+  return client_ret;
+
+}
