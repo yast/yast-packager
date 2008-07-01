@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul  1 11:35:36 CEST 2008 - locilka@suse.cz
+
+- Added new WebpinPackageSearch YCP module.
+
+-------------------------------------------------------------------
 Wed Jun 18 17:47:15 CEST 2008 - lslezak@suse.cz
 
 - add an update repository obtained via suse_register (fate#302990)

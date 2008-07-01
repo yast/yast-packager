@@ -1,0 +1,133 @@
+/**
+ * File:
+ *	WebpinPackageSearch.ycp
+ *
+ * Module:
+ *	WebpinPackageSearch
+ *
+ * Summary:
+ *	YaST API to api.opensuse-community.org
+ *
+ * Authors:
+ *	Lukas Ocilka <locilka@suse.cz>
+ *	Katarina Machalkova <kmachalkova@suse.cz>
+ */
+
+{
+module "WebpinPackageSearch";
+
+textdomain "packager";
+
+import "HTTP";
+import "SuSERelease";
+import "Directory";
+import "FileUtils";
+import "URL";
+
+string temporary_file = Directory::tmpdir + "/package_search_webpin.xml";
+
+string base_url = "http://api.opensuse-community.org/searchservice/";
+
+string already_guessed = nil;
+
+string GuessCurrentDistribution () {
+    if (already_guessed != nil)
+	return already_guessed;
+
+    string rel_name = SuSERelease::ReleaseName();
+    string rel_version = SuSERelease::ReleaseVersion();
+
+    if (regexpmatch (rel_version, "\.")) {
+	rel_version = mergestring (splitstring (rel_version, "\."), "");
+    }
+
+    already_guessed = sformat ("%1_%2", rel_name, rel_version);
+    return already_guessed;
+}
+
+/**
+ * Searches for packages using Webpin XML API.
+ *
+ * @param string search_for text
+ * @param string distribution, e.g., openSUSE_10.3, it is guessed from the system if nil
+ * @param map <string, boolean> search_in which defines in which sources it searches,
+ *	possible keys: name, description, contents
+ *
+ * @example
+ *   SearchForPackages ("install", $[
+ *	"name" : true,
+ *	"description" : true,
+ *	"contents" : false,
+ *   ])
+ */
+global list SearchForPackages (string search_for, string distribution, map <string, boolean> search_in) {
+    y2milestone ("Searching for %1 in %2", search_for, search_in);
+
+    if (search_for == nil || search_for == "") {
+	y2error ("empty search string");
+	return [];
+    }
+
+    // search URL is the same for both
+    boolean name_or_descr = (search_in["name"]:false || search_in["description"]:false);
+
+    string search_path = nil;
+
+    if (search_in["contents"]:false && name_or_descr) {
+	search_path = "Search/Simple/";
+    } else if (name_or_descr) {
+	search_path = "Search/ByName/";
+    } else if (search_in["contents"]:false) {
+	search_path = "Search/ByContents/";
+    } else {
+	y2warning ("empty search result");
+	return [];
+    }
+
+    if (distribution == nil) {
+	distribution = GuessCurrentDistribution();
+	y2milestone ("Distribution not set, guessing '%1'", distribution);
+    }
+
+    string url = base_url + search_path + distribution + "/" + URL::EscapeString (search_for, URL::transform_map_passwd);
+
+    map response = HTTP::Get (url, temporary_file);
+
+    list <map> ret_list = [];
+
+    if (! FileUtils::Exists (temporary_file)) {
+	y2error ("Cannot read file: %1", temporary_file);
+	return nil;
+    }
+
+	map search_result = (map) SCR::Read (.anyxml, temporary_file);
+
+	integer counter = -1;
+	map one_entry = $[];
+
+	foreach (map <string, list> one_package, (list <map <string, list> >) search_result["ns2:packages", 0, "package"]:[], {
+	    one_entry = $[];
+
+	    foreach (string key, list value, one_package, {
+		if (haskey (value[0]:$[], "content")) {
+		    one_entry[key] = tostring (value[0,"content"]:nil);
+		    // y2milestone ("%1 = %2", key, one_entry[key]:"");
+		} else if (key == "archs") {
+		    foreach (map one_arch, (list <map>) value, {
+			foreach (map xone_arch, (list <map>) one_arch["arch"]:[], {
+			    one_entry["archs"] = add (one_entry["archs"]:[], xone_arch["content"]:"");
+			});
+		    });
+		} else {
+		    y2error ("Unknown key: %1", key);
+		}
+	    });
+
+	    counter = counter + 1;
+	    ret_list[counter] = one_entry;
+	});
+
+    return ret_list;
+}
+
+} // module end
