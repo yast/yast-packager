@@ -54,13 +54,34 @@ string GuessCurrentDistribution () {
  *	possible keys: name, description, contents
  *
  * @example
- *   SearchForPackages ("install", $[
- *	"name" : true,
- *	"description" : true,
- *	"contents" : false,
- *   ])
+ *   SearchForPackages (
+ *	"desktop",
+ *	nil,
+ *	$[
+ *	    "name" : true,
+ *	    "description" : true,
+ *	    "contents" : false,
+ *   	]
+ *   )
+ *   ->
+ *   [
+ *     ...
+ *     $[
+ *        "archs":[
+ *            "ppc"
+ *        ],
+ *        "checksum":"e0cbdbf03ce47dfd5c5f885b86706ddfa023d8dc",
+ *        "distro":"openSUSE_110",
+ *        "name":"xfce4-desktop",
+ *        "priority":"5",
+ *        "repoURL":"http://download.opensuse.org/distribution/11.0/repo/oss/suse",
+ *        "summary":"Desktop manager for the Xfce Desktop Environment",
+ *        "version":"4.4.2"
+ *     ],
+ *     ...
+ *   ]
  */
-global list SearchForPackages (string search_for, string distribution, map <string, boolean> search_in) {
+global list <map> SearchForPackages (string search_for, string distribution, map <string, boolean> search_in) {
     y2milestone ("Searching for %1 in %2", search_for, search_in);
 
     if (search_for == nil || search_for == "") {
