@@ -133,13 +133,21 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
 	distro = one_package["distro"]:GuessCurrentDistribution();
 	repoURL = one_package["repoURL"]:"";
 
+	// all repositories
 	repositories[distro] = add (repositories[distro]:[], repoURL);
 
+	// all packages
 	packages[distro] = add (packages[distro]:[], $[
 	    "item" : [$[
 		"name" : [$[ "content" : one_package["name"]:"" ]],
 		"summary" : [$[ "content" : one_package["summary"]:"" ]],
-		"description" : [$[ "content" : one_package["description"]:one_package["summary"]:_("No further information available.") ]],
+		"description" : [
+		    $[
+			"content" :
+			    // TRANSLATORS: package description item
+			    one_package["description"]:one_package["summary"]:_("No further information available.")
+		    ]
+		],
 	    ]]
 	]);
     });
@@ -152,7 +160,9 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
 		return $[ "repository" : [$[
 		    "name" : [$[ "content" : one_repo ]],
 		    "url" : [$[ "content" : one_repo ]],
+		    // TRANSLATORS: repository summary
 		    "summary" : [$[ "content" : _("Unknown repository") ]],
+		    // TRANSLATORS: repositry description
 		    "description" : [$[ "content" : _("No further information available, use at your own risk.") ]],
 		]]];
 	    })),
@@ -241,6 +251,7 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 	return [];
     }
 
+    // if distro string is nil, try to guess the current one
     if (distribution == nil) {
 	distribution = GuessCurrentDistribution();
 	y2milestone ("Distribution not set, guessing '%1'", distribution);
@@ -285,6 +296,14 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 	counter = counter + 1;
 	ret_list[counter] = one_entry;
     });
+
+    integer nr_packages_found = size (ret_list);
+
+    if (nr_packages_found == nil || nr_packages_found == 0) {
+	y2warning ("Nothing found");
+    } else {
+	y2milestone ("%1 packages found", nr_packages_found);
+    }
 
     return ret_list;
 }
