@@ -1,3 +1,17 @@
+/**
+ * File:	webpin_package_search.ycp
+ * Package:	YaST packager - Client using Webpin XML API
+ * Authors:	Katarina Machalkova <kmachalkova@suse.cz>
+ *		Lukas Ocilka <locilka@suse.cz>
+ *
+ * $Id:$
+ *
+ * This client provides UI for searching for packages
+ * via Webpin XML.
+ * See http://en.opensuse.org/Package_Search/Design for the API.
+ */
+
+
 {
   textdomain "packager";
 
