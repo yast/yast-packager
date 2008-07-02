@@ -7,6 +7,7 @@
   import "Sequencer";
   import "WebpinPackageSearch";
   import "Wizard";
+  import "Directory";
 
   list <map> search_results = [];
   map <string, integer> index = $[];
@@ -161,11 +162,11 @@
                         _("&Found Packages"), []
                     )
                 ),
-		`HBox(
+		//`HBox(
 		    `Left( `Label( _("Package Description")) ),
-		    `HStretch(),
-		    `CheckBox(_("Keep Package Repositories Subscribed"), true)
-		),
+		    //`HStretch(),
+		    //`CheckBox(_("Keep Package Repositories Subscribed"), true)
+		//),
 		`VWeight(
 		    1,
 		    `RichText(`id("description"), "")
@@ -183,11 +184,16 @@
     while (true) {
 	dialog_ret = UI::UserInput();
 	if (dialog_ret == `next){
+	    string temporary_xml = Directory::tmpdir + "/one_click_install_temporary_file.xml";
+
 	    WebpinPackageSearch::PrepareOneClickInstallDescription (
 	        FilterOutSelectedPackages(),
-		"/tmp/one_click_install"
+		temporary_xml
 	    );
-	    WFM::CallFunction ("OneClickInstallUI", ["/tmp/one_click_install"]);
+
+	    any oci = WFM::CallFunction ("OneClickInstallUI", [temporary_xml]);
+	    y2milestone ("OneClickInstallUI returned: %1", oci);
+	    break;
 	}
 	else if (dialog_ret == "search") {
 	    string search_expr = SearchExpression();
