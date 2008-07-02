@@ -69,9 +69,20 @@
 	index = add( index, it["checksum"]:"", i);
 	i = i+1; 
     });
-    y2internal("%1", pkg_items);
     return pkg_items;
   } 
+
+  list <map> FilterOutSelectedPackages() {
+	list <string>  p = ( list <string> ) UI::QueryWidget(`id("results"), `SelectedItems);
+	list < map > result = [];
+
+	foreach ( string s, p, {
+	    result = add(result, search_results[ index[s]:0 ]:$[]);
+	});
+
+    	y2internal("%1", result);
+	return result;
+  }
 
   symbol ReadDialog() {
     list <string> steps = [
@@ -171,8 +182,13 @@
     any dialog_ret = nil;
     while (true) {
 	dialog_ret = UI::UserInput();
-	if (dialog_ret == `next)
-	    break;
+	if (dialog_ret == `next){
+	    WebpinPackageSearch::PrepareOneClickInstallDescription (
+	        FilterOutSelectedPackages(),
+		"/tmp/one_click_install"
+	    );
+	    WFM::CallFunction ("OneClickInstallUI", ["/tmp/one_click_install"]);
+	}
 	else if (dialog_ret == "search") {
 	    string search_expr = SearchExpression();
 
