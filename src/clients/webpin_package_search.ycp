@@ -11,11 +11,15 @@
   list <map> search_results = [];
   map <string, integer> index = $[];
 
-  boolean AbortFunction() {
+  boolean AbortDialog() {
+      return Popup::YesNo( _("All changes will be lost. Really exit?"));
+  }
+
+  boolean Abort() {
     any ret = UI::PollInput();
 
     if (ret == `abort)
-	return true;
+	return Abort();
     else
 	return false;
   }
@@ -90,11 +94,11 @@
      );
 
      Progress::NextStage();
-     if (AbortFunction()) return `abort;
+     if (Abort()) return `abort;
      sleep(100);
 
      Progress::NextStage();
-     if (AbortFunction()) return `abort;
+     if (Abort()) return `abort;
      sleep(100);
 
      Progress::Finish();
@@ -146,7 +150,11 @@
                         _("&Found Packages"), []
                     )
                 ),
-		`Left( `Label( _("Package Description")) ),
+		`HBox(
+		    `Left( `Label( _("Package Description")) ),
+		    `HStretch(),
+		    `CheckBox(_("Keep Package Repositories Subscribed"), true)
+		),
 		`VWeight(
 		    1,
 		    `RichText(`id("description"), "")
@@ -218,7 +226,6 @@
         map aliases = $[
             "read"      : ``( ReadDialog() ),
             "main"   : ``( MainDialog() ),
-	    "summary" : ``(SummaryDialog() ),
 //	    "write"   : ``(WriteDialog())
         ];
 
@@ -230,12 +237,8 @@
             ],
             "main"   : $[
                 `abort  : `abort,
-		`next	: "summary"
+		`next	: `next
             ],
-	    "summary" : $[
-		`abort : `abort,
-		`next  : `next//"write" 
-	    ],
 //	    "write" : $[
 //		`abort : `abort,
 //		`next  : `next
