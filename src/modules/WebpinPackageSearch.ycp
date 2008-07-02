@@ -27,10 +27,47 @@ import "XML";
 
 string temporary_file = Directory::tmpdir + "/package_search_webpin.xml";
 
+/**
+ * Base search URL, default is "http://api.opensuse-community.org/searchservice/"
+ */
 string base_url = "http://api.opensuse-community.org/searchservice/";
+
+/**
+ * Sets base search URL
+ * WARNING: Use this only if you know what you are doing!
+ *
+ * @param string new base_url
+ */
+global void SetBaseSearchURL (string new_base_url) {
+    if (new_base_url == "" || new_base_url == nil) {
+	y2error ("Wrong base URL: '%1'", new_base_url);
+	return;
+    }
+
+    base_url = new_base_url;
+    y2milestone ("New base URL has been set: %1", base_url);
+}
+
+/**
+ * Returns base search URL
+ *
+ * @string current base_url
+ */
+global string GetBaseSearchURL () {
+    return base_url;
+}
 
 string already_guessed = nil;
 
+/**
+ * Guesses the current distribution installed
+ *
+ * @return string distribution (Webpin format)
+ *
+ * @examle
+ *   // Installed openSUSE 11.0
+ *   GuessCurrentDistribution() -> "openSUSE_110"
+ */
 string GuessCurrentDistribution () {
     if (already_guessed != nil)
 	return already_guessed;
@@ -46,15 +83,36 @@ string GuessCurrentDistribution () {
     return already_guessed;
 }
 
+/**
+ * Changes the Webpin distro format to OneClickInstall format.
+ *
+ * @param string distro
+ * @return string modified distro
+ *
+ * @example
+ *   ModifyDistro ("openSUSE_110") -> "openSUSE 11.0"
+ */
 string ModifyDistro (string distro) {
-    // FIXMEEEEEEEEEEEEEEE!!!!!!
-    if (distro == "openSUSE_110") {
-	distro = "openSUSE 11.0";
+    if (regexpmatch (distro, "^.*_[0123456789]+[0123456789]$")) {
+	distro = regexpsub (distro, "^(.*)_([0123456789]+)([0123456789])$", "\\1 \\2.\\3");
+    } else if (regexpmatch (distro, "^.*_[0123456789]+")) {
+	distro = regexpsub (distro, "^(.*)_([0123456789]+)$", "\\1 \\2");
+    } else {
+	y2warning ("'%1' doesn't match any known regexp", distro);
     }
 
     return distro;
 }
 
+/**
+ * Writes XML configuration file for OnleClickInstall client.
+ *
+ * @param list <map> packages_to_install (in the same format as got from SearchForPackages function)
+ * @param string save_to_file
+ * @return boolean if successful
+ *
+ * @see SearchForPackages() for the format of <map> package_to_install
+ */
 global boolean PrepareOneClickInstallDescription (list <map> packages_to_install, string save_to_file) {
     if (FileUtils::Exists (save_to_file)) {
 	y2warning ("File %1 already exists, removing", save_to_file);
@@ -72,7 +130,7 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
     map packages = $[];
 
     foreach (map one_package, packages_to_install, {
-	distro = one_package["distro"]:"";
+	distro = one_package["distro"]:GuessCurrentDistribution();
 	repoURL = one_package["repoURL"]:"";
 
 	repositories[distro] = add (repositories[distro]:[], repoURL);
@@ -81,6 +139,7 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
 	    "item" : [$[
 		"name" : [$[ "content" : one_package["name"]:"" ]],
 		"summary" : [$[ "content" : one_package["summary"]:"" ]],
+		"description" : [$[ "content" : one_package["description"]:one_package["summary"]:_("No further information available.") ]],
 	    ]]
 	]);
     });
@@ -88,10 +147,11 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
     foreach (string distro, list <string> distro_repos, (map <string, list <string> >) repositories, {
 	map group = $[
 	    "distversion" : ModifyDistro (distro),
-	    "remainSubscribed" : $[ "content" : "false" ],
+	    "remainSubscribed" : $[ "content" : "true" ],
 	    "repositories" : toset (maplist (string one_repo, distro_repos, {
 		return $[ "repository" : [$[
 		    "name" : [$[ "content" : one_repo ]],
+		    "url" : [$[ "content" : one_repo ]],
 		    "summary" : [$[ "content" : _("Unknown repository") ]],
 		    "description" : [$[ "content" : _("No further information available, use at your own risk.") ]],
 		]]];
@@ -102,9 +162,9 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
 	write_xml["metapackage", "group"] = group;
     });
 
-    y2milestone ("Writing: %1", write_xml);
+    y2debug ("Writing: %1", write_xml);
 
-    SCR::Write (.anyxml, $[
+    boolean success = (boolean) SCR::Write (.anyxml, $[
 	"xml" : write_xml,
 	"file" : save_to_file,
 	"args" : $[
@@ -114,14 +174,18 @@ global boolean PrepareOneClickInstallDescription (list <map> packages_to_install
 	],
     ]);
 
-    return true;
+    if (success != true) {
+	y2error ("Unable to write XML to %1", save_to_file);
+    }
+
+    return success;
 }
 
 /**
  * Searches for packages using Webpin XML API.
  *
  * @param string search_for text
- * @param string distribution, e.g., openSUSE_10.3, it is guessed from the system if nil
+ * @param string distribution, e.g., openSUSE_10.3, it is guessed from the system if set to nil
  * @param map <string, boolean> search_in which defines in which sources it searches,
  *	possible keys: name, description, contents
  *
@@ -184,6 +248,7 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 
     string url = base_url + search_path + distribution + "/" + URL::EscapeString (search_for, URL::transform_map_passwd);
 
+    y2milestone ("HTTP::Get (%1, %2)", url, temporary_file);
     map response = HTTP::Get (url, temporary_file);
 
     list <map> ret_list = [];
@@ -193,20 +258,19 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 	return nil;
     }
 
-	map search_result = (map) SCR::Read (.anyxml, temporary_file);
+    map search_result = (map) SCR::Read (.anyxml, temporary_file);
 
-	y2milestone ("Search result: %1", search_result);
+    y2debug ("Search result: %1", search_result);
 
-	integer counter = -1;
-	map one_entry = $[];
+    integer counter = -1;
+    map one_entry = $[];
 
-	foreach (map <string, list> one_package, (list <map <string, list> >) search_result["ns2:packages", 0, "package"]:[], {
-	    one_entry = $[];
+    foreach (map <string, list> one_package, (list <map <string, list> >) search_result["ns2:packages", 0, "package"]:[], {
+	one_entry = $[];
 
-	    foreach (string key, list value, one_package, {
+	foreach (string key, list value, one_package, {
 		if (haskey (value[0]:$[], "content")) {
 		    one_entry[key] = tostring (value[0,"content"]:nil);
-		    // y2milestone ("%1 = %2", key, one_entry[key]:"");
 		} else if (key == "archs") {
 		    foreach (map one_arch, (list <map>) value, {
 			foreach (map xone_arch, (list <map>) one_arch["arch"]:[], {
@@ -216,11 +280,11 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 		} else {
 		    y2error ("Unknown key: %1", key);
 		}
-	    });
-
-	    counter = counter + 1;
-	    ret_list[counter] = one_entry;
 	});
+
+	counter = counter + 1;
+	ret_list[counter] = one_entry;
+    });
 
     return ret_list;
 }
