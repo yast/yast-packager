@@ -8,6 +8,7 @@
   import "WebpinPackageSearch";
   import "Wizard";
   import "Directory";
+  import "Report";
 
   list <map> search_results = [];
   map <string, integer> index = $[];
@@ -20,7 +21,7 @@
     any ret = UI::PollInput();
 
     if (ret == `abort)
-	return Abort();
+	return AbortDialog();
     else
 	return false;
   }
@@ -186,10 +187,14 @@
 	if (dialog_ret == `next){
 	    string temporary_xml = Directory::tmpdir + "/one_click_install_temporary_file.xml";
 
-	    WebpinPackageSearch::PrepareOneClickInstallDescription (
-	        FilterOutSelectedPackages(),
-		temporary_xml
-	    );
+	    list <map> selected_packages = FilterOutSelectedPackages();
+
+	    if (selected_packages == nil || size (selected_packages) == 0) {
+		Report::Message (_("Select some packages to install."));
+		continue;
+	    }
+
+	    WebpinPackageSearch::PrepareOneClickInstallDescription (selected_packages, temporary_xml);
 
 	    any oci = WFM::CallFunction ("OneClickInstallUI", [temporary_xml]);
 	    y2milestone ("OneClickInstallUI returned: %1", oci);
@@ -218,6 +223,15 @@
 	}
 	else if (dialog_ret == "results") {
 	    CreatePackageDescription();
+	}
+	else if (dialog_ret == `abort || dialog_ret == `cancel) {
+	    if (AbortDialog()) {
+		y2milestone ("Aborting...");
+		break;
+	    }
+	}
+	else {
+	    y2error ("Unknown ret: %1", dialog_ret);
 	}
     }
     return (symbol) dialog_ret;
