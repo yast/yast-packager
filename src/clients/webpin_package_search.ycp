@@ -205,6 +205,7 @@
 
 	    if (selected_packages == nil || size (selected_packages) == 0) {
 		Report::Message (_("Select some packages to install."));
+		UI::SetFocus(`id("results"));
 		continue;
 	    }
 
@@ -218,12 +219,15 @@
 	    string search_expr = SearchExpression();
 
 	    if (search_expr != "") {
+		map <string, boolean> search_params =  SearchParameters();
+		Popup::ShowFeedback("", _("Searching for packages..."));
 	        search_results =
 		    WebpinPackageSearch::SearchForPackages(
 	                search_expr,
 	                nil,
-	                SearchParameters()
+	                search_params
 	        );
+		Popup::ClearFeedback();
 		list items = CreatePackageList( search_results );
 
 		if (items != nil) {
