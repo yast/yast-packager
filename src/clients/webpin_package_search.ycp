@@ -67,13 +67,19 @@
   }
 
   void CreatePackageDescription( ) {
-     string checksum = (string) UI::QueryWidget(`id("results"), `CurrentItem );
-     map citem = search_results [ index[checksum]: 0 ]: $[];
+    string checksum = (string) UI::QueryWidget(`id("results"), `CurrentItem );
+    map citem = search_results [ index[checksum]: 0 ]: $[];
+    string ret = "";
 
-     string descr = sformat(_("<b>Repository URL:</b> %1<br>"), citem["repoURL"]:"");
-     string version = sformat(_("<b>Version</b> %1<br>"), citem["version"]:"");
+    if ( citem != $[] ) {
+        string descr = sformat(_("<b>Repository URL:</b> %1<br>"), citem["repoURL"]:"");
+        string version = sformat(_("<b>Version</b> %1<br>"), citem["version"]:"");
+	ret = descr + version;
+    }
+    else
+	ret = _("No packages matching entered criteria were found");
 
-     UI::ChangeWidget(`id("description"),`Value, descr+version);
+     UI::ChangeWidget(`id("description"),`Value, ret);
   }
 
   list CreatePackageList( list < map > results ) {
@@ -230,13 +236,16 @@
 		Popup::ClearFeedback();
 		list items = CreatePackageList( search_results );
 
-		if (items != nil) {
+		if (search_results != nil && search_results != []) {
 		    UI::ChangeWidget(`id("results"), `Items, items);
 		    UI::SetFocus(`id("results"));
-		    CreatePackageDescription();
 		}
+		else
+		    UI::SetFocus(`id("search_text"));
+
+		CreatePackageDescription();
 	    }
-	    else
+	    //else
 		continue;
 	}
 	else if (dialog_ret == "results") {
