@@ -39,13 +39,7 @@
     else
 	return false;
   }
-
-  term CreateSummary() {
-	string  repo_heading = _("<h1>The following repositories will be added:</h1>");
-	string  pkg_heading = _("<h1>The following packages will be installed:</h1>");
-	return `RichText(`id(`summary), repo_heading + pkg_heading);
-  }
-
+  
   string SearchExpression() {
 	string ret = (string) UI::QueryWidget(`id("search_text"), `Value);
 
@@ -73,8 +67,10 @@
 
     if ( citem != $[] ) {
         string descr = sformat(_("<b>Repository URL:</b> %1<br>"), citem["repoURL"]:"");
-        string version = sformat(_("<b>Version</b> %1<br>"), citem["version"]:"");
-	ret = descr + version;
+        string version = sformat(_("<b>Version:</b> %1<br>"), citem["version"]:"");
+
+	string archs = sformat(_("<b>Architecture:</b> %1<br>"), mergestring( citem["archs"]:[],","));
+	ret = descr + version + archs;
     }
     else
 	ret = _("No packages matching entered criteria were found");
@@ -264,27 +260,7 @@
     return (symbol) dialog_ret;
 
   }
-
-  symbol SummaryDialog() {
-    Wizard::SetContentsButtons(
-	_("Summary"),
-	CreateSummary(),
-	_("Some very boring help text"),
-	Label::BackButton(),
-	Label::FinishButton()
-    );
-
-    any sum_ret = nil;
-
-    while(true) {
-	sum_ret = UI::UserInput();
-	if (sum_ret == `next)
-	    break;
-    }
-
-    return (symbol) sum_ret;
-  }
-
+  
   symbol MainSequence () {
         map aliases = $[
             "read"      : ``( ReadDialog() ),
