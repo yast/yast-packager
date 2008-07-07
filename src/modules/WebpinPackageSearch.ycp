@@ -24,6 +24,7 @@ import "Directory";
 import "FileUtils";
 import "URL";
 import "XML";
+import "Arch";
 
 string temporary_file = Directory::tmpdir + "/package_search_webpin.xml";
 
@@ -55,6 +56,95 @@ global void SetBaseSearchURL (string new_base_url) {
  */
 global string GetBaseSearchURL () {
     return base_url;
+}
+
+/**
+ * List of architecture dependencies. Every row contains one list
+ * of dependencies sortred from left (the newest) to right (the oldest).
+ * Architectures are backward-compatible.
+ */
+list <list <string> > deps = [
+    // i386 and x86
+    ["x86_64", "i686", "i586", "i486", "i386", "noarch"],
+    // PPC
+    ["ppc64", "ppc", "noarch"],
+    // s390
+    ["s390_64", "s390_32", "noarch"],
+    // IA-64
+    ["ia64", "noarch"],
+    // Alpha
+    ["alphaev67", "alphaev6", "alphapca56", "alphaev56", "alphaev5", "alpha", "noarch"],
+    // SPARC
+    ["sparc64", "sparcv9", "sparcv8", "sparc", "noarch"],
+    // MIPS
+    ["mips64", "mips", "noarch"],
+];
+
+/**
+ * Returns whether the current architecture matches the list of architectures
+ * got as a parameter. The current architecture is backward compatible, so
+ * also dependencies are taken into account.
+ *
+ * @param list <string> list of architectures to check
+ * @return boolean whether they match the current architecture
+ *
+ * @example
+ *	// current architecture is "i386"
+ *	MatchesCurrentArchitecture (["noarch", "ppc", "i386"]) -> true
+ *	MatchesCurrentArchitecture (["noarch"]) -> true
+ *	MatchesCurrentArchitecture (["x86_64"]) -> false
+ *	MatchesCurrentArchitecture (["ppc"]) -> false
+ */
+global boolean MatchesCurrentArchitecture (list <string> archs_to_check) {
+    string current_arch = Arch::architecture();
+
+    boolean matches = false;
+
+    // one or more archs supported by source
+    foreach (string one_arch_to_check, archs_to_check, {
+	// check all arch dependencies
+	foreach (list <string> one_archlist, deps, {
+	    // both current and checked architectures are in the same list
+	    if (contains (one_archlist, current_arch) && contains (one_archlist, one_arch_to_check)) {
+		integer cur_arch_row = nil;
+		integer match_arch_row = nil;
+
+		integer str_offset = -1;
+
+		// find current_architecture in deps
+		foreach (string one_arch, one_archlist, {
+		    str_offset = str_offset + 1;
+
+		    if (one_arch == current_arch) {
+			cur_arch_row = str_offset;
+			break;
+		    }
+		});
+
+		str_offset = -1;
+
+		// find architecture_to_check in deps
+		foreach (string one_arch, one_archlist, {
+		    str_offset = str_offset + 1;
+
+		    if (one_arch == one_arch_to_check) {
+			match_arch_row = str_offset;
+			break;
+		    }
+		});
+
+		// compare
+		if (match_arch_row >= cur_arch_row) {
+		    matches = true;
+		    break;
+		}
+	    }
+	});
+
+	if (matches) break;
+    });
+
+    return matches;
 }
 
 string already_guessed = nil;
