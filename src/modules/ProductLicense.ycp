@@ -610,11 +610,11 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
     if (license_ident_lang == nil) license_ident_lang = lic_lang;
 
     string base_license = WhichLicenceFile (license_ident_lang, licenses);
-    string license_ident = GetLicenseIdentString (base_license);
+    license_ident = GetLicenseIdentString (base_license);
 
     // agreement might be required even if license has been already accepted
     // defined, properly ($md5sum(32)-(1)$size(1..n))
-    if (require_agreement != true && license_ident != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
+    if (require_agreement != true && tostring (license_ident) != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
 	y2milestone ("License has been already accepted");
 
 	CleanUpLicense (tmpdir);
