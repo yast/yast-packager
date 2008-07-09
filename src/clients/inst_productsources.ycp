@@ -1284,8 +1284,7 @@ select those you want and click <b>Finish</b>.</p>
 	    y2milestone ("Product Data: %1", prod);
 
 	    string repo_id = CreateRepoId (url, pth);
-	    y2milestone ("UUU: %1", repo_id);
-	    y2milestone ("%1", list_of_repos);
+	    y2milestone ("Addind repository with ID: %1", repo_id);
 
 	    AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
 		"media" : src_id,
