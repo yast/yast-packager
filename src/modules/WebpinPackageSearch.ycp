@@ -65,19 +65,19 @@ global string GetBaseSearchURL () {
  */
 list <list <string> > deps = [
     // i386 and x86
-    ["x86_64", "i686", "i586", "i486", "i386", "noarch"],
+    ["x86_64", "i686", "i586", "i486", "i386", "noarch", "src"],
     // PPC
-    ["ppc64", "ppc", "noarch"],
+    ["ppc64", "ppc", "noarch", "src"],
     // s390
-    ["s390_64", "s390_32", "noarch"],
+    ["s390_64", "s390_32", "noarch", "src"],
     // IA-64
-    ["ia64", "noarch"],
+    ["ia64", "noarch", "src"],
     // Alpha
-    ["alphaev67", "alphaev6", "alphapca56", "alphaev56", "alphaev5", "alpha", "noarch"],
+    ["alphaev67", "alphaev6", "alphapca56", "alphaev56", "alphaev5", "alpha", "noarch", "src"],
     // SPARC
-    ["sparc64", "sparcv9", "sparcv8", "sparc", "noarch"],
+    ["sparc64", "sparcv9", "sparcv8", "sparc", "noarch", "src"],
     // MIPS
-    ["mips64", "mips", "noarch"],
+    ["mips64", "mips", "noarch", "src"],
 ];
 
 /**

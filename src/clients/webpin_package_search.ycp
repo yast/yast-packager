@@ -70,10 +70,10 @@
         string version = sformat(_("<b>Version:</b> %1<br>"), citem["version"]:"");
 
 	string archs = sformat(_("<b>Architecture:</b> %1<br>"), mergestring( citem["archs"]:[],","));
-	ret = descr + version + archs;
+	ret = "<p>" + descr + version + archs + "</p>";
     }
     else
-	ret = _("No packages matching entered criteria were found");
+	ret = _("<p><b>No packages matching entered criteria were found</b><p>");
 
      UI::ChangeWidget(`id("description"),`Value, ret);
   }
@@ -83,6 +83,13 @@
     integer i = 0;
 
    foreach ( map  it, results, {
+// Webpin seems to return "ppc" arch even for some i386 packages (e.g., "joe")
+	// doesn't match the architecture
+//	if (! WebpinPackageSearch::MatchesCurrentArchitecture (it["archs"]:["noarch"])) {
+//	    y2milestone ("Doesn't match the current arch: %1", it);
+//	    return;
+//	}
+
 	pkg_items = add( pkg_items, `item(`id(it["checksum"]:""),it["name"]:"" + " - " + it["summary"]:"" ));
 	index = add( index, it["checksum"]:"", i);
 	i = i+1; 
@@ -114,12 +121,12 @@
     ];
 
     Progress::New(
-	_("Reading Package Search Setup"),
+	_("Reading Package Search Setup..."),
 	" ",
 	size(steps),
 	steps,
 	actions,
-	_("Some very boring help text")
+	_("<p>Please wait while packager is initializing...</p>")
      );
 
      Progress::NextStage();
@@ -141,14 +148,14 @@
             `VBox (
                 `HBox (
                     `VBox(
-			`MinWidth(20, `TextEntry (`id ("search_text"), "Search &Expression")),
+			`MinWidth(20, `InputField (`id ("search_text"), `opt (`hstretch), "Search &Expression")),
                     // TRANSLATORS: push button
                         `Left(`PushButton (`id ("search"),  _("&Search"))),
                         `VStretch()
 		    ),
 		    `MultiSelectionBox(
 		        `id("search_in"),
-		       _("Search in"),
+		       _("Search &In"),
 		       [
 			`item( `id("name"),_("Name"), true ),
 			`item( `id("description"), _("Description"), true ),
@@ -189,11 +196,21 @@
 		    `RichText(`id("description"), "")
 		)
 	    ),
-	    _("Some very boring help text"),
+	    _("<p><big><b>Package Search</b></big><br>
+This YaST module enables you to use the functionality of <i>Webpin package search</i>.
+It searches within all known openSUSE build-service and openSUSE community repositories.</p>") +
+
+_("<p><big><b>Security</b></big><br>
+The software found is often not part of the distribution itself and the level of trust
+depends on yourself. We do not take any responsibilities for installing
+such software.</p>"),
 	    //We don't need back button
 	    false,
 	    true
     );
+
+    Wizard::SetTitleIcon ("yast-software");
+    Wizard::SetAbortButton (`cancel, Label::CancelButton());
 
     UI::SetFocus(`id("search_text"));
 
@@ -232,7 +249,7 @@
 		Popup::ClearFeedback();
 		list items = CreatePackageList( search_results );
 
-		if (search_results != nil && search_results != []) {
+		if (search_results != nil) {
 		    UI::ChangeWidget(`id("results"), `Items, items);
 		    UI::SetFocus(`id("results"));
 		}
@@ -249,6 +266,7 @@
 	}
 	else if (dialog_ret == `abort || dialog_ret == `cancel) {
 	    if (AbortDialog()) {
+		dialog_ret = `abort;
 		y2milestone ("Aborting...");
 		break;
 	    }
