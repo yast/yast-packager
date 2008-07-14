@@ -15,7 +15,6 @@ Requires:	perl-XML-Bare yast2-perl-bindings
 
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
-Requires:	yast2-installation >= 2.15.12
 
 # "order" flag for pattern resolvables
 Requires:	yast2-pkg-bindings >= 2.16.31
