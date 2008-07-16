@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 16 14:45:19 CEST 2008 - jsrain@suse.cz
+
+- always call inst_bootloader, even in update (fate #302245)
+
+-------------------------------------------------------------------
 Mon Jul 14 12:20:17 CEST 2008 - locilka@suse.cz
 
 - Removed dependency on yast2-installation.
