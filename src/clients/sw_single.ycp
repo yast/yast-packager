@@ -14,7 +14,6 @@
  *
  * "dialog_type" can be `patternSelector, `searchMode, `summaryMode
  * "repo_mgmt" enables "Repositories" -> "Repository Manager..." menu option
- * "ask_again" ask again after installing/removing a package
  */
 
 {
@@ -313,32 +312,6 @@ Only installed packages are displayed."));
        return !max_is_installed;
    }
 
-    // ask again after installing/removing a package?
-    boolean ask_again = true;
-
-    void SetAskOption()
-    {
-	foreach(any a, WFM::Args(),
-	    {
-		if (is(a, map))
-		{
-		    map m = (map)a;
-		    if (haskey(m, "ask_again"))
-		    {
-			ask_again = m["ask_again"]:true;
-		    }
-		}
-	    }
-	);
-
-	if (ask_again == nil)
-	{
-	    ask_again = true;
-	}
-
-	y2milestone("Ask after installing/removing: %1", ask_again);
-    }
-
     map GetPackagerOptions()
     {
 	// defaults
@@ -423,7 +396,6 @@ Only installed packages are displayed."));
    }
 
 
-   boolean ask = false;
    boolean force_restart = false;
    boolean found_descr = result == `found_descr;
 
@@ -459,19 +431,11 @@ Install them now?
 		map opts = GetPackagerOptions();
 		y2milestone("Using packager widget options: %1", opts);
 
-		// set ask_again variable
-		SetAskOption();
-
 	       result = (symbol)WFM::CallFunction( "inst_packages", [opts]);	// No: ask user via package selection widget
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 	       {
 		   result = `next;
-		   // ask only when there is something to install/remove
-		   // or when taboo package has been changed
-		   ask = ask_again && (Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove)
-			|| Pkg::GetPackages(`taboo, true) != taboo_packages);
-		   y2milestone("Ask to restart the package selector: %1", ask);
 	       }
 	       // start the repository manager
 	       else if (result == `repo_mgr)
@@ -482,11 +446,6 @@ Install them now?
 		    {
 			force_restart = true;
 		    }
-	       }
-	       else
-	       {
-		   // canceled - don't ask again
-		   ask = false;
 	       }
 	   }
 	   else
@@ -588,9 +547,7 @@ Install them now?
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
 	   }
        }
-   } while ( force_restart || (ask && Popup::YesNo (
-       // Popup dialog contents
-       _("Install or remove more packages?"))));
+   } while ( force_restart );
 
    UI::CloseDialog();
 

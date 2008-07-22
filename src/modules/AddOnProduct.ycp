@@ -307,7 +307,7 @@ symbol DoInstall_NoControlFile () {
     // enable repository management if not in installation mode
     boolean enable_repo_management = Mode::normal();
 
-    map args = $[ "dialog_type" : mode, "repo_mgmt" : enable_repo_management, "ask_again" : false ];
+    map args = $[ "dialog_type" : mode, "repo_mgmt" : enable_repo_management ];
     y2milestone("Arguments for sw_single: %1", args);
 
     any ret = WFM::CallFunction ("sw_single", [args]);
