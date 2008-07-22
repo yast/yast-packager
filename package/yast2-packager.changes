@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 22 17:12:56 CEST 2008 - lslezak@suse.cz
+
+- sw_single - don't ask "Install or remove more packages?" after
+  installation (bnc#409171)
+- 2.17.2
+
+-------------------------------------------------------------------
 Wed Jul 16 14:45:19 CEST 2008 - jsrain@suse.cz
 
 - always call inst_bootloader, even in update (fate #302245)
