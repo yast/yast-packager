@@ -131,8 +131,8 @@ else if (func == "Write")
 	BackUpAllTargetSources();
     }
 
-    // disable all repositories and finish target
-    Pkg::SourceFinishAll ();
+    // save all repositories and finish target
+    Pkg::SourceSaveAll ();
     Pkg::TargetFinish();
 
     // copy list of failed packages to installed system
