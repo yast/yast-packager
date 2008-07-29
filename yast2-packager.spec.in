@@ -4,11 +4,15 @@
 @HEADER@
 BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Writer update-desktop-files yast2-devtools yast2-testsuite yast2-slp
 
+# HTTP.ycp
+BuildRequires:	yast2-transfer
+
 # PackageLock::Connect()
 BuildRequires:	yast2 >= 2.16.72
 
 # "order" flag for pattern resolvables
 BuildRequires:	yast2-pkg-bindings >= 2.16.31
+
 
 # Module: OneClickInstallStandard
 Requires:	perl-XML-Bare yast2-perl-bindings
