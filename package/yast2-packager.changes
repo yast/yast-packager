@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 30 09:36:40 CEST 2008 - lslezak@suse.cz
+
+- display autorefresh column in the repository config module
+  (bnc#384132)
+
+-------------------------------------------------------------------
 Tue Jul 29 07:10:57 CEST 2008 - lslezak@suse.cz
 
 - added yast2-transfer to BuildRequires
