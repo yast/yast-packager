@@ -129,6 +129,7 @@
 			  PriorityToString(priority),
 			  // corresponds to the "Enable/Disable" button
 			  source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
+			  source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
 			  // translators: unknown name for a given source
 			  alias,
 			  generalData[ "url" ]:""
@@ -372,7 +373,10 @@ symbol SummaryDialog () {
 				// table header - priority of the repository - keep the translation as short as possible!
 				_("Priority"),
 				// table header - is the repo enabled? - keep the translation as short as possible!
-				_("Enabled"),
+				`Center(_("Enabled")),
+				// table header - is autorefresh enabled for the repo?
+				// keep the translation as short as possible!
+				`Center(_("Autorefresh")),
 				// table header - name of the repo
 				_("Name"),
 				// table header - URL of the repo
