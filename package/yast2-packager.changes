@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  4 11:51:28 CEST 2008 - locilka@suse.cz
+
+- Community Repositories: listing recommended repositories first
+  then sorting alphabetically (bnc #399998).
+
+-------------------------------------------------------------------
 Wed Jul 30 09:36:40 CEST 2008 - lslezak@suse.cz
 
 - display autorefresh column in the repository config module

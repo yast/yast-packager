@@ -922,12 +922,12 @@ or no repositories defined."));
 	    // preselect recommended repositories...
 	    // always fill-up this list -- later used for sorting using 'recommended' tag
 	    // Bugzilla #297628
-	    if (Stage::initial()) {
+	    //if (Stage::initial()) {
 		recommended = one_repo["recommended"]:false;
 		if (recommended) {
 		    recommended_items = add (recommended_items, repo_id);
 		}
-	    }
+	    //}
 
 //	    // was 'current' and remains 'current'
 //	    if (repo_id == current_item)
@@ -964,11 +964,11 @@ or no repositories defined."));
 	}
 
 	// In the initial stage, repos are additionally sorted whether they are recommended or not
-	if (Stage::initial()) {
+//	if (Stage::initial()) {
 	    items = sort (term one_item_a, term one_item_b, items, ``(
 		contains (recommended_items, one_item_a[0,0]:"") > contains (recommended_items, one_item_b[0,0]:"")
 	    ));
-	}
+//	}
 
 	UI::ChangeWidget (`id ("addon_repos"), `Items, items);
 
