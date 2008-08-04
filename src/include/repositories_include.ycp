@@ -23,7 +23,7 @@
     import "Report";
     import "Register";
 
-    textdomain "textdomain";
+    textdomain "packager";
 
     list<map<string,any> > sourceStatesIn = [];
     list<map<string,any> > sourceStatesOut = [];
