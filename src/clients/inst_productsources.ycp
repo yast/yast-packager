@@ -244,6 +244,14 @@
     boolean NetworkRunning () {
 	boolean ret = false;
 
+	// bnc #327519
+	if (Mode::normal ()) {
+	    if (! NetworkService::isNetworkRunning()) {
+		y2warning ("No network is running...");
+		return false;
+	    }
+	}
+
 	while (true) {
 	    if (NetworkService::isNetworkRunning()) {
 		ret = true;
