@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  5 12:55:59 CEST 2008 - locilka@suse.cz
+
+- Reporting 'no network is running' when calling Community
+  Repositories without network in mode 'normal' (bnc #327519).
+
+-------------------------------------------------------------------
 Mon Aug  4 11:51:28 CEST 2008 - locilka@suse.cz
 
 - Community Repositories: listing recommended repositories first
