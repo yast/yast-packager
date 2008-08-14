@@ -904,9 +904,14 @@ list <map> UserSelectsRequiredAddOns (list <map> products) {
 	`VBox (
 	    `HBox (
 		`HSquash (`MarginBox (0.5, 0.2, Icon::Simple ("yast-addon"))),
-		// translators: popup heading
+		// TRANSLATORS: popup heading
 		`Left (`Heading(`id(`search_heading), _("Additional Products")))
 	    ),
+	    `VSpacing (0.5),
+	    // TRANSLATORS: additional dialog information
+	    `Left (`Label (_("The installation repository contains also the listed additional repositories.
+Select those you want to use."))),
+	    `VSpacing (0.5),
 	    `MinSize (
 		70, 16,
 		`MultiSelectionBox (
