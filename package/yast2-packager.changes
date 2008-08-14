@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Aug 14 14:34:02 CEST 2008 - locilka@suse.cz
+
+- Added support for several products on one media by making
+  add_on_products obsolete and introducing new add_on_products.xml
+  format (FATE #303675).
+- 2.17.5
+
+-------------------------------------------------------------------
 Tue Aug  5 12:55:59 CEST 2008 - locilka@suse.cz
 
 - Reporting 'no network is running' when calling Community

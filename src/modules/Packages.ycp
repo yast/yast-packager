@@ -111,6 +111,7 @@ list<string> cached_proposal_languages = [];
 
     global string add_on_products_list = nil;
 
+    global string add_on_products_type = nil;
 
 // summary functions
 
@@ -497,18 +498,18 @@ global void Reset (list<symbol> keep) {
  * Initialize add-on products provided by the repository
  */
 global void InitializeAddOnProducts() {
-    if (Packages::add_on_products_list != nil)
-    {
+    Packages::SelectProduct ();
+    PackageCallbacks::SetMediaCallbacks();
+
+    // Set the base workflow before adding more AddOnProducts using the add_on_products file
+    // Do not force "base workflow" if there is already any base one stored
+    // bugzilla #269625
+    WorkflowManager::SetBaseWorkflow (false);
+
+    if (Packages::add_on_products_list != nil) {
 	y2milestone ("Found list of add-on products to preselect: %1", Packages::add_on_products_list);
-	Packages::SelectProduct ();
-	PackageCallbacks::SetMediaCallbacks();
-
-	// Set the base workflow before adding more AddOnProducts using the add_on_products file
-	// Do not force "base workflow" if there is already any base one stored
-	// bugzilla #269625
-	WorkflowManager::SetBaseWorkflow (false);
+	AddOnProduct::SetPreselectedAddOnProductsType (Packages::add_on_products_type);
 	AddOnProduct::AddPreselectedAddOnProducts (Packages::add_on_products_list);
-
 	Packages::add_on_products_list = nil; // do not select them any more
     }
 }
@@ -1255,16 +1256,26 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
                 Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
 	    }
 
-	    string tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, "/add_on_products");
-	    if (tmp_add_on_products != nil)
-	    {
-		add_on_products_list = ((string)SCR::Read (.target.tmpdir)) + "/add_on_products";
-		WFM::Execute (.local.bash, sformat ("cp %1 %2", tmp_add_on_products, add_on_products_list));
-	    }
-	    else
-	    {
-		add_on_products_list = nil;
-	    }
+	    string tmp_add_on_products = nil;
+	    add_on_products_list = nil;
+
+	    // #303675: Support several AddOns on standard SLE medium
+	    // at first, try to find XML configuration
+	    // then as a fallback/backward compatibility the old plain configuration
+	    foreach (list <string> one_aop, [["/add_on_products.xml", "xml"], ["/add_on_products", "plain"]], {
+		string file = one_aop[0]:"";
+		string type = one_aop[1]:"";
+
+		tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, file);
+
+		if (tmp_add_on_products != nil) {
+		    add_on_products_list = sformat ("%1/add_on_products", SCR::Read (.target.tmpdir));
+		    WFM::Execute (.local.bash, sformat ("cp %1 %2", tmp_add_on_products, add_on_products_list));
+		    add_on_products_type = type;
+		    y2milestone ("Found add_on_products %1 type %2", tmp_add_on_products, type);
+		    break;
+		}
+	    });
 }
 
 global void Initialize_StageNonInitial (boolean show_popup, string base_url, string log_url) {
