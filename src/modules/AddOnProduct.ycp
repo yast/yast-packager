@@ -38,6 +38,8 @@ import "String";
 import "WorkflowManager";
 import "URL";
 import "Mode";
+import "Icon";
+import "PackageCallbacks";
 
 // variables for installation with product
 /**
@@ -589,7 +591,7 @@ map <integer, list <string> > patterns_preselected_by_addon = $[];
 boolean SelectProductPatterns (string content_file, integer src_id) {
 
     // TODO FIXME: really needed?
-    // Installing the product from the resitory should do the same!
+    // Installing the product from the repository should do the same!
 
     string cmd = sformat (
 	"grep '^PATTERNS[\t ]\+' '%1' | sed 's/^PATTERNS[\t ]\+//'",
@@ -766,23 +768,59 @@ global boolean CheckProductDependencies (list<string> products) {
     return true;
 }
 
+string preselected_add_ons = "plain";
+
 /**
- * Auto-integrate add-on products in specified file (usually add_on_products file)
- * @param filelist string a file containing a list of add-on products to integrate
- * @return boolean true on exit
+ * Sets an add_on_products file type ("plain" or "xml")
+ * @see FATE #303675
+ *
+ * @param string type "plain" or "xml"
  */
-global boolean AddPreselectedAddOnProducts (string filelist) {
-    if (filelist == nil)
-    {
-	y2milestone ("No add-on products defined on the media");
-	return true;
+global void SetPreselectedAddOnProductsType (string type) {
+    if (type == "xml" || type == "plain") {
+	preselected_add_ons = type;
+	y2milestone ("add_on_products type set: %1", preselected_add_ons);
+    } else {
+	y2error ("Unknown type: %1", type);
     }
-    list<string> products = splitstring ((string)SCR::Read (.target.string, filelist), "\r\n");
+}
 
-    string base_url = GetBaseProductURL();
-    y2milestone ("Base URL: %1", base_url);
+/**
+ * Reads temporary add_on_products file, parses supported products,
+ * merges base URL if products use relative URL and returns list of
+ * maps defining additional products to add.
+ *
+ * @see FATE #303675
+ * @param string parse_file
+ * @param string base_url
+ * @return list <map> of products to add
+ *
+ * @struct
+ *  [
+ *    // product defined with URL and additional path (typically "/")
+ *    $["url":(string) url, "path":(string) path]
+ *    // additional list of products to install
+ *    // media URL can contain several products at once
+ *    $["url":(string) url, "path":(string) path, "install_products":(list <string>) pti]
+ *  ]
+ */
+list <map> ParsePlainAddOnProductsFile (string parse_file, string base_url) {
+    if (! FileUtils::Exists (parse_file)) {
+	y2error ("Cannot parse missing file: %1", parse_file);
+	return [];
+    }
 
-    y2milestone ("Adding products: %1", products);
+    list <string> products = splitstring ((string) SCR::Read (.target.string, parse_file), "\r\n");
+
+    if (products == nil) {
+	// TRANSLATORS: error report
+	Report::Error (_("Unable to use additional products."));
+	y2error ("Erroneous file: %1", parse_file);
+	return [];
+    }
+
+    list <map> ret = [];
+
     foreach (string p, products, {
 	if (p == "")
 	    return;
@@ -791,6 +829,7 @@ global boolean AddPreselectedAddOnProducts (string filelist) {
 	elements = filter (string e, elements, { return e != ""; });
 	string url = elements[0]:"";
 	string pth = elements[1]:"/";
+
 	if (elements[0]:nil != nil) elements = remove (elements, 0);
 	if (elements[0]:nil != nil) elements = remove (elements, 0);
 
@@ -798,11 +837,248 @@ global boolean AddPreselectedAddOnProducts (string filelist) {
 	if (base_url != nil && base_url != "") {
 	    url = GetAbsoluteURL (base_url, url);
 	}
+
+	ret = add (ret, $[
+	    "url" : url,
+	    "path" : pth,
+	    "install_products" : elements,
+	]);
+    });
+
+    return ret;
+}
+
+list <map> UserSelectsRequiredAddOns (list <map> products) {
+    if (products == nil || products == []) {
+	return [];
+    }
+
+    list <term> ask_user_products = [];
+    map <integer, map> ask_user_products_map = $[];
+
+    // key in ask_user_products_map
+    integer id_counter = -1;
+    string visible_string = "";
+
+    // filter those that are selected by default (without 'ask_user')
+    list <map> selected_products = filter (map one_product, products, {
+	if (one_product["ask_user"]:false == false) {
+	    return true;
+	}
+
+	// wrong definition, 'url' is mandatory
+	if (! haskey (one_product, "url")) {
+	    y2error ("No 'url' defined: %1", one_product);
+	    return false;
+	}
+
+	// user is asked for the rest
+	id_counter = id_counter + 1;
+
+	// fill up internal map (used later when item selected)
+	ask_user_products_map[id_counter] = one_product;
+
+	if (haskey (one_product, "name")) {
+	    visible_string = sformat (_("%1, URL: %2"), one_product["name"]:"", one_product["url"]:"");
+	} else if (haskey (one_product, "install_products")) {
+	    visible_string = sformat (_("%1, URL: %2"), mergestring (one_product["install_products"]:[], ", "), one_product["url"]:"");
+	} else if (haskey (one_product, "path") && one_product["path"]:"/" != "/") {
+	    visible_string = sformat (_("URL: %1, Path: %2"), one_product["url"]:"", one_product["path"]:"");
+	} else {
+	    visible_string = sformat (_("URL: %1"), one_product["url"]:"");
+	}
+
+	// create items
+	ask_user_products = add (ask_user_products, `item (
+	    `id (id_counter),
+	    visible_string,
+	    one_product["selected"]:false
+	));
+
+	return false;
+    });
+
+    ask_user_products = sort (term x, term y, ask_user_products, ``(x[1]:"" < y[1]:""));
+
+    UI::OpenDialog (
+	`VBox (
+	    `HBox (
+		`HSquash (`MarginBox (0.5, 0.2, Icon::Simple ("yast-addon"))),
+		// translators: popup heading
+		`Left (`Heading(`id(`search_heading), _("Additional Products")))
+	    ),
+	    `MinSize (
+		70, 16,
+		`MultiSelectionBox (
+		    `id (`products),
+		    _("Additional Products to Select"),
+		    ask_user_products
+		)
+	    ),
+	    `HBox (
+		`HStretch(),
+		`PushButton (`id (`ok), _("Add Selected Products")),
+		`HSpacing (1),
+		`PushButton (`id (`cancel), Label::CancelButton())
+	    )
+	)
+    );
+
+    any ret = UI::UserInput();
+    y2milestone ("User ret: %1", ret);
+
+    // add also selected
+    if (ret == `ok) {
+	list <integer> selprods = (list <integer>) UI::QueryWidget (`products, `SelectedItems);
+	foreach (integer one_product, selprods, {
+	    selected_products = add (selected_products, ask_user_products_map[one_product]:$[]);
+	});
+    }
+
+    UI::CloseDialog ();
+
+    y2milestone ("Selected products: %1", selected_products);
+
+    return selected_products;
+}
+
+list <map> ParseXMLBasedAddOnProductsFile (string parse_file, string base_url) {
+    if (! FileUtils::Exists (parse_file)) {
+	y2error ("Cannot parse missing file: %1", parse_file);
+	return [];
+    }
+
+    map <string, any> xmlfile_products = XML::XMLToYCPFile (parse_file);
+
+    if (xmlfile_products == nil) {
+	// TRANSLATORS: error report
+	Report::Error (_("Unable to use additional products."));
+	y2error ("Erroneous file %1", parse_file);
+	return [];
+    } else if (xmlfile_products["product_items"]:[] == []) {
+	y2warning ("Empty file %1", parse_file);
+	return [];
+    }
+
+    list <map> products = [];
+
+
+    boolean run_ask_user = false;
+
+    foreach (map one_prod, xmlfile_products["product_items"]:[], {
+	if (! haskey (one_prod, "url")) {
+	    y2error ("No 'url' defined in %1", one_prod);
+	    return;
+	}
+
+	// FATE #302123
+	if (base_url != nil && base_url != "") {
+	    one_prod["url"] = GetAbsoluteURL (base_url, one_prod["url"]:"");
+	}
+
+	if (one_prod["ask_user"]:false == true) {
+	    run_ask_user = true;
+	}
+
+	products = add (products, one_prod);
+    });
+
+    if (run_ask_user) {
+	products = UserSelectsRequiredAddOns (products);
+    }
+
+    return products;
+}
+
+/**
+ * Auto-integrate add-on products in specified file (usually add_on_products file)
+ *
+ * @param filelist string a file containing a list of add-on products to integrate
+ * @see FATE #303675: Support several add-ons on standard medium
+ * @return boolean true on exit
+ *
+ * @struct
+ * Format of /add_on_products.xml file on media root:
+ * <?xml version="1.0"?>
+ * <add_on_products xmlns="http://www.suse.com/1.0/yast2ns"
+ *	xmlns:config="http://www.suse.com/1.0/configns">
+ *	<product_items config:type="list">
+ *		<product_item>
+ *			<!-- Product name visible in UI when offered to user (optional item) -->
+ *			<name>Add-on Name to Display</name>
+ *			<!-- Product URL (mandatory item) -->
+ *			<url>http://product.repository/url/</url>
+ *			<!-- Product path, default is "/" (optional item) -->
+ *			<path>/relative/product/path</path>
+ *			<!--
+ *				List of products to install from media, by default all products
+ *				from media are installed (optional item)
+ *			-->
+ *			<install_products config:type="list">
+ *				<!--
+ *					Product to install - matching the metadata product 'name'
+ *					(mandatory to fully define 'install_products')
+ *				-->
+ *				<product>Product-ID-From-Repository</product>
+ *				<product>...</product>
+ *			</install_products>
+ *			<!--
+ *				If set to 'true', user is asked whether to install this product,
+ *				default is 'false' (optional)
+ *			-->
+ *			<ask_user config:type="boolean">true</ask_user>
+ *			<!--
+ *				Connected to 'ask_user', sets the default status of product,
+ *				default is 'false' (optional)
+ *			-->
+ *			<selected config:type="boolean">true</selected>
+ *		</product_item>
+ *		<product_item>
+ *			...
+ *		</product_item>
+ *	</product_items>
+ * </add_on_products>
+ */
+global boolean AddPreselectedAddOnProducts (string filelist) {
+    if (filelist == nil)
+    {
+	y2milestone ("No add-on products defined on the media");
+	return true;
+    }
+
+    string base_url = GetBaseProductURL();
+    y2milestone ("Base URL: %1", base_url);
+
+    list <map> add_products = [];
+
+    // new xml format
+    if (preselected_add_ons == "xml") {
+	add_products = ParseXMLBasedAddOnProductsFile (filelist, base_url);
+    // old fallback
+    } else if (preselected_add_ons == "plain") {
+	add_products = ParsePlainAddOnProductsFile (filelist, base_url);
+    } else {
+	y2error ("Unsupported type: %1", preselected_add_ons);
+	return false;
+    }
+
+    y2milestone ("Adding products: %1", add_products);
+    foreach (map one_product, add_products, {
+	string url = one_product["url"]:"";
+	string pth = one_product["path"]:"";
+
 	y2milestone ("Adding Repository: %1 %2", url, pth);
 
 	integer src = Pkg::SourceCreate (url, pth);
-	if (! AcceptedLicenseAndInfoFile(src))
-	{
+
+	if (src == nil || src < 0) {
+	    y2error ("Unable to add product: %1", url);
+	    // TRANSLATORS: error message, %1 is replaced with product URL
+	    Report::Error (sformat (_("Unable to add product %1."), url));
+	    return;
+	}
+
+	if (! AcceptedLicenseAndInfoFile (src)) {
 	    Pkg::SourceDelete (src);
 	    return;
 	}
@@ -820,19 +1096,26 @@ global boolean AddPreselectedAddOnProducts (string filelist) {
 	    "product_dir" : pth,
 	]);
 
-	if (size (elements) > 0)
-	{
-	    foreach (string e, elements, {
-		Pkg::ResolvableInstall (e, `product);
+	list <string> prods_to_install = one_product["install_products"]:[];
+
+	// there are more products at the destination
+	// install the listed ones only
+	if (prods_to_install != nil && size (prods_to_install) > 0) {
+	    foreach (string one_prod, prods_to_install, {
+		y2milestone ("Selecting product '%1' for installation", one_prod);
+		Pkg::ResolvableInstall (one_prod, `product);
 	    });
-	}
-	else
-	{
+
+	// install all products from the destination
+	} else {
 	    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+	    // only those that come from the new source
 	    products = filter (map<string,any> p, products, {
 		return p["source"]:-1 == src;
 	    });
+
 	    foreach (map<string,any> p, products, {
+		y2milestone ("Selecting product '%1' for installation", p["name"]:"");
 		Pkg::ResolvableInstall (p["name"]:"", `product);
 	    });
 	}
