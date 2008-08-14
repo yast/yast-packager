@@ -105,6 +105,14 @@ if (func == "Info")
 }
 else if (func == "Write")
 {
+
+/*
+    File "/openSUSE-release.prod" is no more on the media
+    but directly in the RPM. Don't create the directory
+    and don't copy the file manually anymore.
+
+    (since evrsion 2.17.5)
+
     // Copy information about product (bnc#385868)
     // FIXME: this is a temporary hack containing a hardcoded file name
     string media_prod = Pkg::SourceProvideOptionalFile (
@@ -117,6 +125,7 @@ else if (func == "Write")
 	WFM::Execute (.local.bash, sformat ("test -d %3%2 && /bin/cp %1 %3%2",
 						media_prod, "/etc/zypp/products.d", Installation::destdir));
     }
+*/
 
     // See bnc #384827, #381360
     if (Mode::update()) {
