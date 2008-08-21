@@ -73,10 +73,36 @@
     boolean user_abort = false;
 
     // properties of the current UI
-    boolean textmode = UI::GetDisplayInfo()["TextMode"]:false;
-    integer display_width = UI::GetDisplayInfo()["Width"]:0;
+    boolean textmode	= nil;
+    integer display_width = nil;
 
     global string relnotes = nil;
+
+    /**
+     * return the value of text_mode (true for ncurses)
+     */
+    global boolean GetTextMode () {
+
+	if (textmode == nil)
+	{
+	    map display_info	= UI::GetDisplayInfo ();
+	    textmode		= display_info["TextMode"]:false;
+	}
+	return textmode;
+    }
+
+    /**
+     * return the value of screen width
+     */
+    global integer GetDisplayWidth () {
+
+	if (display_width == nil)
+	{
+	    map display_info	= UI::GetDisplayInfo ();
+	    display_width	= display_info["Width"]:0;
+	}
+	return display_width;
+    }
 
     /**
      * Constructor
@@ -1123,7 +1149,7 @@
 	    if (bps_current > 0)
 	    {
 		// do not show the average download rate if the space is limited
-		if (textmode && display_width < 100)
+		if (GetTextMode () && GetDisplayWidth () < 100)
 		{
 		    bps_avg = -1;
 		}

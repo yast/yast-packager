@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 21 10:53:54 CEST 2008 - jsuchome@suse.cz
+
+- SlideShow.ycp: do not use UI while being imported, breaks CLI 
+
+-------------------------------------------------------------------
 Thu Aug 14 14:34:02 CEST 2008 - locilka@suse.cz
 
 - Added support for several products on one media by making
