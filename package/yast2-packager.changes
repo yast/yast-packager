@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 21 15:13:25 CEST 2008 - lslezak@suse.cz
+
+- repositories.ycp: update Autorefresh flag in the table when
+  autorefresh is changed
+- 2.17.6
+
+-------------------------------------------------------------------
 Thu Aug 21 10:53:54 CEST 2008 - jsuchome@suse.cz
 
 - SlideShow.ycp: do not use UI while being imported, breaks CLI 
