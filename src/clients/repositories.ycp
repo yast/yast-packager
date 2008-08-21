@@ -768,7 +768,11 @@ cannot be set."));
 		else
 		{
 		    state = !state;
+
+		    string newstate = (state ? UI::Glyph(`CheckMark) : "");
+		    UI::ChangeWidget(`id(`table), `Item(current, 2), newstate);
 		}
+
                 sourceState["autorefresh"] = state;
                 sourceStatesOut[ current ] = sourceState;
 
