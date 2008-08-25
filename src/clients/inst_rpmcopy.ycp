@@ -660,7 +660,31 @@ from the source CD to the disk cache")));
 	    });
 	}
 
-	Pkg::PkgSolve (false);
+        list<string> failed = [];
+        list<string> patterns = AutoinstData::post_patterns;
+        /* set SoftLock to avoid the installation of recommended patterns (#159466) */
+        foreach( map<string,any> p, Pkg::ResolvableProperties ("", `pattern, ""), ``{
+            Pkg::ResolvableSetSoftLock( p["name"]:"", `pattern );
+        });
+        foreach(string p, toset(patterns),
+                ``{
+            if (! Pkg::ResolvableInstall( p, `pattern ) )
+            {
+                failed = add(failed, p);
+            }
+        });
+
+        if (size(failed) > 0 )
+        {
+            y2error("Error while setting pattern: %1",  mergestring(failed, ","));
+            Report::Warning(sformat(_("Could not set patterns: %1."), mergestring(failed, ",")));
+        }
+        //
+        // Solve dependencies
+        //
+        if( !Pkg::PkgSolve(false) ) {
+            Report::Error( _("The package resolver run failed. Please check your software section in the autoyast profile.") );
+        }
     }
 
     symbol InstallPackagesFromMedia (integer current_cd_no, integer maxnumbercds) {

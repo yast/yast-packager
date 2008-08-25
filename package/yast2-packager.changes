@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 25 14:11:43 CEST 2008 - ug@suse.de
+
+- post_patterns added for autoyast
+
+-------------------------------------------------------------------
 Thu Aug 21 15:13:25 CEST 2008 - lslezak@suse.cz
 
 - repositories.ycp: update Autorefresh flag in the table when
