@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 27 13:28:07 CEST 2008 - locilka@suse.cz
+
+- Initializing installation URL got from install.inf (RepoURL)
+  if exists (bnc #406162).
+- 2.17.8
+
+-------------------------------------------------------------------
 Mon Aug 25 14:11:43 CEST 2008 - ug@suse.de
 
 - post_patterns added for autoyast
