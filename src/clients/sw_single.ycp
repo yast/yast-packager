@@ -26,6 +26,7 @@
     import "Mode";
     import "PackageCallbacks";
     import "PackageLock";
+    import "PackageSlideShow";
     import "SlideShow";
     import "SlideShowCallbacks";
     import "Kernel";
@@ -157,7 +158,7 @@ symbol StartSWSingle()
 
 	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
-	   SlideShow::InitPkgData(true);	// force reinitialization
+	   PackageSlideShow::InitPkgData(true);	// force reinitialization
 
 	   foreach (string package, arg_list, {
 	       if (SCR::Read (.target.size, package) > 0)
@@ -525,14 +526,14 @@ Install them now?
 	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
 	   boolean anyToDelete = Pkg::PkgAnyToDelete();
 	   SlideShow::SetLanguage (UI::GetLanguage(true));
-	   SlideShow::InitPkgData(true);	// force reinitialization
-	   SlideShow::OpenSlideShowDialog();
+	   PackageSlideShow::InitPkgData(true);	// force reinitialization
+	   SlideShow::OpenDialog();
 
            list< map<string,any> > stages = [
            $[
                 "name" : "packages",
                 "description": _("Installing Packages..."),
-                "value" : SlideShow::total_size_to_install / 1024 , // kilobytes
+                "value" : PackageSlideShow::total_size_to_install / 1024 , // kilobytes
                 "units" : `kb,
            ],
            ];
@@ -547,7 +548,7 @@ Install them now?
 	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
 	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 
-	   SlideShow::CloseSlideShowDialog();
+	   SlideShow::CloseDialog();
 
 	   if (Mode::normal ()				// run SuSEconfig only in normal system, not during installation
 	       && Installation::destdir == "/"
