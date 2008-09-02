@@ -25,6 +25,7 @@ import "Language";
 import "ProductFeatures";
 import "ProductControl";
 import "Report";
+import "Slides";
 import "SlideShow";
 import "SpaceCalculation";
 import "String";
@@ -1070,7 +1071,7 @@ global void SlideShowSetUp (string wanted_language) {
     // try to download only slides that are needed (by selected language)
     // no images are cached
     string search_for_dir = sformat ("/%1/setup/slide/", datadir);
-    FindAndCopySlideDirWithoutCallbacks(our_slidedir, source, search_for_dir, lang_long, lang_short, SlideShow::fallback_lang);
+    FindAndCopySlideDirWithoutCallbacks(our_slidedir, source, search_for_dir, lang_long, lang_short, Slides::fallback_lang);
 
     // fallback solution disabled
 /*
@@ -1090,7 +1091,7 @@ global void SlideShowSetUp (string wanted_language) {
 */
 
     y2milestone ("Setting up the slide directory local copy: %1", our_slidedir);
-    SlideShow::SetSlideDir (our_slidedir);
+    Slides::SetSlideDir (our_slidedir);
 
     if (load_release_notes (source))
     {

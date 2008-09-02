@@ -16,6 +16,7 @@
     import "Directory";
     import "Packages";
     import "SlideShow";
+    import "PackageSlideShow";
 
     import "Label";
 
@@ -100,7 +101,7 @@
 	list <integer> sources = Pkg::SourceGetCurrent (false);
 	integer source_id = sources[0]:0;
 
-	SlideShow::InitPkgData(false);
+	PackageSlideShow::InitPkgData(false);
 
 	// structure: [ ["source_name", id] ]
 	list< list > src_list = Pkg::PkgMediaNames();
@@ -112,13 +113,13 @@
 
 	if (media_number == 0)
 	{
-	    SlideShow::SetCurrentCdNo (first_source, 1);
+	    PackageSlideShow::SetCurrentCdNo (first_source, 1);
 	}
 	else
 	{
-	    SlideShow::SetCurrentCdNo (first_source, media_number);
+	    PackageSlideShow::SetCurrentCdNo (first_source, media_number);
 	}
-	SlideShow::UpdateAllCdProgress (false);
+	PackageSlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
 	boolean do_commit = true;

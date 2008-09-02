@@ -27,6 +27,7 @@
     import "PackageInstallation";
     import "Packages";
     import "SlideShow";
+    import "PackageSlideShow";
     import "SlideShowCallbacks";
     import "Popup";
     import "Report";
@@ -661,7 +662,7 @@ from the source CD to the disk cache")));
 	}
 
         list<string> failed = [];
-        list<string> patterns = AutoinstData::post_patterns;
+        list<string> patterns = []; // WORKAROUND, REMOVE!!! AutoinstData::post_patterns;
         /* set SoftLock to avoid the installation of recommended patterns (#159466) */
         foreach( map<string,any> p, Pkg::ResolvableProperties ("", `pattern, ""), ``{
             Pkg::ResolvableSetSoftLock( p["name"]:"", `pattern );
@@ -871,9 +872,10 @@ from the source CD to the disk cache")));
 	// initialize the package agent in continue mode
 	Packages::Init( true );
 	RestoreDiskCacheSettings ();
-    }
 
-    SlideShow::OpenSlideShowDialog ();
+	// in 1st stage, this is opened already
+	SlideShow::OpenDialog ();
+    }
 
     Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
@@ -899,6 +901,13 @@ from the source CD to the disk cache")));
     integer maxnumbercds  = cdnumbers["maxnumbercds"]:10;
     integer current_cd_no = cdnumbers["current_cd_no"]:1;
 
+    // re-initialize package information
+    PackageSlideShow::InitPkgData(true);
+    // we want the table
+    SlideShow::ShowTable();
+    // move the progress to the packages stage
+    SlideShow::MoveToStage("packages");
+
     // install packages from CD current_cd_no to CD maxnumbercds
     symbol result = InstallPackagesFromMedia (current_cd_no, maxnumbercds);
 
@@ -909,7 +918,7 @@ from the source CD to the disk cache")));
 	Pkg::PkgCommit (9999);
     }
 
-    SlideShow::CloseSlideShowDialog();
+    SlideShow::CloseDialog();
 
     if (result != `abort)
     {
