@@ -528,6 +528,19 @@ Install them now?
 	   SlideShow::InitPkgData(true);	// force reinitialization
 	   SlideShow::OpenSlideShowDialog();
 
+           list< map<string,any> > stages = [
+           $[
+                "name" : "packages",
+                "description": _("Installing Packages..."),
+                "value" : SlideShow::total_size_to_install / 1024 , // kilobytes
+                "units" : `kb,
+           ],
+           ];
+
+           SlideShow::Setup( stages );
+
+           SlideShow::MoveToStage( "packages" );
+
 	   import "PackageInstallation";
 	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 	   integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");

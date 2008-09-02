@@ -22,6 +22,7 @@
     import "PackageCallbacks";
     import "Popup";
     import "SlideShow";
+    import "PackageSlideShow";
     import "Message";
     import "Directory";
     import "URL";
@@ -82,7 +83,7 @@
 
 	if ( remote )
 	{
-	    SlideShow::SlideProvideStart (name , archivesize, remote);
+	    PackageSlideShow::SlideProvideStart (name , archivesize, remote);
 	    _remote_provide = true;
 	}
     }
@@ -95,7 +96,7 @@
     {
 	if (_remote_provide)
 	{
-	    SlideShow::UpdateCurrentPackageProgress( percent );
+	    PackageSlideShow::UpdateCurrentPackageProgress( percent );
 	}
 	HandleInput();
 	return ! SlideShow::GetUserAbort();
@@ -103,7 +104,7 @@
 
     global boolean ProgressDownload(integer percent, integer bps_avg, integer bps_current)
     {
-	SlideShow::UpdateCurrentPackageRateProgress(percent, bps_avg, bps_current);
+	PackageSlideShow::UpdateCurrentPackageRateProgress(percent, bps_avg, bps_current);
 
 	HandleInput();
 	return ! SlideShow::GetUserAbort();
@@ -117,7 +118,7 @@
     {
 	if ( _remote_provide )
 	{
-	    SlideShow::UpdateCurrentPackageProgress( 100 );
+	    PackageSlideShow::UpdateCurrentPackageProgress( 100 );
 	    _remote_provide = false;
 	}
 	if (SlideShow::GetUserAbort())
@@ -291,7 +292,7 @@
      **/
     global void DisplayStartInstall(string pkg_name, string pkg_description, integer pkg_size, boolean deleting )
     {
-	SlideShow::SlideDisplayStart( pkg_name, pkg_description, pkg_size, deleting );
+	PackageSlideShow::SlideDisplayStart( pkg_name, pkg_description, pkg_size, deleting );
 	HandleInput();
 
 	// warn user about exhausted diskspace during installation (not if deleting packages)
@@ -395,7 +396,7 @@
 
 	if (!SlideShow::GetUserAbort())
 	{
-	    SlideShow::UpdateCurrentPackageProgress ( pkg_percent );
+	    PackageSlideShow::UpdateCurrentPackageProgress ( pkg_percent );
 	}
 
 	if (SlideShow::GetUserAbort())
@@ -414,7 +415,7 @@
     {
 	if (SlideShow::GetUserAbort())
 	    return "I";
-	SlideShow::UpdateCurrentPackageProgress (100);
+	PackageSlideShow::UpdateCurrentPackageProgress (100);
 
 	string ret = "";
 	if (error != 0)
@@ -423,7 +424,7 @@
 	}
 	if (size (ret) == 0 || tolower (substring (ret, 0, 1)) != "r")
 	{
-	    SlideShow::SlideDisplayDone(
+	    PackageSlideShow::SlideDisplayDone(
 		PackageCallbacks::_package_name,
 		PackageCallbacks::_package_size,
 		PackageCallbacks::_deleting_package);
@@ -437,7 +438,7 @@
      */
     global void StartDeltaProvide( string name, integer archivesize )
     {
-	SlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading delta RPM %1 (download size %2)"), true /*remote*/);
+	PackageSlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading delta RPM %1 (download size %2)"), true /*remote*/);
 	_remote_provide = true;
     }
 
@@ -446,7 +447,7 @@
      */
     global void StartDeltaApply( string name )
     {
-	SlideShow::SlideDeltaApplyStart (name);
+	PackageSlideShow::SlideDeltaApplyStart (name);
 	_remote_provide = true;
     }
     /**
@@ -454,7 +455,7 @@
      */
     global void StartPatchProvide( string name, integer archivesize )
     {
-	SlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading patch RPM %1 (download size %2)"), true /*remote*/);
+	PackageSlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading patch RPM %1 (download size %2)"), true /*remote*/);
 	_remote_provide = true;
     }
 
@@ -463,7 +464,7 @@
      */
     global void ProgressDeltaApply( integer percent )
     {
-	SlideShow::UpdateCurrentPackageProgress ( percent );
+	PackageSlideShow::UpdateCurrentPackageProgress ( percent );
     }
 
     /**
@@ -500,9 +501,9 @@
     global void CallbackSourceChange( integer source, integer media)
     {
 	PackageCallbacks::SourceChange( source, media );		// inform PackageCallbacks about the change
-	SlideShow::SetCurrentCdNo( source, media );
-	SlideShow::UpdateCurrentPackageProgress(0);
-	SlideShow::UpdateAllCdProgress(false);
+	PackageSlideShow::SetCurrentCdNo( source, media );
+	PackageSlideShow::UpdateCurrentPackageProgress(0);
+	PackageSlideShow::UpdateAllCdProgress(false);
     };
 
     global string MediaChange (string error_code, string error, string url, string product,
@@ -525,7 +526,7 @@
 	    // moved from PackageCallbacks
 	    if (ret == "" || URL::Check(ret))
 	    {
-		SlideShow::SetCurrentCdNo (PackageCallbacks::_current_source, wanted);
+		PackageSlideShow::SetCurrentCdNo (PackageCallbacks::_current_source, wanted);
 	    }
 	}
 

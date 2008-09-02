@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep  2 11:11:56 CEST 2008 - visnov@suse.cz
+
+- Use unified progress bar during installation (FATE #303860)
+
+-------------------------------------------------------------------
 Wed Aug 27 13:28:07 CEST 2008 - locilka@suse.cz
 
 - Initializing installation URL got from install.inf (RepoURL)
