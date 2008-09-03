@@ -310,10 +310,10 @@ symbol DoInstall_NoControlFile () {
     boolean enable_repo_management = Mode::normal();
 
     map args = $[ "dialog_type" : mode, "repo_mgmt" : enable_repo_management ];
-    y2milestone("Arguments for sw_single: %1", args);
+    y2milestone ("Arguments for sw_single: %1", args);
 
     any ret = WFM::CallFunction ("sw_single", [args]);
-    y2milestone("sw_single returned: %1", ret);
+    y2milestone ("sw_single returned: %1", ret);
 
     if (ret == `abort || ret == `cancel || ret == `close)
 	return `abort;
@@ -378,14 +378,23 @@ symbol DoInstall_WithControlFile (string control) {
 	return nil;
     }
 
+    string current_stage = "normal";
+    string current_mode  = Mode::mode();
+
+    list <map> steps = ProductControl::getModules (current_stage, current_mode, `enabled);
+    if (steps == nil || size (steps) < 1) {
+	y2warning ("Add-On product workflow for stage: %1, mode: %2 not defined", current_stage, current_mode);
+	return nil;
+    }
+
     // start workflow
     Wizard::OpenNextBackStepsDialog();
     // dialog caption
     Wizard::SetContents(_("Initializing..."), `Empty (), "", false, false);
 
-    list<map> stage_mode = [$["stage": "normal",  "mode": "installation" ]];
-    ProductControl::AddWizardSteps(stage_mode);
-    Mode::SetMode ("installation");
+    list <map> stage_mode = [$["stage": current_stage,  "mode": current_mode, ]];
+    ProductControl::AddWizardSteps (stage_mode);
+
     symbol ret = ProductControl::Run();
 
     UI::CloseDialog();
@@ -554,15 +563,36 @@ global symbol DoInstall() {
     // FATE #302398: PATTERNS keyword in content file
     HandleProductPATTERNS (src_id);
 
+    list <map <string, any> > all_products = Pkg::ResolvableProperties ("", `product, "");
+    all_products = filter (map <string, any> one_product, all_products, {
+	return (one_product["source"]:-1 == src_id);
+    });
+    y2milestone ("Added product: %1", all_products[0]:$[]);
+
+    string old_mode = nil;
+
+    // New add-on can replace some old one
+    // Adjust mode accordingly
+    if (all_products[0,"replaces"]:nil != nil && all_products[0,"replaces"]:"" != "") {
+	y2milestone ("New Add-On replaces %1, setting mode to update", all_products[0,"replaces"]:nil);
+	old_mode = Mode::mode();
+	Mode::SetMode ("update");
+    } else {
+	Mode::SetMode ("installation");
+    }
+
     symbol ret = nil;
 
     string control = Pkg::SourceProvideOptionalFile (src_id, 1, "/installation.xml");
-    // Fallback -- Repository didn't provide needed controll file
-    // Handling as it was a repository
-    if (control == nil) {
-	ret = DoInstall_NoControlFile();
-    } else {
+    if (control != nil) {
+	y2milestone ("Add-On has own control file");
 	ret = DoInstall_WithControlFile (control);
+    }
+    // Fallback -- Repository didn't provide needed control file
+    // or control file doesn't contain needed stage/mode
+    // Handling as it was a repository
+    if (control == nil || ret == nil) {
+	ret = DoInstall_NoControlFile();
     }
 
     y2milestone("Result of the add-on installation: %1", ret);
@@ -571,7 +601,10 @@ global symbol DoInstall() {
 	// registers Add-On product if requested
 	RegisterAddOnProduct (src_id);
     }
-    
+
+    // Set mode to the previous state
+    Mode::SetMode (old_mode);
+
     y2milestone ("Returning: %1", ret);
     return ret;
 }
