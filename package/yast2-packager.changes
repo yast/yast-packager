@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep  3 14:18:07 CEST 2008 - locilka@suse.cz
+
+- Using new "replaces" key returned by Pkg::ResolvableProperties
+  while upgrading add-on product. Different workflow is used for
+  installation and update (FATE #301997).
+
+-------------------------------------------------------------------
 Wed Sep  3 11:49:17 CEST 2008 - locilka@suse.cz
 
 - Fixed inst_custom_packages YCP script to reflect the changes done
