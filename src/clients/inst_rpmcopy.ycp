@@ -901,10 +901,25 @@ from the source CD to the disk cache")));
     integer maxnumbercds  = cdnumbers["maxnumbercds"]:10;
     integer current_cd_no = cdnumbers["current_cd_no"]:1;
 
+    SlideShow::OpenDialog();
+
     // re-initialize package information
     PackageSlideShow::InitPkgData(true);
     // we want the table
     SlideShow::ShowTable();
+
+    map <string, map <string,any> > get_setup = SlideShow::GetSetup();
+    if (get_setup == nil || get_setup == $[]) {
+	y2milestone ("No SlideShow setup has been set, adjusting");
+	SlideShow::Setup([$[
+	    "name" : "packages",
+	    "description" : _("Installing Packages..."),
+	    "value" : PackageSlideShow::total_size_to_install / 1024 , // kilobytes
+	    "units" : `kb,
+	]]);
+    }
+    get_setup = nil;
+
     // move the progress to the packages stage
     SlideShow::MoveToStage("packages");
 

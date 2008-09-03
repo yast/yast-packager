@@ -895,4 +895,14 @@
 	y2milestone( "Global progress bar: %1", _stages );
     }
 
+    /**
+     * Returns the current setup defined by Setup().
+     *
+     * @return map <string, map <string,any> > stages
+     * @see Setup()
+     * @struct $[ stage_name : $[ stage_setup ], ... ]
+     */
+    global map <string, map <string,any> > GetSetup () {
+	return _stages;
+    }
 }
