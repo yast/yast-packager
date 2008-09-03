@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Wed Sep  3 14:18:07 CEST 2008 - locilka@suse.cz
+Wed Sep  3 15:36:01 CEST 2008 - locilka@suse.cz
 
+- Adjusting SlideShow in inst_rpmcopy if not set.
 - Using new "replaces" key returned by Pkg::ResolvableProperties
   while upgrading add-on product. Different workflow is used for
   installation and update (FATE #301997).
