@@ -15,6 +15,7 @@
     import "Directory";
     import "Popup";
     import "SlideShow";
+    import "PackageSlideShow";
     import "Kernel";
     import "Installation";
     import "GetInstArgs";
@@ -66,8 +67,8 @@
     {
         boolean anyToDelete = Pkg::PkgAnyToDelete();
         SlideShow::SetLanguage (UI::GetLanguage(true));
-        SlideShow::InitPkgData(false);
-        SlideShow::OpenSlideShowDialog();
+        PackageSlideShow::InitPkgData(false);
+        SlideShow::OpenDialog();
 
         import "PackageInstallation";
         Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
@@ -75,7 +76,7 @@
         list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
         integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 
-        SlideShow::CloseSlideShowDialog();
+        SlideShow::CloseDialog();
 
         if (Installation::destdir == "/"
                 && ((commit_result[0]:0 > 0)
