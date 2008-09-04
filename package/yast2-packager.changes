@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  4 14:25:58 CEST 2008 - lslezak@suse.cz
+
+- sw_single: display "Starting the Software Manager" instead of
+  "Starting the Package Manager" (bnc#421952)
+
+-------------------------------------------------------------------
 Wed Sep  3 15:36:01 CEST 2008 - locilka@suse.cz
 
 - Adjusting SlideShow in inst_rpmcopy if not set.

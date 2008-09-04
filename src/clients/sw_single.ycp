@@ -59,7 +59,7 @@ symbol StartSWSingle()
     }
 
     // a stage in the progress dialog
-    Progress::New(_("Starting the Package Manager"), "", 2, stages, [], "");
+    Progress::New(_("Starting the Software Manager"), "", 2, stages, [], "");
     Progress::NextStage();
 
     import "Packages";
