@@ -8,6 +8,73 @@
  *
  * $Id$
  *
+ * Usage:
+ * This is a generic module for handling global progress bar with optional slideshow/release notes etc.
+ *
+ * Global progress
+ * ===============
+ * The basic idea is that the progress consists of "stages" - during a new install, 
+ * there are 3: disk preparation, image deployment and package installation.
+ * 
+ * Before the first client using the unified progress, the stages need to be set 
+ * up, e.g. :
+ * 
+ * list< map<string,any> > stages = [
+ *     $[
+ *     "name" : "disk",
+ *     "description": _("Preparing disks..."),
+ *     "value" : Mode::update() ? 0 : 120, // 2 minutes, who needs more? ;-)
+ *     "units" : `sec,
+ *     ],
+ *     $[
+ *     "name" : "images",
+ *     "description": _("Deploying Images..."),
+ *     "value" : ImageInstallation::TotalSize() / 1024, // kilobytes
+ *     "units" : `kb,
+ *     ],
+ *     $[
+ *     "name" : "packages",
+ *     "description": _("Installing Packages..."),
+ *     // here, we do a hack, because until images are deployed, we cannot 
+ * determine how many
+ *     // packages will be really installed additionally
+ *     "value" : (PackageSlideShow::total_size_to_install - 
+ * ImageInstallation::TotalSize()) / 1024 , // kilobytes
+ *     "units" : `kb,
+ *     ],
+ *   ];
+ * 
+ *   SlideShow::Setup( stages );
+ * 
+ * The function will calculate the partitioning of the unified progress based on 
+ * estimate of a needed time. A stage can provide the estimate of time or an 
+ * amount of data to be transferred (the constants used are based on assumption 
+ * of 15 min install time and that the data are downloaded and written to disk). 
+ * The logic is no rocket science as the only goal for a progress bar is to have 
+ * it move somewhat regularly. Also, the function resets timers and other
+ * progress status information, including which parts are shown. See \ref SlideShow::Reset.
+ * 
+ * A client using the new unified progress will do basically 2 things:
+ * 
+ * 1) calls SlideShow::MoveToStage( stage-id ) 
+ * - this will move the global progress to a proper position for start of the 
+ * stage and updates also the label ("description" entry in the map)
+ * 
+ * 2) calls regularly SlideShow::StageProgress( new_percent, new_label )
+ * - new_percent is the progress inside of the current stage, the library will 
+ * recompute this to get a global progress percents.
+ * - if new_label is nil, label is not updated.
+ * 
+ * More functionality
+ * ==================
+ * The SlideShow dialog contains the following functionality:
+ * - global progress (see above)
+ * - subprogress for the current action (e.g. download a package, format 
+ * disk, ...)
+ * - installation log
+ * - slide show support
+ * - optional package table
+ * - release notes viewer
  */
 {
     module "SlideShow";
