@@ -888,6 +888,7 @@ symbol StartInstSource()
     {
 	// dialog caption
 	Wizard::SetContents(_("Initializing..."), `Empty (), "", false, true);
+	Pkg::TargetInit("/", true);
     }
 
    // check whether running as root
@@ -990,18 +991,6 @@ if (WFM::Args() == [ `sw_single_mode ])
     }
 
     return ret;
-}
-else
-{
-    y2milestone("Initializing the target...");
-
-    // disable callbasks in command line mode
-    if (size(WFM::Args()) > 0)
-    {
-	Mode::SetUI ("commandline");
-    }
-
-    Pkg::TargetInit("/", true);
 }
 
 return CommandLine::Run(cmdline_description);
