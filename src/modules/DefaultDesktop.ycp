@@ -16,7 +16,7 @@ textdomain "packager";
 import "ProductFeatures";
 import "Installation";
 
-// Could be defined in control file
+// FIXME: Should be defined in control file
 // @see GetAllDesktopsMap
 map <string, map> all_desktops = $[
     "gnome" :  $[
@@ -232,7 +232,7 @@ global list<string> PatternsToDeselect () {
  */
 global string Description () {
     // TRANSLATORS: dialog label
-    return all_desktops[desktop, "label"]:_("No system type selected");
+    return all_desktops[desktop, "label"]:"";
 }
 
 /**
