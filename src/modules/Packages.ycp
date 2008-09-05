@@ -329,9 +329,16 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	// installation proposal - SW summary, %1 is name of the installed product
 	// (e.g. openSUSE 10.3, SUSE Linux Enterprise ...)
 	output = (list<string>)merge (output, ListSelected (`product, _("Product: %1")));
-    if (contains (flags, `desktop))
-	// installation proposal - SW summary, %1 is name of the selected desktop or system type (e.g. KDE)
-	output = (list<string>)add (output, sformat(_("System Type: %1"), DefaultDesktop::Description ()));
+
+    if (contains (flags, `desktop)) {
+	// BNC #422077, Desktop doesn't need to be defined, e.g. in SLED
+	string ddd = DefaultDesktop::Description();
+	if (ddd != "") {
+	    // installation proposal - SW summary, %1 is name of the selected desktop or system type (e.g. KDE)
+	    output = (list<string>)add (output, sformat(_("System Type: %1"), ddd));
+	}
+    }
+
     if (contains (flags, `pattern))
     {
 	list<string> patterns = ListSelected (`pattern, "+  %1");
@@ -341,6 +348,7 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	    output = (list<string>) add (output, _("Patterns:<br>") + mergestring (patterns, "<br>"));
 	}
     }
+
     if (contains (flags, `selection))
     {
 	list<string> selections = ListSelected (`selection, "+  %1");
@@ -350,6 +358,7 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	    output = (list<string>) add (output, _("Selections:<br>") + mergestring (selections, "<br>"));
 	}
     }
+
     if (contains (flags, `size))
     {
 	output = (list<string>)add (output,
@@ -1594,6 +1603,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	solve_errors = Pkg::PkgSolveErrors ();
     }
 
+    // Question: is `desktop appropriate for SLE?
     map ret = Summary (
 	[ `product, `pattern, `selection, `size, `desktop ],
 	false);

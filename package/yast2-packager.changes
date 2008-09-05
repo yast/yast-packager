@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  5 10:20:06 CEST 2008 - locilka@suse.cz
+
+- Don't show selected desktop in proposal if none has been selected
+  (bnc #422077).
+
+-------------------------------------------------------------------
 Thu Sep  4 14:25:58 CEST 2008 - lslezak@suse.cz
 
 - sw_single: display "Starting the Software Manager" instead of

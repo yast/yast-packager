@@ -1198,7 +1198,7 @@ global map Export () {
 	return p;
     });
 
-    y2milestone ("Add-Ons Output: %2", exp);
+    y2milestone ("Add-Ons Output: %1", exp);
 
     return $[
 	"add_on_products" : exp,
