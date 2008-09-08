@@ -28,6 +28,9 @@
     list<map<string,any> > sourceStatesIn = [];
     list<map<string,any> > sourceStatesOut = [];
 
+    list<map<string,any> > serviceStatesIn = [];
+    list<map<string,any> > serviceStatesOut = [];
+
     // constant Plaindir
     const string plaindir_type = "Plaindir"; 
 

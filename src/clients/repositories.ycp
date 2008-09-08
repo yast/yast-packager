@@ -42,9 +42,17 @@
 
     boolean full_mode = false;
 
+    // cache for textmode value
+    boolean text_mode = nil;
+
     boolean textmode()
     {
-	return Mode::commandline() ? true : UI::GetDisplayInfo()["TextMode"]:false;
+	if (text_mode == nil)
+	{
+	    text_mode = Mode::commandline() ? true : UI::GetDisplayInfo()["TextMode"]:false;
+	}
+
+	return text_mode;
     }
 
     integer numSources = 0;
@@ -58,6 +66,12 @@
 
     // default (minimal) priority of a repository
     const integer default_priority = 99;
+
+    // current view:
+    // selected service (or empty) if all services are selected
+    string displayed_service = "";
+    // service/repository view flag
+    boolean repository_view = true;
 
     void RemoveDeletedAddNewRepos () {
 	list<map<string,any> > ret = [];
@@ -183,7 +197,7 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    string repoInfoRichText(string name, string raw_url, string category)
+    string repoInfoRichText(string name, string raw_url, string category, string service)
     {
 	string schema  = tolower(URL::Parse(raw_url)["scheme"]:"");
 	string icon_tag = "<IMG SRC=\"" + Directory::icondir + "/22x22/apps/"
@@ -197,16 +211,17 @@
 
 	string url  = sformat (_("URL: %1"), raw_url);
 
-	return sformat("<P>%1<B><BIG>%2</BIG></B></P><P>%3</P><P>%4</P>", icon_tag, name, url, category);
+	return sformat("<P>%1<B><BIG>%2</BIG></B></P><P>%3</P><P>%4</P><P>%5</P>", icon_tag, name, url, category, service);
     }
 
-    term repoInfoTerm(string name, string url, string category)
+    term repoInfoTerm(string name, string url, string category, string service)
     {
 	return textmode() ?
 	`VBox (
 	     `Left(`Heading(`id(`name), `opt(`hstretch), name)),
 	     `Left(`Label(`id(`url), `opt(`hstretch), url)),
-	     `Left(`Label(`id(`category), `opt(`hstretch), category ))
+	     `Left(`Label(`id(`category), `opt(`hstretch), category )),
+	     `Left(`Label(`id(`service), `opt(`hstretch), service))
 	     )
 	:
 	`VSquash(`RichText(`id(`repo_info), ""));
@@ -224,15 +239,24 @@
 	// label, %1 is repo category (eg. YUM)
 	string category = sformat (_("Category: %1"), info["type"]:_("Unknown"));
 
+	// label, %1 is repo category (eg. YUM)
+	string service = info["service"]:"";
+
+	if (service != "")
+	{
+	    sformat (_("Service: %1"), service);
+	}
+
 	if (textmode())
 	{
 	    UI::ChangeWidget(`id(`name), `Label, name);
 	    UI::ChangeWidget(`id(`url), `Label, url);
 	    UI::ChangeWidget(`id(`category), `Label, category);
+	    UI::ChangeWidget(`id(`service), `Label, service);
 	}
 	else
 	{
-	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, info["url"]:"", category));
+	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, info["url"]:"", category, service));
 	}
 
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
@@ -342,8 +366,31 @@ Save changes anyway?")))
 	return success;
    }
 
+list<term> buildTree()
+{
+    list<term> ret = [];
 
-symbol SummaryDialog () {
+    list<term> services_t = [];
+
+    foreach(map<string,any> srv_state, serviceStatesOut,
+	{
+	    term t = `item(`id(srv_state["name"]:""), srv_state["name"]:"");
+	    services_t = add(services_t, t);
+	}
+    );
+
+    // alphabetically sort the repositories (by "name" key)
+    // TODO FIXME: use lsort
+//    repositories_t = sort(term repo1, term repo2, repositories_t, {y2internal("val: %1", repo1[1]:""); return repo1[1]:"" < repo2[1]:"";});
+
+    return [
+	// true = open the node
+	`item(`id(`services), _("Services"), true, services_t),
+	`item(`id(`repositories), _("Repositories"), true, [])
+     ];
+}
+
+any SummaryDialog () {
     y2milestone ("Running Summary dialog");
 
     // push button - change URL of the selected repository
@@ -365,6 +412,8 @@ symbol SummaryDialog () {
     }
 
     term contents =
+	`HBox(
+	    `Tree(`id(`tree), `opt(`notify), "", buildTree()),
         `VBox(
 	      `HBox(
 		    `VSpacing(9),
@@ -390,7 +439,7 @@ symbol SummaryDialog () {
 			       `HBox (
 				      `HSpacing (1),
 				      `HWeight( 1, `VBox (
-					     repoInfoTerm("", "", ""),
+					     repoInfoTerm("", "", "", ""),
 					     // label
 					     `Left (`Label (_("Properties"))),
 					     // check box
@@ -438,6 +487,7 @@ symbol SummaryDialog () {
 		    ])
 		),
                 `VSpacing( 0.5 )
+	    )
         );
 
     // dialog caption
@@ -792,6 +842,11 @@ cannot be set."));
 		// do not refresh the item in the table
 		current = -1;
 	    }
+	    else if (input == `tree)
+	    {
+		// TODO FIXME handle tree events here...
+		// rebuild the dialog here
+	    }
 	    else
 	    {
 		y2warning("Unknown user input: %1", input);
@@ -903,7 +958,10 @@ symbol StartInstSource()
 	PackageCallbacks::InitPackageCallbacks ();
     }
 
+    // read repositories
     boolean restore = (!full_mode) ? Pkg::SourceRestore() : true;
+    // read services
+    restore = restore && Pkg::ServicesLoad();
     if( ! restore )
     {
 	boolean cont = Popup::AnyQuestionRichText(
@@ -926,6 +984,18 @@ symbol StartInstSource()
     sourceStatesIn = SortReposByPriority(Pkg::SourceEditGet());
     y2milestone( "Found repositories: %1", sourceStatesIn);
     sourceStatesOut = sourceStatesIn;
+
+    list<string> srv_aliases = Pkg::ServiceAliases();
+    // get the current services
+    foreach(string srv_alias, srv_aliases,
+	{
+	    serviceStatesIn = add(serviceStatesIn, Pkg::ServiceGet(srv_alias));
+	}
+    );
+
+    y2milestone("Loaded services: %1", serviceStatesIn);
+
+    serviceStatesOut = serviceStatesIn;
 
     map<string,any> aliases = $[
 	"summary" : ``(SummaryDialog ()),
