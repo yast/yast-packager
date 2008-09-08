@@ -5,8 +5,11 @@ Read	.etc.install_inf."InstMode" "smb"
 Read	.etc.install_inf."Server" "192.168.1.1"
 Read	.etc.install_inf."Serverdir" "pub"
 Read	.etc.install_inf."Share" "SHARE"
+Log	Initial repository not found in install.inf
 Return	smb://192.168.1.1/SHARE/pub
+Log	Initial repository not found in install.inf
 Return	smb://192.168.1.1/SHARE/pub/test
+Log	Initial repository not found in install.inf
 Return	smb://192.168.1.1/SHARE/pub/test
 Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Server", "Serverdir", "Share"]
@@ -14,6 +17,7 @@ Read	.etc.install_inf."InstMode" "smb"
 Read	.etc.install_inf."Server" "192.168.1.1"
 Read	.etc.install_inf."Serverdir" "/pub"
 Read	.etc.install_inf."Share" "SHARE"
+Log	Initial repository not found in install.inf
 Return	smb://192.168.1.1/SHARE//pub
 Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Password", "Server", "Serverdir", "Share", "Username"]
@@ -23,6 +27,7 @@ Read	.etc.install_inf."Server" "192.168.1.1"
 Read	.etc.install_inf."Serverdir" "pub"
 Read	.etc.install_inf."Share" "SHARE"
 Read	.etc.install_inf."Username" "suse"
+Log	Initial repository not found in install.inf
 Return	smb://suse:yast2@192.168.1.1/SHARE/pub
 Read	.target.size "/etc/install.inf" 1
 Dir	.etc.install_inf: ["InstMode", "Password", "Server", "Serverdir", "Share", "Username", "WorkDomain"]
@@ -33,4 +38,5 @@ Read	.etc.install_inf."Serverdir" "pub"
 Read	.etc.install_inf."Share" "SHARE"
 Read	.etc.install_inf."Username" "suse"
 Read	.etc.install_inf."WorkDomain" "group"
+Log	Initial repository not found in install.inf
 Return	smb://suse:yast2@192.168.1.1/SHARE/pub?workgroup=group
