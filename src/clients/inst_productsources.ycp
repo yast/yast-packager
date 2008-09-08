@@ -70,6 +70,7 @@
     import "CommandLine";
     import "PackageCallbacks";
     import "SourceManager";
+    import "ProductControl";
 
     import "FileUtils";
     import "HTTP";
@@ -382,9 +383,6 @@ Would you like to configure it?"),
     }
 
     boolean ReadControlFile () {
-	if (! Stage::initial())
-	    ProductControl::ReadControlFile ("/etc/YaST2/control.xml");
-
 	map <string, any> software_features = ProductFeatures::GetSection ("software");
 	if (software_features != nil) {
 	    main_link = software_features["external_sources_link"]:"";
