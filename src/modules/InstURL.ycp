@@ -126,7 +126,7 @@
 
 	// bnc #406162
 	boolean repo_url_from_inf = false;
-	foreach (string in_inf_key, ["ZyppRepoURL", "YaSTRepoURL", "RepoURL"], {
+	foreach (string in_inf_key, ["ZyppRepoURL"], {
 	    repo_url = Linuxrc::InstallInf (in_inf_key);
 
 	    if (repo_url != nil && repo_url != "") {
