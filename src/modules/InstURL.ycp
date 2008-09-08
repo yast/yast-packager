@@ -122,20 +122,27 @@
      * @return string new repository URL
      */
     global string installInf2Url (string extra_dir) {
-	string repo_url = Linuxrc::InstallInf ("YaSTRepoURL");
-	if (repo_url != "" && repo_url != nil)
-	{
-	    y2milestone ("Using YaSTRepoURL directly from install.inf: %1", HidePassword (repo_url));
+	string repo_url = "";
+
+	// bnc #406162
+	boolean repo_url_from_inf = false;
+	foreach (string in_inf_key, ["ZyppRepoURL", "YaSTRepoURL", "RepoURL"], {
+	    repo_url = Linuxrc::InstallInf (in_inf_key);
+
+	    if (repo_url != nil && repo_url != "") {
+		y2milestone ("Using %1 directly from install.inf: %2", in_inf_key, HidePassword (repo_url));
+		repo_url_from_inf = true;
+		break;
+	    }
+	});
+
+	if (repo_url_from_inf) {
 	    return repo_url;
 	}
 
-	// bnc #406162
-	repo_url = Linuxrc::InstallInf ("RepoURL");
-	if (repo_url != "" && repo_url != nil)
-	{
-	    y2milestone ("Using RepoURL directly from install.inf: %1", HidePassword (repo_url));
-	    return repo_url;
-	}
+	// Initial repository hasn't been found in install.inf
+	// Trying to guess it ...
+	y2warning ("Initial repository not found in install.inf");
 
 	string options = "";
         map url_tokens =  $[];
@@ -152,7 +159,7 @@
 	    is_network = false;
             options = GetDevicesOption();
 	}
-	else if (instmode == "hd")						// Harddisk
+	else if (instmode == "hd")				// Harddisk
 	{
 	    is_network = false;
             string partition = Linuxrc::InstallInf("Partition");
