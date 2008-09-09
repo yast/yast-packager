@@ -37,27 +37,69 @@
      *             "en_GB" : "repository name (localized to en_GB)",
      *             ...
      *         ],
-     *         "mirrors" : [
-     *             $[
-     *                 "url" : "full url of the mirror (http://.../)",
-     *                 "location" : "?",
-     *                 "score" : number,
-     *             ]
-     *             ...
-     *         ]
      * ]
      */
     global list <map <string, any> > GetRepositoriesFromXML (string filename) {
+	list <map <string, any> > ret = [];
+
 	if (! FileUtils::Exists (filename)) {
-	    y2error ("No such file: '%1'", filename);
-	    return nil;
+	    y2error ("File doesn't exist: %1", filename);
+	    return ret;
 	}
 
-	list <map <string, any> > ret = (list <map <string, any> >) SCR::Read (.xmlrepos, filename);
+	map read_result = (map) SCR::Read (.anyxml, filename);
 
-	if (ret == nil) {
-	    y2error ("Wrong XML file: %1", filename);
+	if (read_result == nil) {
+	    y2error ("Cannot read file: %1", filename);
+	    return ret;
+	} else if (read_result == $[]) {
+	    y2warning ("File %1 is empty", filename);
+	    return ret;
 	}
+
+	string distversion = "";
+
+	map <string, any> one_repo_out = $[];
+
+	// starting with <metapackage>-><group>
+	foreach (map one_group, read_result["metapackage",0,"group"]:[], {
+	    distversion = one_group["distversion"]:"";
+
+	    foreach (map repository, one_group["repositories",0,"repository"]:[], {
+		// One repository (requierd keys)
+		one_repo_out = $[
+		    "distversion" : distversion,
+		    "url" : repository["url",0,"content"]:"",
+		    "format" : repository["format"]:"",
+		    "recommended" : (repository["recommended"]:"false" == "true"),
+		];
+
+		// Required + dynamic (localized) keys
+		foreach (string one_key, ["name", "description", "summary"], {
+		    string loc_key = "localized_" + one_key;
+		    one_repo_out[loc_key] = $[];
+
+		    foreach (map one_item, repository[one_key]:[], {
+			if (one_item["content"]:"" != "") {
+			    if (haskey (one_item, "xml:lang")) {
+				one_repo_out[loc_key, one_item["xml:lang"]:""] = one_item["content"]:"";
+			    } else {
+				one_repo_out[one_key] = one_item["content"]:"";
+			    }
+			}
+		    });
+		});
+
+		// Fallback
+		foreach (string one_key, ["name", "description", "summary"], {
+		    if (is (repository[one_key]:nil, map) && repository[one_key, "content"]:"" != "") {
+			one_repo_out[one_key] = repository[one_key, "content"]:"";
+		    }
+		});
+
+		ret = add (ret, one_repo_out);
+	    });
+	});
 
 	return ret;
     }

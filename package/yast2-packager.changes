@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep  9 15:32:11 CEST 2008 - locilka@suse.cz
+
+- xmlrepos SCR agent replaced with OneClickInstallStandard module
+  using XML::Simple (anyxml SCR agent) instead of perl-XML-Bare
+  (bnc #424263).
+
+-------------------------------------------------------------------
 Tue Sep  9 11:13:26 CEST 2008 - locilka@suse.cz
 
 - Packages 'Slides' and 'SlideShow' moved to yast2.

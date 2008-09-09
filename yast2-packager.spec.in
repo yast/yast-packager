@@ -13,10 +13,6 @@ BuildRequires:	yast2 >= 2.17.19
 # "order" flag for pattern resolvables
 BuildRequires:	yast2-pkg-bindings >= 2.16.31
 
-
-# Module: OneClickInstallStandard
-Requires:	perl-XML-Bare yast2-perl-bindings
-
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
 
