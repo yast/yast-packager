@@ -7,7 +7,7 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 # HTTP.ycp
 BuildRequires:	yast2-transfer
 
-# Module 'Slides' moved to yast2
+# Modules 'Slides' and 'SlideShow' moved to yast2
 BuildRequires:	yast2 >= 2.17.19
 
 # "order" flag for pattern resolvables
@@ -23,7 +23,7 @@ Requires:	yast2-country-data >= 2.16.3
 # "order" flag for pattern resolvables
 Requires:	yast2-pkg-bindings >= 2.16.31
 
-# Module 'Slides' moved to yast2
+# Module 'Slides' and 'SlideShow' moved to yast2
 Requires:	yast2 >= 2.17.19
 
 # unzipping license file
