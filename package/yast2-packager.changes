@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 10 15:52:47 CEST 2008 - locilka@suse.cz
+
+- Desktop selection dialog definitions have been moved to control
+  file (bnc #424678).
+
+-------------------------------------------------------------------
 Wed Sep 10 11:37:11 CEST 2008 - lslezak@suse.cz
 
 - repositories.ycp: change table headers when switching to

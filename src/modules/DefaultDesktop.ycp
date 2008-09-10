@@ -4,7 +4,7 @@
  * Authors:	Jiri Srain <jsrain@suse.cz>
  *		Lukas Ocilka <locilka@suse.cz>
  *
- * $Id: Packages.ycp 31512 2006-06-19 11:14:09Z jsrain $
+ * $Id:$
  */
 
 {
@@ -14,87 +14,91 @@ module "DefaultDesktop";
 textdomain "packager";
 
 import "ProductFeatures";
+import "ProductControl";
 import "Installation";
 
-// FIXME: Should be defined in control file
+// All desktop definitions are taken from control file
 // @see GetAllDesktopsMap
-map <string, map> all_desktops = $[
-    "gnome" :  $[
-	"desktop" : "gnome",
-	"logon" : "gdm",
-	"cursor" : "DMZ",
-	"packages" : ["gdm"],
-        "order" : 1,
-        // TRANSLATORS: Dialog label
-        "label" : _("GNOME"),
-        "patterns" : ["gnome", "x11", "base"],
-        "icon" : "pattern-gnome",
-        "description" : _("GNOME 2.22 is the latest desktop from the GNOME Project.
-It combines stability and maturity with incremental innovations."),
-    ],
-    "kde" : $[
-	// bnc #381821
-	"desktop" : "startkde4",
-	"logon" : "kdm4",
-	"cursor" : "DMZ",
-	"packages" : ["kde4-kdm"],
-        "order" : 1,
-	// TRANSLATORS: Dialog label
-        "label" : _("KDE 4.0"),
-        "patterns" : ["kde", "x11", "base"],
-        "icon" : "pattern-kde4",
-        "description" : _("KDE 4.0 is the most recent evolution of KDE. It comes with many
-new KDE technologies, but it is less mature than the other desktops."),
-    ],
-    "kde3" : $[
-	// bnc #381821
-	"desktop" : "startkde3",
-	"logon" : "kdm3",
-	"cursor" : "DMZ",
-	"packages" : ["kdebase3-kdm"],
-        "order" : 1,
-	// TRANSLATORS: Dialog label
-        "label" : _("KDE 3.5"),
-        "patterns" : ["kde3", "x11", "base"],
-        "icon" : "pattern-kde",
-        "description" : _("KDE 3.5 is the previous generation of the K Desktop Environment.
-It is mature and stable."),
-    ],
-    "xfce" : $[
-	// bnc #298558
-	"desktop" : "startxfce4",
-	"logon" : "xdm",
-	"cursor" : "DMZ",
-	"packages" : ["xfce4-desktop"],
-        "order" : 4,
-        // TRANSLATORS: Dialog label
-        "label" : _("XFCE Desktop"),
-        "patterns" : ["xfce", "x11", "base"],
-        "icon" : "pattern-xfce",
-    ],
-    "min_x" : $[
-	"desktop" : "twm",
-	"logon" : "xdm",
-	"cursor" : "DMZ",
-	"packages" : ["xorg-x11"],
-        "order" : 6,
-        // TRANSLATORS: Dialog label
-        "label" : _("Minimal X Window"),
-        "patterns" : ["x11", "base"],
-        "icon" : "yast-x11",
-    ],
-    "textmode" : $[
-	"desktop" : "twm",
-	"logon" : "xdm",
-	"cursor" : "DMZ",
-	"packages" : ["xorg-x11"],
-        "order" : 8,
-        // TRANSLATORS: Dialog label
-        "label" : _("Minimal Server Selection (Text Mode)"),
-        "patterns" : ["enhanced_base"],
-        "icon" : "yast-sshd",
-    ],
-];
+map <string, map> all_desktops = nil;
+
+/**
+ * Desktop which was selected in the desktop selection dialog
+ * "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
+ */
+string desktop = nil;
+
+any MissingKey (map & desktop_def, string key) {
+    any ret = nil;
+
+    y2warning ("Wrong desktop def, missing '%1' key: %2", key, desktop_def);
+
+    switch (key) {
+	case "order":
+	    ret = 99;
+	    break;
+	case "desktop":
+	    ret = "unknown";
+	    break;
+	default:
+	    ret = "";
+	    break;
+    };
+
+    return ret;
+}
+
+/**
+ * Initialize default desktop from control file if specified there
+ */
+global void Init () {
+    string default_desktop = ProductFeatures::GetStringFeature
+	("software", "default_desktop");
+    if (default_desktop == "")
+	default_desktop = nil;
+    desktop = default_desktop;
+
+    // See BNC #424678
+    if (all_desktops == nil) {
+	y2milestone ("Getting desktop dialogs from control file...");
+
+	list <map> desktops_from_cf = (list <map>) ProductFeatures::GetFeature ("software", "supported_desktops");
+
+	all_desktops = $[];
+	map <string, any> one_desktop = $[];
+	string desktop_name = "";
+
+	foreach (map one_desktop_cf, desktops_from_cf, {
+	    desktop_name = one_desktop_cf["name"]:"";
+	    if (desktop_name == "") {
+		y2error ("Missing 'name' in %1", one_desktop_cf);
+		return;
+	    }
+
+	    // required keys
+	    one_desktop = $[
+		"desktop"	: one_desktop_cf["desktop"]:MissingKey (one_desktop_cf, "desktop"),
+		"logon"		: one_desktop_cf["logon"]:MissingKey (one_desktop_cf, "logon"),
+		"cursor"	: one_desktop_cf["cursor"]:MissingKey (one_desktop_cf, "logon"),
+		"packages"	: splitstring (one_desktop_cf["packages"]:"", " \t\n"),
+		"patterns"	: splitstring (one_desktop_cf["patterns"]:"", " \t\n"),
+		"order"		: one_desktop_cf["order"]:MissingKey (one_desktop_cf, "order"),
+		"label"		: ProductControl::GetTranslatedText ((string) one_desktop_cf["label_id"]:MissingKey (one_desktop_cf, "label_id")),
+	    ];
+
+	    // 'icon' in optional
+	    if (haskey (one_desktop_cf, "icon")) {
+		one_desktop["icon"] = (string) one_desktop_cf["icon"]:"";
+	    }
+
+	    // 'description' is optional
+	    if (haskey (one_desktop_cf, "description_id")) {
+		one_desktop["description"] = ProductControl::GetTranslatedText ((string) one_desktop_cf["description_id"]:"");
+	    }
+
+	    all_desktops[desktop_name] = one_desktop;
+	});
+    }
+}
 
 /**
  * Returns map of pre-defined default system tasks
@@ -113,6 +117,8 @@ It is mature and stable."),
  * ]
  */
 global map <string, map> GetAllDesktopsMap () {
+    if (all_desktops == nil) Init();
+
     return all_desktops;
 }
 
@@ -156,14 +162,6 @@ global list <string> SelectedDesktops () {
 
     return selected_desktops;
 }
-
-/**
- * Desktop which was selected in the desktop selection dialog
- * "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
- */
-string desktop = nil;
-
-
 
 /**
  * Get the currently set default desktop, nil if none set
@@ -235,16 +233,7 @@ global string Description () {
     return all_desktops[desktop, "label"]:"";
 }
 
-/**
- * Initialize default desktop from control file if specified there
- */
-global void Init () {
-    string default_desktop = ProductFeatures::GetStringFeature
-	("software", "default_desktop");
-    if (default_desktop == "")
-	default_desktop = nil;
-    desktop = default_desktop;
-}
+
 
 /* EOF */
 }
