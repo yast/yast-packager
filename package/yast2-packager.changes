@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 10 11:37:11 CEST 2008 - lslezak@suse.cz
+
+- repositories.ycp: change table headers when switching to
+  the service view
+
+-------------------------------------------------------------------
 Tue Sep  9 15:32:11 CEST 2008 - locilka@suse.cz
 
 - xmlrepos SCR agent replaced with OneClickInstallStandard module

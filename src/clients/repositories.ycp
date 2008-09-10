@@ -55,7 +55,6 @@
 	return text_mode;
     }
 
-    integer numSources = 0;
 
     list<integer> sourcesToDelete = [];
 
@@ -126,7 +125,7 @@
         @param source The map describing the source as returned form the agent.
         @return An item suitable for addition to a Table.
     */
-    define term createItem( integer index, map source ) ``{
+    define term createItem( integer index, map source, boolean repository_mode ) ``{
         integer id = source[ "SrcId" ]:0;
         map generalData = Pkg::SourceGeneralData( id );
 	y2milestone("generalData(%1): %2", id, generalData);
@@ -138,16 +137,27 @@
 
 	integer priority = source["priority"]:default_priority;
 
-        term item = `item(
-			  `id( index ),
-			  PriorityToString(priority),
-			  // corresponds to the "Enable/Disable" button
-			  source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
-			  source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
-			  // translators: unknown name for a given source
-			  alias,
-			  generalData[ "url" ]:""
-			  );
+        term item = repository_mode ?
+	    `item(
+		`id( index ),
+		PriorityToString(priority),
+		// corresponds to the "Enable/Disable" button
+		source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
+		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
+		// translators: unknown name for a given source
+		alias,
+		source[ "url" ]:""
+	    )
+	    : `item(
+		`id( index ),
+		// corresponds to the "Enable/Disable" button
+		source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
+		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
+		// translators: unknown name for a given source
+		alias,
+		source[ "url" ]:""
+	    );
+
         return item;
     }
 
@@ -178,19 +188,25 @@
     /**
      * Fill sources table with entries from the InstSrcManager agent.
      */
-    define void fillTable() ``{
-	y2milestone ("Filling repository table");
+    define void fillTable(boolean repo_mode, string service_name)
+    {
+	y2milestone ("Filling repository table: repository mode: %1, service: %2", repo_mode, service_name);
         list items = [];
 
-	// because Online Repositories / Community Repositories don't use
-	// these internal data maps
-	RemoveDeletedAddNewRepos();
+	if (repo_mode)
+	{
+	    // because Online Repositories / Community Repositories don't use
+	    // these internal data maps
+	    RemoveDeletedAddNewRepos();
+	}
 
-        numSources = size( sourceStatesOut );
+	list<map> itemList = repo_mode ? sourceStatesOut : serviceStatesOut;
+
+        integer numItems = size(itemList);
 
         integer i = 0;
-        while ( i < numSources ) {
-            items = add( items, createItem( i, sourceStatesOut[ i ]:$[] ) );
+        while ( i < numItems ) {
+            items = add( items, createItem( i, itemList[ i ]:$[], repo_mode ) );
             i = i + 1;
         }
 
@@ -229,6 +245,7 @@
 
     void fillRepoInfo(integer index, map source) {
 	map<string,any> info = getSourceInfo (index, source);
+	y2internal("getSourceInfo(%1, %2): %3", index, source, info);
 
 	// heading - in case repo name not found
 	string name = info["name"]:_("Unknown repository name");
@@ -268,8 +285,12 @@
 	integer selected = (integer)UI::QueryWidget (`id (`table), `CurrentItem);
 	if (selected == nil)
 	    return;
-	map data = sourceStatesOut[selected]:$[];
-	fillRepoInfo (selected, data);
+
+	if (repository_view)
+	{
+	    map data = sourceStatesOut[selected]:$[];
+	    fillRepoInfo (selected, data);
+	}
     }
 
     /**
@@ -390,6 +411,45 @@ list<term> buildTree()
      ];
 }
 
+// return table widget definition
+// layout of the table depends on the current mode (services do not have priorities)
+term TableWidget(boolean repository_mode)
+{
+    term tabheader = repository_mode ?
+	    `header(
+		// table header - priority of the repository - keep the translation as short as possible!
+		_("Priority"),
+		// table header - is the repo enabled? - keep the translation as short as possible!
+		`Center(_("Enabled")),
+		// table header - is autorefresh enabled for the repo?
+		// keep the translation as short as possible!
+		`Center(_("Autorefresh")),
+		// table header - name of the repo
+		_("Name"),
+		// table header - URL of the repo
+		_("URL") )
+	    :
+	    `header(
+		// table header - is the repo enabled? - keep the translation as short as possible!
+		`Center(_("Enabled")),
+		// table header - is autorefresh enabled for the repo?
+		// keep the translation as short as possible!
+		`Center(_("Autorefresh")),
+		// table header - name of the repo
+		_("Name"),
+		// table header - URL of the repo
+		_("URL") );
+
+
+    return `Table(`id(`table),`opt(`notify, `immediate), tabheader, []);
+}
+
+void ReplaceTableWidget(boolean repo_mode)
+{
+    y2milestone("Replacing the table widget");
+    UI::ReplaceWidget(`id(`tabrp), TableWidget(repo_mode));
+}
+
 any SummaryDialog () {
     y2milestone ("Running Summary dialog");
 
@@ -417,20 +477,7 @@ any SummaryDialog () {
         `VBox(
 	      `HBox(
 		    `VSpacing(9),
-		    `Table(`id(`table),`opt(`notify, `immediate),
-			    `header(
-				// table header - priority of the repository - keep the translation as short as possible!
-				_("Priority"),
-				// table header - is the repo enabled? - keep the translation as short as possible!
-				`Center(_("Enabled")),
-				// table header - is autorefresh enabled for the repo?
-				// keep the translation as short as possible!
-				`Center(_("Autorefresh")),
-				// table header - name of the repo
-				_("Name"),
-				// table header - URL of the repo
-				_("URL") ),
-			    [] ),
+		    `ReplacePoint(`id(`tabrp), TableWidget(repository_view)),
 		    `HSpacing()
 		),
 		`HBox (
@@ -549,7 +596,7 @@ Priority of a repository is an integer value between 0 (the highest priority) an
     Wizard::SetContents(title, contents, help_text, false, true);
     Wizard::DisableBackButton();
 
-    fillTable();
+    fillTable(repository_view, displayed_service);
     fillCurrentRepoInfo();
 
     symbol input = nil;
@@ -562,7 +609,7 @@ Priority of a repository is an integer value between 0 (the highest priority) an
 
     repeat {
 
-	if ( current >= 0 ) {
+	if ( current != nil && current >= 0 ) {
 	    UI::ChangeWidget( `id( `table ), `CurrentItem, current );
 	    fillCurrentRepoInfo ();
 	}
@@ -654,7 +701,7 @@ All changes will be lost.");
             map<string, any> sourceState = sourceStatesOut[ current ]:$[];
             integer id = sourceState[ "SrcId" ]:-1;
 
-            if ( id < 0) {
+            if ( id < 0 && repository_view) {
               y2internal("Unable to determine repository id, broken repository?");
               continue;
             }
@@ -680,7 +727,7 @@ All changes will be lost.");
                       createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
                       if ( createResult == `ok ) {
 			deleteSource( current );
-			fillTable();
+			fillTable(repository_view, displayed_service);
 			fillCurrentRepoInfo();
                       }
 		    }
@@ -689,7 +736,7 @@ All changes will be lost.");
 			y2milestone ("URL is the same, not recreating the source");
 			sourceState["name"] = SourceDialogs::GetRepoName ();
 			sourceStatesOut[ current ] = sourceState;
-			fillTable();
+			fillTable(repository_view, displayed_service);
 			fillCurrentRepoInfo();
 			createResult = `ok;
 		    }
@@ -783,7 +830,7 @@ All changes will be lost.");
                 if ( Popup::YesNo( _("Delete the selected repository from the list?") ) )
                 {
 		     deleteSource( current );
-                    fillTable();
+                    fillTable(repository_view, displayed_service);
 		    fillCurrentRepoInfo();
                 }
             }
@@ -844,8 +891,37 @@ cannot be set."));
 	    }
 	    else if (input == `tree)
 	    {
-		// TODO FIXME handle tree events here...
-		// rebuild the dialog here
+		// handle tree events here...
+		any current_item = UI::QueryWidget(`id(`tree), `CurrentItem);
+
+		// rebuild the dialog if needed
+		y2internal("Current tree item: %1", current_item);
+		boolean update_table_widget = false;
+
+		if (current_item == `repositories)
+		{
+		    update_table_widget = !repository_view;
+		    y2milestone("Switching to repository view");
+		    repository_view = true;
+		}
+		else if (current_item == `services)
+		{
+		    update_table_widget = repository_view;
+		    y2milestone("Switching to service view");
+		    repository_view = false;
+		    // display all services
+		    displayed_service = "";
+		}
+
+		// update table widget
+		if (update_table_widget)
+		{
+		    ReplaceTableWidget(repository_view);
+		}
+
+		// update table content
+		fillTable(repository_view, displayed_service);
+		fillCurrentRepoInfo();
 	    }
 	    else
 	    {
