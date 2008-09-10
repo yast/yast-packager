@@ -222,8 +222,9 @@ It searches within all known openSUSE build-service and openSUSE community repos
 
 _("<p><big><b>Security</b></big><br>
 The software found is often not part of the distribution itself and the level of trust
-depends on yourself. We do not take any responsibilities for installing
-such software.</p>"),
+depends on yourself. We do not take any responsibility for installing
+such software.</p>
+"),
 	    //We don't need back button
 	    false,
 	    true

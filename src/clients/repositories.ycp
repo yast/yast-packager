@@ -581,8 +581,8 @@ To change a repository location, use <b>Edit</b>. To remove a repository, use
     {
 	// help, continued
 	help_text = help_text + _("<p>
-<b>Synchronize Changes with ZENworks</b> will call <tt>rug</tt>
-to also perform the changes in that package management system.</p>
+<b>Synchronize Changes with ZENworks</b> will also call <tt>rug</tt>
+to perform the changes in that package management system.</p>
 ");
     }
 

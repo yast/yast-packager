@@ -277,7 +277,7 @@ define symbol MainDialog () {
     string help = _("<P><B>Media Check</B></P>") +
     // help text - media check 2/8
 _("<P>When you have a problem with
-the installation and are using a CD or DVD installation medium, you should check
+the installation and you are using a CD or DVD installation medium, you should check
 whether the medium is broken.</P>
 ") +
 
@@ -429,10 +429,11 @@ string label = _("It is recommended to check all installation media\nto avoid in
 		{
 		    if (md5sumTagPresent(selecteddrive) == false)
 		    {
-			if (!Popup::ContinueCancel(_("The medium does not contain MD5 checksum.
+			if (!Popup::ContinueCancel(_("The medium does not contain a MD5 checksum.
 The content of the medium cannot be verified.
 
-Only readability of the medium will be checked.")))
+Only readability of the medium will be checked.
+")))
 			{
 			    continue;
 			}
