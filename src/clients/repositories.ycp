@@ -130,10 +130,13 @@
         map generalData = Pkg::SourceGeneralData( id );
 	y2milestone("generalData(%1): %2", id, generalData);
 
-	string alias = haskey(sourceStatesOut[index]:$[], "name") ?
+	y2internal("Item: %1", source);
+
+	string name = repository_mode ? (haskey(sourceStatesOut[index]:$[], "name") ?
 	    sourceStatesOut[index,"name"]:"" :
 	    // unkown name (alias) of the source
-	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name");
+	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name"))
+	    : source["name"]:"";
 
 	integer priority = source["priority"]:default_priority;
 
@@ -145,7 +148,7 @@
 		source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
 		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
 		// translators: unknown name for a given source
-		alias,
+		name,
 		source[ "url" ]:""
 	    )
 	    : `item(
@@ -154,7 +157,7 @@
 		source[ "enabled" ]:true ? UI::Glyph (`CheckMark) : "",
 		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
 		// translators: unknown name for a given source
-		alias,
+		name,
 		source[ "url" ]:""
 	    );
 
@@ -290,6 +293,10 @@
 	{
 	    map data = sourceStatesOut[selected]:$[];
 	    fillRepoInfo (selected, data);
+	}
+	else
+	{
+	    y2internal("TODO display service info");
 	}
     }
 
@@ -444,10 +451,12 @@ term TableWidget(boolean repository_mode)
     return `Table(`id(`table),`opt(`notify, `immediate), tabheader, []);
 }
 
-void ReplaceTableWidget(boolean repo_mode)
+void ReplaceWidgets(boolean repo_mode)
 {
     y2milestone("Replacing the table widget");
     UI::ReplaceWidget(`id(`tabrp), TableWidget(repo_mode));
+
+    UI::ReplaceWidget(`id(`priorp), repo_mode ? `IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 200, default_priority) : `Empty());
 }
 
 any SummaryDialog () {
@@ -498,7 +507,7 @@ any SummaryDialog () {
 							 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
 						    )
 						),
-						`HSquash(`IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 200, default_priority)),
+						`HSquash(`ReplacePoint(`id(`priorp), `IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 200, default_priority))),
 						`HStretch()
 					     ),
 					     `VSpacing (0.4),
@@ -836,17 +845,40 @@ All changes will be lost.");
             }
             else if (input == `enable)
             {
-                boolean state = sourceState[ "enabled" ]:true;
-                state = !state;
-		// corresponds to the "Enable/Disable" button
-                string newstate = ( state ? UI::Glyph (`CheckMark) : "");
-                UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
-                sourceState[ "enabled" ] = state;
-                sourceStatesOut[ current ] = sourceState;
-
-		if (full_mode)
+		if (repository_view)
 		{
-		    Pkg::SourceSetEnabled(sourceState["SrcId"]:-1, state);
+		    boolean state = sourceState[ "enabled" ]:true;
+		    state = !state;
+		    // corresponds to the "Enable/Disable" button
+		    string newstate = ( state ? UI::Glyph (`CheckMark) : "");
+		    UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
+		    sourceState[ "enabled" ] = state;
+		    sourceStatesOut[ current ] = sourceState;
+
+		    if (full_mode)
+		    {
+			Pkg::SourceSetEnabled(sourceState["SrcId"]:-1, state);
+		    }
+		}
+		else
+		{
+		    if (displayed_service == "")
+		    {
+			map<string,any> srv = serviceStatesOut[current]:$[];
+			y2internal("Selected service: %1", srv);
+
+			boolean state = srv["enabled"]:false;
+			state = !state;
+
+			// update the table
+			string newstate = ( state ? UI::Glyph (`CheckMark) : "");
+			UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
+
+			// store the change
+			srv["enabled"] = state;
+			serviceStatesOut[current] = srv;
+		    }
+		    // TODO else...
 		}
             }
             else if ( input == `autorefresh)
@@ -916,12 +948,15 @@ cannot be set."));
 		// update table widget
 		if (update_table_widget)
 		{
-		    ReplaceTableWidget(repository_view);
+		    ReplaceWidgets(repository_view);
 		}
 
 		// update table content
 		fillTable(repository_view, displayed_service);
 		fillCurrentRepoInfo();
+
+		// update the current item
+		current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
 	    }
 	    else
 	    {
@@ -1038,6 +1073,9 @@ symbol StartInstSource()
     boolean restore = (!full_mode) ? Pkg::SourceRestore() : true;
     // read services
     restore = restore && Pkg::ServicesLoad();
+
+    y2internal("Known services: %1", Pkg::ServiceAliases());
+
     if( ! restore )
     {
 	boolean cont = Popup::AnyQuestionRichText(
