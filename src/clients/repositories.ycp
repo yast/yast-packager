@@ -246,8 +246,9 @@
 	`VSquash(`RichText(`id(`repo_info), ""));
     }
 
-    void fillRepoInfo(integer index, map source) {
-	map<string,any> info = getSourceInfo (index, source);
+    void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
+    {
+	map<string,any> info = repo_mode ? getSourceInfo (index, source) : source;
 	y2internal("getSourceInfo(%1, %2): %3", index, source, info);
 
 	// heading - in case repo name not found
@@ -265,6 +266,12 @@
 	if (service != "")
 	{
 	    sformat (_("Service: %1"), service);
+	}
+
+	// don't display category for services
+	if (!repo_mode)
+	{
+	    category = "";
 	}
 
 	if (textmode())
@@ -289,15 +296,9 @@
 	if (selected == nil)
 	    return;
 
-	if (repository_view)
-	{
-	    map data = sourceStatesOut[selected]:$[];
-	    fillRepoInfo (selected, data);
-	}
-	else
-	{
-	    y2internal("TODO display service info");
-	}
+	map data = (repository_view) ? sourceStatesOut[selected]:$[] : serviceStatesOut[selected]:$[];
+
+	fillRepoInfo (selected, data, repository_view, displayed_service);
     }
 
     /**
@@ -608,6 +609,9 @@ Priority of a repository is an integer value between 0 (the highest priority) an
     fillTable(repository_view, displayed_service);
     fillCurrentRepoInfo();
 
+    // set the current view to repositories
+    UI::ChangeWidget(`id(`tree), `CurrentItem, `repositories);
+
     symbol input = nil;
 
     integer current = -1;
@@ -883,27 +887,50 @@ All changes will be lost.");
             }
             else if ( input == `autorefresh)
             {
-		integer source_id = sourceState["SrcId"]:0;
-		map src_data = Pkg::SourceGeneralData (source_id);
-		string type = src_data["type"]:"UnitedLinux";
-                boolean state = sourceState[ "autorefresh" ]:true;
-
-		if (type == "PlainDir" && ! state)
+		if (repository_view)
 		{
-		    // popup message
-		    Popup::Message (_("For the selected repository, refresh
-cannot be set."));
+		    integer source_id = sourceState["SrcId"]:0;
+		    map src_data = Pkg::SourceGeneralData (source_id);
+		    string type = src_data["type"]:"UnitedLinux";
+		    boolean state = sourceState[ "autorefresh" ]:true;
+
+		    if (type == "PlainDir" && ! state)
+		    {
+			// popup message
+			Popup::Message (_("For the selected repository, refresh
+    cannot be set."));
+		    }
+		    else
+		    {
+			state = !state;
+
+			string newstate = (state ? UI::Glyph(`CheckMark) : "");
+			UI::ChangeWidget(`id(`table), `Item(current, 2), newstate);
+		    }
+
+		    sourceState["autorefresh"] = state;
+		    sourceStatesOut[ current ] = sourceState;
 		}
 		else
 		{
-		    state = !state;
+		    if (displayed_service == "")
+		    {
+			map<string,any> srv = serviceStatesOut[current]:$[];
+			y2internal("Selected service: %1", srv);
 
-		    string newstate = (state ? UI::Glyph(`CheckMark) : "");
-		    UI::ChangeWidget(`id(`table), `Item(current, 2), newstate);
+			boolean state = srv["autorefresh"]:false;
+			state = !state;
+
+			// update the table
+			string newstate = ( state ? UI::Glyph (`CheckMark) : "");
+			UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
+
+			// store the change
+			srv["autorefresh"] = state;
+			serviceStatesOut[current] = srv;
+		    }
+		    // TODO else...
 		}
-
-                sourceState["autorefresh"] = state;
-                sourceStatesOut[ current ] = sourceState;
 
 		// do not refresh the item in the table
 		current = -1;
