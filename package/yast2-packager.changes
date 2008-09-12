@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 12 14:56:19 CEST 2008 - lslezak@suse.cz
+
+- sw_single - handle 'Configuration->Online Update' menu item
+  (fate#303458)
+- 2.17.15
+
+-------------------------------------------------------------------
 Wed Sep 10 15:52:47 CEST 2008 - locilka@suse.cz
 
 - Desktop selection dialog definitions have been moved to control
