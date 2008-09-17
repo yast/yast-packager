@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 17 09:57:14 CEST 2008 - lslezak@suse.cz
+
+- removed suse_register code which breaks add-on config in
+  installation (bnc#408835) (reverted changes from rev.48402)
+
+-------------------------------------------------------------------
 Fri Sep 12 14:56:19 CEST 2008 - lslezak@suse.cz
 
 - sw_single - handle 'Configuration->Online Update' menu item

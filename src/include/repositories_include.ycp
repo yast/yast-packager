@@ -21,7 +21,6 @@
     import "Label";
     import "SourceDialogs";
     import "Report";
-    import "Register";
 
     textdomain "packager";
 
@@ -306,15 +305,6 @@ without having %1 package installed"),
     {
 	any commrepos = WFM::call ("inst_productsources", [$["skip_already_used_repos":true]]);
 	y2milestone ("Community Repositories returned: %1", commrepos);
-
-	return `next;
-    }
-    else if (url == "updates://")
-    {
-	y2milestone("Starting registration...");
-	Register::initialize();
-	y2milestone("Register::suseRegister: %1", Register::suseRegister(`autoyast));
-	Register::finish();
 
 	return `next;
     }
