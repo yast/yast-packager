@@ -713,8 +713,19 @@ from the source CD to the disk cache")));
 	if (commit_result == nil || size (commit_result) == 0)
 	{
 	    y2error("Commit failed");
-	    // TODO: use better message, this is a reused string due to text-freeze
-	    Report::Error(_("Installation of Some Packages Failed"));
+	    string failed = mergestring(commit_result[1]:[], "\n");
+	    // error message - displayed in a scrollable text area
+	    // %1 - an error message (details)
+            Report::LongError(sformat(_("Installation Failed
+
+Details:
+%1
+
+Package installation will be aborted.
+"),
+		Pkg::LastError())
+	    );
+
 
 	    return `abort;
 	}
