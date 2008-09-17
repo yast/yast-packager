@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 17 18:52:45 CEST 2008 - locilka@suse.cz
+
+- Handling new 'add_on_mode' key in product control file
+  (bnc #427002).
+
+-------------------------------------------------------------------
 Wed Sep 17 09:57:14 CEST 2008 - lslezak@suse.cz
 
 - removed suse_register code which breaks add-on config in
