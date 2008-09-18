@@ -38,6 +38,7 @@ import "String";
 import "WorkflowManager";
 import "URL";
 import "Mode";
+import "Stage";
 import "Icon";
 import "PackageCallbacks";
 
@@ -431,11 +432,16 @@ symbol DoInstall_WithControlFile (string control) {
     }
 
     string current_stage = "normal";
-    string current_mode  = GetMode();
+    string current_mode  = "installation";
+
+    // Special add-on mode (GetMode()) returns the same
+    // add-on can be either installed (first time) or updated by another add-on
+    ProductControl::SetAdditionalWorkflowParams ($["add_on_mode" : AddOnMode (src_id)]);
 
     list <map> steps = ProductControl::getModules (current_stage, current_mode, `enabled);
     if (steps == nil || size (steps) < 1) {
 	y2warning ("Add-On product workflow for stage: %1, mode: %2 not defined", current_stage, current_mode);
+	ProductControl::ResetAdditionalWorkflowParams();
 	return nil;
     }
 
@@ -448,10 +454,23 @@ symbol DoInstall_WithControlFile (string control) {
     y2milestone ("Using Add-On control file parts: %1", stage_mode);
     ProductControl::AddWizardSteps (stage_mode);
 
+    string old_mode = nil;
+    // Running system, not installation, not update
+    if (Stage::normal() && Mode::normal()) {
+	old_mode = Mode::SetMode (current_mode);
+    }
+
+    // Run the workflow
     symbol ret = ProductControl::Run();
+
+    if (old_mode != nil) {
+	Mode::SetMode (old_mode);
+    }
 
     UI::CloseDialog();
     CleanY2Update();
+
+    ProductControl::ResetAdditionalWorkflowParams();
 
     return ret;
 }
