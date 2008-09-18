@@ -1238,7 +1238,7 @@ select those you want and click <b>Finish</b>.</p>
 		"prod_dir" : pth,
 		// alias needs to be unique
 		// bugzilla #309317
-		"alias" : GetUniqueAlias (url),
+		"alias" : GetUniqueAlias("repo"),
 		"type" : repo_type,
 	    ]);
 	}
