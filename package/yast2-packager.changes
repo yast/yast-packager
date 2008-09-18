@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 18 10:22:31 CEST 2008 - locilka@suse.cz
+
+- Always initialize supported desktops from control file
+  (bnc #427061).
+- 2.17.17
+
+-------------------------------------------------------------------
 Wed Sep 17 18:52:45 CEST 2008 - locilka@suse.cz
 
 - Handling new 'add_on_mode' key in product control file
