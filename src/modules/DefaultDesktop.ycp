@@ -47,10 +47,19 @@ any MissingKey (map & desktop_def, string key) {
     return ret;
 }
 
+boolean initialized = false;
+
 /**
  * Initialize default desktop from control file if specified there
  */
 global void Init () {
+    if (initialized == true) {
+	y2debug ("Already initialized");
+	return;
+    }
+
+    initialized = true;
+
     string default_desktop = ProductFeatures::GetStringFeature
 	("software", "default_desktop");
     if (default_desktop == "")
@@ -59,7 +68,7 @@ global void Init () {
 
     // See BNC #424678
     if (all_desktops == nil) {
-	y2milestone ("Getting desktop dialogs from control file...");
+	y2milestone ("Getting supported desktops from control file");
 
 	list <map> desktops_from_cf = (list <map>) ProductFeatures::GetFeature ("software", "supported_desktops");
 
@@ -101,6 +110,14 @@ global void Init () {
 }
 
 /**
+ * Forces new initialization...
+ */
+global void ForceReinit () {
+    initialized = false;
+    Init();
+}
+
+/**
  * Returns map of pre-defined default system tasks
  *
  * @return map <string, map> all_system_tasks
@@ -117,7 +134,7 @@ global void Init () {
  * ]
  */
 global map <string, map> GetAllDesktopsMap () {
-    if (all_desktops == nil) Init();
+    Init();
 
     return all_desktops;
 }
@@ -128,6 +145,8 @@ global map <string, map> GetAllDesktopsMap () {
  * @see GetAllDesktopsMap
  */
 global list <string> SelectedDesktops () {
+    Init();
+
     Pkg::TargetInit (Installation::destdir, true);
     Pkg::SourceStartManager (true);
     Pkg::PkgSolve (true);
@@ -146,7 +165,7 @@ global list <string> SelectedDesktops () {
     list <string> selected_desktops = [];
     boolean selected = true;
 
-    foreach (string desktop_name, map desktop_def, all_desktops, {
+    foreach (string desktop_name, map desktop_def, GetAllDesktopsMap(), {
 	selected = true;
 
 	foreach (string one_pattern, desktop_def["patterns"]:[], {
@@ -168,6 +187,8 @@ global list <string> SelectedDesktops () {
  * @return string "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
  */
 global string Desktop () {
+    Init();
+
     return desktop;
 }
 
@@ -176,6 +197,8 @@ global string Desktop () {
  * @param desktop a string, one of "kde", "gnome", "min_x", "textmode" or nil
  */
 global void SetDesktop (string new_desktop) {
+    Init();
+
     if (new_desktop != nil && ! haskey (all_desktops, new_desktop))
 	y2error ("Attempting to set desktop to unknown %1", new_desktop);
     else
@@ -187,6 +210,8 @@ global void SetDesktop (string new_desktop) {
  * @return string preffered window/desktop manager, empty if no one
  */
 global string PrefferedWindowManager () {
+    Init();
+
     return all_desktops[desktop,"desktop"]:"";
 }
 
@@ -195,6 +220,8 @@ global string PrefferedWindowManager () {
  * @return a list of patterns
  */
 global list<string> PatternsToSelect () {
+    Init();
+
     return all_desktops[desktop, "patterns"]:[];
 }
 
@@ -203,13 +230,15 @@ global list<string> PatternsToSelect () {
  * @return a list of patterns
  */
 global list<string> PatternsToDeselect () {
+    Init();
+
     // patterns which must be selected
     list <string> patterns_to_select = PatternsToSelect();
 
     list <string> patterns_to_deselect = [];
 
     // go through all known system task definitions
-    foreach (string one_desktop, map desktop_descr, all_desktops, {
+    foreach (string one_desktop, map desktop_descr, GetAllDesktopsMap(), {
 	// all patterns required by a system type
 	foreach (string one_pattern, desktop_descr["patterns"]:[], {
 	    // if not required, add it to 'to deselect'
@@ -229,7 +258,8 @@ global list<string> PatternsToDeselect () {
  * @return string the description of the desktop
  */
 global string Description () {
-    // TRANSLATORS: dialog label
+    Init();
+
     return all_desktops[desktop, "label"]:"";
 }
 
