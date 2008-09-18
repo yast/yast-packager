@@ -1018,7 +1018,7 @@
 	{
 	    // package installation - summary text
 	    // %1 is RPM name, %2 is installed (unpacked) size (e.g. 6.20MB)
-	    msg = sformat( _("%1 (installed size %2)"), pkg_name, String::FormatSize( pkg_size ) );
+	    msg = sformat( _("Installing %1 (installed size %2)"), pkg_name, String::FormatSize( pkg_size ) );
 	}
 
 
@@ -1039,7 +1039,7 @@
 	//
 	// Update (user visible) installation log
 	//
-	SlideShow::AppendMessageToInstLog( sformat( _("Installing %1"), msg) );
+	SlideShow::AppendMessageToInstLog(msg);
 
 	//
 	// Update the current slide if applicable
