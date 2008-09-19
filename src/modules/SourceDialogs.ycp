@@ -358,7 +358,7 @@ map<string,any> PlainURLWidget () {
 	"widget" : `custom,
 	"custom_widget" : `VBox (
 	    // text entry
-	    `TextEntry( `id( `url ), _("&URL") )
+	    `InputField (`id (`url), `opt(`hstretch), _("&URL"))
 	),
 	"init" : PlainURLInit,
 	"store" : PlainURLStore,
@@ -376,7 +376,7 @@ term nfs_details_content =
 `VBox(
     `HBox(
 	// text entry
-	`TextEntry (`id (`server), _("&Server Name")),
+	`InputField (`id (`server), `opt (`hstretch), _("&Server Name")),
 	`VBox(
 	    `Label(""),
 	    `PushButton(`id(`nfs_browse), Label::BrowseButton())
@@ -384,7 +384,7 @@ term nfs_details_content =
     ),
     `HBox(
 	// text entry
-	`TextEntry (`id (`dir), _("&Path to Directory or ISO Image")),
+	`InputField (`id (`dir), `opt (`hstretch), _("&Path to Directory or ISO Image")),
 	`VBox(
 	    `Label(""),
 	    `PushButton(`id(`nfs_exports_browse), Label::BrowseButton())
@@ -765,7 +765,7 @@ map<string,any> DirWidget () {
 	"custom_widget" : `VBox(
 	    `HBox(
 		// text entry
-                `TextEntry (`id (`dir), _("&Path to Directory")),
+                `InputField (`id (`dir), `opt (`hstretch), _("&Path to Directory")),
 		`VBox (
 		    `Label (""),
 		    // push button
@@ -1107,7 +1107,7 @@ map<string,any> IsoWidget () {
 	"custom_widget" : `VBox(
 	    `HBox(
 		// text entry
-                `TextEntry (`id (`dir), _("&Path to ISO Image")),
+                `InputField (`id (`dir), `opt (`hstretch), _("&Path to ISO Image")),
 		`VBox (
 		    `Label (""),
 		    // push button
@@ -1298,18 +1298,18 @@ symbol ServerHandle (string key, map event) {
 	term widget = `VBox (
 	    `HBox(
 		// text entry
-		`TextEntry (`id (`server), _("Server &Name"), server),
+		`InputField (`id (`server), `opt (`hstretch), _("Server &Name"), server),
 		(type == `http || type == `https) ?
-		    `HSquash(`TextEntry (`id (`port), _("&Port"), port))
+		    `HSquash(`InputFiled (`id (`port), _("&Port"), port))
 		    : `Empty()
 	    ),
 	    type == `samba
 		// text entry
-		? `TextEntry (`id (`share), _("&Share"))
+		? `InputField (`id (`share), `opt (`hstretch), _("&Share"))
 		: `Empty (),
 	    type == `samba
 		? `VBox (
-		    `TextEntry (`id (`dir),
+		    `InputField (`id (`dir), `opt (`hstretch),
 			// text entry
 			_("&Path to Directory or ISO Image"), dir),
 
@@ -1317,7 +1317,7 @@ symbol ServerHandle (string key, map event) {
 		    `Left (`CheckBox (`id (`ch_iso), _("ISO &Image")))
 		)
 		// text entry
-		: `TextEntry( `id( `dir ), _("&Directory on Server"), dir),
+		: `InputField (`id (`dir), `opt (`hstretch), _("&Directory on Server"), dir),
 	    `HBox (
 		`HSpacing (0.5),
 		// frame
@@ -1327,7 +1327,7 @@ symbol ServerHandle (string key, map event) {
 			_("&Anonymous"), anonymous)),
 		    type == `samba
 			// text entry
-			? `TextEntry (`id (`workgroup),
+			? `InputField (`id (`workgroup), `opt (`hstretch),
 			    _("&Workgroup or Domain"))
 			: `Empty (),
 		    // text entry
