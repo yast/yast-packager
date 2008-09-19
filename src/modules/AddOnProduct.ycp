@@ -130,7 +130,7 @@ void SetMode (string new_mode) {
 /**
  * Returns whether add-on product got as parameter (source id)
  * replaces some already installed add-on or whether it is a new
- * installation.
+ * installation. Repositories and target have to be initialized.
  *
  * @param integer source_id
  * @param string "installation" or "update" according the current state
@@ -138,17 +138,61 @@ void SetMode (string new_mode) {
 global string AddOnMode (integer source_id) {
     list <map <string, any> > all_products = Pkg::ResolvableProperties ("", `product, "");
 
-    all_products = filter (map <string, any> one_product, all_products, {
-	return (one_product["source"]:-1 == source_id);
+    map <string, any> check_add_on = $[];
+
+    // Search for an add-on using source ID
+    foreach (map <string, any> one_product, all_products, {
+	if (one_product["source"]:-1 == source_id) {
+	    check_add_on = one_product;
+	    break;
+	}
     });
 
-    // New add-on can replace some old one
-    if (all_products[0,"replaces"]:nil != nil && all_products[0,"replaces"]:"" != "") {
-	y2milestone ("Add-on %1 replaces %2", source_id, all_products[0]:$[]);
-	return "update";
-    } else {
-	return "installation";
+    string ret = "installation";
+
+    list <symbol> supported_statuses = [`installed, `selected];
+    boolean already_found = false;
+
+    // Found the 
+    if (check_add_on != $[] && haskey (check_add_on, "replaces")) {
+	list <map <string, any> > product_replaces = (list <map <string, any> >) check_add_on["replaces"]:[];
+
+	// Run through through all products that the add-on can replace
+	foreach (map <string, any> one_replaces, product_replaces, {
+	    if (already_found)
+		break;
+
+	    // Run through all installed (or selected) products
+	    foreach (map <string, any> one_product, all_products, {
+		// checking the status
+		if (! contains (supported_statuses, one_product["status"]:`unknown))
+		    continue;
+
+		// ignore itself
+		if (one_product["source"]:-42 == source_id)
+		    continue;
+
+		// check name to replace
+		if (one_product["name"]:"-A-" != one_replaces["name"]:"-B-")
+		    continue;
+
+		// check version to replace
+		if (one_product["version"]:"-A-" != one_replaces["version"]:"-B-")
+		    continue;
+
+		// check version to replace
+		if (one_product["arch"]:"-A-" != one_replaces["arch"]:"-B-")
+		    continue;
+
+		y2milestone ("Found product matching update criteria: %1 -> %2", one_product, check_add_on);
+		ret = "update";
+		already_found = true;
+		break;
+	    });
+	});
     }
+
+    return ret;
 }
 
 // --> FATE #302123: Allow relative paths in "add_on_products" file
