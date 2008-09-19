@@ -20,6 +20,8 @@ import "KeyManager";
 import "String";
 import "FileUtils";
 import "Directory";
+import "Report";
+import "Sequencer";
 
 boolean gpg_mgr_standalone_mode = false;
 
@@ -127,7 +129,7 @@ symbol AddGPGKey()
 	    `MarginBox(1, 0.3,
 		`VBox(
 		    `HBox(
-			`TextEntry(`id(`file), `opt(`notify), Label::FileName()),
+			`InputField(`id(`file), `opt(`notify, `hstretch), Label::FileName()),
 			`VBox(
 			    `Label(""),
 			    `PushButton(`id(`browse), Label::BrowseButton())
