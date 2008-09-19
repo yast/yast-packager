@@ -4,6 +4,7 @@ Fri Sep 19 12:28:59 CEST 2008 - locilka@suse.cz
 - Fixed handling of 'PATTERNS' in content file (bnc #418821).
 - Fixed checking which product can be replaced by which add-on
   (FATE #301997, bnc #427002).
+- 2.17.18
 
 -------------------------------------------------------------------
 Thu Sep 18 14:44:25 CEST 2008 - lslezak@suse.cz
