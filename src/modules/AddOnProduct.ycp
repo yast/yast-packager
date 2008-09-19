@@ -457,7 +457,8 @@ symbol DoInstall_WithControlFile (string control) {
     string old_mode = nil;
     // Running system, not installation, not update
     if (Stage::normal() && Mode::normal()) {
-	old_mode = Mode::SetMode (current_mode);
+	old_mode = Mode::mode();
+	Mode::SetMode (current_mode);
     }
 
     // Run the workflow
@@ -677,31 +678,28 @@ global symbol DoInstall() {
 map <integer, list <string> > patterns_preselected_by_addon = $[];
 
 boolean SelectProductPatterns (string content_file, integer src_id) {
-
-    // TODO FIXME: really needed?
-    // Installing the product from the repository should do the same!
-
-    string cmd = sformat (
-	"grep '^PATTERNS[\t ]\+' '%1' | sed 's/^PATTERNS[\t ]\+//'",
-	String::Quote (content_file)
-    );
-
-    map cmd_out = (map) SCR::Execute (.target.bash_output, cmd);
-
-    if (cmd_out["exit"]:-1 != 0) {
-	y2error ("Command: >%1< returned: %2", cmd, cmd_out);
-
+    if (! FileUtils::Exists (content_file)) {
+	y2error ("No such file: %1", content_file);
 	return false;
     }
 
-    list <string> patterns_to_select = splitstring (cmd_out["stdout"]:"", "\t ");
+    map contentmap = (map) SCR::Read (.content_file, content_file);
+
+    // no PATTERNS defined
+    if (! haskey (contentmap, "PATTERNS")) {
+	y2milestone ("Add-On doesn't have any required patterns (PATTERNS in content)");
+	return true;
+    }
+
+    // parsing PATTERNS
+    list <string> patterns_to_select = splitstring (contentmap["PATTERNS"]:"", "\t ");
     patterns_to_select = filter (string one_pattern, patterns_to_select, {
 	return (one_pattern != nil && one_pattern != "");
     });
 
     if (size (patterns_to_select) == 0) {
-	y2milestone ("Add-On doesn't have any required patterns (PATTERNS in content)");
-	return true;
+	y2error ("Erroneous PATTERNS: %1", contentmap["PATTERNS"]:"");
+	return false;
     }
 
     y2milestone ("Add-On requires these PATTERNS: %1", patterns_to_select);
