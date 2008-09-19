@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 19 12:28:59 CEST 2008 - locilka@suse.cz
+
+- Fixed handling of 'PATTERNS' in content file (bnc #418821).
+
+-------------------------------------------------------------------
 Thu Sep 18 14:44:25 CEST 2008 - lslezak@suse.cz
 
 - fixed "Installing Deleting <package>" message in the log view
