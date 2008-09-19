@@ -288,7 +288,12 @@
 
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
 	UI::ChangeWidget (`id (`autorefresh), `Value, info["autorefresh"]:true);
-	UI::ChangeWidget (`id (`priority), `Value, info["priority"]:default_priority);
+
+	if (repo_mode)
+	{
+	    // priority is displayed only for repositories
+	    UI::ChangeWidget (`id (`priority), `Value, info["priority"]:default_priority);
+	}
     }
 
     void fillCurrentRepoInfo () {
@@ -338,6 +343,12 @@
 	}
 
         sourceStatesOut = remove( sourceStatesOut, index );
+    }
+
+    define void deleteService(integer index)
+    {
+	y2milestone("Removing service: %1", index);
+        serviceStatesOut = remove(serviceStatesOut, index);
     }
 
     boolean Write() {
@@ -839,13 +850,29 @@ All changes will be lost.");
             }
             else if ( input == `delete )
             {
-		// yes-no popup
-                if ( Popup::YesNo( _("Delete the selected repository from the list?") ) )
-                {
-		     deleteSource( current );
-                    fillTable(repository_view, displayed_service);
-		    fillCurrentRepoInfo();
-                }
+		if (repository_view)
+		{
+		    // yes-no popup
+		    if ( Popup::YesNo( _("Delete the selected repository from the list?") ) )
+		    {
+			deleteSource( current );
+			fillTable(repository_view, displayed_service);
+			fillCurrentRepoInfo();
+		    }
+		}
+		else
+		{
+		    // yes-no popup
+		    if ( Popup::YesNo( _("Delete the selected service from the list?") ) )
+		    {
+			deleteService( current );
+			fillTable(repository_view, displayed_service);
+			fillCurrentRepoInfo();
+
+			// refresh also the tree widget
+			UI::ChangeWidget(`id(`tree), `Items, buildTree());
+		    }
+		}
             }
             else if (input == `enable)
             {
