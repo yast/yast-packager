@@ -5,6 +5,8 @@ Mon Sep 22 16:38:30 CEST 2008 - locilka@suse.cz
   otherwise they are hidden (bnc #428370).
 - Returning back from Community Repositories if Canceled instead of
   continuing the workflow (bnc #428377).
+- Reporting warning containing products selected for auto-removal
+  during update (FATE #304488).
 
 -------------------------------------------------------------------
 Fri Sep 19 12:28:59 CEST 2008 - locilka@suse.cz
