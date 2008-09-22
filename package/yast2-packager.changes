@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 22 18:24:24 CEST 2008 - lslezak@suse.cz
+
+- fixed a typo in the help text (bnc#428188)
+
+-------------------------------------------------------------------
 Mon Sep 22 16:38:30 CEST 2008 - locilka@suse.cz
 
 - Offering Community Repositories only if defined in control file
