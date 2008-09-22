@@ -70,7 +70,6 @@
     import "CommandLine";
     import "PackageCallbacks";
     import "SourceManager";
-    import "ProductControl";
 
     import "FileUtils";
     import "HTTP";
