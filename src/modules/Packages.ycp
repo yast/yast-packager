@@ -401,6 +401,48 @@ global boolean CheckDiskSize (boolean init) {
 }
 
 /**
+ * Checks which products have been selected for removal and modifies
+ * the warning messages accordingly.
+ */
+void CheckOldAddOns (map & ret) {
+    list <map <string, any> > products = Pkg::ResolvableProperties ("", `product, "");
+    products = filter (map <string, any> one_product, products, {
+	// inform about these products only
+	return (one_product["status_detail"]:"unknown" == "S_AutoDel");
+    });
+
+    // no such products
+    if (size (products) == 0) {
+	y2milestone ("No products marked for auto-removal");
+	return;
+    }
+
+    y2warning ("Product marked for auto-removal: %1", products);
+
+    string warning = "";
+
+    foreach (map <string, any> one_product, products, {
+	warning = warning + "<li>" + one_product["display_name"]:one_product["name"]:one_product["NCL"]:_("Unknown Product") + "</li>\n";
+    });
+
+    warning = sformat (
+	_("These Add-On products have been marked for auto-removal: %1"),
+	"<ul>\n" + warning + "</ul>\n"
+    );
+
+    // raising warning level if needed
+    if (ret["warning_level"]:nil == nil || contains ([`notice, `ok], ret["warning_level"]:`warning)) {
+	ret["warning_level"] = `warning;
+    }
+
+    if (size (ret["warning"]:"") > 0) {
+	ret["warning"] = ret["warning"]:"" + "<br>\n";
+    }
+
+    ret["warning"] = ret["warning"]:"" + warning;
+}
+
+/**
  * Print the installatino proposal summary
  * @param flags a list of symbols, see above
  * @param boolean use_cache if true, use previous proposal if possible
@@ -462,6 +504,9 @@ global map Summary (list<symbol> flags, boolean use_cache) {
 	    }
 	}
     }
+
+    // FATE #304488
+    if (Mode::update()) CheckOldAddOns (ret);
 
     ret["raw_proposal"] = SummaryOutput (flags);
     ret["help"] = SummaryHelp(flags);
