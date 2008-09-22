@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 22 16:38:30 CEST 2008 - locilka@suse.cz
+
+- Offering Community Repositories only if defined in control file
+  otherwise they are hidden (bnc #428370).
+
+-------------------------------------------------------------------
 Fri Sep 19 12:28:59 CEST 2008 - locilka@suse.cz
 
 - Fixed handling of 'PATTERNS' in content file (bnc #418821).
