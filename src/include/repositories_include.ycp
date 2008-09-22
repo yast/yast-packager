@@ -306,7 +306,12 @@ without having %1 package installed"),
 	any commrepos = WFM::call ("inst_productsources", [$["skip_already_used_repos":true]]);
 	y2milestone ("Community Repositories returned: %1", commrepos);
 
-	return `next;
+	if (commrepos == `abort || commrepos == `cancel) {
+	    y2milestone ("Using CR have been canceled");
+	    return `back;
+	} else {
+	    return `next;
+	}
     }
 
     if (createSource(url, plaindir, download_meta, name) == `again)
