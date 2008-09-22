@@ -29,6 +29,8 @@ import "NetworkPopup";
 import "String";
 import "Hostname";
 import "IP";
+import "ProductControl";
+import "ProductFeatures";
 
 // common functions / data
 
@@ -1595,7 +1597,7 @@ Leave it empty to use the default port.</p>
  */
 boolean IsAnyNetworkAvailable () {
         boolean ret = false;
-        
+
         string command = "TERM=dumb /sbin/ip -o address show | grep inet | grep -v scope.host";
         y2milestone("Running %1", command);
         map cmd_run = (map) SCR::Execute(.target.bash_output, command);
@@ -1613,10 +1615,27 @@ boolean IsAnyNetworkAvailable () {
         } else if (cmd_run["stdout"]:"" != nil && cmd_run["stdout"]:"" != "") {
             ret = true;
         }
-        
-        return ret;    
+
+        return ret;
 }
 
+/**
+ * Returns whether Community Repositories are defined in the control file.
+ *
+ * @return boolean whether defined
+ */
+boolean CRURLDefined () {
+    string link = ProductFeatures::GetStringFeature ("software", "external_sources_link");
+
+    y2debug ("software/external_sources_link -> '%1'", link);
+
+    if (link == nil || link == "") {
+	y2milestone ("No software/external_sources_link, community repos will be disabled");
+	return false;
+    } else {
+	return true;
+    }
+}
 
 term SelectRadioWidgetOpt (boolean download_widget) {
     term contents = `HBox (`HStretch (), `VBox (
@@ -1624,8 +1643,13 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    `VStretch (),
 	    // radio button
 	    `Left (`RadioButton(`id(`slp),       _("&Scan Using SLP..."))),
-	    // radio button
-	    `Left (`RadioButton(`id(`comm_repos), _("Commun&ity Repositories"))),
+	    // bnc #428370, No need to offer community repositories if not defined
+	    (CRURLDefined() ?
+		// radio button
+		`Left (`RadioButton(`id(`comm_repos), _("Commun&ity Repositories")))
+		:
+		`Empty()
+	    ),
 	    `VSpacing(0.4),
 	    // radio button
 	    `Left (`RadioButton (`id (`specify_url),_("Specify &URL..."))),
