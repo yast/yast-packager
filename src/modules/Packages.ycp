@@ -410,7 +410,7 @@ global void CheckOldAddOns (map & ret) {
     list <map <string, any> > products = Pkg::ResolvableProperties ("", `product, "");
     products = filter (map <string, any> one_product, products, {
 	// inform about these products only
-	return (one_product["status_detail"]:`unknown` == `S_AutoDel);
+	return (one_product["status_detail"]:`unknown == `S_AutoDel);
     });
 
     // no such products
@@ -438,7 +438,13 @@ global void CheckOldAddOns (map & ret) {
     }
 
     if (size (ret["warning"]:"") > 0) {
-	ret["warning"] = ret["warning"]:"" + "<br>\n";
+	ret["warning"] = ret["warning"]:"" + "<br>\n" + (size (products) > 1 ?
+	    // Warning message when some add-ons are marked to be removed automatically
+	    _("Please, contact the vendors of these add-ons to provide you with new the installation media.")
+	    :
+	    // Warning message when some add-ons are marked to be removed automatically
+	    _("Please, contact the vendor of the add-on to provide you with the new installation media.")
+	);
     }
 
     ret["warning"] = ret["warning"]:"" + warning;
