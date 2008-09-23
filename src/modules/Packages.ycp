@@ -403,12 +403,14 @@ global boolean CheckDiskSize (boolean init) {
 /**
  * Checks which products have been selected for removal and modifies
  * the warning messages accordingly.
+ *
+ * @param reference to map MakeProposal->Summary
  */
-void CheckOldAddOns (map & ret) {
+global void CheckOldAddOns (map & ret) {
     list <map <string, any> > products = Pkg::ResolvableProperties ("", `product, "");
     products = filter (map <string, any> one_product, products, {
 	// inform about these products only
-	return (one_product["status_detail"]:"unknown" == "S_AutoDel");
+	return (one_product["status_detail"]:`unknown` == `S_AutoDel);
     });
 
     // no such products
@@ -1010,6 +1012,15 @@ string ContentFileProductLabel () {
 
 integer base_source_id = nil;
 
+/**
+ * Returns ID of the base product repository.
+ *
+ * @return integer base source ID
+ */
+global integer GetBaseSourceID () {
+    return base_source_id;
+}
+
 boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_for_dir,
     string lang_long, string lang_short, string fallback_lang) {
     // directory used as a source of texts
@@ -1370,7 +1381,7 @@ void LockPackages()
 global void Initialize(boolean show_popup) {
     if (init_called || init_in_progress)
     {
-	y2warning ("Packages::Initialize() already called");
+	y2milestone ("Packages::Initialize() already called");
 	return;
     }
 
