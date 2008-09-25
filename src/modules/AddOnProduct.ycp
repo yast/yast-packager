@@ -1369,15 +1369,15 @@ global boolean ReadTmpExportFilename () {
 }
 
 
-boolean AcceptUnsignedFile(string file)
+boolean AcceptUnsignedFile(string file, integer repo)
 {
-    y2milestone("Accepting unsigned file %1", file);
+    y2milestone("Accepting unsigned file %1 from repository %2", file, repo);
     return true;
 }
 
-boolean RejectUnsignedFile(string file)
+boolean RejectUnsignedFile(string file, integer repo)
 {
-    y2milestone("Rejecting unsigned file %1", file);
+    y2milestone("Rejecting unsigned file %1 from repository %2", file, repo);
     return false;
 }
 
@@ -1393,30 +1393,30 @@ boolean RejectFileWithoutChecksum(string file)
     return false;
 }
 
-boolean AcceptVerificationFailed(string file, map<string,any> key)
+boolean AcceptVerificationFailed(string file, map<string,any> key, integer repo)
 {
-    y2milestone("Accepting failed verification of file %1 with key %2", file, key);
+    y2milestone("Accepting failed verification of file %1 with key %2 from repository %3", file, key, repo);
     return true;
 }
 
-boolean RejectVerificationFailed(string file, map<string,any> key)
+boolean RejectVerificationFailed(string file, map<string,any> key, integer repo)
 {
-    y2milestone("Rejecting failed verification of file %1 with key %2", file, key);
+    y2milestone("Rejecting failed verification of file %1 with key %2 from repository %3", file, key, repo);
     return false;
 }
 
 
-global boolean AcceptUnknownGpgKeyCallback( string filename, string keyid )
+global boolean AcceptUnknownGpgKeyCallback( string filename, string keyid, integer repo)
 {
-    y2milestone("AcceptUnknownGpgKeyCallback %1: %2", filename, keyid);
+    y2milestone("AcceptUnknownGpgKeyCallback %1: %2 (from repository %3)", filename, keyid, repo);
 
     return ( current_addon["signature-handling","accept_unknown_gpg_key","all"]:false ||
              contains( current_addon["signature-handling","accept_unknown_gpg_key","keys"]:[], keyid ) );
 }
 
-global boolean ImportGpgKeyCallback(map<string,any> key)
+global boolean ImportGpgKeyCallback(map<string,any> key, integer repo)
 {
-    y2milestone("ImportGpgKeyCallback: %1", key);
+    y2milestone("ImportGpgKeyCallback: %1 from repository %2", key, repo);
 
     return ( current_addon["signature-handling","import_gpg_key","all"]:false ||
              contains( current_addon["signature-handling","import_gpg_key","keys"]:[], key["id"]:"" ) );
