@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 25 14:31:25 CEST 2008 - lslezak@suse.cz
+
+- check signatures when downloading the slideshow (bnc#409927)
+
+-------------------------------------------------------------------
 Tue Sep 23 17:10:36 CEST 2008 - locilka@suse.cz
 
 - New function Packages::GetBaseSourceID needed by update

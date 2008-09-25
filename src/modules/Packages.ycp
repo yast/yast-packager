@@ -1041,7 +1041,7 @@ boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_
 
 	string test_dir = sformat ("%1/txt/%2", search_for_dir, try_this_lang);
 	y2milestone ("Checking '%1'", test_dir);
-	providedir = Pkg::SourceProvideDirectory (source, 1, test_dir, true, true);
+	providedir = Pkg::SourceProvideSignedDirectory (source, 1, test_dir, true, true);
 
 	if (providedir != nil) {
 	    y2milestone ("%1 lang found", try_this_lang);
