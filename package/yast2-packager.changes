@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 25 17:29:08 CEST 2008 - lslezak@suse.cz
+
+- fixed broken tag in a richtext string (bnc#429850)
+
+-------------------------------------------------------------------
 Thu Sep 25 14:31:25 CEST 2008 - lslezak@suse.cz
 
 - check signatures when downloading the slideshow (bnc#409927)

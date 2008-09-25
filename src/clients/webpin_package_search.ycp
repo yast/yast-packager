@@ -74,7 +74,7 @@
 	ret = "<p>" + descr + version + archs + "</p>";
     }
     else
-	ret = _("<p><b>No packages matching entered criteria were found</b><p>");
+	ret = _("<p><b>No packages matching entered criteria were found</b></p>");
 
      UI::ChangeWidget(`id("description"),`Value, ret);
   }
