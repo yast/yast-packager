@@ -4,6 +4,7 @@ Fri Sep 26 10:21:04 CEST 2008 - lslezak@suse.cz
 - do not use obsoleted Pkg::TargetLogfile() function (bnc#429954)
 - inst_kickoff.ycp - remove nonexisting directories from /etc/mtab
   (bnc#425464)
+- 2.17.21
 
 -------------------------------------------------------------------
 Thu Sep 25 17:29:08 CEST 2008 - lslezak@suse.cz
