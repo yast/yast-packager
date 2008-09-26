@@ -22,7 +22,6 @@
     import "Mode";
     import "Stage";
     import "Installation";
-    import "Directory";
     import "Language";
     import "PackageInstallation";
     import "Packages";
@@ -381,9 +380,6 @@ Package installation will be aborted.
 	// in 1st stage, this is opened already
 	SlideShow::OpenDialog ();
     }
-
-    Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
-
 
     if  (Mode::autoinst () && Stage::cont ()) {
 	AutoinstPostPackages();

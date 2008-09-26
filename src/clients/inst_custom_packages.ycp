@@ -71,7 +71,6 @@
         SlideShow::OpenDialog();
 
         import "PackageInstallation";
-        Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
         integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
         list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
         integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");

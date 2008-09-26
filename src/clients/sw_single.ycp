@@ -22,7 +22,6 @@
     import "Arch";
     import "Confirm";
     import "Installation";
-    import "Directory";
     import "Mode";
     import "PackageCallbacks";
     import "PackageLock";
@@ -155,8 +154,6 @@ symbol StartSWSingle()
        {
 	   // if sw_single is called with an absolute package-pathname, there is no need to
 	   // mount the source medium or check SuSE version or dependencies
-
-	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 
 	   PackageSlideShow::InitPkgData(true);	// force reinitialization
 
@@ -552,7 +549,6 @@ Install them now?
            SlideShow::MoveToStage( "packages" );
 
 	   import "PackageInstallation";
-	   Pkg::TargetLogfile (Installation::destdir + Directory::logdir + "/y2logRPM");
 	   integer oldvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
 	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
