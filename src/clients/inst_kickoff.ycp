@@ -61,11 +61,41 @@ void XenPVToInitrd()
      *  need it.
      */
     define void fake_mtab () ``{
+	y2milestone("Copying /etc/mtab to the target system...");
 
 	string tmpdir = (string) SCR::Read (.target.tmpdir);
 
 	string mtabname = "/etc/mtab";
 	string mtab = (string) WFM::Read(.local.string, mtabname);
+
+	// remove non-existing mount points
+	list<string> mtab_lines = splitstring(mtab, "\n");
+
+	mtab_lines = filter(string mtab_line, mtab_lines,
+	    {
+		// parse the line, get the directory name
+		string dir = regexpsub(mtab_line, "^[^ \t]+[ \t]+([^ \t]*)[ \t]+", "\\1");
+
+		if (dir != nil)
+		{
+		    // check if the directory exists
+		    y2debug("Checking directory %1", dir);
+
+		    integer exit_status = (integer)WFM::Execute(.local.bash, sformat("ls -d '%1'", String::Quote(dir)));
+		    if (exit_status != 0)
+		    {
+			y2warning("Excluding nonexisting directory %1", dir);
+			return false;
+		    }
+		}
+
+		return true;
+	    }
+	);
+
+	// join back the lines
+	mtab = mergestring(mtab_lines, "\n");
+	y2milestone("Target /etc/mtab file: %1", mtab);
 
 	SCR::Write(.target.string, tmpdir + "/mtab", mtab);
 	SCR::Execute (.target.bash, "/bin/cat "
