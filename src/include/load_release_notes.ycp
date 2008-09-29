@@ -25,6 +25,11 @@
     /* function to load release notes */
     define boolean load_release_notes (integer source_id)
     {
+	if (source_id == nil || source_id < 0) {
+	    y2error ("Source_id: %1", source_id);
+	    return false;
+	}
+
         string path_to_relnotes = "/docu";
 
 	string path_templ = path_to_relnotes + "/RELEASE-NOTES.%1.rtf";
