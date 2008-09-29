@@ -1098,7 +1098,13 @@ boolean FindAndCopySlideDirWithoutCallbacks(string our_slidedir, integer source,
     return ret;
 }
 
+global void Init(boolean unused);
+
 global void SlideShowSetUp (string wanted_language) {
+    // bnc #427935
+    // Initialize the base_source_id first
+    Init (true);
+
     integer source = base_source_id;
 
     string lang_long = "";
