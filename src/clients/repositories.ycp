@@ -745,6 +745,7 @@ Priority of a repository is an integer value between 0 (the highest priority) an
                 string _msg1 = _("Unable to save changes to the repository
 configuration.");
                 string details = Pkg::LastError();
+		y2milestone("LastError: %1", details);
 		// popup message part 2 followed by other info
                 string _msg2 = details != "" ? (_("Details:") + "\n" + details)
 		    : "";

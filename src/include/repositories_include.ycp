@@ -84,6 +84,20 @@
 		}
 
 		Pkg::ServiceAdd(alias, url);
+
+		boolean autorefresh = true;
+		string schema = tolower(substring(url, 0, 3));
+
+		if (schema == "cd:" || schema == "dvd")
+		{
+		    autorefresh = false;
+		    y2milestone("Disabling autorefresh for a CD/DVD service");
+		}
+
+                serviceStatesOut = add(serviceStatesOut,
+		    $["alias":alias, "autorefresh":autorefresh, "enabled":true, "name":preffered_name, "url":url]
+		);
+
                 return `ok;
 	    }
 
