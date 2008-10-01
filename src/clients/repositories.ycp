@@ -205,6 +205,18 @@
 
 	list<map> itemList = repo_mode ? sourceStatesOut : serviceStatesOut;
 
+	// displaye only repositories from the selected service
+	if (repo_mode && service_name != "")
+	{
+	    itemList = filter(map repo, itemList,
+		{
+		    return repo["service"]:"" == service_name;
+		}
+	    );
+
+	    y2internal("table items: %1", itemList);
+	}
+
         integer numItems = size(itemList);
 
         integer i = 0;
@@ -296,10 +308,37 @@
 	}
     }
 
+    void clearRepoInfo()
+    {
+	if (textmode())
+	{
+	    UI::ChangeWidget(`id(`name), `Label, "");
+	    UI::ChangeWidget(`id(`url), `Label, "");
+	    UI::ChangeWidget(`id(`category), `Label, "");
+	    UI::ChangeWidget(`id(`service), `Label, "");
+	}
+	else
+	{
+	    UI::ChangeWidget(`id(`repo_info), `Value, "");
+	}
+
+	UI::ChangeWidget (`id (`enable), `Value, false);
+	UI::ChangeWidget (`id (`autorefresh), `Value, false);
+
+	if (UI::WidgetExists(`id(`priority)))
+	{
+	    // priority is displayed only for repositories
+	    UI::ChangeWidget (`id (`priority), `Value, default_priority);
+	}
+    }
+
     void fillCurrentRepoInfo () {
 	integer selected = (integer)UI::QueryWidget (`id (`table), `CurrentItem);
 	if (selected == nil)
+	{
+	    clearRepoInfo();
 	    return;
+	}
 
 	map data = (repository_view) ? sourceStatesOut[selected]:$[] : serviceStatesOut[selected]:$[];
 
@@ -329,6 +368,25 @@
 	    boolean newena = src["enabled"]:true;
 	    if (newena && ! seen[newid]:false)
 		ret = add (ret, newid);
+	});
+	y2milestone ("Difference %1", ret);
+	return ret;
+    }
+
+    list<string> newServices (list<map<string,any> > statesOld,
+			      list<map<string,any> > statesNew) {
+	y2milestone ("Services from %1 To %2", statesOld, statesNew);
+	list<string> ret = [];
+
+	map<string, boolean> seen = listmap (
+	    map<string, any> srv, statesOld,
+	    ``( $[(srv["alias"]:"") : (srv["enabled"]:true) ] ));
+
+	foreach (map<string, any> srv, statesNew, {
+	    string alias = srv["alias"]:"";
+	    boolean newena = srv["enabled"]:true;
+	    if (newena && ! seen[alias]:false)
+		ret = add (ret, alias);
 	});
 	y2milestone ("Difference %1", ret);
 	return ret;
@@ -398,10 +456,21 @@ Save changes anyway?")))
 	    }
 	);
 
+	// evaluate removed services
+/*
+	foreach(integer id, servicesToDelete,
+	    {
+		success = success && Pkg::ServiceDelete(id);
+	    }
+	);
+*/
+
 	success = success && KeyManager::Write();
 
 	// store in the persistent libzypp storage
 	success = success && Pkg::SourceSaveAll(); // #176013
+
+	success = success && Pkg::ServicesSave();
 
 	return success;
    }
@@ -716,66 +785,214 @@ All changes will be lost.");
 	    // start the GPG key manager
 	    //RunGPGKeyMgmt();
 	}
+	else if (input == `tree)
+	{
+	    // handle tree events here...
+	    any current_item = UI::QueryWidget(`id(`tree), `CurrentItem);
+
+	    // rebuild the dialog if needed
+	    y2internal("Current tree item: %1", current_item);
+	    boolean update_table_widget = false;
+
+	    if (current_item == `repositories)
+	    {
+		update_table_widget = !repository_view || displayed_service != "";
+		y2milestone("Switching to repository view");
+		repository_view = true;
+		displayed_service = "";
+	    }
+	    else if (current_item == `services)
+	    {
+		update_table_widget = repository_view;
+		y2milestone("Switching to service view");
+		repository_view = false;
+		// display all services
+		displayed_service = "";
+	    }
+	    else if (is(current_item, string))
+	    {
+		// switch to the selected repository
+		y2milestone("Switching to service %1", current_item);
+		repository_view = true;
+		// display the selected service
+		displayed_service = (string)current_item;
+
+		// FIXME: always update the table?
+		update_table_widget = true;
+	    }
+
+	    // update table widget
+	    if (update_table_widget)
+	    {
+		ReplaceWidgets(repository_view);
+	    }
+
+	    // update table content
+	    fillTable(repository_view, displayed_service);
+	    fillCurrentRepoInfo();
+
+	    // update the current item
+	    current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
+	    y2internal("UI refresh done");
+	}
         else
         {
             current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
 
             y2debug( "Current item: %1", current );
 
-            map<string, any> sourceState = sourceStatesOut[ current ]:$[];
+            map<string, any> sourceState = $[];
+
+	    if (repository_view)
+	    {
+		if (displayed_service == "")
+		{
+		    sourceState = sourceStatesOut[ current ]:$[];
+		}
+		else
+		{
+		    if (current != nil)
+		    {
+			list<map<string,any> > sources_from_service = sourceStatesOut;
+
+			sources_from_service = filter(map<string,any> src, sources_from_service,
+			    {
+				return src["service"]:"" == displayed_service;
+			    }
+			);
+
+			sourceState = sources_from_service[current]:$[];
+		    }
+		}
+	    }
+
             integer id = sourceState[ "SrcId" ]:-1;
 
-            if ( id < 0 && repository_view) {
+            if ( id < 0 && repository_view && displayed_service == "") {
               y2internal("Unable to determine repository id, broken repository?");
               continue;
             }
 
             if ( input == `replace )
             {
-                map generalData = Pkg::SourceGeneralData( id );
-                string url = generalData[ "url" ]:"";
-		string old_url = url;
-		boolean auto_refresh = sourceState["autorefresh"]:true;
-		boolean plaindir = generalData["type"]:"YaST" == plaindir_type;
+		if (repository_view)
+		{
+		    map generalData = Pkg::SourceGeneralData( id );
+		    string url = generalData[ "url" ]:"";
+		    string old_url = url;
+		    boolean auto_refresh = sourceState["autorefresh"]:true;
+		    boolean plaindir = generalData["type"]:"YaST" == plaindir_type;
 
-		SourceDialogs::SetRepoName (sourceState["name"]:"");
+		    SourceDialogs::SetRepoName (sourceState["name"]:"");
 
-                do {
-		    url = SourceDialogs::EditPopupType(url, plaindir);
+		    do {
+			url = SourceDialogs::EditPopupType(url, plaindir);
 
-                    if ( size( url ) == 0 ) break;
-		    if (url != old_url || plaindir != SourceDialogs::IsPlainDir())
-		    {
-		      y2milestone ("URL or plaindir flag changed, recreating the source");
-		      // copy the refresh flag
-                      createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
-                      if ( createResult == `ok ) {
-			deleteSource( current );
-			fillTable(repository_view, displayed_service);
-			fillCurrentRepoInfo();
-                      }
-		    }
-		    else
-		    {
-			y2milestone ("URL is the same, not recreating the source");
-			sourceState["name"] = SourceDialogs::GetRepoName ();
-			sourceStatesOut[ current ] = sourceState;
-			fillTable(repository_view, displayed_service);
-			fillCurrentRepoInfo();
-			createResult = `ok;
-		    }
+			if ( size( url ) == 0 ) break;
+			if (url != old_url || plaindir != SourceDialogs::IsPlainDir())
+			{
+			  y2milestone ("URL or plaindir flag changed, recreating the source");
+			  // copy the refresh flag
+			  createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
+			  if ( createResult == `ok ) {
+			    deleteSource( current );
+			    fillTable(repository_view, displayed_service);
+			    fillCurrentRepoInfo();
+			  }
+			}
+			else
+			{
+			    y2milestone ("URL is the same, not recreating the source");
+			    sourceState["name"] = SourceDialogs::GetRepoName ();
+			    sourceStatesOut[ current ] = sourceState;
+			    fillTable(repository_view, displayed_service);
+			    fillCurrentRepoInfo();
+			    createResult = `ok;
+			}
 
-                } while ( createResult == `again );
+		    } while ( createResult == `again );
+		}
+		else // service view
+		{
+		    map <string, any> service_info = serviceStatesOut[current]:$[];
+		    y2milestone("Editing service %1...", current);
+		    string url = service_info["url"]:"";
+		    string old_url = url;
+
+		    SourceDialogs::SetRepoName(service_info["name"]:"");
+		    do {
+			url = SourceDialogs::EditPopupType(url, false);
+
+			if ( size( url ) == 0 ) break;
+			if (url != old_url)
+			{
+			    y2milestone ("URL of the service has been changed, recreating the service");
+			    // createSource() can potentially create a repository instead of a service
+			    // Probe for a service first must be done before creating a new service
+			    string service_type = Pkg::ServiceProbe(url);
+			    y2milestone("Probed service type: %1", service_type);
+
+			    if (service_type != nil && service_type != "NONE")
+			    {
+				createResult = createSource(url, false /*plaindir*/, false /*do_refresh*/, SourceDialogs::GetRepoName());
+				if ( createResult == `ok )
+				{
+				    deleteService( current );
+				    fillTable(repository_view, displayed_service);
+				    fillCurrentRepoInfo();
+
+				    // refresh also the tree widget
+				    UI::ChangeWidget(`id(`tree), `Items, buildTree());
+				}
+			    }
+			    else
+			    {
+				Report::Error(sformat(_("There is no service at URL:
+%1"), url));
+			    }
+			}
+			else
+			{
+			    y2milestone ("URL is the same, not recreating the service");
+			    string entered_service_name = SourceDialogs::GetRepoName();
+
+			    if (service_info["name"]:nil != entered_service_name)
+			    {
+				y2milestone("Updating name of the service to '%1'", entered_service_name);
+				service_info["name"] = entered_service_name;
+				serviceStatesOut[ current ] = service_info;
+				fillTable(repository_view, displayed_service);
+				fillCurrentRepoInfo();
+				createResult = `ok;
+
+				// refresh also the tree widget
+				UI::ChangeWidget(`id(`tree), `Items, buildTree());
+			    }
+			}
+
+		    } while ( createResult == `again );
+		}
             }
 	    else if ( input == `refresh )
             {
-		Pkg::SourceRefreshNow (id);
-
-		if (full_mode && sourceState["enabled"]:false)
+		if (repository_view)
 		{
-		    // force loading of the resolvables
-		    Pkg::SourceSetEnabled(id, false);
-		    Pkg::SourceSetEnabled(id, true);
+		    Pkg::SourceRefreshNow (id);
+
+		    if (full_mode && sourceState["enabled"]:false)
+		    {
+			// force loading of the resolvables
+			Pkg::SourceSetEnabled(id, false);
+			Pkg::SourceSetEnabled(id, true);
+		    }
+		}
+		else
+		{
+		    // refresh a service
+		    string service_name = (serviceStatesOut[current]:$[])["name"]:"";
+
+		    y2milestone("Refreshing service %1...", service_name);
+		    Pkg::ServiceRefresh(service_name);
 		}
             }
 	    else if ( input == `autorefresh_all || input == `refresh_enabled)
@@ -863,7 +1080,7 @@ All changes will be lost.");
 		else
 		{
 		    // yes-no popup
-		    if ( Popup::YesNo( _("Delete the selected service from the list?") ) )
+		    if ( Popup::YesNo(sformat(_("Delete service %1?"), (serviceStatesOut[current]:$[])["name"]:"")))
 		    {
 			deleteService( current );
 			fillTable(repository_view, displayed_service);
@@ -974,43 +1191,6 @@ All changes will be lost.");
 
 		// do not refresh the item in the table
 		current = -1;
-	    }
-	    else if (input == `tree)
-	    {
-		// handle tree events here...
-		any current_item = UI::QueryWidget(`id(`tree), `CurrentItem);
-
-		// rebuild the dialog if needed
-		y2internal("Current tree item: %1", current_item);
-		boolean update_table_widget = false;
-
-		if (current_item == `repositories)
-		{
-		    update_table_widget = !repository_view;
-		    y2milestone("Switching to repository view");
-		    repository_view = true;
-		}
-		else if (current_item == `services)
-		{
-		    update_table_widget = repository_view;
-		    y2milestone("Switching to service view");
-		    repository_view = false;
-		    // display all services
-		    displayed_service = "";
-		}
-
-		// update table widget
-		if (update_table_widget)
-		{
-		    ReplaceWidgets(repository_view);
-		}
-
-		// update table content
-		fillTable(repository_view, displayed_service);
-		fillCurrentRepoInfo();
-
-		// update the current item
-		current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
 	    }
 	    else
 	    {
