@@ -120,6 +120,15 @@
 	return (priority == default_priority) ? _("Default") : tostring(priority);
     }
 
+    list<map<string,any> > ReposFromService(string service, list<map<string,any> > input)
+    {
+	return filter(map<string,any> repo, input,
+	    {
+		return repo["service"]:"" == service;
+	    }
+	);
+    }
+
     /**
         Create a table item from a map as returned by the InstSrcManager agent.
         @param source The map describing the source as returned form the agent.
@@ -132,8 +141,8 @@
 
 	y2internal("Item: %1", source);
 
-	string name = repository_mode ? (haskey(sourceStatesOut[index]:$[], "name") ?
-	    sourceStatesOut[index,"name"]:"" :
+	string name = repository_mode ? (haskey(source, "name") ?
+	    source["name"]:"" :
 	    // unkown name (alias) of the source
 	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name"))
 	    : source["name"]:"";
@@ -169,20 +178,16 @@
         map generalData = Pkg::SourceGeneralData( id );
 	y2milestone("generalData(%1): %2", id, generalData);
 
-	string alias = haskey(sourceStatesOut[index]:$[], "name") ?
-	    sourceStatesOut[index,"name"]:"" :
-	    // unkown name (alias) of the source
-	    generalData[ "alias" ]:generalData[ "type" ]: _("Unknown Name");
-
 	// get the editable propertis from 'source' parameter,
 	// get the fixed propertis from the package manager
 	map<string,any> out = $[
 	    "enabled" : source["enabled"]:true,
 	    "autorefresh" : source["autorefresh"]:true,
-	    "name" : alias,
+	    "name" : source["name"]:_("Unknown Name"),
 	    "url" : generalData[ "url" ]:"",
 	    "type" : generalData["type"]:"",
 	    "priority" : source["priority"]:default_priority,
+	    "service" : source["service"]:"",
 	];
         return out;
 
@@ -203,16 +208,12 @@
 	    RemoveDeletedAddNewRepos();
 	}
 
-	list<map> itemList = repo_mode ? sourceStatesOut : serviceStatesOut;
+	list<map<string,any> > itemList = repo_mode ? sourceStatesOut : serviceStatesOut;
 
 	// displaye only repositories from the selected service
 	if (repo_mode && service_name != "")
 	{
-	    itemList = filter(map repo, itemList,
-		{
-		    return repo["service"]:"" == service_name;
-		}
-	    );
+	    itemList = ReposFromService(service_name, itemList);
 
 	    y2internal("table items: %1", itemList);
 	}
@@ -224,6 +225,8 @@
             items = add( items, createItem( i, itemList[ i ]:$[], repo_mode ) );
             i = i + 1;
         }
+
+	y2internal("New table content: %1", items);
 
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
@@ -260,6 +263,8 @@
 
     void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
     {
+	y2internal(-1, "fillRepoInfo: index: %1, source; %2, repo_mode: %3, service_name: %4",
+	    index, source, repo_mode, service_name);
 	map<string,any> info = repo_mode ? getSourceInfo (index, source) : source;
 	y2internal("getSourceInfo(%1, %2): %3", index, source, info);
 
@@ -277,7 +282,7 @@
 
 	if (service != "")
 	{
-	    sformat (_("Service: %1"), service);
+	    service = sformat (_("Service: %1"), service);
 	}
 
 	// don't display category for services
@@ -340,7 +345,11 @@
 	    return;
 	}
 
-	map data = (repository_view) ? sourceStatesOut[selected]:$[] : serviceStatesOut[selected]:$[];
+	map data = (repository_view) ?
+	    ((displayed_service == "") ? sourceStatesOut[selected]:$[] :
+		ReposFromService(displayed_service, sourceStatesOut)[selected]:$[]
+	    )
+	    : serviceStatesOut[selected]:$[];
 
 	fillRepoInfo (selected, data, repository_view, displayed_service);
     }
@@ -843,25 +852,31 @@ All changes will be lost.");
 
             map<string, any> sourceState = $[];
 
+	    // global_current - 'current' that points to global sourceStatesOut
+	    integer global_current = -1;
+
 	    if (repository_view)
 	    {
 		if (displayed_service == "")
 		{
 		    sourceState = sourceStatesOut[ current ]:$[];
+		    global_current = current;
 		}
 		else
 		{
 		    if (current != nil)
 		    {
-			list<map<string,any> > sources_from_service = sourceStatesOut;
+			list<map<string,any> > sources_from_service = ReposFromService(displayed_service, sourceStatesOut);
+			sourceState = sources_from_service[current]:$[];
 
-			sources_from_service = filter(map<string,any> src, sources_from_service,
+			find(map<string,any> s, sourceStatesOut,
 			    {
-				return src["service"]:"" == displayed_service;
+				global_current = global_current + 1;
+				return s["SrcId"]:nil == sourceState["SrcId"]:-1;
 			    }
 			);
 
-			sourceState = sources_from_service[current]:$[];
+			y2milestone("global_current: %1", global_current);
 		    }
 		}
 	    }
@@ -997,10 +1012,14 @@ All changes will be lost.");
             }
 	    else if ( input == `autorefresh_all || input == `refresh_enabled)
             {
-		y2milestone("Refreshing all %1 repositories...", input == `refresh_enabled ? "enabled" : "autorefreshed");
+		y2milestone("Refreshing all %1 %2%3...", input == `refresh_enabled ? "enabled" : "autorefreshed",
+		    repository_view ? "repositories" : "services",
+		    repository_view && displayed_service != "" ? " from service " + displayed_service : "");
 
 		boolean refresh_autorefresh_only = input == `autorefresh_all;
 		integer to_refresh = 0;
+
+// TODO FIXME		list<map<string,any> > data = 
 
 		foreach(map<string,any> src_state, sourceStatesOut,
 		    {
@@ -1101,7 +1120,7 @@ All changes will be lost.");
 		    string newstate = ( state ? UI::Glyph (`CheckMark) : "");
 		    UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
 		    sourceState[ "enabled" ] = state;
-		    sourceStatesOut[ current ] = sourceState;
+		    sourceStatesOut[ global_current ] = sourceState;
 
 		    if (full_mode)
 		    {
@@ -1135,14 +1154,14 @@ All changes will be lost.");
 		{
 		    integer source_id = sourceState["SrcId"]:0;
 		    map src_data = Pkg::SourceGeneralData (source_id);
-		    string type = src_data["type"]:"UnitedLinux";
+		    string type = src_data["type"]:"";
 		    boolean state = sourceState[ "autorefresh" ]:true;
 
 		    if (type == "PlainDir" && ! state)
 		    {
 			// popup message
 			Popup::Message (_("For the selected repository, refresh
-    cannot be set."));
+cannot be set."));
 		    }
 		    else
 		    {
@@ -1153,27 +1172,23 @@ All changes will be lost.");
 		    }
 
 		    sourceState["autorefresh"] = state;
-		    sourceStatesOut[ current ] = sourceState;
+		    sourceStatesOut[ global_current ] = sourceState;
 		}
 		else
 		{
-		    if (displayed_service == "")
-		    {
-			map<string,any> srv = serviceStatesOut[current]:$[];
-			y2internal("Selected service: %1", srv);
+		    map<string,any> srv = serviceStatesOut[current]:$[];
+		    y2internal("Selected service: %1", srv);
 
-			boolean state = srv["autorefresh"]:false;
-			state = !state;
+		    boolean state = srv["autorefresh"]:false;
+		    state = !state;
 
-			// update the table
-			string newstate = ( state ? UI::Glyph (`CheckMark) : "");
-			UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
+		    // update the table
+		    string newstate = ( state ? UI::Glyph (`CheckMark) : "");
+		    UI::ChangeWidget( `id( `table ), `Item( current, 1 ), newstate );
 
-			// store the change
-			srv["autorefresh"] = state;
-			serviceStatesOut[current] = srv;
-		    }
-		    // TODO else...
+		    // store the change
+		    srv["autorefresh"] = state;
+		    serviceStatesOut[current] = srv;
 		}
 
 		// do not refresh the item in the table
@@ -1181,16 +1196,23 @@ All changes will be lost.");
             }
 	    else if (input == `priority)
 	    {
-		// refresh the value in the table
-		integer new_priority = (integer)UI::QueryWidget(`id(`priority), `Value);
-		y2debug("New priority: %1", new_priority);
+		if (repository_view)
+		{
+		    // refresh the value in the table
+		    integer new_priority = (integer)UI::QueryWidget(`id(`priority), `Value);
+		    y2debug("New priority: %1", new_priority);
 
-		UI::ChangeWidget( `id( `table ), `Item( current, 0 ), PriorityToString(new_priority));
-                sourceState[ "priority" ] = new_priority;
-                sourceStatesOut[ current ] = sourceState;
+		    UI::ChangeWidget( `id( `table ), `Item( current, 0 ), PriorityToString(new_priority));
+		    sourceState[ "priority" ] = new_priority;
+		    sourceStatesOut[ global_current ] = sourceState;
 
-		// do not refresh the item in the table
-		current = -1;
+		    // do not refresh the item in the table
+		    current = -1;
+		}
+		else
+		{
+		    y2error("Ignoring event `priority: the widget should NOT be displayed in service mode!");
+		}
 	    }
 	    else
 	    {
