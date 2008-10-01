@@ -139,8 +139,6 @@
         map generalData = Pkg::SourceGeneralData( id );
 	y2milestone("generalData(%1): %2", id, generalData);
 
-	y2internal("Item: %1", source);
-
 	string name = repository_mode ? (haskey(source, "name") ?
 	    source["name"]:"" :
 	    // unkown name (alias) of the source
@@ -214,8 +212,6 @@
 	if (repo_mode && service_name != "")
 	{
 	    itemList = ReposFromService(service_name, itemList);
-
-	    y2internal("table items: %1", itemList);
 	}
 
         integer numItems = size(itemList);
@@ -226,7 +222,7 @@
             i = i + 1;
         }
 
-	y2internal("New table content: %1", items);
+	y2milestone("New table content: %1", items);
 
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
@@ -263,10 +259,8 @@
 
     void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
     {
-	y2internal(-1, "fillRepoInfo: index: %1, source; %2, repo_mode: %3, service_name: %4",
-	    index, source, repo_mode, service_name);
 	map<string,any> info = repo_mode ? getSourceInfo (index, source) : source;
-	y2internal("getSourceInfo(%1, %2): %3", index, source, info);
+	y2milestone("getSourceInfo(%1, %2): %3", index, source, info);
 
 	// heading - in case repo name not found
 	string name = info["name"]:_("Unknown repository name");
@@ -800,7 +794,7 @@ All changes will be lost.");
 	    any current_item = UI::QueryWidget(`id(`tree), `CurrentItem);
 
 	    // rebuild the dialog if needed
-	    y2internal("Current tree item: %1", current_item);
+	    y2milestone("Current tree item: %1", current_item);
 	    boolean update_table_widget = false;
 
 	    if (current_item == `repositories)
@@ -1016,10 +1010,10 @@ All changes will be lost.");
 		else
 		{
 		    // refresh a service
-		    string service_name = (serviceStatesOut[current]:$[])["name"]:"";
+		    string service_alias = (serviceStatesOut[current]:$[])["alias"]:"";
 
-		    y2milestone("Refreshing service %1...", service_name);
-		    Pkg::ServiceRefresh(service_name);
+		    y2milestone("Refreshing service %1...", service_alias);
+		    Pkg::ServiceRefresh(service_alias);
 		}
             }
 	    else if ( input == `autorefresh_all || input == `refresh_enabled)
@@ -1031,13 +1025,19 @@ All changes will be lost.");
 		boolean refresh_autorefresh_only = input == `autorefresh_all;
 		integer to_refresh = 0;
 
-// TODO FIXME		list<map<string,any> > data = 
+		list<map<string,any> > data = (repository_view) ?
+		    (displayed_service == "" ? sourceStatesOut : ReposFromService(displayed_service, sourceStatesOut))
+		    : serviceStatesOut;
 
-		foreach(map<string,any> src_state, sourceStatesOut,
+		y2internal("data: %1", data);
+
+		foreach(map<string,any> src_state, data,
 		    {
 			if (src_state["enabled"]:false && (!refresh_autorefresh_only || src_state["autorefresh"]:false))
 			{
-			    string url = Pkg::SourceGeneralData(src_state["SrcId"]:-1)["url"]:"";
+			    string url = repository_view ? 
+				(Pkg::SourceGeneralData(src_state["SrcId"]:-1)["url"]:"")
+				: src_state["url"]:"";
 			    string schema = tolower(substring(url, 0, 3));
 
 			    if (schema != "cd:" && schema != "dvd")
@@ -1048,45 +1048,60 @@ All changes will be lost.");
 		    }
 		);
 
-		y2milestone("%1 repositories will be refreshed", to_refresh);
+		y2milestone("%1 %2 will be refreshed", to_refresh, repository_view ? "repositories" : "services");
 
 		if (to_refresh > 0)
 		{
 		    Wizard::CreateDialog ();
 		    // TODO: add help text
-		    Progress::New(_("Refreshing Repositories"), "", to_refresh + 1, [ _("Refresh Repositories") ], [], "");
+		    Progress::New(repository_view ? _("Refreshing Repositories") : _("Refreshing Services"),
+			"", to_refresh + 1, [ repository_view ? _("Refresh Repositories") : _("Refresh Services") ],
+			[], "");
 
-		    foreach(map<string,any> src_state, sourceStatesOut,
+		    foreach(map<string,any> src_state, data,
 			{
 			    if (src_state["enabled"]:false && (!refresh_autorefresh_only || src_state["autorefresh"]:false))
 			    {
-				integer srcid = src_state["SrcId"]:-1;
 				string name = src_state["name"]:"";
-
-				string url = Pkg::SourceGeneralData(src_state["SrcId"]:-1)["url"]:"";
-				string schema = tolower(substring(url, 0, 3));
-
-				if (schema != "cd:" && schema != "dvd")
+				if (repository_view)
 				{
-				    y2milestone("Autorefreshing repository %1 (%2)", srcid, name);
+				    integer srcid = src_state["SrcId"]:-1;
 
-				    // progress bar label
-				    Progress::Title(sformat(_("Refreshing Repository %1..."), name));
+				    string url = Pkg::SourceGeneralData(src_state["SrcId"]:-1)["url"]:"";
+				    string schema = tolower(substring(url, 0, 3));
 
-				    Pkg::SourceRefreshNow(srcid);
-
-				    if (full_mode && src_state["enabled"]:false)
+				    if (schema != "cd:" && schema != "dvd")
 				    {
-					// force loading of the resolvables
-					Pkg::SourceSetEnabled(srcid, false);
-					Pkg::SourceSetEnabled(srcid, true);
-				    }
+					y2milestone("Autorefreshing repository %1 (%2)", srcid, name);
 
-				    Progress::NextStep();
+					// progress bar label
+					Progress::Title(sformat(_("Refreshing Repository %1..."), name));
+
+					Pkg::SourceRefreshNow(srcid);
+
+					if (full_mode && src_state["enabled"]:false)
+					{
+					    // force loading of the resolvables
+					    Pkg::SourceSetEnabled(srcid, false);
+					    Pkg::SourceSetEnabled(srcid, true);
+					}
+
+					Progress::NextStep();
+				    }
+				    else
+				    {
+					y2milestone("Skipping a CD/DVD repository %1 (%2)", srcid, name);
+				    }
 				}
 				else
 				{
-				    y2milestone("Skipping a CD/DVD repository %1 (%2)", srcid, name);
+				    string service_alias = src_state["alias"]:"";
+
+				    // refreshing services
+				    // progress bar label
+				    Progress::Title(sformat(_("Refreshing Service %1..."), name));
+				    y2milestone("Refreshing service %1 (alias: %2)...", name, service_alias);
+				    Pkg::ServiceRefresh(service_alias);
 				}
 			    }
 			}
@@ -1141,23 +1156,19 @@ All changes will be lost.");
 		}
 		else
 		{
-		    if (displayed_service == "")
-		    {
-			map<string,any> srv = serviceStatesOut[current]:$[];
-			y2internal("Selected service: %1", srv);
+		    map<string,any> srv = serviceStatesOut[current]:$[];
+		    y2milestone("Selected service: %1", srv);
 
-			boolean state = srv["enabled"]:false;
-			state = !state;
+		    boolean state = srv["enabled"]:false;
+		    state = !state;
 
-			// update the table
-			string newstate = ( state ? UI::Glyph (`CheckMark) : "");
-			UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
+		    // update the table
+		    string newstate = ( state ? UI::Glyph (`CheckMark) : "");
+		    UI::ChangeWidget( `id( `table ), `Item( current, 0 ), newstate );
 
-			// store the change
-			srv["enabled"] = state;
-			serviceStatesOut[current] = srv;
-		    }
-		    // TODO else...
+		    // store the change
+		    srv["enabled"] = state;
+		    serviceStatesOut[current] = srv;
 		}
             }
             else if ( input == `autorefresh)
