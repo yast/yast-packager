@@ -258,7 +258,7 @@
 	     `Left(`Label(`id(`service), `opt(`hstretch), service))
 	     )
 	:
-	`VSquash(`RichText(`id(`repo_info), ""));
+	`VSquash(`MinHeight(7, `RichText(`id(`repo_info), "")));
     }
 
     void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
@@ -842,7 +842,6 @@ All changes will be lost.");
 
 	    // update the current item
 	    current = (integer) UI::QueryWidget( `id( `table ), `CurrentItem );
-	    y2internal("UI refresh done");
 	}
         else
         {
@@ -910,7 +909,7 @@ All changes will be lost.");
 			  // copy the refresh flag
 			  createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
 			  if ( createResult == `ok ) {
-			    deleteSource( current );
+			    deleteSource( global_current );
 			    fillTable(repository_view, displayed_service);
 			    fillCurrentRepoInfo();
 			  }
@@ -919,7 +918,7 @@ All changes will be lost.");
 			{
 			    y2milestone ("URL is the same, not recreating the source");
 			    sourceState["name"] = SourceDialogs::GetRepoName ();
-			    sourceStatesOut[ current ] = sourceState;
+			    sourceStatesOut[ global_current ] = sourceState;
 			    fillTable(repository_view, displayed_service);
 			    fillCurrentRepoInfo();
 			    createResult = `ok;
@@ -970,8 +969,9 @@ All changes will be lost.");
 			{
 			    y2milestone ("URL is the same, not recreating the service");
 			    string entered_service_name = SourceDialogs::GetRepoName();
+			    string old_service_name = service_info["name"]:"";
 
-			    if (service_info["name"]:nil != entered_service_name)
+			    if (old_service_name != entered_service_name)
 			    {
 				y2milestone("Updating name of the service to '%1'", entered_service_name);
 				service_info["name"] = entered_service_name;
@@ -979,6 +979,18 @@ All changes will be lost.");
 				fillTable(repository_view, displayed_service);
 				fillCurrentRepoInfo();
 				createResult = `ok;
+
+				// update the reference
+				sourceStatesOut = maplist(map<string,any> src_state, sourceStatesOut,
+				    {
+					if (src_state["service"]:"" == old_service_name)
+					{
+					    src_state["service"] = entered_service_name;
+					}
+
+					return src_state;
+				    }
+				);
 
 				// refresh also the tree widget
 				UI::ChangeWidget(`id(`tree), `Items, buildTree());
@@ -1091,7 +1103,7 @@ All changes will be lost.");
 		    // yes-no popup
 		    if ( Popup::YesNo( _("Delete the selected repository from the list?") ) )
 		    {
-			deleteSource( current );
+			deleteSource(global_current);
 			fillTable(repository_view, displayed_service);
 			fillCurrentRepoInfo();
 		    }
