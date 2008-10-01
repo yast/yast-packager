@@ -1302,7 +1302,7 @@ symbol ServerHandle (string key, map event) {
 		// text entry
 		`InputField (`id (`server), `opt (`hstretch), _("Server &Name"), server),
 		(type == `http || type == `https) ?
-		    `HSquash(`InputFiled (`id (`port), _("&Port"), port))
+		    `HSquash(`InputField (`id (`port), _("&Port"), port))
 		    : `Empty()
 	    ),
 	    type == `samba
