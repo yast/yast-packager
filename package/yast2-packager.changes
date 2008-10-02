@@ -1,10 +1,8 @@
 -------------------------------------------------------------------
-Thu Oct  2 17:26:05 CEST 2008 - locilka@suse.cz
+Thu Oct  2 22:17:07 CEST 2008 - locilka@suse.cz
 
-- Added new PackagesProposal module which provides unified API for
-  YaST modules in installation that want to select resolvables for
-  installation (bnc #431580).
-- 2.17.24
+- Packager requires new YCP module PackagesProposal from yast2
+  (bnc #431580)
 
 -------------------------------------------------------------------
 Thu Oct  2 13:42:19 CEST 2008 - locilka@suse.cz

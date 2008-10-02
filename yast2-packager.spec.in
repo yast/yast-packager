@@ -7,9 +7,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 # HTTP.ycp
 BuildRequires:	yast2-transfer
 
-# ProductControl::SetAdditionalWorkflowParams
-# ProductControl::ResetAdditionalWorkflowParams
-BuildRequires:	yast2 >= 2.17.27
+# PackagesProposal
+BuildRequires:	yast2 >= 2.17.36
 
 # "order" flag for pattern resolvables
 BuildRequires:	yast2-pkg-bindings >= 2.17.13
@@ -20,8 +19,8 @@ Requires:	yast2-country-data >= 2.16.3
 # "order" flag for pattern resolvables
 Requires:	yast2-pkg-bindings >= 2.17.13
 
-# Module 'Slides' and 'SlideShow' moved to yast2
-Requires:	yast2 >= 2.17.19
+# PackagesProposal
+Requires:	yast2 >= 2.17.36
 
 # unzipping license file
 Requires:	unzip
