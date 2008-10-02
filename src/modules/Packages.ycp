@@ -868,16 +868,25 @@ global list<string> ComputeSystemPatternList () {
 	}
 	else
 	{
+	    y2milestone ("Storage packages: %1", storage_packages);
 	    install_list = (list<string>) union (install_list, storage_packages);
 	}
 
-	if (size (additional_packages) > 0)
+	if (size (additional_packages) > 0) {
 	    y2warning ("Additional packages are still in use, please, change it to use PackagesProposal API");
-	install_list = (list<string>) union (install_list, additional_packages);
+	    y2milestone ("Additional packages: %1", additional_packages);
+	    install_list = (list<string>) union (install_list, additional_packages);
+	}
 
 	// bnc #431580
-	// New API for packages selected by 
-	install_list = (list<string>) union (install_list, PackagesProposal::GetAllResolvables (`package));
+	// New API for packages selected by other modules
+	list <string> packages_proposal_all_packages = PackagesProposal::GetAllResolvables (`package);
+	if (size (packages_proposal_all_packages) > 0) {
+	    y2milestone ("PackagesProposal::GetAllResolvables returned: %1", packages_proposal_all_packages);
+	    install_list = (list<string>) union (install_list, packages_proposal_all_packages);
+	} else {
+	    y2milestone ("No packages required by PackagesProposal");
+	}
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update () || !Mode::autoinst ())
