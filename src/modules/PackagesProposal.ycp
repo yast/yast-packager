@@ -8,6 +8,37 @@
  */
 
 {
+    /***
+     *
+     * This module provides API for packages that want software
+     * proposal to select some packages for installation.
+     *
+     * // No packages selected initially
+     * y2internal ("Packages to install: %1", PackagesProposal::GetAllResolvables (`package));
+     *
+     * // Adding packages for ID_1
+     * PackagesProposal::AddResolvables ("ID_1", `package, ["aa", "bb", "cc"]);
+     * y2internal ("Packages to install: %1", PackagesProposal::GetAllResolvables (`package));
+     *
+     * // Adding packages for ID_2
+     * // 'cc' is shared with ID_1
+     * PackagesProposal::AddResolvables ("ID_2", `package, ["cc", "dd", "ee"]);
+     * y2internal ("Packages to install: %1", PackagesProposal::GetAllResolvables (`package));
+     *
+     * // Get all packages required by ID_1
+     * list <string> required_packages = PackagesProposal::GetResolvables ("ID_1", `package);
+     * y2internal ("Packages required by ID_1: %1", required_packages);
+     *
+     * // Removing all packages required by ID_1
+     * PackagesProposal::RemoveResolvables ("ID_1", `package, required_packages);
+     * y2internal ("Packages to install: %1", PackagesProposal::GetAllResolvables (`package));
+     *
+     * // Removing some packages required by ID_2
+     * PackagesProposal::RemoveResolvables ("ID_2", `package, ["cc", "dd"]);
+     * y2internal ("Packages to install: %1", PackagesProposal::GetAllResolvables (`package));
+     *
+     */
+
     module "PackagesProposal";
 
     textdomain "packager";
@@ -150,6 +181,19 @@
 	return resolvables_to_install[unique_ID, type]:[];
     }
 
+    /**
+     * Returns list of selected resolvables of a given type
+     *
+     * @param symbol resolvable type
+     * @return list <string> list of resolvables
+     *
+     * @example
+     *   GetAllResolvables (`package) -> ["list", "of", "packages"]
+     *   // not a supported resolvable type
+     *   GetAllResolvables (`unknown) -> nil
+     *
+     * @see supported_resolvables
+     */
     global list <string> GetAllResolvables (symbol type) {
 	if (! IsSupportedResolvableType (type)) {
 	    y2error ("Not a supported type: %1, supported are only: %2", type, supported_resolvables);
