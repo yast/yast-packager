@@ -104,6 +104,12 @@ global void Init () {
 		one_desktop["description"] = ProductControl::GetTranslatedText ((string) one_desktop_cf["description_id"]:"");
 	    }
 
+	    // bnc #431251
+	    // If this desktop is selected, do not deselect patterns
+	    if (haskey (one_desktop_cf, "do_not_deselect_patterns")) {
+		one_desktop["do_not_deselect_patterns"] = (boolean) one_desktop_cf["do_not_deselect_patterns"]:false;
+	    }
+
 	    all_desktops[desktop_name] = one_desktop;
 	});
     }
@@ -237,16 +243,22 @@ global list<string> PatternsToDeselect () {
 
     list <string> patterns_to_deselect = [];
 
-    // go through all known system task definitions
-    foreach (string one_desktop, map desktop_descr, GetAllDesktopsMap(), {
-	// all patterns required by a system type
-	foreach (string one_pattern, desktop_descr["patterns"]:[], {
-	    // if not required, add it to 'to deselect'
-	    if (one_pattern != nil && ! contains (patterns_to_select, one_pattern)) {
-		patterns_to_deselect = add (patterns_to_deselect, one_pattern);
-	    }
+    // bnc #431251
+    // A dummy desktop is selected, do not deselect already selected patterns
+    if (all_desktops[desktop, "do_not_deselect_patterns"]:false == true) {
+	y2milestone ("Desktop %1 has 'do_not_deselect_patterns' set", desktop);
+    } else {
+	// go through all known system task definitions
+	foreach (string one_desktop, map desktop_descr, GetAllDesktopsMap(), {
+	    // all patterns required by a system type
+	    foreach (string one_pattern, desktop_descr["patterns"]:[], {
+		// if not required, add it to 'to deselect'
+		if (one_pattern != nil && ! contains (patterns_to_select, one_pattern)) {
+		    patterns_to_deselect = add (patterns_to_deselect, one_pattern);
+		}
+	    });
 	});
-    });
+    }
 
     y2milestone ("Patterns to deselect '%1' -> %2", desktop, patterns_to_deselect);
 
