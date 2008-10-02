@@ -470,10 +470,8 @@ Save changes anyway?")))
 
 	success = success && KeyManager::Write();
 
-	// store in the persistent libzypp storage
+	// store repositories and services in the persistent libzypp storage
 	success = success && Pkg::SourceSaveAll(); // #176013
-
-	success = success && Pkg::ServicesSave();
 
 	return success;
    }
@@ -1349,10 +1347,8 @@ symbol StartInstSource()
 	PackageCallbacks::InitPackageCallbacks ();
     }
 
-    // read repositories
+    // read repositories & services
     boolean restore = (!full_mode) ? Pkg::SourceRestore() : true;
-    // read services
-    restore = restore && Pkg::ServicesLoad();
 
     y2internal("Known services: %1", Pkg::ServiceAliases());
 
