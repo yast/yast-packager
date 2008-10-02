@@ -40,6 +40,7 @@ import "FileUtils";
 import "PackageCallbacks";
 import "Installation";
 import "URL";
+import "PackagesProposal";
 
 include "packager/load_release_notes.ycp";
 
@@ -589,11 +590,14 @@ global void InitializeAddOnProducts() {
     /**
      * Add a package to list to be selected before proposal
      * Can be called only before the installation proposal, later doesn't
-     * have any effect
+     * have any effect.
+     * OBSOLETE! Please, use PackagesProposal::AddResolvables() instead.
+     *
      * @param package string package to be selected
      */
     global void addAdditionalPackage(string package)
     {
+	y2warning ("OBSOLETE! Please, use PackagesProposal::AddResolvables() instead");
 	additional_packages = add (additional_packages, package);
     }
 
@@ -867,7 +871,13 @@ global list<string> ComputeSystemPatternList () {
 	    install_list = (list<string>) union (install_list, storage_packages);
 	}
 
+	if (size (additional_packages) > 0)
+	    y2warning ("Additional packages are still in use, please, change it to use PackagesProposal API");
 	install_list = (list<string>) union (install_list, additional_packages);
+
+	// bnc #431580
+	// New API for packages selected by 
+	install_list = (list<string>) union (install_list, PackagesProposal::GetAllResolvables (`package));
 
 	// Kernel is added in autoinstPackages () if autoinst is enabled
 	if (!Mode::update () || !Mode::autoinst ())
