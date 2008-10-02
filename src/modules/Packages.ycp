@@ -73,6 +73,10 @@ list<map> cached_proposal_patches = [];
 list<map> cached_proposal_selections = [];
 list<string> cached_proposal_languages = [];
 
+    // bnc #431251
+    // patterns required by another parts of the installation
+    global list <string> required_patterns = [];
+
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
 
@@ -829,6 +833,12 @@ global list<string> ComputeSystemPatternList () {
 		pattern_list = add (pattern_list, pat_name);
 	});
     }
+
+    if (required_patterns != nil && required_patterns != []) {
+	y2milestone ("Patterns required by installation: %1", required_patterns);
+	pattern_list = (list <string>) merge (pattern_list, required_patterns);
+    }
+
     y2milestone ("System patterns: %1", pattern_list);
     return pattern_list;
 }
