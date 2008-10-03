@@ -260,7 +260,10 @@
     void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
     {
 	map<string,any> info = repo_mode ? getSourceInfo (index, source) : source;
-	y2milestone("getSourceInfo(%1, %2): %3", index, source, info);
+	if (repo_mode)
+	{
+	    y2milestone("getSourceInfo(%1, %2): %3", index, source, info);
+	}
 
 	// heading - in case repo name not found
 	string name = info["name"]:_("Unknown repository name");
@@ -381,15 +384,22 @@
 	y2milestone ("Services from %1 To %2", statesOld, statesNew);
 	list<string> ret = [];
 
-	map<string, boolean> seen = listmap (
+	list<string> seen = maplist (
 	    map<string, any> srv, statesOld,
-	    ``( $[(srv["alias"]:"") : (srv["enabled"]:true) ] ));
+	    {
+		return srv["alias"]:"";
+	    }
+	);
 
 	foreach (map<string, any> srv, statesNew, {
 	    string alias = srv["alias"]:"";
-	    boolean newena = srv["enabled"]:true;
-	    if (newena && ! seen[alias]:false)
+
+	    y2internal("Checking %1", alias);
+
+	    if (!contains(seen, alias))
+	    {
 		ret = add (ret, alias);
+	    }
 	});
 	y2milestone ("Difference %1", ret);
 	return ret;
@@ -459,14 +469,47 @@ Save changes anyway?")))
 	    }
 	);
 
-	// evaluate removed services
-/*
-	foreach(integer id, servicesToDelete,
+	// evaluate removed and new services
+	list<string> deleted_services = newServices(serviceStatesOut, serviceStatesIn);
+	y2milestone("Deleted services: %1", deleted_services);
+	list<string> added_services   = newServices(serviceStatesIn, serviceStatesOut);
+	y2milestone("Added services: %1", added_services);
+
+	foreach(string alias, deleted_services,
 	    {
-		success = success && Pkg::ServiceDelete(id);
+		y2milestone("Removing service %1", alias);
+		success = success && Pkg::ServiceDelete(alias);
 	    }
 	);
-*/
+
+	foreach(map<string,any> s, serviceStatesOut,
+	    {
+		string alias = s["alias"]:"";
+
+		if (contains(added_services, alias))
+		{
+		    y2milestone("Adding service %1", alias);
+		    string new_url = s["url"]:"";
+
+		    if (new_url != "")
+		    {
+			y2internal("aliases: %1", Pkg::ServiceAliases());
+			success = success && Pkg::ServiceAdd(alias, new_url);
+			// set enabled and autorefresh flags
+			success = success && Pkg::ServiceSet(alias, s);
+		    }
+		    else
+		    {
+			y2error("Empty URL for service %1", alias);
+		    }
+		}
+		else
+		{
+		    y2milestone("Modifying service %1", alias);
+		    success = success && Pkg::ServiceSet(alias, s);
+		}
+	    }
+	);
 
 	success = success && KeyManager::Write();
 
@@ -1236,7 +1279,7 @@ cannot be set."));
 		    y2error("Ignoring event `priority: the widget should NOT be displayed in service mode!");
 		}
 	    }
-	    else
+	    else if (input != `table)
 	    {
 		y2warning("Unknown user input: %1", input);
 	    }
