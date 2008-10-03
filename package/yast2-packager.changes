@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct  3 16:45:29 CEST 2008 - lslezak@suse.cz
+
+- Fixed handling of services (bnc#427728)
+- 2.17.25
+
+-------------------------------------------------------------------
 Thu Oct  2 22:17:07 CEST 2008 - locilka@suse.cz
 
 - Packager requires new YCP module PackagesProposal from yast2
