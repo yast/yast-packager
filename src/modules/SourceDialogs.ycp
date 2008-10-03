@@ -319,6 +319,23 @@ Use <b>Repository Name</b> to specify the name of the repository. If it is empty
 
 }
 
+map<string,any> ServiceNameWidget()
+{
+    map<string,any> ret = RepoNameWidget();
+
+    ret["custom_widget"] = `VBox (
+	    // text entry
+	    `InputField( `id( `repo_name ), `opt(`hstretch), _("&Service Name") )
+	);
+
+    // help text
+    ret["help"] = _("<p><big><b>Service Name</b></big><br>
+Use <b>Service Name</b> to specify the name of the service. If it is empty, YaST will use part of the service URL as the name.</p>
+");
+
+    return ret;
+}
+
 // raw URL editation widget
 
 /**
@@ -1938,6 +1955,7 @@ map<string,map<string,any> > Widgets () {
     if (size (_widgets) == 0)
 	_widgets = $[
 	    "repo_name" : RepoNameWidget(),
+	    "service_name" : ServiceNameWidget(),
 	    "url" : PlainURLWidget (),
 	    "nfs" : NFSWidget (),
 	    "cd" : CDWidget (),
@@ -1996,12 +2014,12 @@ map<string,string> _caption = $[
  * @param proto string protocol to display popup for
  * @return term popup contents
  */
-term PopupContents (string proto) {
+term PopupContents (string proto, boolean repository) {
     return `VBox (
 	`HSpacing (50),
 	// label
 	`Heading(_caption[proto]:""),
-	"repo_name",
+	repository ? "repo_name" : "service_name",
 	`VSpacing(0.5),
 	proto,
 	`VSpacing(0.5),
@@ -2009,14 +2027,15 @@ term PopupContents (string proto) {
     );
 };
 
-string EditDisplay()
+string EditDisplayInt(boolean repository)
 {
     string proto = URLScheme (_url);
 
-    y2milestone ("Displaying popup for protocol %1", proto);
+    y2milestone ("Displaying %1 popup for protocol %2", repository ? "repository" : "service", proto);
 
-    list<map<string,any> > w = CWM::CreateWidgets (["repo_name", proto], Widgets ());
-    term contents = PopupContents (proto);
+    list<map<string,any> > w = CWM::CreateWidgets ([ (repository ? "repo_name" : "service_name"), proto], Widgets ());
+    y2internal("w: %1", w);
+    term contents = PopupContents (proto, repository);
     contents = CWM::PrepareDialog (contents, w);
     UI::OpenDialog (contents);
     symbol ret = CWM::Run (w, $[]);
@@ -2028,6 +2047,16 @@ string EditDisplay()
 	return "";
 }
 
+string EditDisplay()
+{
+    return EditDisplayInt(true);
+}
+
+string EditDisplayService()
+{
+    return EditDisplayInt(false);
+}
+
 /**
  * URL editation popup
  * @param url string url URL to edit
@@ -2037,6 +2066,17 @@ global string EditPopup (string url) {
     SetURL (url);
 
     return EditDisplay();
+}
+
+/**
+ * URL editation popup
+ * @param url string url URL to edit
+ * @return string modified URL or empty string if canceled
+ */
+global string EditPopupService (string url) {
+    SetURL (url);
+
+    return EditDisplayService();
 }
 
 /**
@@ -2082,6 +2122,26 @@ global symbol EditDialogProtocol(string proto)
 	"fallback_functions" : $[]
     ]);
 }
+
+/**
+ * Sample implementation of URL selection dialog
+ * @return symbol for wizard sequencer
+ */
+global symbol EditDialogProtocolService(string proto)
+{
+    y2milestone ("Displaying service dialog for protocol %1", proto);
+    string caption = _caption[proto]:"";
+
+    return CWM::ShowAndRun ($[
+	"widget_names" : ["service_name", proto],
+	"widget_descr" : Widgets (),
+	"contents" :  `HVCenter(`MinWidth( 65, `VBox ("service_name", proto ) ) ),
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"next_button" : Label::NextButton (),
+	"fallback_functions" : $[]
+    ]);
+}
 /**
  * Sample implementation of URL selection dialog
  * @return symbol for wizard sequencer
@@ -2098,7 +2158,7 @@ global symbol EditDialog () {
  */
 global string TypePopup () {
     list<map<string,any> > w = CWM::CreateWidgets (["select"], Widgets ());
-    term contents = PopupContents ("select");
+    term contents = PopupContents ("select", true);
     contents = CWM::PrepareDialog (contents, w);
     UI::OpenDialog (contents);
     symbol ret = CWM::Run (w, $[]);

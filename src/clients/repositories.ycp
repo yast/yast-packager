@@ -971,7 +971,7 @@ All changes will be lost.");
 
 		    SourceDialogs::SetRepoName(service_info["name"]:"");
 		    do {
-			url = SourceDialogs::EditPopupType(url, false);
+			url = SourceDialogs::EditPopupService(url);
 
 			if ( size( url ) == 0 ) break;
 			if (url != old_url)
