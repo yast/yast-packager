@@ -83,8 +83,6 @@
 		    idx = idx + 1;
 		}
 
-		Pkg::ServiceAdd(alias, url);
-
 		boolean autorefresh = true;
 		string schema = tolower(substring(url, 0, 3));
 
