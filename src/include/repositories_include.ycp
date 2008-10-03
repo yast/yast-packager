@@ -71,8 +71,13 @@
 	    {
 		y2milestone("Adding a service of type %1...", service_type);
 		string alias = "service";
+
 		// all current aliases
-		list<string> aliases = Pkg::ServiceAliases();
+		list<string> aliases = maplist(map<string,any> s, serviceStatesOut,
+		    {
+			return s["alias"]:"";
+		    }
+		);
 
 		// service alias must be unique
 		// if it already exists add "_<number>" suffix to it
