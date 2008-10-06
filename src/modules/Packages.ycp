@@ -1594,8 +1594,8 @@ void SelectSystemPackages (boolean reselect) {
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     // Reinit forced by application
     if (full_repropose == true) {
-	y2milestone ("Forcing reinit");
-	reinit = true;
+	y2milestone ("Forcing reset");
+	force_reset = true;
 	full_repropose = false;
     }
 
