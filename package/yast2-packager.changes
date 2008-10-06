@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Oct  6 14:50:18 CEST 2008 - locilka@suse.cz
+
+- Using PackagesProposal (`package/s, `pattern/s) to unify the
+  software scenarios, desktops, and the rest of installation
+  clients that can require to install some resolvables (bnc#432572)
+- 2.17.26
+
+-------------------------------------------------------------------
 Fri Oct  3 16:45:29 CEST 2008 - lslezak@suse.cz
 
 - Fixed handling of services (bnc#427728)

@@ -16,6 +16,7 @@ textdomain "packager";
 import "ProductFeatures";
 import "ProductControl";
 import "Installation";
+import "PackagesProposal";
 
 // All desktop definitions are taken from control file
 // @see GetAllDesktopsMap
@@ -65,6 +66,8 @@ global void Init () {
     if (default_desktop == "")
 	default_desktop = nil;
     desktop = default_desktop;
+
+    y2milestone ("Default desktop: '%1'", default_desktop);
 
     // See BNC #424678
     if (all_desktops == nil) {
@@ -198,6 +201,8 @@ global string Desktop () {
     return desktop;
 }
 
+string packages_proposal_ID = "DefaultDesktop";
+
 /**
  * Set the default desktop
  * @param desktop a string, one of "kde", "gnome", "min_x", "textmode" or nil
@@ -205,10 +210,23 @@ global string Desktop () {
 global void SetDesktop (string new_desktop) {
     Init();
 
-    if (new_desktop != nil && ! haskey (all_desktops, new_desktop))
+    if (new_desktop != nil && ! haskey (all_desktops, new_desktop)) {
 	y2error ("Attempting to set desktop to unknown %1", new_desktop);
-    else
+    } else if (desktop != new_desktop) {
 	desktop = new_desktop;
+
+	y2milestone ("New desktop has been set: %1", desktop);
+
+	// Remove all already selected patterns
+	PackagesProposal::RemoveResolvables (packages_proposal_ID, `pattern,
+	    PackagesProposal::GetResolvables (packages_proposal_ID, `pattern)
+	);
+
+	// Require new patterns
+	PackagesProposal::AddResolvables (
+	    packages_proposal_ID, `pattern, all_desktops[desktop,"patterns"]:[]
+	);
+    }
 }
 
 /**
