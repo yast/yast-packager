@@ -74,10 +74,6 @@ list<map> cached_proposal_patches = [];
 list<map> cached_proposal_selections = [];
 list<string> cached_proposal_languages = [];
 
-    // bnc #431251
-    // patterns required by another parts of the installation
-    global list <string> required_patterns = [];
-
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
 
@@ -337,6 +333,7 @@ global list<string> SummaryOutput (list<symbol> flags) {
 
     if (contains (flags, `desktop)) {
 	// BNC #422077, Desktop doesn't need to be defined, e.g. in SLED
+	// BNC #431336 ... and even if it is defined, it needn't be visible
 	string ddd = DefaultDesktop::Description();
 	if (ddd != "") {
 	    // installation proposal - SW summary, %1 is name of the selected desktop or system type (e.g. KDE)
@@ -838,8 +835,11 @@ global list<string> ComputeSystemPatternList () {
 	});
     }
 
+    // FATE #302116
+    // BNC #431580
+    list <string> required_patterns = PackagesProposal::GetAllResolvables (`pattern);
     if (required_patterns != nil && required_patterns != []) {
-	y2milestone ("Patterns required by installation: %1", required_patterns);
+	y2milestone ("Patterns required by PackagesProposal: %1", required_patterns);
 	pattern_list = (list <string>) merge (pattern_list, required_patterns);
     }
 
@@ -1520,21 +1520,15 @@ global boolean SelectProduct () {
  */
 void SelectSystemPatterns (boolean reselect) {
     list<string> system_patterns = ComputeSystemPatternList ();
+
     // autoinstallation has patterns specified in the profile
     if (! Mode::autoinst ())
     {
-	system_patterns = (list<string>)
-	    merge (system_patterns, DefaultDesktop::PatternsToSelect ());
 	system_patterns = (list<string>)
 	    toset (merge (system_patterns, Product::patterns));
     }
     if (! reselect)
     {
-	list<string> to_deselect = DefaultDesktop::PatternsToDeselect ();
-	y2milestone ("Deselecting system patterns %1", to_deselect);
-	foreach (string p, to_deselect, {
-	    Pkg::ResolvableRemove (p, `pattern);
-	});
 	y2milestone ("Selecting system patterns %1", system_patterns);
 	foreach (string p, system_patterns, {
 	    Pkg::ResolvableInstall (p, `pattern);
@@ -1598,6 +1592,12 @@ void SelectSystemPackages (boolean reselect) {
  * @return map for the API proposal
  */
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
+    // Reinit forced by application
+    if (full_repropose == true) {
+	y2milestone ("Forcing reinit");
+	reinit = true;
+	full_repropose = false;
+    }
 
     // if the cache is valid and reset or reinitialization is not required
     // then the cached proposal can be used
@@ -1683,7 +1683,6 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	SelectSystemPackages (system_packages_selected && ! initial_run);
 	SelectSystemPatterns (system_packages_selected && ! initial_run);
 	system_packages_selected = true;
-	Pkg::PkgFreshen();
     }
     else if (ProductFeatures::GetFeature ("software","selection_type") == `fixed)
     {
