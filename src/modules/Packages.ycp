@@ -1130,9 +1130,15 @@ boolean FindAndCopySlideDirWithoutCallbacks(string our_slidedir, integer source,
 global void Init(boolean unused);
 
 global void SlideShowSetUp (string wanted_language) {
+    // bnc #432668
+    // Do not call init
+    if (Mode::live_installation()) {
+	y2milestone ("live_installation, not calling Init");
     // bnc #427935
     // Initialize the base_source_id first
-    Init (true);
+    } else {
+	Init (true);
+    }
 
     integer source = base_source_id;
 

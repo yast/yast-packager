@@ -4,6 +4,8 @@ Mon Oct  6 14:50:18 CEST 2008 - locilka@suse.cz
 - Using PackagesProposal (`package/s, `pattern/s) to unify the
   software scenarios, desktops, and the rest of installation
   clients that can require to install some resolvables (bnc#432572)
+- Do not initalize Packages before SlideShow in live install mode
+  (bnc #432668).
 - 2.17.26
 
 -------------------------------------------------------------------
