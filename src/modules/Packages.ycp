@@ -1585,6 +1585,8 @@ void SelectSystemPackages (boolean reselect) {
     }
 }
 
+any old_packages_proposal = nil;
+
 /**
  * Make a proposal for package selection
  * @param force reset
@@ -1592,6 +1594,15 @@ void SelectSystemPackages (boolean reselect) {
  * @return map for the API proposal
  */
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
+    // If anything has changed
+    any new_packages_proposal = PackagesProposal::GetAllResolvablesForAllTypes();
+
+    // Force reinit
+    if (new_packages_proposal != old_packages_proposal) {
+	old_packages_proposal = new_packages_proposal;
+	full_repropose = true;
+    }
+
     // Reinit forced by application
     if (full_repropose == true) {
 	y2milestone ("Forcing reset");
