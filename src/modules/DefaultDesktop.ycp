@@ -212,9 +212,13 @@ string packages_proposal_ID = "DefaultDesktop";
 global void SetDesktop (string new_desktop) {
     Init();
 
-    if (new_desktop != nil && ! haskey (all_desktops, new_desktop)) {
+    if (new_desktop == nil) {
+	// Reset the selected patterns
+	y2milestone ("Reseting DefaultDesktop");
+	PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, []);
+    } else if (! haskey (all_desktops, new_desktop)) {
 	y2error ("Attempting to set desktop to unknown %1", new_desktop);
-    } else if (desktop != new_desktop) {
+    } else {
 	desktop = new_desktop;
 
 	y2milestone ("New desktop has been set: %1", desktop);
@@ -222,9 +226,6 @@ global void SetDesktop (string new_desktop) {
 	if (desktop != nil && desktop != "") {
 	    // Require new patterns
 	    PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, all_desktops[desktop,"patterns"]:[]);
-	} else {
-	    // Reset the selected patterns
-	    PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, []);
 	}
     }
 }
