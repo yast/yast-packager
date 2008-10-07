@@ -50,6 +50,8 @@ any MissingKey (map & desktop_def, string key) {
 
 boolean initialized = false;
 
+global void SetDesktop (string new_desktop);
+
 /**
  * Initialize default desktop from control file if specified there
  */
@@ -65,9 +67,9 @@ global void Init () {
 	("software", "default_desktop");
     if (default_desktop == "")
 	default_desktop = nil;
-    desktop = default_desktop;
 
     y2milestone ("Default desktop: '%1'", default_desktop);
+    SetDesktop (default_desktop);
 
     // See BNC #424678
     if (all_desktops == nil) {
@@ -217,10 +219,13 @@ global void SetDesktop (string new_desktop) {
 
 	y2milestone ("New desktop has been set: %1", desktop);
 
-	// Require new patterns
-	PackagesProposal::SetResolvables (
-	    packages_proposal_ID, `pattern, all_desktops[desktop,"patterns"]:[]
-	);
+	if (desktop != nil && desktop != "") {
+	    // Require new patterns
+	    PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, all_desktops[desktop,"patterns"]:[]);
+	} else {
+	    // Reset the selected patterns
+	    PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, []);
+	}
     }
 }
 
