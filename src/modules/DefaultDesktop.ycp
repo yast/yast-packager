@@ -218,9 +218,10 @@ global void SetDesktop (string new_desktop) {
 	y2milestone ("New desktop has been set: %1", desktop);
 
 	// Remove all already selected patterns
-	PackagesProposal::RemoveResolvables (packages_proposal_ID, `pattern,
-	    PackagesProposal::GetResolvables (packages_proposal_ID, `pattern)
-	);
+	list <string> patterns_to_remove = PackagesProposal::GetResolvables (packages_proposal_ID, `pattern);
+	if (patterns_to_remove != nil && patterns_to_remove != []) {
+	    PackagesProposal::RemoveResolvables (packages_proposal_ID, `pattern, patterns_to_remove);
+	}
 
 	// Require new patterns
 	PackagesProposal::AddResolvables (
