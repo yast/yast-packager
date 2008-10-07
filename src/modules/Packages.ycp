@@ -1594,6 +1594,9 @@ any old_packages_proposal = nil;
  * @return map for the API proposal
  */
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
+    // Handle the default desktop
+    DefaultDesktop::Init();
+
     // If anything has changed
     any new_packages_proposal = PackagesProposal::GetAllResolvablesForAllTypes();
 
@@ -1601,7 +1604,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     if (new_packages_proposal != old_packages_proposal) {
 	y2milestone ("PackagesProposal have changed");
 	old_packages_proposal = new_packages_proposal;
-	full_repropose = true;
+	force_reset = true;
     }
 
     // Reinit forced by application
