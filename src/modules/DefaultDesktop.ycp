@@ -63,14 +63,6 @@ global void Init () {
 
     initialized = true;
 
-    string default_desktop = ProductFeatures::GetStringFeature
-	("software", "default_desktop");
-    if (default_desktop == "")
-	default_desktop = nil;
-
-    y2milestone ("Default desktop: '%1'", default_desktop);
-    SetDesktop (default_desktop);
-
     // See BNC #424678
     if (all_desktops == nil) {
 	y2milestone ("Getting supported desktops from control file");
@@ -118,6 +110,14 @@ global void Init () {
 	    all_desktops[desktop_name] = one_desktop;
 	});
     }
+
+    string default_desktop = ProductFeatures::GetStringFeature
+	("software", "default_desktop");
+    if (default_desktop == "")
+	default_desktop = nil;
+
+    y2milestone ("Default desktop: '%1'", default_desktop);
+    SetDesktop (default_desktop);
 }
 
 /**
