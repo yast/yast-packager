@@ -1599,6 +1599,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 
     // Force reinit
     if (new_packages_proposal != old_packages_proposal) {
+	y2milestone ("PackagesProposal have changed");
 	old_packages_proposal = new_packages_proposal;
 	full_repropose = true;
     }
