@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct  9 19:15:40 CEST 2008 - locilka@suse.cz
+
+- Function SelectKernelPackages has been moved to from update to
+  Packages module (bnc #326269).
+- 2.17.27
+
+-------------------------------------------------------------------
 Mon Oct  6 14:50:18 CEST 2008 - locilka@suse.cz
 
 - Using PackagesProposal (`package/s, `pattern/s) to unify the

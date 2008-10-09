@@ -1758,5 +1758,70 @@ global boolean InitFailed () {
     return ret;
 }
 
+    // see bug 302398
+    global define void SelectKernelPackages () {
+        list <list> provides = Pkg::PkgQueryProvides ("kernel");
+        // // e.g.: [["kernel-bigsmp", `CAND, `NONE], ["kernel-default", `CAND, `CAND], ["kernel-default", `BOTH, `INST]]
+        y2milestone ("provides: %1", provides);
+
+        // these kernels would be installed
+        list <list> kernels = filter (list l, provides, {
+            return l[1]:`NONE == `BOTH || l[1]:`NONE == l[2]:`NONE;
+        });
+
+        if (size (kernels) != 1)
+            y2warning ("not exactly one package provides tag kernel");
+
+        string selected_kernel = kernels[0,0]:"none";
+        list <string> recom_kernel = Kernel::ComputePackages ();
+        string recommended_kernel = recom_kernel[0]:"";
+
+        y2milestone ("Selected kernel: %1, recommended kernel: %2",
+            selected_kernel, recom_kernel);
+
+        // when the recommended Kernel is not available (installable)
+        if (recommended_kernel != "" && ! Pkg::IsAvailable (recommended_kernel)) {
+            recommended_kernel = selected_kernel;
+        }
+
+        // recommended package is different to the selected one
+        // select the recommended one
+        if (recommended_kernel != "" && recommended_kernel != selected_kernel) {
+            // list of kernels to be installed
+            list <string> kernels_to_be_installed = (list <string>) maplist (list one_kernel, kernels, {
+                return one_kernel[0]:nil;
+            });
+            kernels_to_be_installed = filter (string one_kernel, kernels_to_be_installed, {
+                return (one_kernel != nil && one_kernel != "");
+            });
+
+            // remove all kernels (with some exceptions)
+            foreach (string one_kernel, kernels_to_be_installed, {
+                // XEN can be installed in parallel
+                if (one_kernel == "kernel-xen") return;
+                // don't remove the recommended one
+                if (one_kernel == recommended_kernel) return;
+
+                // remove all packages of that kernel
+                list <string> packages_to_remove = Kernel::ComputePackagesForBase (one_kernel, false);
+                if (packages_to_remove != nil && size (packages_to_remove) > 0) {
+                    y2milestone ("Removing installed packages %1", packages_to_remove);
+                    Pkg::DoRemove (packages_to_remove);
+                }
+            });
+
+            // compute recommended kernel packages
+            list<string> kernel_packs = Kernel::ComputePackages ();
+
+            // installing all recommended packages
+            foreach (string p, kernel_packs, {
+                if (Pkg::IsProvided (p)) {
+                    y2milestone ("Selecting package %1 for installation", p);
+                    Pkg::PkgInstall (p);
+                }
+            });
+        }
+    }
+
 /* EOF */
 }
