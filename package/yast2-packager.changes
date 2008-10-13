@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 13 12:31:06 CEST 2008 - lslezak@suse.cz
+
+- added a help text describing what services are (bnc#427728)
+
+-------------------------------------------------------------------
 Thu Oct  9 19:15:40 CEST 2008 - locilka@suse.cz
 
 - Function SelectKernelPackages has been moved to from update to
