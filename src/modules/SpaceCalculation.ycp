@@ -321,9 +321,27 @@
 				tmpdir = tmpdir + "/diskspace_mount";
 				SCR::Execute (.target.bash, sformat (
 				    "test -d %1 || mkdir -p %1", tmpdir));
-				SCR::Execute (.target.bash, sformat (
-				    "/bin/mount -o ro %1 %2",
-				    part["device"]:"", tmpdir));
+
+				// mount in read-only mode (safer)
+				list<string> mount_options = ["ro"];
+
+				// add "nolock" if it's a NFS share (bnc#433893)
+				if (used_fs == `nfs)
+				{
+				    y2milestone("Mounting NFS with 'nolock' option");
+				    mount_options = add(mount_options, "nolock");
+				}
+
+				// join the options
+				string mount_options_str = mergestring(mount_options, ",");
+
+				string mount_command = sformat("/bin/mount -o %1 %2 %3",
+				    mount_options_str, part["device"]:"", tmpdir);
+
+				y2milestone("Executing mount command: %1", mount_command);
+
+				SCR::Execute(.target.bash, mount_command);
+
 				list<map<string,string> > partition =
 				    (list<map<string, string> >)
 				    SCR::Read(.run.df);
