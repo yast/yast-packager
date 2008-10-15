@@ -1097,7 +1097,7 @@ boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_
     // where images are stored
     string imagesdir = sformat ("%1/pic", search_for_dir);
 
-    imagesdir = Pkg::SourceProvideDirectory (source, 1, imagesdir, true, true);
+    imagesdir = Pkg::SourceProvideSignedDirectory (source, 1, imagesdir, true, true);
 
     if (imagesdir != nil) {
 	// where images should be cached
