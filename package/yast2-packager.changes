@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 16 20:01:37 CEST 2008 - mvidner@suse.cz
+
+- Fixed localized sorting to emulate < instead of <=,
+  avoiding a crash (bnc#385172).
+- 2.17.30
+
+-------------------------------------------------------------------
 Thu Oct 16 15:03:10 CEST 2008 - lslezak@suse.cz
 
 - repositories.ycp - display name of the service (instead of alias)
