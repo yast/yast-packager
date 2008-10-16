@@ -177,8 +177,11 @@ term GetLicenseDialogTerm (list<string> languages, string license_language, map 
     });
 
     lang_pairs = sort (list<string> a, list<string> b, lang_pairs, {
+	// bnc#385172: must use < instead of <=, the following means:
+	// strcoll(x) <= strcoll(y) && strcoll(x) != strcoll(y)
 	list lsorted = lsort ([a[1]:"", b[1]:""]);
-	return (lsorted[1]:"" != a[1]:"" || a[1]:"" == b[1]:"");
+	list lsorted_r = lsort ([b[1]:"", a[1]:""]);
+	return (lsorted[0]:"" == a[1]:"" && lsorted == lsorted_r);
     });
     list langs = maplist (list<string> descr, lang_pairs, {
 	return `item (`id (descr[0]:""), descr[1]:"", (descr[0]:"" == license_language));
