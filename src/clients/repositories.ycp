@@ -279,7 +279,8 @@
 
 	if (service != "")
 	{
-	    service = sformat (_("Service: %1"), service);
+	    map service_info = Pkg::ServiceGet(service);
+	    service = sformat (_("Service: %1"), service_info["name"]:"");
 	}
 
 	// don't display category for services
