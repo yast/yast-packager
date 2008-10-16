@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct 16 15:03:10 CEST 2008 - lslezak@suse.cz
+
+- repositories.ycp - display name of the service (instead of alias)
+  to which a repository belongs
+
+-------------------------------------------------------------------
 Wed Oct 15 16:55:59 CEST 2008 - lslezak@suse.cz
 
 - check signatures also when downloading slideshow images
