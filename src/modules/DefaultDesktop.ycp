@@ -67,7 +67,13 @@ global void Init () {
     if (all_desktops == nil) {
 	y2milestone ("Getting supported desktops from control file");
 
-	list <map> desktops_from_cf = (list <map>) ProductFeatures::GetFeature ("software", "supported_desktops");
+	list <map> desktops_from_cf = [];
+	// supported_desktops migh be undefined
+	any any_desktops_from_cf = ProductFeatures::GetFeature ("software", "supported_desktops");
+
+	if (any_desktops_from_cf != "" && any_desktops_from_cf != "") {
+	    desktops_from_cf = (list <map>) any_desktops_from_cf;
+	}
 
 	all_desktops = $[];
 	map <string, any> one_desktop = $[];
