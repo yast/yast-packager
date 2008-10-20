@@ -15,6 +15,17 @@
     import "Wizard";
     import "Label";
 
+    boolean ReadSupportStatus()
+    {
+	// Load the control file
+	import "ProductControl";
+	import "ProductFeatures";
+
+	boolean ret = ProductFeatures::GetBooleanFeature("software", "display_support_status");
+	y2milestone("Feature display_support_status: %1", ret);
+	return true;
+    }
+
 
     /**
      * Start the detailed package selection. If 'mode' is non-nil, it will be
@@ -22,9 +33,9 @@
      *
      * Returns `accept or `cancel .
      **/
-    symbol detailedSelection( symbol mode, boolean enable_repo_mgr )
+    symbol detailedSelection( symbol mode, boolean enable_repo_mgr, boolean display_support_status)
     {
-	y2milestone("Running detailed selection, mode: %1, display repo management: %2", mode, enable_repo_mgr);
+	y2milestone("Running detailed selection, mode: %1, display repo management: %2, display support status: %3", mode, enable_repo_mgr, display_support_status);
 
 	// Open an empty dialog for immediate feedback
 	UI::OpenDialog(`opt(`defaultsize),
@@ -33,19 +44,32 @@
 				     )
 		       );
 
+	term widget_options = `opt();
+
+	if (mode != nil)
+	{
+	    widget_options = add(widget_options, mode);
+	}
+
+	if (enable_repo_mgr)
+	{
+	    widget_options = add(widget_options, `repoMgr);
+	}
+
+	if (display_support_status)
+	{
+	    widget_options = add(widget_options, `confirmUnsupported);
+	}
+
+	y2milestone("Options for the package selector widget: %1", widget_options);
+
 	// This will take a while: Detailed package data are retrieved
 	// while the package manager is initialized
 	UI::ReplaceWidget(`rep,
-			  mode == nil ?
-			  (enable_repo_mgr ?
-			    `PackageSelector(`id(`packages), `opt(`repoMgr), "")
+			// Note: size(`opt()) = 0 !!
+			  size(widget_options) > 1 ?
+			    `PackageSelector(`id(`packages), widget_options, "")
 			    : `PackageSelector(`id(`packages), "")
-			  ) :
-
-			  (enable_repo_mgr ?
-			    `PackageSelector(`id(`packages ), `opt(mode, `repoMgr), "")
-			    : `PackageSelector(`id(`packages ), `opt(mode), "")
-			  )
 			  );
 
 	symbol result = (symbol) UI::RunPkgSelection(`id(`packages ) );
@@ -68,7 +92,7 @@
 	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
 	     UI::WizardCommand(`Ping() ) != true	 )
 	{
-	    return detailedSelection( nil, !Stage::initial() );	// Fallback: detailed selection
+	    return detailedSelection( nil, !Stage::initial(), ReadSupportStatus());	// Fallback: detailed selection
 	}
 
 	// Help text for software patterns / selections dialog
@@ -123,7 +147,7 @@
 
 	    if ( result == `details )
 	    {
-		result = detailedSelection( nil, !Stage::initial() );
+		result = detailedSelection( nil, !Stage::initial(), ReadSupportStatus());
 
 		if ( result == `cancel )
                     // don't get all the way out - the user might just have
@@ -197,12 +221,12 @@
 	    }
 	    else
 	    {
-		result = detailedSelection(mode , repo_mgr);
+		result = detailedSelection(mode , repo_mgr, ReadSupportStatus());
 	    }
 	}
 	else
 	{
-	    result = detailedSelection(`searchMode, false);
+	    result = detailedSelection(`searchMode, false, ReadSupportStatus());
 	}
     }
 
