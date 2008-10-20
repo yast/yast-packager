@@ -17,6 +17,7 @@ import "ProductFeatures";
 import "ProductControl";
 import "Installation";
 import "PackagesProposal";
+import "Mode";
 
 // All desktop definitions are taken from control file
 // @see GetAllDesktopsMap
@@ -56,7 +57,7 @@ global void SetDesktop (string new_desktop);
  * Initialize default desktop from control file if specified there
  */
 global void Init () {
-    if (initialized == true) {
+    if (initialized == true || Mode::autoinst() ) {
 	y2debug ("Already initialized");
 	return;
     }
