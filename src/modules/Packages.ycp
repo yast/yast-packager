@@ -1668,7 +1668,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
 	force_reset, reinit, Language::language);
 
-    if ( force_reset )
+    if ( !Mode::autoinst() && force_reset )
     {
 	Kernel::ProbeKernel();
 	Packages::Reset ([`product]);
