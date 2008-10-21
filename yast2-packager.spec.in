@@ -7,8 +7,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 # HTTP.ycp
 BuildRequires:	yast2-transfer
 
-# Added PackagesProposal module
-BuildRequires: yast2 >= 2.17.36
+# PackagesUI.ycp
+BuildRequires: yast2 >= 2.17.40
 
 # "order" flag for pattern resolvables
 BuildRequires:	yast2-pkg-bindings >= 2.17.13
@@ -19,8 +19,8 @@ Requires:	yast2-country-data >= 2.16.3
 # "order" flag for pattern resolvables
 Requires:	yast2-pkg-bindings >= 2.17.13
 
-# PackagesProposal with `pattern(s)
-Requires: yast2 >= 2.17.38
+# PackagesUI.ycp
+Requires: yast2 >= 2.17.40
 
 # unzipping license file
 Requires:	unzip
