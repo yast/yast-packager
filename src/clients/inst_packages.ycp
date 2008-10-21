@@ -10,22 +10,9 @@
 {
     textdomain "packager";
 
-    import "Mode";
+    import "PackagesUI";
     import "Stage";
-    import "Wizard";
-    import "Label";
-
-    boolean ReadSupportStatus()
-    {
-	// Load the control file
-	import "ProductControl";
-	import "ProductFeatures";
-
-	boolean ret = ProductFeatures::GetBooleanFeature("software", "display_support_status");
-	y2milestone("Feature display_support_status: %1", ret);
-	return true;
-    }
-
+    import "Mode";
 
     /**
      * Start the detailed package selection. If 'mode' is non-nil, it will be
@@ -35,50 +22,14 @@
      **/
     symbol detailedSelection( symbol mode, boolean enable_repo_mgr, boolean display_support_status)
     {
-	y2milestone("Running detailed selection, mode: %1, display repo management: %2, display support status: %3", mode, enable_repo_mgr, display_support_status);
+	map<string,any> options = $[
+	    "mode" : mode,
+	    "enable_repo_mgr" : enable_repo_mgr,
+	    "display_support_status" : display_support_status
+	];
 
-	// Open an empty dialog for immediate feedback
-	UI::OpenDialog(`opt(`defaultsize),
-		       `ReplacePoint(`id( `rep),
-				     `Label( _("Reading package database...") )
-				     )
-		       );
-
-	term widget_options = `opt();
-
-	if (mode != nil)
-	{
-	    widget_options = add(widget_options, mode);
-	}
-
-	if (enable_repo_mgr)
-	{
-	    widget_options = add(widget_options, `repoMgr);
-	}
-
-	if (display_support_status)
-	{
-	    widget_options = add(widget_options, `confirmUnsupported);
-	}
-
-	y2milestone("Options for the package selector widget: %1", widget_options);
-
-	// This will take a while: Detailed package data are retrieved
-	// while the package manager is initialized
-	UI::ReplaceWidget(`rep,
-			// Note: size(`opt()) = 0 !!
-			  size(widget_options) > 1 ?
-			    `PackageSelector(`id(`packages), widget_options, "")
-			    : `PackageSelector(`id(`packages), "")
-			  );
-
-	symbol result = (symbol) UI::RunPkgSelection(`id(`packages ) );
-	UI::CloseDialog();
-	y2milestone( "Package selector returned  %1", result );
-
-	return result;
+	return PackagesUI::RunPackageSelector(options);
     }
-
 
     /**
      * Start the pattern selection dialog. If the UI does not support the
@@ -87,84 +38,8 @@
      **/
     symbol patternSelection()
     {
-	y2milestone("Running pattern selection dialog");
-
-	if ( ! UI::HasSpecialWidget(`PatternSelector ) ||
-	     UI::WizardCommand(`Ping() ) != true	 )
-	{
-	    return detailedSelection( nil, !Stage::initial(), ReadSupportStatus());	// Fallback: detailed selection
-	}
-
-	// Help text for software patterns / selections dialog
-	string help_text
-	    = _("<p>
-		 This dialog allows you to define this system's tasks and what software to install.
-		 Available tasks and software for this system are shown by category in the left
-		 column.  To view a description for an item, select it in the list.
-		 </p>")
-	    + _("<p>
-		 Change the status of an item by clicking its status icon
-		 or right-click any icon for a context menu.
-		 With the context menu, you can also change the status of all items.
-		 </p>")
-	    + _("<p>
-		 <b>Details</b> opens the detailed software package selection
-		 where you can view and select individual software packages.
-		 </p>")
-	    + _("<p>
-		 The disk usage display in the lower right corner shows the remaining disk space
-		 after all requested changes will have been performed.
-		 Hard disk partitions that are full or nearly full can degrade
-		 system performance and in some cases even cause serious problems.
-		 The system needs some available disk space to run properly.
-		 </p>");
-
-	// bugzilla #298056
-	// [ Back ] [ Cancel ] [ Accept ] buttons with [ Back ] disabled
-	Wizard::OpenNextBackDialog();
-	Wizard::SetBackButton  (`back,   Label::BackButton());
-	Wizard::SetAbortButton (`cancel, Label::CancelButton());
-	Wizard::SetNextButton  (`accept, Label::OKButton());
-	Wizard::DisableBackButton();
-
-	Wizard::SetContents(
-			    // Dialog title
-			    // Hint for German translation: "Softwareauswahl und Einsatzzweck des Systems"
-			    _("Software Selection and System Tasks"),
-			    `PatternSelector(`id(`patterns ) ),
-			    help_text,
-			    false,	// has_back
-			    true );	// has_next
-
-	Wizard::SetDesktopIcon( "sw_single" );
-
-	symbol result = nil;
-
-	repeat
-	{
-	    result = (symbol) UI::RunPkgSelection(`id(`patterns ) );
-	    y2milestone( "Pattern selector returned %1", result );
-
-	    if ( result == `details )
-	    {
-		result = detailedSelection( nil, !Stage::initial(), ReadSupportStatus());
-
-		if ( result == `cancel )
-                    // don't get all the way out - the user might just have
-                    // been scared of the gory details.
-		    result = nil;
-
-	    }
-
-	} until ( result == `cancel || result == `accept );
-
-	Wizard::CloseDialog();
-
-	return result;
+	return PackagesUI::RunPatternSelector();
     }
-
-
-
 
     ///////////////////////////////////////////////////////////////////////////
     // MAIN
@@ -172,6 +47,7 @@
 
     symbol result = `cancel;
 
+    y2warning("Warning: inst_packages.ycp client is obsoleted, use module PackagesUI.ycp instead");
     y2milestone("Stage: %1, Mode: %2, Args: %3", Stage::stage(), Mode::mode(), WFM::Args());
 
     // installation or update from a running system (there is a "Pattern Selection" button) (#229951)
@@ -221,12 +97,12 @@
 	    }
 	    else
 	    {
-		result = detailedSelection(mode , repo_mgr, ReadSupportStatus());
+		result = detailedSelection(mode , repo_mgr, nil);
 	    }
 	}
 	else
 	{
-	    result = detailedSelection(`searchMode, false, ReadSupportStatus());
+	    result = detailedSelection(`searchMode, false, nil);
 	}
     }
 
