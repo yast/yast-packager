@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 21 16:49:06 CEST 2008 - lslezak@suse.cz
+
+- repositories.ycp - pad the priority number with spaces so the
+  sorting by priority works as expected (bnc#404205)
+
+-------------------------------------------------------------------
 Mon Oct 20 18:04:07 CEST 2008 - lslezak@suse.cz
 
 - moved PackagesUI.ycp to yast2 package, use the new API

@@ -66,6 +66,8 @@
     // default (minimal) priority of a repository
     const integer default_priority = 99;
 
+    const string priority_label = _("&Priority");
+
     // current view:
     // selected service (or empty) if all services are selected
     string displayed_service = "";
@@ -117,7 +119,21 @@
 
     string PriorityToString(integer priority)
     {
-	return (priority == default_priority) ? _("Default") : tostring(priority);
+	string ret = tostring(priority);
+
+	// pad to 3 characters
+	integer rest = 3 - size(ret);
+	while(rest > 0) {
+	    ret = " " + ret;
+	    rest = rest - 1;
+	}
+
+	if (priority == default_priority)
+	{
+	    ret = ret + " (" + _("Default") + ")";
+	}
+
+	return ret;
     }
 
     list<map<string,any> > ReposFromService(string service, list<map<string,any> > input)
@@ -582,7 +598,7 @@ void ReplaceWidgets(boolean repo_mode)
     y2milestone("Replacing the table widget");
     UI::ReplaceWidget(`id(`tabrp), TableWidget(repo_mode));
 
-    UI::ReplaceWidget(`id(`priorp), repo_mode ? `IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 200, default_priority) : `Empty());
+    UI::ReplaceWidget(`id(`priorp), repo_mode ? `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority) : `Empty());
 }
 
 any SummaryDialog () {
@@ -633,7 +649,7 @@ any SummaryDialog () {
 							 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
 						    )
 						),
-						`HSquash(`ReplacePoint(`id(`priorp), `IntField(`id(`priority), `opt(`notify), _("&Priority"), 0, 200, default_priority))),
+						`HSquash(`ReplacePoint(`id(`priorp), `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority))),
 						`HStretch()
 					     ),
 					     `VSpacing (0.4),
