@@ -860,17 +860,9 @@ global list<string> ComputeSystemPatternList () {
 
 	install_list = (list<string>) union (install_list, modePackages ());
 
-	// add storage packages if yast2-storage installed
-	list<string> storage_packages = (list<string>)WFM::call("wrapper_storage", ["AddPackageList"]);
-	if (storage_packages == nil)
-	{
-	    y2warning("storage_packages is nil, module Storage:: is probably missing");
-	}
-	else
-	{
-	    y2milestone ("Storage packages: %1", storage_packages);
-	    install_list = (list<string>) union (install_list, storage_packages);
-	}
+	// No longer needed - partitions_proposal uses PackagesProposal now
+	// to gather the list of pkgs needed by y2-storage (#433001)
+	//list<string> storage_packages = (list<string>)WFM::call("wrapper_storage", ["AddPackageList"]);
 
 	if (size (additional_packages) > 0) {
 	    y2warning ("Additional packages are still in use, please, change it to use PackagesProposal API");
