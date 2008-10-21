@@ -29,10 +29,6 @@
     {
 	ret = Storage::GetTargetMap();
     }
-    else if (func == "AddPackageList")
-    {
-	ret = Storage::AddPackageList();
-    }
     else if (func == "GetTargetChangeTime")
     {
 	ret = Storage::GetTargetChangeTime();

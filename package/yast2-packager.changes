@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 21 16:54:31 CEST 2008 - kmachalkova@suse.cz
+
+- AddPackageList from Storage is no longer needed - now y2-storage
+  handles package selection in installation by itself (bnc#433001)
+
+-------------------------------------------------------------------
 Tue Oct 21 16:49:06 CEST 2008 - lslezak@suse.cz
 
 - repositories.ycp - pad the priority number with spaces so the
