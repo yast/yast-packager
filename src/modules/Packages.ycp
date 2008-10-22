@@ -652,8 +652,8 @@ global void InitializeAddOnProducts() {
 
 	if (Arch::is_xenU())
 	{
-	    // xen-tools are required for registration of a Xen VM
-	    packages = add (packages, "xen-tools");
+	    // xen-tools-domU are required for registration of a Xen VM (domU)
+	    packages = add (packages, "xen-tools-domU");
 	}
 
 	// add numactl on x86_64 with SMP
