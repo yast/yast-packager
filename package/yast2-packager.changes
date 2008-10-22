@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
 Wed Oct 22 14:39:57 CEST 2008 - lslezak@suse.cz
 
+- install nfs-client instead of portmap when the system is
+  installated from a NFS server (bnc#436897)
 - install xen-tools-domU.rpm instead of xen-tools.rpm in XEN domU
   (bnc#437335)
 - remove also the repositories which belong to a removed service,
