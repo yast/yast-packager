@@ -786,7 +786,7 @@ global void InitializeAddOnProducts() {
 	else if (instmode == "nfs")
 	{
 	    // portmap is required to mount an NFS export
-	    ret = ["portmap"];
+	    ret = ["nfs-client"];
 	}
 
 	y2milestone("Packages for accessing the repository: %1", ret);
