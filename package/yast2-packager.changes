@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Wed Oct 22 14:03:47 CEST 2008 - lslezak@suse.cz
+Wed Oct 22 14:39:57 CEST 2008 - lslezak@suse.cz
 
+- install xen-tools-domU.rpm instead of xen-tools.rpm in XEN domU
+  (bnc#437335)
 - remove also the repositories which belong to a removed service,
   update status of the repositories when the service status is
   changed (bnc#437722)
