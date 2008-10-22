@@ -8,6 +8,7 @@ Wed Oct 22 14:39:57 CEST 2008 - lslezak@suse.cz
 - remove also the repositories which belong to a removed service,
   update status of the repositories when the service status is
   changed (bnc#437722)
+- 2.17.33
 
 -------------------------------------------------------------------
 Tue Oct 21 16:54:31 CEST 2008 - kmachalkova@suse.cz
