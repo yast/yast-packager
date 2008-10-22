@@ -544,7 +544,7 @@ list<term> buildTree()
 
     foreach(map<string,any> srv_state, serviceStatesOut,
 	{
-	    term t = `item(`id(srv_state["name"]:""), srv_state["name"]:"");
+	    term t = `item(`id(srv_state["alias"]:""), srv_state["name"]:"");
 	    services_t = add(services_t, t);
 	}
     );
@@ -599,6 +599,61 @@ void ReplaceWidgets(boolean repo_mode)
     UI::ReplaceWidget(`id(`tabrp), TableWidget(repo_mode));
 
     UI::ReplaceWidget(`id(`priorp), repo_mode ? `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority) : `Empty());
+}
+
+void RemoveReposFromService(string service_alias)
+{
+    // delete the repositories belonging to the service
+    list<map<string,any> > repos = ReposFromService(service_alias, sourceStatesOut);
+    y2milestone("Removing repos from service alias=%1: %2", service_alias, repos);
+
+    foreach(map<string,any> repo, repos,
+	{
+	    integer srcid = repo["SrcId"]:-1;
+
+	    if (srcid != -1) {
+		sourcesToDelete = add (sourcesToDelete, srcid);
+		SourceManager::just_removed_sources = add (SourceManager::just_removed_sources, srcid);
+	    }
+
+	    sourceStatesOut = filter (map<string,any> srcstate, sourceStatesOut,
+		{
+		    if (srcstate["SrcId"]:-1 == srcid)
+		    {
+			y2milestone("Removing repository %1", srcstate);
+			return false;
+		    }
+
+		    return true;
+		}
+	    );
+	}
+    );
+}
+
+void SetReposStatusFromService(string service_alias, boolean enable)
+{
+    // delete the repositories belonging to the service
+    list<map<string,any> > repos = ReposFromService(service_alias, sourceStatesOut);
+    y2milestone("%1 repos from service alias=%2: %3", enable ? "Enabling" : "Disabling", service_alias, repos);
+
+    foreach(map<string,any> repo, repos,
+	{
+	    integer srcid = repo["SrcId"]:-1;
+
+	    sourceStatesOut = maplist (map<string,any> srcstate, sourceStatesOut,
+		{
+		    if (srcstate["SrcId"]:-1 == srcid)
+		    {
+			y2milestone("%1 repository %2", enable ? "Enabling" : "Disabling", srcstate);
+			srcstate["enabled"] = enable;
+		    }
+
+		    return srcstate;
+		}
+	    );
+	}
+    );
 }
 
 any SummaryDialog () {
@@ -1189,9 +1244,13 @@ All changes will be lost.");
 		}
 		else
 		{
+		    string selected_service = (serviceStatesOut[current]:$[])["name"]:"";
 		    // yes-no popup
-		    if ( Popup::YesNo(sformat(_("Delete service %1?"), (serviceStatesOut[current]:$[])["name"]:"")))
+		    if ( Popup::YesNo(sformat(_("Delete service %1\nand its repositories?"), selected_service)))
 		    {
+			string service_alias = (serviceStatesOut[current]:$[])["alias"]:"";
+			RemoveReposFromService(service_alias);
+
 			deleteService( current );
 			fillTable(repository_view, displayed_service);
 			fillCurrentRepoInfo();
@@ -1225,6 +1284,10 @@ All changes will be lost.");
 
 		    boolean state = srv["enabled"]:false;
 		    state = !state;
+
+		    // disable/enable the repositories belonging to the service
+		    string service_alias = (serviceStatesOut[current]:$[])["alias"]:"";
+		    SetReposStatusFromService(service_alias, state);
 
 		    // update the table
 		    string newstate = ( state ? UI::Glyph (`CheckMark) : "");
