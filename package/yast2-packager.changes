@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 23 06:01:53 CEST 2008 - lslezak@suse.cz
+
+- properly select kernel packages (bnc#437258)
+
+-------------------------------------------------------------------
 Wed Oct 22 14:39:57 CEST 2008 - lslezak@suse.cz
 
 - install nfs-client instead of portmap when the system is

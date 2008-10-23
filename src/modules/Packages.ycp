@@ -1805,12 +1805,18 @@ global boolean InitFailed () {
             // compute recommended kernel packages
             list<string> kernel_packs = Kernel::ComputePackages ();
 
+	    y2milestone("Install kernel packages: %1", kernel_packs);
+
             // installing all recommended packages
             foreach (string p, kernel_packs, {
-                if (Pkg::IsProvided (p)) {
+                if (Pkg::PkgAvailable(p)) {
                     y2milestone ("Selecting package %1 for installation", p);
                     Pkg::PkgInstall (p);
                 }
+		else
+		{
+		    y2error("Package %1 is not available", p);
+		}
             });
         }
     }
