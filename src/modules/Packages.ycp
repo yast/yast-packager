@@ -66,13 +66,15 @@ string init_error = nil;
 
 // cache for the proposed summary
 map cached_proposal = nil;
+
 // the selection used for the cached proposal
-list<string> cached_proposal_packages = [];
-list<map> cached_proposal_patterns = [];
-list<map> cached_proposal_products = [];
-list<map> cached_proposal_patches = [];
-list<map> cached_proposal_selections = [];
-list<string> cached_proposal_languages = [];
+// the default values 'nil' say that the proposal hasn't been called yet
+list <string> cached_proposal_packages	= nil;
+list <map> cached_proposal_patterns	= nil;
+list <map> cached_proposal_products	= nil;
+list <map> cached_proposal_patches	= nil;
+list <map> cached_proposal_selections	= nil;
+list <string> cached_proposal_languages	= nil;
 
     global boolean install_sources = false;	// Installing source packages ?
     global integer timestamp = 0;		// last time of getting the target map
@@ -116,6 +118,17 @@ list<string> cached_proposal_languages = [];
     global string add_on_products_type = nil;
 
 // summary functions
+
+global void ResetProposalCache () {
+    y2milestone ("Reseting the software proposal cache");
+
+    cached_proposal_packages	= nil;
+    cached_proposal_patterns	= nil;
+    cached_proposal_products	= nil;
+    cached_proposal_patches	= nil;
+    cached_proposal_selections	= nil;
+    cached_proposal_languages	= nil;
+}
 
 /**
  * List selected resolvables of specified kind
@@ -1612,6 +1625,10 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	full_repropose = false;
     }
 
+    if (force_reset) {
+	ResetProposalCache();
+    }
+
     // if the cache is valid and reset or reinitialization is not required
     // then the cached proposal can be used
     if (cached_proposal != nil && force_reset == false && reinit == false)
@@ -1643,9 +1660,19 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	    y2milestone("using cached software proposal");
 	    return cached_proposal;
 	}
-	else
+	// do not show the error message during the first proposal
+	// (and the only way to change to software selection manually -> software_proposal/AskUser)
+	//
+	// 'nil' is the default value
+	// See also ResetProposalCache()
+	else if (cached_proposal_packages != nil && cached_proposal_patterns != nil
+	    && cached_proposal_products != nil && cached_proposal_patches != nil
+	    && cached_proposal_selections != nil && cached_proposal_languages != nil)
 	{
-	    y2milestone("invalid cache: the software selection has been chaged");
+	    y2error("invalid cache: the software selection has been chaged");
+	    // bnc #436925
+	    Report::Error (_("The software selection has been changed externally.
+Software proposal will be called again."));
 	}
     }
     else
