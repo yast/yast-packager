@@ -3,6 +3,7 @@ Mon Oct 27 14:04:11 CET 2008 - locilka@suse.cz
 
 - Reporting an error if software proposal cache is invalid
   (bnc #436925).
+- 2.17.35
 
 -------------------------------------------------------------------
 Thu Oct 23 06:01:53 CEST 2008 - lslezak@suse.cz
