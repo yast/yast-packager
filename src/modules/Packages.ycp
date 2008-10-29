@@ -1096,8 +1096,12 @@ boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_
     WFM::Execute (.local.bash, sformat ("mkdir -p '%1'", String::Quote (loc_slidedir)));
 
     // copy all files to our own cache
-    y2milestone ("Copying %1/* to %2", providedir, String::Quote (loc_slidedir));
-    WFM::Execute (.local.bash, sformat ("cp -r %1/* '%2'", providedir, String::Quote (loc_slidedir)));
+    string copy_command = sformat("cp -r '%1/%2/txt/%3'/* '%4'",
+	String::Quote(providedir), String::Quote(search_for_dir),
+	String::Quote(used_loc_dir), String::Quote(loc_slidedir));
+
+    y2milestone ("Copying: %1", copy_command);
+    WFM::Execute (.local.bash, copy_command);
 
     // where images are stored
     string imagesdir = sformat ("%1/pic", search_for_dir);
@@ -1109,8 +1113,11 @@ boolean FindAndCopySlideDir (string our_slidedir, integer source, string search_
 	string our_imagesdir = sformat ("%1/pic/", our_slidedir);
 	WFM::Execute (.local.bash, sformat ("mkdir -p '%1'", String::Quote (our_imagesdir)));
 
-	y2milestone ("Copying %1/* to '%2'", imagesdir, String::Quote (our_imagesdir));
-	WFM::Execute (.local.bash, sformat ("cp -r %1/* '%2'", imagesdir, String::Quote (our_imagesdir)));
+	copy_command = sformat("cp -r '%1/%2/pic'/* '%3'",
+	    String::Quote(imagesdir), String::Quote(search_for_dir), String::Quote (our_imagesdir));
+
+	y2milestone ("Copying: %1", copy_command);
+	WFM::Execute (.local.bash, copy_command);
     } else {
 	y2error ("No such dir: %1", imagesdir);
     }
