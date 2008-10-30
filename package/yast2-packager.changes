@@ -2,6 +2,7 @@
 Thu Oct 30 08:07:11 CET 2008 - lslezak@suse.cz
 
 - fixed missing URLs in the repository manager dialog (bnc#439060)
+- set non-empty name for new services
 
 -------------------------------------------------------------------
 Wed Oct 29 15:33:45 CET 2008 - lslezak@suse.cz

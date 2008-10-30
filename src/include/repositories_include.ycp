@@ -97,9 +97,18 @@
 		    y2milestone("Disabling autorefresh for a CD/DVD service");
 		}
 
-                serviceStatesOut = add(serviceStatesOut,
-		    $["alias":alias, "autorefresh":autorefresh, "enabled":true, "name":preffered_name, "url":url]
-		);
+		// use alias as the name if it's missing
+		if (preffered_name == nil || preffered_name == "")
+		{
+		    preffered_name = alias;
+		}
+
+		map<string,any> new_service = $["alias":alias, "autorefresh":autorefresh,
+		    "enabled":true, "name":preffered_name, "url":url];
+
+		y2milestone("Added new service: %1", new_service);
+
+                serviceStatesOut = add(serviceStatesOut, new_service);
 
                 return `ok;
 	    }
