@@ -163,6 +163,8 @@
 
 	integer priority = source["priority"]:default_priority;
 
+	string url = repository_mode ? generalData["url"]:"" : source["url"]:"";
+
         term item = repository_mode ?
 	    `item(
 		`id( index ),
@@ -172,7 +174,7 @@
 		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
 		// translators: unknown name for a given source
 		name,
-		source[ "url" ]:""
+		url
 	    )
 	    : `item(
 		`id( index ),
@@ -181,7 +183,7 @@
 		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
 		// translators: unknown name for a given source
 		name,
-		source[ "url" ]:""
+		url
 	    );
 
         return item;
