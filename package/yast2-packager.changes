@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 30 08:07:11 CET 2008 - lslezak@suse.cz
+
+- fixed missing URLs in the repository manager dialog (bnc#439060)
+
+-------------------------------------------------------------------
 Wed Oct 29 15:33:45 CET 2008 - lslezak@suse.cz
 
 - copy slideshow to the correct place (bnc#439799)
