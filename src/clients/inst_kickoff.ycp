@@ -422,9 +422,11 @@ void XenPVToInitrd()
 	    });
 
         } else {
-	    // See bnc #381227
+	    y2milestone ("Copying users/groups information from the inst-sys to %1", Installation::destdir);
+	    // @see bnc #381227
+	    // @see bnc #440430
 	    // files might have been copied already from image
-	    foreach (string filename, ["/etc/passwd", "/etc/group"], {
+	    foreach (string filename, ["/etc/passwd", "/etc/shadow", "/etc/group"], {
 		string filename_copy_to = sformat ("%1/%2", Installation::destdir, filename);
 
 		if (FileUtils::Exists (filename_copy_to)) {
