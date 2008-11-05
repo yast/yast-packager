@@ -416,7 +416,13 @@ void XenPVToInitrd()
 		    filename = sformat ("%1/%2.aaa_base", template_dir, filename);
 		    y2milestone ("Copying %1 to %2", filename, filename_copy_to);
 		    SCR::Execute (.target.bash,
-			sformat ("cp -a '%1' '%2'", String::Quote (filename), String::Quote (filename_copy_to))
+			sformat (
+			    // BNC 441829: /etc/shadow can be symlink
+			    // copying the file contents
+			    // preserving the original file access permissions
+			    "cp --dereference --copy-contents '%1' '%2'",
+			    String::Quote (filename), String::Quote (filename_copy_to)
+			)
 		    );
 		}
 	    });
@@ -434,7 +440,13 @@ void XenPVToInitrd()
 		} else {
 		    y2milestone ("Copying %1 to %2", filename, filename_copy_to);
 		    SCR::Execute (.target.bash,
-			sformat ("cp -a '%1' '%2'", String::Quote (filename), String::Quote (filename_copy_to))
+			sformat (
+			    // BNC 441829: /etc/shadow can be symlink
+			    // copying the file contents
+			    // preserving the original file access permissions
+			    "cp --dereference --copy-contents '%1' '%2'",
+			    String::Quote (filename), String::Quote (filename_copy_to)
+			)
 		    );
 		}
 	    });

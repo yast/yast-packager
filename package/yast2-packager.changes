@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov  5 17:15:50 CET 2008 - locilka@suse.cz
+
+- Fixed copying files from inst-sys to the system, some might be
+  symbolic links (bnc #441829).
+- 2.17.39
+
+-------------------------------------------------------------------
 Fri Oct 31 16:49:05 CET 2008 - locilka@suse.cz
 
 - Fixed list of files copied in inst_kickoff from inst-sys to the
