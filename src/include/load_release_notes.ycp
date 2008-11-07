@@ -53,7 +53,7 @@
 	{
 	    tmp = sformat (path_templ, "en");
 	    y2debug ("Trying to get %1", tmp);
-	    tmp = Pkg::SourceProvideDigestedFile (source_id, 1, true /* optional */);
+	    tmp = Pkg::SourceProvideDigestedFile (source_id, 1, tmp, true /* optional */);
 	}
 
 	// no other fallback
