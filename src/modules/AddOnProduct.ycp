@@ -419,7 +419,7 @@ symbol DoInstall_NoControlFile () {
 }
 
 boolean IntegrateY2Update (integer src_id) {
-    string binaries = Pkg::SourceProvideOptionalFile (src_id, 1, "/y2update.tgz");
+    string binaries = Pkg::SourceProvideDigestedFile (src_id, 1, "/y2update.tgz", true /* optional */);
     // File /y2update.tgz exists
     if (binaries != nil)
     {
@@ -602,7 +602,7 @@ global void PrepareForRegistration (integer src_id) {
 	y2milestone ("Using cached contentfile %1", contentfile);
     } else {
 	y2milestone ("Checking contentfile from repository");
-	string sourcefile = Pkg::SourceProvideOptionalFile (src_id, 1, "/content");
+	string sourcefile = Pkg::SourceProvideSignedFile (src_id, 1, "/content", true);
 	if (sourcefile == nil) {
 	    y2warning ("Cannot obtain content file!");
 	    return nil;
@@ -686,7 +686,7 @@ global symbol DoInstall() {
 
     symbol ret = nil;
 
-    string control = Pkg::SourceProvideOptionalFile (src_id, 1, "/installation.xml");
+    string control = Pkg::SourceProvideDigestedFile (src_id, 1, "/installation.xml", true /* optional */);
     if (control != nil) {
 	y2milestone ("Add-On has own control file");
 	ret = DoInstall_WithControlFile (control);
@@ -811,7 +811,7 @@ boolean DeselectProductPatterns (integer src_id) {
  */
 void HandleProductPATTERNS (integer srcid) {
     // FATE #302398: PATTERNS keyword in content file
-    string content_file = Pkg::SourceProvideOptionalFile (srcid, 1, "/content");
+    string content_file = Pkg::SourceProvideSignedFile (srcid, 1, "/content", true);
 
     if (content_file == nil) {
 	y2warning ("Add-On %1 doesn't have a content file", srcid);
@@ -830,7 +830,7 @@ global boolean Integrate (integer srcid) {
     y2milestone ("Integrating repository %1", srcid);
 
     // Updating inst-sys
-    string y2update = Pkg::SourceProvideOptionalFile (srcid, 1, "/y2update.tgz");
+    string y2update = Pkg::SourceProvideDigestedFile (srcid, 1, "/y2update.tgz", true /* optional */);
 
     if (y2update == nil) {
 	y2milestone ("No YaST update found on the media");

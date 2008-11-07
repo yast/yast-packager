@@ -38,14 +38,14 @@
 	// try 'en_UK' for 'en_UK'
 	string tmp = sformat (path_templ, Language::language);
 	y2debug ("Trying to get %1", tmp);
-	tmp = Pkg::SourceProvideOptionalFile (source_id, 1, tmp);
+	tmp = Pkg::SourceProvideDigestedFile (source_id, 1, tmp, true /* optional */);
 
 	// try 'es' for 'es_ES'
 	if (tmp == nil)
 	{
 	    tmp = sformat (path_templ, substring (Language::language, 0, 2));
 	    y2debug ("Trying to get %1", tmp);
-	    tmp = Pkg::SourceProvideOptionalFile (source_id, 1, tmp);
+	    tmp = Pkg::SourceProvideDigestedFile (source_id, 1, tmp, true /* optional */);
 	}
 
 	// try 'en'
@@ -53,7 +53,7 @@
 	{
 	    tmp = sformat (path_templ, "en");
 	    y2debug ("Trying to get %1", tmp);
-	    tmp = Pkg::SourceProvideOptionalFile (source_id, 1, tmp);
+	    tmp = Pkg::SourceProvideDigestedFile (source_id, 1, true /* optional */);
 	}
 
 	// no other fallback

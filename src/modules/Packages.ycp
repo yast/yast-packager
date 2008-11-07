@@ -972,7 +972,7 @@ global boolean CheckContentFile (integer source) {
 	y2milestone ("Installing via network, not checking the content file");
 	return true;
     }
-    string media_content = Pkg::SourceProvideFile (source, 1, "/content");
+    string media_content = Pkg::SourceProvideSignedFile(source, 1, "/content", false);
     string media = (string)SCR::Read (.target.string, media_content);
     string ramdisk = (string)SCR::Read (.target.string, "/content");
     boolean ret = (media == ramdisk);
@@ -1391,7 +1391,7 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 		string file = one_aop[0]:"";
 		string type = one_aop[1]:"";
 
-		tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, file);
+		tmp_add_on_products = Pkg::SourceProvideDigestedFile (initial_source, 1, file, true);
 
 		if (tmp_add_on_products != nil) {
 		    add_on_products_list = sformat ("%1/add_on_products", SCR::Read (.target.tmpdir));

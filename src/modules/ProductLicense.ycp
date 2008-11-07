@@ -439,14 +439,14 @@ void SearchForLicense_NormalRunBaseProduct (integer src_id, string fallback_dir)
 void SearchForLicense_AddOnProduct (integer src_id, string fallback_dir) {
 	y2milestone ("Getting license info from repository %1", src_id);
 
-	info_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/info.txt");
+	info_file = Pkg::SourceProvideDigestedFile (src_id, 1, "/media.1/info.txt", true /* optional */);
 
 	// using a separate license directory for all products
 	tmpdir = sformat ("%1/product-license/%2/", (string) SCR::Read(.target.tmpdir), src_id);
 
 	// FATE #302018 comment #54
 	string license_file_location = "/license.tar.gz";
-	string license_file = Pkg::SourceProvideOptionalFile (src_id, 1, license_file_location);
+	string license_file = Pkg::SourceProvideDigestedFile (src_id, 1, license_file_location, true /* optional */);
 
 	if (license_file != nil) {
 	    y2milestone ("Using file %1 with licenses", license_file);
@@ -465,7 +465,7 @@ void SearchForLicense_AddOnProduct (integer src_id, string fallback_dir) {
 
 	// New format didn't work, try the old one 1stMedia:/media.1/license.zip
 	license_dir = tmpdir;
-	license_file = Pkg::SourceProvideOptionalFile (src_id, 1, "/media.1/license.zip");
+	license_file = Pkg::SourceProvideDigestedFile (src_id, 1, "/media.1/license.zip", true /* optional */);
 
 	// no license present
 	if (license_file == nil) {
