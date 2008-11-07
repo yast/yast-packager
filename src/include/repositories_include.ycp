@@ -43,7 +43,7 @@
     }
 
     define symbol createSource( string url, boolean plaindir, boolean download, string preffered_name ) ``{
-	y2milestone("createSource: %1, plaindir: %2, download: %3, name: %4", url, plaindir, download, preffered_name);
+	y2milestone("createSource: %1, plaindir: %2, download: %3, name: %4", URL::HidePassword(url), plaindir, download, preffered_name);
 
         if ( url != "" )
         {
@@ -175,7 +175,7 @@
 		    // probe repository type (do not probe plaindir repo)
 		    string repo_type = (plaindir) ? plaindir_type : Pkg::RepositoryProbe(url, prod_dir);
 
-		    y2milestone("Repository type (%1,%2): %3", url, prod_dir, repo_type);
+		    y2milestone("Repository type (%1,%2): %3", URL::HidePassword(url), prod_dir, repo_type);
 
 		    // the probing has failed
 		    if (repo_type == nil || repo_type == "NONE")
@@ -269,7 +269,7 @@ in the packages selection, continue."),
             {
 		// popup message part 1
                 string _msg1 = sformat( _("Unable to create repository
-from URL '%1'."), url );
+from URL '%1'."), URL::HidePassword(url) );
 		// popup message part 2
                 string _msg2 = _("Try again?");
 
