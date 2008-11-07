@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov  7 13:26:09 CET 2008 - lslezak@suse.cz
+
+- fixed URL logging (bnc#441944)
+
+-------------------------------------------------------------------
 Wed Nov  5 17:15:50 CET 2008 - locilka@suse.cz
 
 - Fixed copying files from inst-sys to the system, some might be

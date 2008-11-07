@@ -27,10 +27,8 @@
      * @return string new URL with hidden password
      */
     global string  HidePassword(string url) {
-	// Url::Build(Url::Parse) transforms the URL too much, see #247249#c41
-	// replace ://user:password@ by ://user:PASSWORD@
-	string subd = regexpsub (url, "(://[^/:]*):[^/@]*@,", "://\\1:PASSWORD@");
-	return subd == nil? url: subd;
+	y2warning("InstURL::HidePassword() is obsoleted, use URL::HidePassword() instead");
+	return URL::HidePassword(url);
     }
 
     /**

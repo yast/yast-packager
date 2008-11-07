@@ -1258,9 +1258,11 @@ void ServerStoreParts()
 	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
     }
 
-    y2milestone("Entered URL: %1", parsed);
+    // do not log the entered password
+    y2milestone("Entered URL: %1", URL::HidePasswordToken(parsed));
     _url = URL::Build (parsed);
-    y2milestone("URL::Build: %1", _url);
+    y2milestone("URL::Build: %1", URL::HidePassword(_url));
+
     if (UI::WidgetExists (`id (`ch_iso)))
     {
 	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
