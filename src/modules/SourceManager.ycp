@@ -425,7 +425,7 @@ global symbol createSource( string url ) {
 	if ( size( newSources ) == 0  )
 	{
 	    string _msg1 = sformat( _("Unable to create repository
-from URL '%1'."), InstURL::HidePassword(url) );
+from URL '%1'."), URL::HidePassword(url) );
 
 	    string _msg2 = _("Details:") + "\n" + Pkg::LastError();
 	    // end of popup message, question
@@ -834,7 +834,7 @@ global list Overview() {
 	    // really individual lines?
 	    known_urls = (list <string>) ret["stdout"]:[];
 	    list<string> log_known_urls = maplist (string u, known_urls, ``(
-						       InstURL::HidePassword(u)
+						       URL::HidePassword(u)
 						       ));
 	    y2milestone ("known %1", log_known_urls);
 	}
@@ -874,7 +874,7 @@ global list Overview() {
 	string stype = gendata["type"]:""; // metadata type
 	if (stype == "YaST") stype = "zypp";	/* 'rug' only accepts yum or zypp  */
 	string url = gendata["url"]:"";
-	string log_url = InstURL::HidePassword (url);
+	string log_url = URL::HidePassword (url);
 	// ZMD must have unique URIs, so we append the alias
 	string alias = gendata["alias"]:"";
 
@@ -898,7 +898,7 @@ global list Overview() {
 	    string test_url = URL::Build (parsed_url);
 	    url = test_url;
 	}
-	log_url = InstURL::HidePassword (url);
+	log_url = URL::HidePassword (url);
 	y2milestone ("zmd url: %1", log_url);
 
 	// we're done if known and adding or unknown and deleting.

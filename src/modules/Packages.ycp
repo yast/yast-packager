@@ -997,7 +997,7 @@ string UpdateSourceURL (string url) {
     {
 
 	string msg = sformat( _("Unable to create repository
-from URL '%1'."), InstURL::HidePassword(url) ) + "\n\n" + _("Details:")
+from URL '%1'."), URL::HidePassword(url) ) + "\n\n" + _("Details:")
 	+ "\n" + Pkg::LastError() + "\n\n" + _("Try again?");
 
 	if (Popup::YesNo (msg))
@@ -1008,7 +1008,7 @@ from URL '%1'."), InstURL::HidePassword(url) ) + "\n\n" + _("Details:")
 	{
 	    // error in proposal, %1 is URL
 	    init_error = sformat (_("No repository found at '%1'."),
-		InstURL::HidePassword (url));
+		URL::HidePassword (url));
 	    return "";
 	}
     }
@@ -1308,7 +1308,7 @@ boolean Initialize_BaseInit (boolean show_popup, string & base_url, string & log
     }
 
     // hide password from URL if present
-    log_url = InstURL::HidePassword(base_url);
+    log_url = URL::HidePassword(base_url);
     y2milestone ("Initialize Package Manager: %1", log_url);
 
     // Set languages for packagemanager. Always set the UI language. Set
@@ -1420,7 +1420,7 @@ global void Initialize_StageNonInitial (boolean show_popup, string base_url, str
 			|| (substring (url, 0, 3) == "dvd"))
 		    {
                         string new_url = InstURL::RewriteCDUrl(url);
-			y2milestone ("rewrite url: '%1'->'%2'", url, InstURL::HidePassword(new_url));
+			y2milestone ("rewrite url: '%1'->'%2'", url, URL::HidePassword(new_url));
 			Pkg::SourceChangeUrl (source, new_url);
 		    }
 		});

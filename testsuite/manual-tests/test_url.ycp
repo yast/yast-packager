@@ -1,6 +1,6 @@
 {
     import "InstURL";
     string url = InstURL::installInf2Url("");
-    string log_url = InstURL::HidePassword(url);
+    string log_url = URL::HidePassword(url);
     y2milestone("URL %1", url );
 }
