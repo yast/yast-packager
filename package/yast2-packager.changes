@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Nov  9 11:50:55 CET 2008 - coolo@suse.de
+
+- do not use InstURL::HidePassword to avoid warnings
+- 2.17.41
+
+-------------------------------------------------------------------
 Fri Nov  7 13:26:09 CET 2008 - lslezak@suse.cz
 
 - fixed URL logging (bnc#441944)

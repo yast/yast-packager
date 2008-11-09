@@ -128,7 +128,7 @@
 	    repo_url = Linuxrc::InstallInf (in_inf_key);
 
 	    if (repo_url != nil && repo_url != "") {
-		y2milestone ("Using %1 directly from install.inf: %2", in_inf_key, HidePassword (repo_url));
+		y2milestone ("Using %1 directly from install.inf: %2", in_inf_key, URL::HidePassword (repo_url));
 		repo_url_from_inf = true;
 		break;
 	    }
@@ -336,7 +336,7 @@
 	    url = sformat ("iso:/?iso=%1&url=%2", isoimg, url);
 	}
 
-	y2debug ("URL %1", HidePassword(url));
+	y2debug ("URL %1", URL::HidePassword(url));
 	return url;
     }
 }
