@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Nov 12 15:42:24 CET 2008 - lslezak@suse.cz
+
+- restore the original repository properties ("enabled",
+  "autorefresh" and "keeppackages") when changing URL of
+  a repository (bnc#441328)
+- 2.17.42
+
+-------------------------------------------------------------------
 Sun Nov  9 11:50:55 CET 2008 - coolo@suse.de
 
 - do not use InstURL::HidePassword to avoid warnings
