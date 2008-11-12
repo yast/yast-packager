@@ -10,14 +10,14 @@ BuildRequires:	yast2-transfer
 # URL::HidePassword()
 BuildRequires: yast2 >= 2.17.47
 
-# "order" flag for pattern resolvables
-BuildRequires:	yast2-pkg-bindings >= 2.17.13
+# "keeppackages" repo property
+BuildRequires:	yast2-pkg-bindings >= 2.17.27
 
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
 
-# "order" flag for pattern resolvables
-Requires:	yast2-pkg-bindings >= 2.17.13
+# "keeppackages" repo property
+Requires:	yast2-pkg-bindings >= 2.17.27
 
 # URL::HidePassword()
 Requires: yast2 >= 2.17.47

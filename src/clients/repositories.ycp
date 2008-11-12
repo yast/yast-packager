@@ -413,7 +413,7 @@
 	foreach (map<string, any> srv, statesNew, {
 	    string alias = srv["alias"]:"";
 
-	    y2internal("Checking %1", alias);
+	    y2milestone("Checking %1", alias);
 
 	    if (!contains(seen, alias))
 	    {
@@ -512,7 +512,7 @@ Save changes anyway?")))
 
 		    if (new_url != "")
 		    {
-			y2internal("aliases: %1", Pkg::ServiceAliases());
+			y2milestone("aliases: %1", Pkg::ServiceAliases());
 			success = success && Pkg::ServiceAdd(alias, new_url);
 			// set enabled and autorefresh flags
 			success = success && Pkg::ServiceSet(alias, s);
@@ -1009,7 +1009,6 @@ All changes will be lost.");
 		    map generalData = Pkg::SourceGeneralData( id );
 		    string url = generalData[ "url" ]:"";
 		    string old_url = url;
-		    boolean auto_refresh = sourceState["autorefresh"]:true;
 		    boolean plaindir = generalData["type"]:"YaST" == plaindir_type;
 
 		    SourceDialogs::SetRepoName (sourceState["name"]:"");
@@ -1024,6 +1023,29 @@ All changes will be lost.");
 			  // copy the refresh flag
 			  createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
 			  if ( createResult == `ok ) {
+			    // restore the origonal properties (enabled, autorefresh, keeppackages)
+			    // the added repository is at the end of the list
+			    integer idx = size(sourceStatesOut) - 1;
+			    map<string, any> addedSource = sourceStatesOut[idx]:$[];
+
+			    y2milestone("Orig repo: %1", sourceState);
+			    y2milestone("Added repo: %1", addedSource);
+
+			    if (addedSource != $[])
+			    {
+				boolean auto_refresh = sourceState["autorefresh"]:true;
+				boolean keeppackages = sourceState["keeppackages"]:false;
+				boolean enabled = sourceState["enabled"]:true;
+				y2milestone("Restoring the original properties: enabled: %1, autorefresh: %2, keeppackages: %3", enabled, auto_refresh, keeppackages);
+
+				// set the original properties
+				addedSource["autorefresh"] = auto_refresh;
+				addedSource["keeppackages"] = keeppackages;
+				addedSource["enabled"] = enabled;
+
+				sourceStatesOut[idx] = addedSource;
+			    }
+
 			    deleteSource( global_current );
 			    fillTable(repository_view, displayed_service);
 			    fillCurrentRepoInfo();
@@ -1329,7 +1351,7 @@ cannot be set."));
 		else
 		{
 		    map<string,any> srv = serviceStatesOut[current]:$[];
-		    y2internal("Selected service: %1", srv);
+		    y2milestone("Selected service: %1", srv);
 
 		    boolean state = srv["autorefresh"]:false;
 		    state = !state;
@@ -1480,7 +1502,7 @@ symbol StartInstSource()
     // read repositories & services
     boolean restore = (!full_mode) ? Pkg::SourceRestore() : true;
 
-    y2internal("Known services: %1", Pkg::ServiceAliases());
+    y2milestone("Known services: %1", Pkg::ServiceAliases());
 
     if( ! restore )
     {
