@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 13 11:13:06 CET 2008 - kmachalkova@suse.cz
+
+- Add xinetd to required packages for VNC mode of installation 
+  (needed for successful start of vnc* services) (bnc#442196)
+
+-------------------------------------------------------------------
 Wed Nov 12 15:42:24 CET 2008 - lslezak@suse.cz
 
 - restore the original repository properties ("enabled",

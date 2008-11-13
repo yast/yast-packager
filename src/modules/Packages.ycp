@@ -717,6 +717,7 @@ global void InitializeAddOnProducts() {
 	    packages = add (packages, "xorg-x11");
 	    packages = add (packages, "icewm");
 	    packages = add (packages, "sax2-tools");
+	    packages = add (packages, "xinetd");
 	}
 
 	if (Linuxrc::display_ip ())
