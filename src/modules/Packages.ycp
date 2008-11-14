@@ -1679,7 +1679,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	{
 	    y2error("invalid cache: the software selection has been chaged");
 	    // bnc #436925
-	    Report::Error (_("The software selection has been changed externally.
+	    Report::Message(_("The software selection has been changed externally.
 Software proposal will be called again."));
 	}
     }

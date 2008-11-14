@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 14 16:44:07 CET 2008 - lslezak@suse.cz
+
+- changed SW selection is not an error (bnc#444517)
+- 2.17.43
+
+-------------------------------------------------------------------
 Thu Nov 13 11:13:06 CET 2008 - kmachalkova@suse.cz
 
 - Add xinetd to required packages for VNC mode of installation 
