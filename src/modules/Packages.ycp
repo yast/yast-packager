@@ -564,7 +564,10 @@ global void Reset (list<symbol> keep) {
 	    ]);
 	});
     });
-    Pkg::PkgReset();
+
+    // This reset keep user-made changes
+    // BNC #446406
+    Pkg::PkgApplReset();
     foreach (map<string,any> res, restore, {
 	Pkg::ResolvableInstall (res["name"]:"", (symbol)(res["type"]:nil));
     });
@@ -1609,8 +1612,10 @@ any old_packages_proposal = nil;
 
 /**
  * Make a proposal for package selection
- * @param force reset
- * @param re-initialize
+ *
+ * @param force reset (fully resets the proposal and creates a new one)
+ * @param re-initialize (soft-reset, doesn't reset resolbavle manually selected by user)
+ *
  * @return map for the API proposal
  */
 global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
@@ -1624,18 +1629,23 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     if (new_packages_proposal != old_packages_proposal) {
 	y2milestone ("PackagesProposal have changed");
 	old_packages_proposal = new_packages_proposal;
-	force_reset = true;
+	reinit = true;
     }
 
-    // Reinit forced by application
+    // Reinit forced by application, see ForceFullRepropose
     if (full_repropose == true) {
-	y2milestone ("Forcing reset");
+	y2milestone ("Fully reproposing");
 	force_reset = true;
 	full_repropose = false;
     }
 
     if (force_reset) {
+	y2milestone ("Forcing full reset");
+	// Full reset has been forced, bnc #446406
+	// It resets even the user-selected/removed resolvables
+	Pkg::PkgReset();
 	ResetProposalCache();
+	reinit = true;
     }
 
     // if the cache is valid and reset or reinitialization is not required
@@ -1696,8 +1706,10 @@ Software proposal will be called again."));
     y2milestone ("Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
 	force_reset, reinit, Language::language);
 
-    if ( !Mode::autoinst() && force_reset )
+    // Soft proposal reset
+    if ( !Mode::autoinst() && reinit )
     {
+	y2milestone ("Re/Proposing software selection");
 	Kernel::ProbeKernel();
 	Packages::Reset ([`product]);
 	reinit = true;
