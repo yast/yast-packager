@@ -720,11 +720,12 @@ global void InitializeAddOnProducts() {
 	    packages = add (packages, "xinetd");
 	}
 
+	//this means we have a remote X server
 	if (Linuxrc::display_ip ())
 	{
 	    packages = add (packages, "yast2-qt");
 	    packages = add (packages, "xorg-x11");
-	    packages = add (packages, "fvwm2");
+	    packages = add (packages, "icewm");
 	    packages = add (packages, "sax2-tools");
 	}
 
