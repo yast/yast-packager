@@ -24,8 +24,8 @@ import "Mode";
 map <string, map> all_desktops = nil;
 
 /**
- * Desktop which was selected in the desktop selection dialog
- * "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
+ * Desktop which was selected in the desktop selection dialog.
+ * Must be defined in control file in section software->supported_desktops.
  */
 string desktop = nil;
 
@@ -202,7 +202,7 @@ global list <string> SelectedDesktops () {
 
 /**
  * Get the currently set default desktop, nil if none set
- * @return string "kde", "kde3", "gnome", "xfce", "min_x", "textmode", nil
+ * @return string desktop or nil
  */
 global string Desktop () {
     Init();
@@ -214,7 +214,7 @@ string packages_proposal_ID = "DefaultDesktop";
 
 /**
  * Set the default desktop
- * @param desktop a string, one of "kde", "gnome", "min_x", "textmode" or nil
+ * @param desktop a string, one of those desktops defined in control file or nil
  */
 global void SetDesktop (string new_desktop) {
     Init();
