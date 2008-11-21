@@ -736,6 +736,12 @@ global void InitializeAddOnProducts() {
 	{
 	    packages = add (packages, "sbl");
 	}
+
+	if (Linuxrc::usessh())
+	{
+	    packages = add (packages, "openssh");
+	}
+
 	y2milestone ("Installation mode packages: %1", packages);
 	return packages;
     }
