@@ -202,6 +202,36 @@ term GetLicenseDialogTerm (list<string> languages, string license_language, map 
     );
 }
 
+// BNC #448598
+// no-acceptance-needed file in license.tar.gz means the license
+// doesn't have to be accepted by user, just displayed
+boolean license_acceptance_needed = true;
+
+/**
+ * Returns whether accepting the license manually is requied.
+ *
+ * @see BNC #448598
+ * @return boolean if required
+ */
+global boolean AcceptanceNeeded () {
+    return (license_acceptance_needed == true);
+}
+
+void SetAcceptanceNeeded (boolean new_value) {
+    if (new_value == nil) {
+	y2error ("Undefined behavior, AcceptanceNeeded: %1", new_value);
+	return;
+    }
+
+    license_acceptance_needed = new_value;
+
+    if (license_acceptance_needed) {
+	y2milestone ("License agreement WILL be required");
+    } else {
+	y2milestone ("License agreement will NOT be required");
+    }
+}
+
 /**
  * Displays License with Help and ( ) Yes / ( ) No radio buttons
  * @param string file with the license
@@ -213,13 +243,7 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
     // dialog caption
     string caption = _("License Agreement");
 
-    term contents = `VBox (
-	`VSpacing (1),
-	`HBox (
-	    `HSpacing (2*space),
-	    GetLicenseDialogTerm (languages, license_language, licenses),
-	    `HSpacing (2*space)
-	),
+    term license_buttons = `VBox (
 	`VSpacing (2),
 	`RadioButtonGroup(`id(`eula),
 	    `HBox(
@@ -238,6 +262,23 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 		),
 		`HSpacing (2*space)
 	    )
+	)
+    );
+
+    term contents = `VBox (
+	`VSpacing (1),
+	`HBox (
+	    `HSpacing (2*space),
+	    GetLicenseDialogTerm (languages, license_language, licenses),
+	    `HSpacing (2*space)
+	),
+	// BNC #448598
+	// yes/no buttons exist only if needed
+	// if they don't exist, user is not asked to accept the license later
+	(AcceptanceNeeded() ?
+	    license_buttons
+	    :
+	    `Empty()
 	),
 	`VSpacing(1),
 	`HBox (
@@ -266,8 +307,12 @@ one of the available options. If you do not agree to the license agreement,
 the configuration will be aborted.</p>
 ");
 
+    // If acceptance is not needed, there's no need to disable the button
+    // by default
+    boolean default_next_button_state = (AcceptanceNeeded() ? false : true);
+
     Wizard::SetContents(caption, contents, help,
-	back, false);
+	back, default_next_button_state);
     
     Wizard::SetTitleIcon ("yast-license");
     Wizard::SetFocusToNextButton();
@@ -551,6 +596,10 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
     list <string> & available_langs, boolean require_agreement, string & license_ident) {
     GetSourceLicenseDirectory (src_id, dir);
 
+    if (FileUtils::Exists (sformat ("%1/no-acceptance-needed", license_dir))) {
+	SetAcceptanceNeeded (false);
+    }
+
     licenses = LicenseFiles (license_dir,
 	["license.txt", "license\\.%1\\.txt"]);
     if (info_file == nil && size (licenses) == 0)
@@ -617,13 +666,17 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
 
     // agreement might be required even if license has been already accepted
     // defined, properly ($md5sum(32)-(1)$size(1..n))
+    //
+    // see also BNC #448598
+    // Even if it it shown it sometimes doesn't need to be even accepted by
+    // selecting "yes, I agree"
     if (require_agreement != true && tostring (license_ident) != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
-	y2milestone ("License has been already accepted");
+	y2milestone ("License has been already accepted/shown");
 
 	CleanUpLicense (tmpdir);
 	return `accepted;
     } else {
-	y2milestone ("License needs to be accepted");
+	y2milestone ("License needs to be shown");
     }
 
     // bugzilla #303922
@@ -665,9 +718,14 @@ symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_pro
 	    Wizard::EnableNextButton();
 	}
 
-	// FIXME: rewrite this if () ... else if () ... else {};
-	//        to something readable, please!
-	symbol accept = (symbol) UI::QueryWidget(`id(`eula), `CurrentButton);
+	// BNC #448598
+	// If buttons don't exist, eula is automatically accepted
+	symbol accept = (AcceptanceNeeded() ?
+	    (symbol) UI::QueryWidget(`id(`eula), `CurrentButton)
+	    :
+	    `yes
+	);
+
 	// Aborting the license dialog
 	if (ret == `abort) {
 	    // bugzilla #218677
