@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 25 16:42:37 CET 2008 - lslezak@suse.cz
+
+- use URL::HidePassword() when logging an URL (bnc#441944)
+
+-------------------------------------------------------------------
 Tue Nov 25 14:38:34 CET 2008 - locilka@suse.cz
 
 - New flag no-acceptance-needed in licenses defines that users do

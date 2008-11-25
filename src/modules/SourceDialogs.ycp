@@ -90,7 +90,7 @@ global void SetURL (string url) {
 	    parsed["scheme"] = "usb";
 
 	    _url = URL::Build (parsed);
-	    y2milestone("URL %1 is an USB device, changing the scheme to %2", url, _url);
+	    y2milestone("URL %1 is an USB device, changing the scheme to %2", URL::HidePassword(url), _url);
 	}
     }
 
@@ -163,11 +163,11 @@ global string GetRepoName () {
  * @return string postprocessed URL
  */
 string PosprocessISOURL (string url) {
-    y2milestone ("Updating ISO URL %1", url);
+    y2milestone ("Updating ISO URL %1", URL::HidePassword(url));
     integer last = findlastof (url, "/") + 1;
     string onlydir = substring (url, 0, last);
     url = "iso:/?iso=" + substring (url, last) + "&url=" + onlydir;
-    y2milestone ("Updated URL: %1", url);
+    y2milestone ("Updated URL: %1", URL::HidePassword(url));
     return url;
 }
 
@@ -179,7 +179,7 @@ string PosprocessISOURL (string url) {
 boolean IsISOURL (string url) {
     boolean ret = substring (url, 0, 5) == "iso:/" &&
 	issubstring (url, "&url=");
-    y2milestone ("URL %1 is ISO: %2", url, ret);
+    y2milestone ("URL %1 is ISO: %2", URL::HidePassword(url), ret);
     return ret;
 }
 
@@ -189,12 +189,12 @@ boolean IsISOURL (string url) {
  * @return string preprocessed URL
  */
 string PreprocessISOURL (string url) {
-    y2milestone ("Preprocessing ISO URL %1", url);
+    y2milestone ("Preprocessing ISO URL %1", URL::HidePassword(url));
     integer url_pt = search (url, "&url=");
     string serverpart = substring (url, url_pt + 5);
     string isopart = substring (url, 0, url_pt);
     url = serverpart + substring (isopart, search (isopart, "iso=") + 4);
-    y2milestone ("Updated URL: %1", url);
+    y2milestone ("Updated URL: %1", URL::HidePassword(url));
     return url;
 }
 
@@ -262,7 +262,7 @@ string URLScheme (string url) {
 
     if (scheme == "" || scheme == nil)
 	scheme = "url";
-    y2milestone ("URL scheme for URL %1: %2", url, scheme);
+    y2milestone ("URL scheme for URL %1: %2", URL::HidePassword(url), scheme);
     return scheme;
 }
 
@@ -1009,7 +1009,7 @@ void USBStore (string key, map event) {
 
     _url = URL::Build (parsed);
 
-    y2milestone("New USB url: %1", _url);
+    y2milestone("New USB url: %1", URL::HidePassword(_url));
 }
 
 
@@ -1081,7 +1081,7 @@ void DiskStore (string key, map event) {
 
     _url = URL::Build (parsed);
 
-    y2milestone("New Disk url: %1", _url);
+    y2milestone("New Disk url: %1", URL::HidePassword(_url));
 }
 
 /**
@@ -2036,7 +2036,7 @@ string EditDisplayInt(boolean repository)
     y2milestone ("Displaying %1 popup for protocol %2", repository ? "repository" : "service", proto);
 
     list<map<string,any> > w = CWM::CreateWidgets ([ (repository ? "repo_name" : "service_name"), proto], Widgets ());
-    y2internal("w: %1", w);
+    y2milestone("w: %1", w);
     term contents = PopupContents (proto, repository);
     contents = CWM::PrepareDialog (contents, w);
     UI::OpenDialog (contents);
