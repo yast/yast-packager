@@ -106,10 +106,18 @@ global term GetLicenseContent (string lic_lang, map <string, string> & licenses)
 		license_text = "";
 	    }
 	    term rt = `Empty();
+
+	    // License is HTML (or RichText)
 	    if (regexpmatch(license_text, "</.*>"))
-		rt = `MinWidth (80, `RichText(`id( `welcome_text), license_text));
+		rt = `MinWidth (80,
+		    `RichText(`id (`welcome_text), license_text)
+		);
+	    // License is plain text
+	    // details in BNC #449188
 	    else
-		rt = `MinWidth (80, `RichText(`id( `welcome_text), `opt(`plainText), license_text));
+		rt = `MinWidth (80, `RichText(`id (`welcome_text),
+		    "<pre>" + String::EscapeTags (license_text) + "</pre>"
+		));
 
 	    return rt;
 }
