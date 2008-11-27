@@ -1163,6 +1163,13 @@ global void SlideShowSetUp (string wanted_language) {
 	Init (true);
     }
 
+    // Do not reinitialize the SlideShow if not needed
+    // bnc #444612
+    if (size (SlideShow::GetSetup()) > 0) {
+	y2milestone ("SlideShow has been already set, skipping...");
+	return;
+    }
+
     integer source = base_source_id;
 
     string lang_long = "";
@@ -1207,6 +1214,9 @@ global void SlideShowSetUp (string wanted_language) {
     // no images are cached
     string search_for_dir = sformat ("/%1/setup/slide/", datadir);
     FindAndCopySlideDirWithoutCallbacks(our_slidedir, source, search_for_dir, lang_long, lang_short, Slides::fallback_lang);
+    // Language has to be set otherwise it uses a fallback language
+    // BNC #444612 comment #2
+    SlideShow::SetLanguage (Language::language);
 
     // fallback solution disabled
 /*

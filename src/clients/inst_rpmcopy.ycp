@@ -419,7 +419,14 @@ Package installation will be aborted.
     // we want the table
     SlideShow::ShowTable();
 
-    SlideShow::OpenDialog();
+    // Do not open a new SlideShow widget, reuse the old one instead
+    boolean required_to_open_sl_dialog = (! SlideShow::HaveSlideWidget());
+
+    // BNC #443755
+    if (required_to_open_sl_dialog) {
+	y2milestone ("SlideShow dialog not yet created");
+	SlideShow::OpenDialog();
+    }
 
     // move the progress to the packages stage
     SlideShow::MoveToStage("packages");
@@ -434,7 +441,11 @@ Package installation will be aborted.
 	Pkg::PkgCommit (9999);
     }
 
-    SlideShow::CloseDialog();
+    // BNC #443755
+    if (required_to_open_sl_dialog) {
+	y2milestone ("Closing previously opened SlideShow dialog");
+	SlideShow::CloseDialog();
+    }
 
     if (result != `abort)
     {
