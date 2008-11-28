@@ -442,8 +442,53 @@
     }
 
     boolean Write() {
-	y2milestone("New config: %1", sourceStatesOut);
- 	boolean success = Pkg::SourceEditSet( sourceStatesOut );
+	boolean success = true;
+
+	// evaluate removed and new services
+	list<string> deleted_services = newServices(serviceStatesOut, serviceStatesIn);
+	y2milestone("Deleted services: %1", deleted_services);
+	list<string> added_services   = newServices(serviceStatesIn, serviceStatesOut);
+	y2milestone("Added services: %1", added_services);
+
+	foreach(string alias, deleted_services,
+	    {
+		y2milestone("Removing service %1", alias);
+		success = success && Pkg::ServiceDelete(alias);
+	    }
+	);
+
+	y2milestone("New service config: %1", sourceStatesOut);
+	foreach(map<string,any> s, serviceStatesOut,
+	    {
+		string alias = s["alias"]:"";
+
+		if (contains(added_services, alias))
+		{
+		    y2milestone("Adding service %1", alias);
+		    string new_url = s["url"]:"";
+
+		    if (new_url != "")
+		    {
+			y2milestone("aliases: %1", Pkg::ServiceAliases());
+			success = success && Pkg::ServiceAdd(alias, new_url);
+			// set enabled and autorefresh flags
+			success = success && Pkg::ServiceSet(alias, s);
+		    }
+		    else
+		    {
+			y2error("Empty URL for service %1", alias);
+		    }
+		}
+		else
+		{
+		    y2milestone("Modifying service %1", alias);
+		    success = success && Pkg::ServiceSet(alias, s);
+		}
+	    }
+	);
+
+	y2milestone("New repo config: %1", sourceStatesOut);
+	success = success && Pkg::SourceEditSet( sourceStatesOut );
 
 	// we must sync before the repositories are deleted from zypp
 	// otherwise we will not get their details
@@ -484,48 +529,6 @@ Save changes anyway?")))
 		    y2milestone("Downloading metadata for source %1", srcid);
 
 		    success = success && Pkg::SourceRefreshNow(srcid);
-		}
-	    }
-	);
-
-	// evaluate removed and new services
-	list<string> deleted_services = newServices(serviceStatesOut, serviceStatesIn);
-	y2milestone("Deleted services: %1", deleted_services);
-	list<string> added_services   = newServices(serviceStatesIn, serviceStatesOut);
-	y2milestone("Added services: %1", added_services);
-
-	foreach(string alias, deleted_services,
-	    {
-		y2milestone("Removing service %1", alias);
-		success = success && Pkg::ServiceDelete(alias);
-	    }
-	);
-
-	foreach(map<string,any> s, serviceStatesOut,
-	    {
-		string alias = s["alias"]:"";
-
-		if (contains(added_services, alias))
-		{
-		    y2milestone("Adding service %1", alias);
-		    string new_url = s["url"]:"";
-
-		    if (new_url != "")
-		    {
-			y2milestone("aliases: %1", Pkg::ServiceAliases());
-			success = success && Pkg::ServiceAdd(alias, new_url);
-			// set enabled and autorefresh flags
-			success = success && Pkg::ServiceSet(alias, s);
-		    }
-		    else
-		    {
-			y2error("Empty URL for service %1", alias);
-		    }
-		}
-		else
-		{
-		    y2milestone("Modifying service %1", alias);
-		    success = success && Pkg::ServiceSet(alias, s);
 		}
 	    }
 	);

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 28 18:15:42 CET 2008 - lslezak@suse.cz
+
+- fixed changing status of the repositories belonging to a service
+  (bnc#444366)
+- 2.17.50
+
+-------------------------------------------------------------------
 Fri Nov 28 12:17:59 CET 2008 - locilka@suse.cz
 
 - DefaultDesktop module now returns desktop name translated using
