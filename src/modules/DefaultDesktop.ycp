@@ -87,6 +87,8 @@ global void Init () {
 		return;
 	    }
 
+	    string desktop_label = (string) one_desktop_cf["label_id"]:MissingKey (one_desktop_cf, "label_id");
+
 	    // required keys
 	    one_desktop = $[
 		"desktop"	: one_desktop_cf["desktop"]:MissingKey (one_desktop_cf, "desktop"),
@@ -95,7 +97,9 @@ global void Init () {
 		"packages"	: splitstring (one_desktop_cf["packages"]:"", " \t\n"),
 		"patterns"	: splitstring (one_desktop_cf["patterns"]:"", " \t\n"),
 		"order"		: one_desktop_cf["order"]:MissingKey (one_desktop_cf, "order"),
-		"label"		: ProductControl::GetTranslatedText ((string) one_desktop_cf["label_id"]:MissingKey (one_desktop_cf, "label_id")),
+		// BNC #449818, after switching the language name should change too
+		"label_id"	: desktop_label,
+		"label"		: ProductControl::GetTranslatedText (desktop_label),
 	    ];
 
 	    // 'icon' in optional
@@ -105,7 +109,11 @@ global void Init () {
 
 	    // 'description' is optional
 	    if (haskey (one_desktop_cf, "description_id")) {
-		one_desktop["description"] = ProductControl::GetTranslatedText ((string) one_desktop_cf["description_id"]:"");
+		string description_id = (string) one_desktop_cf["description_id"]:"";
+
+		one_desktop["description"] = ProductControl::GetTranslatedText (description_id);
+		// BNC #449818, after switching the language description should change too
+		one_desktop["description_id"] = description_id;
 	    }
 
 	    // bnc #431251
@@ -144,8 +152,10 @@ global void ForceReinit () {
  *     "desktop ID" : $[
  *         "desktop" : "desktop to start", // DEFAULT_WM
  *         "order" : integer,
- *         "label" : _("Desktop Name Visible in Dialog"),
- *         "description" : _("Description text of the desktop"),
+ *         "label" : _("Desktop Name Visible in Dialog (localized - initial localization)"),
+ *         "label_id" : _("Desktop Name Visible in Dialog (original)"),
+ *         "description" : _("Description text of the desktop (localized - initial localization)"),
+ *         "description_id" : _("Description text of the desktop (originale)"),
  *         "patterns" : ["list", "of", "related", "patterns"],
  *         "icon" : "some-icon", // filename from the 64x64 directory of the current theme (without .png suffix)
  *     ],
@@ -298,7 +308,7 @@ global list<string> PatternsToDeselect () {
 global string Description () {
     Init();
 
-    return all_desktops[desktop, "label"]:"";
+    return ProductControl::GetTranslatedText (all_desktops[desktop, "label_id"]:"");
 }
 
 
