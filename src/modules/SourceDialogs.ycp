@@ -166,7 +166,7 @@ string PosprocessISOURL (string url) {
     y2milestone ("Updating ISO URL %1", URL::HidePassword(url));
     integer last = findlastof (url, "/") + 1;
     string onlydir = substring (url, 0, last);
-    url = "iso:/?iso=" + substring (url, last) + "&url=" + onlydir;
+    url = "iso:///?iso=" + substring (url, last) + "&url=" + onlydir;
     y2milestone ("Updated URL: %1", URL::HidePassword(url));
     return url;
 }

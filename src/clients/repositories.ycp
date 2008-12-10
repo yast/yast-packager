@@ -104,6 +104,8 @@
 	    if (contains (known_repos, one_srcid)) return;
 	    // already deleted repository
 	    if (contains (deleted_repos, one_srcid)) return;
+	    // already deleted repository
+	    if (contains (SourceManager::just_removed_sources, one_srcid)) return;
 
 	    // repository has been added recently (by some external functionality
 	    // that doesn't use these internal variables)
