@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 11 16:27:25 CET 2008 - locilka@suse.cz
+
+- Fixed handling of patterns selected by add-ons (by using
+  PackagesProposal module) (bnc #458297).
+- 2.17.52
+
+-------------------------------------------------------------------
 Wed Dec 10 15:46:35 CET 2008 - lslezak@suse.cz
 
 - fixed duplicating of repositories after editing, fixed comparison

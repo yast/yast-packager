@@ -41,6 +41,7 @@ import "Mode";
 import "Stage";
 import "Icon";
 import "PackageCallbacks";
+import "PackagesProposal";
 
 // variables for installation with product
 /**
@@ -721,6 +722,11 @@ global symbol DoInstall() {
  */
 map <integer, list <string> > patterns_preselected_by_addon = $[];
 
+string PackagesProposalAddonID (integer src_id) {
+    return sformat ("Add-On-Product-ID:%1", src_id);
+}
+
+// See also DeselectProductPatterns()
 boolean SelectProductPatterns (string content_file, integer src_id) {
     if (! FileUtils::Exists (content_file)) {
 	y2error ("No such file: %1", content_file);
@@ -749,6 +755,15 @@ boolean SelectProductPatterns (string content_file, integer src_id) {
     y2milestone ("Add-On requires these PATTERNS: %1", patterns_to_select);
     // clear/set
     patterns_preselected_by_addon[src_id] = [];
+
+    // bnc #458297
+    // Using PackagesProposal to select the patterns itself
+    PackagesProposal::SetResolvables (PackagesProposalAddonID (src_id), `pattern, patterns_to_select);
+
+    if (Stage::initial()) {
+	y2milestone ("Using PackagesProposal to select Add-On patterns");
+	return true;
+    }
 
     boolean ret = true;
 
@@ -783,7 +798,17 @@ boolean SelectProductPatterns (string content_file, integer src_id) {
 }
 
 
+// See also SelectProductPatterns()
 boolean DeselectProductPatterns (integer src_id) {
+    // bnc #458297
+    // Using PackagesProposal to deselect the patterns itself
+    PackagesProposal::SetResolvables (PackagesProposalAddonID (src_id), `pattern, []);
+
+    if (Stage::initial()) {
+	y2milestone ("Initial stage, using PackagesProposal to deselect patterns");
+	return true;
+    }
+
     list <string> patterns_to_deselect = patterns_preselected_by_addon[src_id]:[];
 
     if (size (patterns_to_deselect) == 0) {
