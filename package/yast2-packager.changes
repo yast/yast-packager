@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 16 14:28:42 CET 2008 - locilka@suse.cz
+
+- Fixed progress when adding community repositories (bnc #459391).
+
+-------------------------------------------------------------------
 Thu Dec 11 16:27:25 CET 2008 - locilka@suse.cz
 
 - Fixed handling of patterns selected by add-ons (by using

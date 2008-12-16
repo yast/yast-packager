@@ -1221,7 +1221,28 @@ select those you want and click <b>Finish</b>.</p>
 	return (symbol) dialog_ret;
     }
 
-    boolean CreateSource (string url, string pth, string repo_name) {
+    void CreateAndAdjustWriteProgress (list <string> & actions_todo, list <string> actions_doing) {
+	y2milestone ("Creating new Write() progress");
+
+	Progress::New (
+	    // TRANSLATORS: dialog caption
+	    _("Writing List of Online Repositories"),
+	    " ",
+	    size (actions_todo),
+	    actions_todo,
+	    actions_doing,
+	    // TRANSLATORS: dialog help
+	    _("<p>Please wait while the repository manager downloads the repository details...</p>")
+	);
+
+	Wizard::SetTitleIcon ("yast-sw_source");
+    }
+
+    boolean CreateSource (
+	string url, string pth, string repo_name,
+	list <string> & actions_todo, list <string> & actions_doing,
+	boolean no_progress_updates
+    ) {
 	integer src_id = nil;
 
 	string repo_type = Pkg::RepositoryProbe(url, pth);
@@ -1285,7 +1306,7 @@ select those you want and click <b>Finish</b>.</p>
 	if (Stage::initial()) {
 	    AddOnProduct::Integrate (src_id);
 
-	    map <string, string> prod = (map <string, string>) Pkg::SourceProductData (src_id);
+	    map <string, any> prod = (map <string, any>) Pkg::SourceProductData (src_id);
 	    y2milestone ("Product Data: %1", prod);
 
 	    string repo_id = CreateRepoId (url, pth);
@@ -1378,17 +1399,8 @@ select those you want and click <b>Finish</b>.</p>
 	    return `next;
 	}
 
-	Progress::New (
-	    // TRANSLATORS: dialog caption
-	    _("Writing List of Online Repositories"),
-	    " ",
-	    size (actions_todo),
-	    actions_todo,
-	    actions_doing,
-	    // TRANSLATORS: dialog help
-	    _("<p>Please wait while the repository manager downloads the repository details...</p>")
-	);
-	Wizard::SetTitleIcon ("yast-sw_source");
+	// Create writing dialog - initial state
+	CreateAndAdjustWriteProgress (actions_todo, actions_doing);
 
 	if (UserWantsToAbort()) return `abort;
 
@@ -1415,12 +1427,16 @@ select those you want and click <b>Finish</b>.</p>
 	    // If not at once, call one stage per repository
 	    if (! at_once) Progress::NextStage();
 
+
 	    if (UserWantsToAbort()) return `abort;
 
 	    CreateSource (
 		list_of_repos[repo_id, "url"]:"",
 		list_of_repos[repo_id, "path"]:"/",
-		GetLocalizedString (repo_id, ["name"])
+		GetLocalizedString (repo_id, ["name"]),
+		actions_todo,
+		actions_doing,
+		at_once
 	    );
 	});
 
@@ -1435,10 +1451,9 @@ select those you want and click <b>Finish</b>.</p>
 	}
 
 	Progress::Finish();
-	if (Stage::initial()) {
-	    sleep (600);
-	} else {
-	    sleep (2000);
+
+	if (! Stage::initial()) {
+	    sleep (1000);
 	}
 	
 	return `next;
