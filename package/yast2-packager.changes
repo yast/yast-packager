@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 16 15:14:41 CET 2008 - lslezak@suse.cz
+
+- do not remove repositories belonging to an already removed
+  service (service removal failed) (bnc#459413)
+
+-------------------------------------------------------------------
 Tue Dec 16 14:28:42 CET 2008 - locilka@suse.cz
 
 - Fixed progress when adding community repositories (bnc #459391).
