@@ -25,6 +25,7 @@ import "FileUtils";
 import "ProductFeatures";
 import "String";
 import "WorkflowManager";
+import "Progress";
 
 // IMPORTANT: maintainer of yast2-installation is responsible for this module
 
@@ -866,6 +867,16 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	return init_ret;
     }
 
+    boolean created_new_dialog = false;
+
+    // #459391
+    // If a progress is running open another dialog
+    if (Progress::IsRunning()) {
+	y2milestone ("Some progress is running, opening new dialog for license...");
+	Wizard::OpenNextBackDialog();
+	created_new_dialog = true;
+    }
+
     DisplayLicenseDialog (available_langs, enable_back, lic_lang, licenses);
 
     // Display info as a popup if exists
@@ -892,7 +903,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     CleanUpLicense (tmpdir);
 
     // bugzilla #303922
-    if (!Stage::initial() && src_id != nil) {
+    if (created_new_dialog || (!Stage::initial() && src_id != nil)) {
 	Wizard::CloseDialog();
     }
 
