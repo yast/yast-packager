@@ -57,6 +57,7 @@
 
 
     list<integer> sourcesToDelete = [];
+    list<integer> reposFromDeletedServices = [];
 
     // Do not sync the changes to ZENworks even if rug is present
     // This is handy for repairing an already out-of-sync situation
@@ -520,7 +521,14 @@ Save changes anyway?")))
 	}
 
 	foreach( integer id, sourcesToDelete, ``{
-	    success = success && Pkg::SourceDelete(id);
+	    if (contains(reposFromDeletedServices, id))
+	    {
+		y2milestone("Repository %1 has been already removed (belongs to a deleted service)", id);
+	    }
+	    else
+	    {
+		success = success && Pkg::SourceDelete(id);
+	    }
 	});
 
 	foreach(map<string,any> src_state, sourceStatesOut,
@@ -628,6 +636,7 @@ void RemoveReposFromService(string service_alias)
 		    if (srcstate["SrcId"]:-1 == srcid)
 		    {
 			y2milestone("Removing repository %1", srcstate);
+			reposFromDeletedServices = add(reposFromDeletedServices, srcid);
 			return false;
 		    }
 
