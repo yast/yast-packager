@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 16 15:53:33 CET 2008 - lslezak@suse.cz
+
+- inst_rpmcopy.ycp - commit also the changes if there are only
+  packages to remove (bnc#416226)
+
+-------------------------------------------------------------------
 Tue Dec 16 15:14:41 CET 2008 - lslezak@suse.cz
 
 - do not remove repositories belonging to an already removed
