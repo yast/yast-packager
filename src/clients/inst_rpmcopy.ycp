@@ -190,12 +190,9 @@
       // 1->1 for default fist stage installation
       // 0->0 for default second stage (or other) installation
       while (current_cd_no <= maxnumbercds) {
-	boolean go_on = true;
-	list<map<string,any> > pkgs = Pkg::ResolvableProperties ("", `package, "");
-	pkgs = filter (map<string,any> p, pkgs, {
-	    return p["status"]:nil == `selected;
-	});
-	if (size (pkgs) == 0)
+	// nothing to install/delete
+	if (Pkg::IsAnyResolvable(`any, `to_remove) == false
+	    && Pkg::IsAnyResolvable(`any, `to_install) == false)
 	{
 	    y2milestone ("No package left for installation");
 	    break;
