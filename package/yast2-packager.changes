@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 17 12:49:42 CET 2008 - lslezak@suse.cz
+
+- URL edit popup - fixed layout in ncureses UI (hidden OK and
+  Cancel buttons) (bnc#459580)
+
+-------------------------------------------------------------------
 Tue Dec 16 15:53:33 CET 2008 - lslezak@suse.cz
 
 - inst_rpmcopy.ycp - commit also the changes if there are only
