@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 17 12:49:42 CET 2008 - lslezak@suse.cz
+
+- URL edit popup - fixed layout in ncureses UI (hidden OK and
+  Cancel buttons) (bnc#459580)
+
+-------------------------------------------------------------------
 Tue Dec 16 15:14:41 CET 2008 - lslezak@suse.cz
 
 - do not remove repositories belonging to an already removed

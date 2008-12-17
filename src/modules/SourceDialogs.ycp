@@ -1321,7 +1321,7 @@ symbol ServerHandle (string key, map event) {
 		// text entry
 		`InputField (`id (`server), `opt (`hstretch), _("Server &Name"), server),
 		(type == `http || type == `https) ?
-		    `HSquash(`InputField (`id (`port), _("&Port"), port))
+		    `HBox(`HSpacing(1), `HSquash(`InputField (`id (`port), _("&Port"), port)))
 		    : `Empty()
 	    ),
 	    type == `samba
@@ -1352,7 +1352,7 @@ symbol ServerHandle (string key, map event) {
 			    _("&Workgroup or Domain"))
 			: `Empty (),
 		    // text entry
-		    `VSpacing(0.5),
+		    `VSpacing(0.4),
 		    `InputField(`id (`username), `opt(`hstretch), _("&User Name"), username),
 		    // password entry
 		    `Password (`id (`password), `opt(`hstretch), _("&Password"), password)
@@ -2022,9 +2022,9 @@ term PopupContents (string proto, boolean repository) {
 	// label
 	`Heading(_caption[proto]:""),
 	repository ? "repo_name" : "service_name",
-	`VSpacing(0.5),
+	`VSpacing(0.4),
 	proto,
-	`VSpacing(0.5),
+	`VSpacing(0.4),
 	PopupButtons ()
     );
 };
