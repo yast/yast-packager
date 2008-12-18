@@ -326,14 +326,10 @@ string label = _("It is recommended to check all installation media\nto avoid in
 		    `PushButton(`id(`eject), _("&Eject"))
 		)
 	    ),
-	    `HStretch(),
-	    `VBox(
-		// empty label for aligning the widgets
-		`Label(""),
-		// push button label
-		`PushButton(`id(`iso_file), _("Check ISO File..."))
-	    )
+	    `HStretch()
 	),
+	// push button label
+	`Left(`PushButton(`id(`iso_file), _("Check ISO File..."))),
 	`VSpacing(0.4),
 	// widget label
 	`Left(`Label(_("Status Information"))),
