@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 18 09:57:12 CET 2008 - lslezak@suse.cz
+
+- return back from the Repository Management to the Package
+  Management after pressing [Cancel] instead of closing whole Yast
+  (bnc#450336)
+
+-------------------------------------------------------------------
 Wed Dec 17 12:49:42 CET 2008 - lslezak@suse.cz
 
 - URL edit popup - fixed layout in ncureses UI (hidden OK and
