@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 22 14:46:43 CET 2008 - lslezak@suse.cz
+
+- hide the [Back] button in the repository manager (bnc#440569)
+
+-------------------------------------------------------------------
 Thu Dec 18 09:57:12 CET 2008 - lslezak@suse.cz
 
 - return back from the Repository Management to the Package
