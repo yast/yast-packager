@@ -821,7 +821,7 @@ Priority of a repository is an integer value between 0 (the highest priority) an
     Wizard::SetAbortButton(`abort, Label::CancelButton() );
 
     Wizard::SetContents(title, contents, help_text, false, true);
-    Wizard::DisableBackButton();
+    Wizard::HideBackButton();
 
     fillTable(repository_view, displayed_service);
     fillCurrentRepoInfo();
