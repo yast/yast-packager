@@ -69,6 +69,8 @@
 
     const string priority_label = _("&Priority");
 
+    const string keeppackages_label = _("Keep Downloaded Packages");
+
     // current view:
     // selected service (or empty) if all services are selected
     string displayed_service = "";
@@ -207,6 +209,7 @@
 	    "type" : generalData["type"]:"",
 	    "priority" : source["priority"]:default_priority,
 	    "service" : source["service"]:"",
+	    "keeppackages" : source["keeppackages"]:false,
 	];
         return out;
 
@@ -327,8 +330,9 @@
 
 	if (repo_mode)
 	{
-	    // priority is displayed only for repositories
+	    // priority and keeppackages are displayed only for repositories
 	    UI::ChangeWidget (`id (`priority), `Value, info["priority"]:default_priority);
+	    UI::ChangeWidget (`id (`keeppackages), `Value, info["keeppackages"]:false);
 	}
     }
 
@@ -614,6 +618,7 @@ void ReplaceWidgets(boolean repo_mode)
     UI::ReplaceWidget(`id(`tabrp), TableWidget(repo_mode));
 
     UI::ReplaceWidget(`id(`priorp), repo_mode ? `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority) : `Empty());
+    UI::ReplaceWidget(`id(`keeppkg_rp), repo_mode ? `CheckBox(`id(`keeppackages), `opt(`notify), keeppackages_label) : `Empty());
 }
 
 void RemoveReposFromService(string service_alias)
@@ -720,6 +725,11 @@ any SummaryDialog () {
 							 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
 						    )
 						),
+						`HSquash(`VBox(
+							`Label(""),
+							`ReplacePoint(`id(`keeppkg_rp), `CheckBox(`id(`keeppackages), `opt(`notify), keeppackages_label))
+						    )
+						),
 						`HSquash(`ReplacePoint(`id(`priorp), `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority))),
 						`HStretch()
 					     ),
@@ -815,7 +825,11 @@ to perform the changes in that package management system.</p>
     help_text = help_text + _("<P><B>Priority of a Repository</B><BR>
 Priority of a repository is an integer value between 0 (the highest priority) and 200 (the lowest priority). Default priority is 99. If a package is available in more repositories the repository with the highest priority is used.</P>");
 
+    // help text, continued
     help_text = help_text + _("<P>Use the tree displayed on the left side for navigation in repositories and services.</P>");
+
+    // help text, continued
+    help_text = help_text + _("<P><B>Keep Downloaded Packages</B><BR>Check this option to keep downloaded packages in a local cache so they can be reused later when the packages are reinstalled. If unchecked the downloaded packages are deleted after installation.</P>") + _("<P>The default local cache is located in directory <B>/var/cache/zypp/packages</B>, the location can be changed in <B>/etc/zypp/zypp.conf</B> file.</P>");
 
     Wizard::SetNextButton(`next, Label::OKButton() );
     Wizard::SetAbortButton(`abort, Label::CancelButton() );
@@ -1400,6 +1414,25 @@ cannot be set."));
 		else
 		{
 		    y2error("Ignoring event `priority: the widget should NOT be displayed in service mode!");
+		}
+	    }
+	    else if (input == `keeppackages)
+	    {
+		if (repository_view)
+		{
+		    // refresh the value in the table
+		    boolean new_keep = (boolean)UI::QueryWidget(`id(`keeppackages), `Value);
+		    y2internal("New keep packages option: %1", new_keep);
+
+		    sourceState[ "keeppackages" ] = new_keep;
+		    sourceStatesOut[ global_current ] = sourceState;
+
+		    // do not refresh the item in the table
+		    current = -1;
+		}
+		else
+		{
+		    y2error("Ignoring event `keeppackages: the widget should NOT be displayed in service mode!");
 		}
 	    }
 	    else if (input != `table)
