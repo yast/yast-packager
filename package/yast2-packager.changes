@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 23 09:46:51 CET 2008 - lslezak@suse.cz
+
+- repositories.ycp - configure 'keeppackages' repository option
+  (bnc#402617)
+
+-------------------------------------------------------------------
 Mon Dec 22 14:46:43 CET 2008 - lslezak@suse.cz
 
 - hide the [Back] button in the repository manager (bnc#440569)
