@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 30 11:48:28 CET 2008 - lslezak@suse.cz
+
+- display the Package selector instead of the Pattern selector
+  if there is a resolver problem during installation/update,
+  display the conflicts immeditely (bnc#436721)
+
+-------------------------------------------------------------------
 Tue Dec 23 09:46:51 CET 2008 - lslezak@suse.cz
 
 - repositories.ycp - configure 'keeppackages' repository option
