@@ -20,6 +20,7 @@
     textdomain "packager";
 
     import "Packages";
+    import "PackagesUI";
 
     symbol ret = `again;
 
@@ -32,7 +33,18 @@
 
 	while ( ret == `again )
 	{
-	    ret = (symbol)WFM::CallFunction( "inst_packages", [] );
+	    // display the installation summary in case there is a solver problem (bnc#436721)
+	    if (Packages::solve_errors > 0)
+	    {
+		y2milestone("Unresolved conflicts, using summary mode");
+		ret = PackagesUI::RunPackageSelector($["mode" : `summaryMode]);
+	    }
+	    else
+	    {
+		ret = PackagesUI::RunPatternSelector();
+	    }
+
+	    y2milestone("Package selector result: %1", ret);
 
 	    if ( ret == `accept )
 	    {
