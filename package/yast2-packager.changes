@@ -4,6 +4,9 @@ Tue Dec 30 11:48:28 CET 2008 - lslezak@suse.cz
 - display the Package selector instead of the Pattern selector
   if there is a resolver problem during installation/update,
   display the conflicts immeditely (bnc#436721)
+- do not display the free space warning in the installation summary
+  for the partitions which are already almost full but nothing is
+  going to be installed there (bnc#259493)
 
 -------------------------------------------------------------------
 Tue Dec 23 09:46:51 CET 2008 - lslezak@suse.cz

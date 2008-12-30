@@ -611,14 +611,16 @@ _("Please deselect some packages."));
 	    //$[ "dir" : [ total, usednow, usedfuture ], .... ]
 	    foreach (string dir, list sizelist, Pkg::TargetGetDU(),
 		{
-		    y2milestone ("%1: %2", dir, sizelist);
+		    y2milestone ("Disk usage of directory %1: %2", dir, sizelist);
 
 		    integer total = sizelist[0]:0;
 		    integer used_future = sizelist[2]:0;
+		    integer used_now = sizelist[1]:0;
 		    integer current_free_size = (total - used_future);
 		    integer current_free_percent = current_free_size*100/total;
 
-		    if (current_free_size > 0)
+		    // ignore the partitions which were already full and no files will be installed there (bnc#259493)
+		    if (used_future > used_now && current_free_size > 0)
 		    {
 			if (current_free_percent < free_percent && current_free_size < max_unsufficient_free_size )
 			{
