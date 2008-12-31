@@ -278,7 +278,7 @@
 	     `Left(`Label(`id(`service), `opt(`hstretch), service))
 	     )
 	:
-	`VSquash(`MinHeight(7, `RichText(`id(`repo_info), "")));
+	`VSquash(`MinHeight(6, `RichText(`id(`repo_info), "")));
     }
 
     void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
@@ -701,71 +701,54 @@ any SummaryDialog () {
     term contents =
 	`HBox(
 	    `Tree(`id(`tree), `opt(`notify), "", buildTree()),
-        `VBox(
-	      `HBox(
-		    `VSpacing(9),
-		    `ReplacePoint(`id(`tabrp), TableWidget(repository_view)),
-		    `HSpacing()
-		),
-		`HBox (
-		       `HSpacing(0.35),
-		       `HWeight (1, `Frame ("",
-			       `HBox (
-				      `HSpacing (1),
-				      `HWeight( 1, `VBox (
-					     repoInfoTerm("", "", "", ""),
-					     // label
-					     `Left (`Label (_("Properties"))),
-					     // check box
-					     `HBox(
-						`HSquash(
-						    `VBox(
-							 `Left (`CheckBox (`id (`enable), `opt(`notify), _("&Enabled"))),
-							 // check box
-							 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
-						    )
-						),
-						`HSquash(`VBox(
-							`Label(""),
-							`ReplacePoint(`id(`keeppkg_rp), `CheckBox(`id(`keeppackages), `opt(`notify), keeppackages_label))
-						    )
-						),
-						`HSquash(`ReplacePoint(`id(`priorp), `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority))),
-						`HStretch()
-					     ),
-					     `VSpacing (0.4),
-					     (have_rug) ?
-					     `Left (`CheckBox (`id (`zmdsync),
-							       // Checkbox label
-							       _("Synchronize Changes with &ZENworks"),
-							       !norug && sync_zmd))
-					     : `Empty()
-					     )),
-				      `HSpacing (0.4)
-				      )
-			       )),
-		       `HSpacing (1.35)
-		       ),
-	      `VSpacing(0.3),
-	      `HBox(
-		    `PushButton (`id (`add), `opt(`key_F3),
-			Label::AddButton ()),
-		    `PushButton(`id(`replace), `opt(`key_F4),
-			Label::EditButton ()),
-		    `PushButton (`id(`delete), `opt(`key_F5),
-			Label::DeleteButton ()),
-		    `HStretch (),
-		    `PushButton (`id (`key_mgr), _("&GPG Keys...")),
-		    // menu button label
-		    `MenuButton (`id(`menu_button), `opt(`key_F6), _("Refresh"), [
-			`item(`id(`refresh), refreshButtonLabel ),
+	    `VBox(
+		`VWeight(1, `ReplacePoint(`id(`tabrp), TableWidget(repository_view))),
+		`VBox(
+		    repoInfoTerm("", "", "", ""),
+		    // label
+		    `Left (`Label (_("Properties"))),
+		    // check box
+		    `HBox(
+			`HSquash(
+			    `VBox(
+				 // check box
+				 `Left (`CheckBox (`id (`enable), `opt(`notify), _("&Enabled"))),
+				 // check box
+				 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh"))),
+				 // check box
+				`Left(`ReplacePoint(`id(`keeppkg_rp), `CheckBox(`id(`keeppackages), `opt(`notify), keeppackages_label)))
+			    )
+			),
+			`HSpacing(1),
+			`HSquash(`ReplacePoint(`id(`priorp), `IntField(`id(`priority), `opt(`notify), priority_label, 0, 200, default_priority))),
+			`HStretch()
+		    ),
+		    `VSpacing (0.4),
+
+		    (have_rug) ?
+		    // Checkbox label
+		    `Left (`CheckBox (`id (`zmdsync), _("Synchronize Changes with &ZENworks"), !norug && sync_zmd))
+		     : `Empty(),
+
+		    `HBox(
+			`PushButton (`id (`add), `opt(`key_F3),
+			    Label::AddButton ()),
+			`PushButton(`id(`replace), `opt(`key_F4),
+			    Label::EditButton ()),
+			`PushButton (`id(`delete), `opt(`key_F5),
+			    Label::DeleteButton ()),
+			`HStretch (),
+			`PushButton (`id (`key_mgr), _("&GPG Keys...")),
 			// menu button label
-			`item(`id(`autorefresh_all), _("Refresh All Autor&efreshed")),
-			// menu button label
-			`item(`id(`refresh_enabled), _("Refresh All &Enabled"))
-		    ])
-		),
-                `VSpacing( 0.5 )
+			`MenuButton (`id(`menu_button), `opt(`key_F6), _("Refresh"), [
+			    `item(`id(`refresh), refreshButtonLabel ),
+			    // menu button label
+			    `item(`id(`autorefresh_all), _("Refresh All Autor&efreshed")),
+			    // menu button label
+			    `item(`id(`refresh_enabled), _("Refresh All &Enabled"))
+			])
+		    )
+		)
 	    )
         );
 

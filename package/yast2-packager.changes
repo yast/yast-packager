@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 31 11:47:00 CET 2008 - lslezak@suse.cz
+
+- repositories.ycp - better layout for too small window size
+  (bnc#439807)
+
+-------------------------------------------------------------------
 Tue Dec 30 11:48:28 CET 2008 - lslezak@suse.cz
 
 - display the Package selector instead of the Pattern selector
