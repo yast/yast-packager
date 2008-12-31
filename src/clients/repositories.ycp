@@ -558,13 +558,13 @@ Save changes anyway?")))
 list<term> buildList()
 {
     list<term> ret = [
-	`item(`id(`all_repositories), _("All repositories")),
-	`item(`id(`all_services), _("All services"))
+	`item(`id(`all_repositories), _("All repositories"), repository_view),
+	`item(`id(`all_services), _("All services"), !repository_view && displayed_service == "")
     ];
 
     foreach(map<string,any> srv_state, serviceStatesOut,
 	{
-	    term t = `item(`id(srv_state["alias"]:""), sformat(_("Service '%1'"), srv_state["name"]:""));
+	    term t = `item(`id(srv_state["alias"]:""), sformat(_("Service '%1'"), srv_state["name"]:""), repository_view && displayed_service == srv_state["alias"]:"");
 	    ret = add(ret, t);
 	}
     );
