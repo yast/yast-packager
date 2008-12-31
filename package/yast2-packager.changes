@@ -2,7 +2,8 @@
 Wed Dec 31 11:47:00 CET 2008 - lslezak@suse.cz
 
 - repositories.ycp - better layout for too small window size
-  (bnc#439807)
+  (bnc#439807), use a combo box for switching the view (instead of
+  the large tree widget) (bnc#433857)
 
 -------------------------------------------------------------------
 Tue Dec 30 11:48:28 CET 2008 - lslezak@suse.cz
