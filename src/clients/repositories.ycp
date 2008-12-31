@@ -167,8 +167,8 @@
 	    : source["name"]:"";
 
 	integer priority = source["priority"]:default_priority;
-
 	string url = repository_mode ? generalData["url"]:"" : source["url"]:"";
+	string service_name = Pkg::ServiceGet(source["service"]:"")["name"]:"";
 
         term item = repository_mode ?
 	    `item(
@@ -179,6 +179,7 @@
 		source[ "autorefresh" ]:true ? UI::Glyph (`CheckMark) : "",
 		// translators: unknown name for a given source
 		name,
+		service_name,
 		url
 	    )
 	    : `item(
@@ -251,7 +252,7 @@
         UI::ChangeWidget( `id( `table ), `Items, items );
     }
 
-    string repoInfoRichText(string name, string raw_url, string category, string service)
+    string repoInfoRichText(string name, string raw_url, string category)
     {
 	string schema  = tolower(URL::Parse(raw_url)["scheme"]:"");
 	string icon_tag = "<IMG SRC=\"" + Directory::icondir + "/22x22/apps/"
@@ -265,27 +266,19 @@
 
 	string url  = sformat (_("URL: %1"), raw_url);
 
-	string ret = sformat("<P>%1<B><BIG>%2</BIG></B></P><P>%3</P><P>%4</P>", icon_tag, name, url, category);
-
-	if (service != "")
-	{
-	    ret = ret + sformat("<P>%1</P>", service);
-	}
-
-	return ret;
+	return sformat("<P>%1<B><BIG>%2</BIG></B></P><P>%3<BR>%4</P>", icon_tag, name, url, category);
     }
 
-    term repoInfoTerm(string name, string url, string category, string service)
+    term repoInfoTerm()
     {
 	return textmode() ?
 	`VBox (
-	     `Left(`Heading(`id(`name), `opt(`hstretch), name)),
-	     `Left(`Label(`id(`url), `opt(`hstretch), url)),
-	     `Left(`Label(`id(`category), `opt(`hstretch), category )),
-	     `Left(`Label(`id(`service), `opt(`hstretch), service))
+	     `Left(`Heading(`id(`name), `opt(`hstretch), "")),
+	     `Left(`Label(`id(`url), `opt(`hstretch), "")),
+	     `Left(`Label(`id(`category), `opt(`hstretch), ""))
 	     )
 	:
-	`VSquash(`MinHeight(6, `RichText(`id(`repo_info), "")));
+	`VSquash(`MinHeight(4, `RichText(`id(`repo_info), "")));
     }
 
     void fillRepoInfo(integer index, map source, boolean repo_mode, string service_name)
@@ -329,7 +322,7 @@
 	}
 	else
 	{
-	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, info["url"]:"", category, service));
+	    UI::ChangeWidget(`id(`repo_info), `Value, repoInfoRichText(name, info["url"]:"", category));
 	}
 
 	UI::ChangeWidget (`id (`enable), `Value, info["enabled"]:true);
@@ -605,6 +598,8 @@ term TableWidget(boolean repository_mode)
 		`Center(_("Autorefresh")),
 		// table header - name of the repo
 		_("Name"),
+		// table header - service to which the repo belongs
+		_("Service"),
 		// table header - URL of the repo
 		_("URL") )
 	    :
@@ -713,7 +708,7 @@ any SummaryDialog () {
 	`VBox(
 	    `Right(`ReplacePoint(`id(`filter_rp), RepoFilterWidget())),
 	    `VWeight(1, `ReplacePoint(`id(`tabrp), TableWidget(repository_view))),
-	    repoInfoTerm("", "", "", ""),
+	    repoInfoTerm(),
 
 	    // label
 	    `Left (`Label (_("Properties"))),
@@ -724,9 +719,14 @@ any SummaryDialog () {
 			 // check box
 			 `Left (`CheckBox (`id (`enable), `opt(`notify), _("&Enabled"))),
 			 // check box
-			 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh"))),
+			 `Left (`CheckBox (`id (`autorefresh), `opt(`notify), _("Automatically &Refresh")))
+		    )
+		),
+		`HSpacing(1),
+		`HSquash(
+		    `Bottom(
 			 // check box
-			`Left(`ReplacePoint(`id(`keeppkg_rp), `CheckBox(`id(`keeppackages), `opt(`notify), keeppackages_label)))
+			`ReplacePoint(`id(`keeppkg_rp), `CheckBox(`id(`keeppackages), `opt(`notify), keeppackages_label))
 		    )
 		),
 		`HSpacing(1),
