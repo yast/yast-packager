@@ -168,7 +168,8 @@
 
 	integer priority = source["priority"]:default_priority;
 	string url = repository_mode ? generalData["url"]:"" : source["url"]:"";
-	string service_name = Pkg::ServiceGet(source["service"]:"")["name"]:"";
+	string service_alias = source["service"]:"";
+	string service_name = service_alias != "" ? Pkg::ServiceGet(service_alias)["name"]:"" : "";
 
         term item = repository_mode ?
 	    `item(
@@ -318,7 +319,6 @@
 	    UI::ChangeWidget(`id(`name), `Label, name);
 	    UI::ChangeWidget(`id(`url), `Label, url);
 	    UI::ChangeWidget(`id(`category), `Label, category);
-	    UI::ChangeWidget(`id(`service), `Label, service);
 	}
 	else
 	{
@@ -343,7 +343,6 @@
 	    UI::ChangeWidget(`id(`name), `Label, "");
 	    UI::ChangeWidget(`id(`url), `Label, "");
 	    UI::ChangeWidget(`id(`category), `Label, "");
-	    UI::ChangeWidget(`id(`service), `Label, "");
 	}
 	else
 	{
