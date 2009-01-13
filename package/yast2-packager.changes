@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 13 14:28:50 CET 2009 - lslezak@suse.cz
+
+- display USB devices when adding USB mass storage repository
+  (bnc#465650)
+- 2.17.56
+
+-------------------------------------------------------------------
 Mon Jan  5 14:37:23 CET 2009 - lslezak@suse.cz
 
 - 2.17.55

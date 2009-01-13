@@ -1451,7 +1451,7 @@ symbol StartTypeDialog()
     }
     else
     {
-	selected_url_scheme = URL::Parse(SourceDialogs::GetURL())["scheme"]:"";
+	selected_url_scheme = URL::Parse(SourceDialogs::GetRawURL())["scheme"]:"";
 	y2milestone("Selected URL scheme: %1", selected_url_scheme);
 
 	if (selected_url_scheme == nil || selected_url_scheme == "")
