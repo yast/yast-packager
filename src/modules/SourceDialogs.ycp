@@ -136,6 +136,15 @@ global string GetURL () {
     else return _url;
 }
 
+/**
+ * Return the configured URL in the dialog, do not do any conversion (return the internal value)
+ * @return string raw internal URL
+ */
+global string GetRawURL()
+{
+    return _url;
+}
+
 global boolean IsPlainDir()
 {
     return _plaindir;
@@ -852,6 +861,7 @@ string GetDeviceID(list<string> devices)
 
 list<map<string,any> > DetectDisk(boolean usb_only)
 {
+    y2milestone("Detecting %1USB disks", usb_only ? "" : "non-");
     list<map> disks = (list<map>)SCR::Read(.probe.disk);
 
     y2debug("Detected disks: %1", disks);
@@ -863,7 +873,7 @@ list<map<string,any> > DetectDisk(boolean usb_only)
 	}
     );
 
-    y2milestone("Non usb-storage disks: %1", disks);
+    y2milestone("Found disks: %1", disks);
 
     list<map<string,any> > ret = [];
 
