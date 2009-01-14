@@ -1251,6 +1251,30 @@ select those you want and click <b>Finish</b>.</p>
 	// probing succeeded?
 	if (repo_type != nil && repo_type != "NONE")
 	{
+	    // create alias in form "<hostname>-<last_path_element>"
+	    map parsed_url = URL::Parse(url);
+	    string alias = parsed_url["host"]:"";
+
+	    list<string> path_parts = splitstring(parsed_url["path"]:"", "/");
+	    // remove empty parts
+	    path_parts = filter(string p, path_parts, {return size(p) > 0;});
+
+	    if (size(path_parts) > 0)
+	    {
+		string suffix = path_parts[size(path_parts) - 1]:"";
+
+		if (regexpmatch(suffix, "[0-9]+$") && size(path_parts) > 1)
+		{
+		    y2milestone("Version string detected in path element");
+		    suffix = path_parts[size(path_parts) - 2]:"";
+		}
+
+		alias = alias + "-" + suffix;
+	    }
+
+	    alias = GetUniqueAlias(alias);
+	    y2milestone("Using alias: %1", alias);
+
 	    src_id = Pkg::RepositoryAdd ($[
 		"enabled" : false,
 		"name" : repo_name,
@@ -1258,7 +1282,7 @@ select those you want and click <b>Finish</b>.</p>
 		"prod_dir" : pth,
 		// alias needs to be unique
 		// bugzilla #309317
-		"alias" : GetUniqueAlias("repo"),
+		"alias" : alias,
 		"type" : repo_type,
 	    ]);
 	}

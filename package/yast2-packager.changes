@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 14 09:36:24 CET 2009 - lslezak@suse.cz
+
+- use a better alias instread of "repo_N" for community
+  repositories (bnc#456099)
+
+-------------------------------------------------------------------
 Tue Jan 13 14:28:50 CET 2009 - lslezak@suse.cz
 
 - display USB devices when adding USB mass storage repository
