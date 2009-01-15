@@ -77,7 +77,7 @@
      *
      * @param  spare_percentage percentage of spare disk space, i.e. free space is increased
      * @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
-     *				     $["free":1974697, "name":"usr", "used":4227733]]
+     *				     $["free":1974697, "name":"/usr", "used":4227733]]
      *
      * @example EvaluateFreeSpace ( 5 );
      *
@@ -104,7 +104,6 @@
 	    y2milestone("Installing into a directory, target directory: %1, target mount point: %2", Installation::dirinstall_target, target);
         }
 
-	// pkginfo expects names of partitions without "/" in front ( exception: "/" itself )
 	list<map<string,any> > part_input = [];
 
 	foreach( map part, partition,
@@ -132,8 +131,6 @@
 		if (size(mountName) > size(dir_target)
 		    && (substring( mountName, 0, size(dir_target)) == dir_target) )
 		{
-		    // remove "/" in front
-		    mountName = substring(mountName, size(dir_target) + 1);
 		    part_info = add(part_info, "name", mountName);
 		}
 		else if (mountName == target)
@@ -154,11 +151,11 @@
 		    // nothing left, it was target root itself
 		    if ( size ( partName ) == 0 )
 		    {
-			part_info = add( part_info, "name", "/"  );
+			part_info = add( part_info, "name", "/" );
 		    }
 		    else
 		    {
-			part_info = add( part_info, "name", partName );  // remove "/" in front
+			part_info = add( part_info, "name", partName );
 		    }
 		}
 		else
@@ -181,7 +178,7 @@
 			  && !regexpmatch(mountName, "^var/adm/mount/" )
 		    )
 		{
-		    part_info = add ( part_info, "name", mountName );  // remove "/" in front
+		    part_info = add ( part_info, "name", mountName );
 		}
 		else
 		{
