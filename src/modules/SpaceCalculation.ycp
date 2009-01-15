@@ -158,7 +158,7 @@
 		    }
 		    else
 		    {
-			part_info = add( part_info, "name", substring( partName, 1 ) );  // remove "/" in front
+			part_info = add( part_info, "name", partName );  // remove "/" in front
 		    }
 		}
 		else
@@ -181,7 +181,7 @@
 			  && !regexpmatch(mountName, "^var/adm/mount/" )
 		    )
 		{
-		    part_info = add ( part_info, "name", substring( mountName, 1 ) );  // remove "/" in front
+		    part_info = add ( part_info, "name", mountName );  // remove "/" in front
 		}
 		else
 		{
