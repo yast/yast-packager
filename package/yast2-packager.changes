@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 16 15:35:18 CET 2009 - lslezak@suse.cz
+
+- checkmedia - better module description (bnc#461985)
+- 2.18.1
+
+-------------------------------------------------------------------
 Thu Jan 15 16:59:47 CET 2009 - lslezak@suse.cz
 
 - disk usage: do not remove the leading slash in the path
