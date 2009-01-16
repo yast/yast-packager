@@ -309,7 +309,7 @@ _("<P>If you burn the media yourself, use the <B>pad</B> option in your recordin
 
 // advice check of the media
 // for translators: split the message to more lines if needed, use max. 50 characters per line
-string label = _("It is recommended to check all installation media\nto avoid installation problems.");
+string label = _("It is recommended to check all installation media\nto avoid installation problems. To skip this step press 'Next'");
 
     term contents = `VBox(
 	// combobox label
