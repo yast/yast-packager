@@ -359,6 +359,11 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 	return nil;
     }
 
+    if (FileUtils::GetSize (temporary_file) <= 0) {
+	y2milestone ("Empty file: %1", temporary_file);
+	return nil;
+    }
+
     map search_result = (map) SCR::Read (.anyxml, temporary_file);
 
     y2debug ("Search result: %1", search_result);
