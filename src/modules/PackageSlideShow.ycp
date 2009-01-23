@@ -15,6 +15,7 @@
     import "Slides";
     import "SlideShow";
     import "String";
+    import "Mode";
 
     global list<list<integer> > total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
     global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
@@ -45,6 +46,57 @@
     boolean debug				= false;	// more debugging info
     string provide_name 			= "";		// currently downlaoded package name
     string provide_size 			= "";		// currently downlaoded package size
+
+
+    // package summary
+    // package counters
+    integer installed_packages = 0;
+    integer updated_packages = 0;
+    integer removed_packages = 0;
+
+    integer total_downloaded = 0;
+    integer total_installed = 0;
+
+    // package list (only used in installed system)
+    list<string> installed_packages_list = [];
+    list<string> updated_packages_list = [];
+    list<string> removed_packages_list = [];
+//    integer avg_download_rate = 0;
+
+    integer current_provide_size = 0;
+    integer current_install_size = 0;
+    string current_pkg_name = "";
+    boolean updating = false;
+
+    void ResetPackageSummary()
+    {
+	installed_packages = 0;
+	updated_packages = 0;
+	removed_packages = 0;
+	total_downloaded = 0;
+	total_installed = 0;
+//	avg_download_rate = 0;
+
+	// temporary values
+	current_provide_size = 0;
+	current_install_size = 0;
+	current_pkg_name = "";
+	updating = false;
+    }
+
+    global map<string,any> GetPackageSummary()
+    {
+	return $[
+	    "installed" : installed_packages,
+	    "updated" : updated_packages,
+	    "removed" : removed_packages,
+	    "installed_list" : installed_packages_list,
+	    "updated_list" : updated_packages_list,
+	    "removed_list" : removed_packages_list,
+	    "downloaded_bytes" : total_downloaded,
+	    "installed_bytes" : total_installed,
+	];
+    }
 
 
 /*****************************************************************************/
@@ -173,41 +225,6 @@
 	return total_size_to_install - TotalRemainingSize();
     }
 
-
-    /**
-     * Format an integer number as (at least) two digits; use leading zeroes if
-     * necessary.
-     * @return number as two-digit string
-     **/
-    string FormatTwoDigits( integer x )
-    {
-	return x < 10 && x >= 0 ?
-	    sformat( "0%1", x ) :
-	    sformat(  "%1", x );
-    }
-
-
-    /**
-     * Format an integer seconds value with min:sec or hours:min:sec
-     **/
-    string FormatTime( integer seconds )
-    {
-	if ( seconds < 0 )
-	    return "";
-
-	if ( seconds < 3600 )	// Less than one hour
-	{
-	    return sformat( "%1:%2", FormatTwoDigits( seconds / 60 ), FormatTwoDigits( seconds % 60 ) );
-	}
-	else	// More than one hour - we don't hope this will ever happen, but who knows?
-	{
-	    integer hours = seconds / 3600;
-	    seconds = seconds % 3600;
-	    return sformat( "%1:%2:%3", hours, FormatTwoDigits( seconds / 60 ), FormatTwoDigits( seconds % 60 ) );
-	}
-    }
-
-
     /**
      * Format an integer seconds value with min:sec or hours:min:sec
      *
@@ -224,11 +241,11 @@
 	    // cut off the predicted time at a reasonable maximum.
 	    // "%1" is a predefined maximum time.
 
-	    text = sformat( _(">%1"), FormatTime( -seconds ) );
+	    text = sformat( _(">%1"), String::FormatTime( -seconds ) );
 	}
 	else
 	{
-	    text = FormatTime( seconds );
+	    text = String::FormatTime( seconds );
 	}
 
 	return text;
@@ -294,7 +311,7 @@
 		// %2: Media name ("SuSE Linux Professional CD 2" )
 		// %3: Time remaining until this media will be needed
 		text = sformat( _("Next %1: %2 -- %3"), media_type, next_media_name,
-				FormatTime( remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1) );
+				String::FormatTime( remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1) );
 	    }
 	    else
 	    {
@@ -325,8 +342,8 @@
 	{
 	    if ( ! silent )
 	    {
-		y2error( "SlideShow::SanityCheck(): Slide show not correctly initialized: " +
-			 "SlideShow::InitPkgData() never called!" );
+		y2error( "PackageSlideShow::SanityCheck(): Slide show not correctly initialized: " +
+			 "PackageSlideShow::InitPkgData() never called!" );
 	    }
 	    return false;
 	}
@@ -340,7 +357,7 @@
 	    }
 	    else if (!silent)
 	    {
-		y2error(-1, "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
+		y2error(-1, "PackageSlideShow::SanityCheck(): Illegal values for current_src_no (%1) or current_cd_no (%2)",
 		     current_src_no, current_cd_no );
 		y2milestone( "total sizes: %1", total_sizes_per_cd_per_src );
 	    }
@@ -398,6 +415,7 @@
 	if ( init_pkg_data_complete && ! force)
 	    return;
 
+	ResetPackageSummary();
 	// Reinititalize some globals (in case this is a second run)
 	total_size_installed	= 0;
 	//total_time_elapsed	= 0;
@@ -434,9 +452,12 @@
 	remaining_pkg_count_per_cd_per_src	= (list<list <integer> >) eval (total_pkg_count_per_cd_per_src);
 	total_cd_count				= size( flatten( total_sizes_per_cd_per_src ) );
 	init_pkg_data_complete			= true;
-	
-	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
-	y2milestone( "SlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
+
+	// reset the history log
+	SlideShow::inst_log = "";
+
+	y2milestone( "PackageSlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
+	y2milestone( "PackageSlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
 
 	// RebuildDialog(true);
     }
@@ -839,7 +860,7 @@
 			if ( unit_is_seconds && bytes_per_second > 0 )
 			{
 			    remaining = remaining / bytes_per_second;
-			    rem_time = FormatTime( remaining );					// column #2
+			    rem_time = String::FormatTime( remaining );					// column #2
 
 			    if ( remaining > max_time_per_cd )		// clip off at 2 hours
 			    {
@@ -887,6 +908,8 @@
     // update the download rate
     global void UpdateCurrentPackageRateProgress(integer pkg_percent, integer bps_avg, integer bps_current)
     {
+//	avg_download_rate = bps_avg;
+
 	if( ! SlideShow::ShowingDetails() )	return;
 	
 	string new_text = nil;	// no update of the label
@@ -904,6 +927,13 @@
 	SlideShow::SubProgress( pkg_percent, new_text );
     }
 
+    global void DoneProvide( integer error, string reason, string name )
+    {
+	if (error == 0)
+	{
+	    total_downloaded = total_downloaded + current_provide_size;
+	}
+    }
 
     /**
      * Update progress widgets for all CDs.
@@ -959,8 +989,37 @@
 
 	    UpdateTotalProgress(false);
 
-	} // ! deleting
+	    if (updating)
+	    {
+		updated_packages = updated_packages + 1;
 
+		if (Mode::normal())
+		{
+		    updated_packages_list = add(updated_packages_list, current_pkg_name);
+		}
+	    }
+	    else
+	    {
+		installed_packages = installed_packages + 1;
+
+		if (Mode::normal())
+		{
+		    installed_packages_list = add(installed_packages_list, current_pkg_name);
+		}
+	    }
+
+	    total_installed = total_installed + current_install_size;
+
+	} // ! deleting
+	else
+	{
+	    removed_packages = removed_packages + 1;
+
+	    if (Mode::normal())
+	    {
+		removed_packages_list = add(removed_packages_list, current_pkg_name);
+	    }
+	}
     }
 
 
@@ -1013,12 +1072,17 @@
 	    // Heading for the progress bar for the current package
 	    // while it is deleted. "%1" is the package name.
 	    msg = sformat( _("Deleting %1"), pkg_name );
+	    current_pkg_name = pkg_name;
 	}
 	else
 	{
+	    updating = Pkg::PkgInstalled(current_pkg_name);
+
 	    // package installation - summary text
 	    // %1 is RPM name, %2 is installed (unpacked) size (e.g. 6.20MB)
 	    msg = sformat( _("Installing %1 (installed size %2)"), pkg_name, String::FormatSize( pkg_size ) );
+
+	    current_install_size = pkg_size;
 	}
 
 
@@ -1102,10 +1166,16 @@
      */
     global void SlideProvideStart (string pkg_name, integer sz, boolean remote)
     {
-	// message in the installatino log, %1 is package name,
-	// %2 is package size
-	SlideGenericProvideStart (pkg_name, sz, _("Downloading %1 (download size %2)"),
-	    remote);
+	current_provide_size = remote ? sz : 0;
+	current_pkg_name = pkg_name;
+
+	if (remote)
+	{
+	    // message in the installatino log, %1 is package name,
+	    // %2 is package size
+	    SlideGenericProvideStart (pkg_name, sz, _("Downloading %1 (download size %2)"),
+		remote);
+	}
     }
 
 

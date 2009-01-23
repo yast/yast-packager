@@ -80,12 +80,9 @@
     global void StartProvide( string name, integer archivesize, boolean remote )
     {
 	pkg_inprogress = name;
+	_remote_provide = remote;
 
-	if ( remote )
-	{
-	    PackageSlideShow::SlideProvideStart (name , archivesize, remote);
-	    _remote_provide = true;
-	}
+	PackageSlideShow::SlideProvideStart (name , archivesize, remote);
     }
 
 
@@ -119,6 +116,7 @@
 	if ( _remote_provide )
 	{
 	    PackageSlideShow::UpdateCurrentPackageProgress( 100 );
+	    PackageSlideShow::DoneProvide( error, reason, name );
 	    _remote_provide = false;
 	}
 	if (SlideShow::GetUserAbort())
@@ -534,8 +532,7 @@
     }
 
     /**
-     * Install callbacks for slideshow. Should be in SlideShowCallbacks but
-     * that doesn't work at the moment.
+     * Install callbacks for slideshow.
      */
     global void InstallSlideShowCallbacks()
     {

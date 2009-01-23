@@ -17,6 +17,7 @@
     import "Packages";
     import "SlideShow";
     import "PackageSlideShow";
+    import "PackagesUI";
 
     import "Label";
 
@@ -132,6 +133,8 @@
 	    do_commit = size (pkgs) > 0;
 	}
 
+	integer start_time = time();
+
 	list commit_result = [];
 	if (do_commit)
 	{
@@ -152,6 +155,9 @@
 	    y2milestone ("No package from media %1 left for installation", media_number);
 	}
 
+	integer installation_time = time() - start_time;
+	y2milestone("Installation took %1 seconds", installation_time);
+
 	// see if installation of some packages failed
 	list<string> errpacks = (list<string>) (commit_result[1]:[]);
 	if (size (errpacks) > 0)
@@ -168,6 +174,25 @@
 	    }
 	    SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages",
 		merge (old_failed_packs, errpacks));
+	}
+
+	if (Mode::normal())
+	{
+	    // collect and set installation summary data
+	    map<string,any> summary = PackageSlideShow::GetPackageSummary();
+
+	    summary["time_seconds"] = installation_time;
+	    summary["success"] = size(errpacks) == 0;
+	    summary["remaining"] = commit_result[2]:[];
+	    summary["install_log"] = SlideShow::inst_log;
+
+	    if (size(errpacks) > 0)
+	    {
+		summary["error"] = Pkg::LastError();
+		summary["failed"] = errpacks;
+	    }
+
+	    PackagesUI::SetPackageSummary(summary);
 	}
 
 	return commit_result;

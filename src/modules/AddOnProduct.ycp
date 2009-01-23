@@ -1077,7 +1077,8 @@ Select those you want to use."))),
 	    ),
 	    `HBox (
 		`HStretch(),
-		`PushButton (`id (`ok), _("Add Selected Products")),
+		// push button label
+		`PushButton (`id (`ok), _("Add Selected &Products")),
 		`HSpacing (1),
 		`PushButton (`id (`cancel), Label::CancelButton())
 	    )
