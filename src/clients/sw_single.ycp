@@ -19,7 +19,6 @@
 {
     textdomain "packager";
 
-    import "Arch";
     import "Confirm";
     import "Installation";
     import "Mode";
@@ -32,13 +31,14 @@
     import "Wizard";
     import "Popup";
     import "GetInstArgs";
-    import "Label";
     import "PackageSystem";
     import "Report";
     import "FileUtils";
     import "PackagesUI";
     import "CommandLine";
     import "Progress";
+    import "Directory";
+    import "String";
 
 symbol StartSWSingle()
 {
@@ -555,8 +555,57 @@ Install them now?
 	       // prepare "you must boot" popup in inst_suseconfig
 	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
 
+		string suseconfig_log = Directory::logdir + "/y2log.SuSEconfig";
+		integer suseconfig_log_size = FileUtils::GetSize(suseconfig_log);
+
+		if (suseconfig_log_size < 0)
+		{
+		    suseconfig_log_size = 0;
+		}
+
 	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
+
+		// read only the new lines at the end
+		string command = sformat("dd bs=1 if='%1' skip=%2", String::Quote(suseconfig_log), suseconfig_log_size);
+		y2milestone("Reading new susconfig log: %1", command);
+
+		map out = (map)SCR::Execute(.target.bash_output, command);
+		if (out["exit"]:-1 == 0)
+		{
+		    PackagesUI::SetPackageSummaryItem("postinstall_log", out["stdout"]:"");
+		}
+		else
+		{
+		    y2error("Could not read susconfig log: %1", out);
+		}
 	   }
+
+	   if (Mode::normal())
+	   {
+		string PKGMGR_ACTION_AT_EXIT = (string)SCR::Read(.sysconfig.yast2.PKGMGR_ACTION_AT_EXIT);
+
+		if (PKGMGR_ACTION_AT_EXIT == nil)
+		{
+		    PKGMGR_ACTION_AT_EXIT = "close";
+		}
+
+		y2milestone("PKGMGR_ACTION_AT_EXIT: %1", PKGMGR_ACTION_AT_EXIT);
+
+		// display installation summary if there has been an error
+		// or if it's enabled in sysconfig
+		if (PKGMGR_ACTION_AT_EXIT == "summary"
+		    || size(commit_result[1]:[]) > 0)
+		{
+		    if (PackagesUI::ShowInstallationSummary() == `back)
+		    {
+			force_restart = true;
+		    }
+		}
+		else if (PKGMGR_ACTION_AT_EXIT == "restart")
+		{
+		    force_restart = true;
+		}
+	    }
        }
    } while ( force_restart );
 
