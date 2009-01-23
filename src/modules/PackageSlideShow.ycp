@@ -1098,7 +1098,7 @@
 	rem_string = ( unit_is_seconds && bytes_per_second > 0 && tot_rem_t > 0) ?
 		sformat("%1 / %2", FormatRemainingSize(TotalRemainingSize()), FormatTimeShowOverflow(tot_rem_t))
 		: FormatRemainingSize(TotalRemainingSize());
-	SlideShow::SetGlobalProgressLabel( SlideShow::CurrentStageDescription() + sformat(_(" (Remaining: %1)"), rem_string));
+	SlideShow::SetGlobalProgressLabel( SlideShow::CurrentStageDescription() + sformat(_(" (Remaining: %1, %2 packages)"), rem_string, TotalRemainingPkgCount()));
 
 	//
 	// Update (user visible) installation log
