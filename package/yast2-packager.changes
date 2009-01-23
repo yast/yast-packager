@@ -1,11 +1,17 @@
 -------------------------------------------------------------------
+Fri Jan 23 13:57:29 CET 2009 - lslezak@suse.cz
+
+- display the number of remaining packages during package
+  installation (bnc#461970)
+- 2.18.2
+
+-------------------------------------------------------------------
 Thu Jan 22 18:47:00 CET 2009 - lslezak@suse.cz
 
 - installation callbacks - collect installation data for the
   summary dialog (bnc#431854)
 - sw_single.ycp - do the action specified in PKGMGR_ACTION_AT_EXIT
   sysconfig variable when package installation is finished
-- 2.18.2
 
 -------------------------------------------------------------------
 Fri Jan 16 15:35:18 CET 2009 - lslezak@suse.cz
