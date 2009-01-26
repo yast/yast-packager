@@ -204,7 +204,7 @@ global void SetBaseProductURL (string url) {
 	y2warning ("Empty base url");
 
     base_product_url = url;
-    y2milestone ("New base URL: %1", base_product_url);
+    y2milestone ("New base URL: %1", URL::HidePassword(base_product_url));
 }
 
 global string GetBaseProductURL () {
@@ -233,7 +233,7 @@ global string GetBaseProductURL () {
  */
 global string GetAbsoluteURL (string base_url, string url) {
     if (! regexpmatch (url, "^relurl://")) {
-	y2debug ("Not a relative URL: %1", url);
+	y2debug ("Not a relative URL: %1", URL::HidePassword(url));
 	return url;
     }
 
@@ -307,7 +307,7 @@ global string GetAbsoluteURL (string base_url, string url) {
 	url = url + "?" + URL::MakeParamsFromMap (final_params_map);
     }
 
-    y2milestone ("Final URL: '%1'", url);
+    y2milestone ("Final URL: '%1'", URL::HidePassword(url));
     return url;
 }
 // <--
@@ -1207,7 +1207,7 @@ global boolean AddPreselectedAddOnProducts (string filelist) {
     }
 
     string base_url = GetBaseProductURL();
-    y2milestone ("Base URL: %1", base_url);
+    y2milestone ("Base URL: %1", URL::HidePassword(base_url));
 
     list <map> add_products = [];
 
