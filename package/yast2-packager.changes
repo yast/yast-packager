@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jan 26 14:06:50 CET 2009 - lslezak@suse.cz
+
+- fixed another places logging complete URL including a password
+  (bnc#441944)
+
+-------------------------------------------------------------------
 Fri Jan 23 13:57:29 CET 2009 - lslezak@suse.cz
 
 - display the number of remaining packages during package
