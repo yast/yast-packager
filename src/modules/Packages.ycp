@@ -1855,6 +1855,7 @@ global boolean InitFailed () {
             foreach (string one_kernel, kernels_to_be_installed, {
                 // XEN can be installed in parallel
                 if (one_kernel == "kernel-xen") return;
+                if (one_kernel == "kernel-xenpae") return;
                 // don't remove the recommended one
                 if (one_kernel == recommended_kernel) return;
 
