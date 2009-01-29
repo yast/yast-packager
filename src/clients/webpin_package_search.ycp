@@ -22,10 +22,11 @@
   import "WebpinPackageSearch";
   import "Wizard";
   import "Directory";
+  import "Map";
   import "Report";
 
-  list <map> search_results = [];
-  map <string, integer> index = $[];
+  map <string, map > search_results = $[];
+  map <string, map > all_selected = $[];
 
   boolean AbortDialog() {
       return Popup::YesNo( _("All changes will be lost. Really exit?"));
@@ -39,7 +40,7 @@
     else
 	return false;
   }
-  
+
   string SearchExpression() {
 	string ret = (string) UI::QueryWidget(`id("search_text"), `Value);
 
@@ -60,9 +61,17 @@
     return ret;
   }
 
+  string CurrentTable() {
+	string ctable = UI::WidgetExists(`id("results")) ? "results" : "all";
+
+	return ctable;
+  }
+
   void CreatePackageDescription( ) {
-    string checksum = (string) UI::QueryWidget(`id("results"), `CurrentItem );
-    map citem = search_results [ index[checksum]: 0 ]: $[];
+    string ctable = CurrentTable();
+    string checksum = (string) UI::QueryWidget(`id( ctable ), `CurrentItem );
+
+    map citem = (ctable == "results") ? search_results[checksum]:$[] : all_selected[checksum]:$[];
     string ret = "";
 
     if ( citem != $[] ) {
@@ -72,17 +81,14 @@
 	string archs = sformat(_("<b>Architecture:</b> %1<br>"), mergestring( citem["archs"]:[],","));
 	ret = "<p>" + descr + version + archs + "</p>";
     }
-    else
-	ret = _("<p><b>No packages matching entered criteria were found</b></p>");
 
      UI::ChangeWidget(`id("description"),`Value, ret);
   }
 
-  list CreatePackageList( list < map > results ) {
+  list CreatePackageListItems( map<string, map> results ) {
     list pkg_items = [];
-    integer i = 0;
 
-   foreach ( map  it, results, {
+   foreach ( string iD, map pkg_line, results, {
 // Webpin seems to return "ppc" arch even for some i386 packages (e.g., "joe")
 	// doesn't match the architecture
 //	if (! WebpinPackageSearch::MatchesCurrentArchitecture (it["archs"]:["noarch"])) {
@@ -90,23 +96,83 @@
 //	    return;
 //	}
 
-	pkg_items = add( pkg_items, `item(`id(it["checksum"]:""),it["name"]:"" + " - " + it["summary"]:"" ));
-	index = add( index, it["checksum"]:"", i);
-	i = i+1; 
+	pkg_items = add( pkg_items, `item(`id(iD),pkg_line["name"]:"" + " - " + pkg_line["summary"]:"" ));
     });
     return pkg_items;
-  } 
+  }
 
-  list <map> FilterOutSelectedPackages() {
-	list <string>  p = ( list <string> ) UI::QueryWidget(`id("results"), `SelectedItems);
+  void PopulatePackageList( map <string, map> results ) {
+	list items = CreatePackageListItems( results );
+	string ctable = CurrentTable();
+
+	list <string> IDs = (list <string> ) toset(Map::Keys(results));
+	list <string> wantedIDs = (list <string>) toset(Map::Keys(all_selected));
+	y2milestone("Package IDs: %1, previously selected: %2", IDs, wantedIDs);
+
+	if (results != nil) {
+	    UI::ChangeWidget(`id(ctable), `Items, items);
+
+	    if(ctable == "all")
+	        UI::ChangeWidget(`id(ctable), `SelectedItems, wantedIDs);
+	    else
+		UI::ChangeWidget(`id(ctable), `SelectedItems, multiset::intersection(IDs, wantedIDs)); 
+
+	    UI::SetFocus(`id(ctable));
+	}
+	else
+	    UI::SetFocus(`id("search_text"));
+
+  }
+
+  list <map> SelectedPackages() {
 	list < map > result = [];
-
-	foreach ( string s, p, {
-	    result = add(result, search_results[ index[s]:0 ]:$[]);
+ 
+	foreach ( string s, map m, all_selected, {
+	    result = add(result, m);
 	});
 
-    	y2internal("%1", result);
+	y2milestone("Passing these data to WebPin %1", result);
 	return result;
+  }
+
+  void AddItemIfNotExists( string checksum, map data ) {
+	if (!haskey (all_selected, checksum))
+	    all_selected[checksum] = data;
+  }
+
+  void RemoveItemIfExists( string checksum ) {
+	if ( haskey (all_selected, checksum) )
+	    all_selected = remove(all_selected, checksum);
+  }
+
+  void UpdateSelectedPkgs(){
+
+	string ctable = CurrentTable();
+        list <string> selected_items =  toset((list <string>) UI::QueryWidget(`id(ctable), `SelectedItems));
+        list <string> other_items = [];
+
+        list <term> tt = (list <term>) UI::QueryWidget(`id(ctable), `Items);
+        foreach(term t, tt, {
+             string tmp = argsof(argsof(t)[0]:`none())[0]:"";
+             if( !contains(selected_items, tmp) )
+                 other_items = add (other_items, tmp);
+        });
+
+        other_items = toset(other_items);
+
+        if (ctable == "results")
+	{
+	    foreach(string it, selected_items, {
+		AddItemIfNotExists( it, search_results[it]:$[] );
+	    });
+	}
+	foreach(string it, other_items, {
+		RemoveItemIfExists( it );
+	});
+
+
+       y2milestone("Selecting these packages: %1", all_selected );
+
   }
 
   symbol ReadDialog() {
@@ -142,7 +208,13 @@
   }
 
   symbol MainDialog() {
-    Wizard::SetContents (
+
+  term current_search_box = `MultiSelectionBox(`id ("results"), `opt (`notify, `hstretch),
+                                                "", [] );
+  term all_pkgs_box =       `MultiSelectionBox(`id ("all"), `opt (`notify, `hstretch),
+                                                "", [] );
+
+  Wizard::SetContents (
             // TRANSLATORS: dialog caption
             _("Package Search"),
             `VBox (
@@ -180,11 +252,12 @@
 		//),
                 `VWeight (
                     2,
-                    `MultiSelectionBox(
-                        `id ("results"), `opt (`notify, `hstretch),
-                        // TRANSLATORS: multi-selection box
-                        _("&Found Packages"), []
-                    )
+		    `DumbTab(`id("tab_bar"),
+			[ `item(`id("search_tab"), _("&Found Packages"), true),
+			  `item(`id("all_tab"), _("&All Selected Packages"))
+			],
+			`ReplacePoint(`id(`rp), current_search_box)
+		    )
                 ),
 		//`HBox(
 		    `Left( `Label( _("Package Description")) ),
@@ -215,13 +288,18 @@ such software.</p>
 
     UI::SetFocus(`id("search_text"));
 
+
     any dialog_ret = nil;
     while (true) {
 	dialog_ret = UI::UserInput();
+
+	if ( dialog_ret != "results" && dialog_ret != "all")
+	    UpdateSelectedPkgs();
+
 	if (dialog_ret == `next){
 	    string temporary_xml = Directory::tmpdir + "/one_click_install_temporary_file.xml";
 
-	    list <map> selected_packages = FilterOutSelectedPackages();
+	    list <map> selected_packages = SelectedPackages();
 
 	    if (selected_packages == nil || size (selected_packages) == 0) {
 		Report::Message (_("Select some packages to install."));
@@ -236,33 +314,44 @@ such software.</p>
 	    break;
 	}
 	else if (dialog_ret == "search") {
+
+	    UI::ChangeWidget(`id("tab_bar"), `CurrentItem, "search_tab");
+	    UI::ReplaceWidget(`id(`rp), current_search_box );
 	    string search_expr = SearchExpression();
 
 	    if (search_expr != "") {
 		map <string, boolean> search_params =  SearchParameters();
 		Popup::ShowFeedback("", _("Searching for packages..."));
-	        search_results =
+	        list <map> tmp_results =
 		    WebpinPackageSearch::SearchForPackages(
 	                search_expr,
 	                nil,
 	                search_params
 	        );
+		search_results = listmap( map m, tmp_results, {
+		    return $[ m["checksum"]:"" : m ];
+		});
 		Popup::ClearFeedback();
-		list items = CreatePackageList( search_results );
+		PopulatePackageList( search_results );
 
-		if (search_results != nil) {
-		    UI::ChangeWidget(`id("results"), `Items, items);
-		    UI::SetFocus(`id("results"));
-		}
+    		if ( search_results == $[] )
+		    UI::ChangeWidget(`id("description"), `Value, _("<p><b>No packages matching entered criteria were found</b></p>"));
 		else
-		    UI::SetFocus(`id("search_text"));
-
-		CreatePackageDescription();
+		    CreatePackageDescription();
 	    }
-	    //else
-		continue;
+	    continue;
 	}
-	else if (dialog_ret == "results") {
+	else if (dialog_ret == "search_tab") {
+	    UI::ReplaceWidget(`id(`rp), current_search_box );
+	    PopulatePackageList( search_results ); 
+	    CreatePackageDescription();
+	}
+	else if (dialog_ret == "all_tab") {
+	    UI::ReplaceWidget(`id(`rp), all_pkgs_box );
+	    PopulatePackageList( all_selected );
+	    CreatePackageDescription();
+	}
+	else if ( dialog_ret == "results" || dialog_ret == "all") {
 	    CreatePackageDescription();
 	}
 	else if (dialog_ret == `abort || dialog_ret == `cancel) {
