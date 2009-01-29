@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 29 10:46:38 CET 2009 - kmachalkova@suse.cz
+
+- Webpin search: remember all packages selected by user in all 
+  queries in this session + show them in "All Packages" tab
+- Show "Really exit?" pop-up only if there is something to do
+
+-------------------------------------------------------------------
 Wed Jan 28 17:06:48 CET 2009 - lslezak@suse.cz
 
 - do not remove kernel-xenpae package at update, it can be
