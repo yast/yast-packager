@@ -28,8 +28,15 @@
   map <string, map > search_results = $[];
   map <string, map > all_selected = $[];
 
+  boolean SomethingSelected() {
+	return ( all_selected != $[]);
+  }
+
   boolean AbortDialog() {
-      return Popup::YesNo( _("All changes will be lost. Really exit?"));
+	 if (SomethingSelected())
+	     return Popup::YesNo( _("All changes will be lost. Really exit?"));
+	else
+	    return true;
   }
 
   boolean Abort() {
