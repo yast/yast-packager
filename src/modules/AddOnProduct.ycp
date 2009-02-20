@@ -685,6 +685,11 @@ global symbol DoInstall() {
     string add_on_mode = AddOnMode (src_id);
     SetMode (add_on_mode);
 
+    // BNC #468449
+    // Always store the current set of repositories as they might get
+    // changed by registration or the called add-on workflow
+    Pkg::SourceSaveAll();
+
     symbol ret = nil;
 
     string control = Pkg::SourceProvideDigestedFile (src_id, 1, "/installation.xml", true /* optional */);
