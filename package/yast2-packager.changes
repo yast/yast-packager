@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 20 17:38:52 CET 2009 - locilka@suse.cz
+
+- Always storing the current set of repositories before calling
+  add-on product installation workflow (bnc #468449).
+
+-------------------------------------------------------------------
 Thu Jan 29 10:46:38 CET 2009 - kmachalkova@suse.cz
 
 - Webpin search: remember all packages selected by user in all 
