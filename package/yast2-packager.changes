@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Feb 20 17:38:52 CET 2009 - locilka@suse.cz
+
+- Always storing the current set of repositories before calling
+  add-on product installation workflow (bnc #468449).
+- 2.17.59
+
+-------------------------------------------------------------------
 Wed Jan 28 17:06:48 CET 2009 - lslezak@suse.cz
 
 - do not remove kernel-xenpae package at update, it can be
