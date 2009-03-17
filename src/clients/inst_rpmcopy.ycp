@@ -448,8 +448,6 @@ Package installation will be aborted.
     {
 	if (Stage::cont ())
 	{
-	    SourceManager::SyncYaSTInstSourceWithZMD (); // #156030
-
 	    // some new SCR asgents might have been installed
 	    SCR::RegisterNewAgents();
 	}
