@@ -1052,6 +1052,9 @@ global list Overview() {
 
 
     /**
+     * Obsoleted (empty implementation), ZMD (ZLM7.3) on sle11 supports only HTTP and FTP repositories,
+     * sync would fail for other types. See bnc#480845 for more details.
+     *
      * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP repository is listed
      * in the ZMD services, adds one if it is missing.
      * Everything is done via the .process agent with timeout (number in seconds).
@@ -1059,6 +1062,9 @@ global list Overview() {
      * @return boolean whether the syncing succeeds
      */
     global boolean SyncYaSTInstSourceWithZMD () {
+	y2warning(-1, "SourceManager::SyncYaSTInstSourceWithZMD() is obsoleted (does nothing). ZMD sychronization has been removed (see bnc#480845 for details). Backtrace follows:");
+	return true;
+
 	// Notes for maintainer:
 	//     - using .process agent because of ZMD/rug call that can stuck
 	//     - using 'exit $?' that work well with ZMD/rug and .background together (FIXME still needed???)
@@ -1128,6 +1134,9 @@ global list Overview() {
     }
 
     /**
+     * Obsoleted (empty implementation), ZMD (ZLM7.3) on sle11 supports only HTTP and FTP repositories,
+     * sync would fail for other types. See bnc#480845 for more details.
+     *
      * Sync the changed repositories to ZENworks
      * @param added_src_ids ids of repositories that were added
      * @param deleted_src_ids ids of repositories that were deleted
@@ -1135,6 +1144,10 @@ global list Overview() {
      */
     global boolean SyncAddedAndDeleted (list<integer> added_src_ids,
 					list<integer> deleted_src_ids) {
+
+	y2warning(-1, "SourceManager::SyncAddedAndDeleted() is obsoleted (does nothing). ZMD sychronization has been removed (see bnc#480845 for details). Backtrace follows:");
+	return true;
+
 	boolean ret = false;
 	Lock ();
 	map zmd_handle = ZMDStart ();
@@ -1250,10 +1263,10 @@ global list Overview() {
     }
 
     /**
-     * Used by registration.
-     * This is really hairy because we simultaneously add them to zypp and
-     * ZENworks, but not if they are not signed. (thus being better than
-     * inst_source)
+     * Used by registration. ZMD sync has been disabled - ZLM7.3 on sle11 supports
+     * only HTTP and FTP repositories, sync would fail for other types.
+     * See bnc#480845 for more details.
+     *
      * @param urls URLs to add
      * @return a list of added URLs
      */
@@ -1267,8 +1280,8 @@ global list Overview() {
 	y2milestone ("url mapping: %1", by_url);
 
 	Lock ();
-	map zmd_handle = ZMDStart ();
-	boolean zmd_working = ZMDWorking (zmd_handle);
+	map zmd_handle = $[]; // ZMDStart ();
+	boolean zmd_working = false; // ZMDWorking (zmd_handle);
 
 	ResetKnownServiceCache ();
 
@@ -1350,7 +1363,7 @@ global list Overview() {
 	    }
 	});
 
-	ZMDRestore (zmd_handle);
+//	ZMDRestore (zmd_handle);
 	Unlock ();
 
 	return ret;
