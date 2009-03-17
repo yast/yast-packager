@@ -500,7 +500,7 @@
 	// otherwise we will not get their details
 	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
 	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
-	boolean have_rug = !norug && (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+	boolean have_rug = false;
 	boolean any_changed = added != [] || deleted != []; // #217697
 	if (success && have_rug && any_changed) {
 	    UI::OpenDialog (
@@ -1508,7 +1508,7 @@ symbol StartStoreSource()
 // main function - start the workflow
 symbol StartInstSource()
 {
-    have_rug = (integer)SCR::Read (.target.size, "/usr/bin/rug") >= 0;
+    have_rug = false;
     norug = !have_rug || (size(WFM::Args()) > 0 && WFM::Args(0) == "norug");
 
     Wizard::CreateDialog();
