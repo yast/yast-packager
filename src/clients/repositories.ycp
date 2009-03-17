@@ -16,10 +16,8 @@
 
     import "Confirm";
     import "Mode";
-    import "Installation";
     import "PackageCallbacks";
     import "PackageLock";
-    import "PackageSystem";
     import "Report";
     // SourceManager overlaps quite a bit with inst_source,
     // so far we only use it for ZMD sync, TODO refactor better
@@ -29,7 +27,6 @@
 
     import "Label";
     import "Popup";
-    import "AddOnProduct";
     import "Sequencer";
     import "CommandLine";
     import "Progress";
@@ -58,11 +55,6 @@
 
     list<integer> sourcesToDelete = [];
     list<integer> reposFromDeletedServices = [];
-
-    // Do not sync the changes to ZENworks even if rug is present
-    // This is handy for repairing an already out-of-sync situation
-    boolean have_rug = nil;
-    boolean norug = nil;
 
     // default (minimal) priority of a repository
     const integer default_priority = 99;
@@ -500,28 +492,6 @@
 	// otherwise we will not get their details
 	list<integer> added   = newSources (sourceStatesIn, sourceStatesOut);
 	list<integer> deleted = newSources (sourceStatesOut, sourceStatesIn);
-	boolean have_rug = false;
-	boolean any_changed = added != [] || deleted != []; // #217697
-	if (success && have_rug && any_changed) {
-	    UI::OpenDialog (
-		`VBox (
-		    `Label (SourceManager::SyncLabel ()),
-		    `PushButton (`id (`abort), Label::AbortButton ())
-		    ));
-	    boolean syncok = SourceManager::SyncAddedAndDeleted (added, deleted);
-	    UI::CloseDialog ();
-	    if (!syncok)
-	    {
-		// yes/no popup
-		if (!Popup::YesNo (_("Repository synchronization with ZMD failed.
-Save changes anyway?")))
-		    success	= false;
-
-	    }
-	}
-	else {
-	    y2milestone ("No rug or ZMD sync disabled - not syncing: success: %1, have_rug: %2, any_changed: %3", success, have_rug, any_changed);
-	}
 
 	foreach( integer id, sourcesToDelete, ``{
 	    if (contains(reposFromDeletedServices, id))
@@ -696,13 +666,6 @@ any SummaryDialog () {
     // push button - set name of the selected repository
     string setAliasButtonLabel = _("Set &Name...");
 
-    SourceManager::ReadSyncFlag();
-    boolean sync_zmd = SourceManager::GetSyncFlag();
-    if (sync_zmd == nil)
-    {
-	sync_zmd = true;
-    }
-
     term contents =
 	`VBox(
 	    `Right(`ReplacePoint(`id(`filter_rp), RepoFilterWidget())),
@@ -733,11 +696,6 @@ any SummaryDialog () {
 		`HStretch()
 	    ),
 	    `VSpacing (0.4),
-
-	    (have_rug) ?
-	    // Checkbox label
-	    `Left (`CheckBox (`id (`zmdsync), _("Synchronize Changes with &ZENworks"), !norug && sync_zmd))
-	     : `Empty(),
 
 	    `HBox(
 		`PushButton (`id (`add), `opt(`key_F3),
@@ -802,15 +760,6 @@ To change a repository location, use <b>Edit</b>. To remove a repository, use
 </p>
 ");
 
-    if (have_rug)
-    {
-	// help, continued
-	help_text = help_text + _("<p>
-<b>Synchronize Changes with ZENworks</b> will also call <tt>rug</tt>
-to perform the changes in that package management system.</p>
-");
-    }
-
     // help text, continued
     help_text = help_text + _("<P><B>Priority of a Repository</B><BR>
 Priority of a repository is an integer value between 0 (the highest priority) and 200 (the lowest priority). Default priority is 99. If a package is available in more repositories the repository with the highest priority is used.</P>");
@@ -861,18 +810,6 @@ Priority of a repository is an integer value between 0 (the highest priority) an
 	}
 	if ( input == `next )
         {
-	    if (have_rug)
-	    {
-		norug = ! (boolean) UI::QueryWidget (`id (`zmdsync), `Value);
-
-		// write ZMD status if the widget is enabled
-		if ((boolean)UI::QueryWidget(`id(`zmdsync), `Enabled))
-		{
-		    SourceManager::SetSyncFlag(!norug);
-		    SourceManager::WriteSyncFlag();
-		}
-	    }
-
 	  // store the new state
           boolean success = Write();
           if ( !success ) {
@@ -1508,9 +1445,6 @@ symbol StartStoreSource()
 // main function - start the workflow
 symbol StartInstSource()
 {
-    have_rug = false;
-    norug = !have_rug || (size(WFM::Args()) > 0 && WFM::Args(0) == "norug");
-
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("sw_source");
 

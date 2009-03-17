@@ -23,17 +23,10 @@ import "Report";
 import "Popup";
 import "Label";
 import "Summary";
-import "Message";
 import "HTML";
-import "Arch";
 import "Mode";
-import "Stage";
 import "URL";
-import "InstURL";
-import "String";
-import "SuSEFirewall";
 import "Linuxrc";
-import "FileUtils";
 import "Installation";
 import "String";
 
@@ -48,10 +41,6 @@ global list<map<string,any> > sourceStatesIn = [];
 
 global list<map<string,any> > sourceStatesOut = [];
 
-
-list<map> slp_sources = [];
-
-string pm_init_blocker = "";
 
 global map url_tokens = $[];
 
@@ -117,69 +106,6 @@ global boolean ReadSources()
     return true;
 }
 
-// is ZMD synchronization enabled?
-// nil = unknown (not configured/read)
-boolean zmd_sync = nil;
-
-const string source_config_file = "/var/lib/YaST2/inst_source_config.ycp";
-
-/**
- * Return ZMD synchronization flag.
- * @return boolean true/false = ZMD sync is enabled/disabled, nil = unknown (not configured/read)
- */
-global boolean GetSyncFlag()
-{
-    return zmd_sync;
-}
-
-/**
- * Read ZMD sync flag from the persistent store (/var/lib/YaST2/inst_source_config.ycp)
- * @return boolean true = success, false = read/parse error or the file doesn't exist
- */
-global boolean ReadSyncFlag()
-{
-    if (!FileUtils::Exists(source_config_file))
-    {
-	return false;
-    }
-
-    map<string, any> inst_config = (map<string, any>)SCR::Read(.target.ycp, source_config_file);
-    zmd_sync = (boolean)inst_config["zmd_sync"]:nil;
-    y2milestone("Read ZMD sync status: %1", zmd_sync);
-
-    return inst_config != nil;
-}
-
-/**
- * Set ZMD synchronization flag.
- * @param sync_enabled true/false = enable/disable ZMD sync, nil = unknown (not configured/read)
- */
-global void SetSyncFlag(boolean sync_enabled)
-{
-    y2milestone("Setting ZMD sync flag: %1", sync_enabled);
-    zmd_sync = sync_enabled;
-}
-
-/**
- * Write ZMD sync flag to the persistent store
- * @return boolean true = success
- */
-global boolean WriteSyncFlag()
-{
-    if (zmd_sync == nil)
-    {
-	y2warning("ZMD sync is set to nil, not storing");
-	return true;
-    }
-    else
-    {
-	y2milestone("Writing ZMD sync status: %1", zmd_sync);
-
-	map<string, any> inst_config = $[ "zmd_sync" : zmd_sync ];
-	return (boolean)SCR::Write(.target.ycp, source_config_file, inst_config);
-    }
-}
-
 /**
  * Read all source-manager settings
  * @return true on success
@@ -228,10 +154,6 @@ global boolean Read() {
     if(Abort()) return false;
     /* Progress finished */
     Progress::NextStage();
-
-    // slp_sources = ReadSLPSources();
-    
-    y2debug ("slp repositories: %1", slp_sources);
 
     if(Abort()) return false;
     modified = false;
@@ -407,7 +329,6 @@ global symbol createSource( string url ) {
     {
 	if (!Mode::commandline())
 	{
-	    // Popup::Message( sformat( "URL: %1", url ) );
 	    UI::OpenDialog(
 			   `VBox(
 				 `VSpacing( 0.2 ),
@@ -603,17 +524,7 @@ global list Summary() {
     summary = Summary::CloseList(summary);
 
 
-  
-    list unconf = maplist(map s, slp_sources, ``{
-	string id = substring(s["srvurl"]:"", 21);
-	y2debug("repository url : %1", id );
-	// part of item in summary
-	return(`item(`id(id), s["attr", "label"]:_("Unknown")
-	    // part of item in summary meaning "switched on"
-	    + _(" On ") + s["pcHost"]:""));
-    });   
-
-    return [summary, unconf ];
+    return [summary, [] ];
 }
 
 /**
@@ -632,550 +543,22 @@ global list Overview() {
     return source_overview;
 }
 
-    // ------------------------------------------------------------------------------------------------------
-    // adding YaST repository into the ZMD
-
-    global string SyncLabel () {
-	// yast is running a ZENworks command (rug) to
-	// keep the repository references in sync
-	return _("Synchronizing with ZENworks");
-    }
-
-    /**
-     * Runs a bash command with timeout.
-     * @struct Returns map $[
-     *     "exit" : int_return_code,
-     *     "stdout"  : [ "script", "stdout", "lines" ],
-     *     "stderr"  : [ "script", "stderr", "lines" ],
-     * ]
-     *
-     * @param run_command what to run
-     * @param log_command what to log (passwords masked)
-     * @param script_time_out in sec.
-     * @return map with out, err and ret_code
-     */
-    global map RunCommandWithTimeout (string run_command, string log_command, integer script_time_out) {
-	y2milestone("Running command \"%1\" in background...", log_command);
-
-	integer processID = (integer)SCR::Execute(.process.start_shell, run_command);
-
-	if (processID == 0) {
-	    y2error("Cannot run '%1'", run_command);
-	    return nil;
-	}
-	
-	list<string> script_out = [];
-	list<string> script_err = [];
-	integer time_spent = 0;
-	integer return_code = nil;
-	boolean timed_out = false;
-	integer sleep_step = 200; // ms
-	script_time_out = script_time_out * 1000;
-	
-	// while continuing is needed and while it is possible
-	while (! timed_out) {
-	    boolean running = (boolean) SCR::Read(.process.running, processID);
-	    // debugging #165821
-	    if (time_spent % 100000 == 0) {
-		y2milestone ("running: %1", running);
-		string flag = "/tmp/SourceManagerTimeout";
-		if (SCR::Read (.target.size, flag) != -1) {
-		    y2milestone ("Emergency exit");
-		    SCR::Execute (.target.remove, flag);
-		    break;
-		}
-	    }
-
-	    if (! running) {
-		break;
-	    }
-
-	    // at last, enable aborting the sync
-	    if (Mode::commandline ()) {
-		sleep (sleep_step);
-	    }
-	    else {
-		any ui = UI::TimeoutUserInput (sleep_step);
-		if (ui == `abort) {
-		    y2milestone ("aborted");
-		    timed_out = true;
-		    break;
-		}
-	    }
-
-	    // time-out
-	    if (time_spent >= script_time_out) {
-		y2error("Command timed out after %1 msec", time_spent);
-		timed_out = true;
-	    }
-	    
-	    time_spent = time_spent + sleep_step;
-	}
-	y2milestone("Time spent: %1 msec", time_spent);
-
-	// fetching the return code if not timed-out
-	if (! timed_out) {
-	    y2milestone ("getting output");
-	    script_out  = splitstring((string)SCR::Read(.process.read, processID), "\n");
-	    y2milestone ("getting errors");
-	    script_err  = splitstring((string)SCR::Read(.process.read_stderr, processID), "\n");
-	    y2milestone ("getting status");
-	    return_code = (integer) SCR::Read(.process.status, processID);
-	}
-	y2milestone ("killing");
-	SCR::Execute(.process.kill, processID);
-
-	// release the process from the agent
-	SCR::Execute(.process.release, processID);
-
-	map command_ret = $[
-	    "exit"   : return_code,
-	    "stdout" : script_out,
-	    "stderr" : script_err,
-	];
-	if (timed_out)
-	    command_ret["timed_out"]	= time_spent;
-	return command_ret;
-    }
-
-    /**
-     * Run
-     * - with a timeout
-     * - on dumb terminal to disable colors etc
-     * - using 'exit $?' because of buggy behavior '.background vs. ZMD' (FIXME still needed???)
-     * @param command a command
-     * @param log_command a command to log
-     * @param seconds timeout
-     * @return map with out, err and ret_code
-     */
-    global map RunDumbTimeout (string command, string log_command, integer seconds) {
-	string dumb_format = "export TERM=dumb; %1; exit $?";
-	string dumb_command = sformat (dumb_format, command);
-	string dumb_log_command = sformat (dumb_format, log_command);
-	// explicit export in case TERM was not in the environment
-	map ret = RunCommandWithTimeout (dumb_command, dumb_log_command, seconds);
-	if (ret == nil) ret = $[];
-	return ret;
-    }
-
-    /**
-     * Run with a long timeout
-     * @param command a command
-     * @param log_command a command to log
-     * @return map with out, err and ret_code
-     */
-    map RunLongLog (string command, string log_command) {
-	return RunDumbTimeout (command, log_command, 1800);
-    }
-
-    /**
-     * Run with a long timeout
-     * @param command a command
-     * @return map with out, err and ret_code
-     */
-    map RunLong (string command) {
-	return RunLongLog (command, command);
-    }
-
-    /**
-     * path to ZMD CLI
-     */
-    const string rug = "/usr/bin/rug";
-
-    /**
-     * Detect whether ZMD is running
-     */
-    boolean CheckZMDStatus () {
-	map zmd_status = RunLong (rug + " ping >/dev/null");
-	y2milestone("ZMD status: %1, err: %2", zmd_status["exit"]:nil, zmd_status["stderr"]:[]);
-	// Argh zis suks so mutch! #170549
-	return zmd_status["exit"]:nil == 0 || zmd_status["stderr"]:[] == [];
-    }
-
-    list<string> known_urls = nil;
-
-    /**
-     * Force calling rug on next @ref IsUrlKnownToZMD
-     */
-    void ResetKnownServiceCache () {
-	known_urls = nil;
-    }
-
-    /**
-     * Update the cache after a successful rug service-{add,delete} call
-     * @param adding add url or delete it
-     * @param url what
-     */
-    void UpdateKnownServiceCache (boolean adding, string url) {
-	if (adding) {
-	    known_urls = add (known_urls, url);
-	} else {
-	    known_urls = filter (string u, known_urls, ``( u != url ));
-	}
-    }
-
-    /**
-     * Whether the URL is known to rug service-list.
-     * The known services are cached,
-     * the caller should use @ref ResetKnownServiceCache if appropriate
-     * (each time when coming from outside this module at least)
-     * @return boolean or nil if determining the status failed
-     */
-    boolean IsUrlKnownToZMD (string url) {
-	if (known_urls == nil)
-	{
-	    //format: "3|Active|ZYPP|ServiceName|ftp://example.org/update/10.1"
-	    // With empty lines and "Waking up ZMD...Done" as a distraction
-	    map ret = RunLong (rug + " --no-abbrev --terse service-list | cut -d'|' -f5 --only-delimited");
-	    if (ret["stdout"]:nil == nil) {
-		y2error("Listing of services failed, returned %1", ret);
-		return nil;
-	    }
-	    // really individual lines?
-	    known_urls = (list <string>) ret["stdout"]:[];
-	    list<string> log_known_urls = maplist (string u, known_urls, ``(
-						       URL::HidePassword(u)
-						       ));
-	    y2milestone ("known %1", log_known_urls);
-	}
-	return contains (known_urls, url);
-    }
-
-    /**
-     * Get a ZMD preference
-     * @param pref see "rug get-prefs" 
-     */
-    string RugGetPref (string pref) {
-	// "pref|value"
-	map ret = RunLong (sformat ("%1 --terse get-prefs %2 | cut -d'|' -f2 --only-delimited", rug, pref));
-	if (ret["stdout"]:nil == nil) {
-	    y2error("GetPref failed, returned %1", ret);
-	    return nil;
-	}
-	string line = ret["stdout", 0]:"";
-	return deletechars (line, "\n");
-    }
-
-    /**
-     * Set a ZMD preference
-     */
-    void RugSetPref (string pref, string value) {
-	map ret = RunLong (sformat ("%1 set-prefs %2 '%3'", rug, pref, value));
-	y2milestone ("ret %1", ret);
-    }
-
-    /**
-     * Adds a ZYPP service into ZMD
-     * @param src_id repository id
-     * @return success
-     */
-    boolean AddOrDeleteZYPPServiceIntoZMD (integer src_id, boolean adding) {
-	map gendata = Pkg::SourceGeneralData (src_id);
-	string stype = gendata["type"]:""; // metadata type
-	if (stype == "YaST") stype = "zypp";	/* 'rug' only accepts yum or zypp  */
-	string url = gendata["url"]:"";
-	string log_url = URL::HidePassword (url);
-	// ZMD must have unique URIs, so we append the alias
-	string alias = gendata["alias"]:"";
-
-	y2milestone ("id: %1, type: %2, url: %3, alias: %4", src_id, stype, log_url, alias);
-	if (stype == "" || url == "" || alias == "") {
-	    y2error ("Internal error: stype, url, or alias is empty ?!");
-	    return false;
-	}
-
-	// yum repositories do not need+understand the alias, #164083
-	// The above reason is obsolete but we keep compatibility with
-	// the service-delete zmd helper
-	if (stype == "zypp")
-	{
-	    // URL (un)escapes for us
-	    // really needed, #247249
-	    map parsed_url = URL::Parse (url);
-	    string query = parsed_url["query"]:"";
-	    if (query != "") query = query + "&";
-	    parsed_url["query"] = query + "alias=" + alias;
-	    string test_url = URL::Build (parsed_url);
-	    url = test_url;
-	}
-	log_url = URL::HidePassword (url);
-	y2milestone ("zmd url: %1", log_url);
-
-	// we're done if known and adding or unknown and deleting.
-	// if the status is uncertain (error),
-	// we proceed to be able to report it
-	boolean done_already = adding == IsUrlKnownToZMD (url);
-	if (done_already) {
-	    y2milestone ("already in sync");
-	    return true;
-	}
-
-	string name = alias;
-	string owner = "zypp";	// not stype: #168739
-
-	string command = nil;
-	string log_command = nil;
-	// be quiet, #179080
-	if (adding) {
-	    const string format = "%4 --quiet service-add --type='%3' '%1' '%2' && %4 subscribe '%1'";
-	    command = sformat (format,         url, name, owner, rug);
-	    log_command = sformat (format, log_url, name, owner, rug);
-	}
-	else {
-	    const string format = "%2 --quiet service-delete '%1'";
-	    command = sformat (format, url, rug);
-	    log_command = sformat (format, log_url, rug);
-	}
-	map ret = RunLongLog (command, log_command); // #165145
-	if (ret["exit"]:nil == 0) {
-	    UpdateKnownServiceCache (adding, url);
-	    return true;
-	} else {
-	    string message = adding?
-		// rug is a command name
-		_("Your service was added successfully in YaST, but could not be synchronized with ZENworks."):
-		_("Your service was deleted successfully in YaST, but could not be synchronized with ZENworks.");
-	    message = message + ":";
-	    if (ret["stdout"]:[] != [])
-		message = message + "\n" + mergestring (ret["stdout"]:[], "\n");
-	    if (ret["stderr"]:[] != [])
-		message = message + "\n" + mergestring (ret["stderr"]:[], "\n");
-	    else if (haskey (ret, "timed_out"))
-		// error message
-		// FIXME "ms" or plural gettext
-		message = message + "\n" + (ret["timed_out"]:1000 < 1000 ? sformat (_("Command timed out after %1 milliseconds."), ret["timed_out"]:1000)
-		// error message
-		: sformat (_("Command timed out after %1 seconds."), (ret["timed_out"]:1000)/1000));
-	    Report::LongError (message);
-	    return false;
-	}
-    }
-
-    /* ZMD service name - used for starting and stopping ZMD */
-    string zmd_service_name = "/etc/init.d/novell-zmd";
-
-    /**
-     * Start ZMD if it was not running
-     * Report::Error on failure
-     * @return an opaque handle
-     */
-    map ZMDStart () {
-	map zmd_handle = $[];
-	// #214588: don't complain if it is not installed
-	boolean installed = (integer) SCR::Read (.target.size, zmd_service_name) > 0;
-	if (! installed) {
-	    y2milestone ("ZMD is not installed");
-	    return $[ "was_running": false, "is_running": false ];
-	}
-
-	boolean running = CheckZMDStatus ();
-	zmd_handle ["was_running"] = running;
-	if (! running) {
-	    // Starting the service
-	    map zmd_start = RunLong (zmd_service_name + " start");
-	    y2milestone("ZMD start: %1", zmd_start);
-	}
-	// Checking the status after start
-	running = CheckZMDStatus ();
-	zmd_handle ["is_running"] = running;
-	if (! running) {
-	    Report::Error(Message::CannotStartService(zmd_service_name));
-	}
-	return zmd_handle;
-    }
-
-
-    /**
-     * @param zmd_handle what ZMDStart returned
-     * @return can we work with ZMD now
-     */
-    boolean ZMDWorking (map zmd_handle) {
-	return zmd_handle["is_running"]:false;
-    }
-
-    /**
-     * Restore the status before ZMDStart
-     * Report::Error on failure
-     * @param zmd_handle what ZMDStart returned
-     */
-    void ZMDRestore (map zmd_handle) {
-	// It was running, nothing to change
-	if (zmd_handle["was_running"]:false)
-	    return;
-	
-	if (zmd_handle["is_running"]:false)
-	{
-	    y2milestone("Stopping service ZMD %1", zmd_service_name);
-	    map zmd_stop = RunLong (zmd_service_name + " stop");
-	    y2milestone("ZMD stop: %1", zmd_stop);
-	    // #166900, if stop fails it means it is still busy and
-	    // will stop later
-	    if (false && zmd_stop["exit"]:nil != 0) {
-		Report::Error(Message::CannotStopService(zmd_service_name));
-	    }
-	}
-	y2milestone("ZMD stopped");
-    }
-
-    integer source_locked = 0;
-    const string source_lock_flag = "/var/lib/zypp/sources-being-processed-by-yast";
-    /**
-     * Start a section where other processes (such as ZMD helpers) should not
-     * access the repository database. #170113
-     * The calls may be nested.
-     */
-    global void Lock () {
-	if (source_locked == 0)
-	{
-	    SCR::Write (.target.string, source_lock_flag, "bug 170113");
-	}
-	source_locked = source_locked + 1;
-	y2milestone ("lock: %1", source_locked);
-    }
-
-    /**
-     * Other processes may access the repository database again
-     */
-    global void Unlock () {
-	source_locked = source_locked - 1;
-	if (source_locked < 0)
-	{
-	    y2internal ("Too many unlocks!");
-	    source_locked = 0;
-	}
-	if (source_locked == 0)
-	{
-	 SCR::Execute (.target.remove, source_lock_flag);
-	}
-	y2milestone ("unlock: %1", source_locked);
-    }
-
-
     /**
      * Obsoleted (empty implementation), ZMD (ZLM7.3) on sle11 supports only HTTP and FTP repositories,
      * sync would fail for other types. See bnc#480845 for more details.
      *
-     * Checks whether ZMD is running, starts it when isn't. Checks whether a ZYPP repository is listed
-     * in the ZMD services, adds one if it is missing.
-     * Everything is done via the .process agent with timeout (number in seconds).
-     *
-     * @return boolean whether the syncing succeeds
+     * @param added_src_ids dummy parameter
+     * @param deleted_src_ids dummy parameter
+     * @return success - always true
      */
-    global boolean SyncYaSTInstSourceWithZMD () {
-	y2warning(-1, "SourceManager::SyncYaSTInstSourceWithZMD() is obsoleted (does nothing). ZMD sychronization has been removed (see bnc#480845 for details). Backtrace follows:");
-	return true;
-
-	// Notes for maintainer:
-	//     - using .process agent because of ZMD/rug call that can stuck
-	//     - using 'exit $?' that work well with ZMD/rug and .background together (FIXME still needed???)
-	//     - using TERM=dumb to suppress colors, progress bars etc. from ZMD/rug
-	//     - when the function finishes, it must leave ZMD in the same status (running/stopped)
-	//       as it was when the function started
-	//
-	// WARNIG: this function starts ZMD and expects that LIBZYPP has no lock over
-	//         the RPM database. You can run it only when the RPM is not locked
-	//         otherwise the ZMD will block itself!
-
-	UI::OpenDialog (`VBox (
-			    // popup progress information
-			    `Label(SyncLabel ()), // #221250
-			    `PushButton (`id (`abort), Label::AbortButton ())
-			    ));
-	y2milestone("--- Syncing YaST repositories with ZMD ---");
-
-	Lock ();
-
-	boolean ret = false;
-	// Check the ZMD status and start if not running
-	// If the ZMD wasn't running, we will try to start it
-	// and then we will have to stop it at the end
-	map zmd_handle = ZMDStart ();
-	if (ZMDWorking (zmd_handle)) {
-	    // now we can work
-
-	    if (true) {
-		string zmd_security_level = RugGetPref ("security-level");
-		// The user has already decided to trust the inst repositories
-		// otherwise we would not be here. Do not ask again.
-		// #182747
-		RugSetPref ("security-level", "none");
-
-		list<integer> src_ids = Pkg::SourceGetCurrent (false /*also disabled*/);
-		ResetKnownServiceCache ();
-		boolean added_ok = true;
-		foreach (integer src_id, src_ids, {
-		    map gendata = Pkg::SourceGeneralData (src_id);
-		    // #219414, delete disabled ones (previous product version)
-		    boolean add_or_del = gendata["enabled"]:true;
-		    added_ok = AddOrDeleteZYPPServiceIntoZMD (src_id, add_or_del) && added_ok;
-		});
-		if (added_ok) {
-		    y2milestone("Adding ZYPP service succeeded");
-		} else {
-		    Report::Error(Message::CannotWriteSettingsTo("ZMD"));
-		    y2error("Adding ZYPP service failed");
-		}
-		ret = added_ok;
-
-		// restore
-		if (zmd_security_level != nil)
-		{
-		    RugSetPref ("security-level", zmd_security_level);
-		}
-	    }
-	}
-	ZMDRestore (zmd_handle);
-
-	Unlock ();
-
-	y2milestone("--- Syncing finished ---");
-	UI::CloseDialog();
-	return ret;
-    }
-
-    /**
-     * Obsoleted (empty implementation), ZMD (ZLM7.3) on sle11 supports only HTTP and FTP repositories,
-     * sync would fail for other types. See bnc#480845 for more details.
-     *
-     * Sync the changed repositories to ZENworks
-     * @param added_src_ids ids of repositories that were added
-     * @param deleted_src_ids ids of repositories that were deleted
-     * @return success
-     */
+    /* TODO FIXME: remove when it's not used in other modules */
     global boolean SyncAddedAndDeleted (list<integer> added_src_ids,
 					list<integer> deleted_src_ids) {
 
 	y2warning(-1, "SourceManager::SyncAddedAndDeleted() is obsoleted (does nothing). ZMD sychronization has been removed (see bnc#480845 for details). Backtrace follows:");
 	return true;
-
-	boolean ret = false;
-	Lock ();
-	map zmd_handle = ZMDStart ();
-	if (ZMDWorking (zmd_handle)) {
-	    ret = true;
-	    ResetKnownServiceCache ();
-
-	    string zmd_security_level = RugGetPref ("security-level");
-	    RugSetPref ("security-level", "none"); // #190403
-
-	    // first delete, then add,
-	    // otherwise replacing a repository with itself fails: #175159
-	    foreach (integer id, deleted_src_ids, {
-		ret = AddOrDeleteZYPPServiceIntoZMD (id, false) && ret;
-	    });
-	    foreach (integer id, added_src_ids, {
-		ret = AddOrDeleteZYPPServiceIntoZMD (id, true) && ret;
-	    });
-
-	    if (zmd_security_level != nil)
-	    {
-		RugSetPref ("security-level", zmd_security_level);
-	    }
-	}
-	ZMDRestore (zmd_handle);
-	Unlock ();
-	return ret;
     }
+
 
     /**
      * Parse a URL query (already unescaped) to a map.
@@ -1279,14 +662,6 @@ global list Overview() {
 	map<string,integer> by_url = get_url_to_id ();
 	y2milestone ("url mapping: %1", by_url);
 
-	Lock ();
-	map zmd_handle = $[]; // ZMDStart ();
-	boolean zmd_working = false; // ZMDWorking (zmd_handle);
-
-	ResetKnownServiceCache ();
-
-	boolean target_loaded = false;
-
 	// add the repositories
 	// but do not make duplicates (#168740)
 	// we detect them based on alias that suse_register gives us (#158850#c17)
@@ -1295,8 +670,6 @@ global list Overview() {
 	/// servers for SL
 	/// Anyway that means only that #168740 remains unfixed for SL
 	foreach (string url, urls, {
-	    // #180820
-	    boolean is_nu = search (url, "$RCE") != nil;
 	    y2milestone ("Should add an update repository: %1", url);
 	    // inst_addon_update_sources also calls Pkg::SourceCreate
 	    // but it already skips duplicates
@@ -1307,10 +680,6 @@ global list Overview() {
 	    if (todel != -1)
 	    {
 		y2milestone ("deleting the old copy, repository %1", todel); 
-		if (!is_nu && zmd_working)
-		{
-		    AddOrDeleteZYPPServiceIntoZMD (todel, false);
-		}
 		Pkg::SourceDelete (todel);
 	    }
 	    // then add the new one
@@ -1335,42 +704,27 @@ global list Overview() {
 		}
 	    }
 
-	    // and add to ZENworks too, but only if it succeeded here (#180820)
 	    if (toadd != -1 && toadd != nil)
 	    {
 		ret = add (ret, url); // #180820#c26
-		if (!is_nu && zmd_working)
-		{
-		    AddOrDeleteZYPPServiceIntoZMD (toadd, true);
-		}
 
-		// call TargetLoad() if there is a patch available
-		if (!target_loaded)
-		{
-		    // is there any patch available?
-		    list patches = Pkg::ResolvableProperties("", `patch, "");
+		// is there any patch available?
+		list patches = Pkg::ResolvableProperties("", `patch, "");
 
-		    if (size(patches) > 0)
-		    {
-			// loaded target is required to get list of applicable patches (#270919)
-			y2milestone("Repository %1 provides %2 patches, loading target...", url, size(patches));
-			// suppose that we are running in an installed system and use "/" directory
-			Pkg::TargetInitialize("/");
-			Pkg::TargetLoad();
-			target_loaded = true;
-		    }
+		if (size(patches) > 0)
+		{
+		    // loaded target is required to get list of applicable patches (#270919)
+		    y2milestone("Repository %1 provides %2 patches, loading target...", url, size(patches));
+		    // suppose that we are running in an installed system and use "/" directory
+		    Pkg::TargetInitialize("/");
+		    Pkg::TargetLoad();
 		}
 	    }
 	});
 
-//	ZMDRestore (zmd_handle);
-	Unlock ();
-
 	return ret;
     }
 
-    // adding YaST repository into the ZMD
-    // ------------------------------------------------------------------------------------------------------
 
 /**
  *

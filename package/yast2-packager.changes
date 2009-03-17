@@ -3,6 +3,8 @@ Tue Mar 17 13:43:09 CET 2009 - lslezak@suse.cz
 
 - Removed ZMD synchronization option, ZMD cannot sychronize
   all libzypp repositories (bnc#480845)
+- Removed unused ZMD sync code
+- 2.18.3
 
 -------------------------------------------------------------------
 Fri Feb 20 17:38:52 CET 2009 - locilka@suse.cz
