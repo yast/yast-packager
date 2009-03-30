@@ -310,7 +310,7 @@ Only installed packages are displayed."));
        return !max_is_installed;
    }
 
-    map GetPackagerOptions()
+    map<string, any> GetPackagerOptions()
     {
 	// defaults
 	symbol mode = nil;
@@ -340,16 +340,18 @@ Only installed packages are displayed."));
 	// use default parameters for missing or invalid values
 	if (mode == nil)
 	{
-	    mode = `searchMode;
+	    // use summary mode if there is something to install (probably a suggested or recommended package) (bnc#465194)
+	    Pkg::PkgSolve(true); // select the packages
+	    mode = (Pkg::IsAnyResolvable(`any, `to_install) || Pkg::IsAnyResolvable(`any, `to_remove)) ? `summaryMode : `searchMode;
 	}
 	if (repo_management == nil)
 	{
 	    repo_management = Mode::normal();
 	}
 
-	map ret = $[ "dialog_type" : mode, "repo_mgmt" : repo_management ];
+	map<string, any> ret = $[ "mode" : mode, "repo_mgmt" : repo_management ];
 
-	y2milestone("inst_packages config: %1", ret);
+	y2milestone("PackagesUI::RunPackageSelector() options: %1", ret);
 
 	return ret;
    }
@@ -426,10 +428,10 @@ Install them now?
 	       // names of taboo packages
 	       list<string> taboo_packages = Pkg::GetPackages(`taboo, true);
 
-		map opts = GetPackagerOptions();
+		map<string,any> opts = GetPackagerOptions();
 		y2milestone("Using packager widget options: %1", opts);
 
-	       result = (symbol)WFM::CallFunction( "inst_packages", [opts]);	// No: ask user via package selection widget
+	       result = PackagesUI::RunPackageSelector(opts);		// No: ask user via package selection widget
 	       y2milestone ("inst_packages returns %1", result);
 	       if (result == `accept)
 	       {
