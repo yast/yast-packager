@@ -29,7 +29,7 @@
     global string  HidePassword(string url) {
 	// Url::Build(Url::Parse) transforms the URL too much, see #247249#c41
 	// replace ://user:password@ by ://user:PASSWORD@
-	string subd = regexpsub (url, "(://[^/:]*):[^/@]*@,", "://\\1:PASSWORD@");
+	string subd = regexpsub (url, "(.*)(://[^/:]*):[^/@]*@(.*)", "\\1\\2:PASSWORD@\\3");
 	return subd == nil? url: subd;
     }
 

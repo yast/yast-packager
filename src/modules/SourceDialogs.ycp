@@ -710,9 +710,16 @@ void ServerStore (string key, map event) {
 	    directory = directory + ";workgroup=" + workgroup;
     }
     parsed["path"] = directory;
-    y2milestone("Entered URL: %1", parsed);
+
+    map log_parsed = parsed;
+    if (haskey(log_parsed, "pass") && size(log_parsed["pass"]:"") > 0)
+    {
+	log_parsed["pass"] = "PASSWORD";
+    }
+    y2milestone("Entered URL: %1", log_parsed);
+
     _url = URL::Build (parsed);
-    y2milestone("URL::Build: %1", _url);
+    y2milestone("URL::Build: %1", InstURL::HidePassword(_url));
     if (UI::WidgetExists (`id (`ch_iso)))
     {
 	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
