@@ -916,7 +916,8 @@ global list Overview() {
 	map gendata = Pkg::SourceGeneralData (src_id);
 	string stype = gendata["type"]:""; // metadata type
 	if (stype == "YaST") stype = "zypp";	/* 'rug' only accepts yum or zypp  */
-	string url = gendata["url"]:"";
+	// URL including password
+	string url = Pkg::SourceURL(src_id);
 	string log_url = InstURL::HidePassword (url);
 	// ZMD must have unique URIs, so we append the alias
 	string alias = gendata["alias"]:"";

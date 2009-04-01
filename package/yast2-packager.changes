@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  1 11:28:41 CEST 2009 - lslezak@suse.cz
+
+- fixed ZMD repository sychronization - properly synchronize
+  repositories with password in the URL (bnc#410417)
+
+-------------------------------------------------------------------
 Wed Jun 11 09:59:53 CEST 2008 - lslezak@suse.cz
 
 - added options for sw_single client, display proper workflow for
