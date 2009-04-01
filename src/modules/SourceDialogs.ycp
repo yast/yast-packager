@@ -23,6 +23,7 @@ import "URL";
 import "Popup";
 import "CWM";
 import "SourceManager";
+import "InstURL";
 
 // common functions / data
 
