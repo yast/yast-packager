@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr  3 14:31:20 CEST 2009 - locilka@suse.cz
+
+- Adjusting initial repository name according to LABEL in content
+  file. Exporting the same function for Add-Ons (bnc #481828).
+- 2.18.4
+
+-------------------------------------------------------------------
 Mon Mar 30 14:41:21 CEST 2009 - lslezak@suse.cz
 
 - sw_single - display the installation summary when there is

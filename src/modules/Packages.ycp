@@ -1345,6 +1345,81 @@ boolean Initialize_BaseInit (boolean show_popup, string & base_url, string & log
     return true;
 }
 
+/**
+ * Adjusts repository name according to LABEL in content file
+ * or a first product found on the media (as a fallback).
+ *
+ * @param integer repository ID
+ * @return boolean if successful
+ *
+ * @see BNC #481828
+ */
+global boolean AdjustSourcePropertiesAccordingToProduct (integer src_id) {
+    // This function is used from several places (also YaST Add-On)
+
+    if (src_id == nil || src_id < 0) {
+	y2error ("Wrong source ID: %1", src_id);
+	return nil;
+    }
+
+    y2milestone ("Trying to adjust repository name for: %1", src_id);
+    string new_name = nil;
+
+    // At first, try LABEL from content file
+    string contentfile = Pkg::SourceProvideSignedFile (src_id, 1, "/content", true /* optional */);
+    if (contentfile != nil) {
+	map contentmap = (map) SCR::Read (.content_file, contentfile);
+	if (haskey (contentmap, "LABEL") && contentmap["LABEL"]:nil != nil && contentmap["LABEL"]:"" != "") {
+	    new_name = contentmap["LABEL"]:"";
+
+	    if (regexpmatch (new_name, "^\[ \t\]\+"))
+		new_name = regexpsub (new_name, "^\[ \t\]\+(.*)", "\\1");
+	    if (regexpmatch (new_name, "\[ \t\]\+$"))
+		new_name = regexpsub (new_name, "(.*)\[ \t\]\+$", "\\1");
+
+	    y2milestone ("Using LABEL from content file: %1", new_name);
+	} else {
+	    y2warning ("No (useful) LABEL in product content file");
+	}
+    }
+
+    // As a fallback, 
+    if (new_name == nil || new_name == "") {
+	y2milestone ("Trying to get repository name from products");
+	list <map <string, any> > all_products = Pkg::ResolvableProperties ("", `product, "");
+	foreach (map <string, any> one_product, all_products, {
+	    // source ID matches
+	    if (one_product["source"]:-1 == src_id) {
+		if (haskey (one_product, "name") && one_product["name"]:nil != nil && one_product["name"]:"" != "") {
+		    new_name = one_product["name"]:"";
+		    y2milestone ("Product name found: %1", new_name);
+		    break;
+		}
+	    }
+	});
+    }
+
+    // Finally, some (new) name has been adjusted
+    if (new_name != nil && new_name != "") {
+	y2milestone ("Adjusting repository name");
+	list <map <string, any> > sources_got = Pkg::SourceEditGet();
+	list <map <string, any> > sources_set = [];
+	foreach (map <string, any> one_source, sources_got, {
+	    if (one_source["SrcId"]:-1 == src_id) {
+		one_source["name"] = new_name;
+	    }
+	    sources_set = add (sources_set, one_source);
+	});
+
+	return Pkg::SourceEditSet (sources_set);
+    // Bad luck, nothing useful found
+    } else {
+	y2warning ("No name found");
+
+	return false;
+    }
+}
+
 global void Initialize_StageInitial (boolean show_popup, string base_url, string log_url) {
 	    integer initial_source = nil;
 	    ImportGPGKeys ();
@@ -1382,6 +1457,9 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 		    }
 		}
 	    }
+
+	    // BNC #481828: Using LABEL from content file as a repository name
+	    AdjustSourcePropertiesAccordingToProduct (base_source_id);
 
 	    base_source_id = initial_source;
 	    y2milestone ("Base source ID: %1", base_source_id);
