@@ -420,6 +420,12 @@
 	{
 	    ret = PackageCallbacks::DonePackage( error, reason );
 	}
+	else
+	{
+	    // put additional rpm output to the installation log
+	    SlideShow::AppendMessageToInstLog(reason);
+	}
+
 	if (size (ret) == 0 || tolower (substring (ret, 0, 1)) != "r")
 	{
 	    PackageSlideShow::SlideDisplayDone(
