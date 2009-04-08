@@ -401,6 +401,9 @@ Only installed packages are displayed."));
 
    do
    {
+       // reset summary
+       PackagesUI::ResetPackageSummary();
+
        force_restart = false;
 
 	list<string> old_failed_packs = [];

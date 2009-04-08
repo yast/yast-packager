@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Apr  8 10:38:15 CEST 2009 - lslezak@suse.cz
+
+- Slideshow fixes - display additional rpm output in the
+  installation log, use installation log summary instead of
+  non-existing y2logRPM file (bnc#456446)
+- Avoid division by zero when total size to install is less than
+  1024B (converted to 0kB)
+
+-------------------------------------------------------------------
 Fri Apr  3 14:31:20 CEST 2009 - locilka@suse.cz
 
 - Adjusting initial repository name according to LABEL in content
