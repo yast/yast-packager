@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr  9 09:07:53 CEST 2009 - lslezak@suse.cz
+
+- do not initialize ProductControl in the DirInstall constructor,
+  it breaks add-on installation (bnc#400782)
+- 2.13.181
+
+-------------------------------------------------------------------
 Wed Apr  1 11:28:41 CEST 2009 - lslezak@suse.cz
 
 - fixed ZMD repository sychronization - properly synchronize
