@@ -52,11 +52,6 @@ global void InitProductControl () {
 
 }
 
-global void DirInstall()
-{
-    InitProductControl ();
-}
-
 global string Propose() 
 {
     string color = "red";
