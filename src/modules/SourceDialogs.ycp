@@ -566,10 +566,9 @@ void CDInit (string key) {
     map parsed = URL::Parse (_url);
     string scheme = parsed["scheme"]:"";
     if (scheme == "dvd")
-	UI::ChangeWidget (`id (`cd), `Value, true);
-    else
 	UI::ChangeWidget (`id (`dvd), `Value, true);
-    UI::SetFocus (`cd);
+    else
+	UI::ChangeWidget (`id (`cd), `Value, true);
 }
 
 /**
@@ -579,9 +578,14 @@ void CDInit (string key) {
  */
 void CDStore (string key, map event) {
     symbol device = (symbol)UI::QueryWidget (`id (`device), `CurrentButton);
-    if (device == `cd)
+    map parsed = URL::Parse (_url);
+    string scheme = tolower(parsed["scheme"]:"");
+
+    // preserve other URL options, e.g. ?devices=/dev/sr0
+    // change the URL only when necessary
+    if (device == `cd && scheme != "cd")
 	_url = "cd:///";
-    else
+    else if (device == `dvd && scheme != "dvd")
 	_url = "dvd:///";
 }
 
