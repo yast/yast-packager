@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 10 18:34:12 CEST 2009 - lslezak@suse.cz
+
+- copy /etc/shadow from inst-sys to the target during installation
+  (bnc#429992)
+
+-------------------------------------------------------------------
 Thu Apr  9 09:07:53 CEST 2009 - lslezak@suse.cz
 
 - do not initialize ProductControl in the DirInstall constructor,
