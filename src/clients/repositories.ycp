@@ -969,7 +969,32 @@ All changes will be lost.");
 			url = SourceDialogs::EditPopupType(url, plaindir);
 
 			if ( size( url ) == 0 ) break;
-			if (url != old_url || plaindir != SourceDialogs::IsPlainDir())
+
+			boolean same_url = (url == old_url);
+
+			// special check for cd:// and dvd:// repositories
+			if (!same_url)
+			{
+			    map new_url_parsed = URL::Parse(url);
+			    map old_url_parsed = URL::Parse(old_url);
+
+			    string new_url_scheme = tolower(new_url_parsed["scheme"]:"");
+			    string old_url_scheme = tolower(old_url_parsed["scheme"]:"");
+
+			    // ignore cd:// <-> dvd:// changes if the path is not changed
+			    if ((new_url_scheme == "cd" || new_url_scheme == "dvd")
+				&& (old_url_scheme == "cd" || old_url_scheme == "dvd"))
+			    {
+				// compare only directories, ignore e.g. ?device=/dev/sr0 options
+				if (new_url_parsed["path"]:"" == old_url_parsed["path"]:"")
+				{
+				    Pkg::SourceChangeUrl(sourceState[ "SrcId" ]:-1, url);
+				    same_url = true;
+				}
+			    }
+			}
+
+			if (!same_url || plaindir != SourceDialogs::IsPlainDir())
 			{
 			  y2milestone ("URL or plaindir flag changed, recreating the source");
 			  // copy the refresh flag

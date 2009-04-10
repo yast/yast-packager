@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Apr 10 16:48:28 CEST 2009 - lslezak@suse.cz
+
+- repository manager - do not refresh CD/DVD repositories after
+  changing the name, correctly display current scheme (CD/DVD),
+  preserve device options when changing the repository name
+  (bnc#469193)
+- 2.18.5
+
+-------------------------------------------------------------------
 Wed Apr  8 10:38:15 CEST 2009 - lslezak@suse.cz
 
 - Slideshow fixes - display additional rpm output in the
