@@ -1490,7 +1490,8 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 		string file = one_aop[0]:"";
 		string type = one_aop[1]:"";
 
-		tmp_add_on_products = Pkg::SourceProvideDigestedFile (initial_source, 1, file, true);
+		// BNC #496404: These files should not be checked for signatures
+		tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, file);
 
 		if (tmp_add_on_products != nil) {
 		    add_on_products_list = sformat ("%1/add_on_products", SCR::Read (.target.tmpdir));
