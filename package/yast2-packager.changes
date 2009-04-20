@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 20 12:19:34 CEST 2009 - locilka@suse.cz
+
+- Not checking signatures for add_on_products(.xml) file(s), the
+  file is cerated by the customer and contains links to signed
+  repositories (bnc #496404).
+
+-------------------------------------------------------------------
 Fri Apr 10 16:48:28 CEST 2009 - lslezak@suse.cz
 
 - repository manager - do not refresh CD/DVD repositories after
