@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 21 15:34:48 CEST 2009 - lslezak@suse.cz
+
+- Append additional RPM output to the installation log only if it
+  is not empty (bnc#495047)
+
+-------------------------------------------------------------------
 Tue Apr 21 14:05:09 CEST 2009 - locilka@suse.cz
 
 - Using new function GetCachedFileFromSource from AddOnProduct
