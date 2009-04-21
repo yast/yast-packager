@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 21 14:05:09 CEST 2009 - locilka@suse.cz
+
+- Using new function GetCachedFileFromSource from AddOnProduct
+  to avoid from a 'jukebox' issues when more different physical
+  media used during installation (bnc #486785).
+
+-------------------------------------------------------------------
 Mon Apr 20 12:19:34 CEST 2009 - locilka@suse.cz
 
 - Not checking signatures for add_on_products(.xml) file(s), the
