@@ -21,6 +21,7 @@
     import "Label";
     import "SourceDialogs";
     import "Report";
+    import "Progress";
 
     textdomain "packager";
 
@@ -36,9 +37,7 @@
     boolean download_meta = true;
 
     boolean LicenseAccepted (integer id) {
-	Wizard::CreateDialog ();
 	boolean ret = AddOnProduct::AcceptedLicenseAndInfoFile (id);
-	UI::CloseDialog ();
 	return ret;
     }
 
@@ -64,6 +63,18 @@
 		PackageSystem::CheckAndInstallPackages(["cifs-mount"]);
 	    }
 
+	    Progress::New (
+		// TRANSLATORS: dialog caption
+		_("Adding a New Repository"),
+		" ",
+		3,
+		[ _("Check Repository Type"), _("Add Repository"), _("Read Repository License") ],
+		[ _("Checking Repository Type"), _("Adding Repository"), _("Reading Repository License") ],
+		// TRANSLATORS: dialog help
+		_("<p>Please wait while the repository manager downloads the repository details...</p>")
+	    );
+
+	    Progress::NextStage();
 	    string service_type = Pkg::ServiceProbe(url);
 	    y2milestone("Probed service type: %1", service_type);
 
@@ -242,6 +253,7 @@ in the packages selection, continue."),
 		    repo_prop["base_urls"] = [ url ];
 		    repo_prop["type"] = repo_type;
 
+		    Progress::NextStage();
 		    integer new_repo_id = Pkg::RepositoryAdd(repo_prop);
 		    y2milestone("Added repository: %1: %2", new_repo_id, repo_prop);
 
@@ -291,6 +303,7 @@ from URL '%1'."), URL::HidePassword(url) );
             }
             else
             {
+		Progress::NextStage();
                 foreach( integer id, newSources, ``{
 		  if (! LicenseAccepted (id))
 		  {
