@@ -1,8 +1,16 @@
 -------------------------------------------------------------------
+Thu Apr 23 17:16:36 CEST 2009 - lslezak@suse.cz
+
+- added a new progress dialog when registering a new repository,
+  download progresses are embedded into the progress dialog instead
+  of separate popups for each file (bnc#466808)
+
+-------------------------------------------------------------------
 Thu Apr 23 15:19:17 CEST 2009 - lslezak@suse.cz
 
 - display an additional help when adding an ISO repository over
   FTP or HTTP protocol fails (bnc#341668)
+- 2.18.6
 
 -------------------------------------------------------------------
 Tue Apr 21 15:34:48 CEST 2009 - lslezak@suse.cz
