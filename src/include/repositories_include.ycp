@@ -276,10 +276,10 @@ from URL '%1'."), URL::HidePassword(url) );
 		    map parsed_url = URL::Parse(url);
 		    string scheme = tolower(parsed_url["scheme"]:"");
 
-		    if (contains(["ftp", "http", "https"], scheme))
+		    if (contains(["ftp", "sftp", "http", "https"], scheme))
 		    {
 			// error message
-			_msg1 = _msg1 + "\n\n" + _("Using an ISO image over ftp or http(s) protocol is not possible.\nChange the protocol or unpack the ISO image on the server side.");
+			_msg1 = _msg1 + "\n\n" + _("Using an ISO image over ftp or http protocol is not possible.\nChange the protocol or unpack the ISO image on the server side.");
 		    }
 		}
 		// popup message part 2
