@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 23 15:19:17 CEST 2009 - lslezak@suse.cz
+
+- display an additional help when adding an ISO repository over
+  FTP or HTTP protocol fails (bnc#341668)
+
+-------------------------------------------------------------------
 Tue Apr 21 15:34:48 CEST 2009 - lslezak@suse.cz
 
 - Append additional RPM output to the installation log only if it
