@@ -270,6 +270,18 @@ in the packages selection, continue."),
 		// popup message part 1
                 string _msg1 = sformat( _("Unable to create repository
 from URL '%1'."), URL::HidePassword(url) );
+
+		if (regexpmatch(url, "\\.iso$"))
+		{
+		    map parsed_url = URL::Parse(url);
+		    string scheme = tolower(parsed_url["scheme"]:"");
+
+		    if (contains(["ftp", "http", "https"], scheme))
+		    {
+			// error message
+			_msg1 = _msg1 + "\n\n" + _("Using an ISO image over ftp or http(s) protocol is not possible.\nChange the protocol or unpack the ISO image on the server side.");
+		    }
+		}
 		// popup message part 2
                 string _msg2 = _("Try again?");
 
