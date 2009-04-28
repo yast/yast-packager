@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 28 16:33:41 CEST 2009 - lslezak@suse.cz
+
+- use URL.ycp for processing smb:// URLs (bnc#495109)
+
+-------------------------------------------------------------------
 Thu Apr 23 17:16:36 CEST 2009 - lslezak@suse.cz
 
 - added a new progress dialog when registering a new repository,
