@@ -41,7 +41,8 @@
 	return ret;
     }
 
-    define symbol createSource( string url, boolean plaindir, boolean download, string preffered_name ) ``{
+    define symbol createSourceImpl(string url, boolean plaindir, boolean download, string preffered_name)
+    {
 	y2milestone("createSource: %1, plaindir: %2, download: %3, name: %4", URL::HidePassword(url), plaindir, download, preffered_name);
 
         if ( url != "" )
@@ -339,6 +340,15 @@ Change the protocol or unpack the ISO image on the server side.");
 	    return `again;
 	}
     }
+
+// start createSource() function in extra wizard dialog
+symbol createSource(string url, boolean plaindir, boolean download, string preffered_name)
+{
+    Wizard::CreateDialog();
+    symbol ret = createSourceImpl(url, plaindir, download, preffered_name);
+    Wizard::CloseDialog();
+    return ret;
+}
 
 symbol StoreSource () {
     string url = SourceDialogs::GetURL ();
