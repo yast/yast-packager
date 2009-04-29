@@ -4,7 +4,7 @@
  * Authors:	Katarina Machalkova <kmachalkova@suse.cz>
  *		Lukas Ocilka <locilka@suse.cz>
  *
- * $Id:$
+ * $Id$
  *
  * This client provides UI for searching for packages
  * via Webpin XML.

@@ -5,7 +5,7 @@
  * Authors:	Lukas Ocilka <locilka@suse.cz>
  * Status:      Work in Progress
  *
- * $Id:$
+ * $Id$
  *
  * This module provides a complete set of functions that allows you to search
  * and select a new SLP repository.

@@ -7,7 +7,7 @@
  *
  * Example:	SCR::Read (.zypp_repos, "/etc/zypp/repo.d/")
  *
- * $Id:$
+ * $Id$
  */
 
 .zypp_repos
