@@ -972,6 +972,8 @@ All changes will be lost.");
 
 			boolean same_url = (url == old_url);
 
+			y2debug("same_url: %1 (old: %2, new: %3)", same_url, old_url, url);
+
 			// special check for cd:// and dvd:// repositories
 			if (!same_url)
 			{
@@ -1013,28 +1015,54 @@ All changes will be lost.");
 				boolean auto_refresh = sourceState["autorefresh"]:true;
 				boolean keeppackages = sourceState["keeppackages"]:false;
 				boolean enabled = sourceState["enabled"]:true;
-				y2milestone("Restoring the original properties: enabled: %1, autorefresh: %2, keeppackages: %3", enabled, auto_refresh, keeppackages);
+				integer priority = sourceState["priority"]:default_priority;
+				y2milestone("Restoring the original properties: enabled: %1, autorefresh: %2, keeppackages: %3, priority: %4", enabled, auto_refresh, keeppackages, priority);
 
 				// set the original properties
 				addedSource["autorefresh"] = auto_refresh;
 				addedSource["keeppackages"] = keeppackages;
 				addedSource["enabled"] = enabled;
+				addedSource["priority"] = priority;
 
-				sourceStatesOut[idx] = addedSource;
+				// get the ID of the old repo and mark it for removal
+				integer srcid = sourceStatesOut[global_current, "SrcId"]:-1;
+				if (srcid != -1)
+				{
+				    sourcesToDelete = add (sourcesToDelete, srcid);
+				    SourceManager::just_removed_sources = add (SourceManager::just_removed_sources, srcid);
+				}
+
+				// replace the data
+				sourceStatesOut[global_current] = addedSource;
+
+				// refresh only the name and URL in the table
+				UI::ChangeWidget(`id(`table), `Cell( global_current, 3), addedSource["name"]:"");
+				UI::ChangeWidget(`id(`table), `Cell( global_current, 5), url);
+
+				fillCurrentRepoInfo();
 			    }
-
-			    deleteSource( global_current );
-			    fillTable(repository_view, displayed_service);
-			    fillCurrentRepoInfo();
 			  }
 			}
 			else
 			{
 			    y2milestone ("URL is the same, not recreating the source");
-			    sourceState["name"] = SourceDialogs::GetRepoName ();
-			    sourceStatesOut[ global_current ] = sourceState;
-			    fillTable(repository_view, displayed_service);
-			    fillCurrentRepoInfo();
+
+			    string new_name = SourceDialogs::GetRepoName();
+			    if (new_name != sourceState["name"]:"")
+			    {
+				sourceState["name"] = new_name;
+				sourceStatesOut[ global_current ] = sourceState;
+
+				// update only the name cell in the table
+				UI::ChangeWidget(`id(`table), `Cell( global_current, 3), new_name);
+
+				fillCurrentRepoInfo();
+			    }
+			    else
+			    {
+				y2milestone("The repository name has not been changed");
+			    }
+
 			    createResult = `ok;
 			}
 

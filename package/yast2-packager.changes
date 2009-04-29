@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Apr 29 14:46:46 CEST 2009 - lslezak@suse.cz
+
+- replace only changed cells in the table after chaging repository
+  URL - keep the current sorting order (bnc#475961), do not change
+  the current item (bnc#411585)
+- preserve repository priority when changing URL
+- open create repository dialog in a new window, fixes broken UI
+  caused by the previous fix (bnc#269034)
+
+-------------------------------------------------------------------
 Tue Apr 28 16:33:41 CEST 2009 - lslezak@suse.cz
 
 - use URL.ycp for processing smb:// URLs (bnc#495109)
