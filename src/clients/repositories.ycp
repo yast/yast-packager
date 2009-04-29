@@ -455,7 +455,7 @@
 	    }
 	);
 
-	y2milestone("New service config: %1", sourceStatesOut);
+	y2milestone("New service config: %1", serviceStatesOut);
 	foreach(map<string,any> s, serviceStatesOut,
 	    {
 		string alias = s["alias"]:"";
@@ -1034,6 +1034,8 @@ All changes will be lost.");
 
 				// replace the data
 				sourceStatesOut[global_current] = addedSource;
+				// remove the duplicate at the end
+				sourceStatesOut = remove(sourceStatesOut, idx);
 
 				// refresh only the name and URL in the table
 				UI::ChangeWidget(`id(`table), `Cell( global_current, 3), addedSource["name"]:"");
@@ -1473,10 +1475,72 @@ symbol StartTypeDialog()
     return ret;
 }
 
+boolean KnownURL(string url)
+{
+    string scheme = tolower(URL::Parse(url)["scheme"]:"");
+
+    // alway create CD/DVD repository
+    if (scheme == "cd" || scheme == "dvd")
+    {
+	return false;
+    }
+
+    boolean ret = false;
+
+    foreach (map<string,any> src, sourceStatesOut,
+	{
+	    integer src_id = tointeger(src["SrcId"]:nil);
+	    map generalData = Pkg::SourceGeneralData(src_id);
+	    string src_url = generalData["url"]:"";
+
+	    if (src_url == url)
+	    {
+		ret = true;
+	    }
+	}
+    );
+
+    y2milestone("URL exists: %1", ret);
+
+    return ret;
+}
+
 symbol StartEditDialog()
 {
     y2milestone("Edit URL with protocol %1", selected_url_scheme);
-    symbol ret = SourceDialogs::EditDialogProtocol(selected_url_scheme);
+    symbol ret = nil;
+
+    do
+    {
+	ret = SourceDialogs::EditDialogProtocol(selected_url_scheme);
+
+	if (ret == `next)
+	{
+	    string url = SourceDialogs::GetURL();
+	    boolean known_url = KnownURL(url);
+
+	    if (known_url)
+	    {
+		// popup question, %1 is repository URL
+		if (!Popup::AnyQuestion("",
+		    sformat(_("Repository %1
+has been already added. Each repository should be added only once.
+
+Really add the repository again?"), URL::HidePassword(url)),
+		    Label::YesButton(),
+		    Label::NoButton(),
+		    `focus_no
+		    )
+		)
+		{
+		    // add URL again
+		    ret = nil;
+		}
+	    }
+	}
+    }
+    while (ret == nil);
+
     y2milestone("Result: %1", ret);
 
     return ret;
