@@ -8,6 +8,7 @@ Wed Apr 29 14:46:46 CEST 2009 - lslezak@suse.cz
 - open create repository dialog in a new window, fixes broken UI
   caused by the previous fix (bnc#269034)
 - confirm adding of an already known repository (URL) (bnc#471054)
+- 2.18.7
 
 -------------------------------------------------------------------
 Tue Apr 28 16:33:41 CEST 2009 - lslezak@suse.cz
