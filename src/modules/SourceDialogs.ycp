@@ -959,7 +959,7 @@ list<term> DiskSelectionList(list<map<string,any> > disks, string selected)
 
 void SetFileSystems(string selected_fs)
 {
-    list<string> fs_list = ["auto", "vfat", "ntfs", "ntfs-3g", "ext2", "ext3", "reiserfs", "xfs", "jfs", "iso9660"];
+    list<string> fs_list = ["auto", "vfat", "ntfs", "ntfs-3g", "ext2", "ext3", "ext4", "reiserfs", "xfs", "jfs", "iso9660"];
 
     list<term> items = maplist(string fs, fs_list,
 	{
