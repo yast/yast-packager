@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 14 15:49:48 CEST 2009 - lslezak@suse.cz
+
+- display the Configuration menu in the package selector
+  (bnc#497756)
+- 2.18.8
+
+-------------------------------------------------------------------
 Wed Apr 29 14:46:46 CEST 2009 - lslezak@suse.cz
 
 - replace only changed cells in the table after chaging repository

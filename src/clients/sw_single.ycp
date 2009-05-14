@@ -349,7 +349,7 @@ Only installed packages are displayed."));
 	    repo_management = Mode::normal();
 	}
 
-	map<string, any> ret = $[ "mode" : mode, "repo_mgmt" : repo_management ];
+	map<string, any> ret = $[ "mode" : mode, "enable_repo_mgr" : repo_management ];
 
 	y2milestone("PackagesUI::RunPackageSelector() options: %1", ret);
 
