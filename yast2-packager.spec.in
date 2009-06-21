@@ -59,7 +59,8 @@ Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
 Summary:	YaST2 - Package Library
 
 %description
--
+This package contains the scanner/parser and dependency checker for all
+packages handled by YaST2.
 
 @PREP@
 
