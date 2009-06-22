@@ -34,6 +34,13 @@ textdomain "packager";
 // list of already accepted licenses
 list <string> already_accepted_licenses = [];
 
+list <string> license_patterns = [
+    "license\\.html", "license\\.%1\\.html",
+    "license\\.htm",  "license\\.%1\\.htm",
+    "license\\.txt",  "license\\.%1\\.txt",
+    "license\\.*"
+];
+
 /**
  * Creates a unique identification from filename
  * (MD5sum + file size)
@@ -110,9 +117,9 @@ global term GetLicenseContent (string lic_lang, map <string, string> & licenses)
 
 	    // License is HTML (or RichText)
 	    if (regexpmatch(license_text, "</.*>"))
-		rt = `MinWidth (80,
-		    `RichText(`id (`welcome_text), license_text)
-		);
+		rt = `MinWidth (80, `RichText(`id (`welcome_text),
+		    license_text
+		));
 	    // License is plain text
 	    // details in BNC #449188
 	    else
@@ -610,7 +617,7 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
     }
 
     licenses = LicenseFiles (license_dir,
-	["license.txt", "license\\.%1\\.txt"]);
+	license_patterns);
     if (info_file == nil && size (licenses) == 0)
 	return `auto;
 
@@ -912,7 +919,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 
 global symbol AskAddOnLicenseAgreement (integer src_id) {
     return AskLicenseAgreement (src_id, "",
-	[ "license\\.txt", "license\\.%1\\.txt" ],
+	license_patterns,
 	"abort",
 	// back button is disabled
 	false, false, false);
@@ -927,7 +934,7 @@ global symbol AskFirstStageLicenseAgreement (string action) {
 	enable_back = false;
 
     return AskLicenseAgreement (nil, "",
-	[ "license\\.txt", "license\\.%1\\.txt" ],
+	license_patterns,
 	action,
 	// back button is enabled
 	enable_back, true, true);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 22 11:10:09 CET 2009 - locilka@suse.cz
+
+- Adjusted ProductLicense to look for more license filename
+  patterns (html, txt) (bnc #504803).
+
+-------------------------------------------------------------------
 Tue Mar 17 13:43:09 CET 2009 - lslezak@suse.cz
 
 - Removed ZMD synchronization option, ZMD cannot sychronize
