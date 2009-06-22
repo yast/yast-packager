@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 22 11:10:09 CEST 2009 - lslezak@suse.cz
+
+- Adjusted ProductLicense to look for more license filename
+  patterns (html, txt) (bnc #504803).
+
+-------------------------------------------------------------------
 Thu May 14 15:49:48 CEST 2009 - lslezak@suse.cz
 
 - display the Configuration menu in the package selector
