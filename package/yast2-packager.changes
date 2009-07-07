@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul  7 14:13:14 CEST 2009 - lslezak@suse.cz
+
+- use URL.ycp for processing smb:// URLs (bnc#495109)
+- 2.17.61
+
+-------------------------------------------------------------------
 Mon Jun 22 11:10:09 CET 2009 - locilka@suse.cz
 
 - Adjusted ProductLicense to look for more license filename
