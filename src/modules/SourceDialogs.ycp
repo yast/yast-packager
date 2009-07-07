@@ -1258,7 +1258,7 @@ void ServerStoreParts()
     {
 	string workgroup = (string)UI::QueryWidget (`id (`workgroup), `Value);
 	if (type == `samba && size (workgroup) > 0)
-	    directory = directory + ";workgroup=" + workgroup;
+	    parsed["domain"] = workgroup;
     }
     parsed["path"] = directory;
 
@@ -1490,14 +1490,7 @@ void ServerInit (string key) {
 	    dir = sharepath[1]:"";
 	    if (dir == nil)
 		dir = "/";
-	    string workgroup = "";
-	    if (regexpmatch (dir, "^.*;workgroup=[^;]+$"))
-	    {
-		workgroup = regexpsub (dir,
-		    "^.*;workgroup=([^;]+)$", "\\1");
-		dir = regexpsub (dir, "^(.*);workgroup=[^;]+$", "\\1");
-	    }
-	    UI::ChangeWidget (`id (`workgroup), `Value, workgroup);
+	    UI::ChangeWidget (`id (`workgroup), `Value, parsed["domain"]:"");
 	    UI::ChangeWidget (`id (`share), `Value, share);
 	}
 	UI::ChangeWidget (`id (`dir), `Value, dir);
