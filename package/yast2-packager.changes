@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul  8 12:51:30 CEST 2009 - lslezak@suse.cz
+
+- fixed another URL password logging into y2log (bnc#441944)
+- 2.13.183
+
+-------------------------------------------------------------------
 Wed Apr 22 13:41:58 CEST 2009 - lslezak@suse.cz
 
 - callbacks - close download popup and source progress popup if
