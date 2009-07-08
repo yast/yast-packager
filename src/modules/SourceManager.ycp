@@ -988,6 +988,10 @@ global list Overview() {
 		// error message
 		// FIXME "ms" or plural gettext
 		message = message + "\n" + sformat (_("Command timed out after %1 milliseconds."), ret["timed_out"]:1000);
+
+	    // replace password in the error message (bnc#441944#c28)
+	    message = String::Replace(message, url, log_url);
+
 	    Report::LongError (message);
 	    return false;
 	}

@@ -32,6 +32,7 @@
     import "Popup";
     import "AddOnProduct";
     import "Sequencer";
+    import "InstURL";
 
     // Do not sync the changes to ZENworks even if rug is present
     // This is handy for repairing an already out-of-sync situation
@@ -128,7 +129,7 @@
     }
 
     define symbol createSource( string url ) ``{
-	y2milestone("createSource: %1", url);
+	y2milestone("createSource: %1", InstURL::HidePassword(url));
 
         if ( url != "" )
         {
