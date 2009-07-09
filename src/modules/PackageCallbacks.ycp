@@ -584,7 +584,7 @@ Check that the server is accessible."), wanted_label);
 	// --------------------------------------
 	// build up button box
 
-	term button_box = `HBox (`PushButton (`id(`retry), `opt(`default), Label::OKButton()));
+	term button_box = `HBox (`PushButton (`id(`retry), `opt(`default), Label::RetryButton()));
 
 	if (current == -1)			// wrong media id, offer "Ignore"
 	{
