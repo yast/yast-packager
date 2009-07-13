@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Mon Jun 22 11:10:09 CEST 2009 - lslezak@suse.cz
+Mon Jun 22 11:10:09 CEST 2009 - locilka@suse.cz
 
 - Adjusted ProductLicense to look for more license filename
   patterns (html, txt) (bnc #504803).
