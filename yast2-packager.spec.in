@@ -60,9 +60,18 @@ Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
 
 Summary:	YaST2 - Package Library
 
+%package webpin
+
+Group:		System/YaST2
+Summary:	YaST2 - Webpin package search client
+
 %description
 This package contains the scanner/parser and dependency checker for all
 packages handled by YaST2.
+
+%description webpin
+This package contains a client for searching packages in online repositories
+(webpin) and installing them via OneClickInstall
 
 @PREP@
 
@@ -79,8 +88,19 @@ packages handled by YaST2.
 @yncludedir@/checkmedia/*
 @yncludedir@/packager/*
 @clientdir@/*.ycp
+%exclude @clientdir@/webpin_package_search.ycp
 @moduledir@/*
+%exclude @moduledir@/WebpinPackageSearch.ycp
+%exclude @moduledir@/WebpinPackageSearch.ybc
 @desktopdir@/*.desktop
+%exclude @desktopdir@/webpin.desktop
 @scrconfdir@/*
 @execcompdir@/servers_non_y2/ag_*
 %doc @docdir@
+
+%files webpin
+%defattr(-,root,root)
+@clientdir@/webpin_package_search.ycp
+@moduledir@/WebpinPackageSearch.ycp
+@moduledir@/WebpinPackageSearch.ybc
+@desktopdir@/webpin.desktop
