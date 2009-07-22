@@ -451,6 +451,11 @@ Install them now?
 		    symbol online_result = (symbol)WFM::CallFunction( "online_update_configuration", []);
 		    force_restart = true;
 	       }
+	       else if (result == `webpin)
+	       {
+		    symbol online_result = (symbol)WFM::CallFunction( "webpin_package_search", []);
+		    force_restart = true;
+	       }
 	   }
 	   else
 	   {
