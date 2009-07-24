@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 24 08:43:26 CEST 2009 - lslezak@suse.cz
+
+- fixed URL password logging into y2log (bnc#441944)
+- 2.13.185
+
+-------------------------------------------------------------------
 Thu Jul  9 09:47:54 CEST 2009 - lslezak@suse.cz
 
 - MediaChange callback - "OK" button renamed to "Retry"

@@ -71,11 +71,11 @@ global string GetURL () {
  * @return string postprocessed URL
  */
 string PosprocessISOURL (string url) {
-    y2milestone ("Updating ISO URL %1", url);
+    y2milestone ("Updating ISO URL %1", InstURL::HidePassword(url));
     integer last = findlastof (url, "/") + 1;
     string onlydir = substring (url, 0, last);
     url = "iso:/?iso=" + substring (url, last) + "&url=" + onlydir;
-    y2milestone ("Updated URL: %1", url);
+    y2milestone ("Updated URL: %1", InstURL::HidePassword(url));
     return url;
 }
 
@@ -87,7 +87,7 @@ string PosprocessISOURL (string url) {
 boolean IsISOURL (string url) {
     boolean ret = substring (url, 0, 5) == "iso:/" &&
 	issubstring (url, "&url=");
-    y2milestone ("URL %1 is ISO: %2", url, ret);
+    y2milestone ("URL %1 is ISO: %2", InstURL::HidePassword(url), ret);
     return ret;
 }
 
@@ -97,12 +97,12 @@ boolean IsISOURL (string url) {
  * @return string preprocessed URL
  */
 string PreprocessISOURL (string url) {
-    y2milestone ("Preprocessing ISO URL %1", url);
+    y2milestone ("Preprocessing ISO URL %1", InstURL::HidePassword(url));
     integer url_pt = search (url, "&url=");
     string serverpart = substring (url, url_pt + 5);
     string isopart = substring (url, 0, url_pt);
     url = serverpart + substring (isopart, search (isopart, "iso=") + 4);
-    y2milestone ("Updated URL: %1", url);
+    y2milestone ("Updated URL: %1", InstURL::HidePassword(url));
     return url;
 }
 
@@ -170,7 +170,7 @@ string URLScheme (string url) {
 
     if (scheme == "" || scheme == nil)
 	scheme = "url";
-    y2milestone ("URL scheme for URL %1: %2", url, scheme);
+    y2milestone ("URL scheme for URL %1: %2", InstURL::HidePassword(url), scheme);
     return scheme;
 }
 
