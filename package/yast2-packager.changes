@@ -5,6 +5,7 @@ Wed Jul 22 14:30:14 CEST 2009 - kmachalkova@suse.cz
   (yast2-packager-webpin), adding new .desktop file to it
 - Start webpin search from pkg managers ( accept `webpin symbol 
   from the main loop) (both FaTE#306928)
+- 2.18.9
 
 -------------------------------------------------------------------
 Mon Jun 22 11:10:09 CEST 2009 - locilka@suse.cz
