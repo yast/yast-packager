@@ -16,10 +16,10 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=yast-sw_single 
+Icon=yast-webpin 
 Exec=/sbin/yast2 webpin_package_search
 
 Name=Package Search (webpin)
-GenericName= Voulez-vous chercher les paquets avec moi?
+GenericName=Search for software in online repositories 
 X-KDE-SubstituteUID=true
 StartupNotify=true
