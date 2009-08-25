@@ -453,7 +453,18 @@ Install them now?
 	       }
 	       else if (result == `webpin)
 	       {
-		    symbol online_result = (symbol)WFM::CallFunction( "webpin_package_search", []);
+		    string required_package = "yast2-packager-webpin";
+
+		    if (!PackageSystem::Installed( required_package ))
+		    {
+			if ( !PackageSystem::CheckAndInstallPackages([required_package]) )
+			    Report::Error( sformat(_("Cannot search packages in online repositories
+without having package %1 installed"), required_package));
+		    }
+		    else
+		    {
+		        symbol webpin_result = (symbol)WFM::CallFunction( "webpin_package_search", []);
+		    }
 		    force_restart = true;
 	       }
 	   }
