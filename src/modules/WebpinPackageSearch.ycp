@@ -351,8 +351,16 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 
     y2milestone ("HTTP::Get (%1, %2)", url, temporary_file);
     map response = HTTP::Get (url, temporary_file);
+    y2milestone ("Server response: %1", response);
 
     list <map> ret_list = [];
+
+    // something's screwed up on server side - this usually means that tmp file
+    // is full of error messages - we should not let anyxml agent parse those
+    if ( response["code"]:0 != 200 ) {
+	y2error ("Cannot retrieve search results from the server");
+	return nil;
+    }
 
     if (! FileUtils::Exists (temporary_file)) {
 	y2error ("Cannot read file: %1", temporary_file);

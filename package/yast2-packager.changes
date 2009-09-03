@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  3 12:45:44 CEST 2009 - kmachalkova@suse.cz
+
+- Handle server-side errors in webpin search (HTTP 500 mostly), do 
+  not let anyxml agent parse non-XML file (bnc#526225)
+
+-------------------------------------------------------------------
 Tue Aug 25 13:57:21 CEST 2009 - kmachalkova@suse.cz
 
 - Prompt for installing packager-webpin if requested and not there 
