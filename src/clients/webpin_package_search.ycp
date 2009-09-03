@@ -341,7 +341,7 @@ such software.</p>
 		Popup::ClearFeedback();
 		PopulatePackageList( search_results );
 
-    		if ( search_results == $[] )
+    		if ( search_results == $[] || search_results == nil )
 		    UI::ChangeWidget(`id("description"), `Value, _("<p><b>No packages matching entered criteria were found</b></p>"));
 		else
 		    CreatePackageDescription();
