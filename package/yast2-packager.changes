@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep  9 16:47:20 CEST 2009 - kmachalkova@suse.cz
+
+- Correct regexp evaluation in searching for suitable file with
+  license agreement (bnc#533026, regression from bnc#504803) 
+
+-------------------------------------------------------------------
 Tue Jul  7 14:13:14 CEST 2009 - lslezak@suse.cz
 
 - use URL.ycp for processing smb:// URLs (bnc#495109)
