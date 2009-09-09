@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep  9 13:28:34 CEST 2009 - kmachalkova@suse.cz
+
+- Correct regexp evaluation in searching for suitable file with
+  license agreement (bnc#533026)
+- 2.18.11 
+
+-------------------------------------------------------------------
 Thu Sep  3 12:45:44 CEST 2009 - kmachalkova@suse.cz
 
 - Handle server-side errors in webpin search (HTTP 500 mostly), do 
