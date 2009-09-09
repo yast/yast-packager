@@ -38,7 +38,7 @@ list <string> license_patterns = [
     "license\\.html", "license\\.%1\\.html",
     "license\\.htm",  "license\\.%1\\.htm",
     "license\\.txt",  "license\\.%1\\.txt",
-    "license\\.*"
+    "license\\.*$",   "license\\.%1\\.*$"
 ];
 
 /**
@@ -369,7 +369,10 @@ map<string,string> LicenseFiles (string dir, list<string> patterns) {
 	if (! issubstring (p, "%"))
 	{
 	    foreach (string file, files, {
-		if (file == p)
+		//Possible license file names are regexp patterns
+		//(see list <string> license_patterns)
+		//so we should treat them as such (bnc#533026)
+		if ( regexpmatch(file,p) )
 		{
 		    ret[""] = dir + "/" + file;
 		}
