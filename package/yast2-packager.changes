@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Sep 23 15:00:04 CEST 2009 - kmachalkova@suse.cz
+
+- Use getenv to query current language for displaying the license
+  (instead of uninitialized data from Language:: - bnc#504803, c#28)
+- Removed catch-all regexps from license file name patterns - UI
+  can display only html and txt anyway
+- 2.18.12 
+
+-------------------------------------------------------------------
 Wed Sep  9 13:28:34 CEST 2009 - kmachalkova@suse.cz
 
 - Correct regexp evaluation in searching for suitable file with
