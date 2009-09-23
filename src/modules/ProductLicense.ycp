@@ -37,9 +37,20 @@ list <string> already_accepted_licenses = [];
 list <string> license_patterns = [
     "license\\.html", "license\\.%1\\.html",
     "license\\.htm",  "license\\.%1\\.htm",
-    "license\\.txt",  "license\\.%1\\.txt",
-    "license\\.*$",   "license\\.%1\\.*$"
+    "license\\.txt",  "license\\.%1\\.txt"
 ];
+// no more wildcard patterns here, UI can display only html and txt anyway
+
+// Helper func. Cuts encoding suffix off the LANG
+// env. variable i.e. foo_BAR.UTF-8 => foo_BAR
+string EnvLangToLangCode ( string env_lang )
+{
+    list <string> tmp = [];
+    if (env_lang != nil)
+	tmp = splitstring(env_lang, ".@");
+
+    return tmp[0]:"";
+}
 
 /**
  * Creates a unique identification from filename
@@ -624,10 +635,16 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
     if (info_file == nil && size (licenses) == 0)
 	return `auto;
 
+    // Let's do getenv here. Language::language may not be initialized
+    // by now (see bnc#504803, c#28). Language::Language does only
+    // sysconfig reading, which is not too useful in cases like
+    // 'LANG=foo_BAR yast repositories'
+    string language = EnvLangToLangCode( getenv("LANG") );
+
     // Preferencies how the client selects from available languages
     list<string> langs = [
-	Language::language,
-	substring (Language::language, 0, 2), // "it_IT" -> "it"
+	language,
+	substring (language, 0, 2), // "it_IT" -> "it"
 	"en_US",
 	"en_GB",
 	"en",
@@ -647,7 +664,7 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
 	});
     }
 
-    y2milestone ("Preffered lang: %1", Language::language);
+    y2milestone ("Preffered lang: %1", language);
     if (size (available_langs) == 0)
 	return `auto; // no license available
     lic_lang = find (string l, langs, {
