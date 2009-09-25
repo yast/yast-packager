@@ -156,9 +156,9 @@
 	list<string> errpacks = (list<string>) (commit_result[1]:[]);
 	if (size (errpacks) > 0)
 	{
-	    string full_log = (string) SCR::Read (.target.string, Installation::destdir +
-						  Directory::logdir + "/y2logRPM");
-	    ShowFailedPackages (mergestring (errpacks, "\n"), full_log);
+	    // unfortunately the full log is not available :-(
+	    ShowFailedPackages (mergestring (errpacks, "\n"), "");
+
 	    list<string> old_failed_packs = [];
 	    if ((integer)SCR::Read (.target.size,
 		"/var/lib/YaST2/failed_packages") > 0)
