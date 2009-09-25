@@ -1,4 +1,39 @@
 -------------------------------------------------------------------
+Tue Apr 21 15:34:48 CEST 2009 - lslezak@suse.cz
+
+- Append additional RPM output to the installation log only if it
+  is not empty (bnc#495047)
+
+-------------------------------------------------------------------
+Tue Apr 21 14:05:09 CEST 2009 - locilka@suse.cz
+
+- Using new function GetCachedFileFromSource from AddOnProduct
+  to avoid from a 'jukebox' issues when more different physical
+  media used during installation (bnc #486785).
+
+-------------------------------------------------------------------
+Mon Apr 20 12:19:34 CEST 2009 - locilka@suse.cz
+
+- Not checking signatures for add_on_products(.xml) file(s), the
+  file is cerated by the customer and contains links to signed
+  repositories (bnc #496404).
+
+-------------------------------------------------------------------
+Wed Apr  8 10:38:15 CEST 2009 - lslezak@suse.cz
+
+- Slideshow fixes - display additional rpm output in the
+  installation log, do not use non-existing y2logRPM file
+  (bnc#456446)
+- Avoid division by zero when total size to install is less than
+  1024B (converted to 0kB)
+
+-------------------------------------------------------------------
+Fri Apr  3 14:31:20 CEST 2009 - locilka@suse.cz
+
+- Adjusting initial repository name according to LABEL in content
+  file. Exporting the same function for Add-Ons (bnc #481828).
+
+-------------------------------------------------------------------
 Wed Sep 23 17:20:23 CEST 2009 - kmachalkova@suse.cz
 
 - Use getenv to query current language for displaying the license

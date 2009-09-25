@@ -764,7 +764,15 @@
      **/
     void UpdateTotalProgress(boolean silent_check)
     {
-	SlideShow::StageProgress( ( TotalInstalledSize() >> 10 ) * 100 / ( total_size_to_install >> 10 ), nil /*, SlideShow::GetProgressLabel()*/ );
+	integer total_size_to_install_kB = total_size_to_install >> 10;
+
+	// avoid division by zero
+	if (total_size_to_install_kB <= 0)
+	{
+	    total_size_to_install_kB = 1;
+	}
+
+	SlideShow::StageProgress( ( TotalInstalledSize() >> 10 ) * 100 / total_size_to_install_kB, nil /*, SlideShow::GetProgressLabel()*/ );
 
 	UpdateCurrentCdProgress(silent_check);
 
