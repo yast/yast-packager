@@ -285,12 +285,12 @@ in the packages selection, continue."),
             {
 		y2error("Cannot add the repository");
 
-		if (regexpmatch(url, "\\.iso$"))
-		{
-		    // popup message part 1
-		    string msg = sformat( _("Unable to create repository
+		// popup message part 1
+		string msg = sformat( _("Unable to create repository
 from URL '%1'."), URL::HidePassword(url) );
 
+		if (regexpmatch(url, "\\.iso$"))
+		{
 		    map parsed_url = URL::Parse(url);
 		    string scheme = tolower(parsed_url["scheme"]:"");
 
@@ -299,14 +299,14 @@ from URL '%1'."), URL::HidePassword(url) );
 			// error message
 			msg = msg + "\n\n" + _("Using an ISO image over ftp or http protocol is not possible.
 Change the protocol or unpack the ISO image on the server side.");
-
-			// popup message part 2
-			msg = msg + "\n\n" + _("Change the URL and try again?");
-
-			boolean tryagain = Popup::YesNo(msg);
-			if (tryagain) return `again;
 		    }
 		}
+
+		// popup message part 2
+		msg = msg + "\n\n" + _("Change the URL and try again?");
+
+		boolean tryagain = Popup::YesNo(msg);
+		if (tryagain) return `again;
 
 		return `cancel;
             }

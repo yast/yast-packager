@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 19 16:30:53 CEST 2009 - lslezak@suse.cz
+
+- Don't fail silently when an invallid repo URL is entered
+  (bnc#516102)
+- 2.18.13
+
+-------------------------------------------------------------------
 Wed Sep 23 15:00:04 CEST 2009 - kmachalkova@suse.cz
 
 - Use getenv to query current language for displaying the license
