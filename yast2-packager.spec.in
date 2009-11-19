@@ -7,8 +7,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 # HTTP.ycp
 BuildRequires:	yast2-transfer
 
-# URL::HidePassword()
-BuildRequires: yast2 >= 2.17.47
+# New WorkflowManager
+BuildRequires: yast2 >= 2.17.76
 
 # "keeppackages" repo property
 BuildRequires:	yast2-pkg-bindings >= 2.17.27
@@ -19,8 +19,8 @@ Requires:	yast2-country-data >= 2.16.3
 # "keeppackages" repo property
 Requires:	yast2-pkg-bindings >= 2.17.27
 
-# URL::HidePassword()
-Requires: yast2 >= 2.17.47
+# New WorkflowManager
+Requires: yast2 >= 2.17.76
 
 # unzipping license file
 Requires:	unzip

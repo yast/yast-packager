@@ -671,6 +671,17 @@ global void RemoveRegistrationFlag (integer src_id) {
  * @param integer source id
  */
 global void PrepareForRegistration (integer src_id) {
+    string control_file = WorkflowManager::GetCachedWorkflowFilename (`addon, src_id, "");
+
+    if (WorkflowManager::IncorporateControlFileOptions (control_file) == true) {
+	// FATE #305578: Add-On Product Requiring Registration
+	if (WorkflowManager::WorkflowRequiresRegistration (src_id)) {
+	    y2milestone ("REGISTERPRODUCT (require_registration) defined in control file");
+	    addons_requesting_registration = add (addons_requesting_registration, src_id);
+	    return;
+	}
+    }
+
     string tmpdir = (string) SCR::Read (.target.tmpdir) + "/add-on-content-files/";
 
     // create directory if doesn't exist
@@ -729,7 +740,9 @@ global void PrepareForRegistration (integer src_id) {
  * @param integer source id
  */
 global void RegisterAddOnProduct (integer src_id) {
-    if (contains (addons_requesting_registration, src_id)) {
+    // FATE #305578: Add-On Product Requiring Registration
+    // or check the content file
+    if (WorkflowManager::WorkflowRequiresRegistration (src_id) || contains (addons_requesting_registration, src_id)) {
 	y2milestone ("Repository ID %1 requests registration", src_id);
 	WFM::CallFunction ("inst_suse_register", []);
     } else {
@@ -777,8 +790,11 @@ global symbol DoInstall() {
 
     symbol ret = nil;
 
-    string control = GetCachedFileFromSource (src_id, 1, "/installation.xml", "digested", true /* optional */);
+    string control = WorkflowManager::GetCachedWorkflowFilename (`addon, src_id, "");
     if (control != nil) {
+	// FATE #305578: Add-On Product Requiring Registration
+	WorkflowManager::AddWorkflow(`addon, src_id, "");
+
 	y2milestone ("Add-On has own control file");
 	ret = DoInstall_WithControlFile (control);
     }
