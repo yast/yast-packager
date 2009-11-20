@@ -617,12 +617,12 @@ without having package %1 installed"), required_package));
 		if (PKGMGR_ACTION_AT_EXIT == "summary"
 		    || size(commit_result[1]:[]) > 0)
 		{
-		    if (PackagesUI::ShowInstallationSummary() == `back)
+		    if (PackagesUI::ShowInstallationSummary() == `back && size(packagelist) == 0)
 		    {
 			force_restart = true;
 		    }
 		}
-		else if (PKGMGR_ACTION_AT_EXIT == "restart")
+		else if (PKGMGR_ACTION_AT_EXIT == "restart" && size(packagelist) == 0)
 		{
 		    force_restart = true;
 		}
