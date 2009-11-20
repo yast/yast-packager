@@ -658,7 +658,7 @@ any SummaryDialog () {
     // push button - change URL of the selected repository
     string replaceButtonLabel = _("&Replace...");
     // push button - refresh the selected repository now
-    string refreshButtonLabel = _("Re&fresh Now");
+    string refreshButtonLabel = _("Re&fresh Selected");
     // push button - disable/enable the selected repository
     string enableButtonLabel = _("Status &On or Off");
     // push button - disable/enable automatic refresh of the selected repository
