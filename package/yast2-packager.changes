@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 20 15:57:12 CET 2009 - lslezak@suse.cz
+
+- repositories - changed "Refresh Now" -> "Refresh Selected"
+  (bnc#439067)
+
+-------------------------------------------------------------------
 Fri Nov 20 14:38:37 CET 2009 - lslezak@suse.cz
 
 - sw_single - don't restart when started from command line (using
