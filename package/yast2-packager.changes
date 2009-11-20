@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Nov 20 14:38:37 CET 2009 - lslezak@suse.cz
+
+- sw_single - don't restart when started from command line (using
+  "yast2 -i" option) and PKGMGR_ACTION_AT_EXIT="restart"
+  (bnc#547609)
+- 2.19.0
+
+-------------------------------------------------------------------
 Mon Oct 19 16:30:53 CEST 2009 - lslezak@suse.cz
 
 - Don't fail silently when an invallid repo URL is entered
