@@ -10,6 +10,8 @@ Mon Nov 23 09:05:47 CET 2009 - lslezak@suse.cz
   (bnc#549866)
 - repositories - improved ISO image file detection (use plain text
   instead of MIME type for 'file' output) (bnc#547683)
+- repositories - added NFSv4 support (fate#306451), don't loose
+  the current URL when switching between full and parsed view
 
 -------------------------------------------------------------------
 Fri Nov 20 15:57:12 CET 2009 - lslezak@suse.cz
