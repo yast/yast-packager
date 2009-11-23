@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov 23 09:05:47 CET 2009 - lslezak@suse.cz
+
+- repositories - fixed the help text to match the current layout
+  (bnc#549866)
+
+-------------------------------------------------------------------
 Fri Nov 20 15:57:12 CET 2009 - lslezak@suse.cz
 
 - repositories - changed "Refresh Now" -> "Refresh Selected"
