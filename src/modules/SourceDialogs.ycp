@@ -765,13 +765,13 @@ or the file does not exist.
     // try to detect ISO image by file if it's present
     if (SCR::Read(.target.size, file) > 0)
     {
-	string command = file + " -b -i " + s;
+	string command = file + " -b " + s;
 
 	map out = (map)SCR::Execute(.target.bash_output, command);
 
 	string stdout = out["stdout"]:"";
 
-	if (issubstring(stdout, "application/x-iso9660"))
+	if (issubstring(stdout, "ISO 9660 CD-ROM filesystem"))
 	{
 	    y2milestone("ISO 9660 image detected");
 	}
