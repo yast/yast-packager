@@ -227,7 +227,7 @@
             `VBox (
                 `HBox (
                     `VBox(
-			`MinWidth(20, `InputField (`id ("search_text"), `opt (`hstretch), "Search &Expression")),
+			`MinWidth(20, `InputField (`id ("search_text"), `opt (`hstretch), _("Search &Expression"))),
                     // TRANSLATORS: push button
                         `Left(`PushButton (`id ("search"),  _("&Search"))),
                         `VStretch()
