@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 23 15:15:44 CET 2009 - kmachalkova@suse.cz
+
+- Webpin: Remaining string marked for translation (bnc#549945)
+
+-------------------------------------------------------------------
 Mon Nov 23 09:05:47 CET 2009 - lslezak@suse.cz
 
 - repositories - fixed the help text to match the current layout
