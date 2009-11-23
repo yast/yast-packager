@@ -419,7 +419,9 @@ term nfs_details_content =
 	)
     ),
     // checkbox label
-    `Left (`CheckBox ( `id (`ch_iso), _("&ISO Image")))
+    `Left (`CheckBox ( `id (`ch_iso), _("&ISO Image"))),
+    // checkbox label
+    `Left (`CheckBox ( `id (`ch_nfs4), _("N&FS v4 Protocol")))
 );
 
 term nfs_complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("URL of the Repository"));
@@ -449,11 +451,60 @@ void NFSInit (string key) {
 	UI::ChangeWidget (`id (`dir), `Value, parsed["path"]:"");
 	UI::ChangeWidget (`id (`ch_iso), `Value, iso);
 	UI::SetFocus (`server);
+
+	boolean nfs4 = tolower(parsed["scheme"]:"nfs") == "nfs4" ||
+	    URL::MakeMapFromParams(parsed["query"]:"")["type"]:"" == "nfs4";
+
+	y2milestone("NFSv4: %1", nfs4);
+
+	UI::ChangeWidget (`id (`ch_nfs4), `Value, nfs4);
     }
     else
     {
 	UI::ChangeWidget(`id(`complete_url), `Value, _url);
     }
+}
+
+void NFSStoreParts()
+{
+    map parsed = $[
+	"scheme" : "nfs",
+	"host" : NormalizeHost (
+	    (string)UI::QueryWidget (`id (`server), `Value)),
+	"path" : (string)UI::QueryWidget (`id (`dir), `Value),
+    ];
+
+    boolean nfs4 = (boolean)UI::QueryWidget (`id (`ch_nfs4), `Value);
+    if (nfs4)
+    {
+	// keep nfs4:// if it is used in the original URL
+	if (tolower(URL::Parse(_url)["scheme"]:"") == "nfs4")
+	{
+	    parsed["scheme"] = "nfs4";
+	}
+	else
+	{
+	    parsed["query"] = "type=nfs4";
+	}
+    }
+
+    _url = URL::Build (parsed);
+    boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+
+    // workaround: URL::Build does not accept numbers in scheme,
+    // for nfs4 scheme it returns URL with no scheme (like "://foo/bar")
+    if(!regexpmatch(_url, "^nfs"))
+    {
+	_url = "nfs4" + _url;
+    }
+
+    if (iso)
+	_url = PosprocessISOURL (_url);
+}
+
+void NFSStoreComplete()
+{
+    _url = (string)UI::QueryWidget(`id(`complete_url), `Value);
 }
 
 /**
@@ -467,20 +518,11 @@ void NFSStore (string key, map event) {
 
     if (current_type == `edit_url_parts)
     {
-	map parsed = $[
-	    "scheme" : "nfs",
-	    "host" : NormalizeHost (
-		(string)UI::QueryWidget (`id (`server), `Value)),
-	    "path" : (string)UI::QueryWidget (`id (`dir), `Value),
-	];
-	_url = URL::Build (parsed);
-	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
-	if (iso)
-	    _url = PosprocessISOURL (_url);
+	NFSStoreParts();
     }
     else
     {
-	_url = (string)UI::QueryWidget(`id(`complete_url), `Value);
+	NFSStoreComplete();
     }
 }
 
@@ -518,7 +560,17 @@ symbol NFSHandle (string key, map event) {
     }
     else if ((event["ID"]:nil == `edit_url_parts || event["ID"]:nil == `edit_complete_url) && event["EventReason"]:"" == "ValueChanged")
     {
-	y2milestone("Changing dialog type");
+	y2milestone("Changing dialog type: %1", event["ID"]:nil);
+
+	// store the current settings
+	if (event["ID"]:nil == `edit_url_parts)
+	{
+	    NFSStoreComplete();
+	}
+	else
+	{
+	    NFSStoreParts();
+	}
 
 	// reinitialize the dialog (set the current values)
 	NFSInit(nil);
@@ -1195,7 +1247,8 @@ term details_content =
     `ReplacePoint (`id (`server_rp), `Empty ())
 );
 
-term complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("URL of the Repository"));
+// input field label
+term complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("&URL of the Repository"));
 
 void ServerStoreParts()
 {
@@ -1876,6 +1929,7 @@ void SelectInit (string key) {
     else if ( _url == "https://" ) current = `https;
     else if ( _url == "smb://" ) current = `samba;
     else if ( _url == "nfs://" ) current = `nfs;
+    else if ( _url == "nfs4://" ) current = `nfs;
     else if ( _url == "cd:///" ) current = `cd;
     else if ( _url == "dvd:///" ) current = `dvd;
     else if ( _url == "hd://" ) current = `hd;
