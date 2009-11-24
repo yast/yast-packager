@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 24 15:32:33 CET 2009 - locilka@suse.cz
+
+- Creating backup of old repositories at the end of initial
+  installation/upgrade before any other SourceSaveAll call
+  (bnc #556469).
+
+-------------------------------------------------------------------
 Mon Nov 23 15:15:44 CET 2009 - kmachalkova@suse.cz
 
 - Webpin: Remaining string marked for translation (bnc#549945)
