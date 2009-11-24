@@ -127,6 +127,12 @@ else if (func == "Write")
     }
 */
 
+    // Remove (backup) all sources not used during the update
+    // BNC #556469: Backup and remove all the old repositories before any Pkg::SourceSaveAll call
+    if (Stage::initial() && Mode::update()) {
+	BackUpAllTargetSources();
+    }
+
     // See bnc #384827, #381360
     if (Mode::update()) {
 	y2milestone ("Adding default repositories");
@@ -134,11 +140,6 @@ else if (func == "Write")
     }
 
     Pkg::SourceCacheCopyTo (Installation::destdir);
-
-    // Remove (backup) all sources not used during the update
-    if (Stage::initial() && Mode::update()) {
-	BackUpAllTargetSources();
-    }
 
     // save all repositories and finish target
     Pkg::SourceSaveAll ();
