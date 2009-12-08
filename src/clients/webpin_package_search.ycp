@@ -226,11 +226,14 @@
             _("Package Search"),
             `VBox (
                 `HBox (
-                    `VBox(
-			`MinWidth(20, `InputField (`id ("search_text"), `opt (`hstretch), _("Search &Expression"))),
-                    // TRANSLATORS: push button
-                        `Left(`PushButton (`id ("search"),  _("&Search"))),
-                        `VStretch()
+		    `VBox(
+                        `HBox(
+		            `Bottom(`InputField (`id ("search_text"), `opt (`hstretch), _("Search &Expression"))),
+                            // TRANSLATORS: push button
+			    `HSpacing(1),
+                            `Bottom(`PushButton (`id ("search"),  `opt(`default), _("&Search")))
+		        ),
+			`VStretch()
 		    ),
 		    `MultiSelectionBox(
 		        `id("search_in"),

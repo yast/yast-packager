@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec  8 13:54:49 CET 2009 - kmachalkova@suse.cz
+
+- 'Search' button is the one activated by pressing Enter in webpin
+  client (bnc#538774)
+- 2.19.1
+
+-------------------------------------------------------------------
 Tue Nov 24 15:32:33 CET 2009 - locilka@suse.cz
 
 - Creating backup of old repositories at the end of initial
