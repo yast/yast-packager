@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 11 16:48:58 CET 2009 - locilka@suse.cz
+
+- ProductLicense prepared for multi-license dialogs (FATE #306295).
+
+-------------------------------------------------------------------
 Tue Nov 24 15:32:33 CET 2009 - locilka@suse.cz
 
 - Creating backup of old repositories at the end of initial
