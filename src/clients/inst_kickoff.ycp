@@ -317,10 +317,6 @@ void XenPVToInitrd()
 	}
     }
 
-    // special logging function for Rendivm
-    void eat2minestrone (string entry) {
-	y2milestone (entry);
-    }
 
     /**
      *  Load all network modules.  The package sysconfig requires this during
