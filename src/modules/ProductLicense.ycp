@@ -139,7 +139,7 @@ string WhichLicenceFile (string license_language, map <string, string> & license
     return license_file;
 }
 
-global term GetLicenseContent (string lic_lang, map <string, string> & licenses) {
+global term GetLicenseContent (string lic_lang, map <string, string> & licenses, string id) {
 	    string license_file = WhichLicenceFile (lic_lang, licenses);
 
 	    string license_text = (string) SCR::Read(.target.string, license_file);
@@ -152,13 +152,13 @@ global term GetLicenseContent (string lic_lang, map <string, string> & licenses)
 
 	    // License is HTML (or RichText)
 	    if (regexpmatch(license_text, "</.*>"))
-		rt = `MinWidth (80, `RichText(`id (`welcome_text),
+		rt = `MinWidth (80, `RichText(`id (sformat("welcome_text_%1", id)),
 		    license_text
 		));
 	    // License is plain text
 	    // details in BNC #449188
 	    else
-		rt = `MinWidth (80, `RichText(`id (`welcome_text),
+		rt = `MinWidth (80, `RichText(`id (sformat("welcome_text_%1", id)),
 		    "<pre>" + String::EscapeTags (license_text) + "</pre>"
 		));
 
@@ -171,7 +171,7 @@ string license_file_print = nil;
 
 term GetLicenseDialogTerm (list<string> languages, string license_language, map <string, string> & licenses, string id) {
     string license_text = "";
-    term rt = GetLicenseContent (license_language, licenses);
+    term rt = GetLicenseContent (license_language, licenses, id);
 
     // bug #204791, no more "languages.ycp" client
     map<string,list> lang_names_orig = Language::GetLanguagesMap (false);
@@ -285,29 +285,22 @@ void SetAcceptanceNeeded (string id, boolean new_value) {
     }
 }
 
-/**
- * Displays License with Help and ( ) Yes / ( ) No radio buttons
- * @param string file with the license
- */
-void DisplayLicenseDialog (list<string> languages, boolean back, string license_language, map <string, string> & licenses, string id) {
+term GetLicenseDialog (list<string> languages, string license_language, map <string, string> & licenses, string id, boolean spare_space) {
     map display = UI::GetDisplayInfo();
     integer space = display["TextMode"]:true ? 1 : 3;
 
-    // dialog caption
-    string caption = _("License Agreement");
-
     term license_buttons = `VBox (
-	`VSpacing (2),
-	`RadioButtonGroup(`id(`eula),
+	`VSpacing ((spare_space ? 0:2)),
+	`RadioButtonGroup(`id (sformat ("eula_%1", id)),
 	    `HBox(
 		`HSpacing (2*space),
 		`VBox(
-		    `Left(`RadioButton(`id(`yes),
+		    `Left(`RadioButton(`id (sformat("yes_%1", id)),
 			`opt(`notify),
 			// radio button
 			_("&Yes, I Agree to the License Agreement")
 		    )),
-		    `Left(`RadioButton(`id(`no),
+		    `Left(`RadioButton(`id (sformat("no_%1", id)),
 			`opt(`notify),
 			// radio button
 			_("N&o, I Do Not Agree")
@@ -318,8 +311,8 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	)
     );
 
-    term contents = `VBox (
-	`VSpacing (1),
+    return `VBox (
+	`VSpacing ((spare_space ? 0:1)),
 	`HBox (
 	    `HSpacing (2*space),
 	    GetLicenseDialogTerm (languages, license_language, licenses, id),
@@ -333,7 +326,7 @@ void DisplayLicenseDialog (list<string> languages, boolean back, string license_
 	    :
 	    `Empty()
 	),
-	`VSpacing(1),
+	`VSpacing((spare_space ? 0.5 : 1)),
 	`HBox (
 	    `HSpacing (2*space),
 	    (license_file_print != nil ?
@@ -351,22 +344,35 @@ on the first media in the file %1"), license_file_print)
 	    ),
 	    `HSpacing (2*space)
 	),
-	`VSpacing (1)
+	`VSpacing ((spare_space ? 0:1))
     );
+}
 
+string GetLicenseDialogHelp () {
     // help text
-    string help = _("<p>Read the license agreement carefully and select
+    return _("<p>Read the license agreement carefully and select
 one of the available options. If you do not agree to the license agreement,
 the configuration will be aborted.</p>
 ");
+}
+
+/**
+ * Displays License with Help and ( ) Yes / ( ) No radio buttons
+ * @param string file with the license
+ */
+void DisplayLicenseDialog (list<string> languages, boolean back, string license_language, map <string, string> & licenses, string id) {
+    // dialog caption
+    string caption = _("License Agreement");
+
+    term contents = GetLicenseDialog (languages, license_language, licenses, id, false);
 
     // If acceptance is not needed, there's no need to disable the button
     // by default
     boolean default_next_button_state = (AcceptanceNeeded (id) ? false : true);
 
-    Wizard::SetContents(caption, contents, help,
+    Wizard::SetContents(caption, contents, GetLicenseDialogHelp(),
 	back, default_next_button_state);
-    
+
     Wizard::SetTitleIcon ("yast-license");
     Wizard::SetFocusToNextButton();
 }
@@ -771,7 +777,7 @@ void UpdateLicenseContent (map <string, string> & licenses, string id) {
     lic_lang = (string) UI::QueryWidget (`id (sformat ("license_language_%1", id)), `Value);
     term rp_id = `id (sformat ("license_contents_rp_%1", id));
     if (UI::WidgetExists (rp_id)) {
-	UI::ReplaceWidget (rp_id, GetLicenseContent (lic_lang, licenses));
+	UI::ReplaceWidget (rp_id, GetLicenseContent (lic_lang, licenses, id));
     } else {
 	y2error ("No such widget: %1", rp_id);
     }
@@ -794,7 +800,7 @@ boolean AllLicensesAccepted () {
 	}
 
 	// All licenses have to be accepted
-	if ((symbol) UI::QueryWidget(`id (eula_id), `CurrentButton) != `yes) {
+	if (regexpmatch ((string) UI::QueryWidget(`id (eula_id), `CurrentButton), "^yes_")) {
 	    accepted = false;
 	    break;
 	}
@@ -816,9 +822,9 @@ boolean AllLicensesAcceptedOrDeclined () {
 	    y2error ("Widget %1 does not exist", eula_id);
 	}
 
-	symbol current_button = (symbol) UI::QueryWidget(`id (eula_id), `CurrentButton);
+	string current_button = (string) UI::QueryWidget(`id (eula_id), `CurrentButton);
 	// license have to be accepted or declined
-	if (current_button != `yes && current_button != `no) {
+	if (current_button == nil) {
 	    y2warning ("License %1 hasn't been accepted or declined", eula_id);
 	    ret = false;
 	    break;
@@ -840,7 +846,7 @@ symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_pro
 	    ret = `language;
 	// bugzilla #303828
 	// disabled next button unless yes/no is selected
-	} else if (ret == `yes || ret == `no) {
+	} else if (is (ret, string) && (regexpmatch (tostring(ret), "^yes_") || regexpmatch (tostring(ret), "^no_"))) {
 	    if (AllLicensesAcceptedOrDeclined())
 		Wizard::EnableNextButton();
 	}
@@ -1017,6 +1023,129 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     return ret;
 }
 
+/**
+ * Ask user to confirm license agreement
+ * @param src_id integer repository to get the license from.
+ *   If set to 'nil', the license is considered to belong to a base product
+ * @param list <string> dirs - directories to look for the licenses
+ * @param patterns a list of patterns for the files, regular expressions
+ *   with %1 for the language
+ * @param boolean enable_back sets the back_button status
+ * @param boolean base_product defines whether it is a base or add-on product
+ *   true means base product, false add-on product
+ * @param require_agreement means that even if the license (or the very same license)
+ *   has been already accepetd, ask user to accept it again (because of 'going back'
+ *   in the installation proposal).
+ */
+global symbol AskLicensesAgreement (list <string> dirs,
+    list<string> patterns, string action, boolean enable_back,
+    boolean base_product, boolean require_agreement)
+{
+    if (dirs == nil || dirs == []) {
+	y2error ("No directories: %1", dirs);
+	// error message
+	Report::Error ("Internal Error: No license to show");
+	return `auto;
+    }
+
+    symbol init_ret = nil;
+
+    if (init_ret == `auto || init_ret == `accepted) {
+	y2milestone ("Returning %1", init_ret);
+	return init_ret;
+    }
+
+    boolean created_new_dialog = false;
+
+    // #459391
+    // If a progress is running open another dialog
+    if (Progress::IsRunning()) {
+	y2milestone ("Some progress is running, opening new dialog for license...");
+	Wizard::OpenNextBackDialog();
+	created_new_dialog = true;
+    }
+
+    // dialog caption
+    string caption = _("License Agreement");
+
+    list <string> license_idents = [];
+
+    // initial loop
+    symbol ret = nil;
+
+    list <map <string, string> > licenses = [];
+    integer counter = -1;
+    term contents = `VBox();
+    // If acceptance is not needed, there's no need to disable the button
+    // by default
+    boolean default_next_button_state = true;
+
+    foreach (string dir, dirs, {
+	counter = counter + 1;
+	licenses[counter] = $[];
+
+	lic_lang = "";
+	list <string> available_langs = [];
+	string license_ident = "";
+	map <string, string> tmp_licenses = $[];
+
+	symbol init_ret = InitLicenseData (nil, dir, tmp_licenses, available_langs, require_agreement, license_ident, dir);
+
+	if (license_ident != nil)
+	    license_idents = add (license_idents, license_ident);
+
+	term license_term = GetLicenseDialog (available_langs, lic_lang, tmp_licenses, dir, true);
+	if (license_term == nil) {
+	    y2error ("Oops, license term is: %1", license_term);
+	} else {
+	    contents = add (contents, license_term);
+	}
+
+	// Display info as a popup if exists
+	if (info_file != nil)
+	    InstShowInfo::show_info_txt (info_file);
+
+	licenses[counter] = tmp_licenses;
+
+	if (AcceptanceNeeded (dir))
+	    default_next_button_state = false;
+    });
+
+    SCR::Write (.target.ycp, "/tmp/a", contents);
+    Wizard::SetContents(caption, contents, GetLicenseDialogHelp(),
+	enable_back, default_next_button_state);
+
+    Wizard::SetTitleIcon ("yast-license");
+    Wizard::SetFocusToNextButton();
+
+    // set timeout for autoinstallation
+    // bugzilla #206706
+    if (Mode::autoinst()) {
+	y2milestone("AutoYaST: License has been accepted automatically");
+	ret = `accepted;
+    } else {
+	foreach (map <string, string> tmp_licenses, licenses, {
+	    symbol tmp_ret = HandleLicenseDialogRet (tmp_licenses, base_product, action);
+	});
+    }
+
+    // store already accepted license IDs
+    if (ret == `accepted) {
+	foreach (string license_ident, license_idents, {
+	    LicenseHasBeenAccepted (license_ident);
+	});
+    }
+
+    CleanUpLicense (tmpdir);
+
+    // bugzilla #303922
+    if (created_new_dialog || !Stage::initial()) {
+	Wizard::CloseDialog();
+    }
+
+    return ret;
+}
+
 global symbol AskAddOnLicenseAgreement (integer src_id) {
     return AskLicenseAgreement (src_id, "",
 	license_patterns,
@@ -1091,7 +1220,7 @@ global boolean ShowLicenseInInstallation (any replace_point_ID, integer src_id) 
 
     symbol init_ret = InitLicenseData (nil /* base product */, "", licenses, available_langs, true, license_ident, tostring (src_id));
 
-    term rt = GetLicenseContent (lic_lang, licenses);
+    term rt = GetLicenseContent (lic_lang, licenses, tostring (src_id));
     UI::ReplaceWidget (`id (replace_point_ID), rt);
 
     string id = tostring (src_id);
@@ -1109,11 +1238,15 @@ global boolean ShowLicenseInInstallation (any replace_point_ID, integer src_id) 
     return true;
 }
 
-global symbol AskInstalledLicenseAgreement (string directory,
-    list<string> patterns, string action, string id)
-{
-    return AskLicenseAgreement (nil, directory, patterns, action, false, true, false, id);
+global symbol AskInstalledLicenseAgreement (string directory, string action) {
+    // patterns are hard-coded
+    return AskLicenseAgreement (nil, directory, [], action, false, true, false, directory);
 }
 
+// FATE #306295: More licenses in one dialog
+global symbol AskInstalledLicensesAgreement (list <string> directories, string action) {
+    // patterns are hard-coded
+    return AskLicensesAgreement (directories, [], action, false, true, false);
+}
 
 } // EOF
