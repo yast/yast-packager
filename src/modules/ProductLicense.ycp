@@ -790,8 +790,10 @@ boolean AllLicensesAccepted () {
     string eula_id = nil;
 
     foreach (string one_license_id, license_ids, {
-	if (AcceptanceNeeded (one_license_id))
+	if (AcceptanceNeeded (one_license_id) != true) {
+	    y2milestone ("License %1 does not need to be accepted", one_license_id);
 	    return;
+	}
 
 	eula_id = sformat ("eula_%1", one_license_id);
 	if ((boolean) UI::WidgetExists (`id (eula_id)) != true) {
@@ -800,7 +802,10 @@ boolean AllLicensesAccepted () {
 	}
 
 	// All licenses have to be accepted
-	if (regexpmatch ((string) UI::QueryWidget(`id (eula_id), `CurrentButton), "^yes_")) {
+	string license_accepted = (string) UI::QueryWidget (`id (eula_id), `CurrentButton);
+	y2milestone ("License %1 accepted: %2", eula_id, license_accepted);
+
+	if (! regexpmatch (license_accepted, "^yes_")) {
 	    accepted = false;
 	    break;
 	}
@@ -1124,9 +1129,9 @@ global symbol AskLicensesAgreement (list <string> dirs,
 	y2milestone("AutoYaST: License has been accepted automatically");
 	ret = `accepted;
     } else {
-	foreach (map <string, string> tmp_licenses, licenses, {
-	    symbol tmp_ret = HandleLicenseDialogRet (tmp_licenses, base_product, action);
-	});
+	map <string, string> tmp_licenses = $[];
+	ret = HandleLicenseDialogRet (tmp_licenses, base_product, action);
+	y2milestone ("Dialog ret: %1", ret);
     }
 
     // store already accepted license IDs
