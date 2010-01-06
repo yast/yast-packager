@@ -1649,7 +1649,15 @@ void SelectSystemPatterns (boolean reselect) {
     {
 	y2milestone ("Selecting system patterns %1", system_patterns);
 	foreach (string p, system_patterns, {
-	    Pkg::ResolvableInstall (p, `pattern);
+	    map prop = Pkg::ResolvableProperties(p, `pattern, "")[0]:$[];
+	    if (prop["status"]:nil == `available && prop["transact_by"]:nil == `user)
+	    {
+		y2milestone("Ignoring deselected pattern '%1'", p);
+	    }
+	    else
+	    {
+		Pkg::ResolvableInstall (p, `pattern);
+	    }
 	});
     }
     else
