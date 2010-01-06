@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan  6 17:48:18 UTC 2010 - lslezak@suse.cz
+
+- do not reselect patterns which have been deselected by user
+  (bnc#450786, bnc#471340)
+- 2.19.2
+
+-------------------------------------------------------------------
 Mon Jan  4 16:18:08 CET 2010 - locilka@suse.cz
 
 - Fixed accepting/declining the multilicense agreement.
