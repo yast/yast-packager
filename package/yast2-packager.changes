@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan  7 12:16:03 UTC 2010 - lslezak@suse.cz
+
+- pass the selected CD/DVD device to the package manager in case
+  of multiple devices in the system (bnc#567403)
+- 2.17.66
+
+-------------------------------------------------------------------
 Wed Jan  6 17:48:18 UTC 2010 - lslezak@suse.cz
 
 - do not reselect patterns which have been deselected by user
