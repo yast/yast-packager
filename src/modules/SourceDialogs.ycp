@@ -20,6 +20,7 @@ module "SourceDialogs";
 
 import "Label";
 import "URL";
+import "URLRecode";
 import "Popup";
 import "CWM";
 import "SourceManager";
@@ -56,6 +57,10 @@ boolean _download_metadata = true;
  * Allow HTTPS for next repository dialog?
  */
 boolean _allow_https = true;
+
+// CD/DVD device name to use (e.g. /dev/sr1) in case of multiple
+// devices in the system. Empty string means use the default.
+string cd_device_name = "";
 
 /**
  * Help text suffix for some types of the media
@@ -1797,8 +1802,21 @@ boolean SelectValidate (string key, map event) {
 	string msg = selected == `cd
 	    ? _("Insert the add-on product CD")
 	    : _("Insert the add-on product DVD");
-	if (! SourceManager::AskForCD (msg))
+
+	// reset the device name
+	cd_device_name = "";
+
+	// ask for a medium
+	map<string,any> ui_result = SourceManager::AskForCD (msg);
+	if (! ui_result["continue"]:false)
 	    return false;
+
+	string cd_device = ui_result["device"]:"";
+	if (cd_device != nil && cd_device != "")
+	{
+	    y2milestone("Selected CD/DVD device: %1", cd_device);
+	    cd_device_name = cd_device;
+	}
     }
     else if (selected == `usb)
     {
@@ -1848,8 +1866,14 @@ void SelectStore (string key, map event) {
 	else if ( selected == `https ) _url = "https://";
 	else if ( selected == `samba ) _url = "smb://";
 	else if ( selected == `nfs ) _url = "nfs://";
-	else if ( selected == `cd ) _url = "cd:///";
-	else if ( selected == `dvd ) _url = "dvd:///";
+	else if ( selected == `cd || selected == `dvd)
+	{
+	    _url = (selected == `cd) ? "cd:///" : "dvd:///";
+	    if (cd_device_name != "")
+	    {
+		_url = _url + "?devices=" + URLRecode::EscapeQuery(cd_device_name);
+	    }
+	}
 	else if ( selected == `hd ) _url = "hd://";
 	else if ( selected == `usb ) _url = "usb://";
 	else if ( selected == `local_dir ) _url = "dir://";
