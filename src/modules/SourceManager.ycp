@@ -729,13 +729,13 @@ global list Overview() {
 /**
  *
  */
-global boolean AskForCD (string message) {
+global map<string,any> AskForCD (string message) {
     list<map<string,any> > cdroms = (list<map<string,any> >)
 	SCR::Read (.probe.cdrom);
     boolean multiple_drives = size (cdroms) > 1;
     term drives_sel = `Empty ();
-    list<string> devices = maplist (map<string,any> d, cdroms, {
-	return d["dev_name"]:"";
+    list<term> devices = maplist (map<string,any> d, cdroms, {
+	return `item(`id(d["dev_name"]:""), d["model"]:"" + " (" + (d["dev_name"]:"") + ")" );
     });
     if (multiple_drives)
     {
@@ -759,7 +759,7 @@ global boolean AskForCD (string message) {
     ), `HSpacing (1));
     UI::OpenDialog (contents);
     if (multiple_drives)
-	UI::ChangeWidget (`id (`drives), `CurrentItem, devices[0]:"");
+	UI::ChangeWidget (`id (`drives), `CurrentItem, cdroms[0,"dev_name"]:"");
     UI::SetFocus (`id (`cont));
     symbol ret = nil;
     while (true)
@@ -779,13 +779,22 @@ global boolean AskForCD (string message) {
 	    else
 	    {
 		SCR::Execute (.target.bash, sformat ("/bin/eject %1",
-		    devices[0]:""));
+		    cdroms[0,"dev_name"]:""));
 	    }
 	}
 	ret = nil;
     }
+
+    map<string,any> result = $[ "continue" : (ret == `cont) ];
+
+    if (multiple_drives)
+    {
+	result = add(result, "device", (string)UI::QueryWidget (`id (`drives), `Value));
+    }
+
     UI::CloseDialog ();
-    return ret == `cont;
+
+    return result;
 }
 
 /**
