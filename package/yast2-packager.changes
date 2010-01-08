@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan  8 08:05:12 UTC 2010 - lslezak@suse.cz
+
+- don't display exact total remaining time when there is an
+  overflow (i.e. for >2:00:00 and e.g. 15:20 remaining time display
+  >2:00:00 total instead of 2:15:20) (bnc#567966)
+
+-------------------------------------------------------------------
 Thu Jan  7 12:16:03 UTC 2010 - lslezak@suse.cz
 
 - pass the selected CD/DVD device to the package manager in case

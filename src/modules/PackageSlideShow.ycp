@@ -170,15 +170,15 @@
 	return sum;
     }
 
-
     /**
      * Sum up all positive list items, but cut off individual items at a maximum value.
      * Negative return values indicate overflow of any individual item at "max_cutoff".
-     * In this case, the real sum is the absolute value of the return value.
+     * In this case, the absolute value of the return value is "max_cutoff" * number of overflows.
+     * (e.g. >2hour + >2hours + 1:13:20 => >4hours
      **/
     integer ListSumCutOff( list<integer> sizes, integer max_cutoff )
     {
-	boolean overflow = false;
+	integer overflow = 0;
 	integer sum = 0;
 
 	foreach( integer item, sizes, ``{
@@ -186,16 +186,19 @@
 	    {
 		if ( item > max_cutoff )
 		{
-		    overflow = true;
-		    sum = sum + max_cutoff;
+		    overflow = overflow + 1;
 		}
 		else
+		{
 		    sum = sum + item;
+		}
 	    }
 	});
 
-	if ( overflow )
-	    sum = -sum;
+	if (overflow > 0)
+	{
+	    sum = -overflow * max_cutoff;
+	}
 
 	return sum;
     }
