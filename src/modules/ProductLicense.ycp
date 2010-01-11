@@ -45,6 +45,12 @@ list <string> license_patterns = [
 list <string> license_ids = [];
 
 /**
+ * License files by their eula_ID
+ * @struct $["ID":$[licenses]]
+ */
+map <string, map <string, string> > all_licenses = $[];
+
+/**
  * Checks the string that might contain ID of a license and
  * eventually returns that id.
  * See also GetIdPlease for a better ratio of successful stories.
@@ -52,8 +58,8 @@ list <string> license_ids = [];
 string GetId (string id_text) {
     string id = nil;
 
-    if (regexpmatch (id_text, "^license_language_[[:digit:]]+")) {
-	id = regexpsub (id_text, "^license_language_([[:digit:]]+)", "\\1");
+    if (regexpmatch (id_text, "^license_language_.+")) {
+	id = regexpsub (id_text, "^license_language_(.+)", "\\1");
     } else {
 	y2error ("Cannot get ID from %1", id_text);
     }
@@ -671,6 +677,10 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
 
     licenses = LicenseFiles (license_dir,
 	license_patterns);
+
+    // all other 'licenses' could be replaced by this one
+    all_licenses[id] = licenses;
+
     if (info_file == nil && size (licenses) == 0)
 	return `auto;
 
@@ -776,6 +786,11 @@ void UpdateLicenseContent (map <string, string> & licenses, string id) {
     // read the selected language
     lic_lang = (string) UI::QueryWidget (`id (sformat ("license_language_%1", id)), `Value);
     term rp_id = `id (sformat ("license_contents_rp_%1", id));
+
+    if (licenses == $[]) {
+	licenses = all_licenses[id]:$[];
+    }
+
     if (UI::WidgetExists (rp_id)) {
 	UI::ReplaceWidget (rp_id, GetLicenseContent (lic_lang, licenses, id));
     } else {
@@ -819,7 +834,7 @@ boolean AllLicensesAcceptedOrDeclined () {
 
     string eula_id = nil;
     foreach (string one_license_id, license_ids, {
-	if (AcceptanceNeeded (one_license_id))
+	if (AcceptanceNeeded (one_license_id) != true)
 	    return;
 
 	eula_id = sformat ("eula_%1", one_license_id);
@@ -842,11 +857,10 @@ boolean AllLicensesAcceptedOrDeclined () {
 symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_product, string action) {
     any ret = nil;
 
-    while (true)
-    {
+    while (true) {
 	ret = UI::UserInput();
 
-	if (is (ret, string) && regexpmatch (tostring (ret), "^license_language_[[:digit:]]+$")) {
+	if (is (ret, string) && regexpmatch (tostring (ret), "^license_language_")) {
 	    UpdateLicenseContent (licenses, GetId (tostring (ret)));
 	    ret = `language;
 	// bugzilla #303828
@@ -854,10 +868,8 @@ symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_pro
 	} else if (is (ret, string) && (regexpmatch (tostring(ret), "^yes_") || regexpmatch (tostring(ret), "^no_"))) {
 	    if (AllLicensesAcceptedOrDeclined())
 		Wizard::EnableNextButton();
-	}
-
 	// Aborting the license dialog
-	if (ret == `abort) {
+	} else if (ret == `abort) {
 	    // bugzilla #218677
 	    if (base_product) {
 		if (Popup::ConfirmAbort (`painless)) {
@@ -873,9 +885,7 @@ symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_pro
 		    break;
 		}
 	    }
-	}
-	else if (ret == `next)
-	{
+	} else if (ret == `next) {
 	    // License declined
 	    if (AllLicensesAccepted() != true)
 	    {
@@ -941,11 +951,11 @@ product installation. Really refuse the agreement?");
 		ret = `accepted;
 		break;
 	    }
-        }
-	else if (ret == `back)
-	{
+        } else if (ret == `back) {
 	    ret = `back;
 	    break;
+	} else {
+	    y2error ("Unhandled input: %1", ret);
 	}
     }
 

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 11 13:57:26 CET 2010 - locilka@suse.cz
+
+- Fixed switching license language in ProductLicense.
+- Fixed disabled Next button while showing license with no
+  acceptance needed in ProductLicense.
+
+-------------------------------------------------------------------
 Fri Jan  8 08:05:12 UTC 2010 - lslezak@suse.cz
 
 - don't display exact total remaining time when there is an
