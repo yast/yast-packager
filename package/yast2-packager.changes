@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jan 11 13:57:26 CET 2010 - locilka@suse.cz
+
+- Fixed switching license language in ProductLicense.
+- Fixed disabled Next button while showing license with no
+  acceptance needed in ProductLicense.
+- 2.17.67
+
+-------------------------------------------------------------------
 Thu Jan  7 12:16:03 UTC 2010 - lslezak@suse.cz
 
 - pass the selected CD/DVD device to the package manager in case
