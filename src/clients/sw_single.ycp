@@ -39,6 +39,9 @@
     import "Progress";
     import "Directory";
     import "String";
+    import "URL";
+
+boolean force_summary = false;
 
 symbol StartSWSingle()
 {
@@ -127,9 +130,7 @@ symbol StartSWSingle()
     //
     // returns	`done		all done
     //		`failed		package not found
-    //		`next		workflow "Change source of installation"
     //		`found_descr	started package manager
-    //		`unknown_descr	found nothing
     //
 
    define symbol CheckWhichPackages (list<string> arg_list)
@@ -152,16 +153,82 @@ symbol StartSWSingle()
 	*/
        if (regexpmatch (first_arg, "\\.rpm$"))		// package name given
        {
-	   // if sw_single is called with an absolute package-pathname, there is no need to
-	   // mount the source medium or check SuSE version or dependencies
+	    PackageSystem::EnsureSourceInit();
 
-	   PackageSlideShow::InitPkgData(true);	// force reinitialization
+	    // if sw_single is called with an absolute package-pathname, there is no need to
+	    // mount the source medium or check SuSE version or dependencies
+
+
+	    PackageSlideShow::InitPkgData(true);	// force reinitialization
+
+	    // create a temporary Plaindir repository
+	    string tmpdir = (string) SCR::Read(.target.tmpdir);
+	    string tmprepo = tmpdir + "/tmp_install_repo";
+
+	    // create mount point directory
+	    SCR::Execute(.target.mkdir, tmprepo);
+
+	    foreach (string package, arg_list, {
+		// a symbolic link
+		string command = sformat("ln -- '%1' '%2'", String::Quote(package), String::Quote(tmprepo));
+		y2milestone("Linking package using command: %1", command);
+
+		map out = (map)SCR::Execute(.target.bash_output, command);
+
+		if (out["exit"]:-1 != 0)
+		{
+		    y2warning("Could not link the package, creating a full copy instead...");
+		    command = sformat("cp -- '%1' '%2'", String::Quote(package), String::Quote(tmprepo));
+
+		    y2milestone("Copying package using command: %1", command);
+		    out = (map)SCR::Execute(.target.bash_output, command);
+
+		    if (out["exit"]:-1 != 0)
+		    {
+			Report::Error(sformat(_("Error: Cannot copy package %1 to temporary repository %2."), package, tmprepo));
+			return `failed;
+		    }
+		}
+	    });
+
+	    string url = URL::Build($["scheme" : "file", "path" : tmprepo]);
+	    y2milestone("Using tmp repo URL: %1", url);
+
+	    integer repo_id = nil;
+
+	    if (url != "")
+	    {
+		repo_id = Pkg::SourceCreateType(url, "", "Plaindir");
+		y2milestone("Adde temporary repository with ID %1", repo_id);
+
+		if (repo_id == nil)
+		{
+		    Report::Error(sformat(_("Error: Cannot add a temporary directory, packages cannot be installed.")));
+		    return `failed;
+		}
+	    }
+	    else
+	    {
+		return `failed;
+	    }
 
 	   foreach (string package, arg_list, {
+
 	       if (SCR::Read (.target.size, package) > 0)
 	       {
-		   y2milestone ("SW_SINGLE: installing %1", package);
-		   boolean installed = Pkg::TargetInstall (package);
+		    map out = (map)SCR::Execute(.target.bash_output,
+			sformat("/bin/rpm -q --qf '%%{NAME}' -p '%1'", String::Quote(package)));
+
+		   if (out["exit"]:-1 != 0)
+		   {
+			Report::Error(sformat(_("Error: Cannot query package %1."), package));
+			return `failed;
+		   }
+
+		   string package_name = out["stdout"]:"";
+
+		   y2milestone ("Installing %1 from file %2 (repository %3)", package_name, package, repo_id);
+		   boolean installed = Pkg::ResolvableInstallRepo(package_name, `package, repo_id);
 
 		   if (!installed)
 		   {
@@ -185,9 +252,8 @@ Details:
 	       }
 	   });
 
-	   // package is installed without paying attention to SuSE dependencies
-	   // don't call SuSEConfig -> dialog loop ends
-	   return `done;
+	   Pkg::PkgSolve(false);
+	   force_summary = true;
        }
        else if (first_arg != "")		// firstarg given, but not *.rpm
        {
@@ -610,11 +676,12 @@ without having package %1 installed"), required_package));
 		    PKGMGR_ACTION_AT_EXIT = "close";
 		}
 
-		y2milestone("PKGMGR_ACTION_AT_EXIT: %1", PKGMGR_ACTION_AT_EXIT);
+		y2milestone("PKGMGR_ACTION_AT_EXIT: %1, force_summary: %2", PKGMGR_ACTION_AT_EXIT, force_summary);
 
 		// display installation summary if there has been an error
 		// or if it's enabled in sysconfig
 		if (PKGMGR_ACTION_AT_EXIT == "summary"
+		    || force_summary
 		    || size(commit_result[1]:[]) > 0)
 		{
 		    if (PackagesUI::ShowInstallationSummary() == `back && size(packagelist) == 0)
