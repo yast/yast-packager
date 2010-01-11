@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Jan 11 16:27:35 UTC 2010 - lslezak@suse.cz
+
+- sw_single.ycp: solve dependencies when installing a package
+  from command line (via yast2 -i) - use a temporary local
+  repository (bnc#459268)
+- sw_single.ycp: display installation progress and show the summary
+  dialog after installation when installing a package from command
+  line (bnc#455768)
+
+-------------------------------------------------------------------
 Mon Jan 11 13:57:26 CET 2010 - locilka@suse.cz
 
 - Fixed switching license language in ProductLicense.
