@@ -7,6 +7,9 @@ Mon Jan 11 16:27:35 UTC 2010 - lslezak@suse.cz
 - sw_single.ycp: display installation progress and show the summary
   dialog after installation when installing a package from command
   line (bnc#455768)
+- sw_single.ycp: check target initialization result, abort on error
+  (bnc#556477)
+- 2.19.3
 
 -------------------------------------------------------------------
 Mon Jan 11 13:57:26 CET 2010 - locilka@suse.cz

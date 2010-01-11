@@ -135,7 +135,12 @@ symbol StartSWSingle()
 
    define symbol CheckWhichPackages (list<string> arg_list)
    {
-       PackageSystem::EnsureTargetInit();
+       if (!Pkg::TargetInit("/", false))
+       {
+	   // error message
+	   Report::Error("Cannot read the list of installed packages.");
+	   return `failed;
+       }
 
        y2milestone ("CheckWhichPackages (%1)", arg_list);
        // if sw_single is called with a list of packages or a package name
@@ -185,7 +190,8 @@ symbol StartSWSingle()
 
 		    if (out["exit"]:-1 != 0)
 		    {
-			Report::Error(sformat(_("Error: Cannot copy package %1 to temporary repository %2."), package, tmprepo));
+			// error message (%1 is a package file name)
+			Report::Error(sformat(_("Error: Cannot copy package %1 to temporary repository."), package));
 			return `failed;
 		    }
 		}
@@ -203,6 +209,7 @@ symbol StartSWSingle()
 
 		if (repo_id == nil)
 		{
+		    // error message
 		    Report::Error(sformat(_("Error: Cannot add a temporary directory, packages cannot be installed.")));
 		    return `failed;
 		}
@@ -221,7 +228,8 @@ symbol StartSWSingle()
 
 		   if (out["exit"]:-1 != 0)
 		   {
-			Report::Error(sformat(_("Error: Cannot query package %1."), package));
+			// error message
+			Report::Error(sformat(_("Error: Cannot query package file %1."), package));
 			return `failed;
 		   }
 
