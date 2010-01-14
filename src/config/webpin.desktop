@@ -17,9 +17,8 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
 Icon=yast-webpin 
-Exec=/sbin/yast2 webpin_package_search
+Exec=xdg-su -c "/sbin/yast2 webpin_package_search"
 
 Name=Package Search (webpin)
 GenericName=Search for software in online repositories 
-X-KDE-SubstituteUID=true
 StartupNotify=true
