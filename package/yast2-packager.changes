@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 27 15:41:46 UTC 2010 - lslezak@suse.cz
+
+- repositories - added NFSv4 support (fate#306451), don't loose
+  the current URL when switching between full and parsed view
+- 2.17.69
+
+-------------------------------------------------------------------
 Thu Jan 14 13:40:25 UTC 2010 - lslezak@suse.cz
 
 - install also xorg-x11-fonts package when remote X or VNC
