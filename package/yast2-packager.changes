@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Feb 26 14:46:32 CET 2010 - locilka@suse.cz
+
+- Calling ProductLicense cleanup before leaving the license dialog
+  (BNC #581933).
+- 2.17.70
+
+-------------------------------------------------------------------
 Wed Jan 27 15:41:46 UTC 2010 - lslezak@suse.cz
 
 - repositories - added NFSv4 support (fate#306451), don't loose
