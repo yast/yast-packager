@@ -963,6 +963,15 @@ product installation. Really refuse the agreement?");
 }
 
 /**
+ * Generic cleanup
+ */
+void CleanUp() {
+    // BNC #581933: All license IDs are cached while the module is in memory.
+    // Removing them when leaving the license dialog.
+    license_ids = [];
+}
+
+/**
  * Ask user to confirm license agreement
  * @param src_id integer repository to get the license from.
  *   If set to 'nil', the license is considered to belong to a base product
@@ -1034,6 +1043,8 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
     if (created_new_dialog || (!Stage::initial() && src_id != nil)) {
 	Wizard::CloseDialog();
     }
+
+    CleanUp();
 
     return ret;
 }
@@ -1158,6 +1169,8 @@ global symbol AskLicensesAgreement (list <string> dirs,
 	Wizard::CloseDialog();
     }
 
+    CleanUp();
+
     return ret;
 }
 
@@ -1221,6 +1234,8 @@ global boolean ShowFullScreenLicenseInInstallation (any replace_point_ID, intege
 	}
     }
 
+    CleanUp();
+
     return true;
 }
 
@@ -1249,6 +1264,8 @@ global boolean ShowLicenseInInstallation (any replace_point_ID, integer src_id) 
 	    info_file_already_seen[id] = true;
 	}
     }
+
+    CleanUp();
 
     return true;
 }
