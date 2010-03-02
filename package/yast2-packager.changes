@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar  2 10:09:38 CET 2010 - ug@suse.de
+
+- fixed AutoYaST post-patterns
+
+-------------------------------------------------------------------
 Fri Feb 26 14:46:32 CET 2010 - locilka@suse.cz
 
 - Calling ProductLicense cleanup before leaving the license dialog
