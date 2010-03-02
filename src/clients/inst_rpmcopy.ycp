@@ -156,7 +156,7 @@
 	}
 
         list<string> failed = [];
-        list<string> patterns = []; // WORKAROUND, REMOVE!!! AutoinstData::post_patterns;
+        list<string> patterns = AutoinstData::post_patterns;
         /* set SoftLock to avoid the installation of recommended patterns (#159466) */
         foreach( map<string,any> p, Pkg::ResolvableProperties ("", `pattern, ""), ``{
             Pkg::ResolvableSetSoftLock( p["name"]:"", `pattern );
