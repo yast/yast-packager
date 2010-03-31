@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 31 14:35:48 UTC 2010 - lslezak@suse.cz
+
+- put the Linuxrc CD/DVD device to the beginning of the CD/DVD
+  device list - prefer the Linuxrc medium (bnc#588810)
+
+-------------------------------------------------------------------
 Tue Mar  2 10:09:38 CET 2010 - ug@suse.de
 
 - fixed AutoYaST post-patterns

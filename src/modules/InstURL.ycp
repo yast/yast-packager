@@ -56,6 +56,27 @@
 
 	if (size (ready) != 0)
 	    devlist = ready;
+
+	// add the Linuxrc medium to the beginning
+        string repo_url = Linuxrc::InstallInf("RepoURL");
+	if (regexpmatch(tolower(repo_url), "^cd:") || regexpmatch(tolower(repo_url), "^dvd:"))
+	{
+	    y2milestone("Found CD/DVD device in Linuxrc RepoURL: %1", repo_url);
+	    string linuxrc_device = regexpsub(repo_url, "device=(.*)$", "\\1");
+	    if (linuxrc_device != nil && linuxrc_device != "")
+	    {
+		linuxrc_device = "/dev/" + linuxrc_device;
+		y2milestone("Using Linuxrc device: %1", linuxrc_device);
+
+		// remove the device if it is already in the list
+		devlist = filter(string d, devlist, {return d != linuxrc_device;});
+		// put the linuxrc device at the beginning
+		devlist = prepend(devlist, linuxrc_device);
+
+		y2milestone("Using CD/DVD device list: %1", devlist);
+	    }
+	}
+
 	foreach (string d, devlist, {
 	    if (d != "")
 	    {
