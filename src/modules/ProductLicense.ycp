@@ -513,25 +513,45 @@ void SearchForLicense_FirstStageBaseProduct (integer src_id, string fallback_dir
 void SearchForLicense_LiveCDInstallation (integer src_id, string fallback_dir) {
     y2milestone ("LiveCD License");
 
-    if (FileUtils::Exists ("/license.tar.gz")) {
-	tmpdir = sformat ("%1/product-license/LiveCD/", (string) SCR::Read (.target.tmpdir));
-	string license_file = "/license.tar.gz";
+    // BNC #594042: Multiple license locations
+    list <string> license_locations = ["/usr/share/doc/licenses/", "/"];
 
-	if (UnpackLicenseTgzFileToDirectory (license_file, tmpdir)) {
-	    license_dir = tmpdir;
-	    license_file_print = "license.tar.gz";
-	} else {
-	    CleanUpLicense (tmpdir);
-	    license_file = nil;
+    license_dir = nil;
+    info_file = nil;
+
+    foreach (string license_location, license_locations, {
+	license_location = sformat ("%1/license.tar.gz", license_location);
+
+	if (FileUtils::Exists (license_location)) {
+	    y2milestone ("Using license: %1", license_location);
+	    tmpdir = sformat ("%1/product-license/LiveCD/", (string) SCR::Read (.target.tmpdir));
+
+	    if (UnpackLicenseTgzFileToDirectory (license_location, tmpdir)) {
+		license_dir = tmpdir;
+		license_file_print = "license.tar.gz";
+	    } else {
+		CleanUpLicense (tmpdir);
+	    }
+	    break;
 	}
-    } else {
-	license_dir = nil;
+    });
+
+    if (license_dir == nil) {
+	y2milestone ("No license found in: %1", license_locations);
     }
 
-    if (FileUtils::Exists ("/README.BETA")) {
-	info_file = "/README.BETA";
-    } else {
-	info_file = nil;
+    foreach (string info_location, license_locations, {
+	info_location = sformat ("%1/README.BETA", info_location);
+
+	if (FileUtils::Exists (info_location)) {
+	    y2milestone ("Using info file: %1", info_location);
+	    info_file = info_location;
+	    break;
+	}
+    });
+
+    if (info_file == nil) {
+	y2milestone ("No info file found in: %1", license_locations);
     }
 }
 
