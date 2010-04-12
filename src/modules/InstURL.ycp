@@ -59,6 +59,12 @@
 
 	// add the Linuxrc medium to the beginning
         string repo_url = Linuxrc::InstallInf("RepoURL");
+
+	if (repo_url == nil)
+	{
+	    repo_url = "";
+	}
+
 	if (regexpmatch(tolower(repo_url), "^cd:") || regexpmatch(tolower(repo_url), "^dvd:"))
 	{
 	    y2milestone("Found CD/DVD device in Linuxrc RepoURL: %1", repo_url);
