@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 19 07:27:40 UTC 2010 - lslezak@suse.cz
+
+- switch pkg manager to summary mode after resolving pkg conflicts
+  (kmachalkova@novell.com)(bnc#596519)
+- 2.19.5
+
+-------------------------------------------------------------------
 Mon Apr 12 12:26:42 UTC 2010 - lslezak@suse.cz
 
 - added a nil check in InstURL.ycp so the testsuite passes
