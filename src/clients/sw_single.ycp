@@ -595,7 +595,7 @@ without having package %1 installed"), required_package));
 	       }
 	       else
 	       {
-		   result = (symbol)WFM::CallFunction( "inst_packages", [ $["repo_mgmt" : true] ]);	// Ask user if conflicts
+		   result = (symbol)WFM::CallFunction( "inst_packages", [ $[ "dialog_type": `summaryMode, "repo_mgmt" : true] ]);	// Ask user if conflicts
 		   y2milestone ("inst_packages returns %1", result);
 		   if (result == `accept)
 		       result = `next;
