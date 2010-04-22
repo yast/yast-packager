@@ -299,7 +299,12 @@
         {
             // FIXME don't know why it is needed
             // Needed as a seperator between URL and options (!)
-            url_tokens["path"] = "/"; 
+	    // bnc#571648 - smb installation source: linuxrc path failed for YaST repositories
+	    if  (instmode == "smb" && (share != nil) && (share != "")) {
+		url_tokens["path"] = share  + "/";
+	    } else { 
+                url_tokens["path"] = "/"; 
+	    }
         }
 
         string port = Linuxrc::InstallInf("Port");
