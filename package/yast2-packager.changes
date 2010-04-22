@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 22 12:08:38 UTC 2010 - lslezak@suse.cz
+
+- properly format installation URL when installing from ISO
+  located at a SMB share (bnc#571648)
+- 2.17.75
+
+-------------------------------------------------------------------
 Mon Apr 12 12:26:42 UTC 2010 - lslezak@suse.cz
 
 - added a nil check in InstURL.ycp so the testsuite passes
