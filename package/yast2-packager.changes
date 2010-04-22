@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 22 12:08:38 UTC 2010 - lslezak@suse.cz
+
+- properly format installation URL when installing from ISO
+  located at a SMB share (bnc#571648)
+- 2.19.6
+
+-------------------------------------------------------------------
 Mon Apr 19 07:27:40 UTC 2010 - lslezak@suse.cz
 
 - switch pkg manager to summary mode after resolving pkg conflicts
