@@ -39,6 +39,7 @@ void XenPVToInitrd()
     // is any xen-kmp-* package selected?
     if (Pkg::IsSelected("xen-kmp-default")
 	|| Pkg::IsSelected("xen-kmp-smp")
+	|| Pkg::IsSelected("xen-kmp-pae")
 	|| Pkg::IsSelected("xen-kmp-bigsmp")
 	|| Pkg::IsSelected("xen-kmp-kdump"))
     {
@@ -51,7 +52,29 @@ void XenPVToInitrd()
     }
     else
     {
-	y2milestone("No xen-kmp-* package is selected for installation, skipping PV driver installation");
+	y2milestone("No xen-kmp-* package is selected for installation, skipping XEN PV driver installation");
+    }
+}
+
+void HyperVPVToInitrd() {
+    // is any hyper-v-kmp-* package selected?
+    if (Pkg::IsSelected("hyper-v-kmp-default")
+	|| Pkg::IsSelected("hyper-v-kmp-smp")
+	|| Pkg::IsSelected("hyper-v-kmp-pae")
+	|| Pkg::IsSelected("hyper-v-kmp-bigsmp")
+	|| Pkg::IsSelected("hyper-v-kmp-kdump"))
+    {
+	// add modules to initrd
+	Initrd::AddModule ("hv_blkvsc.ko", "");
+	Initrd::AddModule ("hv_netvsc.ko", "");
+	Initrd::AddModule ("hv_storvsc.ko", "");
+	Initrd::AddModule ("hv_vmbus.ko", "");
+
+	y2milestone("Added HyperV PV drivers to initrd, configured drivers: %1", Initrd::ListModules());
+    }
+    else
+    {
+	y2milestone("No hyper-v-kmp-* package is selected for installation, skipping HyperV PV driver installation");
     }
 }
 
@@ -510,8 +533,9 @@ void XenPVToInitrd()
 	AcpiToInitrd ();
     }
 
-    // add Xen PV drivers to initrd
+    // add Xen and HyperV PV drivers to initrd
     XenPVToInitrd();
+    HyperVPVToInitrd();
 
     if (Stage::initial ())
     {
