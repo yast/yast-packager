@@ -65,12 +65,17 @@ void HyperVPVToInitrd() {
 	|| Pkg::IsSelected("hyper-v-kmp-kdump"))
     {
 	// add modules to initrd
-	Initrd::AddModule ("hv_blkvsc.ko", "");
-	Initrd::AddModule ("hv_netvsc.ko", "");
-	Initrd::AddModule ("hv_storvsc.ko", "");
-	Initrd::AddModule ("hv_vmbus.ko", "");
+	Initrd::AddModule ("hv_blkvsc", "");
+	Initrd::AddModule ("hv_netvsc", "");
+	Initrd::AddModule ("hv_storvsc", "");
+	Initrd::AddModule ("hv_vmbus", "");
 
 	y2milestone("Added HyperV PV drivers to initrd, configured drivers: %1", Initrd::ListModules());
+
+	// it also need to be added to MODULES_LOADED_ON_BOOT
+        Kernel::AddModuleToLoad ("hv_storvsc");
+	y2milestone ("Added hv_storvsc to modules loaded on boot");
+
     }
     else
     {
