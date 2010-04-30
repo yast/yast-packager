@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 30 12:05:38 CEST 2010 - jsrain@suse.cz
+
+- add hv_storvsc to MODULES_LOADED_ON_BOOT on HyperV (bnc#600792)
+
+-------------------------------------------------------------------
 Wed Apr 28 10:10:44 CEST 2010 - jsrain@suse.cz
 
 - add HyperV drivers to initrd if KMP is selected (bnc#600212)
