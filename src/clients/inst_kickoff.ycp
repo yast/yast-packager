@@ -74,7 +74,8 @@ void HyperVPVToInitrd() {
 
 	// it also need to be added to MODULES_LOADED_ON_BOOT
         Kernel::AddModuleToLoad ("hv_storvsc");
-	y2milestone ("Added hv_storvsc to modules loaded on boot");
+        Kernel::AddModuleToLoad ("hv_netvsc");
+	y2milestone ("Added hv_storvsc and hv_netvsc to modules loaded on boot");
 
     }
     else

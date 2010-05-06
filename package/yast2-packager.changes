@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  6 13:28:47 CEST 2010 - jsrain@suse.cz
+
+- add hv_netvsc to MODULES_LOADED_ON_BOOT on HyperV (bnc#600792)
+- 2.17.78
+
+-------------------------------------------------------------------
 Fri Apr 30 12:05:38 CEST 2010 - jsrain@suse.cz
 
 - add hv_storvsc to MODULES_LOADED_ON_BOOT on HyperV (bnc#600792)
