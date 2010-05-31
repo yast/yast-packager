@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 31 19:35:45 UTC 2010 - lslezak@suse.cz
+
+- repositories - refresh also enabled repositories and the end
+  when "refresh-enabled" command line option is used (bnc#608562)
+- 2.19.7
+
+-------------------------------------------------------------------
 Thu May  6 13:28:47 CEST 2010 - jsrain@suse.cz
 
 - add hv_netvsc to MODULES_LOADED_ON_BOOT on HyperV (bnc#600792)

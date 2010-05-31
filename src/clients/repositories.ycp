@@ -504,11 +504,20 @@
 	    }
 	});
 
+	boolean refresh_enabled = contains(WFM::Args(), "refresh-enabled");
+
 	foreach(map<string,any> src_state, sourceStatesOut,
 	    {
+		integer srcid = src_state["SrcId"]:-1;
+
+		if (refresh_enabled && contains(added, srcid))
+		{
+		    y2milestone("Refreshing enabled repository: %1", srcid);
+		    src_state["do_refresh"] = true;
+		}
+
 		if (src_state["do_refresh"]:false)
 		{
-		    integer srcid = src_state["SrcId"]:-1;
 		    y2milestone("Downloading metadata for source %1", srcid);
 
 		    success = success && Pkg::SourceRefreshNow(srcid);
@@ -1687,6 +1696,12 @@ if (WFM::Args() == [ `sw_single_mode ])
     }
 
     return ret;
+}
+
+if (WFM::Args() == [ "refresh-enabled" ])
+{
+    y2milestone("Refresh enabled option set");
+    return StartInstSource();
 }
 
 return CommandLine::Run(cmdline_description);
