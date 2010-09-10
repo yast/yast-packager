@@ -452,6 +452,10 @@ Package installation will be aborted.
 	    SCR::RegisterNewAgents();
 	}
     }
-    
+
+    // clear the installation log for the next run, save some memory
+    y2milestone("Resetting SlideShow installation log");
+    SlideShow::inst_log = "";
+
     return result;
 }
