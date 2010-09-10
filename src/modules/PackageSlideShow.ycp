@@ -25,7 +25,7 @@
     global list<list<integer> > remaining_pkg_count_per_cd_per_src = []; // remaining number of pkgs
     global map<integer,integer> srcid_to_current_src_no = $[];
     // the string is follwed by a media number, e.g. "Medium 1"
-    global string	media_type		= _("Medium");
+    global string	media_type		= _("Medium %1");
     global integer	total_size_installed	= 0;
     global integer	total_size_to_install	= 0;
     global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
@@ -152,7 +152,7 @@
      */
     global void SetMediaType (string new_media_type)
     {
-	media_type = new_media_type;
+	y2warning("PackageSlideShow::SetMediaType() is obsoled, do not use!");
     }
 
     /**
@@ -303,9 +303,9 @@
 
 	if ( next_src_no >= 0 && next_cd_no >= 0 )
 	{
-	    string next_media_name = sformat( "%1 %2 %3",
+	    string next_media_name = sformat( "%1 %2",
 					      inst_src_names[ next_src_no ]:"",
-					      media_type, next_cd_no+1 );
+					      sformat(media_type, next_cd_no + 1) );
 
 	    if ( unit_is_seconds )
 	    {
@@ -313,7 +313,7 @@
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
 		// %3: Time remaining until this media will be needed
-		text = sformat( _("Next %1: %2 -- %3"), media_type, next_media_name,
+		text = sformat( _("Next: %1 -- %2"), next_media_name,
 				String::FormatTime( remaining_times_per_cd_per_src[ current_src_no-1, current_cd_no-1 ]: 1) );
 	    }
 	    else
@@ -321,7 +321,7 @@
 		// Status line informing about the next CD that will be used
 		// %1: Media type ("CD" / "DVD", ???)
 		// %2: Media name ("SuSE Linux Professional CD 2" )
-		text = sformat( _("Next %1: %2"), media_type, next_media_name );
+		text = sformat( _("Next: %1"), next_media_name );
 	    }
 	}
 
@@ -863,7 +863,7 @@
 		    if ( remaining > 0
 			 || ( src_no+1 == current_src_no && cd_no+1 == current_cd_no ) )	// suppress current CD
 		    {
-			string caption  = sformat( "%1 %2", media_type, cd_no+1 );		// "CD 1" - column #0
+			string caption  = sformat(media_type, cd_no + 1); // "Medium 1" - column #0
 			string rem_size = FormatRemainingSize( remaining );			// column #1
 			string rem_count = FormatRemainingCount( remaining_pkg_count_per_cd_per_src[ src_no, cd_no ]:0 );
 			string rem_time = "";
