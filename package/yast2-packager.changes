@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 10 12:23:08 UTC 2010 - lslezak@suse.cz
+
+- make "Medium #" more translation friendly (bnc#612977),
+  PackageSlideShow::SetMediaType() function marked as obsoled
+  (not used anyway)
+
+-------------------------------------------------------------------
 Mon May 31 19:35:45 UTC 2010 - lslezak@suse.cz
 
 - repositories - refresh also enabled repositories and the end
