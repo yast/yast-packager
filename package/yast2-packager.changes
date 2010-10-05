@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct  5 10:45:54 UTC 2010 - lslezak@suse.cz
+
+- install yast2-online-update-configuration package if needed
+  (bnc#609778)
+- 2.20.1
+
+-------------------------------------------------------------------
 Fri Sep 10 12:23:08 UTC 2010 - lslezak@suse.cz
 
 - make "Medium #" more translation friendly (bnc#612977),
