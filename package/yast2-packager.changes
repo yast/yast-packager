@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct  6 17:48:40 UTC 2010 - lslezak@suse.cz
+
+- put the Linuxrc CD/DVD device to the beginning of the CD/DVD
+  device list - prefer the Linuxrc medium (bnc#588830)
+- 2.13.186
+
+-------------------------------------------------------------------
 Fri Jul 24 08:43:26 CEST 2009 - lslezak@suse.cz
 
 - fixed URL password logging into y2log (bnc#441944)
