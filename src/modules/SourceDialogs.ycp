@@ -1346,7 +1346,7 @@ void ServerStoreParts()
     if (parsed == parsed_old)
     {
 	y2milestone("No change, NOT updating the complete URL");
-	y2debug("Unchanged URL: %1");
+	y2debug("Unchanged URL: %1", parsed);
     }
     else
     {
