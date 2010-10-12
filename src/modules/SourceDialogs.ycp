@@ -1258,7 +1258,18 @@ term complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("&URL
 void ServerStoreParts()
 {
     symbol type = (symbol) UI::QueryWidget( `id( `rb_type), `CurrentButton );
-    map parsed = $[];
+
+    // initialize keys to empty values so the new and old values can be simply compared
+    map parsed = $[
+	"fragment":"",
+	"host":"",
+	"pass":"",
+	"path":"",
+	"port":"",
+	"query":"",
+	"scheme":"",
+	"user":""
+    ];
     if ( type == `ftp )
 	parsed["scheme"] = "ftp";
     else if ( type == `http )
@@ -1330,16 +1341,29 @@ void ServerStoreParts()
 	parsed["port"] = (string)UI::QueryWidget(`id(`port), `Value);
     }
 
-    // do not log the entered password
-    y2milestone("Entered URL: %1", URL::HidePasswordToken(parsed));
-    _url = URL::Build (parsed);
-    y2milestone("URL::Build: %1", URL::HidePassword(_url));
-
-    if (UI::WidgetExists (`id (`ch_iso)))
+    // keep the URL if user haven't changed anything (don't change escaped chars bnc#529944)
+    map parsed_old = URL::Parse(_url);
+    if (parsed == parsed_old)
     {
-	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
-	if (iso)
-	    _url = PosprocessISOURL (_url);
+	y2milestone("No change, NOT updating the complete URL");
+	y2debug("Unchanged URL: %1");
+    }
+    else
+    {
+	y2milestone("A change detected, updating complete URL");
+	y2debug("Updating the URL: %1 -> %2", parsed_old, parsed);
+
+	// do not log the entered password
+	y2milestone("Entered URL: %1", URL::HidePasswordToken(parsed));
+	_url = URL::Build (parsed);
+	y2milestone("URL::Build: %1", URL::HidePassword(_url));
+
+	if (UI::WidgetExists (`id (`ch_iso)))
+	{
+	    boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
+	    if (iso)
+		_url = PosprocessISOURL (_url);
+	}
     }
 }
 
