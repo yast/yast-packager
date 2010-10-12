@@ -20,7 +20,7 @@
     import "Installation";
     import "GetInstArgs";
     import "Mode";
-
+    import "PackagesUI";
 
     list<string> packages = (list<string>)ProductFeatures::GetFeature("software", "packages");
 
@@ -57,9 +57,8 @@
             y2error("Error solving package dependencies");
         }
     }
-
-    symbol result = (symbol)WFM::CallFunction( "inst_packages", [`summaryMode]);
-    y2milestone ("inst_packages returns %1", result);
+    symbol result = PackagesUI::RunPackageSelector($["mode" : `summaryMode]);
+    y2milestone ("Package selector returned: %1", result);
     if (result == `accept)
         result = `next;
 
