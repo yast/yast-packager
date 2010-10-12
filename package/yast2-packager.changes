@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 12 09:39:59 UTC 2010 - lslezak@suse.cz
+
+- repo mgr: don't change URL when nothing has changed in the URL
+  dialog (bnc#529944)
+- 2.20.2
+
+-------------------------------------------------------------------
 Tue Oct  5 10:45:54 UTC 2010 - lslezak@suse.cz
 
 - install yast2-online-update-configuration package if needed
