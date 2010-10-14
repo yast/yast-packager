@@ -179,12 +179,8 @@
 
     global string ScriptProblem(string description)
     {
-	y2milestone("ScriptProblem: %1", description);
-	Popup::Error(description);
-
-	// Abort
-	// TODO: support also Ignore and Retry
-	return "A";
+	// display Abort/Retry/Ignore popup
+	return PackageCallbacks::ScriptProblem(description);
     }
 
     global void ScriptFinish()
