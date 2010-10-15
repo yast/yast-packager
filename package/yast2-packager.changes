@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 15 08:43:42 UTC 2010 - lslezak@suse.cz
+
+- don't change repository alias (ABC -> ABC_1) when changing
+  repository URL, keep the original alias (bnc#557556)
+- 2.20.5
+
+-------------------------------------------------------------------
 Thu Oct 14 13:06:14 UTC 2010 - lslezak@suse.cz
 
 - offer also Ignore/Retry when a patch script fails during system
