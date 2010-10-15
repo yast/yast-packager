@@ -1008,7 +1008,12 @@ All changes will be lost.");
 			{
 			  y2milestone ("URL or plaindir flag changed, recreating the source");
 			  // copy the refresh flag
-			  createResult = createSource( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName ());
+
+			  // get current alias
+			  string alias = generalData["alias"]:"alias";
+			  y2milestone("Reusing alias: %1", alias);
+
+			  createResult = createSourceWithAlias( url, SourceDialogs::IsPlainDir(), sourceState["do_refresh"]:false, SourceDialogs::GetRepoName (), alias);
 			  if ( createResult == `ok ) {
 			    // restore the origonal properties (enabled, autorefresh, keeppackages)
 			    // the added repository is at the end of the list
