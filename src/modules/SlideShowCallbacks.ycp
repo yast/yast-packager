@@ -528,7 +528,8 @@
 	    SlideShow::StartTimer();
 
 	    // moved from PackageCallbacks
-	    if (ret == "" || URL::Check(ret))
+	    // skip it when there is a popup at the top (see bnc#622286)
+	    if ((ret == "" || URL::Check(ret) && UI::WidgetExists(`contents)))
 	    {
 		PackageSlideShow::SetCurrentCdNo (PackageCallbacks::_current_source, wanted);
 	    }
