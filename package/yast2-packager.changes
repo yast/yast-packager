@@ -1,9 +1,10 @@
 -------------------------------------------------------------------
-Sat Oct 23 07:17:35 UTC 2010 - lslezak@localhost
+Mon Oct 25 07:17:53 UTC 2010 - lslezak@suse.cz
 
 - slideshow media change callback - check whether the slideshow
   dialog is displayed, don't initialize slideshow when there is
   a popup displayed - prevent from a UI syntax error (bnc#622286)
+- 2.20.6
 
 -------------------------------------------------------------------
 Fri Oct 15 08:43:42 UTC 2010 - lslezak@suse.cz
