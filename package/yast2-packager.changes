@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 27 14:36:59 CEST 2010 - mzugec@suse.cz
+
+- improved UI layout (bnc#619653)
+- 2.20.7
+
+-------------------------------------------------------------------
 Mon Oct 25 07:17:53 UTC 2010 - lslezak@suse.cz
 
 - slideshow media change callback - check whether the slideshow
