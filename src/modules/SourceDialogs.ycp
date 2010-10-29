@@ -1418,12 +1418,12 @@ symbol ServerHandle (string key, map event) {
 		`InputField (`id (`server), `opt (`hstretch), _("Server &Name"), server),
 		(type == `http || type == `https) ?
 		    `HBox(`HSpacing(1), `HSquash(`InputField (`id (`port), _("&Port"), port)))
-		    : `Empty()
-	    ),
+		    : `Empty(),
 	    type == `samba
 		// text entry
 		? `InputField (`id (`share), `opt (`hstretch), _("&Share"))
-		: `Empty (),
+		: `Empty ()
+	    ),
 	    type == `samba
 		? `VBox (
 		    `InputField (`id (`dir), `opt (`hstretch),
@@ -1449,9 +1449,11 @@ symbol ServerHandle (string key, map event) {
 			: `Empty (),
 		    // text entry
 		    `VSpacing(0.4),
-		    `InputField(`id (`username), `opt(`hstretch), _("&User Name"), username),
-		    // password entry
-		    `Password (`id (`password), `opt(`hstretch), _("&Password"), password)
+		    `HBox(
+		      `InputField(`id (`username), `opt(`hstretch), _("&User Name"), username),
+		      // password entry
+		      `Password (`id (`password), `opt(`hstretch), _("&Password"), password)
+		     )
 		)),
 		`HSpacing (0.5)
 	    )
