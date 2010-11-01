@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov  1 16:30:27 UTC 2010 - lslezak@suse.cz
+
+- sw_single: clear the startup progress dialog so it's not
+  displayed in slow systems at the end (bnc#637201)
+
+-------------------------------------------------------------------
 Wed Oct 27 14:36:59 CEST 2010 - mzugec@suse.cz
 
 - improved UI layout (bnc#619653)
