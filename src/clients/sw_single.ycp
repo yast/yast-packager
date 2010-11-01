@@ -456,7 +456,8 @@ Only installed packages are displayed."));
    // check the arguments and try the mount/search for local description
    symbol result = CheckWhichPackages (arg_list);
 
-   Progress::Finish();
+   // clear the progress dialog so it's not displayed by accident at the end (bnc#637201)
+   Wizard::SetContents ("", `Empty(), "", false, false);
 
    Pkg::SetTextLocale (UI::GetLanguage (true));
 
