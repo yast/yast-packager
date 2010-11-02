@@ -71,7 +71,6 @@
 
     integer current_provide_size = 0;
     integer current_install_size = 0;
-    string current_pkg_name = "";
     boolean updating = false;
 
     void ResetPackageSummary()
@@ -86,7 +85,6 @@
 	// temporary values
 	current_provide_size = 0;
 	current_install_size = 0;
-	current_pkg_name = "";
 	updating = false;
     }
 
@@ -1098,7 +1096,7 @@
 
 		if (Mode::normal())
 		{
-		    updated_packages_list = add(updated_packages_list, current_pkg_name);
+		    updated_packages_list = add(updated_packages_list, pkg_name);
 		}
 	    }
 	    else
@@ -1107,7 +1105,7 @@
 
 		if (Mode::normal())
 		{
-		    installed_packages_list = add(installed_packages_list, current_pkg_name);
+		    installed_packages_list = add(installed_packages_list, pkg_name);
 		}
 	    }
 
@@ -1120,7 +1118,7 @@
 
 	    if (Mode::normal())
 	    {
-		removed_packages_list = add(removed_packages_list, current_pkg_name);
+		removed_packages_list = add(removed_packages_list, pkg_name);
 	    }
 	}
     }
@@ -1136,6 +1134,7 @@
      * @param deleting		Flag: deleting (true) or installing (false) package?
      **/
     global void SlideDisplayStart( string	pkg_name,
+				   string	pkg_location,
 				   string	pkg_summary,
 				   integer	pkg_size,
 				   boolean	deleting	)
@@ -1143,10 +1142,8 @@
 	if ( ! SanityCheck( false ) )	return;
 
 	// remove path
-	pkg_name = StripPath(pkg_name);
-
-	// remove release and .rpm suffix
-	// pkg_name = StripReleaseNo( pkg_name );	// bug #154872
+	string pkg_filename = StripPath(pkg_location);
+	y2internal("pkg_name: %1", pkg_name);
 
 	if ( deleting )
 	{
@@ -1175,15 +1172,14 @@
 	    // Heading for the progress bar for the current package
 	    // while it is deleted. "%1" is the package name.
 	    msg = sformat( _("Deleting %1"), pkg_name );
-	    current_pkg_name = pkg_name;
 	}
 	else
 	{
-	    updating = Pkg::PkgInstalled(current_pkg_name);
+	    updating = Pkg::PkgInstalled(pkg_name);
 
 	    // package installation - summary text
 	    // %1 is RPM name, %2 is installed (unpacked) size (e.g. 6.20MB)
-	    msg = sformat( _("Installing %1 (installed size %2)"), pkg_name, String::FormatSize( pkg_size ) );
+	    msg = sformat( _("Installing %1 (installed size %2)"), pkg_filename, String::FormatSize( pkg_size ) );
 
 	    current_install_size = pkg_size;
 	}
@@ -1270,7 +1266,6 @@
     global void SlideProvideStart (string pkg_name, integer sz, boolean remote)
     {
 	current_provide_size = remote ? sz : 0;
-	current_pkg_name = pkg_name;
 
 	if (remote)
 	{

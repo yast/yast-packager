@@ -3,6 +3,7 @@ Tue Nov  2 13:00:15 UTC 2010 - lslezak@suse.cz
 
 - correctly display download progress in DownloadInAdvance
   libzypp mode (bnc#616708)
+- 2.20.8
 
 -------------------------------------------------------------------
 Mon Nov  1 16:30:27 UTC 2010 - lslezak@suse.cz

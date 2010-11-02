@@ -284,9 +284,9 @@
      * Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
      * and pass the "deleting" flag as appropriate.
      **/
-    global void DisplayStartInstall(string pkg_name, string pkg_description, integer pkg_size, boolean deleting )
+    global void DisplayStartInstall(string pkg_name, string pkg_location, string pkg_description, integer pkg_size, boolean deleting )
     {
-	PackageSlideShow::SlideDisplayStart( pkg_name, pkg_description, pkg_size, deleting );
+	PackageSlideShow::SlideDisplayStart( pkg_name, pkg_location, pkg_description, pkg_size, deleting );
 	HandleInput();
 
 	// warn user about exhausted diskspace during installation (not if deleting packages)
@@ -368,13 +368,13 @@
     /**
      *  at start of package install
      */
-    global void StartPackage( string name, string summary, integer install_size, boolean is_delete )
+    global void StartPackage( string name, string location, string summary, integer install_size, boolean is_delete )
     {
 	PackageCallbacks::_package_name = name;
 	PackageCallbacks::_package_size = install_size;
 	PackageCallbacks::_deleting_package = is_delete;
 
-	DisplayStartInstall( name,
+	DisplayStartInstall( name, location,
 				    summary,
 				    install_size,
 				    is_delete);
