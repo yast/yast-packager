@@ -1804,6 +1804,14 @@ Software proposal will be called again."));
 	y2milestone("the cached proposal is empty or reset is required");
     }
 
+    if (Installation::dirinstall_installing_into_dir && !force_reset && init_called)
+    {
+	return  Summary (
+	    [ `product, `pattern, `selection, `size, `desktop ],
+	    false
+	);
+    }
+
     UI::OpenDialog(`opt(`decorated ),
 	// popup label
 	`Label (_("Evaluating package selection...")));
