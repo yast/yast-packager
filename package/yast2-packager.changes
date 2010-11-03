@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov  3 13:44:55 UTC 2010 - lslezak@suse.cz
+
+- don't reset package selection in dirinstall mode when target
+  directory is changed (bnc#568511, bnc#568512)
+- 2.20.9
+
+-------------------------------------------------------------------
 Tue Nov  2 13:00:15 UTC 2010 - lslezak@suse.cz
 
 - correctly display download progress in DownloadInAdvance
