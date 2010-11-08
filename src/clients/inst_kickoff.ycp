@@ -56,6 +56,30 @@ void XenPVToInitrd()
     }
 }
 
+void HyperVPVToInitrd() {
+    // can the kernel modules be loaded?
+    if (0 == (integer)SCR::Execute(.target.bash, "/sbin/modprobe vmbus"))
+    {
+        // add modules to initrd
+        Initrd::AddModule ("blkvsc", "");
+        Initrd::AddModule ("netvsc", "");
+        Initrd::AddModule ("storvsc", "");
+        Initrd::AddModule ("vmbus", "");
+
+        y2milestone("Added HyperV PV drivers to initrd, configured drivers: %1", Initrd::ListModules());
+
+        // it also need to be added to MODULES_LOADED_ON_BOOT - not needed on SLES10
+//        Kernel::AddModuleToLoad ("hv_storvsc");
+//        Kernel::AddModuleToLoad ("hv_netvsc");
+//        y2milestone ("Added hv_storvsc and hv_netvsc to modules loaded on boot");
+
+    }
+    else
+    {
+	y2milestone("Cannot load vmbus kernel module, skipping HyperV PV driver installation");
+    }
+}
+
 
     /**
      *  Write a fake mtab to the target system since some %post scripts might
@@ -414,8 +438,9 @@ void XenPVToInitrd()
 	AcpiToInitrd ();
     }
 
-    // add Xen PV drivers to initrd
+    // add Xen and HyperV PV drivers to initrd
     XenPVToInitrd();
+    HyperVPVToInitrd();
 
     if (Stage::initial ())
     {
