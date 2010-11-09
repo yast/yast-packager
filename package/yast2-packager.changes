@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov  9 13:50:17 CET 2010 - jsrain@suse.cz
+
+- detect HyperV according to lscpu (bnc#652305)
+- 2.13.189
+
+-------------------------------------------------------------------
 Mon Nov  8 13:35:25 CET 2010 - jsrain@suse.cz
 
 - add HyperV drivers to initrd (bnc#651348)
