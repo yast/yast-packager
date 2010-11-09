@@ -57,8 +57,8 @@ void XenPVToInitrd()
 }
 
 void HyperVPVToInitrd() {
-    // can the kernel modules be loaded?
-    if (0 == (integer)SCR::Execute(.target.bash, "/sbin/modprobe vmbus"))
+    // check the running hypervisor
+    if (0 == (integer)SCR::Execute(.target.bash, "LANG=C lscpu | grep 'Hypervisor vendor:[[:space:]]*Microsoft' >/dev/null"); 
     {
         // add modules to initrd
         Initrd::AddModule ("blkvsc", "");
@@ -76,7 +76,7 @@ void HyperVPVToInitrd() {
     }
     else
     {
-	y2milestone("Cannot load vmbus kernel module, skipping HyperV PV driver installation");
+	y2milestone("HyperV hypervisor not detected");
     }
 }
 
