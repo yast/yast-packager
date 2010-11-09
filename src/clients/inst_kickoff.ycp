@@ -58,7 +58,7 @@ void XenPVToInitrd()
 
 void HyperVPVToInitrd() {
     // check the running hypervisor
-    if (0 == (integer)SCR::Execute(.target.bash, "LANG=C lscpu | grep 'Hypervisor vendor:[[:space:]]*Microsoft' >/dev/null"); 
+    if (0 == (integer)SCR::Execute(.target.bash, "LANG=C lscpu | grep 'Hypervisor vendor:[[:space:]]*Microsoft' >/dev/null"))
     {
         // add modules to initrd
         Initrd::AddModule ("blkvsc", "");
