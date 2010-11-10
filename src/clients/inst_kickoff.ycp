@@ -80,6 +80,33 @@ void HyperVPVToInitrd() {
     }
 }
 
+void AddVirtIOToInitrd() {
+    map<string, map<string, list<string> > > modules_db = $[
+        "1af4" : $[
+            "1000" : ["virtio-pci", "virtio-net"],
+            "1001" : ["virtio-pci", "virtio-blk"],
+            "1002" : ["virtio-pci", "virtio-balloon"],
+            "1003" : ["virtio-pci", "virtio-console"],
+        ],
+    ];
+
+    map out = (map)SCR::Execute (.target.bash_output, "LANG=C /sbin/lspci -mm -n");
+    list<string> devices = splitstring (out["stdout"]:"", "\n");
+    foreach (string d, devices, {
+        if (! regexpmatch (d, "^[0-9a-zA-Z.:]+[ \t]+\"[0-9a-fA-F]+\"[ \t]+\"[0-9a-fA-F]+\".*$")) {
+            continue;
+        }
+        string vendor = regexpsub (d, "^[0-9a-zA-Z.:]+[ \t]+\"([0-9a-fA-F]+)\"[ \t]+\"([0-9a-fA-F]+)\".*$", "\\2");
+        string device = regexpsub (d, "^[0-9a-zA-Z.:]+[ \t]+\"([0-9a-fA-F]+)\"[ \t]+\"([0-9a-fA-F]+)\".*$", "\\1");
+        foreach (string m, modules_db[vendor, device]:[], {
+            Initrd::AddModule (m, "");
+        });
+    });
+}
+
+
+
+
 
     /**
      *  Write a fake mtab to the target system since some %post scripts might
@@ -441,6 +468,7 @@ void HyperVPVToInitrd() {
     // add Xen and HyperV PV drivers to initrd
     XenPVToInitrd();
     HyperVPVToInitrd();
+    AddVirtIOToInitrd();
 
     if (Stage::initial ())
     {

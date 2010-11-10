@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 10 10:50:57 CET 2010 - jsrain@suse.cz
+
+- add virtio drivers to initrd if needed (bnc#649755)
+- 2.13.190
+
+-------------------------------------------------------------------
 Tue Nov  9 13:50:17 CET 2010 - jsrain@suse.cz
 
 - detect HyperV according to lscpu (bnc#652305)
