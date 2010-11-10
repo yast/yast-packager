@@ -121,7 +121,7 @@
 	}
 	if (SlideShow::GetUserAbort())
 	{
-	    return "CANCEL";
+	    return "C";
 	}
 	if (error != 0)
 	{
@@ -508,6 +508,9 @@
 	PackageSlideShow::SetCurrentCdNo( source, media );
 	PackageSlideShow::UpdateCurrentPackageProgress(0);
 	PackageSlideShow::UpdateAllCdProgress(false);
+
+	// display remaining packages
+	PackageSlideShow::DisplayGlobalProgress();
     };
 
     global string MediaChange (string error_code, string error, string url, string product,
