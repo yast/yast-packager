@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 11 09:48:40 CET 2010 - jsrain@suse.cz
+
+- renamed the HyperV drivers (bnc#652294)
+- 2.13.191
+
+-------------------------------------------------------------------
 Wed Nov 10 10:50:57 CET 2010 - jsrain@suse.cz
 
 - add virtio drivers to initrd if needed (bnc#649755)
