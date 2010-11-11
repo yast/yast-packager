@@ -61,10 +61,10 @@ void HyperVPVToInitrd() {
     if (0 == (integer)SCR::Execute(.target.bash, "LANG=C lscpu | grep 'Hypervisor vendor:[[:space:]]*Microsoft' >/dev/null"))
     {
         // add modules to initrd
-        Initrd::AddModule ("blkvsc", "");
-        Initrd::AddModule ("netvsc", "");
-        Initrd::AddModule ("storvsc", "");
-        Initrd::AddModule ("vmbus", "");
+        Initrd::AddModule ("hv_blkvsc", "");
+        Initrd::AddModule ("hv_netvsc", "");
+        Initrd::AddModule ("hv_storvsc", "");
+        Initrd::AddModule ("hv_vmbus", "");
 
         y2milestone("Added HyperV PV drivers to initrd, configured drivers: %1", Initrd::ListModules());
 
