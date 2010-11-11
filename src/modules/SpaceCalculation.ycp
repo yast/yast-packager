@@ -28,6 +28,7 @@
     boolean info_called = false;	// list partition_info already initialized?
     list    partition_info = [];	// information about available partitions
 
+    list<map> failed_mounts = [];
 
     /*
      * Return partition info list
@@ -35,6 +36,11 @@
      */
     global define list GetPartitionList() ``{
 	return partition_info;
+    }
+
+    global define list<map> GetFailedMounts()
+    {
+	return failed_mounts;
     }
 
     /**
@@ -262,6 +268,9 @@
 
 	} // !Stage::initial ()
 
+	// remove the previous failures
+	failed_mounts = [];
+
 	// installation stage - Storage:: is definitely present
 	// call Storage::GetTargetMap()
 	map<string, map> targets = (map<string, map>)WFM::call("wrapper_storage", ["GetTargetMap"]);
@@ -286,6 +295,8 @@
 
 	    foreach( map part, part_info,
 		     ``{
+		y2milestone("Adding partition: %1", part);
+
 		symbol used_fs = part["used_fs"]:`unknown;
 
 		// ignore VFAT and NTFS partitions (bnc#)
@@ -337,22 +348,33 @@
 
 				y2milestone("Executing mount command: %1", mount_command);
 
-				SCR::Execute(.target.bash, mount_command);
+				integer result = (integer)SCR::Execute(.target.bash, mount_command);
+				y2milestone("Mount result: %1", result);
 
-				list<map<string,string> > partition =
-				    (list<map<string, string> >)
-				    SCR::Read(.run.df);
-				foreach (map p, partition, {
-				    if (p["name"]:"" == tmpdir)
-				    {
-					y2internal ("P: %1", p);
-					free_size = tointeger (p["free"]:"0")
-					    * 1024;
-					used = tointeger (p["used"]:"0") * 1024;
-				    }
-				});
-				SCR::Execute (.target.bash, sformat (
-				    "/bin/umount %1", tmpdir));
+				if (result == 0)
+				{
+				    list<map<string,string> > partition =
+					(list<map<string, string> >)
+					SCR::Read(.run.df);
+				    foreach (map p, partition, {
+					if (p["name"]:"" == tmpdir)
+					{
+					    y2internal ("P: %1", p);
+					    free_size = tointeger (p["free"]:"0")
+						* 1024;
+					    used = tointeger (p["used"]:"0") * 1024;
+					}
+				    });
+				    SCR::Execute (.target.bash, sformat (
+					"/bin/umount %1", tmpdir));
+				}
+				else
+				{
+				    y2error("Mount failed, ignoring partition %1", part["device"]:"");
+				    failed_mounts = add(failed_mounts, part);
+
+				    continue;
+				}
 			    }
 
 			    // convert into kB for TargetInitDU

@@ -465,6 +465,54 @@ global void CheckOldAddOns (map & ret) {
     ret["warning"] = ret["warning"]:"" + warning;
 }
 
+// list of basic system directories, if any of them cannot be mounted
+// the installation will be blocked
+const list<string> basic_dirs = ["/", "/bin", "/boot", "/etc", "/lib", "/lib64",
+    "/opt", "/sbin", "/usr", "/var"];
+
+map AddFailedMounts(map summary)
+{
+    list<map> failed_mounts = SpaceCalculation::GetFailedMounts();
+    y2milestone("Failed mounts: %1: %2", size(failed_mounts), failed_mounts);
+
+    foreach(map failed_mount, failed_mounts,
+	{
+	    string delim = (size(summary["warning"]:"") > 0) ? "<BR>" : "";
+
+	    if (contains(basic_dirs, failed_mount["mount"]:""))
+	    {
+		summary["warning"] = summary["warning"]:"" + delim +
+		    // error message: %1: e.g. "/usr", %2: "/dev/sda2"
+		    sformat(_("Error: Cannot check free space in basic directory %1 (device %2), cannot start installation."),
+			failed_mount["mount"]:"",
+			failed_mount["device"]:"");
+
+		// we could not mount a basic directory, this indicates
+		// a severe problem in partition setup
+		summary["warning_level"] = `blocker;
+	    }
+	    else
+	    {
+		summary["warning"] = summary["warning"]:"" + delim +
+		    // error message: %1: e.g. "/local", %2: "/dev/sda2"
+		    sformat(_("Warning: Cannot check free space in directory %1 (device %2)."),
+			failed_mount["mount"]:"",
+			failed_mount["device"]:"");
+
+		// keep blocker, fatal and error level, they are higher than warning
+		if (!contains([`blocker, `fatal, `error], summary["warning_level"]:`ok))
+		{
+		    summary["warning_level"] = `warning;
+		}
+	    }
+	}
+    );
+
+    y2milestone("Proposal summary: %1", summary);
+
+    return summary;
+}
+
 /**
  * Print the installatino proposal summary
  * @param flags a list of symbols, see above
@@ -527,6 +575,9 @@ global map Summary (list<symbol> flags, boolean use_cache) {
 	    }
 	}
     }
+
+    // add failed mounts
+    ret = AddFailedMounts(ret);
 
     // FATE #304488
     if (Mode::update()) CheckOldAddOns (ret);
