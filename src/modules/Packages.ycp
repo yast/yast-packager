@@ -1580,12 +1580,6 @@ global void Initialize_StageNonInitial (boolean show_popup, string base_url, str
 	    }
 }
 
-// lock some packages if needed
-void LockPackages()
-{
-    // currently there is no need to lock any package...
-}
-
 /**
  * Initialize the repositories
  * @param show_popup boolean true to display information about initialization
@@ -1644,8 +1638,6 @@ Check the log file %1 for more details."), Directory::logdir + "/y2log") +
 
     // FATE #302123
     AddOnProduct::SetBaseProductURL (base_url);
-
-    LockPackages();
 
     init_in_progress = false;
 }
@@ -1877,7 +1869,6 @@ Software proposal will be called again."));
 	Kernel::ProbeKernel();
 	Packages::Reset ([`product]);
 	reinit = true;
-	LockPackages();
     }
 
     boolean initial_run = reinit || ! init_called;
