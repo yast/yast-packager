@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov 11 17:14:29 UTC 2010 - lslezak@suse.cz
+
+- fixed error handling for failed mounts, do not display negative
+  disk space, allow installation in some cases (bnc#627969)
+- 2.20.11
+
+-------------------------------------------------------------------
 Wed Nov 10 17:20:53 UTC 2010 - lslezak@suse.cz
 
 - update the number of the remaining packages when package
