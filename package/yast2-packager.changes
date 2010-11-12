@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Nov 12 15:30:17 UTC 2010 - lslezak@suse.cz
+
+- source manager - changed "Local Directory" radio button label
+  to "Local Directory or ISO" as it's also possible to add an ISO
+  image there (bnc#471203)
+- 2.13.192
+
+-------------------------------------------------------------------
 Thu Nov 11 09:48:40 CET 2010 - jsrain@suse.cz
 
 - renamed the HyperV drivers (bnc#652294)
