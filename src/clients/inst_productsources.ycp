@@ -550,7 +550,7 @@ Would you like to configure it?"),
 	});
 
 	// just for debugging purposes
-	y2debug ("%1", list_of_repos);
+	y2debug("list_of_repos: %1", list_of_repos);
 
 	return true;
     }
@@ -1288,12 +1288,32 @@ select those you want and click <b>Finish</b>.</p>
 	}
 
 	if (src_id == nil) {
+	    string error = "";
+	    string details = "";
+
+	    if (repo_type == nil)
+	    {
+		error = Pkg::LastError();
+		if (size(error) > 0)
+		{
+		    error = "\n\n" + error;
+		}
+
+		details = Pkg::LastErrorDetails();
+		if (size(details) > 0)
+		{
+		    details = "\n\n" + details;
+		}
+	    }
+
 	    Report::Error (sformat (
 		// TRANSLATORS: pop-up error message
 		// %1 is replaced with a repository name or URL
 		_("Adding repository %1 failed"),
 		(repo_name != "" ? repo_name : url)
-	    ));
+		)
+		+ error + details
+	    );
 	    // FIXME: retry ?
 	    return false;
 	}
