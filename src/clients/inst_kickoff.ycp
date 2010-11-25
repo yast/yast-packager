@@ -93,11 +93,12 @@ void AddVirtIOToInitrd() {
     map out = (map)SCR::Execute (.target.bash_output, "LANG=C /sbin/lspci -mm -n");
     list<string> devices = splitstring (out["stdout"]:"", "\n");
     foreach (string d, devices, {
-        if (! regexpmatch (d, "^[0-9a-zA-Z.:]+[ \t]+\"[0-9a-fA-F]+\"[ \t]+\"[0-9a-fA-F]+\".*$")) {
+	// note: in case of porting to SLES11 or newer code base, adapting to changed lspci output is needed
+        if (! regexpmatch (d, "^[0-9a-zA-Z.:]+[ \t]+\"Class [0-9a-fA-F]+\"[ \t]+\"[0-9a-fA-F]+\"[ \t]+\"[0-9a-fA-F]+\".*$")) {
             continue;
         }
-        string vendor = regexpsub (d, "^[0-9a-zA-Z.:]+[ \t]+\"([0-9a-fA-F]+)\"[ \t]+\"([0-9a-fA-F]+)\".*$", "\\2");
-        string device = regexpsub (d, "^[0-9a-zA-Z.:]+[ \t]+\"([0-9a-fA-F]+)\"[ \t]+\"([0-9a-fA-F]+)\".*$", "\\1");
+        string vendor = regexpsub (d, "^[0-9a-zA-Z.:]+[ \t]+\"Class [0-9a-fA-F]+\"[ \t]+\"([0-9a-fA-F]+)\"[ \t]+\"([0-9a-fA-F]+)\".*$", "\\1");
+        string device = regexpsub (d, "^[0-9a-zA-Z.:]+[ \t]+\"Class [0-9a-fA-F]+\"[ \t]+\"([0-9a-fA-F]+)\"[ \t]+\"([0-9a-fA-F]+)\".*$", "\\2");
         foreach (string m, modules_db[vendor, device]:[], {
             Initrd::AddModule (m, "");
         });

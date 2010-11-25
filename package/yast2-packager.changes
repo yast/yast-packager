@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 25 10:18:19 CET 2010 - jsrain@suse.cz
+
+- fixed detection of virtio devices (bnc#649755)
+- 2.13.193
+
+-------------------------------------------------------------------
 Fri Nov 12 15:30:17 UTC 2010 - lslezak@suse.cz
 
 - source manager - changed "Local Directory" radio button label
