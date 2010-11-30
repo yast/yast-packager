@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 30 14:58:31 UTC 2010 - lslezak@suse.cz
+
+- fixed DownloadInAdvance mode check - it's the default now
+  (bnc#653497)
+- 2.20.13
+
+-------------------------------------------------------------------
 Fri Nov 12 11:37:16 UTC 2010 - lslezak@suse.cz
 
 - display more details when adding a community repository fails
