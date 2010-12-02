@@ -57,6 +57,10 @@ global void SetURL (string url) {
     _url = url;
 }
 
+// CD/DVD device name to use (e.g. /dev/sr1) in case of multiple
+// devices in the system. Empty string means use the default.
+string cd_device_name = "";
+
 /**
  * Return URL after the run of the dialog
  * @return string the URL
@@ -891,8 +895,21 @@ boolean SelectValidate (string key, map event) {
 	string msg = selected == `cd
 	    ? _("Insert the add-on product CD")
 	    : _("Insert the add-on product DVD");
-	if (! SourceManager::AskForCD (msg))
+
+	// reset the device name
+	cd_device_name = "";
+
+	// ask for a medium
+	map<string,any> ui_result = SourceManager::AskForCD (msg);
+	if (! ui_result["continue"]:false)
 	    return false;
+
+	string cd_device = ui_result["device"]:"";
+	if (cd_device != nil && cd_device != "")
+	{
+	    y2milestone("Selected CD/DVD device: %1", cd_device);
+	    cd_device_name = cd_device;
+	}
     }
     return true;
 }
@@ -918,8 +935,15 @@ void SelectStore (string key, map event) {
 	else if ( selected == `https ) _url = "https://";
 	else if ( selected == `samba ) _url = "smb://";
 	else if ( selected == `nfs ) _url = "nfs://";
-	else if ( selected == `cd ) _url = "cd:///";
-	else if ( selected == `dvd ) _url = "dvd:///";
+	else if ( selected == `cd || selected == `dvd)
+	{
+	    _url = (selected == `cd) ? "cd:///" : "dvd:///";
+	    if (cd_device_name != "")
+	    {
+		_url = _url + "?devices=" + URL::EscapeString(cd_device_name, URL::transform_map_query);
+	    }
+	}
+
 	else if ( selected == `local_dir ) _url = "dir://";
 	else if ( selected == `pkg ) _url = "pkg://";	// hack for local PlainDir source
 	else if ( selected == `slp ) _url = "slp://";
