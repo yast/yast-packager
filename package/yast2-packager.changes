@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec  2 13:59:08 UTC 2010 - lslezak@suse.cz
+
+- pass the selected CD/DVD device to the package manager in case
+  of multiple devices in the system (bnc#652134)
+- 2.13.194
+
+-------------------------------------------------------------------
 Thu Nov 25 10:18:19 CET 2010 - jsrain@suse.cz
 
 - fixed detection of virtio devices (bnc#649755)
