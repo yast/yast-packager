@@ -991,7 +991,7 @@ list<term> DiskSelectionList(list<map<string,any> > disks, string selected)
 
 	    foreach(string part, (list<string>)disk["partitions"]:[],
 		{
-		    string partnum = regexpsub(part, ".*-part([0-9])*$", "\\1");
+		    string partnum = regexpsub(part, ".*-part([0-9]*)$", "\\1");
 		    string disk_label = label + sformat(" (%1%2)", dev, partnum);
 		    found = found || (part == selected);
 
