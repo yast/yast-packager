@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 20 16:24:45 CET 2011 - mvidner@suse.cz
+
+- Edit complete URL by default (by Michal Marek)
+
+-------------------------------------------------------------------
 Mon Jan  3 14:15:53 UTC 2011 - lslezak@suse.cz
 
 - fixed partition evaluation (when thare are more than 10
