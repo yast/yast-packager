@@ -1374,7 +1374,7 @@ void ServerStoreComplete()
 
 // use selected editing URL part, remember the value in case the URL is wrong
 // and the dialog needs to displayed again
-boolean editing_parts = true;
+boolean editing_parts = false;
 
 /**
  * Handle function of a widget
