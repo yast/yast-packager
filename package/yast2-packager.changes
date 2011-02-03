@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb  3 10:36:24 CET 2011 - jsrain@suse.cz
+
+- more friendly message when license on live CD is missing
+- 2.20.15
+
+-------------------------------------------------------------------
 Thu Jan 20 16:24:45 CET 2011 - mvidner@suse.cz
 
 - Edit complete URL by default (by Michal Marek)

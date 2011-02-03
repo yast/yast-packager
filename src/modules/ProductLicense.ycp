@@ -151,8 +151,16 @@ global term GetLicenseContent (string lic_lang, map <string, string> & licenses,
 	    string license_text = (string) SCR::Read(.target.string, license_file);
 	    if (license_text == nil)
 	    {
+	      if (Mode::live_installation()) {
+		license_text = sformat (
+		    "<b>%1</b><br>%2",
+		    sformat(_("Cannot read license file %1"), license_file),
+		    _("To show the product license properly, put the license.tar.gz file to the root of the live media when building the image.")
+		);
+	      } else {
 		Report::Error (sformat(_("Cannot read license file %1"), license_file));
 		license_text = "";
+	      }
 	    }
 	    term rt = `Empty();
 
