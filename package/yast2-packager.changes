@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb  3 10:36:44 CET 2011 - jsrain@suse.cz
+
+- more friendly message when license on live CD is missing
+
+-------------------------------------------------------------------
 Wed Nov  3 20:22:47 UTC 2010 - lslezak@suse.cz
 
 - don't reset package selection in the installation proposal when
