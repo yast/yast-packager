@@ -347,7 +347,7 @@ global list <map> SearchForPackages (string search_for, string distribution, map
 	y2milestone ("Distribution not set, guessing '%1'", distribution);
     }
 
-    string url = base_url + search_path + distribution + "/" + URL::EscapeString (search_for, URL::transform_map_passwd);
+    string url = GetBaseSearchURL() + search_path + distribution + "/" + URL::EscapeString (search_for, URL::transform_map_passwd);
 
     y2milestone ("HTTP::Get (%1, %2)", url, temporary_file);
     map response = HTTP::Get (url, temporary_file);
