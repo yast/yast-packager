@@ -62,7 +62,7 @@ Summary:	YaST2 - Package Library
 
 %package webpin
 
-Group:		System/YaST2
+Group:		System/YaST
 Summary:	YaST2 - Webpin package search client
 
 %description
