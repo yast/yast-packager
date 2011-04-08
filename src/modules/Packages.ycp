@@ -799,6 +799,20 @@ global void InitializeAddOnProducts() {
 	return packages;
     }
 
+    define list<string> kernelCmdLinePackages()
+    {
+	list<string> ret = [];
+
+	foreach (string part, splitstring (Kernel::GetCmdLine (), "\t "), {
+	    if (part == "biosdevname=1")
+	    {
+		y2milestone("Found biosdevname=1 kernel option, selecting biosdevname package to install");
+		ret = add(ret, "biosdevname");
+	    }
+	 });
+
+	return ret;
+    }
 
     /**
      * Compute special java packages
@@ -986,6 +1000,8 @@ global list<string> ComputeSystemPatternList () {
 	{
 	    y2milestone ("Not selecting java packages");
 	}
+
+	install_list = (list<string>) union (install_list, kernelCmdLinePackages());
 
 	install_list = (list<string>) union (install_list, boardPackages ());
 
