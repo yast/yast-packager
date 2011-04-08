@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  8 09:17:21 UTC 2011 - lslezak@suse.cz
+
+- install biosdevname.rpm if biosdevname=1 kernel option is present
+  (fate#311332)
+
+-------------------------------------------------------------------
 Thu Feb  3 10:36:44 CET 2011 - jsrain@suse.cz
 
 - more friendly message when license on live CD is missing
