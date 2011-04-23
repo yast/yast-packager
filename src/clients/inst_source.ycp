@@ -1,9 +1,0 @@
-/**
- * Author:	Ladislav Slezak <lslezak@suse.cz>
- * Summary:	Alias for "repositories" module
- * $Id$
- */
-{
-    string target = "repositories";
-    return WFM::CallFunction (target, WFM::Args ());
-}

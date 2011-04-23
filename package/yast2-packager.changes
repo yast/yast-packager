@@ -2,6 +2,8 @@
 Wed Apr 20 08:15:09 UTC 2011 - lslezak@suse.cz
 
 - fixed "repositories" tab completion in shell (bnc#687997)
+- removed obsoleted inst_source.ycp wrapper
+- 2.21.0
 
 -------------------------------------------------------------------
 Fri Apr  8 09:17:21 UTC 2011 - lslezak@suse.cz
