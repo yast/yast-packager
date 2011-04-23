@@ -6,7 +6,7 @@ X-KDE-ModuleType=Library
 X-KDE-RootOnly=true
 X-KDE-HasReadOnlyMode=true
 X-KDE-Library=yast2
-X-SuSE-YaST-Call=inst_source
+X-SuSE-YaST-Call=repositories
 
 X-SuSE-YaST-Group=Software
 X-SuSE-YaST-Argument=
