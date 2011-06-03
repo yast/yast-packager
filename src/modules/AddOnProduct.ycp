@@ -1427,8 +1427,11 @@ global boolean Import (map settings) {
 	    string media = prod["media_url"]:"";
 	    string pth = prod["product_dir"]:"/";
 	    integer src = Pkg::SourceCreate (media, pth);
-	    if (src != -1)
+	    if (src != -1) {
+		if (prod["product"]:"" != "")
+		    Pkg::SourceEditSet ([$["SrcId":src, "name":prod["product"]:""]]);
 		mode_config_sources = add (mode_config_sources, src);
+	    }
 	});
     }
     return true;
