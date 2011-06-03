@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jun  3 11:47:24 CEST 2011 - locilka@suse.cz
+
+- Enhanced AddOnProduct Import functionality (FATE #311374)
+
+-------------------------------------------------------------------
 Wed Apr 20 08:15:09 UTC 2011 - lslezak@suse.cz
 
 - fixed "repositories" tab completion in shell (bnc#687997)
