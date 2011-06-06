@@ -113,9 +113,7 @@ list <string> cached_proposal_languages	= nil;
 
     global boolean using_patterns = false;
 
-    global string add_on_products_list = nil;
-
-    global string add_on_products_type = nil;
+    global list <map <string, string> > add_on_products_list = [];
 
 // summary functions
 
@@ -587,11 +585,10 @@ global void InitializeAddOnProducts() {
     // bugzilla #269625
     WorkflowManager::SetBaseWorkflow (false);
 
-    if (Packages::add_on_products_list != nil) {
+    if (Packages::add_on_products_list != []) {
 	y2milestone ("Found list of add-on products to preselect: %1", Packages::add_on_products_list);
-	AddOnProduct::SetPreselectedAddOnProductsType (Packages::add_on_products_type);
 	AddOnProduct::AddPreselectedAddOnProducts (Packages::add_on_products_list);
-	Packages::add_on_products_list = nil; // do not select them any more
+	Packages::add_on_products_list = []; // do not select them any more
     }
 }
 
@@ -1438,19 +1435,63 @@ global boolean AdjustSourcePropertiesAccordingToProduct (integer src_id) {
     }
 }
 
+boolean FindAndRememberAddOnProductsFiles (integer initial_repository) {
+    string tmp_add_on_products = nil;
+    add_on_products_list = [];
+
+    string filename = nil;
+    string tmpdir = (string) SCR::Read (.target.tmpdir);
+
+    // #303675: Support several AddOns on standard SLE medium
+    // at first, try to find XML configuration
+    // then as a fallback/backward compatibility the old plain configuration
+    foreach (list <string> one_aop, [["/add_on_products.xml", "xml"], ["/add_on_products", "plain"]], {
+	string file = one_aop[0]:"";
+	string type = one_aop[1]:"";
+
+	// BNC #496404: These files should not be checked for signatures
+	tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_repository, 1, file);
+
+	if (tmp_add_on_products != nil) {
+	    filename = sformat ("%1/add_on_products_defined_by_repository", tmpdir);
+	    add_on_products_list = add (add_on_products_list, $[ "file" : filename, "type" : type ]);
+	    WFM::Execute (.local.bash, sformat ("cp '%1' '%2'", String::Quote(tmp_add_on_products), String::Quote(filename)));
+	    y2milestone ("Found add_on_products (repository) %1 type %2", tmp_add_on_products, type);
+	    break;
+	}
+    });
+
+    // FATE #312263 Files in the root of inst-sys
+    foreach (list <string> one_aop, [["/add_on_products.xml", "xml"], ["/add_on_products", "plain"]], {
+	string file = one_aop[0]:"";
+	string type = one_aop[1]:"";
+
+	// In inst-sys, files are already stored locally
+	if (FileUtils::Exists (file)) {
+	    filename = sformat ("%1/add_on_products_defined_by_inst_sys", tmpdir);
+	    add_on_products_list = add (add_on_products_list, $[ "file" : filename, "type" : type ]);
+	    WFM::Execute (.local.bash, sformat ("cp '%1' '%2'", String::Quote(file), String::Quote(filename)));
+	    y2milestone ("Found add_on_products (inst-sys) %1 type %2", file, type);
+	    break;
+	}
+    });
+
+    return (size (add_on_products_list) > 0);
+}
+
 global void Initialize_StageInitial (boolean show_popup, string base_url, string log_url) {
-	    integer initial_source = nil;
+	    integer initial_repository = nil;
 	    ImportGPGKeys ();
-	    while (initial_source == nil)
+	    while (initial_repository == nil)
 	    {
-		initial_source = Pkg::SourceCreateBase (base_url, "");
-		if (initial_source == -1 || initial_source == nil)
+		initial_repository = Pkg::SourceCreateBase (base_url, "");
+		if (initial_repository == -1 || initial_repository == nil)
 		{
 		    y2error ("No repository in '%1'", log_url);
 		    base_url = UpdateSourceURL (base_url);
 		    if (base_url != "")
 		    {
-			initial_source = nil;
+			initial_repository = nil;
 		    }
 		    else
 		    {
@@ -1458,13 +1499,13 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 			return;
 		    }
 		}
-		if (! CheckContentFile (initial_source))
+		if (! CheckContentFile (initial_repository))
 		{
 		    string label = ContentFileProductLabel ();
 		    // bug #159754, release the mounted CD
 		    Pkg::SourceReleaseAll();
-		    Pkg::SourceDelete (initial_source);
-		    initial_source = nil;
+		    Pkg::SourceDelete (initial_repository);
+		    initial_repository = nil;
 		    if (! Popup::ContinueCancel (
 			// message popup, %1 is product name
 			sformat (_("Insert %1 CD 1"), label)))
@@ -1479,7 +1520,7 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 	    // BNC #481828: Using LABEL from content file as a repository name
 	    AdjustSourcePropertiesAccordingToProduct (base_source_id);
 
-	    base_source_id = initial_source;
+	    base_source_id = initial_repository;
 	    y2milestone ("Base source ID: %1", base_source_id);
 
 	    // Set the product before setting up add-on products
@@ -1488,37 +1529,15 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 	    // not be set. Bug 178831
 	    SelectProduct ();
 
-	    theSources = [ initial_source ];
+	    theSources = [ initial_repository ];
 	    integer sp_source = IntegrateServicePack (show_popup, base_url);
 	    if (sp_source != nil)
 		theSources = add (theSources, sp_source);
 
 	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
-	    {
                 Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
-	    }
 
-	    string tmp_add_on_products = nil;
-	    add_on_products_list = nil;
-
-	    // #303675: Support several AddOns on standard SLE medium
-	    // at first, try to find XML configuration
-	    // then as a fallback/backward compatibility the old plain configuration
-	    foreach (list <string> one_aop, [["/add_on_products.xml", "xml"], ["/add_on_products", "plain"]], {
-		string file = one_aop[0]:"";
-		string type = one_aop[1]:"";
-
-		// BNC #496404: These files should not be checked for signatures
-		tmp_add_on_products = Pkg::SourceProvideOptionalFile (initial_source, 1, file);
-
-		if (tmp_add_on_products != nil) {
-		    add_on_products_list = sformat ("%1/add_on_products", SCR::Read (.target.tmpdir));
-		    WFM::Execute (.local.bash, sformat ("cp %1 %2", tmp_add_on_products, add_on_products_list));
-		    add_on_products_type = type;
-		    y2milestone ("Found add_on_products %1 type %2", tmp_add_on_products, type);
-		    break;
-		}
-	    });
+	    FindAndRememberAddOnProductsFiles (initial_repository);
 }
 
 global void Initialize_StageNonInitial (boolean show_popup, string base_url, string log_url) {
