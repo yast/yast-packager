@@ -1013,23 +1013,6 @@ global boolean CheckProductDependencies (list<string> products) {
     return true;
 }
 
-string preselected_add_ons = "plain";
-
-/**
- * Sets an add_on_products file type ("plain" or "xml")
- * @see FATE #303675
- *
- * @param string type "plain" or "xml"
- */
-global void SetPreselectedAddOnProductsType (string type) {
-    if (type == "xml" || type == "plain") {
-	preselected_add_ons = type;
-	y2milestone ("add_on_products type set: %1", preselected_add_ons);
-    } else {
-	y2error ("Unknown type: %1", type);
-    }
-}
-
 /**
  * Reads temporary add_on_products file, parses supported products,
  * merges base URL if products use relative URL and returns list of
@@ -1242,9 +1225,41 @@ list <map> ParseXMLBasedAddOnProductsFile (string parse_file, string base_url) {
 }
 
 /**
- * Auto-integrate add-on products in specified file (usually add_on_products file)
+ * Installs selected products from repository. If list of prods_to_install
+ * is empty, all products found are installed.
  *
- * @param filelist string a file containing a list of add-on products to integrate
+ * @param 
+ * @return boolean if successful
+ */
+boolean InstallProductsFromRepository (list <string> prods_to_install, integer src) {
+    // there are more products at the destination
+    // install the listed ones only
+    if (prods_to_install != nil && size (prods_to_install) > 0) {
+	foreach (string one_prod, prods_to_install, {
+	    y2milestone ("Selecting product '%1' for installation", one_prod);
+	    Pkg::ResolvableInstall (one_prod, `product);
+	});
+
+    // install all products from the destination
+    } else {
+	list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
+	// only those that come from the new source
+	products = filter (map<string,any> p, products, {
+	    return p["source"]:-1 == src;
+	});
+
+	foreach (map<string,any> p, products, {
+	    y2milestone ("Selecting product '%1' for installation", p["name"]:"");
+	    Pkg::ResolvableInstall (p["name"]:"", `product);
+	});
+    }
+}
+
+/**
+ * Auto-integrate add-on products in specified file (usually add_on_products or
+ * add_on_products.xml file)
+ *
+ * @param filelist list of maps describing one or several add_on_products files
  * @see FATE #303675: Support several add-ons on standard medium
  * @return boolean true on exit
  *
@@ -1289,87 +1304,76 @@ list <map> ParseXMLBasedAddOnProductsFile (string parse_file, string base_url) {
  *		</product_item>
  *	</product_items>
  * </add_on_products>
+ *
+ * @struct Filelist map is in format
+ * [
+ *     $[ "file" : "/local/path/to/an/add_on_products/file",     "type":"plain" ],
+ *     $[ "file" : "/local/path/to/an/add_on_products/file.xml", "type":"xml" ]
+ * ]
  */
-global boolean AddPreselectedAddOnProducts (string filelist) {
-    if (filelist == nil)
+global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelist) {
+    if (filelist == nil || filelist == [])
     {
-	y2milestone ("No add-on products defined on the media");
+	y2milestone ("No add-on products defined on the media or by inst-sys");
 	return true;
     }
 
     string base_url = GetBaseProductURL();
     y2milestone ("Base URL: %1", URL::HidePassword(base_url));
 
-    list <map> add_products = [];
+    // Processes all add_on_products files found
+    foreach (map <string, string> add_on_products_file, filelist, {
+	string filename	= add_on_products_file["file"]:"";
+	string type	= add_on_products_file["type"]:"";
 
-    // new xml format
-    if (preselected_add_ons == "xml") {
-	add_products = ParseXMLBasedAddOnProductsFile (filelist, base_url);
-    // old fallback
-    } else if (preselected_add_ons == "plain") {
-	add_products = ParsePlainAddOnProductsFile (filelist, base_url);
-    } else {
-	y2error ("Unsupported type: %1", preselected_add_ons);
-	return false;
-    }
+	list <map> add_products = [];
 
-    y2milestone ("Adding products: %1", add_products);
-    foreach (map one_product, add_products, {
-	string url = one_product["url"]:"";
-	string pth = one_product["path"]:"";
-
-	y2milestone ("Adding Repository: %1 %2", url, pth);
-
-	integer src = Pkg::SourceCreate (url, pth);
-
-	if (src == nil || src < 0) {
-	    y2error ("Unable to add product: %1", url);
-	    // TRANSLATORS: error message, %1 is replaced with product URL
-	    Report::Error (sformat (_("Unable to add product %1."), url));
-	    return;
-	}
-
-	if (! AcceptedLicenseAndInfoFile (src)) {
-	    Pkg::SourceDelete (src);
-	    return;
-	}
-	Integrate (src);
-
-	// adding the product to the list of products
-	// bugzilla #269625
-	map <string, string> prod = (map <string, string>) Pkg::SourceProductData (src);
-
-	AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
-	    "media" : src,
-	    "product" : prod["label"]:prod["productname"]:prod["productversion"]:"",
-	    "autoyast_product" : prod["productname"]:"",
-	    "media_url" : url,
-	    "product_dir" : pth,
-	]);
-
-	list <string> prods_to_install = one_product["install_products"]:[];
-
-	// there are more products at the destination
-	// install the listed ones only
-	if (prods_to_install != nil && size (prods_to_install) > 0) {
-	    foreach (string one_prod, prods_to_install, {
-		y2milestone ("Selecting product '%1' for installation", one_prod);
-		Pkg::ResolvableInstall (one_prod, `product);
-	    });
-
-	// install all products from the destination
+	// new xml format
+	if (type == "xml") {
+	    add_products = ParseXMLBasedAddOnProductsFile (filename, base_url);
+	// old fallback
+	} else if (type == "plain") {
+	    add_products = ParsePlainAddOnProductsFile (filename, base_url);
 	} else {
-	    list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
-	    // only those that come from the new source
-	    products = filter (map<string,any> p, products, {
-		return p["source"]:-1 == src;
-	    });
-
-	    foreach (map<string,any> p, products, {
-		y2milestone ("Selecting product '%1' for installation", p["name"]:"");
-		Pkg::ResolvableInstall (p["name"]:"", `product);
-	    });
+	    y2error ("Unsupported type: %1", type);
+	    return false;
 	}
+
+	y2milestone ("Adding products: %1", add_products);
+	foreach (map one_product, add_products, {
+	    string url = one_product["url"]:"";
+	    string pth = one_product["path"]:"";
+
+	    y2milestone ("Adding Repository: %1 %2", url, pth);
+	    integer src = Pkg::SourceCreate (url, pth);
+
+	    if (src == nil || src < 0) {
+		y2error ("Unable to add product: %1", url);
+		// TRANSLATORS: error message, %1 is replaced with product URL
+		Report::Error (sformat (_("Unable to add product %1."), url));
+		return;
+	    }
+
+	    if (! AcceptedLicenseAndInfoFile (src)) {
+		y2warning ("License not accepted, delete the repository");
+		Pkg::SourceDelete (src);
+		return;
+	    }
+	    Integrate (src);
+
+	    // adding the product to the list of products (BNC #269625)
+	    map <string, string> prod = (map <string, string>) Pkg::SourceProductData (src);
+
+	    AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
+		"media"			: src,
+		"product"		: prod["label"]:prod["productname"]:prod["productversion"]:"",
+		"autoyast_product"	: prod["productname"]:"",
+		"media_url"		: url,
+		"product_dir"		: pth,
+	    ]);
+
+	    InstallProductsFromRepository (one_product["install_products"]:[], src);
+	});
     });
 
     // reread agents, redraw wizard steps, etc.
