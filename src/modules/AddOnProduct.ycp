@@ -1362,22 +1362,25 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 	    Integrate (src);
 
 	    // adding the product to the list of products (BNC #269625)
-	    map <string, string> prod = (map <string, string>) Pkg::SourceProductData (src);
+	    map <string, any> prod = (map <string, any>) Pkg::SourceProductData (src);
+	    y2milestone ("Repository (%1) product data: %2", src, prod);
+
+	    InstallProductsFromRepository (one_product["install_products"]:[], src);
 
 	    AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
 		"media"			: src,
-		"product"		: prod["label"]:prod["productname"]:prod["productversion"]:"",
-		"autoyast_product"	: prod["productname"]:"",
+		"product"		: one_product["name"]:prod["label"]:prod["productname"]:_("Unknown Product"),
+		"autoyast_product"	: prod["productname"]:one_product["name"]:_("Unknown Product"),
 		"media_url"		: url,
 		"product_dir"		: pth,
 	    ]);
-
-	    InstallProductsFromRepository (one_product["install_products"]:[], src);
 	});
     });
 
     // reread agents, redraw wizard steps, etc.
     ReIntegrateFromScratch();
+
+    return true;
 }
 
 /* Export/Import --> */

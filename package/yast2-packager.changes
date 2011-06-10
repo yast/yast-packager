@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 10 09:34:21 CEST 2011 - locilka@suse.cz
+
+- Added support for add_on_products[.xml] also in inst-sys
+  (FATE #312263). File need to be in the root of inst-sys.
+
+-------------------------------------------------------------------
 Fri Jun  3 11:47:24 CEST 2011 - locilka@suse.cz
 
 - Enhanced AddOnProduct Import functionality (FATE #311374)
