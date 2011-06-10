@@ -3,6 +3,7 @@ Fri Jun 10 09:34:21 CEST 2011 - locilka@suse.cz
 
 - Added support for add_on_products[.xml] also in inst-sys
   (FATE #312263). File need to be in the root of inst-sys.
+- 2.17.81
 
 -------------------------------------------------------------------
 Fri Jun  3 12:05:12 UTC 2011 - lslezak@suse.cz
