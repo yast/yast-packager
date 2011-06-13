@@ -2,6 +2,7 @@
 Mon Jun 13 13:28:56 UTC 2011 - lslezak@suse.cz
 
 - properly count to be downloaded packages (bnc#683977)
+- update download progress also for delta rpm files
 
 -------------------------------------------------------------------
 Fri Jun 10 09:34:21 CEST 2011 - locilka@suse.cz
