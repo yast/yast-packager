@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun 13 13:28:56 UTC 2011 - lslezak@suse.cz
+
+- properly count to be downloaded packages (bnc#683977)
+
+-------------------------------------------------------------------
 Fri Jun 10 09:34:21 CEST 2011 - locilka@suse.cz
 
 - Added support for add_on_products[.xml] also in inst-sys

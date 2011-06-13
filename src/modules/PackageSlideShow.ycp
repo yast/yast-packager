@@ -416,6 +416,10 @@
 
     integer packages_to_download(list<list<integer> >src_mapping)
     {
+	// src_mapping contains only enabled repos, get indices of the enabled repos here
+	// and remap enabled index to the global repo ID
+	list<integer> enabled_sources = Pkg::SourceGetCurrent(true);
+
 	y2milestone("Packages to download input: %1", src_mapping);
 
 	integer ret = 0;
@@ -426,7 +430,7 @@
 		if (size(media_mapping) > 0)
 		{
 		    // check if the repository is remote
-		    string repo_url = Pkg::SourceGeneralData(i)["url"]:"";
+		    string repo_url = Pkg::SourceGeneralData(enabled_sources[i]:-1)["url"]:"";
 		    string repo_schema = tolower(URL::Parse(repo_url)["scheme"]:"");
 
 		    if (contains(["http", "https", "ftp", "sftp"], repo_schema))
@@ -438,7 +442,7 @@
 			    }
 			);
 
-			y2milestone("Downloading %1 packages from remote repository %2", total, i);
+			y2milestone("Downloading %1 packages from remote repository %2", total, enabled_sources[i]:-1);
 			ret = ret + total;
 		    }
 		}
