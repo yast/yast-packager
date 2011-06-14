@@ -13,13 +13,13 @@ BuildRequires:	yast2-transfer
 BuildRequires: yast2 >= 2.18.1
 
 # changed StartPackage callback signature
-BuildRequires:	yast2-pkg-bindings >= 2.20.3
+BuildRequires:	yast2-pkg-bindings >= 2.21.1
 
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
 
 # changed StartPackage callback signature
-Requires:	yast2-pkg-bindings >= 2.20.3
+Requires:	yast2-pkg-bindings >= 2.21.1
 
 # Installation summary in PackagesUI::
 Requires: yast2 >= 2.18.1

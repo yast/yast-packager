@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 14 08:37:57 UTC 2011 - lslezak@suse.cz
+
+- support for download in advance mode in yast2-wagon (fate#308951)
+- 2.21.2
+
+-------------------------------------------------------------------
 Mon Jun 13 13:28:56 UTC 2011 - lslezak@suse.cz
 
 - properly count to be downloaded packages (bnc#683977)

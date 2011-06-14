@@ -52,9 +52,6 @@
     string provide_name 			= "";		// currently downlaoded package name
     string provide_size 			= "";		// currently downlaoded package size
 
-    boolean download_in_advance_mode = false;
-
-
     // package summary
     // package counters
     integer installed_packages = 0;
@@ -515,13 +512,6 @@
 	total_count_downloaded			= 0;
 	integer total_count_to_install		= packages_to_install(total_pkg_count_per_cd_per_src);
 	downloading_pct		= 100 * total_count_to_download / (total_count_to_install + total_count_to_download);
-
-	string download_mode = (string)SCR::Read(.etc.zypp_conf.value.main."commit.downloadMode");
-	// DownloadInAdvance is default for local (root=/) install since openSUSE-11.4 (bnc#653497)
-	// (we cannot get the target root from Pkg:: so we have to check the mode instead)
-	download_in_advance_mode = download_mode == "DownloadInAdvance" ||
-	    (download_mode == nil && Mode::normal() && !Installation::dirinstall_installing_into_dir);
-
 	init_pkg_data_complete			= true;
 
 	// reset the history log
@@ -1057,7 +1047,10 @@
 	    // move the progress also for downloaded files
 	    UpdateTotalProgressValue();
 
-	    if (download_in_advance_mode)
+            symbol d_mode = Pkg::CommitPolicy()["download_mode"]:`default
+
+	    if (d_mode == `download_in_advance ||
+                (d_mode == `default && Mode::normal() && !Installation::dirinstall_installing_into_dir))
 	    {
 		// display download progress in DownloadInAdvance mode
 		// translations: progress message (part1)
