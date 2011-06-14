@@ -447,7 +447,6 @@
     global void StartDeltaProvide( string name, integer archivesize )
     {
 	PackageSlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading delta RPM %1 (download size %2)"), true /*remote*/);
-	_remote_provide = true;
     }
 
     /**
@@ -456,7 +455,6 @@
     global void StartDeltaApply( string name )
     {
 	PackageSlideShow::SlideDeltaApplyStart (name);
-	_remote_provide = true;
     }
     /**
      *  at start of file providal
@@ -464,7 +462,6 @@
     global void StartPatchProvide( string name, integer archivesize )
     {
 	PackageSlideShow::SlideGenericProvideStart (name , archivesize, _("Downloading patch RPM %1 (download size %2)"), true /*remote*/);
-	_remote_provide = true;
     }
 
     /**
@@ -480,23 +477,19 @@
      */
     global void FinishPatchDeltaProvide()
     {
-	_remote_provide = false;
     }
 
     global void ProblemDeltaDownload (string descr) {
-	_remote_provide = false;
 	// error in installation log, %1 is detail error description
 	SlideShow::AppendMessageToInstLog (sformat (_("Failed to download delta RPM: %1"), descr));
     }
 
     global void ProblemDeltaApply (string descr) {
-	_remote_provide = false;
 	// error in installation log, %1 is detail error description
 	SlideShow::AppendMessageToInstLog (sformat (_("Failed to apply delta RPM: %1"), descr));
     }
 
     global void ProblemPatchDownload (string descr) {
-	_remote_provide = false;
 	// error in installation log, %1 is detail error description
 	SlideShow::AppendMessageToInstLog (sformat (_("Failed to download patch RPM: %1"), descr));
     }
