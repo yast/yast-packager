@@ -1047,7 +1047,7 @@
 	    // move the progress also for downloaded files
 	    UpdateTotalProgressValue();
 
-            symbol d_mode = Pkg::CommitPolicy()["download_mode"]:`default
+            symbol d_mode = Pkg::CommitPolicy()["download_mode"]:`default;
 
 	    if (d_mode == `download_in_advance ||
                 (d_mode == `default && Mode::normal() && !Installation::dirinstall_installing_into_dir))
