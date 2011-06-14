@@ -11,13 +11,13 @@ BuildRequires:	yast2-transfer
 BuildRequires: yast2 >= 2.17.79
 
 # Pkg::Commit()
-BuildRequires:	yast2-pkg-bindings >= 2.17.46
+BuildRequires:	yast2-pkg-bindings >= 2.17.47
 
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
 
 # Pkg::Commit()
-Requires:	yast2-pkg-bindings >= 2.17.46
+Requires:	yast2-pkg-bindings >= 2.17.47
 
 # URLRecode.pm
 Requires: yast2 >= 2.17.79
