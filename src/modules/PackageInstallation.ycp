@@ -21,6 +21,17 @@
     import "Label";
 
 
+    boolean download_in_advance = nil;
+
+    global boolean DownloadInAdvance()
+    {
+	return download_in_advance;
+    }
+
+    global void SetDownloadInAdvance(boolean enable)
+    {
+	download_in_advance = enable;
+    }
 
     global define any FakePackager( list<list> packages, string inst_source,
 				    boolean deleting );
@@ -81,10 +92,8 @@
      *	Return: [ int successful, list failed, list remaining, list srcremaining ]
      *
      **/
-    global define list CommitPackages (integer media_number,
-				       integer packages_installed)
+    global define list Commit(map<string,any> config)
     {
-	y2milestone("CommitPackages called: media nr. %1, packages %2", media_number, packages_installed);
 
 	if ( Mode::test () )
 	{
@@ -95,8 +104,6 @@
 	}
 	// install packages from this media
 
-	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3",
-		     media_number, packages_installed, Pkg::TargetGetDU());
 
 	list <integer> sources = Pkg::SourceGetCurrent (false);
 	integer source_id = sources[0]:0;
@@ -111,45 +118,28 @@
 
 	y2milestone("ID of the first repository: %1", first_source);
 
-	if (media_number == 0)
+	if (config["medium_nr"]:0 == 0)
 	{
 	    PackageSlideShow::SetCurrentCdNo (first_source, 1);
 	}
 	else
 	{
-	    PackageSlideShow::SetCurrentCdNo (first_source, media_number);
+	    PackageSlideShow::SetCurrentCdNo (first_source, config["medium_nr"]:0);
 	}
 	PackageSlideShow::UpdateAllCdProgress (false);
 	SlideShow::StartTimer();
 
-	boolean do_commit = true;
-	if (media_number != 0)
-	{
-	    list<map<string,any> > pkgs = Pkg::ResolvableProperties ("", `package, "");
-	    pkgs = filter (map<string,any> p, pkgs, {
-		return p["status"]:nil == `selected;
-	    });
-	    do_commit = size (pkgs) > 0;
-	}
-
 	list commit_result = [];
-	if (do_commit)
-	{
-	    // returns [ int successful, list failed, list remaining, list srcremaining ]
-	    y2milestone ("Calling PkgCommit (%1)", media_number);
-	    commit_result = Pkg::PkgCommit (media_number);
+	// returns [ int successful, list failed, list remaining, list srcremaining ]
+	y2milestone ("Calling Pkg::Commit (%1)", config);
+	commit_result = Pkg::Commit(config);
 
-	    SlideShow::StopTimer();
+	SlideShow::StopTimer();
 
-	    if (commit_result == nil)
-	    {
-		y2error ("Bad media number %1", media_number);
-		return [];
-	    }
-	}
-	else
+	if (commit_result == nil)
 	{
-	    y2milestone ("No package from media %1 left for installation", media_number);
+	    y2error ("Commit failed: %1", Pkg::LastError());
+	    return [];
 	}
 
 	// see if installation of some packages failed
@@ -172,6 +162,19 @@
 
 	return commit_result;
     };
+
+    /**
+     *  commitPackages marked for deletion or installation
+     *	Return: [ int successful, list failed, list remaining, list srcremaining ]
+     *
+     **/
+    global define list CommitPackages (integer media_number,
+				       integer packages_installed)
+    {
+	// this is a backward compatible wrapper for Commit()
+	y2milestone ("CommitPackages (%1,%2): Pkg::TargetGetDU() %3",   media_number, packages_installed, Pkg::TargetGetDU());
+	return Commit($["medium_nr" : media_number]);
+    }
 
 
     //

@@ -15,6 +15,7 @@
     import "Slides";
     import "SlideShow";
     import "String";
+    import "URL";
 
     global list<list<integer> > total_sizes_per_cd_per_src	= [];	// total sizes per inst-src: [ [42, 43, 44], [12, 13, 14] ]
     global list<list<integer> > remaining_sizes_per_cd_per_src	= [];	// remaining sizes
@@ -27,6 +28,9 @@
     global string	media_type		= _("Medium");
     global integer	total_size_installed	= 0;
     global integer	total_size_to_install	= 0;
+    global integer	total_count_to_download = 0;
+    global integer	total_count_downloaded	= 0;
+    global integer	downloading_pct		= 0;
     global integer	min_time_per_cd		= 10;	// const - minimum time displayed per CD if there is something to install
     global integer	max_time_per_cd		= 7200; // const - seconds to cut off predicted time (it's bogus anyway)
     global integer	size_column		= 1;	// const - column number for remaining size per CD
@@ -45,7 +49,6 @@
     boolean debug				= false;	// more debugging info
     string provide_name 			= "";		// currently downlaoded package name
     string provide_size 			= "";		// currently downlaoded package size
-
 
 /*****************************************************************************/
 /***************  Formatting functions and helpers ***************************/
@@ -325,8 +328,8 @@
 	{
 	    if ( ! silent )
 	    {
-		y2error( "SlideShow::SanityCheck(): Slide show not correctly initialized: " +
-			 "SlideShow::InitPkgData() never called!" );
+		y2error( "PackageSlideShow::SanityCheck(): Slide show not correctly initialized: " +
+			 "PackageSlideShow::InitPkgData() never called!" );
 	    }
 	    return false;
 	}
@@ -340,7 +343,7 @@
 	    }
 	    else if (!silent)
 	    {
-		y2error(-1, "SlideShow::SanityCheck(): Illegal values for current_src (%1) or current_cd (%2)",
+		y2error(-1, "PackageSlideShow::SanityCheck(): Illegal values for current_src_no (%1) or current_cd_no (%2)",
 		     current_src_no, current_cd_no );
 		y2milestone( "total sizes: %1", total_sizes_per_cd_per_src );
 	    }
@@ -385,6 +388,50 @@
 	    y2milestone( "SubtractPackageSize( %1 ) -> %2", pkg_size, remaining_sizes_per_cd_per_src);
     }
 
+    integer packages_to_download(list<list<integer> >src_mapping)
+    {
+	y2milestone("Packages to download input: %1", src_mapping);
+
+	integer ret = 0;
+
+	integer i = 0;
+	foreach(list<integer> media_mapping, src_mapping,
+	    {
+		if (size(media_mapping) > 0)
+		{
+		    // check if the repository is remote
+		    string repo_url = Pkg::SourceGeneralData(i)["url"]:"";
+		    string repo_schema = tolower(URL::Parse(repo_url)["scheme"]:"");
+
+		    if (contains(["http", "https", "ftp", "sftp"], repo_schema))
+		    {
+			integer total = 0;
+			foreach(integer count, media_mapping,
+			    {
+				total = total + count;
+			    }
+			);
+
+			y2milestone("Downloading %1 packages from remote repository %2", total, i);
+			ret = ret + total;
+		    }
+		}
+
+		i = i + 1;
+	    }
+	);
+
+	y2milestone("Total number of packages to download: %1", ret);
+
+	return ret;
+    }
+
+    integer packages_to_install(list<list<integer> >src_mapping)
+    {
+	integer ret = ListSum(flatten(src_mapping));
+	y2milestone("Total number of packages to install: %1", ret);
+	return ret;
+    }
 
     /**
      * Initialize internal pacakge data, such as remaining package sizes and
@@ -433,10 +480,17 @@
 	remaining_sizes_per_cd_per_src		= (list<list <integer> >) eval (total_sizes_per_cd_per_src);
 	remaining_pkg_count_per_cd_per_src	= (list<list <integer> >) eval (total_pkg_count_per_cd_per_src);
 	total_cd_count				= size( flatten( total_sizes_per_cd_per_src ) );
+	total_count_to_download			= packages_to_download(total_pkg_count_per_cd_per_src);
+	total_count_downloaded			= 0;
+	integer total_count_to_install		= packages_to_install(total_pkg_count_per_cd_per_src);
+	downloading_pct		= 100 * total_count_to_download / (total_count_to_install + total_count_to_download);
 	init_pkg_data_complete			= true;
-	
-	y2milestone( "SlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
-	y2milestone( "SlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
+
+	// reset the history log
+	SlideShow::inst_log = "";
+
+	y2milestone( "PackageSlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1", total_sizes_per_cd_per_src );
+	y2milestone( "PackageSlideShow::InitPkgData(): pkg: %1", total_pkg_count_per_cd_per_src );
 
 	// RebuildDialog(true);
     }
@@ -759,6 +813,27 @@
 	}
     }
 
+    // update the overall progress value (download + installation)
+    void UpdateTotalProgressValue()
+    {
+	integer total_progress = 0;
+
+	if (total_count_to_download == 0)
+	{
+	    // no package to download, just use the install size
+	    total_progress = (TotalInstalledSize() * 100 / total_size_to_install);
+	}
+	else
+	{
+	    // compute the total progress (use both download and  installation size)
+	    total_progress = (total_count_downloaded * downloading_pct / total_count_to_download) +
+		(TotalInstalledSize() * (100 - downloading_pct) / total_size_to_install);
+	}
+
+	y2internal("Total package installation progress: %1%%", total_progress);
+	SlideShow::StageProgress( total_progress, nil );
+    }
+
     /**
      * Update progress widgets
      **/
@@ -772,7 +847,8 @@
 	    total_size_to_install_kB = 1;
 	}
 
-	SlideShow::StageProgress( ( TotalInstalledSize() >> 10 ) * 100 / total_size_to_install_kB, nil /*, SlideShow::GetProgressLabel()*/ );
+	// update the overall progress value (download + installation)
+	UpdateTotalProgressValue();
 
 	UpdateCurrentCdProgress(silent_check);
 
@@ -912,6 +988,26 @@
 	SlideShow::SubProgress( pkg_percent, new_text );
     }
 
+    global void DoneProvide( integer error, string reason, string name )
+    {
+	if (error == 0)
+	{
+	    total_count_downloaded = total_count_downloaded + 1;
+	    y2milestone("Downloaded %1/%2 packages (%3%%)", total_count_downloaded, total_count_to_download, total_count_downloaded * 100 / total_count_to_download);
+
+	    // move the progress also for downloaded files
+	    UpdateTotalProgressValue();
+
+	    if (Pkg::CommitPolicy()["download_mode"]:`default == `download_in_advance)
+	    {
+		// display download progress in DownloadInAdvance mode
+		// translations: progress message (part1)
+		SlideShow::SetGlobalProgressLabel( _("Downloading Packages...") +
+		    // progress message (part2)
+		    sformat(_(" (Downloaded %1 of %2 packages)"), total_count_downloaded, total_count_to_download));
+	    }
+	}
+    }
 
     /**
      * Update progress widgets for all CDs.
@@ -1110,10 +1206,13 @@
      */
     global void SlideProvideStart (string pkg_name, integer sz, boolean remote)
     {
-	// message in the installatino log, %1 is package name,
-	// %2 is package size
-	SlideGenericProvideStart (pkg_name, sz, _("Downloading %1 (download size %2)"),
-	    remote);
+	if (remote)
+	{
+	    // message in the installatino log, %1 is package name,
+	    // %2 is package size
+	    SlideGenericProvideStart (pkg_name, sz, _("Downloading %1 (download size %2)"),
+		remote);
+	}
     }
 
 

@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Jun 14 08:37:57 UTC 2011 - lslezak@suse.cz
+
+- correctly display download progress in DownloadInAdvance
+  libzypp mode (bnc#616708) (backported commits 62714,
+  partly 54940)
+- support for download in advance mode in yast2-wagon (fate#308951)
+- 2.17.82
+
+-------------------------------------------------------------------
 Fri Jun 10 09:34:21 CEST 2011 - locilka@suse.cz
 
 - Added support for add_on_products[.xml] also in inst-sys
