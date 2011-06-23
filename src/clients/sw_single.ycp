@@ -657,6 +657,8 @@ without having package %1 installed"), required_package));
 	   list commit_result = PackageInstallation::CommitPackages (0, 0);				// Y: commit them !
 	   integer newvmlinuzsize = (integer) SCR::Read(.target.size, "/boot/vmlinuz");
 
+	   y2milestone("Commit result: %1", commit_result);
+
 	   SlideShow::CloseDialog();
 
 	   if (Mode::normal ()				// run SuSEconfig only in normal system, not during installation
@@ -707,8 +709,10 @@ without having package %1 installed"), required_package));
 		// or if it's enabled in sysconfig
 		if (PKGMGR_ACTION_AT_EXIT == "summary"
 		    || force_summary
+		    || commit_result == [-1] // aborted by user
 		    || size(commit_result[1]:[]) > 0)
 		{
+		    y2milestone("Summary dialog needed");
 		    if (PackagesUI::ShowInstallationSummary() == `back && size(packagelist) == 0)
 		    {
 			force_restart = true;

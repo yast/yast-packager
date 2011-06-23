@@ -145,8 +145,9 @@
 	    return [];
 	}
 
+
 	integer installation_time = time() - start_time;
-	y2milestone("Installation took %1 seconds", installation_time);
+	y2milestone("Installation took %1 seconds, commit result: %2", installation_time, commit_result);
 
 	// see if installation of some packages failed
 	list<string> errpacks = (list<string>) (commit_result[1]:[]);
@@ -180,6 +181,12 @@
 	    {
 		summary["error"] = Pkg::LastError();
 		summary["failed"] = errpacks;
+	    }
+
+	    if (commit_result == [-1])
+	    {
+		summary["error"] = _("Installation aborted by user.");
+		summary["success"] = false;
 	    }
 
 	    PackagesUI::SetPackageSummary(summary);
