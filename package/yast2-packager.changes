@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun 23 10:05:37 UTC 2011 - lslezak@suse.cz
+
+- display installation summary when installation is aborted by user
+  (part of bnc#673629)
+- 2.21.3
+
+-------------------------------------------------------------------
 Tue Jun 14 08:37:57 UTC 2011 - lslezak@suse.cz
 
 - support for download in advance mode in yast2-wagon (fate#308951)
