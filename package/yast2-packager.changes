@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jun 24 08:39:12 UTC 2011 - lslezak@suse.cz
+
+- fixed slideshow initialization - in add-on workflow the
+  initialization was called too late resulting in still 0% total
+  progress during whole installation (bnc#663301) 
+- 2.17.83
+
+-------------------------------------------------------------------
 Tue Jun 14 08:37:57 UTC 2011 - lslezak@suse.cz
 
 - correctly display download progress in DownloadInAdvance
