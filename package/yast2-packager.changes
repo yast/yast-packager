@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 24 13:10:26 UTC 2011 - lslezak@suse.cz
+
+- abort confirmation in license agreement - use Yes/No instead
+  of confusing Continue/Cancel
+
+-------------------------------------------------------------------
 Thu Jun 23 10:05:37 UTC 2011 - lslezak@suse.cz
 
 - display installation summary when installation is aborted by user

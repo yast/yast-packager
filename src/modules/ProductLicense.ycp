@@ -907,7 +907,7 @@ symbol HandleLicenseDialogRet (map <string, string> & licenses, boolean base_pro
 		}
 	    } else {
 		// popup question
-		if (Popup::ContinueCancel(_("Really abort the add-on product installation?"))) {
+		if (Popup::YesNo(_("Really abort the add-on product installation?"))) {
 		    y2milestone("Aborting...");
 		    ret = `abort;
 		    break;
