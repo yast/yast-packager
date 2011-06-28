@@ -796,6 +796,22 @@ global symbol DoInstall() {
 	RegisterAddOnProduct (src_id);
     }
 
+    if (ret == `abort)
+    {
+	// cleanup after abort
+	y2milestone("Add-on installation aborted, removing installation source %1: %2", src_id, Pkg::SourceGeneralData(src_id));
+	Pkg::SourceDelete(src_id);
+	Pkg::SourceSaveAll();
+
+	// remove from the internal list
+	add_on_products = filter(map<string,any> add_on_product, add_on_products,
+	    {return add_on_product["media"]:-1 != src_id;}
+	);
+
+	// reset the src id, it's not valid
+	src_id = nil;
+    }
+
     y2milestone ("Returning: %1", ret);
     return ret;
 }
@@ -1351,13 +1367,13 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 		y2error ("Unable to add product: %1", url);
 		// TRANSLATORS: error message, %1 is replaced with product URL
 		Report::Error (sformat (_("Unable to add product %1."), url));
-		return;
+		return false;
 	    }
 
 	    if (! AcceptedLicenseAndInfoFile (src)) {
 		y2warning ("License not accepted, delete the repository");
 		Pkg::SourceDelete (src);
-		return;
+		return false;
 	    }
 	    Integrate (src);
 
