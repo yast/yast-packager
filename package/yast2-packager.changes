@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun 27 15:45:13 UTC 2011 - lslezak@suse.cz
+
+- remove the addon repository after aborting license confirmation
+  or canceling the package manager (bnc#701497, bnc#424655)
+- 2.21.4
+
+-------------------------------------------------------------------
 Fri Jun 24 13:10:26 UTC 2011 - lslezak@suse.cz
 
 - abort confirmation in license agreement - use Yes/No instead

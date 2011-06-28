@@ -295,6 +295,8 @@ in the packages selection, continue."),
 		return `again;
 	    }
 
+	    y2milestone("New sources: %1", newSources);
+
             if ( size( newSources ) == 0  )
             {
 		y2error("Cannot add the repository");
@@ -327,10 +329,13 @@ Change the protocol or unpack the ISO image on the server side.");
             else
             {
 		Progress::NextStage();
+		boolean license_accepted = true;
                 foreach( integer id, newSources, ``{
 		  if (! LicenseAccepted (id))
 		  {
+		    y2milestone("License NOT accepted, removing the source");
 		    Pkg::SourceDelete (id);
+		    license_accepted = false;
 		  }
 		  else
 		  {
@@ -345,7 +350,7 @@ Change the protocol or unpack the ISO image on the server side.");
 		// relese (unmount) the medium
 		Pkg::SourceReleaseAll();
 
-                return `ok;
+                return license_accepted ? `ok : `abort;
             }
         }
 	else
@@ -430,8 +435,12 @@ without having %1 package installed"),
 	}
     }
 
-    if (createSource(url, plaindir, download_meta, name) == `again)
+    symbol ret = createSource(url, plaindir, download_meta, name);
+
+    if (ret == `again)
 	return `back;
+    else if (ret == `abort)
+	return `abort;
     return `next;
 }
 
