@@ -265,6 +265,8 @@ in the packages selection, continue."),
 		return `again;
 	    }
 
+	    y2milestone("New sources: %1", newSources);
+
             if ( size( newSources ) == 0  )
             {
 		// popup message part 1
@@ -279,10 +281,13 @@ from URL '%1'."), URL::HidePassword(url) );
             }
             else
             {
+		boolean license_accepted = true;
                 foreach( integer id, newSources, ``{
 		  if (! LicenseAccepted (id))
 		  {
+		    y2milestone("License NOT accepted, removing the source");
 		    Pkg::SourceDelete (id);
+		    license_accepted = false;
 		  }
 		  else
 		  {
@@ -297,7 +302,7 @@ from URL '%1'."), URL::HidePassword(url) );
 		// relese (unmount) the medium
 		Pkg::SourceReleaseAll();
 
-                return `ok;
+                return license_accepted ? `ok : `abort;
             }
         }
 	else
@@ -363,8 +368,12 @@ without having %1 package installed"),
 	}
     }
 
-    if (createSource(url, plaindir, download_meta, name) == `again)
+    symbol ret = createSource(url, plaindir, download_meta, name);
+
+    if (ret == `again)
 	return `back;
+    else if (ret == `abort)
+	return `abort;
     return `next;
 }
 
