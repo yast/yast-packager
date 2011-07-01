@@ -313,7 +313,7 @@ string SummaryHelp(list<symbol> flags)
 	ret = ret +
 	// (see bnc#178357 why these numbers)
 	// translators: help text for software proposal
-	_("<P>The proposal reports the total size of files which will be installed to the system. However, the system will contain some other files (temporary and working files) so the used space will be slighltly larger than the proposed value. Therefore it is a good idea to have at least 25% (or 300MB) free space before starting the installation.</P>") +
+	_("<P>The proposal reports the total size of files which will be installed to the system. However, the system will contain some other files (temporary and working files) so the used space will be slightly larger than the proposed value. Therefore it is a good idea to have at least 25% (or about 300MB) free space before starting the installation.</P>") +
 	// help text for software proposal
 	_("<P>The total 'size to download' is the size of the packages which will be downloaded from remote (network) repositories.\n  This value is important when the connection is slow or when there is a data limit for downloading.</P>");
 

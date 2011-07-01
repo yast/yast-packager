@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul  1 07:19:15 UTC 2011 - lslezak@suse.cz
+
+- fixed a typo in help text (bnc#703199)
+- 2.21.5
+
+-------------------------------------------------------------------
 Mon Jun 27 15:45:13 UTC 2011 - lslezak@suse.cz
 
 - remove the addon repository after aborting license confirmation
