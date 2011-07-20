@@ -10,14 +10,14 @@ BuildRequires:	yast2-transfer
 # URLRecode.pm
 BuildRequires: yast2 >= 2.17.79
 
-# "keeppackages" repo property
-BuildRequires:	yast2-pkg-bindings >= 2.17.27
+# Pkg::Commit()
+BuildRequires:	yast2-pkg-bindings >= 2.17.45.1
 
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
 
-# "keeppackages" repo property
-Requires:	yast2-pkg-bindings >= 2.17.27
+# Pkg::Commit()
+Requires:	yast2-pkg-bindings >= 2.17.45.1
 
 # URLRecode.pm
 Requires: yast2 >= 2.17.79
