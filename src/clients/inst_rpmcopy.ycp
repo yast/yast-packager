@@ -202,7 +202,15 @@
 	}
 
 	// returns [ int successful, list failed, list remaining ]
-	list commit_result = PackageInstallation::CommitPackages( current_cd_no, 0 );
+	map<string,any> config = $[ "medium_nr" : current_cd_no ];
+	if (PackageInstallation::DownloadInAdvance() == true)
+	{
+	    config["download_mode"] = `download_in_advance;
+	}
+
+	y2milestone("Commit config: %1", config);
+
+	list commit_result = PackageInstallation::Commit(config);
 
 	if (commit_result == nil || size (commit_result) == 0)
 	{
@@ -437,8 +445,13 @@ Package installation will be aborted.
     // sync package manager FIXME
     if (result != `abort && ! Stage::initial ())
     {
-	y2milestone ("Calling PkgCommit (%1)", 9999);
-	Pkg::PkgCommit (9999);
+	map<string,any> config = $[];
+	if (PackageInstallation::DownloadInAdvance() == true)
+	{
+	    config["download_mode"] = `download_in_advance;
+	}
+	y2milestone ("Calling Pkg::Commit(%1)", config);
+	Pkg::Commit(config);
     }
 
     // BNC #443755
