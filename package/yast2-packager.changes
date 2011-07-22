@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 22 15:09:22 CEST 2011 - locilka@suse.cz
+
+- Removed obsoleted X-KDE-SubstituteUID from desktop file
+  (bnc#540627)
+
+-------------------------------------------------------------------
 Fri Jul  1 07:19:15 UTC 2011 - lslezak@suse.cz
 
 - fixed a typo in help text (bnc#703199)
