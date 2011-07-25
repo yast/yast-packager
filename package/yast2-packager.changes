@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jul 25 08:33:29 UTC 2011 - lslezak@suse.cz
+
+- do not skip package proposal when the partitioner has changed
+  proposed packages - i.e. add snapper packages after switching to
+  btrfs (bnc#704127)
+- 2.17.85
+
+-------------------------------------------------------------------
 Mon Jun 27 15:45:13 UTC 2011 - lslezak@suse.cz
 
 - remove the addon repository after aborting license confirmation
