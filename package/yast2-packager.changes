@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 25 11:22:05 UTC 2011 - lslezak@suse.cz
+
+- removed trailing white space in webpin.desktop file (bnc#707984)
+- 2.21.6
+
+-------------------------------------------------------------------
 Fri Jul 22 15:09:22 CEST 2011 - locilka@suse.cz
 
 - Removed obsoleted X-KDE-SubstituteUID from desktop file

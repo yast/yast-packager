@@ -16,9 +16,9 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=yast-webpin 
+Icon=yast-webpin
 Exec=xdg-su -c "/sbin/yast2 webpin_package_search"
 
 Name=Package Search (webpin)
-GenericName=Search for software in online repositories 
+GenericName=Search for software in online repositories
 StartupNotify=true
