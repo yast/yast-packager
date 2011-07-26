@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 26 12:22:49 UTC 2011 - lslezak@suse.cz
+
+- fixed installation of src.rpm packages from command line
+  (bnc#676505)
+- 2.21.7
+
+-------------------------------------------------------------------
 Mon Jul 25 11:22:05 UTC 2011 - lslezak@suse.cz
 
 - removed trailing white space in webpin.desktop file (bnc#707984)

@@ -235,8 +235,21 @@ symbol StartSWSingle()
 
 		   string package_name = out["stdout"]:"";
 
+		    // is it a source package?
+		    out = (map)SCR::Execute(.target.bash_output,
+			sformat("/bin/rpm -q --qf '%%{SOURCEPACKAGE}' -p '%1'", String::Quote(package)));
+		    if (out["exit"]:-1 != 0)
+		    {
+			// error message
+			Report::Error(sformat(_("Error: Cannot query package file %1."), package));
+			return `failed;
+		    }
+
+		    boolean srcpackage = out["stdout"]:"" == "1";
+		    y2milestone("File %1: package name: %2, src package: %3", package, package_name, srcpackage);
+
 		   y2milestone ("Installing %1 from file %2 (repository %3)", package_name, package, repo_id);
-		   boolean installed = Pkg::ResolvableInstallRepo(package_name, `package, repo_id);
+		   boolean installed = Pkg::ResolvableInstallRepo(package_name, srcpackage ? `srcpackage : `package, repo_id);
 
 		   if (!installed)
 		   {
