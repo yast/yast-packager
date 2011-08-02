@@ -745,17 +745,111 @@ global void InitializeAddOnProducts() {
 	return packages;
     }
 
+    /*
+     * check whether there is a bios name for a network interface
+     */
+    boolean detectBiosDevNames()
+    {
+	boolean ret = false;
+	list<map> netifs = (list<map>)SCR::Read(.probe.netif);
+
+	foreach(map netif, netifs, {
+		string dev_name = netif["dev_name"]:"unknown";
+		string command = sformat("/sbin/biosdevname --policy all_names -i '%1'", String::Quote(dev_name));
+		y2milestone("Executing: %1", command);
+
+		map out = (map)SCR::Execute(.target.bash_output, command);
+		y2milestone("Result: %1", out);
+
+		if (out["exit"]:-1 == 0)
+		{
+		    string bios_name = String::FirstChunk(out["stdout"]:"", "\n");
+
+		    if (bios_name != nil && bios_name != "" && bios_name != dev_name)
+		    {
+			y2milestone("Found BIOS name for %1: %2", netif, bios_name);
+			ret = true;
+		    }
+		}
+	    }
+	);
+
+	y2milestone("Detected BIOS name: %1", ret);
+
+	return ret;
+    }
+
+    /*
+     * CHeck whether this is a Dell system
+     */
+    boolean DellSystem()
+    {
+	boolean ret = false;
+	string command = "/usr/sbin/hwinfo --bios";
+	y2milestone("Executing: %1", command);
+
+	map out = (map)SCR::Execute(.target.bash_output, command);
+	y2milestone("Result: %1", out);
+
+	if (out["exit"]:-1 == 0)
+	{
+	    list<string> lines = splitstring(out["stdout"]:"", "\n");
+
+	    foreach(string line, lines, {
+		    if (regexpmatch(line, "Vendor:.*Dell Inc.*"))
+		    {
+			y2milestone("Found matching line: %1", line);
+			ret = true;
+		    }
+		}
+	    );
+	}
+
+	if (ret)
+	{
+	    y2milestone("Detected a Dell system");
+	}
+
+	return ret;
+    }
+
     define list<string> kernelCmdLinePackages()
     {
 	list<string> ret = [];
 
-	foreach (string part, splitstring (Kernel::GetCmdLine (), "\t "), {
-	    if (part == "biosdevname=1")
+	string biosdevname = (string)SCR::Read(.etc.install_inf.biosdevname);
+	y2milestone("read biosdevname option: %1", biosdevname);
+	boolean add_biosdevname = false;
+
+	if (biosdevname == "1")
+	{
+	    y2milestone("Found biosdevname=1 kernel option, selecting biosdevname package to install");
+	    add_biosdevname = true;
+	}
+	else
+	{
+	    string cmdline = (string)SCR::Read(.target.string, "/proc/cmdline");
+
+	    if (!issubstring(cmdline, "biosdevname"))
 	    {
-		y2milestone("Found biosdevname=1 kernel option, selecting biosdevname package to install");
-		ret = add(ret, "biosdevname");
+		y2milestone("Missing biosdevname option, autodetecting...");
+		if (DellSystem())
+		{
+		    add_biosdevname = detectBiosDevNames();
+		}
 	    }
-	 });
+	    else
+	    {
+		y2milestone("biosdevname disabled via kernel option, NOT selecting biosdevname package to install");
+	    }
+	}
+
+	if (add_biosdevname)
+	{
+	    ret = add(ret, "biosdevname");
+	}
+
+	y2milestone("Packages added by kernel command line: %1", ret);
 
 	return ret;
     }

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  2 15:41:35 UTC 2011 - lslezak@suse.cz
+
+- fixed biosdevname package installation (bnc#709797)
+- 2.17.86
+
+-------------------------------------------------------------------
 Mon Jul 25 08:33:29 UTC 2011 - lslezak@suse.cz
 
 - do not skip package proposal when the partitioner has changed
