@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  2 15:41:35 UTC 2011 - lslezak@suse.cz
+
+- fixed biosdevname package installation (bnc#709797)
+
+-------------------------------------------------------------------
 Tue Jul 26 12:22:49 UTC 2011 - lslezak@suse.cz
 
 - fixed installation of src.rpm packages from command line
