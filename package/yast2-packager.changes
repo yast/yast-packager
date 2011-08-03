@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug  3 08:49:18 UTC 2011 - lslezak@suse.cz
+
+- use term "Software manager" instead of "Package manager"
+  (bnc#585679)
+- 2.21.8
+
+-------------------------------------------------------------------
 Tue Aug  2 15:41:35 UTC 2011 - lslezak@suse.cz
 
 - fixed biosdevname package installation (bnc#709797)
