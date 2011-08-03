@@ -185,12 +185,12 @@
   symbol ReadDialog() {
     list <string> steps = [
 	_("Check Network Configuration"),
-	_("Initialize Package Manager")
+	_("Initialize Software Manager")
     ];
 
     list <string> actions = [
 	_("Checking Network Configuration ..."),
-	_("Initializing Package Manager ... ")
+	_("Initializing Software Manager ... ")
     ];
 
     Progress::New(
