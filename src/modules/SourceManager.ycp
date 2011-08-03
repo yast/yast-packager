@@ -544,23 +544,6 @@ global list Overview() {
 }
 
     /**
-     * Obsoleted (empty implementation), ZMD (ZLM7.3) on sle11 supports only HTTP and FTP repositories,
-     * sync would fail for other types. See bnc#480845 for more details.
-     *
-     * @param added_src_ids dummy parameter
-     * @param deleted_src_ids dummy parameter
-     * @return success - always true
-     */
-    /* TODO FIXME: remove when it's not used in other modules */
-    global boolean SyncAddedAndDeleted (list<integer> added_src_ids,
-					list<integer> deleted_src_ids) {
-
-	y2warning(-1, "SourceManager::SyncAddedAndDeleted() is obsoleted (does nothing). ZMD sychronization has been removed (see bnc#480845 for details). Backtrace follows:");
-	return true;
-    }
-
-
-    /**
      * Parse a URL query (already unescaped) to a map.
      * If no equal sign, the value will be nil.
      * @param query foo=bar&baz=qux
