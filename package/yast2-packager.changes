@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  3 14:12:32 UTC 2011 - lslezak@suse.cz
+
+- cleanup: removed obsoleted SourceManager::SyncAddedAndDeleted()
+  function (zmd sync code has been removed)
+
+-------------------------------------------------------------------
 Wed Aug  3 08:49:18 UTC 2011 - lslezak@suse.cz
 
 - use term "Software manager" instead of "Package manager"
