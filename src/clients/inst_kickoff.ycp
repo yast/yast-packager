@@ -491,6 +491,10 @@ void HyperVPVToInitrd() {
     }
     else
     {
+	// prefer CD/DVD media to download during installation/update
+	y2milestone("Update mode - prefer CD/DVD media to download");
+	Pkg::SetZConfig($["download_media_prefer_download" : false]);
+
         if (Stage::normal())
         {
             import "Kernel";

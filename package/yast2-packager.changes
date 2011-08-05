@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug  5 07:43:13 UTC 2011 - lslezak@suse.cz
+
+- package installation: prefer CD/DVD media to download during
+  installation/update (bnc#693230)
+- 2.21.9
+
+-------------------------------------------------------------------
 Wed Aug  3 14:12:32 UTC 2011 - lslezak@suse.cz
 
 - cleanup: removed obsoleted SourceManager::SyncAddedAndDeleted()
