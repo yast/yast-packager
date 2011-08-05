@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug  5 12:34:31 CEST 2011 - tgoettlicher@suse.de
+
+- fixed .desktop file (bnc #681249)
+
+-------------------------------------------------------------------
 Fri Aug  5 07:43:13 UTC 2011 - lslezak@suse.cz
 
 - package installation: prefer CD/DVD media to download during
