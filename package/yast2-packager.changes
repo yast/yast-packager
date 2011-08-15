@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 15 13:10:49 CEST 2011 - mvidner@suse.cz
+
+- biosdevname: check just the vendor, don't compare interface names (bnc#712043).
+- 2.21.10
+
+-------------------------------------------------------------------
 Fri Aug  5 12:34:31 CEST 2011 - tgoettlicher@suse.de
 
 - fixed .desktop file (bnc #681249)

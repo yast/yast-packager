@@ -797,40 +797,6 @@ global void InitializeAddOnProducts() {
     }
 
     /*
-     * check whether there is a bios name for a network interface
-     */
-    boolean detectBiosDevNames()
-    {
-	boolean ret = false;
-	list<map> netifs = (list<map>)SCR::Read(.probe.netif);
-
-	foreach(map netif, netifs, {
-		string dev_name = netif["dev_name"]:"unknown";
-		string command = sformat("/sbin/biosdevname --policy all_names -i '%1'", String::Quote(dev_name));
-		y2milestone("Executing: %1", command);
-
-		map out = (map)SCR::Execute(.target.bash_output, command);
-		y2milestone("Result: %1", out);
-
-		if (out["exit"]:-1 == 0)
-		{
-		    string bios_name = String::FirstChunk(out["stdout"]:"", "\n");
-
-		    if (bios_name != nil && bios_name != "" && bios_name != dev_name)
-		    {
-			y2milestone("Found BIOS name for %1: %2", netif, bios_name);
-			ret = true;
-		    }
-		}
-	    }
-	);
-
-	y2milestone("Detected BIOS name: %1", ret);
-
-	return ret;
-    }
-
-    /*
      * CHeck whether this is a Dell system
      */
     boolean DellSystem()
@@ -886,7 +852,7 @@ global void InitializeAddOnProducts() {
 		y2milestone("Missing biosdevname option, autodetecting...");
 		if (DellSystem())
 		{
-		    add_biosdevname = detectBiosDevNames();
+                    add_biosdevname = true;
 		}
 	    }
 	    else
