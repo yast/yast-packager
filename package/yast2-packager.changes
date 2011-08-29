@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 29 16:15:53 CEST 2011 - locilka@suse.cz
+
+- Implemented possibility to set repository priority while adding
+  by add_on_products.xml (bnc#714027).
+- 2.17.88
+
+-------------------------------------------------------------------
 Mon Aug 15 13:10:49 CEST 2011 - mvidner@suse.cz
 
 - biosdevname: check just the vendor, don't compare interface names (bnc#712043).
