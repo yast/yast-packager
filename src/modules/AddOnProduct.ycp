@@ -1272,6 +1272,38 @@ boolean InstallProductsFromRepository (list <string> prods_to_install, integer s
 }
 
 /**
+ * Adjusts priority of a given repository id
+ *
+ * @param integer repository id
+ * @param integer priority
+ * @returns boolean if successful
+ */
+boolean RepositorySetPriority (integer repo_id, integer priority) {
+    list <map <string, any> > repos = Pkg::SourceEditGet();
+
+    map <string, any> edit_repo = $[];
+
+    integer counter = -1;
+    foreach (map <string, any> repo, repos, {
+	counter = counter + 1;
+	if (repo["SrcId"]:-1 == repo_id) {
+	    edit_repo = repo;
+	    break;
+	}
+    });
+
+    if (edit_repo == $[]) {
+	y2error ("Cannot find repository ID: %1", repo_id);
+	return false;
+    }
+
+    edit_repo["priority"] = priority;
+    repos[counter] = edit_repo;
+
+    return Pkg::SourceEditSet (repos);
+}
+
+/**
  * Auto-integrate add-on products in specified file (usually add_on_products or
  * add_on_products.xml file)
  *
@@ -1314,6 +1346,11 @@ boolean InstallProductsFromRepository (list <string> prods_to_install, integer s
  *				default is 'false' (optional)
  *			-->
  *			<selected config:type="boolean">true</selected>
+ *			<!--
+ *				Defines priority of the newly added repository (optional).
+ *				Libzypp uses its default priority if not set.
+ *			-->
+ *			<priority config:type="integer">20</priority>
  *		</product_item>
  *		<product_item>
  *			...
@@ -1355,41 +1392,50 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 	    return false;
 	}
 
+	integer repo_id = -1;
+
 	y2milestone ("Adding products: %1", add_products);
 	foreach (map one_product, add_products, {
 	    string url = one_product["url"]:"";
 	    string pth = one_product["path"]:"";
+	    integer priority = one_product["priority"]:-1;
 
 	    y2milestone ("Adding Repository: %1 %2", url, pth);
-	    integer src = Pkg::SourceCreate (url, pth);
+	    repo_id = Pkg::SourceCreate (url, pth);
 
-	    if (src == nil || src < 0) {
+	    if (repo_id == nil || repo_id < 0) {
 		y2error ("Unable to add product: %1", url);
 		// TRANSLATORS: error message, %1 is replaced with product URL
 		Report::Error (sformat (_("Unable to add product %1."), url));
 		return false;
 	    }
 
-	    if (! AcceptedLicenseAndInfoFile (src)) {
+	    // BNC #714027: Possibility to adjust repository priority (usually higher)
+	    if (priority > -1) RepositorySetPriority (repo_id, priority);
+
+	    if (! AcceptedLicenseAndInfoFile (repo_id)) {
 		y2warning ("License not accepted, delete the repository");
-		Pkg::SourceDelete (src);
+		Pkg::SourceDelete (repo_id);
 		return false;
 	    }
-	    Integrate (src);
+	    Integrate (repo_id);
 
 	    // adding the product to the list of products (BNC #269625)
-	    map <string, any> prod = (map <string, any>) Pkg::SourceProductData (src);
-	    y2milestone ("Repository (%1) product data: %2", src, prod);
+	    map <string, any> prod = (map <string, any>) Pkg::SourceProductData (repo_id);
+	    y2milestone ("Repository (%1) product data: %2", repo_id, prod);
 
-	    InstallProductsFromRepository (one_product["install_products"]:[], src);
+	    InstallProductsFromRepository (one_product["install_products"]:[], repo_id);
 
-	    AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, $[
-		"media"			: src,
+	    map <string, any> new_add_on_product = $[
+		"media"			: repo_id,
 		"product"		: one_product["name"]:prod["label"]:prod["productname"]:_("Unknown Product"),
 		"autoyast_product"	: prod["productname"]:one_product["name"]:_("Unknown Product"),
 		"media_url"		: url,
 		"product_dir"		: pth,
-	    ]);
+	    ];
+	    if (priority > -1) new_add_on_product["priority"] = priority;
+
+	    AddOnProduct::add_on_products = add (AddOnProduct::add_on_products, new_add_on_product);
 	});
     });
 
@@ -1451,8 +1497,11 @@ global boolean Import (map settings) {
 	    string pth = prod["product_dir"]:"/";
 	    integer src = Pkg::SourceCreate (media, pth);
 	    if (src != -1) {
-		if (prod["product"]:"" != "")
-		    Pkg::SourceEditSet ([$["SrcId":src, "name":prod["product"]:""]]);
+		if (prod["product"]:"" != "") {
+		    map <string, any> repo = $["SrcId":src, "name":prod["product"]:""];
+		    if (prod["priority"]:-1 > -1) repo["priority"] = prod["priority"]:-1;
+		    Pkg::SourceEditSet ([repo]);
+		}
 		mode_config_sources = add (mode_config_sources, src);
 	    }
 	});
