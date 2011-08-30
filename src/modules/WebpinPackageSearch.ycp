@@ -25,6 +25,7 @@ import "FileUtils";
 import "URL";
 import "XML";
 import "Arch";
+import "Report";
 
 string temporary_file = Directory::tmpdir + "/package_search_webpin.xml";
 
@@ -359,6 +360,8 @@ global list <map> SearchForPackages (string search_for, string distribution, map
     // is full of error messages - we should not let anyxml agent parse those
     if ( response["code"]:0 != 200 ) {
 	y2error ("Cannot retrieve search results from the server");
+	// %1 is HTTP error code like 404 or 503
+	Report::Error(sformat(_("Search failed.\nRemote server returned error code %1"), response["code"]:0));
 	return nil;
     }
 
