@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 30 14:03:01 UTC 2011 - lslezak@suse.cz
+
+- webpin_package_search - display popup and print error message
+  when HTTP response code is not 200, don't silently ignore errors
+  (bnc#714546)
+
+-------------------------------------------------------------------
 Mon Aug 29 16:15:53 CEST 2011 - locilka@suse.cz
 
 - Implemented possibility to set repository priority while adding
