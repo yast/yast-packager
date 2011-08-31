@@ -9,8 +9,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 # HTTP.ycp
 BuildRequires:	yast2-transfer
 
-# Installation summary in PackagesUI::
-BuildRequires: yast2 >= 2.18.1
+# String::FindMountPoint()
+BuildRequires: yast2 >= 2.21.13
 
 # Pkg::SetZConfig()
 BuildRequires:	yast2-pkg-bindings >= 2.21.8
@@ -21,8 +21,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SetZConfig()
 Requires:	yast2-pkg-bindings >= 2.21.8
 
-# Installation summary in PackagesUI::
-Requires: yast2 >= 2.18.1
+# String::FindMountPoint()
+Requires: yast2 >= 2.21.13
 
 # unzipping license file
 Requires:	unzip

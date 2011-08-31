@@ -93,7 +93,7 @@
 
 	list<map<string, string> > partition = [];
 	// the sizes are in kB
-	integer min_spare = 1 * 1024;		// 1 MB
+	integer min_spare = 10 * 1024;		// 10 MB
 	integer max_spare = 1024 * 1024;	// 1 GB
 
 	string target = Installation::destdir;
@@ -221,6 +221,295 @@
 	return part_input;
     };
 
+    // return default ext3/4 journal size (in B) for target partition size
+    integer DefaultExtJournalSize(map part)
+    {
+	if (part["used_fs"]:`unknown == `ext2)
+	{
+	    y2milestone("No journal on ext2");
+	    return 0;
+	}
+
+	integer ret = 0;
+
+	integer part_size = 1024 * part["size_k"]:0;
+	// default block size is 4k
+	integer bs = tointeger(part["fs_options","opt_blocksize", "option_value"]:"4096");
+	integer blocks = part_size / bs;
+
+	y2milestone("Partition %1: %2 blocks (block size: %3)", part["name"]:"", blocks, bs);
+
+	// values extracted from ext2fs_default_journal_size() function in e2fsprogs sources
+	if (blocks < 2048)
+	{
+	    ret = 0;
+	}
+	else if (blocks < 32768)
+	{
+	    ret = 1024;
+	}
+	else if (blocks < 256*1024)
+	{
+	    ret = 4096;
+	}
+	else if (blocks < 512*1024)
+	{
+	    ret = 8192;
+	}
+	else if (blocks < 1024*1024)
+	{
+	    ret = 16384;
+	}
+	else
+	{
+	    // maximum journal size
+	    ret = 32768;
+	}
+
+	// converts blocks to bytes
+	ret = ret * bs;
+
+	y2milestone("Default journal size: %1kB", ret / 1024);
+
+
+	return ret;
+    }
+
+    integer ExtJournalSize(map part)
+    {
+	if (part["used_fs"]:`unknown == `ext2)
+	{
+	    y2milestone("No journal on ext2");
+	    return 0;
+	}
+
+	integer ret = 0;
+	// no journal
+	if (haskey(part["fs_options"]:$[], "no_journal"))
+	{
+	    y2milestone("Partition %1 has disabled journal", part["name"]:"");
+	}
+	// default journal size for ext3/4
+	else
+	{
+	    y2milestone("Using default journal size for %1", part["name"]:"");
+	    ret = DefaultExtJournalSize(part);
+	}
+	// Note: custom journal size cannot be entered in the partitioner
+
+	y2milestone("Journal size for %1: %2kB", part["name"]:"", ret / 1024);
+
+	return ret;
+    }
+
+    integer XfsJournalSize(map part)
+    {
+	integer part_size = 1024 * part["size_k"]:0;
+	integer mb = 1 << 20;
+	integer gb = 1 << 30;
+
+	// the default log size to fs size ratio is 1:2048
+	// (the value is then adjusted according to many other fs parameters,
+	// we take just the simple approach here, it should be sufficient)
+	integer ret = part_size / 2048;
+
+	// check min and max limits
+	integer min_log_size = 10 * mb;
+	integer max_log_size = 2 * gb;
+
+	if (ret < min_log_size)
+	{
+	    ret = min_log_size;
+	}
+	else if (ret > max_log_size)
+	{
+	    ret = max_log_size;
+	}
+
+	y2milestone("Estimated journal size for XFS partition %1kB: %2kB", part_size / 1024, ret / 1024);
+
+	return ret;
+    }
+
+    integer ReiserJournalSize(map part)
+    {
+	// the default is 8193 of 4k blocks (max = 32749, min = 513 blocks)
+	integer ret = 8193 * 4096;
+
+	y2milestone("Default Reiser journal size: %1kB", ret / 1024); 
+
+	return ret;
+    }
+
+    integer DefaultJfsJournalSize(integer part_size)
+    {
+	// the default is 0.4% rounded to megabytes, 128MB max.
+	integer ret = part_size >> 8;	// 0.4% ~= 1/256
+	integer max = 128 * (1 << 20);	// 128 MB
+
+	ret  = ((ret + (1 << 20) - 1) >> 20) << 20;
+
+	if (ret > max)
+	{
+	    ret = max;
+	}
+
+	y2milestone("Default JFS journal size: %1MB", ret >> 20);
+
+	return ret;
+    }
+
+    integer JfsJournalSize(map part)
+    {
+	// log size (in MB)
+	integer log_size = tointeger(part["fs_options","opt_log_size", "option_value"]:"0");
+
+	if (log_size > 0)
+	{
+	    // convert to bytes
+	    log_size = log_size * (1 << 20);
+	}
+	else
+	{
+	    log_size = DefaultJfsJournalSize(1024 * part["size_k"]:0);
+	}
+
+	y2milestone("Jfs journal size: %1MB", log_size >> 20);
+
+	return log_size;
+    }
+
+    list<map> EstimateTargetUsage(list<map> parts)
+    {
+	y2milestone("EstimateTargetUsage(%1)", parts);
+	integer mb = 1 << 10; // sizes are in kB, 1MB is 1024 kB
+
+	// invalid or empty input
+	if (parts == nil || size(parts) == 0)
+	{
+	    y2error("Invalid input: %1", parts);
+	    return [];
+	}
+
+	// the numbers are from openSUSE-11.4 default KDE installation
+	map<string, integer> used_mapping = $[
+	    "/var/lib/rpm"	: 42 * mb,	// RPM database
+	    "/var/log"		: 14 * mb,	// system logs (YaST logs have ~12MB)
+	    "/var/adm/backup"	: 10 * mb,	// backups
+	    "/var/cache/zypp"	: 38 * mb,	// zypp metadata cache after refresh (with OSS + update repos)
+	    "/etc"		:  2 * mb,	// various /etc config files not belonging to any package
+	    "/usr/share"	:  1 * mb,	// some files created by postinstall scripts
+	    "/boot/initrd"	: 11 * mb	// depends on HW but better than nothing
+	];
+
+	y2milestone("Adding target size mapping: %1", used_mapping);
+
+	list<string> mount_points = [];
+
+	// convert list to map indexed by mount point
+	map<string, map> mounts = listmap(map part, parts, {
+		mount_points = add(mount_points, part["name"]:"");
+		return $[ part["name"]:"" : part ];
+	    }
+	);
+
+
+	foreach(string dir, integer used, used_mapping, {
+		string mounted = String::FindMountPoint(dir, mount_points);
+		y2milestone("Dir %1 is mounted on %2", dir, mounted);
+
+		map part = mounts[mounted]:$[];
+
+		if (part != $[])
+		{
+		    integer curr_used = part["used"]:0;
+		    y2milestone("Adding %1kB to %2kB currently used", used, curr_used);
+		    curr_used = curr_used + used;
+
+		    part["used"] = curr_used;
+		    part["free"] = part["free"]:0 - used;
+
+		    mounts[mounted] = part;
+		}
+		else
+		{
+		    y2warning("Cannot find partition for mount point %1, ignoring it", mounted);
+		}
+	    }
+	);
+
+	// convert back to list
+	list<map> ret = maplist(string dir, map part, mounts, {return part;});
+
+	y2milestone("EstimateTargetUsage() result: %1", ret);
+
+	return ret;
+    }
+
+    // is the filesystem one of Ext2/3/4?
+    boolean ExtFs(symbol fs)
+    {
+	return fs == `ext2 || fs == `ext3 || fs == `ext4;
+    }
+
+    // return estimated fs overhead
+    // (the difference between partition size and reported fs blocks)
+    integer EstimateFsOverhead(map part)
+    {
+	integer fs_size = 1024 * part["size_k"]:0;
+	symbol fs = part["used_fs"]:`unknown;
+
+	integer ret = 0;
+
+	if (ExtFs(fs))
+	{
+	    // ext2/3/4 overhead is about 1.6% according to my test (8GB partition)
+	    ret = fs_size * 16 / 1000;
+	    y2milestone("Estimated Ext2/3/4 overhead: %1kB", ret);
+	}
+	else if (fs == `xfs)
+	{
+	    // xfs overhead is about 0.1%
+	    ret = fs_size / 1000;
+	    y2milestone("Estimated XFS overhead: %1kB", ret);
+	}
+	else if (fs == `jfs)
+	{
+	    // jfs overhead is about 0.3%
+	    ret = fs_size * 3 / 1000;
+	    y2milestone("Estimated JFS overhead: %1kB", ret);
+	}
+	// reiser and btrfs have negligible overhead, just ignore it
+
+	return ret;
+    }
+
+    // return reserved space for root user (in bytes)
+    integer ReservedSpace(map part)
+    {
+	// read the percentage
+	string option = part["fs_options", "opt_reserved_blocks", "option_value"]:"";
+	integer ret = 0;
+
+	if (option != nil && option != "")
+	{
+	    float percent = tofloat(option);
+
+	    if (percent > 0.0)
+	    {
+		// convert to absolute value
+		integer fs_size = part["size_k"]:0;
+		ret = tointeger(fs_size / 100 * percent);
+	    }
+	}
+
+	if (ret > 0)
+	{
+	    y2milestone("Partition %1: reserved space: %2%% (%3kB)", part["name"]:"", option, ret);
+	}
+
+	return ret * 1024;
+    }
 
     /*
      * Define a macro that transforms information about all partitions ( from
@@ -286,7 +575,7 @@
 	}
 
 	list<map> target_partitions = [];
-	integer min_spare	= 5 * 1024 * 1024; // minimum free space ( 5 MB )
+	integer min_spare	= 20 * 1024 * 1024; // minimum free space ( 20 MB )
 
 	foreach( string disk, map diskinfo, targets,
 		 ``{
@@ -376,6 +665,56 @@
 				    continue;
 				}
 			    }
+			    else
+			    // for formatted partitions estimate free system size
+			    {
+				// compute fs overhead
+				used = EstimateFsOverhead(part);
+
+				if (used > 0)
+				{
+				    y2milestone("Partition %1: assuming fs overhead: %2kB", part["device"]:"", used / 1024);
+				}
+
+				// journal size
+				integer js = 0;
+
+				if (ExtFs(used_fs))
+				{
+				    js = ExtJournalSize(part);
+				    integer reserved = ReservedSpace(part);
+
+				    if (reserved > 0)
+				    {
+					used = used + reserved;
+				    }
+				}
+				else if (used_fs == `xfs)
+				{
+				    js = XfsJournalSize(part);
+				}
+				else if (used_fs == `reiser)
+				{
+				    js = ReiserJournalSize(part);
+				}
+				else if (used_fs == `jfs)
+				{
+				    js = JfsJournalSize(part);
+				}
+				else
+				{
+				    y2warning("Unknown journal size for filesystem: %1", used_fs);
+				}
+
+				if (js > 0)
+				{
+				    y2milestone("Partition %1: assuming journal size: %2kB", part["device"]:"", js / 1024);
+				    used = used + js;
+				}
+
+				// decrease free size
+				free_size = free_size - used;
+			    }
 
 			    // convert into kB for TargetInitDU
 			    free_size = free_size / 1024;
@@ -409,6 +748,9 @@
 	    } ); // foreach (`part)
 	} ); // foreach (`disk)
 
+	// add estimated size occupied by non-package files
+	target_partitions = EstimateTargetUsage(target_partitions);
+
 	y2milestone( "get_partition_info: part %1", target_partitions );
 	Pkg::TargetInitDU (target_partitions);
 
@@ -440,7 +782,7 @@
 	}
 	else if ( Mode::update () )
 	{
-	    partition = EvaluateFreeSpace ( 5 ); // 5% free spare for update/upgrade
+	    partition = EvaluateFreeSpace ( 15 ); // 15% free spare for update/upgrade
 	}
 	else if ( Mode::normal () )
 	{
