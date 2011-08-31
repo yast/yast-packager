@@ -1285,19 +1285,6 @@ boolean InstallProductsFromRepository (list <string> prods_to_install, integer s
 }
 
 /**
- * Adjusts priority of a given repository id
- *
- * @param integer repository id
- * @param integer priority
- * @returns boolean if successful
- */
-boolean RepositorySetPriority (integer repo_id, integer priority) {
-    map <string, any> edit_repo = $["SrcId" : repo_id, "priority" : priority];
-    y2milestone ("Adjusting repo priority: %1", edit_repo);
-    return Pkg::SourceEditSet ([edit_repo]);
-}
-
-/**
  * Auto-integrate add-on products in specified file (usually add_on_products or
  * add_on_products.xml file)
  *
@@ -1394,8 +1381,12 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 	    string pth = one_product["path"]:"";
 	    integer priority = one_product["priority"]:-1;
 
-	    y2milestone ("Adding Repository: %1 %2", url, pth);
-	    repo_id = Pkg::SourceCreate (url, pth);
+	    map <string, any> new_repo = $[ "enabled" : true, "base_urls" : [url], "prod_dir" : pth ];
+	    // BNC #714027: Possibility to adjust repository priority (usually higher)
+	    if (priority > -1) new_repo["priority"] = priority;
+
+	    y2milestone ("Adding Repository: %1", new_repo);
+	    repo_id = Pkg::RepositoryAdd (new_repo);
 
 	    if (repo_id == nil || repo_id < 0) {
 		y2error ("Unable to add product: %1", url);
@@ -1404,8 +1395,10 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 		return false;
 	    }
 
-	    // BNC #714027: Possibility to adjust repository priority (usually higher)
-	    if (priority > -1) RepositorySetPriority (repo_id, priority);
+	    // download metadata, build repo cache
+	    Pkg::SourceRefreshNow (repo_id);
+	    // load resolvables to zypp pool
+	    Pkg::SourceLoad();
 
 	    if (! AcceptedLicenseAndInfoFile (repo_id)) {
 		y2warning ("License not accepted, delete the repository");

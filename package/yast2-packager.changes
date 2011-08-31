@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Wed Aug 31 12:18:19 CEST 2011 - locilka@suse.cz
+Wed Aug 31 14:05:48 CEST 2011 - locilka@suse.cz
 
-- Simplifying the previous commit (bnc#714027)
+- Cleaner solution for adjusting repository priority and fixing
+  that now it also works in installation (bnc#714027)
+- 2.17.89
 
 -------------------------------------------------------------------
 Mon Aug 29 16:15:53 CEST 2011 - locilka@suse.cz
