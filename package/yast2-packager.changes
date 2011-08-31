@@ -1,9 +1,17 @@
 -------------------------------------------------------------------
+Wed Aug 31 12:21:00 UTC 2011 - lslezak@suse.cz
+
+- SpaceCalculation - improved target installation size estimation,
+  consider also filesystem properties (journal size, reserved space)
+  add some (static) non-package files to disk usage, increased
+  some spare size constants (bnc#263275)
+- 2.21.12
+
+-------------------------------------------------------------------
 Wed Aug 31 14:05:48 CEST 2011 - locilka@suse.cz
 
 - Cleaner solution for adjusting repository priority and fixing
   that now it also works in installation (bnc#714027)
-- 2.21.12
 
 -------------------------------------------------------------------
 Tue Aug 30 14:03:01 UTC 2011 - lslezak@suse.cz
