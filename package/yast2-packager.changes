@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 31 12:18:19 CEST 2011 - locilka@suse.cz
+
+- Simplifying the previous commit (bnc#714027)
+
+-------------------------------------------------------------------
 Mon Aug 29 16:15:53 CEST 2011 - locilka@suse.cz
 
 - Implemented possibility to set repository priority while adding

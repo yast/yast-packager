@@ -1292,28 +1292,9 @@ boolean InstallProductsFromRepository (list <string> prods_to_install, integer s
  * @returns boolean if successful
  */
 boolean RepositorySetPriority (integer repo_id, integer priority) {
-    list <map <string, any> > repos = Pkg::SourceEditGet();
-
-    map <string, any> edit_repo = $[];
-
-    integer counter = -1;
-    foreach (map <string, any> repo, repos, {
-	counter = counter + 1;
-	if (repo["SrcId"]:-1 == repo_id) {
-	    edit_repo = repo;
-	    break;
-	}
-    });
-
-    if (edit_repo == $[]) {
-	y2error ("Cannot find repository ID: %1", repo_id);
-	return false;
-    }
-
-    edit_repo["priority"] = priority;
-    repos[counter] = edit_repo;
-
-    return Pkg::SourceEditSet (repos);
+    map <string, any> edit_repo = $["SrcId" : repo_id, "priority" : priority];
+    y2milestone ("Adjusting repo priority: %1", edit_repo);
+    return Pkg::SourceEditSet ([edit_repo]);
 }
 
 /**
