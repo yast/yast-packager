@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 31 14:05:48 CEST 2011 - locilka@suse.cz
+
+- Cleaner solution for adjusting repository priority and fixing
+  that now it also works in installation (bnc#714027)
+- 2.21.12
+
+-------------------------------------------------------------------
 Tue Aug 30 14:03:01 UTC 2011 - lslezak@suse.cz
 
 - webpin_package_search - display popup and print error message
