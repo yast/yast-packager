@@ -1695,6 +1695,12 @@ global void Initialize(boolean show_popup) {
 
     Initialize_BaseInit (show_popup, base_url, log_url);
 
+    if (!Stage::initial())
+    {
+	y2milestone("Initializing the target...");
+	Pkg::TargetInitialize(Installation::destdir);
+    }
+
     theSources = Stage::initial() ? [] : Pkg::SourceStartCache (true); // dummy in 1st stage
 
     boolean again = true;
