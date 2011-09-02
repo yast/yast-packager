@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep  2 12:28:58 UTC 2011 - lslezak@suse.cz
+
+- intialize the target in the second stage to read the GPG keys,
+  do not ask for importing known GPG keys again (bnc#707207)
+- 2.21.13
+
+-------------------------------------------------------------------
 Wed Aug 31 12:21:00 UTC 2011 - lslezak@suse.cz
 
 - SpaceCalculation - improved target installation size estimation,
