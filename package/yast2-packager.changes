@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  8 09:12:40 UTC 2011 - lslezak@suse.cz
+
+- read biosdevname option directly from /proc/cmdline (bnc#712049)
+- 2.17.92
+
+-------------------------------------------------------------------
 Fri Sep  2 12:28:58 UTC 2011 - lslezak@suse.cz
 
 - intialize the target in the second stage to read the GPG keys,
