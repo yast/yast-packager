@@ -834,31 +834,24 @@ global void InitializeAddOnProducts() {
     {
 	list<string> ret = [];
 
-	string biosdevname = (string)SCR::Read(.etc.install_inf.biosdevname);
-	y2milestone("read biosdevname option: %1", biosdevname);
 	boolean add_biosdevname = false;
+        string cmdline = (string)SCR::Read(.target.string, "/proc/cmdline");
 
-	if (biosdevname == "1")
-	{
-	    y2milestone("Found biosdevname=1 kernel option, selecting biosdevname package to install");
-	    add_biosdevname = true;
-	}
-	else
-	{
-	    string cmdline = (string)SCR::Read(.target.string, "/proc/cmdline");
+	list<string> options = splitstring(cmdline, " \t");
 
-	    if (!issubstring(cmdline, "biosdevname"))
-	    {
-		y2milestone("Missing biosdevname option, autodetecting...");
-		if (DellSystem())
-		{
-                    add_biosdevname = true;
-		}
-	    }
-	    else
-	    {
-		y2milestone("biosdevname disabled via kernel option, NOT selecting biosdevname package to install");
-	    }
+        if (contains(options, "biosdevname=1")) {
+            y2milestone("Biosdevname explicitly enabled");
+            add_biosdevname = true;
+        }
+        else if (contains(options, "biosdevname=0")) {
+            y2milestone("Biosdevname explicitly disabled");
+            add_biosdevname = false;
+        }
+        else {
+            y2milestone("Missing biosdevname option, autodetecting...");
+            if (DellSystem()) {
+                add_biosdevname = true;
+            }
 	}
 
 	if (add_biosdevname)
