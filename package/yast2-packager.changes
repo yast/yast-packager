@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 14 12:25:12 UTC 2011 - lslezak@suse.cz
+
+- fixed UI syntax error caused by wrong boolean expression
+  (bnc#711393)
+- 2.21.15
+
+-------------------------------------------------------------------
 Wed Sep 14 10:44:49 UTC 2011 - lslezak@suse.cz
 
 - set ignoreAlradyRecommended solver flag to false in fresh 
