@@ -1864,6 +1864,9 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
     // Handle the default desktop
     DefaultDesktop::Init();
 
+    // set ignoreAlreadyRecommended solver flag
+    Pkg::SetSolverFlags($["ignoreAlreadyRecommended" : Mode::normal()]);
+
     // If anything has changed
     any new_packages_proposal = PackagesProposal::GetAllResolvablesForAllTypes();
 

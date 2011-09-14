@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Sep 14 10:44:49 UTC 2011 - lslezak@suse.cz
+
+- set ignoreAlradyRecommended solver flag to false in fresh 
+  installation/upgrade to include file system tools
+  (like btrfsprogs) (bnc#668588)
+- 2.21.14
+
+-------------------------------------------------------------------
 Thu Sep  8 09:12:40 UTC 2011 - lslezak@suse.cz
 
 - read biosdevname option directly from /proc/cmdline (bnc#712049)
