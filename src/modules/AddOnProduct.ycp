@@ -1655,8 +1655,6 @@ global void SetSignatureCallbacks( string product ) {
             Pkg::CallbackAcceptUnknownGpgKey(AddOnProduct::AcceptUnknownGpgKeyCallback);
         if( haskey( addon["signature-handling"]:$[], "import_gpg_key") )
             Pkg::CallbackImportGpgKey(AddOnProduct::ImportGpgKeyCallback);
-        if( haskey( addon["signature-handling"]:$[], "accept_non_trusted_gpg_key") )
-            Pkg::CallbackAcceptNonTrustedGpgKey(AddOnProduct::AcceptNonTrustedGpgKeyCallback);
 
         break;
     });
