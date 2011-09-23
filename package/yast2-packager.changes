@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 23 09:05:03 UTC 2011 - lslezak@suse.cz
+
+- code cleanup: dropped support for selections (replaced by
+  patterns long time ago)
+
+-------------------------------------------------------------------
 Fri Sep 23 09:52:19 CEST 2011 - visnov@suse.cz
 
 - added dialog titles
