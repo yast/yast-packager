@@ -293,7 +293,7 @@ such software.</p>
 	    true
     );
 
-    Wizard::SetTitleIcon ("yast-webpin");
+    Wizard::SetDesktopTitleAndIcon ("webpin");
     Wizard::SetAbortButton (`cancel, Label::CancelButton());
 
     UI::SetFocus(`id("search_text"));

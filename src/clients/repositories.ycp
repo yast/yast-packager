@@ -1585,7 +1585,9 @@ symbol StartInstSource()
 	Pkg::TargetInit("/", true);
     }
 
-   // check whether running as root
+   Wizard::SetDesktopTitleAndIcon("sw_source");
+
+  // check whether running as root
    if (! Confirm::MustBeRoot () || !PackageLock::Connect(false)["connected"]:false)
    {
 	UI::CloseDialog ();
