@@ -47,7 +47,7 @@ symbol StartSWSingle()
 {
 
     Wizard::CreateDialog();
-    Wizard::SetDesktopIcon("sw_single");
+    Wizard::SetDesktopTitleAndIcon("sw_single");
 
     // a stage in the progress dialog
     list<string> stages = [_("Initialize the Target System"), _("Load the Configured Repositories")];

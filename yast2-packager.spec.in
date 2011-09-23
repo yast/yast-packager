@@ -10,7 +10,8 @@ BuildRequires:	gcc-c++ libxcrypt-devel yast2-country-data yast2-xml perl-XML-Wri
 BuildRequires:	yast2-transfer
 
 # String::FindMountPoint()
-BuildRequires: yast2 >= 2.21.13
+# Wizard::SetDialogTitleAndIcon()
+BuildRequires: yast2 >= 2.21.22
 
 # Pkg::SetZConfig()
 BuildRequires:	yast2-pkg-bindings >= 2.21.8

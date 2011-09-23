@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 23 09:52:19 CEST 2011 - visnov@suse.cz
+
+- added dialog titles
+- 2.21.16 
+
+-------------------------------------------------------------------
 Wed Sep 14 12:25:12 UTC 2011 - lslezak@suse.cz
 
 - fixed UI syntax error caused by wrong boolean expression
