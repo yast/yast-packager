@@ -107,11 +107,6 @@ list <string> cached_proposal_languages	= nil;
 
     boolean system_packages_selected = false;
 
-// DefaultDesktop::PrefferedWindowManager
-//    global string window_manager = nil;
-
-    global boolean using_patterns = false;
-
     global list <map <string, string> > add_on_products_list = [];
 
 // summary functions
