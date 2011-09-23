@@ -105,7 +105,7 @@ other systems.</p>
                 string tgt = sformat("%1/%2/CD%3", _export, distprod, i );
                 y2debug("tgt: %1", tgt );
                 //Popup::Message(sformat(_("Before... %1"), i ));
-                any dir =  Pkg::SourceProvideDir(source, i , ".");
+                any dir =  Pkg::SourceProvideDirectory(source, i , ".", false, false);
                 //Popup::Message(sformat(_("After... %1"), i ));
                 if (dir!=nil)
                 {
