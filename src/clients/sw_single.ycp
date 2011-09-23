@@ -647,7 +647,7 @@ without having package %1 installed"), required_package));
 	    }
 
 	   SCR::Write (.target.ycp, "/var/lib/YaST2/failed_packages", []);
-	   boolean anyToDelete = Pkg::PkgAnyToDelete();
+	   boolean anyToDelete = Pkg::IsAnyResolvable(`package, `to_remove);
 	   SlideShow::SetLanguage (UI::GetLanguage(true));
 	   PackageSlideShow::InitPkgData(true);	// force reinitialization
 	   SlideShow::OpenDialog();

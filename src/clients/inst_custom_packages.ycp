@@ -64,7 +64,7 @@
 
     if (result == `next)				// packages selected ?
     {
-        boolean anyToDelete = Pkg::PkgAnyToDelete();
+        boolean anyToDelete = Pkg::IsAnyResolvable(`package, `to_remove);
         SlideShow::SetLanguage (UI::GetLanguage(true));
         PackageSlideShow::InitPkgData(false);
         SlideShow::OpenDialog();
