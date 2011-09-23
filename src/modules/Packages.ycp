@@ -73,7 +73,6 @@ list <string> cached_proposal_packages	= nil;
 list <map> cached_proposal_patterns	= nil;
 list <map> cached_proposal_products	= nil;
 list <map> cached_proposal_patches	= nil;
-list <map> cached_proposal_selections	= nil;
 list <string> cached_proposal_languages	= nil;
 
     global boolean install_sources = false;	// Installing source packages ?
@@ -124,7 +123,6 @@ global void ResetProposalCache () {
     cached_proposal_patterns	= nil;
     cached_proposal_products	= nil;
     cached_proposal_patches	= nil;
-    cached_proposal_selections	= nil;
     cached_proposal_languages	= nil;
 }
 
@@ -359,16 +357,6 @@ global list<string> SummaryOutput (list<symbol> flags) {
 	if (size(patterns) > 0)
 	{
 	    output = (list<string>) add (output, _("Patterns:<br>") + mergestring (patterns, "<br>"));
-	}
-    }
-
-    if (contains (flags, `selection))
-    {
-	list<string> selections = ListSelected (`selection, "+  %1");
-
-	if (size(selections) > 0)
-	{
-	    output = (list<string>) add (output, _("Selections:<br>") + mergestring (selections, "<br>"));
 	}
     }
 
@@ -1639,7 +1627,10 @@ global void Initialize_StageInitial (boolean show_popup, string base_url, string
 		theSources = add (theSources, sp_source);
 
 	    if (ProductFeatures::GetFeature ("software", "selection_type") == `fixed)
-                Pkg::SetSelection (ProductFeatures::GetStringFeature ("software", "base_selection"));
+	    {
+		// selections not supported anymore, install a pattern
+                Pkg::ResolvableInstall(ProductFeatures::GetStringFeature ("software", "base_selection"), `pattern);
+	    }
 
 	    FindAndRememberAddOnProductsFiles (initial_repository);
 }
@@ -1909,9 +1900,6 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	// selected patches
 	list<map> selected_patches = filter(map p, Pkg::ResolvableProperties("", `patch, ""), {return p["status"]:`unknown == `selected;});
 
-	// selected selections
-	list<map> selected_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
-
 	// selected languages
 	list<string> selected_languages = (list<string>)union([Pkg::GetPackageLocale()], Pkg::GetAdditionalLocales());
 
@@ -1919,7 +1907,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	// if the package selection has not been changed the cache is up to date
 	if (selected_packages == cached_proposal_packages && selected_patterns == cached_proposal_patterns
 	    && selected_products == cached_proposal_products && selected_patches == cached_proposal_patches
-	    && selected_selections == cached_proposal_selections && selected_languages == cached_proposal_languages)
+	    && selected_languages == cached_proposal_languages)
 	{
 	    y2milestone("using cached software proposal");
 	    return cached_proposal;
@@ -1931,7 +1919,7 @@ global map Proposal (boolean force_reset, boolean reinit, boolean simple) {
 	// See also ResetProposalCache()
 	else if (cached_proposal_packages != nil && cached_proposal_patterns != nil
 	    && cached_proposal_products != nil && cached_proposal_patches != nil
-	    && cached_proposal_selections != nil && cached_proposal_languages != nil)
+	    && cached_proposal_languages != nil)
 	{
 	    y2error("invalid cache: the software selection has been chaged");
 	    // bnc #436925
@@ -1947,7 +1935,7 @@ Software proposal will be called again."));
     if (Installation::dirinstall_installing_into_dir && !force_reset && init_called)
     {
 	return  Summary (
-	    [ `product, `pattern, `selection, `size, `desktop ],
+	    [ `product, `pattern, `size, `desktop ],
 	    false
 	);
     }
@@ -2014,7 +2002,7 @@ Software proposal will be called again."));
 
     // Question: is `desktop appropriate for SLE?
     map ret = Summary (
-	[ `product, `pattern, `selection, `size, `desktop ],
+	[ `product, `pattern, `size, `desktop ],
 	false);
     // TODO simple proposal
 
@@ -2026,7 +2014,6 @@ Software proposal will be called again."));
     cached_proposal_patterns = filter(map p, Pkg::ResolvableProperties("", `pattern, ""), {return p["status"]:`unknown == `selected;});
     cached_proposal_products = filter(map p, Pkg::ResolvableProperties("", `product, ""), {return p["status"]:`unknown == `selected;});
     cached_proposal_patches = filter(map p, Pkg::ResolvableProperties("", `patch, ""), {return p["status"]:`unknown == `selected;});
-    cached_proposal_selections = filter(map s, Pkg::ResolvableProperties("", `selection, ""), {return s["status"]:`unknown == `selected;});
     cached_proposal_languages = (list<string>)union([Pkg::GetPackageLocale()], Pkg::GetAdditionalLocales());
 
     UI::CloseDialog();
