@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct  6 11:52:02 UTC 2011 - lslezak@suse.cz
+
+- skip product selection in the second stage (do not reinstall
+  the product package during autoinstallation) (bnc#721166)
+- 2.17.93
+
+-------------------------------------------------------------------
 Thu Sep  8 09:12:40 UTC 2011 - lslezak@suse.cz
 
 - read biosdevname option directly from /proc/cmdline (bnc#712049)
