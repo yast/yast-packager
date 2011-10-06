@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct  6 11:52:02 UTC 2011 - lslezak@suse.cz
+
+- skip product selection in the second stage (do not reinstall
+  the product package during autoinstallation) (bnc#721166)
+- 2.21.18
+
+-------------------------------------------------------------------
 Fri Sep 23 09:05:03 UTC 2011 - lslezak@suse.cz
 
 - code cleanup: dropped support for selections (replaced by
