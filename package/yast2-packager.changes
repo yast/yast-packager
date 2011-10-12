@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 12 14:59:44 CEST 2011 - jsuchome@suse.cz
+
+- do not add initrd modules when mkintrd itself can add them
+  (bnc#716785)
+- 2.17.94
+
+-------------------------------------------------------------------
 Thu Oct  6 11:52:02 UTC 2011 - lslezak@suse.cz
 
 - skip product selection in the second stage (do not reinstall
