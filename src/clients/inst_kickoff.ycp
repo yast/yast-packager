@@ -25,14 +25,6 @@
     import "FileUtils";
     import "String";
 
-void AcpiToInitrd () {
-    if (! (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ()))
-	return;
-    foreach (string m, ["processor", "thermal", "fan"], {
-	Initrd::AddModule (m, "");
-    });
-}
-
 // add xen paravirtualized drivers to initrd if thery are selected for installation
 void XenPVToInitrd()
 {
@@ -55,35 +47,6 @@ void XenPVToInitrd()
 	y2milestone("No xen-kmp-* package is selected for installation, skipping XEN PV driver installation");
     }
 }
-
-void HyperVPVToInitrd() {
-    // is any hyper-v-kmp-* package selected?
-    if (Pkg::IsSelected("hyper-v-kmp-default")
-	|| Pkg::IsSelected("hyper-v-kmp-smp")
-	|| Pkg::IsSelected("hyper-v-kmp-pae")
-	|| Pkg::IsSelected("hyper-v-kmp-bigsmp")
-	|| Pkg::IsSelected("hyper-v-kmp-kdump"))
-    {
-	// add modules to initrd
-	Initrd::AddModule ("hv_blkvsc", "");
-	Initrd::AddModule ("hv_netvsc", "");
-	Initrd::AddModule ("hv_storvsc", "");
-	Initrd::AddModule ("hv_vmbus", "");
-
-	y2milestone("Added HyperV PV drivers to initrd, configured drivers: %1", Initrd::ListModules());
-
-	// it also need to be added to MODULES_LOADED_ON_BOOT
-        Kernel::AddModuleToLoad ("hv_storvsc");
-        Kernel::AddModuleToLoad ("hv_netvsc");
-	y2milestone ("Added hv_storvsc and hv_netvsc to modules loaded on boot");
-
-    }
-    else
-    {
-	y2milestone("No hyper-v-kmp-* package is selected for installation, skipping HyperV PV driver installation");
-    }
-}
-
 
     /**
      *  Write a fake mtab to the target system since some %post scripts might
@@ -483,7 +446,6 @@ void HyperVPVToInitrd() {
 
 	// fake mtab
 	fake_mtab ();
-	AcpiToInitrd ();
 
 	// F#302660: System installation and upgrade workflow: kernel %post
 	// calling ins_bootloader write all config files for bootloader
@@ -540,12 +502,10 @@ void HyperVPVToInitrd() {
             // Bootloader::PreUpdate ();
 	    // -- this function call does NOTHING!            
         }
-	AcpiToInitrd ();
     }
 
     // add Xen and HyperV PV drivers to initrd
     XenPVToInitrd();
-    HyperVPVToInitrd();
 
     if (Stage::initial ())
     {
