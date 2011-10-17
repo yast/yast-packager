@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 17 16:01:54 CEST 2011 - locilka@suse.cz
+
+- Readding missing feature supported in control file: Packages
+  required by a selected desktop in DefaultDesktop (bnc#724491).
+- 2.21.20
+
+-------------------------------------------------------------------
 Wed Oct 12 15:09:39 CEST 2011 - jsuchome@suse.cz
 
 - do not add initrd modules when mkintrd itself can add them
