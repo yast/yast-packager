@@ -156,7 +156,8 @@ global void ForceReinit () {
  *         "label_id" : _("Desktop Name Visible in Dialog (original)"),
  *         "description" : _("Description text of the desktop (localized - initial localization)"),
  *         "description_id" : _("Description text of the desktop (originale)"),
- *         "patterns" : ["list", "of", "related", "patterns"],
+ *         "patterns" : ["list", "of", "required", "patterns"],
+ *         "packages" : ["list", "of", "required", "packages"],
  *         "icon" : "some-icon", // filename from the 64x64 directory of the current theme (without .png suffix)
  *     ],
  * ]
@@ -220,7 +221,8 @@ global string Desktop () {
     return desktop;
 }
 
-string packages_proposal_ID = "DefaultDesktop";
+string packages_proposal_ID_patterns = "DefaultDesktopPatterns";
+string packages_proposal_ID_packages = "DefaultDesktopPackages";
 
 /**
  * Set the default desktop
@@ -232,7 +234,8 @@ global void SetDesktop (string new_desktop) {
     if (new_desktop == nil) {
 	// Reset the selected patterns
 	y2milestone ("Reseting DefaultDesktop");
-	PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, []);
+	PackagesProposal::SetResolvables (packages_proposal_ID_patterns, `pattern, []);
+	PackagesProposal::SetResolvables (packages_proposal_ID_packages, `package, []);
     } else if (! haskey (all_desktops, new_desktop)) {
 	y2error ("Attempting to set desktop to unknown %1", new_desktop);
     } else {
@@ -241,10 +244,19 @@ global void SetDesktop (string new_desktop) {
 	y2milestone ("New desktop has been set: %1", desktop);
 
 	if (desktop != nil && desktop != "") {
-	    // Require new patterns
-	    PackagesProposal::SetResolvables (packages_proposal_ID, `pattern, all_desktops[desktop,"patterns"]:[]);
+	    // Require new patterns and packages
+	    PackagesProposal::SetResolvables (packages_proposal_ID_patterns, `pattern, all_desktops[desktop,"patterns"]:[]);
+	    PackagesProposal::SetResolvables (packages_proposal_ID_packages, `package, all_desktops[desktop,"packages"]:[]);
 	}
     }
+}
+
+global list<string> SelectedPatterns() {
+    return PackagesProposal::GetResolvables (packages_proposal_ID_patterns, `pattern);
+}
+
+global list<string> SelectedPackages() {
+    return PackagesProposal::GetResolvables (packages_proposal_ID_packages, `package);
 }
 
 /**
