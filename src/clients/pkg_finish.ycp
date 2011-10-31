@@ -139,11 +139,14 @@ else if (func == "Write")
 	WFM::call ("inst_extrasources");
     }
 
-    Pkg::SourceCacheCopyTo (Installation::destdir);
 
     // save all repositories and finish target
     Pkg::SourceSaveAll ();
     Pkg::TargetFinish();
+
+    // save repository metadata cache to the installed system
+    // (needs to be done _after_ saving repositories, see bnc#700881)
+    Pkg::SourceCacheCopyTo (Installation::destdir);
 
     // copy list of failed packages to installed system
     WFM::Execute (.local.bash, sformat (
