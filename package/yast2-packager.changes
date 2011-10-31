@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 31 17:46:14 UTC 2011 - lslezak@suse.cz
+
+- copy the metadata cache after saving repository setup to not
+  confuse the package manager (avoid matadata cleanup) (bnc#700881)
+- 2.21.21
+
+-------------------------------------------------------------------
 Mon Oct 17 16:01:54 CEST 2011 - locilka@suse.cz
 
 - Readding missing feature supported in control file: Packages
