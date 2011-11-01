@@ -611,6 +611,13 @@
 			    free_size = part["size_k"]:0 * 1024;
 			    free_size = free_size - min_spare;
 
+			    // free_size smaller than min_spare, fix negative value
+			    if (free_size < 0)
+			    {
+				y2milestone("Fixing free size: %1 to 0", free_size);
+				free_size = 0;
+			    }
+
 			    integer used = 0;
 			    if (! (part["create"]:false || part["format"]:false))
 			    {
@@ -714,6 +721,13 @@
 
 				// decrease free size
 				free_size = free_size - used;
+
+				// check for underflow
+				if (free_size < 0)
+				{
+				    y2milestone("Fixing free size: %1 to 0", free_size);
+				    free_size = 0;
+				}
 			    }
 
 			    // convert into kB for TargetInitDU
