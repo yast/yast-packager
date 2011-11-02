@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov  2 10:17:54 UTC 2011 - jsrain@suse.cz
+
+- improve the progress bar during package installation slideshow
+  (bnc#724486)
+- 2.17.98
+
+-------------------------------------------------------------------
 Tue Nov  1 13:21:19 UTC 2011 - lslezak@suse.cz
 
 - fixed free space check for very small partitions (~15MB), do not
