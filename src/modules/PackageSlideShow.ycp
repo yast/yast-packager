@@ -403,7 +403,9 @@
 		    string repo_url = Pkg::SourceGeneralData(i)["url"]:"";
 		    string repo_schema = tolower(URL::Parse(repo_url)["scheme"]:"");
 
-		    if (contains(["http", "https", "ftp", "sftp"], repo_schema))
+		    // iso repos get also downloaded according to experience; the addition is not a perfect
+		    // fix, but still improves the progress (bnc#724486)
+		    if (contains(["http", "https", "ftp", "sftp", "iso"], repo_schema))
 		    {
 			integer total = 0;
 			foreach(integer count, media_mapping,
