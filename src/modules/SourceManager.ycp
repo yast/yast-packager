@@ -369,10 +369,11 @@ from URL '%1'."), URL::HidePassword(url) );
 					  Popup::NoHeadline (),
 // continue-back popup
 					  _("There is no product information available at the given location.
-If you expected to address a product, return back and enter
+If you expected to to point a product, go back and enter
 the correct location.
 To make rpm packages located at the specified location available
-in the packages selection, continue."),
+in the packages selection, continue.
+"),
 					  Label::ContinueButton (),
 					  Label::BackButton (),
 					  `focus_yes))

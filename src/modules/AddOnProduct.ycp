@@ -1153,8 +1153,9 @@ list <map> UserSelectsRequiredAddOns (list <map> products) {
 	    ),
 	    `VSpacing (0.5),
 	    // TRANSLATORS: additional dialog information
-	    `Left (`Label (_("The installation repository contains also the listed additional repositories.
-Select those you want to use."))),
+	    `Left (`Label (_("The installation repository also contains the listed additional repositories.
+Select the ones you want to use.
+"))),
 	    `VSpacing (0.5),
 	    `MinSize (
 		70, 16,

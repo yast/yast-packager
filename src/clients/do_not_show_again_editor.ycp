@@ -59,9 +59,10 @@
 	string caption = _("Editor for 'Do Not Show Again'");
 
 	// help text
-	string helptext = _("<p>You can remove entries by selecting them
-in the table and clicking the <b>Delete</b> button.
-The entry will be removed immediately from the current configuration.</p>");
+	string helptext = _("<p>Remove entries by selecting them in the table and clicking the 
+<b>Delete</b> button. The entries will be removed immediately from 
+the current configuration.</p>
+");
 
 	term contents = `VBox(
 	    `Table(

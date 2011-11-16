@@ -872,9 +872,10 @@ map<string,any> DirWidget () {
 	"validate_function" : DirValidate,
 	"help" : _("<p><big><b>Local Directory</b></big><br>
 Use <b>Path to Directory</b> to specify the path to the
-directory. If the directory contains just RPM packages without
-any metadata (i.e. there is no product information) then check option
-<b>Plain RPM Directory</b>.</p>")
+directory. If the directory contains only RPM packages without
+any metadata (i.e. there is no product information), then check option
+<b>Plain RPM Directory</b>.</p>
+")
 + multi_cd_help,
     ];
 
@@ -1104,17 +1105,19 @@ map<string,any> USBWidget ()
 	"init" : USBInit,
 	"store" : USBStore,
 	"help" : _("<p><big><b>USB Stick or Disk</b></big><br>
-Select the USB device where the repository is located.
+Select the USB device on which the repository is located.
 Use <b>Path to Directory</b> to specify the directory of the repository.
-If the path is omitted the system will use the root directory of the disk.
-If the directory contains just RPM packages without
-any metadata (i.e. there is no product information) then check option
-<b>Plain RPM Directory</b>.</p>")
+If the path is omitted, the system will use the root directory of the disk.
+If the directory contains only RPM packages without
+any metadata (i.e. there is no product information), then check option
+<b>Plain RPM Directory</b>.</p>
+")
 
 // 'auto' is a value in the combo box widget, do not translate it!
-+ _("<p>The file system which is used on the device will be automatically
-detected if file system 'auto' is selected. If the detection fails or you
-want to use a certain file system then select it from the list.</p>")
++ _("<p>The file system used on the device will be detected automatically
+if you select file system 'auto'. If the detection fails or you
+want to use a certain file system, select it from the list.</p>
+")
     ];
 }
 
@@ -1173,17 +1176,19 @@ map<string,any> DiskWidget ()
 	"init" : DiskInit,
 	"store" : DiskStore,
 	"help" : _("<p><big><b>Disk</b></big><br>
-Select the disk where the repository is located.
+Select the disk on which the repository is located.
 Use <b>Path to Directory</b> to specify the directory of the repository.
-If the path is omitted the system will use the root directory of the disk.
-If the directory contains just RPM packages without
-any metadata (i.e. there is no product information) then check option
-<b>Plain RPM Directory</b>.</p>")
+If the path is omitted, the system will use the root directory of the disk.
+If the directory contains only RPM packages without
+any metadata (i.e. there is no product information), then check option
+<b>Plain RPM Directory</b>.</p>
+")
 
 // 'auto' is a value in the combo box widget, do not translate it!
-+ _("<p>The file system which is used on the device will be automatically
-detected if file system 'auto' is selected. If the detection fails or you
-want to use a certain file system then select it from the list.</p>")
++ _("<p>The file system used on the device will be detected automatically
+if you select file system 'auto'. If the detection fails or you
+want to use a certain file system, select it from the list.</p>
+")
     ];
 }
 
@@ -1856,16 +1861,15 @@ have the product CD set or the DVD available.</p>");
     // help, continued
     help_text = help_text + _("<p>
 The product CDs can be copied to the hard disk.
-Insert the path where the first
-CD is located, for example, /data1/<b>CD1</b>.
+Enter the path to the first CD, for example, /data1/<b>CD1</b>.
 Only the base path is required if all CDs are copied
-into one directory.</p>
+into the same directory.</p>
 ");
 
     // help, continued
     help_text = help_text + _("<p>
 Network installation requires a working network connection.
-Specify the directory where the packages from
+Specify the directory in which the packages from
 the first CD are located, such as /data1/CD1.</p>
 ");
     return help_text;
@@ -1876,7 +1880,7 @@ boolean SelectValidate (string key, map event) {
     if (selected == nil)
     {
 	// error popup
-	Popup::Message (_("Select the media type."));
+	Popup::Message (_("Select the media type"));
 	return false;
     }
     if (selected == `cd || selected == `dvd)
@@ -2033,9 +2037,9 @@ void SelectStoreDl (string key, map event)
 string SelectWidgetHelpDl()
 {
     return _("<p><b>Download Files</b><br>
-Each repository has description files which describe content of the repository.
-Check the <b>Download repository description files</b> to download the files
-when closing this YaST module. If the option is unchecked, YaST will
+Each repository has description files which describe the content of the
+repository. Check <b>Download repository description files</b> to download the
+files when closing this YaST module. If the option is unchecked, YaST will
 automatically download the files when it needs them later. </p>
 ");
 }

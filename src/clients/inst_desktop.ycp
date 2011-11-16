@@ -53,16 +53,16 @@ map argmap = GetInstArgs::argmap();
 string gnome_blurb =
 // explanation text for GNOME
 _("GNOME is a powerful and intuitive desktop
-environment that uses Evolution as its mailer,
-Firefox as its browser, and Nautilus as its
-file manager.");
+environment that uses Evolution as mailer,
+Firefox as browser, and Nautilus as file manager.
+");
 
 string kde_blurb =
 // explanation text for KDE
 _("KDE is a powerful and intuitive desktop
-environment that uses Kontact as its mailer,
-Konqueror as its file manager, and offers
-both, Firefox and Konqueror as its Web browser.
+environment that uses Kontact as mailer,
+Dolphin as file manager, and offers
+both Firefox and Konqueror as Web browsers.
 ");
 
 // help text 1/3

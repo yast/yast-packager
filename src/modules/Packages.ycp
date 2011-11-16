@@ -285,7 +285,7 @@ global string InfoAboutSubOptimalDistribution () {
 	if (contains (flags, "lm"))
 	{
 	    // warning text
-	    return _("Your computer is a 64-bit x86-64 system. However, you are trying to install a 32-bit distribution.");
+	    return _("Your computer is a 64-bit x86-64 system, but you are trying to install a 32-bit distribution.");
 	}
     }
     return "";
@@ -308,7 +308,9 @@ string SummaryHelp(list<symbol> flags)
 	// translators: help text for software proposal
 	_("<P>The proposal reports the total size of files which will be installed to the system. However, the system will contain some other files (temporary and working files) so the used space will be slightly larger than the proposed value. Therefore it is a good idea to have at least 25% (or about 300MB) free space before starting the installation.</P>") +
 	// help text for software proposal
-	_("<P>The total 'size to download' is the size of the packages which will be downloaded from remote (network) repositories.\n  This value is important when the connection is slow or when there is a data limit for downloading.</P>");
+	_("<P>The total 'size to download' is the size of the packages which will be
+downloaded from remote (network) repositories. This value is important if the connection is slow or if there is a data limit for downloading.</P>
+");
 
     }
 
@@ -424,7 +426,7 @@ global void CheckOldAddOns (map & ret) {
     });
 
     warning = sformat (
-	_("These Add-On products have been marked for auto-removal: %1"),
+	_("These add-on products have been marked for auto-removal: %1"),
 	"<ul>\n" + warning + "</ul>\n"
     );
 
@@ -436,10 +438,10 @@ global void CheckOldAddOns (map & ret) {
     if (size (ret["warning"]:"") > 0) {
 	ret["warning"] = ret["warning"]:"" + "<br>\n" + (size (products) > 1 ?
 	    // Warning message when some add-ons are marked to be removed automatically
-	    _("Please, contact the vendors of these add-ons to provide you with new the installation media.")
+	    _("Contact the vendors of these add-ons to provide you with new installation media.")
 	    :
 	    // Warning message when some add-ons are marked to be removed automatically
-	    _("Please, contact the vendor of the add-on to provide you with the new installation media.")
+	    _("Contact the vendor of the add-on to provide you with a new installation media.")
 	);
     }
 
@@ -1343,10 +1345,10 @@ global void SlideShowSetUp (string wanted_language) {
     if (load_release_notes (source))
     {
 	// TRANSLATORS: beginning of the rich text with the release notes
-	SlideShow::relnotes = _("<p><b>These are the release notes made for the first initial release. They are
-part of the installation media. During the configuration steps, if a connection
-to the Internet is available, you can download updated release notes
-from the SUSE Linux Web server.</b></p>") + media_text;
+	SlideShow::relnotes = _("<p><b>The release notes for the initial release are part of the installation
+media. If an Internet connection is available during configuration, you can
+download updated release notes from the SUSE Linux Web server.</b></p>
+") + media_text;
     }
 }
 

@@ -60,7 +60,7 @@
 			`VBox(
 			      `HSpacing(40),
 			      // dialog headline
-			      `Left(`Heading(_("Installation of Some Packages Failed"))),
+			      `Left(`Heading(_("Installation of some Packages Failed"))),
 			      rbuttons,
 			      `RichText(`id(`text),
 					`opt(`plainText),

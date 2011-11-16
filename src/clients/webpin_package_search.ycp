@@ -199,7 +199,7 @@
 	size(steps),
 	steps,
 	actions,
-	_("<p>Please wait while packager is initializing...</p>")
+	_("<p>Packager is initializing...</p>")
      );
 
      Progress::NextStage();
@@ -237,7 +237,7 @@
 		    ),
 		    `MultiSelectionBox(
 		        `id("search_in"),
-		       _("Search &In"),
+		       _("Search &in"),
 		       [
 			`item( `id("name"),_("Name"), true ),
 			`item( `id("description"), _("Description"), true ),
@@ -280,13 +280,12 @@
 		)
 	    ),
 	    _("<p><big><b>Package Search</b></big><br>
-This YaST module enables you to use the functionality of <i>Webpin package search</i>.
-It searches within all known openSUSE build-service and openSUSE community repositories.</p>") +
+Use the functionality of <i>Webpin package search</i> to search in all known openSUSE build-service and openSUSE community repositories.</p>
+") +
 
-_("<p><big><b>Security</b></big><br>
-The software found is often not part of the distribution itself and the level of trust
-depends on yourself. We do not take any responsibility for installing
-such software.</p>
+_("<p><big><b>Security</b></big><br> The software found is often not part of the
+distribution itself. You need to decide whether to trust the source of a
+package. We do not take any responsibility for installing such software.</p>
 "),
 	    //We don't need back button
 	    false,
@@ -312,7 +311,7 @@ such software.</p>
 	    list <map> selected_packages = SelectedPackages();
 
 	    if (selected_packages == nil || size (selected_packages) == 0) {
-		Report::Message (_("Select some packages to install."));
+		Report::Message (_("Select packages to install."));
 		UI::SetFocus(`id("results"));
 		continue;
 	    }
@@ -348,7 +347,7 @@ such software.</p>
 		    // error message
 		    UI::ChangeWidget(`id("description"), `Value, _("<p><b>Search failed</b></p>"));
 		else if (search_results == $[])
-		    UI::ChangeWidget(`id("description"), `Value, _("<p><b>No packages matching entered criteria were found</b></p>"));
+		    UI::ChangeWidget(`id("description"), `Value, _("<p><b>No packages matching entered criteria were found.</b></p>"));
 		else
 		    CreatePackageDescription();
 	    }

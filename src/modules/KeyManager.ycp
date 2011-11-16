@@ -237,7 +237,8 @@ global map<string,any> ImportFromFile(string file, boolean trusted)
     else
     {
 	Report::Error(sformat(_("File '%1'
-doesn't contain a valid GPG key."), file));
+does not contain a valid GPG key.
+"), file));
 	return nil;
     }
 

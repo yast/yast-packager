@@ -289,23 +289,22 @@ drive and size of the medium. The check verifies the MD5 checksum.</P> ") +
 
     // help text - media check 4/8
 _("<P>If the check of the medium fails, you should not continue the installation.
-It may fail or you may lose your data. You should replace the broken
-medium.</P>
+It may fail or you may lose your data. Better replace the broken medium.</P>
 ") +
 
     // help text - media check 5/8
-_("After the check you can insert the next medium and start the procedure again.
-The order of the media is irrelevant.") +
+_("After the check, insert the next medium and start the procedure again. 
+The order of the media is irrelevant.
+") +
 
     // help text - media check 6/8
 _("<P><B>Note:</B> You cannot change the medium while it is used by the system.</P>") +
 
     // help text - media check 7/8
-_("<P>To check media before starting installation use the media check item in the boot menu.</P>") +
+_("<P>To check media before the installation, use the media check item in the boot menu.</P>") +
 
     // help text - media check 8/8
-_("<P>If you burn the media yourself, use the <B>pad</B> option in your recording software. It avoids read errors at the end of media during the check.</P>
-");
+_("<P>If you burn the media yourself, use the <B>pad</B> option in your recording\nsoftware. It avoids read errors at the end of the media during the check.</P>\n");
 
 // advice check of the media
 // for translators: split the message to more lines if needed, use max. 50 characters per line
@@ -419,7 +418,7 @@ string label = _("It is recommended to check all installation media\nto avoid in
 		if (res != 0)
 		{
 		    // error message: the medium cannot be read or no medium in the drive; %1 = drive, e.g. /dev/hdc
-		    LogLine("<FONT COLOR=red>" + sformat(_("Cannot read medium in the drive %1."), selecteddrive) + "</FONT>");
+		    LogLine("<FONT COLOR=red>" + sformat(_("Cannot read medium in drive %1."), selecteddrive) + "</FONT>");
 		}
 		else
 		{
