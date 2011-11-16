@@ -307,7 +307,7 @@ Details:
        boolean mgr_ok = Pkg::SourceStartManager(enabled_only);
        if (!mgr_ok)
        {
-	   Report::LongWarning(_("There was an error in the repository initialization.") + "\n" + Pkg::LastError ());
+	   Report::LongWarning(_("An error occurred during repository initialization.") + "\n" + Pkg::LastError ());
        }
        if (size(Pkg::SourceGetCurrent(enabled_only)) == 0)
 	{
@@ -502,8 +502,8 @@ Only installed packages are displayed."));
 		SCR::Read (.target.ycp, "/var/lib/YaST2/failed_packages");
 	}
 	if (size (old_failed_packs) > 0 && Popup::YesNo (
-_("During the last package installation,
-several package failed to install.
+_("During the last package installation
+several packages failed to install.
 Install them now?
 ")))
 	{
@@ -580,7 +580,9 @@ without having package %1 installed"), required_package));
 		        mergestring (nonexisting, ", "));
 		    Report::LongError (sformat (
 			// error report, %1 is a list of packages
-			_("Following packages haven't been found on the medium:\n%1"),
+			_("The following packages have not been found on the medium:
+%1
+"),
 			mergestring (nonexisting, "\n")));
 		    return `cancel;
 		}
@@ -755,7 +757,7 @@ if (WFM::Args() == ["help"])
     map cmdline_description = $[
 	"id"	: "sw_single",
 	/* Command line help text for the software management module, %1 is "zypper" */
-	"help"	: sformat(_("Software installation - this module doesn't support the command line interface, use '%1' instead."), "zypper"),
+	"help"	: sformat(_("Software Installation - This module does not support the command line interface, use '%1' instead."), "zypper"),
 	"guihandler"        : StartSWSingle,
     ];
 

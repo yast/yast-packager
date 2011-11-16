@@ -283,7 +283,7 @@
 	}
 
 	// heading - in case repo name not found
-	string name = info["name"]:_("Unknown repository name");
+	string name = info["name"]:_("Unknown Repository Name");
 
 	// label to be used instead of URL if not found
 	string url  = sformat (_("URL: %1"), info["url"]:_("Unknown") );
@@ -669,9 +669,9 @@ any SummaryDialog () {
     // push button - refresh the selected repository now
     string refreshButtonLabel = _("Re&fresh Selected");
     // push button - disable/enable the selected repository
-    string enableButtonLabel = _("Status &On or Off");
+    string enableButtonLabel = _("Status &on or off");
     // push button - disable/enable automatic refresh of the selected repository
-    string refreshOnOffButtonLabel = _("Refre&sh On or Off");
+    string refreshOnOffButtonLabel = _("Refre&sh on or off");
     // push button - set name of the selected repository
     string setAliasButtonLabel = _("Set &Name...");
 
@@ -720,9 +720,9 @@ any SummaryDialog () {
 		`MenuButton (`id(`menu_button), `opt(`key_F6), _("Refresh"), [
 		    `item(`id(`refresh), refreshButtonLabel ),
 		    // menu button label
-		    `item(`id(`autorefresh_all), _("Refresh All Autor&efreshed")),
+		    `item(`id(`autorefresh_all), _("Refresh all Autor&efreshed")),
 		    // menu button label
-		    `item(`id(`refresh_enabled), _("Refresh All &Enabled"))
+		    `item(`id(`refresh_enabled), _("Refresh all &Enabled"))
 		])
 	    )
         );
@@ -732,15 +732,17 @@ any SummaryDialog () {
 
     // help
     string help_text = _("<p>
-In this dialog, manage configured software repositories and services.</p>");
+Manage configured software repositories and services.</p>
+");
 
     help_text = help_text + _("<P>A <B>service</B> or <B>Repository Index Service (RIS) </B> is a protocol for package repository management. A service can offer one or more software repositories which can be dynamically changed by the service administrator.</P>");
 
     help_text = help_text + _("<p>
-<b>Adding a New Repository or a Service</b><br>
+<b>Adding a new Repository or a Service</b><br>
 To add a new repository, use <b>Add</b> and specify the software repository or service.
-Yast will automatically detect whether a service or a repository is available at the entered location.
-</p>");
+YaST will automatically detect whether a service or a repository is available at the entered location.
+</p>
+");
 
     // help, continued
     help_text = help_text + _("<p>
@@ -771,12 +773,13 @@ To change a repository location, use <b>Edit</b>. To remove a repository, use
 
     // help text, continued
     help_text = help_text + _("<P><B>Priority of a Repository</B><BR>
-Priority of a repository is an integer value between 0 (the highest priority) and 200 (the lowest priority). Default priority is 99. If a package is available in more repositories the repository with the highest priority is used.</P>");
+Priority of a repository is an integer value between 0 (the highest priority) and 200 (the lowest priority). Default is 99. If a package is available in more repositories, the repository with the highest priority is used.</P>
+");
 
     // help text, continued
     help_text = help_text + _("<P>Select the appropriate option on top of the window for navigation in repositories and services.</P>"); 
     // help text, continued
-    help_text = help_text + _("<P><B>Keep Downloaded Packages</B><BR>Check this option to keep downloaded packages in a local cache so they can be reused later when the packages are reinstalled. If unchecked the downloaded packages are deleted after installation.</P>") + _("<P>The default local cache is located in directory <B>/var/cache/zypp/packages</B>, the location can be changed in <B>/etc/zypp/zypp.conf</B> file.</P>");
+    help_text = help_text + _("<P><B>Keep Downloaded Packages</B><BR>Check this option to keep downloaded\npackages in a local cache so they can be reused later when the packages are\nreinstalled. If not checked, the downloaded packages are deleted after installation.</P>") + _("<P>The default local cache is located in directory <B>/var/cache/zypp/packages</B>. Change the location in <B>/etc/zypp/zypp.conf</B> file.</P>");
 
     Wizard::SetNextButton(`next, Label::OKButton() );
     Wizard::SetAbortButton(`abort, Label::CancelButton() );
@@ -1609,7 +1612,7 @@ symbol StartInstSource()
 	boolean cont = Popup::AnyQuestionRichText(
 	    Label::ErrorMsg(),
 	    // Error popup
-	    _("<p>There were errors while restoring the repository configuration.</p>\n") + "<p>" + Pkg::LastError() + "</p>",
+	    _("<p>Errors occurred while restoring the repository configuration.</p>\n") + "<p>" + Pkg::LastError() + "</p>",
 	    50, 15,
 	    Label::ContinueButton(), Label::CancelButton(), `focus_no
 	);
@@ -1685,7 +1688,7 @@ symbol StartInstSource()
 map cmdline_description = $[
     "id"	: "inst_source",
     /* Command line help text for the repository module, %1 is "zypper" */
-    "help"	: sformat(_("Installation Repositories - this module doesn't support the command line interface, use '%1' instead."), "zypper"),
+    "help"	: sformat(_("Installation Repositories - This module does not support the command line interface, use '%1' instead."), "zypper"),
     "guihandler"        : StartInstSource,
 ];
 

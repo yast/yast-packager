@@ -72,7 +72,7 @@
 		[ _("Check Repository Type"), _("Add Repository"), _("Read Repository License") ],
 		[ _("Checking Repository Type"), _("Adding Repository"), _("Reading Repository License") ],
 		// TRANSLATORS: dialog help
-		_("<p>Please wait while the repository manager downloads the repository details...</p>")
+		_("<p>The repository manager is downloading repository details...</p>")
 	    );
 
 	    Progress::NextStage();
@@ -198,10 +198,11 @@
 				Popup::NoHeadline (),
 				// continue-back popup
     _("There is no product information available at the given location.
-If you expected to address a product, return back and enter
+If you expected to to point a product, go back and enter
 the correct location.
 To make rpm packages located at the specified location available
-in the packages selection, continue."),
+in the packages selection, continue.
+"),
 				Label::ContinueButton (),
 				Label::BackButton (),
 				`focus_no))
@@ -399,7 +400,8 @@ symbol StoreSource () {
 		Report::Error (sformat (
 		    // popup error message, %1 is the package name
 		    _("Cannot search for SLP repositories
-without having %1 package installed"),
+without having %1 package installed.
+"),
 		    required_package
 		));
 		y2warning ("Not searching for SLP repositories");

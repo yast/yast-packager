@@ -317,7 +317,7 @@ term GetLicenseDialog (list<string> languages, string license_language, map <str
 		    `Left(`RadioButton(`id (sformat("no_%1", id)),
 			`opt(`notify),
 			// radio button
-			_("N&o, I Do Not Agree")
+			_("N&o, I Do not Agree")
 		    ))
 		),
 		`HSpacing (2*space)

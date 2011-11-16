@@ -168,13 +168,15 @@ symbol AddGPGKey()
 
     // help
     string help_text = _("<p>
-In this dialog, manage known GPG public keys.</p>");
+Manage known GPG public keys.</p>
+");
 
     help_text = help_text + _("<p>
 <b>Adding a New GPG Key</b><br>
-To add a new GPG key specify the path to the key file.
+To add a new GPG key, specify the path to the key file.
 Check the <B>Trusted</B> check box if the key is trusted.
-</p>");
+</p>
+");
 
     Wizard::SetNextButton(`next, Label::OKButton());
     Wizard::SetContents(title, contents, help_text, true, true);
@@ -251,7 +253,8 @@ symbol KeySummary()
 
     // help
     string help_text = _("<p>
-In this dialog, manage known GPG public keys.</p>");
+Manage known GPG public keys.</p>
+");
 
     help_text = help_text + _("<p>
 <b>Adding a New GPG Key</b><br>

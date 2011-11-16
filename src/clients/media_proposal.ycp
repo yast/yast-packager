@@ -32,7 +32,7 @@
 
 	UI::OpenDialog (`opt(`decorated),
 			// intermediate popup while initializing internal packagemanagement
-			`Label(_("Reading package information. One moment please...")));
+			`Label(_("Reading package information...")));
 
 	Packages::Init (true);
 

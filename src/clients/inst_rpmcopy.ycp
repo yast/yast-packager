@@ -178,7 +178,7 @@
         // Solve dependencies
         //
         if( !Pkg::PkgSolve(false) ) {
-            Report::Error( _("The package resolver run failed. Please check your software section in the autoyast profile.") );
+            Report::Error( _("The package resolver run failed. Check your software section in the AutoYaST profile.") );
         }
     }
 
@@ -215,7 +215,7 @@
 	    string failed = mergestring(commit_result[1]:[], "\n");
 	    // error message - displayed in a scrollable text area
 	    // %1 - an error message (details)
-            Report::LongError(sformat(_("Installation Failed
+            Report::LongError(sformat(_("Installation failed.
 
 Details:
 %1
@@ -367,7 +367,7 @@ Package installation will be aborted.
     // FIXME error checking is missing all around here, initialization could actually fail!
     if (Pkg::TargetInitialize (Installation::destdir) != true) {
 	// continue-cancel popup
-	if(Popup::ContinueCancel(_("Initializing the target directory failed")) == false) {
+	if(Popup::ContinueCancel(_("Initializing the target directory failed.")) == false) {
 	    return `abort;
     	}
     }
