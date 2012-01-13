@@ -410,6 +410,9 @@ Package installation will be aborted.
     integer maxnumbercds  = cdnumbers["maxnumbercds"]:10;
     integer current_cd_no = cdnumbers["current_cd_no"]:1;
 
+    // re-initialize package information
+    PackageSlideShow::InitPkgData(true);
+
    map <string, map <string,any> > get_setup = SlideShow::GetSetup();
     if (get_setup == nil || get_setup == $[]) {
 	y2milestone ("No SlideShow setup has been set, adjusting");
@@ -422,8 +425,6 @@ Package installation will be aborted.
     }
     get_setup = nil;
 
-    // re-initialize package information
-    PackageSlideShow::InitPkgData(true);
     // we want the table
     SlideShow::ShowTable();
 
