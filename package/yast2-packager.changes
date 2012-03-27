@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 27 17:37:45 UTC 2012 - lslezak@suse.cz
+
+- removed libxcrypt-devel from buildrequires
+- 2.22.1
+
+-------------------------------------------------------------------
 Wed Nov 16 11:35:38 CET 2011 - jsuchome@suse.cz
 
 - merged texts from proofreading 
