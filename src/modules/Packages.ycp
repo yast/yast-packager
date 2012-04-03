@@ -730,7 +730,7 @@ global void InitializeAddOnProducts() {
 	{
 	    packages = [ "xorg-x11", "xorg-x11-server", "xorg-x11-server-glx",
 		"libusb", "sax2", "sax2-gui", "sax2-ident", "sax2-tools",
-		"sax2-libsax", "sax2-libsax-perl"];
+		"sax2-libsax", "sax2-libsax-perl", "yast2-x11" ];
 	}
 
 	y2milestone ("X11 Packages to install: %1", packages);
@@ -754,6 +754,7 @@ global void InitializeAddOnProducts() {
 	    packages = add (packages, "xorg-x11-fonts");
 	    packages = add (packages, "icewm");
 	    packages = add (packages, "sax2-tools");
+	    packages = add (packages, "yast2-x11");
 	    packages = add (packages, "xinetd");
 	}
 
@@ -765,6 +766,7 @@ global void InitializeAddOnProducts() {
 	    packages = add (packages, "xorg-x11-fonts");
 	    packages = add (packages, "icewm");
 	    packages = add (packages, "sax2-tools");
+	    packages = add (packages, "yast2-x11");
 	}
 
 	if (Linuxrc::braille ())

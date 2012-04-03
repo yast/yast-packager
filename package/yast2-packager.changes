@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 03 14:58:34 CEST 2012 - aschnell@suse.de
+
+- adapted to move of testX
+
+-------------------------------------------------------------------
 Tue Mar 27 17:37:45 UTC 2012 - lslezak@suse.cz
 
 - removed libxcrypt-devel from buildrequires
