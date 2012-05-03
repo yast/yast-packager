@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May  3 14:27:52 UTC 2012 - lslezak@suse.cz
+
+- pad repository priority with "0" so table sorting works correctly
+  also in non-POSIX locale (bnc#752768)
+- 2.22.3
+
+-------------------------------------------------------------------
 Tue Apr 03 14:58:34 CEST 2012 - aschnell@suse.de
 
 - adapted to move of testX (see bnc#749184)
