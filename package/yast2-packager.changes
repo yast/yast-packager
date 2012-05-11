@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 11 14:10:32 UTC 2012 - lslezak@suse.cz
+
+- do not install product packages after reboot during installation
+  (bnc#758637)
+- 2.17.78.4
+
+-------------------------------------------------------------------
 Fri Jan 13 12:41:39 UTC 2012 - lslezak@suse.cz
 
 - fixed slideshow initialization - in add-on workflow the
