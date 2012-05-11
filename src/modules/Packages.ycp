@@ -1609,6 +1609,13 @@ global void Init(boolean unused) {
  */
 global boolean SelectProduct () {
     Packages::Initialize (true);
+
+    if (Stage::cont())
+    {
+	y2milestone("Second stage - skipping product selection");
+	return true;
+    }
+
     list<map<string,any> > products = Pkg::ResolvableProperties ("", `product, "");
 
     if (size (products) == 0)
