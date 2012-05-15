@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 15 12:24:23 UTC 2012 - lslezak@suse.cz
+
+- repositories - reverted the previous patch, numerical sorting
+  has been fixed at the UI level (bnc#752768)
+- 2.22.4
+
+-------------------------------------------------------------------
 Thu May  3 14:27:52 UTC 2012 - lslezak@suse.cz
 
 - pad repository priority with "0" so table sorting works correctly
