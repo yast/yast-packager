@@ -121,7 +121,7 @@
 	// pad to 3 characters
 	integer rest = 3 - size(ret);
 	while(rest > 0) {
-	    ret = "0" + ret;
+	    ret = " " + ret;
 	    rest = rest - 1;
 	}
 
