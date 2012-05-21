@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 21 13:03:25 UTC 2012 - lslezak@suse.cz
+
+- fixed RPM build (the removed files were left in *.spec)
+- 2.22.6
+
+-------------------------------------------------------------------
 Wed May 16 11:20:53 UTC 2012 - lslezak@suse.cz
 
 - removed webpin.desktop - webpin currently does not work so the
