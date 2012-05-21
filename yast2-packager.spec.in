@@ -94,7 +94,6 @@ This package contains a client for searching packages in online repositories
 %exclude @moduledir@/WebpinPackageSearch.ycp
 %exclude @moduledir@/WebpinPackageSearch.ybc
 @desktopdir@/*.desktop
-%exclude @desktopdir@/webpin.desktop
 @scrconfdir@/*
 @execcompdir@/servers_non_y2/ag_*
 %doc @docdir@
@@ -104,4 +103,3 @@ This package contains a client for searching packages in online repositories
 @clientdir@/webpin_package_search.ycp
 @moduledir@/WebpinPackageSearch.ycp
 @moduledir@/WebpinPackageSearch.ybc
-@desktopdir@/webpin.desktop
