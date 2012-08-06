@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug  6 12:52:30 UTC 2012 - lslezak@suse.cz
+
+- fixed ISO image detection (space in file name or path), fixed
+  shell injection vulnerability (bnc#770157)
+- 2.17.99
+
+-------------------------------------------------------------------
 Wed Nov  2 10:17:54 UTC 2011 - jsrain@suse.cz
 
 - improve the progress bar during package installation slideshow
