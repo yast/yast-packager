@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  6 12:52:30 UTC 2012 - lslezak@suse.cz
+
+- fixed ISO image detection (space in file name or path), fixed
+  shell injection vulnerability (bnc#770157)
+
+-------------------------------------------------------------------
 Mon May 21 13:03:25 UTC 2012 - lslezak@suse.cz
 
 - fixed RPM build (the removed files were left in *.spec)

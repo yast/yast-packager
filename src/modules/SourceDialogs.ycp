@@ -822,7 +822,7 @@ or the file does not exist.
     // try to detect ISO image by file if it's present
     if (SCR::Read(.target.size, file) > 0)
     {
-	string command = file + " -b " + s;
+	string command = sformat("%1 -b -- '%2'", file, String::Quote(s));
 
 	map out = (map)SCR::Execute(.target.bash_output, command);
 
