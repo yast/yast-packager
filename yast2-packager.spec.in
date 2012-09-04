@@ -46,8 +46,8 @@ Conflicts:	yast2-core < 2.15.10
 # NotEnoughMemory-related functions moved to misc.ycp import-file
 Conflicts:	yast2-add-on < 2.15.15
 
-# One of yast2-qt-pkg, yast2-ncurses-pkg, yast2-gtk (-pkg)
-Requires:	yast2_ui_pkg
+# One of libyui-qt-pkg, libyui-ncurses-pkg, libyui-gtk-pkg
+Requires:	libyui_pkg
 
 # ensure that 'checkmedia' is on the medium
 Recommends:	checkmedia
