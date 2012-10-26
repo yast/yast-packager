@@ -80,10 +80,9 @@
                 && ((commit_result[0]:0 > 0)
                     || anyToDelete))
         {
-            // prepare "you must boot" popup in inst_suseconfig
+            // prepare "you must boot" popup
             Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
-
-            result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
+            Kernel::InformAboutKernelChange ();
         }
     }
 

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 26 12:50:13 CEST 2012 - jsuchome@suse.cz
+
+- remove calls to obsolete inst_suseconfig
+- 2.23.0 
+
+-------------------------------------------------------------------
 Tue Sep  4 14:13:07 CEST 2012 - tgoettlicher@suse.de
 
 - fixed dependencies for libyui
