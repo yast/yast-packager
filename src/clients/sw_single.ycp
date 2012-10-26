@@ -676,37 +676,14 @@ without having package %1 installed"), required_package));
 
 	   SlideShow::CloseDialog();
 
-	   if (Mode::normal ()				// run SuSEconfig only in normal system, not during installation
+	   if (Mode::normal ()				// show new kernel popup only in normal system, not during installation
 	       && Installation::destdir == "/"
 	       && ((commit_result[0]:0 > 0)
 		   || anyToDelete))
 	   {
-	       // prepare "you must boot" popup in inst_suseconfig
-	       Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
-
-		string suseconfig_log = Directory::logdir + "/y2log.SuSEconfig";
-		integer suseconfig_log_size = FileUtils::GetSize(suseconfig_log);
-
-		if (suseconfig_log_size < 0)
-		{
-		    suseconfig_log_size = 0;
-		}
-
-	       result = (symbol) WFM::CallFunction ("inst_suseconfig", [GetInstArgs::Buttons(false, false)]);
-
-		// read only the new lines at the end
-		string command = sformat("dd bs=1 if='%1' skip=%2", String::Quote(suseconfig_log), suseconfig_log_size);
-		y2milestone("Reading new susconfig log: %1", command);
-
-		map out = (map)SCR::Execute(.target.bash_output, command);
-		if (out["exit"]:-1 == 0)
-		{
-		    PackagesUI::SetPackageSummaryItem("postinstall_log", out["stdout"]:"");
-		}
-		else
-		{
-		    y2error("Could not read susconfig log: %1", out);
-		}
+                // prepare "you must boot" popup
+                Kernel::SetInformAboutKernelChange (oldvmlinuzsize != newvmlinuzsize);
+                Kernel::InformAboutKernelChange ();
 	   }
 
 	   if (Mode::normal())

@@ -9,9 +9,8 @@ BuildRequires:	gcc-c++ yast2-country-data yast2-xml perl-XML-Writer update-deskt
 # HTTP.ycp
 BuildRequires:	yast2-transfer
 
-# String::FindMountPoint()
-# Wizard::SetDialogTitleAndIcon()
-BuildRequires: yast2 >= 2.21.22
+# Kernel::InformAboutKernelChange
+BuildRequires: yast2 >= 2.23.8
 
 # Pkg::SetZConfig()
 BuildRequires:	yast2-pkg-bindings >= 2.21.8
@@ -22,8 +21,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SetZConfig()
 Requires:	yast2-pkg-bindings >= 2.21.8
 
-# String::FindMountPoint()
-Requires: yast2 >= 2.21.13
+# Kernel::InformAboutKernelChange
+Requires: yast2 >= 2.23.8
 
 # unzipping license file
 Requires:	unzip
