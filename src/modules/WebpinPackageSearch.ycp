@@ -23,7 +23,6 @@ import "SuSERelease";
 import "Directory";
 import "FileUtils";
 import "URL";
-import "XML";
 import "Arch";
 import "Report";
 
