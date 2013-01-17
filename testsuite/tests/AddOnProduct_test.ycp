@@ -51,7 +51,7 @@ TEST(``(AddOnProduct::SetRepoUrlAlias(url, nil, nil)), [], nil);
 // set name as alias, alias is empty
 TEST(``(AddOnProduct::SetRepoUrlAlias(url, "", "SLES-11-SP2")), [], nil);
 
-// set name as alias, alias is empty
+// set the alias
 TEST(``(AddOnProduct::SetRepoUrlAlias(url, "SLES", "SLES-11-SP2")), [], nil);
 
 
@@ -66,7 +66,7 @@ TEST(``(AddOnProduct::SetRepoUrlAlias(url, "", "")), [], nil);
 // keep the original alias
 TEST(``(AddOnProduct::SetRepoUrlAlias(url, "", "SLES-11-SP2")), [], nil);
 
-// set alias
+// set alias, override the value from URL
 TEST(``(AddOnProduct::SetRepoUrlAlias(url, "SLES", "SLES-11-SP2")), [], nil);
 
 }
