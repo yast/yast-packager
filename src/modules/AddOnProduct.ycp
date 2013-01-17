@@ -1468,13 +1468,18 @@ global boolean Import (map settings) {
     if (Mode::config ())
     {
 	foreach (map prod, add_on_products, {
+	    y2milestone("Add-on product: %1", prod);
 	    string media = prod["media_url"]:"";
 	    string pth = prod["product_dir"]:"/";
 	    integer src = Pkg::SourceCreate (media, pth);
 	    if (src != -1) {
 		if (prod["product"]:"" != "") {
 		    map <string, any> repo = $["SrcId":src, "name":prod["product"]:""];
+		    if (prod["name"]:"" != "") {
+			repo["alias"] = prod["name"]:"";
+		    }
 		    if (prod["priority"]:-1 > -1) repo["priority"] = prod["priority"]:-1;
+		    y2milestone("Setting new repo properties: %1", repo);
 		    Pkg::SourceEditSet ([repo]);
 		}
 		mode_config_sources = add (mode_config_sources, src);
