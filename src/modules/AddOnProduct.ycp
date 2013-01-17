@@ -1483,13 +1483,41 @@ global boolean Import (map settings) {
 	    y2milestone("Add-on product: %1", prod);
 	    string media = prod["media_url"]:"";
 	    string pth = prod["product_dir"]:"/";
-	    integer src = Pkg::SourceCreate (media, pth);
+	    string url = media;
+
+	    // set repository alias to product name or alias if specified
+	    if (!isempty(prod["name"]:"") || !isempty(prod["alias"]:"")) {
+		map url_p = URL::Parse(url);
+		map <string, string> params = URL::MakeMapFromParams(url_p["query"]:"");
+		string alias = "";
+
+		if (!isempty(prod["alias"]:"")) {
+		    alias = prod["alias"]:"";
+		    y2milestone("Using repository alias: '%s'", alias);
+		}
+		else {
+		    // no alias present in URL, add use the product name
+		    if (!haskey(params, "alias")) {
+			alias = prod["name"]:"";
+			y2milestone("Using product name '%s' as repository alias", alias);
+		    }
+		    // keep the alias from URL
+		    else {
+			alias = params["alias"]:"";
+			y2milestone("Using repository alias from URL: %s", alias);
+		    }
+		}
+
+		params["alias"] = alias;
+		url_p["query"] = URL::MakeParamsFromMap(params);
+		url = URL::Build(url_p);
+	    }
+
+	    integer src = Pkg::SourceCreate(url, pth);
+
 	    if (src != -1) {
 		if (prod["product"]:"" != "") {
 		    map <string, any> repo = $["SrcId":src, "name":prod["product"]:""];
-		    if (prod["name"]:"" != "") {
-			repo["alias"] = prod["name"]:"";
-		    }
 		    if (prod["priority"]:-1 > -1) repo["priority"] = prod["priority"]:-1;
 		    y2milestone("Setting new repo properties: %1", repo);
 		    Pkg::SourceEditSet ([repo]);
