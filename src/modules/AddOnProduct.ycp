@@ -1484,7 +1484,7 @@ global boolean Import (map settings) {
 		    y2milestone("Using repository alias: '%1'", alias);
 		}
 		else {
-		    // no alias present in URL, add use the product name
+		    // no alias present in the URL, use the product name
 		    if (!haskey(params, "alias")) {
 			alias = prod["name"]:"";
 			y2milestone("Using product name '%1' as repository alias", alias);
