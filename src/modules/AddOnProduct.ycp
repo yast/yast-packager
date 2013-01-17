@@ -1493,18 +1493,18 @@ global boolean Import (map settings) {
 
 		if (!isempty(prod["alias"]:"")) {
 		    alias = prod["alias"]:"";
-		    y2milestone("Using repository alias: '%s'", alias);
+		    y2milestone("Using repository alias: '%1'", alias);
 		}
 		else {
 		    // no alias present in URL, add use the product name
 		    if (!haskey(params, "alias")) {
 			alias = prod["name"]:"";
-			y2milestone("Using product name '%s' as repository alias", alias);
+			y2milestone("Using product name '%1' as repository alias", alias);
 		    }
 		    // keep the alias from URL
 		    else {
 			alias = params["alias"]:"";
-			y2milestone("Using repository alias from URL: %s", alias);
+			y2milestone("Using repository alias from URL: %1", alias);
 		    }
 		}
 
