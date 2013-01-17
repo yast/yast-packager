@@ -1469,19 +1469,24 @@ global map Export () {
 */
 global string SetRepoUrlAlias(string url, string alias, string name)
 {
+    if (url == nil || url == "") {
+	y2error("Invalid 'url' parameter: %1", url);
+	return url;
+    }
+
     // set repository alias to product name or alias if specified
-    if (!isempty(name) || !isempty(alias)) {
+    if ((name != nil && name != "") || (alias != nil && alias != "")) {
 	map url_p = URL::Parse(url);
 	map<string, string> params = URL::MakeMapFromParams(url_p["query"]:"");
 	string new_alias = "";
 
-	if (!isempty(alias)) {
+	if (alias != nil && alias != "") {
 	    new_alias = alias;
 	    y2milestone("Using repository alias: '%1'", new_alias);
 	}
 	else {
 	    // no alias present in the URL, use the product name
-	    if (!haskey(params, "alias")) {
+	    if (params["alias"]:"" != "") {
 		new_alias = name;
 		y2milestone("Using product name '%1' as repository alias", new_alias);
 	    }
@@ -1508,7 +1513,7 @@ global boolean Import (map settings) {
 	foreach (map prod, add_on_products, {
 	    y2milestone("Add-on product: %1", prod);
 	    string pth = prod["product_dir"]:"/";
-	    string url = SetRepoAlias(prod["media_url"]:"", prod["alias"]:"", prod["name"]:"");
+	    string url = SetRepoUrlAlias(prod["media_url"]:"", prod["alias"]:"", prod["name"]:"");
 
 	    integer src = Pkg::SourceCreate(url, pth);
 
