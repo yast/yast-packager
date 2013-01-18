@@ -522,8 +522,8 @@ void NFSStoreParts()
 	_url = PosprocessISOURL (_url);
 
     if (UI::QueryWidget(`id(`mount_options), `Value) != `default) {
-	string mount_opts = (string)UI::QueryWidget(`id(`mount_options), `Value);
-	_url = _url + "?mountoptions=" + URL::EscapeString(mount_opts, URL::transform_map_filename);
+        string mount_opts = (string)UI::QueryWidget(`id(`mount_options), `Value);
+        _url = _url + "?mountoptions=" + URL::EscapeString(mount_opts, URL::transform_map_filename);
     }
 }
 
