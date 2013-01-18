@@ -426,7 +426,17 @@ term nfs_details_content =
     // checkbox label
     `Left (`CheckBox ( `id (`ch_iso), _("&ISO Image"))),
     // checkbox label
-    `Left (`CheckBox ( `id (`ch_nfs4), _("N&FS v4 Protocol")))
+    `Left (`CheckBox ( `id (`ch_nfs4), _("N&FS v4 Protocol"))),
+
+    `VSpacing(0.4),
+
+    `Left(`ComboBox(`id(`mount_options), `opt(`editable), _("Mount Options"),
+	[
+	    `item(`id(`default), _("(default)"), true),
+	    "ro,nolock,soft,timeo=300",
+	    "ro,nolock,soft,timeo=300,sec=krb5p"
+	]
+    ))
 );
 
 term nfs_complete_content = `InputField(`id(`complete_url), `opt(`hstretch), _("URL of the Repository"));
@@ -457,8 +467,13 @@ void NFSInit (string key) {
 	UI::ChangeWidget (`id (`ch_iso), `Value, iso);
 	UI::SetFocus (`server);
 
-	boolean nfs4 = tolower(parsed["scheme"]:"nfs") == "nfs4" ||
-	    URL::MakeMapFromParams(parsed["query"]:"")["type"]:"" == "nfs4";
+	map query_map = URL::MakeMapFromParams(parsed["query"]:"");
+
+	boolean nfs4 = tolower(parsed["scheme"]:"nfs") == "nfs4" || query_map["type"]:"" == "nfs4";
+
+	if (parsed["query"]:"" != "") {
+	    UI::ChangeWidget(`id(`mount_options), `Value, query_map["mountoptions"]:"");
+	}
 
 	y2milestone("NFSv4: %1", nfs4);
 
@@ -505,6 +520,11 @@ void NFSStoreParts()
 
     if (iso)
 	_url = PosprocessISOURL (_url);
+
+    if (UI::QueryWidget(`id(`mount_options), `Value) != `default) {
+	string mount_opts = (string)UI::QueryWidget(`id(`mount_options), `Value);
+	_url = _url + "?mountoptions=" + URL::EscapeString(mount_opts, URL::transform_map_filename);
+    }
 }
 
 void NFSStoreComplete()
@@ -609,7 +629,10 @@ map<string,any> NFSWidget () {
 	"help" : _("<p><big><b>NFS Server</b></big><br>
 Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>
 to specify the NFS server host name and path on the server.</p>")
-+ multi_cd_help,
++ multi_cd_help + _("<p><big><b>Mount Options</b></big><br>
+You can specify extra options used for mounting the NFS volume.
+This is an expert option, keeping the default value is recommened. See <b>man 5 nfs</b>
+for details and the list of supported options."),
     ];
 }
 
