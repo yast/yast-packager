@@ -176,7 +176,7 @@ global string GetRepoName () {
  * @param url string URL in the original form
  * @return string postprocessed URL
  */
-string PosprocessISOURL (string url) {
+string PostprocessISOURL (string url) {
     y2milestone ("Updating ISO URL %1", URL::HidePassword(url));
     integer last = findlastof (url, "/") + 1;
     string onlydir = substring (url, 0, last);
@@ -519,7 +519,7 @@ void NFSStoreParts()
     }
 
     if (iso)
-	_url = PosprocessISOURL (_url);
+	_url = PostprocessISOURL (_url);
 
     if (UI::QueryWidget(`id(`mount_options), `Value) != `default) {
         string mount_opts = (string)UI::QueryWidget(`id(`mount_options), `Value);
@@ -743,7 +743,7 @@ void IsoStore (string key, map event) {
     ];
 
     _url = URL::Build(parsed);
-    _url = PosprocessISOURL(_url);
+    _url = PostprocessISOURL(_url);
 }
 
 /**
@@ -1358,7 +1358,7 @@ void ServerStoreParts()
     {
 	boolean iso = (boolean)UI::QueryWidget (`id (`ch_iso), `Value);
 	if (iso)
-	    _url = PosprocessISOURL (_url);
+	    _url = PostprocessISOURL (_url);
     }
 }
 
