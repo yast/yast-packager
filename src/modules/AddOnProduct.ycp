@@ -1466,6 +1466,8 @@ global map Export () {
  * Create URL with required alias from a URL.
  * If alias is empty the name is used as a fallback.
  * If both are empty the URL is not modified.
+ * If alias is already included in the URL then it is modified
+ * only if the requested alias is not empty otherwise it is kept unchanged.
 */
 global string SetRepoUrlAlias(string url, string alias, string name)
 {
