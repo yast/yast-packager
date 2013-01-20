@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Jan 20 14:41:39 UTC 2013 - lslezak@suse.cz
+
+- added support for specifying add-on repo alias name (fate#313144)
+  (bnc#741529)
+
+-------------------------------------------------------------------
 Wed Nov  2 10:17:54 UTC 2011 - jsrain@suse.cz
 
 - improve the progress bar during package installation slideshow
