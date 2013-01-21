@@ -1,0 +1,8 @@
+*.ybc
+*.ami
+.dep
+Makefile
+Makefile.in
+testsuite/tmp.err.*
+testsuite/tmp.out.*
+doc/autodocs/*.html
