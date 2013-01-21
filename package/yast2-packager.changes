@@ -3,6 +3,7 @@ Mon Jan 21 07:53:09 UTC 2013 - lslezak@suse.cz
 
 - added support to optionally set the mount options for NFS
   repositories (fate#313208)
+- 2.17.100
 
 -------------------------------------------------------------------
 Mon Aug  6 12:52:30 UTC 2012 - lslezak@suse.cz
