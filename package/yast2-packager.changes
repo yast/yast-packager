@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Sun Jan 20 14:41:39 UTC 2013 - lslezak@suse.cz
+Sun Jan 21 14:41:39 UTC 2013 - lslezak@suse.cz
 
 - added support for specifying add-on repo alias name (fate#313144)
   (bnc#741529)
