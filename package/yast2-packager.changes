@@ -3,6 +3,7 @@ Tue Jan 29 11:25:51 UTC 2013 - lslezak@suse.cz
 
 - ignore *-migration products in the initial product selection
   (can be present in *-Update channels) (bnc#764838)
+- 2.23.2
 
 -------------------------------------------------------------------
 Sun Jan 21 14:41:39 UTC 2013 - lslezak@suse.cz
