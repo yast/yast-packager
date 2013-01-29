@@ -1760,8 +1760,16 @@ global boolean SelectProduct () {
     {
 	y2milestone ("No product selected so far...");
 	foreach (map<string,any> p, products, {
-	    y2milestone ("Selecting product %1", p["name"]:"");
-	    ret = Pkg::ResolvableInstall (p["name"]:"", `product) && ret;
+
+	    if (!regexpmatch(p["name"]:"", "-migration$"))
+	    {
+		y2milestone ("Selecting product %1", p["name"]:"");
+		ret = Pkg::ResolvableInstall (p["name"]:"", `product) && ret;
+	    }
+	    else
+	    {
+		y2milestone("Ignoring migration product: %1", p["name"]:"");
+	    }
 	});
     }
 
