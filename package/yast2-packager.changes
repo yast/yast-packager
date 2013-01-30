@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 30 11:21:44 CET 2013 - jsuchome@suse.cz
+
+- added API for Storage::GetWinPrimPartitions (bnc#797665)
+- 2.23.3 
+
+-------------------------------------------------------------------
 Tue Jan 29 11:25:51 UTC 2013 - lslezak@suse.cz
 
 - ignore *-migration products in the initial product selection

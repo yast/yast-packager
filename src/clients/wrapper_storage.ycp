@@ -46,6 +46,18 @@
 	    ret = Storage::RemoveDmMapsTo(param1);
 	}
     }
+    else if (func == "GetWinPrimPartitions")
+    {
+        if (size(param) == 0)
+        {
+            y2error("Missing argument for Storage::GetWinPrimPartitions()");
+        }
+        else
+        {
+            map<string,map> param1 = (map<string,map>)param[0]:nil;
+            ret = Storage::GetWinPrimPartitions (param1);
+        }
+    }
     else
     {
 	// the required function is not known
