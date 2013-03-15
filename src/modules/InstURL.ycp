@@ -116,6 +116,24 @@
         return option_map;
     }
 
+    // check if SSL certificate check is enabled (default) or explicitely disabled by user
+    boolean SSLVerificationEnabled()
+    {
+        // read sslcerts option directly from kernel, it's not included in install.inf
+        string cmdline = (string) WFM::Read (.local.string, "/proc/cmdline");
+
+        // check if "sslcerts=0" is present (convert to lowercase, linuxrc is case insensitive)
+        if (cmdline != nil && issubstring(tolower(cmdline), "sslcerts=0"))
+        {
+            y2security("Found sslcerts=0 boot option");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
     /**
      *
      */
@@ -359,13 +377,9 @@
             {
                 y2milestone("HTTPS instmode detected");
 
-                // read sslcerts option directly from kernel, it's not included in install.inf
-                string cmdline = (string) WFM::Read (.local.string, "/proc/cmdline");
-
-                // check if "sslcerts" is disabled (linuxrc is case insensitive)
-                if (cmdline != nil && issubstring(tolower(cmdline), "sslcerts=0"))
+                if (!SSLVerificationEnabled())
                 {
-                    y2security("Found sslcerts=0 boot option, disabling certificate check for the installation repository");
+                    y2security("Disabling certificate check for the installation repository");
 
                     // libzypp uses ssl_verify=no option
                     url = url + option_separator + "ssl_verify=no";
