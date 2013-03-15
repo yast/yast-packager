@@ -368,8 +368,8 @@
                     y2security("Found sslcerts=0 boot option, disabling certificate check for the installation repository");
 
                     // libzypp uses ssl_verify=no option
-		    url = url + option_separator + "ssl_verify=no";
-		    option_separator = "&";
+                    url = url + option_separator + "ssl_verify=no";
+                    option_separator = "&";
                 }
             }
 	} // is_network
