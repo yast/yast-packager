@@ -354,6 +354,24 @@
 		url = url + option_separator + "workgroup=" + workgroup;
 		option_separator = "&";
 	    }
+
+            if (instmode == "https")
+            {
+                y2milestone("HTTPS instmode detected");
+
+                // read sslcerts option directly from kernel, it's not included in install.inf
+                string cmdline = (string) WFM::Read (.local.string, "/proc/cmdline");
+
+                // check if "sslcerts" is disabled (linuxrc is case insensitive)
+                if (cmdline != nil && regexpmatch(cmdline, "[sS][sS][lL][cC][eE][rR][tT][sS]=0"))
+                {
+                    y2security("Found sslcerts=0 boot option, disabling certificate check for the installation repository");
+
+                    // libzypp uses ssl_verify=no option
+		    url = url + option_separator + "ssl_verify=no";
+		    option_separator = "&";
+                }
+            }
 	} // is_network
 
 	if (options != "")
