@@ -119,19 +119,10 @@
     // check if SSL certificate check is enabled (default) or explicitely disabled by user
     boolean SSLVerificationEnabled()
     {
-        // read sslcerts option directly from kernel, it's not included in install.inf
-        string cmdline = (string) WFM::Read (.local.string, "/proc/cmdline");
+        string ssl_verify = Linuxrc::InstallInf("ssl_verify");
+        y2milestone("Option ssl_verify: %1", ssl_verify);
 
-        // check if "sslcerts=0" is present (convert to lowercase, linuxrc is case insensitive)
-        if (cmdline != nil && issubstring(tolower(cmdline), "sslcerts=0"))
-        {
-            y2security("Found sslcerts=0 boot option");
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return ssl_verify != "0";
     }
 
     /**
