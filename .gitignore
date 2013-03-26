@@ -6,3 +6,13 @@ Makefile.in
 testsuite/tmp.err.*
 testsuite/tmp.out.*
 doc/autodocs/*.html
+Makefile.am
+Makefile.am.common
+aclocal.m4
+autom4te.cache/
+config.*
+configure
+configure.in
+install-sh
+missing
+src/modules/packager
