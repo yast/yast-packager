@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 15 13:43:08 UTC 2013 - lslezak@suse.cz
+
+- disable certificate check for HTTPS installation repository
+  when sslcerts=0 boot option is used (bnc#807799)
+- 2.17.103
+
+-------------------------------------------------------------------
 Tue Jan 29 11:25:51 UTC 2013 - lslezak@suse.cz
 
 - ignore *-migration products in the initial product selection
