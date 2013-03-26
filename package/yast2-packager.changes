@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 15 13:43:08 UTC 2013 - lslezak@suse.cz
+
+- disable certificate check for HTTPS installation repository
+  when sslcerts=0 boot option is used (bnc#807799)
+- 2.24.0
+
+-------------------------------------------------------------------
 Wed Jan 30 11:21:44 CET 2013 - jsuchome@suse.cz
 
 - added API for Storage::GetWinPrimPartitions (bnc#797665)
