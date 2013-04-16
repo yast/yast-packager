@@ -1,6 +1,0 @@
-Dump	GetInstallMap: read data from user_settings
-Return	$["bootmode":"Net", "server":"10.10.0.14", "serverdir":"/work4/CDs/suse-prof-i386/CD1"]
-Dump	GetBootDevice: returns list of "cddevices" (=directories)
-Return	$["boot_src":"10.10.0.14:/work4/CDs/suse-prof-i386", "bootmode":"Net", "cddevices":["10.10.0.14:/work4/CDs/suse-prof-i386/CD1", "10.10.0.14:/work4/CDs/suse-prof-i386/CD2", "10.10.0.14:/work4/CDs/suse-prof-i386/CD3", "10.10.0.14:/work4/CDs/suse-prof-i386/CD4", "10.10.0.14:/work4/CDs/suse-prof-i386/CD5", "10.10.0.14:/work4/CDs/suse-prof-i386/CD6", "10.10.0.14:/work4/CDs/suse-prof-i386/CD7", "10.10.0.14:/work4/CDs/suse-prof-i386/CD8"], "remountable":true]
-Dump	GetBootDevice: only one directory
-Return	$["boot_src":"10.10.0.14:/work4/CDs/suse-prof-i386", "bootmode":"Net", "cddevices":["10.10.0.14:/work4/CDs/suse-prof-i386"], "remountable":false]
