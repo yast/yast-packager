@@ -41,39 +41,13 @@
     import "String";
     import "URL";
 
-boolean force_summary = false;
-
-symbol StartSWSingle()
-{
-
-    Wizard::CreateDialog();
-    Wizard::SetDesktopTitleAndIcon("sw_single");
-
-    // a stage in the progress dialog
-    list<string> stages = [_("Initialize the Target System"), _("Load the Configured Repositories")];
-
-    // an extra step is needed in dir inst mode
-    if (Installation::destdir != "/")
-    {
-	y2internal("Extra step is needed");
-	// %1 is path to the target system (e.g. /tmp/dirinstall
-	sformat(_("Reset the target system to %1"), Installation::destdir);
-    }
-
-    // a stage in the progress dialog
-    Progress::New(_("Starting the Software Manager"), "", 2, stages, [], "");
-    Progress::NextStage();
-
-    import "Packages";
-
-    list<string> packagelist = [];		// list of packages to act on
+    boolean force_summary = false;
 
     // `install
     // `remove, `update: used from gnome-main-menu (#222757)
     symbol action = `install;
-
     boolean test_popup = false;
-    boolean skip_source = false;
+    list<string> packagelist = [];		// list of packages to act on
 
     // =============================================================
 
@@ -444,7 +418,30 @@ Only installed packages are displayed."));
    }
 
    // =============================================================
+symbol StartSWSingle()
+{
 
+    Wizard::CreateDialog();
+    Wizard::SetDesktopTitleAndIcon("sw_single");
+
+    // a stage in the progress dialog
+    list<string> stages = [_("Initialize the Target System"), _("Load the Configured Repositories")];
+
+    // an extra step is needed in dir inst mode
+    if (Installation::destdir != "/")
+    {
+	y2internal("Extra step is needed");
+	// %1 is path to the target system (e.g. /tmp/dirinstall
+	sformat(_("Reset the target system to %1"), Installation::destdir);
+    }
+
+    // a stage in the progress dialog
+    Progress::New(_("Starting the Software Manager"), "", 2, stages, [], "");
+    Progress::NextStage();
+
+    import "Packages";
+
+    boolean skip_source = false;
 
    // check whether running as root
    // and having the packager for ourselves
