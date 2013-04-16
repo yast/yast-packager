@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 16 12:06:35 UTC 2013 - lslezak@suse.cz
+
+- sw_single.ycp removed function nesting, updated manual-tests,
+  removed old-tests (for YCP -> Ruby conversion)
+
+-------------------------------------------------------------------
 Fri Mar 15 13:43:08 UTC 2013 - lslezak@suse.cz
 
 - disable certificate check for HTTPS installation repository
