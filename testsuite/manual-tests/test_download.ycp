@@ -8,7 +8,7 @@
     while (p < 100)
     {
 	p = p + 5;
-    	PackageCallbacks::ProgressDownload (p, 100000);
+	PackageCallbacks::ProgressDownload (p, 100000, 100000);
 	sleep (100);
     }
 

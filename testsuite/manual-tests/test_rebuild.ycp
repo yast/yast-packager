@@ -7,11 +7,8 @@
     while (p < 100)
     {
 	p = p + 5;
-    	PackageCallbacks::ProgressRebuildDB (p);
+	PackageCallbacks::ProgressRebuildDB (p);
 	sleep (100);
-
-	if (p == 40)
-	    PackageCallbacks::NotifyRebuildDB ("In three weeks I'm going insane");
     }
 
     PackageCallbacks::StopRebuildDB (1, "kernel is on vacation");
