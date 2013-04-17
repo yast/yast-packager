@@ -122,7 +122,7 @@
         string ssl_verify = Linuxrc::InstallInf("ssl_verify");
         y2milestone("Option ssl_verify: %1", ssl_verify);
 
-        return ssl_verify != "0";
+        return ssl_verify != "no";
     }
 
     /**
