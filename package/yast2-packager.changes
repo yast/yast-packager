@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 17 12:18:35 UTC 2013 - lslezak@suse.cz
+
+- fixed check for disabled SSL verification (bnc#807799)
+
+-------------------------------------------------------------------
 Tue Apr 16 12:06:35 UTC 2013 - lslezak@suse.cz
 
 - sw_single.ycp removed function nesting, updated manual-tests,
