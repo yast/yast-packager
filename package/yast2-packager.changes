@@ -2,6 +2,7 @@
 Wed Apr 17 12:18:35 UTC 2013 - lslezak@suse.cz
 
 - fixed check for disabled SSL verification (bnc#807799)
+- 2.17.104
 
 -------------------------------------------------------------------
 Fri Mar 15 13:43:08 UTC 2013 - lslezak@suse.cz
