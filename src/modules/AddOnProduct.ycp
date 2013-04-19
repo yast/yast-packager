@@ -42,6 +42,7 @@ import "Stage";
 import "Icon";
 import "PackageCallbacks";
 import "PackagesProposal";
+import "SourceManager";
 
 // variables for installation with product
 /**
@@ -1284,6 +1285,89 @@ boolean InstallProductsFromRepository (list <string> prods_to_install, integer s
     }
 }
 
+/*
+ * Ask for a product medium
+ *
+ * @url medium url (either "cd:///" or "dvd:///")
+ * @product_name expected product name
+ * @return nil if aborted, otherwise URL with the selected CD device
+ */
+
+define string AskForCD(string url, string product_name) {
+    map parsed = URL::Parse(url);
+    string scheme = tolower(parsed["scheme"]:"");
+
+    string msg = (product_name == nil || product_name == "")
+        // %1 is either "CD" or "DVD"
+        ? sformat (_("Insert the addon %1 medium"), toupper(scheme))
+        // %1 is the product name, %2 is either "CD" or "DVD"
+        : sformat (_("Insert the %1 %2 medium"), product_name, toupper(scheme));
+
+    // make sure no medium is mounted (the drive is not locked)
+    Pkg::SourceReleaseAll();
+
+    map<string,any> ui = SourceManager::AskForCD(msg);
+
+    if (!ui["continue"]:false)
+    {
+        return nil;
+    }
+
+    string cd_device = ui["device"]:"";
+    if (cd_device != nil && cd_device != "")
+    {
+        y2milestone("Selected CD/DVD device: %1", cd_device);
+        string query = parsed["query"]:"";
+
+        if (query != "")
+        {
+            query = query + "&";
+        }
+
+        query = query + "devices=" + cd_device;
+
+        parsed["query"] = query;
+        url = URL::Build(parsed);
+    }
+    else
+    {
+        // no drive selected, do not change the URL
+        return url;
+    }
+}
+
+/*
+ * Add a new repository
+ * @param url repo url
+ * @param pth product path
+ * @param priority
+ * @return integer repository ID
+ */
+define integer AddRepo(string url, string pth, integer priority) {
+    // update the URL to the selected device
+    map <string, any> new_repo = $[ "enabled" : true, "base_urls" : [url], "prod_dir" : pth ];
+
+    // BNC #714027: Possibility to adjust repository priority (usually higher)
+    if (priority > -1) new_repo["priority"] = priority;
+
+    y2milestone ("Adding Repository: %1, product path: %2", URL::HidePassword(url), pth);
+    integer new_repo_id = Pkg::RepositoryAdd(new_repo);
+
+    if (new_repo_id == nil || new_repo_id < 0) {
+        y2error ("Unable to add product: %1", URL::HidePassword(url));
+        // TRANSLATORS: error message, %1 is replaced with product URL
+        Report::Error(sformat(_("Unable to add product %1."), URL::HidePassword(url)));
+        return nil;
+    }
+
+    // download metadata, build repo cache
+    Pkg::SourceRefreshNow(new_repo_id);
+    // load resolvables to zypp pool
+    Pkg::SourceLoad();
+
+    return new_repo_id;
+}
+
 /**
  * Auto-integrate add-on products in specified file (usually add_on_products or
  * add_on_products.xml file)
@@ -1380,25 +1464,65 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 	    string url = one_product["url"]:"";
 	    string pth = one_product["path"]:"";
 	    integer priority = one_product["priority"]:-1;
+            string prodname = one_product["name"]:"";
 
-	    map <string, any> new_repo = $[ "enabled" : true, "base_urls" : [url], "prod_dir" : pth ];
-	    // BNC #714027: Possibility to adjust repository priority (usually higher)
-	    if (priority > -1) new_repo["priority"] = priority;
+            // Check URL and setup network if required or prompt to insert CD/DVD
+            map parsed = URL::Parse(url);
+            string scheme = tolower(parsed["scheme"]:"");
 
-	    y2milestone ("Adding Repository: %1", new_repo);
-	    repo_id = Pkg::RepositoryAdd (new_repo);
+            // check if network needs to be configured
+            if (contains(["http", "https", "ftp", "nfs", "cifs", "slp"], scheme)) {
+                symbol inc_ret = (symbol) WFM::CallFunction ("inst_network_check", []);
+                y2milestone ("inst_network_check ret: %1", inc_ret);
+            }
 
-	    if (repo_id == nil || repo_id < 0) {
-		y2error ("Unable to add product: %1", url);
-		// TRANSLATORS: error message, %1 is replaced with product URL
-		Report::Error (sformat (_("Unable to add product %1."), url));
-		return false;
-	    }
+            // a CD/DVD repository
+            if (contains(["cd", "dvd"], scheme)) {
+                // if the CD/DVD product is known just try if it's there
+                // and ask if not
+                if (prodname != "") {
+                    boolean found = false;
 
-	    // download metadata, build repo cache
-	    Pkg::SourceRefreshNow (repo_id);
-	    // load resolvables to zypp pool
-	    Pkg::SourceLoad();
+                    while (!found) {
+                        repo_id = AddRepo(url, pth, priority);
+
+                        map <string, any> prod = (map <string, any>) Pkg::SourceProductData(repo_id);
+                        if (prod["label"]:"" == prodname) {
+                            found = true;
+                        }
+                        else {
+                            y2milestone("Removing repo %1: Add-on found: %2, expected: %3", repo_id, prod["label"]:"", prodname);
+                            Pkg::SourceDelete(repo_id);
+
+                            // ask for a different medium
+                            url = AskForCD(url, prodname);
+                            if (url == nil) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                // if the CD/DVD product is unknown just ask the user to ensure the
+                // correct medium is inserted
+                else {
+                    string result = AskForCD(url, prodname);
+                    if (result == nil) {
+                        return false;
+                    }
+
+                    repo_id = AddRepo(result, pth, priority);
+                    if (repo_id == nil) {
+                        return false;
+                    }
+                }
+            }
+            else {
+                // a non CD/DVD repository
+                repo_id = AddRepo(url, pth, priority);
+                if (repo_id == nil) {
+                    return false;
+                }
+            }
 
 	    if (! AcceptedLicenseAndInfoFile (repo_id)) {
 		y2warning ("License not accepted, delete the repository");
