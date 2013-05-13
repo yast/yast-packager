@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 19 14:09:00 UTC 2013 - lslezak@suse.cz
+
+- improved addon file handling - ask for network setup if needed,
+  ask the user before adding CD/DVD addon to ensure the correct
+  medium is inserted in the drive (bnc#815899)
+- 2.17.105
+
+-------------------------------------------------------------------
 Wed Apr 17 12:18:35 UTC 2013 - lslezak@suse.cz
 
 - fixed check for disabled SSL verification (bnc#807799)
