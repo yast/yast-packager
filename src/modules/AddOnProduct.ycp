@@ -1329,11 +1329,8 @@ define string AskForCD(string url, string product_name) {
         parsed["query"] = query;
         url = URL::Build(parsed);
     }
-    else
-    {
-        // no drive selected, do not change the URL
-        return url;
-    }
+
+    return url;
 }
 
 /*
@@ -1485,6 +1482,9 @@ global boolean AddPreselectedAddOnProducts (list <map <string, string> > filelis
 
                     while (!found) {
                         repo_id = AddRepo(url, pth, priority);
+                        if (repo_id == nil) {
+                            return false;
+                        }
 
                         map <string, any> prod = (map <string, any>) Pkg::SourceProductData(repo_id);
                         if (prod["label"]:"" == prodname) {
