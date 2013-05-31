@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May 31 08:17:58 UTC 2013 - lslezak@suse.cz
+
+- fixed error handling in previous commit (bnc#815899)
+- 2.17.106
+
+-------------------------------------------------------------------
 Fri Apr 19 14:09:00 UTC 2013 - lslezak@suse.cz
 
 - improved addon file handling - ask for network setup if needed,
