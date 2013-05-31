@@ -1165,7 +1165,6 @@ global symbol AskLicensesAgreement (list <string> dirs,
 	    default_next_button_state = false;
     });
 
-    SCR::Write (.target.ycp, "/tmp/a", contents);
     Wizard::SetContents(caption, contents, GetLicenseDialogHelp(),
 	enable_back, default_next_button_state);
 
