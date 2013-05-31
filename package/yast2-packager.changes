@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May 31 11:28:08 UTC 2013 - lslezak@suse.cz
+
+- removed writing a debug file (bnc#822615)
+- 2.17.107
+
+-------------------------------------------------------------------
 Fri May 31 08:17:58 UTC 2013 - lslezak@suse.cz
 
 - fixed error handling in previous commit (bnc#815899)
