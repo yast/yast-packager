@@ -511,7 +511,8 @@
 	total_count_to_download			= packages_to_download(total_pkg_count_per_cd_per_src);
 	total_count_downloaded			= 0;
 	integer total_count_to_install		= packages_to_install(total_pkg_count_per_cd_per_src);
-	downloading_pct		= 100 * total_count_to_download / (total_count_to_install + total_count_to_download);
+	downloading_pct		= (total_count_to_install + total_count_to_download == 0)
+          ? 0 : 100 * total_count_to_download / (total_count_to_install + total_count_to_download);
 	init_pkg_data_complete			= true;
 
 	// reset the history log
@@ -1042,7 +1043,7 @@
 	    total_downloaded = total_downloaded + current_provide_size;
 
 	    total_count_downloaded = total_count_downloaded + 1;
-	    y2milestone("Downloaded %1/%2 packages (%3%%)", total_count_downloaded, total_count_to_download, total_count_downloaded * 100 / total_count_to_download);
+	    y2milestone("Downloaded %1/%2 packages", total_count_downloaded, total_count_to_download);
 
 	    // move the progress also for downloaded files
 	    UpdateTotalProgressValue();
