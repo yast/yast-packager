@@ -511,8 +511,8 @@
 	total_count_to_download			= packages_to_download(total_pkg_count_per_cd_per_src);
 	total_count_downloaded			= 0;
 	integer total_count_to_install		= packages_to_install(total_pkg_count_per_cd_per_src);
-	downloading_pct		= (total_count_to_install + total_count_to_download == 0)
-          ? 0 : 100 * total_count_to_download / (total_count_to_install + total_count_to_download);
+        integer total                           = total_count_to_install + total_count_to_download;
+	downloading_pct	= (total == 0) ? 0 : 100 * total_count_to_download / total;
 	init_pkg_data_complete			= true;
 
 	// reset the history log
