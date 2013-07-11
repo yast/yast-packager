@@ -543,7 +543,7 @@ without having package %1 installed"), required_package));
 		    }
 		    else
 		    {
-		        symbol cfg_result = (symbol)WFM::CallFunction( "online_update_configuration", []);
+		        symbol cfg_result = (symbol)WFM::CallFunction( "online_update_configuration", [ `no_source_finish ]);
 			y2milestone("online_update_configuration result: %1", cfg_result);
 		    }
 		    force_restart = true;
