@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 15 14:09:10 UTC 2013 - lslezak@suse.cz
+
+- enable back kernel module autoloading (bnc#829265)
+- 2.24.1
+
+-------------------------------------------------------------------
 Thu Jul 11 14:33:02 CEST 2013 - gs@suse.de
 
 - Fixed call of Online Update Configuration (don't finish sources
