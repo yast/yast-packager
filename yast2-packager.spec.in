@@ -65,13 +65,21 @@ Summary:	YaST2 - Package Library
 Group:		System/YaST
 Summary:	YaST2 - Webpin package search client
 
+%package devel-doc
+Requires:       yast2-packager = %version
+Group:          System/YaST
+Summary:        YaST2 - Development Documentation
+
 %description
-This package contains the scanner/parser and dependency checker for all
-packages handled by YaST2.
+This package contains the libraries and modules for software management.
 
 %description webpin
 This package contains a client for searching packages in online repositories
 (webpin) and installing them via OneClickInstall
+
+%description devel-doc
+This package contains development documentation for using the API
+provided by this package.
 
 @PREP@
 
@@ -95,6 +103,8 @@ This package contains a client for searching packages in online repositories
 @desktopdir@/*.desktop
 @scrconfdir@/*
 @execcompdir@/servers_non_y2/ag_*
+
+%files devel-doc
 %doc @docdir@
 
 %files webpin
