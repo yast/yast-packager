@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 24 11:15:24 UTC 2013 - lslezak@suse.cz
+
+- split the generated documentation to devel-doc subpackge (to save
+  some space in installed system, needed only for developers)
+- 2.24.2
+
+-------------------------------------------------------------------
 Mon Jul 15 14:09:10 UTC 2013 - lslezak@suse.cz
 
 - enable back kernel module autoloading (bnc#829265)
