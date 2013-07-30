@@ -58,11 +58,15 @@ Obsoletes:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
 Provides:	yast2-trans-package-manager yast2-trans-inst-packages
 Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
 
+Requires:       yast2-ruby-bindings >= 1.0.0
+
 Summary:	YaST2 - Package Library
 
 %package webpin
 
 Group:		System/YaST
+Requires:       yast2-ruby-bindings >= 1.0.0
+
 Summary:	YaST2 - Webpin package search client
 
 %package devel-doc
@@ -95,11 +99,10 @@ provided by yast2-packager package.
 %dir @yncludedir@/packager
 @yncludedir@/checkmedia/*
 @yncludedir@/packager/*
-@clientdir@/*.ycp
-%exclude @clientdir@/webpin_package_search.ycp
+@clientdir@/*.rb
+%exclude @clientdir@/webpin_package_search.rb
 @moduledir@/*
-%exclude @moduledir@/WebpinPackageSearch.ycp
-%exclude @moduledir@/WebpinPackageSearch.ybc
+%exclude @moduledir@/WebpinPackageSearch.rb
 @desktopdir@/*.desktop
 @scrconfdir@/*
 @execcompdir@/servers_non_y2/ag_*
@@ -112,6 +115,6 @@ provided by yast2-packager package.
 
 %files webpin
 %defattr(-,root,root)
-@clientdir@/webpin_package_search.ycp
-@moduledir@/WebpinPackageSearch.ycp
-@moduledir@/WebpinPackageSearch.ybc
+@clientdir@/webpin_package_search.rb
+@moduledir@/WebpinPackageSearch.rb
+
