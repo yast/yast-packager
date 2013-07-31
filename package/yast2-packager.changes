@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 31 08:36:27 UTC 2013 - yast-devel@opensuse.org
+
+- converted from YCP to Ruby by YCP Killer
+  (https://github.com/yast/ycp-killer)
+- version 3.0.0
+
+-------------------------------------------------------------------
 Mon Jul 29 07:19:38 UTC 2013 - lslezak@suse.cz
 
 - put the README and COPYING files to the main package instead of
