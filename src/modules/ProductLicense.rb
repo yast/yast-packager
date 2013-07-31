@@ -1,0 +1,1636 @@
+# encoding: utf-8
+
+# File:	ProductLicense.ycp
+#
+# Module:	ProductLicense
+#
+# Summary:	Provide access / dialog for product license
+#
+# Author:	Jiri Srain <jsrain@suse.cz>
+#		Lukas Ocilka <locilka@suse.cz>
+#
+require "yast"
+
+module Yast
+  class ProductLicenseClass < Module
+    def main
+      Yast.import "Pkg"
+      Yast.import "UI"
+
+      Yast.import "Directory"
+      Yast.import "InstShowInfo"
+      Yast.import "Language"
+      Yast.import "Popup"
+      Yast.import "Report"
+      Yast.import "Stage"
+      Yast.import "Wizard"
+      Yast.import "Mode"
+      Yast.import "FileUtils"
+      Yast.import "ProductFeatures"
+      Yast.import "String"
+      Yast.import "WorkflowManager"
+      Yast.import "Progress"
+
+      # IMPORTANT: maintainer of yast2-installation is responsible for this module
+
+      textdomain "packager"
+
+      # list of already accepted licenses
+      @already_accepted_licenses = []
+
+      @license_patterns = [
+        "license\\.html",
+        "license\\.%1\\.html",
+        "license\\.htm",
+        "license\\.%1\\.htm",
+        "license\\.txt",
+        "license\\.%1\\.txt"
+      ]
+      # no more wildcard patterns here, UI can display only html and txt anyway
+
+      # All licenses have their own unique ID
+      @license_ids = []
+
+      # License files by their eula_ID
+      #
+      # **Structure:**
+      #
+      #     $["ID":$[licenses]]
+      @all_licenses = {}
+
+      # filename printed in the license dialog
+      @license_file_print = nil
+
+      # BNC #448598
+      # no-acceptance-needed file in license.tar.gz means the license
+      # doesn't have to be accepted by user, just displayed
+      @license_acceptance_needed = {}
+
+      @tmpdir = nil
+      @license_dir = nil
+      @info_file = nil
+
+      @lic_lang = ""
+
+      # FIXME: map <string, boolean> ...
+      @info_file_already_seen = {}
+    end
+
+    # Checks the string that might contain ID of a license and
+    # eventually returns that id.
+    # See also GetIdPlease for a better ratio of successful stories.
+    def GetId(id_text)
+      id = nil
+
+      if Builtins.regexpmatch(id_text, "^license_language_.+")
+        id = Builtins.regexpsub(id_text, "^license_language_(.+)", "\\1")
+      else
+        Builtins.y2error("Cannot get ID from %1", id_text)
+      end
+
+      id
+    end
+
+    # Helper func. Cuts encoding suffix off the LANG
+    # env. variable i.e. foo_BAR.UTF-8 => foo_BAR
+    def EnvLangToLangCode(env_lang)
+      tmp = []
+      tmp = Builtins.splitstring(env_lang, ".@") if env_lang != nil
+
+      Ops.get(tmp, 0, "")
+    end
+
+    # Creates a unique identification from filename
+    # (MD5sum + file size)
+    #
+    # @param [String] filename
+    # @return [String] unique ID
+    def GetLicenseIdentString(filename)
+      if !FileUtils.Exists(filename)
+        Builtins.y2error("License '%1' doesn't exist", filename)
+        return nil
+      end
+
+      filemd5 = FileUtils.MD5sum(filename)
+      return nil if filemd5 == nil
+
+      ret = Builtins.sformat("%1-%2", filemd5, FileUtils.GetSize(filename))
+
+      Builtins.y2milestone("License ident for '%1' is '%2'", filename, ret)
+
+      ret
+    end
+
+    # Checks whether the license (file) has been already accepted
+    #
+    # @param string filename
+    # @return [Boolean] whether the license has been accepted before
+    def IsLicenseAlreadyAccepted(license_ident)
+      if license_ident == nil || license_ident == ""
+        Builtins.y2error("Wrong license ID '%1'", license_ident)
+        return false
+      end
+
+      Builtins.contains(@already_accepted_licenses, license_ident)
+    end
+
+    # Sets that the license (file) has been already accepted
+    #
+    # @param string filename
+    def LicenseHasBeenAccepted(license_ident)
+      if license_ident == nil || license_ident == ""
+        Builtins.y2error("Wrong license ID '%1'", license_ident)
+        return
+      end
+
+      Builtins.y2milestone(
+        "Adding License ID '%1' as already accepted",
+        license_ident
+      )
+      @already_accepted_licenses = Builtins.add(
+        @already_accepted_licenses,
+        license_ident
+      )
+
+      nil
+    end
+
+    def WhichLicenceFile(license_language, licenses)
+      license_file = Ops.get(licenses.value, license_language, "")
+
+      if license_file == nil || license_file == ""
+        Builtins.y2error(
+          "No license file defined for language '%1' in %2",
+          license_language,
+          licenses.value
+        )
+      else
+        Builtins.y2milestone("Using license file: %1", license_file)
+      end
+
+      license_file
+    end
+
+    def GetLicenseContent(lic_lang, licenses, id)
+      license_file = (
+        licenses_ref = arg_ref(licenses.value);
+        _WhichLicenceFile_result = WhichLicenceFile(lic_lang, licenses_ref);
+        licenses.value = licenses_ref.value;
+        _WhichLicenceFile_result
+      )
+
+      license_text = Convert.to_string(
+        SCR.Read(path(".target.string"), license_file)
+      )
+      if license_text == nil
+        if Mode.live_installation
+          license_text = Builtins.sformat(
+            "<b>%1</b><br>%2",
+            Builtins.sformat(_("Cannot read license file %1"), license_file),
+            _(
+              "To show the product license properly, put the license.tar.gz file to the root of the live media when building the image."
+            )
+          )
+        else
+          Report.Error(
+            Builtins.sformat(_("Cannot read license file %1"), license_file)
+          )
+          license_text = ""
+        end
+      end
+      rt = Empty()
+
+      # License is HTML (or RichText)
+      if Builtins.regexpmatch(license_text, "</.*>")
+        rt = MinWidth(
+          80,
+          RichText(Id(Builtins.sformat("welcome_text_%1", id)), license_text)
+        )
+      else
+        # License is plain text
+        # details in BNC #449188
+        rt = MinWidth(
+          80,
+          RichText(
+            Id(Builtins.sformat("welcome_text_%1", id)),
+            Ops.add(Ops.add("<pre>", String.EscapeTags(license_text)), "</pre>")
+          )
+        )
+      end
+
+      deep_copy(rt)
+    end
+
+
+    def GetLicenseDialogTerm(languages, license_language, licenses, id)
+      languages = deep_copy(languages)
+      license_text = ""
+      rt = (
+        licenses_ref = arg_ref(licenses.value);
+        _GetLicenseContent_result = GetLicenseContent(
+          license_language,
+          licenses_ref,
+          id
+        );
+        licenses.value = licenses_ref.value;
+        _GetLicenseContent_result
+      )
+
+      # bug #204791, no more "languages.ycp" client
+      lang_names_orig = Language.GetLanguagesMap(false)
+      if lang_names_orig == nil
+        Builtins.y2error("Wrong definition of languages")
+        lang_names_orig = {}
+      end
+
+      lang_names = {}
+
+      # $[ "en" : "English (US)", "de" : "Deutsch" ]
+      lang_names = Builtins.mapmap(lang_names_orig) do |code, descr|
+        { code => Ops.get_string(descr, 4, "") }
+      end
+
+      # for the default fallback
+      if Ops.get(lang_names, "") == nil
+        # language name
+        Ops.set(
+          lang_names,
+          "",
+          Ops.get_string(lang_names_orig, ["en_US", 4], "")
+        )
+      end
+
+      if Ops.get(lang_names, "en") == nil
+        # language name
+        Ops.set(
+          lang_names,
+          "en",
+          Ops.get_string(lang_names_orig, ["en_US", 4], "")
+        )
+      end
+
+      lang_pairs = Builtins.maplist(languages) do |l|
+        name_print = Ops.get(lang_names, l, "")
+        if name_print == ""
+          l_short = Builtins.substring(l, 0, 2)
+
+          Builtins.foreach(lang_names) do |k, v|
+            if Builtins.substring(k, 0, 2) == l_short
+              name_print = v
+              next true
+            end
+            false
+          end
+        end
+        [l, name_print]
+      end
+
+      # filter-out languages that don't have any name
+      lang_pairs = Builtins.filter(lang_pairs) do |lang_pair|
+        if Ops.get(lang_pair, 1, "") == ""
+          Builtins.y2warning(
+            "Unknown license language '%1', filtering out...",
+            lang_pair
+          )
+          next false
+        else
+          next true
+        end
+      end
+
+      lang_pairs = Builtins.sort(lang_pairs) do |a, b|
+        # bnc#385172: must use < instead of <=, the following means:
+        # strcoll(x) <= strcoll(y) && strcoll(x) != strcoll(y)
+        lsorted = Builtins.lsort([Ops.get(a, 1, ""), Ops.get(b, 1, "")])
+        lsorted_r = Builtins.lsort([Ops.get(b, 1, ""), Ops.get(a, 1, "")])
+        Ops.get_string(lsorted, 0, "") == Ops.get(a, 1, "") &&
+          lsorted == lsorted_r
+      end
+      langs = Builtins.maplist(lang_pairs) do |descr|
+        Item(
+          Id(Ops.get(descr, 0, "")),
+          Ops.get(descr, 1, ""),
+          Ops.get(descr, 0, "") == license_language
+        )
+      end
+
+      lang_selector_options = Opt(:notify)
+      # Disable in case there is no language to select
+      # bugzilla #203543
+      if Ops.less_or_equal(Builtins.size(langs), 1)
+        lang_selector_options = Builtins.add(lang_selector_options, :disabled)
+      end
+
+      @license_ids = Builtins.toset(Builtins.add(@license_ids, id))
+
+      VBox(
+        # combo box
+        Left(
+          ComboBox(
+            Id(Builtins.sformat("license_language_%1", id)),
+            lang_selector_options,
+            _("&Language"),
+            langs
+          )
+        ),
+        ReplacePoint(Id(Builtins.sformat("license_contents_rp_%1", id)), rt)
+      )
+    end
+
+    # Returns whether accepting the license manually is requied.
+    #
+    # @see BNC #448598
+    # @return [Boolean] if required
+    def AcceptanceNeeded(id)
+      Ops.get(@license_acceptance_needed, id, true)
+    end
+
+    def SetAcceptanceNeeded(id, new_value)
+      if new_value == nil
+        Builtins.y2error(
+          "Undefined behavior (License ID %1), AcceptanceNeeded: %2",
+          id,
+          new_value
+        )
+        return
+      end
+
+      Ops.set(@license_acceptance_needed, id, new_value)
+
+      if new_value == true
+        Builtins.y2milestone("License agreement (ID %1) WILL be required", id)
+      else
+        Builtins.y2milestone(
+          "License agreement (ID %1) will NOT be required",
+          id
+        )
+      end
+
+      nil
+    end
+
+    def GetLicenseDialog(languages, license_language, licenses, id, spare_space)
+      languages = deep_copy(languages)
+      display = UI.GetDisplayInfo
+      space = Ops.get_boolean(display, "TextMode", true) ? 1 : 3
+
+      license_buttons = VBox(
+        VSpacing(spare_space ? 0 : 2),
+        RadioButtonGroup(
+          Id(Builtins.sformat("eula_%1", id)),
+          HBox(
+            HSpacing(Ops.multiply(2, space)),
+            VBox(
+              Left(
+                RadioButton(
+                  Id(Builtins.sformat("yes_%1", id)),
+                  Opt(:notify),
+                  # radio button
+                  _("&Yes, I Agree to the License Agreement")
+                )
+              ),
+              Left(
+                RadioButton(
+                  Id(Builtins.sformat("no_%1", id)),
+                  Opt(:notify),
+                  # radio button
+                  _("N&o, I Do not Agree")
+                )
+              )
+            ),
+            HSpacing(Ops.multiply(2, space))
+          )
+        )
+      )
+
+      VBox(
+        VSpacing(spare_space ? 0 : 1),
+        HBox(
+          HSpacing(Ops.multiply(2, space)),
+          (
+            licenses_ref = arg_ref(licenses.value);
+            _GetLicenseDialogTerm_result = GetLicenseDialogTerm(
+              languages,
+              license_language,
+              licenses_ref,
+              id
+            );
+            licenses.value = licenses_ref.value;
+            _GetLicenseDialogTerm_result
+          ),
+          HSpacing(Ops.multiply(2, space))
+        ),
+        # BNC #448598
+        # yes/no buttons exist only if needed
+        # if they don't exist, user is not asked to accept the license later
+        AcceptanceNeeded(id) ? license_buttons : Empty(),
+        VSpacing(spare_space ? 0.5 : 1),
+        HBox(
+          HSpacing(Ops.multiply(2, space)),
+          @license_file_print != nil ?
+            Left(
+              # FATE #302018
+              Label(
+                # TRANSLATORS: addition license information
+                # %1 is replaced with the filename
+                Builtins.sformat(
+                  _(
+                    "If you want to print this EULA, you can find it\non the first media in the file %1"
+                  ),
+                  @license_file_print
+                )
+              )
+            ) :
+            Empty(),
+          HSpacing(Ops.multiply(2, space))
+        ),
+        VSpacing(spare_space ? 0 : 1)
+      )
+    end
+
+    def GetLicenseDialogHelp
+      # help text
+      _(
+        "<p>Read the license agreement carefully and select\n" +
+          "one of the available options. If you do not agree to the license agreement,\n" +
+          "the configuration will be aborted.</p>\n"
+      )
+    end
+
+    # Displays License with Help and ( ) Yes / ( ) No radio buttons
+    # @param string file with the license
+    def DisplayLicenseDialog(languages, back, license_language, licenses, id)
+      languages = deep_copy(languages)
+      # dialog caption
+      caption = _("License Agreement")
+
+      contents = (
+        licenses_ref = arg_ref(licenses.value);
+        _GetLicenseDialog_result = GetLicenseDialog(
+          languages,
+          license_language,
+          licenses_ref,
+          id,
+          false
+        );
+        licenses.value = licenses_ref.value;
+        _GetLicenseDialog_result
+      )
+
+      # If acceptance is not needed, there's no need to disable the button
+      # by default
+      default_next_button_state = AcceptanceNeeded(id) ? false : true
+
+      Wizard.SetContents(
+        caption,
+        contents,
+        GetLicenseDialogHelp(),
+        back,
+        default_next_button_state
+      )
+
+      Wizard.SetTitleIcon("yast-license")
+      Wizard.SetFocusToNextButton
+
+      nil
+    end
+
+
+
+    # Removes the temporary directory for licenses
+    # @param string temporary directory path
+    def CleanUpLicense(tmpdir)
+      if tmpdir != nil && tmpdir != "/"
+        SCR.Execute(
+          path(".target.bash_output"),
+          Builtins.sformat("rm -rf '%1'", String.Quote(tmpdir))
+        )
+      end
+
+      nil
+    end
+
+    # Get all files with license existing in specified directory
+    # @param [String] dir string directory to look into
+    # @param [Array<String>] patterns a list of patterns for the files, regular expressions
+    #   with %1 for the language
+    # @return a map $[ lang_code : filename ]
+    def LicenseFiles(dir, patterns)
+      patterns = deep_copy(patterns)
+      ret = {}
+
+      return deep_copy(ret) if dir == nil
+
+      files = Convert.convert(
+        SCR.Read(path(".target.dir"), dir),
+        :from => "any",
+        :to   => "list <string>"
+      )
+      Builtins.y2milestone("All files in license directory: %1", files)
+
+      # no license
+      return {} if files == nil
+
+      Builtins.foreach(patterns) do |p|
+        if !Builtins.issubstring(p, "%")
+          Builtins.foreach(files) do |file|
+            #Possible license file names are regexp patterns
+            #(see list <string> license_patterns)
+            #so we should treat them as such (bnc#533026)
+            if Builtins.regexpmatch(file, p)
+              Ops.set(ret, "", Ops.add(Ops.add(dir, "/"), file))
+            end
+          end
+        else
+          regpat = Builtins.sformat(p, "(.+)")
+          Builtins.foreach(files) do |file|
+            if Builtins.regexpmatch(file, regpat)
+              key = Builtins.regexpsub(file, regpat, "\\1")
+              Ops.set(ret, key, Ops.add(Ops.add(dir, "/"), file))
+            end
+          end
+        end
+      end
+      Builtins.y2milestone("Files containing license: %1", ret)
+      deep_copy(ret)
+    end
+
+    # Functions for handling different locations of licenses -->
+
+
+    def UnpackLicenseTgzFileToDirectory(unpack_file, to_directory)
+      # License file exists
+      if FileUtils.Exists(unpack_file)
+        out = Convert.to_map(
+          SCR.Execute(
+            path(".target.bash_output"),
+            Builtins.sformat(
+              "\nrm -rf '%1' && mkdir -p '%1' && cd '%1' && tar -xzf '%2'\n",
+              String.Quote(to_directory),
+              String.Quote(unpack_file)
+            )
+          )
+        )
+
+        # Extracting license failed, cannot accept the license
+        if Ops.get_integer(out, "exit", 0) != 0
+          Builtins.y2error("Cannot untar license -> %1", out)
+          # popup error
+          Report.Error(
+            _("An error occurred while preparing the installation system.")
+          )
+          CleanUpLicense(to_directory)
+          return false
+        end
+
+        # Success
+        return true 
+
+        # Nothing to unpack
+      else
+        Builtins.y2error("No such file: %1", unpack_file)
+        return false
+      end
+    end
+
+    def SearchForLicense_FirstStageBaseProduct(src_id, fallback_dir)
+      Builtins.y2milestone("Getting license from installation product")
+
+      license_file = "/license.tar.gz"
+
+      if FileUtils.Exists(license_file)
+        Builtins.y2milestone("Installation Product has a license")
+
+        @tmpdir = Builtins.sformat(
+          "%1/product-license/base-product/",
+          Convert.to_string(SCR.Read(path(".target.tmpdir")))
+        )
+
+        if UnpackLicenseTgzFileToDirectory(license_file, @tmpdir)
+          @license_dir = @tmpdir
+          @license_file_print = "license.tar.gz"
+        else
+          license_file = nil
+        end
+      else
+        Builtins.y2milestone("Installation Product doesn't have a license")
+
+        license_file = nil
+      end
+
+      @info_file = "/info.txt" if FileUtils.Exists("/info.txt")
+
+      nil
+    end
+
+    def SearchForLicense_LiveCDInstallation(src_id, fallback_dir)
+      Builtins.y2milestone("LiveCD License")
+
+      # BNC #594042: Multiple license locations
+      license_locations = ["/usr/share/doc/licenses/", "/"]
+
+      @license_dir = nil
+      @info_file = nil
+
+      Builtins.foreach(license_locations) do |license_location|
+        license_location = Builtins.sformat(
+          "%1/license.tar.gz",
+          license_location
+        )
+        if FileUtils.Exists(license_location)
+          Builtins.y2milestone("Using license: %1", license_location)
+          @tmpdir = Builtins.sformat(
+            "%1/product-license/LiveCD/",
+            Convert.to_string(SCR.Read(path(".target.tmpdir")))
+          )
+
+          if UnpackLicenseTgzFileToDirectory(license_location, @tmpdir)
+            @license_dir = @tmpdir
+            @license_file_print = "license.tar.gz"
+          else
+            CleanUpLicense(@tmpdir)
+          end
+          raise Break
+        end
+      end
+
+      if @license_dir == nil
+        Builtins.y2milestone("No license found in: %1", license_locations)
+      end
+
+      Builtins.foreach(license_locations) do |info_location|
+        info_location = Builtins.sformat("%1/README.BETA", info_location)
+        if FileUtils.Exists(info_location)
+          Builtins.y2milestone("Using info file: %1", info_location)
+          @info_file = info_location
+          raise Break
+        end
+      end
+
+      if @info_file == nil
+        Builtins.y2milestone("No info file found in: %1", license_locations)
+      end
+
+      nil
+    end
+
+    def SearchForLicense_NormalRunBaseProduct(src_id, fallback_dir)
+      Builtins.y2milestone("Using default license directory %1", fallback_dir)
+
+      if FileUtils.Exists(fallback_dir)
+        @license_dir = fallback_dir
+      else
+        Builtins.y2warning("Fallback dir doesn't exist %1", fallback_dir)
+        @license_dir = nil
+      end
+
+      @info_file = "/info.txt" if FileUtils.Exists("/info.txt")
+
+      nil
+    end
+
+    def SearchForLicense_AddOnProduct(src_id, fallback_dir)
+      Builtins.y2milestone("Getting license info from repository %1", src_id)
+
+      @info_file = Pkg.SourceProvideDigestedFile(
+        src_id, # optional
+        1,
+        "/media.1/info.txt",
+        true
+      )
+
+      # using a separate license directory for all products
+      @tmpdir = Builtins.sformat(
+        "%1/product-license/%2/",
+        Convert.to_string(SCR.Read(path(".target.tmpdir"))),
+        src_id
+      )
+
+      # FATE #302018 comment #54
+      license_file_location = "/license.tar.gz"
+      license_file = Pkg.SourceProvideDigestedFile(
+        src_id, # optional
+        1,
+        license_file_location,
+        true
+      )
+
+      if license_file != nil
+        Builtins.y2milestone("Using file %1 with licenses", license_file)
+
+        if UnpackLicenseTgzFileToDirectory(license_file, @tmpdir)
+          @license_dir = @tmpdir
+          @license_file_print = "license.tar.gz"
+        else
+          @license_dir = nil
+        end
+
+        return
+      end
+
+      Builtins.y2milestone(
+        "Licenses in %1... not supported",
+        license_file_location
+      )
+
+      # New format didn't work, try the old one 1stMedia:/media.1/license.zip
+      @license_dir = @tmpdir
+      license_file = Pkg.SourceProvideDigestedFile(
+        src_id, # optional
+        1,
+        "/media.1/license.zip",
+        true
+      )
+
+      # no license present
+      if license_file == nil
+        Builtins.y2milestone("No license present")
+        @license_dir = nil
+        @tmpdir = nil
+        # return from the function
+        return
+      end
+
+      Builtins.y2milestone("Product has a license")
+      out = Convert.to_map(
+        SCR.Execute(
+          path(".target.bash_output"),
+          Builtins.sformat(
+            "\nrm -rf '%1' && mkdir -p '%1' && cd '%1' && unzip -qqo '%2'\n",
+            String.Quote(@tmpdir),
+            String.Quote(license_file)
+          )
+        )
+      )
+
+      # Extracting license failed, cannot accept the license
+      if Ops.get_integer(out, "exit", 0) != 0
+        Builtins.y2error("Cannot unzip license -> %1", out)
+        # popup error
+        Report.Error(
+          _("An error occurred while preparing the installation system.")
+        )
+        CleanUpLicense(@tmpdir)
+        @license_dir = nil
+      else
+        @license_dir = @tmpdir
+        @license_file_print = "/media.1/license.zip"
+      end
+
+      nil
+    end
+
+    # Functions for handling different locations of licenses <--
+
+    def GetSourceLicenseDirectory(src_id, fallback_dir)
+      Builtins.y2milestone(
+        "Searching for licenses... (src_id: %1, fallback_dir: %2, mode: %3, stage: %4)",
+        src_id,
+        fallback_dir,
+        Mode.mode,
+        Stage.stage
+      )
+
+      @license_file_print = nil
+
+      # Bugzilla #299732
+      # Base Product - LiveCD installation
+      if Mode.live_installation
+        SearchForLicense_LiveCDInstallation(src_id, fallback_dir) 
+
+        # Base-product - license not in installation
+        #   * Stage is not initial
+        #   * source ID is not defined
+      elsif !Stage.initial && src_id == nil
+        SearchForLicense_NormalRunBaseProduct(src_id, fallback_dir) 
+
+        # Base-product - first-stage installation
+        #   * Stage is initial
+        #   * Source ID is not set
+        # bugzilla #298342
+      elsif Stage.initial && src_id == nil
+        SearchForLicense_FirstStageBaseProduct(
+          src_id == nil ? Ops.get(Pkg.SourceGetCurrent(true), 0, 0) : src_id,
+          fallback_dir
+        ) 
+
+        # Add-on-product license
+        #   * Source ID is set
+      elsif src_id != nil && Ops.greater_than(src_id, -1)
+        SearchForLicense_AddOnProduct(src_id, fallback_dir) 
+
+        # Fallback
+      else
+        Builtins.y2warning(
+          "Source ID not defined, using fallback dir '%1'",
+          fallback_dir
+        )
+        @license_dir = fallback_dir
+      end
+
+      Builtins.y2milestone(
+        "ProductLicense settings: license_dir: %1, tmpdir: %2, info_file: %3",
+        @license_dir,
+        @tmpdir,
+        @info_file
+      )
+
+      nil
+    end
+
+
+    def InitLicenseData(src_id, dir, licenses, available_langs, require_agreement, license_ident, id)
+      GetSourceLicenseDirectory(src_id, dir)
+
+      # License does not need to be accepted. Well, I mean, manually selected "Yes, of course, I agree..."
+      if FileUtils.Exists(
+          Builtins.sformat("%1/no-acceptance-needed", @license_dir)
+        )
+        if id == nil
+          Builtins.y2error("Parameter id not set")
+        else
+          SetAcceptanceNeeded(id, false)
+        end
+      end
+
+      licenses.value = LicenseFiles(@license_dir, @license_patterns)
+
+      # all other 'licenses' could be replaced by this one
+      Ops.set(@all_licenses, id, licenses.value)
+
+      return :auto if @info_file == nil && Builtins.size(licenses.value) == 0
+
+      # Let's do getenv here. Language::language may not be initialized
+      # by now (see bnc#504803, c#28). Language::Language does only
+      # sysconfig reading, which is not too useful in cases like
+      # 'LANG=foo_BAR yast repositories'
+      language = EnvLangToLangCode(Builtins.getenv("LANG"))
+
+      # Preferencies how the client selects from available languages
+      langs = [
+        language,
+        Builtins.substring(language, 0, 2), # "it_IT" -> "it"
+        "en_US",
+        "en_GB",
+        "en",
+        ""
+      ] # license.txt fallback
+      available_langs.value = Builtins.maplist(licenses.value) do |lang, fn|
+        lang
+      end
+
+      # "en" is the same as "", we don't need to have them both
+      if Builtins.contains(available_langs.value, "en") &&
+          Builtins.contains(available_langs.value, "")
+        Builtins.y2milestone(
+          "Removing license fallback '' as we already have 'en'..."
+        )
+        available_langs.value = Builtins.filter(available_langs.value) do |one_lang|
+          one_lang != "en"
+        end
+      end
+
+      Builtins.y2milestone("Preffered lang: %1", language)
+      return :auto if Builtins.size(available_langs.value) == 0 # no license available
+      @lic_lang = Builtins.find(langs) { |l| Builtins.haskey(licenses.value, l) }
+      @lic_lang = Ops.get(available_langs.value, 0, "") if @lic_lang == nil
+
+      Builtins.y2milestone("Preselected language: '%1'", @lic_lang)
+
+      if @lic_lang == nil
+        CleanUpLicense(@tmpdir) if @tmpdir != nil
+        return :auto
+      end
+
+      # Check whether such license hasn't been already accepted
+      # Bugzilla #305503
+      license_ident_lang = nil
+
+      # We need to store the original -- not localized license ID (if possible)
+      Builtins.foreach(["", "en", @lic_lang]) do |check_this|
+        if Builtins.contains(available_langs.value, check_this)
+          license_ident_lang = check_this
+          Builtins.y2milestone(
+            "Using localization '%1' (for license ID)",
+            license_ident_lang
+          )
+          raise Break
+        end
+      end
+
+      # fallback
+      license_ident_lang = @lic_lang if license_ident_lang == nil
+
+      base_license = (
+        licenses_ref = arg_ref(licenses.value);
+        _WhichLicenceFile_result = WhichLicenceFile(
+          license_ident_lang,
+          licenses_ref
+        );
+        licenses.value = licenses_ref.value;
+        _WhichLicenceFile_result
+      )
+      license_ident.value = GetLicenseIdentString(base_license)
+
+      # agreement might be required even if license has been already accepted
+      # defined, properly ($md5sum(32)-(1)$size(1..n))
+      #
+      # see also BNC #448598
+      # Even if it it shown it sometimes doesn't need to be even accepted by
+      # selecting "yes, I agree"
+      if require_agreement != true &&
+          Builtins.tostring(license_ident.value) != nil &&
+          Ops.greater_than(Builtins.size(license_ident.value), 33) &&
+          IsLicenseAlreadyAccepted(license_ident.value)
+        Builtins.y2milestone("License has been already accepted/shown")
+
+        CleanUpLicense(@tmpdir)
+        return :accepted
+      else
+        Builtins.y2milestone("License needs to be shown")
+      end
+
+      # bugzilla #303922
+      # src_id == nil (the initial product license)
+      if src_id != nil
+        # use wizard with steps
+        if Stage.initial
+          # Wizard::OpenNextBackStepsDialog();
+          # WorkflowManager::RedrawWizardSteps();
+          Builtins.y2milestone("Initial stage, not opening any window...") 
+          # use normal wizard
+        else
+          Wizard.OpenNextBackDialog
+        end
+      end
+
+      :cont
+    end
+
+    # Should have been named 'UpdateLicenseContentBasedOnSelectedLanguage' :->
+    def UpdateLicenseContent(licenses, id)
+      # read the selected language
+      @lic_lang = Convert.to_string(
+        UI.QueryWidget(Id(Builtins.sformat("license_language_%1", id)), :Value)
+      )
+      rp_id = Id(Builtins.sformat("license_contents_rp_%1", id))
+
+      licenses.value = Ops.get(@all_licenses, id, {}) if licenses.value == {}
+
+      if UI.WidgetExists(rp_id)
+        UI.ReplaceWidget(
+          rp_id,
+          (
+            licenses_ref = arg_ref(licenses.value);
+            _GetLicenseContent_result = GetLicenseContent(
+              @lic_lang,
+              licenses_ref,
+              id
+            );
+            licenses.value = licenses_ref.value;
+            _GetLicenseContent_result
+          )
+        )
+      else
+        Builtins.y2error("No such widget: %1", rp_id)
+      end
+
+      nil
+    end
+
+    def AllLicensesAccepted
+      # BNC #448598
+      # If buttons don't exist, eula is automatically accepted
+      accepted = true
+      eula_id = nil
+
+      Builtins.foreach(@license_ids) do |one_license_id|
+        if AcceptanceNeeded(one_license_id) != true
+          Builtins.y2milestone(
+            "License %1 does not need to be accepted",
+            one_license_id
+          )
+          next
+        end
+        eula_id = Builtins.sformat("eula_%1", one_license_id)
+        if UI.WidgetExists(Id(eula_id)) != true
+          Builtins.y2error("Widget %1 does not exist", eula_id)
+          next
+        end
+        # All licenses have to be accepted
+        license_accepted = Convert.to_string(
+          UI.QueryWidget(Id(eula_id), :CurrentButton)
+        )
+        Builtins.y2milestone(
+          "License %1 accepted: %2",
+          eula_id,
+          license_accepted
+        )
+        if !Builtins.regexpmatch(license_accepted, "^yes_")
+          accepted = false
+          raise Break
+        end
+      end
+
+      accepted
+    end
+
+    def AllLicensesAcceptedOrDeclined
+      ret = true
+
+      eula_id = nil
+      Builtins.foreach(@license_ids) do |one_license_id|
+        next if AcceptanceNeeded(one_license_id) != true
+        eula_id = Builtins.sformat("eula_%1", one_license_id)
+        if UI.WidgetExists(Id(eula_id)) != true
+          Builtins.y2error("Widget %1 does not exist", eula_id)
+        end
+        current_button = Convert.to_string(
+          UI.QueryWidget(Id(eula_id), :CurrentButton)
+        )
+        # license have to be accepted or declined
+        if current_button == nil
+          Builtins.y2warning(
+            "License %1 hasn't been accepted or declined",
+            eula_id
+          )
+          ret = false
+          raise Break
+        end
+      end
+
+      ret
+    end
+
+    def HandleLicenseDialogRet(licenses, base_product, action)
+      ret = nil
+
+      while true
+        ret = UI.UserInput
+
+        if Ops.is_string?(ret) &&
+            Builtins.regexpmatch(Builtins.tostring(ret), "^license_language_")
+          licenses_ref = arg_ref(licenses.value)
+          UpdateLicenseContent(licenses_ref, GetId(Builtins.tostring(ret)))
+          licenses.value = licenses_ref.value
+          ret = :language 
+          # bugzilla #303828
+          # disabled next button unless yes/no is selected
+        elsif Ops.is_string?(ret) &&
+            (Builtins.regexpmatch(Builtins.tostring(ret), "^yes_") ||
+              Builtins.regexpmatch(Builtins.tostring(ret), "^no_"))
+          Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined() 
+          # Aborting the license dialog
+        elsif ret == :abort
+          # bugzilla #218677
+          if base_product
+            if Popup.ConfirmAbort(:painless)
+              Builtins.y2milestone("Aborting...")
+              ret = :abort
+              break
+            end
+          else
+            # popup question
+            if Popup.YesNo(_("Really abort the add-on product installation?"))
+              Builtins.y2milestone("Aborting...")
+              ret = :abort
+              break
+            end
+          end
+        elsif ret == :next
+          # License declined
+          if AllLicensesAccepted() != true
+            # message is void in case not accepting license doesn't stop the installation
+            if action == "continue"
+              Builtins.y2milestone(
+                "action in case of license refusal is continue, not asking user"
+              )
+              ret = :accepted
+              break
+            end
+            # text changed due to bug #162499
+            refuse_popup_text = base_product ?
+              # text asking whether to refuse a license (Yes-No popup)
+              _(
+                "Refusing the license agreement cancels the installation.\nReally refuse the agreement?"
+              ) :
+              # text asking whether to refuse a license (Yes-No popup)
+              _(
+                "Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?"
+              )
+            if !Popup.YesNo(refuse_popup_text)
+              next
+            else
+              Builtins.y2milestone("License has been declined.")
+              if action == "abort"
+                ret = :abort
+                break
+              elsif action == "continue"
+                ret = :accepted
+                break
+              elsif action == "halt"
+                ret = :halt
+                break
+                # timed ok/cancel popup
+                if !Popup.TimedOKCancel(_("The system is shutting down..."), 10)
+                  next
+                else
+                  ret = :halt
+                  break
+                end
+              else
+                Builtins.y2error("Unknown action %1", action)
+                ret = :abort
+                break
+              end
+            end
+          else
+            Builtins.y2milestone("All licenses have been accepted.")
+            ret = :accepted
+            break
+          end
+        elsif ret == :back
+          ret = :back
+          break
+        else
+          Builtins.y2error("Unhandled input: %1", ret)
+        end
+      end
+
+      Convert.to_symbol(ret)
+    end
+
+    # Generic cleanup
+    def CleanUp
+      # BNC #581933: All license IDs are cached while the module is in memory.
+      # Removing them when leaving the license dialog.
+      @license_ids = []
+
+      nil
+    end
+
+
+
+    # Ask user to confirm license agreement
+    # @param [Fixnum] src_id integer repository to get the license from.
+    #   If set to 'nil', the license is considered to belong to a base product
+    # @param [String] dir string directory to look for the license in if src_id is nil
+    #   and not 1st stage installation
+    # @param [Array<String>] patterns a list of patterns for the files, regular expressions
+    #   with %1 for the language
+    # @param [Boolean] enable_back sets the back_button status
+    # @param [Boolean] base_product defines whether it is a base or add-on product
+    #   true means base product, false add-on product
+    # @param [Boolean] require_agreement means that even if the license (or the very same license)
+    #   has been already accepetd, ask user to accept it again (because of 'going back'
+    #   in the installation proposal).
+    # @param [String] id, usually source id but it can be any unique id in UI. Well, of course
+    #   it must be string.
+    def AskLicenseAgreement(src_id, dir, patterns, action, enable_back, base_product, require_agreement, id)
+      patterns = deep_copy(patterns)
+      @lic_lang = ""
+      licenses = {}
+      available_langs = []
+      license_ident = ""
+
+      init_ret = (
+        licenses_ref = arg_ref(licenses);
+        available_langs_ref = arg_ref(available_langs);
+        license_ident_ref = arg_ref(license_ident);
+        _InitLicenseData_result = InitLicenseData(
+          src_id,
+          dir,
+          licenses_ref,
+          available_langs_ref,
+          require_agreement,
+          license_ident_ref,
+          id
+        );
+        licenses = licenses_ref.value;
+        available_langs = available_langs_ref.value;
+        license_ident = license_ident_ref.value;
+        _InitLicenseData_result
+      )
+
+      if init_ret == :auto || init_ret == :accepted
+        Builtins.y2milestone("Returning %1", init_ret)
+        return init_ret
+      end
+
+      created_new_dialog = false
+
+      # #459391
+      # If a progress is running open another dialog
+      if Progress.IsRunning
+        Builtins.y2milestone(
+          "Some progress is running, opening new dialog for license..."
+        )
+        Wizard.OpenNextBackDialog
+        created_new_dialog = true
+      end
+
+      licenses_ref = arg_ref(licenses)
+      DisplayLicenseDialog(
+        available_langs, # license id
+        enable_back,
+        @lic_lang,
+        licenses_ref,
+        id
+      )
+      licenses = licenses_ref.value
+
+      # Display info as a popup if exists
+      InstShowInfo.show_info_txt(@info_file) if @info_file != nil
+
+      # initial loop
+      ret = nil
+
+      # set timeout for autoinstallation
+      # bugzilla #206706
+      if Mode.autoinst
+        Builtins.y2milestone(
+          "AutoYaST: License has been accepted automatically"
+        )
+        ret = :accepted
+      else
+        ret = (
+          licenses_ref = arg_ref(licenses);
+          _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
+            licenses_ref,
+            base_product,
+            action
+          );
+          licenses = licenses_ref.value;
+          _HandleLicenseDialogRet_result
+        )
+      end
+
+      if ret == :accepted && license_ident != nil
+        # store already accepted license ID
+        LicenseHasBeenAccepted(license_ident)
+      end
+
+      CleanUpLicense(@tmpdir)
+
+      # bugzilla #303922
+      if created_new_dialog || !Stage.initial && src_id != nil
+        Wizard.CloseDialog
+      end
+
+      CleanUp()
+
+      ret
+    end
+
+
+
+    # Ask user to confirm license agreement
+    # @param src_id integer repository to get the license from.
+    #   If set to 'nil', the license is considered to belong to a base product
+    # @param [Array<String>] dirs - directories to look for the licenses
+    # @param [Array<String>] patterns a list of patterns for the files, regular expressions
+    #   with %1 for the language
+    # @param [Boolean] enable_back sets the back_button status
+    # @param [Boolean] base_product defines whether it is a base or add-on product
+    #   true means base product, false add-on product
+    # @param [Boolean] require_agreement means that even if the license (or the very same license)
+    #   has been already accepetd, ask user to accept it again (because of 'going back'
+    #   in the installation proposal).
+    def AskLicensesAgreement(dirs, patterns, action, enable_back, base_product, require_agreement)
+      dirs = deep_copy(dirs)
+      patterns = deep_copy(patterns)
+      if dirs == nil || dirs == []
+        Builtins.y2error("No directories: %1", dirs)
+        # error message
+        Report.Error("Internal Error: No license to show")
+        return :auto
+      end
+
+      init_ret = nil
+
+      if init_ret == :auto || init_ret == :accepted
+        Builtins.y2milestone("Returning %1", init_ret)
+        return init_ret
+      end
+
+      created_new_dialog = false
+
+      # #459391
+      # If a progress is running open another dialog
+      if Progress.IsRunning
+        Builtins.y2milestone(
+          "Some progress is running, opening new dialog for license..."
+        )
+        Wizard.OpenNextBackDialog
+        created_new_dialog = true
+      end
+
+      # dialog caption
+      caption = _("License Agreement")
+
+      license_idents = []
+
+      # initial loop
+      ret = nil
+
+      licenses = []
+      counter = -1
+      contents = VBox()
+      # If acceptance is not needed, there's no need to disable the button
+      # by default
+      default_next_button_state = true
+
+      Builtins.foreach(dirs) do |dir|
+        counter = Ops.add(counter, 1)
+        Ops.set(licenses, counter, {})
+        @lic_lang = ""
+        available_langs = []
+        license_ident = ""
+        tmp_licenses = {}
+        init_ret2 = (
+          tmp_licenses_ref = arg_ref(tmp_licenses);
+          available_langs_ref = arg_ref(available_langs);
+          license_ident_ref = arg_ref(license_ident);
+          _InitLicenseData_result = InitLicenseData(
+            nil,
+            dir,
+            tmp_licenses_ref,
+            available_langs_ref,
+            require_agreement,
+            license_ident_ref,
+            dir
+          );
+          tmp_licenses = tmp_licenses_ref.value;
+          available_langs = available_langs_ref.value;
+          license_ident = license_ident_ref.value;
+          _InitLicenseData_result
+        )
+        if license_ident != nil
+          license_idents = Builtins.add(license_idents, license_ident)
+        end
+        license_term = (
+          tmp_licenses_ref = arg_ref(tmp_licenses);
+          _GetLicenseDialog_result = GetLicenseDialog(
+            available_langs,
+            @lic_lang,
+            tmp_licenses_ref,
+            dir,
+            true
+          );
+          tmp_licenses = tmp_licenses_ref.value;
+          _GetLicenseDialog_result
+        )
+        if license_term == nil
+          Builtins.y2error("Oops, license term is: %1", license_term)
+        else
+          contents = Builtins.add(contents, license_term)
+        end
+        # Display info as a popup if exists
+        InstShowInfo.show_info_txt(@info_file) if @info_file != nil
+        Ops.set(licenses, counter, tmp_licenses)
+        default_next_button_state = false if AcceptanceNeeded(dir)
+      end
+
+      Wizard.SetContents(
+        caption,
+        contents,
+        GetLicenseDialogHelp(),
+        enable_back,
+        default_next_button_state
+      )
+
+      Wizard.SetTitleIcon("yast-license")
+      Wizard.SetFocusToNextButton
+
+      # set timeout for autoinstallation
+      # bugzilla #206706
+      if Mode.autoinst
+        Builtins.y2milestone(
+          "AutoYaST: License has been accepted automatically"
+        )
+        ret = :accepted
+      else
+        tmp_licenses = {}
+        ret = (
+          tmp_licenses_ref = arg_ref(tmp_licenses);
+          _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
+            tmp_licenses_ref,
+            base_product,
+            action
+          );
+          tmp_licenses = tmp_licenses_ref.value;
+          _HandleLicenseDialogRet_result
+        )
+        Builtins.y2milestone("Dialog ret: %1", ret)
+      end
+
+      # store already accepted license IDs
+      Builtins.foreach(license_idents) do |license_ident|
+        LicenseHasBeenAccepted(license_ident)
+      end if ret == :accepted
+
+      CleanUpLicense(@tmpdir)
+
+      # bugzilla #303922
+      Wizard.CloseDialog if created_new_dialog || !Stage.initial
+
+      CleanUp()
+
+      ret
+    end
+
+    def AskAddOnLicenseAgreement(src_id)
+      AskLicenseAgreement(
+        src_id,
+        "",
+        @license_patterns,
+        "abort",
+        # back button is disabled
+        false,
+        false,
+        false,
+        Builtins.tostring(src_id)
+      )
+    end
+
+    def AskFirstStageLicenseAgreement(src_id, action)
+      # bug #223258
+      # disabling back button when the select-language dialog is skipped
+      #
+      enable_back = true
+      enable_back = false if Language.selection_skipped
+
+      AskLicenseAgreement(
+        nil,
+        "",
+        @license_patterns,
+        action,
+        # back button is enabled
+        enable_back,
+        true,
+        true,
+        # unique id
+        Builtins.tostring(src_id)
+      )
+    end
+
+    # Called from the first stage Welcome dialog by clicking on a button
+    def ShowFullScreenLicenseInInstallation(replace_point_ID, src_id)
+      replace_point_ID = deep_copy(replace_point_ID)
+      @lic_lang = ""
+      licenses = {}
+      available_langs = []
+      license_ident = ""
+
+      init_ret = (
+        licenses_ref = arg_ref(licenses);
+        available_langs_ref = arg_ref(available_langs);
+        license_ident_ref = arg_ref(license_ident);
+        _InitLicenseData_result = InitLicenseData(
+          nil,
+          "",
+          licenses_ref,
+          available_langs_ref,
+          true,
+          license_ident_ref,
+          Builtins.tostring(src_id)
+        );
+        licenses = licenses_ref.value;
+        available_langs = available_langs_ref.value;
+        license_ident = license_ident_ref.value;
+        _InitLicenseData_result
+      )
+
+      # Replaces the dialog content with Languages combo-box
+      # and the current license text (richtext)
+      UI.ReplaceWidget(
+        Id(replace_point_ID),
+        (
+          licenses_ref = arg_ref(licenses);
+          _GetLicenseDialogTerm_result = GetLicenseDialogTerm(
+            available_langs,
+            @lic_lang,
+            licenses_ref,
+            Builtins.tostring(src_id)
+          );
+          licenses = licenses_ref.value;
+          _GetLicenseDialogTerm_result
+        )
+      )
+
+      ret = nil
+
+      while true
+        ret = UI.UserInput
+
+        if Ops.is_string?(ret) &&
+            Builtins.regexpmatch(
+              Builtins.tostring(ret),
+              "^license_language_[[:digit:]]+"
+            )
+          licenses_ref = arg_ref(licenses)
+          UpdateLicenseContent(licenses_ref, GetId(Builtins.tostring(ret)))
+          licenses = licenses_ref.value
+        else
+          break
+        end
+      end
+
+      CleanUp()
+
+      true
+    end
+
+    # Used in the first-stage Welcome dialog
+    def ShowLicenseInInstallation(replace_point_ID, src_id)
+      replace_point_ID = deep_copy(replace_point_ID)
+      @lic_lang = ""
+      licenses = {}
+      available_langs = []
+      license_ident = ""
+
+      init_ret = (
+        licenses_ref = arg_ref(licenses);
+        available_langs_ref = arg_ref(available_langs);
+        license_ident_ref = arg_ref(license_ident);
+        _InitLicenseData_result = InitLicenseData(
+          nil,
+          "",
+          licenses_ref,
+          available_langs_ref,
+          true,
+          license_ident_ref,
+          Builtins.tostring(src_id)
+        );
+        licenses = licenses_ref.value;
+        available_langs = available_langs_ref.value;
+        license_ident = license_ident_ref.value;
+        _InitLicenseData_result
+      )
+
+      rt = (
+        licenses_ref = arg_ref(licenses);
+        _GetLicenseContent_result = GetLicenseContent(
+          @lic_lang,
+          licenses_ref,
+          Builtins.tostring(src_id)
+        );
+        licenses = licenses_ref.value;
+        _GetLicenseContent_result
+      )
+      UI.ReplaceWidget(Id(replace_point_ID), rt)
+
+      id = Builtins.tostring(src_id)
+
+      # Display info as a popup if exists
+      if @info_file != nil &&
+          Ops.get(@info_file_already_seen, id, false) != true
+        if Mode.autoinst
+          Builtins.y2milestone("Autoinstallation: Skipping info file...")
+        else
+          InstShowInfo.show_info_txt(@info_file)
+          Ops.set(@info_file_already_seen, id, true)
+        end
+      end
+
+      CleanUp()
+
+      true
+    end
+
+    def AskInstalledLicenseAgreement(directory, action)
+      # patterns are hard-coded
+      AskLicenseAgreement(
+        nil,
+        directory,
+        [],
+        action,
+        false,
+        true,
+        false,
+        directory
+      )
+    end
+
+    # FATE #306295: More licenses in one dialog
+    def AskInstalledLicensesAgreement(directories, action)
+      directories = deep_copy(directories)
+      # patterns are hard-coded
+      AskLicensesAgreement(directories, [], action, false, true, false)
+    end
+
+    publish :function => :GetLicenseContent, :type => "term (string, map <string, string> &, string)"
+    publish :function => :AcceptanceNeeded, :type => "boolean (string)"
+    publish :function => :AskLicenseAgreement, :type => "symbol (integer, string, list <string>, string, boolean, boolean, boolean, string)"
+    publish :function => :AskLicensesAgreement, :type => "symbol (list <string>, list <string>, string, boolean, boolean, boolean)"
+    publish :function => :AskAddOnLicenseAgreement, :type => "symbol (integer)"
+    publish :function => :AskFirstStageLicenseAgreement, :type => "symbol (integer, string)"
+    publish :function => :ShowFullScreenLicenseInInstallation, :type => "boolean (any, integer)"
+    publish :function => :ShowLicenseInInstallation, :type => "boolean (any, integer)"
+    publish :function => :AskInstalledLicenseAgreement, :type => "symbol (string, string)"
+    publish :function => :AskInstalledLicensesAgreement, :type => "symbol (list <string>, string)"
+  end
+
+  ProductLicense = ProductLicenseClass.new
+  ProductLicense.main
+end
