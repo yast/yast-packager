@@ -58,11 +58,18 @@ ynclude1dir = @yncludedir@/checkmedia
 ynclude1_DATA = \
   include/checkmedia/ui.rb
 
+scrconf_DATA = \
+  scrconf/etc_zypp_conf.scr \
+  scrconf/zypp_repos.scr
+
+agent_SCRIPTS =	\
+  servers_non_y2/ag_zypp_repos
+
 desktop_DATA = \
   desktop/sw_source.desktop \
   desktop/sw_single.desktop \
   desktop/checkmedia.desktop
 
-EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(desktop_DATA)
+EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA)
 
 include $(top_srcdir)/Makefile.am.common
