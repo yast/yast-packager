@@ -6,7 +6,7 @@ Group:	System/YaST
 License: GPL-2.0+
 BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-devtools yast2-testsuite
 
-BuildRequires: yast2 >= 3.0.4
+BuildRequires: yast2 >= 3.0.5
 
 # Pkg::SetZConfig()
 BuildRequires:	yast2-pkg-bindings >= 2.21.8
@@ -18,7 +18,7 @@ Requires:	yast2-country-data >= 2.16.3
 Requires:	yast2-pkg-bindings >= 2.21.8
 
 # OSRelease
-Requires: yast2 >= 3.0.4
+Requires: yast2 >= 3.0.5
 
 # unzipping license file
 Requires:	unzip
