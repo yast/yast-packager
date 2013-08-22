@@ -9,8 +9,6 @@ Read	.target.size "/etc/sysconfig/language" 1
 Read	.sysconfig.language.ROOT_USES_LANG "ctype"
 Read	.sysconfig.language.RC_LANG "en_US.UTF-8"
 Read	.sysconfig.language.INSTALLED_LANGUAGES ""
-Read	.target.string ["//etc/SuSE-release", "?"] "SUSE Linux Enterprise Server 11 (x86_64)\nVERSION = 11\nPATCHLEVEL = 1\n"
-Read	.target.string ["//etc/SuSE-release", "?"] "SUSE Linux Enterprise Server 11 (x86_64)\nVERSION = 11\nPATCHLEVEL = 1\n"
 Dump	 ----- biosdevname tests ----- 
 Read	.target.string "/proc/cmdline" "install=cd:// vga=0x314 biosdevname=1"
 Return	["biosdevname"]

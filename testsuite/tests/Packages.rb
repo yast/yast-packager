@@ -12,10 +12,7 @@ module Yast
         "target"    => {
           "tmpdir" => "/tmp",
           "size"   => 1,
-          "stat"   => { "isreg" => true },
-          "string" => "SUSE Linux Enterprise Server 11 (x86_64)\n" +
-            "VERSION = 11\n" +
-            "PATCHLEVEL = 1\n"
+          "stat"   => { "isreg" => true }
         },
         "xml"       => {},
         "sysconfig" => {
