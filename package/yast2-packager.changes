@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 22 08:43:24 CEST 2013 - jsuchome@suse.cz
+
+- use OSRelease instead of obsolete SuSERelease (bnc#833955)
+- 3.0.2 
+
+-------------------------------------------------------------------
 Thu Aug  1 20:12:44 UTC 2013 - lslezak@suse.cz
 
 - removed obsolete BuildRequires: gcc-c++ perl-XML-Writer

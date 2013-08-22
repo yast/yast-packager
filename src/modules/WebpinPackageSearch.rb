@@ -21,7 +21,7 @@ module Yast
       textdomain "packager"
 
       Yast.import "HTTP"
-      Yast.import "SuSERelease"
+      Yast.import "OSRelease"
       Yast.import "Directory"
       Yast.import "FileUtils"
       Yast.import "URL"
@@ -162,8 +162,8 @@ module Yast
     def GuessCurrentDistribution
       return @already_guessed if @already_guessed != nil
 
-      rel_name = SuSERelease.ReleaseName
-      rel_version = SuSERelease.ReleaseVersion
+      rel_name = OSRelease.ReleaseName
+      rel_version = OSRelease.ReleaseVersion
 
       if Builtins.regexpmatch(rel_version, ".")
         rel_version = Builtins.mergestring(
