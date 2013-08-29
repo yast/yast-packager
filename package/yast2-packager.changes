@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Aug 29 11:09:59 UTC 2013 - lslezak@suse.cz
+
+- sw_single - disable "ignore recommended packages for already
+  installed packages" at the first run (then use the stored
+  setting) (bnc#835968)
+- 3.0.3
+
+-------------------------------------------------------------------
 Thu Aug 22 08:43:24 CEST 2013 - jsuchome@suse.cz
 
 - use OSRelease instead of obsolete SuSERelease (bnc#833955)
