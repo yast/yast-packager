@@ -441,7 +441,9 @@ module Yast
             Ops.get_string(URL.Parse(repo_url), "scheme", "")
           )
 
-          if Builtins.contains(["http", "https", "ftp", "sftp"], repo_schema)
+          # iso repos get also downloaded according to experience; the addition is not a perfect
+          # fix, but still improves the progress (bnc#724486)
+          if Builtins.contains(["http", "https", "ftp", "sftp", "iso"], repo_schema)
             total = 0
             Builtins.foreach(media_mapping) do |count|
               total = Ops.add(total, count)

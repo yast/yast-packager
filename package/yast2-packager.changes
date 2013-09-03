@@ -12,6 +12,8 @@ Tue Sep  3 11:34:48 UTC 2013 - lslezak@suse.cz
   proposed packages - i.e. add snapper packages after switching to
   btrfs (bnc#831875, port from SLE11 bnc#704127) (see commit
   6c48fd7761)
+- improve the progress bar during package installation slideshow
+  (bnc#831875, port from SLE11 bnc#724486) (see commit 2be99dd9ff)
 
 -------------------------------------------------------------------
 Tue Sep  3 12:31:37 CEST 2013 - jsuchome@suse.cz
