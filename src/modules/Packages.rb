@@ -2072,6 +2072,21 @@ module Yast
       nil
     end
 
+    # Check whether the list of needed packages has been changed since the last
+    # package proposal
+    #
+    # @return [boolean] true if PackagesProposal has been changed
+    def PackagesProposalChanged
+      new_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
+
+      # Force reinit
+      changed = new_packages_proposal != @old_packages_proposal
+      Builtins.y2milestone("PackagesProposal has been changed: %1", changed)
+      Builtins.y2debug("PackagesProposal: %1 -> %2", old_packages_proposal, new_packages_proposal)
+
+      changed
+    end
+
     # Make a proposal for package selection
     #
     # @param force reset (fully resets the proposal and creates a new one)
@@ -2085,13 +2100,10 @@ module Yast
       # set ignoreAlreadyRecommended solver flag
       Pkg.SetSolverFlags({ "ignoreAlreadyRecommended" => Mode.normal })
 
-      # If anything has changed
-      new_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
-
       # Force reinit
-      if new_packages_proposal != @old_packages_proposal
-        Builtins.y2milestone("PackagesProposal have changed")
-        @old_packages_proposal = deep_copy(new_packages_proposal)
+      if PackagesProposalChanged
+        @old_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
+        Builtins.y2milestone("Reinit package proposal");
         reinit = true
       end
 

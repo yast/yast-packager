@@ -1,4 +1,27 @@
 -------------------------------------------------------------------
+Tue Sep  3 11:34:48 UTC 2013 - lslezak@suse.cz
+
+- don't reset package selection in the installation proposal when
+  partitioning is changed (bnc#831875, port from SLE11 bnc#450786,
+  bnc#371875) (see commit d1cce0e5a5)
+- fixed slideshow initialization - in add-on workflow the
+  initialization was called too late resulting in still 0% total
+  progress during whole installation (bnc#831875, port from SLE11
+  bnc#663301) (see commit a1772b138d)
+- do not skip package proposal when the partitioner has changed
+  proposed packages - i.e. add snapper packages after switching to
+  btrfs (bnc#831875, port from SLE11 bnc#704127) (see commit
+  6c48fd7761)
+- improve the progress bar during package installation slideshow
+  (bnc#831875, port from SLE11 bnc#724486) (see commit 2be99dd9ff)
+- REGISTERPRODUCT from content file moved to control file to
+  globals->require_registration (bnc#831875, port from SLE11
+  FATE #305578) (see commit 7d9a51bb4a)
+- improved addon file handling (bnc#831875, port from SLE11
+  bnc#815899) (see commit 3490193186)
+- 3.0.5
+
+-------------------------------------------------------------------
 Tue Sep  3 12:31:37 CEST 2013 - jsuchome@suse.cz
 
 - do not install xorg-x11 package (bnc#837450)

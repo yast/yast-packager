@@ -44,6 +44,7 @@ module Yast
       Yast.import "Icon"
       Yast.import "PackageCallbacks"
       Yast.import "PackagesProposal"
+      Yast.import "SourceManager"
 
       # variables for installation with product
       # ID for cache in the inst-sys
@@ -754,6 +755,18 @@ module Yast
     #
     # @param integer source id
     def PrepareForRegistration(src_id)
+      control_file = WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, "");
+
+      if WorkflowManager.IncorporateControlFileOptions(control_file) == true
+        # FATE #305578: Add-On Product Requiring Registration
+        if WorkflowManager.WorkflowRequiresRegistration(src_id)
+            Builtins.y2milestone("REGISTERPRODUCT (require_registration) defined in control file")
+            @addons_requesting_registration << deep_copy(src_id)
+            return nil
+        end
+      end
+
+
       tmpdir = Ops.add(
         Convert.to_string(SCR.Read(path(".target.tmpdir"))),
         "/add-on-content-files/"
@@ -855,7 +868,9 @@ module Yast
     #
     # @param integer source id
     def RegisterAddOnProduct(src_id)
-      if Builtins.contains(@addons_requesting_registration, src_id)
+      # FATE #305578: Add-On Product Requiring Registration
+      # or check the content file
+      if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
         WFM.CallFunction("inst_suse_register", [])
       else
@@ -901,14 +916,11 @@ module Yast
 
       ret = nil
 
-      control = GetCachedFileFromSource(
-        @src_id, # optional
-        1,
-        "/installation.xml",
-        "digested",
-        true
-      )
+      control = WorkflowManager.GetCachedWorkflowFilename(:addon, @src_id, "")
       if control != nil
+        # FATE #305578: Add-On Product Requiring Registration
+        WorkflowManager.AddWorkflow(:addon, @src_id, "")
+
         Builtins.y2milestone("Add-On has own control file")
         ret = DoInstall_WithControlFile(control)
       end
@@ -1460,6 +1472,91 @@ module Yast
       nil
     end
 
+    # Ask for a product medium
+    #
+    # @url medium url (either "cd:///" or "dvd:///")
+    # @product_name expected product name
+    # @return nil if aborted, otherwise URL with the selected CD device
+
+    def AskForCD(url, product_name)
+      parsed = URL.Parse(url)
+      scheme = Builtins.tolower(Ops.get_string(parsed, "scheme", ""))
+
+      msg = product_name == nil || product_name == "" ?
+        # %1 is either "CD" or "DVD"
+        Builtins.sformat(
+          _("Insert the addon %1 medium"),
+          Builtins.toupper(scheme)
+        ) :
+        # %1 is the product name, %2 is either "CD" or "DVD"
+        Builtins.sformat(
+          _("Insert the %1 %2 medium"),
+          product_name,
+          Builtins.toupper(scheme)
+        )
+
+      # make sure no medium is mounted (the drive is not locked)
+      Pkg.SourceReleaseAll
+
+      ui = SourceManager.AskForCD(msg)
+
+      return nil if !Ops.get_boolean(ui, "continue", false)
+
+      cd_device = Ops.get_string(ui, "device", "")
+      if cd_device != nil && cd_device != ""
+        Builtins.y2milestone("Selected CD/DVD device: %1", cd_device)
+        query = Ops.get_string(parsed, "query", "")
+
+        query = Ops.add(query, "&") if query != ""
+
+        query = Ops.add(Ops.add(query, "devices="), cd_device)
+
+        Ops.set(parsed, "query", query)
+        url = URL.Build(parsed)
+      end
+
+      url
+    end
+
+    # Add a new repository
+    # @param url repo url
+    # @param pth product path
+    # @param priority
+    # @return integer repository ID
+    def AddRepo(url, pth, priority)
+      # update the URL to the selected device
+      new_repo = { "enabled" => true, "base_urls" => [url], "prod_dir" => pth }
+
+      # BNC #714027: Possibility to adjust repository priority (usually higher)
+      Ops.set(new_repo, "priority", priority) if Ops.greater_than(priority, -1)
+
+      Builtins.y2milestone(
+        "Adding Repository: %1, product path: %2",
+        URL.HidePassword(url),
+        pth
+      )
+      new_repo_id = Pkg.RepositoryAdd(new_repo)
+
+      if new_repo_id == nil || Ops.less_than(new_repo_id, 0)
+        Builtins.y2error("Unable to add product: %1", URL.HidePassword(url))
+        # TRANSLATORS: error message, %1 is replaced with product URL
+        Report.Error(
+          Builtins.sformat(
+            _("Unable to add product %1."),
+            URL.HidePassword(url)
+          )
+        )
+        return nil
+      end
+
+      # download metadata, build repo cache
+      Pkg.SourceRefreshNow(new_repo_id)
+      # load resolvables to zypp pool
+      Pkg.SourceLoad
+
+      new_repo_id
+    end
+
     # Auto-integrate add-on products in specified file (usually add_on_products or
     # add_on_products.xml file)
     #
@@ -1558,27 +1655,60 @@ module Yast
           url = Ops.get_string(one_product, "url", "")
           pth = Ops.get_string(one_product, "path", "")
           priority = Ops.get_integer(one_product, "priority", -1)
-          new_repo = {
-            "enabled"   => true,
-            "base_urls" => [url],
-            "prod_dir"  => pth
-          }
-          # BNC #714027: Possibility to adjust repository priority (usually higher)
-          if Ops.greater_than(priority, -1)
-            Ops.set(new_repo, "priority", priority)
+          prodname = Ops.get_string(one_product, "name", "")
+          # Check URL and setup network if required or prompt to insert CD/DVD
+          parsed = URL.Parse(url)
+          scheme = Builtins.tolower(Ops.get_string(parsed, "scheme", ""))
+          # check if network needs to be configured
+          if Builtins.contains(
+              ["http", "https", "ftp", "nfs", "cifs", "slp"],
+              scheme
+            )
+            inc_ret = Convert.to_symbol(
+              WFM.CallFunction("inst_network_check", [])
+            )
+            Builtins.y2milestone("inst_network_check ret: %1", inc_ret)
           end
-          Builtins.y2milestone("Adding Repository: %1", new_repo)
-          repo_id = Pkg.RepositoryAdd(new_repo)
-          if repo_id == nil || Ops.less_than(repo_id, 0)
-            Builtins.y2error("Unable to add product: %1", url)
-            # TRANSLATORS: error message, %1 is replaced with product URL
-            Report.Error(Builtins.sformat(_("Unable to add product %1."), url))
-            next false
+          # a CD/DVD repository
+          if Builtins.contains(["cd", "dvd"], scheme)
+            # if the CD/DVD product is known just try if it's there
+            # and ask if not
+            if prodname != ""
+              found = false
+
+              while !found
+                repo_id = AddRepo(url, pth, priority)
+                next false if repo_id == nil
+
+                prod2 = Pkg.SourceProductData(repo_id)
+                if Ops.get_string(prod2, "label", "") == prodname
+                  found = true
+                else
+                  Builtins.y2milestone(
+                    "Removing repo %1: Add-on found: %2, expected: %3",
+                    repo_id,
+                    Ops.get_string(prod2, "label", ""),
+                    prodname
+                  )
+                  Pkg.SourceDelete(repo_id)
+
+                  # ask for a different medium
+                  url = AskForCD(url, prodname)
+                  next false if url == nil
+                end
+              end
+            else
+              result = AskForCD(url, prodname)
+              next false if result == nil
+
+              repo_id = AddRepo(result, pth, priority)
+              next false if repo_id == nil
+            end
+          else
+            # a non CD/DVD repository
+            repo_id = AddRepo(url, pth, priority)
+            next false if repo_id == nil
           end
-          # download metadata, build repo cache
-          Pkg.SourceRefreshNow(repo_id)
-          # load resolvables to zypp pool
-          Pkg.SourceLoad
           if !AcceptedLicenseAndInfoFile(repo_id)
             Builtins.y2warning("License not accepted, delete the repository")
             Pkg.SourceDelete(repo_id)
