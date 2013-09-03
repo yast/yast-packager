@@ -798,16 +798,10 @@ module Yast
       # don't setup graphics if running via serial console
       if !Linuxrc.serial_console
         packages = [
-          "xorg-x11",
           "xorg-x11-server",
           "xorg-x11-server-glx",
           "libusb",
-          "sax2",
-          "sax2-gui",
-          "sax2-ident",
           "sax2-tools",
-          "sax2-libsax",
-          "sax2-libsax-perl",
           "yast2-x11"
         ]
       end
@@ -825,7 +819,7 @@ module Yast
       if Linuxrc.vnc
         packages = Builtins.add(packages, "tightvnc")
         packages = Builtins.add(packages, "yast2-qt")
-        packages = Builtins.add(packages, "xorg-x11")
+        packages = Builtins.add(packages, "xorg-x11-Xvnc")
         packages = Builtins.add(packages, "xorg-x11-fonts")
         packages = Builtins.add(packages, "icewm")
         packages = Builtins.add(packages, "sax2-tools")
@@ -836,7 +830,7 @@ module Yast
       #this means we have a remote X server
       if Linuxrc.display_ip
         packages = Builtins.add(packages, "yast2-qt")
-        packages = Builtins.add(packages, "xorg-x11")
+        packages = Builtins.add(packages, "xorg-x11-server")
         packages = Builtins.add(packages, "xorg-x11-fonts")
         packages = Builtins.add(packages, "icewm")
         packages = Builtins.add(packages, "sax2-tools")
@@ -1094,7 +1088,7 @@ module Yast
         end
       end
 
-      if Pkg.IsSelected("xorg-x11") && Linuxrc.vnc
+      if Pkg.IsSelected("xorg-x11-Xvnc") && Linuxrc.vnc
         install_list = Convert.convert(
           Builtins.union(install_list, graphicPackages),
           :from => "list",
