@@ -807,7 +807,8 @@ module Yast
       end
 
       Builtins.y2milestone("X11 Packages to install: %1", packages)
-      deep_copy(packages)
+
+      packages
     end
 
 
@@ -817,32 +818,22 @@ module Yast
       packages = []
 
       if Linuxrc.vnc
-        packages = Builtins.add(packages, "tightvnc")
-        packages = Builtins.add(packages, "yast2-qt")
-        packages = Builtins.add(packages, "xorg-x11-Xvnc")
-        packages = Builtins.add(packages, "xorg-x11-fonts")
-        packages = Builtins.add(packages, "icewm")
-        packages = Builtins.add(packages, "sax2-tools")
-        packages = Builtins.add(packages, "yast2-x11")
-        packages = Builtins.add(packages, "xinetd")
+        packages.concat [ "tightvnc", "yast2-qt", "xorg-x11-Xvnc",
+          "xorg-x11-fonts", "icewm", "sax2-tools", "yast2-x11", "xinetd" ]
       end
 
       #this means we have a remote X server
       if Linuxrc.display_ip
-        packages = Builtins.add(packages, "yast2-qt")
-        packages = Builtins.add(packages, "xorg-x11-server")
-        packages = Builtins.add(packages, "xorg-x11-fonts")
-        packages = Builtins.add(packages, "icewm")
-        packages = Builtins.add(packages, "sax2-tools")
-        packages = Builtins.add(packages, "yast2-x11")
+        packages.concat [ "yast2-qt", "xorg-x11-server", "xorg-x11-fonts",
+          "icewm", "sax2-tools", "yast2-x11" ]
       end
 
-      packages = Builtins.add(packages, "sbl") if Linuxrc.braille
-
-      packages = Builtins.add(packages, "openssh") if Linuxrc.usessh
+      packages << "sbl" if Linuxrc.braille
+      packages << "openssh" if Linuxrc.usessh
 
       Builtins.y2milestone("Installation mode packages: %1", packages)
-      deep_copy(packages)
+
+      packages
     end
 
     # CHeck whether this is a Dell system
