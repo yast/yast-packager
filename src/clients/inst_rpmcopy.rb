@@ -116,6 +116,9 @@ module Yast
       @maxnumbercds = Ops.get(@cdnumbers, "maxnumbercds", 10)
       @current_cd_no = Ops.get(@cdnumbers, "current_cd_no", 1)
 
+      # re-initialize package information
+      PackageSlideShow.InitPkgData(true)
+
       @get_setup = SlideShow.GetSetup
       if @get_setup == nil || @get_setup == {}
         Builtins.y2milestone("No SlideShow setup has been set, adjusting")
@@ -135,8 +138,6 @@ module Yast
       end
       @get_setup = nil
 
-      # re-initialize package information
-      PackageSlideShow.InitPkgData(true)
       # we want the table
       SlideShow.ShowTable
 
