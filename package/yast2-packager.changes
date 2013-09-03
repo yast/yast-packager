@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep  3 11:34:48 UTC 2013 - lslezak@suse.cz
+
+- don't reset package selection in the installation proposal when
+  partitioning is changed (bnc#831875, port from SLE11 bnc#450786,
+  bnc#371875) (see commit d1cce0e5a5)
+
+-------------------------------------------------------------------
 Tue Sep  3 12:31:37 CEST 2013 - jsuchome@suse.cz
 
 - do not install xorg-x11 package (bnc#837450)

@@ -64,7 +64,13 @@ module Yast
           )
         end
 
-        @reinit = true if @language_changed || @partition_changed
+        # if only partitioning has been changed just return the current state,
+        # don't reset to default (bnc#450786, bnc#371875)
+        if @partition_changed && !@language_changed && !@force_reset
+          return Packages.Summary([ :product, :pattern, :selection, :size, :desktop ], false);
+        end
+
+        @reinit = true if @language_changed
         Builtins.y2milestone(
           "package proposal: force reset: %1, reinit: %2, language changed: %3",
           @force_reset,
