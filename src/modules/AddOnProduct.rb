@@ -754,6 +754,18 @@ module Yast
     #
     # @param integer source id
     def PrepareForRegistration(src_id)
+      control_file = WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, "");
+
+      if WorkflowManager.IncorporateControlFileOptions(control_file) == true
+        # FATE #305578: Add-On Product Requiring Registration
+        if WorkflowManager.WorkflowRequiresRegistration(src_id)
+            Builtins.y2milestone("REGISTERPRODUCT (require_registration) defined in control file")
+            @addons_requesting_registration << deep_copy(src_id)
+            return nil
+        end
+      end
+
+
       tmpdir = Ops.add(
         Convert.to_string(SCR.Read(path(".target.tmpdir"))),
         "/add-on-content-files/"
@@ -855,7 +867,9 @@ module Yast
     #
     # @param integer source id
     def RegisterAddOnProduct(src_id)
-      if Builtins.contains(@addons_requesting_registration, src_id)
+      # FATE #305578: Add-On Product Requiring Registration
+      # or check the content file
+      if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
         WFM.CallFunction("inst_suse_register", [])
       else
@@ -901,14 +915,11 @@ module Yast
 
       ret = nil
 
-      control = GetCachedFileFromSource(
-        @src_id, # optional
-        1,
-        "/installation.xml",
-        "digested",
-        true
-      )
+      control = WorkflowManager.GetCachedWorkflowFilename(:addon, @src_id, "")
       if control != nil
+        # FATE #305578: Add-On Product Requiring Registration
+        WorkflowManager.AddWorkflow(:addon, @src_id, "")
+
         Builtins.y2milestone("Add-On has own control file")
         ret = DoInstall_WithControlFile(control)
       end

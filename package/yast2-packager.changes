@@ -14,6 +14,9 @@ Tue Sep  3 11:34:48 UTC 2013 - lslezak@suse.cz
   6c48fd7761)
 - improve the progress bar during package installation slideshow
   (bnc#831875, port from SLE11 bnc#724486) (see commit 2be99dd9ff)
+- REGISTERPRODUCT from content file moved to control file to
+  globals->require_registration (bnc#831875, port from SLE11
+  FATE #305578) (see commit 7d9a51bb4a)
 
 -------------------------------------------------------------------
 Tue Sep  3 12:31:37 CEST 2013 - jsuchome@suse.cz
