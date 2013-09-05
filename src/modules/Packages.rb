@@ -2082,7 +2082,7 @@ module Yast
       # Force reinit
       changed = new_packages_proposal != @old_packages_proposal
       Builtins.y2milestone("PackagesProposal has been changed: %1", changed)
-      Builtins.y2debug("PackagesProposal: %1 -> %2", old_packages_proposal, new_packages_proposal)
+      Builtins.y2debug("PackagesProposal: %1 -> %2", @old_packages_proposal, new_packages_proposal)
 
       changed
     end
@@ -2101,7 +2101,7 @@ module Yast
       Pkg.SetSolverFlags({ "ignoreAlreadyRecommended" => Mode.normal })
 
       # Force reinit
-      if PackagesProposalChanged
+      if PackagesProposalChanged()
         @old_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
         Builtins.y2milestone("Reinit package proposal");
         reinit = true
