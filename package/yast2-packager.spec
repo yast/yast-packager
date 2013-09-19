@@ -1,10 +1,32 @@
-@HEADER-COMMENT@
+#
+# spec file for package yast2-packager
+#
+# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
+#
 
 
-@HEADER@
-Group:	System/YaST
-License: GPL-2.0+
-BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-devtools yast2-testsuite
+Name:           yast2-packager
+Version:        3.1.0
+Release:        0
+
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Source0:        %{name}-%{version}.tar.bz2
+
+Group:	        System/YaST
+License:        GPL-2.0+
+BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite
+BuildRequires:  yast2-devtools >= 3.0.6
 
 BuildRequires: yast2 >= 3.0.5
 
@@ -59,10 +81,8 @@ Requires:       yast2-ruby-bindings >= 1.0.0
 Summary:	YaST2 - Package Library
 
 %package webpin
-
 Group:		System/YaST
 Requires:       yast2-ruby-bindings >= 1.0.0
-
 Summary:	YaST2 - Webpin package search client
 
 %package devel-doc
@@ -81,36 +101,38 @@ This package contains a client for searching packages in online repositories
 This package contains development documentation for using the API
 provided by yast2-packager package.
 
-@PREP@
+%prep
+%setup -n %{name}-%{version}
 
-@BUILD@
+%build
+%yast_build
 
-@INSTALL@
+%install
+%yast_install
 
-@CLEAN@
 
 %files
 %defattr(-,root,root)
-%dir @yncludedir@/checkmedia
-%dir @yncludedir@/packager
-@yncludedir@/checkmedia/*
-@yncludedir@/packager/*
-@clientdir@/*.rb
-%exclude @clientdir@/webpin_package_search.rb
-@moduledir@/*
-%exclude @moduledir@/WebpinPackageSearch.rb
-@desktopdir@/*.desktop
-@scrconfdir@/*
-@execcompdir@/servers_non_y2/ag_*
-%dir @docdir@
-%doc @docdir@/README
-%doc @docdir@/COPYING
+%dir %{yast_yncludedir}/checkmedia
+%dir %{yast_yncludedir}/packager
+%{yast_yncludedir}/checkmedia/*
+%{yast_yncludedir}/packager/*
+%{yast_clientdir}/*.rb
+%exclude %{yast_clientdir}/webpin_package_search.rb
+%{yast_moduledir}/*
+%exclude %{yast_moduledir}/WebpinPackageSearch.rb
+%{yast_desktopdir}/*.desktop
+%{yast_scrconfdir}/*
+%{yast_execcompdir}/servers_non_y2/ag_*
+%dir %{yast_docdir}
+%doc %{yast_docdir}/README
+%doc %{yast_docdir}/COPYING
 
 %files devel-doc
-%doc @docdir@/autodocs
+%doc %{yast_docdir}/autodocs
 
 %files webpin
 %defattr(-,root,root)
-@clientdir@/webpin_package_search.rb
-@moduledir@/WebpinPackageSearch.rb
+%{yast_clientdir}/webpin_package_search.rb
+%{yast_moduledir}/WebpinPackageSearch.rb
 

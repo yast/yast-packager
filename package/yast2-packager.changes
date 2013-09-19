@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 19 12:28:42 UTC 2013 - lslezak@suse.cz
+
+- do not use *.spec.in template, use *.spec file with RPM macros
+  instead
+- 3.1.0
+
+-------------------------------------------------------------------
 Tue Sep  3 11:34:48 UTC 2013 - lslezak@suse.cz
 
 - don't reset package selection in the installation proposal when
