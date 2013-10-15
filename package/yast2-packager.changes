@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Oct 15 07:11:25 UTC 2013 - lslezak@suse.cz
+
+- removed non-working *-webpin subpackage (the external service for
+  package search does not work, without that service it is useless)
+  (bnc#845622)
+- 3.0.6
+
+-------------------------------------------------------------------
 Tue Sep  3 11:34:48 UTC 2013 - lslezak@suse.cz
 
 - don't reset package selection in the installation proposal when
