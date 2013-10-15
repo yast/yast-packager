@@ -14,7 +14,6 @@ module_DATA = \
   modules/Packages.rb \
   modules/SourceDialogs.rb \
   modules/SourceManagerSLP.rb \
-  modules/WebpinPackageSearch.rb \
   modules/KeyManager.rb \
   modules/CheckMedia.rb \
   modules/SlideShowCallbacks.rb
@@ -43,7 +42,6 @@ client_DATA = \
   clients/inst_desktop.rb \
   clients/inst_mediacopy.rb \
   clients/wrapper_slideshow_callbacks.rb \
-  clients/webpin_package_search.rb \
   clients/checkmedia.rb
 
 yncludedir = @yncludedir@/packager
