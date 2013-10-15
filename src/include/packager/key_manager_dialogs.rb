@@ -213,7 +213,6 @@ module Yast
           "<p>\n" +
             "<b>Adding a New GPG Key</b><br>\n" +
             "To add a new GPG key, specify the path to the key file.\n" +
-            "Check the <B>Trusted</B> check box if the key is trusted.\n" +
             "</p>\n"
         )
       )
