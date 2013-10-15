@@ -125,7 +125,6 @@ provided by yast2-packager package.
 %{yast_scrconfdir}/*
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
-%doc %{yast_docdir}/README
 %doc %{yast_docdir}/COPYING
 
 %files devel-doc
