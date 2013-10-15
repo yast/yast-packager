@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 15 08:24:06 UTC 2013 - lslezak@suse.cz
+
+- updated help text in "Adding a GPG Public Key" dialog
+  (bnc#830853)
+
+-------------------------------------------------------------------
 Thu Sep 19 12:28:42 UTC 2013 - lslezak@suse.cz
 
 - do not use *.spec.in template, use *.spec file with RPM macros
