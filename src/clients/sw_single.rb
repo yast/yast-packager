@@ -504,7 +504,7 @@ module Yast
 
       # an extra step is needed in dir inst mode
       if Installation.destdir != "/"
-        Builtins.y2internal("Extra step is needed")
+        Builtins.y2milestone("Extra step is needed")
         # %1 is path to the target system (e.g. /tmp/dirinstall
         Builtins.sformat(
           _("Reset the target system to %1"),
