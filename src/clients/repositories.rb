@@ -282,7 +282,9 @@ module Yast
         RemoveDeletedAddNewRepos()
       end
 
-      itemList = repo_mode ? @sourceStatesOut : @serviceStatesOut
+      itemList = repo_mode ?
+        deep_copy(@sourceStatesOut) :
+        deep_copy(@serviceStatesOut)
 
       # displaye only repositories from the selected service
       if repo_mode && service_name != ""
@@ -346,7 +348,7 @@ module Yast
 
     def fillRepoInfo(index, source, repo_mode, service_name)
       source = deep_copy(source)
-      info = repo_mode ? getSourceInfo(index, source) : source
+      info = repo_mode ? getSourceInfo(index, source) : deep_copy(source)
       if repo_mode
         Builtins.y2milestone("getSourceInfo(%1, %2): %3", index, source, info)
       end
@@ -1395,9 +1397,9 @@ module Yast
 
             data = @repository_view ?
               @displayed_service == "" ?
-                @sourceStatesOut :
+                deep_copy(@sourceStatesOut) :
                 ReposFromService(@displayed_service, @sourceStatesOut) :
-              @serviceStatesOut
+              deep_copy(@serviceStatesOut)
 
             Builtins.y2internal("data: %1", data)
 
