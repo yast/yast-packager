@@ -1343,7 +1343,7 @@ module Yast
 
       # remove path
       pkg_filename = StripPath(pkg_location)
-      Builtins.y2internal("pkg_name: %1", pkg_name)
+      Builtins.y2milestone("pkg_name: %1", pkg_name)
 
       if deleting
         pkg_size = -1

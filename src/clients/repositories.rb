@@ -1114,7 +1114,7 @@ module Yast
 
           if Ops.less_than(id, 0) && @repository_view &&
               @displayed_service == ""
-            Builtins.y2internal(
+            Builtins.y2error(
               "Unable to determine repository id, broken repository?"
             )
             next
@@ -1399,7 +1399,7 @@ module Yast
                 ReposFromService(@displayed_service, @sourceStatesOut) :
               @serviceStatesOut
 
-            Builtins.y2internal("data: %1", data)
+            Builtins.y2milestone("data: %1", data)
 
             Builtins.foreach(data) do |src_state|
               if Ops.get_boolean(src_state, "enabled", false) &&
@@ -1658,7 +1658,7 @@ module Yast
               new_keep = Convert.to_boolean(
                 UI.QueryWidget(Id(:keeppackages), :Value)
               )
-              Builtins.y2internal("New keep packages option: %1", new_keep)
+              Builtins.y2milestone("New keep packages option: %1", new_keep)
 
               Ops.set(sourceState, "keeppackages", new_keep)
               Ops.set(@sourceStatesOut, global_current, sourceState)

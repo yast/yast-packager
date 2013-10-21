@@ -699,7 +699,7 @@ module Yast
                     )
                     Builtins.foreach(partition) do |p|
                       if Ops.get_string(p, "name", "") == tmpdir
-                        Builtins.y2internal("P: %1", p)
+                        Builtins.y2milestone("P: %1", p)
                         free_size = Ops.multiply(
                           Builtins.tointeger(Ops.get_string(p, "free", "0")),
                           1024

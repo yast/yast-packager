@@ -2184,7 +2184,7 @@ module Yast
           @_url = "commrepos://"
         end
       else
-        Builtins.y2internal("Unexpected repo type %1", selected)
+        Builtins.y2error("Unexpected repo type %1", selected)
       end
 
       nil

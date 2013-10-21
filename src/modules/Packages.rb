@@ -1560,7 +1560,7 @@ module Yast
           AddOnProduct.UpdateInstSys(Ops.add(spdir, "/y2update.tgz"))
         end
         @theSources = Builtins.add(@theSources, sp_source)
-        Builtins.y2internal(
+        Builtins.y2milestone(
           "Service pack repository: %1, changing to URL: %2",
           sp_source,
           base_url
