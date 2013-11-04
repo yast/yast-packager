@@ -838,24 +838,10 @@ module Yast
 
     # CHeck whether this is a Dell system
     def DellSystem
-      ret = false
-      command = "/usr/sbin/hwinfo --bios"
+      command = "/usr/sbin/hwinfo --bios | grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'"
       Builtins.y2milestone("Executing: %1", command)
 
-      out = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
-      Builtins.y2milestone("Result: %1", out)
-
-      if Ops.get_integer(out, "exit", -1) == 0
-        lines = Builtins.splitstring(Ops.get_string(out, "stdout", ""), "\n")
-
-        Builtins.foreach(lines) do |line|
-          if Builtins.regexpmatch(line, "Vendor:.*Dell Inc.*")
-            Builtins.y2milestone("Found matching line: %1", line)
-            ret = true
-          end
-        end
-      end
-
+      ret = SCR.Execute(path(".target.bash"), command) == 0
       Builtins.y2milestone("Detected a Dell system") if ret
 
       ret
