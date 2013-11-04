@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Nov  4 11:37:42 UTC 2013 - lslezak@suse.cz
+
+- fixed vendor detection, check the output directly in shell
+  to avoid reading binary (non-UTF8) text (bnc#847153)
+- removed non-working *-webpin subpackage (the external service for
+  package search does not work, without that service it is useless)
+  (bnc#845622)
+
+-------------------------------------------------------------------
 Tue Oct 15 08:24:06 UTC 2013 - lslezak@suse.cz
 
 - updated help text in "Adding a GPG Public Key" dialog

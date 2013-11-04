@@ -75,15 +75,12 @@ Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
 Obsoletes:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
 Provides:	yast2-trans-package-manager yast2-trans-inst-packages
 Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
+# force *-webpin subpackage removal at upgrade
+Obsoletes:      yast2-packager-webpin < %version
 
 Requires:       yast2-ruby-bindings >= 1.0.0
-
 Summary:	YaST2 - Package Library
 
-%package webpin
-Group:		System/YaST
-Requires:       yast2-ruby-bindings >= 1.0.0
-Summary:	YaST2 - Webpin package search client
 
 %package devel-doc
 Requires:       yast2-packager = %version
@@ -92,10 +89,6 @@ Summary:        YaST2 - Development Documentation
 
 %description
 This package contains the libraries and modules for software management.
-
-%description webpin
-This package contains a client for searching packages in online repositories
-(webpin) and installing them via OneClickInstall
 
 %description devel-doc
 This package contains development documentation for using the API
@@ -113,6 +106,7 @@ provided by yast2-packager package.
 
 %files
 %defattr(-,root,root)
+<<<<<<< HEAD:package/yast2-packager.spec
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
 %{yast_yncludedir}/checkmedia/*
@@ -126,12 +120,29 @@ provided by yast2-packager package.
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
+=======
+%dir @yncludedir@/checkmedia
+%dir @yncludedir@/packager
+@yncludedir@/checkmedia/*
+@yncludedir@/packager/*
+@clientdir@/*.rb
+@moduledir@/*
+@desktopdir@/*.desktop
+@scrconfdir@/*
+@execcompdir@/servers_non_y2/ag_*
+%dir @docdir@
+%doc @docdir@/README
+%doc @docdir@/COPYING
+>>>>>>> openSUSE-13_1:yast2-packager.spec.in
 
 %files devel-doc
 %doc %{yast_docdir}/autodocs
 
+<<<<<<< HEAD:package/yast2-packager.spec
 %files webpin
 %defattr(-,root,root)
 %{yast_clientdir}/webpin_package_search.rb
 %{yast_moduledir}/WebpinPackageSearch.rb
+=======
+>>>>>>> openSUSE-13_1:yast2-packager.spec.in
 
