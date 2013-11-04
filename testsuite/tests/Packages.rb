@@ -63,28 +63,16 @@ module Yast
       # a Dell system
       Ops.set(
         @EXEC,
-        ["target", "bash_output"],
-        {
-          "exit"   => 0,
-          "stdout" => "  BIOS Info: #0\n" +
-            "    Vendor: \"Dell Inc.\"\n" +
-            "        Version: \"A03\"",
-          "stderr" => ""
-        }
+        ["target", "bash"],
+        0
       )
       TEST(lambda { Packages.kernelCmdLinePackages }, [@READ, {}, @EXEC], nil)
 
       # a non-Dell system
       Ops.set(
         @EXEC,
-        ["target", "bash_output"],
-        {
-          "exit"   => 0,
-          "stdout" => "  BIOS Info: #0\n" +
-            "    Vendor: \"FooBar Inc.\"\n" +
-            "        Version: \"001\"",
-          "stderr" => ""
-        }
+        ["target", "bash"],
+        1
       )
       TEST(lambda { Packages.kernelCmdLinePackages }, [@READ, {}, @EXEC], nil)
 
