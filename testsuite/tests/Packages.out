@@ -15,8 +15,8 @@ Return	["biosdevname"]
 Read	.target.string "/proc/cmdline" "install=cd:// vga=0x314 biosdevname=0"
 Return	[]
 Read	.target.string "/proc/cmdline" "install=cd:// vga=0x314"
-Execute	.target.bash_output "/usr/sbin/hwinfo --bios" $["exit":0, "stderr":"", "stdout":"  BIOS Info: #0\n    Vendor: \"Dell Inc.\"\n        Version: \"A03\""]
+Execute	.target.bash "/usr/sbin/hwinfo --bios | grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'" 0
 Return	["biosdevname"]
 Read	.target.string "/proc/cmdline" "install=cd:// vga=0x314"
-Execute	.target.bash_output "/usr/sbin/hwinfo --bios" $["exit":0, "stderr":"", "stdout":"  BIOS Info: #0\n    Vendor: \"FooBar Inc.\"\n        Version: \"001\""]
+Execute	.target.bash "/usr/sbin/hwinfo --bios | grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'" 1
 Return	[]
