@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov  4 11:37:42 UTC 2013 - lslezak@suse.cz
+
+- fixed vendor detection, check the output directly in shell
+  to avoid reading binary (non-UTF8) text (bnc#847153)
+- 3.0.7
+
+-------------------------------------------------------------------
 Tue Oct 15 07:11:25 UTC 2013 - lslezak@suse.cz
 
 - removed non-working *-webpin subpackage (the external service for
