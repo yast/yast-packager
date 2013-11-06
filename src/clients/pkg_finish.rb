@@ -185,6 +185,10 @@ module Yast
 
       Builtins.y2milestone("All old repositories were removed from the target")
 
+      # reload the target to sync the removed repositories with libzypp repomanager
+      Pkg.TargetFinish
+      Pkg.TargetInitialize("/mnt")
+
       nil
     end
   end

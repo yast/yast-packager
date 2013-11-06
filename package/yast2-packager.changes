@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov  6 13:41:42 UTC 2013 - lslezak@suse.cz
+
+- reinitialize the target to sync the libzypp repomanager
+  so the online repositories are correctly written during update
+  (bnc#847659)
+
+-------------------------------------------------------------------
 Mon Nov  4 11:37:42 UTC 2013 - lslezak@suse.cz
 
 - fixed vendor detection, check the output directly in shell
