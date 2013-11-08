@@ -106,43 +106,19 @@ provided by yast2-packager package.
 
 %files
 %defattr(-,root,root)
-<<<<<<< HEAD:package/yast2-packager.spec
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_clientdir}/*.rb
-%exclude %{yast_clientdir}/webpin_package_search.rb
 %{yast_moduledir}/*
-%exclude %{yast_moduledir}/WebpinPackageSearch.rb
 %{yast_desktopdir}/*.desktop
 %{yast_scrconfdir}/*
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
-=======
-%dir @yncludedir@/checkmedia
-%dir @yncludedir@/packager
-@yncludedir@/checkmedia/*
-@yncludedir@/packager/*
-@clientdir@/*.rb
-@moduledir@/*
-@desktopdir@/*.desktop
-@scrconfdir@/*
-@execcompdir@/servers_non_y2/ag_*
-%dir @docdir@
-%doc @docdir@/README
-%doc @docdir@/COPYING
->>>>>>> openSUSE-13_1:yast2-packager.spec.in
 
 %files devel-doc
 %doc %{yast_docdir}/autodocs
 
-<<<<<<< HEAD:package/yast2-packager.spec
-%files webpin
-%defattr(-,root,root)
-%{yast_clientdir}/webpin_package_search.rb
-%{yast_moduledir}/WebpinPackageSearch.rb
-=======
->>>>>>> openSUSE-13_1:yast2-packager.spec.in
 
