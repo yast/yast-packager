@@ -26,7 +26,7 @@ Source0:        %{name}-%{version}.tar.bz2
 Group:	        System/YaST
 License:        GPL-2.0+
 BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite
-BuildRequires:  yast2-devtools >= 3.0.6
+BuildRequires:  yast2-devtools >= 3.1.10
 
 BuildRequires: yast2 >= 3.0.5
 
