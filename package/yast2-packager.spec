@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.2
+Version:        3.1.3
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -28,7 +28,8 @@ License:        GPL-2.0+
 BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite
 BuildRequires:  yast2-devtools >= 3.1.10
 
-BuildRequires: yast2 >= 3.0.5
+# HwDetection
+BuildRequires: yast2 >= 3.1.19
 
 # Pkg::SetZConfig()
 BuildRequires:	yast2-pkg-bindings >= 2.21.8
@@ -39,8 +40,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SetZConfig()
 Requires:	yast2-pkg-bindings >= 2.21.8
 
-# OSRelease
-Requires: yast2 >= 3.0.5
+# HwDetection
+Requires: yast2 >= 3.1.19
 
 # unzipping license file
 Requires:	unzip

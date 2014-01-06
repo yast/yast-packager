@@ -1,7 +1,14 @@
 # encoding: utf-8
 
+require "yast2/hw_detection"
+
 module Yast
   class InstProductsourcesClient < Client
+
+    # too low memory for using online repositories (in MiB),
+    # at least 1GiB is recommended
+    LOW_MEMORY_MIB = 1024
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -1301,6 +1308,9 @@ module Yast
 
       dialog_ret = nil
 
+      # warn if there is low memory
+      check_memory_size
+
       while true
         dialog_ret = UI.UserInput
 
@@ -1712,6 +1722,24 @@ module Yast
 
       Convert.to_symbol(ret)
     end
+
+    private
+
+    # display a warning when online repositories are used on a system
+    # with low memory (the installer may crash or freeze, see bnc#854755)
+    def check_memory_size
+      # less than LOW_MEMORY_MIB RAM
+      if Mode.installation && Yast2::HwDetection.memory < (LOW_MEMORY_MIB << 20)
+        Report.Warning(_("Low memory detected.\n\nUsing online repositories " +
+              "during initial installation with less than\n" +
+              "%dMiB system memory is not recommended.\n\n" +
+              "The installer may crash or freeze if the additional package data\n" +
+              "need too much memory.\n\n" +
+              "Using the online repositories later in the installed system is\n" +
+              "recommended in this case.") % LOW_MEMORY_MIB)
+      end
+    end
+
   end
 end
 
