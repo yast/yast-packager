@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan  7 17:59:13 CET 2014 - locilka@suse.com
+
+- Removed unneeded client inst_media (bnc#857681)
+- 3.1.1
+
+-------------------------------------------------------------------
 Wed Nov  6 13:41:42 UTC 2013 - lslezak@suse.cz
 
 - reinitialize the target to sync the libzypp repomanager
