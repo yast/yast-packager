@@ -33,7 +33,6 @@ client_DATA = \
   clients/inst_rpmcopy.rb \
   clients/inst_custom_packages.rb \
   clients/inst_productsources.rb \
-  clients/inst_media.rb \
   clients/software_proposal.rb \
   clients/pkg_finish.rb \
   clients/inst_sw_select.rb \
