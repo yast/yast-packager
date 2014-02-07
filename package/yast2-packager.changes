@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  7 11:30:54 UTC 2014 - jsrain@suse.cz
+
+- use text version of release notes for NCurses (bnc#862578)
+- 3.1.2
+
+-------------------------------------------------------------------
 Tue Jan  7 17:59:13 CET 2014 - locilka@suse.com
 
 - Removed unneeded client inst_media (bnc#857681)
