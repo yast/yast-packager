@@ -33,8 +33,9 @@ module Yast
       end
 
       path_to_relnotes = "/docu"
+      filename_templ = UI.TextMode ? "/RELEASE-NOTES.%1.txt" : "/RELEASE-NOTES.%1.rtf"
 
-      path_templ = Ops.add(path_to_relnotes, "/RELEASE-NOTES.%1.rtf")
+      path_templ = path_to_relnotes + filename_templ
       Builtins.y2debug("Path template: %1", path_templ)
 
       # try 'en_UK' for 'en_UK'
