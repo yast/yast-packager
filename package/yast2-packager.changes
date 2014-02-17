@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 17 16:30:26 CET 2014 - locilka@suse.com
+
+- Package tightvnc is no more required while installing over VNC
+  (bnc#859903)
+- 3.1.4
+
+-------------------------------------------------------------------
 Mon Feb 10 15:15:43 UTC 2014 - lslezak@suse.cz
 
 - display a warning when using online repositories with less than

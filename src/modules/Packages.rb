@@ -818,7 +818,7 @@ module Yast
       packages = []
 
       if Linuxrc.vnc
-        packages.concat [ "tightvnc", "yast2-qt", "xorg-x11-Xvnc",
+        packages.concat [ "yast2-qt", "xorg-x11-Xvnc",
           "xorg-x11-fonts", "icewm", "sax2-tools", "yast2-x11", "xinetd" ]
       end
 
