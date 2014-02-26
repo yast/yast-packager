@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 26 14:46:40 UTC 2014 - lslezak@suse.cz
+
+- Always prefer DVD medium to download (not only during update)
+  (bnc#865819)
+- 3.1.5
+
+-------------------------------------------------------------------
 Mon Feb 17 16:30:26 CET 2014 - locilka@suse.com
 
 - Package tightvnc is no more required while installing over VNC

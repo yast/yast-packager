@@ -60,6 +60,10 @@ module Yast
         end
       end
 
+      # prefer CD/DVD media to download during installation/update
+      Builtins.y2milestone("Prefer CD/DVD media to download")
+      Pkg.SetZConfig({ "download_media_prefer_download" => false })
+
       # installation, for instance...
       if !Mode.update
         # make some directories
@@ -162,10 +166,6 @@ module Yast
         WFM.CallFunction("inst_bootloader", WFM.Args) 
         #	}
       else
-        # prefer CD/DVD media to download during installation/update
-        Builtins.y2milestone("Update mode - prefer CD/DVD media to download")
-        Pkg.SetZConfig({ "download_media_prefer_download" => false })
-
         if Stage.normal
           Yast.import "Kernel"
           @kernel = Kernel.ComputePackage
