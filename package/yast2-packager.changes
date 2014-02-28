@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 28 13:24:48 UTC 2014 - jreidinger@suse.com
+
+- Fix iso detection for DVD capable UEFI boot(BNC#852436)
+- 3.1.6
+
+-------------------------------------------------------------------
 Wed Feb 26 14:46:40 UTC 2014 - lslezak@suse.cz
 
 - Always prefer DVD medium to download (not only during update)
