@@ -914,11 +914,11 @@ module Yast
         # then iso magic block
         command = Builtins.sformat("%1 -kb -- '%2'", file, String.Quote(s))
 
-        out = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
+        out = SCR.Execute(path(".target.bash_output"), command)
 
-        stdout = Ops.get_string(out, "stdout", "")
+        stdout = out["stdout"] || ""
 
-        if Builtins.issubstring(stdout, "ISO 9660 CD-ROM filesystem")
+        if stdout.include? "ISO 9660 CD-ROM filesystem"
           Builtins.y2milestone("ISO 9660 image detected")
         else
           # continue/cancel popup, %1 is a file name
