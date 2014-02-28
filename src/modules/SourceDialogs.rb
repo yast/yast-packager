@@ -910,7 +910,9 @@ module Yast
       file = "/usr/bin/file"
       # try to detect ISO image by file if it's present
       if Ops.greater_than(SCR.Read(path(".target.size"), file), 0)
-        command = Builtins.sformat("%1 -b -- '%2'", file, String.Quote(s))
+        # Use also -k as new images contain at first DOS boot sector for UEFI
+        # then iso magic block
+        command = Builtins.sformat("%1 -kb -- '%2'", file, String.Quote(s))
 
         out = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
 
