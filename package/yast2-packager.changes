@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Mar  6 13:47:12 CET 2014 - locilka@suse.com
+
+- Changed DefaultDesktop not to select any required packages
+  anymore. They have changed to packages to identify selected
+  desktop only (bnc#866724).
+- 3.1.7
+
+-------------------------------------------------------------------
 Fri Feb 28 13:24:48 UTC 2014 - jreidinger@suse.com
 
 - Fix iso detection for DVD capable UEFI boot(BNC#852436)

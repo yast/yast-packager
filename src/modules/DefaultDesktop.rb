@@ -1,11 +1,10 @@
 # encoding: utf-8
 
-# File:	DefaultDesktop.ycp
+# File:	DefaultDesktop.rb
 # Package:	Handling of default desktop selection
 # Authors:	Jiri Srain <jsrain@suse.cz>
 #		Lukas Ocilka <locilka@suse.cz>
-#
-# $Id$
+
 require "yast"
 
 module Yast
@@ -32,7 +31,6 @@ module Yast
       @initialized = false
 
       @packages_proposal_ID_patterns = "DefaultDesktopPatterns"
-      @packages_proposal_ID_packages = "DefaultDesktopPackages"
     end
 
     def MissingKey(desktop_def, key)
@@ -221,7 +219,7 @@ module Yast
     #              "description" : _("Description text of the desktop (localized - initial localization)"),
     #              "description_id" : _("Description text of the desktop (originale)"),
     #              "patterns" : ["list", "of", "required", "patterns"],
-    #              "packages" : ["list", "of", "required", "packages"],
+    #              "packages" : ["list", "of", "packages", "to", "identify", "selected", "desktop"],
     #              "icon" : "some-icon", // filename from the 64x64 directory of the current theme (without .png suffix)
     #          ],
     #      ]
@@ -295,11 +293,6 @@ module Yast
           :pattern,
           []
         )
-        PackagesProposal.SetResolvables(
-          @packages_proposal_ID_packages,
-          :package,
-          []
-        )
       elsif !Builtins.haskey(@all_desktops, new_desktop)
         Builtins.y2error("Attempting to set desktop to unknown %1", new_desktop)
       else
@@ -314,11 +307,6 @@ module Yast
             :pattern,
             Ops.get_list(@all_desktops, [@desktop, "patterns"], [])
           )
-          PackagesProposal.SetResolvables(
-            @packages_proposal_ID_packages,
-            :package,
-            Ops.get_list(@all_desktops, [@desktop, "packages"], [])
-          )
         end
       end
 
@@ -329,8 +317,10 @@ module Yast
       PackagesProposal.GetResolvables(@packages_proposal_ID_patterns, :pattern)
     end
 
+    # Deprecated: Packages are not selected by a desktop selection only patterns
+    # bnc#866724
     def SelectedPackages
-      PackagesProposal.GetResolvables(@packages_proposal_ID_packages, :package)
+      []
     end
 
     # Get preffered window/desktop manager for the selected desktop
