@@ -17,12 +17,13 @@
 
 
 Name:           yast2-packager
-Version:        3.1.6
+Version:        3.1.7
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %{name}-%{version}.tar.bz2
 
+Url:            https://github.com/kobliha/yast-packager
 Group:	        System/YaST
 License:        GPL-2.0+
 BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite

@@ -3,14 +3,14 @@ Return	$["gnome":$["cursor":"DMZ", "desktop":"gnome", "icon":"pattern-gnome", "l
 Dump	 --- KDE selected by default --- 
 Return	kde
 Return	["kde", "x11", "base"]
-Return	["kdm", "branding-openSUSE"]
+Return	[]
 Dump	 --- Selecting GNOME --- 
 Return	nil
 Return	gnome
 Return	["gnome", "x11", "base"]
-Return	["gdm", "branding-openSUSE"]
+Return	[]
 Dump	 --- Reset --- 
 Return	nil
 Return	kde
 Return	["kde", "x11", "base"]
-Return	["kdm", "branding-openSUSE"]
+Return	[]
