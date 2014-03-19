@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 19 16:26:51 UTC 2014 - lslezak@suse.cz
+
+- copy libzypp credentials to the target system before starting
+  package installation (bnc#869089)
+- 3.1.8
+
+-------------------------------------------------------------------
 Thu Mar  6 13:47:12 CET 2014 - locilka@suse.com
 
 - Changed DefaultDesktop not to select any required packages

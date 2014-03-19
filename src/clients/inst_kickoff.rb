@@ -8,6 +8,9 @@
 #
 # $Id$
 #
+
+require "fileutils"
+
 module Yast
   class InstKickoffClient < Client
     def main
@@ -63,6 +66,17 @@ module Yast
       # prefer CD/DVD media to download during installation/update
       Builtins.y2milestone("Prefer CD/DVD media to download")
       Pkg.SetZConfig({ "download_media_prefer_download" => false })
+
+      # copy the credential files, libzypp loads them from target
+      zypp_dir = "/etc/zypp"
+      credentials_d = zypp_dir + "/credentials.d"
+
+      if File.exist?(credentials_d) && Installation.destdir != "/"
+        target_zypp = Installation.destdir + zypp_dir
+        Builtins.y2milestone("Copying libzypp credentials to #{target_zypp}...")
+        ::FileUtils.mkdir_p(target_zypp)
+        ::FileUtils.cp_r(credentials_d, target_zypp)
+      end
 
       # installation, for instance...
       if !Mode.update
