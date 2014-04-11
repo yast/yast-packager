@@ -1,5 +1,5 @@
 Makefile
-Makefile.am
+/Makefile.am
 Makefile.in
 aclocal.m4
 autom4te.cache
@@ -29,3 +29,6 @@ Makefile.am.common
 tmp.*
 *.log
 *.ybc
+/test-driver
+/testsuite/site.bak
+/test/*.trs

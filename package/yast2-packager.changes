@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 11 16:07:19 CEST 2014 - locilka@suse.cz
+
+- Test for Packages rewritten in RSpec to fix the build
+- 3.1.9
+
+-------------------------------------------------------------------
 Wed Mar 19 16:26:51 UTC 2014 - lslezak@suse.cz
 
 - copy libzypp credentials to the target system before starting
