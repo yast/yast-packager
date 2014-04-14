@@ -16,19 +16,25 @@ describe Yast::Packages do
       Yast::Product.stub(:Product).and_return(nil)
     end
 
+    SCR_STRING_PATH = Yast::Path.new(".target.string")
+    SCR_BASH_PATH = Yast::Path.new(".target.bash")
+
+    CHECK_FOR_DELL_SYSTEM = Regexp.new(
+      'hwinfo .*bios .*grep .*vendor:.*dell inc',
+      Regexp::IGNORECASE
+    )
+
     context "when biosdevname behavior explicitly defined on the Kenel command line" do
       it "returns biosdevname within the list of required packages" do
         Yast::SCR.stub(:Read).with(
-          Yast::Path.new(".target.string"),
-          "/proc/cmdline"
+          SCR_STRING_PATH,"/proc/cmdline"
         ).and_return("install=cd:// vga=0x314 biosdevname=1")
         expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
       end
 
       it "does not return biosdevname within the list of required packages" do
         Yast::SCR.stub(:Read).with(
-          Yast::Path.new(".target.string"),
-          "/proc/cmdline"
+          SCR_STRING_PATH,"/proc/cmdline"
         ).and_return("install=cd:// vga=0x314 biosdevname=0")
         expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
       end
@@ -42,7 +48,7 @@ describe Yast::Packages do
             "/proc/cmdline"
           ).and_return("install=cd:// vga=0x314")
           # 0 means `grep` succeeded
-          Yast::SCR.stub(:Execute).and_return(0)
+          Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
         end
       end
@@ -54,7 +60,7 @@ describe Yast::Packages do
             "/proc/cmdline"
           ).and_return("install=cd:// vga=0x314")
           # 1 means `grep` has not succeeded
-          Yast::SCR.stub(:Execute).and_return(1)
+          Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
         end
       end
