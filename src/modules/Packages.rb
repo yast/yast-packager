@@ -2369,8 +2369,6 @@ module Yast
       nil
     end
 
-  private
-
     # Reads software->default_patterns and returns lisf of patterns that should
     # be selected for installation by default
     #
@@ -2380,6 +2378,8 @@ module Yast
       log.info "Default patterns: #{patterns}"
       patterns.split(/[, \n]/).reject(&:empty?)
     end
+
+  private
 
     # Computes all patterns that are expected to be selected for default installation
     def patterns_to_install
@@ -2432,6 +2432,7 @@ module Yast
     publish :function => :InitializeCatalogs, :type => "void ()"
     publish :function => :InitFailed, :type => "boolean ()"
     publish :function => :SelectKernelPackages, :type => "void ()"
+    publish :function => :default_patterns, :type => "list <string> ()"
   end
 
   Packages = PackagesClass.new

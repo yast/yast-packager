@@ -73,23 +73,23 @@ describe Yast::Packages do
     context "software->default_patterns is not defined in control file" do
       it "returns empty list" do
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("")
-        expect(Yast::Packages.send(:default_patterns)).to be_empty
+        expect(Yast::Packages.default_patterns).to be_empty
       end
     end
 
     context "software->default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("a,b,c,d")
-        expect(Yast::Packages.send(:default_patterns)).to eq(["a", "b", "c", "d"])
+        expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
-        expect(Yast::Packages.send(:default_patterns)).to eq(["a", "b", "c", "d"])
+        expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a ,b , c,d  ")
-        expect(Yast::Packages.send(:default_patterns)).to eq(["a", "b", "c", "d"])
+        expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a ,b \n, c\n,d  ")
-        expect(Yast::Packages.send(:default_patterns)).to eq(["a", "b", "c", "d"])
+        expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
   end
