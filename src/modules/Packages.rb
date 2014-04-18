@@ -2378,7 +2378,7 @@ module Yast
     def default_patterns
       patterns = ProductFeatures.GetStringFeature("software", "default_patterns")
       log.info "Default patterns: #{patterns}"
-      patterns.split(/[, ]/).reject{|pattern| pattern.empty?}
+      patterns.split(/[, \n]/).reject(&:empty?)
     end
 
     # Computes all patterns that are expected to be selected for default installation

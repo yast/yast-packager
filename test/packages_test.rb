@@ -87,6 +87,9 @@ describe Yast::Packages do
 
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a ,b , c,d  ")
         expect(Yast::Packages.send(:default_patterns)).to eq(["a", "b", "c", "d"])
+
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a ,b \n, c\n,d  ")
+        expect(Yast::Packages.send(:default_patterns)).to eq(["a", "b", "c", "d"])
       end
     end
   end
