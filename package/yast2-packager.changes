@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 18 13:29:58 CEST 2014 - locilka@suse.com
+
+- Removed obsolete Product.patterns functionality and replaced
+  by new definition in control file software->default_patterns;
+  with little refactoring (bnc#873923)
+- 3.1.10
+
+-------------------------------------------------------------------
 Fri Apr 11 16:07:19 CEST 2014 - locilka@suse.cz
 
 - Test for Packages rewritten in RSpec to fix the build

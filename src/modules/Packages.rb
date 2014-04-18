@@ -9,6 +9,8 @@ require "yast"
 
 module Yast
   class PackagesClass < Module
+    include Yast::Logger
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -1980,43 +1982,39 @@ module Yast
       ret
     end
 
-    # Select system patterns
-    # @param [Boolean] reselect boolean true to select only those which are alrady selected
+    # Selects system-specific and default patterns for installation
+    #
+    # @param [Boolean] reselect whether to re-select all already selected patterns
     def SelectSystemPatterns(reselect)
-      system_patterns = ComputeSystemPatternList()
+      patterns = patterns_to_install
+      log.info "Selecting system patterns #{patterns}"
 
-      # autoinstallation has patterns specified in the profile
-      if !Mode.autoinst
-        system_patterns = Convert.convert(
-          Builtins.toset(Builtins.merge(system_patterns, Product.patterns)),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      end
       if !reselect
-        Builtins.y2milestone("Selecting system patterns %1", system_patterns)
-        Builtins.foreach(system_patterns) do |p|
-          prop = Ops.get(Pkg.ResolvableProperties(p, :pattern, ""), 0, {})
-          if Ops.get(prop, "status") == :available &&
-              Ops.get(prop, "transact_by") == :user
-            Builtins.y2milestone("Ignoring deselected pattern '%1'", p)
+        patterns.each do |pattern_name|
+          prop = Pkg.ResolvableProperties(pattern_name, :pattern, "").first
+
+          if prop.nil?
+            # It comes from product definition which has to be in order
+            raise "Pattern #{pattern_name} does not exist"
+          elsif prop["status"] == :available && prop["transact_by"] == :user
+            log.info "Skipping pattern #{pattern_name} deselected by user"
           else
-            Pkg.ResolvableInstall(p, :pattern)
+            Pkg.ResolvableInstall(pattern_name, :pattern)
           end
         end
       else
-        Builtins.y2milestone("Re-selecting system patterns %1", system_patterns)
-        pats = Builtins.filter(system_patterns) do |p|
-          descrs = Pkg.ResolvableProperties(p, :pattern, "")
-          descrs = Builtins.filter(descrs) do |descr|
-            Ops.get(descr, "status") == :selected
-          end
-          Ops.greater_than(Builtins.size(descrs), 0)
+        patterns.select! do |pattern_name|
+          descrs = Pkg.ResolvableProperties(pattern_name, :pattern, "")
+          # It comes from product definition which has to be in order
+          raise "Pattern #{pattern_name} does not exist" if descrs.empty?
+          descrs.any?{ |descr| descr["status"] == :selected }
         end
-        Builtins.y2milestone("Selected patterns to be reselected: %1", pats)
-        Builtins.foreach(pats) do |p|
-          Pkg.ResolvableRemove(p, :pattern)
-          Pkg.ResolvableInstall(p, :pattern)
+
+        log.info "Selected patterns to be reselected: #{patterns}"
+
+        patterns.each do |pattern_name|
+          Pkg.ResolvableRemove(pattern_name, :pattern)
+          Pkg.ResolvableInstall(pattern_name, :pattern)
         end
       end
 
@@ -2371,6 +2369,30 @@ module Yast
       nil
     end
 
+    # Reads software->default_patterns and returns lisf of patterns that should
+    # be selected for installation by default
+    #
+    # @return [Array] list of patterns
+    def default_patterns
+      patterns = ProductFeatures.GetStringFeature("software", "default_patterns")
+      log.info "Default patterns: #{patterns}"
+      patterns.split(/[, \n]/).reject(&:empty?)
+    end
+
+  private
+
+    # Computes all patterns that are expected to be selected for default installation
+    def patterns_to_install
+      patterns = ComputeSystemPatternList
+
+      # autoinstallation has patterns specified in the profile
+      if !Mode.autoinst
+        default_patterns.inject(patterns, :<<)
+      end
+
+      patterns
+    end
+
     publish :variable => :install_sources, :type => "boolean"
     publish :variable => :timestamp, :type => "integer"
     publish :variable => :metadir, :type => "string"
@@ -2410,6 +2432,7 @@ module Yast
     publish :function => :InitializeCatalogs, :type => "void ()"
     publish :function => :InitFailed, :type => "boolean ()"
     publish :function => :SelectKernelPackages, :type => "void ()"
+    publish :function => :default_patterns, :type => "list <string> ()"
   end
 
   Packages = PackagesClass.new
