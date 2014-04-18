@@ -106,7 +106,7 @@ describe Yast::Packages do
   end
 
   describe "#SelectSystemPatterns" do
-    context "if not re-selecting already selected patterns" do
+    context "if this is the initial run or it is being reinitialized" do
       context "and patterns are not unselected by user" do
         it "selects patterns for installation" do
           Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
@@ -138,7 +138,7 @@ describe Yast::Packages do
       end
     end
 
-    context "if re-selecting patterns" do
+    context "if this is a subsequent run" do
       it "re-selects all patterns already selected for installation" do
         Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
         Yast::Pkg.stub(:ResolvableProperties).and_return(
