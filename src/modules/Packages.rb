@@ -2383,7 +2383,7 @@ module Yast
 
     # Computes all patterns that are expected to be selected for default installation
     def patterns_to_install
-      patterns = ComputeSystemPatternList
+      patterns = ComputeSystemPatternList()
 
       # autoinstallation has patterns specified in the profile
       if !Mode.autoinst
