@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 23 10:41:25 CEST 2014 - locilka@suse.com
+
+- Fixed function call that identified ComputeSystemPatternList
+  function as a constant (bnc#874725)
+- 3.1.11
+
+-------------------------------------------------------------------
 Fri Apr 18 13:29:58 CEST 2014 - locilka@suse.com
 
 - Removed obsolete Product.patterns functionality and replaced
