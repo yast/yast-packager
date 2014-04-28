@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 28 13:55:39 CEST 2014 - locilka@suse.com
+
+- Logging status of all changed resolvables to be able to debug
+  and reproduce reported issues better (bnc#875350)
+- 3.1.12
+
+-------------------------------------------------------------------
 Wed Apr 23 10:41:25 CEST 2014 - locilka@suse.com
 
 - Fixed function call that identified ComputeSystemPatternList

@@ -11,6 +11,9 @@ module Yast
   class PackagesClass < Module
     include Yast::Logger
 
+    # All known types of resolvables
+    RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -2379,7 +2382,48 @@ module Yast
       patterns.split(/[, \n]/).reject(&:empty?)
     end
 
+    # Log only resolvables with resolvable["status"] matching these below
+    LOG_RESOLVABLE_STATUS = [:selected, :removed]
+
+    # Log only resolvables with resolvable["transact_by"] matching these below
+    LOG_RESOLVABLE_TRANSACT_BY = [:user, :app_high]
+
+    # Reads the current user selection and dumps it to log
+    def log_software_selection
+      log.info "-" * 10 << " Transaction Status Begin " << "-" * 10
+
+      RESOLVABLE_TYPES.each do |type|
+        resolvables = Pkg.ResolvableProperties("", type, "")
+        resolvables.select!{ |r| LOG_RESOLVABLE_TRANSACT_BY.include? r["transact_by"] }
+
+        LOG_RESOLVABLE_TRANSACT_BY.each do |transact_by|
+          changed_resolvables = resolvables.select{ |r| r["transact_by"] == transact_by}
+          next if changed_resolvables.empty?
+
+          decided_resolvables = changed_resolvables.select{ |r| LOG_RESOLVABLE_STATUS.include? r["status"] }
+          log_resolvables("Resolvables of type #{type} set by #{transact_by}:", decided_resolvables)
+
+          locked_resolvables = changed_resolvables.select{ |r| r["locked"] }
+          log_resolvables("Locked resolvables of type #{type} set by #{transact_by}:", locked_resolvables)
+        end
+      end
+
+      log.info "-" * 10 << " Transaction Status End " << "-" * 10
+      nil
+    end
+
   private
+
+    def log_resolvables(text, resolvables)
+      return if resolvables.empty?
+
+      log.info text
+
+      resolvables.each do |r|
+        r_info = {:name => r["name"], :version => r["version"], :arch => r["arch"], :status => r["status"]}
+        log.info "- #{r_info}"
+      end
+    end
 
     # Computes all patterns that are expected to be selected for default installation
     def patterns_to_install
@@ -2433,6 +2477,7 @@ module Yast
     publish :function => :InitFailed, :type => "boolean ()"
     publish :function => :SelectKernelPackages, :type => "void ()"
     publish :function => :default_patterns, :type => "list <string> ()"
+    publish :function => :log_software_selection, :type => "void ()"
   end
 
   Packages = PackagesClass.new

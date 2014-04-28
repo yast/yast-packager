@@ -153,6 +153,9 @@ module Yast
       # move the progress to the packages stage
       SlideShow.MoveToStage("packages")
 
+      # bnc#875350: Log the current user/app_high software selection
+      Packages.log_software_selection
+
       # install packages from CD current_cd_no to CD maxnumbercds
       @result = InstallPackagesFromMedia(@current_cd_no, @maxnumbercds)
 
