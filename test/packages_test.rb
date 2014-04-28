@@ -180,14 +180,10 @@ describe Yast::Packages do
       Yast::Pkg.stub(:ResolvableProperties).and_return([])
       Yast::Pkg.stub(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
 
-      log_double = double
-
-      expect(log_double).to receive(:info) do |msg|
-        log.info msg
+      expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
         expect(msg).to match(/(transaction status [begin|end]|(locked)?resolvables of type .* set by .*|:name=>.*:version=>)/i)
-      end.exactly(8).times
+      end.exactly(8).times.and_call_original
 
-      allow(Yast::Packages).to receive(:log).and_return(log_double)
       expect(Yast::Packages.log_software_selection).to be_nil
     end
   end
