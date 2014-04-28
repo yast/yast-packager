@@ -3,6 +3,9 @@
 ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 
 require "yast"
+require "yaml"
+
+include Yast::Logger
 
 Yast.import "Packages"
 Yast.import "SCR"
@@ -16,6 +19,20 @@ CHECK_FOR_DELL_SYSTEM = Regexp.new(
   'hwinfo .*bios .*grep .*vendor:.*dell inc',
   Regexp::IGNORECASE
 )
+
+# Path to a test data - service file - mocking the default data path
+DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
+
+def load_zypp(file_name)
+  file_name = File.join(DATA_PATH, "zypp", file_name)
+
+  raise "File not found: #{file_name}" unless File.exists?(file_name)
+
+  log.info "Loading file: #{file_name}"
+  YAML.load_file(file_name)
+end
+
+PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
 
 describe Yast::Packages do
   describe "#kernelCmdLinePackages" do
@@ -158,6 +175,14 @@ describe Yast::Packages do
       Yast::Pkg.stub(:ResolvableProperties).and_return([])
       expect{ Yast::Packages.SelectSystemPatterns(false) }.to raise_error(/pattern/i)
       expect{ Yast::Packages.SelectSystemPatterns(true) }.to raise_error(/pattern/i)
+    end
+  end
+
+  describe "#log_software_selection" do
+    it "logs all currently changed resolvables set by user or application (excluding solver)" do
+      Yast::Pkg.stub(:ResolvableProperties).and_return([])
+      Yast::Pkg.stub(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
+      expect(Yast::Packages.log_software_selection).to be_nil
     end
   end
 end
