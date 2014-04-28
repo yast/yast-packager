@@ -25,9 +25,6 @@ DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
 
 def load_zypp(file_name)
   file_name = File.join(DATA_PATH, "zypp", file_name)
-
-  raise "File not found: #{file_name}" unless File.exists?(file_name)
-
   log.info "Loading file: #{file_name}"
   YAML.load_file(file_name)
 end
@@ -182,6 +179,15 @@ describe Yast::Packages do
     it "logs all currently changed resolvables set by user or application (excluding solver)" do
       Yast::Pkg.stub(:ResolvableProperties).and_return([])
       Yast::Pkg.stub(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
+
+      log_double = double
+
+      expect(log_double).to receive(:info) do |msg|
+        log.info msg
+        expect(msg).to match(/(transaction status [begin|end]|(locked)?resolvables of type .* set by .*|:name=>.*:version=>)/i)
+      end.exactly(8).times
+
+      allow(Yast::Packages).to receive(:log).and_return(log_double)
       expect(Yast::Packages.log_software_selection).to be_nil
     end
   end
