@@ -2390,7 +2390,7 @@ module Yast
 
     # Reads the current user selection and dumps it to log
     def log_software_selection
-      log.info "-" * 20 << " Transaction Status " << "-" * 20
+      log.info "-" * 10 << " Transaction Status Begin " << "-" * 10
 
       RESOLVABLE_TYPES.each do |type|
         resolvables = Pkg.ResolvableProperties("", type, "")
@@ -2408,7 +2408,7 @@ module Yast
         end
       end
 
-      log.info "-" * 20 << " Transaction Status " << "-" * 20
+      log.info "-" * 10 << " Transaction Status End " << "-" * 10
       nil
     end
 
