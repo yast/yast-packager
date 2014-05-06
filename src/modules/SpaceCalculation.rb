@@ -16,6 +16,9 @@ require "yast"
 
 module Yast
   class SpaceCalculationClass < Module
+
+    include Yast::Logger
+
     def main
       Yast.import "Pkg"
 
@@ -662,6 +665,8 @@ module Yast
                     Builtins.sformat("test -d %1 || mkdir -p %1", tmpdir)
                   )
 
+                  # TODO: Use the functions provided by yast2-storage to query free space.
+
                   # mount in read-only mode (safer)
                   mount_options = ["ro"]
 
@@ -681,15 +686,9 @@ module Yast
                     tmpdir
                   )
 
-                  Builtins.y2milestone(
-                    "Executing mount command: %1",
-                    mount_command
-                  )
-
-                  result = Convert.to_integer(
-                    SCR.Execute(path(".target.bash"), mount_command)
-                  )
-                  Builtins.y2milestone("Mount result: %1", result)
+                  log.info("Executing mount command: #{mount_command}")
+                  result = SCR.Execute(path(".target.bash"), mount_command)
+                  log.info("Mount result: #{result}")
 
                   if result == 0
                     partition = Convert.convert(
@@ -710,10 +709,10 @@ module Yast
                         )
                       end
                     end
-                    SCR.Execute(
-                      path(".target.bash"),
-                      Builtins.sformat("/bin/umount %1", tmpdir)
-                    )
+                    result = SCR.Execute(path(".target.bash"), "/bin/umount #{tmpdir}")
+                    if result != 0
+                      log.error("Umount failed, result: #{result}")
+                    end
                   else
                     Builtins.y2error(
                       "Mount failed, ignoring partition %1",
