@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 07 10:25:33 CEST 2014 - aschnell@suse.de
+
+- log failure of umount
+- 3.1.13
+
+-------------------------------------------------------------------
 Mon Apr 28 13:55:39 CEST 2014 - locilka@suse.com
 
 - Logging status of all changed resolvables to be able to debug
