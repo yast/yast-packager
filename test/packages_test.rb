@@ -167,11 +167,18 @@ describe Yast::Packages do
       end
     end
 
-    it "raises an exception if pattern is not found" do
-      Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
+    it "reports an error if pattern is not found" do
+      default_patterns = ["p1", "p2", "p3"]
+
+      Yast::Packages.stub(:patterns_to_install).and_return(default_patterns)
       Yast::Pkg.stub(:ResolvableProperties).and_return([])
-      expect{ Yast::Packages.SelectSystemPatterns(false) }.to raise_error(/pattern/i)
-      expect{ Yast::Packages.SelectSystemPatterns(true) }.to raise_error(/pattern/i)
+      Yast::Report.stub(:Error).and_return(nil)
+
+      # Called twice with reselect=true/false
+      Yast::Packages.SelectSystemPatterns(true)
+      Yast::Packages.SelectSystemPatterns(false)
+
+      expect(Yast::Report).to have_received(:Error).with(/pattern p[1-3]/i).exactly(2 * default_patterns.size).times
     end
   end
 

@@ -1989,7 +1989,7 @@ module Yast
     #
     # @param [Boolean] reselect whether to re-select all already selected patterns
     def SelectSystemPatterns(reselect)
-      patterns = patterns_to_install
+      patterns = patterns_to_install.dup
       log.info "Selecting system patterns #{patterns}"
 
       if !reselect
@@ -1997,8 +1997,8 @@ module Yast
           prop = Pkg.ResolvableProperties(pattern_name, :pattern, "").first
 
           if prop.nil?
-            # It comes from product definition which has to be in order
-            raise "Pattern #{pattern_name} does not exist"
+            report_missing_pattern(pattern_name)
+            next
           elsif prop["status"] == :available && prop["transact_by"] == :user
             log.info "Skipping pattern #{pattern_name} deselected by user"
           else
@@ -2008,8 +2008,7 @@ module Yast
       else
         patterns.select! do |pattern_name|
           descrs = Pkg.ResolvableProperties(pattern_name, :pattern, "")
-          # It comes from product definition which has to be in order
-          raise "Pattern #{pattern_name} does not exist" if descrs.empty?
+          report_missing_pattern(pattern_name) if descrs.empty?
           descrs.any?{ |descr| descr["status"] == :selected }
         end
 
@@ -2435,6 +2434,14 @@ module Yast
       end
 
       patterns
+    end
+
+    def report_missing_pattern(pattern_name)
+      log.error "Pattern #{pattern_name} does not exist"
+      Report.Error(_(
+        "Failed to select default product pattern %{pattern_name}.\n" +
+        "Pattern has not been found."
+      ) % {:pattern_name => pattern_name})
     end
 
     publish :variable => :install_sources, :type => "boolean"
