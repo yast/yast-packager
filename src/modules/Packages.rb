@@ -2439,8 +2439,7 @@ module Yast
     def report_missing_pattern(pattern_name)
       log.error "Pattern #{pattern_name} does not exist"
       Report.Error(_(
-        "Selecting default product patterns has failed.\n" +
-        "Pattern %{pattern_name} does not exist."
+        "Failed to select default product pattern %{pattern_name}"
       ) % {:pattern_name => pattern_name})
     end
 

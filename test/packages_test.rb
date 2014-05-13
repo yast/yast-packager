@@ -178,7 +178,7 @@ describe Yast::Packages do
       Yast::Packages.SelectSystemPatterns(true)
       Yast::Packages.SelectSystemPatterns(false)
 
-      expect(Yast::Report).to have_received(:Error).with(/Pattern p[1-3]/).exactly(2 * default_patterns.size).times
+      expect(Yast::Report).to have_received(:Error).with(/pattern p[1-3]/i).exactly(2 * default_patterns.size).times
     end
   end
 
