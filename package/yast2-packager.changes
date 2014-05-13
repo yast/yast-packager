@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 13 15:04:11 CEST 2014 - locilka@suse.com
+
+- Selecting missing default patterns now reports an error instead
+  of raising an exception (bnc#875799)
+- 3.1.13
+
+-------------------------------------------------------------------
 Mon Apr 28 13:55:39 CEST 2014 - locilka@suse.com
 
 - Logging status of all changed resolvables to be able to debug
