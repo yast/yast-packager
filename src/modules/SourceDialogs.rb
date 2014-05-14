@@ -16,6 +16,48 @@ require "yast"
 
 module Yast
   class SourceDialogsClass < Module
+    # to use N_ in the class constant
+    extend Yast::I18n
+
+    # display a global enable/disable checkbox in URL type dialog
+    attr_accessor :display_addon_checkbox
+    # the status of the global checkbox
+    attr_reader :addon_enabled
+
+    # widget ID => translatable label (needs to be translated by _())
+    WIDGET_LABELS = {
+      # radio button
+      :slp               => N_("&Scan Using SLP..."),
+      # radio button
+      :comm_repos        => N_("Commun&ity Repositories"),
+      # radio button
+      :specify_url       => N_("Specify &URL..."),
+      # radio button
+      :ftp               => N_("&FTP..."),
+      # radio button
+      :http              => N_("&HTTP..."),
+      # radio button
+      :https             => N_("HTT&PS..."),
+      # radio button
+      :samba             => N_("&SMB/CIFS"),
+      # radio button
+      :nfs               => N_("&NFS..."),
+      # radio button
+      :cd                => N_("&CD..."),
+      # radio button
+      :dvd               => N_("&DVD..."),
+      # radio button
+      :hd                => N_("&Hard Disk..."),
+      # radio button
+      :usb               => N_("&USB Mass Storage (USB Stick, Disk)..."),
+      # radio button
+      :local_dir         => N_("&Local Directory..."),
+      # radio button
+      :local_iso         => N_("&Local ISO Image..."),
+      # check box
+      :download_metadata => N_("&Download repository description files"),
+    }
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -52,6 +94,9 @@ module Yast
 
       # Allow HTTPS for next repository dialog?
       @_allow_https = true
+
+      # display a check box in type selection dialog in the next run
+      @display_addon_checkbox = false
 
       # CD/DVD device name to use (e.g. /dev/sr1) in case of multiple
       # devices in the system. Empty string means use the default.
@@ -1008,7 +1053,7 @@ module Yast
 
       Builtins.foreach(devices) do |dev|
         ret = dev if Builtins.regexpmatch(dev, "^/dev/disk/by-id/")
-      end 
+      end
 
 
       ret
@@ -1049,7 +1094,7 @@ module Yast
             "partitions" => DetectPartitions(dev_id)
           }
         )
-      end 
+      end
 
 
       Builtins.y2milestone("Disk configuration: %1", ret)
@@ -1086,7 +1131,7 @@ module Yast
           found = found || part == selected
           ret = Builtins.add(ret, Item(Id(part), disk_label, part == selected))
         end
-      end 
+      end
 
 
       if !found && Builtins.regexpmatch(selected, "^/dev/disk/by-id/usb-")
@@ -1866,7 +1911,7 @@ module Yast
         if Ops.get_string(cmd_run, "stdout", "") != ""
           Builtins.y2error("Checking the network failed")
           ret = true
-        end 
+        end
         # some devices are listed
       elsif Ops.get_string(cmd_run, "stdout", "") != nil &&
           Ops.get_string(cmd_run, "stdout", "") != ""
@@ -1897,6 +1942,20 @@ module Yast
       end
     end
 
+    def addon_checkbox_term
+      @display_addon_checkbox ?
+        VBox(
+          Left(CheckBox(Id(:add_addon), Opt(:notify),
+              _("I would like to install an Add On Product"), false)),
+          VSpacing(1),
+        ) :
+        Empty()
+    end
+
+    def addon_spacing_term
+      @display_addon_checkbox ? HSpacing(3) : Empty()
+    end
+
     def SelectRadioWidgetOpt(download_widget)
       contents = HBox(
         HStretch(),
@@ -1905,58 +1964,40 @@ module Yast
             Id(:type),
             VBox(
               VStretch(),
-              # radio button
-              Left(RadioButton(Id(:slp), _("&Scan Using SLP..."))),
-              # bnc #428370, No need to offer community repositories if not defined
-              CRURLDefined() ?
-                # radio button
-                Left(RadioButton(Id(:comm_repos), _("Commun&ity Repositories"))) :
-                Empty(),
-              VSpacing(0.4),
-              # radio button
-              Left(RadioButton(Id(:specify_url), _("Specify &URL..."))),
-              VSpacing(0.4),
-              # radio button
-              Left(RadioButton(Id(:ftp), _("&FTP..."))),
-              # radio button
-              Left(RadioButton(Id(:http), _("&HTTP..."))),
-              # radio button
-              Left(RadioButton(Id(:https), _("HTT&PS..."))),
-              # radio button
-              Left(RadioButton(Id(:samba), _("&SMB/CIFS"))),
-              # radio button
-              Left(RadioButton(Id(:nfs), _("&NFS..."))),
-              # radio button
-              Left(RadioButton(Id(:cd), _("&CD..."))),
-              # radio button
-              Left(RadioButton(Id(:dvd), _("&DVD..."))),
-              # radio button
-              Left(RadioButton(Id(:hd), _("&Hard Disk..."))),
-              # radio button
-              Left(
-                RadioButton(
-                  Id(:usb),
-                  _("&USB Mass Storage (USB Stick, Disk)...")
-                )
-              ),
-              # radio button
-              Left(RadioButton(Id(:local_dir), _("&Local Directory..."))),
-              # radio button
-              Left(RadioButton(Id(:local_iso), _("&Local ISO Image..."))),
-              # check box
-              download_widget ?
+              addon_checkbox_term,
+              HBox(
+                addon_spacing_term,
                 VBox(
-                  VSpacing(2),
-                  Left(
-                    CheckBox(
-                      Id(:download_metadata),
-                      _("&Download repository description files"),
-                      @_download_metadata
-                    )
-                  )
-                ) :
-                Empty(),
-              VStretch()
+                  # radio button
+                  Left(RadioButton(Id(:slp), _(WIDGET_LABELS[:slp]))),
+                  # bnc #428370, No need to offer community repositories if not defined
+                  CRURLDefined() ?
+                    # radio button
+                    Left(RadioButton(Id(:comm_repos), _(WIDGET_LABELS[:comm_repos]))) :
+                    Empty(),
+                  VSpacing(0.4),
+                  Left(RadioButton(Id(:specify_url), _(WIDGET_LABELS[:specify_url]))),
+                  VSpacing(0.4),
+
+                  *[:ftp, :http, :https, :samba, :nfs, :cd, :dvd, :hd, :usb,
+                    :local_dir, :local_iso].map do |id|
+                    Left(RadioButton(Id(id), _(WIDGET_LABELS[id])))
+                  end,
+                  download_widget ?
+                    VBox(
+                      VSpacing(2),
+                      Left(
+                        CheckBox(
+                          Id(:download_metadata),
+                          _(WIDGET_LABELS[:download_metadata]),
+                          @_download_metadata
+                        )
+                      )
+                    ) :
+                    Empty(),
+                  VStretch()
+                )
+              )
             )
           )
         ),
@@ -1974,35 +2015,31 @@ module Yast
               Id(:type),
               VBox(
                 VStretch(),
-                # radio button
-                Left(RadioButton(Id(:specify_url), _("Specify &URL..."))),
-                VSpacing(0.4),
-                # radio button
-                Left(RadioButton(Id(:cd), _("&CD..."))),
-                # radio button
-                Left(RadioButton(Id(:dvd), _("&DVD..."))),
-                # radio button
-                Left(RadioButton(Id(:hd), _("&Hard Disk..."))),
-                # radio button
-                Left(RadioButton(Id(:usb), _("&USB Stick or Disk..."))),
-                # radio button
-                Left(RadioButton(Id(:local_dir), _("&Local Directory..."))),
-                # radio button
-                Left(RadioButton(Id(:local_iso), _("&Local ISO Image..."))),
-                # check box
-                download_widget ?
+                addon_checkbox_term,
+                HBox(
+                  addon_spacing_term,
                   VBox(
-                    VSpacing(2),
-                    Left(
-                      CheckBox(
-                        Id(:download_metadata),
-                        _("&Download repository description files"),
-                        @_download_metadata
-                      )
-                    )
-                  ) :
-                  Empty(),
-                VStretch()
+                    Left(RadioButton(Id(:specify_url),
+                        _(WIDGET_LABELS[:specify_url]))),
+                    VSpacing(0.4),
+                    *[:cd, :dvd, :hd, :usb, :local_dir, :local_iso].map do |id|
+                      Left(RadioButton(Id(id), _(WIDGET_LABELS[id])))
+                    end,
+                    download_widget ?
+                      VBox(
+                        VSpacing(2),
+                        Left(
+                          CheckBox(
+                            Id(:download_metadata),
+                            _(WIDGET_LABELS[:download_metadata]),
+                            @_download_metadata
+                          )
+                        )
+                      ) :
+                      Empty(),
+                    VStretch()
+                  )
+                )
               )
             )
           ),
@@ -2111,6 +2148,7 @@ module Yast
       @_url = "" if Ops.get(event, "ID") == :back
 
       if !(Ops.get(event, "ID") == :next || Ops.get(event, "ID") == :ok)
+        RefreshTypeWidgets() if event["ID"] == :add_addon
         return nil
       end
 
@@ -2132,6 +2170,7 @@ module Yast
       @_url = ""
       @_plaindir = false
       @_repo_name = ""
+      @addon_enabled = UI.WidgetExists(:add_addon) ?  UI.QueryWidget(:add_addon, :Value) : nil
 
       selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
 
@@ -2231,7 +2270,19 @@ module Yast
 
       UI.ChangeWidget(Id(:type), :CurrentButton, current) if current != nil
 
+      RefreshTypeWidgets()
+
       nil
+    end
+
+    def RefreshTypeWidgets
+      if UI.WidgetExists(:add_addon)
+        enabled = UI.QueryWidget(Id(:add_addon), :Value)
+
+        URL_SCHEMA_DESCRIPTIONS.keys.each do |widget|
+          UI.ChangeWidget(Id(widget), :Enabled, enabled) if UI.WidgetExists(widget)
+        end
+      end
     end
 
     def SelectWidget
@@ -2485,7 +2536,7 @@ module Yast
       ret = CWM.Run(w, {})
       Builtins.y2milestone("Ret: %1", ret)
       UI.CloseDialog
-      "" 
+      ""
       #    if (ret == `ok)
       # 	return GetURL ();
       #    else
