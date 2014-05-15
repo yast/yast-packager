@@ -13,6 +13,8 @@ require "yast"
 
 module Yast
   class ProductLicenseClass < Module
+    attr_accessor :license_patterns
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -1297,6 +1299,19 @@ module Yast
     #   has been already accepetd, ask user to accept it again (because of 'going back'
     #   in the installation proposal).
     def AskLicensesAgreement(dirs, patterns, action, enable_back, base_product, require_agreement)
+      # dialog caption
+      caption = _("License Agreement")
+      heading = nil
+
+      AskLicensesAgreementWithHeading(dirs, patterns, action, enable_back,
+          base_product, require_agreement, caption, heading)
+    end
+
+    # @see {AskLicensesAgreement} for details
+    # @param caption [String] custom dialog title
+    # @param heading [String] optional heading displayed above the license text
+    def AskLicensesAgreementWithHeading(dirs, patterns, action, enable_back,
+          base_product, require_agreement, caption, heading)
       dirs = deep_copy(dirs)
       patterns = deep_copy(patterns)
       if dirs == nil || dirs == []
@@ -1318,9 +1333,6 @@ module Yast
         created_new_dialog = true
       end
 
-      # dialog caption
-      caption = _("License Agreement")
-
       license_idents = []
 
       # initial loop
@@ -1328,7 +1340,13 @@ module Yast
 
       licenses = []
       counter = -1
-      contents = VBox()
+      contents = VBox(
+        heading ? VBox(
+          VSpacing(0.5),
+          Left(Heading(heading)),
+          VSpacing(0.5)
+        ) : Empty()
+      )
       # If acceptance is not needed, there's no need to disable the button
       # by default
       default_next_button_state = true
