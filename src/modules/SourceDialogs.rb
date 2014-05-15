@@ -2279,7 +2279,7 @@ module Yast
       if UI.WidgetExists(:add_addon)
         enabled = UI.QueryWidget(Id(:add_addon), :Value)
 
-        URL_SCHEMA_DESCRIPTIONS.keys.each do |widget|
+        WIDGET_LABELS.keys.each do |widget|
           UI.ChangeWidget(Id(widget), :Enabled, enabled) if UI.WidgetExists(widget)
         end
       end
