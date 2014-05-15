@@ -1306,13 +1306,6 @@ module Yast
         return :auto
       end
 
-      init_ret = nil
-
-      if init_ret == :auto || init_ret == :accepted
-        Builtins.y2milestone("Returning %1", init_ret)
-        return init_ret
-      end
-
       created_new_dialog = false
 
       # #459391
