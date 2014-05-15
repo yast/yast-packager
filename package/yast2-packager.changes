@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu May 15 12:08:05 UTC 2014 - lslezak@suse.cz
+
+- ProductLicense - allow setting the dialog title and display an
+  optional heading (needed for displaying the EULA for addons from
+  registration server)
+- 3.1.16
+
+-------------------------------------------------------------------
 Thu May 15 11:44:30 UTC 2014 - lslezak@suse.cz
 
 - fixed wrong constant name resulting in a crash during
