@@ -1443,7 +1443,7 @@ module Yast
       CleanUpLicense(@tmpdir)
 
       # bugzilla #303922
-      Wizard.CloseDialog if created_new_dialog || !Stage.initial
+      Wizard.CloseDialog if created_new_dialog
 
       CleanUp()
 
