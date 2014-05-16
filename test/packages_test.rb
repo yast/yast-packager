@@ -32,6 +32,10 @@ end
 PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
 
 describe Yast::Packages do
+  before(:each) do
+    log.info "--- test ---"
+  end
+
   describe "#kernelCmdLinePackages" do
     before(:each) do
       # default value
@@ -101,6 +105,28 @@ describe Yast::Packages do
 
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
+      end
+    end
+  end
+
+  describe "#optional_default_patterns" do
+    context "software->optional_default_patterns is not defined in control file" do
+      it "returns empty list" do
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("")
+        expect(Yast::Packages.optional_default_patterns).to be_empty
+      end
+    end
+
+    context "software->optional_default_patterns is filled with list of patterns" do
+      it "returns list of patterns" do
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("a b c d")
+        expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
+
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
+        expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
+
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
+        expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
   end
@@ -176,6 +202,26 @@ describe Yast::Packages do
       Yast::Packages.SelectSystemPatterns(false)
 
       expect(Yast::Report).to have_received(:Error).with(/pattern p[1-3]/i).exactly(2 * default_patterns.size).times
+    end
+
+    it "does not report an error but logs it if optional pattern is not found" do
+      optional_default_patterns = ["p3", "p4"]
+
+      # No default patterns, all are optional
+      Yast::Packages.stub(:default_patterns).and_return([])
+      Yast::Packages.stub(:optional_default_patterns).and_return(optional_default_patterns)
+      Yast::Packages.stub(:ComputeSystemPatternList).and_return([])
+      Yast::Pkg.stub(:ResolvableProperties).and_return([])
+
+      expect(Yast::Report).not_to receive(:Error)
+
+      expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
+        expect(msg).to match(/optional pattern p[3-4] does not exist/i).exactly(4).times
+      end.at_least(4).times.and_call_original
+
+      # Called twice with reselect=true/false
+      Yast::Packages.SelectSystemPatterns(true)
+      Yast::Packages.SelectSystemPatterns(false)
     end
   end
 
