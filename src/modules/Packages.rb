@@ -1774,6 +1774,12 @@ module Yast
     def Initialize_StageInitial(show_popup, base_url, log_url)
       initial_repository = nil
       ImportGPGKeys()
+
+      # prefer CD/DVD media to download during installation/update
+      # (BNC#780617,865819)
+      Builtins.y2milestone("Prefer CD/DVD media to download")
+      Pkg.SetZConfig({ "download_media_prefer_download" => false })
+
       while initial_repository == nil
         initial_repository = Pkg.SourceCreateBase(base_url, "")
         if initial_repository == -1 || initial_repository == nil
