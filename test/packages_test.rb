@@ -93,16 +93,13 @@ describe Yast::Packages do
 
     context "software->default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("a,b,c,d")
-        expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
-
         Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a ,b , c,d  ")
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a ,b \n, c\n,d  ")
+        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
       end
     end

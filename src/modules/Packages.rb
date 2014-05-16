@@ -2384,7 +2384,7 @@ module Yast
     def default_patterns
       patterns = ProductFeatures.GetStringFeature("software", "default_patterns")
       log.info "Default patterns: #{patterns}"
-      patterns.split(/[, \n]/).reject(&:empty?)
+      patterns.strip.split
     end
 
     # Log only resolvables with resolvable["status"] matching these below
