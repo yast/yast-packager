@@ -2382,9 +2382,15 @@ module Yast
     #
     # @return [Array] list of patterns
     def default_patterns
-      patterns = ProductFeatures.GetStringFeature("software", "default_patterns")
-      log.info "Default patterns: #{patterns}"
-      patterns.strip.split
+      product_feature_items("software", "default_patterns")
+    end
+
+    # Reads software->optional_default_patterns and returns lisf of patterns that should
+    # be selected for installation by default (if they exist)
+    #
+    # @return [Array] list of patterns
+    def optional_default_patterns
+      product_feature_items("software", "optional_default_patterns")
     end
 
     # Log only resolvables with resolvable["status"] matching these below
@@ -2419,6 +2425,18 @@ module Yast
 
   private
 
+    # Reads product feature defined by parameters, logs what it gets
+    # and returns list of items split by whitespaces
+    #
+    # @param [String] section in control file
+    # @param [String] feature in section
+    # @return [Array] of items
+    def product_feature_items(section, feature)
+      feature_items = ProductFeatures.GetStringFeature(section, feature)
+      log.info "Product feature #{section}->#{feature} items: #{feature_items.inspect}"
+      feature_items.strip.split
+    end
+
     def log_resolvables(text, resolvables)
       return if resolvables.empty?
 
@@ -2432,22 +2450,27 @@ module Yast
 
     # Computes all patterns that are expected to be selected for default installation
     def patterns_to_install
-      patterns = ComputeSystemPatternList()
+      patterns = ComputeSystemPatternList().dup
 
       # autoinstallation has patterns specified in the profile
       if !Mode.autoinst
-        default_patterns.inject(patterns, :<<)
+        (default_patterns | optional_default_patterns).inject(patterns, :<<)
       end
 
       patterns
     end
 
     def report_missing_pattern(pattern_name)
-      log.error "Pattern #{pattern_name} does not exist"
-      Report.Error(_(
-        "Failed to select default product pattern %{pattern_name}.\n" +
-        "Pattern has not been found."
-      ) % {:pattern_name => pattern_name})
+      if optional_default_patterns.include?(pattern_name)
+        log.info "Optional pattern #{pattern_name} does not exist, skipping..."
+      else
+        log.error "Pattern #{pattern_name} does not exist"
+        # Error message, %{pattern_name} is replaced with the missing pattern name in runtime
+        Report.Error(_(
+          "Failed to select default product pattern %{pattern_name}.\n" +
+          "Pattern has not been found."
+        ) % {:pattern_name => pattern_name})
+      end
     end
 
     publish :variable => :install_sources, :type => "boolean"
