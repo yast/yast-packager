@@ -63,10 +63,6 @@ module Yast
         end
       end
 
-      # prefer CD/DVD media to download during installation/update
-      Builtins.y2milestone("Prefer CD/DVD media to download")
-      Pkg.SetZConfig({ "download_media_prefer_download" => false })
-
       # copy the credential files, libzypp loads them from target
       zypp_dir = "/etc/zypp"
       credentials_d = zypp_dir + "/credentials.d"
