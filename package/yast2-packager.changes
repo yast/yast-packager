@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May 16 15:41:44 CEST 2014 - locilka@suse.com
+
+- Added support for software->optional_default_patterns to handle
+  selecting optional patterns without reporting if they are missing
+  (bnc#876760)
+- 3.1.18
+
+-------------------------------------------------------------------
 Fri May 16 12:31:52 UTC 2014 - jreidinger@suse.com
 
 - Fix preffering DVD during installation (bnc#865819,bnc#780617)
