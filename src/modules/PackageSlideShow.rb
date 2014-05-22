@@ -11,6 +11,21 @@ require "yast"
 
 module Yast
   class PackageSlideShowClass < Module
+    include Yast::Logger
+
+    # seconds to cut off predicted time
+    MAX_TIME_PER_CD = 7200
+
+    # minimum time displayed per CD if there is something to install
+    MIN_TIME_PER_CD = 10
+
+    # Column index for refreshing statistics: remaining size
+    SIZE_COLUMN_POSITION = 1
+    # Column index for refreshing statistics: remaining number of packages
+    PKG_COUNT_COLUMN_POSITION = 2
+    # Column index for refreshing statistics: remaining time
+    TIME_COLUMN_POSITION = 3
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -38,11 +53,7 @@ module Yast
       @total_count_to_download = 0
       @total_count_downloaded = 0
       @downloading_pct = 0
-      @min_time_per_cd = 10 # const - minimum time displayed per CD if there is something to install
-      @max_time_per_cd = 7200 # const - seconds to cut off predicted time (it's bogus anyway)
-      @size_column = 1 # const - column number for remaining size per CD
-      @pkg_count_column = 2 # const - column number for remaining number of packages per CD
-      @time_column = 3 # const - column number for remaining time per CD
+
       @current_src_no = -1 # 1..n
       @current_cd_no = -1 # 1..n
       @next_src_no = -1
@@ -115,50 +126,6 @@ module Yast
     #**************  Formatting functions and helpers **************************
     #***************************************************************************
 
-    # Get version info for a package (without build no.)
-    #
-    # @param [String] pkg_name name of the package without path and ".rpm" extension
-    # @return version string
-    #
-    def StripReleaseNo(pkg_name)
-      build_no_pos = Builtins.findlastof(pkg_name, "-") # find trailing build no.
-
-      if build_no_pos != nil && Ops.greater_than(build_no_pos, 0)
-        # cut off trailing build no.
-        pkg_name = Builtins.substring(pkg_name, 0, build_no_pos)
-      end
-
-      pkg_name
-    end
-
-    # Get package file name from path
-    #
-    # @param [String] pkg_name location of the package
-    # @return [String] package file name
-    #
-    def StripPath(pkg_name)
-      return nil if pkg_name == nil
-
-      file_pos = Builtins.findlastof(pkg_name, "/")
-
-      if file_pos != nil && Ops.greater_than(file_pos, 0)
-        # return just the file name
-        pkg_name = Builtins.substring(pkg_name, Ops.add(file_pos, 1))
-      end
-
-      pkg_name
-    end
-
-
-    # set media type "CD" or "DVD"
-    def SetMediaType(new_media_type)
-      Builtins.y2warning(
-        "PackageSlideShow::SetMediaType() is obsoled, do not use!"
-      )
-
-      nil
-    end
-
     # Sum up all list items
     #
     def ListSum(sizes)
@@ -206,7 +173,7 @@ module Yast
     def TotalRemainingTime
       ListSumCutOff(
         Builtins.flatten(@remaining_times_per_cd_per_src),
-        @max_time_per_cd
+        MAX_TIME_PER_CD
       )
     end
 
@@ -656,22 +623,15 @@ module Yast
     # @return true if recalculated, false if not
     #
     def RecalcRemainingTimes(force_recalc)
-      if !force_recalc &&
-          Ops.less_than(Builtins.time, SlideShow.next_recalc_time)
+      if !force_recalc && Builtins.time < SlideShow.next_recalc_time
         # Nothing to do (yet) - simply return
         return false
       end
 
-
-      # Actually do recalculation
-
       elapsed = SlideShow.total_time_elapsed
 
-      if Ops.greater_or_equal(SlideShow.start_time, 0)
-        elapsed = Ops.subtract(
-          Ops.add(elapsed, Builtins.time),
-          SlideShow.start_time
-        )
+      if SlideShow.start_time >= 0
+        elapsed = elapsed + Builtins.time - SlideShow.start_time
       end
 
       if elapsed == 0
@@ -684,7 +644,7 @@ module Yast
 
       # This is the real thing.
 
-      real_bytes_per_second = Ops.divide(@total_size_installed, elapsed)
+      real_bytes_per_second = @total_size_installed / elapsed
 
       # But this turns out to be way to optimistic - RPM gets slower and
       # slower while installing. So let's add some safety margin to make
@@ -733,15 +693,15 @@ module Yast
           if Ops.greater_than(remaining_size, 0)
             remaining_time = Ops.divide(remaining_size, @bytes_per_second)
 
-            if Ops.less_than(remaining_time, @min_time_per_cd)
+            if Ops.less_than(remaining_time, MIN_TIME_PER_CD)
               # It takes at least this long for the CD drive to spin up and
               # for RPM to do _anything_. Times below this values are
               # ridiculously unrealistic.
-              remaining_time = @min_time_per_cd
-            elsif Ops.greater_than(remaining_time, @max_time_per_cd) # clip off at 2 hours
+              remaining_time = MIN_TIME_PER_CD
+            elsif Ops.greater_than(remaining_time, MAX_TIME_PER_CD) # clip off at 2 hours
               # When data throughput goes downhill (stalled network connection etc.),
               # cut off the predicted time at a reasonable maximum.
-              remaining_time = @max_time_per_cd
+              remaining_time = MAX_TIME_PER_CD
             end
           end
           remaining_times_list = Builtins.add(
@@ -883,7 +843,7 @@ module Yast
             Ops.subtract(@current_src_no, 1),
             Ops.subtract(@current_cd_no, 1)
           ),
-          @size_column
+          SIZE_COLUMN_POSITION
         ),
         FormatRemainingSize(remaining)
       )
@@ -897,7 +857,7 @@ module Yast
             Ops.subtract(@current_src_no, 1),
             Ops.subtract(@current_cd_no, 1)
           ),
-          @pkg_count_column
+          PKG_COUNT_COLUMN_POSITION
         ),
         FormatRemainingCount(
           Ops.get(
@@ -915,10 +875,10 @@ module Yast
 
         remaining = 0 if Ops.less_or_equal(remaining, 0)
 
-        if Ops.greater_than(remaining, @max_time_per_cd) # clip off at 2 hours
+        if Ops.greater_than(remaining, MAX_TIME_PER_CD) # clip off at 2 hours
           # When data throughput goes downhill (stalled network connection etc.),
           # cut off the predicted time at a reasonable maximum.
-          remaining = Ops.unary_minus(@max_time_per_cd)
+          remaining = Ops.unary_minus(MAX_TIME_PER_CD)
         end
 
         UI.ChangeWidget(
@@ -930,7 +890,7 @@ module Yast
               Ops.subtract(@current_src_no, 1),
               Ops.subtract(@current_cd_no, 1)
             ),
-            @time_column
+            TIME_COLUMN_POSITION
           ),
           FormatTimeShowOverflow(remaining)
         )
@@ -943,20 +903,20 @@ module Yast
 
       UI.ChangeWidget(
         Id(:cdStatisticsTable),
-        term(:Item, "total", @size_column),
+        term(:Item, "total", SIZE_COLUMN_POSITION),
         FormatRemainingSize(TotalRemainingSize())
       )
 
       UI.ChangeWidget(
         Id(:cdStatisticsTable),
-        term(:Item, "total", @pkg_count_column),
+        term(:Item, "total", PKG_COUNT_COLUMN_POSITION),
         FormatRemainingCount(TotalRemainingPkgCount())
       )
 
       if @unit_is_seconds
         UI.ChangeWidget(
           Id(:cdStatisticsTable),
-          term(:Item, "total", @time_column),
+          term(:Item, "total", TIME_COLUMN_POSITION),
           FormatTimeShowOverflow(TotalRemainingTime())
         )
       end
@@ -1099,12 +1059,12 @@ module Yast
                 remaining = Ops.divide(remaining, @bytes_per_second)
                 rem_time = String.FormatTime(remaining) # column #2
 
-                if Ops.greater_than(remaining, @max_time_per_cd) # clip off at 2 hours
+                if Ops.greater_than(remaining, MAX_TIME_PER_CD) # clip off at 2 hours
                   # When data throughput goes downhill (stalled network connection etc.),
                   # cut off the predicted time at a reasonable maximum.
                   # "%1" is a predefined maximum time.
                   rem_time = FormatTimeShowOverflow(
-                    Ops.unary_minus(@max_time_per_cd)
+                    Ops.unary_minus(MAX_TIME_PER_CD)
                   )
                 end
               end
@@ -1326,24 +1286,22 @@ module Yast
     end
 
 
-
-
-
-
-
     # package start display update
     # - this is called at the beginning of a new package
     #
     # @param [String] pkg_name		package name
+    # @param [String] pkg_location	full path to a package
     # @param [String] pkg_summary	package summary (short description)
+    # @param [Integer] pkg_size		package size
     # @param [Boolean] deleting		Flag: deleting (true) or installing (false) package?
     #
     def SlideDisplayStart(pkg_name, pkg_location, pkg_summary, pkg_size, deleting)
       return if !SanityCheck(false)
 
       # remove path
-      pkg_filename = StripPath(pkg_location)
-      Builtins.y2milestone("pkg_name: %1", pkg_name)
+      pkg_location ||= ""
+      pkg_filename = File.basename(pkg_location)
+      log.info "pkg_name: #{pkg_name}"
 
       if deleting
         pkg_size = -1
@@ -1358,10 +1316,11 @@ module Yast
         # Note: This will begin to fail when some day packages are deleted in the middle of the
         # installaton process.
 
+        # FIXME: SlideShow.PauseTimer
         SlideShow.ResetTimer
       end
 
-      pkg_summary = "" if pkg_summary == nil
+      pkg_summary ||= ""
 
       msg = ""
 
@@ -1506,9 +1465,6 @@ module Yast
     publish :variable => :bytes_per_second, :type => "integer"
     publish :variable => :init_pkg_data_complete, :type => "boolean"
     publish :function => :GetPackageSummary, :type => "map <string, any> ()"
-    publish :function => :StripReleaseNo, :type => "string (string)"
-    publish :function => :StripPath, :type => "string (string)"
-    publish :function => :SetMediaType, :type => "void (string)"
     publish :function => :InitPkgData, :type => "void (boolean)"
     publish :function => :SetCurrentCdNo, :type => "void (integer, integer)"
     publish :function => :UpdateCurrentCdProgress, :type => "void (boolean)"
