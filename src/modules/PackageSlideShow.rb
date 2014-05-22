@@ -623,7 +623,7 @@ module Yast
     # @return true if recalculated, false if not
     #
     def RecalcRemainingTimes(force_recalc)
-      if !force_recalc && Builtins.time < SlideShow.next_recalc_time
+      if !force_recalc && ::Time.now.to_i < SlideShow.next_recalc_time
         # Nothing to do (yet) - simply return
         return false
       end
@@ -631,7 +631,7 @@ module Yast
       elapsed = SlideShow.total_time_elapsed
 
       if SlideShow.start_time >= 0
-        elapsed = elapsed + Builtins.time - SlideShow.start_time
+        elapsed += ::Time.now.to_i - SlideShow.start_time
       end
 
       if elapsed == 0
@@ -664,7 +664,7 @@ module Yast
         pessimistic_factor = 1.7 - @total_size_installed.to_f / @total_size_to_install
       end
 
-      @bytes_per_second = (real_bytes_per_second / pessimistic_factor + 0.5).ceil
+      @bytes_per_second = (real_bytes_per_second / pessimistic_factor + 1).floor
 
       @remaining_times_per_cd_per_src = []
 
@@ -724,7 +724,7 @@ module Yast
                 ],
                 1
               ),
-              Builtins.time
+              ::Time.now.to_i
             ),
             SlideShow.slide_start_time
           )
@@ -763,10 +763,7 @@ module Yast
         end
       end
 
-      SlideShow.next_recalc_time = Ops.add(
-        Builtins.time,
-        SlideShow.recalc_interval
-      )
+      SlideShow.next_recalc_time = ::Time.now.to_i + SlideShow.recalc_interval
 
       true
     end
@@ -777,7 +774,7 @@ module Yast
     def SwitchToSecondsIfNecessary
       if @unit_is_seconds ||
           Ops.less_than(
-            Builtins.time,
+            ::Time.now.to_i,
             Ops.add(SlideShow.start_time, SlideShow.initial_recalc_delay)
           )
         return false # no need to switch
@@ -1272,7 +1269,7 @@ module Yast
     # @param [String] pkg_name		package name
     # @param [String] pkg_location	full path to a package
     # @param [String] pkg_summary	package summary (short description)
-    # @param [Integer] pkg_size		package size
+    # @param [Integer] pkg_size		package size in bytes
     # @param [Boolean] deleting		Flag: deleting (true) or installing (false) package?
     #
     def SlideDisplayStart(pkg_name, pkg_location, pkg_summary, pkg_size, deleting)
