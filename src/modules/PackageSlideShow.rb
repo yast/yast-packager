@@ -644,7 +644,7 @@ module Yast
 
       # This is the real thing.
 
-      real_bytes_per_second = @total_size_installed / elapsed
+      real_bytes_per_second = @total_size_installed.to_f / elapsed
 
       # But this turns out to be way to optimistic - RPM gets slower and
       # slower while installing. So let's add some safety margin to make
@@ -660,26 +660,11 @@ module Yast
 
       pessimistic_factor = 1.0
 
-      if Ops.greater_than(@total_size_to_install, 0)
-        pessimistic_factor = Ops.subtract(
-          1.7,
-          Ops.divide(
-            Builtins.tofloat(@total_size_installed),
-            Builtins.tofloat(@total_size_to_install)
-          )
-        )
+      if @total_size_to_install > 0
+        pessimistic_factor = 1.7 - @total_size_installed.to_f / @total_size_to_install
       end
-      @bytes_per_second = Builtins.tointeger(
-        Ops.add(
-          Ops.divide(
-            Builtins.tofloat(real_bytes_per_second),
-            pessimistic_factor
-          ),
-          0.5
-        )
-      )
 
-      @bytes_per_second = 1 if Ops.less_than(@bytes_per_second, 1)
+      @bytes_per_second = (real_bytes_per_second / pessimistic_factor + 0.5).ceil
 
       @remaining_times_per_cd_per_src = []
 
@@ -688,43 +673,38 @@ module Yast
       Builtins.foreach(@remaining_sizes_per_cd_per_src) do |remaining_sizes_list|
         remaining_times_list = []
         remaining_time = -1
-        Builtins.foreach(remaining_sizes_list) do |remaining_size|
-          remaining_time = remaining_size
-          if Ops.greater_than(remaining_size, 0)
-            remaining_time = Ops.divide(remaining_size, @bytes_per_second)
 
-            if Ops.less_than(remaining_time, MIN_TIME_PER_CD)
+        remaining_sizes_list.each do |remaining_size|
+          remaining_time = remaining_size
+
+          if remaining_size > 0
+            remaining_time = remaining_size.to_f / @bytes_per_second
+
+            if remaining_time < MIN_TIME_PER_CD
               # It takes at least this long for the CD drive to spin up and
               # for RPM to do _anything_. Times below this values are
               # ridiculously unrealistic.
               remaining_time = MIN_TIME_PER_CD
-            elsif Ops.greater_than(remaining_time, MAX_TIME_PER_CD) # clip off at 2 hours
+            elsif remaining_time > MAX_TIME_PER_CD # clip off at 2 hours
               # When data throughput goes downhill (stalled network connection etc.),
               # cut off the predicted time at a reasonable maximum.
               remaining_time = MAX_TIME_PER_CD
             end
           end
-          remaining_times_list = Builtins.add(
-            remaining_times_list,
-            remaining_time
-          )
+
+          remaining_times_list << remaining_time
         end
-        @remaining_times_per_cd_per_src = Builtins.add(
-          @remaining_times_per_cd_per_src,
-          remaining_times_list
-        )
+
+        @remaining_times_per_cd_per_src << remaining_times_list
       end
 
 
       # Recalculate slide interval
 
       if Slides.HaveSlides
-        slides_remaining = Ops.subtract(
-          Ops.subtract(Builtins.size(Slides.slides), SlideShow.current_slide_no),
-          1
-        )
+        slides_remaining = Slides.slides.size - SlideShow.current_slide_no - 1
 
-        if Ops.greater_than(slides_remaining, 0)
+        if slides_remaining > 0
           # The remaining time for the rest of the slides depends on the
           # remaining time for the current CD only: This is where the
           # slide images and texts reside. Normally, only CD1 has slides
