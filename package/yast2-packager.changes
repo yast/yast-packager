@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 23 17:46:18 CEST 2014 - locilka@suse.com
+
+- SlideShow refactoring: constantized, removed unused methods,
+  Rubyized (all for bnc#865037)
+- 3.1.19
+
+-------------------------------------------------------------------
 Fri May 16 15:41:44 CEST 2014 - locilka@suse.com
 
 - Added support for software->optional_default_patterns to handle
