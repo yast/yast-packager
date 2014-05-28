@@ -1946,7 +1946,7 @@ module Yast
       @display_addon_checkbox ?
         VBox(
           Left(CheckBox(Id(:add_addon), Opt(:notify),
-              _("I would like to install an Add On Product"), false)),
+              _("I would like to install an additional Add On Product"), false)),
           VSpacing(1),
         ) :
         Empty()
@@ -1960,11 +1960,11 @@ module Yast
       contents = HBox(
         HStretch(),
         VBox(
+          VStretch(),
+          addon_checkbox_term,
           RadioButtonGroup(
             Id(:type),
             VBox(
-              VStretch(),
-              addon_checkbox_term,
               HBox(
                 addon_spacing_term,
                 VBox(
@@ -2011,11 +2011,11 @@ module Yast
         contents = HBox(
           HStretch(),
           VBox(
+            VStretch(),
+            addon_checkbox_term,
             RadioButtonGroup(
               Id(:type),
               VBox(
-                VStretch(),
-                addon_checkbox_term,
                 HBox(
                   addon_spacing_term,
                   VBox(
@@ -2282,6 +2282,7 @@ module Yast
         WIDGET_LABELS.keys.each do |widget|
           UI.ChangeWidget(Id(widget), :Enabled, enabled) if UI.WidgetExists(widget)
         end
+        UI.ChangeWidget(Id(:type), :Enabled, enabled) if UI.WidgetExists(:type)
       end
     end
 
@@ -2572,7 +2573,7 @@ module Yast
       )
 
       # dialog caption
-      caption = _("Media Type")
+      caption = _("Add On Product")
       ui = CWM.ShowAndRun(
         {
           "widget_names"       => ["select_dl"],

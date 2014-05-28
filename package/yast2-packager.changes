@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 28 07:36:38 UTC 2014 - jsrain@suse.cz
+
+- text improvements for adding media-based add-on product during
+  installation (bnc#878534)
+- 3.1.20
+
+-------------------------------------------------------------------
 Fri May 23 17:46:18 CEST 2014 - locilka@suse.com
 
 - SlideShow refactoring: constantized, removed unused methods,
