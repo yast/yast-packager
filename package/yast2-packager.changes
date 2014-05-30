@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 30 16:55:25 UTC 2014 - lslezak@suse.cz
+
+- allow adding a title to license dialog (needed for on-line
+  extensions)
+- 3.1.21
+
+-------------------------------------------------------------------
 Wed May 28 07:36:38 UTC 2014 - jsrain@suse.cz
 
 - text improvements for adding media-based add-on product during

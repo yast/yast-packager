@@ -274,6 +274,8 @@ module Yast
       lang_pairs = Builtins.maplist(languages) do |l|
         name_print = Ops.get(lang_names, l, "")
         if name_print == ""
+          # TODO FIXME: the language code might be longer than 2 characters,
+          # e.g. "ast_ES"
           l_short = Builtins.substring(l, 0, 2)
 
           Builtins.foreach(lang_names) do |k, v|
@@ -459,12 +461,16 @@ module Yast
       )
     end
 
+    # Displays License dialog
+    def DisplayLicenseDialog(languages, back, license_language, licenses, id)
+      # dialog title
+      DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, _("License Agreement"))
+    end
+
     # Displays License with Help and ( ) Yes / ( ) No radio buttons
     # @param string file with the license
-    def DisplayLicenseDialog(languages, back, license_language, licenses, id)
+    def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
       languages = deep_copy(languages)
-      # dialog caption
-      caption = _("License Agreement")
 
       contents = (
         licenses_ref = arg_ref(licenses.value);
