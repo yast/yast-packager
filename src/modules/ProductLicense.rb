@@ -386,7 +386,7 @@ module Yast
             Id("eula_#{id}"),
             Opt(:notify),
             # check box label
-            _("I Agree to the License Terms.")
+            _("I &Agree to the License Terms.")
           )
         )
       )
