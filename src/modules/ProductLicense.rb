@@ -379,30 +379,13 @@ module Yast
       space = Ops.get_boolean(display, "TextMode", true) ? 1 : 3
 
       license_buttons = VBox(
-        VSpacing(spare_space ? 0 : 2),
-        RadioButtonGroup(
-          Id(Builtins.sformat("eula_%1", id)),
-          HBox(
-            HSpacing(Ops.multiply(2, space)),
-            VBox(
-              Left(
-                RadioButton(
-                  Id(Builtins.sformat("yes_%1", id)),
-                  Opt(:notify),
-                  # radio button
-                  _("&Yes, I Agree to the License Agreement")
-                )
-              ),
-              Left(
-                RadioButton(
-                  Id(Builtins.sformat("no_%1", id)),
-                  Opt(:notify),
-                  # radio button
-                  _("N&o, I Do not Agree")
-                )
-              )
-            ),
-            HSpacing(Ops.multiply(2, space))
+        VSpacing(spare_space ? 0 : 1),
+        HCenter(
+          CheckBox(
+            Id("yes_#{id}"),
+            Opt(:notify),
+            # check box label
+            _("I Agree to the License Terms.")
           )
         )
       )
@@ -1020,21 +1003,22 @@ module Yast
           )
           next
         end
-        eula_id = Builtins.sformat("eula_%1", one_license_id)
+        eula_id = Builtins.sformat("yes_%1", one_license_id)
         if UI.WidgetExists(Id(eula_id)) != true
           Builtins.y2error("Widget %1 does not exist", eula_id)
           next
         end
+
         # All licenses have to be accepted
-        license_accepted = Convert.to_string(
-          UI.QueryWidget(Id(eula_id), :CurrentButton)
-        )
+        license_accepted = UI.QueryWidget(Id(eula_id), :Value)
+
         Builtins.y2milestone(
           "License %1 accepted: %2",
           eula_id,
           license_accepted
         )
-        if !Builtins.regexpmatch(license_accepted, "^yes_")
+
+        if !license_accepted
           accepted = false
           raise Break
         end
@@ -1049,21 +1033,9 @@ module Yast
       eula_id = nil
       Builtins.foreach(@license_ids) do |one_license_id|
         next if AcceptanceNeeded(one_license_id) != true
-        eula_id = Builtins.sformat("eula_%1", one_license_id)
+        eula_id = Builtins.sformat("yes_%1", one_license_id)
         if UI.WidgetExists(Id(eula_id)) != true
           Builtins.y2error("Widget %1 does not exist", eula_id)
-        end
-        current_button = Convert.to_string(
-          UI.QueryWidget(Id(eula_id), :CurrentButton)
-        )
-        # license have to be accepted or declined
-        if current_button == nil
-          Builtins.y2warning(
-            "License %1 hasn't been accepted or declined",
-            eula_id
-          )
-          ret = false
-          raise Break
         end
       end
 
@@ -1085,9 +1057,8 @@ module Yast
           # bugzilla #303828
           # disabled next button unless yes/no is selected
         elsif Ops.is_string?(ret) &&
-            (Builtins.regexpmatch(Builtins.tostring(ret), "^yes_") ||
-              Builtins.regexpmatch(Builtins.tostring(ret), "^no_"))
-          Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined() 
+            Builtins.regexpmatch(Builtins.tostring(ret), "^yes_")
+          Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined()
           # Aborting the license dialog
         elsif ret == :abort
           # bugzilla #218677
