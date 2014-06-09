@@ -383,7 +383,7 @@ module Yast
         VSpacing(spare_space ? 0 : 1),
         HCenter(
           CheckBox(
-            Id("yes_#{id}"),
+            Id("eula_#{id}"),
             Opt(:notify),
             # check box label
             _("I Agree to the License Terms.")
@@ -1014,7 +1014,7 @@ module Yast
           )
           next
         end
-        eula_id = Builtins.sformat("yes_%1", one_license_id)
+        eula_id = Builtins.sformat("eula_%1", one_license_id)
         if UI.WidgetExists(Id(eula_id)) != true
           Builtins.y2error("Widget %1 does not exist", eula_id)
           next
@@ -1044,7 +1044,7 @@ module Yast
       eula_id = nil
       Builtins.foreach(@license_ids) do |one_license_id|
         next if AcceptanceNeeded(one_license_id) != true
-        eula_id = Builtins.sformat("yes_%1", one_license_id)
+        eula_id = Builtins.sformat("eula_%1", one_license_id)
         if UI.WidgetExists(Id(eula_id)) != true
           Builtins.y2error("Widget %1 does not exist", eula_id)
         end
@@ -1067,8 +1067,7 @@ module Yast
           ret = :language
           # bugzilla #303828
           # disabled next button unless yes/no is selected
-        elsif Ops.is_string?(ret) &&
-            Builtins.regexpmatch(Builtins.tostring(ret), "^yes_")
+        elsif Ops.is_string?(ret) && ret.start_with?("eula_")
           Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined()
           # Aborting the license dialog
         elsif ret == :abort
