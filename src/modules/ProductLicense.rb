@@ -586,7 +586,7 @@ module Yast
         end
 
         # Success
-        return true 
+        return true
 
         # Nothing to unpack
       else
@@ -798,13 +798,13 @@ module Yast
       # Bugzilla #299732
       # Base Product - LiveCD installation
       if Mode.live_installation
-        SearchForLicense_LiveCDInstallation(src_id, fallback_dir) 
+        SearchForLicense_LiveCDInstallation(src_id, fallback_dir)
 
         # Base-product - license not in installation
         #   * Stage is not initial
         #   * source ID is not defined
       elsif !Stage.initial && src_id == nil
-        SearchForLicense_NormalRunBaseProduct(src_id, fallback_dir) 
+        SearchForLicense_NormalRunBaseProduct(src_id, fallback_dir)
 
         # Base-product - first-stage installation
         #   * Stage is initial
@@ -814,12 +814,12 @@ module Yast
         SearchForLicense_FirstStageBaseProduct(
           src_id == nil ? Ops.get(Pkg.SourceGetCurrent(true), 0, 0) : src_id,
           fallback_dir
-        ) 
+        )
 
         # Add-on-product license
         #   * Source ID is set
       elsif src_id != nil && Ops.greater_than(src_id, -1)
-        SearchForLicense_AddOnProduct(src_id, fallback_dir) 
+        SearchForLicense_AddOnProduct(src_id, fallback_dir)
 
         # Fallback
       else
@@ -959,7 +959,7 @@ module Yast
         if Stage.initial
           # Wizard::OpenNextBackStepsDialog();
           # WorkflowManager::RedrawWizardSteps();
-          Builtins.y2milestone("Initial stage, not opening any window...") 
+          Builtins.y2milestone("Initial stage, not opening any window...")
           # use normal wizard
         else
           Wizard.OpenNextBackDialog
@@ -1064,7 +1064,7 @@ module Yast
           licenses_ref = arg_ref(licenses.value)
           UpdateLicenseContent(licenses_ref, GetId(Builtins.tostring(ret)))
           licenses.value = licenses_ref.value
-          ret = :language 
+          ret = :language
           # bugzilla #303828
           # disabled next button unless yes/no is selected
         elsif Ops.is_string?(ret) &&
