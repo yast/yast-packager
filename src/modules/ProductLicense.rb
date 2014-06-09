@@ -10,10 +10,11 @@
 #		Lukas Ocilka <locilka@suse.cz>
 #
 require "yast"
+require "uri"
 
 module Yast
   class ProductLicenseClass < Module
-    attr_accessor :license_patterns
+    attr_accessor :license_patterns, :license_file_print
 
     def main
       Yast.import "Pkg"
@@ -390,6 +391,12 @@ module Yast
         )
       )
 
+      # check if the license file name is an URL for download
+      valid_urls = [URI::HTTP, URI::HTTPS, URI::FTP]
+      license_is_url = valid_urls.include?(URI(license_file_print).class) rescue false
+      # split a long URL to multiple lines
+      display_url = license_file_print.scan(/.{1,57}/).join("\n") if license_file_print
+
       VBox(
         VSpacing(spare_space ? 0 : 1),
         HBox(
@@ -418,7 +425,11 @@ module Yast
             Left(
               # FATE #302018
               Label(
-                # TRANSLATORS: addition license information
+                # %{license_url} is an URL where the displayed license can be found
+                license_is_url ? (_("If you want to print this EULA, you can download it from\n" \
+                      "%{license_url}") % { :license_url => display_url } ) :
+
+                  # TRANSLATORS: addition license information
                 # %1 is replaced with the filename
                 Builtins.sformat(
                   _(
