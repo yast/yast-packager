@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jun  9 11:04:22 UTC 2014 - lslezak@suse.cz
+
+- ProductLicense.rb:
+  - display URL where to download the license (bnc#880685)
+  - display a checkbox instead radio buttons (bnc#878976)
+- 3.1.22
+
+-------------------------------------------------------------------
 Fri May 30 16:55:25 UTC 2014 - lslezak@suse.cz
 
 - allow adding a title to license dialog (needed for on-line
