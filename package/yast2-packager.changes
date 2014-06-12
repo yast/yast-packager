@@ -4,6 +4,7 @@ Thu Jun 12 19:35:30 UTC 2014 - lslezak@suse.cz
 - make sure float time is not reported (bnc#882240)
 - fix total time to be exactly the sum of per media times when
   a minimum time is used
+- 3.1.23
 
 -------------------------------------------------------------------
 Mon Jun  9 11:04:22 UTC 2014 - lslezak@suse.cz
