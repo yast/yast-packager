@@ -692,10 +692,17 @@ module Yast
             end
           end
 
+          if remaining_time.is_a?(Float)
+            log.warn "Float time appeared: #{remaining_time}"
+            remaining_time = remaining_time.round
+            log.warn "Converted to integer: #{remaining_time}"
+          end
+
           remaining_times_list << remaining_time
         end
 
         @remaining_times_per_cd_per_src << remaining_times_list
+        log.debug "Recalculated remaining time: #{@remaining_times_per_cd_per_src}"
       end
 
 
