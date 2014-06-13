@@ -17,7 +17,7 @@ module Yast
     MAX_TIME_PER_CD = 7200
 
     # minimum time displayed per CD if there is something to install
-    MIN_TIME_PER_CD = 10
+    MIN_TIME_PER_CD = 5
 
     # Column index for refreshing statistics: remaining size
     SIZE_COLUMN_POSITION = 1
@@ -367,6 +367,9 @@ module Yast
           seconds = Ops.divide(remaining, @bytes_per_second)
         end
 
+        seconds = MIN_TIME_PER_CD if seconds < MIN_TIME_PER_CD
+        log.debug "Updating remaining time for source #{@current_src_no} " \
+          "(medium #{@current_cd_no}): #{seconds}"
         Ops.set(
           @remaining_times_per_cd_per_src,
           [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
@@ -414,7 +417,7 @@ module Yast
             total = 0
             Builtins.foreach(media_mapping) do |count|
               total = Ops.add(total, count)
-            end 
+            end
 
 
             Builtins.y2milestone(
@@ -426,7 +429,7 @@ module Yast
           end
         end
         i = Ops.add(i, 1)
-      end 
+      end
 
 
       Builtins.y2milestone("Total number of packages to download: %1", ret)
@@ -523,7 +526,7 @@ module Yast
       Builtins.y2milestone(
         "PackageSlideShow::InitPkgData(): pkg: %1",
         @total_pkg_count_per_cd_per_src
-      ) 
+      )
 
       # RebuildDialog(true);
 
@@ -692,10 +695,17 @@ module Yast
             end
           end
 
+          if remaining_time.is_a?(Float)
+            log.warn "Float time appeared: #{remaining_time}"
+            remaining_time = remaining_time.round
+            log.warn "Converted to integer: #{remaining_time}"
+          end
+
           remaining_times_list << remaining_time
         end
 
         @remaining_times_per_cd_per_src << remaining_times_list
+        log.debug "Recalculated remaining time: #{@remaining_times_per_cd_per_src}"
       end
 
 
@@ -1034,6 +1044,7 @@ module Yast
 
               if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
                 remaining = Ops.divide(remaining, @bytes_per_second)
+                remaining = MIN_TIME_PER_CD if remaining < MIN_TIME_PER_CD
                 rem_time = String.FormatTime(remaining) # column #2
 
                 if Ops.greater_than(remaining, MAX_TIME_PER_CD) # clip off at 2 hours
