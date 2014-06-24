@@ -4,15 +4,25 @@
 # Package:	Package selections
 # Authors:	Anas Nashif <nashif@suse.de>
 #
-# $Id$
 require "yast"
+
+# html_escape()
+require "erb"
 
 module Yast
   class PackagesClass < Module
     include Yast::Logger
+    include ERB::Util
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
+
+    # product renames needed for detecting the product upgrade
+    # <old_name> => <new_name>
+    PRODUCT_RENAMES = {
+      "SUSE_SLES" => "SLES",
+      "SUSE_SLED" => "SLED",
+    }
 
     def main
       Yast.import "UI"
@@ -651,10 +661,157 @@ module Yast
       deep_copy(ret)
     end
 
+    # group products according to the current state
+    # @param [Array<Hash>] products list of products (returned by Pkg.ResolvableProperties call)
+    # @return [Hash<Symbol,Object>] grouped products
+    #   the keys are :new, :removed, :kept, :updated
+    #   For each key the value is a list of products, except for :updated
+    #   key which contains a Hash with old_product => new_product mapping
+    def group_products_by_status(products)
+      # list of all products that will be installed (are selected)
+      installed_products = products.select do |product|
+        product["status"] == :selected
+      end
 
+      # list of all products that will be removed
+      removed_products = products.select do |product|
+        product["status"] == :removed
+      end
 
+      # process the selected and removed products and find product upgrades
+      # map content: old_product => new_product
+      upgraded_products = {}
+      installed_products.each do |installed_product|
+        removed = removed_products.find do |removed_product|
+          installed_name = installed_product["name"]
+          removed_name = removed_product["name"]
 
+          # check the current product names or product renames
+          removed_name == installed_name || (PRODUCT_RENAMES.has_key?(removed_name) &&
+            PRODUCT_RENAMES[removed_name] == installed_name)
+        end
 
+        upgraded_products[removed] = installed_product if removed
+      end
+
+      # remove the upgraded products from selected and removed lists
+      removed_products -= upgraded_products.keys
+      installed_products -= upgraded_products.values
+
+      # list of all products that will be unchanged (kept installed)
+      kept_products = products.select do |product|
+        product["status"] == :installed
+      end
+
+      ret = {
+        :new => installed_products,
+        :removed => removed_products,
+        :kept => kept_products,
+        :updated => upgraded_products
+      }
+
+      log.info "Product upgrade status: #{ret}"
+
+      ret
+    end
+
+    # create a product update summary (in rich text format)
+    # usable in update proposal
+    # @see #product_update_warning how to set and display possible issues
+    # @param [Array<Hash>] products list of products (returned by Pkg.ResolvableProperties call)
+    # @return [Array<String>] list of rich text descriptions
+    def product_update_summary(products)
+      status = group_products_by_status(products)
+
+      ret = []
+
+      # newly installed products
+      status[:new].each do |product|
+        log.info "New product will be installed: #{product}"
+        ret << _("New product <b>%s</b> will be installed") % h(product_label(product))
+      end
+
+      status[:updated].each do |removed, installed|
+        old_product = product_label(removed)
+        new_product = product_label(installed)
+        log.info "Detected product update: #{old_product} -> #{new_product}"
+
+        msg = (old_product == new_product) ?
+          # product update: %s is a product name
+          _("Product <b>%s</b> will be updated") % h(old_product) :
+          # product update: %{old_product} is an old product, %{new_product} is the new one
+          _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
+          :old_product => h(old_product), :new_product => h(new_product)
+        }
+
+        ret << msg
+      end
+
+      status[:kept].each do |product|
+        log.info "Unchanged product: #{product}"
+        ret << _("Product <b>%s</b> will stay installed") % h(product_label(product))
+      end
+
+      status[:removed].each do |product|
+        transact_by = product["transact_by"]
+
+        # Removing another product might be an issue
+        # (just warn if removed by user or by YaST)
+        if transact_by == :user || transact_by == :app_high
+          log.warn "Product will be removed (by #{transact_by}): #{product}"
+          msg = _("<font color='red'><b>Warning:</b> Product <b>%s</b> will be " \
+              "removed.</font>") % h(product_label(product))
+        else
+          log.error "Product will be automatically removed (by #{transact_by}): #{product}"
+          msg = _("<font color='red'><b>Error:</b> Product <b>%s</b> will be " \
+              "automatically removed.</font>") % h(product_label(product))
+        end
+        ret << msg
+      end
+
+      log.info "Product upgrade summary: #{ret}"
+
+      ret
+    end
+
+    # create a warning for product update summary (in rich text format) if
+    # there is an update problem
+    # @see #product_update_summary how to get the summary text
+    # @param [Array<Hash>] products list of products (returned by Pkg.ResolvableProperties call)
+    # @return [Hash] hash with warning attributes or empty if there is no problem
+    def product_update_warning(products)
+      status = group_products_by_status(products)
+
+      warning = {}
+
+      # Automatic product removal MUST be confirmed by user, otherwise upgrade
+      # cannot be started.
+      if status[:removed].any? { |product| product["transact_by"] == :solver }
+        warning["warning_level"] = :blocker
+        # upgrade proposal warning
+        warning["warning"] = _(
+          "<ul><li><b>Some products are marked for automatic removal.</b></li>\n" \
+            "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
+            "installation media</li><li>Or select the appropriate online extension or module\n" \
+            "in the registration step</li><li>Or resolve the conflicts manually in the \n" \
+            "package management</li></ul></li></ul>")
+      end
+
+      warning
+    end
+
+    # return a printable name of product resolvable
+    # @param [Hash] product the product (returned by Pkg.ResolvableProperties call)
+    # @return [String] product name
+    def product_label(product)
+      display_name = product["display_name"]
+      return display_name if display_name && !display_name.empty?
+
+      short_name = product["short_name"]
+      return short_name if short_name && !short_name.empty?
+
+      product["name"]
+    end
 
     # proposal control functions
 

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jun 25 10:32:52 UTC 2014 - lslezak@suse.cz
+
+- Packages.rb - added methods for checking product removal at
+  update (bnc#883047)
+- 3.1.24
+
+-------------------------------------------------------------------
 Thu Jun 12 19:35:30 UTC 2014 - lslezak@suse.cz
 
 - make sure float time is not reported (bnc#882240)
