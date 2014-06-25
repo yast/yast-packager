@@ -58,6 +58,7 @@ module Yast
       Yast.import "Installation"
       Yast.import "URL"
       Yast.import "PackagesProposal"
+      Yast.import "HTML"
 
       Yast.include self, "packager/load_release_notes.rb"
 
@@ -727,11 +728,12 @@ module Yast
 
         # Removing another product might be an issue
         # (just warn if removed by user or by YaST)
-        (transact_by == :user || transact_by == :app_high) ?
-          _("<font color='red'><b>Warning:</b> Product <b>%s</b> will be " \
-              "removed.</font>") % h(product_label(product)) :
-          _("<font color='red'><b>Error:</b> Product <b>%s</b> will be " \
-              "automatically removed.</font>") % h(product_label(product))
+        msg = (transact_by == :user || transact_by == :app_high) ?
+          _("<b>Warning:</b> Product <b>%s</b> will be removed.") % h(product_label(product)) :
+          _("<b>Error:</b> Product <b>%s</b> will be automatically removed.</font>") \
+            % h(product_label(product))
+
+        HTML.Colorize(msg, "red")
       end
 
       log.info "Product update summary: #{ret}"

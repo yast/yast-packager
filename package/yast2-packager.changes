@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jun 25 13:18:20 UTC 2014 - lslezak@suse.cz
+
+- colorize the product removal warning using HTML.Colorize method
+  to render the same color
+- 3.1.25
+
+-------------------------------------------------------------------
 Wed Jun 25 10:32:52 UTC 2014 - lslezak@suse.cz
 
 - Packages.rb - added methods for checking product removal at
