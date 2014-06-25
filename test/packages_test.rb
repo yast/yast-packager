@@ -237,4 +237,73 @@ describe Yast::Packages do
       expect(Yast::Packages.log_software_selection).to be_nil
     end
   end
+
+  describe "#product_label" do
+    let(:product) { load_zypp("products_update.yml").first }
+
+    it "returns display_name if available" do
+      expect(Yast::Packages.product_label(product)).to eq("SUSE Linux Enterprise Server 12")
+    end
+
+    it "return short_name if display_name is not available" do
+      product["display_name"] = ""
+      expect(Yast::Packages.product_label(product)).to eq("SLES12")
+    end
+
+    it "returns name when both display_name and short_name are not available" do
+      product["display_name"] = ""
+      product["short_name"] = ""
+      expect(Yast::Packages.product_label(product)).to eq("SLES")
+    end
+  end
+
+  describe "#group_products_by_status" do
+    let(:products) { load_zypp("products_update.yml") }
+
+    it "returns groups of the products" do
+      status = Yast::Packages.group_products_by_status(products)
+
+      expect(status[:new]).to eq([])
+
+      # no update replacement for SDK, it will be removed
+      expect(status[:removed].first["display_name"]).to \
+        eq("SUSE Linux Enterprise Software Development Kit 11 SP3")
+
+      expect(status[:kept]).to eq([])
+
+      # update from SLES11-SP3 to SLES12
+      expect(status[:updated].size).to eq(1)
+      old_product, new_product = status[:updated].first
+      expect(old_product["display_name"]).to eq("SUSE Linux Enterprise Server 11 SP3")
+      expect(new_product["display_name"]).to eq("SUSE Linux Enterprise Server 12")
+    end
+  end
+
+  describe "#product_update_summary" do
+    let(:products) { load_zypp("products_update.yml") }
+
+    it "describes the product update as a human readable summary" do
+      summary_string = Yast::Packages.product_update_summary(products).to_s
+
+      expect(summary_string).to match(
+        /SUSE Linux Enterprise Server 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/)
+
+      expect(summary_string).to match(
+        /SUSE Linux Enterprise Software Development Kit 11 SP3.*will be automatically removed/)
+    end
+  end
+
+  describe "#product_update_warning" do
+    let(:products) { load_zypp("products_update.yml") }
+
+    it "returns a hash with warning when there is an automatically removed product" do
+      expect(Yast::Packages.product_update_warning(products)).to include("warning", "warning_level")
+    end
+
+    it "returns empty hash when there is no automatically removed product" do
+      products.each { |product| product["transact_by"] = :user }
+      expect(Yast::Packages.product_update_warning(products)).to eq({})
+    end
+  end
+
 end
