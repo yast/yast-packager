@@ -18,10 +18,12 @@ module Yast
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
 
     # product renames needed for detecting the product update
-    # <old_name> => <new_name>
+    # <old_name> => [ <new_name> ]
     PRODUCT_RENAMES = {
-      "SUSE_SLES" => "SLES",
-      "SUSE_SLED" => "SLED",
+      "SUSE_SLES"  => [ "SLES" ],
+      # SLED or Workstation extension
+      "SUSE_SLED"  => [ "SLED", "sle-we" ],
+      "sle-haegeo" => [ "sle-ha-geo" ]
     }
 
     def main
@@ -200,7 +202,7 @@ module Yast
 
       Builtins.foreach(media_sizes) { |inst_sizes| Builtins.foreach(inst_sizes) do |inst_size|
         sz = Ops.add(sz, inst_size)
-      end } 
+      end }
 
 
       Builtins.y2milestone(
@@ -249,7 +251,7 @@ module Yast
           Builtins.y2milestone("Found remote repository %1: %2", repo, url)
           remote_repos = Builtins.add(remote_repos, repo)
         end
-      end 
+      end
 
 
       # shortcut, no remote repository found
@@ -272,7 +274,7 @@ module Yast
         Builtins.foreach(repo_media_sizes) do |media_size|
           ret = Ops.add(ret, media_size)
         end
-      end 
+      end
 
 
       Builtins.y2milestone(
@@ -582,7 +584,7 @@ module Yast
             Ops.set(summary, "warning_level", :warning)
           end
         end
-      end 
+      end
 
 
       Builtins.y2milestone("Proposal summary: %1", summary)
@@ -637,7 +639,7 @@ module Yast
               partition
             )
             warning = Ops.add(warning, w)
-          end 
+          end
 
 
           if warning != ""
@@ -1498,7 +1500,7 @@ module Yast
       # bnc #432668
       # Do not call init
       if Mode.live_installation
-        Builtins.y2milestone("live_installation, not calling Init") 
+        Builtins.y2milestone("live_installation, not calling Init")
         # bnc #427935
         # Initialize the base_source_id first
       else
@@ -1800,7 +1802,7 @@ module Yast
           sources_set = Builtins.add(sources_set, one_source)
         end
 
-        return Pkg.SourceEditSet(sources_set) 
+        return Pkg.SourceEditSet(sources_set)
         # Bad luck, nothing useful found
       else
         Builtins.y2warning("No name found")
@@ -2658,7 +2660,9 @@ module Yast
           removed_name = removed_product["name"]
 
           # check the current product names or product renames
-          removed_name == installed_name || PRODUCT_RENAMES[removed_name] == installed_name
+          removed_name == installed_name ||
+            (PRODUCT_RENAMES[removed_name] &&
+              PRODUCT_RENAMES[removed_name].include?(installed_name))
         end
 
         updated_products[removed] = installed_product if removed

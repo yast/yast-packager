@@ -277,6 +277,20 @@ describe Yast::Packages do
       expect(old_product["display_name"]).to eq("SUSE Linux Enterprise Server 11 SP3")
       expect(new_product["display_name"]).to eq("SUSE Linux Enterprise Server 12")
     end
+
+    it "returns updated product which has been renamed" do
+      products = [
+        { "name" => "sle-haegeo", "status" => :removed },
+        { "name" => "sle-ha-geo", "status" => :selected }
+      ]
+
+      status = Yast::Packages.group_products_by_status(products)
+
+      expect(status[:updated].size).to eq(1)
+      old_product, new_product = status[:updated].first
+      expect(old_product["name"]).to eq("sle-haegeo")
+      expect(new_product["name"]).to eq("sle-ha-geo")
+    end
   end
 
   describe "#product_update_summary" do
