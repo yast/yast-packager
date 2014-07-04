@@ -16,6 +16,8 @@ require "yast"
 
 module Yast
   class AddOnProductClass < Module
+    include Yast::Logger
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -125,6 +127,18 @@ module Yast
       #        ]
       #      ]
       @patterns_preselected_by_addon = {}
+
+      # product renames needed for detecting the product update
+      # this mapping can be updated by SCC registration server,
+      # this is the static default for offline updates
+      # mapping: <old_name> => [ <new_name> ]
+      @product_renames = {
+        "SUSE_SLES"  => [ "SLES" ],
+        # SLED or Workstation extension
+        "SUSE_SLED"  => [ "SLED", "sle-we" ],
+        "sle-haegeo" => [ "sle-ha-geo" ]
+      }
+
     end
 
     # Downloads a requested file, caches it and returns path to that cached file.
@@ -872,7 +886,9 @@ module Yast
       # or check the content file
       if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
-        WFM.CallFunction("inst_suse_register", [])
+        # TODO FIXME: user needs to manually select the addon to register,
+        # pass the addon so it could be pre-selected
+        WFM.CallFunction("inst_scc", [])
       else
         Builtins.y2milestone(
           "Repository ID %1 doesn't need registration",
@@ -2159,6 +2175,19 @@ module Yast
         raise Break
       end
       nil
+    end
+
+    def renamed?(old_name, new_name)
+      @product_renames[old_name] && @product_renames[old_name].include?(new_name)
+    end
+
+    def add_rename(old_name, new_name)
+      # already known
+      return if renamed?(old_name, new_name)
+
+      log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
+      @product_renames[old_name] = [] unless @product_renames[old_name]
+      @product_renames[old_name] << new_name
     end
 
     publish :variable => :add_on_products, :type => "list <map <string, any>>"

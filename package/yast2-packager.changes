@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul  4 12:09:55 UTC 2014 - lslezak@suse.cz
+
+- make product renames updatable from SCC (related to bnc#883206)
+- 3.1.27
+
+-------------------------------------------------------------------
 Fri Jun 27 12:00:38 UTC 2014 - lslezak@suse.cz
 
 - updated known product renames (bnc#883047)

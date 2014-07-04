@@ -17,15 +17,6 @@ module Yast
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
 
-    # product renames needed for detecting the product update
-    # <old_name> => [ <new_name> ]
-    PRODUCT_RENAMES = {
-      "SUSE_SLES"  => [ "SLES" ],
-      # SLED or Workstation extension
-      "SUSE_SLED"  => [ "SLED", "sle-we" ],
-      "sle-haegeo" => [ "sle-ha-geo" ]
-    }
-
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -2660,9 +2651,8 @@ module Yast
           removed_name = removed_product["name"]
 
           # check the current product names or product renames
-          removed_name == installed_name ||
-            (PRODUCT_RENAMES[removed_name] &&
-              PRODUCT_RENAMES[removed_name].include?(installed_name))
+          removed_name == installed_name
+            AddOnProduct.renamed?(removed_name, installed_name)
         end
 
         updated_products[removed] = installed_product if removed

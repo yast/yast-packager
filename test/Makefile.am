@@ -1,4 +1,5 @@
 TESTS = \
+  addon_product_test.rb \
   packages_test.rb
 
 TEST_EXTENSIONS = .rb
