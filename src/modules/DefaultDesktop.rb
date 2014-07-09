@@ -56,7 +56,7 @@ module Yast
 
     # Initialize default desktop from control file if specified there
     def Init
-      if @initialized == true || Mode.autoinst
+      if @initialized == true
         Builtins.y2debug("Already initialized")
         return
       end
