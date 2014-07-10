@@ -1097,6 +1097,15 @@ module Yast
         end
       end
 
+      # select FIPS pattern
+      if (Linuxrc.InstallInf("Cmdline") || "").split.include?("fips=1")
+        fips_pattern = "fips"
+        if !Pkg.ResolvableProperties(fips_pattern, :pattern, "").empty?
+          log.info "fips=1 boot option detected, adding 'fips' pattern"
+          pattern_list << "fips"
+        end
+      end
+
       # FATE #302116
       # BNC #431580
       required_patterns = PackagesProposal.GetAllResolvables(:pattern)

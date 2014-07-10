@@ -319,4 +319,46 @@ describe Yast::Packages do
     end
   end
 
+  describe "#ComputeSystemPatternList" do
+    before do
+      expect(Yast::Arch).to receive(:is_laptop).and_return(false)
+      expect(Yast::Arch).to receive(:has_pcmcia).and_return(false)
+      expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern).and_return([])
+    end
+
+    context "when fips pattern is available" do
+      before do
+        allow(Yast::Pkg).to receive(:ResolvableProperties).
+          with("fips", :pattern, "").and_return([{ "name" => "fips" }])
+      end
+
+      it "adds 'fips' pattern if fips=1 boot parameter is used" do
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("fips=1")
+        expect(Yast::Packages.ComputeSystemPatternList).to include("fips")
+      end
+
+      it "does not add 'fips' pattern if fips=1 boot parameter is not used" do
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("")
+        expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+      end
+    end
+
+    context "when fips pattern is not available" do
+      before do
+        allow(Yast::Pkg).to receive(:ResolvableProperties).
+          with("fips", :pattern, "").and_return([])
+      end
+
+      it "does not add 'fips' pattern if fips=1 boot parameter is used" do
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("fips=1")
+        expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+      end
+
+      it "does not add 'fips' pattern if fips=1 boot parameter is not used" do
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("")
+        expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+      end
+    end
+  end
+
 end
