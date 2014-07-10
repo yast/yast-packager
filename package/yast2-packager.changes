@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 10 15:22:01 UTC 2014 - lslezak@suse.cz
+
+- select "fips" pattern if installation is booted with "fips=1"
+  parameter (bnc#886582)
+- 3.1.29
+
+-------------------------------------------------------------------
 Wed Jul  9 10:01:11 CEST 2014 - schubi@suse.de
 
 - Setting default desktop in autoyast too. (bnc#886367)
