@@ -333,12 +333,12 @@ describe Yast::Packages do
       end
 
       it "adds 'fips' pattern if fips=1 boot parameter is used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("fips=1")
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo fips=1 bar")
         expect(Yast::Packages.ComputeSystemPatternList).to include("fips")
       end
 
       it "does not add 'fips' pattern if fips=1 boot parameter is not used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("")
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo bar")
         expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
       end
     end
@@ -350,12 +350,12 @@ describe Yast::Packages do
       end
 
       it "does not add 'fips' pattern if fips=1 boot parameter is used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("fips=1")
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo fips=1 bar")
         expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
       end
 
       it "does not add 'fips' pattern if fips=1 boot parameter is not used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("")
+        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo bar")
         expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
       end
     end

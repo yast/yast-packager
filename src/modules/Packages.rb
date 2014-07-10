@@ -1101,8 +1101,8 @@ module Yast
       if (Linuxrc.InstallInf("Cmdline") || "").split.include?("fips=1")
         fips_pattern = "fips"
         if !Pkg.ResolvableProperties(fips_pattern, :pattern, "").empty?
-          log.info "fips=1 boot option detected, adding 'fips' pattern"
-          pattern_list << "fips"
+          log.info "fips=1 boot option detected, adding '#{fips_pattern}' pattern"
+          pattern_list << fips_pattern
         end
       end
 
