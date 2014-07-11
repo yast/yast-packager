@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 11 12:29:40 UTC 2014 - lslezak@suse.cz
+
+- fixed finding product upgrades (bnc#886621)
+- 3.1.30
+
+-------------------------------------------------------------------
 Thu Jul 10 15:22:01 UTC 2014 - lslezak@suse.cz
 
 - select "fips" pattern if installation is booted with "fips=1"

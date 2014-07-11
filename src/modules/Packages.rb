@@ -2660,7 +2660,7 @@ module Yast
           removed_name = removed_product["name"]
 
           # check the current product names or product renames
-          removed_name == installed_name
+          removed_name == installed_name ||
             AddOnProduct.renamed?(removed_name, installed_name)
         end
 

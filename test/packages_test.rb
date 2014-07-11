@@ -258,6 +258,7 @@ describe Yast::Packages do
 
   describe "#group_products_by_status" do
     let(:products) { load_zypp("products_update.yml") }
+    let(:products2) { load_zypp("products_update2.yml") }
 
     it "returns groups of the products" do
       status = Yast::Packages.group_products_by_status(products)
@@ -289,6 +290,15 @@ describe Yast::Packages do
       old_product, new_product = status[:updated].first
       expect(old_product["name"]).to eq("sle-haegeo")
       expect(new_product["name"]).to eq("sle-ha-geo")
+    end
+
+    it "handles mixed renamed and unchanged products" do
+      status = Yast::Packages.group_products_by_status(products2)
+
+      expect(status[:new]).to eq([])
+      expect(status[:removed]).to eq([])
+      expect(status[:kept]).to eq([])
+      expect(status[:updated]).to have(3).items
     end
   end
 
