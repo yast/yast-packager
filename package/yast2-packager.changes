@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 25 14:35:30 UTC 2014 - ancor@suse.com
+
+- adjust width of drive selection dialog (bnc#882657)
+- 3.1.32
+
+-------------------------------------------------------------------
 Fri Jul 25 14:17:20 CEST 2014 - schubi@suse.de
 
 - Do not overwrite the autoyast pattern selection by

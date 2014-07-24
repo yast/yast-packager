@@ -677,7 +677,9 @@ module Yast
         )
       end
       if multiple_drives
-        drives_sel = SelectionBox(Id(:drives), _("&Drive to eject"), devices)
+        # To adjust the width of the dialog, look for the more lengthy device label
+        min_width = devices.map {|d| d[1].to_s.size }.max + 4 # + some space for the frame
+        drives_sel = MinSize(min_width, 5, SelectionBox(Id(:drives), _("&Drive to eject"), devices))
       end
       contents = HBox(
         HSpacing(1),
