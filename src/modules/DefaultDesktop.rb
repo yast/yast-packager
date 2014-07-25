@@ -288,11 +288,15 @@ module Yast
       if new_desktop == nil
         # Reset the selected patterns
         Builtins.y2milestone("Reseting DefaultDesktop")
-        PackagesProposal.SetResolvables(
-          @packages_proposal_ID_patterns,
-          :pattern,
-          []
-        )
+        unless Mode.autoinst
+          # Do not overwrite the autoyast pattern selection by
+          # the default desktop pattern selection (bnc#888981)
+          PackagesProposal.SetResolvables(
+            @packages_proposal_ID_patterns,
+            :pattern,
+            []
+          )
+        end
       elsif !Builtins.haskey(@all_desktops, new_desktop)
         Builtins.y2error("Attempting to set desktop to unknown %1", new_desktop)
       else
@@ -300,7 +304,10 @@ module Yast
 
         Builtins.y2milestone("New desktop has been set: %1", @desktop)
 
-        if @desktop != nil && @desktop != ""
+        if @desktop != nil && @desktop != "" && !Mode.autoinst
+          # Do not overwrite the autoyast pattern selection by
+          # the default desktop pattern selection (bnc#888981)
+
           # Require new patterns and packages
           PackagesProposal.SetResolvables(
             @packages_proposal_ID_patterns,
