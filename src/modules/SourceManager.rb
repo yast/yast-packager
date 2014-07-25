@@ -657,27 +657,17 @@ module Yast
 
     #
     def AskForCD(message)
-      cdroms = Convert.convert(
-        SCR.Read(path(".probe.cdrom")),
-        :from => "any",
-        :to   => "list <map <string, any>>"
-      )
-      multiple_drives = Ops.greater_than(Builtins.size(cdroms), 1)
+      cdroms = SCR.Read(path(".probe.cdrom"))
+      multiple_drives = (cdroms.size > 1)
       drives_sel = Empty()
-      devices = Builtins.maplist(cdroms) do |d|
-        Item(
-          Id(Ops.get_string(d, "dev_name", "")),
-          Ops.add(
-            Ops.add(
-              Ops.add(Ops.get_string(d, "model", ""), " ("),
-              Ops.get_string(d, "dev_name", "")
-            ),
-            ")"
-          )
-        )
-      end
       if multiple_drives
-        drives_sel = SelectionBox(Id(:drives), _("&Drive to eject"), devices)
+        devices = cdroms.map do |d|
+          Item(Id(d["dev_name"] || ""), "#{d['model']} (#{d['dev_name']})")
+        end
+        # To adjust the width of the dialog, look for the more lengthy device label
+        # (and add some extra space for the frame)
+        min_width = devices.map {|d| d[1].to_s.size }.max + 4
+        drives_sel = MinSize(min_width, 5, SelectionBox(Id(:drives), _("&Drive to eject"), devices))
       end
       contents = HBox(
         HSpacing(1),
