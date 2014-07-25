@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 25 09:48:59 UTC 2014 - cwh@suse.com
+
+- Made SLP browser filter case-insensitive (bnc#869653)
+
+-------------------------------------------------------------------
 Fri Jul 11 12:29:40 UTC 2014 - lslezak@suse.cz
 
 - fixed finding product upgrades (bnc#886621)
