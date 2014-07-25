@@ -301,8 +301,8 @@ module Yast
     #
     # @param [list <map> &] services (reference)
     # @param string regexp for services that should be visible (nil or "" for all)
-    def InitSLPListFoundDialog(services, regexp_string)
-      regexp_string = nil if regexp_string == ""
+    def InitSLPListFoundDialog(services, filter_string)
+      filter_string = nil if filter_string == ""
 
       inst_products = {}
       service_label = nil
@@ -331,9 +331,9 @@ module Yast
           end
         end
         # search works in "label" or in "srvurl" as a fallback
-        if regexp_string != nil
-          # filter out all services that don't match the regexp
-          next if !Builtins.regexpmatch(service_label, regexp_string)
+        if filter_string != nil
+          # filter out all services that don't match the filter
+          next if !service_label.downcase.include?(filter_string.downcase)
         end
         # define an empty list if it is not defined at all
         if Ops.get(inst_products, service_label) == nil
@@ -431,27 +431,6 @@ module Yast
       end
     end
 
-    def EscapeChars(input, escape)
-      ret = input
-
-      if escape != nil && Ops.greater_than(Builtins.size(escape), 0)
-        i = 0
-        sz = Builtins.size(escape)
-
-        while Ops.less_than(i, sz)
-          ch = Builtins.substring(escape, i, 1)
-          Builtins.y2debug("Escaping %1", ch)
-          ret = Builtins.mergestring(
-            Builtins.splitstring(ret, ch),
-            Ops.add("\\", ch)
-          )
-          i = Ops.add(i, 1)
-        end
-      end
-
-      ret
-    end
-
     def HandleSLPListDialog(services)
       services_ref = arg_ref(services.value)
       InitSLPListFoundDialog(services_ref, nil)
@@ -480,17 +459,11 @@ module Yast
         elsif ret == :tree_of_services
           InitDetailsButton()
         elsif ret == :filter
-          regexp_string = Convert.to_string(
-            UI.QueryWidget(Id(:filter_text), :Value)
-          )
-          Builtins.y2milestone("original regexp_string: %1", regexp_string)
-          # escape special character in the input string
-          # \ must be the first character!
-          regexp_string = EscapeChars(regexp_string, "\\(){}[]+^$|")
-          Builtins.y2milestone("escaped regexp_string: %1", regexp_string)
+          filter_string = UI.QueryWidget(Id(:filter_text), :Value)
+          Builtins.y2milestone("filter_string: %1", filter_string)
 
           services_ref = arg_ref(services.value)
-          InitSLPListFoundDialog(services_ref, regexp_string)
+          InitSLPListFoundDialog(services_ref, filter_string)
           services.value = services_ref.value
         elsif ret == :details
           services_ref = arg_ref(services.value)
