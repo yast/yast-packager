@@ -50,6 +50,13 @@ describe Yast::Packages do
         expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
       end
 
+      it "returns biosdevname within the list of required packages with new line at the end" do
+        Yast::SCR.stub(:Read).with(
+          SCR_STRING_PATH,"/proc/cmdline"
+        ).and_return("install=cd:// vga=0x314\nbiosdevname=1\n")
+        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
+      end
+
       it "does not return biosdevname within the list of required packages" do
         Yast::SCR.stub(:Read).with(
           SCR_STRING_PATH,"/proc/cmdline"
