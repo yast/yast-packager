@@ -974,7 +974,7 @@ module Yast
         SCR.Read(path(".target.string"), "/proc/cmdline")
       )
 
-      options = Builtins.splitstring(cmdline, " \t")
+      options = cmdline.split(/\s/)
 
       if Builtins.contains(options, "biosdevname=1")
         Builtins.y2milestone("Biosdevname explicitly enabled")
