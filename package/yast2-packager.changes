@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jul 29 14:07:35 UTC 2014 - ancor@suse.com
+
+- Refactored kernelCmdLinePackages to rely on .proc.cmdline agent
+  (bnc#889365)
+- Added dependency on yast2 >= 3.1.89 (fixed agent)
+- 3.1.36
+
+-------------------------------------------------------------------
 Tue Jul 29 15:52:43 UTC 2014 - lslezak@suse.cz
 
 - ag_zypp_repos - do not try parsing directory entries in
