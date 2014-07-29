@@ -38,6 +38,12 @@ while (<STDIN>) {
 	    my $this_entry = {};
 
 	    $file = $dir.'/'.$file;
+
+            if (-d $file) {
+                y2warning($file." is a directory, skipping");
+                next;
+            }
+
 	    y2milestone ("Parsing file: ".$file);
 	    open (FILE, $file) || do {
 		y2error ("Cannot open file ".$file.": ".$!);

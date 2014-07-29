@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 29 15:52:43 UTC 2014 - lslezak@suse.cz
+
+- ag_zypp_repos - do not try parsing directory entries in
+  /etc/zypp/repos.d/, that leads to invalid values (bnc#867911)
+- 3.1.35
+
+-------------------------------------------------------------------
 Tue Jul 29 13:22:35 UTC 2014 - jreidinger@suse.com
 
 - remove slide show display time recalculation to improve slide
