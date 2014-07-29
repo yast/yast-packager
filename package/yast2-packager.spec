@@ -42,8 +42,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SetZConfig()
 Requires:	yast2-pkg-bindings >= 2.21.8
 
-# HwDetection
-Requires: yast2 >= 3.1.19
+# Fixed .proc.cmdline agent
+Requires: yast2 >= 3.1.89
 
 # unzipping license file
 Requires:	unzip
