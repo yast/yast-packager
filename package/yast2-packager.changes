@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 29 13:22:35 UTC 2014 - jreidinger@suse.com
+
+- remove slide show display time recalculation to improve slide
+  show user experience (bnc#885973)
+- 3.1.34
+
+-------------------------------------------------------------------
 Mon Jul 28 13:10:51 UTC 2014 - ancor@suse.com
 
 - fixed reading of /proc/cmdline containing newline (bnc#887844)
