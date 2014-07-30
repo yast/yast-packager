@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Tue Jul 29 14:07:35 UTC 2014 - ancor@suse.com
+Wed Jul 30 06:57:47 UTC 2014 - ancor@suse.com
 
 - Refactored kernelCmdLinePackages to rely on .proc.cmdline agent
   (bnc#889365)
