@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 31 11:18:09 UTC 2014 - jsrain@suse.cz
+
+- added product rename sle-hae -> sle-ha to the list (bnc#889745)
+- 3.1.37
+
+-------------------------------------------------------------------
 Wed Jul 30 06:57:47 UTC 2014 - ancor@suse.com
 
 - Refactored kernelCmdLinePackages to rely on .proc.cmdline agent
