@@ -77,6 +77,7 @@ module Yast
       Yast.import "IP"
       Yast.import "ProductControl"
       Yast.import "ProductFeatures"
+      Yast.import "Stage"
 
       # common functions / data
 
