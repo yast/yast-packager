@@ -77,6 +77,7 @@ module Yast
       Yast.import "IP"
       Yast.import "ProductControl"
       Yast.import "ProductFeatures"
+      Yast.import "Stage"
 
       # common functions / data
 
@@ -111,6 +112,11 @@ module Yast
       @multi_cd_help = _(
         "<p>If the repository is on multiple media,\nset the location of the first media of the set.</p>\n"
       )
+
+      # Belongs to a constant, but can't be there because of `fun_ref`
+      @default_cwm_fallback_functions = {
+        :abort => fun_ref(method(:confirm_abort?), "boolean ()")
+      }
 
       # NFS editation widget
 
@@ -1956,6 +1962,7 @@ module Yast
       @display_addon_checkbox ? HSpacing(3) : Empty()
     end
 
+    # FIXME: two almost same definitions in the same function smell bad
     def SelectRadioWidgetOpt(download_widget)
       contents = HBox(
         HStretch(),
@@ -2142,25 +2149,27 @@ module Yast
       true
     end
 
+    # Handles Ui events in New repository type selection dialog
+    #
+    # @param [String] widget key
+    # @param [Hash] event description
+    # @return [Symbol]
     def SelectHandle(key, event)
-      event = deep_copy(event)
-      # reset the preselected URL when going back
-      @_url = "" if Ops.get(event, "ID") == :back
-
-      if !(Ops.get(event, "ID") == :next || Ops.get(event, "ID") == :ok)
-        RefreshTypeWidgets() if event["ID"] == :add_addon
+      case event["ID"]
+      when :back
+        # reset the preselected URL when going back
+        @_url = ""
+      when :next, :ok
+        return nil
+      when :add_addon
+        RefreshTypeWidgets()
         return nil
       end
 
-      selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
-
       #  TODO: disable "download" option when CD or DVD source is selected
 
-      return nil if selected == nil
-      if selected == :slp || selected == :cd || selected == :dvd ||
-          selected == :comm_repos
-        return :finish
-      end
+      selected = UI.QueryWidget(Id(:type), :CurrentButton)
+      return :finish if [:slp, :cd, :dvd, :comm_repos].include?(selected)
 
       nil
     end
@@ -2494,7 +2503,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
     end
@@ -2515,7 +2524,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
     end
@@ -2558,7 +2567,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
       Builtins.y2milestone("Type dialog returned %1", ret)
@@ -2582,7 +2591,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
 
@@ -2590,6 +2599,13 @@ module Yast
 
       Builtins.y2milestone("Type dialog returned %1", ret)
       deep_copy(ret)
+    end
+
+    # Returns boolean whether user confirmed to abort the configuration
+    #
+    # @return [Boolean] whether to abort
+    def confirm_abort?
+      (Stage.initial ? Popup.ConfirmAbort(:painless) : Popup.ReallyAbort(SourceManager.Modified()))
     end
 
     publish :function => :SetURL, :type => "void (string)"

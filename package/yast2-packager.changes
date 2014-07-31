@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 31 14:43:16 CEST 2014 - locilka@suse.com
+
+- Added user confirmation for aborting the repositories dialogs
+  (bnc#886662)
+- 3.1.38
+
+-------------------------------------------------------------------
 Thu Jul 31 11:18:09 UTC 2014 - jsrain@suse.cz
 
 - added product rename sle-hae -> sle-ha to the list (bnc#889745)
