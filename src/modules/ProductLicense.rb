@@ -16,6 +16,8 @@ module Yast
   class ProductLicenseClass < Module
     attr_accessor :license_patterns, :license_file_print
 
+    include Yast::Logger
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -1058,95 +1060,79 @@ module Yast
 
       while true
         ret = UI.UserInput
+        log.info "User ret: #{ret}"
 
-        if Ops.is_string?(ret) &&
-            Builtins.regexpmatch(Builtins.tostring(ret), "^license_language_")
+        if ret.is_a?(::String) && ret.start_with?("license_language_")
           licenses_ref = arg_ref(licenses.value)
-          UpdateLicenseContent(licenses_ref, GetId(Builtins.tostring(ret)))
+          UpdateLicenseContent(licenses_ref, GetId(ret))
           licenses.value = licenses_ref.value
           ret = :language
-          # bugzilla #303828
-          # disabled next button unless yes/no is selected
-        elsif Ops.is_string?(ret) && ret.start_with?("eula_")
+        # bugzilla #303828
+        # disabled next button unless yes/no is selected
+        elsif ret.is_a?(::String) && ret.start_with?("eula_")
           Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined()
-          # Aborting the license dialog
+        # Aborting the license dialog
         elsif ret == :abort
-          # bugzilla #218677
-          if base_product
-            if Popup.ConfirmAbort(:painless)
-              Builtins.y2milestone("Aborting...")
-              ret = :abort
-              break
-            end
+          # bnc#886662
+          if Stage.initial
+            next unless Popup.ConfirmAbort(:painless)
           else
             # popup question
-            if Popup.YesNo(_("Really abort the add-on product installation?"))
-              Builtins.y2milestone("Aborting...")
-              ret = :abort
-              break
-            end
+            next unless Popup.YesNo(_("Really abort the add-on product installation?"))
           end
+
+          log.warn "Aborting..."
+          break
         elsif ret == :next
-          # License declined
-          if AllLicensesAccepted() != true
-            # message is void in case not accepting license doesn't stop the installation
-            if action == "continue"
-              Builtins.y2milestone(
-                "action in case of license refusal is continue, not asking user"
-              )
-              ret = :accepted
-              break
-            end
-            # text changed due to bug #162499
-            refuse_popup_text = base_product ?
-              # text asking whether to refuse a license (Yes-No popup)
-              _(
-                "Refusing the license agreement cancels the installation.\nReally refuse the agreement?"
-              ) :
-              # text asking whether to refuse a license (Yes-No popup)
-              _(
-                "Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?"
-              )
-            if !Popup.YesNo(refuse_popup_text)
-              next
-            else
-              Builtins.y2milestone("License has been declined.")
-              if action == "abort"
-                ret = :abort
-                break
-              elsif action == "continue"
-                ret = :accepted
-                break
-              elsif action == "halt"
-                ret = :halt
-                break
-                # timed ok/cancel popup
-                if !Popup.TimedOKCancel(_("The system is shutting down..."), 10)
-                  next
-                else
-                  ret = :halt
-                  break
-                end
-              else
-                Builtins.y2error("Unknown action %1", action)
-                ret = :abort
-                break
-              end
-            end
-          else
-            Builtins.y2milestone("All licenses have been accepted.")
+          if AllLicensesAccepted()
+            log.info "All licenses have been accepted."
             ret = :accepted
             break
           end
+
+          # License declined
+
+          # message is void in case not accepting license doesn't stop the installation
+          if action == "continue"
+            log.info "action in case of license refusal is continue, not asking user"
+            ret = :accepted
+            break
+          end
+
+          # text changed due to bug #162499
+          refuse_popup_text = base_product ?
+            # text asking whether to refuse a license (Yes-No popup)
+            _("Refusing the license agreement cancels the installation.\nReally refuse the agreement?")
+            :
+            # text asking whether to refuse a license (Yes-No popup)
+            _("Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?")
+          next unless Popup.YesNo(refuse_popup_text)
+
+          log.info "License has been declined."
+
+          case action
+          when "abort"
+            ret = :abort
+          when "halt"
+            # timed ok/cancel popup
+            next unless Popup.TimedOKCancel(_("The system is shutting down..."), 10)
+            ret = :halt
+          else
+            log.error "Unknown action #{action}"
+            ret = :abort
+          end
+
+          break
         elsif ret == :back
           ret = :back
           break
         else
-          Builtins.y2error("Unhandled input: %1", ret)
+          log.error "Unhandled input: #{ret}"
         end
       end
 
-      Convert.to_symbol(ret)
+      log.info "Returning #{ret}"
+      ret
     end
 
     # Generic cleanup
