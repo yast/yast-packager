@@ -38,7 +38,7 @@ describe Yast::ProductLicense do
       end
     end
 
-    context "while user wants to abort from the Lincense Agreement dialog" do
+    context "while user wants to abort from the License Agreement dialog" do
       context "in inst-sys" do
         before(:each) do
           expect(Yast::Stage).to receive(:stage).and_return("initial")

@@ -1064,7 +1064,7 @@ module Yast
 
         if ret.is_a?(::String) && ret.start_with?("license_language_")
           licenses_ref = arg_ref(licenses.value)
-          UpdateLicenseContent(licenses_ref, GetId(Builtins.tostring(ret)))
+          UpdateLicenseContent(licenses_ref, GetId(ret))
           licenses.value = licenses_ref.value
           ret = :language
         # bugzilla #303828
