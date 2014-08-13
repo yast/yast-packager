@@ -40,9 +40,6 @@ module Yast
 
       textdomain "packager"
 
-      # list of already accepted licenses
-      @already_accepted_licenses = []
-
       @license_patterns = [
         "license\\.html",
         "license\\.%1\\.html",
@@ -105,40 +102,6 @@ module Yast
       Ops.get(tmp, 0, "")
     end
 
-    # Creates a unique identification from filename
-    # (MD5sum + file size)
-    #
-    # @param [String] filename
-    # @return [String] unique ID
-    def GetLicenseIdentString(filename)
-      if !FileUtils.Exists(filename)
-        Builtins.y2error("License '%1' doesn't exist", filename)
-        return nil
-      end
-
-      filemd5 = FileUtils.MD5sum(filename)
-      return nil if filemd5 == nil
-
-      ret = Builtins.sformat("%1-%2", filemd5, FileUtils.GetSize(filename))
-
-      Builtins.y2milestone("License ident for '%1' is '%2'", filename, ret)
-
-      ret
-    end
-
-    # Checks whether the license (file) has been already accepted
-    #
-    # @param string filename
-    # @return [Boolean] whether the license has been accepted before
-    def IsLicenseAlreadyAccepted(license_ident)
-      if license_ident == nil || license_ident == ""
-        Builtins.y2error("Wrong license ID '%1'", license_ident)
-        return false
-      end
-
-      Builtins.contains(@already_accepted_licenses, license_ident)
-    end
-
     # Sets that the license (file) has been already accepted
     #
     # @param string filename
@@ -147,15 +110,6 @@ module Yast
         Builtins.y2error("Wrong license ID '%1'", license_ident)
         return
       end
-
-      Builtins.y2milestone(
-        "Adding License ID '%1' as already accepted",
-        license_ident
-      )
-      @already_accepted_licenses = Builtins.add(
-        @already_accepted_licenses,
-        license_ident
-      )
 
       nil
     end
@@ -934,25 +888,7 @@ module Yast
         licenses.value = licenses_ref.value;
         _WhichLicenceFile_result
       )
-      license_ident.value = GetLicenseIdentString(base_license)
-
-      # agreement might be required even if license has been already accepted
-      # defined, properly ($md5sum(32)-(1)$size(1..n))
-      #
-      # see also BNC #448598
-      # Even if it it shown it sometimes doesn't need to be even accepted by
-      # selecting "yes, I agree"
-      if require_agreement != true &&
-          Builtins.tostring(license_ident.value) != nil &&
-          Ops.greater_than(Builtins.size(license_ident.value), 33) &&
-          IsLicenseAlreadyAccepted(license_ident.value)
-        Builtins.y2milestone("License has been already accepted/shown")
-
-        CleanUpLicense(@tmpdir)
-        return :accepted
-      else
-        Builtins.y2milestone("License needs to be shown")
-      end
+      log.info "License needs to be shown"
 
       # bugzilla #303922
       # src_id == nil (the initial product license)
