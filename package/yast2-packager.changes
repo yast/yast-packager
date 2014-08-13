@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Aug 13 17:21:11 CEST 2014 - locilka@suse.com
+
+- Removed caching of already accepted licenses: if there is
+  a license that needs to be accepted, user has to accept it
+  (bnc#890968)
+- 3.1.40
+
+-------------------------------------------------------------------
 Wed Aug  6 13:31:31 CEST 2014 - locilka@suse.com
 
 - Cleanup in license dialog handling, especially in handling while
