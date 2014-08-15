@@ -752,8 +752,9 @@ module Yast
           "<ul><li><b>Some products are marked for automatic removal.</b></li>\n" \
             "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
             "installation media</li><li>Or select the appropriate online extension or module\n" \
-            "in the registration step</li><li>Or resolve the conflicts manually in the \n" \
-            "package management</li></ul></li></ul>")
+            "in the registration step</li><li>Or to continue with product upgrade go to the\n" \
+            "software selection and mark the product (the -release package) for removal.\n" \
+            "</li></ul></li></ul>")
       }
     end
 

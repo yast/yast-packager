@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 15 09:05:01 UTC 2014 - lslezak@suse.cz
+
+- better help text: user can confirm product removal and continue
+  with the product upgrade (bnc#889749)
+- 3.1.41
+
+-------------------------------------------------------------------
 Wed Aug 13 17:21:11 CEST 2014 - locilka@suse.com
 
 - Removed caching of already accepted licenses: if there is
