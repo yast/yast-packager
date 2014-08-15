@@ -747,7 +747,8 @@ module Yast
       # cannot be started.
       return {
         "warning_level" => :blocker,
-        # update proposal warning
+        # TRANSLATORS: update proposal warning, do NOT translate "-release",
+        # it is part of a package name (like "sles-release")
         "warning" => _(
           "<ul><li><b>Some products are marked for automatic removal.</b></li>\n" \
             "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
