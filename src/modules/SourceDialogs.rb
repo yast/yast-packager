@@ -31,6 +31,8 @@ module Yast
       # radio button
       :comm_repos        => N_("Commun&ity Repositories"),
       # radio button
+      :scc_repos         => N_("&Extensions and Modules from Registration Server..."),
+      # radio button
       :specify_url       => N_("Specify &URL..."),
       # radio button
       :ftp               => N_("&FTP..."),
