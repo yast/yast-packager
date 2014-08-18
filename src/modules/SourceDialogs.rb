@@ -18,6 +18,7 @@ module Yast
   class SourceDialogsClass < Module
     # to use N_ in the class constant
     extend Yast::I18n
+    include Yast::Logger
 
     # display a global enable/disable checkbox in URL type dialog
     attr_accessor :display_addon_checkbox
@@ -31,7 +32,7 @@ module Yast
       # radio button
       :comm_repos        => N_("Commun&ity Repositories"),
       # radio button
-      :scc_repos         => N_("&Extensions and Modules from Registration Server..."),
+      :sccrepos         => N_("&Extensions and Modules from Registration Server..."),
       # radio button
       :specify_url       => N_("Specify &URL..."),
       # radio button
@@ -1964,6 +1965,13 @@ module Yast
       @display_addon_checkbox ? HSpacing(3) : Empty()
     end
 
+    def scc_repos_widget
+      display_scc = WFM.ClientExists("inst_scc") && !Stage.initial
+      log.info "Displaying SCC option: #{display_scc}"
+
+      display_scc ? Left(RadioButton(Id(:sccrepos), _(WIDGET_LABELS[:sccrepos]))) : Empty()
+    end
+
     # FIXME: two almost same definitions in the same function smell bad
     def SelectRadioWidgetOpt(download_widget)
       contents = HBox(
@@ -1984,6 +1992,7 @@ module Yast
                     # radio button
                     Left(RadioButton(Id(:comm_repos), _(WIDGET_LABELS[:comm_repos]))) :
                     Empty(),
+                  scc_repos_widget,
                   VSpacing(0.4),
                   Left(RadioButton(Id(:specify_url), _(WIDGET_LABELS[:specify_url]))),
                   VSpacing(0.4),
@@ -2161,17 +2170,18 @@ module Yast
       when :back
         # reset the preselected URL when going back
         @_url = ""
-      when :next, :ok
         return nil
       when :add_addon
         RefreshTypeWidgets()
         return nil
       end
 
+      return nil if event["ID"] != :next && event["ID"] != :ok
+
       #  TODO: disable "download" option when CD or DVD source is selected
 
       selected = UI.QueryWidget(Id(:type), :CurrentButton)
-      return :finish if [:slp, :cd, :dvd, :comm_repos].include?(selected)
+      return :finish if [:slp, :cd, :dvd, :comm_repos, :sccrepos].include?(selected)
 
       nil
     end
@@ -2200,6 +2210,7 @@ module Yast
             :specify_url,
             :slp,
             :local_iso,
+            :sccrepos,
             :comm_repos
           ],
           selected
@@ -2234,6 +2245,8 @@ module Yast
           @_url = "slp://"
         elsif selected == :comm_repos
           @_url = "commrepos://"
+        elsif selected == :sccrepos
+          @_url = "sccrepos://"
         end
       else
         Builtins.y2error("Unexpected repo type %1", selected)
@@ -2274,6 +2287,8 @@ module Yast
         current = :slp
       elsif @_url == "commrepos://"
         current = :comm_repos
+      elsif @_url == "sccrepos://"
+        current = :sccrepos
       else
         Builtins.y2warning("Unknown URL scheme '%1'", @_url)
         current = :specify_url
