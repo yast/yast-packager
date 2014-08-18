@@ -2161,12 +2161,13 @@ module Yast
       when :back
         # reset the preselected URL when going back
         @_url = ""
-      when :next, :ok
         return nil
       when :add_addon
         RefreshTypeWidgets()
         return nil
       end
+
+      return nil if event["ID"] != :next && event["ID"] != :ok
 
       #  TODO: disable "download" option when CD or DVD source is selected
 
