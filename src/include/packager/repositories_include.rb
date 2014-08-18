@@ -451,6 +451,11 @@ module Yast
         else
           return :next
         end
+      elsif url == "sccrepos://"
+        sccrepos = WFM.call("inst_scc", ["select_extensions"])
+        Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
+
+        return (sccrepos == :abort || sccrepos == :cancel) ? :back : :next
       end
 
       ret = createSource(url, plaindir, @download_meta, name)
