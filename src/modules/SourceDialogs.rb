@@ -1966,10 +1966,10 @@ module Yast
     end
 
     def scc_repos_widget
-      inst_scc_present = WFM.ClientExists("inst_scc")
-      log.info "inst_scc client found: #{inst_scc_present}"
+      display_scc = WFM.ClientExists("inst_scc") && !Stage.initial
+      log.info "Displaying SCC option: #{display_scc}"
 
-      inst_scc_present ? Left(RadioButton(Id(:sccrepos), _(WIDGET_LABELS[:sccrepos]))) : Empty()
+      display_scc ? Left(RadioButton(Id(:sccrepos), _(WIDGET_LABELS[:sccrepos]))) : Empty()
     end
 
     # FIXME: two almost same definitions in the same function smell bad
