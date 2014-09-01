@@ -662,8 +662,11 @@ module Yast
                     Builtins.sformat("test -d %1 || mkdir -p %1", tmpdir)
                   )
 
+                  # mount options determined by partitioner
+                  mount_options = (part["fstopt"] || "").split(",")
+
                   # mount in read-only mode (safer)
-                  mount_options = ["ro"]
+                  mount_options << "ro"
 
                   # add "nolock" if it's a NFS share (bnc#433893)
                   if used_fs == :nfs
@@ -672,7 +675,7 @@ module Yast
                   end
 
                   # join the options
-                  mount_options_str = Builtins.mergestring(mount_options, ",")
+                  mount_options_str = mount_options.uniq.join(",")
 
                   mount_command = Builtins.sformat(
                     "/bin/mount -o %1 %2 %3",
