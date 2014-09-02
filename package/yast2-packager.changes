@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep  2 11:59:32 UTC 2014 - ancor@suse.com
+
+- Use DM device for encrypted partitions during test mount
+  (bnc#889334)
+- 3.1.44
+
+-------------------------------------------------------------------
 Mon Sep  1 14:16:27 UTC 2014 - ancor@suse.com
 
 - Use options from partitioner during test mount (bnc#873180)
