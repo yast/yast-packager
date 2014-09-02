@@ -1,0 +1,81 @@
+---
+"/dev/nfs":
+  device: "/dev/nfs"
+  name: nfs
+  partitions:
+  - detected_fs: :nfs
+    device: nfs-host:/nfsroot
+    fstopt: noatime,nfsvers=3,nolock
+    fstype: NFS
+    inactive: true
+    mount: "/"
+    mountby: :device
+    name: nfs-host:/nfsroot
+    size_k: 528336896
+    type: :nfs
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :nfs
+  type: :CT_NFS
+  used_by_device: ''
+  used_by_type: :UB_NONE
+"/dev/sda":
+  bus: SCSI
+  cyl_count: 913
+  cyl_size: 8225280
+  device: "/dev/sda"
+  driver: hv_storvsc
+  driver_module: hv_storvsc
+  label: msdos
+  max_logical: 255
+  max_primary: 4
+  model: Virtual Disk
+  name: sda
+  partitions:
+  - detected_fs: :swap
+    device: "/dev/sda1"
+    fsid: 130
+    fstype: Linux swap
+    name: sda1
+    nr: 1
+    region:
+    - 0
+    - 17
+    size_k: 128000
+    type: :primary
+    udev_id:
+    - scsi-14d53465420202020f0b629d55569424d87c45d5d487ba648-part1
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+    uuid: 650ac9f8-affc-4951-8c71-494d1606fb56
+  - boot: true
+    detected_fs: :ext4
+    device: "/dev/sda2"
+    fsid: 131
+    fstype: Linux native
+    label: ar_sl12-dev
+    name: sda2
+    nr: 2
+    region:
+    - 126
+    - 787
+    size_k: 6313984
+    type: :primary
+    udev_id:
+    - scsi-14d53465420202020f0b629d55569424d87c45d5d487ba648-part2
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :ext4
+    uuid: 9fe51394-d7de-470c-b176-10996fd09a43
+  proposal_name: 1. SCSI Disk, 7.00 GiB, /dev/sda, Msft-Virtual Disk
+  sector_size: 512
+  size_k: 7340032
+  transport: :unknown
+  type: :CT_DISK
+  udev_id:
+  - scsi-14d53465420202020f0b629d55569424d87c45d5d487ba648
+  unique: R7kM.3NysQ6jC4p5
+  used_by_device: ''
+  used_by_type: :UB_NONE
+  vendor: Msft
