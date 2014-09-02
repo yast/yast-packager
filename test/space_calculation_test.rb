@@ -88,6 +88,26 @@ describe Yast::SpaceCalculation do
           end
         end
       end
+
+      context "on non encrypted device" do
+        let(:target_map) { "xfs" }
+        let(:with_options) { false }
+
+        it "mounts the plain device" do
+          expect_to_execute(/mount -o ro \/dev\/vda3/).and_return(-1)
+          Yast::SpaceCalculation.get_partition_info
+        end
+      end
+
+      context "on encrypted device" do
+        let(:target_map) { "luks" }
+        let(:with_options) { false }
+
+        it "mounts the DM device" do
+          expect_to_execute(/mount -o ro \/dev\/mapper\/cr_ata-VBOX_HARDDISK_VB57271fd6-27adef38-part3/).and_return(-1)
+          Yast::SpaceCalculation.get_partition_info
+        end
+      end
     end
   end
 end
