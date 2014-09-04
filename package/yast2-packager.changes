@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  4 11:03:03 UTC 2014 - jreidinger@suse.com
+
+- use new rubygem dependency syntax (bnc#895069)
+- 3.1.45
+
+-------------------------------------------------------------------
 Tue Sep  2 11:59:32 UTC 2014 - ancor@suse.com
 
 - Use DM device for encrypted partitions during test mount
