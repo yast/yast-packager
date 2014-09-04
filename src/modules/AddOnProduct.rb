@@ -136,7 +136,8 @@ module Yast
         "SUSE_SLES"  => [ "SLES" ],
         # SLED or Workstation extension
         "SUSE_SLED"  => [ "SLED", "sle-we" ],
-        "sle-haegeo" => [ "sle-ha-geo" ]
+        "sle-haegeo" => [ "sle-ha-geo" ],
+        "sle-hae"    => [ "sle-ha" ]
       }
 
     end

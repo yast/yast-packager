@@ -28,6 +28,13 @@ def load_zypp(file_name)
   YAML.load_file(file_name)
 end
 
+def set_root_path(directory)
+  root = File.join(DATA_PATH, directory)
+  check_version = false
+  handle = Yast::WFM.SCROpen("chroot=#{root}:scr", check_version)
+  Yast::WFM.SCRSetDefault(handle)
+end
+
 PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
 
 describe Yast::Packages do
@@ -38,40 +45,37 @@ describe Yast::Packages do
   describe "#kernelCmdLinePackages" do
     before(:each) do
       # default value
-      Yast::SCR.stub(:Read).and_return(nil)
       Yast::Product.stub(:Product).and_return(nil)
+    end
+
+    after(:each) do
+      # set_root_path is always called and it opens a SCR instance
+      # that needs to be closed
+      Yast::WFM.SCRClose(Yast::WFM.SCRGetDefault)
     end
 
     context "when biosdevname behavior explicitly defined on the Kenel command line" do
       it "returns biosdevname within the list of required packages" do
-        Yast::SCR.stub(:Read).with(
-          SCR_STRING_PATH,"/proc/cmdline"
-        ).and_return("install=cd:// vga=0x314 biosdevname=1")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
-      end
-
-      it "returns biosdevname within the list of required packages with new line at the end" do
-        Yast::SCR.stub(:Read).with(
-          SCR_STRING_PATH,"/proc/cmdline"
-        ).and_return("install=cd:// vga=0x314\nbiosdevname=1\n")
+        set_root_path("cmdline-biosdevname_1")
         expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
       end
 
       it "does not return biosdevname within the list of required packages" do
-        Yast::SCR.stub(:Read).with(
-          SCR_STRING_PATH,"/proc/cmdline"
-        ).and_return("install=cd:// vga=0x314 biosdevname=0")
+        set_root_path("cmdline-biosdevname_0")
+        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
+      end
+
+      it "does not return biosdevname within the list of required packages then value is invalid" do
+        set_root_path("cmdline-biosdevname_10")
         expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
       end
     end
 
     context "when biosdevname behavior not defined on the Kernel command line" do
+      before { set_root_path("cmdline-biosdevname_nil") }
+
       context "and running on a Dell system" do
         it "returns biosdevname within the list of packages" do
-          Yast::SCR.stub(:Read).with(
-            Yast::Path.new(".target.string"),
-            "/proc/cmdline"
-          ).and_return("install=cd:// vga=0x314")
           # 0 means `grep` succeeded
           Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
@@ -80,10 +84,6 @@ describe Yast::Packages do
 
       context "and running on a non-Dell system" do
         it "does not return biosdevname within the list of packages" do
-          Yast::SCR.stub(:Read).with(
-            Yast::Path.new(".target.string"),
-            "/proc/cmdline"
-          ).and_return("install=cd:// vga=0x314")
           # 1 means `grep` has not succeeded
           Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false

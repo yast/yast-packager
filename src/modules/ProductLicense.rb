@@ -16,6 +16,8 @@ module Yast
   class ProductLicenseClass < Module
     attr_accessor :license_patterns, :license_file_print
 
+    include Yast::Logger
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -37,9 +39,6 @@ module Yast
       # IMPORTANT: maintainer of yast2-installation is responsible for this module
 
       textdomain "packager"
-
-      # list of already accepted licenses
-      @already_accepted_licenses = []
 
       @license_patterns = [
         "license\\.html",
@@ -103,40 +102,6 @@ module Yast
       Ops.get(tmp, 0, "")
     end
 
-    # Creates a unique identification from filename
-    # (MD5sum + file size)
-    #
-    # @param [String] filename
-    # @return [String] unique ID
-    def GetLicenseIdentString(filename)
-      if !FileUtils.Exists(filename)
-        Builtins.y2error("License '%1' doesn't exist", filename)
-        return nil
-      end
-
-      filemd5 = FileUtils.MD5sum(filename)
-      return nil if filemd5 == nil
-
-      ret = Builtins.sformat("%1-%2", filemd5, FileUtils.GetSize(filename))
-
-      Builtins.y2milestone("License ident for '%1' is '%2'", filename, ret)
-
-      ret
-    end
-
-    # Checks whether the license (file) has been already accepted
-    #
-    # @param string filename
-    # @return [Boolean] whether the license has been accepted before
-    def IsLicenseAlreadyAccepted(license_ident)
-      if license_ident == nil || license_ident == ""
-        Builtins.y2error("Wrong license ID '%1'", license_ident)
-        return false
-      end
-
-      Builtins.contains(@already_accepted_licenses, license_ident)
-    end
-
     # Sets that the license (file) has been already accepted
     #
     # @param string filename
@@ -145,15 +110,6 @@ module Yast
         Builtins.y2error("Wrong license ID '%1'", license_ident)
         return
       end
-
-      Builtins.y2milestone(
-        "Adding License ID '%1' as already accepted",
-        license_ident
-      )
-      @already_accepted_licenses = Builtins.add(
-        @already_accepted_licenses,
-        license_ident
-      )
 
       nil
     end
@@ -932,25 +888,7 @@ module Yast
         licenses.value = licenses_ref.value;
         _WhichLicenceFile_result
       )
-      license_ident.value = GetLicenseIdentString(base_license)
-
-      # agreement might be required even if license has been already accepted
-      # defined, properly ($md5sum(32)-(1)$size(1..n))
-      #
-      # see also BNC #448598
-      # Even if it it shown it sometimes doesn't need to be even accepted by
-      # selecting "yes, I agree"
-      if require_agreement != true &&
-          Builtins.tostring(license_ident.value) != nil &&
-          Ops.greater_than(Builtins.size(license_ident.value), 33) &&
-          IsLicenseAlreadyAccepted(license_ident.value)
-        Builtins.y2milestone("License has been already accepted/shown")
-
-        CleanUpLicense(@tmpdir)
-        return :accepted
-      else
-        Builtins.y2milestone("License needs to be shown")
-      end
+      log.info "License needs to be shown"
 
       # bugzilla #303922
       # src_id == nil (the initial product license)
@@ -1058,95 +996,79 @@ module Yast
 
       while true
         ret = UI.UserInput
+        log.info "User ret: #{ret}"
 
-        if Ops.is_string?(ret) &&
-            Builtins.regexpmatch(Builtins.tostring(ret), "^license_language_")
+        if ret.is_a?(::String) && ret.start_with?("license_language_")
           licenses_ref = arg_ref(licenses.value)
-          UpdateLicenseContent(licenses_ref, GetId(Builtins.tostring(ret)))
+          UpdateLicenseContent(licenses_ref, GetId(ret))
           licenses.value = licenses_ref.value
           ret = :language
-          # bugzilla #303828
-          # disabled next button unless yes/no is selected
-        elsif Ops.is_string?(ret) && ret.start_with?("eula_")
+        # bugzilla #303828
+        # disabled next button unless yes/no is selected
+        elsif ret.is_a?(::String) && ret.start_with?("eula_")
           Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined()
-          # Aborting the license dialog
+        # Aborting the license dialog
         elsif ret == :abort
-          # bugzilla #218677
-          if base_product
-            if Popup.ConfirmAbort(:painless)
-              Builtins.y2milestone("Aborting...")
-              ret = :abort
-              break
-            end
+          # bnc#886662
+          if Stage.initial
+            next unless Popup.ConfirmAbort(:painless)
           else
             # popup question
-            if Popup.YesNo(_("Really abort the add-on product installation?"))
-              Builtins.y2milestone("Aborting...")
-              ret = :abort
-              break
-            end
+            next unless Popup.YesNo(_("Really abort the add-on product installation?"))
           end
+
+          log.warn "Aborting..."
+          break
         elsif ret == :next
-          # License declined
-          if AllLicensesAccepted() != true
-            # message is void in case not accepting license doesn't stop the installation
-            if action == "continue"
-              Builtins.y2milestone(
-                "action in case of license refusal is continue, not asking user"
-              )
-              ret = :accepted
-              break
-            end
-            # text changed due to bug #162499
-            refuse_popup_text = base_product ?
-              # text asking whether to refuse a license (Yes-No popup)
-              _(
-                "Refusing the license agreement cancels the installation.\nReally refuse the agreement?"
-              ) :
-              # text asking whether to refuse a license (Yes-No popup)
-              _(
-                "Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?"
-              )
-            if !Popup.YesNo(refuse_popup_text)
-              next
-            else
-              Builtins.y2milestone("License has been declined.")
-              if action == "abort"
-                ret = :abort
-                break
-              elsif action == "continue"
-                ret = :accepted
-                break
-              elsif action == "halt"
-                ret = :halt
-                break
-                # timed ok/cancel popup
-                if !Popup.TimedOKCancel(_("The system is shutting down..."), 10)
-                  next
-                else
-                  ret = :halt
-                  break
-                end
-              else
-                Builtins.y2error("Unknown action %1", action)
-                ret = :abort
-                break
-              end
-            end
-          else
-            Builtins.y2milestone("All licenses have been accepted.")
+          if AllLicensesAccepted()
+            log.info "All licenses have been accepted."
             ret = :accepted
             break
           end
+
+          # License declined
+
+          # message is void in case not accepting license doesn't stop the installation
+          if action == "continue"
+            log.info "action in case of license refusal is continue, not asking user"
+            ret = :accepted
+            break
+          end
+
+          # text changed due to bug #162499
+          refuse_popup_text = base_product ?
+            # text asking whether to refuse a license (Yes-No popup)
+            _("Refusing the license agreement cancels the installation.\nReally refuse the agreement?")
+            :
+            # text asking whether to refuse a license (Yes-No popup)
+            _("Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?")
+          next unless Popup.YesNo(refuse_popup_text)
+
+          log.info "License has been declined."
+
+          case action
+          when "abort"
+            ret = :abort
+          when "halt"
+            # timed ok/cancel popup
+            next unless Popup.TimedOKCancel(_("The system is shutting down..."), 10)
+            ret = :halt
+          else
+            log.error "Unknown action #{action}"
+            ret = :abort
+          end
+
+          break
         elsif ret == :back
           ret = :back
           break
         else
-          Builtins.y2error("Unhandled input: %1", ret)
+          log.error "Unhandled input: #{ret}"
         end
       end
 
-      Convert.to_symbol(ret)
+      log.info "Returning #{ret}"
+      ret
     end
 
     # Generic cleanup

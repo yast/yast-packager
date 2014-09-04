@@ -18,6 +18,7 @@ module Yast
   class SourceDialogsClass < Module
     # to use N_ in the class constant
     extend Yast::I18n
+    include Yast::Logger
 
     # display a global enable/disable checkbox in URL type dialog
     attr_accessor :display_addon_checkbox
@@ -30,6 +31,8 @@ module Yast
       :slp               => N_("&Scan Using SLP..."),
       # radio button
       :comm_repos        => N_("Commun&ity Repositories"),
+      # radio button
+      :sccrepos         => N_("&Extensions and Modules from Registration Server..."),
       # radio button
       :specify_url       => N_("Specify &URL..."),
       # radio button
@@ -77,6 +80,7 @@ module Yast
       Yast.import "IP"
       Yast.import "ProductControl"
       Yast.import "ProductFeatures"
+      Yast.import "Stage"
 
       # common functions / data
 
@@ -111,6 +115,11 @@ module Yast
       @multi_cd_help = _(
         "<p>If the repository is on multiple media,\nset the location of the first media of the set.</p>\n"
       )
+
+      # Belongs to a constant, but can't be there because of `fun_ref`
+      @default_cwm_fallback_functions = {
+        :abort => fun_ref(method(:confirm_abort?), "boolean ()")
+      }
 
       # NFS editation widget
 
@@ -1956,6 +1965,14 @@ module Yast
       @display_addon_checkbox ? HSpacing(3) : Empty()
     end
 
+    def scc_repos_widget
+      display_scc = WFM.ClientExists("inst_scc") && !Stage.initial
+      log.info "Displaying SCC option: #{display_scc}"
+
+      display_scc ? Left(RadioButton(Id(:sccrepos), _(WIDGET_LABELS[:sccrepos]))) : Empty()
+    end
+
+    # FIXME: two almost same definitions in the same function smell bad
     def SelectRadioWidgetOpt(download_widget)
       contents = HBox(
         HStretch(),
@@ -1975,6 +1992,7 @@ module Yast
                     # radio button
                     Left(RadioButton(Id(:comm_repos), _(WIDGET_LABELS[:comm_repos]))) :
                     Empty(),
+                  scc_repos_widget,
                   VSpacing(0.4),
                   Left(RadioButton(Id(:specify_url), _(WIDGET_LABELS[:specify_url]))),
                   VSpacing(0.4),
@@ -2142,25 +2160,28 @@ module Yast
       true
     end
 
+    # Handles Ui events in New repository type selection dialog
+    #
+    # @param [String] widget key
+    # @param [Hash] event description
+    # @return [Symbol]
     def SelectHandle(key, event)
-      event = deep_copy(event)
-      # reset the preselected URL when going back
-      @_url = "" if Ops.get(event, "ID") == :back
-
-      if !(Ops.get(event, "ID") == :next || Ops.get(event, "ID") == :ok)
-        RefreshTypeWidgets() if event["ID"] == :add_addon
+      case event["ID"]
+      when :back
+        # reset the preselected URL when going back
+        @_url = ""
+        return nil
+      when :add_addon
+        RefreshTypeWidgets()
         return nil
       end
 
-      selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
+      return nil if event["ID"] != :next && event["ID"] != :ok
 
       #  TODO: disable "download" option when CD or DVD source is selected
 
-      return nil if selected == nil
-      if selected == :slp || selected == :cd || selected == :dvd ||
-          selected == :comm_repos
-        return :finish
-      end
+      selected = UI.QueryWidget(Id(:type), :CurrentButton)
+      return :finish if [:slp, :cd, :dvd, :comm_repos, :sccrepos].include?(selected)
 
       nil
     end
@@ -2189,6 +2210,7 @@ module Yast
             :specify_url,
             :slp,
             :local_iso,
+            :sccrepos,
             :comm_repos
           ],
           selected
@@ -2223,6 +2245,8 @@ module Yast
           @_url = "slp://"
         elsif selected == :comm_repos
           @_url = "commrepos://"
+        elsif selected == :sccrepos
+          @_url = "sccrepos://"
         end
       else
         Builtins.y2error("Unexpected repo type %1", selected)
@@ -2263,6 +2287,8 @@ module Yast
         current = :slp
       elsif @_url == "commrepos://"
         current = :comm_repos
+      elsif @_url == "sccrepos://"
+        current = :sccrepos
       else
         Builtins.y2warning("Unknown URL scheme '%1'", @_url)
         current = :specify_url
@@ -2494,7 +2520,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
     end
@@ -2515,7 +2541,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
     end
@@ -2558,7 +2584,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
       Builtins.y2milestone("Type dialog returned %1", ret)
@@ -2582,7 +2608,7 @@ module Yast
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
-          "fallback_functions" => {}
+          "fallback_functions" => @default_cwm_fallback_functions,
         }
       )
 
@@ -2590,6 +2616,13 @@ module Yast
 
       Builtins.y2milestone("Type dialog returned %1", ret)
       deep_copy(ret)
+    end
+
+    # Returns boolean whether user confirmed to abort the configuration
+    #
+    # @return [Boolean] whether to abort
+    def confirm_abort?
+      (Stage.initial ? Popup.ConfirmAbort(:painless) : Popup.ReallyAbort(SourceManager.Modified()))
     end
 
     publish :function => :SetURL, :type => "void (string)"

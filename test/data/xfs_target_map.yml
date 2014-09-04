@@ -1,0 +1,90 @@
+---
+"/dev/vda":
+  bios_id: '0x80'
+  bus: None
+  cyl_count: 4307
+  cyl_size: 8225280
+  device: "/dev/vda"
+  driver: virtio-pci
+  driver_module: virtio_pci
+  label: msdos
+  max_logical: 15
+  max_primary: 4
+  name: vda
+  partitions:
+  - detected_fs: :xfs
+    device: "/dev/vda1"
+    fsid: 131
+    fstype: Linux native
+    name: vda1
+    nr: 1
+    region:
+    - 0
+    - 2220
+    size_k: 17830912
+    type: :primary
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :xfs
+    uuid: 00eea959-67c3-4223-a02d-2fd0dcbc725e
+  - detected_fs: :swap
+    device: "/dev/vda2"
+    fsid: 130
+    fstype: "Linux \n swap"
+    inactive: true
+    mount: swap
+    mountby: :uuid
+    name: vda2
+    nr: 2
+    region:
+    - 2219
+    - 263
+    size_k: 2104320
+    type: :primary
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+    uuid: 47f2f88d-8b05-46f2-b912-212348586d8f
+  - boot: true
+    detected_fs: :ext4
+    device: "/dev/vda3"
+    fsid: 131
+    fstype: Linux native
+    name: vda3
+    nr: 3
+    region:
+    - 2481
+    - 1308
+    size_k: 10490880
+    type: :primary
+    fstopt: acl,user_xattr
+    mount: "/"
+    mountby: :uuid
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :ext4
+    uuid: 4c486a9b-cc25-40ab-9c49-8203e62a8953
+  - detected_fs: :xfs
+    device: "/dev/vda4"
+    fsid: 131
+    fstype: Linux native
+    name: vda4
+    nr: 4
+    region:
+    - 3788
+    - 519
+    size_k: 4175872
+    type: :primary
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :xfs
+    uuid: 039bbc0d-ebe9-4b0e-ae6b-9b049398143e
+  proposal_name: '1. Disk, 33.00 GiB, /dev/vda, '
+  sector_size: 512
+  size_k: 34603008
+  transport: :unknown
+  type: :CT_DISK
+  unique: KSbE.Fxp0d3BezAE
+  used_by_device: ''
+  used_by_type: :UB_NONE
+

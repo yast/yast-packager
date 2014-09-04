@@ -1,0 +1,147 @@
+---
+"/dev/btrfs":
+  device: "/dev/btrfs"
+  name: btrfs
+  partitions: []
+  type: :CT_BTRFS
+  used_by_device: ''
+  used_by_type: :UB_NONE
+"/dev/sda":
+  bios_id: '0x80'
+  bus: IDE
+  cyl_count: 16709
+  cyl_size: 8225280
+  device: "/dev/sda"
+  driver: ahci
+  driver_module: ahci
+  label: msdos
+  max_logical: 255
+  max_primary: 4
+  model: HARDDISK
+  name: sda
+  partitions:
+  - detected_fs: :swap
+    device: "/dev/sda1"
+    fsid: 130
+    fstype: Linux swap
+    inactive: true
+    mount: swap
+    mountby: :uuid
+    name: sda1
+    nr: 1
+    region:
+    - 0
+    - 262
+    size_k: 2103296
+    type: :primary
+    udev_id:
+    - ata-VBOX_HARDDISK_VB57271fd6-27adef38-part1
+    - scsi-0ATA_VBOX_HARDDISK_VB57271fd6-27adef38-part1
+    - scsi-1ATA_VBOX_HARDDISK_VB57271fd6-27adef38-part1
+    - scsi-SATA_VBOX_HARDDISK_VB57271fd6-27adef38-part1
+    udev_path: pci-0000:00:1f.2-ata-1.0-part1
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+    uuid: f5f25b5d-22fd-4ed3-9134-715bc1899db5
+  - boot: true
+    detected_fs: :btrfs
+    device: "/dev/sda2"
+    format: true
+    fsid: 131
+    fstype: Linux native
+    inactive: true
+    mount: "/"
+    mountby: :uuid
+    name: sda2
+    nr: 2
+    region:
+    - 261
+    - 5224
+    size_k: 41946112
+    subvol:
+    - create: true
+      name: "@/boot/grub2/i386-pc"
+    - create: true
+      name: "@/boot/grub2/x86_64-efi"
+    - create: true
+      name: "@/opt"
+    - create: true
+      name: "@/srv"
+    - create: true
+      name: "@/tmp"
+    - create: true
+      name: "@/usr/local"
+    - create: true
+      name: "@/var/crash"
+    - create: true
+      name: "@/var/lib/mailman"
+    - create: true
+      name: "@/var/lib/named"
+    - create: true
+      name: "@/var/lib/pgsql"
+    - create: true
+      name: "@/var/log"
+    - create: true
+      name: "@/var/opt"
+    - create: true
+      name: "@/var/spool"
+    - create: true
+      name: "@/var/tmp"
+    type: :primary
+    udev_id:
+    - ata-VBOX_HARDDISK_VB57271fd6-27adef38-part2
+    - scsi-0ATA_VBOX_HARDDISK_VB57271fd6-27adef38-part2
+    - scsi-1ATA_VBOX_HARDDISK_VB57271fd6-27adef38-part2
+    - scsi-SATA_VBOX_HARDDISK_VB57271fd6-27adef38-part2
+    udev_path: pci-0000:00:1f.2-ata-1.0-part2
+    used_by:
+    - device: '12345'
+      type: :UB_BTRFS
+    used_by_device: '12345'
+    used_by_type: :UB_BTRFS
+    used_fs: :btrfs
+    userdata:
+      "/": snapshots
+    uuid: '12345'
+  - crypt_device: "/dev/mapper/cr_ata-VBOX_HARDDISK_VB57271fd6-27adef38-part3"
+    detected_fs: :xfs
+    device: "/dev/sda3"
+    enc_type: :luks
+    fsid: 131
+    fstype: Linux native
+    inactive: true
+    mount: "/home"
+    mountby: :uuid
+    name: sda3
+    nr: 3
+    region:
+    - 5484
+    - 11225
+    size_k: 90165248
+    type: :primary
+    udev_id:
+    - ata-VBOX_HARDDISK_VB57271fd6-27adef38-part3
+    - scsi-0ATA_VBOX_HARDDISK_VB57271fd6-27adef38-part3
+    - scsi-1ATA_VBOX_HARDDISK_VB57271fd6-27adef38-part3
+    - scsi-SATA_VBOX_HARDDISK_VB57271fd6-27adef38-part3
+    udev_path: pci-0000:00:1f.2-ata-1.0-part3
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :xfs
+    uuid: bcbd324b-dcae-478e-94a6-fa6ef1a4a663
+  proposal_name: 1. IDE Disk, 128.00 GiB, /dev/sda, VBOX-HARDDISK
+  sector_size: 512
+  size_k: 134217728
+  transport: :sata
+  type: :CT_DISK
+  udev_id:
+  - ata-VBOX_HARDDISK_VB57271fd6-27adef38
+  - scsi-0ATA_VBOX_HARDDISK_VB57271fd6-27adef38
+  - scsi-1ATA_VBOX_HARDDISK_VB57271fd6-27adef38
+  - scsi-SATA_VBOX_HARDDISK_VB57271fd6-27adef38
+  udev_path: pci-0000:00:1f.2-ata-1.0
+  unique: 3OOL.F0a81fNDOj7
+  used_by_device: ''
+  used_by_type: :UB_NONE
+  vendor: VBOX

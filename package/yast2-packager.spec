@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.35
+Version:        3.1.45
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -42,8 +42,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SetZConfig()
 Requires:	yast2-pkg-bindings >= 2.21.8
 
-# HwDetection
-Requires: yast2 >= 3.1.19
+# Fixed .proc.cmdline agent
+Requires: yast2 >= 3.1.89
 
 # unzipping license file
 Requires:	unzip

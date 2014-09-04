@@ -2,6 +2,79 @@
 Thu Sep  4 11:03:03 UTC 2014 - jreidinger@suse.com
 
 - use new rubygem dependency syntax (bnc#895069)
+- 3.1.45
+
+-------------------------------------------------------------------
+Tue Sep  2 11:59:32 UTC 2014 - ancor@suse.com
+
+- Use DM device for encrypted partitions during test mount
+  (bnc#889334)
+- 3.1.44
+
+-------------------------------------------------------------------
+Mon Sep  1 14:16:27 UTC 2014 - ancor@suse.com
+
+- Use options from partitioner during test mount (bnc#873180)
+- 3.1.43
+
+-------------------------------------------------------------------
+Mon Aug 18 12:57:01 UTC 2014 - lslezak@suse.cz
+
+- fixed adding of new SLP and CD/DVD repositories
+- added "Repositories from Registration Server" option to URL
+  selection dialog (displyed when adding a new repository)
+  (bnc#888566)
+- 3.1.42
+
+-------------------------------------------------------------------
+Fri Aug 15 09:05:01 UTC 2014 - lslezak@suse.cz
+
+- better help text: user can confirm product removal and continue
+  with the product upgrade (bnc#889749)
+- 3.1.41
+
+-------------------------------------------------------------------
+Wed Aug 13 17:21:11 CEST 2014 - locilka@suse.com
+
+- Removed caching of already accepted licenses: if there is
+  a license that needs to be accepted, user has to accept it
+  (bnc#890968)
+- 3.1.40
+
+-------------------------------------------------------------------
+Wed Aug  6 13:31:31 CEST 2014 - locilka@suse.com
+
+- Cleanup in license dialog handling, especially in handling while
+  aborting the installation (bnc#886662)
+- 3.1.39
+
+-------------------------------------------------------------------
+Thu Jul 31 14:43:16 CEST 2014 - locilka@suse.com
+
+- Added user confirmation for aborting the repositories dialogs
+  (bnc#886662)
+- 3.1.38
+
+-------------------------------------------------------------------
+Thu Jul 31 11:18:09 UTC 2014 - jsrain@suse.cz
+
+- added product rename sle-hae -> sle-ha to the list (bnc#889745)
+- 3.1.37
+
+-------------------------------------------------------------------
+Wed Jul 30 06:57:47 UTC 2014 - ancor@suse.com
+
+- Refactored kernelCmdLinePackages to rely on .proc.cmdline agent
+  (bnc#889365)
+- Added dependency on yast2 >= 3.1.89 (fixed agent)
+- 3.1.36
+
+-------------------------------------------------------------------
+Tue Jul 29 15:52:43 UTC 2014 - lslezak@suse.cz
+
+- ag_zypp_repos - do not try parsing directory entries in
+  /etc/zypp/repos.d/, that leads to invalid values (bnc#867911)
+>>>>>>> 8fe56169bbc38ed8822ac5eb9eaf7f9ca5f413f9
 - 3.1.35
 
 -------------------------------------------------------------------

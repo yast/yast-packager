@@ -747,13 +747,15 @@ module Yast
       # cannot be started.
       return {
         "warning_level" => :blocker,
-        # update proposal warning
+        # TRANSLATORS: update proposal warning, do NOT translate "-release",
+        # it is part of a package name (like "sles-release")
         "warning" => _(
           "<ul><li><b>Some products are marked for automatic removal.</b></li>\n" \
             "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
             "installation media</li><li>Or select the appropriate online extension or module\n" \
-            "in the registration step</li><li>Or resolve the conflicts manually in the \n" \
-            "package management</li></ul></li></ul>")
+            "in the registration step</li><li>Or to continue with product upgrade go to the\n" \
+            "software selection and mark the product (the -release package) for removal.\n" \
+            "</li></ul></li></ul>")
       }
     end
 
@@ -970,24 +972,25 @@ module Yast
       ret = []
 
       add_biosdevname = false
-      cmdline = Convert.to_string(
-        SCR.Read(path(".target.string"), "/proc/cmdline")
-      )
+      options = SCR.Read(path(".proc.cmdline"))
+      option = options.grep(/^biosdevname=/i).first
+      if option
+        value = option[/^biosdevname=(\d+)/i, 1]
+      else #missing biosdevname option
+        value = nil
+      end
 
-      options = cmdline.split(/\s/)
-
-      if Builtins.contains(options, "biosdevname=1")
+      if value == "1"
         Builtins.y2milestone("Biosdevname explicitly enabled")
         add_biosdevname = true
-      elsif Builtins.contains(options, "biosdevname=0")
+      elsif value == "0"
         Builtins.y2milestone("Biosdevname explicitly disabled")
         add_biosdevname = false
       else
         Builtins.y2milestone("Missing biosdevname option, autodetecting...")
         add_biosdevname = true if DellSystem()
       end
-
-      ret = Builtins.add(ret, "biosdevname") if add_biosdevname
+      ret << "biosdevname" if add_biosdevname
 
       Builtins.y2milestone("Packages added by kernel command line: %1", ret)
 

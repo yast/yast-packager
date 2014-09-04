@@ -1,0 +1,2 @@
+install=cd:// vga=0x314 biosdevname=0
+

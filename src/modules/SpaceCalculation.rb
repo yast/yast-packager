@@ -653,8 +653,14 @@ module Yast
                 end
 
                 used = 0
-                if !(Ops.get_boolean(part, "create", false) ||
-                    Ops.get_boolean(part, "format", false))
+                # If reusing a previously existent filesystem
+                if !(part["create"] || part["format"])
+
+                  # Mount the filesystem to check the available space.
+                  # FIXME: libstorage provides functions to query free
+                  # information for devices (even caching the information).
+                  # This part should be refactored to rely on libstorage.
+
                   tmpdir = Convert.to_string(SCR.Read(path(".target.tmpdir")))
                   tmpdir = Ops.add(tmpdir, "/diskspace_mount")
                   SCR.Execute(
@@ -662,8 +668,11 @@ module Yast
                     Builtins.sformat("test -d %1 || mkdir -p %1", tmpdir)
                   )
 
+                  # mount options determined by partitioner
+                  mount_options = (part["fstopt"] || "").split(",")
+
                   # mount in read-only mode (safer)
-                  mount_options = ["ro"]
+                  mount_options << "ro"
 
                   # add "nolock" if it's a NFS share (bnc#433893)
                   if used_fs == :nfs
@@ -672,12 +681,16 @@ module Yast
                   end
 
                   # join the options
-                  mount_options_str = Builtins.mergestring(mount_options, ",")
+                  mount_options_str = mount_options.uniq.join(",")
+
+                  # Use DM device if it's encrypted, plain device otherwise
+                  # (bnc#889334)
+                  device = part["crypt_device"] || part["device"] || ""
 
                   mount_command = Builtins.sformat(
                     "/bin/mount -o %1 %2 %3",
                     mount_options_str,
-                    Ops.get_string(part, "device", ""),
+                    device,
                     tmpdir
                   )
 
@@ -717,7 +730,7 @@ module Yast
                   else
                     Builtins.y2error(
                       "Mount failed, ignoring partition %1",
-                      Ops.get_string(part, "device", "")
+                      device
                     )
                     @failed_mounts = Builtins.add(@failed_mounts, part)
 
