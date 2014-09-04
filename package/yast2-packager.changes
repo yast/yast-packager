@@ -74,7 +74,6 @@ Tue Jul 29 15:52:43 UTC 2014 - lslezak@suse.cz
 
 - ag_zypp_repos - do not try parsing directory entries in
   /etc/zypp/repos.d/, that leads to invalid values (bnc#867911)
->>>>>>> 8fe56169bbc38ed8822ac5eb9eaf7f9ca5f413f9
 - 3.1.35
 
 -------------------------------------------------------------------
