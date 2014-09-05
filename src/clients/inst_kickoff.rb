@@ -24,7 +24,6 @@ module Yast
       Yast.import "Popup"
       Yast.import "Directory"
       Yast.import "ModuleLoading"
-      Yast.import "Initrd"
       Yast.import "Kernel"
       Yast.import "Arch"
       Yast.import "FileUtils"
@@ -244,35 +243,7 @@ module Yast
         end
       end
 
-      # add Xen and HyperV PV drivers to initrd
-      XenPVToInitrd()
-
       :next
-    end
-
-    # add xen paravirtualized drivers to initrd if thery are selected for installation
-    def XenPVToInitrd
-      # is any xen-kmp-* package selected?
-      if Pkg.IsSelected("xen-kmp-default") || Pkg.IsSelected("xen-kmp-smp") ||
-          Pkg.IsSelected("xen-kmp-pae") ||
-          Pkg.IsSelected("xen-kmp-bigsmp") ||
-          Pkg.IsSelected("xen-kmp-kdump")
-        # add disk driver
-        Initrd.AddModule("xen-vbd", "")
-        # add network driver
-        Initrd.AddModule("xen-vnif", "")
-
-        Builtins.y2milestone(
-          "Added Xen PV drivers to initrd, configured drivers: %1",
-          Initrd.ListModules
-        )
-      else
-        Builtins.y2milestone(
-          "No xen-kmp-* package is selected for installation, skipping XEN PV driver installation"
-        )
-      end
-
-      nil
     end
 
     #  Write a fake mtab to the target system since some %post scripts might
