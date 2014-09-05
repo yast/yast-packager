@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep  5 14:53:10 UTC 2014 - lslezak@suse.cz
+
+- /etc/sysconfig/kernel:INITRD_MODULES has been dropped, do not
+  write Xen modules there (bnc#895084)
+- 3.1.46
+
+-------------------------------------------------------------------
 Thu Sep  4 11:03:03 UTC 2014 - jreidinger@suse.com
 
 - use new rubygem dependency syntax (bnc#895069)
