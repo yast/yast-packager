@@ -10,6 +10,8 @@ Yast.import "Packages"
 Yast.import "SCR"
 Yast.import "Product"
 Yast.import "ProductFeatures"
+Yast.import "Linuxrc"
+Yast.import "Pkg"
 
 SCR_STRING_PATH = Yast::Path.new(".target.string")
 SCR_BASH_PATH = Yast::Path.new(".target.bash")
@@ -378,4 +380,152 @@ describe Yast::Packages do
     end
   end
 
+  describe "#vnc_packages" do
+    let(:packages) { Yast::Packages.vnc_packages.sort.uniq }
+    let(:base_packages) { ["xinetd", "xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"] }
+    let(:base_packages_and_wm) { ["icewm"] + base_packages }
+
+    context "during installation" do
+      before do
+        allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "installation"
+      end
+
+      context "with window manager already selected" do
+        before do
+          allow(Yast::Pkg).to receive(:IsSelected).and_return true
+        end
+
+        it "includes xinetd and xorg" do
+          expect(packages).to eq(base_packages)
+        end
+      end
+
+      context "without window manager selected" do
+        before do
+          allow(Yast::Pkg).to receive(:IsSelected).and_return false
+        end
+
+        it "includes xinetd, xorg and icewm" do
+          expect(packages).to eq(base_packages_and_wm)
+        end
+      end
+    end
+
+    context "during autoinstallation" do
+      before do
+        allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "autoinstallation"
+      end
+
+      context "with window manager already selected" do
+        before do
+          allow(Yast::Pkg).to receive(:IsSelected).and_return true
+        end
+
+        it "includes xinetd, xorg and yast2-x11" do
+          expect(packages).to eq(base_packages + ["yast2-x11"])
+        end
+      end
+
+      context "without window manager selected" do
+        before do
+          allow(Yast::Pkg).to receive(:IsSelected).and_return false
+        end
+
+        it "includes xinetd, xorg and icewm" do
+          expect(packages).to eq(base_packages_and_wm + ["yast2-x11"])
+        end
+      end
+    end
+
+    context "in normal mode" do
+      before do
+        allow(Yast::Pkg).to receive(:IsSelected).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "normal"
+      end
+
+      context "with window manager already installed" do
+        before do
+          allow(Yast::Pkg).to receive(:IsProvided).and_return true
+        end
+
+        it "includes xinetd and xorg" do
+          expect(packages).to eq(base_packages)
+        end
+      end
+
+      context "without window manager installed" do
+        before do
+          allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        end
+
+        it "includes xinetd, xorg and icewm" do
+          expect(packages).to eq(base_packages_and_wm)
+        end
+      end
+    end
+  end
+
+  describe "#modePackages" do
+    before do
+      allow(Yast::Linuxrc).to receive(:vnc).and_return vnc
+      allow(Yast::Linuxrc).to receive(:display_ip).and_return display_ip
+      allow(Yast::Linuxrc).to receive(:braille).and_return braille
+      allow(Yast::Linuxrc).to receive(:usessh).and_return usessh
+      allow(Yast::Mode).to receive(:mode).and_return mode
+    end
+    let(:packages) { Yast::Packages.modePackages.sort.uniq }
+
+    context "on a boring local regular installation" do
+      let(:vnc) { false }
+      let(:display_ip) { false }
+      let(:braille) { false }
+      let(:usessh) { false }
+      let(:mode) { "installation" }
+
+      it "returns an empty array" do
+        expect(packages).to be_empty
+      end
+    end
+
+    context "over ssh with a remote X server" do
+      let(:vnc) { false }
+      let(:display_ip) { true }
+      let(:braille) { false }
+      let(:usessh) { true }
+      let(:xorg_icewm_and_ssh) {
+        ["icewm", "openssh", "xorg-x11-fonts", "xorg-x11-server"]
+      }
+
+      context "during installation" do
+        let(:mode) { "installation" }
+
+        it "includes xorg, icewm and openssh" do
+          expect(packages).to eq(xorg_icewm_and_ssh)
+        end
+      end
+
+      context "during autoinstallation" do
+        let(:mode) { "autoinstallation" }
+
+        it "includes xorg, icewm, openssh and yast2-x11" do
+          expect(packages).to eq(xorg_icewm_and_ssh + ["yast2-x11"])
+        end
+      end
+    end
+
+    context "on vnc installation" do
+      let(:vnc) { true }
+      let(:display_ip) { false }
+      let(:braille) { false }
+      let(:usessh) { false }
+      let(:mode) { "installation" }
+
+      it "relies on #vnc_packages" do
+        expect(Yast::Packages).to receive(:vnc_packages).and_return %w(five names)
+        expect(packages).to eq(%w(five names))
+      end
+    end
+  end
 end
