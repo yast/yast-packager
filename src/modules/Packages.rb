@@ -922,7 +922,6 @@ module Yast
           "xorg-x11-server",
           "xorg-x11-server-glx",
           "libusb",
-          "sax2-tools",
           "yast2-x11"
         ]
       end
@@ -939,14 +938,14 @@ module Yast
       packages = []
 
       if Linuxrc.vnc
-        packages.concat [ "yast2-qt", "xorg-x11-Xvnc",
-          "xorg-x11-fonts", "icewm", "sax2-tools", "yast2-x11", "xinetd" ]
+        packages.concat [ "xorg-x11-Xvnc", "xorg-x11-fonts", "icewm", "xinetd" ]
+        packages << "yast2-x11" if Mode.autoinst
       end
 
       #this means we have a remote X server
       if Linuxrc.display_ip
-        packages.concat [ "yast2-qt", "xorg-x11-server", "xorg-x11-fonts",
-          "icewm", "sax2-tools", "yast2-x11" ]
+        packages.concat [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
+        packages << "yast2-x11" if Mode.autoinst
       end
 
       packages << "sbl" if Linuxrc.braille
