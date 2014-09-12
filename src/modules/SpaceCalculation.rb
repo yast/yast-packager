@@ -16,6 +16,13 @@ require "yast"
 
 module Yast
   class SpaceCalculationClass < Module
+    include Yast::Logger
+
+    # 16 MiB
+    MIN_SPARE_KB = 2**14
+    # 1 GiB
+    MAX_SPARE_KB = 2**20
+
     def main
       Yast.import "Pkg"
 
@@ -83,134 +90,83 @@ module Yast
     #
     # ***  This is needed during update !
     def EvaluateFreeSpace(spare_percentage)
-      partition = []
-      # the sizes are in kB
-      min_spare = 10 * 1024 # 10 MB
-      max_spare = 1024 * 1024 # 1 GB
-
       target = Installation.destdir
 
       # get information about diskspace ( used/free space on every partition )
-      partition = Convert.convert(
-        SCR.Read(path(".run.df")),
-        :from => "any",
-        :to   => "list <map <string, string>>"
-      )
+      partitions = SCR.Read(path(".run.df"))
 
       # filter out headline and other invalid entries
-      partition = Builtins.filter(partition) do |part|
-        Builtins.substring(Ops.get(part, "name", ""), 0, 1) == "/"
-      end
+      partitions.select!{ |p| p["name"].start_with?("/") }
 
+      # TODO FIXME dirinstall has been dropped, probably drop this block completely
       if Installation.dirinstall_installing_into_dir
-        target = GetDirMountPoint(Installation.dirinstall_target, partition)
-        Builtins.y2milestone(
-          "Installing into a directory, target directory: %1, target mount point: %2",
-          Installation.dirinstall_target,
-          target
-        )
+        target = GetDirMountPoint(Installation.dirinstall_target, partitions)
+        log.info "Installing into a directory, target directory: " \
+          "#{Installation.dirinstall_target}, target mount point: #{target}"
       end
 
-      part_input = []
+      du_partitions = []
 
-      Builtins.foreach(partition) do |part|
+      partitions.each do |part|
         part_info = {}
-        free_size = 0
-        spare_size = 0
-        partName = ""
-        add_part = true
-        mountName = Ops.get_string(part, "name", "")
-        spec = Ops.get_string(part, "spec", "")
-        if Installation.dirinstall_installing_into_dir
-          if Builtins.substring(mountName, 0, 1) != "/"
-            mountName = Ops.add("/", mountName)
-          end
+        mountName = part.fetch("name", "")
 
+        # TODO FIXME dirinstall has been dropped, probably drop this block completely
+        if Installation.dirinstall_installing_into_dir
+          mountName.prepend("/") unless mountName.start_with?("/")
           dir_target = Installation.dirinstall_target
 
-          Builtins.y2debug(
-            "mountName: %1, dir_target: %2",
-            mountName,
-            dir_target
-          )
+          log.debug "mountName: #{mountName}, dir_target: #{dir_target}"
 
-          if Ops.greater_than(
-              Builtins.size(mountName),
-              Builtins.size(dir_target)
-            ) &&
-              Builtins.substring(mountName, 0, Builtins.size(dir_target)) == dir_target
-            part_info = Builtins.add(part_info, "name", mountName)
+          if mountName.start_with?(dir_target)
+            part_info["name"] = mountName
           elsif mountName == target
-            part_info = Builtins.add(part_info, "name", "/")
-          else
-            add_part = false
+            part_info["name"] = "/"
           end
         elsif target != "/"
-          if Ops.greater_or_equal(
-              Builtins.size(mountName),
-              Builtins.size(target)
-            ) &&
-              Builtins.substring(mountName, 0, Builtins.size(target)) == target
-            partName = Builtins.substring(mountName, Builtins.size(target))
+          if mountName.start_with?(target)
+            partName = Builtins.substring(mountName, target.size)
             # nothing left, it was target root itself
-            if Builtins.size(partName) == 0
-              part_info = Builtins.add(part_info, "name", "/")
-            else
-              part_info = Builtins.add(part_info, "name", partName)
-            end
-          else
-            add_part = false
+            part_info["name"] = partName.empty? ? "/" : partName
           end # target is "/"
         else
           if mountName == "/"
-            part_info = Builtins.add(part_info, "name", mountName)
-          # ignore some mount points
+            part_info["name"] = mountName
+            # ignore some mount points
           elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
               mountName != "/dev/shm" &&
-              spec != "udev" &&
-              !Builtins.regexpmatch(mountName, "^/media/") &&
-              !Builtins.regexpmatch(mountName, "^var/adm/mount/")
-            part_info = Builtins.add(part_info, "name", mountName)
-          else
-            add_part = false
+              part["spec"] != "udev" &&
+              !mountName.start_with?("/media/") &&
+              !mountName.start_with?("var/adm/mount/")
+            part_info["name"] = mountName
           end
         end
-        if add_part
-          part_info = Builtins.add(
-            part_info,
-            "used",
-            Builtins.tointeger(Ops.get_string(part, "used", "0"))
-          )
 
-          free_size = Builtins.tointeger(Ops.get_string(part, "free", "0"))
-          spare_size = Ops.divide(
-            Ops.multiply(free_size, spare_percentage),
-            100
-          )
+        if !part_info.empty?
+          part_info["used"] = part["used"].to_i
+          free_size = part["free"].to_i
+          spare_size = free_size * spare_percentage / 100
 
-          if Ops.less_than(spare_size, min_spare)
-            spare_size = min_spare
-          elsif Ops.greater_than(spare_size, max_spare)
-            spare_size = max_spare
+          if spare_size < MIN_SPARE_KB
+            spare_size = MIN_SPARE_KB
+          elsif spare_size > MAX_SPARE_KB
+            spare_size = MAX_SPARE_KB
           end
 
-          free_size = Ops.subtract(free_size, spare_size)
-          free_size = 0 if Ops.less_than(free_size, 0) # don't add a negative size
+          free_size -= spare_size
+          # don't use a negative size
+          free_size = 0 if free_size < 0
 
-          part_info = Builtins.add(part_info, "free", free_size)
+          part_info["free"] = free_size
 
-          part_input = Builtins.add(part_input, part_info)
+          du_partitions << part_info
         end
       end
 
-      Builtins.y2milestone(
-        "UTILS *** EvaluateFreeSpace returns: %1",
-        part_input
-      )
+      log.info "UTILS *** EvaluateFreeSpace returns: #{du_partitions}"
+      Pkg.TargetInitDU(du_partitions)
 
-      Pkg.TargetInitDU(part_input)
-
-      deep_copy(part_input)
+      du_partitions
     end
 
     # return default ext3/4 journal size (in B) for target partition size
