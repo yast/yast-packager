@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Sep 11 08:09:16 UTC 2014 - ancor@suse.com
+
+- Improved automatic selection of packages for remote
+  administration (VNC) and for installation with remote X11.
+  Fixes bnc#896185 and bnc#895070.
+- Enabled access to those selections from other yast modules.
+  First step to fix bnc#896178.
+- 3.1.47
+
+-------------------------------------------------------------------
 Fri Sep  5 14:53:10 UTC 2014 - lslezak@suse.cz
 
 - /etc/sysconfig/kernel:INITRD_MODULES has been dropped, do not

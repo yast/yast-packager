@@ -16,6 +16,12 @@ module Yast
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
+    # Minimum set of packages required to enable VNC server
+    VNC_BASE_PACKAGES = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
+    # Default window manager for VNC if none is installed
+    DEFAULT_WM = "icewm"
+    # Minimum set of packages required for installation with remote X11 server
+    REMOTE_X11_BASE_PACKAGES = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
 
     def main
       Yast.import "UI"
@@ -922,7 +928,6 @@ module Yast
           "xorg-x11-server",
           "xorg-x11-server-glx",
           "libusb",
-          "sax2-tools",
           "yast2-x11"
         ]
       end
@@ -938,17 +943,9 @@ module Yast
     def modePackages
       packages = []
 
-      if Linuxrc.vnc
-        packages.concat [ "yast2-qt", "xorg-x11-Xvnc",
-          "xorg-x11-fonts", "icewm", "sax2-tools", "yast2-x11", "xinetd" ]
-      end
-
+      packages.concat(vnc_packages) if Linuxrc.vnc
       #this means we have a remote X server
-      if Linuxrc.display_ip
-        packages.concat [ "yast2-qt", "xorg-x11-server", "xorg-x11-fonts",
-          "icewm", "sax2-tools", "yast2-x11" ]
-      end
-
+      packages.concat(remote_x11_packages) if Linuxrc.display_ip
       packages << "sbl" if Linuxrc.braille
       packages << "openssh" if Linuxrc.usessh
 
@@ -2549,6 +2546,29 @@ module Yast
       nil
     end
 
+    # List of packages expected to be installed in order to enable
+    # remote administration (VNC)
+    #
+    # @return Array<String>
+    def vnc_packages
+      packages = VNC_BASE_PACKAGES.dup
+      # At least one windowmanager must be installed (#427044)
+      # If none is there, use a fallback
+      packages << DEFAULT_WM unless has_window_manager?
+      packages << "yast2-x11" if Mode.autoinst
+      packages
+    end
+
+    # List of packages expected to be installed in order to use
+    # a remote X11 server
+    #
+    # @return Array<String>
+    def remote_x11_packages
+      packages = REMOTE_X11_BASE_PACKAGES.dup
+      packages << "yast2-x11" if Mode.autoinst
+      packages
+    end
+
   private
 
     # Reads product feature defined by parameters, logs what it gets
@@ -2640,6 +2660,8 @@ module Yast
     publish :function => :SelectKernelPackages, :type => "void ()"
     publish :function => :default_patterns, :type => "list <string> ()"
     publish :function => :log_software_selection, :type => "void ()"
+    publish :function => :vnc_packages, :type => "list <string> ()"
+    publish :function => :remote_x11_packages, :type => "list <string> ()"
 
     private
 
@@ -2676,6 +2698,13 @@ module Yast
     # list of all products that will be unchanged (kept installed)
     def kept_products(products)
       products.select { |product| product["status"] == :installed }
+    end
+
+    # Checks if a window manager is installed or selected for installation
+    #
+    # @return [Boolean] true if there is a window manager
+    def has_window_manager?
+      Pkg.IsSelected("windowmanager") || Pkg.IsProvided("windowmanager")
     end
   end
 
