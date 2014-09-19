@@ -18,10 +18,13 @@ module Yast
   class SpaceCalculationClass < Module
     include Yast::Logger
 
-    # 16 MiB
-    MIN_SPARE_KB = 2**14
-    # 1 GiB
-    MAX_SPARE_KB = 2**20
+    # 16 MiB (in KiB)
+    MIN_SPARE_KIB = 16 * 1024
+    # 1 GiB (in KiB)
+    MAX_SPARE_KIB = 1 * 1024 * 1024
+
+    # 1 MiB in KiB
+    MIB = 1024
 
     def main
       Yast.import "Pkg"
@@ -111,7 +114,7 @@ module Yast
 
       partitions.each do |part|
         part_info = {}
-        mountName = part.fetch("name", "")
+        mountName = part["name"] || ""
 
         # TODO FIXME dirinstall has been dropped, probably drop this block completely?
         if Installation.dirinstall_installing_into_dir
@@ -127,7 +130,7 @@ module Yast
           end
         elsif target != "/"
           if mountName.start_with?(target)
-            partName = Builtins.substring(mountName, target.size)
+            partName = mountName[target.size, -1]
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
           end # target is "/"
@@ -139,44 +142,45 @@ module Yast
               mountName != "/dev/shm" &&
               part["spec"] != "udev" &&
               !mountName.start_with?("/media/") &&
-              !mountName.start_with?("var/adm/mount/")
+              !mountName.start_with?("/var/adm/mount/")
             part_info["name"] = mountName
           end
         end
 
-        if !part_info.empty?
-          filesystem = part["type"]
-          part_info["filesystem"] = filesystem
+        next if part_info.empty?
 
-          if filesystem == "btrfs"
-            log.info "Detected btrfs at #{mountName}"
-            btrfs_used_kb = btrfs_used_size(mountName) / 1024
-            log.info "Difference to 'df': #{(part["used"].to_i - btrfs_used_kb) / 1024}MiB"
-            part_info["used"] = btrfs_used_kb
-            part_info["growonly"] = btrfs_snapshots?(mountName)
-            free_size = part["whole"].to_i - btrfs_used_kb
-          else
-            part_info["used"] = part["used"].to_i
-            free_size = part["free"].to_i
-            part_info["growonly"] = false
-          end
+        filesystem = part["type"]
+        part_info["filesystem"] = filesystem
 
-          spare_size = free_size * spare_percentage / 100
-
-          if spare_size < MIN_SPARE_KB
-            spare_size = MIN_SPARE_KB
-          elsif spare_size > MAX_SPARE_KB
-            spare_size = MAX_SPARE_KB
-          end
-
-          free_size -= spare_size
-          # don't use a negative size
-          free_size = 0 if free_size < 0
-
-          part_info["free"] = free_size
-
-          du_partitions << part_info
+        if filesystem == "btrfs"
+          log.info "Detected btrfs at #{mountName}"
+          btrfs_used_kb = btrfs_used_size(mountName) / 1024
+          log.info "Difference to 'df': #{(part["used"].to_i - btrfs_used_kb) / 1024}MiB"
+          part_info["used"] = btrfs_used_kb
+          part_info["growonly"] = btrfs_snapshots?(mountName)
+          total_kb = part["whole"].to_i
+          free_size_kb = total_kb - btrfs_used_kb
+        else
+          part_info["used"] = part["used"].to_i
+          free_size_kb = part["free"].to_i
+          part_info["growonly"] = false
         end
+
+        spare_size_kb = free_size_kb * spare_percentage / 100
+
+        if spare_size_kb < MIN_SPARE_KIB
+          spare_size_kb = MIN_SPARE_KIB
+        elsif spare_size > MAX_SPARE_KIB
+          spare_size_kb = MAX_SPARE_KIB
+        end
+
+        free_size_kb -= spare_size_kb
+        # don't use a negative size
+        free_size_kb = 0 if free_size_kb < 0
+
+        part_info["free"] = free_size_kb
+
+        du_partitions << part_info
       end
 
       log.info "UTILS *** EvaluateFreeSpace returns: #{du_partitions}"
@@ -363,24 +367,23 @@ module Yast
 
     def EstimateTargetUsage(parts)
       parts = deep_copy(parts)
-      Builtins.y2milestone("EstimateTargetUsage(%1)", parts)
-      mb = 1 << 10 # sizes are in kiB
+      log.info "EstimateTargetUsage(#{parts})"
 
       # invalid or empty input
       if parts == nil || parts.empty?
-        Builtins.y2error("Invalid input: %1", parts)
+        log.error "Invalid input: #{parts}"
         return []
       end
 
       # the numbers are from openSUSE-11.4 default KDE installation
       used_mapping = {
-        "/var/lib/rpm"    => 42 * mb, # RPM database
-        "/var/log"        => 14 * mb, # system logs (YaST logs have ~12MB)
-        "/var/adm/backup" => 10 * mb, # backups
-        "/var/cache/zypp" => 38 * mb, # zypp metadata cache after refresh (with OSS + update repos)
-        "/etc"            =>  2 * mb, # various /etc config files not belonging to any package
-        "/usr/share"      =>  1 * mb, # some files created by postinstall scripts
-        "/boot/initrd"    => 11 * mb
+        "/var/lib/rpm"    => 42 * MIB, # RPM database
+        "/var/log"        => 14 * MIB, # system logs (YaST logs have ~12MB)
+        "/var/adm/backup" => 10 * MIB, # backups
+        "/var/cache/zypp" => 38 * MIB, # zypp metadata cache after refresh (with OSS + update repos)
+        "/etc"            =>  2 * MIB, # various /etc config files not belonging to any package
+        "/usr/share"      =>  1 * MIB, # some files created by postinstall scripts
+        "/boot/initrd"    => 11 * MIB
       } # depends on HW but better than nothing
 
       Builtins.y2milestone("Adding target size mapping: %1", used_mapping)
@@ -693,7 +696,7 @@ module Yast
                   # for formatted partitions estimate free system size
                   # compute fs overhead
                   used = EstimateFsOverhead(part)
-                  log.info "#{device}: assuming fs overhead: #{used / 1024}kiB"
+                  log.info "#{device}: assuming fs overhead: #{used / 1024}KiB"
 
                   # get the journal size
                   case used_fs
@@ -717,7 +720,7 @@ module Yast
                   end
 
                   if js && js > 0
-                    log.info "Partition #{part["device"]}: assuming journal size: #{js / 1024}kiB",
+                    log.info "Partition #{part["device"]}: assuming journal size: #{js / 1024}KiB",
                     used += js
                   end
 
@@ -731,11 +734,11 @@ module Yast
                   end
                 end
 
-                # convert into kiB for TargetInitDU
+                # convert into KiB for TargetInitDU
                 free_size_kb = free_size / 1024
                 used_kb = used / 1024
                 mount_name = part["mount"]
-                log.info "partition: mount: #{mount_name}, free: #{free_size_kb}kiB, used: #{used_kb}kiB"
+                log.info "partition: mount: #{mount_name}, free: #{free_size_kb}KiB, used: #{used_kb}KiB"
 
                 mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
 
