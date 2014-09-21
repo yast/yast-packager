@@ -130,7 +130,7 @@ module Yast
           end
         elsif target != "/"
           if mountName.start_with?(target)
-            partName = mountName[target.size, -1]
+            partName = mountName[target.size..-1]
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
           end # target is "/"
@@ -154,31 +154,31 @@ module Yast
 
         if filesystem == "btrfs"
           log.info "Detected btrfs at #{mountName}"
-          btrfs_used_kb = btrfs_used_size(mountName) / 1024
-          log.info "Difference to 'df': #{(part["used"].to_i - btrfs_used_kb) / 1024}MiB"
-          part_info["used"] = btrfs_used_kb
+          btrfs_used_kib = btrfs_used_size(mountName) / 1024
+          log.info "Difference to 'df': #{(part["used"].to_i - btrfs_used_kib) / 1024}MiB"
+          part_info["used"] = btrfs_used_kib
           part_info["growonly"] = btrfs_snapshots?(mountName)
           total_kb = part["whole"].to_i
-          free_size_kb = total_kb - btrfs_used_kb
+          free_size_kib = total_kb - btrfs_used_kib
         else
           part_info["used"] = part["used"].to_i
-          free_size_kb = part["free"].to_i
+          free_size_kib = part["free"].to_i
           part_info["growonly"] = false
         end
 
-        spare_size_kb = free_size_kb * spare_percentage / 100
+        spare_size_kb = free_size_kib * spare_percentage / 100
 
         if spare_size_kb < MIN_SPARE_KIB
           spare_size_kb = MIN_SPARE_KIB
-        elsif spare_size > MAX_SPARE_KIB
+        elsif spare_size_kb > MAX_SPARE_KIB
           spare_size_kb = MAX_SPARE_KIB
         end
 
-        free_size_kb -= spare_size_kb
+        free_size_kib -= spare_size_kb
         # don't use a negative size
-        free_size_kb = 0 if free_size_kb < 0
+        free_size_kib = 0 if free_size_kib < 0
 
-        part_info["free"] = free_size_kb
+        part_info["free"] = free_size_kib
 
         du_partitions << part_info
       end
@@ -371,7 +371,7 @@ module Yast
 
       # invalid or empty input
       if parts == nil || parts.empty?
-        log.error "Invalid input: #{parts}"
+        log.error "Invalid input: #{parts.inspect}"
         return []
       end
 
@@ -383,8 +383,8 @@ module Yast
         "/var/cache/zypp" => 38 * MIB, # zypp metadata cache after refresh (with OSS + update repos)
         "/etc"            =>  2 * MIB, # various /etc config files not belonging to any package
         "/usr/share"      =>  1 * MIB, # some files created by postinstall scripts
-        "/boot/initrd"    => 11 * MIB
-      } # depends on HW but better than nothing
+        "/boot/initrd"    => 11 * MIB  # depends on HW but better than nothing
+      }
 
       Builtins.y2milestone("Adding target size mapping: %1", used_mapping)
 
@@ -735,10 +735,10 @@ module Yast
                 end
 
                 # convert into KiB for TargetInitDU
-                free_size_kb = free_size / 1024
-                used_kb = used / 1024
+                free_size_kib = free_size / 1024
+                used_kib = used / 1024
                 mount_name = part["mount"]
-                log.info "partition: mount: #{mount_name}, free: #{free_size_kb}KiB, used: #{used_kb}KiB"
+                log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
 
                 mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
 
@@ -746,8 +746,8 @@ module Yast
                   "filesystem" => used_fs.to_s,
                   "growonly" => growonly,
                   "name" => mount_name,
-                  "used" => used_kb,
-                  "free" => free_size_kb
+                  "used" => used_kib,
+                  "free" => free_size_kib
                 }
               end
             end
@@ -1050,7 +1050,7 @@ module Yast
 
       if ret["exit"] != 0
         log.error "btrfs call failed: #{ret}"
-        raise "Cannot detect Btrfs snapshots, subvolume listing failed"
+        raise "Cannot detect Btrfs snapshots, subvolume listing failed : #{ret["stderr"]}"
       end
 
       snapshots = ret["stdout"].split("\n")
@@ -1068,7 +1068,7 @@ module Yast
 
       if ret["exit"] != 0
         log.error "btrfs call failed: #{ret}"
-        raise "Cannot detect Btrfs disk usage"
+        raise "Cannot detect Btrfs disk usage: #{ret["stderr"]}"
       end
 
       df_info = ret["stdout"].split("\n")
@@ -1076,7 +1076,9 @@ module Yast
 
       # sum the "used" sizes
       used = df_info.reduce(0) do |acc, line |
-        acc += size_from_string($1) if line.match(/used=(.*)$/)
+        size = line[/used=(\S+)/, 1]
+        size = size ? size_from_string(size) : 0
+        acc += size
       end
 
       log.info "Detected total used size: #{used} (#{used / 1024 / 1024}MiB)"
@@ -1087,43 +1089,11 @@ module Yast
     # @example
     #   size_from_string("2.45MiB") => 2569011
     # @param size_str [String] input value in format "<number>[<space>][<unit>]"
-    # where unit can be one of: "" (none) or "B", "KiB", "MiB", "GiB", "TiB", "PiB" or "EiB"
+    # where unit can be one of: "" (none) or "B", "KiB", "MiB", "GiB", "TiB", "PiB"
     # @return [Integer] size in bytes
     def size_from_string(size_str)
-      if size_str.match(/^(\d+\.?\d*)\s*(\S*)/)
-        size = $1.to_f
-        unit = $2
-
-        case unit
-        when "", "B"
-          exp = 0
-        when "KiB"
-          exp = 10
-        when "MiB"
-          exp = 20
-        when "GiB"
-          exp = 30
-        when "TiB"
-          exp = 40
-        when "PiB"
-          exp = 50
-        when "EiB"
-          exp = 60
-        else
-          log.error "Unknown size unit: #{unit}"
-          raise "Unknown size unit: #{unit}"
-        end
-
-        ret = (size * (2**exp)).to_i
-
-        log.info "Size: #{size_str} => #{ret}"
-        ret
-      else
-        log.error "Cannot parse size string: #{size_str}"
-        raise "Cannot parse size string: #{size_str}"
-      end
+      WFM.call("wrapper_storage", ["ClassicStringToByte", [size_str]])
     end
-
   end
 
   SpaceCalculation = SpaceCalculationClass.new
