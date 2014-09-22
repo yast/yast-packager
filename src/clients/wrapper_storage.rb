@@ -59,8 +59,7 @@ module Yast
         if Builtins.size(@param) == 0
           Builtins.y2error("Missing argument for Storage::ClassicStringToByte()")
         else
-          param1 = Ops.get(@param, 0)
-          @ret = Storage.ClassicStringToByte(param1)
+          @ret = Storage.ClassicStringToByte(@param.first)
         end
       else
         # the required function is not known
