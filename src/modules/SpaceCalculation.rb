@@ -10,12 +10,22 @@
 #			when the installation media is available
 #			on Installation::sourcedir
 #
-#
-# $Id$
+
 require "yast"
+require "shellwords"
 
 module Yast
   class SpaceCalculationClass < Module
+    include Yast::Logger
+
+    # 16 MiB (in KiB)
+    MIN_SPARE_KIB = 16 * 1024
+    # 1 GiB (in KiB)
+    MAX_SPARE_KIB = 1 * 1024 * 1024
+
+    # 1 MiB in KiB
+    MIB = 1024
+
     def main
       Yast.import "Pkg"
 
@@ -83,134 +93,100 @@ module Yast
     #
     # ***  This is needed during update !
     def EvaluateFreeSpace(spare_percentage)
-      partition = []
-      # the sizes are in kB
-      min_spare = 10 * 1024 # 10 MB
-      max_spare = 1024 * 1024 # 1 GB
-
       target = Installation.destdir
 
       # get information about diskspace ( used/free space on every partition )
-      partition = Convert.convert(
-        SCR.Read(path(".run.df")),
-        :from => "any",
-        :to   => "list <map <string, string>>"
-      )
+      partitions = SCR.Read(path(".run.df"))
 
       # filter out headline and other invalid entries
-      partition = Builtins.filter(partition) do |part|
-        Builtins.substring(Ops.get(part, "name", ""), 0, 1) == "/"
-      end
+      partitions.select!{ |p| p["name"].start_with?("/") }
 
+      log.info "df result: #{partitions}"
+
+      # TODO FIXME dirinstall has been dropped, probably drop this block completely
       if Installation.dirinstall_installing_into_dir
-        target = GetDirMountPoint(Installation.dirinstall_target, partition)
-        Builtins.y2milestone(
-          "Installing into a directory, target directory: %1, target mount point: %2",
-          Installation.dirinstall_target,
-          target
-        )
+        target = GetDirMountPoint(Installation.dirinstall_target, partitions)
+        log.info "Installing into a directory, target directory: " \
+          "#{Installation.dirinstall_target}, target mount point: #{target}"
       end
 
-      part_input = []
+      du_partitions = []
 
-      Builtins.foreach(partition) do |part|
+      partitions.each do |part|
         part_info = {}
-        free_size = 0
-        spare_size = 0
-        partName = ""
-        add_part = true
-        mountName = Ops.get_string(part, "name", "")
-        spec = Ops.get_string(part, "spec", "")
-        if Installation.dirinstall_installing_into_dir
-          if Builtins.substring(mountName, 0, 1) != "/"
-            mountName = Ops.add("/", mountName)
-          end
+        mountName = part["name"] || ""
 
+        # TODO FIXME dirinstall has been dropped, probably drop this block completely?
+        if Installation.dirinstall_installing_into_dir
+          mountName.prepend("/") unless mountName.start_with?("/")
           dir_target = Installation.dirinstall_target
 
-          Builtins.y2debug(
-            "mountName: %1, dir_target: %2",
-            mountName,
-            dir_target
-          )
+          log.debug "mountName: #{mountName}, dir_target: #{dir_target}"
 
-          if Ops.greater_than(
-              Builtins.size(mountName),
-              Builtins.size(dir_target)
-            ) &&
-              Builtins.substring(mountName, 0, Builtins.size(dir_target)) == dir_target
-            part_info = Builtins.add(part_info, "name", mountName)
+          if mountName.start_with?(dir_target)
+            part_info["name"] = mountName
           elsif mountName == target
-            part_info = Builtins.add(part_info, "name", "/")
-          else
-            add_part = false
+            part_info["name"] = "/"
           end
         elsif target != "/"
-          if Ops.greater_or_equal(
-              Builtins.size(mountName),
-              Builtins.size(target)
-            ) &&
-              Builtins.substring(mountName, 0, Builtins.size(target)) == target
-            partName = Builtins.substring(mountName, Builtins.size(target))
+          if mountName.start_with?(target)
+            partName = mountName[target.size..-1]
             # nothing left, it was target root itself
-            if Builtins.size(partName) == 0
-              part_info = Builtins.add(part_info, "name", "/")
-            else
-              part_info = Builtins.add(part_info, "name", partName)
-            end
-          else
-            add_part = false
+            part_info["name"] = partName.empty? ? "/" : partName
           end # target is "/"
         else
           if mountName == "/"
-            part_info = Builtins.add(part_info, "name", mountName)
+            part_info["name"] = mountName
           # ignore some mount points
           elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
               mountName != "/dev/shm" &&
-              spec != "udev" &&
-              !Builtins.regexpmatch(mountName, "^/media/") &&
-              !Builtins.regexpmatch(mountName, "^var/adm/mount/")
-            part_info = Builtins.add(part_info, "name", mountName)
-          else
-            add_part = false
+              part["spec"] != "udev" &&
+              !mountName.start_with?("/media/") &&
+              !mountName.start_with?("/var/adm/mount/")
+            part_info["name"] = mountName
           end
         end
-        if add_part
-          part_info = Builtins.add(
-            part_info,
-            "used",
-            Builtins.tointeger(Ops.get_string(part, "used", "0"))
-          )
 
-          free_size = Builtins.tointeger(Ops.get_string(part, "free", "0"))
-          spare_size = Ops.divide(
-            Ops.multiply(free_size, spare_percentage),
-            100
-          )
+        next if part_info.empty?
 
-          if Ops.less_than(spare_size, min_spare)
-            spare_size = min_spare
-          elsif Ops.greater_than(spare_size, max_spare)
-            spare_size = max_spare
-          end
+        filesystem = part["type"]
+        part_info["filesystem"] = filesystem
 
-          free_size = Ops.subtract(free_size, spare_size)
-          free_size = 0 if Ops.less_than(free_size, 0) # don't add a negative size
-
-          part_info = Builtins.add(part_info, "free", free_size)
-
-          part_input = Builtins.add(part_input, part_info)
+        if filesystem == "btrfs"
+          log.info "Detected btrfs at #{mountName}"
+          btrfs_used_kib = btrfs_used_size(mountName) / 1024
+          log.info "Difference to 'df': #{(part["used"].to_i - btrfs_used_kib) / 1024}MiB"
+          part_info["used"] = btrfs_used_kib
+          part_info["growonly"] = btrfs_snapshots?(mountName)
+          total_kb = part["whole"].to_i
+          free_size_kib = total_kb - btrfs_used_kib
+        else
+          part_info["used"] = part["used"].to_i
+          free_size_kib = part["free"].to_i
+          part_info["growonly"] = false
         end
+
+        spare_size_kb = free_size_kib * spare_percentage / 100
+
+        if spare_size_kb < MIN_SPARE_KIB
+          spare_size_kb = MIN_SPARE_KIB
+        elsif spare_size_kb > MAX_SPARE_KIB
+          spare_size_kb = MAX_SPARE_KIB
+        end
+
+        free_size_kib -= spare_size_kb
+        # don't use a negative size
+        free_size_kib = 0 if free_size_kib < 0
+
+        part_info["free"] = free_size_kib
+
+        du_partitions << part_info
       end
 
-      Builtins.y2milestone(
-        "UTILS *** EvaluateFreeSpace returns: %1",
-        part_input
-      )
+      log.info "UTILS *** EvaluateFreeSpace returns: #{du_partitions}"
+      Pkg.TargetInitDU(du_partitions)
 
-      Pkg.TargetInitDU(part_input)
-
-      deep_copy(part_input)
+      du_partitions
     end
 
     # return default ext3/4 journal size (in B) for target partition size
@@ -391,25 +367,24 @@ module Yast
 
     def EstimateTargetUsage(parts)
       parts = deep_copy(parts)
-      Builtins.y2milestone("EstimateTargetUsage(%1)", parts)
-      mb = 1 << 10 # sizes are in kB, 1MB is 1024 kB
+      log.info "EstimateTargetUsage(#{parts})"
 
       # invalid or empty input
-      if parts == nil || Builtins.size(parts) == 0
-        Builtins.y2error("Invalid input: %1", parts)
+      if parts == nil || parts.empty?
+        log.error "Invalid input: #{parts.inspect}"
         return []
       end
 
       # the numbers are from openSUSE-11.4 default KDE installation
       used_mapping = {
-        "/var/lib/rpm"    => Ops.multiply(42, mb), # RPM database
-        "/var/log"        => Ops.multiply(14, mb), # system logs (YaST logs have ~12MB)
-        "/var/adm/backup" => Ops.multiply(10, mb), # backups
-        "/var/cache/zypp" => Ops.multiply(38, mb), # zypp metadata cache after refresh (with OSS + update repos)
-        "/etc"            => Ops.multiply(2, mb), # various /etc config files not belonging to any package
-        "/usr/share"      => Ops.multiply(1, mb), # some files created by postinstall scripts
-        "/boot/initrd"    => Ops.multiply(11, mb)
-      } # depends on HW but better than nothing
+        "/var/lib/rpm"    => 42 * MIB, # RPM database
+        "/var/log"        => 14 * MIB, # system logs (YaST logs have ~12MB)
+        "/var/adm/backup" => 10 * MIB, # backups
+        "/var/cache/zypp" => 38 * MIB, # zypp metadata cache after refresh (with OSS + update repos)
+        "/etc"            =>  2 * MIB, # various /etc config files not belonging to any package
+        "/usr/share"      =>  1 * MIB, # some files created by postinstall scripts
+        "/boot/initrd"    => 11 * MIB  # depends on HW but better than nothing
+      }
 
       Builtins.y2milestone("Adding target size mapping: %1", used_mapping)
 
@@ -452,7 +427,7 @@ module Yast
             mounted
           )
         end
-      end 
+      end
 
 
       # convert back to list
@@ -555,36 +530,48 @@ module Yast
       if !Stage.initial
         # read /proc/mounts as a list of maps
         # $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
-        mounts = Convert.convert(
-          SCR.Read(path(".proc.mounts")),
-          :from => "any",
-          :to   => "list <map <string, any>>"
-        )
-        Builtins.y2milestone("mounts %1", mounts)
+        mounts = SCR.Read(path(".proc.mounts"))
+        log.info "mounts #{mounts}"
 
         partitions = []
-        Builtins.foreach(mounts) do |mpoint|
-          name = Ops.get_string(mpoint, "file", "")
-          if Builtins.substring(name, 0, 1) == "/" &&
-              Builtins.substring(name, 0, 5) != "/dev/" && # filter out /dev/pts etc.
-              Ops.get_string(mpoint, "vfstype", "") != "rootfs" # filter out duplicate "/" entry
+        mounts.each do |mpoint|
+          name = mpoint["file"]
+          filesystem = mpoint["vfstype"]
+
+          if name.start_with?("/") &&
+              # filter out /dev/pts etc.
+              !name.start_with?("/dev/") &&
+              # filter out duplicate "/" entry
+              filesystem != "rootfs"
+
             capacity = Pkg.TargetCapacity(name)
+
             if capacity != 0 # dont look at pseudo-devices (proc, shmfs, ...)
               used = Pkg.TargetUsed(name)
-              partitions = Builtins.add(
-                partitions,
-                {
-                  "name" => name,
-                  "free" => Ops.subtract(capacity, used),
-                  "used" => used
-                }
-              )
+              growonly = false
+
+              if filesystem == "btrfs"
+                log.info "Btrfs file system detected at #{name}"
+                growonly = btrfs_snapshots?(name)
+                log.info "Snapshots detected: #{growonly}"
+                new_used = btrfs_used_size(name) / 1024
+                log.info "Updated the used size by 'btrfs' utility from #{used} to #{new_used} (diff: #{new_used - used})"
+                used = new_used
+              end
+
+              partitions << {
+                "name" => name,
+                "free" => capacity - used,
+                "used" => used,
+                "filesystem" => filesystem,
+                "growonly" => growonly
+              }
             end
           end
         end
         Pkg.TargetInitDU(partitions)
         Builtins.y2milestone("get_partition_info: %1", partitions)
-        return deep_copy(partitions)
+        return partitions
       end # !Stage::initial ()
 
       # remove the previous failures
@@ -598,9 +585,7 @@ module Yast
         :to   => "map <string, map>"
       )
 
-      if targets == nil
-        Builtins.y2error("Target map is nil, Storage:: is probably missing")
-      end
+      log.error "Target map is nil, Storage:: is probably missing" unless targets
 
       if Mode.test
         targets = Convert.convert(
@@ -616,39 +601,30 @@ module Yast
       Builtins.foreach(targets) do |disk, diskinfo|
         part_info = Ops.get_list(diskinfo, "partitions", [])
         Builtins.foreach(part_info) do |part|
-          Builtins.y2milestone("Adding partition: %1", part)
-          used_fs = Ops.get_symbol(part, "used_fs", :unknown)
+          log.info "Adding partition: #{part}"
+          used_fs = part["used_fs"]
           # ignore VFAT and NTFS partitions (bnc#)
           if used_fs == :vfat || used_fs == :ntfs
-            Builtins.y2warning(
-              "Ignoring partition %1 with %2 filesystem",
-              Ops.get_string(part, "device", ""),
-              used_fs
-            )
+            log.warn "Ignoring partition with #{used_fs} filesystem"
           else
             free_size = 0
+            growonly = false
 
             if Ops.get(part, "mount") != nil &&
-                Builtins.substring(Ops.get_string(part, "mount", ""), 0, 1) == "/"
+                part["mount"].start_with?("/")
               if Ops.get(part, "create") == true ||
                   Ops.get(part, "delete") == false ||
                   Ops.get(part, "create") == nil &&
                     Ops.get(part, "delete") == nil
-                Builtins.y2debug(
-                  "get_partition_info: adding partition: %1",
-                  part
-                )
+                log.debug "get_partition_info: adding partition: #{part}"
 
                 # get free_size on partition in kBytes
-                free_size = Ops.multiply(
-                  Ops.get_integer(part, "size_k", 0),
-                  1024
-                )
-                free_size = Ops.subtract(free_size, min_spare)
+                free_size = part["size_k"] * 1024
+                free_size -= min_spare
 
                 # free_size smaller than min_spare, fix negative value
-                if Ops.less_than(free_size, 0)
-                  Builtins.y2milestone("Fixing free size: %1 to 0", free_size)
+                if free_size <  0
+                  log.info "Fixing free size: #{free_size} to 0"
                   free_size = 0
                 end
 
@@ -661,12 +637,8 @@ module Yast
                   # information for devices (even caching the information).
                   # This part should be refactored to rely on libstorage.
 
-                  tmpdir = Convert.to_string(SCR.Read(path(".target.tmpdir")))
-                  tmpdir = Ops.add(tmpdir, "/diskspace_mount")
-                  SCR.Execute(
-                    path(".target.bash"),
-                    Builtins.sformat("test -d %1 || mkdir -p %1", tmpdir)
-                  )
+                  tmpdir = SCR.Read(path(".target.tmpdir")) + "/diskspace_mount"
+                  SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)})")
 
                   # mount options determined by partitioner
                   mount_options = (part["fstopt"] || "").split(",")
@@ -676,8 +648,8 @@ module Yast
 
                   # add "nolock" if it's a NFS share (bnc#433893)
                   if used_fs == :nfs
-                    Builtins.y2milestone("Mounting NFS with 'nolock' option")
-                    mount_options = Builtins.add(mount_options, "nolock")
+                    log.info "Mounting NFS with 'nolock' option"
+                    mount_options << "nolock"
                   end
 
                   # join the options
@@ -687,51 +659,35 @@ module Yast
                   # (bnc#889334)
                   device = part["crypt_device"] || part["device"] || ""
 
-                  mount_command = Builtins.sformat(
-                    "/bin/mount -o %1 %2 %3",
-                    mount_options_str,
-                    device,
-                    tmpdir
-                  )
+                  mount_command = "mount -o #{mount_options_str} " \
+                    "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
 
-                  Builtins.y2milestone(
-                    "Executing mount command: %1",
-                    mount_command
-                  )
+                  log.info "Executing mount command: #{mount_command}"
 
-                  result = Convert.to_integer(
-                    SCR.Execute(path(".target.bash"), mount_command)
-                  )
-                  Builtins.y2milestone("Mount result: %1", result)
+                  result = SCR.Execute(path(".target.bash"), mount_command)
+                  log.info "Mount result: #{result}"
 
                   if result == 0
-                    partition = Convert.convert(
-                      SCR.Read(path(".run.df")),
-                      :from => "any",
-                      :to   => "list <map <string, string>>"
-                    )
-                    Builtins.foreach(partition) do |p|
-                      if Ops.get_string(p, "name", "") == tmpdir
-                        Builtins.y2milestone("P: %1", p)
-                        free_size = Ops.multiply(
-                          Builtins.tointeger(Ops.get_string(p, "free", "0")),
-                          1024
-                        )
-                        used = Ops.multiply(
-                          Builtins.tointeger(Ops.get_string(p, "used", "0")),
-                          1024
-                        )
+                    # specific handler for btrfs
+                    if used_fs == :btrfs
+                      used = btrfs_used_size(tmpdir)
+                      free_size -= used
+                      growonly = btrfs_snapshots?(tmpdir)
+                    else
+                      partition = SCR.Read(path(".run.df"))
+
+                      Builtins.foreach(partition) do |p|
+                        if p["name"] == tmpdir
+                          log.info "Partition: #{p}"
+                          free_size = p["free"].to_i * 1024
+                          used = p["used"].to_i * 1024
+                        end
                       end
                     end
-                    SCR.Execute(
-                      path(".target.bash"),
-                      Builtins.sformat("/bin/umount %1", tmpdir)
-                    )
+
+                    SCR.Execute(path(".target.bash"), "umount #{Shellwords.escape(tmpdir)}")
                   else
-                    Builtins.y2error(
-                      "Mount failed, ignoring partition %1",
-                      device
-                    )
+                    log.error "Mount failed, ignoring partition #{device}"
                     @failed_mounts = Builtins.add(@failed_mounts, part)
 
                     next
@@ -740,95 +696,59 @@ module Yast
                   # for formatted partitions estimate free system size
                   # compute fs overhead
                   used = EstimateFsOverhead(part)
+                  log.info "#{device}: assuming fs overhead: #{used / 1024}KiB"
 
-                  if Ops.greater_than(used, 0)
-                    Builtins.y2milestone(
-                      "Partition %1: assuming fs overhead: %2kB",
-                      Ops.get_string(part, "device", ""),
-                      Ops.divide(used, 1024)
-                    )
-                  end
-
-                  # journal size
-                  js = 0
-
-                  if ExtFs(used_fs)
+                  # get the journal size
+                  case used_fs
+                  when :ext2, :ext3, :ext4
                     js = ExtJournalSize(part)
                     reserved = ReservedSpace(part)
-
-                    if Ops.greater_than(reserved, 0)
-                      used = Ops.add(used, reserved)
-                    end
-                  elsif used_fs == :xfs
+                    used += reserved if reserved > 0
+                  when :xfs
                     js = XfsJournalSize(part)
-                  elsif used_fs == :reiser
+                  when :reiser
                     js = ReiserJournalSize(part)
-                  elsif used_fs == :jfs
+                  when :jfs
                     js = JfsJournalSize(part)
+                  when :btrfs
+                    # Btrfs uses temporary trees instead of a fixed journal,
+                    # there is no journal, it's a logging FS
+                    # http://en.wikipedia.org/wiki/Btrfs#Log_tree
+                    js = 0
                   else
-                    Builtins.y2warning(
-                      "Unknown journal size for filesystem: %1",
-                      used_fs
-                    )
+                    log.warn "Unknown journal size for filesystem: #{used_fs}"
                   end
 
-                  if Ops.greater_than(js, 0)
-                    Builtins.y2milestone(
-                      "Partition %1: assuming journal size: %2kB",
-                      Ops.get_string(part, "device", ""),
-                      Ops.divide(js, 1024)
-                    )
-                    used = Ops.add(used, js)
+                  if js && js > 0
+                    log.info "Partition #{part["device"]}: assuming journal size: #{js / 1024}KiB",
+                    used += js
                   end
 
                   # decrease free size
-                  free_size = Ops.subtract(free_size, used)
+                  free_size -= used
 
                   # check for underflow
-                  if Ops.less_than(free_size, 0)
-                    Builtins.y2milestone("Fixing free size: %1 to 0", free_size)
+                  if free_size < 0
+                    log.info "Fixing free size: #{free_size} to 0"
                     free_size = 0
                   end
                 end
 
-                # convert into kB for TargetInitDU
-                free_size = Ops.divide(free_size, 1024)
-                used = Ops.divide(used, 1024)
+                # convert into KiB for TargetInitDU
+                free_size_kib = free_size / 1024
+                used_kib = used / 1024
+                mount_name = part["mount"]
+                log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
 
-                Builtins.y2milestone(
-                  "available partition: mount: %1, free: %2 KB, used: %3 KB",
-                  Ops.get_string(part, "mount", ""),
-                  free_size,
-                  used
-                )
-                if !remove_slash
-                  target_partitions = Builtins.add(
-                    target_partitions,
-                    {
-                      "name" => Ops.get_string(part, "mount", ""),
-                      "used" => used,
-                      "free" => free_size
-                    }
-                  )
-                else
-                  part_name = ""
-                  mount_name = Ops.get_string(part, "mount", "")
+                mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
 
-                  if mount_name != "/"
-                    part_name = Builtins.substring(
-                      mount_name,
-                      1,
-                      Builtins.size(mount_name)
-                    )
-                  else
-                    part_name = mount_name
-                  end
-
-                  target_partitions = Builtins.add(
-                    target_partitions,
-                    { "name" => part_name, "used" => used, "free" => free_size }
-                  )
-                end
+                target_partitions << {
+                  "filesystem" => used_fs.to_s,
+                  "growonly" => growonly,
+                  "name" => mount_name,
+                  "used" => used_kib,
+                  "free" => free_size_kib
+                }
               end
             end
           end
@@ -1028,7 +948,6 @@ module Yast
 
       used = 0
 
-      message = ""
       #$[ "dir" : [ total, usednow, usedfuture ], .... ]
       Builtins.foreach(Pkg.TargetGetDU) do |dir, sizelist|
         Builtins.y2milestone("%1: %2", dir, sizelist)
@@ -1120,6 +1039,61 @@ module Yast
     publish :function => :GetRequSpace, :type => "string (boolean)"
     publish :function => :CheckDiskSize, :type => "boolean ()"
     publish :function => :CheckDiskFreeSpace, :type => "list <map> (integer, integer)"
+
+    # check whether the Btrfs filesystem at the specified directory contains
+    # any snapshot (in any subvolume)
+    # @param [String] directory mounted directory with Btrfs
+    # @return [Boolean] true when a snapshot is found
+    def btrfs_snapshots?(directory)
+      # list available snapshot subvolumes
+      ret = SCR.Execute(path(".target.bash_output"), "btrfs subvolume list -s #{Shellwords.escape(directory)}")
+
+      if ret["exit"] != 0
+        log.error "btrfs call failed: #{ret}"
+        raise "Cannot detect Btrfs snapshots, subvolume listing failed : #{ret["stderr"]}"
+      end
+
+      snapshots = ret["stdout"].split("\n")
+      log.info "Found #{snapshots.size} btrfs snapshots"
+      log.debug "Snapshots: #{snapshots}"
+
+      !snapshots.empty?
+    end
+
+    # @param [String] directory mounted directory with Btrfs
+    # @return [Integer] used size in bytes
+    def btrfs_used_size(directory)
+      ret = SCR.Execute(path(".target.bash_output"),
+        "LC_ALL=C btrfs filesystem df #{Shellwords.escape(directory)}")
+
+      if ret["exit"] != 0
+        log.error "btrfs call failed: #{ret}"
+        raise "Cannot detect Btrfs disk usage: #{ret["stderr"]}"
+      end
+
+      df_info = ret["stdout"].split("\n")
+      log.info "Usage reported by btrfs: #{df_info}"
+
+      # sum the "used" sizes
+      used = df_info.reduce(0) do |acc, line |
+        size = line[/used=(\S+)/, 1]
+        size = size ? size_from_string(size) : 0
+        acc += size
+      end
+
+      log.info "Detected total used size: #{used} (#{used / 1024 / 1024}MiB)"
+      used
+    end
+
+    # Convert textual size with optional unit suffix into a number
+    # @example
+    #   size_from_string("2.45MiB") => 2569011
+    # @param size_str [String] input value in format "<number>[<space>][<unit>]"
+    # where unit can be one of: "" (none) or "B", "KiB", "MiB", "GiB", "TiB", "PiB"
+    # @return [Integer] size in bytes
+    def size_from_string(size_str)
+      WFM.call("wrapper_storage", ["ClassicStringToByte", [size_str]])
+    end
   end
 
   SpaceCalculation = SpaceCalculationClass.new

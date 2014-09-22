@@ -29,11 +29,12 @@ module Yast
       Yast.import "Storage"
 
       # call the required function
-      if @func == "GetTargetMap"
+      case @func
+      when "GetTargetMap"
         @ret = Storage.GetTargetMap
-      elsif @func == "GetTargetChangeTime"
+      when "GetTargetChangeTime"
         @ret = Storage.GetTargetChangeTime
-      elsif @func == "RemoveDmMapsTo"
+      when "RemoveDmMapsTo"
         if Builtins.size(@param) == 0
           Builtins.y2error("Missing argument for Storage::RemoveDmMapsTo()")
         else
@@ -41,7 +42,7 @@ module Yast
 
           @ret = Storage.RemoveDmMapsTo(@param1)
         end
-      elsif @func == "GetWinPrimPartitions"
+      when "GetWinPrimPartitions"
         if Builtins.size(@param) == 0
           Builtins.y2error(
             "Missing argument for Storage::GetWinPrimPartitions()"
@@ -53,6 +54,12 @@ module Yast
             :to   => "map <string, map>"
           )
           @ret = Storage.GetWinPrimPartitions(@param1)
+        end
+      when "ClassicStringToByte"
+        if Builtins.size(@param) == 0
+          Builtins.y2error("Missing argument for Storage::ClassicStringToByte()")
+        else
+          @ret = Storage.ClassicStringToByte(@param.first)
         end
       else
         # the required function is not known
