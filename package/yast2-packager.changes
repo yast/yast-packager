@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 23 09:48:57 UTC 2014 - lslezak@suse.cz
+
+- fixed installation crash when a non-btrfs file system is used
+  (bnc#897909)
+- 3.1.49
+
+-------------------------------------------------------------------
 Fri Sep 19 12:31:52 UTC 2014 - lslezak@suse.cz
 
 - handle Btrfs specifically in disk usage counting (bnc#896176)
