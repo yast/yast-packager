@@ -720,7 +720,7 @@ module Yast
                   end
 
                   if js && js > 0
-                    log.info "Partition #{part["device"]}: assuming journal size: #{js / 1024}KiB",
+                    log.info "Partition #{part["device"]}: assuming journal size: #{js / 1024}KiB"
                     used += js
                   end
 
