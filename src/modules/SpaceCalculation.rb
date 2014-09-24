@@ -638,7 +638,7 @@ module Yast
                   # This part should be refactored to rely on libstorage.
 
                   tmpdir = SCR.Read(path(".target.tmpdir")) + "/diskspace_mount"
-                  SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)})")
+                  SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)}")
 
                   # mount options determined by partitioner
                   mount_options = (part["fstopt"] || "").split(",")
