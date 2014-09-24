@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 24 16:08:49 UTC 2014 - lslezak@suse.cz
+
+- fixed failure when checking available free space at installation
+  (by Thomas Renninger, thanks!) (bnc#898229)
+- 3.1.50
+
+-------------------------------------------------------------------
 Tue Sep 23 09:48:57 UTC 2014 - lslezak@suse.cz
 
 - fixed installation crash when a non-btrfs file system is used
