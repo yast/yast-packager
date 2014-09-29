@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep 29 12:32:17 UTC 2014 - lslezak@suse.cz
+
+- display full URL to the currently displayed EULA (directory
+  listing has been disabled after moving registration licenses
+  from nu.novell.com to updates.suse.com) (bnc#898647)
+- 3.1.51
+
+-------------------------------------------------------------------
 Wed Sep 24 16:08:49 UTC 2014 - lslezak@suse.cz
 
 - fixed failure when checking available free space at installation

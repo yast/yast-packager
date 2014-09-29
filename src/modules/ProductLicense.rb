@@ -18,6 +18,8 @@ module Yast
 
     include Yast::Logger
 
+    DOWNLOAD_URL_SCHEMA = [URI::HTTP, URI::HTTPS, URI::FTP]
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -331,9 +333,7 @@ module Yast
     end
 
     def GetLicenseDialog(languages, license_language, licenses, id, spare_space)
-      languages = deep_copy(languages)
-      display = UI.GetDisplayInfo
-      space = Ops.get_boolean(display, "TextMode", true) ? 1 : 3
+      space = UI.TextMode ? 1 : 3
 
       license_buttons = VBox(
         VSpacing(spare_space ? 0 : 1),
@@ -347,16 +347,10 @@ module Yast
         )
       )
 
-      # check if the license file name is an URL for download
-      valid_urls = [URI::HTTP, URI::HTTPS, URI::FTP]
-      license_is_url = valid_urls.include?(URI(license_file_print).class) rescue false
-      # split a long URL to multiple lines
-      display_url = license_file_print.scan(/.{1,57}/).join("\n") if license_file_print
-
       VBox(
         VSpacing(spare_space ? 0 : 1),
         HBox(
-          HSpacing(Ops.multiply(2, space)),
+          HSpacing(2 * space),
           (
             licenses_ref = arg_ref(licenses.value);
             _GetLicenseDialogTerm_result = GetLicenseDialogTerm(
@@ -368,7 +362,7 @@ module Yast
             licenses.value = licenses_ref.value;
             _GetLicenseDialogTerm_result
           ),
-          HSpacing(Ops.multiply(2, space))
+          HSpacing(2 * space)
         ),
         # BNC #448598
         # yes/no buttons exist only if needed
@@ -376,16 +370,14 @@ module Yast
         AcceptanceNeeded(id) ? license_buttons : Empty(),
         VSpacing(spare_space ? 0.5 : 1),
         HBox(
-          HSpacing(Ops.multiply(2, space)),
+          HSpacing(2 * space),
           @license_file_print != nil ?
             Left(
-              # FATE #302018
+            # FATE #302018
+            ReplacePoint(
+              Id(:printing_hint),
               Label(
-                # %{license_url} is an URL where the displayed license can be found
-                license_is_url ? (_("If you want to print this EULA, you can download it from\n" \
-                      "%{license_url}") % { :license_url => display_url } ) :
-
-                  # TRANSLATORS: addition license information
+                # TRANSLATORS: addition license information
                 # %1 is replaced with the filename
                 Builtins.sformat(
                   _(
@@ -394,9 +386,10 @@ module Yast
                   @license_file_print
                 )
               )
-            ) :
+            )
+          ) :
             Empty(),
-          HSpacing(Ops.multiply(2, space))
+          HSpacing(2 * space)
         ),
         VSpacing(spare_space ? 0 : 1)
       )
@@ -446,6 +439,9 @@ module Yast
         back,
         default_next_button_state
       )
+
+      # set the initial license download URL
+      update_license_location(license_language, licenses)
 
       Wizard.SetTitleIcon("yast-license")
       Wizard.SetFocusToNextButton
@@ -934,6 +930,9 @@ module Yast
       else
         Builtins.y2error("No such widget: %1", rp_id)
       end
+
+      # update displayed license URL after changing the license translation
+      update_license_location(@lic_lang, licenses)
 
       nil
     end
@@ -1549,6 +1548,51 @@ module Yast
     publish :function => :ShowLicenseInInstallation, :type => "boolean (any, integer)"
     publish :function => :AskInstalledLicenseAgreement, :type => "symbol (string, string)"
     publish :function => :AskInstalledLicensesAgreement, :type => "symbol (list <string>, string)"
+
+    private
+
+    # check if the license location is an URL for download
+    # @param [String] location
+    # @return [Boolean] true if it is a HTTP, HTTPS or an FTP URL
+    def location_is_url?(location)
+      DOWNLOAD_URL_SCHEMA.include?(URI(location).class) rescue false
+    end
+
+    # split a long URL to multiple lines
+    # @param [String] url URL
+    # @return [String] URL split to multiple lines if too long
+    def format_url(url)
+      url.scan(/.{1,57}/).join("\n")
+    end
+
+    # crate a label describing the license URL location
+    # @param [String] display_url URL to display
+    # return [String] translated label
+    def license_download_label(display_url)
+      # TRANSLATORS: %{license_url} is an URL where the displayed license can be found
+      (_("If you want to print this EULA, you can download it from\n%{license_url}") %
+        { :license_url => display_url } )
+    end
+
+    # update license location displayed in the dialog (e.g. after license translation
+    # is changed)
+    # @param [String] lang language of the currently displayed license
+    # @param [Yast::ArgRef] reference to the list of licenses
+    def update_license_location(lang, licenses)
+      if location_is_url?(license_file_print) && UI.WidgetExists(:printing_hint)
+        # name of the license file
+        file = File.basename(WhichLicenceFile(lang, licenses))
+
+        url = URI(license_file_print)
+        url.path = File.join(url.path, file)
+        log.info "Updating license URL: #{url}"
+
+        display_url = format_url(url.to_s)
+
+        UI.ReplaceWidget(:printing_hint, Label(license_download_label(display_url)))
+      end
+    end
+
   end
 
   ProductLicense = ProductLicenseClass.new
