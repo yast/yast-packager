@@ -373,21 +373,21 @@ module Yast
           HSpacing(2 * space),
           @license_file_print != nil ?
             Left(
-            # FATE #302018
-            ReplacePoint(
-              Id(:printing_hint),
-              Label(
-                # TRANSLATORS: addition license information
-                # %1 is replaced with the filename
-                Builtins.sformat(
-                  _(
-                    "If you want to print this EULA, you can find it\non the first media in the file %1"
-                  ),
-                  @license_file_print
+              # FATE #302018
+              ReplacePoint(
+                Id(:printing_hint),
+                Label(
+                  # TRANSLATORS: addition license information
+                  # %1 is replaced with the filename
+                  Builtins.sformat(
+                    _(
+                      "If you want to print this EULA, you can find it\non the first media in the file %1"
+                    ),
+                    @license_file_print
+                  )
                 )
               )
-            )
-          ) :
+            ) :
             Empty(),
           HSpacing(2 * space)
         ),
@@ -1555,7 +1555,10 @@ module Yast
     # @param [String] location
     # @return [Boolean] true if it is a HTTP, HTTPS or an FTP URL
     def location_is_url?(location)
-      DOWNLOAD_URL_SCHEMA.include?(URI(location).class) rescue false
+      DOWNLOAD_URL_SCHEMA.include?(URI(location).class)
+    rescue URI::InvalidURIError => e
+      log.error "Error while parsing URL #{location.inspect}: #{e.message}"
+      false
     end
 
     # split a long URL to multiple lines
