@@ -1555,6 +1555,7 @@ module Yast
     # @param [String] location
     # @return [Boolean] true if it is a HTTP, HTTPS or an FTP URL
     def location_is_url?(location)
+      return false unless location
       DOWNLOAD_URL_SCHEMA.include?(URI(location).class)
     rescue URI::InvalidURIError => e
       log.error "Error while parsing URL #{location.inspect}: #{e.message}"
