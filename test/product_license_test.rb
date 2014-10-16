@@ -119,5 +119,32 @@ describe Yast::ProductLicense do
       end
     end
 
+    describe "#location_is_url?" do
+      it "returns true for http, https and ftp URL (case insensitive)" do
+        expect(Yast::ProductLicense.send(:location_is_url?, "http://example.com")).to be_true
+        expect(Yast::ProductLicense.send(:location_is_url?, "https://example.com")).to be_true
+        expect(Yast::ProductLicense.send(:location_is_url?, "ftp://example.com")).to be_true
+        expect(Yast::ProductLicense.send(:location_is_url?, "HTTP://example.com")).to be_true
+        expect(Yast::ProductLicense.send(:location_is_url?, "HTTPS://example.com")).to be_true
+        expect(Yast::ProductLicense.send(:location_is_url?, "FTP://example.com")).to be_true
+      end
+
+      it "returns false for other URL schema" do
+        expect(Yast::ProductLicense.send(:location_is_url?, "file:///foo/bar")).to be_false
+      end
+
+      it "returns false for non URL string" do
+        expect(Yast::ProductLicense.send(:location_is_url?, "/foo/bar")).to be_false
+      end
+
+      it "returns false for non String values" do
+        expect(Yast::ProductLicense.send(:location_is_url?, 42)).to be_false
+      end
+
+      it "returns false for nil" do
+        expect(Yast::ProductLicense.send(:location_is_url?, nil)).to be_false
+      end
+    end
+
   end
 end
