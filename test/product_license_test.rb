@@ -137,6 +137,10 @@ describe Yast::ProductLicense do
         expect(Yast::ProductLicense.send(:location_is_url?, "/foo/bar")).to be_false
       end
 
+      it "returns false for non String values" do
+        expect(Yast::ProductLicense.send(:location_is_url?, 42)).to be_false
+      end
+
       it "returns false for nil" do
         expect(Yast::ProductLicense.send(:location_is_url?, nil)).to be_false
       end
