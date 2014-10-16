@@ -18,7 +18,7 @@ module Yast
 
     include Yast::Logger
 
-    DOWNLOAD_URL_SCHEMA = [URI::HTTP, URI::HTTPS, URI::FTP]
+    DOWNLOAD_URL_SCHEMA = ["http", "https", "ftp"]
 
     def main
       Yast.import "Pkg"
@@ -1555,7 +1555,8 @@ module Yast
     # @param [String] location
     # @return [Boolean] true if it is a HTTP, HTTPS or an FTP URL
     def location_is_url?(location)
-      DOWNLOAD_URL_SCHEMA.include?(URI(location).class)
+      return false unless location.is_a?(::String)
+      DOWNLOAD_URL_SCHEMA.include?(URI(location).scheme)
     rescue URI::InvalidURIError => e
       log.error "Error while parsing URL #{location.inspect}: #{e.message}"
       false
