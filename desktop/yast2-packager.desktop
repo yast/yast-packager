@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Install/Remove Software
+GenericName=Install/Remove Software
+Exec=xdg-su -c "/sbin/yast2 sw_single %F"
+Icon=yast-sw_single
+Terminal=false
+Type=Application
+Categories=System;PackageManager;X-SuSE-ControlCenter-System;
+MimeType=application/x-rpm;application/x-redhat-package-manager;
+NotShowIn=KDE;GNOME;MATE;
+StartupNotify=true
+

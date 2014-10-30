@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 30 18:41:49 UTC 2014 - gber@opensuse.org
+
+- add desktop file for yast2-packager (bnc#892936)
+  - add build dependency on yast2_theme for the icon
+- 3.1.53
+
+-------------------------------------------------------------------
 Thu Oct 16 08:54:15 UTC 2014 - lslezak@suse.cz
 
 - fixed crash when using custom license in firstboot workflow
