@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.52
+Version:        3.1.53
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -29,6 +29,7 @@ License:        GPL-2.0+
 BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-storage
+BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
 # HwDetection
@@ -107,6 +108,14 @@ provided by yast2-packager package.
 %install
 %yast_install
 
+%suse_update_desktop_file yast2-packager
+
+%post
+%desktop_database_post
+
+%postun
+%desktop_database_postun
+
 
 %files
 %defattr(-,root,root)
@@ -117,6 +126,7 @@ provided by yast2-packager package.
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop
+%{_datadir}/applications/*.desktop
 %{yast_scrconfdir}/*
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
