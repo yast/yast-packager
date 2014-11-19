@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 18 12:45:39 UTC 2014 - jreidinger@suse.com
+
+- avoid warning about constant redefinition (bnc#905508)
+- 3.1.54
+
+-------------------------------------------------------------------
 Thu Oct 30 18:41:49 UTC 2014 - gber@opensuse.org
 
 - add desktop file for yast2-packager (bnc#892936)

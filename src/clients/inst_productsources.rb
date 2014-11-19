@@ -1740,7 +1740,7 @@ module Yast
       end
     end
 
-  end
+  end unless defined? InstProductsourcesClient
 end
 
 Yast::InstProductsourcesClient.new.main
