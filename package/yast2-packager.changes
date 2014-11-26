@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 26 13:11:35 UTC 2014 - jsrain@suse.cz
+
+- initialize bootloader during update if proposed from scratch
+  (bnc#899743)
+
+-------------------------------------------------------------------
 Tue Nov 18 12:45:39 UTC 2014 - jreidinger@suse.com
 
 - avoid warning about constant redefinition (bnc#905508)
