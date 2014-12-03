@@ -236,7 +236,7 @@ module Yast
           # load all network modules
           load_network_modules 
 
-          # intiialize bootloader
+          # initialize bootloader
           # will return immediatly unless bootloader configuration was
           # proposed from scratch (bnc#899743)
           WFM.CallFunction("inst_bootloader", WFM.Args) 
