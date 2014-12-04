@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec  4 09:50:45 UTC 2014 - jreidinger@suse.com
+
+- remove X-KDE-Library from desktop file (bnc#899104)
+
+-------------------------------------------------------------------
 Tue Nov 18 12:45:39 UTC 2014 - jreidinger@suse.com
 
 - avoid warning about constant redefinition (bnc#905508)
