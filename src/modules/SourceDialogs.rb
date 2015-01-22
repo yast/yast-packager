@@ -44,7 +44,7 @@ module Yast
       # radio button
       :samba             => N_("&SMB/CIFS"),
       # radio button
-      :nfs               => N_("&NFS..."),
+      :nfs               => N_("NF&S..."),
       # radio button
       :cd                => N_("&CD..."),
       # radio button
