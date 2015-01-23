@@ -42,7 +42,7 @@ module Yast
       # radio button
       :https             => N_("HTT&PS..."),
       # radio button
-      :samba             => N_("&SMB/CIFS"),
+      :samba             => N_("S&MB/CIFS"),
       # radio button
       :nfs               => N_("NF&S..."),
       # radio button
@@ -1717,7 +1717,7 @@ module Yast
         protocol_box = Builtins.add(
           protocol_box,
           # radio button
-          RadioButton(Id(:samba), Opt(:notify), _("&SMB/CIFS"))
+          RadioButton(Id(:samba), Opt(:notify), _("S&MB/CIFS"))
         )
         protocol_box = Builtins.add(protocol_box, HStretch())
         protocol_box = RadioButtonGroup(
