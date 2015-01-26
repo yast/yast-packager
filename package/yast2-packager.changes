@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 26 13:06:17 UTC 2015 - jreidinger@suse.com
+
+- fixed \r and \b  characters lost during conversion to Ruby
+
+-------------------------------------------------------------------
 Thu Jan 22 20:23:33 UTC 2015 - lslezak@suse.cz
 
 - explicitly resolve shortcut conflict in repository type dialog
