@@ -1244,7 +1244,7 @@ module Yast
 
       products = Builtins.splitstring(
         Convert.to_string(SCR.Read(path(".target.string"), parse_file)),
-        " \n"
+        "\r\n"
       )
 
       if products == nil
