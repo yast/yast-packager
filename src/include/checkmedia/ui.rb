@@ -132,11 +132,11 @@ module Yast
               "<B>Unknown</B> -- The correct MD5 sum of the medium is unknown."
             )
           # progress output
-          elsif Builtins.issubstring(val, "%")
+          elsif Builtins.issubstring(val, "%\b\b\b\b")
             key = ""
             Builtins.y2milestone(
               "Ignoring progress output: %1",
-              Builtins.mergestring(Builtins.splitstring(val, ""), "\\b")
+              Builtins.mergestring(Builtins.splitstring(val, "\b"), "\\b")
             )
           end
         # don't print MD5 sum (it doesn't help user)
