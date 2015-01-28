@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Jan 28 13:56:13 UTC 2015 - lslezak@suse.cz
+
+- explicitly resolve shortcut conflict in repository type dialog
+  to avoid different auto correction in Qt and ncurses UI
+  (bnc#913099)
+- 2.17.108
+
+-------------------------------------------------------------------
 Fri May 31 11:28:08 UTC 2013 - lslezak@suse.cz
 
 - removed writing a debug file (bnc#822615)
