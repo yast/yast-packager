@@ -1541,7 +1541,7 @@ void ServerInit (string key) {
 	}
 	protocol_box = add (protocol_box,
 	    // radio button
-	    `RadioButton (`id (`samba),`opt (`notify), _("&SMB/CIFS"))
+	    `RadioButton (`id (`samba),`opt (`notify), _("S&MB/CIFS"))
 	);
 	protocol_box = add (protocol_box, `HStretch ());
 	protocol_box = `RadioButtonGroup (`id (`rb_type), `opt (`notify),
@@ -1766,9 +1766,9 @@ term SelectRadioWidgetOpt (boolean download_widget) {
 	    // radio button
 	    `Left (`RadioButton(`id(`https),      _("HTT&PS..."))),
 	    // radio button
-	    `Left (`RadioButton(`id(`samba),     _("&SMB/CIFS"))),
+	    `Left (`RadioButton(`id(`samba),     _("S&MB/CIFS"))),
 	    // radio button
-	    `Left (`RadioButton(`id(`nfs),       _("&NFS..."))),
+	    `Left (`RadioButton(`id(`nfs),       _("NF&S..."))),
 	    // radio button
 	    `Left (`RadioButton(`id(`cd),        _("&CD..."))),
 	    // radio button
