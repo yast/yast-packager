@@ -453,17 +453,6 @@ module Yast
 
       nil
     end
-    #  at start of file providal
-    def StartPatchProvide(name, archivesize)
-      PackageSlideShow.SlideGenericProvideStart(
-        name, #remote
-        archivesize,
-        _("Downloading patch RPM %1 (download size %2)"),
-        true
-      )
-
-      nil
-    end
 
     # during file providal
     def ProgressDeltaApply(percent)
@@ -473,7 +462,7 @@ module Yast
     end
 
     #  at end of file providal
-    def FinishPatchDeltaProvide
+    def FinishDeltaProvide
       nil
     end
 
@@ -490,15 +479,6 @@ module Yast
       # error in installation log, %1 is detail error description
       SlideShow.AppendMessageToInstLog(
         Builtins.sformat(_("Failed to apply delta RPM: %1"), descr)
-      )
-
-      nil
-    end
-
-    def ProblemPatchDownload(descr)
-      # error in installation log, %1 is detail error description
-      SlideShow.AppendMessageToInstLog(
-        Builtins.sformat(_("Failed to download patch RPM: %1"), descr)
       )
 
       nil
@@ -604,7 +584,7 @@ module Yast
         fun_ref(method(:ProblemDeltaDownload), "void (string)")
       )
       Pkg.CallbackFinishDeltaDownload(
-        fun_ref(method(:FinishPatchDeltaProvide), "void ()")
+        fun_ref(method(:FinishDeltaProvide), "void ()")
       )
 
       Pkg.CallbackStartDeltaApply(
@@ -617,20 +597,7 @@ module Yast
         fun_ref(method(:ProblemDeltaApply), "void (string)")
       )
       Pkg.CallbackFinishDeltaApply(
-        fun_ref(method(:FinishPatchDeltaProvide), "void ()")
-      )
-
-      Pkg.CallbackStartPatchDownload(
-        fun_ref(method(:StartPatchProvide), "void (string, integer)")
-      )
-      Pkg.CallbackProgressPatchDownload(
-        fun_ref(method(:ProgressProvide), "boolean (integer)")
-      )
-      Pkg.CallbackProblemPatchDownload(
-        fun_ref(method(:ProblemPatchDownload), "void (string)")
-      )
-      Pkg.CallbackFinishPatchDownload(
-        fun_ref(method(:FinishPatchDeltaProvide), "void ()")
+        fun_ref(method(:FinishDeltaProvide), "void ()")
       )
 
       Pkg.CallbackScriptStart(
@@ -716,12 +683,9 @@ module Yast
     publish :function => :DonePackage, :type => "string (integer, string)"
     publish :function => :StartDeltaProvide, :type => "void (string, integer)"
     publish :function => :StartDeltaApply, :type => "void (string)"
-    publish :function => :StartPatchProvide, :type => "void (string, integer)"
     publish :function => :ProgressDeltaApply, :type => "void (integer)"
-    publish :function => :FinishPatchDeltaProvide, :type => "void ()"
     publish :function => :ProblemDeltaDownload, :type => "void (string)"
     publish :function => :ProblemDeltaApply, :type => "void (string)"
-    publish :function => :ProblemPatchDownload, :type => "void (string)"
     publish :function => :CallbackSourceChange, :type => "void (integer, integer)"
     publish :function => :MediaChange, :type => "string (string, string, string, string, integer, string, integer, string, boolean, list <string>, integer)"
     publish :function => :InstallSlideShowCallbacks, :type => "void ()"
