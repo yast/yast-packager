@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 30 09:25:40 CET 2015 - locilka@suse.com
+
+- Removed caching of already accepted licenses, all licenses for
+  all products have to be accepted, always (bsc#912300)
+- 2.17.109
+
+-------------------------------------------------------------------
 Wed Jan 28 13:56:13 UTC 2015 - lslezak@suse.cz
 
 - explicitly resolve shortcut conflict in repository type dialog
