@@ -31,9 +31,6 @@ import "Progress";
 
 textdomain "packager";
 
-// list of already accepted licenses
-list <string> already_accepted_licenses = [];
-
 list <string> license_patterns = [
     "license\\.html", "license\\.%1\\.html",
     "license\\.htm",  "license\\.%1\\.htm",
@@ -76,61 +73,6 @@ string EnvLangToLangCode ( string env_lang )
 	tmp = splitstring(env_lang, ".@");
 
     return tmp[0]:"";
-}
-
-/**
- * Creates a unique identification from filename
- * (MD5sum + file size)
- *
- * @param string filename
- * @return string unique ID
- */
-string GetLicenseIdentString (string filename) {
-    if (! FileUtils::Exists (filename)) {
-	y2error ("License '%1' doesn't exist", filename);
-	return nil;
-    }
-
-    string filemd5 = FileUtils::MD5sum (filename);
-    if (filemd5 == nil) {
-	return nil;
-    }
-
-    string ret = sformat("%1-%2", filemd5, FileUtils::GetSize (filename));
-
-    y2milestone ("License ident for '%1' is '%2'", filename, ret);
-
-    return ret;
-}
-
-/**
- * Checks whether the license (file) has been already accepted
- *
- * @param string filename
- * @return boolean whether the license has been accepted before
- */
-boolean IsLicenseAlreadyAccepted (string license_ident) {
-    if (license_ident == nil || license_ident == "") {
-	y2error ("Wrong license ID '%1'", license_ident);
-	return false;
-    }
-
-    return contains (already_accepted_licenses, license_ident);
-}
-
-/**
- * Sets that the license (file) has been already accepted
- *
- * @param string filename
- */
-void LicenseHasBeenAccepted (string license_ident) {
-    if (license_ident == nil || license_ident == "") {
-	y2error ("Wrong license ID '%1'", license_ident);
-	return;
-    }
-
-    y2milestone ("Adding License ID '%1' as already accepted", license_ident);
-    already_accepted_licenses = add (already_accepted_licenses, license_ident);
 }
 
 string WhichLicenceFile (string license_language, map <string, string> & licenses) {
@@ -758,8 +700,6 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
 	return `auto;
     }
 
-    // Check whether such license hasn't been already accepted
-    // Bugzilla #305503
     string license_ident_lang = nil;
 
     // We need to store the original -- not localized license ID (if possible)
@@ -775,22 +715,7 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
     if (license_ident_lang == nil) license_ident_lang = lic_lang;
 
     string base_license = WhichLicenceFile (license_ident_lang, licenses);
-    license_ident = GetLicenseIdentString (base_license);
-
-    // agreement might be required even if license has been already accepted
-    // defined, properly ($md5sum(32)-(1)$size(1..n))
-    //
-    // see also BNC #448598
-    // Even if it it shown it sometimes doesn't need to be even accepted by
-    // selecting "yes, I agree"
-    if (require_agreement != true && tostring (license_ident) != nil && size (license_ident) > 33 && IsLicenseAlreadyAccepted (license_ident)) {
-	y2milestone ("License has been already accepted/shown");
-
-	CleanUpLicense (tmpdir);
-	return `accepted;
-    } else {
-	y2milestone ("License needs to be shown");
-    }
+    y2milestone ("License needs to be shown");
 
     // bugzilla #303922
     // src_id == nil (the initial product license)
@@ -1060,11 +985,6 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 	ret = HandleLicenseDialogRet (licenses, base_product, action);
     }
 
-    if (ret == `accepted && license_ident != nil) {
-	// store already accepted license ID
-	LicenseHasBeenAccepted (license_ident);
-    }
-
     CleanUpLicense (tmpdir);
 
     // bugzilla #303922
@@ -1180,13 +1100,6 @@ global symbol AskLicensesAgreement (list <string> dirs,
 	map <string, string> tmp_licenses = $[];
 	ret = HandleLicenseDialogRet (tmp_licenses, base_product, action);
 	y2milestone ("Dialog ret: %1", ret);
-    }
-
-    // store already accepted license IDs
-    if (ret == `accepted) {
-	foreach (string license_ident, license_idents, {
-	    LicenseHasBeenAccepted (license_ident);
-	});
     }
 
     CleanUpLicense (tmpdir);
