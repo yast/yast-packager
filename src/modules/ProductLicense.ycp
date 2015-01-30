@@ -715,7 +715,6 @@ symbol InitLicenseData (integer src_id, string dir, map <string, string> & licen
     if (license_ident_lang == nil) license_ident_lang = lic_lang;
 
     string base_license = WhichLicenceFile (license_ident_lang, licenses);
-    y2milestone ("License needs to be shown");
 
     // bugzilla #303922
     // src_id == nil (the initial product license)
