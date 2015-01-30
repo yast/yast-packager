@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 29 14:45:40 UTC 2015 - jreidinger@suse.com
+
+- remove obsolete legacy patch callbacks
+- 3.1.57 
+
+-------------------------------------------------------------------
 Mon Jan 26 13:06:17 UTC 2015 - jreidinger@suse.com
 
 - fixed \r and \b  characters lost during conversion to Ruby
