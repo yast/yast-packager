@@ -17,7 +17,7 @@ module Yast
 
     # Converts XML file to a list of maps with all repositories described in the XML content.
     #
-    # @param XML file
+    # @param [String] filename XML file
     # @return [Array<Hash, <String, Object> >]
     #
     #

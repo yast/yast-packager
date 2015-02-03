@@ -281,7 +281,7 @@ module Yast
     end
 
     # Set the default desktop
-    # @param desktop a string, one of those desktops defined in control file or nil
+    # @param [String,nil] new_desktop one of those desktops defined in control file or nil
     def SetDesktop(new_desktop)
       Init()
 

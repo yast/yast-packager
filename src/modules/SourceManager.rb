@@ -505,7 +505,8 @@ module Yast
     # Parse a URL query (already unescaped) to a map.
     # If no equal sign, the value will be nil.
     # @param [String] query foo=bar&baz=qux
-    # @return $["foo": "bar", "baz": "qux"]
+    # @return [Hash] hash with "param" => "value" mapping,
+    #    e.g. ["foo": "bar", "baz": "qux"]
     def ParseUrlQuery(query)
       q_items = Builtins.splitstring(query, "&")
       q_map = Builtins.listmap(q_items) do |q_item|
