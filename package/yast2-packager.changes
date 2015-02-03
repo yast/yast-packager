@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb  3 09:01:07 UTC 2015 - lslezak@suse.cz
+
+- fixed file:// URL handling (same as dir://) (boo#869399)
+- validate entered URL schema
+- 3.1.58
+
+-------------------------------------------------------------------
 Thu Jan 29 14:45:40 UTC 2015 - jreidinger@suse.com
 
 - remove obsolete legacy patch callbacks
