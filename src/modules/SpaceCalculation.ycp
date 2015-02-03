@@ -620,8 +620,17 @@
 				SCR::Execute (.target.bash, sformat (
 				    "test -d %1 || mkdir -p %1", tmpdir));
 
+				// mount options determined by partitioner
+				list<string> mount_options = splitstring(part["fstopt"]:"", ",");
+				// filter out empty options, just in case
+				mount_options = filter(
+					string opt,
+					mount_options,
+					{return regexpmatch (opt, "[^ ]");}
+				);
+
 				// mount in read-only mode (safer)
-				list<string> mount_options = ["ro"];
+				mount_options = add(mount_options, "ro");
 
 				// add "nolock" if it's a NFS share (bnc#433893)
 				if (used_fs == `nfs)

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb  3 07:59:45 UTC 2015 - ancor@suse.com
+
+- Use options from partitioner during test mount (bnc#915758)
+- 2.17.110
+
+-------------------------------------------------------------------
 Fri Jan 30 09:25:40 CET 2015 - locilka@suse.com
 
 - Removed caching of already accepted licenses, all licenses for
