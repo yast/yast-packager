@@ -642,8 +642,18 @@
 				// join the options
 				string mount_options_str = mergestring(mount_options, ",");
 
+				string device = "";
+				if (part["crypt_device"]:false)
+				{
+				    device = part["crypt_device"]:"";
+				}
+				else
+				{
+				    device = part["device"]:"";
+				}
+
 				string mount_command = sformat("/bin/mount -o %1 %2 %3",
-				    mount_options_str, part["device"]:"", tmpdir);
+				    mount_options_str, device, tmpdir);
 
 				y2milestone("Executing mount command: %1", mount_command);
 
