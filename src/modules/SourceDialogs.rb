@@ -2162,8 +2162,8 @@ module Yast
 
     # Handles Ui events in New repository type selection dialog
     #
-    # @param [String] widget key
-    # @param [Hash] event description
+    # @param [String] key widget key
+    # @param [Hash] event event description
     # @return [Symbol]
     def SelectHandle(key, event)
       case event["ID"]

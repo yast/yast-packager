@@ -439,7 +439,7 @@ module Yast
     # Checks which products have been selected for removal and modifies
     # the warning messages accordingly.
     #
-    # @param reference to map MakeProposal->Summary
+    # @param [Yast::ArgRef] ret reference to map MakeProposal->Summary
     def CheckOldAddOns(ret)
       products = Pkg.ResolvableProperties("", :product, "")
       products = Builtins.filter(products) do |one_product|
@@ -592,7 +592,7 @@ module Yast
     # Print the installatino proposal summary
     # @param [Array<Symbol>] flags a list of symbols, see above
     # @param [Boolean] use_cache if true, use previous proposal if possible
-    # @returnu a map proposal summary
+    # @return [Hash] a map with proposal summary
     def Summary(flags, use_cache)
       flags = deep_copy(flags)
       if @init_error != nil
@@ -1054,7 +1054,7 @@ module Yast
     end
 
     # Additional kernel packages from control file
-    # @return list<string> Additional Kernel packages
+    # @return [Array<String>] Additional Kernel packages
     def ComputeAdditionalKernelPackages
       final_kernel = Kernel.GetFinalKernel
       pos = Builtins.findfirstof(final_kernel, "-")
@@ -1728,7 +1728,7 @@ module Yast
     # Adjusts repository name according to LABEL in content file
     # or a first product found on the media (as a fallback).
     #
-    # @param integer repository ID
+    # @param [Fixnum] src_id repository ID
     # @return [Boolean] if successful
     #
     # @see BNC #481828
@@ -2204,8 +2204,8 @@ module Yast
 
     # Make a proposal for package selection
     #
-    # @param force reset (fully resets the proposal and creates a new one)
-    # @param re-initialize (soft-reset, doesn't reset resolbavle manually selected by user)
+    # @param [Boolean] force_reset force reset (fully resets the proposal and creates a new one)
+    # @param [Boolean] reinit re-initialize (soft-reset, doesn't reset resolbavle manually selected by user)
     #
     # @return [Hash] for the API proposal
     def Proposal(force_reset, reinit, simple)
@@ -2549,7 +2549,7 @@ module Yast
     # List of packages expected to be installed in order to enable
     # remote administration (VNC)
     #
-    # @return Array<String>
+    # @return [Array<String>] package list
     def vnc_packages
       packages = VNC_BASE_PACKAGES.dup
       # At least one windowmanager must be installed (#427044)
@@ -2562,7 +2562,7 @@ module Yast
     # List of packages expected to be installed in order to use
     # a remote X11 server
     #
-    # @return Array<String>
+    # @return [Array<String>] package list
     def remote_x11_packages
       packages = REMOTE_X11_BASE_PACKAGES.dup
       packages << "yast2-x11" if Mode.autoinst

@@ -20,7 +20,7 @@ module Yast
       Yast.import "Label"
     end
 
-    # @param string info_file (/info.txt" - Copied from inst media to inst-sys by linuxrc)
+    # @param [String] info_file (/info.txt" - Copied from inst media to inst-sys by linuxrc)
     def show_info_txt(info_file)
       display_info = UI.GetDisplayInfo
       size_x = Builtins.tointeger(Ops.get_integer(display_info, "Width", 800))

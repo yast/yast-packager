@@ -152,7 +152,7 @@ module Yast
     end
 
     # Return information printed by checkmedia utility
-    # @ret list<string> checkmedia output
+    # @return [Array<String>] checkmedia output
     def Info
       ret = deep_copy(@output)
       @output = []
@@ -170,7 +170,7 @@ module Yast
     # contain a medium). If repository is not CD/DVD it returns
     # empty list.
     #
-    # @return list<string> List of CD/DVD device names
+    # @return [Array<String>] List of CD/DVD device names
     def GetReadyCDs
       # check whether we are using CD repository
       instmode = Linuxrc.InstallInf("InstMode")
