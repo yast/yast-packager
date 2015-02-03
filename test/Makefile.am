@@ -1,6 +1,7 @@
 TESTS = \
   addon_product_test.rb \
   packages_test.rb \
+  source_dialogs_test.rb \
   space_calculation_test.rb
 
 TEST_EXTENSIONS = .rb
