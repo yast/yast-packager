@@ -643,7 +643,7 @@
 				string mount_options_str = mergestring(mount_options, ",");
 
 				string device = "";
-				if (part["crypt_device"]:false)
+				if (haskey(part, "crypt_device"))
 				{
 				    device = part["crypt_device"]:"";
 				}
