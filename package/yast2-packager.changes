@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov 26 13:11:35 UTC 2014 - jsrain@suse.cz
+
+- initialize bootloader during update if proposed from scratch
+  (bnc#899743)
+- 3.1.59
+
+-------------------------------------------------------------------
 Tue Feb  3 09:01:07 UTC 2015 - lslezak@suse.cz
 
 - fixed file:// URL handling (same as dir://) (boo#869399)

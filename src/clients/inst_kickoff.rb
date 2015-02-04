@@ -236,10 +236,10 @@ module Yast
           # load all network modules
           load_network_modules 
 
-          # perform actions needed by various bootloaders before packages
-          # get updated
-          # Bootloader::PreUpdate ();
-          # -- this function call does NOTHING!
+          # initialize bootloader
+          # will return immediatly unless bootloader configuration was
+          # proposed from scratch (bnc#899743)
+          WFM.CallFunction("inst_bootloader", WFM.Args) 
         end
       end
 
