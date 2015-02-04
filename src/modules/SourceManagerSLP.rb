@@ -299,8 +299,8 @@ module Yast
 
     # Initializes the listed SLP services.
     #
-    # @param [list <map> &] services (reference)
-    # @param string regexp for services that should be visible (nil or "" for all)
+    # @param [Yast::ArgRef] services reference to services (Array<Hash>)
+    # @param [String,nil] filter_string regexp for services that should be visible (nil or "" for all)
     def InitSLPListFoundDialog(services, filter_string)
       filter_string = nil if filter_string == ""
 

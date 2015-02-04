@@ -263,8 +263,7 @@ module Yast
     # replaces some already installed add-on or whether it is a new
     # installation. Repositories and target have to be initialized.
     #
-    # @param [Fixnum] source_id
-    # @param string "installation" or "update" according the current state
+    # @param [Fixnum] source_id source ID
     def AddOnMode(source_id)
       all_products = Pkg.ResolvableProperties("", :product, "")
 
@@ -353,8 +352,7 @@ module Yast
     # as it is (just the relative_url parameter).
     #
     # @param [String] base_url
-    # @param string relative_url
-    # @return [String] absolute_url
+    # @param [String] url URL relative to the base
     #
     # @example
     #   AddOnProduct::GetAbsoluteURL (
@@ -768,7 +766,7 @@ module Yast
     # set to "true" or "yes". If it has, product is added into list of pruducts
     # that need registration. Cached content file is used if possible.
     #
-    # @param integer source id
+    # @param [Fixnum] src_id source id
     def PrepareForRegistration(src_id)
       control_file = WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, "");
 
@@ -881,7 +879,7 @@ module Yast
 
     # Calls registration client if needed.
     #
-    # @param integer source id
+    # @param [Fixnum] src_id source id
     def RegisterAddOnProduct(src_id)
       # FATE #305578: Add-On Product Requiring Registration
       # or check the content file
@@ -1244,7 +1242,7 @@ module Yast
 
       products = Builtins.splitstring(
         Convert.to_string(SCR.Read(path(".target.string"), parse_file)),
-        " \n"
+        "\r\n"
       )
 
       if products == nil
@@ -1453,8 +1451,9 @@ module Yast
     # Installs selected products from repository. If list of prods_to_install
     # is empty, all products found are installed.
     #
-    # @param
-    # @return [Boolean] if successful
+    # @param [Array<String>,nil] prods_to_install list of product names to install
+    # @param [Fixnum] src source ID
+    # @return [Boolean] success flag
     def InstallProductsFromRepository(prods_to_install, src)
       prods_to_install = deep_copy(prods_to_install)
       # there are more products at the destination
@@ -1491,9 +1490,9 @@ module Yast
 
     # Ask for a product medium
     #
-    # @url medium url (either "cd:///" or "dvd:///")
-    # @product_name expected product name
-    # @return nil if aborted, otherwise URL with the selected CD device
+    # @param [String] url medium url (either "cd:///" or "dvd:///")
+    # @param [String] product_name expected product name
+    # @return [String,nil] nil if aborted, otherwise URL with the selected CD device
 
     def AskForCD(url, product_name)
       parsed = URL.Parse(url)

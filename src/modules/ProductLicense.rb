@@ -106,7 +106,7 @@ module Yast
 
     # Sets that the license (file) has been already accepted
     #
-    # @param string filename
+    # @param [String] license_ident file name
     def LicenseHasBeenAccepted(license_ident)
       if license_ident == nil || license_ident == ""
         Builtins.y2error("Wrong license ID '%1'", license_ident)
@@ -411,7 +411,12 @@ module Yast
     end
 
     # Displays License with Help and ( ) Yes / ( ) No radio buttons
-    # @param string file with the license
+    # @param [Array<String>] languages list of license translations
+    # @param [Boolean] back enable "Back" button
+    # @param [String] license_language default license language
+    # @param [Hash<String,String>] licenses licenses (mapping "langugage_code" => "license")
+    # @param [String] id unique license ID
+    # @param [String] caption dialog title
     def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
       languages = deep_copy(languages)
 
@@ -452,7 +457,7 @@ module Yast
 
 
     # Removes the temporary directory for licenses
-    # @param string temporary directory path
+    # @param [String] tmpdir temporary directory path
     def CleanUpLicense(tmpdir)
       if tmpdir != nil && tmpdir != "/"
         SCR.Execute(
@@ -1094,8 +1099,7 @@ module Yast
     # @param [Boolean] require_agreement means that even if the license (or the very same license)
     #   has been already accepetd, ask user to accept it again (because of 'going back'
     #   in the installation proposal).
-    # @param [String] id, usually source id but it can be any unique id in UI. Well, of course
-    #   it must be string.
+    # @param [String] id usually source id but it can be any unique id in UI
     def AskLicenseAgreement(src_id, dir, patterns, action, enable_back, base_product, require_agreement, id)
       patterns = deep_copy(patterns)
       @lic_lang = ""
@@ -1195,11 +1199,11 @@ module Yast
 
 
     # Ask user to confirm license agreement
-    # @param src_id integer repository to get the license from.
-    #   If set to 'nil', the license is considered to belong to a base product
     # @param [Array<String>] dirs - directories to look for the licenses
     # @param [Array<String>] patterns a list of patterns for the files, regular expressions
     #   with %1 for the language
+    # @param [String] action what to do if the license is declined,
+    #   can be "continue", "abort" or "halt"
     # @param [Boolean] enable_back sets the back_button status
     # @param [Boolean] base_product defines whether it is a base or add-on product
     #   true means base product, false add-on product
@@ -1581,7 +1585,7 @@ module Yast
     # update license location displayed in the dialog (e.g. after license translation
     # is changed)
     # @param [String] lang language of the currently displayed license
-    # @param [Yast::ArgRef] reference to the list of licenses
+    # @param [Yast::ArgRef] licenses reference to the list of licenses
     def update_license_location(lang, licenses)
       if location_is_url?(license_file_print) && UI.WidgetExists(:printing_hint)
         # name of the license file

@@ -5,6 +5,37 @@ Wed Nov 26 13:11:35 UTC 2014 - jsrain@suse.cz
   (bnc#899743)
 
 -------------------------------------------------------------------
+Tue Feb  3 09:01:07 UTC 2015 - lslezak@suse.cz
+
+- fixed file:// URL handling (same as dir://) (boo#869399)
+- validate entered URL schema
+- 3.1.58
+
+-------------------------------------------------------------------
+Thu Jan 29 14:45:40 UTC 2015 - jreidinger@suse.com
+
+- remove obsolete legacy patch callbacks
+- 3.1.57 
+
+-------------------------------------------------------------------
+Mon Jan 26 13:06:17 UTC 2015 - jreidinger@suse.com
+
+- fixed \r and \b  characters lost during conversion to Ruby
+
+-------------------------------------------------------------------
+Thu Jan 22 20:23:33 UTC 2015 - lslezak@suse.cz
+
+- explicitly resolve shortcut conflict in repository type dialog
+  to avoid different auto correction in Qt and ncurses UI
+  (bnc#913099)
+- 3.1.56
+
+-------------------------------------------------------------------
+Thu Dec  4 09:50:45 UTC 2014 - jreidinger@suse.com
+
+- remove X-KDE-Library from desktop file (bnc#899104)
+
+-------------------------------------------------------------------
 Tue Nov 18 12:45:39 UTC 2014 - jreidinger@suse.com
 
 - avoid warning about constant redefinition (bnc#905508)

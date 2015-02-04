@@ -42,9 +42,9 @@ module Yast
       # radio button
       :https             => N_("HTT&PS..."),
       # radio button
-      :samba             => N_("&SMB/CIFS"),
+      :samba             => N_("S&MB/CIFS"),
       # radio button
-      :nfs               => N_("&NFS..."),
+      :nfs               => N_("NF&S..."),
       # radio button
       :cd                => N_("&CD..."),
       # radio button
@@ -60,6 +60,10 @@ module Yast
       # check box
       :download_metadata => N_("&Download repository description files"),
     }
+
+    # @see https://github.com/openSUSE/libzypp/blob/master/zypp/media/MediaManager.h#L163
+    VALID_URL_SCHEMES = ["ftp", "tftp", "http", "https", "nfs",
+      "nfs4", "cifs", "smb", "cd", "dvd", "iso", "dir", "file", "hd"]
 
     def main
       Yast.import "Pkg"
@@ -213,7 +217,7 @@ module Yast
         # label / dialog caption
         "dir"   => _("Local Directory"),
         # label / dialog caption
-        "file"  => _("Local ISO Image"),
+        "iso"  => _("Local ISO Image"),
         # label / dialog caption
         "http"  => _("Server and Directory"),
         # label / dialog caption
@@ -525,7 +529,8 @@ module Yast
         Popup.Message(_("URL cannot be empty."))
         return false
       end
-      true
+
+      valid_scheme?(url)
     end
 
     # Get widget description map
@@ -822,7 +827,11 @@ module Yast
     # @param [String] key string widget key
     def DirInit(key)
       parsed = URL.Parse(@_url)
-      UI.ChangeWidget(Id(:dir), :Value, Ops.get_string(parsed, "path", ""))
+
+      path = parsed["path"]
+      path = "/" if path.empty?
+
+      UI.ChangeWidget(Id(:dir), :Value, path)
       UI.SetFocus(:dir)
 
       # is it a plain directory?
@@ -846,10 +855,15 @@ module Yast
     # Store function of a widget
     # @param [String] key string widget key
     # @param [Hash] event map which caused settings being stored
-    def DirStore(key, event)
-      event = deep_copy(event)
+    def DirStore(key, _event)
+      parsed = URL.Parse(@_url)
+
+      # keep file:// scheme if it was used originally
+      scheme = parsed["scheme"] || ""
+      scheme = "dir" if scheme.downcase != "file"
+
       parsed = {
-        "scheme" => "dir",
+        "scheme" => scheme,
         "path"   => Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       }
 
@@ -868,7 +882,7 @@ module Yast
     def IsoStore(key, event)
       event = deep_copy(event)
       parsed = {
-        "scheme" => "file",
+        "scheme" => "iso",
         "path"   => Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       }
 
@@ -1717,7 +1731,7 @@ module Yast
         protocol_box = Builtins.add(
           protocol_box,
           # radio button
-          RadioButton(Id(:samba), Opt(:notify), _("&SMB/CIFS"))
+          RadioButton(Id(:samba), Opt(:notify), _("S&MB/CIFS"))
         )
         protocol_box = Builtins.add(protocol_box, HStretch())
         protocol_box = RadioButtonGroup(
@@ -1815,6 +1829,9 @@ module Yast
             return false
           end
         end
+      else
+        url = UI.QueryWidget(Id(:complete_url), :Value)
+        return valid_scheme?(url)
       end
 
       true
@@ -2162,8 +2179,8 @@ module Yast
 
     # Handles Ui events in New repository type selection dialog
     #
-    # @param [String] widget key
-    # @param [Hash] event description
+    # @param [String] key widget key
+    # @param [Hash] event event description
     # @return [Symbol]
     def SelectHandle(key, event)
       case event["ID"]
@@ -2240,7 +2257,7 @@ module Yast
         elsif selected == :local_dir
           @_url = "dir://"
         elsif selected == :local_iso
-          @_url = "file://"
+          @_url = "iso://"
         elsif selected == :slp
           @_url = "slp://"
         elsif selected == :comm_repos
@@ -2279,9 +2296,9 @@ module Yast
         current = :hd
       elsif @_url == "usb://"
         current = :usb
-      elsif @_url == "dir://"
+      elsif @_url == "dir://" || @_url == "file://"
         current = :local_dir
-      elsif @_url == "file://"
+      elsif @_url == "iso://"
         current = :local_iso
       elsif @_url == "slp://"
         current = :slp
@@ -2401,7 +2418,8 @@ module Yast
           "hd"           => DiskWidget(),
           "usb"          => USBWidget(),
           "dir"          => DirWidget(),
-          "file"         => IsoWidget(),
+          "file"         => DirWidget(),
+          "iso"          => IsoWidget(),
           "http"         => ServerWidget(),
           "https"        => ServerWidget(),
           "ftp"          => ServerWidget(),
@@ -2623,6 +2641,16 @@ module Yast
     # @return [Boolean] whether to abort
     def confirm_abort?
       (Stage.initial ? Popup.ConfirmAbort(:painless) : Popup.ReallyAbort(SourceManager.Modified()))
+    end
+
+    def valid_scheme?(url)
+      scheme = URL.Parse(url)["scheme"] || ""
+      scheme.downcase!
+      ret = VALID_URL_SCHEMES.include?(scheme)
+
+      Report.Error(_("URL scheme '%s' is not valid.") % scheme) unless ret
+
+      ret
     end
 
     publish :function => :SetURL, :type => "void (string)"
