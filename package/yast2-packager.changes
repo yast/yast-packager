@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Wed Nov 26 13:11:35 UTC 2014 - jsrain@suse.cz
+Thu Feb  5 07:33:09 UTC 2015 - jsrain@suse.cz
 
 - initialize bootloader during update if proposed from scratch
   (bnc#899743)
