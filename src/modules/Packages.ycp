@@ -860,7 +860,7 @@ global void InitializeAddOnProducts() {
      * Compute packages required to access the repository
      * @return list(string) list of the required packages
      */
-    list<string> sourceAccessPackages()
+    global list<string> sourceAccessPackages()
     {
 	// TODO: rather check all registered repositories...
 	list<string> ret = [];
