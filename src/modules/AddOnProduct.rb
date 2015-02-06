@@ -2178,7 +2178,8 @@ module Yast
     end
 
     def renamed?(old_name, new_name)
-      @product_renames[old_name] && @product_renames[old_name].include?(new_name)
+      return false unless @product_renames[old_name]
+      @product_renames[old_name].include?(new_name)
     end
 
     def add_rename(old_name, new_name)
