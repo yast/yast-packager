@@ -59,17 +59,17 @@ describe Yast::Packages do
     context "when biosdevname behavior explicitly defined on the Kenel command line" do
       it "returns biosdevname within the list of required packages" do
         set_root_path("cmdline-biosdevname_1")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
+        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
       end
 
       it "does not return biosdevname within the list of required packages" do
         set_root_path("cmdline-biosdevname_0")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
+        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
       end
 
       it "does not return biosdevname within the list of required packages then value is invalid" do
         set_root_path("cmdline-biosdevname_10")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
+        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
       end
     end
 
@@ -80,7 +80,7 @@ describe Yast::Packages do
         it "returns biosdevname within the list of packages" do
           # 0 means `grep` succeeded
           Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
-          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_true
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
         end
       end
 
@@ -88,7 +88,7 @@ describe Yast::Packages do
         it "does not return biosdevname within the list of packages" do
           # 1 means `grep` has not succeeded
           Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
-          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to be_false
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
         end
       end
     end
@@ -307,7 +307,7 @@ describe Yast::Packages do
       expect(status[:new]).to eq([])
       expect(status[:removed]).to eq([])
       expect(status[:kept]).to eq([])
-      expect(status[:updated]).to have(3).items
+      expect(status[:updated].size).to eq(3)
     end
   end
 
