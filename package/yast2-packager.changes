@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 11 21:00:06 UTC 2015 - lslezak@suse.cz
+
+- process "workgroup" parameter in URL properly (bnc#784978)
+- 3.1.62
+
+-------------------------------------------------------------------
 Mon Feb  9 17:41:43 UTC 2015 - ancor@suse.com
 
 - Fixed the network configuration during upgrade (bnc#911132)
