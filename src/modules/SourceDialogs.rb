@@ -14,6 +14,8 @@
 # $Id: inst_source_dialogs.ycp 31607 2006-06-22 07:02:01Z jsuchome $
 require "yast"
 
+require "uri"
+
 module Yast
   class SourceDialogsClass < Module
     # to use N_ in the class constant
@@ -321,44 +323,54 @@ module Yast
     # @param [String] url string URL in the original form
     # @return [String] postprocessed URL
     def PostprocessISOURL(url)
-      Builtins.y2milestone("Updating ISO URL %1", URL.HidePassword(url))
-      last = Ops.add(Builtins.findlastof(url, "/"), 1)
-      onlydir = Builtins.substring(url, 0, last)
-      url = Ops.add(
-        Ops.add(Ops.add("iso:///?iso=", Builtins.substring(url, last)), "&url="),
-        onlydir
-      )
-      Builtins.y2milestone("Updated URL: %1", URL.HidePassword(url))
-      url
+      log.info "Updating ISO URL: #{URL.HidePassword(url)}"
+
+      uri = URI(url)
+      query = uri.query || ""
+      params = URI.decode_www_form(query).to_h
+      params["iso"] = File.basename(uri.path || "")
+
+      new_url = uri.dup
+      new_url.path = File.dirname(uri.path || "")
+      new_url.query = nil
+      params["url"] = new_url.to_s
+
+      processed = URI("")
+      processed.query = URI.encode_www_form(params)
+
+      ret = "iso:///" + processed.to_s
+      log.info "Updated URL: #{URL.HidePassword(ret)}"
+      ret
     end
 
     # Check if URL is an ISO URL
     # @param [String] url string URL to check
     # @return [Boolean] true if URL is an ISO URL, false otherwise
     def IsISOURL(url)
-      ret = Builtins.substring(url, 0, 5) == "iso:/" &&
-        Builtins.issubstring(url, "&url=")
-      Builtins.y2milestone("URL %1 is ISO: %2", URL.HidePassword(url), ret)
-      ret
+      uri = URI(url)
+      params = URI.decode_www_form(uri.query || "").to_h
+
+      uri.scheme.downcase == "iso" && params.has_key?("url")
     end
 
     # Preprocess the ISO URL to be used in the dialogs
     # @param [String] url string URL to preprocess
     # @return [String] preprocessed URL
     def PreprocessISOURL(url)
-      Builtins.y2milestone("Preprocessing ISO URL %1", URL.HidePassword(url))
-      url_pt = Builtins.search(url, "&url=")
-      serverpart = Builtins.substring(url, Ops.add(url_pt, 5))
-      isopart = Builtins.substring(url, 0, url_pt)
-      url = Ops.add(
-        serverpart,
-        Builtins.substring(
-          isopart,
-          Ops.add(Builtins.search(isopart, "iso="), 4)
-        )
-      )
-      Builtins.y2milestone("Updated URL: %1", URL.HidePassword(url))
-      url
+      log.info "Preprocessing ISO URL: #{URL.HidePassword(url)}"
+
+      uri = URI(url)
+      query = uri.query || ""
+      params = URI.decode_www_form(query).to_h
+
+      processed = URI(params.delete("url") || "")
+      processed.path = File.join(processed.path || "", params.delete("iso") || "")
+      processed.query = URI.encode_www_form(params) unless params.empty?
+
+      ret = processed.to_s
+
+      log.info "Updated URL: #{URL.HidePassword(ret)}"
+      ret
     end
 
     # check if given path points to ISO file
@@ -1764,11 +1776,12 @@ module Yast
           share = Ops.get_string(sharepath, 0, "")
           dir = Ops.get_string(sharepath, 1, "")
           dir = "/" if dir == nil
-          UI.ChangeWidget(
-            Id(:workgroup),
-            :Value,
-            Ops.get_string(parsed, "domain", "")
-          )
+
+          query = URI.decode_www_form(parsed["query"] || "").to_h
+          # libzypp uses "workgroup" or "domain" parameter, see "man zypper"
+          workgroup = query["workgroup"] || query["domain"] || ""
+
+          UI.ChangeWidget(Id(:workgroup), :Value, workgroup)
           UI.ChangeWidget(Id(:share), :Value, share)
         end
         UI.ChangeWidget(Id(:dir), :Value, dir)
@@ -2257,7 +2270,7 @@ module Yast
         elsif selected == :local_dir
           @_url = "dir://"
         elsif selected == :local_iso
-          @_url = "iso://"
+          @_url = "iso:///"
         elsif selected == :slp
           @_url = "slp://"
         elsif selected == :comm_repos
