@@ -1144,12 +1144,22 @@ module Yast
       end
 
       licenses_ref = arg_ref(licenses)
-      DisplayLicenseDialog(
+
+      label = Pkg::SourceGeneralData(src_id)["name"]
+      title = _("License Agreement")
+
+      if !label.empty?
+        # %s is an extension name, e.g. "SUSE Linux Enterprise Software Development Kit"
+        title = _("%s License Agreement") % label
+      end
+
+      DisplayLicenseDialogWithTitle(
         available_langs, # license id
         enable_back,
         @lic_lang,
         licenses_ref,
-        id
+        id,
+        title
       )
       licenses = licenses_ref.value
 
