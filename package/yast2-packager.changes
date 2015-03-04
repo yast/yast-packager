@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  4 15:15:26 UTC 2015 - lslezak@suse.cz
+
+- removed obsolete patch download callbacks
+- 3.1.63
+
+-------------------------------------------------------------------
 Wed Feb 11 21:00:06 UTC 2015 - lslezak@suse.cz
 
 - process "workgroup" parameter in URL properly (bnc#784978)

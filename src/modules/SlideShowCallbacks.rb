@@ -653,11 +653,6 @@ module Yast
       Pkg.CallbackProblemDeltaApply(nil)
       Pkg.CallbackFinishDeltaApply(nil)
 
-      Pkg.CallbackStartPatchDownload(nil)
-      Pkg.CallbackProgressPatchDownload(nil)
-      Pkg.CallbackProblemPatchDownload(nil)
-      Pkg.CallbackFinishPatchDownload(nil)
-
       Pkg.CallbackScriptStart(nil)
       Pkg.CallbackScriptProgress(nil)
       Pkg.CallbackScriptProblem(nil)
