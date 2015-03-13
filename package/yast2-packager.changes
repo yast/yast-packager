@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 13 08:00:32 UTC 2015 - lslezak@suse.cz
+
+- "iproute2" package is needed for SSH installation (bnc#920175)
+- 3.1.64
+
+-------------------------------------------------------------------
 Wed Mar  4 15:15:26 UTC 2015 - lslezak@suse.cz
 
 - removed obsolete patch download callbacks
