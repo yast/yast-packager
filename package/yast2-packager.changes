@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 13 11:15:53 UTC 2015 - lslezak@suse.cz
+
+- skip EULA also in the autoupgrade mode, not only in the autoinst
+  mode (bnc#922232)
+- 3.1.65
+
+-------------------------------------------------------------------
 Fri Mar 13 08:00:32 UTC 2015 - lslezak@suse.cz
 
 - "iproute2" package is needed for SSH installation (bnc#920175)
