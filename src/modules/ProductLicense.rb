@@ -1161,7 +1161,7 @@ module Yast
 
       # set timeout for autoinstallation
       # bugzilla #206706
-      if Mode.autoinst
+      if Mode.autoinst || Mode.autoupgrade
         Builtins.y2milestone(
           "AutoYaST: License has been accepted automatically"
         )
