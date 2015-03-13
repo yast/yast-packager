@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 13 10:37:59 UTC 2015 - lslezak@suse.cz
+
+- skip EULA also in the autoupgrade mode, not only in the autoinst
+  mode (bnc#922232)
+- 2.17.113
+
+-------------------------------------------------------------------
 Fri Feb  6 14:20:04 UTC 2015 - lslezak@suse.cz
 
 - make the Packages::sourceAccessPackages() function public to
