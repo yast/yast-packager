@@ -977,7 +977,7 @@ global symbol AskLicenseAgreement (integer src_id, string dir,
 
     // set timeout for autoinstallation
     // bugzilla #206706
-    if (Mode::autoinst()) {
+    if (Mode::autoinst() || Mode::autoupgrade()) {
 	y2milestone("AutoYaST: License has been accepted automatically");
 	ret = `accepted;
     } else {
