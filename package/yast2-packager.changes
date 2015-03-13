@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 13 10:37:59 UTC 2015 - lslezak@suse.cz
+
+- skip EULA also in the autoupgrade mode, not only in the autoinst
+  mode (bnc#922232)
+- 2.17.107.1
+
+-------------------------------------------------------------------
 Fri May 31 11:28:08 UTC 2013 - lslezak@suse.cz
 
 - removed writing a debug file (bnc#822615)
