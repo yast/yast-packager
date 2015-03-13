@@ -495,7 +495,7 @@ describe Yast::Packages do
       let(:braille) { false }
       let(:usessh) { true }
       let(:xorg_icewm_and_ssh) {
-        ["icewm", "openssh", "xorg-x11-fonts", "xorg-x11-server"]
+        ["icewm", "iproute2", "openssh", "xorg-x11-fonts", "xorg-x11-server"]
       }
 
       context "during installation" do
@@ -509,7 +509,7 @@ describe Yast::Packages do
       context "during autoinstallation" do
         let(:mode) { "autoinstallation" }
 
-        it "includes xorg, icewm, openssh and yast2-x11" do
+        it "includes xorg, icewm, openssh, iproute2 and yast2-x11" do
           expect(packages).to eq(xorg_icewm_and_ssh + ["yast2-x11"])
         end
       end

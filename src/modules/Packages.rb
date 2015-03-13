@@ -947,7 +947,11 @@ module Yast
       #this means we have a remote X server
       packages.concat(remote_x11_packages) if Linuxrc.display_ip
       packages << "sbl" if Linuxrc.braille
+
+      # ssh installation
       packages << "openssh" if Linuxrc.usessh
+      # "ip" tool is needed by the YaST2.ssh start script (bnc#920175)
+      packages << "iproute2" if Linuxrc.usessh
 
       Builtins.y2milestone("Installation mode packages: %1", packages)
 
