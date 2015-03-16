@@ -1163,6 +1163,8 @@ module Yast
       )
       licenses = licenses_ref.value
 
+      update_license_archive_location(src_id)
+
       # Display info as a popup if exists
       InstShowInfo.show_info_txt(@info_file) if @info_file != nil
 
@@ -1611,6 +1613,15 @@ module Yast
       end
     end
 
+    # update license location displayed in the dialog
+    # @param [Fixnum] src_id integer repository to get the license from.
+    def update_license_archive_location(src_id)
+      src_url = Pkg::SourceGeneralData(src_id)["url"]
+      if location_is_url?(src_url) && UI.WidgetExists(:printing_hint)
+        lic_url = File.join(src_url, @license_file_print)
+        UI.ReplaceWidget(:printing_hint, Label(license_download_label(lic_url)))
+      end
+    end
   end
 
   ProductLicense = ProductLicenseClass.new
