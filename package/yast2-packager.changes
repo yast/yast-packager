@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 16 09:45:04 UTC 2015 - cwh@suse.com
+
+- Added reponame to license's title (bnc#899892)
+- Display correct license URL for add-on repositories (bnc#899891)
+- 3.1.66
+
+-------------------------------------------------------------------
 Fri Mar 13 11:15:53 UTC 2015 - lslezak@suse.cz
 
 - skip EULA also in the autoupgrade mode, not only in the autoinst
