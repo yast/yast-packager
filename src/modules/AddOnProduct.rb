@@ -885,9 +885,8 @@ module Yast
       # or check the content file
       if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
-        # TODO FIXME: user needs to manually select the addon to register,
-        # pass the addon so it could be pre-selected
-        WFM.CallFunction("inst_scc", [])
+        # pass the addon so it could be registered
+        WFM.CallFunction("inst_scc", ["register_media_addon", src_id])
       else
         Builtins.y2milestone(
           "Repository ID %1 doesn't need registration",
