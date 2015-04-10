@@ -74,6 +74,10 @@ Requires:	libyui_pkg
 # ensure that 'checkmedia' is on the medium
 Recommends:	checkmedia
 
+# for registering media add-ons
+# (soft dependency because openSUSE does not contain the registration module)
+Recommends:     yast2-registration
+
 Provides:	yast2-config-package-manager
 Obsoletes:	yast2-config-package-manager
 Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
