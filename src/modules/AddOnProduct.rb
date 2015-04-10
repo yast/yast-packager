@@ -44,6 +44,7 @@ module Yast
       Yast.import "URL"
       Yast.import "Stage"
       Yast.import "Icon"
+      Yast.import "Package"
       Yast.import "PackageCallbacks"
       Yast.import "PackagesProposal"
       Yast.import "SourceManager"
@@ -885,6 +886,13 @@ module Yast
       # or check the content file
       if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
+
+        if !WFM.ClientExists("inst_scc") && !Package.Install("yast2-registration")
+          Report.Error(_("Package '%s' is not installed.\nThe add-on product cannot be registered.") %
+            "yast2-registration")
+          return nil
+        end
+
         # pass the addon so it could be registered
         WFM.CallFunction("inst_scc", ["register_media_addon", src_id])
       else
@@ -1465,7 +1473,7 @@ module Yast
             one_prod
           )
           Pkg.ResolvableInstall(one_prod, :product)
-        end 
+        end
 
         # install all products from the destination
       else
@@ -1656,7 +1664,7 @@ module Yast
         add_products = []
         # new xml format
         if type == "xml"
-          add_products = ParseXMLBasedAddOnProductsFile(filename, base_url) 
+          add_products = ParseXMLBasedAddOnProductsFile(filename, base_url)
           # old fallback
         elsif type == "plain"
           add_products = ParsePlainAddOnProductsFile(filename, base_url)
