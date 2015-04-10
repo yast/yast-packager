@@ -78,12 +78,6 @@ Recommends:	checkmedia
 # (soft dependency because openSUSE does not contain the registration module)
 Recommends:     yast2-registration
 
-Provides:	yast2-config-package-manager
-Obsoletes:	yast2-config-package-manager
-Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
-Obsoletes:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
-Provides:	yast2-trans-package-manager yast2-trans-inst-packages
-Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
 # force *-webpin subpackage removal at upgrade
 Obsoletes:      yast2-packager-webpin < %version
 
