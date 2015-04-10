@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 10 14:10:39 UTC 2015 - lslezak@suse.cz
+
+- register addons from media (FATE#318505)
+- 3.1.67
+
+-------------------------------------------------------------------
 Mon Mar 16 09:45:04 UTC 2015 - cwh@suse.com
 
 - Added reponame to license's title (bnc#899892)
