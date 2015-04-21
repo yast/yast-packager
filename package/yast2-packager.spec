@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.66
+Version:        3.1.67
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -74,12 +74,12 @@ Requires:	libyui_pkg
 # ensure that 'checkmedia' is on the medium
 Recommends:	checkmedia
 
-Provides:	yast2-config-package-manager
-Obsoletes:	yast2-config-package-manager
-Provides:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
-Obsoletes:	y2t_spkg y2t_inst-packages y2pkginf y2c_spkg
-Provides:	yast2-trans-package-manager yast2-trans-inst-packages
-Obsoletes:	yast2-trans-package-manager yast2-trans-inst-packages
+# for registering media add-ons on SLE
+# (openSUSE does not contain the registration module)
+%if 0%{?sles_version}
+Recommends:     yast2-registration
+%endif
+
 # force *-webpin subpackage removal at upgrade
 Obsoletes:      yast2-packager-webpin < %version
 

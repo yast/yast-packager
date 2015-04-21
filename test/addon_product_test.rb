@@ -32,4 +32,59 @@ describe Yast::AddOnProduct do
     end
   end
 
+  describe "#RegisterAddOnProduct" do
+    let(:repo_id) { 42 }
+
+    context "the add-on requires registration" do
+      before do
+        allow(Yast::WorkflowManager).to receive(:WorkflowRequiresRegistration)
+          .with(repo_id).and_return(true)
+      end
+
+      context "the registration client is installed" do
+        before do
+          expect(Yast::WFM).to receive(:ClientExists).with("inst_scc").and_return(true)
+        end
+
+        it "starts the registration client" do
+          expect(Yast::WFM).to receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+
+          Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
+        end
+      end
+
+      context "the registration client is not installed" do
+        before do
+          expect(Yast::WFM).to receive(:ClientExists).with("inst_scc").and_return(false)
+        end
+
+        it "asks to install yast2-registration and starts registration if installed" do
+          expect(Yast::Package).to receive(:Install).with("yast2-registration").and_return(true)
+          expect(Yast::WFM).to receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+
+          Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
+        end
+
+        it "asks to install yast2-registration and skips registration if not installed" do
+          expect(Yast::Package).to receive(:Install).with("yast2-registration").and_return(false)
+          expect(Yast::WFM).to_not receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+
+          Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
+        end
+      end
+    end
+
+    context "the add-on does not require registration" do
+      before do
+        allow(Yast::WorkflowManager).to receive(:WorkflowRequiresRegistration)
+          .with(repo_id).and_return(false)
+      end
+
+      it "add-on registration is skipped" do
+        expect(Yast::WFM).to_not receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+
+        Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
+      end
+    end
+  end
 end
