@@ -37,7 +37,7 @@ describe Yast::AddOnProduct do
 
     context "the add-on requires registration" do
       before do
-        expect(Yast::WorkflowManager).to receive(:WorkflowRequiresRegistration)
+        allow(Yast::WorkflowManager).to receive(:WorkflowRequiresRegistration)
           .with(repo_id).and_return(true)
       end
 
@@ -76,7 +76,7 @@ describe Yast::AddOnProduct do
 
     context "the add-on does not require registration" do
       before do
-        expect(Yast::WorkflowManager).to receive(:WorkflowRequiresRegistration)
+        allow(Yast::WorkflowManager).to receive(:WorkflowRequiresRegistration)
           .with(repo_id).and_return(false)
       end
 

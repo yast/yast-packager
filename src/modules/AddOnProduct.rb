@@ -887,10 +887,14 @@ module Yast
       if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
 
-        if !WFM.ClientExists("inst_scc") && !Package.Install("yast2-registration")
-          Report.Error(_("Package '%s' is not installed.\nThe add-on product cannot be registered.") %
-            "yast2-registration")
-          return nil
+        if !WFM.ClientExists("inst_scc")
+          package_installed = Package.Install("yast2-registration")
+
+          if !package_installed
+            Report.Error(_("Package '%s' is not installed.\nThe add-on product cannot be registered.") %
+              "yast2-registration")
+            return nil
+          end
         end
 
         # pass the addon so it could be registered

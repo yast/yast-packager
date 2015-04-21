@@ -74,9 +74,11 @@ Requires:	libyui_pkg
 # ensure that 'checkmedia' is on the medium
 Recommends:	checkmedia
 
-# for registering media add-ons
-# (soft dependency because openSUSE does not contain the registration module)
+# for registering media add-ons on SLE
+# (openSUSE does not contain the registration module)
+%if 0%{?sles_version}
 Recommends:     yast2-registration
+%endif
 
 # force *-webpin subpackage removal at upgrade
 Obsoletes:      yast2-packager-webpin < %version
