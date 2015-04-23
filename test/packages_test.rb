@@ -47,7 +47,7 @@ describe Yast::Packages do
   describe "#kernelCmdLinePackages" do
     before(:each) do
       # default value
-      Yast::Product.stub(:Product).and_return(nil)
+      allow(Yast::Product).to receive(:Product).and_return nil
     end
 
     after(:each) do
@@ -79,7 +79,7 @@ describe Yast::Packages do
       context "and running on a Dell system" do
         it "returns biosdevname within the list of packages" do
           # 0 means `grep` succeeded
-          Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
+          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
         end
       end
@@ -87,7 +87,7 @@ describe Yast::Packages do
       context "and running on a non-Dell system" do
         it "does not return biosdevname within the list of packages" do
           # 1 means `grep` has not succeeded
-          Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
+          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
         end
       end
@@ -98,20 +98,20 @@ describe Yast::Packages do
   describe "#default_patterns" do
     context "software->default_patterns is not defined in control file" do
       it "returns empty list" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("")
         expect(Yast::Packages.default_patterns).to be_empty
       end
     end
 
     context "software->default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a    b\t c d\t  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
@@ -120,20 +120,20 @@ describe Yast::Packages do
   describe "#optional_default_patterns" do
     context "software->optional_default_patterns is not defined in control file" do
       it "returns empty list" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("")
         expect(Yast::Packages.optional_default_patterns).to be_empty
       end
     end
 
     context "software->optional_default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("a b c d")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("a b c d")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
@@ -154,8 +154,8 @@ describe Yast::Packages do
     context "if this is the initial run or it is being reinitialized" do
       context "and patterns are not unselected by user" do
         it "selects patterns for installation" do
-          Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
-          Yast::Pkg.stub(:ResolvableProperties).and_return(
+          allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
             [pattern({ "name" => "p1" })],
             [pattern({ "name" => "p2" })],
             [pattern({ "name" => "p3" })]
@@ -168,8 +168,8 @@ describe Yast::Packages do
 
       context "and some patterns are already unselected by user" do
         it "selects patterns for installation that were not unselected by user already" do
-          Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
-          Yast::Pkg.stub(:ResolvableProperties).and_return(
+          allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
             [pattern({ "name" => "p1", "transact_by" => :user })],
             [pattern({ "name" => "p2", "transact_by" => :user })],
             [pattern({ "name" => "p3" })]
@@ -185,8 +185,8 @@ describe Yast::Packages do
 
     context "if this is a subsequent run" do
       it "re-selects all patterns already selected for installation" do
-        Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
-        Yast::Pkg.stub(:ResolvableProperties).and_return(
+        allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+        allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
           [pattern({ "name" => "p1", "transact_by" => :user, "status" => :selected })],
           [pattern({ "name" => "p2", "transact_by" => :user, "status" => :selected })],
           [pattern({ "name" => "p3" })]
@@ -201,9 +201,9 @@ describe Yast::Packages do
     it "reports an error if pattern is not found" do
       default_patterns = ["p1", "p2", "p3"]
 
-      Yast::Packages.stub(:patterns_to_install).and_return(default_patterns)
-      Yast::Pkg.stub(:ResolvableProperties).and_return([])
-      Yast::Report.stub(:Error).and_return(nil)
+      allow(Yast::Packages).to receive(:patterns_to_install).and_return(default_patterns)
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
+      allow(Yast::Report).to receive(:Error).and_return(nil)
 
       # Called twice with reselect=true/false
       Yast::Packages.SelectSystemPatterns(true)
@@ -216,31 +216,34 @@ describe Yast::Packages do
       optional_default_patterns = ["p3", "p4"]
 
       # No default patterns, all are optional
-      Yast::Packages.stub(:default_patterns).and_return([])
-      Yast::Packages.stub(:optional_default_patterns).and_return(optional_default_patterns)
-      Yast::Packages.stub(:ComputeSystemPatternList).and_return([])
-      Yast::Pkg.stub(:ResolvableProperties).and_return([])
+      allow(Yast::Packages).to receive(:default_patterns).and_return([])
+      allow(Yast::Packages).to receive(:optional_default_patterns).and_return(optional_default_patterns)
+      allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
 
       expect(Yast::Report).not_to receive(:Error)
 
-      expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
-        expect(msg).to match(/optional pattern p[3-4] does not exist/i).exactly(4).times
-      end.at_least(4).times.and_call_original
+      logged_errors = 0
+      allow(Yast::Y2Logger.instance).to receive(:info) do |msg|
+        logged_errors += 1 if msg =~ /optional pattern p[3-4] does not exist/i
+      end
 
       # Called twice with reselect=true/false
       Yast::Packages.SelectSystemPatterns(true)
       Yast::Packages.SelectSystemPatterns(false)
+
+      expect(logged_errors).to eq 4
     end
   end
 
   describe "#log_software_selection" do
     it "logs all currently changed resolvables set by user or application (excluding solver)" do
-      Yast::Pkg.stub(:ResolvableProperties).and_return([])
-      Yast::Pkg.stub(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
 
       expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
         expect(msg).to match(/(transaction status [begin|end]|(locked)?resolvables of type .* set by .*|:name=>.*:version=>)/i)
-      end.exactly(8).times.and_call_original
+      end.exactly(8).times
 
       expect(Yast::Packages.log_software_selection).to be_nil
     end
@@ -384,6 +387,7 @@ describe Yast::Packages do
     let(:packages) { Yast::Packages.vnc_packages.sort.uniq }
     let(:base_packages) { ["xinetd", "xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"] }
     let(:base_packages_and_wm) { ["icewm"] + base_packages }
+    let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
     context "during installation" do
       before do
@@ -423,8 +427,9 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsSelected).and_return true
         end
 
-        it "includes xinetd, xorg and yast2-x11" do
-          expect(packages).to eq(base_packages + ["yast2-x11"])
+        it "includes xinetd, xorg and autoyast X11 packages" do
+          expected = (base_packages + autoyast_x11_packages).sort
+          expect(packages).to eq(expected)
         end
       end
 
@@ -434,7 +439,8 @@ describe Yast::Packages do
         end
 
         it "includes xinetd, xorg and icewm" do
-          expect(packages).to eq(base_packages_and_wm + ["yast2-x11"])
+          expected = (base_packages_and_wm + autoyast_x11_packages).sort
+          expect(packages).to eq(expected)
         end
       end
     end
@@ -497,6 +503,7 @@ describe Yast::Packages do
       let(:xorg_icewm_and_ssh) {
         ["icewm", "iproute2", "openssh", "xorg-x11-fonts", "xorg-x11-server"]
       }
+      let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
       context "during installation" do
         let(:mode) { "installation" }
@@ -509,8 +516,9 @@ describe Yast::Packages do
       context "during autoinstallation" do
         let(:mode) { "autoinstallation" }
 
-        it "includes xorg, icewm, openssh, iproute2 and yast2-x11" do
-          expect(packages).to eq(xorg_icewm_and_ssh + ["yast2-x11"])
+        it "includes xorg, icewm, openssh, iproute2 and autoinstall packages" do
+          expected = (xorg_icewm_and_ssh + autoyast_x11_packages).sort
+          expect(packages).to eq(expected)
         end
       end
     end

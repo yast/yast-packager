@@ -18,6 +18,10 @@ module Yast
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
     # Minimum set of packages required to enable VNC server
     VNC_BASE_PACKAGES = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
+    # Additional packages needed to run second stage in graphical mode
+    # Use exact package name (i.e. libyui-qt6 instead of libyui-qt) to prevent
+    # the UI from asking for confirmation
+    AUTOYAST_X11_PACKAGES = ["libyui-qt6", "yast2-x11"]
     # Default window manager for VNC if none is installed
     DEFAULT_WM = "icewm"
     # Minimum set of packages required for installation with remote X11 server
@@ -2559,7 +2563,7 @@ module Yast
       # At least one windowmanager must be installed (#427044)
       # If none is there, use a fallback
       packages << DEFAULT_WM unless has_window_manager?
-      packages << "yast2-x11" if Mode.autoinst
+      packages.concat(AUTOYAST_X11_PACKAGES) if Mode.autoinst
       packages
     end
 
@@ -2569,7 +2573,7 @@ module Yast
     # @return [Array<String>] package list
     def remote_x11_packages
       packages = REMOTE_X11_BASE_PACKAGES.dup
-      packages << "yast2-x11" if Mode.autoinst
+      packages.concat(AUTOYAST_X11_PACKAGES) if Mode.autoinst
       packages
     end
 
