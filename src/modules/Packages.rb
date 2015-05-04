@@ -2657,11 +2657,12 @@ module Yast
     def find_provider(tag)
       providers = Pkg.PkgQueryProvides(tag).select { |provide| provide[1] != :NONE }
       names = providers.map(&:first)
+      provider = names.include?(tag) ? tag : names.sort.first
       if names.size > 1
         log.warn "More than one provider was found for '#{tag}': "\
-          "#{names.sort.join(', ')}."
+          "#{names.join(', ')}. Selecting '#{provider}'."
       end
-      names.first
+      provider
     end
 
     publish :variable => :install_sources, :type => "boolean"

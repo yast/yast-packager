@@ -516,13 +516,29 @@ describe Yast::Packages do
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
         allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([['prov1', :CAND, :NONE], ['prov2', :CAND, :NONE]])
+          with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
       end
 
-      it "includes the first provider and logs a message" do
-        expect(Yast::Package.log).to receive(:info).
-          with("More than one provider was found for '#{package}': prov1, prov2.")
-        expect(subject.vnc_packages).to include('prov1')
+      context "when a package named after the tag is found" do
+        let(:providers) { ['prov1', package] }
+
+        it "includes the tag as package name and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov1, #{package}. Selecting '#{package}'.")
+          expect(subject.vnc_packages).to include(package)
+        end
+      end
+
+      context "when a package named after the tag is not found" do
+        let(:providers) { ['prov2', 'prov1'] }
+
+        it "includes the first provider (according to alphabetic order) and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov2, prov1. Selecting 'prov1'.")
+          expect(subject.vnc_packages).to include('prov1')
+        end
       end
     end
   end
@@ -608,13 +624,29 @@ describe Yast::Packages do
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
         allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([['prov1', :CAND, :NONE], ['prov2', :CAND, :NONE]])
+          with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
       end
 
-      it "includes the first provider and logs a message" do
-        expect(Yast::Package.log).to receive(:info).
-          with("More than one provider was found for '#{package}': prov1, prov2.")
-        expect(subject.remote_x11_packages).to include('prov1')
+      context "when a package named after the tag is found" do
+        let(:providers) { ['prov1', package] }
+
+        it "includes the tag as package name and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov1, #{package}. Selecting '#{package}'.")
+          expect(subject.remote_x11_packages).to include(package)
+        end
+      end
+
+      context "when a package named after the tag is not found" do
+        let(:providers) { ['prov2', 'prov1'] }
+
+        it "includes the first provider (according to alphabetic order) and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov2, prov1. Selecting 'prov1'.")
+          expect(subject.remote_x11_packages).to include('prov1')
+        end
       end
     end
   end
