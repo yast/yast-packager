@@ -594,19 +594,38 @@ describe Yast::Packages do
       allow(Yast::Linuxrc).to receive(:display_ip).and_return display_ip
       allow(Yast::Linuxrc).to receive(:braille).and_return braille
       allow(Yast::Linuxrc).to receive(:usessh).and_return usessh
-      allow(Yast::Mode).to receive(:mode).and_return mode
+      allow(Yast::Packages).to receive(:vnc_packages).and_return(vnc_packages)
+      allow(Yast::Packages).to receive(:remote_x11_packages).and_return(remote_x11_packages)
+      (braille_packages + ssh_packages).each do |pkg|
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
+      end
     end
+
     let(:packages) { Yast::Packages.modePackages.sort.uniq }
+    let(:vnc_packages) { %w(some-vnc-packages) }
+    let(:remote_x11_packages) { %w(some-x11-packages) }
+    let(:ssh_packages) { %w(openssh iproute2) }
+    let(:braille_packages) { %w(sbl) }
 
     context "on a boring local regular installation" do
       let(:vnc) { false }
       let(:display_ip) { false }
       let(:braille) { false }
       let(:usessh) { false }
-      let(:mode) { "installation" }
 
       it "returns an empty array" do
         expect(packages).to be_empty
+      end
+    end
+
+    context "on a installation with braille enabled" do
+      let(:vnc) { false }
+      let(:display_ip) { false }
+      let(:braille) { true }
+      let(:usessh) { false }
+
+      it "includes braille packages" do
+        expect(packages).to eq(braille_packages)
       end
     end
 
@@ -615,26 +634,10 @@ describe Yast::Packages do
       let(:display_ip) { true }
       let(:braille) { false }
       let(:usessh) { true }
-      let(:xorg_icewm_and_ssh) {
-        ["icewm", "iproute2", "openssh", "xorg-x11-fonts", "xorg-x11-server"]
-      }
-      let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
-      context "during installation" do
-        let(:mode) { "installation" }
-
-        it "includes xorg, icewm and openssh" do
-          expect(packages).to eq(xorg_icewm_and_ssh)
-        end
-      end
-
-      context "during autoinstallation" do
-        let(:mode) { "autoinstallation" }
-
-        it "includes xorg, icewm, openssh, iproute2 and autoinstall packages" do
-          expected = (xorg_icewm_and_ssh + autoyast_x11_packages).sort
-          expect(packages).to eq(expected)
-        end
+      it "includes x11 and ssh packages" do
+        expected = (remote_x11_packages + ssh_packages).sort
+        expect(packages).to eq(expected)
       end
     end
 
@@ -643,11 +646,9 @@ describe Yast::Packages do
       let(:display_ip) { false }
       let(:braille) { false }
       let(:usessh) { false }
-      let(:mode) { "installation" }
 
-      it "relies on #vnc_packages" do
-        expect(Yast::Packages).to receive(:vnc_packages).and_return %w(five names)
-        expect(packages).to eq(%w(five names))
+      it "includes vnc packages" do
+        expect(packages).to eq(vnc_packages)
       end
     end
   end
