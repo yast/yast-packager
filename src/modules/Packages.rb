@@ -2658,7 +2658,7 @@ module Yast
       providers = Pkg.PkgQueryProvides(tag).select { |provide| provide[1] != :NONE }
       names = providers.map(&:first)
       if names.size > 1
-        log.info "More than one provider was found for '#{tag}': "\
+        log.warn "More than one provider was found for '#{tag}': "\
           "#{names.sort.join(', ')}."
       end
       names.first
