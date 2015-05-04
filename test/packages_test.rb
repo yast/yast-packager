@@ -509,6 +509,22 @@ describe Yast::Packages do
         expect(subject.vnc_packages).to include(package)
       end
     end
+
+    context "when more than one package provides a tag" do
+      let(:package) { 'multi-provider-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([['prov1', :CAND, :NONE], ['prov2', :CAND, :NONE]])
+      end
+
+      it "includes the first provider and logs a message" do
+        expect(Yast::Package.log).to receive(:info).
+          with("More than one provider was found for '#{package}': prov1, prov2.")
+        expect(subject.vnc_packages).to include('prov1')
+      end
+    end
   end
 
   describe "#remote_x11_packages" do
@@ -586,6 +602,21 @@ describe Yast::Packages do
       end
     end
 
+    context "when more than one package provides a tag" do
+      let(:package) { 'multi-provider-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([['prov1', :CAND, :NONE], ['prov2', :CAND, :NONE]])
+      end
+
+      it "includes the first provider and logs a message" do
+        expect(Yast::Package.log).to receive(:info).
+          with("More than one provider was found for '#{package}': prov1, prov2.")
+        expect(subject.remote_x11_packages).to include('prov1')
+      end
+    end
   end
 
   describe "#modePackages" do

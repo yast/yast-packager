@@ -2627,31 +2627,41 @@ module Yast
 
     # Search for providers for a list of tags
     #
-    # The use case of this method is to convert and array
-    # of tags into an array of packages.
+    # The use case of this method is to convert and array of tags into an array
+    # of packages. If a tag does not have a provider, then the tag is included
+    # in the array.
     #
     # @param tags [Array<String>] List of tags (ie. package names) to search for.
     # @return     [Array<String>] List contaning a package for each tag.
     # @see find_provider
     def find_providers(tags)
-      tags.map { |tag| find_provider(tag) }
+      tags.each_with_object([]) do |tag, providers|
+        provider = find_provider(tag)
+        if provider.nil?
+          log.error "Provider not found for '#{tag}'"
+          providers << tag
+        else
+          providers << provider
+        end
+      end
     end
 
     # Search a provider for a tag
     #
     # If a provider is not found, an error will be logged.
     #
-    # @param tag [String] Tag to search a package for.
-    # @return    [String] Name of the package which provides that tag.
+    # @param tag [String]     Tag to search a package for.
+    # @return    [String,nil] Name of the package which provides that tag.
+    #                         It returns nil if no provider is found.
     # @see find_providers
     def find_provider(tag)
-      provided_by = Pkg.PkgQueryProvides(tag).find { |provide| provide[1] != :NONE }
-      if provided_by.nil?
-        log.error "Provider not found for '#{tag}'"
-        tag
-      else
-        provided_by.first
+      providers = Pkg.PkgQueryProvides(tag).select { |provide| provide[1] != :NONE }
+      names = providers.map(&:first)
+      if names.size > 1
+        log.info "More than one provider was found for '#{tag}': "\
+          "#{names.sort.join(', ')}."
       end
+      names.first
     end
 
     publish :variable => :install_sources, :type => "boolean"
