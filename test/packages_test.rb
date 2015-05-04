@@ -389,6 +389,14 @@ describe Yast::Packages do
     let(:base_packages_and_wm) { ["icewm"] + base_packages }
     let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
+    before do
+      (base_packages_and_wm + ['yast2-x11']).each do |pkg|
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
+      end
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with('libyui-qt').
+        and_return([['libyui-qt6', :CAND, :NONE]])
+    end
+
     context "during installation" do
       before do
         allow(Yast::Pkg).to receive(:IsProvided).and_return false
@@ -471,6 +479,113 @@ describe Yast::Packages do
         end
       end
     end
+
+    context "when some package is missing" do
+      let(:package) { 'missing-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.vnc_packages).to include(package)
+      end
+    end
+
+    context "when some package is not available" do
+      let(:package) { 'unavailable-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([[package, :NONE, :NONE]])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.vnc_packages).to include(package)
+      end
+    end
+  end
+
+  describe "#remote_x11_packages" do
+    let(:packages) { Yast::Packages.remote_x11_packages.sort.uniq }
+    let(:base_packages) { ["icewm", "xorg-x11-fonts", "xorg-x11-server"] }
+    let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
+
+    before do
+      (base_packages + ['yast2-x11']).each do |pkg|
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
+      end
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with('libyui-qt').
+        and_return([['libyui-qt6', :CAND, :NONE]])
+    end
+
+    context "during installation" do
+      before do
+        allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "installation"
+      end
+
+      it "includes xorg and icewm" do
+        expect(packages).to eq(base_packages)
+      end
+    end
+
+    context "during autoinstallation" do
+      before do
+        allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "autoinstallation"
+      end
+
+      it "includes xorg, icewm, libyui-qt and yast2-x11" do
+        expect(packages).to eq((base_packages + autoyast_x11_packages).sort)
+      end
+    end
+
+    context "in normal mode" do
+      before do
+        allow(Yast::Mode).to receive(:mode).and_return "normal"
+      end
+
+      it "includes xorg and icewm" do
+        expect(packages).to eq(base_packages)
+      end
+    end
+
+    context "when some package is missing" do
+      let(:package) { 'missing-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.remote_x11_packages).to include(package)
+      end
+    end
+
+    context "when some package is not available" do
+      let(:package) { 'unavailable-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([[package, :NONE, :NONE]])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.remote_x11_packages).to include(package)
+      end
+    end
+
   end
 
   describe "#modePackages" do

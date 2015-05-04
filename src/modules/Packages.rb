@@ -17,15 +17,15 @@ module Yast
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
     # Minimum set of packages required to enable VNC server
-    VNC_BASE_PACKAGES = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
+    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
     # Additional packages needed to run second stage in graphical mode
     # Use exact package name (i.e. libyui-qt6 instead of libyui-qt) to prevent
     # the UI from asking for confirmation
-    AUTOYAST_X11_PACKAGES = ["libyui-qt6", "yast2-x11"]
+    AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"]
     # Default window manager for VNC if none is installed
     DEFAULT_WM = "icewm"
     # Minimum set of packages required for installation with remote X11 server
-    REMOTE_X11_BASE_PACKAGES = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
+    REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
 
     def main
       Yast.import "UI"
@@ -61,6 +61,7 @@ module Yast
       Yast.import "Installation"
       Yast.import "URL"
       Yast.import "PackagesProposal"
+      Yast.import "PackageSystem"
       Yast.import "HTML"
 
       Yast.include self, "packager/load_release_notes.rb"
@@ -138,6 +139,8 @@ module Yast
       @base_source_id = nil
 
       @old_packages_proposal = nil
+
+      PackageSystem.EnsureSourceInit
     end
 
     # summary functions
@@ -2559,12 +2562,12 @@ module Yast
     #
     # @return [Array<String>] package list
     def vnc_packages
-      packages = VNC_BASE_PACKAGES.dup
+      tags = VNC_BASE_TAGS.dup
       # At least one windowmanager must be installed (#427044)
       # If none is there, use a fallback
-      packages << DEFAULT_WM unless has_window_manager?
-      packages.concat(AUTOYAST_X11_PACKAGES) if Mode.autoinst
-      packages
+      tags << DEFAULT_WM unless has_window_manager?
+      tags.concat(AUTOYAST_X11_TAGS) if Mode.autoinst
+      find_providers(tags)
     end
 
     # List of packages expected to be installed in order to use
@@ -2572,9 +2575,9 @@ module Yast
     #
     # @return [Array<String>] package list
     def remote_x11_packages
-      packages = REMOTE_X11_BASE_PACKAGES.dup
-      packages.concat(AUTOYAST_X11_PACKAGES) if Mode.autoinst
-      packages
+      tags = REMOTE_X11_BASE_TAGS.dup
+      tags.concat(AUTOYAST_X11_TAGS) if Mode.autoinst
+      find_providers(tags)
     end
 
   private
@@ -2624,6 +2627,24 @@ module Yast
           "Failed to select default product pattern %{pattern_name}.\n" +
           "Pattern has not been found."
         ) % {:pattern_name => pattern_name})
+      end
+    end
+
+    # Search for providers for a list of tags
+    #
+    # If a provider is not found, an error will be logged.
+    #
+    # @param tags [Array<String>] List of tags (ie. package names) to search for.
+    # @return [Array<String>] List of packages that provide those tags.
+    def find_providers(tags)
+      tags.each_with_object([]) do |name, providers|
+        provided_by = Pkg.PkgQueryProvides(name).find { |provide| provide[1] != :NONE }
+        if provided_by.nil?
+          providers << name
+          log.error "Provider not found for '#{name}'"
+        else
+          providers << provided_by[0]
+        end
       end
     end
 
