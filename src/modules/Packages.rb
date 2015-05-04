@@ -16,11 +16,9 @@ module Yast
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
-    # Minimum set of packages required to enable VNC server
+    # Minimum set of packages tags required to enable VNC server
     VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
-    # Additional packages needed to run second stage in graphical mode
-    # Use exact package name (i.e. libyui-qt6 instead of libyui-qt) to prevent
-    # the UI from asking for confirmation
+    # Additional packages tags needed to run second stage in graphical mode
     AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"]
     # Default window manager for VNC if none is installed
     DEFAULT_WM = "icewm"
@@ -61,7 +59,6 @@ module Yast
       Yast.import "Installation"
       Yast.import "URL"
       Yast.import "PackagesProposal"
-      Yast.import "PackageSystem"
       Yast.import "HTML"
 
       Yast.include self, "packager/load_release_notes.rb"
@@ -139,8 +136,6 @@ module Yast
       @base_source_id = nil
 
       @old_packages_proposal = nil
-
-      PackageSystem.EnsureSourceInit
     end
 
     # summary functions
@@ -2632,19 +2627,30 @@ module Yast
 
     # Search for providers for a list of tags
     #
-    # If a provider is not found, an error will be logged.
+    # The use case of this method is to convert and array
+    # of tags into an array of packages.
     #
     # @param tags [Array<String>] List of tags (ie. package names) to search for.
-    # @return [Array<String>] List of packages that provide those tags.
+    # @return     [Array<String>] List contaning a package for each tag.
+    # @see find_provider
     def find_providers(tags)
-      tags.each_with_object([]) do |name, providers|
-        provided_by = Pkg.PkgQueryProvides(name).find { |provide| provide[1] != :NONE }
-        if provided_by.nil?
-          providers << name
-          log.error "Provider not found for '#{name}'"
-        else
-          providers << provided_by[0]
-        end
+      tags.map { |tag| find_provider(tag) }
+    end
+
+    # Search a provider for a tag
+    #
+    # If a provider is not found, an error will be logged.
+    #
+    # @param tag [String] Tag to search a package for.
+    # @return    [String] Name of the package which provides that tag.
+    # @see find_providers
+    def find_provider(tag)
+      provided_by = Pkg.PkgQueryProvides(tag).find { |provide| provide[1] != :NONE }
+      if provided_by.nil?
+        log.error "Provider not found for '#{tag}'"
+        tag
+      else
+        provided_by.first
       end
     end
 
