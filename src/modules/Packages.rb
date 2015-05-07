@@ -2628,8 +2628,8 @@ module Yast
     # Search for providers for a list of tags
     #
     # The use case of this method is to convert and array of tags into an array
-    # of packages. If a tag does not have a provider, then the tag is included
-    # in the array.
+    # of packages. If a tag does not have a provider, then the tag will be
+    # included in the array and an error will be logged.
     #
     # @param tags [Array<String>] List of tags (ie. package names) to search for.
     # @return     [Array<String>] List contaning a package for each tag.
@@ -2648,15 +2648,17 @@ module Yast
 
     # Search a provider for a tag
     #
-    # If a provider is not found, an error will be logged.
+    # If more than one provider is found, a warning will be logged.
     #
     # @param tag [String]     Tag to search a package for.
     # @return    [String,nil] Name of the package which provides that tag.
     #                         It returns nil if no provider is found.
     # @see find_providers
     def find_provider(tag)
-      providers = Pkg.PkgQueryProvides(tag).select { |provide| provide[1] != :NONE }
-      names = providers.map(&:first)
+      providers = Pkg.PkgQueryProvides(tag).select { |pr| pr[1] != :NONE }
+      filtered = providers.select { |pr| pr[1] == :BOTH }
+      filtered = providers.select { |pr| pr[1] == :CAND } if filtered.empty?
+      names = filtered.map(&:first)
       provider = names.include?(tag) ? tag : names.sort.first
       if names.size > 1
         log.warn "More than one provider was found for '#{tag}': "\

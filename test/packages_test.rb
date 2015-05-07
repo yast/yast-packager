@@ -541,6 +541,52 @@ describe Yast::Packages do
         end
       end
     end
+
+    context "when a package is installed and have also a valid candidate (:BOTH)" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :CAND, :NONE], ['prov2', :BOTH, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the yet installed package must be preferred" do
+        expect(subject.vnc_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but a valid candidate exists" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST], ['prov2', :CAND, :NONE]] }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the candidate must be preferred" do
+        expect(subject.vnc_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but no valid candidate" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "that installed package is ignored and an error is logged" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{tag}'")
+        expect(subject.vnc_packages).to include(tag)
+      end
+    end
   end
 
   describe "#remote_x11_packages" do
@@ -647,6 +693,52 @@ describe Yast::Packages do
                  "prov2, prov1. Selecting 'prov1'.")
           expect(subject.remote_x11_packages).to include('prov1')
         end
+      end
+    end
+
+    context "when a package is installed and have also a valid candidate (:BOTH)" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :CAND, :NONE], ['prov2', :BOTH, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the yet installed package must be preferred" do
+        expect(subject.remote_x11_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but a valid candidate exists" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST], ['prov2', :CAND, :NONE]] }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the candidate must be preferred" do
+        expect(subject.remote_x11_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but no valid candidate" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "that installed package is ignored and an error is logged" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{tag}'")
+        expect(subject.remote_x11_packages).to include(tag)
       end
     end
   end
