@@ -16,12 +16,14 @@ module Yast
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
-    # Minimum set of packages required to enable VNC server
-    VNC_BASE_PACKAGES = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
+    # Minimum set of packages tags required to enable VNC server
+    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
+    # Additional packages tags needed to run second stage in graphical mode
+    AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"]
     # Default window manager for VNC if none is installed
     DEFAULT_WM = "icewm"
     # Minimum set of packages required for installation with remote X11 server
-    REMOTE_X11_BASE_PACKAGES = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
+    REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
 
     def main
       Yast.import "UI"
@@ -941,20 +943,20 @@ module Yast
     # Compute special packages
     # @return [Array](string)
     def modePackages
-      packages = []
+      tags = []
+      tags << "sbl" if Linuxrc.braille
+      # ssh installation
+      if Linuxrc.usessh
+        # "ip" tool is needed by the YaST2.ssh start script (bnc#920175)
+        tags.concat(["openssh", "iproute2"])
+      end
 
+      packages = find_providers(tags)
       packages.concat(vnc_packages) if Linuxrc.vnc
       #this means we have a remote X server
       packages.concat(remote_x11_packages) if Linuxrc.display_ip
-      packages << "sbl" if Linuxrc.braille
-
-      # ssh installation
-      packages << "openssh" if Linuxrc.usessh
-      # "ip" tool is needed by the YaST2.ssh start script (bnc#920175)
-      packages << "iproute2" if Linuxrc.usessh
 
       Builtins.y2milestone("Installation mode packages: %1", packages)
-
       packages
     end
 
@@ -2555,12 +2557,12 @@ module Yast
     #
     # @return [Array<String>] package list
     def vnc_packages
-      packages = VNC_BASE_PACKAGES.dup
+      tags = VNC_BASE_TAGS.dup
       # At least one windowmanager must be installed (#427044)
       # If none is there, use a fallback
-      packages << DEFAULT_WM unless has_window_manager?
-      packages << "yast2-x11" if Mode.autoinst
-      packages
+      tags << DEFAULT_WM unless has_window_manager?
+      tags.concat(AUTOYAST_X11_TAGS) if Mode.autoinst
+      find_providers(tags)
     end
 
     # List of packages expected to be installed in order to use
@@ -2568,9 +2570,9 @@ module Yast
     #
     # @return [Array<String>] package list
     def remote_x11_packages
-      packages = REMOTE_X11_BASE_PACKAGES.dup
-      packages << "yast2-x11" if Mode.autoinst
-      packages
+      tags = REMOTE_X11_BASE_TAGS.dup
+      tags.concat(AUTOYAST_X11_TAGS) if Mode.autoinst
+      find_providers(tags)
     end
 
   private
@@ -2621,6 +2623,48 @@ module Yast
           "Pattern has not been found."
         ) % {:pattern_name => pattern_name})
       end
+    end
+
+    # Search for providers for a list of tags
+    #
+    # The use case of this method is to convert and array of tags into an array
+    # of packages. If a tag does not have a provider, then the tag will be
+    # included in the array and an error will be logged.
+    #
+    # @param tags [Array<String>] List of tags (ie. package names) to search for.
+    # @return     [Array<String>] List contaning a package for each tag.
+    # @see find_provider
+    def find_providers(tags)
+      tags.each_with_object([]) do |tag, providers|
+        provider = find_provider(tag)
+        if provider.nil?
+          log.error "Provider not found for '#{tag}'"
+          providers << tag
+        else
+          providers << provider
+        end
+      end
+    end
+
+    # Search a provider for a tag
+    #
+    # If more than one provider is found, a warning will be logged.
+    #
+    # @param tag [String]     Tag to search a package for.
+    # @return    [String,nil] Name of the package which provides that tag.
+    #                         It returns nil if no provider is found.
+    # @see find_providers
+    def find_provider(tag)
+      providers = Pkg.PkgQueryProvides(tag).select { |pr| pr[1] != :NONE }
+      filtered = providers.select { |pr| pr[1] == :BOTH }
+      filtered = providers.select { |pr| pr[1] == :CAND } if filtered.empty?
+      names = filtered.map(&:first)
+      provider = names.include?(tag) ? tag : names.sort.first
+      if names.size > 1
+        log.warn "More than one provider was found for '#{tag}': "\
+          "#{names.join(', ')}. Selecting '#{provider}'."
+      end
+      provider
     end
 
     publish :variable => :install_sources, :type => "boolean"

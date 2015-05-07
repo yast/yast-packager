@@ -47,7 +47,7 @@ describe Yast::Packages do
   describe "#kernelCmdLinePackages" do
     before(:each) do
       # default value
-      Yast::Product.stub(:Product).and_return(nil)
+      allow(Yast::Product).to receive(:Product).and_return nil
     end
 
     after(:each) do
@@ -79,7 +79,7 @@ describe Yast::Packages do
       context "and running on a Dell system" do
         it "returns biosdevname within the list of packages" do
           # 0 means `grep` succeeded
-          Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
+          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
         end
       end
@@ -87,7 +87,7 @@ describe Yast::Packages do
       context "and running on a non-Dell system" do
         it "does not return biosdevname within the list of packages" do
           # 1 means `grep` has not succeeded
-          Yast::SCR.stub(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
+          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
         end
       end
@@ -98,20 +98,20 @@ describe Yast::Packages do
   describe "#default_patterns" do
     context "software->default_patterns is not defined in control file" do
       it "returns empty list" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("")
         expect(Yast::Packages.default_patterns).to be_empty
       end
     end
 
     context "software->default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a    b\t c d\t  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
@@ -120,20 +120,20 @@ describe Yast::Packages do
   describe "#optional_default_patterns" do
     context "software->optional_default_patterns is not defined in control file" do
       it "returns empty list" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("")
         expect(Yast::Packages.optional_default_patterns).to be_empty
       end
     end
 
     context "software->optional_default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("a b c d")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("a b c d")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
 
-        Yast::ProductFeatures.stub(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
@@ -154,8 +154,8 @@ describe Yast::Packages do
     context "if this is the initial run or it is being reinitialized" do
       context "and patterns are not unselected by user" do
         it "selects patterns for installation" do
-          Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
-          Yast::Pkg.stub(:ResolvableProperties).and_return(
+          allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
             [pattern({ "name" => "p1" })],
             [pattern({ "name" => "p2" })],
             [pattern({ "name" => "p3" })]
@@ -168,8 +168,8 @@ describe Yast::Packages do
 
       context "and some patterns are already unselected by user" do
         it "selects patterns for installation that were not unselected by user already" do
-          Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
-          Yast::Pkg.stub(:ResolvableProperties).and_return(
+          allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
             [pattern({ "name" => "p1", "transact_by" => :user })],
             [pattern({ "name" => "p2", "transact_by" => :user })],
             [pattern({ "name" => "p3" })]
@@ -185,8 +185,8 @@ describe Yast::Packages do
 
     context "if this is a subsequent run" do
       it "re-selects all patterns already selected for installation" do
-        Yast::Packages.stub(:patterns_to_install).and_return(["p1", "p2", "p3"])
-        Yast::Pkg.stub(:ResolvableProperties).and_return(
+        allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+        allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
           [pattern({ "name" => "p1", "transact_by" => :user, "status" => :selected })],
           [pattern({ "name" => "p2", "transact_by" => :user, "status" => :selected })],
           [pattern({ "name" => "p3" })]
@@ -201,9 +201,9 @@ describe Yast::Packages do
     it "reports an error if pattern is not found" do
       default_patterns = ["p1", "p2", "p3"]
 
-      Yast::Packages.stub(:patterns_to_install).and_return(default_patterns)
-      Yast::Pkg.stub(:ResolvableProperties).and_return([])
-      Yast::Report.stub(:Error).and_return(nil)
+      allow(Yast::Packages).to receive(:patterns_to_install).and_return(default_patterns)
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
+      allow(Yast::Report).to receive(:Error).and_return(nil)
 
       # Called twice with reselect=true/false
       Yast::Packages.SelectSystemPatterns(true)
@@ -216,31 +216,34 @@ describe Yast::Packages do
       optional_default_patterns = ["p3", "p4"]
 
       # No default patterns, all are optional
-      Yast::Packages.stub(:default_patterns).and_return([])
-      Yast::Packages.stub(:optional_default_patterns).and_return(optional_default_patterns)
-      Yast::Packages.stub(:ComputeSystemPatternList).and_return([])
-      Yast::Pkg.stub(:ResolvableProperties).and_return([])
+      allow(Yast::Packages).to receive(:default_patterns).and_return([])
+      allow(Yast::Packages).to receive(:optional_default_patterns).and_return(optional_default_patterns)
+      allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
 
       expect(Yast::Report).not_to receive(:Error)
 
-      expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
-        expect(msg).to match(/optional pattern p[3-4] does not exist/i).exactly(4).times
-      end.at_least(4).times.and_call_original
+      logged_errors = 0
+      allow(Yast::Y2Logger.instance).to receive(:info) do |msg|
+        logged_errors += 1 if msg =~ /optional pattern p[3-4] does not exist/i
+      end
 
       # Called twice with reselect=true/false
       Yast::Packages.SelectSystemPatterns(true)
       Yast::Packages.SelectSystemPatterns(false)
+
+      expect(logged_errors).to eq 4
     end
   end
 
   describe "#log_software_selection" do
     it "logs all currently changed resolvables set by user or application (excluding solver)" do
-      Yast::Pkg.stub(:ResolvableProperties).and_return([])
-      Yast::Pkg.stub(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
 
       expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
         expect(msg).to match(/(transaction status [begin|end]|(locked)?resolvables of type .* set by .*|:name=>.*:version=>)/i)
-      end.exactly(8).times.and_call_original
+      end.exactly(8).times
 
       expect(Yast::Packages.log_software_selection).to be_nil
     end
@@ -384,6 +387,15 @@ describe Yast::Packages do
     let(:packages) { Yast::Packages.vnc_packages.sort.uniq }
     let(:base_packages) { ["xinetd", "xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"] }
     let(:base_packages_and_wm) { ["icewm"] + base_packages }
+    let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
+
+    before do
+      (base_packages_and_wm + ['yast2-x11']).each do |pkg|
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
+      end
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with('libyui-qt').
+        and_return([['libyui-qt6', :CAND, :NONE]])
+    end
 
     context "during installation" do
       before do
@@ -423,8 +435,9 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsSelected).and_return true
         end
 
-        it "includes xinetd, xorg and yast2-x11" do
-          expect(packages).to eq(base_packages + ["yast2-x11"])
+        it "includes xinetd, xorg and autoyast X11 packages" do
+          expected = (base_packages + autoyast_x11_packages).sort
+          expect(packages).to eq(expected)
         end
       end
 
@@ -434,7 +447,8 @@ describe Yast::Packages do
         end
 
         it "includes xinetd, xorg and icewm" do
-          expect(packages).to eq(base_packages_and_wm + ["yast2-x11"])
+          expected = (base_packages_and_wm + autoyast_x11_packages).sort
+          expect(packages).to eq(expected)
         end
       end
     end
@@ -465,6 +479,268 @@ describe Yast::Packages do
         end
       end
     end
+
+    context "when some package is missing" do
+      let(:package) { 'missing-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.vnc_packages).to include(package)
+      end
+    end
+
+    context "when some package is not available" do
+      let(:package) { 'unavailable-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([[package, :NONE, :NONE]])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.vnc_packages).to include(package)
+      end
+    end
+
+    context "when more than one package provides a tag" do
+      let(:package) { 'multi-provider-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
+      end
+
+      context "when a package named after the tag is found" do
+        let(:providers) { ['prov1', package] }
+
+        it "includes the tag as package name and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov1, #{package}. Selecting '#{package}'.")
+          expect(subject.vnc_packages).to include(package)
+        end
+      end
+
+      context "when a package named after the tag is not found" do
+        let(:providers) { ['prov2', 'prov1'] }
+
+        it "includes the first provider (according to alphabetic order) and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov2, prov1. Selecting 'prov1'.")
+          expect(subject.vnc_packages).to include('prov1')
+        end
+      end
+    end
+
+    context "when a package is installed and have also a valid candidate (:BOTH)" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :CAND, :NONE], ['prov2', :BOTH, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the yet installed package must be preferred" do
+        expect(subject.vnc_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but a valid candidate exists" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST], ['prov2', :CAND, :NONE]] }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the candidate must be preferred" do
+        expect(subject.vnc_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but no valid candidate" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "that installed package is ignored and an error is logged" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{tag}'")
+        expect(subject.vnc_packages).to include(tag)
+      end
+    end
+  end
+
+  describe "#remote_x11_packages" do
+    let(:packages) { Yast::Packages.remote_x11_packages.sort.uniq }
+    let(:base_packages) { ["icewm", "xorg-x11-fonts", "xorg-x11-server"] }
+    let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
+
+    before do
+      (base_packages + ['yast2-x11']).each do |pkg|
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
+      end
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with('libyui-qt').
+        and_return([['libyui-qt6', :CAND, :NONE]])
+    end
+
+    context "during installation" do
+      before do
+        allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "installation"
+      end
+
+      it "includes xorg and icewm" do
+        expect(packages).to eq(base_packages)
+      end
+    end
+
+    context "during autoinstallation" do
+      before do
+        allow(Yast::Pkg).to receive(:IsProvided).and_return false
+        allow(Yast::Mode).to receive(:mode).and_return "autoinstallation"
+      end
+
+      it "includes xorg, icewm, libyui-qt and yast2-x11" do
+        expect(packages).to eq((base_packages + autoyast_x11_packages).sort)
+      end
+    end
+
+    context "in normal mode" do
+      before do
+        allow(Yast::Mode).to receive(:mode).and_return "normal"
+      end
+
+      it "includes xorg and icewm" do
+        expect(packages).to eq(base_packages)
+      end
+    end
+
+    context "when some package is missing" do
+      let(:package) { 'missing-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.remote_x11_packages).to include(package)
+      end
+    end
+
+    context "when some package is not available" do
+      let(:package) { 'unavailable-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return([[package, :NONE, :NONE]])
+      end
+
+      it "includes the tag name in the packages list but logs an error" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
+        expect(subject.remote_x11_packages).to include(package)
+      end
+    end
+
+    context "when more than one package provides a tag" do
+      let(:package) { 'multi-provider-pkg' }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
+      end
+
+      context "when a package named after the tag is found" do
+        let(:providers) { ['prov1', package] }
+
+        it "includes the tag as package name and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov1, #{package}. Selecting '#{package}'.")
+          expect(subject.remote_x11_packages).to include(package)
+        end
+      end
+
+      context "when a package named after the tag is not found" do
+        let(:providers) { ['prov2', 'prov1'] }
+
+        it "includes the first provider (according to alphabetic order) and logs a message" do
+          expect(Yast::Package.log).to receive(:warn).
+            with("More than one provider was found for '#{package}': " \
+                 "prov2, prov1. Selecting 'prov1'.")
+          expect(subject.remote_x11_packages).to include('prov1')
+        end
+      end
+    end
+
+    context "when a package is installed and have also a valid candidate (:BOTH)" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :CAND, :NONE], ['prov2', :BOTH, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the yet installed package must be preferred" do
+        expect(subject.remote_x11_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but a valid candidate exists" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST], ['prov2', :CAND, :NONE]] }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "the candidate must be preferred" do
+        expect(subject.remote_x11_packages).to include('prov2')
+      end
+    end
+
+    context "when a package is installed but no valid candidate" do
+      let(:tag) { 'some-tag' }
+      let(:providers) { [['prov1', :INST, :INST]] }
+
+      before do
+        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).
+          with(tag).and_return(providers)
+      end
+
+      it "that installed package is ignored and an error is logged" do
+        expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{tag}'")
+        expect(subject.remote_x11_packages).to include(tag)
+      end
+    end
   end
 
   describe "#modePackages" do
@@ -473,19 +749,38 @@ describe Yast::Packages do
       allow(Yast::Linuxrc).to receive(:display_ip).and_return display_ip
       allow(Yast::Linuxrc).to receive(:braille).and_return braille
       allow(Yast::Linuxrc).to receive(:usessh).and_return usessh
-      allow(Yast::Mode).to receive(:mode).and_return mode
+      allow(Yast::Packages).to receive(:vnc_packages).and_return(vnc_packages)
+      allow(Yast::Packages).to receive(:remote_x11_packages).and_return(remote_x11_packages)
+      (braille_packages + ssh_packages).each do |pkg|
+        allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
+      end
     end
+
     let(:packages) { Yast::Packages.modePackages.sort.uniq }
+    let(:vnc_packages) { %w(some-vnc-packages) }
+    let(:remote_x11_packages) { %w(some-x11-packages) }
+    let(:ssh_packages) { %w(openssh iproute2) }
+    let(:braille_packages) { %w(sbl) }
 
     context "on a boring local regular installation" do
       let(:vnc) { false }
       let(:display_ip) { false }
       let(:braille) { false }
       let(:usessh) { false }
-      let(:mode) { "installation" }
 
       it "returns an empty array" do
         expect(packages).to be_empty
+      end
+    end
+
+    context "on a installation with braille enabled" do
+      let(:vnc) { false }
+      let(:display_ip) { false }
+      let(:braille) { true }
+      let(:usessh) { false }
+
+      it "includes braille packages" do
+        expect(packages).to eq(braille_packages)
       end
     end
 
@@ -494,24 +789,10 @@ describe Yast::Packages do
       let(:display_ip) { true }
       let(:braille) { false }
       let(:usessh) { true }
-      let(:xorg_icewm_and_ssh) {
-        ["icewm", "iproute2", "openssh", "xorg-x11-fonts", "xorg-x11-server"]
-      }
 
-      context "during installation" do
-        let(:mode) { "installation" }
-
-        it "includes xorg, icewm and openssh" do
-          expect(packages).to eq(xorg_icewm_and_ssh)
-        end
-      end
-
-      context "during autoinstallation" do
-        let(:mode) { "autoinstallation" }
-
-        it "includes xorg, icewm, openssh, iproute2 and yast2-x11" do
-          expect(packages).to eq(xorg_icewm_and_ssh + ["yast2-x11"])
-        end
+      it "includes x11 and ssh packages" do
+        expected = (remote_x11_packages + ssh_packages).sort
+        expect(packages).to eq(expected)
       end
     end
 
@@ -520,11 +801,9 @@ describe Yast::Packages do
       let(:display_ip) { false }
       let(:braille) { false }
       let(:usessh) { false }
-      let(:mode) { "installation" }
 
-      it "relies on #vnc_packages" do
-        expect(Yast::Packages).to receive(:vnc_packages).and_return %w(five names)
-        expect(packages).to eq(%w(five names))
+      it "includes vnc packages" do
+        expect(packages).to eq(vnc_packages)
       end
     end
   end

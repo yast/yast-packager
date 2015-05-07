@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu May  7 14:02:11 UTC 2015 - igonzalezsosa@suse.com
+
+- Packages module uses tags instead of package names (bnc#923901)
+- 3.1.68
+
+-------------------------------------------------------------------
+Thu Apr 23 12:01:31 UTC 2015 - ancor@suse.com
+
+- Ensure libyui-qt is installed when using autoyast in graphical
+  mode (bnc#923901)
+
+-------------------------------------------------------------------
 Fri Apr 10 14:10:39 UTC 2015 - lslezak@suse.cz
 
 - register addons from media (FATE#318505)
