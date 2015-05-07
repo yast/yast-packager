@@ -510,20 +510,6 @@ describe Yast::Packages do
       end
     end
 
-    context "when a provider is installed yet" do
-      let(:package) { 'package' }
-
-      before do
-        stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([['prov1', :CAND, :NONE], ['prov2', :INST, :INST]])
-      end
-
-      it "selects the installed package" do
-        expect(subject.vnc_packages).to include('prov2')
-      end
-    end
-
     context "when more than one package provides a tag" do
       let(:package) { 'multi-provider-pkg' }
 
@@ -629,20 +615,6 @@ describe Yast::Packages do
       it "includes the tag name in the packages list but logs an error" do
         expect(Yast::Packages.log).to receive(:error).with("Provider not found for '#{package}'")
         expect(subject.remote_x11_packages).to include(package)
-      end
-    end
-
-    context "when a provider is installed yet" do
-      let(:package) { 'package' }
-
-      before do
-        stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([['prov1', :CAND, :NONE], ['prov2', :INST, :INST]])
-      end
-
-      it "selects the installed package" do
-        expect(subject.remote_x11_packages).to include('prov2')
       end
     end
 
