@@ -333,6 +333,7 @@ module Yast
       new_url = uri.dup
       new_url.path = File.dirname(uri.path || "")
       new_url.query = nil
+      new_url.scheme = "dir" if uri.scheme.downcase == "iso"
       params["url"] = new_url.to_s
 
       processed = URI("")
