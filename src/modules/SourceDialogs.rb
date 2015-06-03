@@ -333,6 +333,9 @@ module Yast
       new_url = uri.dup
       new_url.path = File.dirname(uri.path || "")
       new_url.query = nil
+      # URL scheme in the "url" option must be set to "dir" (or empty)
+      # for a local ISO image (see https://bugzilla.suse.com/show_bug.cgi?id=919138
+      # and https://en.opensuse.org/openSUSE:Libzypp_URIs#ISO_Images )
       new_url.scheme = "dir" if uri.scheme.downcase == "iso"
       params["url"] = new_url.to_s
 
