@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  2 21:24:46 UTC 2015 - lslezak@suse.cz
+
+- fixed building a local ISO URL (bnc#919138)
+- 3.1.69
+
+-------------------------------------------------------------------
 Thu May  7 14:02:11 UTC 2015 - igonzalezsosa@suse.com
 
 - Packages module uses tags instead of package names (bnc#923901)

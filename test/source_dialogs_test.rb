@@ -58,5 +58,12 @@ describe Yast::SourceDialogs do
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
+
+    it "uses dir url scheme parameter for local ISO files" do
+      converted = "iso:///install/openSUSE-13.2-DVD-x86_64.iso"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall"
+
+      expect(subject.PostprocessISOURL(converted)).to eq(url)
+    end
   end
 end
