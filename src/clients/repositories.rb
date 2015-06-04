@@ -1125,7 +1125,8 @@ module Yast
           if input == :replace
             if @repository_view
               generalData = Pkg.SourceGeneralData(id)
-              url2 = Ops.get_string(generalData, "url", "")
+              # use the full URL (incl. the password) when editing it
+              url2 = Pkg.SourceURL(id)
               old_url = url2
               plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
 

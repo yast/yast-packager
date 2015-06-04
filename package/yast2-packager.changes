@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun  4 14:21:22 UTC 2015 - lslezak@suse.cz
+
+- use the full URL (incl. the password) when editing a repository
+  URL (bnc#826075)
+- 3.1.70
+
+-------------------------------------------------------------------
 Tue Jun  2 21:24:46 UTC 2015 - lslezak@suse.cz
 
 - fixed building a local ISO URL (bnc#919138)
