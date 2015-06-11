@@ -681,7 +681,7 @@ module Yast
           remaining_time = remaining_size
 
           if remaining_size > 0
-            remaining_time = remaining_size.to_f / @bytes_per_second
+            remaining_time = (remaining_size.to_f / @bytes_per_second).round
 
             if remaining_time < MIN_TIME_PER_CD
               # It takes at least this long for the CD drive to spin up and
@@ -693,12 +693,6 @@ module Yast
               # cut off the predicted time at a reasonable maximum.
               remaining_time = MAX_TIME_PER_CD
             end
-          end
-
-          if remaining_time.is_a?(Float)
-            log.warn "Float time appeared: #{remaining_time}"
-            remaining_time = remaining_time.round
-            log.warn "Converted to integer: #{remaining_time}"
           end
 
           remaining_times_list << remaining_time
