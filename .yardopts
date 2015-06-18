@@ -1,0 +1,6 @@
+--no-private
+--markup markdown
+--protected
+src/**/*.rb
+--readme README.md
+--output-dir ./doc/autodocs

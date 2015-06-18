@@ -33,3 +33,4 @@ tmp.*
 /test-driver
 /testsuite/site.bak
 /test/*.trs
+/.yardoc/
