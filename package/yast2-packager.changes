@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 19 13:46:42 UTC 2015 - mvidner@suse.com
+
+- Do not offer to install recommended packages for already installed
+  ones on the first run (boo#902394).
+- 3.1.72
+
+-------------------------------------------------------------------
 Thu Jun 11 14:58:58 UTC 2015 - lslezak@suse.cz
 
 - proper fix for a float remaining time (bnc#882240)
