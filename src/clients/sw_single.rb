@@ -594,11 +594,6 @@ module Yast
             opts = GetPackagerOptions()
             Builtins.y2milestone("Using packager widget options: %1", opts)
 
-            home = ENV["home"] || "/root"
-            # unset the ignoreAlreadyRecommended flag on the very first run,
-            # otherwise keep the value from the config file
-            Pkg.SetSolverFlags({ "ignoreAlreadyRecommended" => false }) unless File.exist?(File.join(home, ".config", "YaST2", "YQPackageSelector.conf"))
-
             result = PackagesUI.RunPackageSelector(opts) # No: ask user via package selection widget
             Builtins.y2milestone("Package selector retured: %1", result)
             if result == :accept
