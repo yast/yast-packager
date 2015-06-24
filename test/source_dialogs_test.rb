@@ -66,4 +66,18 @@ describe Yast::SourceDialogs do
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
   end
+
+  describe ".URLScheme" do
+    it "returns scheme of url" do
+      expect(subject.URLScheme("ftp://test.com")).to eq "ftp"
+    end
+
+    it "return \"url\" if parameter is empty string" do
+      expect(subject.URLScheme("")).to eq "url"
+    end
+
+    it "return \"url\" if parameter is invalid url string" do
+      expect(subject.URLScheme("test")).to eq "url"
+    end
+  end
 end

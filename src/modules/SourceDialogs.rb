@@ -352,6 +352,8 @@ module Yast
     # @return [Boolean] true if URL is an ISO URL, false otherwise
     def IsISOURL(url)
       uri = URI(url)
+      return false if uri.scheme.nil? # empty or generic uri have nil scheme causing exception below (bnc#934216)
+
       params = URI.decode_www_form(uri.query || "").to_h
 
       uri.scheme.downcase == "iso" && params.has_key?("url")
