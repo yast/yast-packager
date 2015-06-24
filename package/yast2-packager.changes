@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 24 11:49:42 UTC 2015 - jreidinger@suse.com
+
+- do not crash if user want to add add-on via url (bnc#934216)
+- 3.1.72
+
+-------------------------------------------------------------------
 Thu Jun 11 14:58:58 UTC 2015 - lslezak@suse.cz
 
 - proper fix for a float remaining time (bnc#882240)
