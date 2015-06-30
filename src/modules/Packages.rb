@@ -976,7 +976,7 @@ module Yast
 
       add_biosdevname = false
       options = SCR.Read(path(".proc.cmdline"))
-      option = options.grep(/^biosdevname=/i).first
+      option = options.grep(/^biosdevname=/i).first if options
       if option
         value = option[/^biosdevname=(\d+)/i, 1]
       else #missing biosdevname option
