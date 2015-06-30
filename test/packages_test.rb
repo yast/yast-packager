@@ -15,6 +15,7 @@ Yast.import "Pkg"
 
 SCR_STRING_PATH = Yast::Path.new(".target.string")
 SCR_BASH_PATH = Yast::Path.new(".target.bash")
+SCR_PROC_CMDLINE_PATH = Yast::Path.new(".proc.cmdline")
 
 CHECK_FOR_DELL_SYSTEM = Regexp.new(
   'hwinfo .*bios .*grep .*vendor:.*dell inc',
@@ -70,6 +71,13 @@ describe Yast::Packages do
       it "does not return biosdevname within the list of required packages then value is invalid" do
         set_root_path("cmdline-biosdevname_10")
         expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+      end
+    end
+
+    context "when no /proc/cmdline is defined" do
+      it "returns empty list" do
+        Yast::SCR.stub(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
+        expect(Yast::Packages.kernelCmdLinePackages).to eq([])
       end
     end
 

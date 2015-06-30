@@ -1,8 +1,20 @@
 -------------------------------------------------------------------
-Fri Jun 19 13:46:42 UTC 2015 - mvidner@suse.com
+Tue Jun 30 14:16:41 UTC 2015 - mvidner@suse.com
 
-- Do not offer to install recommended packages for already installed
-  ones on the first run (boo#902394).
+- Do not offer to install recommended packages for already
+  installed ones on the first run (boo#902394).
+- 3.1.74
+
+-------------------------------------------------------------------
+Tue Jun 30 09:11:43 CEST 2015 - schubi@suse.de
+
+- Checking nil result after reading /proc/cmdline (bnc#934229).
+- 3.1.73
+
+-------------------------------------------------------------------
+Wed Jun 24 11:49:42 UTC 2015 - jreidinger@suse.com
+
+- do not crash if user want to add add-on via url (bnc#934216)
 - 3.1.72
 
 -------------------------------------------------------------------
