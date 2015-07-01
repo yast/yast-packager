@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 30 14:16:41 UTC 2015 - mvidner@suse.com
+
+- Do not offer to install recommended packages for already
+  installed ones on the first run (boo#902394).
+- 3.1.74
+
+-------------------------------------------------------------------
 Tue Jun 30 09:11:43 CEST 2015 - schubi@suse.de
 
 - Checking nil result after reading /proc/cmdline (bnc#934229).
