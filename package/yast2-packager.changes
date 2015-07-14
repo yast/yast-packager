@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 14 15:46:32 UTC 2015 - lslezak@suse.cz
+
+- fixed crash when editing the default URL of a new addon
+  (bsc#937948)
+- 3.1.75
+
+-------------------------------------------------------------------
 Tue Jun 30 14:16:41 UTC 2015 - mvidner@suse.com
 
 - Do not offer to install recommended packages for already

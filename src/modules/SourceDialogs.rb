@@ -351,7 +351,12 @@ module Yast
     # @param [String] url string URL to check
     # @return [Boolean] true if URL is an ISO URL, false otherwise
     def IsISOURL(url)
-      uri = URI(url)
+      begin
+        uri = URI(url)
+      rescue URI::InvalidURIError
+        return false
+      end
+
       return false if uri.scheme.nil? # empty or generic uri have nil scheme causing exception below (bnc#934216)
 
       params = URI.decode_www_form(uri.query || "").to_h
@@ -2252,15 +2257,15 @@ module Yast
           selected
         )
         if selected == :ftp
-          @_url = "ftp://"
+          @_url = "ftp:///"
         elsif selected == :http
-          @_url = "http://"
+          @_url = "http:///"
         elsif selected == :https
-          @_url = "https://"
+          @_url = "https:///"
         elsif selected == :samba
-          @_url = "smb://"
+          @_url = "smb:///"
         elsif selected == :nfs
-          @_url = "nfs://"
+          @_url = "nfs:///"
         elsif selected == :cd || selected == :dvd
           @_url = selected == :cd ? "cd:///" : "dvd:///"
           if @cd_device_name != ""
@@ -2270,19 +2275,19 @@ module Yast
             )
           end
         elsif selected == :hd
-          @_url = "hd://"
+          @_url = "hd:///"
         elsif selected == :usb
-          @_url = "usb://"
+          @_url = "usb:///"
         elsif selected == :local_dir
-          @_url = "dir://"
+          @_url = "dir:///"
         elsif selected == :local_iso
           @_url = "iso:///"
         elsif selected == :slp
-          @_url = "slp://"
+          @_url = "slp:///"
         elsif selected == :comm_repos
-          @_url = "commrepos://"
+          @_url = "commrepos:///"
         elsif selected == :sccrepos
-          @_url = "sccrepos://"
+          @_url = "sccrepos:///"
         end
       else
         Builtins.y2error("Unexpected repo type %1", selected)
@@ -2295,35 +2300,35 @@ module Yast
     def SelectInit(key)
       current = nil
 
-      if @_url == "ftp://"
+      if @_url == "ftp:///"
         current = :ftp
-      elsif @_url == "http://"
+      elsif @_url == "http:///"
         current = :http
-      elsif @_url == "https://"
+      elsif @_url == "https:///"
         current = :https
-      elsif @_url == "smb://"
+      elsif @_url == "smb:///"
         current = :samba
-      elsif @_url == "nfs://"
+      elsif @_url == "nfs:///"
         current = :nfs
-      elsif @_url == "nfs4://"
+      elsif @_url == "nfs4:///"
         current = :nfs
       elsif @_url == "cd:///"
         current = :cd
       elsif @_url == "dvd:///"
         current = :dvd
-      elsif @_url == "hd://"
+      elsif @_url == "hd:///"
         current = :hd
-      elsif @_url == "usb://"
+      elsif @_url == "usb:///"
         current = :usb
-      elsif @_url == "dir://" || @_url == "file://"
+      elsif @_url == "dir:///" || @_url == "file:///"
         current = :local_dir
-      elsif @_url == "iso://"
+      elsif @_url == "iso:///"
         current = :local_iso
-      elsif @_url == "slp://"
+      elsif @_url == "slp:///"
         current = :slp
-      elsif @_url == "commrepos://"
+      elsif @_url == "commrepos:///"
         current = :comm_repos
-      elsif @_url == "sccrepos://"
+      elsif @_url == "sccrepos:///"
         current = :sccrepos
       else
         Builtins.y2warning("Unknown URL scheme '%1'", @_url)
