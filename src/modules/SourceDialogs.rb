@@ -351,7 +351,12 @@ module Yast
     # @param [String] url string URL to check
     # @return [Boolean] true if URL is an ISO URL, false otherwise
     def IsISOURL(url)
-      uri = URI(url)
+      begin
+        uri = URI(url)
+      rescue URI::InvalidURIError
+        return false
+      end
+
       return false if uri.scheme.nil? # empty or generic uri have nil scheme causing exception below (bnc#934216)
 
       params = URI.decode_www_form(uri.query || "").to_h
@@ -365,7 +370,7 @@ module Yast
     def PreprocessISOURL(url)
       log.info "Preprocessing ISO URL: #{URL.HidePassword(url)}"
 
-      uri = URI(url)
+      uri = (url == "iso://") ? URI("iso:/") : URI(url)
       query = uri.query || ""
       params = URI.decode_www_form(query).to_h
 
@@ -809,9 +814,9 @@ module Yast
       # preserve other URL options, e.g. ?devices=/dev/sr0
       # change the URL only when necessary
       if device == :cd && scheme != "cd"
-        @_url = "cd:///"
+        @_url = "cd://"
       elsif device == :dvd && scheme != "dvd"
-        @_url = "dvd:///"
+        @_url = "dvd://"
       end
 
       nil
@@ -2262,7 +2267,7 @@ module Yast
         elsif selected == :nfs
           @_url = "nfs://"
         elsif selected == :cd || selected == :dvd
-          @_url = selected == :cd ? "cd:///" : "dvd:///"
+          @_url = selected == :cd ? "cd://" : "dvd://"
           if @cd_device_name != ""
             @_url = Ops.add(
               Ops.add(@_url, "?devices="),
@@ -2276,7 +2281,7 @@ module Yast
         elsif selected == :local_dir
           @_url = "dir://"
         elsif selected == :local_iso
-          @_url = "iso:///"
+          @_url = "iso://"
         elsif selected == :slp
           @_url = "slp://"
         elsif selected == :comm_repos
@@ -2307,9 +2312,9 @@ module Yast
         current = :nfs
       elsif @_url == "nfs4://"
         current = :nfs
-      elsif @_url == "cd:///"
+      elsif @_url == "cd://"
         current = :cd
-      elsif @_url == "dvd:///"
+      elsif @_url == "dvd://"
         current = :dvd
       elsif @_url == "hd://"
         current = :hd
