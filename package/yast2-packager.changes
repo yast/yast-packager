@@ -1,8 +1,7 @@
 -------------------------------------------------------------------
 Tue Jul 21 08:32:41 UTC 2015 - jreidinger@suse.com
 
-- fix crash caused by path t DVD that does not contain path
-  (bnc#938786)
+- fix crash when adding addon on DVD (bnc#938786)
 - 3.1.76
 
 -------------------------------------------------------------------
