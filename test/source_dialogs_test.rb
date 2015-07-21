@@ -80,4 +80,15 @@ describe Yast::SourceDialogs do
       expect(subject.URLScheme("test")).to eq "url"
     end
   end
+
+  describe ".SelectStore" do
+    it "sets url to full url for DVD and CD selection" do
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:type), :CurrentButton)
+        .and_return(:dvd)
+
+      described_class.SelectStore(:type, {})
+
+      expect(described_class.instance_variable_get("@_url")).to eq "dvd:///"
+    end
+  end
 end

@@ -2266,8 +2266,11 @@ module Yast
           @_url = "smb://"
         elsif selected == :nfs
           @_url = "nfs://"
+        # this case is specific, as it return complete path and not just
+        # prefix as others
         elsif selected == :cd || selected == :dvd
-          @_url = selected == :cd ? "cd://" : "dvd://"
+          # use three slashes as third slash means path
+          @_url = selected == :cd ? "cd:///" : "dvd:///"
           if @cd_device_name != ""
             @_url = Ops.add(
               Ops.add(@_url, "?devices="),
