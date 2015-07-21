@@ -8,3 +8,4 @@ if ENV["COVERAGE"]
 end
 
 require "yast"
+require "yast/rspec"

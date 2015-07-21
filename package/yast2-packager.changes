@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 21 08:32:41 UTC 2015 - jreidinger@suse.com
+
+- fix crash when adding addon on DVD (bnc#938786)
+- 3.1.76
+
+-------------------------------------------------------------------
 Tue Jul 14 15:46:32 UTC 2015 - lslezak@suse.cz
 
 - fixed crash when editing the default URL of a new addon
