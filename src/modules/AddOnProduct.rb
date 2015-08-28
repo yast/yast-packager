@@ -138,7 +138,9 @@ module Yast
         # SLED or Workstation extension
         "SUSE_SLED"  => [ "SLED", "sle-we" ],
         "sle-haegeo" => [ "sle-ha-geo" ],
-        "sle-hae"    => [ "sle-ha" ]
+        "sle-hae"    => [ "sle-ha" ],
+        # SMT is now integrated into the base SLES
+        "sle-smt"    => [ "SLES" ]
       }
 
     end

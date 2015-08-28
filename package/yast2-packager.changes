@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Aug 28 13:39:23 UTC 2015 - lslezak@suse.cz
+
+- Do not show a warning for the removed SMT product when upgrading
+  from SLES11 + SMT (the SMT functionality has been integrated into
+  SLES12) (bsc#942639)
+- 3.1.77
+
+-------------------------------------------------------------------
 Tue Jul 21 08:32:41 UTC 2015 - jreidinger@suse.com
 
 - fix crash when adding addon on DVD (bnc#938786)
