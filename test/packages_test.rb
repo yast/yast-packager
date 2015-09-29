@@ -76,7 +76,7 @@ describe Yast::Packages do
 
     context "when no /proc/cmdline is defined" do
       it "returns empty list" do
-        Yast::SCR.stub(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
+        expect(Yast::SCR).to receive(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
         expect(Yast::Packages.kernelCmdLinePackages).to eq([])
       end
     end
@@ -279,6 +279,7 @@ describe Yast::Packages do
   describe "#group_products_by_status" do
     let(:products) { load_zypp("products_update.yml") }
     let(:products2) { load_zypp("products_update2.yml") }
+    let(:smt_products) { load_zypp("products_update_smt.yml") }
 
     it "returns groups of the products" do
       status = Yast::Packages.group_products_by_status(products)
@@ -320,6 +321,15 @@ describe Yast::Packages do
       expect(status[:kept]).to eq([])
       expect(status[:updated].size).to eq(3)
     end
+
+    it "handles multiple products updated to a single product" do
+      status = Yast::Packages.group_products_by_status(smt_products)
+
+      expect(status[:new]).to eq([])
+      expect(status[:removed]).to eq([])
+      expect(status[:kept]).to eq([])
+      expect(status[:updated].size).to eq(2)
+    end
   end
 
   describe "#product_update_summary" do
@@ -333,6 +343,17 @@ describe Yast::Packages do
 
       expect(summary_string).to match(
         /SUSE Linux Enterprise Software Development Kit 11 SP3.*will be automatically removed/)
+    end
+
+    it "handles multiple products updated to a single product" do
+      smt_update = load_zypp("products_update_smt.yml")
+      summary_string = Yast::Packages.product_update_summary(smt_update).to_s
+
+      expect(summary_string).to match(
+        /SUSE Linux Enterprise Server 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/)
+
+      expect(summary_string).to match(
+        /Subscription Management Tool for SUSE Linux Enterprise 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/)
     end
   end
 

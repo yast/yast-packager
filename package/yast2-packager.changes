@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 29 10:34:34 UTC 2015 - lslezak@suse.cz
+
+- handle properly the SLES11 SMT upgrade to SLES12 (evaluate all
+  removed products when checking product upgrades) (bsc#946717)
+- 3.1.78
+
+-------------------------------------------------------------------
 Fri Aug 28 13:39:23 UTC 2015 - lslezak@suse.cz
 
 - Do not show a warning for the removed SMT product when upgrading
