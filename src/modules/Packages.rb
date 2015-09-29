@@ -2728,7 +2728,7 @@ module Yast
       # map content: old_product => new_product
       updated_products = {}
       installed_products.each do |installed_product|
-        removed = removed_products.find do |removed_product|
+        removed = removed_products.select do |removed_product|
           installed_name = installed_product["name"]
           removed_name = removed_product["name"]
 
@@ -2737,7 +2737,7 @@ module Yast
             AddOnProduct.renamed?(removed_name, installed_name)
         end
 
-        updated_products[removed] = installed_product if removed
+        removed.each { |r| updated_products[r] = installed_product }
       end
 
       updated_products
