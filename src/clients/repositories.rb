@@ -12,6 +12,9 @@
 #
 module Yast
   class RepositoriesClient < Client
+    NO_SERVICE = :no_service
+    NO_SERVICE_ITEM = :no_service_item
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -171,6 +174,7 @@ module Yast
 
     def ReposFromService(service, input)
       input = deep_copy(input)
+      service = "" if service == NO_SERVICE
       Builtins.filter(input) do |repo|
         Ops.get_string(repo, "service", "") == service
       end
@@ -641,10 +645,24 @@ module Yast
             @displayed_service == Ops.get_string(srv_state, "alias", "")
         )
         ret = Builtins.add(ret, t)
-      end 
+      end
 
+      # there is some service, so allow to filter repos without service (bnc#944504)
+      if ret.size > 2
+        t = Item(
+          Id(NO_SERVICE_ITEM),
+          # TRANSLATORS: Item in selection box that allow user to see only
+          # repositories not associated with service. Sometimes called also
+          # third party as they are usually repositories not provided by SUSE
+          # within product subscription.
+          _("Only repositories not provided by a service"),
+          @repository_view &&
+            @displayed_service == NO_SERVICE
+        )
+        ret = Builtins.add(ret, t)
+      end
 
-      deep_copy(ret)
+      ret
     end
 
     def RepoFilterWidget
@@ -1035,7 +1053,7 @@ module Yast
             exit = true if Popup.YesNoHeadline(headline, msg)
           end
         elsif input == :key_mgr
-          exit = true 
+          exit = true
           #return `key_mgr;
           # start the GPG key manager
           #RunGPGKeyMgmt();
@@ -1058,6 +1076,12 @@ module Yast
             @repository_view = false
             # display all services
             @displayed_service = ""
+          elsif current_item == NO_SERVICE_ITEM
+            update_table_widget = @repository_view
+            Builtins.y2milestone("Switching to without service view")
+            @repository_view = true
+            # display repositories without service
+            @displayed_service = NO_SERVICE
           elsif Ops.is_string?(current_item)
             # switch to the selected repository
             Builtins.y2milestone("Switching to service %1", current_item)
@@ -1742,7 +1766,7 @@ module Yast
         generalData = Pkg.SourceGeneralData(src_id)
         src_url = Ops.get_string(generalData, "url", "")
         ret = true if src_url == url
-      end 
+      end
 
 
       Builtins.y2milestone("URL exists: %1", ret)
@@ -1901,7 +1925,7 @@ module Yast
       UI.CloseDialog
       ret
     end
-  end
+  end unless defined? (Yast::RepositoriesClient)
 end
 
 Yast::RepositoriesClient.new.main
