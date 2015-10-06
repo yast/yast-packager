@@ -171,6 +171,7 @@ module Yast
 
     def ReposFromService(service, input)
       input = deep_copy(input)
+      service = "" if service == :without
       Builtins.filter(input) do |repo|
         Ops.get_string(repo, "service", "") == service
       end
@@ -641,10 +642,20 @@ module Yast
             @displayed_service == Ops.get_string(srv_state, "alias", "")
         )
         ret = Builtins.add(ret, t)
-      end 
+      end
 
+      # there is some service, so allow to filter repos without service (bnc#944504)
+      if ret.size > 2
+        t = Item(
+          Id(:without_service),
+          _("Without Service"),
+          @repository_view &&
+            @displayed_service == :without
+        )
+        ret = Builtins.add(ret, t)
+      end
 
-      deep_copy(ret)
+      ret
     end
 
     def RepoFilterWidget
@@ -1035,7 +1046,7 @@ module Yast
             exit = true if Popup.YesNoHeadline(headline, msg)
           end
         elsif input == :key_mgr
-          exit = true 
+          exit = true
           #return `key_mgr;
           # start the GPG key manager
           #RunGPGKeyMgmt();
@@ -1058,6 +1069,12 @@ module Yast
             @repository_view = false
             # display all services
             @displayed_service = ""
+          elsif current_item == :without_service
+            update_table_widget = @repository_view
+            Builtins.y2milestone("Switching to without service view")
+            @repository_view = true
+            # display repositories without service
+            @displayed_service = :without
           elsif Ops.is_string?(current_item)
             # switch to the selected repository
             Builtins.y2milestone("Switching to service %1", current_item)
@@ -1742,7 +1759,7 @@ module Yast
         generalData = Pkg.SourceGeneralData(src_id)
         src_url = Ops.get_string(generalData, "url", "")
         ret = true if src_url == url
-      end 
+      end
 
 
       Builtins.y2milestone("URL exists: %1", ret)
