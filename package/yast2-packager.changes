@@ -1,4 +1,158 @@
 -------------------------------------------------------------------
+Tue Oct  6 11:13:46 UTC 2015 - jreidinger@suse.com
+
+- Added a filter showing only those repositories not belonging to
+  any service. (bnc#944504)
+
+-------------------------------------------------------------------
+Tue Sep 29 10:34:34 UTC 2015 - lslezak@suse.cz
+
+- handle properly the SLES11 SMT upgrade to SLES12 (evaluate all
+  removed products when checking product upgrades) (bsc#946717)
+- 3.1.78
+
+-------------------------------------------------------------------
+Fri Aug 28 13:39:23 UTC 2015 - lslezak@suse.cz
+
+- Do not show a warning for the removed SMT product when upgrading
+  from SLES11 + SMT (the SMT functionality has been integrated into
+  SLES12) (bsc#942639)
+- 3.1.77
+
+-------------------------------------------------------------------
+Tue Jul 21 08:32:41 UTC 2015 - jreidinger@suse.com
+
+- fix crash when adding addon on DVD (bnc#938786)
+- 3.1.76
+
+-------------------------------------------------------------------
+Tue Jul 14 15:46:32 UTC 2015 - lslezak@suse.cz
+
+- fixed crash when editing the default URL of a new addon
+  (bsc#937948)
+- 3.1.75
+
+-------------------------------------------------------------------
+Tue Jun 30 14:16:41 UTC 2015 - mvidner@suse.com
+
+- Do not offer to install recommended packages for already
+  installed ones on the first run (boo#902394).
+- 3.1.74
+
+-------------------------------------------------------------------
+Tue Jun 30 09:11:43 CEST 2015 - schubi@suse.de
+
+- Checking nil result after reading /proc/cmdline (bnc#934229).
+- 3.1.73
+
+-------------------------------------------------------------------
+Wed Jun 24 11:49:42 UTC 2015 - jreidinger@suse.com
+
+- do not crash if user want to add add-on via url (bnc#934216)
+- 3.1.72
+
+-------------------------------------------------------------------
+Thu Jun 11 14:58:58 UTC 2015 - lslezak@suse.cz
+
+- proper fix for a float remaining time (bnc#882240)
+- 3.1.71
+
+-------------------------------------------------------------------
+Thu Jun  4 14:21:22 UTC 2015 - lslezak@suse.cz
+
+- use the full URL (incl. the password) when editing a repository
+  URL (bnc#826075)
+- 3.1.70
+
+-------------------------------------------------------------------
+Tue Jun  2 21:24:46 UTC 2015 - lslezak@suse.cz
+
+- fixed building a local ISO URL (bnc#919138)
+- 3.1.69
+
+-------------------------------------------------------------------
+Thu May  7 14:02:11 UTC 2015 - igonzalezsosa@suse.com
+
+- Packages module uses tags instead of package names (bnc#923901)
+- 3.1.68
+
+-------------------------------------------------------------------
+Thu Apr 23 12:01:31 UTC 2015 - ancor@suse.com
+
+- Ensure libyui-qt is installed when using autoyast in graphical
+  mode (bnc#923901)
+
+-------------------------------------------------------------------
+Fri Apr 10 14:10:39 UTC 2015 - lslezak@suse.cz
+
+- register addons from media (FATE#318505)
+- 3.1.67
+
+-------------------------------------------------------------------
+Mon Mar 16 09:45:04 UTC 2015 - cwh@suse.com
+
+- Added reponame to license's title (bnc#899892)
+- Display correct license URL for add-on repositories (bnc#899891)
+- 3.1.66
+
+-------------------------------------------------------------------
+Fri Mar 13 11:15:53 UTC 2015 - lslezak@suse.cz
+
+- skip EULA also in the autoupgrade mode, not only in the autoinst
+  mode (bnc#922232)
+- 3.1.65
+
+-------------------------------------------------------------------
+Fri Mar 13 08:00:32 UTC 2015 - lslezak@suse.cz
+
+- "iproute2" package is needed for SSH installation (bnc#920175)
+- 3.1.64
+
+-------------------------------------------------------------------
+Wed Mar  4 15:15:26 UTC 2015 - lslezak@suse.cz
+
+- removed obsolete patch download callbacks
+- 3.1.63
+
+-------------------------------------------------------------------
+Wed Feb 11 21:00:06 UTC 2015 - lslezak@suse.cz
+
+- process "workgroup" parameter in URL properly (bnc#784978)
+- 3.1.62
+
+-------------------------------------------------------------------
+Mon Feb  9 17:41:43 UTC 2015 - ancor@suse.com
+
+- Fixed the network configuration during upgrade (bnc#911132)
+- 3.1.61
+
+-------------------------------------------------------------------
+Fri Feb  6 13:26:27 UTC 2015 - ancor@suse.com
+
+- The unit tests are now compatible with RSpec 3 (bnc#916364)
+- 3.1.60 
+
+-------------------------------------------------------------------
+Thu Feb  5 07:33:09 UTC 2015 - jsrain@suse.cz
+
+- initialize bootloader during update if proposed from scratch
+  (bnc#899743)
+- 3.1.59
+
+-------------------------------------------------------------------
+Tue Feb  3 09:01:07 UTC 2015 - lslezak@suse.cz
+
+- fixed file:// URL handling (same as dir://) (boo#869399)
+- validate entered URL schema
+- 3.1.58
+
+-------------------------------------------------------------------
+Thu Jan 29 14:45:40 UTC 2015 - jreidinger@suse.com
+
+- remove obsolete legacy patch callbacks
+- 3.1.57 
+
+-------------------------------------------------------------------
 Mon Jan 26 13:06:17 UTC 2015 - jreidinger@suse.com
 
 - fixed \r and \b  characters lost during conversion to Ruby
