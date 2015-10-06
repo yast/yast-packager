@@ -653,8 +653,8 @@ module Yast
           Id(NO_SERVICE_ITEM),
           # TRANSLATORS: Item in selection box that allow user to see only
           # repositories not associated with service. Sometimes called also
-          # third party as it is usually repositories not provided by suse
-          # within subscription.
+          # third party as they are usually repositories not provided by SUSE
+          # within product subscription.
           _("Only repositories not provided by a service"),
           @repository_view &&
             @displayed_service == NO_SERVICE
