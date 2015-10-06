@@ -54,6 +54,8 @@ module Yast
       )
 
       if url != ""
+        expanded_url = Pkg.ExpandedUrl(url)
+
         # for Plaindir repository we have to use SourceCreateType() binding
         parsed = URL.Parse(url)
         scheme = Ops.get_string(parsed, "scheme", "")
@@ -94,7 +96,7 @@ module Yast
         )
 
         Progress.NextStage
-        service_type = Pkg.ServiceProbe(url)
+        service_type = Pkg.ServiceProbe(expanded_url)
         Builtins.y2milestone("Probed service type: %1", service_type)
 
         if service_type != nil && service_type != "NONE"
@@ -142,7 +144,7 @@ module Yast
           return :ok
         end
 
-        new_repos = Pkg.RepositoryScan(url)
+        new_repos = Pkg.RepositoryScan(expanded_url)
         Builtins.y2milestone("new_repos: %1", new_repos)
 
         # add at least one product if the scan result is empty (no product info available)
@@ -208,7 +210,7 @@ module Yast
           # probe repository type (do not probe plaindir repo)
           repo_type = plaindir ?
             @plaindir_type :
-            Pkg.RepositoryProbe(url, prod_dir)
+            Pkg.RepositoryProbe(expanded_url, prod_dir)
           Builtins.y2milestone(
             "Repository type (%1,%2): %3",
             URL.HidePassword(url),
