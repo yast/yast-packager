@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Tue Oct  6 11:13:46 UTC 2015 - jreidinger@suse.com
 
-- If there is service allow to see repositories without service
-  (bnc#944504)
+- Added a filter showing only those repositories not belonging to
+  any service. (bnc#944504)
 - 3.1.79
 
 -------------------------------------------------------------------
