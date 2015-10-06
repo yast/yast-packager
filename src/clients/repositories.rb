@@ -337,7 +337,9 @@ module Yast
       url_string = Builtins.sformat(_("URL: %1"), url)
       if url != raw_url
         url_string += "<BR>"
-        url_string += Builtins.sformat(_("Raw URL: %1"), raw_url)
+        # TRANSLATORS: Raw URL is the address without expanding repo variables
+        # e.g. Raw URL = http://something/$arch -> URL = http://something/x86_64
+        url_string += _("Raw URL: %s") % raw_url
       end
 
       Builtins.sformat(
