@@ -263,6 +263,7 @@ module Yast
         "autorefresh"  => Ops.get_boolean(source, "autorefresh", true),
         "name"         => Ops.get_locale(source, "name", _("Unknown Name")),
         "url"          => Ops.get_string(generalData, "url", ""),
+        "raw_url"      => Ops.get_string(generalData, "raw_url", ""),
         "type"         => Ops.get_string(generalData, "type", ""),
         "priority"     => Ops.get_integer(source, "priority", @default_priority),
         "service"      => Ops.get_string(source, "service", ""),
@@ -313,9 +314,12 @@ module Yast
       nil
     end
 
-    def repoInfoRichText(name, raw_url, category)
+    def repoInfoRichText(name, category, info)
+      url = info["url"]
+      raw_url = info["raw_url"]
+
       schema = Builtins.tolower(
-        Ops.get_string(URL.Parse(raw_url), "scheme", "")
+        Ops.get_string(URL.Parse(url), "scheme", "")
       )
       icon_tag = Ops.add(
         Ops.add(
@@ -327,15 +331,22 @@ module Yast
         "\">&nbsp;&nbsp;&nbsp;"
       )
 
+      url = _("Unknown") if url == ""
       raw_url = _("Unknown") if raw_url == ""
 
-      url = Builtins.sformat(_("URL: %1"), raw_url)
+      url_string = Builtins.sformat(_("URL: %1"), url)
+      if url != raw_url
+        url_string += "<BR>"
+        # TRANSLATORS: Raw URL is the address without expanding repo variables
+        # e.g. Raw URL = http://something/$arch -> URL = http://something/x86_64
+        url_string += _("Raw URL: %s") % raw_url
+      end
 
       Builtins.sformat(
         "<P>%1<B><BIG>%2</BIG></B></P><P>%3<BR>%4</P>",
         icon_tag,
         name,
-        url,
+        url_string,
         category
       )
     end
@@ -394,7 +405,7 @@ module Yast
         UI.ChangeWidget(
           Id(:repo_info),
           :Value,
-          repoInfoRichText(name, Ops.get_string(info, "url", ""), category)
+          repoInfoRichText(name, category, info)
         )
       end
 
@@ -1150,7 +1161,7 @@ module Yast
             if @repository_view
               generalData = Pkg.SourceGeneralData(id)
               # use the full URL (incl. the password) when editing it
-              url2 = Pkg.SourceURL(id)
+              url2 = Pkg.SourceRawURL(id)
               old_url = url2
               plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
 
@@ -1313,7 +1324,7 @@ module Yast
             else
               service_info = Ops.get(@serviceStatesOut, current, {})
               Builtins.y2milestone("Editing service %1...", current)
-              url2 = Ops.get_string(service_info, "url", "")
+              url2 = Ops.get_string(service_info, "raw_url", "")
               old_url = url2
 
               SourceDialogs.SetRepoName(

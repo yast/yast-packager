@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.79
+Version:        3.1.80
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -35,14 +35,14 @@ BuildRequires:  rubygem(rspec)
 # HwDetection
 BuildRequires: yast2 >= 3.1.19
 
-# "growonly" in Pkg::SetTargetDU()
-BuildRequires:	yast2-pkg-bindings >= 3.1.19
+# Pkg::SourceRawURL() and Pkg:ExpandedUrl()
+BuildRequires:	yast2-pkg-bindings >= 3.1.30
 
 # Newly added RPM
 Requires:	yast2-country-data >= 2.16.3
 
-# "growonly" in Pkg::SetTargetDU()
-Requires:	yast2-pkg-bindings >= 3.1.19
+# Pkg::SourceRawURL() and Pkg:ExpandedUrl()
+Requires:	yast2-pkg-bindings >= 3.1.30
 
 # Fixed .proc.cmdline agent
 Requires: yast2 >= 3.1.89
