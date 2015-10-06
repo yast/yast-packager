@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct  6 11:13:46 UTC 2015 - jreidinger@suse.com
+
+- If there is service allow to see repositories without service
+  (bnc#944504)
+- 3.1.79
+
+-------------------------------------------------------------------
 Tue Sep 29 10:34:34 UTC 2015 - lslezak@suse.cz
 
 - handle properly the SLES11 SMT upgrade to SLES12 (evaluate all
