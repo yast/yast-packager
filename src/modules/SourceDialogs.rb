@@ -814,9 +814,9 @@ module Yast
       # preserve other URL options, e.g. ?devices=/dev/sr0
       # change the URL only when necessary
       if device == :cd && scheme != "cd"
-        @_url = "cd://"
+        @_url = "cd:///"
       elsif device == :dvd && scheme != "dvd"
-        @_url = "dvd://"
+        @_url = "dvd:///"
       end
 
       nil

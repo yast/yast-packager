@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct  8 07:43:44 UTC 2015 - lslezak@suse.cz
+
+- repository manager - fixed switch between dvd:// and cd:// URL
+  scheme (bsc#947595)
+- 3.1.81
+
+-------------------------------------------------------------------
 Tue Oct  6 11:36:25 UTC 2015 - ancor@suse.com
 
 - Repository editor can now manage urls with repo variables like
