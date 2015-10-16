@@ -1883,7 +1883,10 @@ module Yast
         )
 
         # really continue?
-        return :abort if !cont
+        if !cont
+          Wizard.CloseDialog
+          return :abort
+        end
       end
 
       # read known GPG keys

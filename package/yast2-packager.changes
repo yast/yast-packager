@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 16 08:21:20 UTC 2015 - lslezak@suse.cz
+
+- repository manager - properly close the main window when aborting
+  after failed initialization to avoid a segfault (bsc#950525)
+- 3.1.82
+
+-------------------------------------------------------------------
 Thu Oct  8 07:43:44 UTC 2015 - lslezak@suse.cz
 
 - repository manager - fixed switch between dvd:// and cd:// URL
