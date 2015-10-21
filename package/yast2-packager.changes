@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Oct 21 14:29:50 UTC 2015 - lslezak@suse.cz
+
+- fixed crash (missing nil check) at ProductLicense.rb when
+  displaying EULA in the firstboot workflow in a Studio image
+  (bsc#951210)
+- 3.1.83
+
+-------------------------------------------------------------------
 Fri Oct 16 08:21:20 UTC 2015 - lslezak@suse.cz
 
 - repository manager - properly close the main window when aborting
