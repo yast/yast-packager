@@ -1087,7 +1087,7 @@ module Yast
 
 
     # Ask user to confirm license agreement
-    # @param [Fixnum] src_id integer repository to get the license from.
+    # @param [Fixnum,nil] src_id integer repository to get the license from.
     #   If set to 'nil', the license is considered to belong to a base product
     # @param [String] dir string directory to look for the license in if src_id is nil
     #   and not 1st stage installation
@@ -1145,12 +1145,13 @@ module Yast
 
       licenses_ref = arg_ref(licenses)
 
-      label = Pkg::SourceGeneralData(src_id)["name"]
       title = _("License Agreement")
 
-      if !label.empty?
-        # %s is an extension name, e.g. "SUSE Linux Enterprise Software Development Kit"
-        title = _("%s License Agreement") % label
+      if src_id
+        label = Pkg::SourceGeneralData(src_id)["name"]
+        # TRANSLATORS: %s is an extension name
+        # e.g. "SUSE Linux Enterprise Software Development Kit"
+        title = _("%s License Agreement") % label unless label.empty?
       end
 
       DisplayLicenseDialogWithTitle(
@@ -1163,7 +1164,7 @@ module Yast
       )
       licenses = licenses_ref.value
 
-      update_license_archive_location(src_id)
+      update_license_archive_location(src_id) if src_id
 
       # Display info as a popup if exists
       InstShowInfo.show_info_txt(@info_file) if @info_file != nil
