@@ -1,13 +1,9 @@
 -------------------------------------------------------------------
-Thu Oct 22 15:39:22 UTC 2015 - lslezak@suse.cz
-
-- 3.1.52.1
-
--------------------------------------------------------------------
 Tue Oct  6 11:36:25 UTC 2015 - ancor@suse.com
 
 - Repository editor can now manage urls with repo variables like
   $arch, $releasever, etc. (bsc#944505)
+- 3.1.52.1
 
 -------------------------------------------------------------------
 Tue Oct  6 11:13:46 UTC 2015 - jreidinger@suse.com
