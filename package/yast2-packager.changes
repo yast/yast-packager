@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov 11 15:48:33 UTC 2015 - lslezak@suse.cz
+
+- Do not check the free space on a CD/DVD mounted medium during
+  online migration (the mount point has been changed from /media to
+  /run/media) (bsc#952112)
+
+-------------------------------------------------------------------
 Wed Oct 21 14:29:50 UTC 2015 - lslezak@suse.cz
 
 - fixed crash (missing nil check) at ProductLicense.rb when

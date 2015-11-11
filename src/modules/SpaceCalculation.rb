@@ -142,6 +142,7 @@ module Yast
               mountName != "/dev/shm" &&
               part["spec"] != "udev" &&
               !mountName.start_with?("/media/") &&
+              !mountName.start_with?("/run/media/") &&
               !mountName.start_with?("/var/adm/mount/")
             part_info["name"] = mountName
           end
