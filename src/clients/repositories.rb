@@ -12,6 +12,9 @@
 #
 module Yast
   class RepositoriesClient < Client
+    NO_SERVICE = :no_service
+    NO_SERVICE_ITEM = :no_service_item
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -171,6 +174,7 @@ module Yast
 
     def ReposFromService(service, input)
       input = deep_copy(input)
+      service = "" if service == NO_SERVICE
       Builtins.filter(input) do |repo|
         Ops.get_string(repo, "service", "") == service
       end
@@ -259,6 +263,7 @@ module Yast
         "autorefresh"  => Ops.get_boolean(source, "autorefresh", true),
         "name"         => Ops.get_locale(source, "name", _("Unknown Name")),
         "url"          => Ops.get_string(generalData, "url", ""),
+        "raw_url"      => Ops.get_string(generalData, "raw_url", ""),
         "type"         => Ops.get_string(generalData, "type", ""),
         "priority"     => Ops.get_integer(source, "priority", @default_priority),
         "service"      => Ops.get_string(source, "service", ""),
@@ -309,9 +314,12 @@ module Yast
       nil
     end
 
-    def repoInfoRichText(name, raw_url, category)
+    def repoInfoRichText(name, category, info)
+      url = info["url"]
+      raw_url = info["raw_url"]
+
       schema = Builtins.tolower(
-        Ops.get_string(URL.Parse(raw_url), "scheme", "")
+        Ops.get_string(URL.Parse(url), "scheme", "")
       )
       icon_tag = Ops.add(
         Ops.add(
@@ -323,15 +331,22 @@ module Yast
         "\">&nbsp;&nbsp;&nbsp;"
       )
 
+      url = _("Unknown") if url == ""
       raw_url = _("Unknown") if raw_url == ""
 
-      url = Builtins.sformat(_("URL: %1"), raw_url)
+      url_string = Builtins.sformat(_("URL: %1"), url)
+      if url != raw_url
+        url_string += "<BR>"
+        # TRANSLATORS: Raw URL is the address without expanding repo variables
+        # e.g. Raw URL = http://something/$arch -> URL = http://something/x86_64
+        url_string += _("Raw URL: %s") % raw_url
+      end
 
       Builtins.sformat(
         "<P>%1<B><BIG>%2</BIG></B></P><P>%3<BR>%4</P>",
         icon_tag,
         name,
-        url,
+        url_string,
         category
       )
     end
@@ -390,7 +405,7 @@ module Yast
         UI.ChangeWidget(
           Id(:repo_info),
           :Value,
-          repoInfoRichText(name, Ops.get_string(info, "url", ""), category)
+          repoInfoRichText(name, category, info)
         )
       end
 
@@ -641,10 +656,24 @@ module Yast
             @displayed_service == Ops.get_string(srv_state, "alias", "")
         )
         ret = Builtins.add(ret, t)
-      end 
+      end
 
+      # there is some service, so allow to filter repos without service (bnc#944504)
+      if ret.size > 2
+        t = Item(
+          Id(NO_SERVICE_ITEM),
+          # TRANSLATORS: Item in selection box that allow user to see only
+          # repositories not associated with service. Sometimes called also
+          # third party as they are usually repositories not provided by SUSE
+          # within product subscription.
+          _("Only repositories not provided by a service"),
+          @repository_view &&
+            @displayed_service == NO_SERVICE
+        )
+        ret = Builtins.add(ret, t)
+      end
 
-      deep_copy(ret)
+      ret
     end
 
     def RepoFilterWidget
@@ -1035,7 +1064,7 @@ module Yast
             exit = true if Popup.YesNoHeadline(headline, msg)
           end
         elsif input == :key_mgr
-          exit = true 
+          exit = true
           #return `key_mgr;
           # start the GPG key manager
           #RunGPGKeyMgmt();
@@ -1058,6 +1087,12 @@ module Yast
             @repository_view = false
             # display all services
             @displayed_service = ""
+          elsif current_item == NO_SERVICE_ITEM
+            update_table_widget = @repository_view
+            Builtins.y2milestone("Switching to without service view")
+            @repository_view = true
+            # display repositories without service
+            @displayed_service = NO_SERVICE
           elsif Ops.is_string?(current_item)
             # switch to the selected repository
             Builtins.y2milestone("Switching to service %1", current_item)
@@ -1125,7 +1160,8 @@ module Yast
           if input == :replace
             if @repository_view
               generalData = Pkg.SourceGeneralData(id)
-              url2 = Ops.get_string(generalData, "url", "")
+              # use the full URL (incl. the password) when editing it
+              url2 = Pkg.SourceRawURL(id)
               old_url = url2
               plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
 
@@ -1288,7 +1324,7 @@ module Yast
             else
               service_info = Ops.get(@serviceStatesOut, current, {})
               Builtins.y2milestone("Editing service %1...", current)
-              url2 = Ops.get_string(service_info, "url", "")
+              url2 = Ops.get_string(service_info, "raw_url", "")
               old_url = url2
 
               SourceDialogs.SetRepoName(
@@ -1741,7 +1777,7 @@ module Yast
         generalData = Pkg.SourceGeneralData(src_id)
         src_url = Ops.get_string(generalData, "url", "")
         ret = true if src_url == url
-      end 
+      end
 
 
       Builtins.y2milestone("URL exists: %1", ret)
@@ -1900,7 +1936,7 @@ module Yast
       UI.CloseDialog
       ret
     end
-  end
+  end unless defined? (Yast::RepositoriesClient)
 end
 
 Yast::RepositoriesClient.new.main
