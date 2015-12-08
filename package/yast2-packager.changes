@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec  8 10:02:21 UTC 2015 - jsrain@suse.cz
+
+- read release notes from media of manually added extension
+  (bsc#957241)
+
+-------------------------------------------------------------------
 Wed Nov 11 15:48:33 UTC 2015 - lslezak@suse.cz
 
 - Do not check the free space on a CD/DVD mounted medium during

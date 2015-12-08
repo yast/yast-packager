@@ -49,6 +49,8 @@ module Yast
       Yast.import "PackagesProposal"
       Yast.import "SourceManager"
 
+      Yast.include self, "packager/load_release_notes.rb"
+
       # variables for installation with product
       # ID for cache in the inst-sys
       @src_cache_id = -1
@@ -1146,6 +1148,28 @@ module Yast
       nil
     end
 
+    def IntegrateReleaseNotes(repo_id)
+      products = Pkg.ResolvableProperties("", :product, ""). select do |product|
+        product["source"] = repo_id
+      end
+      product_name = products[0]["short_name"] || _("Unknown Product")
+      Builtins.y2milestone("Integrating release notes for product %1", product_name)
+
+      WFM.CallFunction("inst_download_release_notes")
+      # fallback - RN from media
+      if InstData.release_notes[product_name].nil?
+        Builtins.y2milestone("Getting on-line release notes failed, getting them from media")
+        if load_release_notes(repo_id)
+          # push button
+          Wizard.ShowReleaseNotesButton(_("Re&lease Notes..."), "rel_notes")
+          InstData.release_notes[product_name] = @media_text
+          UI::SetReleaseNotes(InstData.release_notes)
+        else
+          Builtins.y2error("Release notes not found on media.")
+        end
+      end
+    end
+
     # Integrate the add-on product to the installation workflow, including
     # preparations for 2nd stage and inst-sys update
     # @param [Fixnum] srcid integer the ID of the repository
@@ -1173,6 +1197,9 @@ module Yast
 
       # Adds workflow to the Workflow Store if any workflow exists
       WorkflowManager.AddWorkflow(:addon, srcid, "")
+
+      # Adjust the release notes - display RN from add-ons during installation
+      IntegrateReleaseNotes(srcid) if Stage.initial
 
       true
     end
