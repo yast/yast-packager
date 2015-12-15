@@ -464,7 +464,7 @@ module Yast
 
       if ret == :again
         return :back
-      elsif ret == :abort
+      elsif ret == :abort || ret == :cancel
         return :abort
       end
       :next
