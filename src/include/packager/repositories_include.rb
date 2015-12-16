@@ -462,12 +462,17 @@ module Yast
 
       ret = createSource(url, plaindir, @download_meta, name)
 
-      if ret == :again
-        return :back
-      elsif ret == :abort
-        return :abort
+      case ret
+      when :again 
+        :back
+      when :abort, :cancel
+        :abort
+      when :next
+        :next
+      else
+        log.warn "Received unknown result: #{ret}, using :next instead"
+        :next
       end
-      :next
     end
 
     def TypeDialogOpts(download, url)
