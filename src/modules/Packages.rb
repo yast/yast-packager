@@ -731,7 +731,7 @@ module Yast
         # (just warn if removed by user or by YaST)
         msg = (transact_by == :user || transact_by == :app_high) ?
           _("<b>Warning:</b> Product <b>%s</b> will be removed.") % h(product_label(product)) :
-          _("<b>Error:</b> Product <b>%s</b> will be automatically removed.</font>") \
+          _("<b>Error:</b> Product <b>%s</b> will be automatically removed.") \
             % h(product_label(product))
 
         HTML.Colorize(msg, "red")
