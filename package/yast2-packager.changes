@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan  4 09:33:33 UTC 2016 - jreidinger@suse.com
+
+-  do not crash if adding unknown repo type (bnc#960460) 
+
+-------------------------------------------------------------------
 Wed Dec 16 13:03:07 UTC 2015 - lslezak@suse.cz
 
 - Do not remove the system repository when adding an addon fails,
