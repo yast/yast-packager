@@ -12,6 +12,8 @@
 #
 module Yast
   module PackagerRepositoriesIncludeInclude
+    include Yast::Logger
+
     def initialize_packager_repositories_include(include_target)
       Yast.import "Pkg"
       Yast.import "Stage"
