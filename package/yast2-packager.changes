@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Jan 27 12:16:51 UTC 2016 - lslezak@suse.cz
+
+- Fixed selecting additional products during system installation
+  (do not select previously unselected products after adding
+  repositories from the registration server) (bsc#963036)
+- 3.1.88
+
+-------------------------------------------------------------------
 Mon Jan  4 09:23:54 UTC 2016 - jreidinger@suse.com
 
 - do not crash if adding unknown repo type (bnc#960460)

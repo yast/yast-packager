@@ -158,6 +158,17 @@ describe Yast::Packages do
     DEFAULT_PATTERN.merge(properties)
   end
 
+  DEFAULT_PRODUCT = {
+    "name" => "name",
+    "version" => "1.0.0",
+    "status" => :available,
+    "transact_by" => :app_high,
+  }
+
+  def product(properties = {})
+    DEFAULT_PRODUCT.merge(properties)
+  end
+
   describe "#SelectSystemPatterns" do
     context "if this is the initial run or it is being reinitialized" do
       context "and patterns are not unselected by user" do
@@ -834,6 +845,38 @@ describe Yast::Packages do
       it "includes vnc packages" do
         expect(packages).to eq(vnc_packages)
       end
+    end
+  end
+
+  describe "#Reset" do
+    # Reset all package changes done by YaST then re-select only the products
+    # which previously were selected. (see bsc#963036).
+    it "does not select previously unselected items" do
+      allow(Yast::Pkg).to receive(:PkgApplReset)
+
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
+        [product("name" => "p1", "status" => :selected), product("name" => "p2")]
+      )
+
+      expect(Yast::Pkg).to receive(:ResolvableInstall).with("p1", :product)
+      expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p2", :product)
+
+      Yast::Packages.Reset([:product])
+    end
+
+    # When restoring the selected products ignore the items selected by solver
+    # (to not change their "transact_by" value). They will be selected again by
+    # solver if they are still needed.
+    it "does not restore items selected by solver" do
+      allow(Yast::Pkg).to receive(:PkgApplReset)
+
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
+        [product("name" => "p1", "status" => :selected, "transact_by" => :solver)]
+      )
+
+      expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p1", :product)
+
+      Yast::Packages.Reset([:product])
     end
   end
 end

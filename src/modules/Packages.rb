@@ -788,30 +788,29 @@ module Yast
       nil
     end
 
-    # Reset package selection, but keep objects of specified type
-    # @param [Array<Symbol>] keep a list of symbols specifying type of objects to be kept
+    # Reset package selection, but keep the selected objects of the specified type
+    # @param [Array<Symbol>] keep a list of symbols specifying type of objects to be kept selected
     def Reset(keep)
-      keep = deep_copy(keep)
       restore = []
-      Builtins.foreach(keep) do |type|
-        selected = Pkg.ResolvableProperties("", type, "")
-        Builtins.foreach(selected) do |s|
-          restore = Builtins.add(
-            restore,
-            { "type" => type, "name" => Ops.get_string(s, "name", "") }
-          )
+
+      # collect the currently selected resolvables
+      keep.each do |type|
+        resolvables = Pkg.ResolvableProperties("", type, "")
+
+        resolvables.each do |resolvable|
+          # only selected items but ignore the selections done by solver,
+          # during restoration they would be changed to be selected by YaST and they
+          # will be selected by solver again anyway
+          next if resolvable["status"] != :selected || resolvable["transact_by"] == :solver
+
+          restore << [resolvable["name"], type]
         end
       end
 
-      # This reset keep user-made changes
-      # BNC #446406
+      # This keeps the user-made changes (BNC#446406)
       Pkg.PkgApplReset
-      Builtins.foreach(restore) do |res|
-        Pkg.ResolvableInstall(
-          Ops.get_string(res, "name", ""),
-          Ops.get_symbol(res, "type")
-        )
-      end
+
+      restore.each { |name, type| Pkg.ResolvableInstall(name, type) }
 
       @system_packages_selected = false
 
@@ -2211,7 +2210,7 @@ module Yast
     # Make a proposal for package selection
     #
     # @param [Boolean] force_reset force reset (fully resets the proposal and creates a new one)
-    # @param [Boolean] reinit re-initialize (soft-reset, doesn't reset resolbavle manually selected by user)
+    # @param [Boolean] reinit re-initialize (soft-reset, doesn't reset resolvable manually selected by user)
     #
     # @return [Hash] for the API proposal
     def Proposal(force_reset, reinit, simple)
