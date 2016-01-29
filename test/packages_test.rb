@@ -849,7 +849,9 @@ describe Yast::Packages do
   end
 
   describe "#Reset" do
-    # see bsc#963036
+    # Reset package changes done by YaST but select the installe products back.
+    # Do not select previously not selected products which were added by
+    # registration (see bsc#963036).
     it "does not select previously unselected items" do
       allow(Yast::Pkg).to receive(:PkgApplReset)
 
@@ -863,7 +865,12 @@ describe Yast::Packages do
       Yast::Packages.Reset([:product])
     end
 
-    it "does not select items selected by solver" do
+    # When restoring the selected products after reset ignore the products
+    # selected by solver. Their status would change, they would be now selected
+    # by YaST which would prevent from deselecting them by solver later after
+    # changing the dependencies. Moreover they will be selected by solver again
+    # if they are still needed.
+    it "does not restore items selected by solver" do
       allow(Yast::Pkg).to receive(:PkgApplReset)
 
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
