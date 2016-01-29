@@ -801,16 +801,16 @@ module Yast
           # only selected items but ignore the selections done by solver,
           # during restoration they would be changed to be selected by YaST and they
           # will be selected by solver again anyway
-          if resolvable["status"] == :selected && resolvable["transact_by"] != :solver
-            restore << { "type" => type, "name" => resolvable["name"] }
-          end
+          next if resolvable["status"] != :selected || resolvable["transact_by"] == :solver
+
+          restore << [resolvable["name"], type]
         end
       end
 
       # This keeps the user-made changes (BNC#446406)
       Pkg.PkgApplReset
 
-      restore.each { |res| Pkg.ResolvableInstall(res["name"], res["type"]) }
+      restore.each { |name, type| Pkg.ResolvableInstall(name, type) }
 
       @system_packages_selected = false
 
