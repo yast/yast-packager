@@ -1174,27 +1174,16 @@ module Yast
       InstShowInfo.show_info_txt(@info_file) if @info_file != nil
 
       # initial loop
-      ret = nil
-
-      # set timeout for autoinstallation
-      # bugzilla #206706
-      if Mode.autoinst || Mode.autoupgrade
-        Builtins.y2milestone(
-          "AutoYaST: License has been accepted automatically"
-        )
-        ret = :accepted
-      else
-        ret = (
-          licenses_ref = arg_ref(licenses);
-          _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
-            licenses_ref,
-            base_product,
-            action
-          );
-          licenses = licenses_ref.value;
-          _HandleLicenseDialogRet_result
-        )
-      end
+      ret = (
+        licenses_ref = arg_ref(licenses);
+        _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
+          licenses_ref,
+          base_product,
+          action
+        );
+        licenses = licenses_ref.value;
+        _HandleLicenseDialogRet_result
+      )
 
       if ret == :accepted && license_ident != nil
         # store already accepted license ID
@@ -1342,27 +1331,18 @@ module Yast
       Wizard.SetTitleIcon("yast-license")
       Wizard.SetFocusToNextButton
 
-      # set timeout for autoinstallation
-      # bugzilla #206706
-      if Mode.autoinst
-        Builtins.y2milestone(
-          "AutoYaST: License has been accepted automatically"
-        )
-        ret = :accepted
-      else
-        tmp_licenses = {}
-        ret = (
-          tmp_licenses_ref = arg_ref(tmp_licenses);
-          _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
-            tmp_licenses_ref,
-            base_product,
-            action
-          );
-          tmp_licenses = tmp_licenses_ref.value;
-          _HandleLicenseDialogRet_result
-        )
-        Builtins.y2milestone("Dialog ret: %1", ret)
-      end
+      tmp_licenses = {}
+      ret = (
+        tmp_licenses_ref = arg_ref(tmp_licenses);
+        _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
+          tmp_licenses_ref,
+          base_product,
+          action
+        );
+        tmp_licenses = tmp_licenses_ref.value;
+        _HandleLicenseDialogRet_result
+      )
+      Builtins.y2milestone("Dialog ret: %1", ret)
 
       # store already accepted license IDs
       Builtins.foreach(license_idents) do |license_ident|
