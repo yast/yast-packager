@@ -100,7 +100,7 @@ module Yast
 
 
     #  commitPackages marked for deletion or installation
-    #	Return: [ int successful, list failed, list remaining, list srcremaining ]
+    #	Return: [ int successful, list failed, list remaining, list srcremaining, list update_messages ]
     #
     #
     def Commit(config)
@@ -138,7 +138,6 @@ module Yast
 
       start_time = Builtins.time
 
-      commit_result = []
       # returns [ int successful, list failed, list remaining, list srcremaining ]
       Builtins.y2milestone("Calling Pkg::Commit (%1)", config)
       commit_result = Pkg.Commit(config)
@@ -188,6 +187,8 @@ module Yast
         )
       end
 
+      PackagesUI.show_update_messages(commit_result) unless Mode.installation || Mode.autoinst
+
       if Mode.normal
         # collect and set installation summary data
         summary = PackageSlideShow.GetPackageSummary
@@ -213,9 +214,8 @@ module Yast
       deep_copy(commit_result)
     end
 
-
     #  commitPackages marked for deletion or installation
-    #	Return: [ int successful, list failed, list remaining, list srcremaining ]
+    #	Return: [ int successful, list failed, list remaining, list srcremaining, list update_messages ]
     #
     #
     def CommitPackages(media_number, packages_installed)
