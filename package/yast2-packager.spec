@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.89
+Version:        3.1.90
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -32,8 +32,8 @@ BuildRequires:  yast2-storage
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
-# HwDetection
-BuildRequires: yast2 >= 3.1.19
+# PackagesUI.show_update_messages
+BuildRequires: yast2 >= 3.1.175
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 BuildRequires:	yast2-pkg-bindings >= 3.1.30
