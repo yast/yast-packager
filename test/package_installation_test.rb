@@ -18,15 +18,38 @@ describe Yast::PackageInstallation do
       allow(Yast::PackagesUI).to receive(:show_update_messages)
     end
 
-    context "when running in normal mode" do
-      it "shows a summary" do
-        expect(Yast::PackagesUI).to receive(:SetPackageSummary)
-        subject.Commit(config)
-      end
-
+    context "when commit is successful" do
       it "returns the commit result" do
         allow(Yast::PackagesUI).to receive(:SetPackageSummary)
         expect(subject.Commit(config)).to eq(result)
+      end
+
+      context "when running in normal mode" do
+        it "shows a summary" do
+          expect(Yast::PackagesUI).to receive(:SetPackageSummary)
+          subject.Commit(config)
+        end
+      end
+
+      context "when not running in normal mod" do
+        before { expect(Yast::Mode).to receive(:normal).and_return(false) }
+
+        it "does not show a summary" do
+          expect(Yast::PackagesUI).to_not receive(:SetPackageSummary)
+          subject.Commit(config)
+        end
+      end
+    end
+
+    context "when commit fails" do
+      let(:result) { nil }
+
+      it "logs the error and returns []" do
+        expect(Yast::Pkg).to receive(:Commit).with(config)
+          .and_return(result)
+        allow(Yast::Pkg).to receive(:LastError).and_return("error")
+        expect(Yast::Builtins).to receive(:y2error).with(/Commit failed/, "error")
+        expect(subject.Commit(config)).to eq([])
       end
     end
 
@@ -37,7 +60,7 @@ describe Yast::PackageInstallation do
           "solvable"         => "dummy-package",
           "text"             => "Some dummy text.",
           "installationPath" => "/var/adm/update-message/dummy-package-1.0",
-          "currentPath"      => "/var/adm/update-message/dummy-package-1.0",
+          "currentPath"      => "/var/adm/update-message/dummy-package-1.0"
         }
       end
 
@@ -66,18 +89,6 @@ describe Yast::PackageInstallation do
           expect(Yast::PackagesUI).to_not receive(:show_update_messages).with(result)
           subject.Commit(config)
         end
-      end
-    end
-
-    context "when installation fails" do
-      let(:result) { nil }
-
-      it "logs the error and returns []" do
-        expect(Yast::Pkg).to receive(:Commit).with(config)
-          .and_return(result)
-        allow(Yast::Pkg).to receive(:LastError).and_return("error")
-        expect(Yast::Builtins).to receive(:y2error).with(/Commit failed/, "error")
-        expect(subject.Commit(config)).to eq([])
       end
     end
   end
