@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 22 11:13:20 UTC 2016 - igonzalezsosa@suse.com
+
+- Show messages coming from libzypp except during installation
+  (bsc#943805)
+- 3.1.90
+
+-------------------------------------------------------------------
 Thu Feb 11 15:25:26 CET 2016 - schubi@suse.de
 
 - Allowing AutoYaST to confirm licenses.
