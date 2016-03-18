@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 18 11:46:53 UTC 2016 - lslezak@suse.cz
+
+- Fixed list of skipped packages in the installation summary
+  dialog (boo#971759)
+- 3.1.91
+
+-------------------------------------------------------------------
 Mon Feb 22 11:13:20 UTC 2016 - igonzalezsosa@suse.com
 
 - Show messages coming from libzypp except during installation
