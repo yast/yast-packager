@@ -195,7 +195,7 @@ module Yast
 
         Ops.set(summary, "time_seconds", installation_time)
         Ops.set(summary, "success", Builtins.size(errpacks) == 0)
-        Ops.set(summary, "remaining", Ops.get_list(commit_result, 2, []))
+        Ops.set(summary, "remaining", package_names(commit_result[2] || []))
         Ops.set(summary, "install_log", SlideShow.inst_log)
 
         if Ops.greater_than(Builtins.size(errpacks), 0)
@@ -296,6 +296,15 @@ module Yast
     publish :function => :FakePackager, :type => "any (list <list>, string, boolean)"
     publish :function => :Commit, :type => "list (map <string, any>)"
     publish :function => :CommitPackages, :type => "list (integer, integer)"
+
+    private
+
+    # Get a human readable list of installed packages
+    # @param [Array<Hash>] packages list of package data
+    # @return [Array<String>] list of package names
+    def package_names(packages)
+      packages.map{ |p| p["name"] }
+    end
   end
 
   PackageInstallation = PackageInstallationClass.new
