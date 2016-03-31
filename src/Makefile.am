@@ -51,6 +51,9 @@ ynclude_DATA = \
   include/packager/load_release_notes.rb \
   include/packager/repositories_include.rb
 
+ylibdir = @ylibdir@/packager
+ylib_DATA = lib/packager/product_patterns.rb
+
 ynclude1dir = @yncludedir@/checkmedia
 ynclude1_DATA = \
   include/checkmedia/ui.rb

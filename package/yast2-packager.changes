@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Apr 11 17:35:17 UTC 2016 - lslezak@suse.cz
+
+- Select the default product patterns defined by the
+  'defaultpattern()' provides in the initial installation
+  (FATE#320199)
+- 3.1.95
+
+-------------------------------------------------------------------
 Wed Apr  6 09:57:59 UTC 2016 - knut.anderssen@suse.com
 
 - Explicitly resolve shortcut conflicts proposing 'alt-w' for

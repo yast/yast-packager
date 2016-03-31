@@ -13,6 +13,8 @@ Yast.import "ProductFeatures"
 Yast.import "Linuxrc"
 Yast.import "Pkg"
 
+require "packager/product_patterns"
+
 SCR_STRING_PATH = Yast::Path.new(".target.string")
 SCR_BASH_PATH = Yast::Path.new(".target.bash")
 SCR_PROC_CMDLINE_PATH = Yast::Path.new(".proc.cmdline")
@@ -390,6 +392,7 @@ describe Yast::Packages do
 
     context "when fips pattern is available" do
       before do
+        allow_any_instance_of(Packager::ProductPatterns).to receive(:names).and_return([])
         allow(Yast::Pkg).to receive(:ResolvableProperties).
           with("fips", :pattern, "").and_return([{ "name" => "fips" }])
       end
@@ -407,6 +410,7 @@ describe Yast::Packages do
 
     context "when fips pattern is not available" do
       before do
+        allow_any_instance_of(Packager::ProductPatterns).to receive(:names).and_return([])
         allow(Yast::Pkg).to receive(:ResolvableProperties).
           with("fips", :pattern, "").and_return([])
       end
@@ -420,6 +424,12 @@ describe Yast::Packages do
         expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo bar")
         expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
       end
+    end
+
+    it "includes the default product patterns in the result" do
+      default_patterns = [ "default_pattern_1", "default_pattern_2"]
+      expect_any_instance_of(Packager::ProductPatterns).to receive(:names).at_least(:once).and_return(default_patterns)
+      expect(Yast::Packages.ComputeSystemPatternList).to include(*default_patterns)
     end
   end
 

@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.94
+Version:        3.1.95
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -121,8 +121,10 @@ provided by yast2-packager package.
 %defattr(-,root,root)
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
+%dir %{yast_libdir}/packager
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
+%{yast_libdir}/packager/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop
