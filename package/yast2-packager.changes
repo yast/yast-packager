@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  4 09:15:27 CEST 2016 - schubi@suse.de
+
+- Using "uptime" from package yast2 instead of Builtins.time.
+  Cleanup for bnc#956730.
+- 3.1.92
+
+-------------------------------------------------------------------
 Fri Mar 18 11:46:53 UTC 2016 - lslezak@suse.cz
 
 - Fixed list of skipped packages in the installation summary

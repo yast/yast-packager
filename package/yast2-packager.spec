@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.91
+Version:        3.1.92
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -44,8 +44,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 Requires:	yast2-pkg-bindings >= 3.1.30
 
-# Fixed .proc.cmdline agent
-Requires: yast2 >= 3.1.89
+# Fixed .proc.cmdline agent; uptime call
+Requires: yast2 >= 3.1.182
 
 # unzipping license file
 Requires:	unzip

@@ -7,6 +7,7 @@
 # $Id$
 #
 require "yast"
+require "yast2/system_time"
 
 module Yast
   class PackageInstallationClass < Module
@@ -136,7 +137,7 @@ module Yast
       PackageSlideShow.UpdateAllCdProgress(false)
       SlideShow.StartTimer
 
-      start_time = Builtins.time
+      start_time = Yast2::SystemTime.uptime
 
       # returns [ int successful, list failed, list remaining, list srcremaining ]
       Builtins.y2milestone("Calling Pkg::Commit (%1)", config)
@@ -150,7 +151,7 @@ module Yast
       end
 
 
-      installation_time = Ops.subtract(Builtins.time, start_time)
+      installation_time = Yast2::SystemTime.uptime - start_time
       Builtins.y2milestone(
         "Installation took %1 seconds, commit result: %2",
         installation_time,
