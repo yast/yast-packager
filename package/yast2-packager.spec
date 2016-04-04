@@ -32,8 +32,8 @@ BuildRequires:  yast2-storage
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
-# PackagesUI.show_update_messages; uptime call
-BuildRequires: yast2 >= 3.1.182
+# PackagesUI.show_update_messages
+BuildRequires: yast2 >= 3.1.175
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 BuildRequires:	yast2-pkg-bindings >= 3.1.30
