@@ -64,7 +64,7 @@ module Yast
         )
         expires = Ops.get_integer(key, "expires_raw", 0)
         exp_str = Ops.greater_than(expires, 0) &&
-          Ops.greater_than(Builtins.time, expires) ?
+          ::Time.now.to_i > expires ?
           # %1 is the date when the GPG key expired (e.g. '10.6.2005'), display the date in red
           Builtins.sformat(
             _("Expires: <font color = \"red\">%1</font> (The key is expired.)"),

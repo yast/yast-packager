@@ -400,7 +400,7 @@ module Yast
       end
 
       # timestamp
-      date = Builtins.timestring("%Y%m%d", Builtins.time, false)
+      date = Builtins.timestring("%Y%m%d", ::Time.now.to_i, false)
 
       if true
         Builtins.y2milestone("Creating backup of %1", Directory.logdir)
