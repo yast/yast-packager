@@ -3,6 +3,14 @@ Mon Apr  4 09:15:27 CEST 2016 - schubi@suse.de
 
 - Using "uptime" from package yast2 instead of Builtins.time.
   Cleanup for bnc#956730.
+- 3.1.93
+
+-------------------------------------------------------------------
+
+Fri Apr  1 12:37:51 UTC 2016 - knut.anderssen@suse.com
+
+- Added [Network Configuration] button to Source Dialog for
+  installation or upgrade modes. (fate#319716)
 - 3.1.92
 
 -------------------------------------------------------------------
