@@ -87,6 +87,7 @@ module Yast
       Yast.import "ProductControl"
       Yast.import "ProductFeatures"
       Yast.import "Stage"
+      Yast.import "WFM"
 
       # common functions / data
 
@@ -470,6 +471,7 @@ module Yast
       end
       true
     end
+
     # Get widget description map
     # @return widget description map
     def RepoNameWidget
@@ -2013,6 +2015,14 @@ module Yast
       display_scc ? Left(RadioButton(Id(:sccrepos), _(WIDGET_LABELS[:sccrepos]))) : Empty()
     end
 
+    def network_button
+      if Mode.installation || Mode.live_installation || Mode.update
+        Right(PushButton(Id(:network), _("Network Configuration...")))
+      else
+        Empty()
+      end
+    end
+
     # FIXME: two almost same definitions in the same function smell bad
     def SelectRadioWidgetOpt(download_widget)
       contents = HBox(
@@ -2215,6 +2225,8 @@ module Yast
       when :add_addon
         RefreshTypeWidgets()
         return nil
+      when :network
+        Yast::WFM.CallFunction("inst_lan", [{ "skip_detection" => true }])
       end
 
       return nil if event["ID"] != :next && event["ID"] != :ok
@@ -2625,7 +2637,7 @@ module Yast
         {
           "widget_names"       => ["select"],
           "widget_descr"       => Widgets(),
-          "contents"           => VBox("select"),
+          "contents"           => VBox(network_button, "select"),
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
@@ -2649,7 +2661,7 @@ module Yast
         {
           "widget_names"       => ["select_dl"],
           "widget_descr"       => Widgets(),
-          "contents"           => VBox("select_dl"),
+          "contents"           => VBox(network_button, "select_dl"),
           "caption"            => caption,
           "back_button"        => Label.BackButton,
           "next_button"        => Label.NextButton,
