@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr  6 09:57:59 UTC 2016 - knut.anderssen@suse.com
+
+- Explicitly resolve shortcut conflicts proposing 'alt-w' for
+  [Network Configuration]. (bsc#974216)
+- 3.1.94
+
+-------------------------------------------------------------------
 Mon Apr  4 09:15:27 CEST 2016 - schubi@suse.de
 
 - Using "uptime" from package yast2 instead of Builtins.time.
