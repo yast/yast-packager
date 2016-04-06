@@ -1998,7 +1998,7 @@ module Yast
       @display_addon_checkbox ?
         VBox(
           Left(CheckBox(Id(:add_addon), Opt(:notify),
-              _("I would like to install an additional Add On Product"), false)),
+              _("I would li&ke to install an additional Add On Product"), false)),
           VSpacing(1),
         ) :
         Empty()
@@ -2017,7 +2017,7 @@ module Yast
 
     def network_button
       if Mode.installation || Mode.live_installation || Mode.update
-        Right(PushButton(Id(:network), _("Network Configuration...")))
+        Right(PushButton(Id(:network), _("Net&work Configuration...")))
       else
         Empty()
       end
