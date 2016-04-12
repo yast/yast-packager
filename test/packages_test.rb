@@ -392,7 +392,7 @@ describe Yast::Packages do
 
     context "when fips pattern is available" do
       before do
-        allow_any_instance_of(Packager::ProductPatterns).to receive(:names).and_return([])
+        allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
         allow(Yast::Pkg).to receive(:ResolvableProperties).
           with("fips", :pattern, "").and_return([{ "name" => "fips" }])
       end
@@ -410,7 +410,7 @@ describe Yast::Packages do
 
     context "when fips pattern is not available" do
       before do
-        allow_any_instance_of(Packager::ProductPatterns).to receive(:names).and_return([])
+        allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
         allow(Yast::Pkg).to receive(:ResolvableProperties).
           with("fips", :pattern, "").and_return([])
       end
@@ -428,7 +428,7 @@ describe Yast::Packages do
 
     it "includes the default product patterns in the result" do
       default_patterns = [ "default_pattern_1", "default_pattern_2"]
-      expect_any_instance_of(Packager::ProductPatterns).to receive(:names).at_least(:once).and_return(default_patterns)
+      expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once).and_return(default_patterns)
       expect(Yast::Packages.ComputeSystemPatternList).to include(*default_patterns)
     end
   end

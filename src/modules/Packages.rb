@@ -1114,7 +1114,7 @@ module Yast
       # preselect the default product patterns (FATE#320199)
       # note: must be called *after* selecting the products
       require "packager/product_patterns"
-      product_patterns = Packager::ProductPatterns.new
+      product_patterns = ProductPatterns.new
       log.info "Found default product patterns: #{product_patterns.names}"
       pattern_list.concat(product_patterns.names)
 

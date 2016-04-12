@@ -7,7 +7,7 @@ require "packager/product_patterns"
 
 Yast.import "Pkg"
 
-describe Packager::ProductPatterns do
+describe Yast::ProductPatterns do
   describe "#names" do
     it "returns empty list when there are no products" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
