@@ -16,7 +16,6 @@
 require "yast"
 
 module Yast
-
   # Evaluate the default patterns for the currently selected products
   class ProductPatterns
     include Yast::Logger

@@ -24,8 +24,8 @@ describe Yast::ProductPatterns do
     end
 
     it "returns empty list when the product release package is not found" do
-      product = ProductFactory.create_product("status" => :selected,
-        "product_package" => nil)
+      product = ProductFactory.create_product("status"          => :selected,
+                                              "product_package" => nil)
 
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return([product])
@@ -39,10 +39,10 @@ describe Yast::ProductPatterns do
       default_pattern = "def_pattern"
       product_package_name = "product-release"
       product_package = { "name" => product_package_name, "status" => :selected,
-         "deps" => [ {"requires" => "foo"}, {"provides" => "bar"},
-           {"provides" => "defaultpattern(#{default_pattern})"} ] }
-      product = ProductFactory.create_product("status" => :selected,
-        "product_package" => product_package_name)
+         "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
+                    { "provides" => "defaultpattern(#{default_pattern})" }] }
+      product = ProductFactory.create_product("status"          => :selected,
+                                              "product_package" => product_package_name)
 
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return([product])
@@ -58,18 +58,18 @@ describe Yast::ProductPatterns do
       default_pattern1 = "def_pattern1"
       product_package_name1 = "product-release1"
       product_package1 = { "name" => product_package_name1, "status" => :selected,
-         "deps" => [ {"requires" => "foo"}, {"provides" => "bar"},
-           {"provides" => "defaultpattern(#{default_pattern1})"} ] }
-      product1 = ProductFactory.create_product("status" => :selected,
-        "product_package" => product_package_name1)
+         "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
+                    { "provides" => "defaultpattern(#{default_pattern1})" }] }
+      product1 = ProductFactory.create_product("status"          => :selected,
+                                               "product_package" => product_package_name1)
 
       default_pattern2 = "def_pattern2"
       product_package_name2 = "product-release2"
       product_package2 = { "name" => product_package_name2, "status" => :selected,
-         "deps" => [ {"requires" => "foo"}, {"provides" => "bar"},
-           {"provides" => "defaultpattern(#{default_pattern2})"} ] }
-      product2 = ProductFactory.create_product("status" => :selected,
-        "product_package" => product_package_name2)
+         "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
+                    { "provides" => "defaultpattern(#{default_pattern2})" }] }
+      product2 = ProductFactory.create_product("status"          => :selected,
+                                               "product_package" => product_package_name2)
 
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return([product1, product2])
