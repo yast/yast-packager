@@ -50,7 +50,7 @@ module Yast
     # @return [Array<String>] pattern names
     def find
       products = Yast::Pkg.ResolvableProperties("", :product, "")
-      products.select! { |product| product["status"] == :selected }
+      remove_unselected(products)
       products.map! { |product| product["name"] }
       log.info "Found selected products: #{products}"
 
@@ -78,15 +78,14 @@ module Yast
       product_dependencies = []
 
       resolvables = Yast::Pkg.ResolvableProperties(product, :product, "")
-      resolvables.select! { |p| p["status"] == :selected }
+      remove_unselected(resolvables)
 
       resolvables.each do |resolvable|
         prod_pkg = resolvable["product_package"]
         next unless prod_pkg
 
         release_resolvables = Yast::Pkg.ResolvableDependencies(prod_pkg, :package, "")
-        next unless release_resolvables
-        release_resolvables.select! { |p| p["status"] == :selected }
+        remove_unselected(release_resolvables)
 
         release_resolvables.each do |release_resolvable|
           deps = release_resolvable["deps"]
@@ -97,6 +96,12 @@ module Yast
       log.debug "Product #{product} depependencies: #{product_dependencies}"
 
       product_dependencies
+    end
+    # Remove not selected resolvables from the list
+    # @param [Array<Hash>] resolvables only the Hashes where the key "status"
+    #   maps to :selected value are kept, the rest is removed
+    def remove_unselected(resolvables)
+      resolvables.select! { |p| p["status"] == :selected }
     end
 
     # Collect "provides" dependencies from the list.
