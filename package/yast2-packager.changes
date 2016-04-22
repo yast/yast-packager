@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 22 11:48:52 UTC 2016 - knut.anderssen@suse.com
+
+- Added public methods to modify and know info about files read,
+  in this case to avoid display the welcome dialog again after
+  restart yast (bsc#974409)
+- 3.1.96
+
+-------------------------------------------------------------------
 Mon Apr 11 17:35:17 UTC 2016 - lslezak@suse.cz
 
 - Select the default product patterns defined by the

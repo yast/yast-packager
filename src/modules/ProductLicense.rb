@@ -1500,22 +1500,21 @@ module Yast
       )
       UI.ReplaceWidget(Id(replace_point_ID), rt)
 
-      id = Builtins.tostring(src_id)
-
-      # Display info as a popup if exists
-      if @info_file != nil &&
-          Ops.get(@info_file_already_seen, id, false) != true
-        if Mode.autoinst
-          Builtins.y2milestone("Autoinstallation: Skipping info file...")
-        else
-          InstShowInfo.show_info_txt(@info_file)
-          Ops.set(@info_file_already_seen, id, true)
-        end
-      end
+      display_info(src_id) if @info_file && !info_seen?(src_id)
 
       CleanUp()
 
       true
+    end
+
+    # Check if installation info had been seen to given ID
+    def info_seen?(id)
+      @info_file_already_seen.fetch(id, false)
+    end
+
+    # Mark given id as seen
+    def info_seen!(id)
+      @info_file_already_seen[id] =  true
     end
 
     def AskInstalledLicenseAgreement(directory, action)
@@ -1608,6 +1607,16 @@ module Yast
       if location_is_url?(src_url) && UI.WidgetExists(:printing_hint)
         lic_url = File.join(src_url, @license_file_print)
         UI.ReplaceWidget(:printing_hint, Label(license_download_label(lic_url)))
+      end
+    end
+
+    # Display info as a popup if exists
+    def display_info(id)
+      if Mode.autoinst
+        Builtins.y2milestone("Autoinstallation: Skipping info file...")
+      else
+        InstShowInfo.show_info_txt(@info_file)
+        info_seen!(id)
       end
     end
   end
