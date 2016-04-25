@@ -1111,13 +1111,6 @@ module Yast
         end
       end
 
-      # preselect the default product patterns (FATE#320199)
-      # note: must be called *after* selecting the products
-      require "packager/product_patterns"
-      product_patterns = ProductPatterns.new
-      log.info "Found default product patterns: #{product_patterns.names}"
-      pattern_list.concat(product_patterns.names)
-
       # FATE #302116
       # BNC #431580
       required_patterns = PackagesProposal.GetAllResolvables(:pattern)
@@ -2614,6 +2607,13 @@ module Yast
       if !Mode.autoinst
         (default_patterns | optional_default_patterns).inject(patterns, :<<)
       end
+
+      # preselect the default product patterns (FATE#320199)
+      # note: must be called *after* selecting the products
+      require "packager/product_patterns"
+      product_patterns = ProductPatterns.new
+      log.info "Found default product patterns: #{product_patterns.names}"
+      patterns.concat(product_patterns.names)
 
       patterns
     end

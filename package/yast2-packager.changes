@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 22 16:23:17 UTC 2016 - lslezak@suse.cz
+
+- Move the default pattern selection to a different place to not
+  conflict with the pattern selection in the system upgrade mode
+  (FATE#320199)
+- 3.1.97
+
+-------------------------------------------------------------------
 Fri Apr 22 11:48:52 UTC 2016 - knut.anderssen@suse.com
 
 - Added public methods to modify and know info about files read,

@@ -255,6 +255,20 @@ describe Yast::Packages do
 
       expect(logged_errors).to eq 4
     end
+
+    it "selects the default product patterns" do
+      allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
+      allow(Yast::Packages).to receive(:default_patterns).and_return([])
+      allow(Yast::Packages).to receive(:optional_default_patterns).and_return([])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([{}])
+
+      product_patterns = [ "default_pattern_1", "default_pattern_2"]
+      expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once).and_return(product_patterns)
+      expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[0], :pattern)
+      expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[1], :pattern)
+
+      Yast::Packages.SelectSystemPatterns(false)
+    end
   end
 
   describe "#log_software_selection" do
@@ -424,12 +438,6 @@ describe Yast::Packages do
         expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo bar")
         expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
       end
-    end
-
-    it "includes the default product patterns in the result" do
-      default_patterns = [ "default_pattern_1", "default_pattern_2"]
-      expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once).and_return(default_patterns)
-      expect(Yast::Packages.ComputeSystemPatternList).to include(*default_patterns)
     end
   end
 
