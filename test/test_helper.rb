@@ -9,3 +9,7 @@ end
 
 require "yast"
 require "yast/rspec"
+require "pathname"
+
+TESTS_PATH = Pathname.new(File.dirname(__FILE__))
+FIXTURES_PATH = TESTS_PATH.join("data")

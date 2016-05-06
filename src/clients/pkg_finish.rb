@@ -13,6 +13,8 @@
 #
 module Yast
   class PkgFinishClient < Client
+    REPOS_DIR = "/etc/zypp/repos.d"
+
     def main
       Yast.import "Pkg"
 
@@ -116,15 +118,13 @@ module Yast
     def BackUpAllTargetSources
       Yast.import "Directory"
 
-      repos_dir = "/etc/zypp/repos.d"
-
-      if !FileUtils.Exists(repos_dir)
-        Builtins.y2error("Directory %1 doesn't exist!", repos_dir)
+      if !FileUtils.Exists(REPOS_DIR)
+        Builtins.y2error("Directory %1 doesn't exist!", REPOS_DIR)
         return
       end
 
       current_repos = Convert.convert(
-        SCR.Read(path(".target.dir"), repos_dir),
+        SCR.Read(path(".target.dir"), REPOS_DIR),
         :from => "any",
         :to   => "list <string>"
       )
@@ -132,7 +132,7 @@ module Yast
       if current_repos == nil || Builtins.size(current_repos) == 0
         Builtins.y2warning(
           "There are currently no repos in %1 conf dir",
-          repos_dir
+          REPOS_DIR
         )
         return
       else
@@ -158,8 +158,9 @@ module Yast
         "mkdir -p '%1' && cd '%1' && /bin/tar -czf '%2' '%3'",
         String.Quote(Ops.add(Directory.vardir, "/repos.d_backup/")),
         String.Quote(archive_name),
-        String.Quote(repos_dir)
+        String.Quote(REPOS_DIR)
       )
+
       cmd = Convert.to_map(
         SCR.Execute(path(".target.bash_output"), shellcommand)
       )
@@ -175,7 +176,7 @@ module Yast
       success = nil
 
       Builtins.foreach(current_repos) do |one_repo|
-        one_repo = Ops.add(Ops.add(repos_dir, "/"), one_repo)
+        one_repo = Ops.add(Ops.add(REPOS_DIR, "/"), one_repo)
         Builtins.y2milestone("Removing target repository %1", one_repo)
         success = Convert.to_boolean(
           SCR.Execute(path(".target.remove"), one_repo)
