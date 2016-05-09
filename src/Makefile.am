@@ -52,7 +52,8 @@ ynclude_DATA = \
   include/packager/repositories_include.rb
 
 ylibdir = @ylibdir@/packager
-ylib_DATA = lib/packager/product_patterns.rb
+ylib_DATA = lib/packager/product_patterns.rb \
+  lib/packager/clients/pkg_finish.rb
 
 ynclude1dir = @yncludedir@/checkmedia
 ynclude1_DATA = \

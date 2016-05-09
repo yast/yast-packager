@@ -1,7 +1,7 @@
 #!/usr/bin/env rspec
 
 require_relative "test_helper"
-require_relative "../src/clients/pkg_finish"
+require "packager/clients/pkg_finish"
 
 describe Yast::PkgFinishClient do
   Yast.import "Pkg"
@@ -11,7 +11,7 @@ describe Yast::PkgFinishClient do
   subject(:client) { Yast::PkgFinishClient.new }
 
   before do
-    allow(Yast::WFM).to receive(:Args) { |n| n.nil? ? args : args[n] }
+    allow(Yast::WFM).to receive(:Args).and_return(args)
   end
 
   describe "Info" do
@@ -19,7 +19,7 @@ describe Yast::PkgFinishClient do
 
     it "returns a hash describing the client" do
       allow(client).to receive(:_).and_return("title")
-      expect(client.main).to eq({
+      expect(client.run).to eq({
           "steps" => 1,
           "title" => "title",
           "when" => [:installation, :update, :autoinst]})
@@ -45,7 +45,7 @@ describe Yast::PkgFinishClient do
         expect(Yast::Pkg).to receive(:TargetFinish)
         expect(Yast::Pkg).to receive(:SourceCacheCopyTo).with(destdir)
         allow(Yast::WFM).to receive(:Execute)
-        expect(client.main).to be_nil
+        expect(client.run).to be_nil
       end
 
       it "copies failed_packages list under destination dir" do
@@ -54,7 +54,7 @@ describe Yast::PkgFinishClient do
           with(Yast::Path.new(".local.bash"),
             "test -f /var/lib/YaST2/failed_packages && "\
             "/bin/cp -a /var/lib/YaST2/failed_packages '#{destdir}/var/lib/YaST2/failed_packages'")
-        client.main
+        client.run
       end
     end
 
@@ -84,7 +84,7 @@ describe Yast::PkgFinishClient do
         end
 
         it "saves the repositories at /etc/repos.d" do
-          client.main
+          client.run
 
           # The backup exists
           file = Pathname.glob(vardir.join("*")).first
@@ -101,14 +101,14 @@ describe Yast::PkgFinishClient do
             and_return("exit" => -1)
           expect(Yast::Builtins).to receive(:y2error).
             with(/Unable to backup/, /tar/, {"exit" => -1})
-          client.main
+          client.run
         end
       end
 
       context "when repos.d does not exist" do
         it "logs an error" do
           expect(Yast::Builtins).to receive(:y2error).with(/doesn't exist/, repos_dir.to_s)
-          client.main
+          client.run
         end
       end
 
@@ -119,13 +119,13 @@ describe Yast::PkgFinishClient do
 
         it "logs a warning" do
           expect(Yast::Builtins).to receive(:y2warning).with(/no repos/, repos_dir.to_s)
-          client.main
+          client.run
         end
       end
 
       it "calls inst_extrasources client" do
         expect(Yast::WFM).to receive(:call).with("inst_extrasources")
-        client.main
+        client.run
       end
     end
   end
