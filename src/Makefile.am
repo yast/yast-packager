@@ -52,8 +52,7 @@ ynclude_DATA = \
   include/packager/repositories_include.rb
 
 ylibdir = @ylibdir@/packager
-ylib_DATA = lib/packager/product_patterns.rb \
-  lib/packager/clients/pkg_finish.rb
+ylib_DATA = lib/packager/product_patterns.rb
 
 ynclude1dir = @yncludedir@/checkmedia
 ynclude1_DATA = \
@@ -71,6 +70,10 @@ desktop_DATA = \
   desktop/sw_single.desktop \
   desktop/checkmedia.desktop
 
-EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA)
+ylibclientdir = "${yast2dir}/lib/packager/clients"
+ylibclient_DATA = \
+  lib/packager/clients/pkg_finish.rb
+
+EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA) $(ylibclient_DATA) $(ylib_DATA)
 
 include $(top_srcdir)/Makefile.am.common
