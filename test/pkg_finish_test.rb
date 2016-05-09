@@ -2,6 +2,7 @@
 
 require_relative "test_helper"
 require "packager/clients/pkg_finish"
+require "packages/repository"
 
 describe Yast::PkgFinishClient do
   Yast.import "Pkg"
@@ -9,9 +10,11 @@ describe Yast::PkgFinishClient do
   Yast.import "WFM"
 
   subject(:client) { Yast::PkgFinishClient.new }
+  let(:repositories) { [] }
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
+    allow(::Packages::Repository).to receive(:all).and_return(repositories)
   end
 
   describe "Info" do
@@ -37,24 +40,70 @@ describe Yast::PkgFinishClient do
       allow(Yast::Stage).to receive(:initial).and_return(true)
     end
 
-    context "during installation" do
-      let(:update) { false }
+    it "saves repository information" do
+      expect(Yast::Pkg).to receive(:SourceSaveAll)
+      expect(Yast::Pkg).to receive(:TargetFinish)
+      expect(Yast::Pkg).to receive(:SourceCacheCopyTo).with(destdir)
+      allow(Yast::WFM).to receive(:Execute)
+      expect(client.run).to be_nil
+    end
 
-      it "saves repository information" do
-        expect(Yast::Pkg).to receive(:SourceSaveAll)
-        expect(Yast::Pkg).to receive(:TargetFinish)
-        expect(Yast::Pkg).to receive(:SourceCacheCopyTo).with(destdir)
-        allow(Yast::WFM).to receive(:Execute)
-        expect(client.run).to be_nil
+    it "copies failed_packages list under destination dir" do
+      stub_const("Yast::Pkg", double("pkg").as_null_object)
+      expect(Yast::WFM).to receive(:Execute).
+        with(Yast::Path.new(".local.bash"),
+        "test -f /var/lib/YaST2/failed_packages && "\
+        "/bin/cp -a /var/lib/YaST2/failed_packages '#{destdir}/var/lib/YaST2/failed_packages'")
+      client.run
+    end
+
+    context "given CD/DVD repositories" do
+      let(:repositories) { [cd_repo, http_repo] }
+
+      let(:cd_repo) do
+        Packages::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
+          url: "cd://dev/sr0", autorefresh: false)
       end
 
-      it "copies failed_packages list under destination dir" do
-        stub_const("Yast::Pkg", double("pkg").as_null_object)
-        expect(Yast::WFM).to receive(:Execute).
-          with(Yast::Path.new(".local.bash"),
-            "test -f /var/lib/YaST2/failed_packages && "\
-            "/bin/cp -a /var/lib/YaST2/failed_packages '#{destdir}/var/lib/YaST2/failed_packages'")
-        client.run
+      let(:http_repo) do
+        Packages::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
+          url: "http://download.suse.com/sle-12-sp2", autorefresh: true)
+      end
+
+      let(:sles_product) do
+        Packages::RepositoryProduct.new(name: "SLES", version: "12.2",
+          arch: "x86_64", category: "base", status: :available)
+      end
+
+      let(:sles_ha_product) do
+        Packages::RepositoryProduct.new(name: "SLESHA", version: "12.2",
+          arch: "x86_64", category: "base", status: :available)
+      end
+
+      before do
+        allow(cd_repo).to receive(:products).and_return([sles_product.clone])
+      end
+
+      context "if their products are available through other repos" do
+        before do
+          allow(http_repo).to receive(:products).and_return([sles_product.clone])
+        end
+
+        it "disables those repositories" do
+          expect(cd_repo).to receive(:disable!)
+          client.run
+        end
+      end
+
+      context "if their products are not available through other repos" do
+        before do
+          allow(http_repo).to receive(:products).and_return([sles_ha_product])
+        end
+
+        it "does not disabled those repositories" do
+          expect(cd_repo).to_not receive(:disable!)
+          client.run
+        end
       end
     end
 

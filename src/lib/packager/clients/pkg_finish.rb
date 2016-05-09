@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------------
 
 require "installation/finish_client"
+require "packages/repository"
 
 module Yast
   class PkgFinishClient < ::Installation::FinishClient
@@ -21,6 +22,7 @@ module Yast
     include Yast::Logger
 
     REPOS_DIR = "/etc/zypp/repos.d"
+    SCHEMES_TO_DISABLE = [:cd, :dvd]
 
     def initialize
       textdomain "packager"
@@ -72,6 +74,7 @@ module Yast
         WFM.call("inst_extrasources")
       end
 
+      disable_local_repos
 
       # save all repositories and finish target
       Pkg.SourceSaveAll
@@ -173,6 +176,24 @@ module Yast
       Pkg.TargetInitialize("/mnt")
 
       nil
+    end
+
+    def disable_local_repos
+      local_repos, other_repos = *::Packages::Repository.all.partition do |repo|
+        SCHEMES_TO_DISABLE.include?(repo.scheme)
+      end
+      product_names = other_repos.map(&:products).flatten.map(&:name)
+      local_repos.each do |repo|
+        uncovered = repo.products.reject { |p| product_names.include?(p.name) }
+        if uncovered.empty?
+          log.info("Repo #{repo.repo_id} will be disabled because products are present "\
+            "in other repositories")
+          repo.disable!
+        else
+          log.info("Repo #{repo.repo_id} cannot be disabled because these products " \
+                   "are not available through other repos: #{uncovered.map(&:name)}")
+        end
+      end
     end
   end
 end
