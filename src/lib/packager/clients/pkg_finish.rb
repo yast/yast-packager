@@ -67,7 +67,7 @@ module Yast
         WFM.call("inst_extrasources")
       end
 
-      disable_local_repos
+      disable_uneeded_repos(SCHEMES_TO_DISABLE)
 
       # save all repositories and finish target
       Pkg.SourceSaveAll
@@ -138,24 +138,29 @@ module Yast
       nil
     end
 
-    # Disable CD/DVD repositories if needed
+    # Disable given repositories if needed
     #
-    # Given a CD/DVD repository 'local_repo':
+    # Given a repository with a scheme contained in 'schemes':
+    #
     # * if all products it contains are available through another repository,
-    #   then 'local_repo' is disabled.
-    # * if some product contained in 'local_repo' is not available through another
-    #   non-CD/DVD repository, then 'local_repo' is left untouched.
-    def disable_local_repos
-      local_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
-        SCHEMES_TO_DISABLE.include?(repo.scheme)
+    #   then it will be disabled;
+    # * if some product contained is not available through another
+    #   repository, then it will be left untouched.
+    #
+    # @param schemes [Array<Symbol>] Schemes to consider
+    # @return [Array<Packages::Repository>] List of disabled repositories
+    def disable_uneeded_repos(schemes)
+      candidates_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
+        schemes.include?(repo.scheme)
       end
       product_names = other_repos.map(&:products).flatten.map(&:name)
-      local_repos.each do |repo|
+      candidates_repos.each_with_object([]) do |repo, disabled|
         uncovered = repo.products.reject { |p| product_names.include?(p.name) }
         if uncovered.empty?
           log.info("Repo #{repo.repo_id} will be disabled because products are present "\
             "in other repositories")
           repo.disable!
+          disabled << repo
         else
           log.info("Repo #{repo.repo_id} cannot be disabled because these products " \
                    "are not available through other repos: #{uncovered.map(&:name)}")
