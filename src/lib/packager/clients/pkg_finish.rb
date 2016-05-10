@@ -179,7 +179,7 @@ module Yast
     end
 
     def disable_local_repos
-      local_repos, other_repos = *::Packages::Repository.all.partition do |repo|
+      local_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
         SCHEMES_TO_DISABLE.include?(repo.scheme)
       end
       product_names = other_repos.map(&:products).flatten.map(&:name)

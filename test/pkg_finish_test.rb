@@ -14,7 +14,7 @@ describe Yast::PkgFinishClient do
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
-    allow(::Packages::Repository).to receive(:all).and_return(repositories)
+    allow(::Packages::Repository).to receive(:enabled).and_return(repositories)
   end
 
   describe "Info" do
