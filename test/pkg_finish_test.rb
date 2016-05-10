@@ -146,18 +146,18 @@ describe Yast::PkgFinishClient do
 
         it "logs an error if compression fails" do
           allow(Yast::SCR).to receive(:Execute).and_call_original
-          allow(Yast::SCR).to receive(:Execute).
+          expect(Yast::SCR).to receive(:Execute).
             with(Yast::Path.new(".target.bash_output"), /tar/).
             and_return("exit" => -1)
-          expect(Yast::Builtins).to receive(:y2error).
-            with(/Unable to backup/, /tar/, {"exit" => -1})
+          expect(client.log).to receive(:error)
+            .with(/Unable to backup/)
           client.run
         end
       end
 
       context "when repos.d does not exist" do
         it "logs an error" do
-          expect(Yast::Builtins).to receive(:y2error).with(/doesn't exist/, repos_dir.to_s)
+          expect(client.log).to receive(:error).with(/#{repos_dir} doesn't exist/)
           client.run
         end
       end
@@ -168,7 +168,7 @@ describe Yast::PkgFinishClient do
         end
 
         it "logs a warning" do
-          expect(Yast::Builtins).to receive(:y2warning).with(/no repos/, repos_dir.to_s)
+          expect(client.log).to receive(:warn).with(/no repos in #{repos_dir}/)
           client.run
         end
       end

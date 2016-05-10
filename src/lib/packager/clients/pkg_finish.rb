@@ -21,9 +21,18 @@ module Yast
     include Yast::I18n
     include Yast::Logger
 
+    # Path to libzypp repositories
     REPOS_DIR = "/etc/zypp/repos.d"
+    # Repository schemes to disable (disable_local_repos)
     SCHEMES_TO_DISABLE = [:cd, :dvd]
+    # Path to failed_packages file
+    FAILED_PACKAGES_PATH = "/var/lib/YaST2/failed_packages"
+    # Command to create a tar.gz to back-up old repositories
+    TAR_CMD = "mkdir -p '%<source>s' && cd '%<source>s' "\
+      "&& /bin/tar -czf '%<archive>s' '%<target>s'"
 
+
+    # Constructor
     def initialize
       textdomain "packager"
 
@@ -36,41 +45,25 @@ module Yast
       Yast.import "Packages"
     end
 
+    # @see Implements ::Installation::FinishClient#modes
     def modes
       [:installation, :update, :autoinst]
     end
 
+    # @see Implements ::Installation::FinishClient#title
     def title
       _("Saving the software manager configuration...")
     end
 
+    # @see Implements ::Installation::FinishClient#write
     def write
-      #     File "/openSUSE-release.prod" is no more on the media
-      #     but directly in the RPM. Don't create the directory
-      #     and don't copy the file manually anymore.
-      #
-      #     (since evrsion 2.17.5)
-      #
-      #     // Copy information about product (bnc#385868)
-      #     // FIXME: this is a temporary hack containing a hardcoded file name
-      #     string media_prod = Pkg::SourceProvideOptionalFile (
-      # 	Packages::theSources[0]:0, 1,
-      # 	"/openSUSE-release.prod");
-      #     if (media_prod != nil)
-      #     {
-      # 	WFM::Execute (.local.bash, sformat ("test -d %1%2 || mkdir %1%2",
-      # 						Installation::destdir, "/etc/zypp/products.d"));
-      # 	WFM::Execute (.local.bash, sformat ("test -d %3%2 && /bin/cp %1 %3%2",
-      # 						media_prod, "/etc/zypp/products.d", Installation::destdir));
-      #     }
-
       # Remove (backup) all sources not used during the update
       # BNC #556469: Backup and remove all the old repositories before any Pkg::SourceSaveAll call
       BackUpAllTargetSources() if Stage.initial && Mode.update
 
       # See bnc #384827, #381360
       if Mode.update
-        Builtins.y2milestone("Adding default repositories")
+        log.info("Adding default repositories")
         WFM.call("inst_extrasources")
       end
 
@@ -87,12 +80,8 @@ module Yast
       # copy list of failed packages to installed system
       WFM.Execute(
         path(".local.bash"),
-        Builtins.sformat(
-          "test -f %1 && /bin/cp -a %1 '%2%1'",
-          "/var/lib/YaST2/failed_packages",
-          String.Quote(Installation.destdir)
-          )
-        )
+        format("test -f %<path>s && /bin/cp -a %<path>s '%<destdir>s%<path>s'",
+          path: FAILED_PACKAGES_PATH, destdir: String.Quote(Installation.destdir)))
     end
 
   private
@@ -103,73 +92,44 @@ module Yast
     def BackUpAllTargetSources
       Yast.import "Directory"
 
-      if !FileUtils.Exists(REPOS_DIR)
-        Builtins.y2error("Directory %1 doesn't exist!", REPOS_DIR)
+      if !File.exist?(REPOS_DIR)
+        log.error("Directory #{REPOS_DIR} doesn't exist!")
         return
       end
 
-      current_repos = Convert.convert(
-        SCR.Read(path(".target.dir"), REPOS_DIR),
-        :from => "any",
-        :to   => "list <string>"
-      )
+      current_repos = SCR.Read(path(".target.dir"), REPOS_DIR)
 
-      if current_repos == nil || Builtins.size(current_repos) == 0
-        Builtins.y2warning(
-          "There are currently no repos in %1 conf dir",
-          REPOS_DIR
-        )
+      if current_repos.nil? || current_repos.empty?
+        log.warn("There are currently no repos in #{REPOS_DIR} conf dir")
         return
       else
-        Builtins.y2milestone(
-          "These repos currently exist on a target: %1",
-          current_repos
-        )
+        log.info("These repos currently exist on a target: #{current_repos}")
       end
 
-      cmd = Convert.to_map(
-        WFM.Execute(path(".local.bash_output"), "date +%Y%m%d-%H%M%S")
-      )
-      a_name_list = Builtins.splitstring(
-        Ops.get_string(cmd, "stdout", "the_latest"),
-        "\n"
-      )
-      archive_name = Ops.add(
-        Ops.add("repos_", Ops.get(a_name_list, 0, "")),
-        ".tgz"
-      )
+      cmd = WFM.Execute(path(".local.bash_output"), "date +%Y%m%d-%H%M%S")
+      a_name_list = (cmd["stdout"] || "the_latest").split("\n")
+      archive_name = "repos_#{a_name_list.first}.tgz"
 
-      shellcommand = Builtins.sformat(
-        "mkdir -p '%1' && cd '%1' && /bin/tar -czf '%2' '%3'",
-        String.Quote(Ops.add(Directory.vardir, "/repos.d_backup/")),
-        String.Quote(archive_name),
-        String.Quote(REPOS_DIR)
-      )
+      compress_cmd = format(TAR_CMD,
+        source: String.Quote(Ops.add(Directory.vardir, "/repos.d_backup/")),
+        archive: String.Quote(archive_name),
+        target: String.Quote(REPOS_DIR))
+#
+      cmd = SCR.Execute(path(".target.bash_output"), compress_cmd)
 
-      cmd = Convert.to_map(
-        SCR.Execute(path(".target.bash_output"), shellcommand)
-      )
-
-      if Ops.get_integer(cmd, "exit", -1) != 0
-        Builtins.y2error(
-          "Unable to backup current repos; Command >%1< returned: %2",
-          shellcommand,
-          cmd
-        )
+      if !cmd["exit"].zero?
+        log.error("Unable to backup current repos; Command >#{compress_cmd}< returned: #{cmd}")
       end
 
-      success = nil
-
-      Builtins.foreach(current_repos) do |one_repo|
-        one_repo = Ops.add(Ops.add(REPOS_DIR, "/"), one_repo)
-        Builtins.y2milestone("Removing target repository %1", one_repo)
-        success = Convert.to_boolean(
-          SCR.Execute(path(".target.remove"), one_repo)
-        )
-        Builtins.y2error("Cannot remove %1 file", one_repo) if success != true
+      current_repos.each do |repo|
+        file = File.join(REPOS_DIR, repo)
+        log.info("Removing target repository #{file}")
+        if !SCR.Execute(path(".target.remove"), file)
+          log.error("Cannot remove #{one_repo} file")
+        end
       end
 
-      Builtins.y2milestone("All old repositories were removed from the target")
+      log.info("All old repositories were removed from the target")
 
       # reload the target to sync the removed repositories with libzypp repomanager
       Pkg.TargetFinish
@@ -178,6 +138,13 @@ module Yast
       nil
     end
 
+    # Disable CD/DVD repositories if needed
+    #
+    # Given a CD/DVD repository 'local_repo':
+    # * if all products it contains are available through another repository,
+    #   then 'local_repo' is disabled.
+    # * if some product contained in 'local_repo' is not available through another
+    #   non-CD/DVD repository, then 'local_repo' is left untouched.
     def disable_local_repos
       local_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
         SCHEMES_TO_DISABLE.include?(repo.scheme)
