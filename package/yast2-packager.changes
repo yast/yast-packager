@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 10 12:31:13 UTC 2016 - igonzalezsosa@suse.com
+
+- CD/DVD repositories are disabled at the end of the installation
+  if they're not needed anymore (FATE#320494)
+- 3.1.98
+
+-------------------------------------------------------------------
 Fri Apr 22 16:23:17 UTC 2016 - lslezak@suse.cz
 
 - Move the default pattern selection to a different place to not
