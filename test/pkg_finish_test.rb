@@ -3,6 +3,7 @@
 require_relative "test_helper"
 require "packager/clients/pkg_finish"
 require "packages/repository"
+require "uri"
 
 describe Yast::PkgFinishClient do
   Yast.import "Pkg"
@@ -62,22 +63,22 @@ describe Yast::PkgFinishClient do
 
       let(:cd_repo) do
         Packages::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
-          url: "cd://dev/sr0", autorefresh: false)
+          url: URI("cd://dev/sr0"), autorefresh: false)
       end
 
       let(:http_repo) do
         Packages::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
-          url: "http://download.suse.com/sle-12-sp2", autorefresh: true)
+          url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
       end
 
       let(:sles_product) do
         Packages::RepositoryProduct.new(name: "SLES", version: "12.2",
-          arch: "x86_64", category: "base", status: :available)
+          arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
       end
 
       let(:sles_ha_product) do
         Packages::RepositoryProduct.new(name: "SLESHA", version: "12.2",
-          arch: "x86_64", category: "base", status: :available)
+          arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
       end
 
       before do
