@@ -111,10 +111,10 @@ module Yast
 
       # Backup repos.d
       repos_backup_dir = File.join(Directory.vardir, "repos.d_backup")
-      backup_sources(REPOS_DIR, repos_backup_dir).nil?
+      backup_old_sources(REPOS_DIR, repos_backup_dir).nil?
 
       # Clean old repositories
-      remove_sources(current_repos)
+      remove_old_sources(current_repos)
 
       # Sync sources
       sync_target_sources
@@ -157,7 +157,7 @@ module Yast
     # @param source [String] Path of sources to backup
     # @param target [String] Directory to store backup
     # @return [String] Name of the backup archive (locate in the given target directory)
-    def backup_sources(source, target)
+    def backup_old_sources(source, target)
       archive_name = "repos_#{Time.now.strftime(BACKUP_TIMESTAMP_FORMAT)}.tgz"
       compress_cmd = format(TAR_CMD,
         target: String.Quote(target),
@@ -174,7 +174,7 @@ module Yast
     # Remove old sources
     #
     # @param [Array<String>] List of repositories to remove
-    def remove_sources(repos)
+    def remove_old_sources(repos)
       repos.each do |repo|
         file = File.join(REPOS_DIR, repo)
         log.info("Removing target repository #{file}")
