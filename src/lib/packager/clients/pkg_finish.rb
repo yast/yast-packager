@@ -23,14 +23,16 @@ module Yast
 
     # Path to libzypp repositories
     REPOS_DIR = "/etc/zypp/repos.d"
-    # Repository schemes to disable (disable_local_repos)
-    SCHEMES_TO_DISABLE = [:cd, :dvd]
+    # Repository schemes considered local (see disable_local_repos)
+    # https://github.com/openSUSE/libzypp/blob/a7a038aeda1ad6d9e441e7d3755612aa83320dce/zypp/Url.cc#L458
+    LOCAL_SCHEMES = [:cd, :dvd, :dir, :hd, :iso, :file]
     # Path to failed_packages file
-    FAILED_PACKAGES_PATH = "/var/lib/YaST2/failed_packages"
+    FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
     # Command to create a tar.gz to back-up old repositories
-    TAR_CMD = "mkdir -p '%<source>s' && cd '%<source>s' "\
-      "&& /bin/tar -czf '%<archive>s' '%<target>s'"
-
+    TAR_CMD = "mkdir -p '%<target>s' && cd '%<target>s' "\
+      "&& /bin/tar -czf '%<archive>s' '%<source>s'"
+    # Format of the timestamp to be used as repositories backup
+    BACKUP_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
 
     # Constructor
     def initialize
@@ -43,6 +45,7 @@ module Yast
       Yast.import "String"
       Yast.import "FileUtils"
       Yast.import "Packages"
+      Yast.import "Directory"
     end
 
     # @see Implements ::Installation::FinishClient#modes
@@ -59,7 +62,7 @@ module Yast
     def write
       # Remove (backup) all sources not used during the update
       # BNC #556469: Backup and remove all the old repositories before any Pkg::SourceSaveAll call
-      BackUpAllTargetSources() if Stage.initial && Mode.update
+      backup_all_target_sources if Stage.initial && Mode.update
 
       # See bnc #384827, #381360
       if Mode.update
@@ -67,7 +70,7 @@ module Yast
         WFM.call("inst_extrasources")
       end
 
-      disable_uneeded_repos(SCHEMES_TO_DISABLE)
+      disable_local_repos(LOCAL_SCHEMES)
 
       # save all repositories and finish target
       Pkg.SourceSaveAll
@@ -78,20 +81,20 @@ module Yast
       Pkg.SourceCacheCopyTo(Installation.destdir)
 
       # copy list of failed packages to installed system
-      WFM.Execute(
-        path(".local.bash"),
-        format("test -f %<path>s && /bin/cp -a %<path>s '%<destdir>s%<path>s'",
-          path: FAILED_PACKAGES_PATH, destdir: String.Quote(Installation.destdir)))
+      if File.exist?(FAILED_PKGS_PATH)
+        ::FileUtils.cp(FAILED_PKGS_PATH, File.join(Installation.destdir, FAILED_PKGS_PATH),
+          preserve: true)
+      end
     end
 
   private
 
+    # Backup old sources
+    #
     # During upgrade, old sources are reinitialized
     # either as enabled or disabled.
-    # The old sources from targed should go away.
-    def BackUpAllTargetSources
-      Yast.import "Directory"
-
+    # The old sources from target should go away.
+    def backup_all_target_sources
       if !File.exist?(REPOS_DIR)
         log.error("Directory #{REPOS_DIR} doesn't exist!")
         return
@@ -106,34 +109,15 @@ module Yast
         log.info("These repos currently exist on a target: #{current_repos}")
       end
 
-      cmd = WFM.Execute(path(".local.bash_output"), "date +%Y%m%d-%H%M%S")
-      a_name_list = (cmd["stdout"] || "the_latest").split("\n")
-      archive_name = "repos_#{a_name_list.first}.tgz"
+      # Backup repos.d
+      repos_backup_dir = File.join(Directory.vardir, "repos.d_backup")
+      backup_sources(REPOS_DIR, repos_backup_dir).nil?
 
-      compress_cmd = format(TAR_CMD,
-        source: String.Quote(Ops.add(Directory.vardir, "/repos.d_backup/")),
-        archive: String.Quote(archive_name),
-        target: String.Quote(REPOS_DIR))
-#
-      cmd = SCR.Execute(path(".target.bash_output"), compress_cmd)
+      # Clean old repositories
+      remove_sources(current_repos)
 
-      if !cmd["exit"].zero?
-        log.error("Unable to backup current repos; Command >#{compress_cmd}< returned: #{cmd}")
-      end
-
-      current_repos.each do |repo|
-        file = File.join(REPOS_DIR, repo)
-        log.info("Removing target repository #{file}")
-        if !SCR.Execute(path(".target.remove"), file)
-          log.error("Cannot remove #{one_repo} file")
-        end
-      end
-
-      log.info("All old repositories were removed from the target")
-
-      # reload the target to sync the removed repositories with libzypp repomanager
-      Pkg.TargetFinish
-      Pkg.TargetInitialize("/mnt")
+      # Sync sources
+      sync_target_sources
 
       nil
     end
@@ -149,7 +133,7 @@ module Yast
     #
     # @param schemes [Array<Symbol>] Schemes to consider
     # @return [Array<Packages::Repository>] List of disabled repositories
-    def disable_uneeded_repos(schemes)
+    def disable_local_repos(schemes)
       candidates_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
         schemes.include?(repo.scheme)
       end
@@ -166,6 +150,46 @@ module Yast
                    "are not available through other repos: #{uncovered.map(&:name)}")
         end
       end
+    end
+
+    # Backup sources
+    #
+    # @param source [String] Path of sources to backup
+    # @param target [String] Directory to store backup
+    # @return [String] Name of the backup archive (locate in the given target directory)
+    def backup_sources(source, target)
+      archive_name = "repos_#{Time.now.strftime(BACKUP_TIMESTAMP_FORMAT)}.tgz"
+      compress_cmd = format(TAR_CMD,
+        target: String.Quote(target),
+        archive: archive_name,
+        source: String.Quote(source))
+      cmd = SCR.Execute(path(".target.bash_output"), compress_cmd)
+      if !cmd["exit"].zero?
+        log.error("Unable to backup current repos; Command >#{compress_cmd}< returned: #{cmd}")
+      else
+        archive_name
+      end
+    end
+
+    # Remove old sources
+    #
+    # @param [Array<String>] List of repositories to remove
+    def remove_sources(repos)
+      repos.each do |repo|
+        file = File.join(REPOS_DIR, repo)
+        log.info("Removing target repository #{file}")
+        if !SCR.Execute(path(".target.remove"), file)
+          log.error("Cannot remove #{repo} file")
+        end
+      end
+      log.info("All old repositories were removed from the target")
+    end
+
+    # Reload the target to sync the removed repositories with libzypp
+    # repomanager
+    def sync_target_sources
+      Pkg.TargetFinish
+      Pkg.TargetInitialize(Installation.destdir)
     end
   end
 end

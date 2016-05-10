@@ -4,11 +4,15 @@ require_relative "test_helper"
 require "packager/clients/pkg_finish"
 require "packages/repository"
 require "uri"
+require "tmpdir"
+require "fileutils"
 
 describe Yast::PkgFinishClient do
   Yast.import "Pkg"
   Yast.import "Installation"
   Yast.import "WFM"
+
+  FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
 
   subject(:client) { Yast::PkgFinishClient.new }
   let(:repositories) { [] }
@@ -51,10 +55,11 @@ describe Yast::PkgFinishClient do
 
     it "copies failed_packages list under destination dir" do
       stub_const("Yast::Pkg", double("pkg").as_null_object)
-      expect(Yast::WFM).to receive(:Execute).
-        with(Yast::Path.new(".local.bash"),
-        "test -f /var/lib/YaST2/failed_packages && "\
-        "/bin/cp -a /var/lib/YaST2/failed_packages '#{destdir}/var/lib/YaST2/failed_packages'")
+      allow(::File).to receive(:exist?).and_call_original
+      expect(::File).to receive(:exist?).with(FAILED_PKGS_PATH)
+        .and_return(true)
+      expect(::FileUtils).to receive(:cp)
+        .with(FAILED_PKGS_PATH, "#{destdir}#{FAILED_PKGS_PATH}", preserve: true)
       client.run
     end
 
@@ -110,7 +115,11 @@ describe Yast::PkgFinishClient do
 
     context "during update" do
       let(:update) { true }
-      let(:tmpdir) { Pathname.new(__FILE__).dirname.join("tmp") }
+      let(:tmpdir) do
+        dir = Dir.mktmpdir
+        FileUtils.remove_entry(dir)
+        Pathname(dir)
+      end
       let(:repos_dir) { tmpdir.join("repos.d") }
       let(:vardir) { tmpdir.join("var") }
 
@@ -119,12 +128,6 @@ describe Yast::PkgFinishClient do
         allow(Yast::WFM).to receive(:call)
         stub_const("Yast::PkgFinishClient::REPOS_DIR", repos_dir.to_s)
         stub_const("Yast::Pkg", double("pkg").as_null_object)
-      end
-
-      around do |example|
-        FileUtils.rm_rf(tmpdir)
-        example.run
-        FileUtils.rm_rf(tmpdir)
       end
 
       context "when repos.d exists and contains files" do
