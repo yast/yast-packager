@@ -153,9 +153,9 @@ module Yast
       candidates_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
         schemes.include?(repo.scheme)
       end
-      product_names = other_repos.map(&:products).flatten.map(&:name)
+      products = other_repos.map(&:products).flatten
       candidates_repos.each_with_object([]) do |repo, disabled|
-        uncovered = repo.products.reject { |p| product_names.include?(p.name) }
+        uncovered = repo.products.reject { |p| products.include?(p) }
         if uncovered.empty?
           log.info("Repo #{repo.repo_id} will be disabled because products are present "\
             "in other repositories")
