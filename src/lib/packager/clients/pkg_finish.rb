@@ -70,6 +70,9 @@ module Yast
         WFM.call("inst_extrasources")
       end
 
+      # If repositories weren't load during installation (for example, in openSUSE
+      # if online repositories were not enabled), resolvables should be loaded now.
+      Pkg.SourceLoad
       disable_local_repos(LOCAL_SCHEMES)
 
       # save all repositories and finish target

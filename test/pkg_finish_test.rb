@@ -43,9 +43,11 @@ describe Yast::PkgFinishClient do
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
       allow(Yast::Mode).to receive(:update).and_return(update)
       allow(Yast::Stage).to receive(:initial).and_return(true)
+      allow(Yast::Pkg).to receive(:SourceLoad)
     end
 
     it "saves repository information" do
+      expect(Yast::Pkg).to receive(:SourceLoad)
       expect(Yast::Pkg).to receive(:SourceSaveAll)
       expect(Yast::Pkg).to receive(:TargetFinish)
       expect(Yast::Pkg).to receive(:SourceCacheCopyTo).with(destdir)
