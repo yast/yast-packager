@@ -77,12 +77,12 @@ describe Yast::PkgFinishClient do
       end
 
       let(:sles_product) do
-        Packages::RepositoryProduct.new(name: "SLES", version: "12.2",
+        Packages::Product.new(name: "SLES", version: "12.2",
           arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
       end
 
       let(:sles_ha_product) do
-        Packages::RepositoryProduct.new(name: "SLESHA", version: "12.2",
+        Packages::Product.new(name: "SLESHA", version: "12.2",
           arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
       end
 

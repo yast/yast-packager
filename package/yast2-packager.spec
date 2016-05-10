@@ -32,7 +32,7 @@ BuildRequires:  yast2-storage
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
-# Packages::Repository and RepositoryProduct classes
+# Packages::Repository and Packages::Product classes
 BuildRequires: yast2 >= 3.1.187
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
@@ -44,7 +44,7 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 Requires:	yast2-pkg-bindings >= 3.1.30
 
-# Packages::Repository and RepositoryProduct classes
+# Packages::Repository and Packages::Product classes
 Requires: yast2 >= 3.1.187
 
 # unzipping license file
