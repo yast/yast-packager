@@ -32,8 +32,8 @@ BuildRequires:  yast2-storage
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
-# PackagesUI.show_update_messages; uptime call
-BuildRequires: yast2 >= 3.1.182
+# Packages::Repository and RepositoryProduct classes
+BuildRequires: yast2 >= 3.1.187
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 BuildRequires:	yast2-pkg-bindings >= 3.1.30
@@ -44,8 +44,8 @@ Requires:	yast2-country-data >= 2.16.3
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 Requires:	yast2-pkg-bindings >= 3.1.30
 
-# Fixed .proc.cmdline agent; uptime call
-Requires: yast2 >= 3.1.182
+# Packages::Repository and RepositoryProduct classes
+Requires: yast2 >= 3.1.187
 
 # unzipping license file
 Requires:	unzip
