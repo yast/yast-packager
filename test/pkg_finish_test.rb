@@ -57,10 +57,10 @@ describe Yast::PkgFinishClient do
 
     it "copies failed_packages list under destination dir" do
       stub_const("Yast::Pkg", double("pkg").as_null_object)
-      allow(::File).to receive(:exist?).and_call_original
-      expect(::File).to receive(:exist?).with(FAILED_PKGS_PATH)
+      allow(File).to receive(:exist?).and_call_original
+      expect(File).to receive(:exist?).with(FAILED_PKGS_PATH)
         .and_return(true)
-      expect(::FileUtils).to receive(:cp)
+      expect(FileUtils).to receive(:cp)
         .with(FAILED_PKGS_PATH, "#{destdir}#{FAILED_PKGS_PATH}", preserve: true)
       client.run
     end

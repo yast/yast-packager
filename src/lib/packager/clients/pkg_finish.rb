@@ -153,7 +153,8 @@ module Yast
     #
     # @param source [String] Path of sources to backup
     # @param target [String] Directory to store backup
-    # @return [String] Name of the backup archive (locate in the given target directory)
+    # @return [String,nil] Name of the backup archive (locate in the given target directory);
+    #                      nil if the backup failed
     def backup_old_sources(source, target)
       archive_name = "repos_#{Time.now.strftime(BACKUP_TIMESTAMP_FORMAT)}.tgz"
       compress_cmd = format(TAR_CMD,
@@ -163,6 +164,7 @@ module Yast
       cmd = SCR.Execute(path(".target.bash_output"), compress_cmd)
       if !cmd["exit"].zero?
         log.error("Unable to backup current repos; Command >#{compress_cmd}< returned: #{cmd}")
+        nil
       else
         archive_name
       end
