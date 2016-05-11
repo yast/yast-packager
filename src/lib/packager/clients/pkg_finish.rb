@@ -136,15 +136,19 @@ module Yast
       candidates_repos, other_repos = *::Packages::Repository.enabled.partition(&:local?)
       products = other_repos.map(&:products).flatten.uniq
       candidates_repos.each_with_object([]) do |repo, disabled|
+        if repo.products.empty?
+          log.info("Repo #{repo.repo_id} (#{repo.name}) does not have products; ignored")
+          next
+        end
         uncovered = repo.products.reject { |p| products.include?(p) }
         if uncovered.empty?
-          log.info("Repo #{repo.repo_id} will be disabled because products are present "\
-            "in other repositories")
+          log.info("Repo #{repo.repo_id} (#{repo.name}) will be disabled because products " \
+            "are present in other repositories")
           repo.disable!
           disabled << repo
         else
-          log.info("Repo #{repo.repo_id} cannot be disabled because these products " \
-                   "are not available through other repos: #{uncovered.map(&:name)}")
+          log.info("Repo #{repo.repo_id} (#{repo.name}) cannot be disabled because these " \
+            "products are not available through other repos: #{uncovered.map(&:name)}")
         end
       end
     end

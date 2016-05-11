@@ -97,7 +97,7 @@ describe Yast::PkgFinishClient do
           allow(remote_repo).to receive(:products).and_return([sles_product.clone])
         end
 
-        it "disables those repositories" do
+        it "disables the local repository" do
           expect(local_repo).to receive(:disable!)
           client.run
         end
@@ -108,8 +108,21 @@ describe Yast::PkgFinishClient do
           allow(remote_repo).to receive(:products).and_return([sles_ha_product])
         end
 
-        it "does not disabled those repositories" do
+        it "does not disable the local repository" do
           expect(local_repo).to_not receive(:disable!)
+          client.run
+        end
+      end
+
+      context "if does not contain any product" do
+        before do
+          allow(local_repo).to receive(:products).and_return([])
+        end
+
+        it "does not disable the local repository" do
+          allow(client.log).to receive(:info).and_call_original
+          expect(local_repo).to_not receive(:disable!)
+          expect(client.log).to receive(:info).with(/ignored/)
           client.run
         end
       end
