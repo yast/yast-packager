@@ -70,6 +70,10 @@ desktop_DATA = \
   desktop/sw_single.desktop \
   desktop/checkmedia.desktop
 
-EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA)
+ylibclientdir = "${yast2dir}/lib/packager/clients"
+ylibclient_DATA = \
+  lib/packager/clients/pkg_finish.rb
+
+EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA) $(ylibclient_DATA) $(ylib_DATA)
 
 include $(top_srcdir)/Makefile.am.common
