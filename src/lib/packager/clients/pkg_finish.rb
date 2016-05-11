@@ -23,9 +23,6 @@ module Yast
 
     # Path to libzypp repositories
     REPOS_DIR = "/etc/zypp/repos.d"
-    # Repository schemes considered local (see disable_local_repos)
-    # https://github.com/openSUSE/libzypp/blob/a7a038aeda1ad6d9e441e7d3755612aa83320dce/zypp/Url.cc#L458
-    LOCAL_SCHEMES = [:cd, :dvd, :dir, :hd, :iso, :file]
     # Path to failed_packages file
     FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
     # Command to create a tar.gz to back-up old repositories
@@ -73,7 +70,7 @@ module Yast
       # If repositories weren't load during installation (for example, in openSUSE
       # if online repositories were not enabled), resolvables should be loaded now.
       Pkg.SourceLoad
-      disable_local_repos(LOCAL_SCHEMES)
+      disable_local_repos
 
       # save all repositories and finish target
       Pkg.SourceSaveAll
@@ -127,20 +124,17 @@ module Yast
 
     # Disable given repositories if needed
     #
-    # Given a repository with a scheme contained in 'schemes':
+    # Given a local repository:
     #
     # * if all products it contains are available through another repository,
     #   then it will be disabled;
     # * if some product contained is not available through another
     #   repository, then it will be left untouched.
     #
-    # @param schemes [Array<Symbol>] Schemes to consider
     # @return [Array<Packages::Repository>] List of disabled repositories
-    def disable_local_repos(schemes)
-      candidates_repos, other_repos = *::Packages::Repository.enabled.partition do |repo|
-        schemes.include?(repo.scheme)
-      end
-      products = other_repos.map(&:products).flatten
+    def disable_local_repos
+      candidates_repos, other_repos = *::Packages::Repository.enabled.partition(&:local?)
+      products = other_repos.map(&:products).flatten.uniq
       candidates_repos.each_with_object([]) do |repo, disabled|
         uncovered = repo.products.reject { |p| products.include?(p) }
         if uncovered.empty?

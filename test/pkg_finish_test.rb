@@ -65,15 +65,15 @@ describe Yast::PkgFinishClient do
       client.run
     end
 
-    context "given CD/DVD repositories" do
-      let(:repositories) { [cd_repo, http_repo] }
+    context "given some local repository" do
+      let(:repositories) { [local_repo, remote_repo] }
 
-      let(:cd_repo) do
+      let(:local_repo) do
         Packages::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
           url: URI("cd://dev/sr0"), autorefresh: false)
       end
 
-      let(:http_repo) do
+      let(:remote_repo) do
         Packages::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
           url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
       end
@@ -89,27 +89,27 @@ describe Yast::PkgFinishClient do
       end
 
       before do
-        allow(cd_repo).to receive(:products).and_return([sles_product.clone])
+        allow(local_repo).to receive(:products).and_return([sles_product.clone])
       end
 
       context "if their products are available through other repos" do
         before do
-          allow(http_repo).to receive(:products).and_return([sles_product.clone])
+          allow(remote_repo).to receive(:products).and_return([sles_product.clone])
         end
 
         it "disables those repositories" do
-          expect(cd_repo).to receive(:disable!)
+          expect(local_repo).to receive(:disable!)
           client.run
         end
       end
 
       context "if their products are not available through other repos" do
         before do
-          allow(http_repo).to receive(:products).and_return([sles_ha_product])
+          allow(remote_repo).to receive(:products).and_return([sles_ha_product])
         end
 
         it "does not disabled those repositories" do
-          expect(cd_repo).to_not receive(:disable!)
+          expect(local_repo).to_not receive(:disable!)
           client.run
         end
       end
