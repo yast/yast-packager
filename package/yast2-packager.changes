@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 11 15:49:26 CEST 2016 - schubi@suse.de
+
+- Showing location of installed licenses.
+  (fate#219341)
+- 3.1.99
+
+-------------------------------------------------------------------
 Tue May 10 12:31:13 UTC 2016 - igonzalezsosa@suse.com
 
 - Local repositories are disabled at the end of the installation

@@ -64,6 +64,8 @@ module Yast
 
       # filename printed in the license dialog
       @license_file_print = nil
+      # license file is on installed system
+      @license_on_installed_system = false
 
       # BNC #448598
       # no-acceptance-needed file in license.tar.gz means the license
@@ -377,14 +379,21 @@ module Yast
               ReplacePoint(
                 Id(:printing_hint),
                 Label(
-                  # TRANSLATORS: addition license information
-                  # %1 is replaced with the filename
-                  Builtins.sformat(
-                    _(
-                      "If you want to print this EULA, you can find it\non the first media in the file %1"
-                    ),
-                    @license_file_print
-                  )
+                  @license_on_installed_system ?
+                    # TRANSLATORS: addition license information
+                    # %s is replaced with the directory name
+                    format(
+                      _("This EULA can be found in the directory %s"),
+                      @license_file_print
+                    ) :
+                    # TRANSLATORS: addition license information
+                    # %s is replaced with the filename
+                    format(
+                      _(
+                        "If you want to print this EULA, you can find it\non the first media in the file %s"
+                      ),
+                      @license_file_print
+                    )
                 )
               )
             ) :
@@ -638,6 +647,8 @@ module Yast
 
       if FileUtils.Exists(fallback_dir)
         @license_dir = fallback_dir
+        @license_file_print = fallback_dir
+        @license_on_installed_system = true
       else
         Builtins.y2warning("Fallback dir doesn't exist %1", fallback_dir)
         @license_dir = nil
