@@ -20,8 +20,14 @@ module Yast
   class ProductPatterns
     include Yast::Logger
 
-    def initialize
+    attr_reader :src
+
+    # optionally evaluate only the products in the specified repository
+    # (by default use all repositories)
+    # @param [Integer,nil] src repository id
+    def initialize(src: nil)
       Yast.import "Pkg"
+      @src = src
     end
 
     # Find the default patterns for all selected products.
@@ -78,6 +84,7 @@ module Yast
 
       resolvables = Yast::Pkg.ResolvableProperties(product, :product, "")
       remove_unselected(resolvables)
+      remove_other_repos(resolvables) if src
 
       resolvables.each do |resolvable|
         prod_pkg = resolvable["product_package"]
@@ -96,11 +103,19 @@ module Yast
 
       product_dependencies
     end
+
     # Remove not selected resolvables from the list
     # @param [Array<Hash>] resolvables only the Hashes where the key "status"
     #   maps to :selected value are kept, the rest is removed
     def remove_unselected(resolvables)
       resolvables.select! { |p| p["status"] == :selected }
+    end
+
+    # Remove the resolvables from other repositories than in 'src'
+    # @param [Array<Hash>] resolvables only the Hashes where the key "status"
+    #   is equal to `src` are kept, the rest is removed
+    def remove_other_repos(resolvables)
+      resolvables.select! { |p| p["source"] == src }
     end
 
     # Collect "provides" dependencies from the list.
