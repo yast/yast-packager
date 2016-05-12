@@ -380,20 +380,14 @@ module Yast
                 Id(:printing_hint),
                 Label(
                   @license_on_installed_system ?
-                    # TRANSLATORS: addition license information
-                    # %s is replaced with the directory name
-                    format(
-                      _("This EULA can be found in the directory %s"),
-                      @license_file_print
-                    ) :
-                    # TRANSLATORS: addition license information
-                    # %s is replaced with the filename
-                    format(
-                      _(
-                        "If you want to print this EULA, you can find it\non the first media in the file %s"
-                      ),
-                      @license_file_print
-                    )
+                      # TRANSLATORS: addition license information
+                      # %s is replaced with the directory name
+                      _("This EULA can be found in the directory %s") % @license_file_print
+                    :
+                      # TRANSLATORS: addition license information
+                      # %s is replaced with the filename
+                      _("If you want to print this EULA, you can find it\non the first media in the file %s") %
+                        @license_file_print
                 )
               )
             ) :
