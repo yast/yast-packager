@@ -382,7 +382,7 @@ module Yast
                   @license_on_installed_system ?
                       # TRANSLATORS: addition license information
                       # %s is replaced with the directory name
-                      _("This EULA can be found in the directory %s") % @license_file_print
+                      _("This EULA can be found in the directory\n%s") % @license_file_print
                     :
                       # TRANSLATORS: addition license information
                       # %s is replaced with the filename
