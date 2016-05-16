@@ -992,37 +992,24 @@ module Yast
     end
 
     def PackagesProposalAddonID(src_id)
-      Builtins.sformat("Add-On-Product-ID:%1", src_id)
+      "Add-On-Product-ID:#{src_id}"
     end
 
     # See also DeselectProductPatterns()
     def SelectProductPatterns(content_file, src_id)
       patterns_to_select = []
-      if content_file && FileUtils.Exists(content_file)
-        contentmap = Convert.to_map(SCR.Read(path(".content_file"), content_file))
+
+      if content_file && File.exist?(content_file)
+        contentmap = Convert.to_map(SCR.Read(path(".content_file"), content_file)) || {}
 
         # no PATTERNS defined
-        if !Builtins.haskey(contentmap, "PATTERNS")
-          Builtins.y2milestone(
-            "Add-On doesn't have any required patterns (PATTERNS in content)"
-          )
+        if !contentmap.key?("PATTERNS")
+          log.info "Add-On doesn't have any required patterns (PATTERNS in content)"
         end
 
         # parsing PATTERNS
-        patterns_to_select = Builtins.splitstring(
-          Ops.get_string(contentmap, "PATTERNS", ""),
-          "\t "
-        )
-        patterns_to_select = Builtins.filter(patterns_to_select) do |one_pattern|
-          one_pattern != nil && one_pattern != ""
-        end
-
-        if Builtins.size(patterns_to_select) == 0
-          Builtins.y2warning(
-            "Erroneous PATTERNS: %1",
-            Ops.get_string(contentmap, "PATTERNS", "")
-          )
-        end
+        patterns_to_select = contentmap.fetch("PATTERNS", "").split(/\t /)
+        patterns_to_select.reject! { |p| p.nil? || p.empty? }
       end
 
       product_patterns = ProductPatterns.new(src: @src_id)
@@ -1030,12 +1017,10 @@ module Yast
       patterns_to_select.concat(product_patterns.names)
       patterns_to_select.uniq!
 
-      Builtins.y2milestone(
-        "Add-On requires these patterns: %1",
-        patterns_to_select
-      )
+      log.info "Add-On requires these patterns: #{patterns_to_select.inspect}"
+
       # clear/set
-      Ops.set(@patterns_preselected_by_addon, src_id, [])
+      @patterns_preselected_by_addon[src_id] = []
 
       # bnc #458297
       # Using PackagesProposal to select the patterns itself
@@ -1046,7 +1031,7 @@ module Yast
       )
 
       if Stage.initial
-        Builtins.y2milestone("Using PackagesProposal to select Add-On patterns")
+        log.info "Using PackagesProposal to select Add-On patterns"
         return true
       end
 

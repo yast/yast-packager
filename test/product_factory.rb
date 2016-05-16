@@ -36,6 +36,7 @@ class ProductFactory
     product["description"] = attrs["description"] || "SUSE Linux Enterprise #{product_name}."
     product["display_name"] = attrs["display_name"] || "SUSE Linux Enterprise #{product_name}"
     product["download_size"] = attrs["download_size"] || 0
+    # default: 2024-10-31
     product["eol"] = attrs["eol"] || 1730332800
     product["flags"] = attrs["flags"] || []
     product["flavor"] = attrs["flavor"] || "POOL"
@@ -69,5 +70,23 @@ class ProductFactory
     product["deps"] = attrs["deps"] if attrs.key?("deps")
 
     product
+  end
+
+  # create product packages for testing
+  # @param [String] product_name name of the product_line
+  # @param [Fixnum,nil] src repository ID providing the product
+  # @return [Array] created product data: the default pattern name,
+  #   the release package name, the release package status,
+  #   the product status
+  def self.create_product_packages(product_name: "product", src: nil)
+    pattern_name = "#{product_name}_pattern"
+    package_name = "#{product_name}-release"
+    package = { "name" => package_name, "status" => :selected,
+       "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
+                  { "provides" => "defaultpattern(#{pattern_name})" }] }
+    product = ProductFactory.create_product("status" => :selected,
+      "source" => src, "product_package" => package_name)
+
+    [ pattern_name, package_name,  package, product ]
   end
 end
