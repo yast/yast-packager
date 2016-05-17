@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 12 11:24:25 UTC 2016 - lslezak@suse.cz
+
+- Select the new default product patterns also when adding an
+  add-on from media in installed system (FATE#320199)
+- 3.1.100
+
+-------------------------------------------------------------------
 Wed May 11 15:49:26 CEST 2016 - schubi@suse.de
 
 - Showing location of installed licenses.

@@ -36,40 +36,25 @@ describe Yast::ProductPatterns do
     end
 
     it "returns the default pattern name from the release package" do
-      default_pattern = "def_pattern"
-      product_package_name = "product-release"
-      product_package = { "name" => product_package_name, "status" => :selected,
-         "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
-                    { "provides" => "defaultpattern(#{default_pattern})" }] }
-      product = ProductFactory.create_product("status"          => :selected,
-                                              "product_package" => product_package_name)
+      pattern_name, package_name, package, product =
+        ProductFactory.create_product_packages(product_name: "product1")
 
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return([product])
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(product["name"], :product, "")
         .and_return([product])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(product_package_name, :package, "")
-        .and_return([product_package])
+      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name, :package, "")
+        .and_return([package])
 
-      expect(subject.names).to eq([default_pattern])
+      expect(subject.names).to eq([pattern_name])
     end
 
     it "returns the default patterns from all products" do
-      default_pattern1 = "def_pattern1"
-      product_package_name1 = "product-release1"
-      product_package1 = { "name" => product_package_name1, "status" => :selected,
-         "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
-                    { "provides" => "defaultpattern(#{default_pattern1})" }] }
-      product1 = ProductFactory.create_product("status"          => :selected,
-                                               "product_package" => product_package_name1)
+      pattern_name1, package_name1, package1, product1 =
+        ProductFactory.create_product_packages(product_name: "product1")
 
-      default_pattern2 = "def_pattern2"
-      product_package_name2 = "product-release2"
-      product_package2 = { "name" => product_package_name2, "status" => :selected,
-         "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
-                    { "provides" => "defaultpattern(#{default_pattern2})" }] }
-      product2 = ProductFactory.create_product("status"          => :selected,
-                                               "product_package" => product_package_name2)
+      pattern_name2, package_name2, package2, product2 =
+        ProductFactory.create_product_packages(product_name: "product2")
 
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return([product1, product2])
@@ -77,12 +62,38 @@ describe Yast::ProductPatterns do
         .and_return([product1])
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(product2["name"], :product, "")
         .and_return([product2])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(product_package_name1, :package, "")
-        .and_return([product_package1])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(product_package_name2, :package, "")
-        .and_return([product_package2])
+      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name1, :package, "")
+        .and_return([package1])
+      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name2, :package, "")
+        .and_return([package2])
 
-      expect(subject.names.sort).to eq([default_pattern1, default_pattern2].sort)
+      expect(subject.names.sort).to eq([pattern_name1, pattern_name2].sort)
+    end
+
+    context "repository parameter has been set" do
+      # get the default patterns only from the repository with id 2
+      subject { Yast::ProductPatterns.new(src: 2) }
+
+      it "returns the default patterns only from the selected repository" do
+        pattern_name1, package_name1, package1, product1 =
+          ProductFactory.create_product_packages(product_name: "product1", src: 1)
+
+        pattern_name2, package_name2, package2, product2 =
+          ProductFactory.create_product_packages(product_name: "product2", src: 2)
+
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+          .and_return([product1, product2])
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with(product1["name"], :product, "")
+          .and_return([product1])
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with(product2["name"], :product, "")
+          .and_return([product2])
+        # the product1 package should not be checked, it's in different repo
+        expect(Yast::Pkg).to_not receive(:ResolvableDependencies).with(package_name1, :package, "")
+        expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name2, :package, "")
+          .and_return([package2])
+
+        expect(subject.names).to eq([pattern_name2])
+      end
     end
   end
 

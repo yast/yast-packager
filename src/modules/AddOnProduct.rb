@@ -14,6 +14,8 @@
 #	Lukas Ocilka <locilka@suse.cz>
 require "yast"
 
+require "packager/product_patterns"
+
 module Yast
   class AddOnProductClass < Module
     include Yast::Logger
@@ -990,49 +992,35 @@ module Yast
     end
 
     def PackagesProposalAddonID(src_id)
-      Builtins.sformat("Add-On-Product-ID:%1", src_id)
+      "Add-On-Product-ID:#{src_id}"
     end
 
     # See also DeselectProductPatterns()
     def SelectProductPatterns(content_file, src_id)
-      if !FileUtils.Exists(content_file)
-        Builtins.y2error("No such file: %1", content_file)
-        return false
+      patterns_to_select = []
+
+      if content_file && File.exist?(content_file)
+        contentmap = Convert.to_map(SCR.Read(path(".content_file"), content_file)) || {}
+
+        # no PATTERNS defined
+        if !contentmap.key?("PATTERNS")
+          log.info "Add-On doesn't have any required patterns (PATTERNS in content)"
+        end
+
+        # parsing PATTERNS
+        patterns_to_select = contentmap.fetch("PATTERNS", "").split(/\t /)
+        patterns_to_select.reject! { |p| p.nil? || p.empty? }
       end
 
-      contentmap = Convert.to_map(SCR.Read(path(".content_file"), content_file))
+      product_patterns = ProductPatterns.new(src: @src_id)
+      log.info "Found default product patterns: #{product_patterns.names}"
+      patterns_to_select.concat(product_patterns.names)
+      patterns_to_select.uniq!
 
-      # no PATTERNS defined
-      if !Builtins.haskey(contentmap, "PATTERNS")
-        Builtins.y2milestone(
-          "Add-On doesn't have any required patterns (PATTERNS in content)"
-        )
-        return true
-      end
+      log.info "Add-On requires these patterns: #{patterns_to_select.inspect}"
 
-      # parsing PATTERNS
-      patterns_to_select = Builtins.splitstring(
-        Ops.get_string(contentmap, "PATTERNS", ""),
-        "\t "
-      )
-      patterns_to_select = Builtins.filter(patterns_to_select) do |one_pattern|
-        one_pattern != nil && one_pattern != ""
-      end
-
-      if Builtins.size(patterns_to_select) == 0
-        Builtins.y2error(
-          "Erroneous PATTERNS: %1",
-          Ops.get_string(contentmap, "PATTERNS", "")
-        )
-        return false
-      end
-
-      Builtins.y2milestone(
-        "Add-On requires these PATTERNS: %1",
-        patterns_to_select
-      )
       # clear/set
-      Ops.set(@patterns_preselected_by_addon, src_id, [])
+      @patterns_preselected_by_addon[src_id] = []
 
       # bnc #458297
       # Using PackagesProposal to select the patterns itself
@@ -1043,7 +1031,7 @@ module Yast
       )
 
       if Stage.initial
-        Builtins.y2milestone("Using PackagesProposal to select Add-On patterns")
+        log.info "Using PackagesProposal to select Add-On patterns"
         return true
       end
 
@@ -1141,9 +1129,9 @@ module Yast
 
       if content_file == nil
         Builtins.y2warning("Add-On %1 doesn't have a content file", srcid)
-      else
-        SelectProductPatterns(content_file, srcid)
       end
+
+      SelectProductPatterns(content_file, srcid)
 
       nil
     end
