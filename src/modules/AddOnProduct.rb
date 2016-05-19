@@ -1008,7 +1008,7 @@ module Yast
         end
 
         # parsing PATTERNS
-        patterns_to_select = contentmap.fetch("PATTERNS", "").split(/\t /)
+        patterns_to_select = contentmap.fetch("PATTERNS", "").split(/[\t ]/)
         patterns_to_select.reject! { |p| p.nil? || p.empty? }
       end
 
