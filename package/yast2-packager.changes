@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 19 14:01:32 UTC 2016 - jsrain@suse.cz
+
+- fixed parsing of patterns in content file (bsc#980718)
+- 3.1.101
+
+-------------------------------------------------------------------
 Thu May 12 11:24:25 UTC 2016 - lslezak@suse.cz
 
 - Select the new default product patterns also when adding an
