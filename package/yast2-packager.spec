@@ -87,17 +87,8 @@ Requires:       yast2-ruby-bindings >= 1.0.0
 Summary:	YaST2 - Package Library
 
 
-%package devel-doc
-Requires:       yast2-packager = %version
-Group:          System/YaST
-Summary:        YaST2 - Development Documentation
-
 %description
 This package contains the libraries and modules for software management.
-
-%description devel-doc
-This package contains development documentation for using the API
-provided by yast2-packager package.
 
 %prep
 %setup -n %{name}-%{version}
@@ -133,8 +124,3 @@ provided by yast2-packager package.
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
-
-%files devel-doc
-%doc %{yast_docdir}/autodocs
-
-
