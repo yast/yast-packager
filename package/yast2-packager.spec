@@ -82,7 +82,6 @@ Recommends:     yast2-registration
 
 # force *-webpin subpackage removal at upgrade
 Obsoletes:      yast2-packager-webpin < %version
-
 Obsoletes:      yast2-packager-devel-doc
 
 Requires:       yast2-ruby-bindings >= 1.0.0
