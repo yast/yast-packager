@@ -84,14 +84,16 @@ module Yast
     # Convert install.inf to a URL useable by the package manager
     # @param [String] extra_dir append path to original URL
     # @return [String] new repository URL
-    def installInf2Url(_extra_dir)
+    def installInf2Url(extra_dir)
       return @installInf2Url unless @installInf2Url.nil?
 
       @installInf2Url = Linuxrc.InstallInf("ZyppRepoURL")
 
       if @installInf2Url.nil? || @installInf2Url.empty?
+        # Make it compatible with the current behaviour when
+        # install.inf does not exist.
         log.warn "No URL specified through ZyppRepoURL"
-        @installInf2Url = "cd:///"
+        @installInf2Url = "cd:///#{extra_dir}"
       end
 
       if !SSLVerificationEnabled()

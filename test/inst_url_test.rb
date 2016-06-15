@@ -14,13 +14,35 @@ describe Yast::InstURL do
     before do
       Yast::InstURL.main
       allow(Yast::Linuxrc).to receive(:InstallInf).with("ZyppRepoURL")
-        .and_return(zypp_repo_url.clone)
+        .and_return(zypp_repo_url ? zypp_repo_url.clone : nil)
       allow(Yast::Linuxrc).to receive(:InstallInf).with("ssl_verify")
         .and_return(ssl_verify)
     end
 
-    it "returns ZyppRepoURL as defined in install.inf" do
-      expect(inst_url.installInf2Url("")).to eq(zypp_repo_url)
+    context "when ZyppRepURL is defined in install.inf" do
+      it "returns ZyppRepoURL" do
+        expect(inst_url.installInf2Url("")).to eq(zypp_repo_url)
+      end
+
+      context "when extra_dir is specified" do
+        it "ignores extra_dir" do # bug or feature?
+          expect(inst_url.installInf2Url("extra")).to eq(zypp_repo_url)
+        end
+      end
+    end
+
+    context "when ZyppRepoURL is not defined" do
+      let(:zypp_repo_url) { nil }
+
+      it "returns cd:///" do
+        expect(inst_url.installInf2Url("")).to eq("cd:///")
+      end
+
+      context "and extra_dir is given" do
+        it "returns cd:/// plus the extra_dir" do
+          expect(inst_url.installInf2Url("extra")).to eq("cd:///extra")
+        end
+      end
     end
 
     context "when SSL verification is disabled" do
@@ -28,12 +50,6 @@ describe Yast::InstURL do
 
       it "adds ssl_verify=no to the URL" do
         expect(inst_url.installInf2Url("")).to eq("#{zypp_repo_url}&ssl_verify=no")
-      end
-    end
-
-    context "when extra_dir is specified" do
-      it "ignores extra_dir" do # bug or feature?
-        expect(inst_url.installInf2Url("extra")).to eq(zypp_repo_url)
       end
     end
   end
