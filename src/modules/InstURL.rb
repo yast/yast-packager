@@ -86,15 +86,21 @@ module Yast
     # @return [String] new repository URL
     def installInf2Url(_extra_dir)
       return @installInf2Url unless @installInf2Url.nil?
-      repo_url = Linuxrc.InstallInf("ZyppRepoURL")
-      @installInf2Url =
-        if repo_url.nil? || repo_url.empty?
-          log.warn "No URL specified through ZyppRepoURL."
-          "cd:///"
-        else
-          log.info "Using ZyppRepoURL: #{URL.HidePassword(repo_url)}"
-          repo_url
-        end
+
+      @installInf2Url = Linuxrc.InstallInf("ZyppRepoURL")
+
+      if @installInf2Url.nil? || @installInf2Url.empty?
+        log.warn "No URL specified through ZyppRepoURL"
+        @installInf2Url = "cd:///"
+      end
+
+      if !SSLVerificationEnabled()
+        log.warn "Disabling certificate check for the installation repository"
+        @installInf2Url << "&ssl_verify=no"
+      end
+
+      log.info "Using install URL: #{URL.HidePassword(@installInf2Url)}"
+      @installInf2Url
     end
 
     # Schemes considered local for installInf2Url
