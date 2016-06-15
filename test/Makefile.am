@@ -1,5 +1,6 @@
 TESTS = \
   addon_product_test.rb \
+  inst_url_test.rb \
   product_patterns_test.rb \
   package_installation_test.rb \
   packages_test.rb \
