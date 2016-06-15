@@ -97,7 +97,7 @@ module Yast
       end
 
       if !SSLVerificationEnabled()
-        log.warn "Disabling certificate check for the installation repository"
+        log.error "Disabling certificate check for the installation repository"
         @installInf2Url << "&ssl_verify=no"
       end
 
