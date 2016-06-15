@@ -9,7 +9,6 @@
 #
 # $Id$
 require "yast"
-require "uri"
 
 module Yast
   class InstURLClass < Module
@@ -84,23 +83,27 @@ module Yast
     # Convert install.inf to a URL useable by the package manager
     # @param [String] extra_dir append path to original URL
     # @return [String] new repository URL
-    def installInf2Url(extra_dir)
+    def installInf2Url(extra_dir = "")
       return @installInf2Url unless @installInf2Url.nil?
 
-      @installInf2Url = Linuxrc.InstallInf("ZyppRepoURL")
+      parts = URL.Parse(Linuxrc.InstallInf("ZyppRepoURL"))
 
-      if @installInf2Url.nil? || @installInf2Url.empty?
+      if parts.empty?
         # Make it compatible with the current behaviour when
         # install.inf does not exist.
         log.warn "No URL specified through ZyppRepoURL"
-        @installInf2Url = "cd:///#{extra_dir}"
+        parts = URL.Parse("cd:///")
       end
 
-      if !SSLVerificationEnabled()
+      parts["path"] = File.join(parts["path"], extra_dir) unless extra_dir.empty?
+
+      if parts["scheme"] == "https" && !SSLVerificationEnabled()
         log.error "Disabling certificate check for the installation repository"
-        @installInf2Url << "&ssl_verify=no"
+        parts["query"] << "&" unless parts["query"].empty?
+        parts["query"] << "ssl_verify=no"
       end
 
+      @installInf2Url = URL.Build(parts)
       log.info "Using install URL: #{URL.HidePassword(@installInf2Url)}"
       @installInf2Url
     end
@@ -114,7 +117,8 @@ module Yast
     # @see installInf2Url
     def is_network
       return @is_network unless @is_network.nil?
-      @is_network = !LOCAL_SCHEMES.include?(URI(installInf2Url("")).scheme)
+      scheme = URL.Parse(installInf2Url("")).fetch("scheme")
+      @is_network = !LOCAL_SCHEMES.include?(scheme)
     end
 
     publish :function => :is_network, :type => "boolean ()"
