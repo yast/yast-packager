@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Jun 15 11:07:50 UTC 2016 - igonzalezsosa@suse.com
+
+- Allow installation via HTTPS using a self-signed certificate
+  when "ssl_verify=no" boot option is used (bsc#982727)
+- Drop "is_network" method from InstURL module
+- 3.1.103
+
+-------------------------------------------------------------------
 Thu Jun  2 09:24:10 UTC 2016 - igonzalezsosa@suse.com
 
 - Drop yast2-packager-devel-doc (fate#320356)
