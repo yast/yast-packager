@@ -2,7 +2,7 @@
 Wed Jun 15 11:07:50 UTC 2016 - igonzalezsosa@suse.com
 
 - Allow installation via HTTPS using a self-signed certificate
-  (bsc#982727)
+  when "ssl_verify=no" boot option is used (bsc#982727)
 - 3.1.103
 
 -------------------------------------------------------------------
