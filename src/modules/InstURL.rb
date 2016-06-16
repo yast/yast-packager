@@ -124,7 +124,7 @@ module Yast
     def add_ssl_verify_no_to_url(url)
       parts = URL.Parse(url)
       return url if parts["scheme"].downcase != "https"
-      log.error "Disabling certificate check for the installation repository"
+      log.warn "Disabling certificate check for the installation repository"
       parts["query"] << "&" unless parts["query"].empty?
       parts["query"] << "ssl_verify=no"
       URL.Build(parts)
