@@ -20,7 +20,6 @@ module Yast
       Yast.import "URL"
       Yast.import "CheckMedia"
 
-      @is_network = nil
       @installInf2Url = nil
     end
 
@@ -103,19 +102,6 @@ module Yast
       @installInf2Url
     end
 
-    # Schemes considered local for installInf2Url
-    LOCAL_SCHEMES = ["cd", "dvd", "hd"]
-
-    # Determines whether the installation URL is remote or not
-    #
-    # @return [Boolean] true if it's remote; false otherwise.
-    # @see installInf2Url
-    def is_network
-      return @is_network unless @is_network.nil?
-      scheme = URL.Parse(installInf2Url("")).fetch("scheme")
-      @is_network = !LOCAL_SCHEMES.include?(scheme.downcase)
-    end
-
   private
 
     # Helper method to add extra_dir to a given URL
@@ -144,7 +130,6 @@ module Yast
       URL.Build(parts)
     end
 
-    publish :function => :is_network, :type => "boolean ()"
     publish :function => :HidePassword, :type => "string (string)"
     publish :function => :RewriteCDUrl, :type => "string (string)"
     publish :function => :installInf2Url, :type => "string (string)"
