@@ -15,7 +15,7 @@ describe Yast::InstURL do
     before do
       Yast::InstURL.main
       allow(Yast::Linuxrc).to receive(:InstallInf).with("ZyppRepoURL")
-        .and_return(zypp_repo_url ? zypp_repo_url.clone : nil)
+        .and_return(zypp_repo_url)
       allow(Yast::Linuxrc).to receive(:InstallInf).with("ssl_verify")
         .and_return(ssl_verify)
     end
