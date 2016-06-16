@@ -9,7 +9,6 @@
 #
 # $Id$
 require "yast"
-require "uri"
 
 module Yast
   class InstURLClass < Module
@@ -87,27 +86,19 @@ module Yast
     def installInf2Url(extra_dir = "")
       return @installInf2Url unless @installInf2Url.nil?
 
-      zypp_repo_url = Linuxrc.InstallInf("ZyppRepoURL").to_s
+      @installInf2Url = Linuxrc.InstallInf("ZyppRepoURL")
 
-      if zypp_repo_url.empty?
+      if @installInf2Url.to_s.empty?
         # Make it compatible with the current behaviour when
         # install.inf does not exist.
         log.warn "No URL specified through ZyppRepoURL"
-        zypp_repo_url = "cd:/"
+        @installInf2Url = "cd:///"
       end
 
-      uri = URI(zypp_repo_url)
+      # The URL is parsed/build only if needed to avoid potential problems with corner cases.
+      @installInf2Url = add_extra_dir_to_url(@installInf2Url, extra_dir) unless extra_dir.empty?
+      @installInf2Url = add_ssl_verify_no_to_url(@installInf2Url) unless SSLVerificationEnabled()
 
-      uri.path = File.join(uri.path, extra_dir) unless extra_dir.empty?
-
-      if uri.scheme == "https" && !SSLVerificationEnabled()
-        log.error "Disabling certificate check for the installation repository"
-        uri.query ||= ""
-        uri.query << "&" unless uri.query.empty?
-        uri.query << "ssl_verify=no"
-      end
-
-      @installInf2Url = uri.to_s
       log.info "Using install URL: #{URL.HidePassword(@installInf2Url)}"
       @installInf2Url
     end
@@ -121,8 +112,36 @@ module Yast
     # @see installInf2Url
     def is_network
       return @is_network unless @is_network.nil?
-      scheme = URI(installInf2Url).scheme
-      @is_network = !LOCAL_SCHEMES.include?(scheme)
+      scheme = URL.Parse(installInf2Url("")).fetch("scheme")
+      @is_network = !LOCAL_SCHEMES.include?(scheme.downcase)
+    end
+
+  private
+
+    # Helper method to add extra_dir to a given URL
+    #
+    # @param url       [String] URL
+    # @param extra_dir [String] Path to add
+    # @return [String] URL with the added path
+    def add_extra_dir_to_url(url, extra_dir)
+      parts = URL.Parse(url)
+      parts["path"] = File.join(parts["path"], extra_dir)
+      URL.Build(parts)
+    end
+
+    # Helper method to add ssl_verify parameter if needed
+    #
+    # Only applicable if scheme is 'https'.
+    #
+    # @param url       [String] URL
+    # @return [String] URL (with ssl_verify set to 'no' if needed)
+    def add_ssl_verify_no_to_url(url)
+      parts = URL.Parse(url)
+      return url if parts["scheme"].downcase != "https"
+      log.error "Disabling certificate check for the installation repository"
+      parts["query"] << "&" unless parts["query"].empty?
+      parts["query"] << "ssl_verify=no"
+      URL.Build(parts)
     end
 
     publish :function => :is_network, :type => "boolean ()"
