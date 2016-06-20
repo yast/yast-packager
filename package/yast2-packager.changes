@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun 20 08:04:22 UTC 2016 - lslezak@suse.cz
+
+- Restored back the InstURL#GetDevicesOption method which was
+  accidentaly removed in the previous update (bsc#985593)
+- 3.1.104
+
+-------------------------------------------------------------------
 Wed Jun 15 11:07:50 UTC 2016 - igonzalezsosa@suse.com
 
 - Allow installation via HTTPS using a self-signed certificate

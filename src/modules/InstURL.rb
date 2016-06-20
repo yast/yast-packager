@@ -33,6 +33,65 @@ module Yast
       URL.HidePassword(url)
     end
 
+    # Get device options for CD/DVD
+    # @return [String] device options (devices=/dev/cdrom)
+    def GetDevicesOption
+      options = ""
+      devicelist = Convert.convert(
+        SCR.Read(path(".probe.cdrom")),
+        :from => "any",
+        :to   => "list <map>"
+      )
+      devlist = Builtins.maplist(devicelist) do |d|
+        Ops.get_string(d, "dev_name", "")
+      end
+
+      ready = []
+      Builtins.foreach(devicelist) do |d|
+        dname = Ops.get_string(d, "dev_name", "")
+        if Ops.get_boolean(d, "notready", true) == false && dname != nil &&
+            dname != ""
+          ready = Builtins.add(ready, dname)
+        end
+      end
+
+      devlist = deep_copy(ready) if Builtins.size(ready) != 0
+
+      # add the Linuxrc medium to the beginning
+      repo_url = Linuxrc.InstallInf("RepoURL")
+
+      repo_url = "" if repo_url == nil
+
+      if Builtins.regexpmatch(Builtins.tolower(repo_url), "^cd:") ||
+          Builtins.regexpmatch(Builtins.tolower(repo_url), "^dvd:")
+        Builtins.y2milestone(
+          "Found CD/DVD device in Linuxrc RepoURL: %1",
+          repo_url
+        )
+        linuxrc_device = Builtins.regexpsub(repo_url, "device=(.*)$", "\\1")
+        if linuxrc_device != nil && linuxrc_device != ""
+          linuxrc_device = Ops.add("/dev/", linuxrc_device)
+          Builtins.y2milestone("Using Linuxrc device: %1", linuxrc_device)
+
+          # remove the device if it is already in the list
+          devlist = Builtins.filter(devlist) { |d| d != linuxrc_device }
+          # put the linuxrc device at the beginning
+          devlist = Builtins.prepend(devlist, linuxrc_device)
+
+          Builtins.y2milestone("Using CD/DVD device list: %1", devlist)
+        end
+      end
+
+      Builtins.foreach(devlist) do |d|
+        if d != ""
+          options = Ops.add(options, ",") if options != ""
+          options = Ops.add(options, d)
+        end
+      end
+      options = Ops.add("devices=", options) if options != ""
+      options
+    end
+
     #
     def GetURLOptions(url)
       option_map = {}
