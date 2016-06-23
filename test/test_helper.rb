@@ -24,6 +24,8 @@ if ENV["COVERAGE"]
   # Note that clients/ are excluded because they run too eagerly by design
   fs = Dir["#{srcdir}/**/*.rb"]
   fs.delete_if { |f| f.start_with? "#{srcdir}/clients/" }
+  # HACK: this would BuildRequire yast2-slp so defer this
+  fs.delete_if { |f| f.end_with? "/SourceManagerSLP.rb" }
   fs.each do |f|
     require_relative f
   end
