@@ -1,11 +1,12 @@
 TESTS = \
   addon_product_test.rb \
   inst_url_test.rb \
-  product_patterns_test.rb \
   package_installation_test.rb \
   package_slide_show_test.rb \
   packages_test.rb \
   pkg_finish_test.rb \
+  product_license_test.rb \
+  product_patterns_test.rb \
   source_dialogs_test.rb \
   space_calculation_test.rb
 
