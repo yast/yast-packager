@@ -9,7 +9,7 @@ Mon Jun 20 08:04:22 UTC 2016 - lslezak@suse.cz
 Wed Jun 15 11:07:50 UTC 2016 - igonzalezsosa@suse.com
 
 - Allow installation via HTTPS using a self-signed certificate
-  when "ssl_verify=no" boot option is used (bsc#982727)
+  when "ssl_certs=0" boot option is used (bsc#982727)
 - Drop "is_network" method from InstURL module
 - 3.1.103
 
