@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 28 14:15:15 UTC 2016 - jreidinger@suse.com
+
+- optimize slide show size computing to improve installation
+  performance (bnc#986649)
+- 3.1.105
+
+-------------------------------------------------------------------
 Mon Jun 20 08:04:22 UTC 2016 - lslezak@suse.cz
 
 - Restored back the InstURL#GetDevicesOption method which was
