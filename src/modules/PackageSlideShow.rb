@@ -129,12 +129,10 @@ module Yast
     # Sum up all list items
     #
     def ListSum(sizes)
-      sizes = deep_copy(sizes)
-      sum = 0
-
-      Builtins.foreach(sizes) { |item| sum = Ops.add(sum, item) if item != -1 }
-
-      sum
+      sizes.each_with_object(0) do |i, r|
+        next if i == -1
+        r += i
+      end
     end
 
     # Sum up all positive list items, but cut off individual items at a maximum value.
