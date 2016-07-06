@@ -8,6 +8,7 @@
 #                      Stanislav Visnovsky <visnov@suse.cz>
 #
 require "yast"
+require "yast2/system_time"
 
 module Yast
   class PackageSlideShowClass < Module
@@ -622,8 +623,10 @@ module Yast
     # @param [Boolean] force_recalc force recalculation even if timeout not reached yet
     # @return true if recalculated, false if not
     #
+    # @see SlideShow.next_recalc_time
+    # @see Yast2::SystemTime.uptime
     def RecalcRemainingTimes(force_recalc)
-      if !force_recalc && ::Time.now.to_i < SlideShow.next_recalc_time
+      if !force_recalc && Yast2::SystemTime.uptime < SlideShow.next_recalc_time
         # Nothing to do (yet) - simply return
         return false
       end
@@ -631,7 +634,7 @@ module Yast
       elapsed = SlideShow.total_time_elapsed
 
       if SlideShow.start_time >= 0
-        elapsed += ::Time.now.to_i - SlideShow.start_time
+        elapsed += Yast2::SystemTime.uptime - SlideShow.start_time
       end
 
       if elapsed == 0
@@ -699,7 +702,11 @@ module Yast
         log.debug "Recalculated remaining time: #{@remaining_times_per_cd_per_src}"
       end
 
-      SlideShow.next_recalc_time = ::Time.now.to_i + SlideShow.recalc_interval
+      # Since yast2 3.1.182, SlideShow.next_recalc_time holds the uptime value
+      # to avoid problems if timezone changes (bnc#956730), so
+      # Yast2::SystemTime.uptime must be used instead of ::Time.now
+      # (bsc#982138).
+      SlideShow.next_recalc_time = Yast2::SystemTime.uptime + SlideShow.recalc_interval
 
       true
     end
@@ -710,7 +717,7 @@ module Yast
     def SwitchToSecondsIfNecessary
       if @unit_is_seconds ||
           Ops.less_than(
-            ::Time.now.to_i,
+            Yast2::SystemTime.uptime,
             Ops.add(SlideShow.start_time, SlideShow.initial_recalc_delay)
           )
         return false # no need to switch
