@@ -3,6 +3,7 @@ TESTS = \
   inst_url_test.rb \
   product_patterns_test.rb \
   package_installation_test.rb \
+  package_slide_show_test.rb \
   packages_test.rb \
   pkg_finish_test.rb \
   source_dialogs_test.rb \

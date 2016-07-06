@@ -128,11 +128,10 @@ module Yast
 
     # Sum up all list items
     #
+    # @param sizes [Array<Fixnum>] Sizes to sum
+    # @return [Fixnum] Sizes sum
     def ListSum(sizes)
-      sizes.each_with_object(0) do |i, r|
-        next if i == -1
-        r += i
-      end
+      sizes.reduce(0) { |s, i| i == -1 ? s : s + i }
     end
 
     # Sum up all positive list items, but cut off individual items at a maximum value.

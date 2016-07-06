@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul  6 10:46:54 UTC 2016 - igonzalezsosa@suse.com
+
+- Fix remaining packages count during installation (bsc#987791)
+- 3.1.106
+
+-------------------------------------------------------------------
 Tue Jun 28 14:15:15 UTC 2016 - jreidinger@suse.com
 
 - optimize slide show size computing to improve installation
