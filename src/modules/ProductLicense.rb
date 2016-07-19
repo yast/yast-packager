@@ -338,8 +338,8 @@ module Yast
       space = UI.TextMode ? 1 : 3
 
       license_buttons = VBox(
-        VSpacing(spare_space ? 0 : 1),
-        HCenter(
+        VSpacing(spare_space ? 0 : 0.5),
+        Left(
           CheckBox(
             Id("eula_#{id}"),
             Opt(:notify),
@@ -353,33 +353,20 @@ module Yast
         VSpacing(spare_space ? 0 : 1),
         HBox(
           HSpacing(2 * space),
-          (
-            licenses_ref = arg_ref(licenses.value);
-            _GetLicenseDialogTerm_result = GetLicenseDialogTerm(
+          VBox(
+            GetLicenseDialogTerm(
               languages,
               license_language,
-              licenses_ref,
+              arg_ref(licenses.value),
               id
-            );
-            licenses.value = licenses_ref.value;
-            _GetLicenseDialogTerm_result
-          ),
-          HSpacing(2 * space)
-        ),
-        # BNC #448598
-        # yes/no buttons exist only if needed
-        # if they don't exist, user is not asked to accept the license later
-        AcceptanceNeeded(id) ? license_buttons : Empty(),
-        VSpacing(spare_space ? 0.5 : 1),
-        HBox(
-          HSpacing(2 * space),
-          @license_file_print != nil ?
-            Left(
-              # FATE #302018
-              ReplacePoint(
-                Id(:printing_hint),
-                Label(
-                  @license_on_installed_system ?
+            ),
+            @license_file_print != nil ?
+              Left(
+                # FATE #302018
+                ReplacePoint(
+                  Id(:printing_hint),
+                  Label(
+                    @license_on_installed_system ?
                       # TRANSLATORS: addition license information
                       # %s is replaced with the directory name
                       _("This EULA can be found in the directory\n%s") % @license_file_print
@@ -387,14 +374,18 @@ module Yast
                       # TRANSLATORS: addition license information
                       # %s is replaced with the filename
                       _("If you want to print this EULA, you can find it\non the first media in the file %s") %
-                        @license_file_print
+                      @license_file_print
+                  )
                 )
-              )
-            ) :
-            Empty(),
+              ) :
+              Empty(),
+            # BNC #448598
+            # yes/no buttons exist only if needed
+            # if they don't exist, user is not asked to accept the license later
+            AcceptanceNeeded(id) ? license_buttons : Empty()
+          ),
           HSpacing(2 * space)
-        ),
-        VSpacing(spare_space ? 0 : 1)
+        )
       )
     end
 
@@ -1144,7 +1135,7 @@ module Yast
         Builtins.y2milestone(
           "Some progress is running, opening new dialog for license..."
         )
-        Wizard.OpenNextBackDialog
+        Wizard.OpenLeftTitleNextBackDialog
         created_new_dialog = true
       end
 
