@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 28 10:40:32 UTC 2016 - jreidinger@suse.com
+
+- allow KDE to use packager for opening rpms (boo#954143)
+  thanks to  Marcelo Junior for patch
+- 3.1.109
+
+-------------------------------------------------------------------
 Tue Jul 19 15:22:43 UTC 2016 - cwh@suse.com
 
 - Fix layout of Add-On screen (bsc#951720)
