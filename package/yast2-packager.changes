@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Jul 31 13:47:36 UTC 2016 - marceloatie@gmail.com
+
+- Prioritize yast-packager for opening rpms
+- 3.1.110 
+
+-------------------------------------------------------------------
 Thu Jul 28 10:40:32 UTC 2016 - jreidinger@suse.com
 
 - allow KDE to use packager for opening rpms (boo#954143)
