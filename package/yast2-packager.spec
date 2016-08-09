@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.109
+Version:        3.2.1
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -28,7 +28,6 @@ Group:	        System/YaST
 License:        GPL-2.0+
 BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite
 BuildRequires:  yast2-devtools >= 3.1.10
-BuildRequires:  yast2-storage
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
