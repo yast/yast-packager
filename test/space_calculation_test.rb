@@ -112,6 +112,8 @@ describe Yast::SpaceCalculation do
     end
   end
 
+# storage-ng
+=begin
   describe "#size_from_string" do
     it "converts string without units bytes" do
       expect(Yast::SpaceCalculation.size_from_string("42.00")).to eq(42)
@@ -153,6 +155,7 @@ describe Yast::SpaceCalculation do
       expect(Yast::SpaceCalculation.size_from_string("0.00")).to eq(0)
     end
   end
+=end
 
   describe "#btrfs_snapshots?" do
     let(:dir) { "/mnt" }
@@ -178,6 +181,8 @@ describe Yast::SpaceCalculation do
     end
   end
 
+# storage-ng
+=begin
   describe "#btrfs_used_size" do
     let(:dir) { "/mnt" }
 
@@ -215,6 +220,7 @@ EOF
       expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_482)
     end
   end
+=end
 
   describe "#EvaluateFreeSpace" do
     let(:run_df) { YAML.load_file(File.join(DATA_PATH, "run_df.yml")) }
