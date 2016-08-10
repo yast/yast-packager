@@ -1572,24 +1572,16 @@ module Yast
       new_repo = { "enabled" => true, "base_urls" => [url], "prod_dir" => pth }
 
       # BNC #714027: Possibility to adjust repository priority (usually higher)
-      Ops.set(new_repo, "priority", priority) if Ops.greater_than(priority, -1)
+      new_repo["priority"] = priority if priority > -1
 
-      Builtins.y2milestone(
-        "Adding Repository: %1, product path: %2",
-        URL.HidePassword(url),
-        pth
-      )
+      log.info "Adding Repository: #{URL.HidePassword(url)}, product path: #{pth}"
       new_repo_id = Pkg.RepositoryAdd(new_repo)
+      log.info "New repository id: #{new_repo_id}"
 
-      if new_repo_id == nil || Ops.less_than(new_repo_id, 0)
-        Builtins.y2error("Unable to add product: %1", URL.HidePassword(url))
+      if new_repo_id == nil || new_repo_id < 0
+        log.error "Unable to add product: %1", URL.HidePassword(url)
         # TRANSLATORS: error message, %1 is replaced with product URL
-        Report.Error(
-          Builtins.sformat(
-            _("Unable to add product %1."),
-            URL.HidePassword(url)
-          )
-        )
+        Report.Error(format(_("Unable to add product %s."), URL.HidePassword(url)))
         return nil
       end
 
@@ -1714,45 +1706,16 @@ module Yast
             Builtins.y2milestone("inst_network_check ret: %1", inc_ret)
           end
           # a CD/DVD repository
-          if Builtins.contains(["cd", "dvd"], scheme)
-            # if the CD/DVD product is known just try if it's there
-            # and ask if not
-            if prodname != ""
-              found = false
-
-              while !found
-                repo_id = AddRepo(url, pth, priority)
-                next false if repo_id == nil
-
-                prod2 = Pkg.SourceProductData(repo_id)
-                if Ops.get_string(prod2, "label", "") == prodname
-                  found = true
-                else
-                  Builtins.y2milestone(
-                    "Removing repo %1: Add-on found: %2, expected: %3",
-                    repo_id,
-                    Ops.get_string(prod2, "label", ""),
-                    prodname
-                  )
-                  Pkg.SourceDelete(repo_id)
-
-                  # ask for a different medium
-                  url = AskForCD(url, prodname)
-                  next false if url == nil
-                end
-              end
+          repo_id =
+            if Builtins.contains(["cd", "dvd"], scheme)
+              prodname.empty? ? add_repo_from_cd(url, pth, priority) :
+                add_product_from_cd(url, pth, priority, prodname)
             else
-              result = AskForCD(url, prodname)
-              next false if result == nil
-
-              repo_id = AddRepo(result, pth, priority)
-              next false if repo_id == nil
+              # a non CD/DVD repository
+              AddRepo(url, pth, priority)
             end
-          else
-            # a non CD/DVD repository
-            repo_id = AddRepo(url, pth, priority)
-            next false if repo_id == nil
-          end
+          next false unless repo_id
+
           if !AcceptedLicenseAndInfoFile(repo_id)
             Builtins.y2warning("License not accepted, delete the repository")
             Pkg.SourceDelete(repo_id)
@@ -2256,6 +2219,52 @@ module Yast
     publish :function => :ImportGpgKeyCallback, :type => "boolean (map <string, any>, integer)"
     publish :function => :AcceptNonTrustedGpgKeyCallback, :type => "boolean (map <string, any>)"
     publish :function => :SetSignatureCallbacks, :type => "void (string)"
+
+  private
+
+    # Adds a product from a CD/DVD
+    #
+    # To add the product, the name should match +prodname+ argument.
+    #
+    # @param url      [String]  Repository URL (cd: or dvd: schemas are expected)
+    # @param pth      [String]  Repository path (in the media)
+    # @param priority [Integer] Repository priority
+    # @param prodname [String]  Expected product's name
+    # @return         [Integer,nil] Repository id; nil if product was not found and user cancelled.
+    #
+    # @see add_repo_from_cd
+    def add_product_from_cd(url, pth, priority, prodname)
+      current_url = url
+      loop do
+        # just try if it's there and ask if not
+        repo_id = AddRepo(current_url, pth, priority)
+        if repo_id
+          found_product = Pkg.SourceProductData(repo_id)
+          return repo_id if found_product["label"] == prodname
+          log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}, expected: #{prodname}")
+          Pkg.SourceDelete(repo_id)
+        end
+
+        # ask for a different medium
+        current_url = AskForCD(current_url, prodname)
+        return nil if current_url.nil?
+      end
+    end
+
+    # Adds a repository from a CD/DVD
+    #
+    # The product contained in the CD/DVD does not matter.
+    #
+    # @param url      [String]  Repository URL (cd: or dvd: schemas are expected)
+    # @param pth      [String]  Repository path (in the media)
+    # @param priority [Integer] Repository priority
+    # @return         [Integer,nil] Repository id; nil if product was not found and user cancelled.
+    def add_repo_from_cd(url, pth, priority)
+      result = AskForCD(url, "")
+      return result if result.nil?
+
+      AddRepo(result, pth, priority)
+    end
   end
 
   AddOnProduct = AddOnProductClass.new
