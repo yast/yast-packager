@@ -897,4 +897,92 @@ describe Yast::Packages do
       Yast::Packages.Reset([:product])
     end
   end
+
+  describe "#ListSelected" do
+    let(:unordered_products) do
+      [
+        product("name" => "p3", "status" => :selected, "source" => 15),
+        product("name" => "p4", "status" => :available, "source" => 40),
+        product("name" => "p1", "status" => :selected, "source" => 10)
+      ]
+    end
+
+    let(:filtered_products) do
+      [
+        product("name" => "p3", "status" => :selected, "source" => 15),
+        product("name" => "p1", "status" => :selected, "source" => 10)
+      ]
+    end
+
+    let(:ordered_products) do
+      [
+        product("name" => "p1", "status" => :selected, "source" => 10),
+        product("name" => "p3", "status" => :selected, "source" => 15)
+      ]
+    end
+
+    let(:unordered_packages) do
+      [
+        pattern("name" => "p3", "status" => :selected, "order" => "3", "user_visible" => true),
+        pattern("name" => "p1", "status" => :selected, "order" => "1", "user_visible" => false),
+        pattern("name" => "p2", "status" => :available, "order" => "2", "user_visible" => true)
+      ]
+    end
+
+    let(:filtered_packages) do
+      [
+        pattern("name" => "p3", "status" => :selected, "order" => "3", "user_visible" => true)
+      ]
+    end
+
+    before do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(unordered_products)
+    end
+
+    it "obtains a list of resolvables of the given type" do
+      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+
+      subject.ListSelected(:product, "")
+    end
+
+    it "filters not selected resolvables from the list" do
+      expect(subject).to receive(:sort_resolvable!)
+        .with(filtered_products, :product)
+
+      subject.ListSelected(:product, "")
+    end
+
+    it "filters not user visible resolvables from the list for type pattern" do
+      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :pattern, "")
+        .and_return(unordered_packages)
+      expect(subject).to receive(:sort_resolvable!)
+        .with(filtered_packages, :pattern)
+
+      subject.ListSelected(:pattern, "")
+    end
+
+    it "sorts resultant list depending on resortable type" do
+      expect(subject).to receive(:formatted_resolvables).with(ordered_products, "")
+
+      subject.ListSelected(:product, "")
+    end
+
+    it "returns an empty list if no resolvables selected" do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return([])
+
+      expect(subject.ListSelected(:product, "Product: %1")).to eql([])
+    end
+
+    it "returns a list with each resultant resolvable formatted as the format given" do
+      expect(subject.ListSelected(:product, "Product: %1")).to eql(
+        [
+          "Product: p1",
+          "Product: p3"
+        ]
+      )
+    end
+  end
+
 end

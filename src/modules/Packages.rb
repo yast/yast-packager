@@ -16,6 +16,10 @@ module Yast
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
+
+    # Key to sort by resolvable selection
+    RESOLVABLE_SORT_ORDER = { :product => "source", :pattern => "order" }
+
     # Minimum set of packages tags required to enable VNC server
     VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
     # Additional packages tags needed to run second stage in graphical mode
@@ -157,40 +161,15 @@ module Yast
     # @param [String] format string format string to print summaries in
     # @return a list of selected resolvables
     def ListSelected(what, format)
-      format = "%1" if format == "" || format == nil
       selected = Pkg.ResolvableProperties("", what, "")
 
-      # ignore hidden patterns
-      if what == :pattern
-        selected = Builtins.filter(selected) do |r|
-          Ops.get(r, "user_visible") == true
-        end
+      selected.select! {|r| r["status"] == :selected }
 
-        # order patterns according to "order" flag
-        selected = Builtins.sort(selected) do |x, y|
-          xo = Builtins.tointeger(Ops.get_string(x, "order", ""))
-          yo = Builtins.tointeger(Ops.get_string(y, "order", ""))
-          if xo == nil || yo == nil
-            # order is not an integer, compare as strings
-            next Ops.less_than(
-              Ops.get_string(x, "order", ""),
-              Ops.get_string(y, "order", "")
-            )
-          else
-            next Ops.less_than(xo, yo)
-          end
-        end
-      end
+      selected.select! {|r| r["user_visible"] } if what == :pattern
 
-      selected = Builtins.filter(selected) do |r|
-        Ops.get(r, "status") == :selected
-      end
+      sort_resolvable!(selected, what)
 
-      ret = Builtins.maplist(selected) do |r|
-        disp = Ops.get_string(r, "summary", Ops.get_string(r, "name", ""))
-        Builtins.sformat(format, disp)
-      end
-      deep_copy(ret)
+      formatted_resolvables(selected, format)
     end
 
     # Count the total size of packages to be installed
@@ -2597,6 +2576,35 @@ module Yast
         r_info = {:name => r["name"], :version => r["version"], :arch => r["arch"], :status => r["status"]}
         log.info "- #{r_info}"
       end
+    end
+
+    # Prepares a list of formatted selected resolvables
+    #
+    # :pattern resolvables are sorted by "order"
+    # :product resolvables are sorted by "source"
+    #
+    # @param [Array<Hash>] list of selected resolvables to format
+    # @param [String] string format to use
+    def formatted_resolvables(selected, format)
+      format = "%1" if format == "" || format == nil
+
+      Builtins.maplist(selected) do |r|
+        disp = Ops.get_string(r, "summary", Ops.get_string(r, "name", ""))
+        Builtins.sformat(format, disp)
+      end
+    end
+
+    # Sort selected resolvables of specified type
+    #
+    # :pattern resolvables are sorted by "order"
+    # :product resolvables are sorted by "source"
+    #
+    # @param [Array<Hash>] list of selected resolvables to sort
+    # @param [Symbol] what symbol specifying the type of resolvables to select
+    def sort_resolvable!(selected, what)
+      order = RESOLVABLE_SORT_ORDER[what]
+
+      selected.sort_by! { |r| r[order].to_i } if order
     end
 
     # Computes all patterns that are expected to be selected for default installation
