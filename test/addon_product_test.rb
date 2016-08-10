@@ -98,12 +98,13 @@ describe Yast::AddOnProduct do
 
     let(:repo) { ADDON_REPO }
     let(:filelist) do
-      [ { "file" => "/add_on_products.xml", "type" => "xml" } ]
+      [{ "file" => "/add_on_products.xml", "type" => "xml" }]
     end
 
     before do
       subject.SetBaseProductURL(BASE_URL)
       allow(subject).to receive(:ParseXMLBasedAddOnProductsFile).and_return([repo])
+      subject.add_on_products = []
     end
 
     context "when filelist is empty" do
@@ -133,7 +134,7 @@ describe Yast::AddOnProduct do
 
     context "when filelist contains plain-text files" do
       let(:filelist) do
-        [ { "file" => "/add_on_products.xml", "type" => "plain" } ]
+        [{ "file" => "/add_on_products.xml", "type" => "plain" }]
       end
 
       it "parses the plain file" do
@@ -144,7 +145,7 @@ describe Yast::AddOnProduct do
 
     context "when filelist contains unsupported file types" do
       let(:filelist) do
-        [ { "file" => "/add_on_products.xml", "type" => "unsupported" } ]
+        [{ "file" => "/add_on_products.xml", "type" => "unsupported" }]
       end
 
       it "logs the error" do
@@ -171,14 +172,18 @@ describe Yast::AddOnProduct do
 
         it "adds the repository" do
           allow(subject).to receive(:AddRepo).with(cd_url, anything, anything)
+            .and_return(repo_id)
           subject.AddPreselectedAddOnProducts(filelist)
+          expect(subject.add_on_products).to_not be_empty
         end
 
         it "does not add the repository if user cancels the dialog" do
+          expect(subject.add_on_products).to be_empty
           allow(subject).to receive(:AskForCD).and_return(nil)
 
           expect(subject).to_not receive(:AddRepo)
           subject.AddPreselectedAddOnProducts(filelist)
+          expect(subject.add_on_products).to be_empty
         end
 
         it "does not integrate the repository if it was not added" do
@@ -226,6 +231,7 @@ describe Yast::AddOnProduct do
               .and_return(matching_product)
             allow(Yast::Pkg).to receive(:SourceProductData).with(other_repo_id)
               .and_return(other_product)
+            expect(subject.add_on_products).to be_empty
           end
 
           it "does not add the repository if the user cancels the dialog" do
@@ -236,6 +242,7 @@ describe Yast::AddOnProduct do
             expect(Yast::Pkg).to receive(:SourceDelete).with(other_repo_id)
             expect(subject).to_not receive(:Integrate).with(other_repo_id)
             subject.AddPreselectedAddOnProducts(filelist)
+            expect(subject.add_on_products).to be_empty
           end
 
           it "adds the product if the user points to a valid CD/DVD" do
@@ -249,6 +256,7 @@ describe Yast::AddOnProduct do
             expect(Yast::Pkg).to_not receive(:SourceDelete).with(repo_id)
             expect(subject).to receive(:Integrate).with(repo_id)
             subject.AddPreselectedAddOnProducts(filelist)
+            expect(subject.add_on_products).to_not be_empty
           end
         end
       end
