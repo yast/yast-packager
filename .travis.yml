@@ -5,7 +5,7 @@ before_install:
     # disable rvm, use system Ruby
     - rvm reset
     - wget https://raw.githubusercontent.com/yast/yast-devtools/master/travis-tools/travis_setup.sh
-    - sh ./travis_setup.sh -p "yast2-devtools yast2-testsuite yast2 yast2-pkg-bindings yast2-country-data yast2-storage" -g rspec:3.3.0
+    - sh ./travis_setup.sh -p "yast2-devtools yast2-testsuite yast2 yast2-pkg-bindings yast2-country-data" -g rspec:3.3.0
 script:
     - make -f Makefile.cvs
     - make
