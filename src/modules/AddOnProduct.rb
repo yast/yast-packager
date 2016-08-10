@@ -1676,20 +1676,12 @@ module Yast
       log.info "Base URL: #{URL.HidePassword(base_url)}"
 
       # Processes all add_on_products files found
-      filelist.each do |add_on_products_file|
-        filename = Ops.get(add_on_products_file, "file", "")
-        type = Ops.get(add_on_products_file, "type", "")
-        add_products = []
-        # new xml format
-        if type == "xml"
-          add_products = ParseXMLBasedAddOnProductsFile(filename, base_url)
-          # old fallback
-        elsif type == "plain"
-          add_products = ParsePlainAddOnProductsFile(filename, base_url)
-        else
-          log.error "Unsupported type: #{type}"
-          next false
-        end
+      filelist.each do |file|
+        add_products = parse_add_on_products_file(
+          file.fetch("file", ""), file.fetch("type", ""), base_url
+        )
+        next unless add_products
+
         log.info "Adding products: #{add_products}"
         add_products.each do |one_product|
           url = one_product.fetch("url", "")
@@ -2257,6 +2249,30 @@ module Yast
       return result if result.nil?
 
       AddRepo(result, pth, priority)
+    end
+
+    # Parse a add-on products file
+    #
+    # @param filename [String] File path
+    # @param type     [String] File type ("xml" or "plain")
+    # @param base_url [String] Product's base URL
+    # @return [Hash] Add-on specification (allowed keys
+    #                are "name", "url", "path", "install_products",
+    #                "ask_user", "selected" and "priority").
+    #
+    # @see ParseXMLBasedAddOnProductsFile
+    # @see ParsePlainAddOnProductsFile
+    # @see AddPreselectedAddOnProducts
+    def parse_add_on_products_file(filename, type, base_url)
+      case type.downcase
+      when "xml"
+        ParseXMLBasedAddOnProductsFile(filename, base_url)
+      when "plain"
+        ParsePlainAddOnProductsFile(filename, base_url)
+      else
+        log.error "Unsupported type: #{type}"
+        false
+      end
     end
   end
 
