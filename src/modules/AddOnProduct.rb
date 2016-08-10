@@ -1585,6 +1585,8 @@ module Yast
         return nil
       end
 
+      # Make sure all changes are refreshed
+      Pkg.SourceSaveAll
       # download metadata, build repo cache
       Pkg.SourceRefreshNow(new_repo_id)
       # load resolvables to zypp pool
