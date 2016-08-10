@@ -142,6 +142,17 @@ describe Yast::AddOnProduct do
       end
     end
 
+    context "when filelist contains unsupported file types" do
+      let(:filelist) do
+        [ { "file" => "/add_on_products.xml", "type" => "unsupported" } ]
+      end
+
+      it "logs the error" do
+        expect(subject.log).to receive(:error).with(/Unsupported/)
+        subject.AddPreselectedAddOnProducts(filelist)
+      end
+    end
+
     context "when the add-on is on a CD/DVD" do
       let(:repo_id) { 1 }
       let(:cd_url) { "cd:///?device=/dev/sr0" }

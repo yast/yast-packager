@@ -1593,6 +1593,12 @@ module Yast
       new_repo_id
     end
 
+
+    # Repository network schemes
+    NETWORK_SCHEMES = ["http", "https", "ftp", "nfs", "cifs", "slp"]
+    # Repository CD/DVD schemes
+    CD_SCHEMES = ["cd", "dvd"]
+
     # Auto-integrate add-on products in specified file (usually add_on_products or
     # add_on_products.xml file)
     #
@@ -1659,19 +1665,16 @@ module Yast
     #          $[ "file" : "/local/path/to/an/add_on_products/file.xml", "type":"xml" ]
     #      ]
     def AddPreselectedAddOnProducts(filelist)
-      filelist = deep_copy(filelist)
-      if filelist == nil || filelist == []
-        Builtins.y2milestone(
-          "No add-on products defined on the media or by inst-sys"
-        )
+      if filelist.nil? || filelist.empty?
+        log.info "No add-on products defined on the media or by inst-sys"
         return true
       end
 
       base_url = GetBaseProductURL()
-      Builtins.y2milestone("Base URL: %1", URL.HidePassword(base_url))
+      log.info "Base URL: #{URL.HidePassword(base_url)}"
 
       # Processes all add_on_products files found
-      Builtins.foreach(filelist) do |add_on_products_file|
+      filelist.each do |add_on_products_file|
         filename = Ops.get(add_on_products_file, "file", "")
         type = Ops.get(add_on_products_file, "type", "")
         add_products = []
@@ -1682,32 +1685,29 @@ module Yast
         elsif type == "plain"
           add_products = ParsePlainAddOnProductsFile(filename, base_url)
         else
-          Builtins.y2error("Unsupported type: %1", type)
+          log.error "Unsupported type: #{type}"
           next false
         end
-        repo_id = -1
-        Builtins.y2milestone("Adding products: %1", add_products)
-        Builtins.foreach(add_products) do |one_product|
-          url = Ops.get_string(one_product, "url", "")
-          pth = Ops.get_string(one_product, "path", "")
-          priority = Ops.get_integer(one_product, "priority", -1)
-          prodname = Ops.get_string(one_product, "name", "")
+        log.info "Adding products: #{add_products}"
+        add_products.each do |one_product|
+          url = one_product.fetch("url", "")
+          pth = one_product.fetch("path", "")
+          priority = one_product.fetch("priority", -1).to_i
+          prodname = one_product.fetch("name", "")
           # Check URL and setup network if required or prompt to insert CD/DVD
           parsed = URL.Parse(url)
-          scheme = Builtins.tolower(Ops.get_string(parsed, "scheme", ""))
+          scheme = parsed.fetch("scheme", "").downcase
           # check if network needs to be configured
-          if Builtins.contains(
-              ["http", "https", "ftp", "nfs", "cifs", "slp"],
-              scheme
-            )
+          if NETWORK_SCHEMES.include?(scheme)
             inc_ret = Convert.to_symbol(
               WFM.CallFunction("inst_network_check", [])
             )
             Builtins.y2milestone("inst_network_check ret: %1", inc_ret)
           end
+
           # a CD/DVD repository
           repo_id =
-            if Builtins.contains(["cd", "dvd"], scheme)
+            if CD_SCHEMES.include?(scheme)
               prodname.empty? ? add_repo_from_cd(url, pth, priority) :
                 add_product_from_cd(url, pth, priority, prodname)
             else
@@ -1717,22 +1717,15 @@ module Yast
           next false unless repo_id
 
           if !AcceptedLicenseAndInfoFile(repo_id)
-            Builtins.y2warning("License not accepted, delete the repository")
+            log.warn "License not accepted, delete the repository"
             Pkg.SourceDelete(repo_id)
             next false
           end
           Integrate(repo_id)
           # adding the product to the list of products (BNC #269625)
           prod = Pkg.SourceProductData(repo_id)
-          Builtins.y2milestone(
-            "Repository (%1) product data: %2",
-            repo_id,
-            prod
-          )
-          InstallProductsFromRepository(
-            Ops.get_list(one_product, "install_products", []),
-            repo_id
-          )
+          log.info "Repository (#{repo_id} product data: #{prod})"
+          InstallProductsFromRepository(one_product.fetch("install_products", []), repo_id)
           new_add_on_product = {
             "media"            => repo_id,
             "product"          => Ops.get_locale(
@@ -1752,9 +1745,7 @@ module Yast
             "media_url"        => url,
             "product_dir"      => pth
           }
-          if Ops.greater_than(priority, -1)
-            Ops.set(new_add_on_product, "priority", priority)
-          end
+          new_add_on_product["priority"] = priority if priority > -1
           @add_on_products = Builtins.add(@add_on_products, new_add_on_product)
         end
       end
