@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 10 16:39:10 UTC 2016 - kanderssen@suse.com
+
+- List addons below base product in Software proposal during
+  installation. (bsc#992304)
+- 3.1.110
+
+-------------------------------------------------------------------
 Thu Jul 28 10:40:32 UTC 2016 - jreidinger@suse.com
 
 - allow KDE to use packager for opening rpms (boo#954143)
