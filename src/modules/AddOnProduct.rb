@@ -1620,6 +1620,11 @@ module Yast
     #     		<product_item>
     #     			<!-- Product name visible in UI when offered to user (optional item) -->
     #     			<name>Add-on Name to Display</name>
+    #           <!--
+    #             Check product's name (optional item). If set to false, <name> won't be checked
+    #             against product's name found in the media (CD/DVD only).
+    #           -->
+    #           <check_name config:type="boolean">true</check_name>
     #     			<!-- Product URL (mandatory item) -->
     #     			<url>http://product.repository/url/</url>
     #     			<!-- Product path, default is "/" (optional item) -->
@@ -1688,6 +1693,7 @@ module Yast
           pth = one_product.fetch("path", "")
           priority = one_product.fetch("priority", -1).to_i
           prodname = one_product.fetch("name", "")
+          check_name = one_product.fetch("check_name", true)
           # Check URL and setup network if required or prompt to insert CD/DVD
           parsed = URL.Parse(url)
           scheme = parsed.fetch("scheme", "").downcase
@@ -1702,8 +1708,7 @@ module Yast
           # a CD/DVD repository
           repo_id =
             if CD_SCHEMES.include?(scheme)
-              prodname.empty? ? add_repo_from_cd(url, pth, priority) :
-                add_product_from_cd(url, pth, priority, prodname)
+              add_product_from_cd(url, pth, priority, prodname, check_name)
             else
               # a non CD/DVD repository
               AddRepo(url, pth, priority)
@@ -2211,19 +2216,21 @@ module Yast
     #
     # To add the product, the name should match +prodname+ argument.
     #
-    # @param url      [String]  Repository URL (cd: or dvd: schemas are expected)
-    # @param pth      [String]  Repository path (in the media)
-    # @param priority [Integer] Repository priority
-    # @param prodname [String]  Expected product's name
-    # @return         [Integer,nil] Repository id; nil if product was not found and user cancelled.
+    # @param url         [String]  Repository URL (cd: or dvd: schemas are expected)
+    # @param pth         [String]  Repository path (in the media)
+    # @param priority    [Integer] Repository priority
+    # @param prodname    [String]  Expected product's name
+    # @param check_name  [Boolean] Check product's name
+    # @return            [Integer,nil] Repository id; nil if product was not found and user cancelled.
     #
     # @see add_repo_from_cd
-    def add_product_from_cd(url, pth, priority, prodname)
+    def add_product_from_cd(url, pth, priority, prodname, check_name)
       current_url = url
       loop do
         # just try if it's there and ask if not
         repo_id = AddRepo(current_url, pth, priority)
         if repo_id
+          return repo_id if !check_name || prodname.empty?
           found_product = Pkg.SourceProductData(repo_id)
           return repo_id if found_product["label"] == prodname
           log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}, expected: #{prodname}")
@@ -2236,21 +2243,6 @@ module Yast
       end
     end
 
-    # Adds a repository from a CD/DVD
-    #
-    # The product contained in the CD/DVD does not matter.
-    #
-    # @param url      [String]  Repository URL (cd: or dvd: schemas are expected)
-    # @param pth      [String]  Repository path (in the media)
-    # @param priority [Integer] Repository priority
-    # @return         [Integer,nil] Repository id; nil if product was not found and user cancelled.
-    def add_repo_from_cd(url, pth, priority)
-      result = AskForCD(url, "")
-      return result if result.nil?
-
-      AddRepo(result, pth, priority)
-    end
-
     # Parse a add-on products file
     #
     # @param filename [String] File path
@@ -2258,7 +2250,7 @@ module Yast
     # @param base_url [String] Product's base URL
     # @return [Hash] Add-on specification (allowed keys
     #                are "name", "url", "path", "install_products",
-    #                "ask_user", "selected" and "priority").
+    #                "check_name", "ask_user", "selected" and "priority").
     #
     # @see ParseXMLBasedAddOnProductsFile
     # @see ParsePlainAddOnProductsFile

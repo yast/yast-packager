@@ -159,7 +159,6 @@ describe Yast::AddOnProduct do
       let(:cd_url) { "cd:///?device=/dev/sr0" }
 
       before do
-        allow(subject).to receive(:AskForCD).and_return(cd_url)
         allow(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
         allow(Yast::Pkg). to receive(:SourceProductData).with(repo_id)
         allow(subject).to receive(:InstallProductsFromRepository)
@@ -171,27 +170,29 @@ describe Yast::AddOnProduct do
         let(:repo) { ADDON_REPO }
 
         it "adds the repository" do
-          allow(subject).to receive(:AddRepo).with(cd_url, anything, anything)
+          expect(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
+            .and_return(repo_id)
+          subject.AddPreselectedAddOnProducts(filelist)
+          expect(subject.add_on_products).to_not be_empty
+        end
+
+        it "asks for the CD/DVD if the repo could not be added" do
+          allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
+            .and_return(nil)
+          expect(subject).to receive(:AskForCD).and_return(cd_url)
+          expect(subject).to receive(:AddRepo).with(cd_url, repo["path"], repo["priority"])
             .and_return(repo_id)
           subject.AddPreselectedAddOnProducts(filelist)
           expect(subject.add_on_products).to_not be_empty
         end
 
         it "does not add the repository if user cancels the dialog" do
-          expect(subject.add_on_products).to be_empty
+          allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
+            .and_return(nil)
           allow(subject).to receive(:AskForCD).and_return(nil)
 
-          expect(subject).to_not receive(:AddRepo)
           subject.AddPreselectedAddOnProducts(filelist)
           expect(subject.add_on_products).to be_empty
-        end
-
-        it "does not integrate the repository if it was not added" do
-          allow(subject).to receive(:AddRepo).with(cd_url, anything, anything)
-            .and_return(nil)
-
-          expect(subject).to_not receive(:Integrate).with(repo_id)
-          subject.AddPreselectedAddOnProducts(filelist)
         end
       end
 
@@ -231,7 +232,6 @@ describe Yast::AddOnProduct do
               .and_return(matching_product)
             allow(Yast::Pkg).to receive(:SourceProductData).with(other_repo_id)
               .and_return(other_product)
-            expect(subject.add_on_products).to be_empty
           end
 
           it "does not add the repository if the user cancels the dialog" do
@@ -246,10 +246,10 @@ describe Yast::AddOnProduct do
           end
 
           it "adds the product if the user points to a valid CD/DVD" do
-            allow(subject).to receive(:AddRepo).with(repo["url"], anything, anything)
+            allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
               .and_return(other_repo_id)
             allow(subject).to receive(:AskForCD).and_return(cd_url)
-            allow(subject).to receive(:AddRepo).with(cd_url, anything, anything)
+            allow(subject).to receive(:AddRepo).with(cd_url, repo["path"], repo["priority"])
               .and_return(repo_id)
 
             expect(Yast::Pkg).to receive(:SourceDelete).with(other_repo_id)
@@ -258,11 +258,22 @@ describe Yast::AddOnProduct do
             subject.AddPreselectedAddOnProducts(filelist)
             expect(subject.add_on_products).to_not be_empty
           end
+
+          context "and check_name option is disabled" do
+            let(:repo) { ADDON_REPO.merge("check_name" => true) }
+            it "adds the repository" do
+              allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
+                .and_return(other_repo_id)
+
+              subject.AddPreselectedAddOnProducts(filelist)
+              expect(subject.add_on_products).to_not be_empty
+            end
+          end
         end
       end
 
       it "removes the product is the license is not accepted" do
-        allow(subject).to receive(:AddRepo).with(cd_url, anything, anything)
+        allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
           .and_return(repo_id)
         expect(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(false)
         expect(Yast::Pkg).to receive(:SourceDelete).with(repo_id)
