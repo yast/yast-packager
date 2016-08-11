@@ -921,7 +921,7 @@ describe Yast::Packages do
       ]
     end
 
-    let(:unordered_packages) do
+    let(:unordered_patterns) do
       [
         pattern("name" => "p3", "status" => :selected, "order" => "3", "user_visible" => true),
         pattern("name" => "p1", "status" => :selected, "order" => "1", "user_visible" => false),
@@ -929,7 +929,7 @@ describe Yast::Packages do
       ]
     end
 
-    let(:filtered_packages) do
+    let(:filtered_patterns) do
       [
         pattern("name" => "p3", "status" => :selected, "order" => "3", "user_visible" => true)
       ]
@@ -955,14 +955,14 @@ describe Yast::Packages do
 
     it "filters not user visible resolvables from the list for type pattern" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :pattern, "")
-        .and_return(unordered_packages)
+        .and_return(unordered_patterns)
       expect(subject).to receive(:sort_resolvable!)
-        .with(filtered_packages, :pattern)
+        .with(filtered_patterns, :pattern)
 
       subject.ListSelected(:pattern, "")
     end
 
-    it "sorts resultant list depending on resortable type" do
+    it "sorts resultant list depending on resolvable type" do
       expect(subject).to receive(:formatted_resolvables).with(ordered_products, "")
 
       subject.ListSelected(:product, "")
