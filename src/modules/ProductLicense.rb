@@ -37,6 +37,7 @@ module Yast
       Yast.import "String"
       Yast.import "WorkflowManager"
       Yast.import "Progress"
+      Yast.import "Installation"
 
       # IMPORTANT: maintainer of yast2-installation is responsible for this module
 
@@ -1356,6 +1357,15 @@ module Yast
     end
 
     def AskAddOnLicenseAgreement(src_id)
+      # The user has to accept the Add-On license agreement
+      # BEFORE starting the YaST self update process.
+      # So, after restarting YaST he will not be asked again. (bnc#992608)
+      # After finishing the YaST self update, "Installation.restarting?" will
+      # return false. So, Add-On license agreements will be asked again
+      # if the user add additional modules/products while e.g. the
+      # registration process.
+      return true if Installation.restarting?
+
       AskLicenseAgreement(
         src_id,
         "",
