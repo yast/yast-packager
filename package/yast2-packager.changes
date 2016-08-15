@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 15 13:59:58 CEST 2016 - schubi@suse.de
+
+- Fixed parameter error while logging errors. It is belongs to
+  (bnc#991935)
+- 3.1.112
+
+-------------------------------------------------------------------
 Thu Aug 11 12:23:47 UTC 2016 - igonzalezsosa@suse.com
 
 - Fix automatic add-on handling when using CD/DVD medias as source

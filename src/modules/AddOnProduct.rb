@@ -1579,7 +1579,7 @@ module Yast
       log.info "New repository id: #{new_repo_id}"
 
       if new_repo_id == nil || new_repo_id < 0
-        log.error "Unable to add product: %1", URL.HidePassword(url)
+        log.error "Unable to add product: #{URL.HidePassword(url})"
         # TRANSLATORS: error message, %1 is replaced with product URL
         Report.Error(format(_("Unable to add product %s."), URL.HidePassword(url)))
         return nil
