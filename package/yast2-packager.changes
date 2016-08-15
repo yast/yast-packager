@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Mon Aug 15 13:59:58 CEST 2016 - schubi@suse.de
 
-- Fixed parameter error while logging errors. It is belongs to
-  (bnc#991935)
+- Fixed parameter error while logging errors. It belongs to
+  bnc#991935.
 - 3.1.112
 
 -------------------------------------------------------------------
