@@ -311,11 +311,13 @@ module Yast
     # If no sources are found, returns 0.
     # FIXME: Connected to bsc#993285, refactoring needed
     #
-    # return [Integer] base_product_id or nil
+    # return [Integer] base_product_id or 0
     def base_product_id
       raise "Base product can be only found in installation" unless Stage.initial
 
       # The first product in the list of known products
+      # 0 is the backward-compatible default value, first installation repo always
+      # gets this ID later
       current_sources = Pkg.SourceGetCurrent(true)
       current_sources.any? ? current_sources.first : 0
     end
@@ -323,34 +325,38 @@ module Yast
     # Returns whether accepting the license manually is requied.
     #
     # @see BNC #448598
+    # @param [Any] unique ID
     # @return [Boolean] if required
-    def AcceptanceNeeded(src_id)
+    def AcceptanceNeeded(id)
       # FIXME: lazy loading of the info about licenses, bigger refactoring needed
       # @see bsc#993285
       #
       # In the initial installation, for base product, acceptance_needed needs
-      # to be know before showing the license dialog (inst_complex_welcome).
+      # to be known before showing the license dialog (inst_complex_welcome).
       # Loading the info is handled internally in other cases.
       #
-      # src_id can be a string (currently is) when called from inst_complex_welcome
-      # Integer is expected otherwise
-      if !@license_acceptance_needed.key?(src_id) &&
+      # id can be a string (currently is) when called from inst_complex_welcome
+      if !@license_acceptance_needed.key?(id) &&
           Stage.initial &&
-          src_id == base_product_id
+          id.to_s == base_product_id.to_s
         # Although we know the base product ID, the function below expects
-        # src_id to be nil for base product in inital installation
+        # id to be nil for base product in inital installation
         GetSourceLicenseDirectory(nil, "/")
-        cache_license_acceptance_needed(src_id, @license_dir)
+        cache_license_acceptance_needed(id, @license_dir)
       end
 
-      if @license_acceptance_needed.key?(src_id)
-        @license_acceptance_needed[src_id]
+      if @license_acceptance_needed.key?(id)
+        @license_acceptance_needed[id]
       else
-        log.warn "SetAcceptanceNeeded(#{src_id}) should be called first, using default 'true'"
+        log.warn "SetAcceptanceNeeded(#{id}) should be called first, using default 'true'"
         true
       end
     end
 
+    # Sets whether explicit acceptance of a license is needed
+    #
+    # @param [Any] unique ID (often a source ID)
+    # @param [Boolean] new_value if needed
     def SetAcceptanceNeeded(id, new_value)
       if new_value == nil
         Builtins.y2error(
@@ -364,12 +370,9 @@ module Yast
       @license_acceptance_needed[id] = new_value
 
       if new_value == true
-        Builtins.y2milestone("License agreement (ID %1) WILL be required", id)
+        log.info "License agreement (ID #{id}) WILL be required"
       else
-        Builtins.y2milestone(
-          "License agreement (ID %1) will NOT be required",
-          id
-        )
+        log.info "License agreement (ID #{id}) will NOT be required"
       end
 
       nil
@@ -837,19 +840,19 @@ module Yast
 
     # Finds out whether user needs to 'Agree to the license coming from a given source_id'
     #
-    # @param [Integer] source ID (optional, nil == initial base product installation)
+    # @param [Any] unique ID
     # @param [String] path to directory with unpacked licenses (mandatory)
-    def cache_license_acceptance_needed(src_id, license_dir)
+    def cache_license_acceptance_needed(id, license_dir)
       raise "Parameter 'license_dir' must not be nil" if license_dir.nil?
 
       license_acceptance_needed = !FileUtils.Exists("#{license_dir}/no-acceptance-needed")
-      SetAcceptanceNeeded(src_id, license_acceptance_needed)
+      SetAcceptanceNeeded(id, license_acceptance_needed)
     end
 
     def InitLicenseData(src_id, dir, licenses, available_langs, require_agreement, license_ident, id)
       # Downloads and unpacks all licenses for a given source ID
       GetSourceLicenseDirectory(src_id, dir)
-      cache_license_acceptance_needed(src_id, @license_dir)
+      cache_license_acceptance_needed(id, @license_dir)
 
       licenses.value = LicenseFiles(@license_dir, @license_patterns)
 

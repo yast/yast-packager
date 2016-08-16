@@ -163,8 +163,8 @@ describe Yast::ProductLicense do
     context "when called in the initial stage of installation" do
       before do
         # Initial installation
-        allow(Yast::Stage).to receive(:stage).and_return("initial")
-        allow(Yast::Mode).to receive(:mode).and_return("installation")
+        allow(Yast::Stage).to receive(:initial).and_return(true)
+        allow(Yast::Mode).to receive(:installation).and_return(true)
 
         # Tarball with licenses exists
         allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(true)
@@ -206,10 +206,10 @@ describe Yast::ProductLicense do
       end
     end
 
-    context "when called on a running system" do
+    context "when not called in initial installation" do
       before do
-        allow(Yast::Stage).to receive(:stage).and_return("normal")
-        allow(Yast::Mode).to receive(:mode).and_return("normal")
+        allow(Yast::Stage).to receive(:initial).and_return(false)
+        allow(Yast::Mode).to receive(:installation).and_return(false)
       end
 
       context "when called for base-product" do
