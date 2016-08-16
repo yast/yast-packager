@@ -1370,11 +1370,8 @@ module Yast
 
       UI.OpenDialog(
         VBox(
-          HBox(
-            HSquash(MarginBox(0.5, 0.2, Icon.Simple("yast-addon"))),
-            # TRANSLATORS: popup heading
-            Left(Heading(Id(:search_heading), _("Additional Products")))
-          ),
+          # TRANSLATORS: popup heading
+          Left(Heading(Id(:search_heading), _("Additional Products"))),
           VSpacing(0.5),
           # TRANSLATORS: additional dialog information
           Left(
