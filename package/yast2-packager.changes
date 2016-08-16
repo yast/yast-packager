@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 16 14:16:01 UTC 2016 - lslezak@suse.cz
+
+- Remove the icon from the add-on selection popup (bsc#875201)
+- 3.1.114
+
+-------------------------------------------------------------------
 Tue Aug 16 08:31:23 CEST 2016 - locilka@suse.com
 
 - Added lazy loading of licenses into AcceptanceNeeded in case of
