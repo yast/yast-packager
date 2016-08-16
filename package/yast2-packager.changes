@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Aug 16 08:31:23 CEST 2016 - locilka@suse.com
+
+- Added lazy loading of licenses into AcceptanceNeeded in case of
+  base product in the initial installation to fix a problem when
+  explicit acceptance of the product license was always required
+  (bnc#993285)
+- 3.1.113
+
+-------------------------------------------------------------------
 Mon Aug 15 13:59:58 CEST 2016 - schubi@suse.de
 
 - Fixed parameter error while logging errors. It belongs to
