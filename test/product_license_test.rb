@@ -147,4 +147,101 @@ describe Yast::ProductLicense do
     end
 
   end
+
+  describe "#AcceptanceNeeded" do
+    let(:base_product_id) { 0 }
+    let(:add_on_product_id) { 1 }
+
+    before do
+      # Downloading and unpacking licenses is expensive, so we cache all values
+      # and thus we need to reinit all caches for testing with different values
+      Yast::ProductLicense.initialize_default_values
+
+      allow(Yast::ProductLicense).to receive(:base_product_id).and_return(base_product_id)
+    end
+
+    context "when called in the initial stage of installation" do
+      before do
+        # Initial installation
+        allow(Yast::Stage).to receive(:stage).and_return("initial")
+        allow(Yast::Mode).to receive(:mode).and_return("installation")
+
+        # Tarball with licenses exists
+        allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(true)
+        # Info file exists
+        allow(Yast::FileUtils).to receive(:Exists).with(/info.txt/).and_return(true)
+      end
+
+      context "when called for base-product" do
+        before do
+          expect(Yast::ProductLicense).to receive(:GetSourceLicenseDirectory).and_call_original
+          expect(Yast::ProductLicense).to receive(:SetAcceptanceNeeded).and_call_original
+          expect(Yast::ProductLicense).to receive(:UnpackLicenseTgzFileToDirectory).and_return(true)
+        end
+
+        it "returns that acceptance is needed if no-acceptance-needed file is not found" do
+          expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(false)
+          expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
+        end
+
+        it "returns that acceptance is not needed if the no-acceptance-needed file is found" do
+          expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(true)
+          expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(false)
+        end
+      end
+
+      context "when called for add-on product" do
+        context "when value has not been stored yet" do
+          it "returns the safe default true" do
+            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(true)
+          end
+        end
+
+        context "when value has been already stored" do
+          it "returns the stored value" do
+            Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
+            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
+          end
+        end
+      end
+    end
+
+    context "when called on a running system" do
+      before do
+        allow(Yast::Stage).to receive(:stage).and_return("normal")
+        allow(Yast::Mode).to receive(:mode).and_return("normal")
+      end
+
+      context "when called for base-product" do
+        context "returns the safe default true" do
+          it "throws an error" do
+            expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
+          end
+        end
+
+        context "when value has been already stored" do
+          it "returns the stored value" do
+            Yast::ProductLicense.SetAcceptanceNeeded(base_product_id, false)
+            expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(false)
+          end
+        end
+      end
+
+      context "when called for add-on product" do
+        context "when value has not been stored yet" do
+          it "returns the safe default true" do
+            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(true)
+          end
+        end
+
+        context "when value has been already stored" do
+          it "returns the stored value" do
+            Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, true)
+            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(true)
+          end
+        end
+      end
+    end
+  end
+
 end

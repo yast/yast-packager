@@ -52,6 +52,11 @@ module Yast
       ]
       # no more wildcard patterns here, UI can display only html and txt anyway
 
+      initialize_default_values
+    end
+
+    # (Re)Initializes all internal caches
+    def initialize_default_values
       # All licenses have their own unique ID
       @license_ids = []
 
@@ -302,12 +307,48 @@ module Yast
       )
     end
 
+    # Returns source ID of the base product - initial installation only!
+    # If no sources are found, returns 0.
+    # FIXME: Connected to bsc#993285, refactoring needed
+    #
+    # return [Integer] base_product_id or nil
+    def base_product_id
+      raise "Base product can be only found in installation" unless Stage.initial
+
+      # The first product in the list of known products
+      current_sources = Pkg.SourceGetCurrent(true)
+      current_sources.any? ? current_sources.first : 0
+    end
+
     # Returns whether accepting the license manually is requied.
     #
     # @see BNC #448598
     # @return [Boolean] if required
-    def AcceptanceNeeded(id)
-      Ops.get(@license_acceptance_needed, id, true)
+    def AcceptanceNeeded(src_id)
+      # FIXME: lazy loading of the info about licenses, bigger refactoring needed
+      # @see bsc#993285
+      #
+      # In the initial installation, for base product, acceptance_needed needs
+      # to be know before showing the license dialog (inst_complex_welcome).
+      # Loading the info is handled internally in other cases.
+      #
+      # src_id can be a string (currently is) when called from inst_complex_welcome
+      # Integer is expected otherwise
+      if !@license_acceptance_needed.key?(src_id) &&
+          Stage.initial &&
+          src_id == base_product_id
+        # Although we know the base product ID, the function below expects
+        # src_id to be nil for base product in inital installation
+        GetSourceLicenseDirectory(nil, "/")
+        cache_license_acceptance_needed(src_id, @license_dir)
+      end
+
+      if @license_acceptance_needed.key?(src_id)
+        @license_acceptance_needed[src_id]
+      else
+        log.warn "SetAcceptanceNeeded(#{src_id}) should be called first, using default 'true'"
+        true
+      end
     end
 
     def SetAcceptanceNeeded(id, new_value)
@@ -320,7 +361,7 @@ module Yast
         return
       end
 
-      Ops.set(@license_acceptance_needed, id, new_value)
+      @license_acceptance_needed[id] = new_value
 
       if new_value == true
         Builtins.y2milestone("License agreement (ID %1) WILL be required", id)
@@ -751,12 +792,14 @@ module Yast
       # Bugzilla #299732
       # Base Product - LiveCD installation
       if Mode.live_installation
+        log.info "LiveCD Installation"
         SearchForLicense_LiveCDInstallation(src_id, fallback_dir)
 
         # Base-product - license not in installation
         #   * Stage is not initial
         #   * source ID is not defined
       elsif !Stage.initial && src_id == nil
+        log.info "Base product, not in initial stage"
         SearchForLicense_NormalRunBaseProduct(src_id, fallback_dir)
 
         # Base-product - first-stage installation
@@ -764,14 +807,13 @@ module Yast
         #   * Source ID is not set
         # bugzilla #298342
       elsif Stage.initial && src_id == nil
-        SearchForLicense_FirstStageBaseProduct(
-          src_id == nil ? Ops.get(Pkg.SourceGetCurrent(true), 0, 0) : src_id,
-          fallback_dir
-        )
+        log.info "Base product, initial stage"
+        SearchForLicense_FirstStageBaseProduct(base_product_id, fallback_dir)
 
         # Add-on-product license
         #   * Source ID is set
       elsif src_id != nil && Ops.greater_than(src_id, -1)
+        log.info "Add-On product"
         SearchForLicense_AddOnProduct(src_id, fallback_dir)
 
         # Fallback
@@ -793,20 +835,21 @@ module Yast
       nil
     end
 
+    # Finds out whether user needs to 'Agree to the license coming from a given source_id'
+    #
+    # @param [Integer] source ID (optional, nil == initial base product installation)
+    # @param [String] path to directory with unpacked licenses (mandatory)
+    def cache_license_acceptance_needed(src_id, license_dir)
+      raise "Parameter 'license_dir' must not be nil" if license_dir.nil?
+
+      license_acceptance_needed = !FileUtils.Exists("#{license_dir}/no-acceptance-needed")
+      SetAcceptanceNeeded(src_id, license_acceptance_needed)
+    end
 
     def InitLicenseData(src_id, dir, licenses, available_langs, require_agreement, license_ident, id)
+      # Downloads and unpacks all licenses for a given source ID
       GetSourceLicenseDirectory(src_id, dir)
-
-      # License does not need to be accepted. Well, I mean, manually selected "Yes, of course, I agree..."
-      if FileUtils.Exists(
-          Builtins.sformat("%1/no-acceptance-needed", @license_dir)
-        )
-        if id == nil
-          Builtins.y2error("Parameter id not set")
-        else
-          SetAcceptanceNeeded(id, false)
-        end
-      end
+      cache_license_acceptance_needed(src_id, @license_dir)
 
       licenses.value = LicenseFiles(@license_dir, @license_patterns)
 
