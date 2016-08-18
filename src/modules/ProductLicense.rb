@@ -843,7 +843,8 @@ module Yast
     # @param [Any] unique ID
     # @param [String] path to directory with unpacked licenses (mandatory)
     def cache_license_acceptance_needed(id, license_dir)
-      raise "Parameter 'license_dir' must not be nil" if license_dir.nil?
+      # license_dir can be nil if there is no license present (e.g. DUDs)
+      return if license_dir.nil?
 
       license_acceptance_needed = !FileUtils.Exists("#{license_dir}/no-acceptance-needed")
       SetAcceptanceNeeded(id, license_acceptance_needed)
