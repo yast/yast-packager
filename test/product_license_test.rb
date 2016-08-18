@@ -218,8 +218,10 @@ describe Yast::ProductLicense do
         end
 
         it "do not blame that there is no license directory" do
+           # This call is needed for checking the cache_license_acceptance_needed function
            expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
            Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
+
            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
         end
 
