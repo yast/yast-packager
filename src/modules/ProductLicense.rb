@@ -325,7 +325,7 @@ module Yast
     # Returns whether accepting the license manually is requied.
     #
     # @see BNC #448598
-    # @param [Any] unique ID
+    # @param [Any] id unique ID
     # @return [Boolean] if required
     def AcceptanceNeeded(id)
       # FIXME: lazy loading of the info about licenses, bigger refactoring needed
@@ -355,7 +355,7 @@ module Yast
 
     # Sets whether explicit acceptance of a license is needed
     #
-    # @param [Any] unique ID (often a source ID)
+    # @param [Any] id unique ID (often a source ID)
     # @param [Boolean] new_value if needed
     def SetAcceptanceNeeded(id, new_value)
       if new_value == nil
@@ -840,10 +840,11 @@ module Yast
 
     # Finds out whether user needs to 'Agree to the license coming from a given source_id'
     #
-    # @param [Any] unique ID
-    # @param [String] path to directory with unpacked licenses (mandatory)
+    # @param [Any] id unique ID
+    # @param [String,nil] license_dir path to directory with unpacked licenses
     def cache_license_acceptance_needed(id, license_dir)
-      raise "Parameter 'license_dir' must not be nil" if license_dir.nil?
+      # license_dir can be nil if there is no license present (e.g. DUDs)
+      return if license_dir.nil?
 
       license_acceptance_needed = !FileUtils.Exists("#{license_dir}/no-acceptance-needed")
       SetAcceptanceNeeded(id, license_acceptance_needed)

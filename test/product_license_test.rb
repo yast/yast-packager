@@ -165,45 +165,67 @@ describe Yast::ProductLicense do
         # Initial installation
         allow(Yast::Stage).to receive(:initial).and_return(true)
         allow(Yast::Mode).to receive(:installation).and_return(true)
-
-        # Tarball with licenses exists
-        allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(true)
-        # Info file exists
-        allow(Yast::FileUtils).to receive(:Exists).with(/info.txt/).and_return(true)
       end
 
-      context "when called for base-product" do
+      context "when licenses exists" do
         before do
-          expect(Yast::ProductLicense).to receive(:GetSourceLicenseDirectory).and_call_original
-          expect(Yast::ProductLicense).to receive(:SetAcceptanceNeeded).and_call_original
-          expect(Yast::ProductLicense).to receive(:UnpackLicenseTgzFileToDirectory).and_return(true)
+          # Tarball with licenses exists
+          allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(true)
+          # Info file exists
+          allow(Yast::FileUtils).to receive(:Exists).with(/info.txt/).and_return(true)
         end
 
-        it "returns that acceptance is needed if no-acceptance-needed file is not found" do
-          expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(false)
-          expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
-        end
+        context "when called for base-product" do
+          before do
+            expect(Yast::ProductLicense).to receive(:GetSourceLicenseDirectory).and_call_original
+            expect(Yast::ProductLicense).to receive(:SetAcceptanceNeeded).and_call_original
+            expect(Yast::ProductLicense).to receive(:UnpackLicenseTgzFileToDirectory).and_return(true)
+          end
 
-        it "returns that acceptance is not needed if the no-acceptance-needed file is found" do
-          expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(true)
-          expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(false)
-        end
-      end
+          it "returns that acceptance is needed if no-acceptance-needed file is not found" do
+            expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(false)
+            expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
+          end
 
-      context "when called for add-on product" do
-        context "when value has not been stored yet" do
-          it "returns the safe default true" do
-            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(true)
+          it "returns that acceptance is not needed if the no-acceptance-needed file is found" do
+            expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(true)
+            expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(false)
           end
         end
 
-        context "when value has been already stored" do
-          it "returns the stored value" do
-            Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
-            expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
+        context "when called for add-on product" do
+          context "when value has not been stored yet" do
+            it "returns the safe default true" do
+              expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(true)
+            end
+          end
+
+          context "when value has been already stored" do
+            it "returns the stored value" do
+              Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
+              expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
+            end
           end
         end
       end
+
+      context "when no license exists" do
+        before do
+          # Tarball with licenses does not exist
+          allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(false)
+          # Info file does not exist
+          allow(Yast::FileUtils).to receive(:Exists).with(/info.txt/).and_return(false)
+        end
+
+        it "do not blame that there is no license directory" do
+           # This call is needed for checking the cache_license_acceptance_needed function
+           expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
+           Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
+
+           expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
+        end
+
+       end
     end
 
     context "when not called in initial installation" do
