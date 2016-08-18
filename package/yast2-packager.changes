@@ -2,7 +2,7 @@
 Thu Aug 18 10:55:06 CEST 2016 - schubi@suse.de
 
 - Do not raise an exception if no license is available (no licence
-  dir at all) to accept. This is still a fix for bnc#993285.
+  dir at all) to accept (bnc#994309).
 - 3.1.115
 
 -------------------------------------------------------------------
