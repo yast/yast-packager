@@ -8,6 +8,9 @@ Terminal=false
 Type=Application
 Categories=System;PackageManager;X-SuSE-ControlCenter-System;
 MimeType=application/x-rpm;application/x-redhat-package-manager;
-NotShowIn=KDE;GNOME;MATE;
+NotShowIn=GNOME;MATE;
 StartupNotify=true
 
+# KDE specific (does not affect the other desktop environments)
+# https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html#kde-items
+InitialPreference=10

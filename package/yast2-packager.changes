@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sun Jul 31 22:12:54 UTC 2016 - marceloatie@gmail.com
+
+- Allow KDE to use packager for opening rpms and
+  prioritize over other options. (boo#954143)
+- 3.1.84.2
+
+-------------------------------------------------------------------
 Wed Jan 27 12:16:51 UTC 2016 - lslezak@suse.cz
 
 - Fixed selecting additional products during system installation
