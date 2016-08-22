@@ -1370,11 +1370,8 @@ module Yast
 
       UI.OpenDialog(
         VBox(
-          HBox(
-            HSquash(MarginBox(0.5, 0.2, Icon.Simple("yast-addon"))),
-            # TRANSLATORS: popup heading
-            Left(Heading(Id(:search_heading), _("Additional Products")))
-          ),
+          # TRANSLATORS: popup heading
+          Left(Heading(Id(:search_heading), _("Additional Products"))),
           VSpacing(0.5),
           # TRANSLATORS: additional dialog information
           Left(
@@ -1572,27 +1569,21 @@ module Yast
       new_repo = { "enabled" => true, "base_urls" => [url], "prod_dir" => pth }
 
       # BNC #714027: Possibility to adjust repository priority (usually higher)
-      Ops.set(new_repo, "priority", priority) if Ops.greater_than(priority, -1)
+      new_repo["priority"] = priority if priority > -1
 
-      Builtins.y2milestone(
-        "Adding Repository: %1, product path: %2",
-        URL.HidePassword(url),
-        pth
-      )
+      log.info "Adding Repository: #{URL.HidePassword(url)}, product path: #{pth}"
       new_repo_id = Pkg.RepositoryAdd(new_repo)
+      log.info "New repository id: #{new_repo_id}"
 
-      if new_repo_id == nil || Ops.less_than(new_repo_id, 0)
-        Builtins.y2error("Unable to add product: %1", URL.HidePassword(url))
+      if new_repo_id == nil || new_repo_id < 0
+        log.error "Unable to add product: #{URL.HidePassword(url)}"
         # TRANSLATORS: error message, %1 is replaced with product URL
-        Report.Error(
-          Builtins.sformat(
-            _("Unable to add product %1."),
-            URL.HidePassword(url)
-          )
-        )
+        Report.Error(format(_("Unable to add product %s."), URL.HidePassword(url)))
         return nil
       end
 
+      # Make sure all changes are refreshed
+      Pkg.SourceSaveAll
       # download metadata, build repo cache
       Pkg.SourceRefreshNow(new_repo_id)
       # load resolvables to zypp pool
@@ -1600,6 +1591,12 @@ module Yast
 
       new_repo_id
     end
+
+
+    # Repository network schemes
+    NETWORK_SCHEMES = ["http", "https", "ftp", "nfs", "cifs", "slp"]
+    # Repository CD/DVD schemes
+    CD_SCHEMES = ["cd", "dvd"]
 
     # Auto-integrate add-on products in specified file (usually add_on_products or
     # add_on_products.xml file)
@@ -1620,6 +1617,11 @@ module Yast
     #     		<product_item>
     #     			<!-- Product name visible in UI when offered to user (optional item) -->
     #     			<name>Add-on Name to Display</name>
+    #           <!--
+    #             Check product's name (optional item). If set to false, <name> won't be checked
+    #             against product's name found in the media (CD/DVD only).
+    #           -->
+    #           <check_name config:type="boolean">true</check_name>
     #     			<!-- Product URL (mandatory item) -->
     #     			<url>http://product.repository/url/</url>
     #     			<!-- Product path, default is "/" (optional item) -->
@@ -1667,109 +1669,59 @@ module Yast
     #          $[ "file" : "/local/path/to/an/add_on_products/file.xml", "type":"xml" ]
     #      ]
     def AddPreselectedAddOnProducts(filelist)
-      filelist = deep_copy(filelist)
-      if filelist == nil || filelist == []
-        Builtins.y2milestone(
-          "No add-on products defined on the media or by inst-sys"
-        )
+      if filelist.nil? || filelist.empty?
+        log.info "No add-on products defined on the media or by inst-sys"
         return true
       end
 
       base_url = GetBaseProductURL()
-      Builtins.y2milestone("Base URL: %1", URL.HidePassword(base_url))
+      log.info "Base URL: #{URL.HidePassword(base_url)}"
 
       # Processes all add_on_products files found
-      Builtins.foreach(filelist) do |add_on_products_file|
-        filename = Ops.get(add_on_products_file, "file", "")
-        type = Ops.get(add_on_products_file, "type", "")
-        add_products = []
-        # new xml format
-        if type == "xml"
-          add_products = ParseXMLBasedAddOnProductsFile(filename, base_url)
-          # old fallback
-        elsif type == "plain"
-          add_products = ParsePlainAddOnProductsFile(filename, base_url)
-        else
-          Builtins.y2error("Unsupported type: %1", type)
-          next false
-        end
-        repo_id = -1
-        Builtins.y2milestone("Adding products: %1", add_products)
-        Builtins.foreach(add_products) do |one_product|
-          url = Ops.get_string(one_product, "url", "")
-          pth = Ops.get_string(one_product, "path", "")
-          priority = Ops.get_integer(one_product, "priority", -1)
-          prodname = Ops.get_string(one_product, "name", "")
+      filelist.each do |file|
+        add_products = parse_add_on_products_file(
+          file.fetch("file", ""), file.fetch("type", ""), base_url
+        )
+        next unless add_products
+
+        log.info "Adding products: #{add_products}"
+        add_products.each do |one_product|
+          url = one_product.fetch("url", "")
+          pth = one_product.fetch("path", "")
+          priority = one_product.fetch("priority", -1).to_i
+          prodname = one_product.fetch("name", "")
+          check_name = one_product.fetch("check_name", true)
           # Check URL and setup network if required or prompt to insert CD/DVD
           parsed = URL.Parse(url)
-          scheme = Builtins.tolower(Ops.get_string(parsed, "scheme", ""))
+          scheme = parsed.fetch("scheme", "").downcase
           # check if network needs to be configured
-          if Builtins.contains(
-              ["http", "https", "ftp", "nfs", "cifs", "slp"],
-              scheme
-            )
+          if NETWORK_SCHEMES.include?(scheme)
             inc_ret = Convert.to_symbol(
               WFM.CallFunction("inst_network_check", [])
             )
             Builtins.y2milestone("inst_network_check ret: %1", inc_ret)
           end
+
           # a CD/DVD repository
-          if Builtins.contains(["cd", "dvd"], scheme)
-            # if the CD/DVD product is known just try if it's there
-            # and ask if not
-            if prodname != ""
-              found = false
-
-              while !found
-                repo_id = AddRepo(url, pth, priority)
-                next false if repo_id == nil
-
-                prod2 = Pkg.SourceProductData(repo_id)
-                if Ops.get_string(prod2, "label", "") == prodname
-                  found = true
-                else
-                  Builtins.y2milestone(
-                    "Removing repo %1: Add-on found: %2, expected: %3",
-                    repo_id,
-                    Ops.get_string(prod2, "label", ""),
-                    prodname
-                  )
-                  Pkg.SourceDelete(repo_id)
-
-                  # ask for a different medium
-                  url = AskForCD(url, prodname)
-                  next false if url == nil
-                end
-              end
+          repo_id =
+            if CD_SCHEMES.include?(scheme)
+              add_product_from_cd(url, pth, priority, prodname, check_name)
             else
-              result = AskForCD(url, prodname)
-              next false if result == nil
-
-              repo_id = AddRepo(result, pth, priority)
-              next false if repo_id == nil
+              # a non CD/DVD repository
+              AddRepo(url, pth, priority)
             end
-          else
-            # a non CD/DVD repository
-            repo_id = AddRepo(url, pth, priority)
-            next false if repo_id == nil
-          end
+          next false unless repo_id
+
           if !AcceptedLicenseAndInfoFile(repo_id)
-            Builtins.y2warning("License not accepted, delete the repository")
+            log.warn "License not accepted, delete the repository"
             Pkg.SourceDelete(repo_id)
             next false
           end
           Integrate(repo_id)
           # adding the product to the list of products (BNC #269625)
           prod = Pkg.SourceProductData(repo_id)
-          Builtins.y2milestone(
-            "Repository (%1) product data: %2",
-            repo_id,
-            prod
-          )
-          InstallProductsFromRepository(
-            Ops.get_list(one_product, "install_products", []),
-            repo_id
-          )
+          log.info "Repository (#{repo_id} product data: #{prod})"
+          InstallProductsFromRepository(one_product.fetch("install_products", []), repo_id)
           new_add_on_product = {
             "media"            => repo_id,
             "product"          => Ops.get_locale(
@@ -1789,9 +1741,7 @@ module Yast
             "media_url"        => url,
             "product_dir"      => pth
           }
-          if Ops.greater_than(priority, -1)
-            Ops.set(new_add_on_product, "priority", priority)
-          end
+          new_add_on_product["priority"] = priority if priority > -1
           @add_on_products = Builtins.add(@add_on_products, new_add_on_product)
         end
       end
@@ -2256,6 +2206,63 @@ module Yast
     publish :function => :ImportGpgKeyCallback, :type => "boolean (map <string, any>, integer)"
     publish :function => :AcceptNonTrustedGpgKeyCallback, :type => "boolean (map <string, any>)"
     publish :function => :SetSignatureCallbacks, :type => "void (string)"
+
+  private
+
+    # Adds a product from a CD/DVD
+    #
+    # To add the product, the name should match +prodname+ argument.
+    #
+    # @param url         [String]  Repository URL (cd: or dvd: schemas are expected)
+    # @param pth         [String]  Repository path (in the media)
+    # @param priority    [Integer] Repository priority
+    # @param prodname    [String]  Expected product's name
+    # @param check_name  [Boolean] Check product's name
+    # @return            [Integer,nil] Repository id; nil if product was not found and user cancelled.
+    #
+    # @see add_repo_from_cd
+    def add_product_from_cd(url, pth, priority, prodname, check_name)
+      current_url = url
+      loop do
+        # just try if it's there and ask if not
+        repo_id = AddRepo(current_url, pth, priority)
+        if repo_id
+          return repo_id if !check_name || prodname.empty?
+          found_product = Pkg.SourceProductData(repo_id)
+          return repo_id if found_product["label"] == prodname
+          log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}, expected: #{prodname}")
+          Pkg.SourceDelete(repo_id)
+        end
+
+        # ask for a different medium
+        current_url = AskForCD(current_url, prodname)
+        return nil if current_url.nil?
+      end
+    end
+
+    # Parse a add-on products file
+    #
+    # @param filename [String] File path
+    # @param type     [String] File type ("xml" or "plain")
+    # @param base_url [String] Product's base URL
+    # @return [Hash] Add-on specification (allowed keys
+    #                are "name", "url", "path", "install_products",
+    #                "check_name", "ask_user", "selected" and "priority").
+    #
+    # @see ParseXMLBasedAddOnProductsFile
+    # @see ParsePlainAddOnProductsFile
+    # @see AddPreselectedAddOnProducts
+    def parse_add_on_products_file(filename, type, base_url)
+      case type.downcase
+      when "xml"
+        ParseXMLBasedAddOnProductsFile(filename, base_url)
+      when "plain"
+        ParsePlainAddOnProductsFile(filename, base_url)
+      else
+        log.error "Unsupported type: #{type}"
+        false
+      end
+    end
   end
 
   AddOnProduct = AddOnProductClass.new

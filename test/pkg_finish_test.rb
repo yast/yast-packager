@@ -44,6 +44,8 @@ describe Yast::PkgFinishClient do
       allow(Yast::Mode).to receive(:update).and_return(update)
       allow(Yast::Stage).to receive(:initial).and_return(true)
       allow(Yast::Pkg).to receive(:SourceLoad)
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(FAILED_PKGS_PATH).and_return(false)
     end
 
     it "saves repository information" do
@@ -57,7 +59,6 @@ describe Yast::PkgFinishClient do
 
     it "copies failed_packages list under destination dir" do
       stub_const("Yast::Pkg", double("pkg").as_null_object)
-      allow(File).to receive(:exist?).and_call_original
       expect(File).to receive(:exist?).with(FAILED_PKGS_PATH)
         .and_return(true)
       expect(FileUtils).to receive(:cp)
