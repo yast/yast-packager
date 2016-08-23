@@ -471,16 +471,12 @@ module Yast
         _GetLicenseDialog_result
       )
 
-      # If acceptance is not needed, there's no need to disable the button
-      # by default
-      default_next_button_state = AcceptanceNeeded(id) ? false : true
-
       Wizard.SetContents(
         caption,
         contents,
         GetLicenseDialogHelp(),
         back,
-        default_next_button_state
+        true # always allow next button, as if not accepted, it will raise popup (bnc#993530)
       )
 
       # set the initial license download URL
@@ -1308,9 +1304,6 @@ module Yast
           VSpacing(0.5)
         ) : Empty()
       )
-      # If acceptance is not needed, there's no need to disable the button
-      # by default
-      default_next_button_state = true
 
       Builtins.foreach(dirs) do |dir|
         counter = Ops.add(counter, 1)
@@ -1360,7 +1353,6 @@ module Yast
         # Display info as a popup if exists
         InstShowInfo.show_info_txt(@info_file) if @info_file != nil
         Ops.set(licenses, counter, tmp_licenses)
-        default_next_button_state = false if AcceptanceNeeded(dir)
       end
 
       Wizard.SetContents(
@@ -1368,7 +1360,7 @@ module Yast
         contents,
         GetLicenseDialogHelp(),
         enable_back,
-        default_next_button_state
+        true # always enable next, as popup is raised if not accepted (bnc#993530)
       )
 
       Wizard.SetTitleIcon("yast-license")
