@@ -1,7 +1,7 @@
 #
 # spec file for package yast2-packager
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2016 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -24,55 +24,56 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %{name}-%{version}.tar.bz2
 
 Url:            https://github.com/kobliha/yast-packager
-Group:	        System/YaST
-License:        GPL-2.0+
-BuildRequires:	yast2-country-data yast2-xml update-desktop-files yast2-testsuite
+BuildRequires:  update-desktop-files
+BuildRequires:  yast2-country-data
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-storage
+BuildRequires:  yast2-testsuite
+BuildRequires:  yast2-xml
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
 # Packages::Repository and Packages::Product classes
-BuildRequires: yast2 >= 3.1.187
+BuildRequires:  yast2 >= 3.1.187
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
-BuildRequires:	yast2-pkg-bindings >= 3.1.30
+BuildRequires:  yast2-pkg-bindings >= 3.1.30
 
 # Newly added RPM
-Requires:	yast2-country-data >= 2.16.3
+Requires:       yast2-country-data >= 2.16.3
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
-Requires:	yast2-pkg-bindings >= 3.1.30
+Requires:       yast2-pkg-bindings >= 3.1.30
 
 # Packages::Repository and Packages::Product classes
-Requires: yast2 >= 3.1.187
+Requires:       yast2 >= 3.1.187
 
 # unzipping license file
-Requires:	unzip
+Requires:       unzip
 
 # HTTP, FTP, HTTPS modules (inst_productsources.ycp)
-Requires:	yast2-transfer
+Requires:       yast2-transfer
 
 # XML module (inst_productsources.ycp)
-Requires:	yast2-xml
+Requires:       yast2-xml
 
 # Bugzilla #305503 - storing/checking MD5 of licenses
-Requires:	/usr/bin/md5sum
+Requires:       /usr/bin/md5sum
 
 # .process agent
-Requires: 	yast2-core >= 2.16.35
+Requires:       yast2-core >= 2.16.35
 
 # setenv() builtin
-Conflicts:	yast2-core < 2.15.10
+Conflicts:      yast2-core < 2.15.10
 
 # NotEnoughMemory-related functions moved to misc.ycp import-file
-Conflicts:	yast2-add-on < 2.15.15
+Conflicts:      yast2-add-on < 2.15.15
 
 # One of libyui-qt-pkg, libyui-ncurses-pkg, libyui-gtk-pkg
-Requires:	libyui_pkg
+Requires:       libyui_pkg
 
 # ensure that 'checkmedia' is on the medium
-Recommends:	checkmedia
+Recommends:     checkmedia
 
 # for registering media add-ons on SLE
 # (openSUSE does not contain the registration module)
@@ -81,12 +82,13 @@ Recommends:     yast2-registration
 %endif
 
 # force *-webpin subpackage removal at upgrade
-Obsoletes:      yast2-packager-webpin < %version
 Obsoletes:      yast2-packager-devel-doc
+Obsoletes:      yast2-packager-webpin < %version
 
 Requires:       yast2-ruby-bindings >= 1.0.0
-Summary:	YaST2 - Package Library
-
+Summary:        YaST2 - Package Library
+License:        GPL-2.0+
+Group:          System/YaST
 
 %description
 This package contains the libraries and modules for software management.
@@ -108,7 +110,6 @@ This package contains the libraries and modules for software management.
 %postun
 %desktop_database_postun
 
-
 %files
 %defattr(-,root,root)
 %dir %{yast_yncludedir}/checkmedia
@@ -125,3 +126,5 @@ This package contains the libraries and modules for software management.
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
+
+%changelog
