@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Aug 23 11:17:36 UTC 2016 - jreidinger@suse.com
+
+- Always enable "Next" button in license confirmation dialog,
+  because even if not accepted, popup is shown to user
+  (bnc#993530).
+- Use the same popup when license not confirmed for base product in
+  the license confirmation dialog (bnc#993530).
+- 3.1.116
+
+-------------------------------------------------------------------
 Thu Aug 18 10:55:06 CEST 2016 - schubi@suse.de
 
 - Do not raise an exception if no license is available (no licence

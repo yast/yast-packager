@@ -471,16 +471,13 @@ module Yast
         _GetLicenseDialog_result
       )
 
-      # If acceptance is not needed, there's no need to disable the button
-      # by default
-      default_next_button_state = AcceptanceNeeded(id) ? false : true
-
       Wizard.SetContents(
         caption,
         contents,
         GetLicenseDialogHelp(),
         back,
-        default_next_button_state
+        # always allow next button, as if not accepted, it will raise popup (bnc#993530)
+        true
       )
 
       # set the initial license download URL
@@ -1082,14 +1079,23 @@ module Yast
             break
           end
 
-          # text changed due to bug #162499
-          refuse_popup_text = base_product ?
-            # text asking whether to refuse a license (Yes-No popup)
-            _("Refusing the license agreement cancels the installation.\nReally refuse the agreement?")
-            :
-            # text asking whether to refuse a license (Yes-No popup)
-            _("Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?")
-          next unless Popup.YesNo(refuse_popup_text)
+          if base_product
+            # TODO: refactor to use same widget as in inst_complex_welcome
+            # NOTE: keep in sync with inst_compex_welcome client, for grabing its translation
+            # mimic inst_complex_welcome behavior see bnc#993530
+            refuse_popup_text = Builtins.dgettext(
+                                  'installation',
+                                  'You must accept the license to install this product'
+                                )
+            Popup.Message(refuse_popup_text)
+            next
+          else
+            # text changed due to bug #162499
+            # TRANSLATORS: text asking whether to refuse a license (Yes-No popup)
+            refuse_popup_text = _("Refusing the license agreement cancels the add-on\n" \
+              'product installation. Really refuse the agreement?')
+            next unless Popup.YesNo(refuse_popup_text)
+          end
 
           log.info "License has been declined."
 
@@ -1308,9 +1314,6 @@ module Yast
           VSpacing(0.5)
         ) : Empty()
       )
-      # If acceptance is not needed, there's no need to disable the button
-      # by default
-      default_next_button_state = true
 
       Builtins.foreach(dirs) do |dir|
         counter = Ops.add(counter, 1)
@@ -1360,7 +1363,6 @@ module Yast
         # Display info as a popup if exists
         InstShowInfo.show_info_txt(@info_file) if @info_file != nil
         Ops.set(licenses, counter, tmp_licenses)
-        default_next_button_state = false if AcceptanceNeeded(dir)
       end
 
       Wizard.SetContents(
@@ -1368,7 +1370,7 @@ module Yast
         contents,
         GetLicenseDialogHelp(),
         enable_back,
-        default_next_button_state
+        true # always enable next, as popup is raised if not accepted (bnc#993530)
       )
 
       Wizard.SetTitleIcon("yast-license")
