@@ -476,7 +476,8 @@ module Yast
         contents,
         GetLicenseDialogHelp(),
         back,
-        true # always allow next button, as if not accepted, it will raise popup (bnc#993530)
+        # always allow next button, as if not accepted, it will raise popup (bnc#993530)
+        true
       )
 
       # set the initial license download URL
