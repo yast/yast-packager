@@ -3,6 +3,8 @@ Tue Aug 23 11:17:36 UTC 2016 - jreidinger@suse.com
 
 - always enable next in license confirmation dialog, because even
   if not accepted, popup is shown to user (bnc#993530)
+- use same popup when license not confirmed for base product in
+  license confirmation dialog (bnc#993530)
 - 3.1.116
 
 -------------------------------------------------------------------

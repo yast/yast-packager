@@ -1078,14 +1078,23 @@ module Yast
             break
           end
 
-          # text changed due to bug #162499
-          refuse_popup_text = base_product ?
-            # text asking whether to refuse a license (Yes-No popup)
-            _("Refusing the license agreement cancels the installation.\nReally refuse the agreement?")
-            :
-            # text asking whether to refuse a license (Yes-No popup)
-            _("Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?")
-          next unless Popup.YesNo(refuse_popup_text)
+          if base_product
+            # TODO: refactor to use same widget as in inst_complex_welcome
+            # NOTE: keep in sync with inst_compex_welcome client, for grabing its translation
+            # mimic inst_complex_welcome behavior see bnc#993530
+            refuse_popup_text = Builtins.dgettext(
+                                  'installation',
+                                  'You must accept the license to install this product'
+                                )
+            Popup.Message(refuse_popup_text)
+            next
+          else
+            # text changed due to bug #162499
+            # TRANSLATORS: text asking whether to refuse a license (Yes-No popup)
+            refuse_popup_text = _("Refusing the license agreement cancels the add-on\n" \
+              'product installation. Really refuse the agreement?')
+            next unless Popup.YesNo(refuse_popup_text)
+          end
 
           log.info "License has been declined."
 
