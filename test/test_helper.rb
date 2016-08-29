@@ -13,3 +13,8 @@ require "pathname"
 
 TESTS_PATH = Pathname.new(File.dirname(__FILE__))
 FIXTURES_PATH = TESTS_PATH.join("data")
+
+RSpec.configure do |config|
+  config.extend Yast::I18n  # available in context/describe
+  config.include Yast::I18n # available in it/let/before/...
+end

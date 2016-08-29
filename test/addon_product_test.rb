@@ -282,4 +282,45 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#AddRepo" do
+    let(:url) { "ftp://user:mypass@example.net/add-on" }
+    let(:pth) { "/" }
+    let(:prio) { 50 }
+
+    context "when the repo is added successfully" do
+      let(:repo_id) { 1 }
+
+      it "returns the new repository id" do
+        expect(Yast::Pkg).to receive(:RepositoryAdd)
+          .with("enabled" => true, "base_urls" => [url], "prod_dir" => pth, "priority" => prio)
+          .and_return(repo_id)
+        expect(subject.AddRepo(url, pth, prio)).to eq(repo_id)
+      end
+
+      it "sets priority if it is greater than -1" do
+        expect(Yast::Pkg).to receive(:RepositoryAdd)
+          .with("enabled" => true, "base_urls" => [url], "prod_dir" => pth)
+          .and_return(repo_id)
+        expect(subject.AddRepo(url, pth, -2)).to eq(repo_id)
+      end
+
+      it "refresh packages metadata" do
+        allow(Yast::Pkg).to receive(:RepositoryAdd).and_return(repo_id)
+        expect(Yast::Pkg).to receive(:SourceSaveAll)
+        expect(Yast::Pkg).to receive(:SourceRefreshNow).with(repo_id)
+        expect(Yast::Pkg).to receive(:SourceLoad)
+        subject.AddRepo(url, pth, prio)
+      end
+    end
+
+    context "when the repo is not added successfully" do
+      it "reports the error and returns nil" do
+        allow(Yast::Pkg).to receive(:RepositoryAdd).and_return(nil)
+        expect(Yast::Report).to receive(:Error)
+          .with(format(_("Unable to add product %s."), "ftp://user:PASSWORD@example.net/add-on"))
+        subject.AddRepo(url, pth, prio)
+      end
+    end
+  end
 end
