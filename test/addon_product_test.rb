@@ -310,6 +310,12 @@ describe Yast::AddOnProduct do
     context "when the repo is added successfully" do
       let(:repo_id) { 1 }
 
+      before do
+        allow(Yast::Pkg).to receive(:SourceSaveAll)
+        allow(Yast::Pkg).to receive(:SourceRefreshNow)
+        allow(Yast::Pkg).to receive(:SourceLoad)
+      end
+
       it "returns the new repository id" do
         expect(Yast::Pkg).to receive(:RepositoryAdd)
           .with("enabled" => true, "base_urls" => [url], "prod_dir" => pth, "priority" => prio)
