@@ -2235,7 +2235,7 @@ module Yast
         end
 
         # ask for a different medium
-        current_url = AskForCD(current_url, prodname)
+        current_url = AskForCD(url, prodname)
         return nil if current_url.nil?
       end
     end

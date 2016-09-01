@@ -211,6 +211,7 @@ describe Yast::AddOnProduct do
         let(:matching_product) { { "label" => repo["name"] } }
         let(:other_product) { { "label" => "other" } }
         let(:other_repo_id) { 2 }
+        let(:other_cd_url) { "cd:///?device=/dev/sr1" }
 
         context "and the product is found in the CD/DVD" do
           before do
@@ -259,6 +260,24 @@ describe Yast::AddOnProduct do
             expect(subject.add_on_products).to_not be_empty
           end
 
+          it "does not break the URL when retrying" do
+            allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
+              .and_return(nil)
+            allow(subject).to receive(:AddRepo).with(other_cd_url, repo["path"], repo["priority"])
+              .and_return(other_repo_id)
+            allow(subject).to receive(:AddRepo).with(cd_url, repo["path"], repo["priority"])
+              .and_return(repo_id)
+
+            # AskForCD receives always
+            expect(subject).to receive(:AskForCD).with(repo["url"], repo["name"])
+              .and_return(other_cd_url, nil)
+
+            expect(Yast::Pkg).to receive(:SourceDelete).with(other_repo_id)
+            expect(subject).to_not receive(:Integrate).with(other_repo_id)
+            subject.AddPreselectedAddOnProducts(filelist)
+            expect(subject.add_on_products).to be_empty
+          end
+
           context "and check_name option is disabled" do
             let(:repo) { ADDON_REPO.merge("check_name" => true) }
             it "adds the repository" do
@@ -290,6 +309,12 @@ describe Yast::AddOnProduct do
 
     context "when the repo is added successfully" do
       let(:repo_id) { 1 }
+
+      before do
+        allow(Yast::Pkg).to receive(:SourceSaveAll)
+        allow(Yast::Pkg).to receive(:SourceRefreshNow)
+        allow(Yast::Pkg).to receive(:SourceLoad)
+      end
 
       it "returns the new repository id" do
         expect(Yast::Pkg).to receive(:RepositoryAdd)

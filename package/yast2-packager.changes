@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 31 14:25:19 UTC 2016 - igonzalezsosa@suse.com
+
+- Fix URLs handling when retrying to load an add-on from a CD/DVD
+  through the add_on_products.xml (related to bsc#991935).
+- 3.1.117
+
+-------------------------------------------------------------------
 Tue Aug 23 11:17:36 UTC 2016 - jreidinger@suse.com
 
 - Always enable "Next" button in license confirmation dialog,
