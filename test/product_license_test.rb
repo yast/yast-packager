@@ -111,10 +111,11 @@ describe Yast::ProductLicense do
           # :halt case
           allow(Yast::ProductLicense).to receive(:TimedOKCancel).and_return(true)
 
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:abort)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "continue")).to eq(:accepted)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "halt")).to eq(:halt)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "unknown")).to eq(:abort)
+          base_prod = false
+          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "abort")).to eq(:abort)
+          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "continue")).to eq(:accepted)
+          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "halt")).to eq(:halt)
+          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "unknown")).to eq(:abort)
         end
       end
     end

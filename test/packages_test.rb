@@ -33,13 +33,6 @@ def load_zypp(file_name)
   YAML.load_file(file_name)
 end
 
-def set_root_path(directory)
-  root = File.join(DATA_PATH, directory)
-  check_version = false
-  handle = Yast::WFM.SCROpen("chroot=#{root}:scr", check_version)
-  Yast::WFM.SCRSetDefault(handle)
-end
-
 PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
 
 describe Yast::Packages do
@@ -53,26 +46,38 @@ describe Yast::Packages do
       allow(Yast::Product).to receive(:Product).and_return nil
     end
 
-    after(:each) do
-      # set_root_path is always called and it opens a SCR instance
-      # that needs to be closed
-      Yast::WFM.SCRClose(Yast::WFM.SCRGetDefault)
-    end
-
     context "when biosdevname behavior explicitly defined on the Kenel command line" do
-      it "returns biosdevname within the list of required packages" do
-        set_root_path("cmdline-biosdevname_1")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
+      context "when biosdevname=1" do
+        around do |example|
+          root = File.join(DATA_PATH, "cmdline-biosdevname_1")
+          change_scr_root(root, &example)
+        end
+
+        it "returns biosdevname within the list of required packages" do
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
+        end
       end
 
-      it "does not return biosdevname within the list of required packages" do
-        set_root_path("cmdline-biosdevname_0")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+      context "when biosdevname=0" do
+        around do |example|
+          root = File.join(DATA_PATH, "cmdline-biosdevname_0")
+          change_scr_root(root, &example)
+        end
+
+        it "does not return biosdevname within the list of required packages" do
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+        end
       end
 
-      it "does not return biosdevname within the list of required packages then value is invalid" do
-        set_root_path("cmdline-biosdevname_10")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+      context "when biosdevname=10 (invalid)" do
+        around do |example|
+          root = File.join(DATA_PATH, "cmdline-biosdevname_10")
+          change_scr_root(root, &example)
+        end
+
+        it "does not return biosdevname within the list of required packages then value is invalid" do
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+        end
       end
     end
 
@@ -84,7 +89,10 @@ describe Yast::Packages do
     end
 
     context "when biosdevname behavior not defined on the Kernel command line" do
-      before { set_root_path("cmdline-biosdevname_nil") }
+      around do |example|
+        root = File.join(DATA_PATH, "cmdline-biosdevname_nil")
+        change_scr_root(root, &example)
+      end
 
       context "and running on a Dell system" do
         it "returns biosdevname within the list of packages" do
