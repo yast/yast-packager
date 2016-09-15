@@ -25,12 +25,9 @@ Source0:        %{name}-%{version}.tar.bz2
 
 Url:            https://github.com/kobliha/yast-packager
 BuildRequires:  update-desktop-files
-BuildRequires:  yast2-country-data
 BuildRequires:  yast2-devtools >= 3.1.10
-BuildRequires:  yast2-storage
 BuildRequires:  yast2-testsuite
 BuildRequires:  yast2-xml
-BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
 
 # Packages::Repository and Packages::Product classes
