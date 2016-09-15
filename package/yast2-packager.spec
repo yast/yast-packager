@@ -31,6 +31,7 @@ BuildRequires:  yast2-xml
 # needed for space calculator to parse and convert sizes
 BuildRequires:  yast2-storage
 BuildRequires:  rubygem(rspec)
+BuildRequires:  rubygem(yast-rake)
 
 # Packages::Repository and Packages::Product classes
 BuildRequires:  yast2 >= 3.1.187
@@ -99,11 +100,13 @@ This package contains the libraries and modules for software management.
 %prep
 %setup -n %{name}-%{version}
 
+%check
+rake test:unit
+
 %build
-%yast_build
 
 %install
-%yast_install
+rake install DESTDIR="%{buildroot}"
 
 %suse_update_desktop_file yast2-packager
 
@@ -129,5 +132,7 @@ This package contains the libraries and modules for software management.
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
+%doc %{yast_docdir}/README.md
+%doc %{yast_docdir}/CONTRIBUTING.md
 
 %changelog
