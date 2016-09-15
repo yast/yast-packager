@@ -36,7 +36,6 @@ module Yast
       Yast.import "XML"
       Yast.import "Wizard"
       Yast.import "FileUtils"
-      Yast.import "Language"
       Yast.import "Popup"
       Yast.import "InstShowInfo"
       Yast.import "ProductLicense"
