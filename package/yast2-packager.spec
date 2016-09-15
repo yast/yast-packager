@@ -35,6 +35,10 @@ BuildRequires:  rubygem(rspec)
 # Packages::Repository and Packages::Product classes
 BuildRequires:  yast2 >= 3.1.187
 
+# needed for icon for desktop file, it is verified at the end of build
+BuildRequires:       yast2_theme
+
+
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 BuildRequires:  yast2-pkg-bindings >= 3.1.30
 
