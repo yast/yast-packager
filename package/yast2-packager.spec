@@ -26,7 +26,6 @@ Source0:        %{name}-%{version}.tar.bz2
 Url:            https://github.com/kobliha/yast-packager
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
-BuildRequires:  yast2-testsuite
 BuildRequires:  yast2-xml
 # needed for space calculator to parse and convert sizes
 BuildRequires:  yast2-storage
