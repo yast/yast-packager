@@ -34,6 +34,30 @@ describe Yast::AddOnProduct do
     end
   end
 
+  describe "#SetRepoUrlAlias" do
+    let(:url_without_alias) { "http://example.com/repos/SLES11SP2" }
+    let(:url) { "http://example.com/repos/SLES11SP2?alias=yourSLES" }
+    it "returns nil for invalid input" do
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(nil, nil, nil)).to eq nil
+    end
+
+    it "returns url untouched if alias and name are empty" do
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, nil, "")).to eq url
+    end
+
+    it "returns url untouched if url do not contain alias" do
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url_without_alias, nil, "mySLES")).to eq url_without_alias
+    end
+
+    it "overwrites alias with alias param if provided" do
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, "mySLES", nil)).to eq "http://example.com/repos/SLES11SP2?alias=mySLES"
+    end
+
+    it "overwrites alias with name param if alias is not provided" do
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, nil, "mySLES")).to eq "http://example.com/repos/SLES11SP2?alias=mySLES"
+    end
+  end
+
   describe "#RegisterAddOnProduct" do
     let(:repo_id) { 42 }
 

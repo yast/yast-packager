@@ -253,6 +253,173 @@ EOF
       expect(Yast::Pkg).to receive(:TargetInitDU).with(result)
       expect(Yast::SpaceCalculation.EvaluateFreeSpace(15)).to eq(result)
     end
+  end
 
+  describe ".ExtJournalSize" do
+    it "returns zero for ext2" do
+      data = { "size_k" => 5 << 20, "used_fs" => :ext2, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq 0
+    end
+
+    it "returns zero for small ext3/4 partitions" do
+      data = { "size_k" => 2 << 10, "used_fs" => :ext3, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq 0
+    end
+
+    it "returns zero if partition have no_journal option" do
+      data = {
+        "size_k" => 2 << 20, "used_fs" => :ext4, "name" => "sda1",
+        "fs_options" => { "no_journal" => { "option_value" => true } }
+      }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(0)
+    end
+
+    it "returns correct journal size in bytes for ext3/4 partitions" do
+      data = { "size_k" => 5 << 20, "used_fs" => :ext3, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(128 << 20) # returns in bytes, but input in kb
+
+      data = { "size_k" => 5 << 20, "used_fs" => :ext4, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(128 << 20)
+
+      data = { "size_k" => 2 << 20, "used_fs" => :ext4, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(64 << 20)
+
+      # use 1k blocks
+      data = {
+        "size_k" => 2 << 20, "used_fs" => :ext4, "name" => "sda1",
+        "fs_options" => { "opt_blocksize" => { "option_value" => "1024" } }
+      }
+      expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(32 << 20)
+    end
+  end
+
+  describe ".ReiserJournalSize" do
+    it "returns 32MB + 4kB regardless fs size" do
+      data = { "size_k" => 5 << 20, "used_fs" => :reiser, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.ReiserJournalSize(data)).to eq((32 << 20) + (4 << 10))
+    end
+  end
+
+  describe ".XfsJournalSize" do
+    it "returns correct journal size depending on fs size" do
+      data = { "size_k" => 2 << 10, "used_fs" => :xfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq( 10 << 20)
+
+      data = { "size_k" => 50 << 20, "used_fs" => :xfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq( 25 << 20)
+
+      data = { "size_k" => 5 << 30, "used_fs" => :xfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq( 2 << 30)
+    end
+  end
+
+  describe ".JfsJournalSize" do
+    it "returns user specified journal size if used" do
+      data = {
+        "size_k" => 2 << 20, "used_fs" => :jfs, "name" => "sda1",
+        "fs_options" => { "opt_log_size" => { "option_value" => "10" } }
+      }
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 10 << 20)
+    end
+
+    it "returns correct journal size depending on fs size" do
+      data = { "size_k" => 5 << 20, "used_fs" => :jfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 20 << 20)
+
+      # test rounding if few more kB appears
+      data = { "size_k" => (5 << 20) + 5, "used_fs" => :jfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 21 << 20)
+
+      # test too big limitation to 128MB
+      data = { "size_k" => 50 << 30, "used_fs" => :jfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 128 << 20)
+    end
+  end
+
+  describe ".ReservedSpace" do
+    it "count reserved space for given partition" do
+      data = {
+        "size_k" => 1000 << 20, "used_fs" => :jfs, "name" => "sda1",
+        "fs_options" => { "opt_reserved_blocks" => { "option_value" => "0.0" } }
+      }
+      expect(Yast::SpaceCalculation.ReservedSpace(data)).to eq(0)
+
+      data = {
+        "size_k" => 1000 << 20, "used_fs" => :jfs, "name" => "sda1",
+        "fs_options" => { "opt_reserved_blocks" => { "option_value" => "5.0" } }
+      }
+      expect(Yast::SpaceCalculation.ReservedSpace(data)).to eq(50 << 30)
+
+      data = {
+        "size_k" => 1000 << 20, "used_fs" => :jfs, "name" => "sda1",
+        "fs_options" => { "opt_reserved_blocks" => { "option_value" => "12.5" } }
+      }
+      expect(Yast::SpaceCalculation.ReservedSpace(data)).to eq(125 << 30)
+    end
+  end
+
+  describe ".EstimateFsOverhead" do
+    it "returns number for FS overhead" do
+      ext2_data = { "size_k" => 5 << 20, "used_fs" => :ext2, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(ext2_data)).to eq 85899345 # sorry, no clue why this number from old testsuite
+
+      ext3_data = { "size_k" => 5 << 20, "used_fs" => :ext3, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(ext3_data)).to eq 85899345 # sorry, no clue why this number from old testsuite
+
+      ext4_data = { "size_k" => 5 << 20, "used_fs" => :ext4, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(ext4_data)).to eq 85899345 # sorry, no clue why this number from old testsuite
+
+      xfs_data = { "size_k" => 5 << 20, "used_fs" => :xfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(xfs_data)).to eq 5368709 # sorry, no clue why this number from old testsuite
+
+      jfs_data = { "size_k" => 5 << 20, "used_fs" => :jfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(jfs_data)).to eq 16106127 # sorry, no clue why this number from old testsuite
+
+      reiser_data = { "size_k" => 5 << 20, "used_fs" => :reiser, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(reiser_data)).to eq 0 # sorry, no clue why this number from old testsuite
+
+      btrfs_data = { "size_k" => 5 << 20, "used_fs" => :btrfs, "name" => "sda1" }
+      expect(Yast::SpaceCalculation.EstimateFsOverhead(btrfs_data)).to eq 0 # sorry, no clue why this number from old testsuite
+    end
+  end
+
+  describe ".EstimateTargetUsage" do
+    it "returns empty array for nil" do
+      expect(Yast::SpaceCalculation.EstimateTargetUsage(nil)).to eq []
+    end
+
+    it "returns empty array for empty array input" do
+      expect(Yast::SpaceCalculation.EstimateTargetUsage([])).to eq []
+    end
+
+    it "returns new array with updated empty and used space" do
+      data = [{ "name" => "/", "used" => 0, "free" => 10000000 }]
+      expected_data = [{"free" => 9879168, "name" => "/", "used" => 120832}] # data from old testsuite
+      expect(Yast::SpaceCalculation.EstimateTargetUsage(data)).to eq expected_data
+
+      # separated home, nothing to install there
+      data = [
+        { "name" => "/", "used" => 0, "free" => 10000000 },
+        { "name" => "/home", "used" => 0, "free" => 1000000 }
+      ]
+      expected_data = [
+        {"free" =>9879168, "name"=>"/", "used"=>120832},
+        {"free"=>1000000, "name"=>"/home", "used"=>0}
+      ]
+      expect(Yast::SpaceCalculation.EstimateTargetUsage(data)).to eq expected_data
+
+      # multiple partitions
+      data = [
+            { "name" => "/", "used" => 0, "free" => 10000000 },
+            { "name" => "/boot", "used" => 0, "free" => 1000000 },
+            { "name" => "/usr", "used" => 0, "free" => 1000000 }
+          ]
+      expected_data = [
+        {"free" => 9891456, "name" => "/", "used" => 108544},
+        {"free" => 988736, "name" => "/boot", "used" => 11264},
+        {"free" => 998976, "name" => "/usr", "used" => 1024}
+      ]
+      expect(Yast::SpaceCalculation.EstimateTargetUsage(data)).to eq expected_data
+    end
   end
 end
