@@ -329,20 +329,21 @@ module Yast
       uri = URI(url)
       query = uri.query || ""
       params = URI.decode_www_form(query).to_h
-      params["iso"] = File.basename(uri.path || "")
+      path = uri.path || ""
+      params["iso"] = File.basename(path)
 
       new_url = uri.dup
-      new_url.path = File.dirname(uri.path || "")
+      new_url.path = File.dirname(path)
       new_url.query = nil
       # URL scheme in the "url" option must be set to "dir" (or empty)
       # for a local ISO image (see https://bugzilla.suse.com/show_bug.cgi?id=919138
       # and https://en.opensuse.org/openSUSE:Libzypp_URIs#ISO_Images )
       new_url.scheme = "dir" if uri.scheme.downcase == "iso"
-      params["url"] = new_url.to_s
+      # url can be already escaped, so unescape double escaping (bsc#954813)
+      params["url"] = URI.unescape(new_url.to_s)
 
       processed = URI("")
-      # url is already escaped, so unescape double escaping (bsc#954813)
-      processed.query = URI.unescape(URI.encode_www_form(params))
+      processed.query = URI.encode_www_form(params)
 
       ret = "iso:///" + processed.to_s
       log.info "Updated URL: #{URL.HidePassword(ret)}"
