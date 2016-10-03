@@ -341,7 +341,8 @@ module Yast
       params["url"] = new_url.to_s
 
       processed = URI("")
-      processed.query = URI.encode_www_form(params)
+      # url is already escaped, so unescape double escaping (bsc#954813)
+      processed.query = URI.unescape(URI.encode_www_form(params))
 
       ret = "iso:///" + processed.to_s
       log.info "Updated URL: #{URL.HidePassword(ret)}"
