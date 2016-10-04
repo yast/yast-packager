@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Oct  4 08:02:04 UTC 2016 - ancor@suse.com
+
+- Enhanced opening of rpm packages with YaST in Dolphin (Plasma)
+  (bug#954143, bug#1002417, fate#319376).
+- Fixes contributed by marceloatie@gmail.com and
+  opensuse.lietuviu.kalba@gmail.com
+- 3.1.117.1
+
+-------------------------------------------------------------------
 Wed Aug 31 14:25:19 UTC 2016 - igonzalezsosa@suse.com
 
 - Fix URLs handling when retrying to load an add-on from a CD/DVD
