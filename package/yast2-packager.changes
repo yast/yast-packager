@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct  5 14:35:07 UTC 2016 - jreidinger@suse.com
+
+- remove workaround that creates fake mtab to prevent collision
+  with real one (bsc#1002978)
+- 3.2.0
+
+-------------------------------------------------------------------
 Mon Oct  3 16:38:36 UTC 2016 - jreidinger@suse.com
 
 - prevent double URL encoding for ISO (bsc#954813)
