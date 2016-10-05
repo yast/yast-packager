@@ -29,11 +29,6 @@ module Yast
       Yast.import "FileUtils"
       Yast.import "String"
 
-      if !Mode.update
-        # fake mtab for rpm post-scripts
-        fake_mtab
-      end
-
       # Feature #301903, bugzilla #244937
       if Mode.update
         # "/" means updating the running system, bugzilla #246389
@@ -164,9 +159,6 @@ module Yast
           end
         end
 
-        # fake mtab
-        fake_mtab
-
         # F#302660: System installation and upgrade workflow: kernel %post
         # calling ins_bootloader write all config files for bootloader
         #	if (Stage::initial ())
@@ -245,91 +237,6 @@ module Yast
 
       :next
     end
-
-    #  Write a fake mtab to the target system since some %post scripts might
-    #  need it.
-    def fake_mtab
-      Builtins.y2milestone("Copying /etc/mtab to the target system...")
-
-      tmpdir = Convert.to_string(SCR.Read(path(".target.tmpdir")))
-
-      mtabname = "/etc/mtab"
-      mtab = Convert.to_string(WFM.Read(path(".local.string"), mtabname))
-
-      # remove non-existing mount points
-      mtab_lines = Builtins.splitstring(mtab, "\n")
-
-      mtab_lines = Builtins.filter(mtab_lines) do |mtab_line|
-        # parse the line, get the directory name
-        dir = Builtins.regexpsub(
-          mtab_line,
-          "^[^ \t]+[ \t]+([^ \t]*)[ \t]+",
-          "\\1"
-        )
-        if dir != nil
-          # check if the directory exists
-          Builtins.y2debug("Checking directory %1", dir)
-
-          exit_status = Convert.to_integer(
-            WFM.Execute(
-              path(".local.bash"),
-              Builtins.sformat("ls -d '%1'", String.Quote(dir))
-            )
-          )
-          if exit_status != 0
-            Builtins.y2warning("Excluding nonexisting directory %1", dir)
-            next false
-          end
-        end
-        true
-      end
-
-      # join back the lines
-      mtab = Builtins.mergestring(mtab_lines, "\n")
-      Builtins.y2milestone("Target /etc/mtab file: %1", mtab)
-
-      SCR.Write(path(".target.string"), Ops.add(tmpdir, "/mtab"), mtab)
-      SCR.Execute(
-        path(".target.bash"),
-        Ops.add(
-          Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add(
-                    Ops.add(
-                      Ops.add(
-                        Ops.add(
-                          Ops.add(
-                            Ops.add(
-                              "/bin/cat " + "'",
-                              String.Quote(Ops.add(tmpdir, "/mtab"))
-                            ),
-                            "'"
-                          ),
-                          " | /bin/sed \"s: "
-                        ),
-                        Installation.destdir
-                      ),
-                      "/: /:\"| /bin/sed \"s: "
-                    ),
-                    Installation.destdir
-                  ),
-                  ": /:\" "
-                ),
-                "> '"
-              ),
-              String.Quote(Installation.destdir)
-            ),
-            "'"
-          ),
-          mtabname
-        )
-      )
-
-      nil
-    end
-
 
     #  Remove some old junk.
     def remove_stuff
