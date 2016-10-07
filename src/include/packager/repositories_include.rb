@@ -1,14 +1,12 @@
 # encoding: utf-8
 
-# File:	packager/repositories_include.ycp
+# File:	packager/repositories_include.rb
 #
 # Author:	Cornelius Schumacher <cschum@suse.de>
 #		Ladislav Slezak <lslezak@suse.cz>
 #		Lukas Ocilka <locilka@suse.cz>
 #
 # Purpose:	Include file to be shared by yast2-packager and yast2-add-on
-#
-# $Id$
 #
 module Yast
   module PackagerRepositoriesIncludeInclude
@@ -118,14 +116,6 @@ module Yast
             idx = Ops.add(idx, 1)
           end
 
-          autorefresh = true
-          schema = Builtins.tolower(Builtins.substring(url, 0, 3))
-
-          if schema == "cd:" || schema == "dvd"
-            autorefresh = false
-            Builtins.y2milestone("Disabling autorefresh for a CD/DVD service")
-          end
-
           # use alias as the name if it's missing
           if preffered_name == nil || preffered_name == ""
             preffered_name = _alias
@@ -133,7 +123,7 @@ module Yast
 
           new_service = {
             "alias"       => _alias,
-            "autorefresh" => autorefresh,
+            "autorefresh" => autorefresh_for?(url),
             "enabled"     => true,
             "name"        => preffered_name,
             "url"         => url
@@ -177,30 +167,6 @@ module Yast
         end
 
         newSources = []
-        auto_refresh = true
-
-        # disable autorefresh for ISO images
-        iso_prefix = "iso:"
-        if Builtins.substring(url, 0, Builtins.size(iso_prefix)) == iso_prefix
-          Builtins.y2milestone(
-            "ISO image detected, disabling autorefresh (%1)",
-            URL.HidePassword(url)
-          )
-          auto_refresh = false
-        end
-
-        # CD or DVD repository?
-        cd_scheme = Builtins.contains(
-          ["cd", "dvd"],
-          Builtins.tolower(Ops.get_string(URL.Parse(url), "scheme", ""))
-        )
-        if cd_scheme
-          Builtins.y2milestone(
-            "CD/DVD repository detected, disabling autorefresh (%1)",
-            URL.HidePassword(url)
-          )
-          auto_refresh = false
-        end
 
         enter_again = false
 
@@ -275,7 +241,7 @@ module Yast
           # "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
           repo_prop = {}
           Ops.set(repo_prop, "enabled", true)
-          Ops.set(repo_prop, "autorefresh", auto_refresh)
+          Ops.set(repo_prop, "autorefresh", autorefresh_for?(url))
           Ops.set(repo_prop, "name", name)
           Ops.set(repo_prop, "prod_dir", Ops.get(repo, 1, "/"))
           Ops.set(repo_prop, "alias", _alias)
@@ -295,17 +261,15 @@ module Yast
             repo_prop_log
           )
           newSources = Builtins.add(newSources, new_repo_id)
-          if cd_scheme
-            # for CD/DVD repo download the metadata immediately,
-            # the medium is in the drive right now, it can be changed later
-            # and accidentaly added a different repository
-            Builtins.y2milestone(
-              "Adding a CD or DVD repository, refreshing now..."
-            )
+
+          # for local repositories (e.g. CD/DVD) which have autorefresh disabled
+          # download the metadata immediately, the medium is in the drive right
+          # now, it can be changed later and accidentally added a different repository
+          if !autorefresh_for?(url)
+            log.info "Adding a local repository, refreshing it now..."
             Pkg.SourceRefreshNow(new_repo_id)
           end
-        end 
-
+        end
 
         # broken repository or wrong URL - enter the URL again
         if enter_again
@@ -426,7 +390,7 @@ module Yast
               )
             )
             Builtins.y2warning("Not searching for SLP repositories")
-            return :back 
+            return :back
             # New .slp agent has been added
             # FIXME: lazy loading of agents will make this obsolete
           else
@@ -465,7 +429,7 @@ module Yast
       ret = createSource(url, plaindir, @download_meta, name)
 
       case ret
-      when :again 
+      when :again
         :back
       when :abort, :cancel
         :abort
@@ -496,6 +460,19 @@ module Yast
     def EditDialog
       ret = SourceDialogs.EditDialog
       ret
+    end
+
+    # Evaluate the default autorefresh flag for the given repository URL.
+    # @param url [String] Repository URL
+    # @return [Boolean] The default autorefresh flag for the URL
+    def autorefresh_for?(url)
+      protocol = URL.Parse(url)["scheme"].downcase
+
+      # disable autorefresh for local repositories ,
+      autorefresh = !Pkg.UrlSchemeIsLocal(protocol)
+
+      log.info "Autorefresh flag for '#{protocol}' URL protocol: #{autorefresh}"
+      autorefresh
     end
   end
 end
