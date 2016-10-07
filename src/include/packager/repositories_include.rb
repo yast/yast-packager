@@ -123,7 +123,7 @@ module Yast
 
           new_service = {
             "alias"       => _alias,
-            "autorefresh" => autorefresh(url),
+            "autorefresh" => autorefresh_for?(url),
             "enabled"     => true,
             "name"        => preffered_name,
             "url"         => url
@@ -241,7 +241,7 @@ module Yast
           # "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
           repo_prop = {}
           Ops.set(repo_prop, "enabled", true)
-          Ops.set(repo_prop, "autorefresh", autorefresh(url))
+          Ops.set(repo_prop, "autorefresh", autorefresh_for?(url))
           Ops.set(repo_prop, "name", name)
           Ops.set(repo_prop, "prod_dir", Ops.get(repo, 1, "/"))
           Ops.set(repo_prop, "alias", _alias)
@@ -264,8 +264,8 @@ module Yast
 
           # for local repositories (e.g. CD/DVD) which have autorefresh disabled
           # download the metadata immediately, the medium is in the drive right
-          # now, it can be changed later and accidentaly added a different repository
-          if !autorefresh(url)
+          # now, it can be changed later and accidentally added a different repository
+          if !autorefresh_for?(url)
             log.info "Adding a local repository, refreshing it now..."
             Pkg.SourceRefreshNow(new_repo_id)
           end
@@ -465,15 +465,11 @@ module Yast
     # Evaluate the default autorefresh flag for the given repository URL.
     # @param url [String] Repository URL
     # @return [Boolean] The default autorefresh flag for the URL
-    def autorefresh(url)
-      log.info "Evaluating autorefresh flag for #{URL.HidePassword(url)}"
+    def autorefresh_for?(url)
       protocol = URL.Parse(url)["scheme"].downcase
 
       # disable autorefresh for local repositories ,
-      # see https://github.com/openSUSE/libzypp/blob/master/zypp/Url.cc#L458
-      # for the local URL protocols defined by libzypp
-      local_protocols = [ "cd", "dvd", "dir", "hd", "iso", "file" ]
-      autorefresh = !local_protocols.include?(protocol)
+      autorefresh = !Pkg.UrlSchemeIsLocal(protocol)
 
       log.info "Autorefresh flag for '#{protocol}' URL protocol: #{autorefresh}"
       autorefresh

@@ -1,9 +1,9 @@
 -------------------------------------------------------------------
 Thu Oct  6 08:01:38 UTC 2016 - lslezak@suse.cz
 
-- Disable autorefresh for new added local repositories (cd/dvd,
-  dir, hd (including USB flash), iso and file URL protocols)
-  (bsc#948982)
+- Disable autorefresh for newly added local repositories ("cd",
+  "dvd", "dir", "hd" (including USB flash), "iso" and "file" URL
+  protocols) (bsc#948982)
 - 3.2.1
 
 -------------------------------------------------------------------
