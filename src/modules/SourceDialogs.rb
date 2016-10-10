@@ -2177,7 +2177,9 @@ module Yast
     end
 
     def SelectValidate(key, event)
-      event = deep_copy(event)
+      # skip validation if disabled by the global checkbox
+      return true if global_disable
+
       selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
       if selected == nil
         # error popup
@@ -2236,9 +2238,17 @@ module Yast
       #  TODO: disable "download" option when CD or DVD source is selected
 
       selected = UI.QueryWidget(Id(:type), :CurrentButton)
-      return :finish if [:slp, :cd, :dvd, :comm_repos, :sccrepos].include?(selected)
+      special_repo = [:slp, :cd, :dvd, :comm_repos, :sccrepos].include?(selected)
+      return :finish if special_repo && !global_disable
 
       nil
+    end
+
+    # Get the status of the global checkbox.
+    # @return [Boolean] true if the global checkbox is displayed and is unchecked,
+    #   false otherwise
+    def global_disable
+      UI.WidgetExists(:add_addon) && !UI.QueryWidget(:add_addon, :Value)
     end
 
     def SelectStore(key, event)
@@ -2246,7 +2256,9 @@ module Yast
       @_url = ""
       @_plaindir = false
       @_repo_name = ""
-      @addon_enabled = UI.WidgetExists(:add_addon) ?  UI.QueryWidget(:add_addon, :Value) : nil
+      @addon_enabled = !global_disable
+
+      return nil if global_disable
 
       selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
 
