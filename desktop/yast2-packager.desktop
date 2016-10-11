@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Install/Remove Software
 GenericName=Install/Remove Software
-Exec=xdg-su -c "/sbin/yast2 sw_single %F"
+Exec=/usr/bin/yast2-sw_single-wrapper %F
 Icon=yast-sw_single
 Terminal=false
 Type=Application
@@ -11,3 +11,6 @@ MimeType=application/x-rpm;application/x-redhat-package-manager;
 NotShowIn=GNOME;MATE;
 StartupNotify=true
 
+# KDE specific (does not affect the other desktop environments)
+# https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html#kde-items
+InitialPreference=10
