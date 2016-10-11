@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 10 14:07:57 UTC 2016 - lslezak@suse.cz
+
+- Do not ask for a CD when the add-on check box is unchecked
+  (bsc#955186)
+- 3.2.2
+
+-------------------------------------------------------------------
 Thu Oct  6 08:01:38 UTC 2016 - lslezak@suse.cz
 
 - Disable autorefresh for newly added local repositories ("cd",
