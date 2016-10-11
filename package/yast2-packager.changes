@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Oct 11 10:28:59 UTC 2016 - ancor@suse.com
+
+- Enhanced opening of rpm packages with YaST in Dolphin (Plasma)
+  (bug#954143, bug#1002417, fate#319376).
+- Fixes contributed by marceloatie@gmail.com and
+  opensuse.lietuviu.kalba@gmail.com
+- 3.1.119
+
+-------------------------------------------------------------------
 Mon Oct  3 16:38:36 UTC 2016 - jreidinger@suse.com
 
 - prevent double URL encoding for ISO (bsc#954813)

@@ -17,11 +17,12 @@
 
 
 Name:           yast2-packager
-Version:        3.1.118
+Version:        3.1.119
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %{name}-%{version}.tar.bz2
+Source1:        yast2-sw_single-wrapper
 
 Url:            https://github.com/kobliha/yast-packager
 BuildRequires:  update-desktop-files
@@ -63,6 +64,9 @@ Requires:       /usr/bin/md5sum
 # .process agent
 Requires:       yast2-core >= 2.16.35
 
+# yast2-sw_single-wrapper requires xdg-su
+Requires:       /usr/bin/xdg-su
+
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
 
@@ -101,6 +105,8 @@ This package contains the libraries and modules for software management.
 
 %install
 %yast_install
+mkdir -p %{buildroot}%{_bindir}
+install -m 755 %{SOURCE1} %{buildroot}%{_bindir}/yast2-sw_single-wrapper
 
 %suse_update_desktop_file yast2-packager
 
@@ -124,6 +130,7 @@ This package contains the libraries and modules for software management.
 %{_datadir}/applications/*.desktop
 %{yast_scrconfdir}/*
 %{yast_execcompdir}/servers_non_y2/ag_*
+%{_bindir}/yast2-sw_single-wrapper
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
 

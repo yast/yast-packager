@@ -1,0 +1,32 @@
+#! /bin/sh
+
+# This script helps to correctly pass RPM packages including spaces in the path
+# (and/or multiple RPM packages) to YaST2 via desktop file
+# See https://bugzilla.suse.com/show_bug.cgi?id=1002417
+
+# Originally created by http://en.opensuse.org/User:Mvidner for
+# https://bugzilla.novell.com/show_bug.cgi?id=222757
+
+# This stripped /usr/bin/package-manager function 
+# (from libzypp (<=13.9) shipped with openSUSE 13.1 and earler)
+# to pass RPM packages to true package manager
+
+# quoted concatenation of arguments
+function quote() {
+  # formerly used 'printf %q' breaks UTF-8 strings
+  echo -n "$@" | sed 's/\([]|&;<>()$`\" \t*?#~=%[]\)/\\\1/g'
+}
+
+function mkCmd() {
+  quote "$1"
+  shift
+  for ARG in "$@"; do
+    echo -n " $(quote "$ARG")"
+  done
+}
+
+xsu() {
+    xdg-su -c "$(mkCmd "$@")"
+}
+
+xsu /sbin/yast2 sw_single "$@"
