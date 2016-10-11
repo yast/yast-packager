@@ -67,6 +67,9 @@ module Yast
     VALID_URL_SCHEMES = ["ftp", "tftp", "http", "https", "nfs",
       "nfs4", "cifs", "smb", "cd", "dvd", "iso", "dir", "file", "hd"]
 
+    # repository types which need special handling
+    SPECIAL_TYPES = [:slp, :cd, :dvd, :comm_repos, :sccrepos]
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -2220,7 +2223,7 @@ module Yast
     # @param [String] key widget key
     # @param [Hash] event event description
     # @return [Symbol]
-    def SelectHandle(key, event)
+    def SelectHandle(_key, event)
       case event["ID"]
       when :back
         # reset the preselected URL when going back
@@ -2238,8 +2241,7 @@ module Yast
       #  TODO: disable "download" option when CD or DVD source is selected
 
       selected = UI.QueryWidget(Id(:type), :CurrentButton)
-      special_repo = [:slp, :cd, :dvd, :comm_repos, :sccrepos].include?(selected)
-      return :finish if special_repo && !global_disable
+      return :finish if SPECIAL_TYPES.include?(selected) && !global_disable
 
       nil
     end
@@ -2251,8 +2253,7 @@ module Yast
       UI.WidgetExists(:add_addon) && !UI.QueryWidget(:add_addon, :Value)
     end
 
-    def SelectStore(key, event)
-      event = deep_copy(event)
+    def SelectStore(_key, _event)
       @_url = ""
       @_plaindir = false
       @_repo_name = ""
