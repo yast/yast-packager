@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 14 11:03:49 UTC 2016 - jreidinger@suse.com
+
+- allow SLES for SAP upgrade from 11 to 12 as it renamed
+  (bsc#1004665)
+- 3.1.117.1
+
+-------------------------------------------------------------------
 Wed Aug 31 14:25:19 UTC 2016 - igonzalezsosa@suse.com
 
 - Fix URLs handling when retrying to load an add-on from a CD/DVD
