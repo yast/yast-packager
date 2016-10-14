@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 14 11:03:49 UTC 2016 - jreidinger@suse.com
+
+- allow SLES for SAP upgrade from 11 to 12 as it is renamed
+  (bsc#1004665)
+- 3.2.3
+
+-------------------------------------------------------------------
 Mon Oct 10 14:07:57 UTC 2016 - lslezak@suse.cz
 
 - Do not ask for a CD when the add-on check box is unchecked

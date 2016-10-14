@@ -137,13 +137,14 @@ module Yast
       # this is the static default for offline updates
       # mapping: <old_name> => [ <new_name> ]
       @product_renames = {
-        "SUSE_SLES"  => [ "SLES" ],
+        "SUSE_SLES"     => [ "SLES" ],
         # SLED or Workstation extension
-        "SUSE_SLED"  => [ "SLED", "sle-we" ],
-        "sle-haegeo" => [ "sle-ha-geo" ],
-        "sle-hae"    => [ "sle-ha" ],
+        "SUSE_SLED"     => [ "SLED", "sle-we" ],
+        "sle-haegeo"    => [ "sle-ha-geo" ],
+        "sle-hae"       => [ "sle-ha" ],
+        "SUSE_SLES_SAP" => [ "SLES_SAP" ],
         # SMT is now integrated into the base SLES
-        "sle-smt"    => [ "SLES" ]
+        "sle-smt"       => [ "SLES" ]
       }
 
     end
