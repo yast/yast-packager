@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 14 11:03:49 UTC 2016 - jreidinger@suse.com
+
+- allow SLES for SAP upgrade from 11 to 12 as it is renamed
+  (bsc#1004665)
+- 3.1.119
+
+-------------------------------------------------------------------
 Mon Oct  3 16:38:36 UTC 2016 - jreidinger@suse.com
 
 - prevent double URL encoding for ISO (bsc#954813)
