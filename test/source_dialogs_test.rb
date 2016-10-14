@@ -98,4 +98,26 @@ describe Yast::SourceDialogs do
       expect(described_class.instance_variable_get("@_url")).to eq "dvd:///"
     end
   end
+
+  describe ".NFSStoreParts" do
+    let(:host) { "test.suse.de" }
+    let(:path) { "dist/ibs/SUSE:/SLE-SP1:/GA/images/iso/test.iso" }
+    it "returns an url with unescaped \":\" characters" do
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:server), :Value)
+        .and_return(host)
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:dir), :Value)
+        .and_return(path)
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:ch_nfs4), :Value)
+        .and_return(false)
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:ch_iso), :Value)
+        .and_return(false)
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:mount_options), :Value)
+        .and_return(:default)
+
+      described_class.NFSStoreParts()
+
+      expect(described_class.instance_variable_get("@_url")).to eq "nfs://" + host + "/" + path
+    end
+  end
+
 end

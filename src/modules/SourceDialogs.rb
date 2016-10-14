@@ -249,7 +249,7 @@ module Yast
         if Builtins.regexpmatch(query, "device=/dev/disk/by-id/usb-")
           Ops.set(parsed, "scheme", "usb")
 
-          @_url = URL.Build(parsed)
+          @_url = build_url(parsed)
           Builtins.y2milestone(
             "URL %1 is an USB device, changing the scheme to %2",
             URL.HidePassword(url),
@@ -289,7 +289,7 @@ module Yast
 
         Ops.set(parsed, "path", "/") if Ops.get_string(parsed, "path", "") == ""
 
-        ret_url = URL.Build(parsed)
+        ret_url = build_url(parsed)
         return ret_url
       else
         return @_url
@@ -656,7 +656,7 @@ module Yast
         end
       end
 
-      @_url = URL.Build(parsed)
+      @_url = build_url(parsed)
       iso = Convert.to_boolean(UI.QueryWidget(Id(:ch_iso), :Value))
 
       # workaround: URL::Build does not accept numbers in scheme,
@@ -898,7 +898,7 @@ module Yast
         @_plaindir = true
       end
 
-      @_url = URL.Build(parsed)
+      @_url = build_url(parsed)
 
       nil
     end
@@ -913,7 +913,7 @@ module Yast
         "path"   => Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       }
 
-      @_url = URL.Build(parsed)
+      @_url = build_url(parsed)
       @_url = PostprocessISOURL(@_url)
 
       nil
@@ -1280,7 +1280,7 @@ module Yast
 
       parsed = { "scheme" => "usb", "path" => dir, "query" => query }
 
-      @_url = URL.Build(parsed)
+      @_url = build_url(parsed)
 
       Builtins.y2milestone("New USB url: %1", URL.HidePassword(@_url))
 
@@ -1356,7 +1356,7 @@ module Yast
 
       parsed = { "scheme" => "hd", "path" => dir, "query" => query }
 
-      @_url = URL.Build(parsed)
+      @_url = build_url(parsed)
 
       Builtins.y2milestone("New Disk url: %1", URL.HidePassword(@_url))
 
@@ -1545,7 +1545,7 @@ module Yast
 
         # do not log the entered password
         Builtins.y2milestone("Entered URL: %1", URL.HidePasswordToken(parsed))
-        @_url = URL.Build(parsed)
+        @_url = build_url(parsed)
         Builtins.y2milestone("URL::Build: %1", URL.HidePassword(@_url))
 
         if UI.WidgetExists(Id(:ch_iso))
@@ -2713,6 +2713,19 @@ module Yast
     publish :function => :TypePopup, :type => "string ()"
     publish :function => :TypeDialog, :type => "symbol ()"
     publish :function => :TypeDialogDownloadOpt, :type => "map <string, any> ()"
+
+  private
+
+    # Build URL from tokens
+    # @param [Hash] with keys:"scheme","http","host","port","path","query",...
+    # @return [String] url, empty string if invalid data is used to build the url.
+    def build_url(url_settings)
+      # URL.Build is escaping characters (e.g. ":") which is wrong for
+      # pathes like /dist/ibs/SUSE:/SLE-12-SP1:/GA. (bnc#966413)
+      # So we are unescaping it.
+      URLRecode.UnEscape(URL.Build(url_settings))
+    end
+
   end
 
   SourceDialogs = SourceDialogsClass.new
