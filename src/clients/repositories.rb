@@ -591,6 +591,17 @@ module Yast
         end
       end 
 
+      # if started from the package manager we need to call these extra
+      # pkg-bindings to sync the pool state
+      if @full_mode
+        @sourceStatesOut.each do |src|
+          srcid = src["SrcId"]
+          next unless Pkg.SourceGetCurrent(false).include?(srcid)
+
+          Pkg.SourceSetEnabled(srcid, src["enabled"])
+          Pkg.SourceSetPriority(srcid, src["priority"])
+        end
+      end
 
       Builtins.y2milestone("New repo config: %1", @sourceStatesOut)
       success = success && Pkg.SourceEditSet(@sourceStatesOut)
@@ -1598,13 +1609,6 @@ module Yast
               UI.ChangeWidget(Id(:table), term(:Item, current, 1), newstate)
               Ops.set(sourceState, "enabled", state)
               Ops.set(@sourceStatesOut, global_current, sourceState)
-
-              if @full_mode
-                Pkg.SourceSetEnabled(
-                  Ops.get_integer(sourceState, "SrcId", -1),
-                  state
-                )
-              end
             else
               srv = Ops.get(@serviceStatesOut, current, {})
               Builtins.y2milestone("Selected service: %1", srv)
@@ -1682,9 +1686,6 @@ module Yast
               )
               Ops.set(sourceState, "priority", new_priority)
               Ops.set(@sourceStatesOut, global_current, sourceState)
-
-              # update the priority for the already loaded packages
-              Pkg.SourceSetPriority(sourceState["SrcId"], new_priority)
 
               # do not refresh the item in the table
               current = -1
