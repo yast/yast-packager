@@ -1683,6 +1683,9 @@ module Yast
               Ops.set(sourceState, "priority", new_priority)
               Ops.set(@sourceStatesOut, global_current, sourceState)
 
+              # update the priority for the already loaded packages
+              Pkg.SourceSetPriority(sourceState["SrcId"], new_priority)
+
               # do not refresh the item in the table
               current = -1
             else
