@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 17 07:41:00 UTC 2016 - lslezak@suse.cz
+
+- Update the priority for the loaded packages when starting the
+  repository manager from the package manager (bsc#498266)
+- 3.2.4
+
+-------------------------------------------------------------------
 Fri Oct 14 11:03:49 UTC 2016 - jreidinger@suse.com
 
 - allow SLES for SAP upgrade from 11 to 12 as it is renamed

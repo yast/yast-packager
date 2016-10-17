@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.2.3
+Version:        3.2.4
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -38,14 +38,14 @@ BuildRequires:  yast2 >= 3.1.187
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
 
-# Pkg::UrlSchemeIs*()
-BuildRequires:  yast2-pkg-bindings >= 3.2.0
+# Pkg::SourceSetPriority()
+BuildRequires:  yast2-pkg-bindings >= 3.2.1
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
 
-# Pkg::UrlSchemeIs*()
-Requires:       yast2-pkg-bindings >= 3.2.0
+# Pkg::SourceSetPriority()
+Requires:       yast2-pkg-bindings >= 3.2.1
 
 # Packages::Repository and Packages::Product classes
 Requires:       yast2 >= 3.1.187
