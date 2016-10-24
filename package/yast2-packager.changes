@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Oct 24 14:54:59 CEST 2016 - schubi@suse.de
+
+- Faking /etc/mtab on target system for post RPM installation
+  actions which depend on it, e.g. checking if there is a /home
+  directory. (bnc#995299)
+- 3.2.5
+
+-------------------------------------------------------------------
 Mon Oct 17 07:41:00 UTC 2016 - lslezak@suse.cz
 
 - Update the priority for the loaded packages when starting the
