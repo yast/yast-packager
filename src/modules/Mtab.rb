@@ -22,12 +22,12 @@ module Yast
       mtab = WFM.Read(path(".local.string"), MTABNAME)
       # remove non-existing mount points
       mtab_lines = mtab.split("\n")
-      mtab_lines.collect! do |mtab_line|
+      mtab_lines.map! do |mtab_line|
         # Filter out all non-existing entries/directories
         columns = mtab_line.split
         if File.directory?(columns[1])
           # remove heading /mnt from directory entry
-          columns[1].sub!(/^#{Regexp.escape("/mnt")}/, '')
+          columns[1] = columns[1][4..-1] if columns[1].start_with?("/mnt")
           columns.join(" ")
         else
           nil
