@@ -14,8 +14,8 @@ module Yast
     end
 
     #
-    # Reads /etc/mtab from inst-sys, remove all /mnt headings
-    # and writes this patches mtab into target system.
+    # Reading /etc/mtab from inst-sys, removing all /mnt headings
+    # and writing this patched mtab into target system.
     #
     def clone_to_target
       log.info("Copying /etc/mtab to the target system...")
