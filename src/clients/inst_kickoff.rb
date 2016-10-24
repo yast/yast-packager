@@ -28,6 +28,12 @@ module Yast
       Yast.import "Arch"
       Yast.import "FileUtils"
       Yast.import "String"
+      Yast.import "Mtab"
+
+      if !Mode.update
+        # fake mtab on target system for rpm post-scripts
+        Mtab.clone_to_target
+      end
 
       # Feature #301903, bugzilla #244937
       if Mode.update
@@ -158,6 +164,9 @@ module Yast
             end
           end
         end
+
+        # fake mtab on target system
+        Mtab.clone_to_target
 
         # F#302660: System installation and upgrade workflow: kernel %post
         # calling ins_bootloader write all config files for bootloader
