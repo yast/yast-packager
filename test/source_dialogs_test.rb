@@ -65,6 +65,13 @@ describe Yast::SourceDialogs do
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
+
+    it "prevents double escaping if get already escaped string" do
+      converted = "iso:///install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys+600+GB"
+
+      expect(subject.PostprocessISOURL(converted)).to eq(url)
+    end
   end
 
   describe ".URLScheme" do
