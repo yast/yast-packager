@@ -627,6 +627,16 @@ module Yast
         end
       end
 
+      # Check the YaST required packages.
+      missing_resolvables = check_missing_resolvables
+      if !missing_resolvables.empty?
+        texts = missing_resolvables.map{ |type, list| format_missing_resolvables(type,list) }
+        texts << _("Please manually select the needed items to install.")
+
+        ret["warning"] = texts.join("<br>")
+        ret["warning_level"] = :blocker
+      end
+
       # add failed mounts
       ret = AddFailedMounts(ret)
 
@@ -2765,6 +2775,53 @@ module Yast
     # @return [Boolean] true if there is a window manager
     def has_window_manager?
       Pkg.IsSelected("windowmanager") || Pkg.IsProvided("windowmanager")
+    end
+
+    # Check whether all packages needed by YaST will be installed (the user can
+    # override the YaST settings)
+    # @return [Hash<Symbol,Array<String>>] The key is resolvable type (:pattern or
+    #   :package), the value is list of names.
+    #   If nothing is missing an empty Hash is returned.
+    def check_missing_resolvables
+      missing = {}
+      proposed = PackagesProposal.GetAllResolvablesForAllTypes
+
+      proposed.each do |type, list|
+        list.each do |item|
+          statuses = Pkg.ResolvableProperties(item, type, "")
+
+          # :selected = selected to install/update, :installed = keep installed (at upgrade)
+          if statuses.nil? || !statuses.find { |s| s["status"] == :selected || s["status"] == :installed }
+            missing[type] = [] unless missing[type]
+            # use quoted "summary" value for patterns as they usually contain spaces
+            name = (type == :pattern) ? statuses.first["summary"].inspect : item
+            missing[type] << name
+          end
+        end
+      end
+
+      missing
+    end
+
+    # Build a human readable string describing missing resolvables.
+    # @param [Symbol] type resolvable type, either :pattern or :packages
+    # @param [Array<String>] list of names
+    # @return [String] Translated message containing missing resolvables
+    def format_missing_resolvables(type, list)
+      list_str = list.join(", ")
+
+      case type
+      when :package
+        # TRANSLATORS: %s is a package list
+        _("These packages need to be selected to install: %s") % list_str
+      when :pattern
+        # TRANSLATORS: %s is a pattern list
+        _("These patterns need to be selected to install: %s") % list_str
+      else
+        # TRANSLATORS: %{type} is a resolvable type, %{list} is a list of names
+        # This is a fallback message for unsupported types, normally it should not be displayed
+        _("These items (%{type}) need to be selected to install: %{list}") % {type: type, list: list}
+      end
     end
   end
 
