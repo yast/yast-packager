@@ -630,8 +630,11 @@ module Yast
       # Check the YaST required packages.
       missing_resolvables = check_missing_resolvables
       if !missing_resolvables.empty?
-        texts = missing_resolvables.map{ |type, list| format_missing_resolvables(type,list) }
+        texts = missing_resolvables.map{ |type, list| format_missing_resolvables(type, list) }
         texts << _("Please manually select the needed items to install.")
+
+        # include the existing warning if defined
+        texts.unshift(ret["warning"]) if ret["warning"]
 
         ret["warning"] = texts.join("<br>")
         ret["warning_level"] = :blocker
@@ -2819,7 +2822,7 @@ module Yast
         _("These patterns need to be selected to install: %s") % list_str
       else
         # TRANSLATORS: %{type} is a resolvable type, %{list} is a list of names
-        # This is a fallback message for unsupported types, normally it should not be displayed
+        # This is a fallback message for unknown types, normally it should not be displayed
         _("These items (%{type}) need to be selected to install: %{list}") % {type: type, list: list}
       end
     end
