@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Nov 14 11:40:56 UTC 2016 - lslezak@suse.cz
+
+- Software proposal: display an error when a package or a pattern
+  required by YaST has been deselected by user, implement a generic
+  solution for bsc#885496
+- 3.2.6
+
+-------------------------------------------------------------------
 Mon Oct 24 14:54:59 CEST 2016 - schubi@suse.de
 
 - Faking /etc/mtab on target system for post RPM installation
