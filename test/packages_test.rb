@@ -993,4 +993,63 @@ describe Yast::Packages do
     end
   end
 
+  describe "#Summary" do
+    before do
+      # mock disk space calculation
+      allow(subject).to receive(:CheckDiskSize).and_return(true)
+      allow(Yast::SpaceCalculation).to receive(:CheckDiskFreeSpace).and_return([])
+      allow(Yast::SpaceCalculation).to receive(:GetFailedMounts).and_return([])
+
+      allow(Yast::PackagesProposal).to receive(:GetAllResolvablesForAllTypes)
+        .and_return({package: ["grub2"], pattern: ["kde"]})
+    end
+
+    context "YaST preselected items are deselected by user" do
+      before do
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("grub2", :package, "")
+          .and_return(["status" => :available])
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("kde", :pattern, "")
+          .and_return(["status" => :available, "summary" => "KDE Desktop Environment"])
+      end
+
+      it "Reports missing pre-selected packages" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to include("grub2")
+      end
+
+      it "Reports missing pre-selected patterns" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to include("KDE Desktop Environment")
+      end
+
+      it "Installation/upgrade is blocked" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning_level"]).to eq(:blocker)
+      end
+    end
+
+    context "YaST preselected items are not deselected by user" do
+      before do
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("grub2", :package, "")
+          .and_return(["status" => :selected])
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("kde", :pattern, "")
+          .and_return(["status" => :selected])
+      end
+
+      it "Does not report missing pre-selected packages" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to be_nil
+      end
+
+      it "Does not report missing pre-selected patterns" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to be_nil
+      end
+
+      it "Installation/upgrade is not blocked" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning_level"]).to_not eq(:blocker)
+      end
+    end
+  end
 end
