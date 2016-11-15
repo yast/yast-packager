@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Nov 15 11:58:58 UTC 2016 - jreidinger@suse.com
+
+- Use a non-blocking error in the installation proposal for not
+  enough space issue during upgrade instead of just warning as it
+  can be easier to overlook by an user
+  (bsc#1003682)
+- 3.2.7
+
+-------------------------------------------------------------------
 Mon Nov 14 11:40:56 UTC 2016 - lslezak@suse.cz
 
 - Software proposal: display an error when a package or a pattern
