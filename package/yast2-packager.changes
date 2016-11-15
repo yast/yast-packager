@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Nov 15 11:58:58 UTC 2016 - jreidinger@suse.com
+
+- Use a non-blocking error in the installation proposal for not
+  enough space issue during upgrade instead of just warning as it
+  can be easier to overlook by an user
+  (bsc#1003682)
+- 3.1.119.1
+
+-------------------------------------------------------------------
 Wed Nov  9 16:31:50 UTC 2016 - igonzalezsosa@suse.com
 
 - Synchronize Leap 42.2 and SLES 12 SP2 versions
