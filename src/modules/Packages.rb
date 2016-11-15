@@ -593,7 +593,7 @@ module Yast
             _(
               "Not enough disk space. Remove some packages in the single selection."
             ),
-          "warning_level" => Mode.update ? :warning : :blocker
+          "warning_level" => Mode.update ? :error : :blocker
         }
       else
         # check available free space (less than 25% and less than 750MB) (see bnc#178357)
