@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov 24 13:04:32 UTC 2016 - jreidinger@suse.com
+
+- Always show summary mode when clicking on details in software
+  proposal (bsc#966466)
+- 3.2.8
+
+-------------------------------------------------------------------
 Tue Nov 15 11:58:58 UTC 2016 - jreidinger@suse.com
 
 - Use a non-blocking error in the installation proposal for not
