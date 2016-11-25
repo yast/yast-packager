@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Fri Nov 25 10:37:11 UTC 2016 - jreidinger@suse.com
 
-- Revert last change, as it is more tricky to get correct behavior.
-  For more details see discussion in (bsc#966466)
+- Revert the last change, as it is more tricky to get the correct
+  behavior. For more details see the discussion in (bsc#966466).
 - 3.2.9
 
 -------------------------------------------------------------------
