@@ -33,13 +33,8 @@ module Yast
         Pkg.PkgSolve(false)
 
         while @ret == :again
-          # display the installation summary in case there is a solver problem (bnc#436721)
-          if Ops.greater_than(Packages.solve_errors, 0)
-            Builtins.y2milestone("Unresolved conflicts, using summary mode")
-            @ret = PackagesUI.RunPackageSelector({ "mode" => :summaryMode })
-          else
-            @ret = PackagesUI.RunPatternSelector
-          end
+          # always show summary mode in installation (bnc#436721, bsc#966466)
+          @ret = PackagesUI.RunPackageSelector({ "mode" => :summaryMode })
 
           Builtins.y2milestone("Package selector result: %1", @ret)
 
