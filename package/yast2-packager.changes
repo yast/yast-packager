@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 25 10:37:11 UTC 2016 - jreidinger@suse.com
+
+- Revert the last change, as it is more tricky to get the correct
+  behavior. For more details see the discussion in (bsc#966466).
+- 3.2.9
+
+-------------------------------------------------------------------
 Thu Nov 24 13:04:32 UTC 2016 - jreidinger@suse.com
 
 - Always show summary mode when clicking on details in software
