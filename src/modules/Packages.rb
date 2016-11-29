@@ -1103,9 +1103,11 @@ module Yast
         end
       end
 
-      # FATE #302116
-      # BNC #431580
+      # FATE #302116, BNC #431580
+      # select both mandatory and optional patterns
       required_patterns = PackagesProposal.GetAllResolvables(:pattern)
+      required_patterns.concat(PackagesProposal.GetAllResolvables(:pattern, optional: true))
+
       if required_patterns != nil && required_patterns != []
         Builtins.y2milestone(
           "Patterns required by PackagesProposal: %1",
@@ -1154,9 +1156,10 @@ module Yast
 
       # bnc #431580
       # New API for packages selected by other modules
-      packages_proposal_all_packages = PackagesProposal.GetAllResolvables(
-        :package
-      )
+      # use both mandatory and optional packages
+      packages_proposal_all_packages = PackagesProposal.GetAllResolvables(:package, optional: true)
+      packages_proposal_all_packages.concat(PackagesProposal.GetAllResolvables(:package))
+
       if Ops.greater_than(Builtins.size(packages_proposal_all_packages), 0)
         Builtins.y2milestone(
           "PackagesProposal::GetAllResolvables returned: %1",
