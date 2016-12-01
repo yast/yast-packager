@@ -28,6 +28,8 @@ module Yast
     DEFAULT_WM = "icewm"
     # Minimum set of packages required for installation with remote X11 server
     REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
+    # Graphical packages for VNC installation
+    GRAPHIC_PACKAGES = [ "xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11" ]
 
     def main
       Yast.import "UI"
@@ -908,29 +910,6 @@ module Yast
       deep_copy(packages)
     end
 
-
-    # graphicPackages ()
-    # Compute graphic (x11) packages
-    # @return [Array](string)	list of rpm packages needed
-    def graphicPackages
-      packages = []
-
-      # don't setup graphics if running via serial console
-      if !Linuxrc.serial_console
-        packages = [
-          "xorg-x11-server",
-          "xorg-x11-server-glx",
-          "libusb",
-          "yast2-x11"
-        ]
-      end
-
-      Builtins.y2milestone("X11 Packages to install: %1", packages)
-
-      packages
-    end
-
-
     # Compute special packages
     # @return [Array](string)
     def modePackages
@@ -990,26 +969,6 @@ module Yast
 
       deep_copy(ret)
     end
-
-    # Compute special java packages
-    # @return [Array](string)
-    def javaPackages
-      return [] if !Arch.alpha
-
-      packages = []
-
-      cpus = Convert.to_list(SCR.Read(path(".probe.cpu")))
-      model = Ops.get_string(cpus, [0, "model"], "EV4")
-      cputype = Builtins.substring(model, 2, 1)
-
-      if cputype == "6" || cputype == "7" || cputype == "8"
-        packages = ["cpml_ev6"]
-      else
-        packages = ["cpml_ev5"]
-      end
-      deep_copy(packages)
-    end
-
 
     # Compute board (vendor) dependant packages
     # @return [Array](string)
@@ -1086,11 +1045,9 @@ module Yast
       pattern_list = []
       # also add the 'laptop' selection if PCMCIA detected
       if Arch.is_laptop || Arch.has_pcmcia
-        Builtins.foreach(["laptop", "Laptop"]) do |pat_name|
+        ["laptop", "Laptop"].each do |pat_name|
           pat_list = Pkg.ResolvableProperties(pat_name, :pattern, "")
-          if Ops.greater_than(Builtins.size(pat_list), 0)
-            pattern_list = Builtins.add(pattern_list, pat_name)
-          end
+          pattern_list << pat_name unless pat_list.empty?
         end
       end
 
@@ -1103,23 +1060,16 @@ module Yast
         end
       end
 
-      # FATE #302116
-      # BNC #431580
-      required_patterns = PackagesProposal.GetAllResolvables(:pattern)
-      if required_patterns != nil && required_patterns != []
-        Builtins.y2milestone(
-          "Patterns required by PackagesProposal: %1",
-          required_patterns
-        )
-        pattern_list = Convert.convert(
-          Builtins.merge(pattern_list, required_patterns),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      end
+      # FATE #302116, BNC #431580
+      # select both mandatory and optional patterns
+      proposed_patterns = PackagesProposal.GetAllResolvables(:pattern)
+      proposed_patterns.concat(PackagesProposal.GetAllResolvables(:pattern, optional: true))
 
-      Builtins.y2milestone("System patterns: %1", pattern_list)
-      deep_copy(pattern_list)
+      log.info("PackagesProposal patterns: #{proposed_patterns}")
+      pattern_list.concat(proposed_patterns)
+
+      log.info("System patterns: #{pattern_list}")
+      pattern_list
     end
 
 
@@ -1129,118 +1079,52 @@ module Yast
     # @return [Array<String>] packages
     def ComputeSystemPackageList
       install_list = architecturePackages
+      install_list.concat(modePackages)
 
-      install_list = Convert.convert(
-        Builtins.union(install_list, modePackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
-
-      # No longer needed - partitions_proposal uses PackagesProposal now
-      # to gather the list of pkgs needed by y2-storage (#433001)
-      #list<string> storage_packages = (list<string>)WFM::call("wrapper_storage", ["AddPackageList"]);
-
-      if Ops.greater_than(Builtins.size(@additional_packages), 0)
-        Builtins.y2warning(
-          "Additional packages are still in use, please, change it to use PackagesProposal API"
-        )
-        Builtins.y2milestone("Additional packages: %1", @additional_packages)
-        install_list = Convert.convert(
-          Builtins.union(install_list, @additional_packages),
-          :from => "list",
-          :to   => "list <string>"
-        )
+      if !@additional_packages.empty?
+        log.warn("Additional packages are still in use, please, change it to use PackagesProposal API")
+        log.info("Additional packages: #{@additional_packages}")
+        install_list.concat(@additional_packages)
       end
 
       # bnc #431580
       # New API for packages selected by other modules
-      packages_proposal_all_packages = PackagesProposal.GetAllResolvables(
-        :package
-      )
-      if Ops.greater_than(Builtins.size(packages_proposal_all_packages), 0)
-        Builtins.y2milestone(
-          "PackagesProposal::GetAllResolvables returned: %1",
-          packages_proposal_all_packages
-        )
-        install_list = Convert.convert(
-          Builtins.union(install_list, packages_proposal_all_packages),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      else
-        Builtins.y2milestone("No packages required by PackagesProposal")
-      end
+      # use both mandatory and optional packages
+      packages_proposal_all_packages = PackagesProposal.GetAllResolvables(:package, optional: true)
+      packages_proposal_all_packages.concat(PackagesProposal.GetAllResolvables(:package))
+
+      log.info("PackagesProposal packages: #{packages_proposal_all_packages}")
+      install_list.concat(packages_proposal_all_packages)
 
       # Kernel is added in autoinstPackages () if autoinst is enabled
       if !Mode.update || !Mode.autoinst
         kernel_pkgs = Kernel.ComputePackages
+        install_list.concat(kernel_pkgs)
+
         kernel_pkgs_additional = ComputeAdditionalKernelPackages()
-        install_list = Convert.convert(
-          Builtins.union(install_list, kernel_pkgs),
-          :from => "list",
-          :to   => "list <string>"
-        )
-        if Ops.greater_than(Builtins.size(kernel_pkgs_additional), 0) &&
-            kernel_pkgs_additional != nil
-          install_list = Convert.convert(
-            Builtins.union(install_list, kernel_pkgs_additional),
-            :from => "list",
-            :to   => "list <string>"
-          )
-        end
+        install_list.concat(kernel_pkgs_additional)
       end
 
-      if Pkg.IsSelected("xorg-x11-Xvnc") && Linuxrc.vnc
-        install_list = Convert.convert(
-          Builtins.union(install_list, graphicPackages),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      else
-        Builtins.y2milestone("Not selecting graphic packages")
+      # TODO: um, VNC packages are also selected in modePackages(),... ???
+      if Pkg.IsSelected("xorg-x11-Xvnc") && Linuxrc.vnc && !Linuxrc.serial_console
+        log.info("Selecting graphic packages: #{GRAPHIC_PACKAGES}")
+        install_list.concat(GRAPHIC_PACKAGES)
       end
 
-      if Pkg.IsSelected("java")
-        install_list = Convert.convert(
-          Builtins.union(install_list, javaPackages),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      else
-        Builtins.y2milestone("Not selecting java packages")
-      end
+      install_list.concat(kernelCmdLinePackages)
 
-      install_list = Convert.convert(
-        Builtins.union(install_list, kernelCmdLinePackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
-
-      install_list = Convert.convert(
-        Builtins.union(install_list, boardPackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
+      install_list.concat(boardPackages)
 
       # add packages required to access the repository in the 2nd stage and at run-time
-      install_list = Convert.convert(
-        Builtins.union(install_list, sourceAccessPackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
+      install_list.concat(sourceAccessPackages)
 
       # and the most flexible enhancement for other products
       # NOTE: not really flexible, because it requires the client
       # in the instsys, instead use <kernel-packages> in the control file.
-      if ProductFeatures.GetFeature("software", "packages_transmogrify") != ""
+      pkg_mogrify_client = ProductFeatures.GetFeature("software", "packages_transmogrify")
+      if !pkg_mogrify_client.empty?
         tmp_list = Convert.convert(
-          WFM.CallFunction(
-            ProductFeatures.GetStringFeature(
-              "software",
-              "packages_transmogrify"
-            ),
-            [install_list]
-          ),
+          WFM.CallFunction(pkg_mogrify_client, [install_list]),
           :from => "any",
           :to   => "list <string>"
         )
@@ -1250,23 +1134,15 @@ module Yast
         install_list = deep_copy(tmp_list) if tmp_list != nil
       end
 
-      packages = Convert.convert(
-        ProductFeatures.GetFeature("software", "packages"),
-        :from => "any",
-        :to   => "list <string>"
-      )
-      if Ops.greater_than(Builtins.size(packages), 0) && packages != nil
-        Builtins.y2milestone("Adding packages from control file: %1", packages)
-        install_list = Convert.convert(
-          Builtins.union(install_list, packages),
-          :from => "list",
-          :to   => "list <string>"
-        )
+      packages = ProductFeatures.GetFeature("software", "packages")
+      if !packages.empty?
+        log.info("Adding packages from control file: #{packages}")
+        install_list.concat(packages)
       end
 
-      install_list = Builtins.toset(install_list)
-      Builtins.y2milestone("auto-adding packages: %1", install_list)
-      deep_copy(install_list)
+      install_list.uniq!
+      log.info("Computed packages for the system: #{install_list}")
+      install_list
     end
 
     # Check whether content file in the specified repository is the same

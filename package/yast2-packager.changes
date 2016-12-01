@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Dec  1 08:03:05 UTC 2016 - lslezak@suse.cz
+
+- Mark the selected default patterns as optional so the user can
+  change them without blocking the installation later (fixes
+  openQA tests) (related to bsc#885496)
+- 3.2.10
+
+-------------------------------------------------------------------
 Fri Nov 25 10:37:11 UTC 2016 - jreidinger@suse.com
 
 - Revert the last change, as it is more tricky to get the correct

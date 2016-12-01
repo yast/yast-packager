@@ -410,6 +410,7 @@ describe Yast::Packages do
       expect(Yast::Arch).to receive(:is_laptop).and_return(false)
       expect(Yast::Arch).to receive(:has_pcmcia).and_return(false)
       expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern).and_return([])
+      expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern, optional: true).and_return([])
     end
 
     context "when fips pattern is available" do

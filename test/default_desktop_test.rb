@@ -5,6 +5,8 @@ require_relative "./test_helper"
 Yast.import "DefaultDesktop"
 
 describe Yast::DefaultDesktop do
+  subject { Yast::DefaultDesktop }
+
   def mock_product_features
     allow(Yast::ProductFeatures).to receive(:GetFeature)
         .with("software", "default_desktop").and_return("kde")
@@ -85,12 +87,12 @@ describe Yast::DefaultDesktop do
   before do
     mock_product_features
 
-    Yast::DefaultDesktop.ForceReinit
+    subject.ForceReinit
   end
 
   describe ".GetAllDesktopsMap" do
     it "returns hash with all desktops defined in product" do
-      expect(Yast::DefaultDesktop.GetAllDesktopsMap.keys).to (match_array(
+      expect(subject.GetAllDesktopsMap.keys).to (match_array(
         ["gnome", "kde", "min_x", "xfce", "lxde", "textmode"]
       ))
     end
@@ -98,18 +100,23 @@ describe Yast::DefaultDesktop do
 
   describe ".Desktop" do
     it "returns default desktop name if not set" do
-      expect(Yast::DefaultDesktop.Desktop).to eq "kde"
+      expect(subject.Desktop).to eq "kde"
     end
 
     it "returns name specified with #SetDesktop" do
-      Yast::DefaultDesktop.SetDesktop("gnome")
-      expect(Yast::DefaultDesktop.Desktop).to eq "gnome"
+      subject.SetDesktop("gnome")
+      expect(subject.Desktop).to eq "gnome"
     end
   end
 
   describe ".SelectedPatterns" do
     it "returns resolved patterns specified in control for chosen desktop" do
-      expect(Yast::DefaultDesktop.SelectedPatterns).to eq ["kde", "x11", "base"]
+      expect(subject.SelectedPatterns).to eq ["kde", "x11", "base"]
+    end
+
+    it "the patterns are marked as optional for the PackagesProposal module" do
+      expect(Yast::PackagesProposal).to receive(:GetResolvables).with(anything, :pattern, optional: true)
+      subject.SelectedPatterns
     end
   end
 end

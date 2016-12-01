@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.2.9
+Version:        3.2.10
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -32,8 +32,8 @@ BuildRequires:  yast2-storage
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
 
-# Packages::Repository and Packages::Product classes
-BuildRequires:  yast2 >= 3.1.187
+# Optional resolvables support in PackagesProposal
+BuildRequires:  yast2 >= 3.2.7
 
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
@@ -47,8 +47,8 @@ Requires:       yast2-country-data >= 2.16.3
 # Pkg::SourceSetPriority()
 Requires:       yast2-pkg-bindings >= 3.2.1
 
-# Packages::Repository and Packages::Product classes
-Requires:       yast2 >= 3.1.187
+# Optional resolvables support in PackagesProposal
+Requires:       yast2 >= 3.2.7
 
 # unzipping license file
 Requires:       unzip
