@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec  8 17:56:24 CET 2016 - schubi@suse.de
+
+- Copy /etc/zypp/zypp.conf from inst_sys to target system.
+  (FATE#321764)
+- 3.1.119.1
+
+-------------------------------------------------------------------
 Wed Nov  9 16:31:50 UTC 2016 - igonzalezsosa@suse.com
 
 - Synchronize Leap 42.2 and SLES 12 SP2 versions
