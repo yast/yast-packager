@@ -38,6 +38,8 @@ describe Yast::PkgFinishClient do
     let(:args) { ["Write"] }
     let(:destdir) { "/mnt" }
     let(:update) { false }
+    let(:zypp_dir) { "/etc/zypp" }
+    let(:zypp_conf) { "zypp.conf" }
 
     before do
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
@@ -46,6 +48,8 @@ describe Yast::PkgFinishClient do
       allow(Yast::Pkg).to receive(:SourceLoad)
       allow(File).to receive(:exist?).and_call_original
       allow(File).to receive(:exist?).with(FAILED_PKGS_PATH).and_return(false)
+      expect(FileUtils).to receive(:cp)
+        .with(File.join(zypp_dir, zypp_conf), File.join(destdir, zypp_dir))
     end
 
     it "saves repository information" do
