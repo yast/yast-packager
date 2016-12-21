@@ -21,9 +21,6 @@ module Yast
     include Yast::I18n
     include Yast::Logger
 
-    ZYPP_DIR = "/etc/zypp"
-    ZYPP_CONF = "zypp.conf"
-
     # Path to libzypp repositories
     REPOS_DIR = "/etc/zypp/repos.d"
     # Path to failed_packages file
@@ -46,6 +43,8 @@ module Yast
       Yast.import "FileUtils"
       Yast.import "Packages"
       Yast.import "Directory"
+      Yast.import "ZyppConf"
+
     end
 
     # @see Implements ::Installation::FinishClient#modes
@@ -83,13 +82,10 @@ module Yast
       # (needs to be done _after_ saving repositories, see bnc#700881)
       Pkg.SourceCacheCopyTo(Installation.destdir)
 
-      # Copying /etc/zypp/zypp.conf from inst_sys to target system
-      # because it could be different from the default one.
-      # (e.g. for products like CASP)
-      target_zypp = File.join(Installation.destdir, ZYPP_DIR)
-      zypp_conf = File.join(ZYPP_DIR, ZYPP_CONF)
-      log.info("Copying #{zypp_conf} to #{target_zypp}...")
-      ::FileUtils.cp(zypp_conf, target_zypp)
+      # Patching /etc/zypp/zypp.conf in order not to install
+      # recommended packages, doc-packages,...
+      # (needed for products like CASP)
+      ZyppConf.set_minimalistic(true)
 
       # copy list of failed packages to installed system
       if File.exist?(FAILED_PKGS_PATH)
