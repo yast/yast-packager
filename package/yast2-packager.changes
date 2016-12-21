@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Dec 21 15:06:31 CET 2016 - schubi@suse.de
+
+- Removed: Copy /etc/zypp/zypp.conf from inst_sys to target system.
+  Instead: Patching /etc/zypp/zypp.conf in the installed system
+           directly.
+  (FATE#321764)
+- 3.1.119.2
+
+-------------------------------------------------------------------
 Thu Dec  8 17:56:24 CET 2016 - schubi@suse.de
 
 - Copy /etc/zypp/zypp.conf from inst_sys to target system.
