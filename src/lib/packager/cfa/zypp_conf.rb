@@ -16,10 +16,15 @@ module Yast
           super(PARSER, PATH, file_handler: file_handler)
         end
 
+        # Set options to keep a minimalistic package selection
         def set_minimalistic!
           data["main"]["solver.onlyRequires"] = "true"
           data["main"]["rpm.install.excludedocs"] = "yes"
           data["main"]["multiversion"] = nil
+        end
+
+        def section(name)
+          data[name]
         end
       end
     end
