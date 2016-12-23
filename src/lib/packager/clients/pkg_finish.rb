@@ -44,7 +44,7 @@ module Yast
       Yast.import "FileUtils"
       Yast.import "Packages"
       Yast.import "Directory"
-
+      Yast.import "ProductFeatures"
     end
 
     # @see Implements ::Installation::FinishClient#modes
@@ -86,7 +86,7 @@ module Yast
       # recommended packages, doc-packages,...
       # (needed for products like CASP)
 
-      set_minimalistic_zypp_conf # only for CASP; ProductFeatures?
+      set_minimalistic_zypp_conf if ProductFeatures.GetBoolean("software", "minimalistic_configuration")
 
       # copy list of failed packages to installed system
       if File.exist?(FAILED_PKGS_PATH)
@@ -203,6 +203,9 @@ module Yast
       Pkg.TargetInitialize(Installation.destdir)
     end
 
+    # Set libzypp configuration to install the minimal amount of packages
+    #
+    # @see Yast::Packager::CFA::ZyppConf#set_minimalistic!
     def set_minimalistic_zypp_conf
       config = Packager::CFA::ZyppConf.new
       config.load

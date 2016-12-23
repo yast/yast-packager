@@ -11,15 +11,19 @@ describe Yast::PkgFinishClient do
   Yast.import "Pkg"
   Yast.import "Installation"
   Yast.import "WFM"
+  Yast.import "ProductFeatures"
 
   FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
 
   subject(:client) { Yast::PkgFinishClient.new }
   let(:repositories) { [] }
+  let(:minimalistic_configuration) { false }
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Packages::Repository).to receive(:enabled).and_return(repositories)
+    allow(Yast::ProductFeatures).to receive(:GetBoolean).with("software", "minimalistic_configuration")
+      .and_return(minimalistic_configuration)
   end
 
   describe "Info" do
@@ -197,6 +201,20 @@ describe Yast::PkgFinishClient do
 
       it "calls inst_extrasources client" do
         expect(Yast::WFM).to receive(:call).with("inst_extrasources")
+        client.run
+      end
+
+      context "if libzypp's minimalistic configuration is enabled" do
+        let(:minimalistic_configuration) { true }
+
+        it "sets libzypp configuration to be minimalistic" do
+          expect(zypp_conf).to receive(:set_minimalistic!)
+          client.run
+        end
+      end
+
+      it "does not set libzypp configuration to be minimalistic" do
+        expect(zypp_conf).to_not receive(:set_minimalistic!)
         client.run
       end
     end
