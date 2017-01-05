@@ -1,11 +1,11 @@
-language: cpp
-compiler:
-    - gcc
+sudo: required
+language: ruby
+services:
+  - docker
+
 before_install:
-    # disable rvm, use system Ruby
-    - rvm reset
-    - wget https://raw.githubusercontent.com/yast/yast-devtools/master/travis-tools/travis_setup.sh
-    - sh ./travis_setup.sh -p "rake yast2-devtools yast2-testsuite yast2 yast2-pkg-bindings yast2-storage" -g "rspec:3.3.0 yast-rake simplecov coveralls cheetah"
+  - docker build -t yast-packager-image .
 script:
-    - sudo rake install
-    - COVERAGE=1 rake test:unit
+  # the "yast-travis" script is included in the base yastdevel/ruby-tw image
+  # see https://github.com/yast/docker-yast-ruby-tw/blob/master/yast-travis
+  - docker run -it -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image yast-travis

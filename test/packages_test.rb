@@ -82,9 +82,16 @@ describe Yast::Packages do
     end
 
     context "when no /proc/cmdline is defined" do
-      it "returns empty list" do
+      it "returns empty list when a Dell system is not detected" do
         expect(Yast::SCR).to receive(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
+        expect(Yast::Packages).to receive(:DellSystem).and_return(false)
         expect(Yast::Packages.kernelCmdLinePackages).to eq([])
+      end
+
+      it "returns biosdevname package when a Dell system is detected" do
+        expect(Yast::SCR).to receive(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
+        expect(Yast::Packages).to receive(:DellSystem).and_return(true)
+        expect(Yast::Packages.kernelCmdLinePackages).to eq(["biosdevname"])
       end
     end
 
