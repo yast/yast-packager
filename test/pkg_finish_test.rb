@@ -17,13 +17,14 @@ describe Yast::PkgFinishClient do
 
   subject(:client) { Yast::PkgFinishClient.new }
   let(:repositories) { [] }
-  let(:minimalistic_configuration) { false }
+  let(:minimalistic_libzypp_config) { false }
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Packages::Repository).to receive(:enabled).and_return(repositories)
-    allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("software", "minimalistic_configuration")
-      .and_return(minimalistic_configuration)
+    allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
+      .with("software", "minimalistic_libzypp_config")
+      .and_return(minimalistic_libzypp_config)
   end
 
   describe "Info" do
@@ -205,7 +206,7 @@ describe Yast::PkgFinishClient do
       end
 
       context "if libzypp's minimalistic configuration is enabled" do
-        let(:minimalistic_configuration) { true }
+        let(:minimalistic_libzypp_config) { true }
 
         it "sets libzypp configuration to be minimalistic" do
           expect(zypp_conf).to receive(:set_minimalistic!)

@@ -85,8 +85,8 @@ module Yast
       # Patching /etc/zypp/zypp.conf in order not to install
       # recommended packages, doc-packages,...
       # (needed for products like CASP)
-      if ProductFeatures.GetBooleanFeature("software", "minimalistic_configuration")
-        set_minimalistic_zypp_conf
+      if ProductFeatures.GetBooleanFeature("software", "minimalistic_libzypp_config")
+        set_minimalistic_libzypp_conf
       end
 
       # copy list of failed packages to installed system
@@ -207,7 +207,7 @@ module Yast
     # Set libzypp configuration to install the minimal amount of packages
     #
     # @see Yast::Packager::CFA::ZyppConf#set_minimalistic!
-    def set_minimalistic_zypp_conf
+    def set_minimalistic_libzypp_conf
       config = Packager::CFA::ZyppConf.new
       config.load
       config.set_minimalistic!
