@@ -34,19 +34,6 @@ module Yast
         @ret = Storage.GetTargetMap
       when "GetTargetChangeTime"
         @ret = Storage.GetTargetChangeTime
-      when "GetWinPrimPartitions"
-        if Builtins.size(@param) == 0
-          Builtins.y2error(
-            "Missing argument for Storage::GetWinPrimPartitions()"
-          )
-        else
-          @param1 = Convert.convert(
-            Ops.get(@param, 0),
-            :from => "any",
-            :to   => "map <string, map>"
-          )
-          @ret = Storage.GetWinPrimPartitions(@param1)
-        end
       when "ClassicStringToByte"
         if Builtins.size(@param) == 0
           Builtins.y2error("Missing argument for Storage::ClassicStringToByte()")
