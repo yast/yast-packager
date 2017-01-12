@@ -34,14 +34,6 @@ module Yast
         @ret = Storage.GetTargetMap
       when "GetTargetChangeTime"
         @ret = Storage.GetTargetChangeTime
-      when "RemoveDmMapsTo"
-        if Builtins.size(@param) == 0
-          Builtins.y2error("Missing argument for Storage::RemoveDmMapsTo()")
-        else
-          @param1 = Ops.get_string(@param, 0)
-
-          @ret = Storage.RemoveDmMapsTo(@param1)
-        end
       when "GetWinPrimPartitions"
         if Builtins.size(@param) == 0
           Builtins.y2error(
