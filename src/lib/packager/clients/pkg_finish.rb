@@ -85,8 +85,9 @@ module Yast
       # Patching /etc/zypp/zypp.conf in order not to install
       # recommended packages, doc-packages,...
       # (needed for products like CASP)
-
-      set_minimalistic_zypp_conf if ProductFeatures.GetBoolean("software", "minimalistic_configuration")
+      if ProductFeatures.GetBooleanFeature("software", "minimalistic_configuration")
+        set_minimalistic_zypp_conf
+      end
 
       # copy list of failed packages to installed system
       if File.exist?(FAILED_PKGS_PATH)

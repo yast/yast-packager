@@ -22,7 +22,7 @@ describe Yast::PkgFinishClient do
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Packages::Repository).to receive(:enabled).and_return(repositories)
-    allow(Yast::ProductFeatures).to receive(:GetBoolean).with("software", "minimalistic_configuration")
+    allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("software", "minimalistic_configuration")
       .and_return(minimalistic_configuration)
   end
 
