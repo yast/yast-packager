@@ -7,6 +7,7 @@ require "tmpdir"
 
 describe Yast::Packager::CFA::ZyppConf do
   ZYPP_CONF_EXAMPLE = FIXTURES_PATH.join("zypp/zypp.conf").freeze
+  ZYPP_CONF_EXPECTED = FIXTURES_PATH.join("zypp/zypp.conf.expected").freeze
 
   subject(:config) { Yast::Packager::CFA::ZyppConf.new }
   let(:zypp_conf_path) { ZYPP_CONF_EXAMPLE }
@@ -33,7 +34,7 @@ describe Yast::Packager::CFA::ZyppConf do
     let(:expected_content) { File.read(FIXTURES_PATH.join("zypp/zypp.conf.expected")) }
 
     before do
-      FileUtils.cp ZYPP_CONF_EXAMPLE, File.join(tmpdir, "zypp.conf")
+      FileUtils.cp(ZYPP_CONF_EXAMPLE, File.join(tmpdir, "zypp.conf"))
       config.load
     end
 
@@ -42,10 +43,9 @@ describe Yast::Packager::CFA::ZyppConf do
     end
 
     it "modifies the file accordingly to given options" do
-      pending
       config.set_minimalistic!
       config.save
-      expect(File.read(zypp_conf_path)).to eq(File.read(ZYPP_CONF_EXAMPLE))
+      expect(File.read(zypp_conf_path)).to eq(File.read(ZYPP_CONF_EXPECTED))
     end
   end
 end
