@@ -121,9 +121,11 @@ This package contains the libraries and modules for software management.
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
 %dir %{yast_libdir}/packager
+%dir %{yast_libdir}/packager/cfa
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
+%{yast_libdir}/packager/cfa/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop
