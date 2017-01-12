@@ -112,8 +112,6 @@ describe Yast::SpaceCalculation do
     end
   end
 
-# storage-ng
-=begin
   describe "#size_from_string" do
     it "converts string without units bytes" do
       expect(Yast::SpaceCalculation.size_from_string("42.00")).to eq(42)
@@ -154,8 +152,13 @@ describe Yast::SpaceCalculation do
     it "converts '0.00' to zero" do
       expect(Yast::SpaceCalculation.size_from_string("0.00")).to eq(0)
     end
+
+    it "does not modify the argument" do
+      str = "1"
+      Yast::SpaceCalculation.size_from_string(str)
+      expect(str).to eq "1"
+    end
   end
-=end
 
   describe "#btrfs_snapshots?" do
     let(:dir) { "/mnt" }

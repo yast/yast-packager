@@ -34,17 +34,6 @@ module Yast
         @ret = Storage.GetTargetMap
       when "GetTargetChangeTime"
         @ret = Storage.GetTargetChangeTime
-      when "ClassicStringToByte"
-        if Builtins.size(@param) == 0
-          Builtins.y2error("Missing argument for Storage::ClassicStringToByte()")
-        else
-          # storage-ng
-          # TODO: This can (almost) be replaced by a call to yast2-storage-ng
-          # @ret = Y2Storage::DiskSize.parse(@params.first).to_i
-          # ...as soon as we add support for strings with no spaces between
-          # number and unit
-          @ret = Storage.ClassicStringToByte(@param.first)
-        end
       else
         # the required function is not known
         Builtins.y2error("unknown function: %1", @func)

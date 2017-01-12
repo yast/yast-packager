@@ -13,6 +13,7 @@
 
 require "yast"
 require "shellwords"
+require "storage"
 
 module Yast
   class SpaceCalculationClass < Module
@@ -1093,7 +1094,10 @@ module Yast
     # where unit can be one of: "" (none) or "B", "KiB", "MiB", "GiB", "TiB", "PiB"
     # @return [Integer] size in bytes
     def size_from_string(size_str)
-      WFM.call("wrapper_storage", ["ClassicStringToByte", [size_str]])
+      classic_locale = true
+      # Assume bytes by default
+      size_str += "B" unless size_str =~ /[[:alpha:]]/
+      Storage.humanstring_to_byte(size_str, classic_locale)
     end
   end
 
