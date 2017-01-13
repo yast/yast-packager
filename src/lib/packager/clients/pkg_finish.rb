@@ -208,6 +208,7 @@ module Yast
     #
     # @see Yast::Packager::CFA::ZyppConf#set_minimalistic!
     def set_minimalistic_libzypp_conf
+      log.info("Setting libzypp configuration as minimalistic")
       config = Packager::CFA::ZyppConf.new
       config.load
       config.set_minimalistic!
