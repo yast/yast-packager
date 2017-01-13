@@ -11,15 +11,20 @@ describe Yast::PkgFinishClient do
   Yast.import "Pkg"
   Yast.import "Installation"
   Yast.import "WFM"
+  Yast.import "ProductFeatures"
 
   FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
 
   subject(:client) { Yast::PkgFinishClient.new }
   let(:repositories) { [] }
+  let(:minimalistic_libzypp_config) { false }
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Packages::Repository).to receive(:enabled).and_return(repositories)
+    allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
+      .with("software", "minimalistic_libzypp_config")
+      .and_return(minimalistic_libzypp_config)
   end
 
   describe "Info" do
@@ -38,8 +43,7 @@ describe Yast::PkgFinishClient do
     let(:args) { ["Write"] }
     let(:destdir) { "/mnt" }
     let(:update) { false }
-    let(:zypp_dir) { "/etc/zypp" }
-    let(:zypp_conf) { "zypp.conf" }
+    let(:zypp_conf) { double("zypp_conf", load: true, save: true, :set_minimalistic! => true) }
 
     before do
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
@@ -48,8 +52,8 @@ describe Yast::PkgFinishClient do
       allow(Yast::Pkg).to receive(:SourceLoad)
       allow(File).to receive(:exist?).and_call_original
       allow(File).to receive(:exist?).with(FAILED_PKGS_PATH).and_return(false)
-      expect(FileUtils).to receive(:cp)
-        .with(File.join(zypp_dir, zypp_conf), File.join(destdir, zypp_dir))
+      allow(Yast::Packager::CFA::ZyppConf)
+        .to receive(:new).and_return(zypp_conf)
     end
 
     it "saves repository information" do
@@ -198,6 +202,20 @@ describe Yast::PkgFinishClient do
 
       it "calls inst_extrasources client" do
         expect(Yast::WFM).to receive(:call).with("inst_extrasources")
+        client.run
+      end
+
+      context "if libzypp's minimalistic configuration is enabled" do
+        let(:minimalistic_libzypp_config) { true }
+
+        it "sets libzypp configuration to be minimalistic" do
+          expect(zypp_conf).to receive(:set_minimalistic!)
+          client.run
+        end
+      end
+
+      it "does not set libzypp configuration to be minimalistic" do
+        expect(zypp_conf).to_not receive(:set_minimalistic!)
         client.run
       end
     end

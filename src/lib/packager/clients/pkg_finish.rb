@@ -15,14 +15,12 @@
 
 require "installation/finish_client"
 require "packages/repository"
+require "packager/cfa/zypp_conf"
 
 module Yast
   class PkgFinishClient < ::Installation::FinishClient
     include Yast::I18n
     include Yast::Logger
-
-    ZYPP_DIR = "/etc/zypp"
-    ZYPP_CONF = "zypp.conf"
 
     # Path to libzypp repositories
     REPOS_DIR = "/etc/zypp/repos.d"
@@ -46,6 +44,7 @@ module Yast
       Yast.import "FileUtils"
       Yast.import "Packages"
       Yast.import "Directory"
+      Yast.import "ProductFeatures"
     end
 
     # @see Implements ::Installation::FinishClient#modes
@@ -83,13 +82,12 @@ module Yast
       # (needs to be done _after_ saving repositories, see bnc#700881)
       Pkg.SourceCacheCopyTo(Installation.destdir)
 
-      # Copying /etc/zypp/zypp.conf from inst_sys to target system
-      # because it could be different from the default one.
-      # (e.g. for products like CASP)
-      target_zypp = File.join(Installation.destdir, ZYPP_DIR)
-      zypp_conf = File.join(ZYPP_DIR, ZYPP_CONF)
-      log.info("Copying #{zypp_conf} to #{target_zypp}...")
-      ::FileUtils.cp(zypp_conf, target_zypp)
+      # Patching /etc/zypp/zypp.conf in order not to install
+      # recommended packages, doc-packages,...
+      # (needed for products like CASP)
+      if ProductFeatures.GetBooleanFeature("software", "minimalistic_libzypp_config")
+        set_minimalistic_libzypp_conf
+      end
 
       # copy list of failed packages to installed system
       if File.exist?(FAILED_PKGS_PATH)
@@ -204,6 +202,17 @@ module Yast
     def sync_target_sources
       Pkg.TargetFinish
       Pkg.TargetInitialize(Installation.destdir)
+    end
+
+    # Set libzypp configuration to install the minimal amount of packages
+    #
+    # @see Yast::Packager::CFA::ZyppConf#set_minimalistic!
+    def set_minimalistic_libzypp_conf
+      log.info("Setting libzypp configuration as minimalistic")
+      config = Packager::CFA::ZyppConf.new
+      config.load
+      config.set_minimalistic!
+      config.save
     end
   end
 end
