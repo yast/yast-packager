@@ -2612,8 +2612,6 @@ module Yast
     publish :function => :vnc_packages, :type => "list <string> ()"
     publish :function => :remote_x11_packages, :type => "list <string> ()"
 
-    private
-
     # list of all products that will be installed (are selected)
     def products_to_install(products)
       products.select { |product| product["status"] == :selected }
