@@ -1,6 +1,0 @@
-config
-run
-*.test
-site.exp
-*.sum
-raw.tmp.err.*

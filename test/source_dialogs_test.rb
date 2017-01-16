@@ -4,6 +4,11 @@ require_relative "./test_helper"
 
 Yast.import "SourceDialogs"
 
+def allow_global_checkbox_state(enabled)
+  allow(Yast::UI).to receive(:WidgetExists).with(:add_addon).and_return(true)
+  allow(Yast::UI).to receive(:QueryWidget).with(:add_addon, :Value).and_return(enabled)
+end
+
 describe Yast::SourceDialogs do
   subject { Yast::SourceDialogs }
 
@@ -65,6 +70,13 @@ describe Yast::SourceDialogs do
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
+
+    it "prevents double escaping if get already escaped string" do
+      converted = "iso:///install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys+600+GB"
+
+      expect(subject.PostprocessISOURL(converted)).to eq(url)
+    end
   end
 
   describe ".URLScheme" do
@@ -89,6 +101,74 @@ describe Yast::SourceDialogs do
       described_class.SelectStore(:type, {})
 
       expect(described_class.instance_variable_get("@_url")).to eq "dvd:///"
+    end
+
+    context "the global add-on checkbox is disabled" do
+      before do
+        allow_global_checkbox_state(false)
+      end
+
+      it "ignores the selected RadioButton" do
+        expect(Yast::UI).to_not receive(:QueryWidget).with(Id(:type), :CurrentButton)
+        described_class.SelectStore(:type, {})
+      end
+
+      it "sets empty URL" do
+        described_class.SelectStore(:type, {})
+        expect(described_class.instance_variable_get("@_url")).to eq ""
+      end
+    end
+  end
+
+  describe "SelectHandle" do
+    context "the global add-on checkbox is disabled" do
+      before do
+        allow_global_checkbox_state(false)
+      end
+
+      it "returns nil after pressing [Next] even if the CD RadioButton is selected" do
+        expect(Yast::UI).to receive(:QueryWidget).with(Id(:type), :CurrentButton).and_return(:cd)
+        expect(described_class.SelectHandle(nil, "ID" => :next)).to eq(nil)
+      end
+    end
+
+    context "the global add-on checkbox is enabled" do
+      before do
+        allow_global_checkbox_state(true)
+      end
+
+      it "returns :finish after pressing [Next] if the CD RadioButton is selected" do
+        expect(Yast::UI).to receive(:QueryWidget).with(Id(:type), :CurrentButton).and_return(:cd)
+        expect(described_class.SelectHandle(nil, "ID" => :next)).to eq(:finish)
+      end
+    end
+  end
+
+  describe "SelectValidate" do
+    context "the global add-on checkbox is disabled" do
+      before do
+        allow_global_checkbox_state(false)
+      end
+
+      it "returns true" do
+        expect(described_class.SelectValidate(nil, nil)).to eq(true)
+      end
+
+      it "ignores the RadioButton state" do
+        expect(Yast::UI).to_not receive(:QueryWidget).with(Id(:type), :CurrentButton)
+        described_class.SelectValidate(nil, nil)
+      end
+    end
+
+    context "the global add-on checkbox is enabled" do
+      before do
+        allow_global_checkbox_state(true)
+      end
+
+      it "returns :finish after pressing [Next] if the CD RadioButton is selected" do
+        expect(Yast::UI).to receive(:QueryWidget).with(Id(:type), :CurrentButton).and_return(:cd)
+        expect(described_class.SelectHandle(nil, "ID" => :next)).to eq(:finish)
+      end
     end
   end
 end

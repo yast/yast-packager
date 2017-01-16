@@ -33,13 +33,6 @@ def load_zypp(file_name)
   YAML.load_file(file_name)
 end
 
-def set_root_path(directory)
-  root = File.join(DATA_PATH, directory)
-  check_version = false
-  handle = Yast::WFM.SCROpen("chroot=#{root}:scr", check_version)
-  Yast::WFM.SCRSetDefault(handle)
-end
-
 PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
 
 describe Yast::Packages do
@@ -53,38 +46,60 @@ describe Yast::Packages do
       allow(Yast::Product).to receive(:Product).and_return nil
     end
 
-    after(:each) do
-      # set_root_path is always called and it opens a SCR instance
-      # that needs to be closed
-      Yast::WFM.SCRClose(Yast::WFM.SCRGetDefault)
-    end
-
     context "when biosdevname behavior explicitly defined on the Kenel command line" do
-      it "returns biosdevname within the list of required packages" do
-        set_root_path("cmdline-biosdevname_1")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
+      context "when biosdevname=1" do
+        around do |example|
+          root = File.join(DATA_PATH, "cmdline-biosdevname_1")
+          change_scr_root(root, &example)
+        end
+
+        it "returns biosdevname within the list of required packages" do
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
+        end
       end
 
-      it "does not return biosdevname within the list of required packages" do
-        set_root_path("cmdline-biosdevname_0")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+      context "when biosdevname=0" do
+        around do |example|
+          root = File.join(DATA_PATH, "cmdline-biosdevname_0")
+          change_scr_root(root, &example)
+        end
+
+        it "does not return biosdevname within the list of required packages" do
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+        end
       end
 
-      it "does not return biosdevname within the list of required packages then value is invalid" do
-        set_root_path("cmdline-biosdevname_10")
-        expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+      context "when biosdevname=10 (invalid)" do
+        around do |example|
+          root = File.join(DATA_PATH, "cmdline-biosdevname_10")
+          change_scr_root(root, &example)
+        end
+
+        it "does not return biosdevname within the list of required packages then value is invalid" do
+          expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
+        end
       end
     end
 
     context "when no /proc/cmdline is defined" do
-      it "returns empty list" do
+      it "returns empty list when a Dell system is not detected" do
         expect(Yast::SCR).to receive(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
+        expect(Yast::Packages).to receive(:DellSystem).and_return(false)
         expect(Yast::Packages.kernelCmdLinePackages).to eq([])
+      end
+
+      it "returns biosdevname package when a Dell system is detected" do
+        expect(Yast::SCR).to receive(:Read).with(SCR_PROC_CMDLINE_PATH).and_return(nil)
+        expect(Yast::Packages).to receive(:DellSystem).and_return(true)
+        expect(Yast::Packages.kernelCmdLinePackages).to eq(["biosdevname"])
       end
     end
 
     context "when biosdevname behavior not defined on the Kernel command line" do
-      before { set_root_path("cmdline-biosdevname_nil") }
+      around do |example|
+        root = File.join(DATA_PATH, "cmdline-biosdevname_nil")
+        change_scr_root(root, &example)
+      end
 
       context "and running on a Dell system" do
         it "returns biosdevname within the list of packages" do
@@ -402,6 +417,7 @@ describe Yast::Packages do
       expect(Yast::Arch).to receive(:is_laptop).and_return(false)
       expect(Yast::Arch).to receive(:has_pcmcia).and_return(false)
       expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern).and_return([])
+      expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern, optional: true).and_return([])
     end
 
     context "when fips pattern is available" do
@@ -895,6 +911,153 @@ describe Yast::Packages do
       expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p1", :product)
 
       Yast::Packages.Reset([:product])
+    end
+  end
+
+  describe "#ListSelected" do
+    let(:unordered_products) do
+      [
+        product("name" => "p3", "status" => :selected, "source" => 15),
+        product("name" => "p4", "status" => :available, "source" => 40),
+        product("name" => "p1", "status" => :selected, "source" => 10)
+      ]
+    end
+
+    let(:filtered_products) do
+      [
+        product("name" => "p3", "status" => :selected, "source" => 15),
+        product("name" => "p1", "status" => :selected, "source" => 10)
+      ]
+    end
+
+    let(:ordered_products) do
+      [
+        product("name" => "p1", "status" => :selected, "source" => 10),
+        product("name" => "p3", "status" => :selected, "source" => 15)
+      ]
+    end
+
+    let(:unordered_patterns) do
+      [
+        pattern("name" => "p3", "status" => :selected, "order" => "3", "user_visible" => true),
+        pattern("name" => "p1", "status" => :selected, "order" => "1", "user_visible" => false),
+        pattern("name" => "p2", "status" => :available, "order" => "2", "user_visible" => true)
+      ]
+    end
+
+    let(:filtered_patterns) do
+      [
+        pattern("name" => "p3", "status" => :selected, "order" => "3", "user_visible" => true)
+      ]
+    end
+
+    before do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(unordered_products)
+    end
+
+    it "obtains a list of resolvables of the given type" do
+      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+
+      subject.ListSelected(:product, "")
+    end
+
+    it "filters not selected resolvables from the list" do
+      expect(subject).to receive(:sort_resolvable!)
+        .with(filtered_products, :product)
+
+      subject.ListSelected(:product, "")
+    end
+
+    it "filters not user visible resolvables from the list for type pattern" do
+      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :pattern, "")
+        .and_return(unordered_patterns)
+      expect(subject).to receive(:sort_resolvable!)
+        .with(filtered_patterns, :pattern)
+
+      subject.ListSelected(:pattern, "")
+    end
+
+    it "sorts resultant list depending on resolvable type" do
+      expect(subject).to receive(:formatted_resolvables).with(ordered_products, "")
+
+      subject.ListSelected(:product, "")
+    end
+
+    it "returns an empty list if no resolvables selected" do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return([])
+
+      expect(subject.ListSelected(:product, "Product: %1")).to eql([])
+    end
+
+    it "returns a list with each resultant resolvable formatted as the format given" do
+      expect(subject.ListSelected(:product, "Product: %1")).to eql(
+        [
+          "Product: p1",
+          "Product: p3"
+        ]
+      )
+    end
+  end
+
+  describe "#Summary" do
+    before do
+      # mock disk space calculation
+      allow(subject).to receive(:CheckDiskSize).and_return(true)
+      allow(Yast::SpaceCalculation).to receive(:CheckDiskFreeSpace).and_return([])
+      allow(Yast::SpaceCalculation).to receive(:GetFailedMounts).and_return([])
+
+      allow(Yast::PackagesProposal).to receive(:GetAllResolvablesForAllTypes)
+        .and_return({package: ["grub2"], pattern: ["kde"]})
+    end
+
+    context "YaST preselected items are deselected by user" do
+      before do
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("grub2", :package, "")
+          .and_return(["status" => :available])
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("kde", :pattern, "")
+          .and_return(["status" => :available, "summary" => "KDE Desktop Environment"])
+      end
+
+      it "Reports missing pre-selected packages" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to include("grub2")
+      end
+
+      it "Reports missing pre-selected patterns" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to include("KDE Desktop Environment")
+      end
+
+      it "Installation/upgrade is blocked" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning_level"]).to eq(:blocker)
+      end
+    end
+
+    context "YaST preselected items are not deselected by user" do
+      before do
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("grub2", :package, "")
+          .and_return(["status" => :selected])
+        expect(Yast::Pkg).to receive(:ResolvableProperties).with("kde", :pattern, "")
+          .and_return(["status" => :selected])
+      end
+
+      it "Does not report missing pre-selected packages" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to be_nil
+      end
+
+      it "Does not report missing pre-selected patterns" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning"]).to be_nil
+      end
+
+      it "Installation/upgrade is not blocked" do
+        summary = subject.Summary([:package], false)
+        expect(summary["warning_level"]).to_not eq(:blocker)
+      end
     end
   end
 end
