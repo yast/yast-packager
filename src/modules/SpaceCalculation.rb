@@ -14,6 +14,7 @@
 require "yast"
 require "shellwords"
 require "storage"
+require "y2packager/storage_manager_proxy"
 
 module Yast
   class SpaceCalculationClass < Module
@@ -26,6 +27,8 @@ module Yast
 
     # 1 MiB in KiB
     MIB = 1024
+
+    TARGET_FS_TYPES_TO_IGNORE = [::Storage::FsType_VFAT, ::Storage::FsType_NTFS]
 
     def main
       Yast.import "Pkg"
@@ -192,29 +195,21 @@ module Yast
     end
 
     # return default ext3/4 journal size (in B) for target partition size
-    def DefaultExtJournalSize(part)
-      part = deep_copy(part)
-      if Ops.get_symbol(part, "used_fs", :unknown) == :ext2
+    def DefaultExtJournalSize(filesystem)
+      if filesystem.to_s == "ext2"
         Builtins.y2milestone("No journal on ext2")
         return 0
       end
 
       ret = 0
 
-      part_size = Ops.multiply(1024, Ops.get_integer(part, "size_k", 0))
-      # default block size is 4k
-      bs = Builtins.tointeger(
-        Ops.get_string(
-          part,
-          ["fs_options", "opt_blocksize", "option_value"],
-          "4096"
-        )
-      )
-      blocks = Ops.divide(part_size, bs)
+      part_size = filesystem_size(filesystem)
+      bs = filesystem_block_size(filesystem)
+      blocks = Ops.divide(filesystem_size(filesystem), bs)
 
       Builtins.y2milestone(
         "Partition %1: %2 blocks (block size: %3)",
-        Ops.get_string(part, "name", ""),
+        filesystem_name(filesystem),
         blocks,
         bs
       )
@@ -244,41 +239,38 @@ module Yast
       ret
     end
 
-    def ExtJournalSize(part)
-      part = deep_copy(part)
-      if Ops.get_symbol(part, "used_fs", :unknown) == :ext2
+    def ExtJournalSize(filesystem)
+      if filesystem.to_s == "ext2"
         Builtins.y2milestone("No journal on ext2")
         return 0
       end
 
       ret = 0
-      # no journal
-      if Builtins.haskey(Ops.get_map(part, "fs_options", {}), "no_journal")
-        Builtins.y2milestone(
-          "Partition %1 has disabled journal",
-          Ops.get_string(part, "name", "")
-        )
-      else
+      if filesystem.tune_options.include?("has_journal")
         Builtins.y2milestone(
           "Using default journal size for %1",
-          Ops.get_string(part, "name", "")
+          filesystem_name(filesystem)
         )
-        ret = DefaultExtJournalSize(part)
+        ret = DefaultExtJournalSize(filesystem)
+      else
+        Builtins.y2milestone(
+          "Partition %1 has disabled journal",
+          filesystem_name(filesystem)
+        )
       end
       # Note: custom journal size cannot be entered in the partitioner
 
       Builtins.y2milestone(
         "Journal size for %1: %2kB",
-        Ops.get_string(part, "name", ""),
+        filesystem_name(filesystem),
         Ops.divide(ret, 1024)
       )
 
       ret
     end
 
-    def XfsJournalSize(part)
-      part = deep_copy(part)
-      part_size = Ops.multiply(1024, Ops.get_integer(part, "size_k", 0))
+    def XfsJournalSize(filesystem)
+      part_size = filesystem_size(filesystem)
       mb = 1 << 20
       gb = 1 << 30
 
@@ -306,8 +298,7 @@ module Yast
       ret
     end
 
-    def ReiserJournalSize(part)
-      part = deep_copy(part)
+    def ReiserJournalSize(filesystem)
       # the default is 8193 of 4k blocks (max = 32749, min = 513 blocks)
       ret = 8193 * 4096
 
@@ -339,25 +330,11 @@ module Yast
       ret
     end
 
-    def JfsJournalSize(part)
-      part = deep_copy(part)
-      # log size (in MB)
-      log_size = Builtins.tointeger(
-        Ops.get_string(
-          part,
-          ["fs_options", "opt_log_size", "option_value"],
-          "0"
-        )
-      )
-
-      if Ops.greater_than(log_size, 0)
-        # convert to bytes
-        log_size = Ops.multiply(log_size, 1 << 20)
-      else
-        log_size = DefaultJfsJournalSize(
-          Ops.multiply(1024, Ops.get_integer(part, "size_k", 0))
-        )
-      end
+    def JfsJournalSize(filesystem)
+      # In the past we used to check the journal size for the particular
+      # filesystem. JFS is not supported anymore, so now we simply assume the
+      # default size.
+      log_size = DefaultJfsJournalSize(filesystem_size(filesystem))
 
       Builtins.y2milestone(
         "Jfs journal size: %1MB",
@@ -447,11 +424,9 @@ module Yast
 
     # return estimated fs overhead
     # (the difference between partition size and reported fs blocks)
-    def EstimateFsOverhead(part)
-      part = deep_copy(part)
-      fs_size = Ops.multiply(1024, Ops.get_integer(part, "size_k", 0))
-      fs = Ops.get_symbol(part, "used_fs", :unknown)
-
+    def EstimateFsOverhead(filesystem)
+      fs_size = filesystem_size(filesystem)
+      fs = filesystem.to_s.to_sym
       ret = 0
 
       if ExtFs(fs)
@@ -473,14 +448,19 @@ module Yast
     end
 
     # return reserved space for root user (in bytes)
-    def ReservedSpace(part)
-      part = deep_copy(part)
+    def ReservedSpace(filesystem)
       # read the percentage
-      option = Ops.get_string(
-        part,
-        ["fs_options", "opt_reserved_blocks", "option_value"],
-        ""
-      )
+
+      # storage-ng
+      # libstorage-ng simply provides Filesystem#mkfs_options
+      # It's up to yast2-storage to store something meaningful there while
+      # creating the filesystem. So far we don't do it.
+      # TODO: revisit this when we have proper management of the mkfs_options
+      option = ""
+=begin
+      option = part["fs_options"]["opt_reserved_blocks"]["option_value"] || ""
+=end
+
       ret = 0
 
       if option != nil && option != ""
@@ -488,7 +468,7 @@ module Yast
 
         if Ops.greater_than(percent, 0.0)
           # convert to absolute value
-          fs_size = Ops.get_integer(part, "size_k", 0)
+          fs_size = filesystem_size(filesystem)
           ret = Builtins.tointeger(
             Ops.multiply(
               Convert.convert(
@@ -505,7 +485,7 @@ module Yast
       if Ops.greater_than(ret, 0)
         Builtins.y2milestone(
           "Partition %1: reserved space: %2%% (%3kB)",
-          Ops.get_string(part, "name", ""),
+          filesystem_name(filesystem),
           option,
           ret
         )
@@ -514,8 +494,8 @@ module Yast
       Ops.multiply(ret, 1024)
     end
 
-    # Define a macro that transforms information about all partitions ( from
-    # Storage::GetTargetMap() ) into a list(map) with information about partitions
+    # Define a macro that transforms information about all partitions (from the
+    # staging devicegraph) into a list(map) with information about partitions
     # which are available for installation, e.g.:
     #
     # [$["free":1625676, "name":"/boot", "used":0], $["free":2210406, "name":"/", "used":0]]
@@ -579,49 +559,26 @@ module Yast
       # remove the previous failures
       @failed_mounts = []
 
-      # installation stage - Storage:: is definitely present
-      # call Storage::GetTargetMap()
-      targets = Convert.convert(
-        WFM.call("wrapper_storage", ["GetTargetMap"]),
-        :from => "any",
-        :to   => "map <string, map>"
-      )
-
-      log.error "Target map is nil, Storage:: is probably missing" unless targets
-
-      if Mode.test
-        targets = Convert.convert(
-          SCR.Read(path(".target.yast2"), "test_target_map.ycp"),
-          :from => "any",
-          :to   => "map <string, map>"
-        )
-      end
-
       target_partitions = []
       min_spare = 20 * 1024 * 1024 # minimum free space ( 20 MB )
 
-      Builtins.foreach(targets) do |disk, diskinfo|
-        part_info = Ops.get_list(diskinfo, "partitions", [])
-        Builtins.foreach(part_info) do |part|
-          log.info "Adding partition: #{part}"
-          used_fs = part["used_fs"]
-          # ignore VFAT and NTFS partitions (bnc#)
-          if used_fs == :vfat || used_fs == :ntfs
-            log.warn "Ignoring partition with #{used_fs} filesystem"
-          else
-            free_size = 0
-            growonly = false
+      target_filesystems.each do |filesystem|
+        # storage-ng
+        # FIXME
+        # With storage-ng we need way less nesting to reach the meaningful
+        # information in the data structure (4 fewer levels!). Still, we are
+        # temporarily keeping the old indentation here (even if it breaks our
+        # coding standard) to avoid confusing developers and git about what had
+        # really changed in the code below.
+        # This should be fixed when merging storage-ng into master.
+                used_fs = filesystem.to_s.to_sym
+                free_size = 0
+                growonly = false
 
-            if Ops.get(part, "mount") != nil &&
-                part["mount"].start_with?("/")
-              if Ops.get(part, "create") == true ||
-                  Ops.get(part, "delete") == false ||
-                  Ops.get(part, "create") == nil &&
-                    Ops.get(part, "delete") == nil
-                log.debug "get_partition_info: adding partition: #{part}"
+                log.debug "get_partition_info: adding filesystem: #{filesystem.inspect}"
 
                 # get free_size on partition in kBytes
-                free_size = part["size_k"] * 1024
+                free_size = filesystem_size(filesystem)
                 free_size -= min_spare
 
                 # free_size smaller than min_spare, fix negative value
@@ -632,18 +589,15 @@ module Yast
 
                 used = 0
                 # If reusing a previously existent filesystem
-                if !(part["create"] || part["format"])
+                if filesystem.exists_in_probed?
 
                   # Mount the filesystem to check the available space.
-                  # FIXME: libstorage provides functions to query free
-                  # information for devices (even caching the information).
-                  # This part should be refactored to rely on libstorage.
 
                   tmpdir = SCR.Read(path(".target.tmpdir")) + "/diskspace_mount"
                   SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)}")
 
                   # mount options determined by partitioner
-                  mount_options = (part["fstopt"] || "").split(",")
+                  mount_options = filesystem.fstab_options.to_a
 
                   # mount in read-only mode (safer)
                   mount_options << "ro"
@@ -659,7 +613,8 @@ module Yast
 
                   # Use DM device if it's encrypted, plain device otherwise
                   # (bnc#889334)
-                  device = part["crypt_device"] || part["device"] || ""
+                  #device = part["crypt_device"] || part["device"] || ""
+                  device = filesystem_name(filesystem)
 
                   mount_command = "mount -o #{mount_options_str} " \
                     "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
@@ -690,28 +645,29 @@ module Yast
                     SCR.Execute(path(".target.bash"), "umount #{Shellwords.escape(tmpdir)}")
                   else
                     log.error "Mount failed, ignoring partition #{device}"
-                    @failed_mounts = Builtins.add(@failed_mounts, part)
+                    @failed_mounts << filesystem
 
                     next
                   end
                 else
                   # for formatted partitions estimate free system size
                   # compute fs overhead
-                  used = EstimateFsOverhead(part)
+                  used = EstimateFsOverhead(filesystem)
+                  device = filesystem_name(filesystem)
                   log.info "#{device}: assuming fs overhead: #{used / 1024}KiB"
 
                   # get the journal size
                   case used_fs
                   when :ext2, :ext3, :ext4
-                    js = ExtJournalSize(part)
-                    reserved = ReservedSpace(part)
+                    js = ExtJournalSize(filesystem)
+                    reserved = ReservedSpace(filesystem)
                     used += reserved if reserved > 0
                   when :xfs
-                    js = XfsJournalSize(part)
-                  when :reiser
-                    js = ReiserJournalSize(part)
+                    js = XfsJournalSize(filesystem)
+                  when :reiserfs
+                    js = ReiserJournalSize(filesystem)
                   when :jfs
-                    js = JfsJournalSize(part)
+                    js = JfsJournalSize(filesystem)
                   when :btrfs
                     # Btrfs uses temporary trees instead of a fixed journal,
                     # there is no journal, it's a logging FS
@@ -722,7 +678,7 @@ module Yast
                   end
 
                   if js && js > 0
-                    log.info "Partition #{part["device"]}: assuming journal size: #{js / 1024}KiB"
+                    log.info "Partition #{device}: assuming journal size: #{js / 1024}KiB"
                     used += js
                   end
 
@@ -739,7 +695,7 @@ module Yast
                 # convert into KiB for TargetInitDU
                 free_size_kib = free_size / 1024
                 used_kib = used / 1024
-                mount_name = part["mount"]
+                mount_name = filesystem_mountpoint(filesystem)
                 log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
 
                 mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
@@ -751,11 +707,8 @@ module Yast
                   "used" => used_kib,
                   "free" => free_size_kib
                 }
-              end
-            end
-          end
-        end # foreach (`part)
-      end # foreach (`disk)
+        # storage-ng: end of indentation gap (see comment above)
+      end
 
       # add estimated size occupied by non-package files
       target_partitions = EstimateTargetUsage(target_partitions)
@@ -1097,7 +1050,43 @@ module Yast
       classic_locale = true
       # Assume bytes by default
       size_str += "B" unless size_str =~ /[[:alpha:]]/
-      Storage.humanstring_to_byte(size_str, classic_locale)
+      ::Storage.humanstring_to_byte(size_str, classic_locale)
+    end
+
+  private
+
+    # Filesystems to consider while checking the system available space
+    #
+    # @return [Array<Storage::Filesystem>]
+    def target_filesystems
+      filesystems = ::Storage::Filesystem.all(staging_devicegraph).to_a
+      filesystems.select! { |fs| fs.mountpoints.any? { |mp| mp.start_with?("/") } }
+      filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
+      filesystems
+    end
+
+    def staging_devicegraph
+      @storage_manager ||= Y2Packager::StorageManagerProxy.new
+      @storage_manager.staging
+    end
+
+    def filesystem_size(filesystem)
+      blk_device = filesystem.blk_devices[0]
+      # Only for local fs, NFS not supported yet in libstorage-ng
+      return 0 unless blk_device
+      blk_device.size
+    end
+
+    def filesystem_block_size(filesystem)
+      filesystem.blk_devices[0].region.block_size
+    end
+
+    def filesystem_name(filesystem)
+      filesystem.blk_devices[0].name
+    end
+
+    def filesystem_mountpoint(filesystem)
+      filesystem.mountpoints[0] || ""
     end
   end
 

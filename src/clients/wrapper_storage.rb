@@ -30,8 +30,6 @@ module Yast
 
       # call the required function
       case @func
-      when "GetTargetMap"
-        @ret = Storage.GetTargetMap
       when "GetTargetChangeTime"
         @ret = Storage.GetTargetChangeTime
       else

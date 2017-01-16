@@ -518,7 +518,7 @@ module Yast
         ) ? "<BR>" : ""
         if Builtins.contains(
             @basic_dirs,
-            Ops.get_string(failed_mount, "mount", "")
+            fs_mountpoint(failed_mount)
           )
           Ops.set(
             summary,
@@ -530,8 +530,8 @@ module Yast
                 _(
                   "Error: Cannot check free space in basic directory %1 (device %2), cannot start installation."
                 ),
-                Ops.get_string(failed_mount, "mount", ""),
-                Ops.get_string(failed_mount, "device", "")
+                fs_mountpoint(failed_mount),
+                fs_name(failed_mount)
               )
             )
           )
@@ -550,8 +550,8 @@ module Yast
                 _(
                   "Warning: Cannot check free space in directory %1 (device %2)."
                 ),
-                Ops.get_string(failed_mount, "mount", ""),
-                Ops.get_string(failed_mount, "device", "")
+                fs_mountpoint(failed_mount),
+                fs_name(failed_mount)
               )
             )
           )
@@ -2699,6 +2699,16 @@ module Yast
         # This is a fallback message for unknown types, normally it should not be displayed
         _("These items (%{type}) need to be selected to install: %{list}") % {type: type, list: list}
       end
+    end
+
+    def fs_mountpoint(filesystem)
+      filesystem.mountpoints[0] || ""
+    end
+
+    def fs_name(filesystem)
+      blk_device = filesystem.blk_devices[0]
+      return "" unless blk_device
+      blk_device.name
     end
   end
 
