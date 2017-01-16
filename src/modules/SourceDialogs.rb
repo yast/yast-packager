@@ -67,6 +67,9 @@ module Yast
     VALID_URL_SCHEMES = ["ftp", "tftp", "http", "https", "nfs",
       "nfs4", "cifs", "smb", "cd", "dvd", "iso", "dir", "file", "hd"]
 
+    # repository types which need special handling
+    SPECIAL_TYPES = [:slp, :cd, :dvd, :comm_repos, :sccrepos]
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -329,16 +332,18 @@ module Yast
       uri = URI(url)
       query = uri.query || ""
       params = URI.decode_www_form(query).to_h
-      params["iso"] = File.basename(uri.path || "")
+      path = uri.path || ""
+      params["iso"] = File.basename(path)
 
       new_url = uri.dup
-      new_url.path = File.dirname(uri.path || "")
+      new_url.path = File.dirname(path)
       new_url.query = nil
       # URL scheme in the "url" option must be set to "dir" (or empty)
       # for a local ISO image (see https://bugzilla.suse.com/show_bug.cgi?id=919138
       # and https://en.opensuse.org/openSUSE:Libzypp_URIs#ISO_Images )
       new_url.scheme = "dir" if uri.scheme.downcase == "iso"
-      params["url"] = new_url.to_s
+      # url can be already escaped, so unescape double escaping (bsc#954813)
+      params["url"] = URI.unescape(new_url.to_s)
 
       processed = URI("")
       processed.query = URI.encode_www_form(params)
@@ -2175,7 +2180,9 @@ module Yast
     end
 
     def SelectValidate(key, event)
-      event = deep_copy(event)
+      # skip validation if disabled by the global checkbox
+      return true if global_disable
+
       selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
       if selected == nil
         # error popup
@@ -2216,7 +2223,7 @@ module Yast
     # @param [String] key widget key
     # @param [Hash] event event description
     # @return [Symbol]
-    def SelectHandle(key, event)
+    def SelectHandle(_key, event)
       case event["ID"]
       when :back
         # reset the preselected URL when going back
@@ -2234,17 +2241,25 @@ module Yast
       #  TODO: disable "download" option when CD or DVD source is selected
 
       selected = UI.QueryWidget(Id(:type), :CurrentButton)
-      return :finish if [:slp, :cd, :dvd, :comm_repos, :sccrepos].include?(selected)
+      return :finish if SPECIAL_TYPES.include?(selected) && !global_disable
 
       nil
     end
 
-    def SelectStore(key, event)
-      event = deep_copy(event)
+    # Get the status of the global checkbox.
+    # @return [Boolean] true if the global checkbox is displayed and is unchecked,
+    #   false otherwise
+    def global_disable
+      UI.WidgetExists(:add_addon) && !UI.QueryWidget(:add_addon, :Value)
+    end
+
+    def SelectStore(_key, _event)
       @_url = ""
       @_plaindir = false
       @_repo_name = ""
-      @addon_enabled = UI.WidgetExists(:add_addon) ?  UI.QueryWidget(:add_addon, :Value) : nil
+      @addon_enabled = !global_disable
+
+      return nil if global_disable
 
       selected = Convert.to_symbol(UI.QueryWidget(Id(:type), :CurrentButton))
 

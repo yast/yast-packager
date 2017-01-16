@@ -52,6 +52,11 @@ module Yast
       ]
       # no more wildcard patterns here, UI can display only html and txt anyway
 
+      initialize_default_values
+    end
+
+    # (Re)Initializes all internal caches
+    def initialize_default_values
       # All licenses have their own unique ID
       @license_ids = []
 
@@ -302,14 +307,56 @@ module Yast
       )
     end
 
+    # Returns source ID of the base product - initial installation only!
+    # If no sources are found, returns 0.
+    # FIXME: Connected to bsc#993285, refactoring needed
+    #
+    # return [Integer] base_product_id or 0
+    def base_product_id
+      raise "Base product can be only found in installation" unless Stage.initial
+
+      # The first product in the list of known products
+      # 0 is the backward-compatible default value, first installation repo always
+      # gets this ID later
+      current_sources = Pkg.SourceGetCurrent(true)
+      current_sources.any? ? current_sources.first : 0
+    end
+
     # Returns whether accepting the license manually is requied.
     #
     # @see BNC #448598
+    # @param [Any] id unique ID
     # @return [Boolean] if required
     def AcceptanceNeeded(id)
-      Ops.get(@license_acceptance_needed, id, true)
+      # FIXME: lazy loading of the info about licenses, bigger refactoring needed
+      # @see bsc#993285
+      #
+      # In the initial installation, for base product, acceptance_needed needs
+      # to be known before showing the license dialog (inst_complex_welcome).
+      # Loading the info is handled internally in other cases.
+      #
+      # id can be a string (currently is) when called from inst_complex_welcome
+      if !@license_acceptance_needed.key?(id) &&
+          Stage.initial &&
+          id.to_s == base_product_id.to_s
+        # Although we know the base product ID, the function below expects
+        # id to be nil for base product in inital installation
+        GetSourceLicenseDirectory(nil, "/")
+        cache_license_acceptance_needed(id, @license_dir)
+      end
+
+      if @license_acceptance_needed.key?(id)
+        @license_acceptance_needed[id]
+      else
+        log.warn "SetAcceptanceNeeded(#{id}) should be called first, using default 'true'"
+        true
+      end
     end
 
+    # Sets whether explicit acceptance of a license is needed
+    #
+    # @param [Any] id unique ID (often a source ID)
+    # @param [Boolean] new_value if needed
     def SetAcceptanceNeeded(id, new_value)
       if new_value == nil
         Builtins.y2error(
@@ -320,15 +367,12 @@ module Yast
         return
       end
 
-      Ops.set(@license_acceptance_needed, id, new_value)
+      @license_acceptance_needed[id] = new_value
 
       if new_value == true
-        Builtins.y2milestone("License agreement (ID %1) WILL be required", id)
+        log.info "License agreement (ID #{id}) WILL be required"
       else
-        Builtins.y2milestone(
-          "License agreement (ID %1) will NOT be required",
-          id
-        )
+        log.info "License agreement (ID #{id}) will NOT be required"
       end
 
       nil
@@ -427,16 +471,13 @@ module Yast
         _GetLicenseDialog_result
       )
 
-      # If acceptance is not needed, there's no need to disable the button
-      # by default
-      default_next_button_state = AcceptanceNeeded(id) ? false : true
-
       Wizard.SetContents(
         caption,
         contents,
         GetLicenseDialogHelp(),
         back,
-        default_next_button_state
+        # always allow next button, as if not accepted, it will raise popup (bnc#993530)
+        true
       )
 
       # set the initial license download URL
@@ -751,12 +792,14 @@ module Yast
       # Bugzilla #299732
       # Base Product - LiveCD installation
       if Mode.live_installation
+        log.info "LiveCD Installation"
         SearchForLicense_LiveCDInstallation(src_id, fallback_dir)
 
         # Base-product - license not in installation
         #   * Stage is not initial
         #   * source ID is not defined
       elsif !Stage.initial && src_id == nil
+        log.info "Base product, not in initial stage"
         SearchForLicense_NormalRunBaseProduct(src_id, fallback_dir)
 
         # Base-product - first-stage installation
@@ -764,14 +807,13 @@ module Yast
         #   * Source ID is not set
         # bugzilla #298342
       elsif Stage.initial && src_id == nil
-        SearchForLicense_FirstStageBaseProduct(
-          src_id == nil ? Ops.get(Pkg.SourceGetCurrent(true), 0, 0) : src_id,
-          fallback_dir
-        )
+        log.info "Base product, initial stage"
+        SearchForLicense_FirstStageBaseProduct(base_product_id, fallback_dir)
 
         # Add-on-product license
         #   * Source ID is set
       elsif src_id != nil && Ops.greater_than(src_id, -1)
+        log.info "Add-On product"
         SearchForLicense_AddOnProduct(src_id, fallback_dir)
 
         # Fallback
@@ -793,20 +835,22 @@ module Yast
       nil
     end
 
+    # Finds out whether user needs to 'Agree to the license coming from a given source_id'
+    #
+    # @param [Any] id unique ID
+    # @param [String,nil] license_dir path to directory with unpacked licenses
+    def cache_license_acceptance_needed(id, license_dir)
+      # license_dir can be nil if there is no license present (e.g. DUDs)
+      return if license_dir.nil?
+
+      license_acceptance_needed = !FileUtils.Exists("#{license_dir}/no-acceptance-needed")
+      SetAcceptanceNeeded(id, license_acceptance_needed)
+    end
 
     def InitLicenseData(src_id, dir, licenses, available_langs, require_agreement, license_ident, id)
+      # Downloads and unpacks all licenses for a given source ID
       GetSourceLicenseDirectory(src_id, dir)
-
-      # License does not need to be accepted. Well, I mean, manually selected "Yes, of course, I agree..."
-      if FileUtils.Exists(
-          Builtins.sformat("%1/no-acceptance-needed", @license_dir)
-        )
-        if id == nil
-          Builtins.y2error("Parameter id not set")
-        else
-          SetAcceptanceNeeded(id, false)
-        end
-      end
+      cache_license_acceptance_needed(id, @license_dir)
 
       licenses.value = LicenseFiles(@license_dir, @license_patterns)
 
@@ -1035,14 +1079,23 @@ module Yast
             break
           end
 
-          # text changed due to bug #162499
-          refuse_popup_text = base_product ?
-            # text asking whether to refuse a license (Yes-No popup)
-            _("Refusing the license agreement cancels the installation.\nReally refuse the agreement?")
-            :
-            # text asking whether to refuse a license (Yes-No popup)
-            _("Refusing the license agreement cancels the add-on\nproduct installation. Really refuse the agreement?")
-          next unless Popup.YesNo(refuse_popup_text)
+          if base_product
+            # TODO: refactor to use same widget as in inst_complex_welcome
+            # NOTE: keep in sync with inst_compex_welcome client, for grabing its translation
+            # mimic inst_complex_welcome behavior see bnc#993530
+            refuse_popup_text = Builtins.dgettext(
+                                  'installation',
+                                  'You must accept the license to install this product'
+                                )
+            Popup.Message(refuse_popup_text)
+            next
+          else
+            # text changed due to bug #162499
+            # TRANSLATORS: text asking whether to refuse a license (Yes-No popup)
+            refuse_popup_text = _("Refusing the license agreement cancels the add-on\n" \
+              'product installation. Really refuse the agreement?')
+            next unless Popup.YesNo(refuse_popup_text)
+          end
 
           log.info "License has been declined."
 
@@ -1261,9 +1314,6 @@ module Yast
           VSpacing(0.5)
         ) : Empty()
       )
-      # If acceptance is not needed, there's no need to disable the button
-      # by default
-      default_next_button_state = true
 
       Builtins.foreach(dirs) do |dir|
         counter = Ops.add(counter, 1)
@@ -1313,7 +1363,6 @@ module Yast
         # Display info as a popup if exists
         InstShowInfo.show_info_txt(@info_file) if @info_file != nil
         Ops.set(licenses, counter, tmp_licenses)
-        default_next_button_state = false if AcceptanceNeeded(dir)
       end
 
       Wizard.SetContents(
@@ -1321,7 +1370,7 @@ module Yast
         contents,
         GetLicenseDialogHelp(),
         enable_back,
-        default_next_button_state
+        true # always enable next, as popup is raised if not accepted (bnc#993530)
       )
 
       Wizard.SetTitleIcon("yast-license")

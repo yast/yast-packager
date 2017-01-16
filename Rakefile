@@ -7,4 +7,5 @@ Yast::Tasks.configuration do |conf|
   conf.obs_project = "YaST:storage-ng"
   # Make sure 'rake osc:sr' fails
   conf.obs_sr_project = nil
+  conf.install_locations["desktop/*.desktop"] = Packaging::Configuration::DESTDIR + "/usr/share/applications"
 end

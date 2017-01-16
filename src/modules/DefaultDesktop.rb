@@ -295,7 +295,8 @@ module Yast
           PackagesProposal.SetResolvables(
             @packages_proposal_ID_patterns,
             :pattern,
-            []
+            [],
+            optional: true
           )
         end
       elsif !Builtins.haskey(@all_desktops, new_desktop)
@@ -312,7 +313,8 @@ module Yast
           PackagesProposal.SetResolvables(
             @packages_proposal_ID_patterns,
             :pattern,
-            Ops.get_list(@all_desktops, [@desktop, "patterns"], [])
+            Ops.get_list(@all_desktops, [@desktop, "patterns"], []),
+            optional: true
           )
         end
       end
@@ -321,7 +323,7 @@ module Yast
     end
 
     def SelectedPatterns
-      PackagesProposal.GetResolvables(@packages_proposal_ID_patterns, :pattern)
+      PackagesProposal.GetResolvables(@packages_proposal_ID_patterns, :pattern, optional: true)
     end
 
     # Deprecated: Packages are not selected by a desktop selection only patterns

@@ -16,6 +16,10 @@ module Yast
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
+
+    # Key to sort by resolvable selection
+    RESOLVABLE_SORT_ORDER = { :product => "source", :pattern => "order" }
+
     # Minimum set of packages tags required to enable VNC server
     VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
     # Additional packages tags needed to run second stage in graphical mode
@@ -24,6 +28,8 @@ module Yast
     DEFAULT_WM = "icewm"
     # Minimum set of packages required for installation with remote X11 server
     REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
+    # Graphical packages for VNC installation
+    GRAPHIC_PACKAGES = [ "xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11" ]
 
     def main
       Yast.import "UI"
@@ -157,40 +163,15 @@ module Yast
     # @param [String] format string format string to print summaries in
     # @return a list of selected resolvables
     def ListSelected(what, format)
-      format = "%1" if format == "" || format == nil
       selected = Pkg.ResolvableProperties("", what, "")
 
-      # ignore hidden patterns
-      if what == :pattern
-        selected = Builtins.filter(selected) do |r|
-          Ops.get(r, "user_visible") == true
-        end
+      selected.select! {|r| r["status"] == :selected }
 
-        # order patterns according to "order" flag
-        selected = Builtins.sort(selected) do |x, y|
-          xo = Builtins.tointeger(Ops.get_string(x, "order", ""))
-          yo = Builtins.tointeger(Ops.get_string(y, "order", ""))
-          if xo == nil || yo == nil
-            # order is not an integer, compare as strings
-            next Ops.less_than(
-              Ops.get_string(x, "order", ""),
-              Ops.get_string(y, "order", "")
-            )
-          else
-            next Ops.less_than(xo, yo)
-          end
-        end
-      end
+      selected.select! {|r| r["user_visible"] } if what == :pattern
 
-      selected = Builtins.filter(selected) do |r|
-        Ops.get(r, "status") == :selected
-      end
+      sort_resolvable!(selected, what)
 
-      ret = Builtins.maplist(selected) do |r|
-        disp = Ops.get_string(r, "summary", Ops.get_string(r, "name", ""))
-        Builtins.sformat(format, disp)
-      end
-      deep_copy(ret)
+      formatted_resolvables(selected, format)
     end
 
     # Count the total size of packages to be installed
@@ -614,7 +595,7 @@ module Yast
             _(
               "Not enough disk space. Remove some packages in the single selection."
             ),
-          "warning_level" => Mode.update ? :warning : :blocker
+          "warning_level" => Mode.update ? :error : :blocker
         }
       else
         # check available free space (less than 25% and less than 750MB) (see bnc#178357)
@@ -646,6 +627,19 @@ module Yast
             Ops.set(ret, "warning_level", :warning)
           end
         end
+      end
+
+      # Check the YaST required packages.
+      missing_resolvables = check_missing_resolvables
+      if !missing_resolvables.empty?
+        texts = missing_resolvables.map{ |type, list| format_missing_resolvables(type, list) }
+        texts << _("Please manually select the needed items to install.")
+
+        # include the existing warning if defined
+        texts.unshift(ret["warning"]) if ret["warning"]
+
+        ret["warning"] = texts.join("<br>")
+        ret["warning_level"] = :blocker
       end
 
       # add failed mounts
@@ -916,29 +910,6 @@ module Yast
       deep_copy(packages)
     end
 
-
-    # graphicPackages ()
-    # Compute graphic (x11) packages
-    # @return [Array](string)	list of rpm packages needed
-    def graphicPackages
-      packages = []
-
-      # don't setup graphics if running via serial console
-      if !Linuxrc.serial_console
-        packages = [
-          "xorg-x11-server",
-          "xorg-x11-server-glx",
-          "libusb",
-          "yast2-x11"
-        ]
-      end
-
-      Builtins.y2milestone("X11 Packages to install: %1", packages)
-
-      packages
-    end
-
-
     # Compute special packages
     # @return [Array](string)
     def modePackages
@@ -998,26 +969,6 @@ module Yast
 
       deep_copy(ret)
     end
-
-    # Compute special java packages
-    # @return [Array](string)
-    def javaPackages
-      return [] if !Arch.alpha
-
-      packages = []
-
-      cpus = Convert.to_list(SCR.Read(path(".probe.cpu")))
-      model = Ops.get_string(cpus, [0, "model"], "EV4")
-      cputype = Builtins.substring(model, 2, 1)
-
-      if cputype == "6" || cputype == "7" || cputype == "8"
-        packages = ["cpml_ev6"]
-      else
-        packages = ["cpml_ev5"]
-      end
-      deep_copy(packages)
-    end
-
 
     # Compute board (vendor) dependant packages
     # @return [Array](string)
@@ -1094,11 +1045,9 @@ module Yast
       pattern_list = []
       # also add the 'laptop' selection if PCMCIA detected
       if Arch.is_laptop || Arch.has_pcmcia
-        Builtins.foreach(["laptop", "Laptop"]) do |pat_name|
+        ["laptop", "Laptop"].each do |pat_name|
           pat_list = Pkg.ResolvableProperties(pat_name, :pattern, "")
-          if Ops.greater_than(Builtins.size(pat_list), 0)
-            pattern_list = Builtins.add(pattern_list, pat_name)
-          end
+          pattern_list << pat_name unless pat_list.empty?
         end
       end
 
@@ -1111,23 +1060,16 @@ module Yast
         end
       end
 
-      # FATE #302116
-      # BNC #431580
-      required_patterns = PackagesProposal.GetAllResolvables(:pattern)
-      if required_patterns != nil && required_patterns != []
-        Builtins.y2milestone(
-          "Patterns required by PackagesProposal: %1",
-          required_patterns
-        )
-        pattern_list = Convert.convert(
-          Builtins.merge(pattern_list, required_patterns),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      end
+      # FATE #302116, BNC #431580
+      # select both mandatory and optional patterns
+      proposed_patterns = PackagesProposal.GetAllResolvables(:pattern)
+      proposed_patterns.concat(PackagesProposal.GetAllResolvables(:pattern, optional: true))
 
-      Builtins.y2milestone("System patterns: %1", pattern_list)
-      deep_copy(pattern_list)
+      log.info("PackagesProposal patterns: #{proposed_patterns}")
+      pattern_list.concat(proposed_patterns)
+
+      log.info("System patterns: #{pattern_list}")
+      pattern_list
     end
 
 
@@ -1137,118 +1079,52 @@ module Yast
     # @return [Array<String>] packages
     def ComputeSystemPackageList
       install_list = architecturePackages
+      install_list.concat(modePackages)
 
-      install_list = Convert.convert(
-        Builtins.union(install_list, modePackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
-
-      # No longer needed - partitions_proposal uses PackagesProposal now
-      # to gather the list of pkgs needed by y2-storage (#433001)
-      #list<string> storage_packages = (list<string>)WFM::call("wrapper_storage", ["AddPackageList"]);
-
-      if Ops.greater_than(Builtins.size(@additional_packages), 0)
-        Builtins.y2warning(
-          "Additional packages are still in use, please, change it to use PackagesProposal API"
-        )
-        Builtins.y2milestone("Additional packages: %1", @additional_packages)
-        install_list = Convert.convert(
-          Builtins.union(install_list, @additional_packages),
-          :from => "list",
-          :to   => "list <string>"
-        )
+      if !@additional_packages.empty?
+        log.warn("Additional packages are still in use, please, change it to use PackagesProposal API")
+        log.info("Additional packages: #{@additional_packages}")
+        install_list.concat(@additional_packages)
       end
 
       # bnc #431580
       # New API for packages selected by other modules
-      packages_proposal_all_packages = PackagesProposal.GetAllResolvables(
-        :package
-      )
-      if Ops.greater_than(Builtins.size(packages_proposal_all_packages), 0)
-        Builtins.y2milestone(
-          "PackagesProposal::GetAllResolvables returned: %1",
-          packages_proposal_all_packages
-        )
-        install_list = Convert.convert(
-          Builtins.union(install_list, packages_proposal_all_packages),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      else
-        Builtins.y2milestone("No packages required by PackagesProposal")
-      end
+      # use both mandatory and optional packages
+      packages_proposal_all_packages = PackagesProposal.GetAllResolvables(:package, optional: true)
+      packages_proposal_all_packages.concat(PackagesProposal.GetAllResolvables(:package))
+
+      log.info("PackagesProposal packages: #{packages_proposal_all_packages}")
+      install_list.concat(packages_proposal_all_packages)
 
       # Kernel is added in autoinstPackages () if autoinst is enabled
       if !Mode.update || !Mode.autoinst
         kernel_pkgs = Kernel.ComputePackages
+        install_list.concat(kernel_pkgs)
+
         kernel_pkgs_additional = ComputeAdditionalKernelPackages()
-        install_list = Convert.convert(
-          Builtins.union(install_list, kernel_pkgs),
-          :from => "list",
-          :to   => "list <string>"
-        )
-        if Ops.greater_than(Builtins.size(kernel_pkgs_additional), 0) &&
-            kernel_pkgs_additional != nil
-          install_list = Convert.convert(
-            Builtins.union(install_list, kernel_pkgs_additional),
-            :from => "list",
-            :to   => "list <string>"
-          )
-        end
+        install_list.concat(kernel_pkgs_additional)
       end
 
-      if Pkg.IsSelected("xorg-x11-Xvnc") && Linuxrc.vnc
-        install_list = Convert.convert(
-          Builtins.union(install_list, graphicPackages),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      else
-        Builtins.y2milestone("Not selecting graphic packages")
+      # TODO: um, VNC packages are also selected in modePackages(),... ???
+      if Pkg.IsSelected("xorg-x11-Xvnc") && Linuxrc.vnc && !Linuxrc.serial_console
+        log.info("Selecting graphic packages: #{GRAPHIC_PACKAGES}")
+        install_list.concat(GRAPHIC_PACKAGES)
       end
 
-      if Pkg.IsSelected("java")
-        install_list = Convert.convert(
-          Builtins.union(install_list, javaPackages),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      else
-        Builtins.y2milestone("Not selecting java packages")
-      end
+      install_list.concat(kernelCmdLinePackages)
 
-      install_list = Convert.convert(
-        Builtins.union(install_list, kernelCmdLinePackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
-
-      install_list = Convert.convert(
-        Builtins.union(install_list, boardPackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
+      install_list.concat(boardPackages)
 
       # add packages required to access the repository in the 2nd stage and at run-time
-      install_list = Convert.convert(
-        Builtins.union(install_list, sourceAccessPackages),
-        :from => "list",
-        :to   => "list <string>"
-      )
+      install_list.concat(sourceAccessPackages)
 
       # and the most flexible enhancement for other products
       # NOTE: not really flexible, because it requires the client
       # in the instsys, instead use <kernel-packages> in the control file.
-      if ProductFeatures.GetFeature("software", "packages_transmogrify") != ""
+      pkg_mogrify_client = ProductFeatures.GetFeature("software", "packages_transmogrify")
+      if !pkg_mogrify_client.empty?
         tmp_list = Convert.convert(
-          WFM.CallFunction(
-            ProductFeatures.GetStringFeature(
-              "software",
-              "packages_transmogrify"
-            ),
-            [install_list]
-          ),
+          WFM.CallFunction(pkg_mogrify_client, [install_list]),
           :from => "any",
           :to   => "list <string>"
         )
@@ -1258,23 +1134,15 @@ module Yast
         install_list = deep_copy(tmp_list) if tmp_list != nil
       end
 
-      packages = Convert.convert(
-        ProductFeatures.GetFeature("software", "packages"),
-        :from => "any",
-        :to   => "list <string>"
-      )
-      if Ops.greater_than(Builtins.size(packages), 0) && packages != nil
-        Builtins.y2milestone("Adding packages from control file: %1", packages)
-        install_list = Convert.convert(
-          Builtins.union(install_list, packages),
-          :from => "list",
-          :to   => "list <string>"
-        )
+      packages = ProductFeatures.GetFeature("software", "packages")
+      if !packages.empty?
+        log.info("Adding packages from control file: #{packages}")
+        install_list.concat(packages)
       end
 
-      install_list = Builtins.toset(install_list)
-      Builtins.y2milestone("auto-adding packages: %1", install_list)
-      deep_copy(install_list)
+      install_list.uniq!
+      log.info("Computed packages for the system: #{install_list}")
+      install_list
     end
 
     # Check whether content file in the specified repository is the same
@@ -2599,6 +2467,33 @@ module Yast
       end
     end
 
+    # Prepares a list of formatted selected resolvables
+    #
+    # @param [Array<Hash>] list of selected resolvables to format
+    # @param [String] string format to use
+    def formatted_resolvables(selected, format)
+      format = "%1" if format == "" || format == nil
+
+      Builtins.maplist(selected) do |r|
+        disp = Ops.get_string(r, "summary", Ops.get_string(r, "name", ""))
+        Builtins.sformat(format, disp)
+      end
+    end
+
+    # Sort selected resolvables of specified type
+    #
+    # :pattern resolvables are sorted by "order"
+    # :product resolvables are sorted by "source"
+    #
+    # @param [Array<Hash>] list of selected resolvables to sort
+    # @param [Symbol] what symbol specifying the type of resolvables to select
+    # @see RESOLVABLE_SORT_ORDER
+    def sort_resolvable!(selected, what)
+      order = RESOLVABLE_SORT_ORDER[what]
+
+      selected.sort_by! { |r| r[order].to_i } if order
+    end
+
     # Computes all patterns that are expected to be selected for default installation
     def patterns_to_install
       patterns = ComputeSystemPatternList().dup
@@ -2759,6 +2654,53 @@ module Yast
     # @return [Boolean] true if there is a window manager
     def has_window_manager?
       Pkg.IsSelected("windowmanager") || Pkg.IsProvided("windowmanager")
+    end
+
+    # Check whether all packages needed by YaST will be installed (the user can
+    # override the YaST settings)
+    # @return [Hash<Symbol,Array<String>>] The key is resolvable type (:pattern or
+    #   :package), the value is list of names.
+    #   If nothing is missing an empty Hash is returned.
+    def check_missing_resolvables
+      missing = {}
+      proposed = PackagesProposal.GetAllResolvablesForAllTypes
+
+      proposed.each do |type, list|
+        list.each do |item|
+          statuses = Pkg.ResolvableProperties(item, type, "")
+
+          # :selected = selected to install/update, :installed = keep installed (at upgrade)
+          if statuses.nil? || !statuses.find { |s| s["status"] == :selected || s["status"] == :installed }
+            missing[type] = [] unless missing[type]
+            # use quoted "summary" value for patterns as they usually contain spaces
+            name = (type == :pattern) ? statuses.first["summary"].inspect : item
+            missing[type] << name
+          end
+        end
+      end
+
+      missing
+    end
+
+    # Build a human readable string describing missing resolvables.
+    # @param [Symbol] type resolvable type, either :pattern or :packages
+    # @param [Array<String>] list of names
+    # @return [String] Translated message containing missing resolvables
+    def format_missing_resolvables(type, list)
+      list_str = list.join(", ")
+
+      case type
+      when :package
+        # TRANSLATORS: %s is a package list
+        _("These packages need to be selected to install: %s") % list_str
+      when :pattern
+        # TRANSLATORS: %s is a pattern list
+        _("These patterns need to be selected to install: %s") % list_str
+      else
+        # TRANSLATORS: %{type} is a resolvable type, %{list} is a list of names
+        # This is a fallback message for unknown types, normally it should not be displayed
+        _("These items (%{type}) need to be selected to install: %{list}") % {type: type, list: list}
+      end
     end
   end
 
