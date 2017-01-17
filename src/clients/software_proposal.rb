@@ -10,6 +10,9 @@
 #
 # $Id$
 #
+
+require "y2packager/storage_manager_proxy"
+
 module Yast
   class SoftwareProposalClient < Client
     def main
@@ -39,17 +42,13 @@ module Yast
           # save information about target change time in module Packages
           Packages.timestamp = Installation.dirinstall_target_time
         else
-          @storage_timestamp = Convert.to_integer(
-            WFM.call("wrapper_storage", ["GetTargetChangeTime"])
-          )
-
           # check the partitioning in installation
-          if Packages.timestamp != @storage_timestamp
+          if Packages.timestamp != staging_revision
             # don't set flag partition_changed if it's the first "change"
             @partition_changed = true if Packages.timestamp != 0
           end
-          # save information about target change time in module Packages
-          Packages.timestamp = @storage_timestamp
+          # save information about devicegraph revision in module Packages
+          Packages.timestamp = staging_revision
         end
 
         if Pkg.GetPackageLocale != Language.language
@@ -150,6 +149,13 @@ module Yast
       end
 
       deep_copy(@ret)
+    end
+
+  private
+
+    def staging_revision
+      @storage_manager ||= Y2Packager::StorageManagerProxy.new
+      @storage_manager.staging_revision
     end
   end
 end
