@@ -204,12 +204,12 @@ module Yast
       ret = 0
 
       part_size = filesystem_size(filesystem)
-      bs = filesystem_block_size(filesystem)
+      bs = filesystem.blk_devices[0].region.block_size
       blocks = Ops.divide(filesystem_size(filesystem), bs)
 
       Builtins.y2milestone(
         "Partition %1: %2 blocks (block size: %3)",
-        filesystem_name(filesystem),
+        filesystem_dev_name(filesystem),
         blocks,
         bs
       )
@@ -249,20 +249,20 @@ module Yast
       if filesystem.tune_options.include?("has_journal")
         Builtins.y2milestone(
           "Using default journal size for %1",
-          filesystem_name(filesystem)
+          filesystem_dev_name(filesystem)
         )
         ret = DefaultExtJournalSize(filesystem)
       else
         Builtins.y2milestone(
           "Partition %1 has disabled journal",
-          filesystem_name(filesystem)
+          filesystem_dev_name(filesystem)
         )
       end
       # Note: custom journal size cannot be entered in the partitioner
 
       Builtins.y2milestone(
         "Journal size for %1: %2kB",
-        filesystem_name(filesystem),
+        filesystem_dev_name(filesystem),
         Ops.divide(ret, 1024)
       )
 
@@ -485,7 +485,7 @@ module Yast
       if Ops.greater_than(ret, 0)
         Builtins.y2milestone(
           "Partition %1: reserved space: %2%% (%3kB)",
-          filesystem_name(filesystem),
+          filesystem_dev_name(filesystem),
           option,
           ret
         )
@@ -614,7 +614,7 @@ module Yast
                   # Use DM device if it's encrypted, plain device otherwise
                   # (bnc#889334)
                   #device = part["crypt_device"] || part["device"] || ""
-                  device = filesystem_name(filesystem)
+                  device = filesystem_dev_name(filesystem)
 
                   mount_command = "mount -o #{mount_options_str} " \
                     "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
@@ -653,7 +653,7 @@ module Yast
                   # for formatted partitions estimate free system size
                   # compute fs overhead
                   used = EstimateFsOverhead(filesystem)
-                  device = filesystem_name(filesystem)
+                  device = filesystem_dev_name(filesystem)
                   log.info "#{device}: assuming fs overhead: #{used / 1024}KiB"
 
                   # get the journal size
@@ -1077,11 +1077,7 @@ module Yast
       blk_device.size
     end
 
-    def filesystem_block_size(filesystem)
-      filesystem.blk_devices[0].region.block_size
-    end
-
-    def filesystem_name(filesystem)
+    def filesystem_dev_name(filesystem)
       filesystem.blk_devices[0].name
     end
 
