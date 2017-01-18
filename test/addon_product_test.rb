@@ -1,6 +1,7 @@
 #! /usr/bin/env rspec
 
 require_relative "./test_helper"
+require_relative "product_factory"
 
 Yast.import "AddOnProduct"
 
@@ -8,12 +9,54 @@ describe Yast::AddOnProduct do
   subject { Yast::AddOnProduct }
 
   describe "#renamed?" do
-    it "returns true if product has been renamed" do
-      expect(Yast::AddOnProduct.renamed?("SUSE_SLES", "SLES")).to eq(true)
+    let(:other_product) { ProductFactory.create_product }
+    let(:products) { [other_product] }
+
+    before do
+      subject.main
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(products)
     end
 
-    it "returns false if the product rename is not known" do
-      expect(Yast::AddOnProduct.renamed?("foo", "bar")).to eq(false)
+    context "when rename is included in the fallback list" do
+      it "returns true" do
+        expect(Yast::AddOnProduct.renamed?("SUSE_SLES", "SLES")).to eq(true)
+      end
+    end
+
+    context "when product rename is not known" do
+      it "returns false" do
+        expect(Yast::AddOnProduct.renamed?("foo", "bar")).to eq(false)
+      end
+    end
+
+    context "when according to libzypp a product is renamed" do
+      let(:deps) do
+        [
+          {"obsoletes" => "product:old_product1"},
+          {"obsoletes" => "product(old_product2)"},
+          {"provides" => "product:new_product"},
+          {"provides" => "product(old_name)"}
+        ]
+      end
+
+      let(:new_product) do
+        ProductFactory.create_product("name" => "new_product", "product_package" => "new_product-release")
+      end
+
+      let(:new_product_package) do
+        { "name" => "new_product-release", "deps" => deps }
+      end
+
+      let(:products) { [new_product] }
+
+      it "returns true" do
+        allow(Yast::Pkg).to receive(:ResolvableDependencies).with(new_product["product_package"], :package, "")
+          .and_return([new_product_package])
+        expect(subject.renamed?("old_product1", new_product["name"])).to eq(true)
+        expect(subject.renamed?("old_product2", new_product["name"])).to eq(true)
+        expect(subject.renamed?("old_name", new_product["name"])).to eq(true)
+      end
     end
   end
 

@@ -14,6 +14,8 @@
 
 # A factory which creates random libzypp products for testing.
 class ProductFactory
+  REPLACES_KEYS =  %w(name version arch description display_name short_name)
+
   # Create a product, the default random attributes can be customized via arguments.
   # @return [Hash] product hash as returned by the Pkg.ResolvableProperties
   #   and Pkg.ResolvableDependencies functions
