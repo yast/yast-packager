@@ -1081,6 +1081,9 @@ module Yast
       filesystem.blk_devices[0].name
     end
 
+    # storage-ng FIXME: revisit this after implementing subvolumes in btrfs. We
+    # are not sure whether 'mountpoints[0]' will be the right thing at that
+    # point in time.
     def filesystem_mountpoint(filesystem)
       filesystem.mountpoints[0] || ""
     end

@@ -2701,10 +2701,14 @@ module Yast
       end
     end
 
+    # Mount point of the given filesystem, used to identify the filesystem in
+    # the log messages
     def fs_mountpoint(filesystem)
       filesystem.mountpoints[0] || ""
     end
 
+    # Device name of the given filesystem, used to identify the filesystem in
+    # the log messages
     def fs_dev_name(filesystem)
       blk_device = filesystem.blk_devices[0]
       return "" unless blk_device
