@@ -531,7 +531,7 @@ module Yast
                   "Error: Cannot check free space in basic directory %1 (device %2), cannot start installation."
                 ),
                 fs_mountpoint(failed_mount),
-                fs_name(failed_mount)
+                fs_dev_name(failed_mount)
               )
             )
           )
@@ -551,7 +551,7 @@ module Yast
                   "Warning: Cannot check free space in directory %1 (device %2)."
                 ),
                 fs_mountpoint(failed_mount),
-                fs_name(failed_mount)
+                fs_dev_name(failed_mount)
               )
             )
           )
@@ -2705,7 +2705,7 @@ module Yast
       filesystem.mountpoints[0] || ""
     end
 
-    def fs_name(filesystem)
+    def fs_dev_name(filesystem)
       blk_device = filesystem.blk_devices[0]
       return "" unless blk_device
       blk_device.name
