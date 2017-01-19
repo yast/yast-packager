@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jan 17 15:42:03 UTC 2017 - ancor@suse.com
+
+- Use storage-ng during installation (to check the available space
+  and whether the software proposal needs to be re-calculated).
+- Removed the client wrapper_storage (obsolete with storage-ng).
+- 3.3.2
+
+-------------------------------------------------------------------
 Mon Jan 16 11:22:15 UTC 2017 - ancor@suse.com
 
 - storage-ng: version temporarily bumped to 3.3.x to prioritize

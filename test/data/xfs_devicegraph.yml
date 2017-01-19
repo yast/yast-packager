@@ -1,0 +1,32 @@
+---
+- disk:
+    name: /dev/vda
+    size: 33 GiB
+    partition_table:  ms-dos
+    partitions:
+
+    - partition:
+        size:          17413 MiB
+        name:          /dev/vda1
+        file_system:   xfs
+
+    - partition:
+        size:         2055 MiB
+        name:         /dev/vda2
+        file_system:  swap
+        id:           swap
+        mount_point:  swap
+
+    - partition:
+        size:         10245 MiB
+        name:         /dev/vda3
+        file_system:  ext4
+        mount_point:  "/"
+        fstab_options:
+        - acl
+        - user_xattr
+
+    - partition:
+        size:         unlimited
+        name:         /dev/vda4
+        file_system:  xfs

@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.3.1
+Version:        3.3.2
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -28,6 +28,9 @@ BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
+
+# Y2Storage::StorageManager#staging_revision
+BuildRequires:  yast2-storage-ng >= 0.1.8
 
 # Optional resolvables support in PackagesProposal
 BuildRequires:  yast2 >= 3.2.7
@@ -61,6 +64,9 @@ Requires:       /usr/bin/md5sum
 
 # .process agent
 Requires:       yast2-core >= 2.16.35
+
+# Storage (methods to check the devicegraph)
+Requires:       libstorage-ng-ruby
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
@@ -116,9 +122,11 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
 %dir %{yast_libdir}/packager
+%dir %{yast_libdir}/y2packager
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
+%{yast_libdir}/y2packager/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop
