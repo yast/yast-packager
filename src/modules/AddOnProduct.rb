@@ -2181,7 +2181,7 @@ module Yast
       # already known
       return if additionally_renamed?(old_name, new_name)
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
-      self.added_product_renames = internal_add_rename(added_product_renames, old_name, new_name)
+      self.added_product_renames = add_rename_to_hash(added_product_renames, old_name, new_name)
     end
 
     publish :variable => :add_on_products, :type => "list <map <string, any>>"
@@ -2252,23 +2252,15 @@ module Yast
     #
     # @see #renamed_at?
     def renamed_by_libzypp?(old_name, new_name)
-      renames = {}
-      products = Pkg.ResolvableProperties("", :product, "") # Dependencies are not included in this call
-      products.each do |product|
-        renames = names_from_product_package(product["product_package"]).reduce(renames) do |all_renames, rename|
-          rename != product["name"] ? internal_add_rename(all_renames, rename, product["name"]) : all_renames
-        end
-      end
+      renames = product_renames_from_libzypp
       log.info "Search #{old_name} -> #{new_name} rename in libzypp: " \
         "#{renames.inspect}"
       renamed_at?(renames, old_name, new_name)
     end
 
-    # Determine whether a product was renamed using a fallback list
+    # Determine whether a product rename is included in the fallback map
     #
-    # In case information is not found on other sources,
-    # PRODUCT_RENAMES_FALLBACK_MAP is checked.
-    #
+    # @see PRODUCT_RENAMES_FALLBACK_MAP
     # @see #renamed_at?
     def renamed_by_default?(old_name, new_name)
       log.info "Search #{old_name} -> #{new_name} rename in fallback map: " \
@@ -2276,7 +2268,7 @@ module Yast
       renamed_at?(PRODUCT_RENAMES_FALLBACK_MAP, old_name, new_name)
     end
 
-    # Determine if a product rename is present on a given hash
+    # Determine whether a product rename is present on a given hash
     #
     # @param renames  [Hash] Product renames in form old_name => [new_name1, new_name2, ...]
     # @param old_name [String] Old product's name
@@ -2285,6 +2277,21 @@ module Yast
     def renamed_at?(renames, old_name, new_name)
       return false unless renames[old_name]
       renames[old_name].include?(new_name)
+    end
+
+    # Get product renames from libzypp
+    #
+    # @see names_from_product_package
+    # @see add_rename_to_hash
+    def product_renames_from_libzypp
+      renames = {}
+      products = Pkg.ResolvableProperties("", :product, "") # Dependencies are not included in this call
+      products.each do |product|
+        renames = names_from_product_package(product["product_package"]).reduce(renames) do |hash, rename|
+          add_rename_to_hash(hash, rename, product["name"])
+        end
+      end
+      renames
     end
 
     # Regular expresion to extract the product name
@@ -2307,13 +2314,14 @@ module Yast
     #
     # * old and new names are the same or
     # * the rename it's already included
+    #
     # @param renames  [Hash]   Renames following the format <old_name> => [ <new_name> ]
     # @param old_name [String] Old product's name
     # @param new_name [String] New product's name
     # @return [Hash] Product renames hash adding the new rename if needed
     #
     # @see #add_rename
-    def internal_add_rename(renames, old_name, new_name)
+    def add_rename_to_hash(renames, old_name, new_name)
       return renames if old_name == new_name || renamed_at?(renames, old_name, new_name)
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
       renames.merge(old_name => new_name) do |key, old_val, new_val|
@@ -2323,14 +2331,17 @@ module Yast
 
     # Determines the products for a product package
     #
-    # The renames are extracted from the "obsoletes" and "provides"
-    # dependencies.
+    # The renames are extracted from the "obsoletes" and "provides" dependencies
+    # (renames like 'SUSE_SLES' to 'SLES' are defined in the "provides"
+    # dependencies only).
     #
     # @return [Array<String>] Old names
     def names_from_product_package(package_name)
+      # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
       packages = Pkg.ResolvableDependencies(package_name, :package, "")
       return [] if packages.nil? || packages.empty? || !packages.first.key?("deps")
       package = packages.first
+      # Get information from 'obsoletes' and 'provides' keys
       relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
       relevant_deps.map { |d| product_name_from_dep(d) }.compact
     end
