@@ -144,9 +144,8 @@ module Yast
       #      ]
       @patterns_preselected_by_addon = {}
 
-      # product renames needed for detecting the product update
-      # @see #product_renames
-      @product_renames = nil
+      # additional product renames needed for detecting the product update
+      # @see #add_rename
       @added_product_renames = []
     end
 
@@ -2159,7 +2158,7 @@ module Yast
     # Determine whether a product has been renamed
     #
     # @param old_name [String] Old product's name
-    # @param old_name [String] New product's name
+    # @param new_name [String] New product's name
     # @return [Boolean] +true+ if the product was renamed; otherwise, +false+.
     def renamed?(old_name, new_name)
       return false unless product_renames[old_name]
@@ -2181,7 +2180,6 @@ module Yast
       return if renamed?(old_name, new_name)
 
       @added_product_renames << [ old_name, new_name ]
-      internal_add_rename(old_name, new_name)
     end
 
     publish :variable => :add_on_products, :type => "list <map <string, any>>"
@@ -2240,18 +2238,19 @@ module Yast
     # @see #add_rename
     # @see #renamed?
     def product_renames
-      @product_renames = PRODUCT_RENAMES_FALLBACK_MAP.clone
+      renames = PRODUCT_RENAMES_FALLBACK_MAP.clone
 
       products = Pkg.ResolvableProperties("", :product, "")
       products.each do |product|
-        names_from_product_package(product["product_package"]).each do |rename|
-          internal_add_rename(rename, product["name"]) if rename != product["name"]
+        renames = names_from_product_package(product["product_package"]).reduce(renames) do |all_renames, rename|
+          rename != product["name"] ? internal_add_rename(all_renames, rename, product["name"]) : all_renames
         end
       end
 
       # Add product renames added through #add_rename method
-      @added_product_renames.each { |r| internal_add_rename(*r) }
-      @product_renames
+      @added_product_renames.reduce(renames) do |all_renames, rename|
+        internal_add_rename(all_renames, rename[0], rename[1])
+      end
     end
 
     # Regular expresion to extract the product name
@@ -2269,14 +2268,15 @@ module Yast
     # Add a product's rename
     #
     # @param old_name [String] Old product's name
-    # @param old_name [String] New product's name
+    # @param new_name [String] New product's name
     #
     # @see #add_rename
-    def internal_add_rename(old_name, new_name)
-      return if old_name == new_name
+    def internal_add_rename(renames, old_name, new_name)
+      return renames if old_name == new_name
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
-      @product_renames[old_name] = [] unless @product_renames[old_name]
-      @product_renames[old_name] << new_name
+      renames.merge(old_name => new_name) do |key, old_val, new_val|
+        old_val.nil? ? [new_val] : old_val + [new_val]
+      end
     end
 
     # Determines the products for a product package
