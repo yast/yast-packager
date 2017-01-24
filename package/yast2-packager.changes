@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 24 13:15:46 UTC 2017 - jsrain@suse.cz
+
+- do not check content file on media if there is none in the
+  ramdisk (fate#322276)
+- 3.1.119.3
+
+-------------------------------------------------------------------
 Wed Dec 21 15:06:31 CET 2016 - schubi@suse.de
 
 - Removed: Copy /etc/zypp/zypp.conf from inst_sys to target system.
