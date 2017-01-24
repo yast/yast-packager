@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 19 15:11:48 UTC 2017 - igonzalezsosa@suse.com
+
+- Use information provided by libzypp to evaluate product
+  renames (FATE#321751)
+- 3.2.12
+
+-------------------------------------------------------------------
 Wed Dec 21 15:06:31 CET 2016 - schubi@suse.de
 
 - Adjust /etc/zypp/zypp.conf in the installed system when
