@@ -48,11 +48,15 @@ describe Yast::AddOnProduct do
         { "name" => "new_product-release", "deps" => deps }
       end
 
+      let(:installed_product_package) do
+        { "name" => "installed_product-release" }
+      end
+
       let(:products) { [new_product] }
 
       it "returns true" do
         allow(Yast::Pkg).to receive(:ResolvableDependencies).with(new_product["product_package"], :package, "")
-          .and_return([new_product_package])
+          .and_return([installed_product_package, new_product_package])
         expect(subject.renamed?("old_product1", new_product["name"])).to eq(true)
         expect(subject.renamed?("old_product2", new_product["name"])).to eq(true)
         expect(subject.renamed?("old_name", new_product["name"])).to eq(true)

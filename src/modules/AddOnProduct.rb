@@ -20,8 +20,9 @@ module Yast
   class AddOnProductClass < Module
     include Yast::Logger
 
-    # @return [Hash] Product renames fallback list
-    PRODUCT_RENAMES_FALLBACK_MAP = {
+    # @return [Hash] Product renames default map. Used when information is not
+    #                found elsewhere.
+    DEFAULT_PRODUCT_RENAMES = {
       "SUSE_SLES"     => [ "SLES" ],
       # SLED or Workstation extension
       "SUSE_SLED"     => [ "SLED", "sle-we" ],
@@ -33,8 +34,8 @@ module Yast
     }
 
     # @return [Hash] Product renames added externally through the #add_rename method
-    attr_accessor :added_product_renames
-    private :added_product_renames, :added_product_renames=
+    attr_accessor :external_product_renames
+    private :external_product_renames, :external_product_renames=
 
     def main
       Yast.import "UI"
@@ -150,7 +151,7 @@ module Yast
 
       # additional product renames needed for detecting the product update
       # @see #add_rename
-      @added_product_renames = {}
+      @external_product_renames = {}
     end
 
     # Downloads a requested file, caches it and returns path to that cached file.
@@ -2165,7 +2166,7 @@ module Yast
     # @param new_name [String] New product's name
     # @return [Boolean] +true+ if the product was renamed; otherwise, +false+.
     def renamed?(old_name, new_name)
-      additionally_renamed?(old_name, new_name) ||
+      renamed_externally?(old_name, new_name) ||
         renamed_by_libzypp?(old_name, new_name) ||
         renamed_by_default?(old_name, new_name)
     end
@@ -2179,9 +2180,9 @@ module Yast
     # @param old_name [String] New product's name
     def add_rename(old_name, new_name)
       # already known
-      return if additionally_renamed?(old_name, new_name)
+      return if renamed_externally?(old_name, new_name)
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
-      self.added_product_renames = add_rename_to_hash(added_product_renames, old_name, new_name)
+      self.external_product_renames = add_rename_to_hash(external_product_renames, old_name, new_name)
     end
 
     publish :variable => :add_on_products, :type => "list <map <string, any>>"
@@ -2235,10 +2236,10 @@ module Yast
     # @return [Boolean] +true+ if the product was renamed; otherwise, +false+.
     #
     # @see #renamed_at?
-    def additionally_renamed?(old_name, new_name)
+    def renamed_externally?(old_name, new_name)
       log.info "Search #{old_name} -> #{new_name} rename in added renames map: " \
-        "#{added_product_renames.inspect}"
-      renamed_at?(added_product_renames, old_name, new_name)
+        "#{external_product_renames.inspect}"
+      renamed_at?(external_product_renames, old_name, new_name)
     end
 
     # Determine whether a product was renamed using libzypp
@@ -2260,12 +2261,12 @@ module Yast
 
     # Determine whether a product rename is included in the fallback map
     #
-    # @see PRODUCT_RENAMES_FALLBACK_MAP
+    # @see DEFAULT_PRODUCT_RENAMES
     # @see #renamed_at?
     def renamed_by_default?(old_name, new_name)
-      log.info "Search #{old_name} -> #{new_name} rename in fallback map: " \
-        "#{PRODUCT_RENAMES_FALLBACK_MAP.inspect}"
-      renamed_at?(PRODUCT_RENAMES_FALLBACK_MAP, old_name, new_name)
+      log.info "Search #{old_name} -> #{new_name} rename in default map: " \
+        "#{DEFAULT_PRODUCT_RENAMES.inspect}"
+      renamed_at?(DEFAULT_PRODUCT_RENAMES, old_name, new_name)
     end
 
     # Determine whether a product rename is present on a given hash
@@ -2287,20 +2288,20 @@ module Yast
       renames = {}
       products = Pkg.ResolvableProperties("", :product, "") # Dependencies are not included in this call
       products.each do |product|
-        renames = names_from_product_package(product["product_package"]).reduce(renames) do |hash, rename|
+        renames = names_from_product_packages(product["product_package"]).reduce(renames) do |hash, rename|
           add_rename_to_hash(hash, rename, product["name"])
         end
       end
       renames
     end
 
-    # Regular expresion to extract the product name
+    # Regular expresion to extract the product name. It supports two different
+    # formats: "product:NAME" and "product(NAME)"
     # @see product_name_from_dep
     PRODUCTS_REGEXP = /\Aproduct(?::|\()([^\)\b]+)/
 
     # Extracts product's name from dependency
     #
-    # It supports two different formats: "product:NAME" and "product(NAME)"
     #
     # @see renamed_by_libzypp?
     def product_name_from_dep(dependency)
@@ -2336,14 +2337,17 @@ module Yast
     # dependencies only).
     #
     # @return [Array<String>] Old names
-    def names_from_product_package(package_name)
+    def names_from_product_packages(package_name)
       # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
       packages = Pkg.ResolvableDependencies(package_name, :package, "")
-      return [] if packages.nil? || packages.empty? || !packages.first.key?("deps")
-      package = packages.first
-      # Get information from 'obsoletes' and 'provides' keys
-      relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
-      relevant_deps.map { |d| product_name_from_dep(d) }.compact
+      return [] if packages.nil? || packages.empty?
+      names = packages.each_with_object([]) do |package, names|
+        next names unless package.key?("deps")
+        # Get information from 'obsoletes' and 'provides' keys
+        relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
+        names.concat(relevant_deps.map { |d| product_name_from_dep(d) })
+      end
+      names.compact.uniq
     end
 
     # Adds a product from a CD/DVD
