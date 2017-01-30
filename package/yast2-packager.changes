@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Mon Jan 30 10:57:14 UTC 2017 - igonzalezsosa@suse.com
+
+- Packages module is able to perform a package selection proposal
+  during system upgrade (bsc#1009834)
+- 3.2.13
+
+-------------------------------------------------------------------
+Tue Jan 24 13:15:46 UTC 2017 - jsrain@suse.cz
+
+- do not check content file on media if there is none in the
+  ramdisk (fate#322276)
+
+-------------------------------------------------------------------
 Thu Jan 19 15:11:48 UTC 2017 - igonzalezsosa@suse.com
 
 - Use information provided by libzypp to evaluate product
