@@ -2394,6 +2394,17 @@ module Yast
       deep_copy(ret)
     end
 
+    # Make a proposal for package selection during update
+    #
+    # As a side effect, it stores the current proposal.
+    #
+    # @see PackagesProposalChanged
+    def proposal_for_update
+      return unless PackagesProposalChanged()
+      @old_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
+      Packages.SelectSystemPackages(false)
+    end
+
     # Initialize the repositories with popup feedback
     # Use Packages::Initialize (true) instead
     def InitializeCatalogs
