@@ -12,6 +12,8 @@
 #
 module Yast
   class RepositoriesClient < Client
+    include Yast::Logger
+
     NO_SERVICE = :no_service
     NO_SERVICE_ITEM = :no_service_item
 
@@ -567,7 +569,7 @@ module Yast
       Builtins.foreach(deleted_services) do |_alias|
         Builtins.y2milestone("Removing service %1", _alias)
         success = success && Pkg.ServiceDelete(_alias)
-      end 
+      end
 
 
       Builtins.y2milestone("New service config: %1", @serviceStatesOut)
@@ -589,7 +591,7 @@ module Yast
           Builtins.y2milestone("Modifying service %1", _alias)
           success = success && Pkg.ServiceSet(_alias, s)
         end
-      end 
+      end
 
       # if started from the package manager we need to call these extra
       # pkg-bindings to sync the pool state
@@ -635,7 +637,7 @@ module Yast
 
           success = success && Pkg.SourceRefreshNow(srcid)
         end
-      end 
+      end
 
 
       success = success && KeyManager.Write
@@ -1150,7 +1152,7 @@ module Yast
                   global_current = Ops.add(global_current, 1)
                   Ops.get(s, "SrcId") ==
                     Ops.get_integer(sourceState, "SrcId", -1)
-                end 
+                end
 
 
                 Builtins.y2milestone("global_current: %1", global_current)
@@ -1170,244 +1172,9 @@ module Yast
 
           if input == :replace
             if @repository_view
-              generalData = Pkg.SourceGeneralData(id)
-              # use the full URL (incl. the password) when editing it
-              url2 = Pkg.SourceRawURL(id)
-              old_url = url2
-              plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
-
-              SourceDialogs.SetRepoName(Ops.get_string(sourceState, "name", ""))
-              begin
-                url2 = SourceDialogs.EditPopupType(url2, plaindir)
-
-                break if Builtins.size(url2) == 0
-
-                same_url = url2 == old_url
-
-                Builtins.y2debug(
-                  "same_url: %1 (old: %2, new: %3)",
-                  same_url,
-                  old_url,
-                  url2
-                )
-
-                # special check for cd:// and dvd:// repositories
-                if !same_url
-                  new_url_parsed = URL.Parse(url2)
-                  old_url_parsed = URL.Parse(old_url)
-
-                  new_url_scheme = Builtins.tolower(
-                    Ops.get_string(new_url_parsed, "scheme", "")
-                  )
-                  old_url_scheme = Builtins.tolower(
-                    Ops.get_string(old_url_parsed, "scheme", "")
-                  )
-
-                  # ignore cd:// <-> dvd:// changes if the path is not changed
-                  if (new_url_scheme == "cd" || new_url_scheme == "dvd") &&
-                      (old_url_scheme == "cd" || old_url_scheme == "dvd")
-                    # compare only directories, ignore e.g. ?device=/dev/sr0 options
-                    if Ops.get_string(new_url_parsed, "path", "") ==
-                        Ops.get_string(old_url_parsed, "path", "")
-                      Pkg.SourceChangeUrl(
-                        Ops.get_integer(sourceState, "SrcId", -1),
-                        url2
-                      )
-                      same_url = true
-                    end
-                  end
-                end
-
-                if !same_url || plaindir != SourceDialogs.IsPlainDir
-                  Builtins.y2milestone(
-                    "URL or plaindir flag changed, recreating the source"
-                  )
-                  # copy the refresh flag
-
-                  # get current alias
-                  _alias = Ops.get_string(generalData, "alias", "alias")
-                  Builtins.y2milestone("Reusing alias: %1", _alias)
-
-                  createResult = createSourceWithAlias(
-                    url2,
-                    SourceDialogs.IsPlainDir,
-                    Ops.get_boolean(sourceState, "do_refresh", false),
-                    SourceDialogs.GetRepoName,
-                    _alias
-                  )
-                  if createResult == :ok
-                    # restore the origonal properties (enabled, autorefresh, keeppackages)
-                    # the added repository is at the end of the list
-                    idx = Ops.subtract(Builtins.size(@sourceStatesOut), 1)
-                    addedSource = Ops.get(@sourceStatesOut, idx, {})
-
-                    Builtins.y2milestone("Orig repo: %1", sourceState)
-                    Builtins.y2milestone("Added repo: %1", addedSource)
-
-                    if addedSource != {}
-                      auto_refresh = Ops.get_boolean(
-                        sourceState,
-                        "autorefresh",
-                        true
-                      )
-                      keeppackages = Ops.get_boolean(
-                        sourceState,
-                        "keeppackages",
-                        false
-                      )
-                      enabled = Ops.get_boolean(sourceState, "enabled", true)
-                      priority = Ops.get_integer(
-                        sourceState,
-                        "priority",
-                        @default_priority
-                      )
-                      Builtins.y2milestone(
-                        "Restoring the original properties: enabled: %1, autorefresh: %2, keeppackages: %3, priority: %4",
-                        enabled,
-                        auto_refresh,
-                        keeppackages,
-                        priority
-                      )
-
-                      # set the original properties
-                      Ops.set(addedSource, "autorefresh", auto_refresh)
-                      Ops.set(addedSource, "keeppackages", keeppackages)
-                      Ops.set(addedSource, "enabled", enabled)
-                      Ops.set(addedSource, "priority", priority)
-
-                      # get the ID of the old repo and mark it for removal
-                      srcid = Ops.get_integer(
-                        @sourceStatesOut,
-                        [global_current, "SrcId"],
-                        -1
-                      )
-                      if srcid != -1
-                        @sourcesToDelete = Builtins.add(@sourcesToDelete, srcid)
-                        SourceManager.just_removed_sources = Builtins.add(
-                          SourceManager.just_removed_sources,
-                          srcid
-                        )
-                      end
-
-                      # replace the data
-                      Ops.set(@sourceStatesOut, global_current, addedSource)
-                      # remove the duplicate at the end
-                      @sourceStatesOut = Builtins.remove(@sourceStatesOut, idx)
-
-                      # refresh only the name and URL in the table
-                      UI.ChangeWidget(
-                        Id(:table),
-                        Cell(global_current, 3),
-                        Ops.get_string(addedSource, "name", "")
-                      )
-                      UI.ChangeWidget(Id(:table), Cell(global_current, 5), url2)
-
-                      fillCurrentRepoInfo
-                    end
-                  end
-                else
-                  Builtins.y2milestone(
-                    "URL is the same, not recreating the source"
-                  )
-
-                  new_name = SourceDialogs.GetRepoName
-                  if new_name != Ops.get_string(sourceState, "name", "")
-                    Ops.set(sourceState, "name", new_name)
-                    Ops.set(@sourceStatesOut, global_current, sourceState)
-
-                    # update only the name cell in the table
-                    UI.ChangeWidget(
-                      Id(:table),
-                      Cell(global_current, 3),
-                      new_name
-                    )
-
-                    fillCurrentRepoInfo
-                  else
-                    Builtins.y2milestone(
-                      "The repository name has not been changed"
-                    )
-                  end
-
-                  createResult = :ok
-                end
-              end while createResult == :again # service view
+              repo_replace_handler(id, sourceState, global_current)
             else
-              service_info = Ops.get(@serviceStatesOut, current, {})
-              Builtins.y2milestone("Editing service %1...", current)
-              url2 = Ops.get_string(service_info, "raw_url", "")
-              old_url = url2
-
-              SourceDialogs.SetRepoName(
-                Ops.get_string(service_info, "name", "")
-              )
-              begin
-                url2 = SourceDialogs.EditPopupService(url2)
-
-                break if Builtins.size(url2) == 0
-                if url2 != old_url
-                  Builtins.y2milestone(
-                    "URL of the service has been changed, recreating the service"
-                  )
-                  # createSource() can potentially create a repository instead of a service
-                  # Probe for a service first must be done before creating a new service
-                  service_type = Pkg.ServiceProbe(url2)
-                  Builtins.y2milestone("Probed service type: %1", service_type)
-
-                  if service_type != nil && service_type != "NONE"
-                    createResult = createSource(
-                      url2,
-                      false,
-                      false,
-                      SourceDialogs.GetRepoName
-                    )
-                    if createResult == :ok
-                      deleteService(current)
-                      fillTable(@repository_view, @displayed_service)
-                      fillCurrentRepoInfo
-
-                      # refresh also the combobox widget
-                      UpdateCombobox()
-                    end
-                  else
-                    Report.Error(
-                      Builtins.sformat(
-                        _("There is no service at URL:\n%1"),
-                        url2
-                      )
-                    )
-                  end
-                else
-                  Builtins.y2milestone(
-                    "URL is the same, not recreating the service"
-                  )
-                  entered_service_name = SourceDialogs.GetRepoName
-                  old_service_name = Ops.get_string(service_info, "name", "")
-
-                  if old_service_name != entered_service_name
-                    Builtins.y2milestone(
-                      "Updating name of the service to '%1'",
-                      entered_service_name
-                    )
-                    Ops.set(service_info, "name", entered_service_name)
-                    Ops.set(@serviceStatesOut, current, service_info)
-                    fillTable(@repository_view, @displayed_service)
-                    fillCurrentRepoInfo
-                    createResult = :ok
-
-                    # update the reference
-                    @sourceStatesOut = Builtins.maplist(@sourceStatesOut) do |src_state|
-                      if Ops.get_string(src_state, "service", "") == old_service_name
-                        Ops.set(src_state, "service", entered_service_name)
-                      end
-                      deep_copy(src_state)
-                    end
-
-                    # refresh also the combobox widget
-                    UpdateCombobox()
-                  end
-                end
-              end while createResult == :again
+              service_replace_handler(current)
             end
           elsif input == :refresh
             if @repository_view
@@ -1469,7 +1236,7 @@ module Yast
                   to_refresh = Ops.add(to_refresh, 1)
                 end
               end
-            end 
+            end
 
 
             Builtins.y2milestone(
@@ -1558,7 +1325,7 @@ module Yast
                     Pkg.ServiceRefresh(service_alias)
                   end
                 end
-              end 
+              end
 
 
               Progress.Finish
@@ -1566,129 +1333,25 @@ module Yast
             end
           elsif input == :delete
             if @repository_view
-              # yes-no popup
-              if Popup.YesNo(_("Delete the selected repository from the list?"))
-                deleteSource(global_current)
-                fillTable(@repository_view, @displayed_service)
-                fillCurrentRepoInfo
-              end
+              repo_delete_handler(global_current)
             else
-              selected_service = Ops.get_string(
-                Ops.get(@serviceStatesOut, current, {}),
-                "name",
-                ""
-              )
-              # yes-no popup
-              if Popup.YesNo(
-                  Builtins.sformat(
-                    _("Delete service %1\nand its repositories?"),
-                    selected_service
-                  )
-                )
-                service_alias = Ops.get_string(
-                  Ops.get(@serviceStatesOut, current, {}),
-                  "alias",
-                  ""
-                )
-                RemoveReposFromService(service_alias)
-
-                deleteService(current)
-                fillTable(@repository_view, @displayed_service)
-                fillCurrentRepoInfo
-
-                # refresh also the combobox widget
-                UpdateCombobox()
-              end
+              service_delete_handler(current)
             end
           elsif input == :enable
             if @repository_view
-              state = Ops.get_boolean(sourceState, "enabled", true)
-              state = !state
-              # corresponds to the "Enable/Disable" button
-              newstate = state ? UI.Glyph(:CheckMark) : ""
-              UI.ChangeWidget(Id(:table), term(:Item, current, 1), newstate)
-              Ops.set(sourceState, "enabled", state)
-              Ops.set(@sourceStatesOut, global_current, sourceState)
+              repo_enable_handler(sourceState, global_current, current)
             else
-              srv = Ops.get(@serviceStatesOut, current, {})
-              Builtins.y2milestone("Selected service: %1", srv)
-
-              state = Ops.get_boolean(srv, "enabled", false)
-              state = !state
-
-              # disable/enable the repositories belonging to the service
-              service_alias = Ops.get_string(
-                Ops.get(@serviceStatesOut, current, {}),
-                "alias",
-                ""
-              )
-              SetReposStatusFromService(service_alias, state)
-
-              # update the table
-              newstate = state ? UI.Glyph(:CheckMark) : ""
-              UI.ChangeWidget(Id(:table), term(:Item, current, 0), newstate)
-
-              # store the change
-              Ops.set(srv, "enabled", state)
-              Ops.set(@serviceStatesOut, current, srv)
+              service_enable_handler(current)
             end
           elsif input == :autorefresh
             if @repository_view
-              source_id = Ops.get_integer(sourceState, "SrcId", 0)
-              src_data = Pkg.SourceGeneralData(source_id)
-              type = Ops.get_string(src_data, "type", "")
-              state = Ops.get_boolean(sourceState, "autorefresh", true)
-
-              if type == "PlainDir" && !state
-                # popup message
-                Popup.Message(
-                  _("For the selected repository, refresh\ncannot be set.")
-                )
-              else
-                state = !state
-
-                newstate = state ? UI.Glyph(:CheckMark) : ""
-                UI.ChangeWidget(Id(:table), term(:Item, current, 2), newstate)
-              end
-
-              Ops.set(sourceState, "autorefresh", state)
-              Ops.set(@sourceStatesOut, global_current, sourceState)
+              repo_autorefresh_handler(sourceState, global_current, current)
             else
-              srv = Ops.get(@serviceStatesOut, current, {})
-              Builtins.y2milestone("Selected service: %1", srv)
-
-              state = Ops.get_boolean(srv, "autorefresh", false)
-              state = !state
-
-              # update the table
-              newstate = state ? UI.Glyph(:CheckMark) : ""
-              UI.ChangeWidget(Id(:table), term(:Item, current, 1), newstate)
-
-              # store the change
-              Ops.set(srv, "autorefresh", state)
-              Ops.set(@serviceStatesOut, current, srv)
+              service_autorefresh_handler(current)
             end
-
-            # do not refresh the item in the table
-            current = -1
           elsif input == :priority
             if @repository_view
-              # refresh the value in the table
-              new_priority = Convert.to_integer(
-                UI.QueryWidget(Id(:priority), :Value)
-              )
-              Builtins.y2debug("New priority: %1", new_priority)
-
-              UI.ChangeWidget(
-                Id(:table),
-                term(:Item, current, 0),
-                PriorityToString(new_priority)
-              )
-              Ops.set(sourceState, "priority", new_priority)
-              Ops.set(@sourceStatesOut, global_current, sourceState)
-
-              # do not refresh the item in the table
-              current = -1
+              repo_priority_handler(sourceState, global_current, current)
             else
               Builtins.y2error(
                 "Ignoring event `priority: the widget should NOT be displayed in service mode!"
@@ -1696,17 +1359,7 @@ module Yast
             end
           elsif input == :keeppackages
             if @repository_view
-              # refresh the value in the table
-              new_keep = Convert.to_boolean(
-                UI.QueryWidget(Id(:keeppackages), :Value)
-              )
-              Builtins.y2milestone("New keep packages option: %1", new_keep)
-
-              Ops.set(sourceState, "keeppackages", new_keep)
-              Ops.set(@sourceStatesOut, global_current, sourceState)
-
-              # do not refresh the item in the table
-              current = -1
+              repo_keeppackages_handler(sourceState, global_current)
             else
               Builtins.y2error(
                 "Ignoring event `keeppackages: the widget should NOT be displayed in service mode!"
@@ -1907,7 +1560,7 @@ module Yast
           @serviceStatesIn,
           Pkg.ServiceGet(srv_alias)
         )
-      end 
+      end
 
 
       Builtins.y2milestone("Loaded services: %1", @serviceStatesIn)
@@ -1942,6 +1595,433 @@ module Yast
 
       UI.CloseDialog
       ret
+    end
+
+    # Handle the "Delete" button in the service view
+    def service_delete_handler(current)
+      selected_service = @serviceStatesOut[current] || {}
+
+      service_alias = selected_service["alias"]
+      msg = _("The services of type 'plugin' cannot be removed.")
+      return if !plugin_service_check(service_alias, msg)
+
+      # yes-no popup
+      return if !Popup.YesNo(
+          Builtins.sformat(
+            _("Delete service %1\nand its repositories?"),
+            selected_service["name"]
+          )
+        )
+
+      RemoveReposFromService(service_alias)
+
+      deleteService(current)
+      fillTable(@repository_view, @displayed_service)
+      fillCurrentRepoInfo
+
+      # refresh also the combobox widget
+      UpdateCombobox()
+    end
+
+    # Handle the "Delete" button in the repository view
+    def repo_delete_handler(global_current)
+      repo = @sourceStatesOut[global_current] || {}
+
+      msg = _("The repositories belonging to a service of type 'plugin' cannot be removed.")
+      return if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], msg)
+
+      # yes-no popup
+      return if !Popup.YesNo(_("Delete the selected repository from the list?"))
+
+      deleteSource(global_current)
+      fillTable(@repository_view, @displayed_service)
+      fillCurrentRepoInfo
+    end
+
+    # Handle the "Enable" checkbox in the repository view
+    def repo_enable_handler(sourceState, global_current, current)
+      repo = @sourceStatesOut[global_current] || {}
+      return if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], repo_change_msg)
+
+      state = !sourceState["enabled"]
+      # corresponds to the "Enable/Disable" button
+      state_symbol = state ? UI.Glyph(:CheckMark) : ""
+      UI.ChangeWidget(Id(:table), term(:Item, current, 1), state_symbol)
+      sourceState["enabled"] = state
+      @sourceStatesOut[global_current] = sourceState
+    end
+
+    # Handle the "Enable" checkbox in the service view
+    def service_enable_handler(current)
+      srv = @serviceStatesOut[current]
+      return if !srv
+
+      log.info("Selected service: #{srv}")
+      state = !srv["enabled"]
+
+      # disable/enable the repositories belonging to the service
+      service_alias = srv["alias"]
+      return if !plugin_service_check(service_alias, plugin_change_msg)
+
+      SetReposStatusFromService(service_alias, state)
+
+      # update the table
+      state_symbol = state ? UI.Glyph(:CheckMark) : ""
+      UI.ChangeWidget(Id(:table), term(:Item, current, 0), state_symbol)
+
+      # store the change
+      srv["enabled"] = state
+      @serviceStatesOut[current] = srv
+    end
+
+    # Handle the "Autorefresh" checkbox in the repository view
+    def repo_autorefresh_handler(sourceState, global_current, current)
+      source_id = sourceState["SrcId"]
+      src_data = Pkg.SourceGeneralData(source_id)
+      return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      type = src_data["type"]
+      state = !sourceState["autorefresh"]
+
+      if type == "PlainDir" && state
+        # popup message
+        Popup.Message(_("For the selected repository, refresh\ncannot be set."))
+        return
+      end
+
+      new_symbol = state ? UI.Glyph(:CheckMark) : ""
+      UI.ChangeWidget(Id(:table), term(:Item, current, 2), new_symbol)
+
+      sourceState["autorefresh"] = state
+      @sourceStatesOut[global_current] = sourceState
+    end
+
+    # Handle the "Autorefresh" checkbox in the service view
+    def service_autorefresh_handler(current)
+      srv = @serviceStatesOut[current]
+      log.info("Selected service: #{srv}")
+
+      service_alias = srv["alias"]
+      return if !plugin_service_check(service_alias, plugin_change_msg)
+
+      state = !srv["autorefresh"]
+      # update the table
+      new_symbol = state ? UI.Glyph(:CheckMark) : ""
+      UI.ChangeWidget(Id(:table), term(:Item, current, 1), new_symbol)
+
+      # store the change
+      srv["autorefresh"] = state
+      @serviceStatesOut[current] = srv
+    end
+
+    # Handle the "Priority" field in the repository view
+    def repo_priority_handler(sourceState, global_current, current)
+      return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      # refresh the value in the table
+      new_priority = UI.QueryWidget(Id(:priority), :Value)
+      log.debug("New priority: #{new_priority}")
+
+      UI.ChangeWidget(
+        Id(:table),
+        term(:Item, current, 0),
+        PriorityToString(new_priority)
+      )
+      sourceState["priority"] = new_priority
+      @sourceStatesOut[global_current] = sourceState
+    end
+
+    # Handle the "Keep packages" check box in the repository view
+    def repo_keeppackages_handler(sourceState, global_current)
+      return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      # refresh the value in the table
+      new_keep = UI.QueryWidget(Id(:keeppackages), :Value)
+      log.info("New keep packages option: #{new_keep}")
+
+      sourceState["keeppackages"] = new_keep
+      @sourceStatesOut[global_current] = sourceState
+    end
+
+    # Handle the "Edit" button in the repository view
+    def repo_replace_handler(id, sourceState, global_current)
+      generalData = Pkg.SourceGeneralData(id)
+
+      return if !plugin_service_check(generalData["service"], repo_change_msg)
+
+      # use the full URL (incl. the password) when editing it
+      url2 = Pkg.SourceRawURL(id)
+      old_url = url2
+      plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
+
+      SourceDialogs.SetRepoName(Ops.get_string(sourceState, "name", ""))
+      begin
+        url2 = SourceDialogs.EditPopupType(url2, plaindir)
+
+        break if Builtins.size(url2) == 0
+
+        same_url = url2 == old_url
+
+        Builtins.y2debug(
+          "same_url: %1 (old: %2, new: %3)",
+          same_url,
+          old_url,
+          url2
+        )
+
+        # special check for cd:// and dvd:// repositories
+        if !same_url
+          new_url_parsed = URL.Parse(url2)
+          old_url_parsed = URL.Parse(old_url)
+
+          new_url_scheme = Builtins.tolower(
+            Ops.get_string(new_url_parsed, "scheme", "")
+          )
+          old_url_scheme = Builtins.tolower(
+            Ops.get_string(old_url_parsed, "scheme", "")
+          )
+
+          # ignore cd:// <-> dvd:// changes if the path is not changed
+          if (new_url_scheme == "cd" || new_url_scheme == "dvd") &&
+              (old_url_scheme == "cd" || old_url_scheme == "dvd")
+            # compare only directories, ignore e.g. ?device=/dev/sr0 options
+            if Ops.get_string(new_url_parsed, "path", "") ==
+                Ops.get_string(old_url_parsed, "path", "")
+              Pkg.SourceChangeUrl(
+                Ops.get_integer(sourceState, "SrcId", -1),
+                url2
+              )
+              same_url = true
+            end
+          end
+        end
+
+        if !same_url || plaindir != SourceDialogs.IsPlainDir
+          Builtins.y2milestone(
+            "URL or plaindir flag changed, recreating the source"
+          )
+          # copy the refresh flag
+
+          # get current alias
+          _alias = Ops.get_string(generalData, "alias", "alias")
+          Builtins.y2milestone("Reusing alias: %1", _alias)
+
+          createResult = createSourceWithAlias(
+            url2,
+            SourceDialogs.IsPlainDir,
+            Ops.get_boolean(sourceState, "do_refresh", false),
+            SourceDialogs.GetRepoName,
+            _alias
+          )
+          if createResult == :ok
+            # restore the origonal properties (enabled, autorefresh, keeppackages)
+            # the added repository is at the end of the list
+            idx = Ops.subtract(Builtins.size(@sourceStatesOut), 1)
+            addedSource = Ops.get(@sourceStatesOut, idx, {})
+
+            Builtins.y2milestone("Orig repo: %1", sourceState)
+            Builtins.y2milestone("Added repo: %1", addedSource)
+
+            if addedSource != {}
+              auto_refresh = Ops.get_boolean(
+                sourceState,
+                "autorefresh",
+                true
+              )
+              keeppackages = Ops.get_boolean(
+                sourceState,
+                "keeppackages",
+                false
+              )
+              enabled = Ops.get_boolean(sourceState, "enabled", true)
+              priority = Ops.get_integer(
+                sourceState,
+                "priority",
+                @default_priority
+              )
+              Builtins.y2milestone(
+                "Restoring the original properties: enabled: %1, autorefresh: %2, keeppackages: %3, priority: %4",
+                enabled,
+                auto_refresh,
+                keeppackages,
+                priority
+              )
+
+              # set the original properties
+              Ops.set(addedSource, "autorefresh", auto_refresh)
+              Ops.set(addedSource, "keeppackages", keeppackages)
+              Ops.set(addedSource, "enabled", enabled)
+              Ops.set(addedSource, "priority", priority)
+
+              # get the ID of the old repo and mark it for removal
+              srcid = Ops.get_integer(
+                @sourceStatesOut,
+                [global_current, "SrcId"],
+                -1
+              )
+              if srcid != -1
+                @sourcesToDelete = Builtins.add(@sourcesToDelete, srcid)
+                SourceManager.just_removed_sources = Builtins.add(
+                  SourceManager.just_removed_sources,
+                  srcid
+                )
+              end
+
+              # replace the data
+              Ops.set(@sourceStatesOut, global_current, addedSource)
+              # remove the duplicate at the end
+              @sourceStatesOut = Builtins.remove(@sourceStatesOut, idx)
+
+              # refresh only the name and URL in the table
+              UI.ChangeWidget(
+                Id(:table),
+                Cell(global_current, 3),
+                Ops.get_string(addedSource, "name", "")
+              )
+              UI.ChangeWidget(Id(:table), Cell(global_current, 5), url2)
+
+              fillCurrentRepoInfo
+            end
+          end
+        else
+          Builtins.y2milestone(
+            "URL is the same, not recreating the source"
+          )
+
+          new_name = SourceDialogs.GetRepoName
+          if new_name != Ops.get_string(sourceState, "name", "")
+            Ops.set(sourceState, "name", new_name)
+            Ops.set(@sourceStatesOut, global_current, sourceState)
+
+            # update only the name cell in the table
+            UI.ChangeWidget(
+              Id(:table),
+              Cell(global_current, 3),
+              new_name
+            )
+
+            fillCurrentRepoInfo
+          else
+            Builtins.y2milestone(
+              "The repository name has not been changed"
+            )
+          end
+
+          createResult = :ok
+        end
+      end while createResult == :again # service view
+    end
+
+    # Handle the "Edit" button in the service view
+    def service_replace_handler(current)
+      service_info = Ops.get(@serviceStatesOut, current, {})
+
+      service_alias = service_info["alias"]
+      return if !plugin_service_check(service_alias, plugin_change_msg)
+
+      Builtins.y2milestone("Editing service %1...", current)
+      url2 = Ops.get_string(service_info, "raw_url", "")
+      old_url = url2
+
+      SourceDialogs.SetRepoName(
+        Ops.get_string(service_info, "name", "")
+      )
+      begin
+        url2 = SourceDialogs.EditPopupService(url2)
+
+        break if Builtins.size(url2) == 0
+        if url2 != old_url
+          Builtins.y2milestone(
+            "URL of the service has been changed, recreating the service"
+          )
+          # createSource() can potentially create a repository instead of a service
+          # Probe for a service first must be done before creating a new service
+          service_type = Pkg.ServiceProbe(url2)
+          Builtins.y2milestone("Probed service type: %1", service_type)
+
+          if service_type != nil && service_type != "NONE"
+            createResult = createSource(
+              url2,
+              false,
+              false,
+              SourceDialogs.GetRepoName
+            )
+            if createResult == :ok
+              deleteService(current)
+              fillTable(@repository_view, @displayed_service)
+              fillCurrentRepoInfo
+
+              # refresh also the combobox widget
+              UpdateCombobox()
+            end
+          else
+            Report.Error(
+              Builtins.sformat(
+                _("There is no service at URL:\n%1"),
+                url2
+              )
+            )
+          end
+        else
+          Builtins.y2milestone(
+            "URL is the same, not recreating the service"
+          )
+          entered_service_name = SourceDialogs.GetRepoName
+          old_service_name = Ops.get_string(service_info, "name", "")
+
+          if old_service_name != entered_service_name
+            Builtins.y2milestone(
+              "Updating name of the service to '%1'",
+              entered_service_name
+            )
+            Ops.set(service_info, "name", entered_service_name)
+            Ops.set(@serviceStatesOut, current, service_info)
+            fillTable(@repository_view, @displayed_service)
+            fillCurrentRepoInfo
+            createResult = :ok
+
+            # update the reference
+            @sourceStatesOut = Builtins.maplist(@sourceStatesOut) do |src_state|
+              if Ops.get_string(src_state, "service", "") == old_service_name
+                Ops.set(src_state, "service", entered_service_name)
+              end
+              deep_copy(src_state)
+            end
+
+            # refresh also the combobox widget
+            UpdateCombobox()
+          end
+        end
+      end while createResult == :again
+    end
+
+    # The message displayed when trying to change a plugin service
+    def plugin_change_msg
+      # TRANSLATORS: An error message
+      _("The services of type 'plugin' cannot be changed.")
+    end
+
+    # The message displayed when trying to change a repository belonging
+    # to a plugin service
+    def repo_change_msg
+      # TRANSLATORS: An error message
+      _("The repositories belonging to a service of type 'plugin' cannot be changed.")
+    end
+
+    # Check whether the service is of type "plugin", if yes display the message
+    # @see https://doc.opensuse.org/projects/libzypp/SLE12SP2/zypp-plugins.html#plugin-services
+    # @see https://doc.opensuse.org/projects/libzypp/SLE12SP2/zypp-services.html
+    # @param [String] service_alias Alias of the service
+    # @param [String] msg Error message displayed
+    # @return [Boolean] true if type of service is not "plugin", false otherwise
+    def plugin_service_check(service_alias, msg)
+      # check whether this is a repo from a plugin based service
+      serv_info = Pkg.ServiceGet(service_alias)
+
+      return true if (serv_info["type"] != "plugin")
+
+      Popup.Message(msg)
+      false
     end
   end unless defined? (Yast::RepositoriesClient)
 end
