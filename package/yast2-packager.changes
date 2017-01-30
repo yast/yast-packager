@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 30 10:57:14 UTC 2017 - igonzalezsosa@suse.com
+
+- Packages module is able to perform a package selection proposal
+  during system upgrade (bsc#1009834)
+- 3.1.120
+
+-------------------------------------------------------------------
 Wed Nov  9 16:31:50 UTC 2016 - igonzalezsosa@suse.com
 
 - Synchronize Leap 42.2 and SLES 12 SP2 versions
