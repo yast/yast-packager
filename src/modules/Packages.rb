@@ -1158,6 +1158,12 @@ module Yast
         )
         return true
       end
+      if !File.exists?("/content")
+        Builtins.y2milestone(
+          "Ramdisk does not contain content file, not checking the file on media"
+        )
+        return true
+      end
       media_content = Pkg.SourceProvideSignedFile(source, 1, "/content", false)
       media = Convert.to_string(SCR.Read(path(".target.string"), media_content))
       ramdisk = Convert.to_string(SCR.Read(path(".target.string"), "/content"))
@@ -2275,6 +2281,17 @@ module Yast
       Builtins.y2milestone("Software proposal: %1", ret)
 
       deep_copy(ret)
+    end
+
+    # Make a proposal for package selection during update
+    #
+    # As a side effect, it stores the current proposal.
+    #
+    # @see PackagesProposalChanged
+    def proposal_for_update
+      return unless PackagesProposalChanged()
+      @old_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
+      Packages.SelectSystemPackages(false)
     end
 
     # Initialize the repositories with popup feedback
