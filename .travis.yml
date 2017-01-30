@@ -9,7 +9,7 @@ before_install:
     - sudo apt-get update
     - sudo apt-get install libaugeas-dev libxml2-dev
     - wget https://raw.githubusercontent.com/yast/yast-devtools/master/travis-tools/travis_setup.sh
-    - sh ./travis_setup.sh -p "rake yast2-devtools yast2-testsuite yast2 yast2-pkg-bindings yast2-country-data yast2-storage ruby2.1-dev libaugeas-dev pkg-config" -g "rspec:3.3.0 yast-rake simplecov coveralls cfa"
+    - sh ./travis_setup.sh -p "rake yast2-devtools yast2-testsuite yast2 yast2-pkg-bindings yast2-country-data yast2-storage ruby2.1-dev libaugeas-dev pkg-config" -g "rspec:3.3.0 yast-rake coveralls cfa cheetah"
 script:
     - make -f Makefile.cvs
     - make
