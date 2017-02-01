@@ -343,7 +343,9 @@ module Yast
       params["url"] = URI.unescape(new_url.to_s)
 
       processed = URI("")
-      processed.query = URI.encode_www_form(params)
+      # libzypp do not use web encoding as in https://www.w3.org/TR/html5/forms.html#url-encoded-form-data
+      # but percentage enconding only. For more details see (bsc#954813#c20)
+      processed.query = URI.encode_www_form(params).gsub(/\+/, "%20")
 
       ret = "iso:///" + processed.to_s
       log.info "Updated URL: #{URL.HidePassword(ret)}"
