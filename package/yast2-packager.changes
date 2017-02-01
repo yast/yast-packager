@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
+
+- Fix escaping spaces ( yast uses web form escaping to "+" but
+  libzypp expects percentage escaping to "%20" ) (bsc#954813)
+- 3.1.121
+
+-------------------------------------------------------------------
 Mon Jan 30 10:57:14 UTC 2017 - igonzalezsosa@suse.com
 
 - Packages module is able to perform a package selection proposal
