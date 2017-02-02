@@ -7,7 +7,7 @@ Yast.import "SourceDialogs"
 describe Yast::SourceDialogs do
   subject { Yast::SourceDialogs }
 
-  ZYPP_URL_MAPPINGS = [
+  ZYPP_VALID_URLS = [
     "cd:///",
     "dvd:/subdir?devices=/dev/sr0,/dev/sr1",
     "ftp://user:pass@server/path/to/media/dir",
@@ -30,7 +30,7 @@ describe Yast::SourceDialogs do
 
   describe "#valid_scheme?" do
     it "returns true for all known zypp uris" do
-      ZYPP_URL_MAPPINGS.each do |uri|
+      ZYPP_VALID_URLS.each do |uri|
         expect(subject.valid_scheme?(uri)).to(eq(true), "Valid URI '#{uri}' is not recognized")
       end
     end
@@ -88,6 +88,7 @@ describe Yast::SourceDialogs do
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
 
+    # empty iso url is used when adding new iso repository
     it "handles empty iso uri" do
       converted = ""
       url = "iso://"

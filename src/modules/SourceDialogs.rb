@@ -387,6 +387,8 @@ module Yast
       param_url = params.delete("url") || ""
       processed = URI(URI.encode(param_url))
       processed.scheme = "iso" if processed.scheme.downcase == "dir"
+      # we need to construct path from more potential sources, as url can look like
+      # `iso:/subdir?iso=test.iso&path=dir%3A%2Finstall` resulting in path "/install/subdir/test.iso"
       processed.path = File.join(processed.path || "", uri.path, params.delete("iso") || "")
       processed.query = URI.encode_www_form(params) unless params.empty?
 
