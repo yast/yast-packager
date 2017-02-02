@@ -19,6 +19,10 @@ Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
 
 - Fix escaping spaces ( yast uses web form escaping to "+" but
   libzypp expects percentage escaping to "%20" ) (bsc#954813)
+- Fix also valid showing valid libzypp formats of iso URL like
+  iso:/test?iso=test.iso&path=url%3A%2Finstall
+- Fix editing of iso:/ without triple slash that previously caused
+  lost of first element of path
 - 3.1.121
 
 -------------------------------------------------------------------
