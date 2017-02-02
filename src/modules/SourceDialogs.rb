@@ -375,12 +375,21 @@ module Yast
     def PreprocessISOURL(url)
       log.info "Preprocessing ISO URL: #{URL.HidePassword(url)}"
 
-      uri = (url == "iso://") ? URI("iso:/") : URI(url)
+      # empty iso is used when we adding new url
+      return "" if url == "iso://"
+      uri = URI(url)
       query = uri.query || ""
-      params = URI.decode_www_form(query).to_h
 
-      processed = URI(params.delete("url") || "")
-      processed.path = File.join(processed.path || "", params.delete("iso") || "")
+      # libzypp do not use web encoding as in https://www.w3.org/TR/html5/forms.html#url-encoded-form-data
+      # but percentage enconding only. For more details see (bsc#954813#c20)
+      params = URI.decode_www_form(query.gsub(/%20/, "+")).to_h
+
+      param_url = params.delete("url") || ""
+      processed = URI(URI.encode(param_url))
+      processed.scheme = "iso" if processed.scheme.downcase == "dir"
+      # we need to construct path from more potential sources, as url can look like
+      # `iso:/subdir?iso=test.iso&path=dir%3A%2Finstall` resulting in path "/install/subdir/test.iso"
+      processed.path = File.join(processed.path || "", uri.path, params.delete("iso") || "")
       processed.query = URI.encode_www_form(params) unless params.empty?
 
       ret = processed.to_s
@@ -873,9 +882,10 @@ module Yast
     # @param [String] key string widget key
     def IsoInit(key)
       @_url = PreprocessISOURL(@_url)
-      parsed = URL.Parse(@_url)
+      parsed = URI.parse(@_url)
+      path = URI.unescape(parsed.path)
 
-      UI.ChangeWidget(Id(:dir), :Value, Ops.get_string(parsed, "path", ""))
+      UI.ChangeWidget(Id(:dir), :Value, path)
       UI.SetFocus(:dir)
 
       nil
