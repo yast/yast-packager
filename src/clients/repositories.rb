@@ -1172,7 +1172,7 @@ module Yast
 
           if input == :replace
             if @repository_view
-              repo_replace_handler(id, sourceState, global_current)
+              repo_replace_handler(sourceState, global_current)
             else
               service_replace_handler(current)
             end
@@ -1598,6 +1598,7 @@ module Yast
     end
 
     # Handle the "Delete" button in the service view
+    # @param [Integer] current index of the selected item in the table
     def service_delete_handler(current)
       selected_service = @serviceStatesOut[current] || {}
 
@@ -1624,6 +1625,7 @@ module Yast
     end
 
     # Handle the "Delete" button in the repository view
+    # @param [Integer] global_current index of the repository in the @sourceStatesOut
     def repo_delete_handler(global_current)
       repo = @sourceStatesOut[global_current] || {}
 
@@ -1639,6 +1641,9 @@ module Yast
     end
 
     # Handle the "Enable" checkbox in the repository view
+    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Integer] global_current index of the repository in the @sourceStatesOut
+    # @param [Integer] current index of the selected item in the table
     def repo_enable_handler(sourceState, global_current, current)
       repo = @sourceStatesOut[global_current] || {}
       return if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], repo_change_msg)
@@ -1652,6 +1657,7 @@ module Yast
     end
 
     # Handle the "Enable" checkbox in the service view
+    # @param [Integer] current index of the selected item in the table
     def service_enable_handler(current)
       srv = @serviceStatesOut[current]
       return if !srv
@@ -1675,6 +1681,9 @@ module Yast
     end
 
     # Handle the "Autorefresh" checkbox in the repository view
+    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Integer] global_current index of the repository in the @sourceStatesOut
+    # @param [Integer] current index of the selected item in the table
     def repo_autorefresh_handler(sourceState, global_current, current)
       source_id = sourceState["SrcId"]
       src_data = Pkg.SourceGeneralData(source_id)
@@ -1697,6 +1706,7 @@ module Yast
     end
 
     # Handle the "Autorefresh" checkbox in the service view
+    # @param [Integer] current index of the selected item in the table
     def service_autorefresh_handler(current)
       srv = @serviceStatesOut[current]
       log.info("Selected service: #{srv}")
@@ -1715,6 +1725,9 @@ module Yast
     end
 
     # Handle the "Priority" field in the repository view
+    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Integer] global_current index of the repository in the @sourceStatesOut
+    # @param [Integer] current index of the selected item in the table
     def repo_priority_handler(sourceState, global_current, current)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
 
@@ -1732,6 +1745,8 @@ module Yast
     end
 
     # Handle the "Keep packages" check box in the repository view
+    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Integer] global_current index of the repository in the @sourceStatesOut
     def repo_keeppackages_handler(sourceState, global_current)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
 
@@ -1744,7 +1759,10 @@ module Yast
     end
 
     # Handle the "Edit" button in the repository view
-    def repo_replace_handler(id, sourceState, global_current)
+    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Integer] global_current index of the repository in the @sourceStatesOut
+    def repo_replace_handler(sourceState, global_current)
+      id = sourceState["SrcId"]
       generalData = Pkg.SourceGeneralData(id)
 
       return if !plugin_service_check(generalData["service"], repo_change_msg)
@@ -1913,6 +1931,7 @@ module Yast
     end
 
     # Handle the "Edit" button in the service view
+    # @param [Integer] current index of the selected item in the table
     def service_replace_handler(current)
       service_info = Ops.get(@serviceStatesOut, current, {})
 
