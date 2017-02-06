@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb  6 14:00:13 UTC 2017 - lslezak@suse.cz
+
+- Do not allow changing services of type "plugin" and its
+  repositories, they cannot be changed (related to bsc#1021117)
+- 3.2.15
+
+-------------------------------------------------------------------
 Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
 
 - Fix escaping spaces ( yast uses web form escaping to "+" but
