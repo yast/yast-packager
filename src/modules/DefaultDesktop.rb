@@ -281,13 +281,14 @@ module Yast
     end
 
     # Set the default desktop
-    # @param [String,nil] new_desktop one of those desktops defined in control file or nil
+    # @param [String,nil] new_desktop one of those desktops defined in control file or nil for no desktop selected
     def SetDesktop(new_desktop)
       Init()
 
       if new_desktop == nil
         # Reset the selected patterns
         Builtins.y2milestone("Reseting DefaultDesktop")
+        @desktop = nil
 
         # Do not overwrite the autoyast pattern selection by
         # the default desktop pattern selection (bnc#888981)
@@ -399,6 +400,8 @@ module Yast
     # @return [String] the description of the desktop
     def Description
       Init()
+
+      return "" unless @desktop
 
       ProductControl.GetTranslatedText(
         Ops.get_string(@all_desktops, [@desktop, "label_id"], "")
