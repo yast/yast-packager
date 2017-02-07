@@ -637,8 +637,10 @@ module Yast
 
           success = success && Pkg.SourceRefreshNow(srcid)
         end
-      end
 
+        # check if the new addded repo is signed
+        SourceManager.check_repo_signature(srcid) if added.include?(srcid)
+      end
 
       success = success && KeyManager.Write
 
