@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Wed Feb  8 14:40:29 UTC 2017 - jreidinger@suse.com
 
-- drop inst_desktop client as it is replaced by new desktop 
-  selection based on roles (poo#14936)
+- drop inst_desktop client as it is replaced by new desktop
+  selection based on roles (poo#14936, bsc#1025415)
 - Allow Desktop module to specify that no desktop selected
 - 3.2.16
 
