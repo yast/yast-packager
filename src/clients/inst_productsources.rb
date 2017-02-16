@@ -136,6 +136,11 @@ module Yast
         @script_called_from_another = true
       end
 
+      # useful when do not want to skip already used repos, but need to call it from another client
+      if @script_noncmdline_args["script_called_from_another"]
+        @script_called_from_another = true
+      end
+
       @main_link = ""
 
       @list_of_repos = {}

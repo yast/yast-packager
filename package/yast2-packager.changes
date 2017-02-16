@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Feb  8 14:40:29 UTC 2017 - jreidinger@suse.com
+
+- drop inst_desktop client as it is replaced by new desktop
+  selection based on roles (poo#14936, bsc#1025415)
+- Allow Desktop module to specify that no desktop is selected
+- 3.2.16
+
+-------------------------------------------------------------------
 Mon Feb  6 14:00:13 UTC 2017 - lslezak@suse.cz
 
 - Do not allow changing services of type "plugin" and its
