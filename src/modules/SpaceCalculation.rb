@@ -1059,7 +1059,7 @@ module Yast
     #
     # @return [Array<Storage::Filesystem>]
     def target_filesystems
-      filesystems = ::Storage::Filesystem.all(staging_devicegraph).to_a
+      filesystems = ::Storage::BlkFilesystem.all(staging_devicegraph).to_a
       filesystems.select! { |fs| fs.mountpoints.any? { |mp| mp.start_with?("/") } }
       filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
       filesystems

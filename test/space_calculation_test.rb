@@ -34,7 +34,7 @@ def filesystem(size_k: 0, block_size: 4096, type: :ext2, tune_options: "")
   region = double("Storage::Region", block_size: block_size)
   part = double("Storage::Partition", name: "/dev/sda1", region: region, size: size_k * 1024)
   double(
-    "Storage::Filesystem",
+    "Storage::BlkFilesystem",
     blk_devices: [part],
     type: fs_type(type),
     to_s: type.to_s,
@@ -52,7 +52,7 @@ describe Yast::SpaceCalculation do
 
         stub_devicegraph(target_map)
         if !with_options
-          allow_any_instance_of(Storage::Filesystem).to receive(:fstab_options).and_return([])
+          allow_any_instance_of(Storage::BlkFilesystem).to receive(:fstab_options).and_return([])
         end
 
         allow(Yast::SCR).to receive(:Read).with(SCR_TMPDIR_PATH).and_return "/tmp"
