@@ -602,6 +602,17 @@ module Yast
         "digested",
         true
       )
+      # try skelcd package containing installer update
+      if binaries.nil?
+        # fetch the package, includes installation.xml as well
+        WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, nil) #to cache the whole package
+        alt_file = Directory.tmpdir + "/workflow-updates/" + src_id.to_s + "/y2update.tgz"
+        Builtins.y2milestone("Alternative file name: %1", alt_file)
+        if File.exists? alt_file
+          Builtins.y2milestone("Alternative file exists")
+          binaries = alt_file
+        end
+      end
       # File /y2update.tgz exists
       if binaries != nil
         # Try to extract files from the archive
@@ -1178,6 +1189,18 @@ module Yast
         "digested",
         true
       )
+
+      # try skelcd package containing installer update
+      if y2update.nil?
+        # fetch the package, includes installation.xml as well
+        WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, nil) #to cache the whole package
+        alt_file = Directory.tmpdir + "/workflow-updates/" + src_id.to_s + "/y2update.tgz"
+        Builtins.y2milestone("Alternative file name: %1", alt_file)
+        if File.exists? alt_file
+          Builtins.y2milestone("Alternative file exists")
+          y2update = alt_file
+        end
+      end
 
       if y2update == nil
         Builtins.y2milestone("No YaST update found on the media")
