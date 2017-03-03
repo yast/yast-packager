@@ -1,4 +1,59 @@
 -------------------------------------------------------------------
+Fri Mar  3 16:42:50 UTC 2017 - ancor@suse.com
+
+- Synced storage-ng and master branches. See changes below.
+- 3.3.3
+
+-------------------------------------------------------------------
+Wed Feb  8 14:40:29 UTC 2017 - jreidinger@suse.com
+
+- drop inst_desktop client as it is replaced by new desktop
+  selection based on roles (poo#14936, bsc#1025415)
+- Allow Desktop module to specify that no desktop is selected
+
+-------------------------------------------------------------------
+Mon Feb  6 14:00:13 UTC 2017 - lslezak@suse.cz
+
+- Do not allow changing services of type "plugin" and its
+  repositories, they cannot be changed (related to bsc#1021117)
+
+-------------------------------------------------------------------
+Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
+
+- Fix escaping spaces ( yast uses web form escaping to "+" but
+  libzypp expects percentage escaping to "%20" ) (bsc#954813)
+- Fix also valid showing valid libzypp formats of iso URL like
+  iso:/test?iso=test.iso&path=url%3A%2Finstall
+- Fix editing of iso:/ without triple slash that previously caused
+  lost of first element of path
+
+-------------------------------------------------------------------
+Mon Jan 30 10:57:14 UTC 2017 - igonzalezsosa@suse.com
+
+- Packages module is able to perform a package selection proposal
+  during system upgrade (bsc#1009834)
+
+-------------------------------------------------------------------
+Tue Jan 24 13:15:46 UTC 2017 - jsrain@suse.cz
+
+- do not check content file on media if there is none in the
+  ramdisk (fate#322276)
+
+-------------------------------------------------------------------
+Thu Jan 19 15:11:48 UTC 2017 - igonzalezsosa@suse.com
+
+- Use information provided by libzypp to evaluate product
+  renames (FATE#321751)
+
+-------------------------------------------------------------------
+Wed Dec 21 15:06:31 CET 2016 - schubi@suse.de
+
+- Adjust /etc/zypp/zypp.conf in the installed system when
+  software/minimalistic_libzypp_config is enabled in the control
+  file (FATE#321764)
+- 3.2.11
+
+-------------------------------------------------------------------
 Tue Jan 17 15:42:03 UTC 2017 - ancor@suse.com
 
 - Use storage-ng during installation (to check the available space

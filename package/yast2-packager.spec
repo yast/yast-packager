@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.3.2
+Version:        3.3.3
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -40,6 +40,9 @@ BuildRequires:       yast2_theme
 
 # Pkg::SourceSetPriority()
 BuildRequires:  yast2-pkg-bindings >= 3.2.1
+
+# Augeas lenses
+BuildRequires: augeas-lenses
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
@@ -67,6 +70,8 @@ Requires:       yast2-core >= 2.16.35
 
 # Storage (methods to check the devicegraph)
 Requires:       libstorage-ng-ruby
+# Augeas lenses
+Requires: augeas-lenses
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
@@ -122,10 +127,12 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
 %dir %{yast_libdir}/packager
+%dir %{yast_libdir}/packager/cfa
 %dir %{yast_libdir}/y2packager
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
+%{yast_libdir}/packager/cfa/*
 %{yast_libdir}/y2packager/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
