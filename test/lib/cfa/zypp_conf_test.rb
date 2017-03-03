@@ -42,6 +42,11 @@ describe Yast::Packager::CFA::ZyppConf do
       FileUtils.remove_entry tmpdir
     end
 
+    it "do nothing if no option is not modified" do
+      config.save
+      expect(File.read(zypp_conf_path)).to eq(File.read(ZYPP_CONF_EXAMPLE))
+    end
+
     it "modifies the file accordingly to given options" do
       config.set_minimalistic!
       config.save

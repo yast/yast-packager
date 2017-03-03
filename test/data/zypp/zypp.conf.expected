@@ -2,7 +2,11 @@
 ## /etc/zypp/zypp.conf
 ##
 ## Boolean values are 0 1 yes no on off true false
+
+
 [main]
+
+
 ##
 ## Override the detected architecture
 ##
@@ -14,6 +18,8 @@
 ## ** of all repository data.
 ##
 # arch = s390
+
+
 ##
 ## Path where the caches are kept.
 ##
@@ -21,6 +27,8 @@
 ## Default value: /var/cache/zypp
 ##
 # cachedir = /var/cache/zypp
+
+
 ##
 ## Path where the repo metadata is downloaded and kept.
 ##
@@ -30,6 +38,8 @@
 ## Changing this needs a full refresh (incl. download) of all repository data
 ##
 # metadatadir = /var/cache/zypp/raw
+
+
 ##
 ## Path where the repo solv files are created and kept.
 ##
@@ -37,6 +47,8 @@
 ## Default value: {cachedir}/solv
 ##
 # solvfilesdir = /var/cache/zypp/solv
+
+
 ##
 ## Path where the repo packages are downloaded and kept.
 ##
@@ -44,6 +56,8 @@
 ## Default value: {cachedir}/packages
 ##
 # packagesdir = /var/cache/zypp/packages
+
+
 ##
 ## Path where the configuration files are kept.
 ##
@@ -51,6 +65,7 @@
 ## Default value: /etc/zypp
 ##
 # configdir = /etc/zypp
+
 ##
 ## Path where the known repositories .repo files are kept
 ##
@@ -60,6 +75,7 @@
 ## Changing this invalidates all known repositories
 ##
 # reposdir = /etc/zypp/repos.d
+
 ##
 ## Path where the known services .service files are kept
 ##
@@ -69,6 +85,8 @@
 ## Changing this invalidates all known services
 ##
 # servicesdir = /etc/zypp/services.d
+
+
 ##
 ## Whether repository urls should be probed when added
 ##
@@ -81,6 +99,8 @@
 ##   (e.g. 'zypper ar' will delay the check until the next refresh)
 ##
 # repo.add.probe = false
+
+
 ##
 ## Amount of time in minutes that must pass before another refresh.
 ##
@@ -99,6 +119,7 @@
 ## user-requested refresh.
 ##
 # repo.refresh.delay = 10
+
 ##
 ## Translated package descriptions to download from repos.
 ##
@@ -113,6 +134,7 @@
 ## fallback. Translations for 'en' are always downloaded.
 ##
 # repo.refresh.locales = en, de
+
 ##
 ## Maximum number of concurrent connections to use per transfer
 ##
@@ -123,6 +145,7 @@
 ## Setting it to a reasonable number avoids flooding servers
 ##
 # download.max_concurrent_connections = 5
+
 ##
 ## Sets the minimum download speed (bytes per second)
 ## until the connection is dropped
@@ -132,13 +155,16 @@
 ## 0 means no limit
 ##
 # download.min_download_speed = 0
+
 ## Maximum download speed (bytes per second)
 ## 0 means no limit
 # download.max_download_speed = 0
+
 ## Number of tries per download which will be
 ## done without user interaction
 ## 0 means no limit (use with caution)
 # download.max_silent_tries = 5
+
 ##
 ## Maximum time in seconds that you allow a transfer operation to take.
 ##
@@ -150,6 +176,7 @@
 ## Default value: 180
 ##
 # download.transfer_timeout = 180
+
 ##
 ## Whether to consider using a .delta.rpm when downloading a package
 ##
@@ -163,6 +190,7 @@
 ## not too slow, you benefit from disabling .delta.rpm.
 ##
 # download.use_deltarpm = true
+
 ##
 ## Whether to consider using a deltarpm even when rpm is local
 ##
@@ -172,6 +200,7 @@
 ## This option has no effect unless download.use_deltarpm is set true.
 ##
 #  download.use_deltarpm.always = false
+
 ##
 ## Hint which media to prefer when installing packages (download vs. CD).
 ##
@@ -197,6 +226,7 @@
 ## instead.
 ##
 ## download.media_preference = download
+
 ##
 ## Path where media are preferably mounted or downloaded
 ##
@@ -210,6 +240,7 @@
 ## the fallback is to use /var/tmp.
 ##
 ## download.media_mountdir = /var/adm/mount
+
 ##
 ## Signature checking (repodata and rpm packages)
 ##
@@ -236,6 +267,7 @@
 ##
 # repo_gpgcheck = unset -> according to gpgcheck
 # pkg_gpgcheck =  unset -> according to gpgcheck
+
 ##
 ## Commit download policy to use as default.
 ##
@@ -257,6 +289,7 @@
 ##			some sane default.
 ##
 ## commit.downloadMode =
+
 ##
 ## Defining directory which contains vendor description files.
 ##
@@ -276,6 +309,8 @@
 ## Default value: {configdir}/vendors.d
 ##
 # vendordir = /etc/zypp/vendors.d
+
+
 ##
 ## Whether required packages are installed ONLY
 ## So recommended packages, language packages and packages which depend
@@ -284,7 +319,8 @@
 ## Valid values: boolean
 ## Default value: false
 ##
-# solver.onlyRequires = false
+solver.onlyRequires=true
+
 ##
 ## EXPERTS ONLY: Per default the solver will not replace packages of
 ## different vendors, unless you explicitly ask to do so. Setting this
@@ -298,6 +334,7 @@
 ## Default value: false
 ##
 # solver.allowVendorChange = false
+
 ##
 ## EXPERTS ONLY: TUNE DISTRIBUTION UPGRADE (DUP)
 ## Set whether to allow package version downgrades upon DUP.
@@ -308,6 +345,7 @@
 ## Default value: true
 ##
 # solver.dupAllowDowngrade = true
+
 ##
 ## EXPERTS ONLY: TUNE DISTRIBUTION UPGRADE (DUP)
 ## Set whether follow package renames upon DUP.
@@ -318,6 +356,7 @@
 ## Default value: true
 ##
 # solver.dupAllowNameChange = true
+
 ##
 ## EXPERTS ONLY: TUNE DISTRIBUTION UPGRADE (DUP)
 ## Set whether to allow changing the packages architecture upon DUP.
@@ -328,6 +367,7 @@
 ## Default value: true
 ##
 # solver.dupAllowArchChange = true
+
 ##
 ## EXPERTS ONLY: TUNE DISTRIBUTION UPGRADE (DUP)
 ## Set whether to allow changing the packages vendor upon DUP. If you
@@ -343,6 +383,7 @@
 ## Default value: true
 ##
 # solver.dupAllowVendorChange = true
+
 ##
 ## EXPERTS ONLY: Cleanup when deleting packages. Whether the solver should
 ## per default try to remove packages exclusively required by the ones he's
@@ -359,6 +400,7 @@
 ## Default value: false
 ##
 # solver.cleandepsOnRemove = false
+
 ##
 ## This file contains requirements/conflicts which fulfill the
 ## needs of a running system.
@@ -373,6 +415,7 @@
 ## Default value: {configdir}/systemCheck
 ##
 # solver.checkSystemFile = /etc/zypp/systemCheck
+
 ##
 ## This directory can contain files that contain requirements/conflicts
 ## which fulfill the needs of a running system (see checkSystemFile).
@@ -382,6 +425,7 @@
 ## Default value: {configdir}/systemCheck.d
 ##
 # solver.checkSystemFileDir = /etc/zypp/systemCheck.d
+
 ##
 ## When committing a dist upgrade (e.g. 'zypper dup') a solver testcase
 ## is written to /var/log/updateTestcase-<date>. It is needed in bugreports.
@@ -394,6 +438,7 @@
 ## Default value:	2
 ##
 # solver.upgradeTestcasesToKeep = 2
+
 ##
 ## Whether dist upgrade should remove a products dropped packages.
 ##
@@ -411,6 +456,7 @@
 ## Default value:	true
 ##
 # solver.upgradeRemoveDroppedPackages = true
+
 ##
 ## Packages which can be installed in different versions at the same time.
 ##
@@ -428,6 +474,7 @@
 ##	empty
 ##
 multiversion =
+
 ##
 ## Defining directory which may contain additional multiversion definitions.
 ##
@@ -445,6 +492,7 @@ multiversion =
 ## Default value: {configdir}/multiversion.d
 ##
 # multiversiondir = /etc/zypp/multiversion.d
+
 ## Comma separated list of kernel packages to keep installed in parallel, if the
 ## above multiversion variable is set. Packages can be specified as
 ## 2.6.32.12-0.7 - Exact version to keep
@@ -459,6 +507,7 @@ multiversion =
 ##
 ## Default: Do not delete any kernels if multiversion = provides:multiversion(kernel) is set
 multiversion.kernels = latest,latest-1,running
+
 ##
 ## Path to locks file. If not exist then is create.
 ## In this file is saved also UI locks.
@@ -467,6 +516,7 @@ multiversion.kernels = latest,latest-1,running
 ## default value: {configdir}/locks
 ##
 # locksfile.path = /etc/zypp/locks
+
 ##
 ## Whether to apply locks in locks file after zypp start.
 ##
@@ -474,6 +524,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: true
 ##
 # locksfile.apply = true
+
 ##
 ## Where update items are stored
 ## (example: scripts, messages)
@@ -482,6 +533,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: /var/adm
 ##
 # update.datadir = /var/adm
+
 ##
 ## Where update messages are stored
 ##
@@ -489,6 +541,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: {update.datadir}/update-messages
 ##
 # update.messagesdir = /var/adm/update-messages
+
 ##
 ## Where update scripts are stored
 ##
@@ -496,6 +549,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: {update.datadir}/update-scripts
 ##
 # update.scriptsdir = /var/adm/update-scripts
+
 ##
 ## Command to be invoked to send update messages.
 ##
@@ -532,6 +586,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: single | /usr/lib/zypp/notify-message -p %p
 ##
 # update.messages.notify = single | /usr/lib/zypp/notify-message -p %p
+
 ##
 ## Options for package installation: excludedocs
 ##
@@ -540,7 +595,8 @@ multiversion.kernels = latest,latest-1,running
 ## Valid values:  boolean
 ## Default value: no
 ##
-# rpm.install.excludedocs = no
+rpm.install.excludedocs = yes
+
 ##
 ## Location of history log file.
 ##
@@ -551,6 +607,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: /var/log/zypp/history
 ##
 # history.logfile = /var/log/zypp/history
+
 ##
 ## Global credentials directory path.
 ##
@@ -561,6 +618,7 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: /etc/zypp/credentials.d
 ##
 # credentials.global.dir = /etc/zypp/credentials.d
+
 ##
 ## Global credentials catalog file path.
 ##
@@ -573,5 +631,3 @@ multiversion.kernels = latest,latest-1,running
 ## Default value: /etc/zypp/credentials.cat
 ##
 # credentials.global.file = /etc/zypp/credentials.cat
-solver.onlyRequires=true
-rpm.install.excludedocs=yes
