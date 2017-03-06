@@ -12,7 +12,33 @@ end
 describe Yast::SourceDialogs do
   subject { Yast::SourceDialogs }
 
+  ZYPP_VALID_URLS = [
+    "cd:///",
+    "dvd:/subdir?devices=/dev/sr0,/dev/sr1",
+    "ftp://user:pass@server/path/to/media/dir",
+    "ftp://user:pass@server/%2fhome/user/path/to/media/dir",
+    "http://user:pass@server/path",
+    "https://user:pass@server/path?proxy=foo&proxyuser=me&proxypass=pw",
+    "hd:/subdir?device=/dev/sda1&filesystem=reiserfs",
+    "dir:/directory/name",
+    "iso:/?iso=CD1.iso&url=nfs://server/path/to/media",
+    "iso:/?iso=CD1.iso&url=hd:/?device=/dev/hda",
+    "iso:/subdir?iso=DVD1.iso&url=nfs://nfs-server/directory&mnt=/nfs/attach/point&filesystem=udf",
+    "nfs://nfs-server/exported/path",
+    "nfs://nfs-server/exported/path?mountoptions=ro&type=nfs4",
+    "nfs4://nfs-server/exported/path?mountoptions=ro",
+    "smb://servername/share/path/on/the/share",
+    "cifs://usern:passw@servername/share/path/on/the/share?mountoptions=ro,noguest",
+    "cifs://usern:passw@servername/share/path/on/the/share?workgroup=mygroup",
+    "cifs://servername/share/path/on/the/share?user=usern&pass=passw",
+  ]
+
   describe "#valid_scheme?" do
+    it "returns true for all known zypp uris" do
+      ZYPP_VALID_URLS.each do |uri|
+        expect(subject.valid_scheme?(uri)).to(eq(true), "Valid URI '#{uri}' is not recognized")
+      end
+    end
 
     it "returns true for 'https://' URL" do
       expect(subject.valid_scheme?("https://")).to eq(true)
@@ -52,6 +78,28 @@ describe Yast::SourceDialogs do
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
+
+    it "handles iso with part in url and part in path" do
+      converted = "iso:/insta%20ll/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
+      url = "iso:/Duomenys%20600%20GB?iso=/openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finsta%20ll%2F"
+
+      expect(subject.PreprocessISOURL(url)).to eq(converted)
+    end
+
+    it "handles properly escaped spaces" do
+      converted = "iso:/install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys%20600%20GB"
+
+      expect(subject.PreprocessISOURL(url)).to eq(converted)
+    end
+
+    # empty iso url is used when adding new iso repository
+    it "handles empty iso uri" do
+      converted = ""
+      url = "iso://"
+
+      expect(subject.PreprocessISOURL(url)).to eq(converted)
+    end
   end
 
   describe "#PostprocessISOURL" do
@@ -73,9 +121,17 @@ describe Yast::SourceDialogs do
 
     it "prevents double escaping if get already escaped string" do
       converted = "iso:///install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
-      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys+600+GB"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys%20600%20GB"
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
+    end
+  end
+
+  describe ".IsISOURL" do
+    it "returns true for iso with spaces" do
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys%20600%20GB"
+
+      expect(subject.IsISOURL(url)).to eq true
     end
   end
 

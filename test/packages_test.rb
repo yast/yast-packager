@@ -1060,4 +1060,28 @@ describe Yast::Packages do
       end
     end
   end
+
+  describe "#proposal_for_update" do
+    before do
+      allow(subject).to receive(:PackagesProposalChanged).and_return(changed)
+    end
+
+    context "when packages proposal was changed" do
+      let(:changed) { true }
+
+      it "selects system packages" do
+        expect(subject).to receive(:SelectSystemPackages).with(false)
+        subject.proposal_for_update
+      end
+    end
+
+    context "when packages proposal was not changed" do
+      let(:changed) { false }
+
+      it "does not select system packages" do
+        expect(subject).to_not receive(:SelectSystemPackages)
+        subject.proposal_for_update
+      end
+    end
+  end
 end
