@@ -2072,19 +2072,19 @@ module Yast
 
       products = Pkg.ResolvableProperties("", :product, "")
 
-      if products.empty?
+      if !products || products.empty?
         log.info("No product found on media")
         return true
       end
 
       # no product selected -> select them all
       ret = true
-      unless products.find_index { |p| p["status"] == :selected }
+      unless products.any? { |p| p["status"] == :selected }
         log.info("No product selected so far...")
         selected_products = []
         products.each do |p|
           product_name = p["name"] || ""
-          if Builtins.regexpmatch(product_name, "-migration$")
+          if product_name.match(/-migration$/)
             log.info("Ignoring migration product: #{product_name}")
           elsif p["status"] == :installed
             log.info("Ignoring already installed product: #{product_name}")
@@ -2097,20 +2097,15 @@ module Yast
         # Due selecting all available products there can be products which
         # are conflicting due e.g. renaming eachother. These conflicts
         # can be solved automatically.
-        selected_products.select! do |old_product|
-          renamed = false
-          selected_products.each do |new_product|
-            if AddOnProduct.renamed?(old_product, new_product)
-              log.info("Product #{old_product} will be renamed by or is included in #{new_product}")
-              renamed = true
-            end
+        selected_products.reject! do |old_product|
+          selected_products.any? do |new_product|
+            renamed = AddOnProduct.renamed?(old_product, new_product)
+            log.info("Product #{old_product} will be renamed by or is included in #{new_product}") if renamed
+            renamed
           end
-          !renamed
         end
 
-        selected_products.each do |name|
-          ret = Pkg.ResolvableInstall(name, :product) && ret
-        end
+        ret = selected_products.all? { |name| Pkg.ResolvableInstall(name, :product) }
       end
 
       ret
