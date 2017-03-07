@@ -145,7 +145,9 @@ module Yast
         "sle-hae"       => [ "sle-ha" ],
         "SUSE_SLES_SAP" => [ "SLES_SAP" ],
         # SMT is now integrated into the base SLES
-        "sle-smt"       => [ "SLES" ]
+        "sle-smt"       => [ "SLES" ],
+        # SLES_SAP includes SLES. So SLES is not needed anymore
+        "SLES"          => [ "SLES_SAP" ]
       }
 
     end

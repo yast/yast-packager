@@ -2066,32 +2066,50 @@ module Yast
       Initialize(true)
 
       if Stage.cont
-        Builtins.y2milestone("Second stage - skipping product selection")
+        log.info("Second stage - skipping product selection")
         return true
       end
 
       products = Pkg.ResolvableProperties("", :product, "")
 
-      if Builtins.size(products) == 0
-        Builtins.y2milestone("No product found on media")
+      if products.empty?
+        log.info("No product found on media")
         return true
       end
 
-      selected_products = Builtins.filter(products) do |p|
-        Ops.get(p, "status") == :selected
-      end
       # no product selected -> select them all
       ret = true
-      if Builtins.size(selected_products) == 0
-        Builtins.y2milestone("No product selected so far...")
-        Builtins.foreach(products) do |p|
-          product_name = Ops.get_string(p, "name", "")
-          if !Builtins.regexpmatch(product_name, "-migration$")
-            Builtins.y2milestone("Selecting product %1", product_name)
-            ret = Pkg.ResolvableInstall(product_name, :product) && ret
+      unless products.find_index { |p| p["status"] == :selected }
+        log.info("No product selected so far...")
+        selected_products = []
+        products.each do |p|
+          product_name = p["name"] || ""
+          if Builtins.regexpmatch(product_name, "-migration$")
+            log.info("Ignoring migration product: #{product_name}")
+          elsif p["status"] == :installed
+            log.info("Ignoring already installed product: #{product_name}")
           else
-            Builtins.y2milestone("Ignoring migration product: %1", product_name)
+            log.info("Selecting product #{product_name}")
+            selected_products << product_name
           end
+        end
+
+        # Due selecting all available products there can be products which
+        # are conflicting due e.g. renaming eachother. These conflicts
+        # can be solved automatically.
+        selected_products.select! do |old_product|
+          renamed = false
+          selected_products.each do |new_product|
+            if AddOnProduct.renamed?(old_product, new_product)
+              log.info("Product #{old_product} will be renamed by or is included in #{new_product}")
+              renamed = true
+            end
+          end
+          !renamed
+        end
+
+        selected_products.each do |name|
+          ret = Pkg.ResolvableInstall(name, :product) && ret
         end
       end
 
