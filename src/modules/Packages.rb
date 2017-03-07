@@ -29,6 +29,13 @@ module Yast
     # Minimum set of packages required for installation with remote X11 server
     REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
 
+    # Some products are already be "included" in other products. So they MUST
+    # not be installed anymore and conflicting to the other one.
+    PRODUCT_CONFLICTS = {
+      # SLES_SAP includes SLES. So SLES is not needed anymore
+      "SLES" => [ "SLES_SAP" ]
+    }
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -2095,16 +2102,16 @@ module Yast
         end
 
         # Due selecting all available products there can be products which
-        # are conflicting due e.g. renaming eachother. These conflicts
-        # can be solved automatically.
+        # are conflicting.
+        # E.g products are already be "included" by other products. So they MUST
+        # not be installed anymore.
         selected_products.reject! do |old_product|
           selected_products.any? do |new_product|
-            renamed = AddOnProduct.renamed?(old_product, new_product)
-            log.info("Product #{old_product} will be renamed by or is included in #{new_product}") if renamed
-            renamed
+            conflicts = product_conflicts?(old_product, new_product)
+            log.info("Product #{old_product} conflicts with #{new_product} and will not be installed.") if conflicts
+            conflicts
           end
         end
-
         ret = selected_products.all? { |name| Pkg.ResolvableInstall(name, :product) }
       end
 
@@ -2789,6 +2796,14 @@ module Yast
     # @return [Boolean] true if there is a window manager
     def has_window_manager?
       Pkg.IsSelected("windowmanager") || Pkg.IsProvided("windowmanager")
+    end
+
+    # Checking if two products are conflicting with each other.
+    #
+    # @return [Boolean] true if there are conflicts
+    def product_conflicts?(product1, product2)
+      return false unless  PRODUCT_CONFLICTS[product1]
+       PRODUCT_CONFLICTS[product1].include?(product2)
     end
   end
 
