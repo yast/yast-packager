@@ -30,7 +30,7 @@ module Yast
     REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
 
     # Some products are already be "included" in other products. So they MUST
-    # not be installed anymore and conflicting to the other one.
+    # not be installed anymore because they are conflicting to the other one.
     PRODUCT_CONFLICTS = {
       # SLES_SAP includes SLES. So SLES is not needed anymore
       "SLES" => [ "SLES_SAP" ]
@@ -2105,10 +2105,10 @@ module Yast
         # are conflicting.
         # E.g products are already be "included" by other products. So they MUST
         # not be installed anymore.
-        selected_products.reject! do |old_product|
-          selected_products.any? do |new_product|
-            conflicts = product_conflicts?(old_product, new_product)
-            log.info("Product #{old_product} conflicts with #{new_product} and will not be installed.") if conflicts
+        selected_products.reject! do |product1|
+          selected_products.any? do |product2|
+            conflicts = product_conflicts?(product1, product2)
+            log.info("Product #{product1} conflicts with #{product2} and will not be installed.") if conflicts
             conflicts
           end
         end
