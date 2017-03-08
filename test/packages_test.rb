@@ -1016,4 +1016,86 @@ describe Yast::Packages do
       end
     end
   end
+
+  describe "#SelectProduct" do
+    before do
+      allow(subject).to receive(:Initialize).with(true)
+    end
+
+    context "when it is called in continue stage" do
+      before do
+        allow(Yast::Stage).to receive(:cont).and_return(true)
+      end
+
+      it "do not install any product" do
+        expect(Yast::Pkg).not_to receive(:ResolvableInstall)
+        subject.SelectProduct
+      end
+    end
+
+    context "when it is called in installation stage" do
+      before do
+        allow(Yast::Stage).to receive(:cont).and_return(false)
+      end
+
+      context "when one or more products have already been selected for installation" do
+        before do
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
+            [product("name" => "p1", "status" => :selected), product("name" => "p2")]
+          )
+        end
+
+        it "do not install any additional product" do
+          expect(Yast::Pkg).not_to receive(:ResolvableInstall)
+          subject.SelectProduct
+        end
+      end
+
+      context "when no installable product has been found" do
+        before do
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
+        end
+
+        it "do not install any product" do
+          expect(Yast::Pkg).not_to receive(:ResolvableInstall)
+          subject.SelectProduct
+        end
+      end
+
+      context "when installable and installed products have been found" do
+        before do
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
+            [ product("name" => "installed_product", "status" => :installed),
+              product("name" => "p1"),
+              product("name" => "p2")
+            ]
+          )
+        end
+
+        it "do not install already installed products" do
+          expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("installed_product", :product)
+          expect(Yast::Pkg).to receive(:ResolvableInstall).with("p1", :product).and_return(true)
+          expect(Yast::Pkg).to receive(:ResolvableInstall).with("p2", :product).and_return(true)
+          subject.SelectProduct
+        end
+      end
+
+      context "when conflicting products should be installed (SLES/SLES_SAP)" do
+        before do
+          allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
+            [ product("name" => "SLES"),
+              product("name" => "SLES_SAP")
+            ]
+          )
+        end
+
+        it "do not install SLES product" do
+          expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("SLES", :product)
+          expect(Yast::Pkg).to receive(:ResolvableInstall).with("SLES_SAP", :product).and_return(true)
+          subject.SelectProduct
+        end
+      end
+    end
+
+  end
 end
