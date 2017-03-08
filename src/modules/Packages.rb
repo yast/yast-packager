@@ -29,6 +29,15 @@ module Yast
     # Minimum set of packages required for installation with remote X11 server
     REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
 
+    # Some products are already be "included" in other products. So they MUST
+    # not be installed anymore because the other product has a conflict to
+    # that one.
+    PRODUCT_CONFLICTS = {
+      # SLES_SAP contains "Conflicts: sles-release". So SLES will not be installed.
+      # see https://build.suse.de/package/view_file/SUSE:SLE-12-SP2:GA/_product/SLES_SAP-release.spec?expand=1
+      "SLES_SAP" => [ "SLES" ]
+    }
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -2066,33 +2075,46 @@ module Yast
       Initialize(true)
 
       if Stage.cont
-        Builtins.y2milestone("Second stage - skipping product selection")
+        log.info("Second stage - skipping product selection")
         return true
       end
 
       products = Pkg.ResolvableProperties("", :product, "")
 
-      if Builtins.size(products) == 0
-        Builtins.y2milestone("No product found on media")
+      if !products || products.empty?
+        log.info("No product found on media")
         return true
       end
 
-      selected_products = Builtins.filter(products) do |p|
-        Ops.get(p, "status") == :selected
-      end
       # no product selected -> select them all
       ret = true
-      if Builtins.size(selected_products) == 0
-        Builtins.y2milestone("No product selected so far...")
-        Builtins.foreach(products) do |p|
-          product_name = Ops.get_string(p, "name", "")
-          if !Builtins.regexpmatch(product_name, "-migration$")
-            Builtins.y2milestone("Selecting product %1", product_name)
-            ret = Pkg.ResolvableInstall(product_name, :product) && ret
+      unless products.any? { |p| p["status"] == :selected }
+        log.info("No product selected so far...")
+        selected_products = []
+        products.each do |p|
+          product_name = p["name"] || ""
+          if product_name.match(/-migration$/)
+            log.info("Ignoring migration product: #{product_name}")
+          elsif p["status"] == :installed
+            log.info("Ignoring already installed product: #{product_name}")
           else
-            Builtins.y2milestone("Ignoring migration product: %1", product_name)
+            log.info("Selecting product #{product_name}")
+            selected_products << product_name
           end
         end
+
+        # Due selecting all available products there can be products which
+        # are conflicting.
+        # E.g products are already be "included" by other products. So they MUST
+        # not be installed anymore.
+        selected_products.reject! do |product1|
+          selected_products.any? do |product2|
+            conflicts = product_conflicts?(product1, product2)
+            log.info("Product #{product1} conflicts with #{product2} and will not be installed.") if conflicts
+            conflicts
+          end
+        end
+        ret = selected_products.all? { |name| Pkg.ResolvableInstall(name, :product) }
       end
 
       ret
@@ -2776,6 +2798,14 @@ module Yast
     # @return [Boolean] true if there is a window manager
     def has_window_manager?
       Pkg.IsSelected("windowmanager") || Pkg.IsProvided("windowmanager")
+    end
+
+    # Checking if product2 has a conflict to product1
+    #
+    # @return [Boolean] true if there are conflicts
+    def product_conflicts?(product1, product2)
+      return false unless  PRODUCT_CONFLICTS[product2]
+       PRODUCT_CONFLICTS[product2].include?(product1)
     end
   end
 

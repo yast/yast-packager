@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Tue Mar  7 09:37:15 CET 2017 - schubi@suse.de
+
+- Product selection: Do not reinstall already installed products
+  or products which are already included in another product.
+
+  Fixes SLES4SAP autoupgrade with SUSE Manager repositories.
+  These repositories contain SLES_SAP and SLES product. SLES
+  product will not be installed because SLES_SAP already includes
+  the SLES product.
+  (bnc#1014861)
+- 3.1.122
+
+-------------------------------------------------------------------
 Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
 
 - Fix escaping spaces ( yast uses web form escaping to "+" but
