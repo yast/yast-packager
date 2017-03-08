@@ -1096,6 +1096,5 @@ describe Yast::Packages do
         end
       end
     end
-
   end
 end
