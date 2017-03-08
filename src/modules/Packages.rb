@@ -1988,9 +1988,7 @@ module Yast
         selected_products = []
         products.each do |p|
           product_name = p["name"] || ""
-          if product_name.match(/-migration$/)
-            log.info("Ignoring migration product: #{product_name}")
-          elsif p["status"] == :installed
+          if p["status"] == :installed
             log.info("Ignoring already installed product: #{product_name}")
           else
             log.info("Selecting product #{product_name}")
