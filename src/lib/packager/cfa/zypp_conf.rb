@@ -18,9 +18,14 @@ module Yast
 
         # Set options to keep a minimalistic package selection
         def set_minimalistic!
-          data["main"]["solver.onlyRequires"] = "true"
-          data["main"]["rpm.install.excludedocs"] = "yes"
-          data["main"]["multiversion"] = nil
+          tree = data["main"]
+          if !tree
+            tree = ::CFA::AugeasTree.new
+            data["main"] = tree
+          end
+          generic_set("solver.onlyRequires", "true", tree)
+          generic_set("rpm.install.excludedocs", "yes", tree)
+          generic_set("multiversion", nil, tree)
         end
 
         def section(name)

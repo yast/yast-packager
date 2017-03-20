@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 20 12:33:35 UTC 2017 - jreidinger@suse.com
+
+- make minimal changes when modify zypp.conf (bsc#1023204)
+- 3.2.18
+
+-------------------------------------------------------------------
 Tue Mar  7 09:37:15 CET 2017 - schubi@suse.de
 
 - Product selection: Do not reinstall already installed products
