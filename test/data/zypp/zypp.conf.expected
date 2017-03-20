@@ -595,9 +595,9 @@ multiversion.kernels = latest,latest-1,running
 ## Valid values:  boolean
 ## Default value: no
 ##
-#rpm.install.excludedocs = no
 rpm.install.excludedocs=yes
 
+##
 # # Location of history log file.
 ##
 ## The history log is described at
