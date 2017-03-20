@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.1.121.1
+Version:        3.1.121.2
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -32,6 +32,7 @@ BuildRequires:  yast2-testsuite
 BuildRequires:  yast2-xml
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
+BuildRequires:  rubygem(cfa) >= 0.5.0
 
 # Packages::Repository and Packages::Product classes
 BuildRequires:  yast2 >= 3.1.187
@@ -68,6 +69,9 @@ Requires:       yast2-core >= 2.16.35
 
 # Augeas lenses
 Requires: augeas-lenses
+
+# zypp.conf model and minimal modifications (bsc#1023204)
+Requires:  rubygem(cfa) >= 0.5.0
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
