@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 20 12:33:35 UTC 2017 - jreidinger@suse.com
+
+- make minimal changes when modify zypp.conf (bsc#1023204)
+- 3.1.121.2
+
+-------------------------------------------------------------------
 Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
 
 - Fix escaping spaces ( yast uses web form escaping to "+" but
