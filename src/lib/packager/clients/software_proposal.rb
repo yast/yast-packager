@@ -41,21 +41,21 @@ module Yast
       # if only partitioning has been changed just return the current state,
       # don't reset to default (bnc#450786, bnc#371875)
       if partitioning_changed? && !@language_changed && !@force_reset && !Packages.PackagesProposalChanged
-        return Packages.Summary([ :product, :pattern, :selection, :size, :desktop ], false);
+        @ret = Packages.Summary([ :product, :pattern, :selection, :size, :desktop ], false);
+      else
+        @reinit = @language_changed
+        Builtins.y2milestone(
+          "package proposal: force reset: %1, reinit: %2, language changed: %3",
+          @force_reset,
+          @reinit,
+          @language_changed
+        )
+        @ret = Packages.Proposal(
+          @force_reset, # user decision: reset to default
+          @reinit, # reinitialize due to language or partition change
+          false
+        ) # simple version
       end
-
-      @reinit = @language_changed
-      Builtins.y2milestone(
-        "package proposal: force reset: %1, reinit: %2, language changed: %3",
-        @force_reset,
-        @reinit,
-        @language_changed
-      )
-      @ret = Packages.Proposal(
-        @force_reset, # user decision: reset to default
-        @reinit, # reinitialize due to language or partition change
-        false
-      ) # simple version
 
       if @language_changed && !@force_reset
         # if the  language has changed the software proposal is reset to the default settings
