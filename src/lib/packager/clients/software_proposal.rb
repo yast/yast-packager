@@ -34,51 +34,17 @@ module Yast
 
     def make_proposal(flags)
       @force_reset = flags.fetch("force_reset", false)
-      @language_changed = flags.fetch("language_changed", false)
 
-      @reinit = false
-      @partition_changed = false
-
-      if Installation.dirinstall_installing_into_dir
-        # check the target directory in dirinstall mode
-        if Packages.timestamp != Installation.dirinstall_target_time
-          @partition_changed = true
-        end
-        # save information about target change time in module Packages
-        Packages.timestamp = Installation.dirinstall_target_time
-      else
-        @storage_timestamp = Convert.to_integer(
-          WFM.call("wrapper_storage", ["GetTargetChangeTime"])
-        )
-
-        # check the partitioning in installation
-        if Packages.timestamp != @storage_timestamp
-          # don't set flag partition_changed if it's the first "change"
-          @partition_changed = true if Packages.timestamp != 0
-        end
-        # save information about target change time in module Packages
-        Packages.timestamp = @storage_timestamp
-      end
-
-      if Pkg.GetPackageLocale != Language.language
-        @language_changed = true
-        Pkg.SetPackageLocale(Language.language)
-      end
-      if !Builtins.contains(Pkg.GetAdditionalLocales, Language.language)
-        # FIXME this is temporary fix
-        #	    language_changed = true;
-        Pkg.SetAdditionalLocales(
-          Builtins.add(Pkg.GetAdditionalLocales, Language.language)
-        )
-      end
+      @language_changed = adjust_locales
+      @language_changed ||= flags.fetch("language_changed", false)
 
       # if only partitioning has been changed just return the current state,
       # don't reset to default (bnc#450786, bnc#371875)
-      if @partition_changed && !@language_changed && !@force_reset && !Packages.PackagesProposalChanged
+      if partitioning_changed? && !@language_changed && !@force_reset && !Packages.PackagesProposalChanged
         return Packages.Summary([ :product, :pattern, :selection, :size, :desktop ], false);
       end
 
-      @reinit = true if @language_changed
+      @reinit = @language_changed
       Builtins.y2milestone(
         "package proposal: force reset: %1, reinit: %2, language changed: %3",
         @force_reset,
@@ -151,6 +117,53 @@ module Yast
         "menu_title"      => _("&Software"),
         "id"              => "software_stuff"
       }
+    end
+
+    private
+
+    def partitioning_changed?
+      changed = false
+
+      if Installation.dirinstall_installing_into_dir
+        # check the target directory in dirinstall mode
+        if Packages.timestamp != Installation.dirinstall_target_time
+          changed = true
+        end
+        # save information about target change time in module Packages
+        Packages.timestamp = Installation.dirinstall_target_time
+      else
+        storage_timestamp = Convert.to_integer(
+          WFM.call("wrapper_storage", ["GetTargetChangeTime"])
+        )
+
+        # check the partitioning in installation
+        if Packages.timestamp != storage_timestamp
+          # don't set changed if it's the first "change"
+          changed = true if Packages.timestamp != 0
+        end
+        # save information about target change time in module Packages
+        Packages.timestamp = storage_timestamp
+      end
+
+      changed
+    end
+
+    # Adjust package locales
+    # @return [Boolean] has the language changed
+    def adjust_locales
+      language_changed = false
+      if Pkg.GetPackageLocale != Language.language
+        language_changed = true
+        Pkg.SetPackageLocale(Language.language)
+      end
+      if !Builtins.contains(Pkg.GetAdditionalLocales, Language.language)
+        # FIXME this is temporary fix
+        #	    language_changed = true;
+        Pkg.SetAdditionalLocales(
+          Builtins.add(Pkg.GetAdditionalLocales, Language.language)
+        )
+      end
+      language_changed
     end
   end
 end
