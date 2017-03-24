@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 24 13:53:40 UTC 2017 - mvidner@suse.com
+
+- Do not ignore solver problems after touching the partitioning
+  (bsc#1029306)
+- 3.1.121.3
+
+-------------------------------------------------------------------
 Mon Mar 20 12:33:35 UTC 2017 - jreidinger@suse.com
 
 - make minimal changes when modify zypp.conf (bsc#1023204)
