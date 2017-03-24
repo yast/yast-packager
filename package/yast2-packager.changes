@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 24 16:17:23 UTC 2017 - lslezak@suse.cz
+
+- Download the addon y2update.tgz file from a package referenced
+  by the "installerextension()" provides dependency (FATE#320772)
+- 3.2.19
+
+-------------------------------------------------------------------
 Mon Mar 20 12:33:35 UTC 2017 - jreidinger@suse.com
 
 - make minimal changes when modify zypp.conf (bsc#1023204)
