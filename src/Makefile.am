@@ -72,7 +72,8 @@ desktop_DATA = \
 
 ylibclientdir = "${yast2dir}/lib/packager/clients"
 ylibclient_DATA = \
-  lib/packager/clients/pkg_finish.rb
+  lib/packager/clients/pkg_finish.rb \
+  lib/packager/clients/software_proposal.rb
 
 ylibcfadir = "${yast2dir}/lib/packager/cfa"
 ylibcfa_DATA = \
