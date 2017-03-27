@@ -16,6 +16,8 @@ require "yast"
 
 module Yast
   class SourceManagerClass < Module
+    include Yast::Logger
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -831,6 +833,28 @@ module Yast
       end
 
       nil
+    end
+
+    # Check whether the repository is digitally signed, if not ask the user to
+    # really use it. If user does not agree the repository is deleted.
+    # The check is skipped when the signature checks are disabled (either via
+    # sysconfig or a boot parameter).
+    # @param [Integer] srcid Id of the new added repository to check
+    # @return [Boolean] true when the repository is signed or user confirmed
+    #   using unsigned repository, false otherwise
+    def check_repo_signature(srcid)
+      return true unless SignatureCheckDialogs.CheckSignaturesInYaST
+
+      repo_data = Pkg.SourceGeneralData(srcid)
+      # explicitly check for nil here, true/false means the repo is signed
+      # and is valid/invalid, unsigned repositories are marked with nil
+      return true unless repo_data["valid_repo_signature"].nil?
+
+      return true if SignatureCheckDialogs.UseUnsignedItem(:repository, nil, nil, srcid)
+
+      log.info("Removing untrusted repository")
+      Pkg.SourceDelete(srcid)
+      false
     end
 
     publish :variable => :newSources, :type => "list <integer>"
