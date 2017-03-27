@@ -419,4 +419,50 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#Integrate" do
+    let(:src_id) { 3 }
+
+    before do
+      allow(subject).to receive(:GetCachedFileFromSource)
+      allow(subject).to receive(:HandleProductPATTERNS)
+      allow(subject).to receive(:IntegrateReleaseNotes)
+      allow(Yast::WorkflowManager).to receive(:GetCachedWorkflowFilename)
+      allow(Yast::WorkflowManager).to receive(:AddWorkflow)
+    end
+
+    it "updates the inst-sys with the y2update.tgz file from the installer extension package" do
+      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(true)
+      expect(subject).to receive(:UpdateInstSys).with(/\/y2update\.tgz\z/)
+      subject.Integrate(src_id)
+    end
+
+    it "does not update inst-sys when y2update.tgz was not found in the installer extension package" do
+      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
+      expect(subject).to_not receive(:UpdateInstSys)
+      subject.Integrate(src_id)
+    end
+  end
+
+  describe "#IntegrateY2Update" do
+    let(:src_id) { 3 }
+
+    before do
+      allow(Yast::WorkflowManager).to receive(:GetCachedWorkflowFilename)
+      allow(subject).to receive(:GetCachedFileFromSource)
+      allow(subject).to receive(:RereadAllSCRAgents)
+    end
+
+    it "updates the inst-sys with the y2update.tgz file from the installer extension package" do
+      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(true)
+      expect(Yast::SCR).to receive(:Execute).and_return("exit" => 0)
+      subject.IntegrateY2Update(src_id)
+    end
+
+    it "does not update inst-sys when y2update.tgz was not found in the installer extension package" do
+      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
+      expect(Yast::SCR).to_not receive(:Execute)
+      subject.IntegrateY2Update(src_id)
+    end
+  end
 end
