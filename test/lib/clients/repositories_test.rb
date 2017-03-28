@@ -1,7 +1,10 @@
 #!/usr/bin/env rspec
 
-require_relative "test_helper"
-require_relative "../src/clients/repositories"
+require_relative "../../test_helper"
+require "packager/clients/repositories"
+
+Yast.import "Pkg"
+Yast.import "Popup"
 
 describe Yast::RepositoriesClient do
   subject(:client) { Yast::RepositoriesClient.new }
