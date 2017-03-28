@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 28 08:31:49 UTC 2017 - igonzalezsosa@suse.com
+
+- Do not crash when changing the priority of a just created
+  repository (bsc#1027111)
+- 3.2.21
+
+-------------------------------------------------------------------
 Mon Mar 27 08:42:41 UTC 2017 - mvidner@suse.com
 
 - Do not ignore solver problems after touching the partitioning
