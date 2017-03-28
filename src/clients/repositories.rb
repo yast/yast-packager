@@ -2032,12 +2032,13 @@ module Yast
     # @see https://doc.opensuse.org/projects/libzypp/SLE12SP2/zypp-services.html
     # @param [String] service_alias Alias of the service
     # @param [String] msg Error message displayed
-    # @return [Boolean] true if type of service is not "plugin", false otherwise
+    # @return [Boolean] true if type of service is not "plugin" or service does not exist,
+    #                   false otherwise
     def plugin_service_check(service_alias, msg)
       # check whether this is a repo from a plugin based service
-      serv_info = Pkg.ServiceGet(service_alias)
+      serv_info = Pkg.ServiceGet(service_alias) || {}
 
-      return true if (serv_info["type"] != "plugin")
+      return true if serv_info["type"] != "plugin"
 
       Popup.Message(msg)
       false
