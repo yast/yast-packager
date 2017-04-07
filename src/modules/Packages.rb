@@ -8,6 +8,7 @@ require "yast"
 
 # html_escape()
 require "erb"
+require "fileutils"
 
 module Yast
   class PackagesClass < Module
@@ -39,6 +40,8 @@ module Yast
       # see https://build.suse.de/package/view_file/SUSE:SLE-12-SP2:GA/_product/SLES_SAP-release.spec?expand=1
       "SLES_SAP" => [ "SLES" ]
     }
+
+    BASE_PRODUCT_FILE = "/etc/products.d/baseproduct".freeze
 
     def main
       Yast.import "UI"
@@ -1588,7 +1591,7 @@ module Yast
 
       # Initialize package manager
       @init_error = nil
-      Builtins.y2milestone("Packages::Initialize()")
+      Builtins.y2milestone("Packages::Initialize_BaseInit()")
 
       if Mode.test
         # Fake values for testing purposes
@@ -1785,6 +1788,10 @@ module Yast
     def Initialize_StageInitial(show_popup, base_url, log_url)
       initial_repository = nil
       ImportGPGKeys()
+
+      # Create the baseproduct link if it does not exist yet,
+      # openSUSE includes the file in the inst-sys while SLES/SLED do not.
+      create_baseproduct_symlink unless File.exist?(BASE_PRODUCT_FILE)
 
       # prefer CD/DVD media to download during installation/update
       # (BNC#780617,865819)
@@ -2746,6 +2753,22 @@ module Yast
     def product_conflicts?(product1, product2)
       return false unless  PRODUCT_CONFLICTS[product2]
        PRODUCT_CONFLICTS[product2].include?(product1)
+    end
+
+    # Create the baseproduct file pointing to a found product file.
+    def create_baseproduct_symlink
+      prod_files = Dir["/etc/products.d/*.prod"]
+
+      if prod_files.empty?
+        log.warn("No product file found, not creating the baseproduct symlink")
+        return
+      end
+
+      log.warn("More than one product found: #{prod_files}") if prod_files.size > 1
+
+      product_file = prod_files.first
+      log.info("Creating #{BASE_PRODUCT_FILE} symlink pointing to #{product_file}")
+      ::FileUtils.ln_s(product_file, BASE_PRODUCT_FILE)
     end
   end
 
