@@ -969,7 +969,7 @@ module Yast
       ret = []
 
       add_biosdevname = false
-      options = SCR.Read(path(".proc.cmdline"))
+      options = SCR.Read(path(".proc.cmdline")) || ""
       option = options.grep(/^biosdevname=/i).first
       if option
         value = option[/^biosdevname=(\d+)/i, 1]
