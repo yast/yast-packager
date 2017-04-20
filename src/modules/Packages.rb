@@ -1602,7 +1602,7 @@ module Yast
 
       # '\' is not reserved nor unreserved according to rfc https://tools.ietf.org/html/rfc3986#section-2.1
       # but ruby URI does not handle it. So to make life easier encode it (bsc#1032506)
-      base_url.value.gsub!(/\\/, "%5C")
+      base_url.value.gsub!("\\", "%5C")
 
       # hide password from URL if present
       log_url.value = URL.HidePassword(base_url.value)
