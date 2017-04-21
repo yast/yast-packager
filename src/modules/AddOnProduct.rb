@@ -595,6 +595,7 @@ module Yast
     end
 
     def IntegrateY2Update(src_id)
+      # this works only with the SUSE tags repositories
       binaries = GetCachedFileFromSource(
         src_id, # optional
         1,
@@ -602,6 +603,11 @@ module Yast
         "digested",
         true
       )
+
+      # try the package containing the installer update, works with all repositories,
+      # including RPM-MD
+      binaries ||= y2update_path(src_id)
+
       # File /y2update.tgz exists
       if binaries != nil
         # Try to extract files from the archive
@@ -1170,7 +1176,7 @@ module Yast
     def Integrate(srcid)
       Builtins.y2milestone("Integrating repository %1", srcid)
 
-      # Updating inst-sys
+      # Updating inst-sys, this works only with the SUSE tags repositories
       y2update = GetCachedFileFromSource(
         srcid, # optional
         1,
@@ -1178,6 +1184,10 @@ module Yast
         "digested",
         true
       )
+
+      # try the package containing the installer update, works with all repositories,
+      # including RPM-MD
+      y2update ||= y2update_path(srcid)
 
       if y2update == nil
         Builtins.y2milestone("No YaST update found on the media")
@@ -2403,6 +2413,21 @@ module Yast
         log.error "Unsupported type: #{type}"
         false
       end
+    end
+
+private
+
+    # Download the y2update from the addon package.
+    # @param src_id [Fixnum] repository ID
+    # @return [String,nil] full path to the `y2update.tgz` file or nil if not found
+    def y2update_path(src_id)
+      # fetch and extract the "installerextension" package
+      WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, nil)
+      y2update = File.join(WorkflowManager.addon_control_dir(src_id), "y2update.tgz")
+      return nil unless File.exist?(y2update)
+
+      log.info("Found y2update.tgz file from the installer extension package: #{y2update}")
+      y2update
     end
   end
 

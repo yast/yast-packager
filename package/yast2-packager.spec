@@ -28,6 +28,7 @@ BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
+BuildRequires:  rubygem(cfa) >= 0.5.0
 
 # Y2Storage::StorageManager#staging_revision
 BuildRequires:  yast2-storage-ng >= 0.1.8
@@ -72,6 +73,9 @@ Requires:       yast2-core >= 2.16.35
 Requires:       libstorage-ng-ruby
 # Augeas lenses
 Requires: augeas-lenses
+
+# zypp.conf model and minimal modifications (bsc#1023204)
+Requires:  rubygem(cfa) >= 0.5.0
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
