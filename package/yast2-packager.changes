@@ -1,4 +1,52 @@
 -------------------------------------------------------------------
+Fri Apr 21 11:24:52 UTC 2017 - lslezak@suse.cz
+
+- Synced storage-ng and master branches. See changes below.
+- 3.3.4
+
+-------------------------------------------------------------------
+Fri Apr  7 13:40:59 UTC 2017 - lslezak@suse.cz
+
+- Create the /etc/products.d/baseproduct symlink in inst-sys when
+  it is missing to allow expanding variables in the add-on
+  repositories URL (bsc#972046)
+
+-------------------------------------------------------------------
+Tue Mar 28 08:31:49 UTC 2017 - igonzalezsosa@suse.com
+
+- Do not crash when changing the priority of a just created
+  repository (bsc#1027111)
+
+-------------------------------------------------------------------
+Mon Mar 27 08:42:41 UTC 2017 - mvidner@suse.com
+
+- Do not ignore solver problems after touching the partitioning
+  (bsc#1029306)
+
+-------------------------------------------------------------------
+Fri Mar 24 16:17:23 UTC 2017 - lslezak@suse.cz
+
+- Download the addon y2update.tgz file from a package referenced
+  by the "installerextension()" provides dependency (FATE#320772)
+
+-------------------------------------------------------------------
+Mon Mar 20 12:33:35 UTC 2017 - jreidinger@suse.com
+
+- make minimal changes when modify zypp.conf (bsc#1023204)
+
+-------------------------------------------------------------------
+Tue Mar  7 09:37:15 CET 2017 - schubi@suse.de
+
+- Product selection: Do not reinstall already installed products
+  or products which are already included in another product.
+
+  Fixes SLES4SAP autoupgrade with SUSE Manager repositories.
+  These repositories contain SLES_SAP and SLES product. SLES
+  product will not be installed because SLES_SAP already includes
+  the SLES product.
+  (bnc#1014861)
+
+-------------------------------------------------------------------
 Fri Mar  3 16:42:50 UTC 2017 - ancor@suse.com
 
 - Synced storage-ng and master branches. See changes below.

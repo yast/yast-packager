@@ -8,6 +8,7 @@ require "yast"
 
 # html_escape()
 require "erb"
+require "fileutils"
 
 module Yast
   class PackagesClass < Module
@@ -30,6 +31,17 @@ module Yast
     REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
     # Graphical packages for VNC installation
     GRAPHIC_PACKAGES = [ "xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11" ]
+
+    # Some products are already be "included" in other products. So they MUST
+    # not be installed anymore because the other product has a conflict to
+    # that one.
+    PRODUCT_CONFLICTS = {
+      # SLES_SAP contains "Conflicts: sles-release". So SLES will not be installed.
+      # see https://build.suse.de/package/view_file/SUSE:SLE-12-SP2:GA/_product/SLES_SAP-release.spec?expand=1
+      "SLES_SAP" => [ "SLES" ]
+    }
+
+    BASE_PRODUCT_FILE = "/etc/products.d/baseproduct".freeze
 
     def main
       Yast.import "UI"
@@ -1579,7 +1591,7 @@ module Yast
 
       # Initialize package manager
       @init_error = nil
-      Builtins.y2milestone("Packages::Initialize()")
+      Builtins.y2milestone("Packages::Initialize_BaseInit()")
 
       if Mode.test
         # Fake values for testing purposes
@@ -1777,6 +1789,10 @@ module Yast
       initial_repository = nil
       ImportGPGKeys()
 
+      # Create the baseproduct link if it does not exist yet,
+      # openSUSE includes the file in the inst-sys while SLES/SLED do not.
+      create_baseproduct_symlink unless File.exist?(BASE_PRODUCT_FILE)
+
       # prefer CD/DVD media to download during installation/update
       # (BNC#780617,865819)
       Builtins.y2milestone("Prefer CD/DVD media to download")
@@ -1961,33 +1977,44 @@ module Yast
       Initialize(true)
 
       if Stage.cont
-        Builtins.y2milestone("Second stage - skipping product selection")
+        log.info("Second stage - skipping product selection")
         return true
       end
 
       products = Pkg.ResolvableProperties("", :product, "")
 
-      if Builtins.size(products) == 0
-        Builtins.y2milestone("No product found on media")
+      if !products || products.empty?
+        log.info("No product found on media")
         return true
       end
 
-      selected_products = Builtins.filter(products) do |p|
-        Ops.get(p, "status") == :selected
-      end
       # no product selected -> select them all
       ret = true
-      if Builtins.size(selected_products) == 0
-        Builtins.y2milestone("No product selected so far...")
-        Builtins.foreach(products) do |p|
-          product_name = Ops.get_string(p, "name", "")
-          if !Builtins.regexpmatch(product_name, "-migration$")
-            Builtins.y2milestone("Selecting product %1", product_name)
-            ret = Pkg.ResolvableInstall(product_name, :product) && ret
+      unless products.any? { |p| p["status"] == :selected }
+        log.info("No product selected so far...")
+        selected_products = []
+        products.each do |p|
+          product_name = p["name"] || ""
+          if p["status"] == :installed
+            log.info("Ignoring already installed product: #{product_name}")
           else
-            Builtins.y2milestone("Ignoring migration product: %1", product_name)
+            log.info("Selecting product #{product_name}")
+            selected_products << product_name
           end
         end
+
+        # Due selecting all available products there can be products which
+        # are conflicting.
+        # E.g products are already be "included" by other products. So they MUST
+        # not be installed anymore.
+        selected_products.reject! do |product1|
+          selected_products.any? do |product2|
+            conflicts = product_conflicts?(product1, product2)
+            log.info("Product #{product1} conflicts with #{product2} and will not be installed.") if conflicts
+            conflicts
+          end
+        end
+        ret = selected_products.all? { |name| Pkg.ResolvableInstall(name, :product) }
       end
 
       ret
@@ -2730,6 +2757,30 @@ module Yast
       blk_device = filesystem.blk_devices[0]
       return "" unless blk_device
       blk_device.name
+    end
+
+    # Checking if product2 has a conflict to product1
+    #
+    # @return [Boolean] true if there are conflicts
+    def product_conflicts?(product1, product2)
+      return false unless  PRODUCT_CONFLICTS[product2]
+       PRODUCT_CONFLICTS[product2].include?(product1)
+    end
+
+    # Create the baseproduct file pointing to a found product file.
+    def create_baseproduct_symlink
+      prod_files = Dir["/etc/products.d/*.prod"]
+
+      if prod_files.empty?
+        log.warn("No product file found, not creating the baseproduct symlink")
+        return
+      end
+
+      log.warn("More than one product found: #{prod_files}") if prod_files.size > 1
+
+      product_file = prod_files.first
+      log.info("Creating #{BASE_PRODUCT_FILE} symlink pointing to #{product_file}")
+      ::FileUtils.ln_s(product_file, BASE_PRODUCT_FILE)
     end
   end
 
