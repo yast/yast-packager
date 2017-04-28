@@ -3,6 +3,7 @@
 require_relative "./test_helper"
 
 require "yaml"
+require "uri"
 
 include Yast::Logger
 
@@ -1163,6 +1164,50 @@ describe Yast::Packages do
           subject.SelectProduct
         end
       end
+    end
+  end
+
+  describe "#Initialize_BaseInit" do
+    before do
+      allow(Yast::PackageCallbacks).to receive(:InitPackageCallbacks)
+      allow(Yast::Language).to receive(:language).and_return("en_US")
+      allow(Yast::Pkg).to receive(:SetTextLocale)
+      @base_url = Yast::ArgRef.new("")
+      @log_url = Yast::ArgRef.new("")
+    end
+
+    it "inits package callbacks" do
+      expect(Yast::PackageCallbacks).to receive(:InitPackageCallbacks)
+
+      subject.Initialize_BaseInit(false, @base_url, @log_url)
+    end
+
+    it "sets text locale" do
+      expect(Yast::Pkg).to receive(:SetTextLocale).with("en_US")
+
+      subject.Initialize_BaseInit(false, @base_url, @log_url)
+    end
+
+    it "fills base_url param from install.inf" do
+      allow(Yast::InstURL).to receive("installInf2Url").and_return("cd:/?device=/dev/sr0")
+
+      subject.Initialize_BaseInit(false, @base_url, @log_url)
+      expect(@base_url.value).to eq "cd:/?device=/dev/sr0"
+    end
+
+    it "fills log_url param from install.inf with hidden password" do
+      allow(Yast::InstURL).to receive("installInf2Url").and_return("ftp://chuck:norris@hell.com")
+
+      subject.Initialize_BaseInit(false, @base_url, @log_url)
+      expect(@log_url.value).to eq "ftp://chuck:PASSWORD@hell.com"
+    end
+
+    it "escaped backslashes in base_url (bsc#1032506)" do
+      allow(Yast::InstURL).to receive("installInf2Url").and_return("cd:/?device=/dev/disk/by-id/scsi-S__\\x5b")
+
+      subject.Initialize_BaseInit(false, @base_url, @log_url)
+      expect(@base_url.value).to eq "cd:/?device=/dev/disk/by-id/scsi-S__%5Cx5b"
+      expect{URI.parse(@base_url.value)}.to_not raise_error
     end
   end
 end
