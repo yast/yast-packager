@@ -2,9 +2,7 @@
 
 require_relative "./test_helper"
 require 'yaml'
-require "yast"
-require "storage"
-require "y2storage"
+require 'y2storage'
 
 Yast.import 'Stage'
 Yast.import 'Mode'
@@ -26,18 +24,15 @@ def expect_to_execute(command)
   expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, command)
 end
 
-def fs_type(name)
-  Storage.const_get(:"FsType_#{name.to_s.upcase}")
-end
-
 def filesystem(size_k: 0, block_size: 4096, type: :ext2, tune_options: "")
-  region = double("Storage::Region", block_size: block_size)
-  part = double("Storage::Partition", name: "/dev/sda1", region: region, size: size_k * 1024)
+  disk_size = Y2Storage::DiskSize.KiB(size_k)
+  region = Y2Storage::Region.create(0, disk_size.to_i, Y2Storage::DiskSize.B(block_size))
+  fs_type = Y2Storage::Filesystems::Type.new(type)
+  dev_sda1 = double("Y2Storage::BlkDevice", name: "/dev/sda1", region: region, size: disk_size)
   double(
-    "Storage::BlkFilesystem",
-    blk_devices: [part],
-    type: fs_type(type),
-    to_s: type.to_s,
+    "Y2Storage::Filesystems::BlkFilesystem",
+    blk_devices: [dev_sda1],
+    type: fs_type,
     tune_options: tune_options
   )
 end
