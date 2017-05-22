@@ -13,7 +13,7 @@
 
 require "yast"
 require "shellwords"
-require "storage"
+require "y2storage"
 require "y2packager/storage_manager_proxy"
 
 module Yast
@@ -28,7 +28,7 @@ module Yast
     # 1 MiB in KiB
     MIB = 1024
 
-    TARGET_FS_TYPES_TO_IGNORE = [::Storage::FsType_VFAT, ::Storage::FsType_NTFS]
+    TARGET_FS_TYPES_TO_IGNORE = [Y2Storage::Filesystems::Type::VFAT, Y2Storage::Filesystems::Type::NTFS]
 
     def main
       Yast.import "Pkg"
@@ -204,7 +204,7 @@ module Yast
       ret = 0
 
       part_size = filesystem_size(filesystem)
-      bs = filesystem.blk_devices[0].region.block_size
+      bs = filesystem.blk_devices[0].region.block_size.to_i
       blocks = Ops.divide(filesystem_size(filesystem), bs)
 
       Builtins.y2milestone(
@@ -426,7 +426,7 @@ module Yast
     # (the difference between partition size and reported fs blocks)
     def EstimateFsOverhead(filesystem)
       fs_size = filesystem_size(filesystem)
-      fs = filesystem.to_s.to_sym
+      fs = filesystem.type.to_sym
       ret = 0
 
       if ExtFs(fs)
@@ -1059,8 +1059,8 @@ module Yast
     #
     # @return [Array<Storage::Filesystem>]
     def target_filesystems
-      filesystems = ::Storage::BlkFilesystem.all(staging_devicegraph).to_a
-      filesystems.select! { |fs| fs.mountpoints.any? { |mp| mp.start_with?("/") } }
+      filesystems = Y2Storage::Filesystems::BlkFilesystem.all(staging_devicegraph)
+      filesystems.select! { |fs| fs.mountpoint && fs.mountpoint.start_with?("/") }
       filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
       filesystems
     end
@@ -1074,7 +1074,7 @@ module Yast
       blk_device = filesystem.blk_devices[0]
       # Only for local fs, NFS not supported yet in libstorage-ng
       return 0 unless blk_device
-      blk_device.size
+      blk_device.size.to_i
     end
 
     def filesystem_dev_name(filesystem)
