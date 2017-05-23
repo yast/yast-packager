@@ -214,7 +214,7 @@ Metadata: total=8.00MiB, used=0.00B
 EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => stdout, "exit" => 0)
-      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_482)
+      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_483)
     end
 
     it "raises an exception when btrfs tool fails" do
@@ -235,7 +235,7 @@ Metadata: total=8.00MiB
 EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => stdout, "exit" => 0)
-      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_482)
+      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_483)
     end
   end
 
