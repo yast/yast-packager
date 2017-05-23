@@ -695,7 +695,7 @@ module Yast
                 # convert into KiB for TargetInitDU
                 free_size_kib = free_size / 1024
                 used_kib = used / 1024
-                mount_name = filesystem_mountpoint(filesystem)
+                mount_name = filesystem.mountpoint
                 log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
 
                 mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
@@ -1047,10 +1047,9 @@ module Yast
     # where unit can be one of: "" (none) or "B", "KiB", "MiB", "GiB", "TiB", "PiB"
     # @return [Integer] size in bytes
     def size_from_string(size_str)
-      classic_locale = true
       # Assume bytes by default
       size_str += "B" unless size_str =~ /[[:alpha:]]/
-      ::Storage.humanstring_to_byte(size_str, classic_locale)
+      Y2Storage::DiskSize.parse(size_str).to_i
     end
 
   private
@@ -1079,13 +1078,6 @@ module Yast
 
     def filesystem_dev_name(filesystem)
       filesystem.blk_devices[0].name
-    end
-
-    # storage-ng FIXME: revisit this after implementing subvolumes in btrfs. We
-    # are not sure whether 'mountpoints[0]' will be the right thing at that
-    # point in time.
-    def filesystem_mountpoint(filesystem)
-      filesystem.mountpoints[0] || ""
     end
   end
 
