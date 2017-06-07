@@ -31,3 +31,4 @@ tmp.*
 /testsuite/site.bak
 /test/*.trs
 /.yardoc/
+/doc/autodocs
