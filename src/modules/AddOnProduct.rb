@@ -2335,8 +2335,8 @@ module Yast
     def add_rename_to_hash(renames, old_name, new_name)
       return renames if old_name == new_name || renamed_at?(renames, old_name, new_name)
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
-      renames.merge(old_name => new_name) do |key, old_val, new_val|
-        old_val.nil? ? [new_val] : old_val + [new_val]
+      renames.merge(old_name => [new_name]) do |key, old_val, new_val|
+        old_val.nil? ? [new_val] : old_val + new_val
       end
     end
 
