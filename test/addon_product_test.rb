@@ -80,14 +80,17 @@ describe Yast::AddOnProduct do
       expect(Yast::AddOnProduct.renamed?("SUSE_SLES", "SLES")).to eq(true)
     end
 
-    # bsc#1048141
-    it "supports multiple renames" do
+    # handle correctly multiple renames (bsc#1048141)
+    it "handles multiple renames" do
+      # add several renames
       Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES")
       Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES_SAP")
+      Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES_NEW")
       
-      # both renames are known
+      # all renames are known
       expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(true)
       expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(true)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_NEW")).to eq(true)
     end
   end
 
