@@ -79,6 +79,16 @@ describe Yast::AddOnProduct do
       # check the already known rename
       expect(Yast::AddOnProduct.renamed?("SUSE_SLES", "SLES")).to eq(true)
     end
+
+    # bsc#1048141
+    it "supports multiple renames" do
+      Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES")
+      Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES_SAP")
+      
+      # both renames are known
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(true)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(true)
+    end
   end
 
   describe "#SetRepoUrlAlias" do
