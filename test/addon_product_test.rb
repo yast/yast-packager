@@ -65,6 +65,11 @@ describe Yast::AddOnProduct do
   end
 
   describe "#add_rename" do
+    before do
+      # reset the known renames for each test
+      subject.main
+    end
+
     it "adds a new product rename" do
       expect(Yast::AddOnProduct.renamed?("FOO", "BAR")).to eq(false)
       Yast::AddOnProduct.add_rename("FOO", "BAR")
@@ -80,13 +85,48 @@ describe Yast::AddOnProduct do
       expect(Yast::AddOnProduct.renamed?("SUSE_SLES", "SLES")).to eq(true)
     end
 
-    # handle correctly multiple renames (bsc#1048141)
+    it "handles single rename" do
+      # not known yet
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(false)
+      # add a single rename
+      Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES")
+
+      # the rename is known
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(true)
+      # the rest is unknown
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(false)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_NEW")).to eq(false)
+    end
+
+    # handle correctly double renames (bsc#1048141)
+    it "handles double rename" do
+      # not known yet
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(false)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(false)
+
+      # add several renames
+      Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES")
+      Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES_SAP")
+
+      # the renames are known
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(true)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(true)
+      # the rest is unknown
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_NEW")).to eq(false)
+    end
+
+    # handle correctly multiple renames
     it "handles multiple renames" do
+      # not known yet
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(false)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(false)
+      expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_NEW")).to eq(false)
+
       # add several renames
       Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES")
       Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES_SAP")
       Yast::AddOnProduct.add_rename("SUSE_SLE", "SLES_NEW")
-      
+
       # all renames are known
       expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES")).to eq(true)
       expect(Yast::AddOnProduct.renamed?("SUSE_SLE", "SLES_SAP")).to eq(true)
