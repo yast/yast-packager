@@ -1736,8 +1736,9 @@ module Yast
     # display a warning when online repositories are used on a system
     # with low memory (the installer may crash or freeze, see bnc#854755)
     def check_memory_size
-      # less than LOW_MEMORY_MIB RAM
-      if Mode.installation && Yast2::HwDetection.memory < (LOW_MEMORY_MIB << 20)
+      # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
+      # rounding in hwinfo memory detection (bsc#1045915)
+      if Mode.installation && Yast2::HwDetection.memory < ((LOW_MEMORY_MIB - 64) << 20)
         Report.Warning(_("Low memory detected.\n\nUsing online repositories " +
               "during initial installation with less than\n" +
               "%dMiB system memory is not recommended.\n\n" +
