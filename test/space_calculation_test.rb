@@ -16,8 +16,7 @@ SCR_BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
 
 def stub_devicegraph(name)
   path = File.join(DATA_PATH, "#{name}_devicegraph.yml")
-  storage = Y2Storage::StorageManager.fake_from_yaml(path)
-  storage.probed.copy(storage.staging)
+  Y2Storage::StorageManager.instance.probe_from_yaml(path)
 end
 
 def expect_to_execute(command)
