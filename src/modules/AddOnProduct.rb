@@ -787,7 +787,7 @@ module Yast
     def PrepareForRegistration(src_id)
       control_file = WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, "");
 
-      return unless WorkflowManager.IncorporateControlFileOptions(control_file
+      return unless WorkflowManager.IncorporateControlFileOptions(control_file)
         # FATE #305578: Add-On Product Requiring Registration
       return unless WorkflowManager.WorkflowRequiresRegistration(src_id)
 
