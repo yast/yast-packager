@@ -280,17 +280,11 @@ module Yast
     # Return information about suboptimal distribution if relevant
     # @return [String] the information string or empty string
     def InfoAboutSubOptimalDistribution
-      # warn about suboptimal distribution
-      # this depends on the kernel
-      dp = Convert.to_string(SCR.Read(path(".content.DISTPRODUCT")))
-      dp = "" if dp == nil
-
       if ProductFeatures.GetBooleanFeature(
           "software",
           "inform_about_suboptimal_distribution"
         ) &&
-          Arch.i386 &&
-          Builtins.issubstring(dp, "DVD")
+          Arch.i386
         tmp = Convert.to_string(
           SCR.Read(path(".proc.cpuinfo.value.\"0\".\"flags\""))
         )
@@ -1157,33 +1151,6 @@ module Yast
       install_list
     end
 
-    # Check whether content file in the specified repository is the same
-    # as the one in the ramdisk
-    # @param [Fixnum] source integer the repository ID to check
-    # @return [Boolean] true if content files match
-    def CheckContentFile(source)
-      Builtins.y2milestone("Checking content file")
-      instmode = Linuxrc.InstallInf("InstMode")
-      if !(instmode == nil || instmode == "cd" || instmode == "dvd")
-        Builtins.y2milestone(
-          "Installing via network, not checking the content file"
-        )
-        return true
-      end
-      if !File.exists?("/content")
-        Builtins.y2milestone(
-          "Ramdisk does not contain content file, not checking the file on media"
-        )
-        return true
-      end
-      media_content = Pkg.SourceProvideSignedFile(source, 1, "/content", false)
-      media = Convert.to_string(SCR.Read(path(".target.string"), media_content))
-      ramdisk = Convert.to_string(SCR.Read(path(".target.string"), "/content"))
-      ret = media == ramdisk
-      Builtins.y2milestone("Content files are the same: %1", ret)
-      ret
-    end
-
     # Import GPG keys found in the inst-sys
     def ImportGPGKeys
       out = Convert.to_map(
@@ -1249,24 +1216,6 @@ module Yast
         ret = Builtins.add(ret, lang)
       end
       deep_copy(ret)
-    end
-
-    def ContentFileProductLabel
-      language = Language.language
-      locales = LocaleVersions(Language.language)
-      ret = ""
-      Builtins.foreach(locales) do |loc|
-        if ret == ""
-          val = Convert.to_string(
-            SCR.Read(Builtins.add(path(".content"), Ops.add("LABEL.", loc)))
-          )
-          if val != "" && val != nil
-            ret = val
-            next ret
-          end
-        end
-      end
-      Convert.to_string(SCR.Read(path(".content.LABEL")))
     end
 
     # Returns ID of the base product repository.
@@ -1620,8 +1569,7 @@ module Yast
       true
     end
 
-    # Adjusts repository name according to LABEL in content file
-    # or a first product found on the media (as a fallback).
+    # Adjusts repository name according to a first product found on the media.
     #
     # @param [Fixnum] src_id repository ID
     # @return [Boolean] if successful
@@ -1635,52 +1583,18 @@ module Yast
         return nil
       end
 
-      Builtins.y2milestone("Trying to adjust repository name for: %1", src_id)
+      Builtins.y2milestone("Trying to get repository name from products")
+      all_products = Pkg.ResolvableProperties("", :product, "")
       new_name = nil
-
-      # At first, try LABEL from content file
-      contentfile = Pkg.SourceProvideSignedFile(
-        src_id, # optional
-        1,
-        "/content",
-        true
-      )
-      if contentfile != nil
-        contentmap = Convert.to_map(
-          SCR.Read(path(".content_file"), contentfile)
-        )
-        if Builtins.haskey(contentmap, "LABEL") &&
-            Ops.get(contentmap, "LABEL") != nil &&
-            Ops.get_string(contentmap, "LABEL", "") != ""
-          new_name = Ops.get_string(contentmap, "LABEL", "")
-
-          if Builtins.regexpmatch(new_name, "^[ \t]+")
-            new_name = Builtins.regexpsub(new_name, "^[ \t]+(.*)", "\\1")
-          end
-          if Builtins.regexpmatch(new_name, "[ \t]+$")
-            new_name = Builtins.regexpsub(new_name, "(.*)[ \t]+$", "\\1")
-          end
-
-          Builtins.y2milestone("Using LABEL from content file: %1", new_name)
-        else
-          Builtins.y2warning("No (useful) LABEL in product content file")
-        end
-      end
-
-      # As a fallback,
-      if new_name == nil || new_name == ""
-        Builtins.y2milestone("Trying to get repository name from products")
-        all_products = Pkg.ResolvableProperties("", :product, "")
-        Builtins.foreach(all_products) do |one_product|
-          # source ID matches
-          if Ops.get_integer(one_product, "source", -1) == src_id
-            if Builtins.haskey(one_product, "name") &&
-                Ops.get(one_product, "name") != nil &&
-                Ops.get_string(one_product, "name", "") != ""
-              new_name = Ops.get_string(one_product, "name", "")
-              Builtins.y2milestone("Product name found: %1", new_name)
-              raise Break
-            end
+      Builtins.foreach(all_products) do |one_product|
+        # source ID matches
+        if Ops.get_integer(one_product, "source", -1) == src_id
+          if Builtins.haskey(one_product, "name") &&
+              Ops.get(one_product, "name") != nil &&
+              Ops.get_string(one_product, "name", "") != ""
+            new_name = Ops.get_string(one_product, "name", "")
+            Builtins.y2milestone("Product name found: %1", new_name)
+            raise Break
           end
         end
       end
@@ -1814,24 +1728,9 @@ module Yast
             return
           end
         end
-        if !CheckContentFile(initial_repository)
-          label = ContentFileProductLabel()
-          # bug #159754, release the mounted CD
-          Pkg.SourceReleaseAll
-          Pkg.SourceDelete(initial_repository)
-          initial_repository = nil
-          if !Popup.ContinueCancel(
-              # message popup, %1 is product name
-              Builtins.sformat(_("Insert %1 CD 1"), label)
-            )
-            @init_error = Builtins.sformat(_("%1 CD 1 not found"), label)
-            @init_in_progress = false
-            return
-          end
-        end
       end
 
-      # BNC #481828: Using LABEL from content file as a repository name
+      # BNC #481828: Using LABEL from product
       AdjustSourcePropertiesAccordingToProduct(@base_source_id)
 
       @base_source_id = initial_repository
@@ -2643,7 +2542,6 @@ module Yast
     publish :function => :addAdditionalPackage, :type => "void (string)"
     publish :function => :ComputeSystemPatternList, :type => "list <string> ()"
     publish :function => :ComputeSystemPackageList, :type => "list <string> ()"
-    publish :function => :CheckContentFile, :type => "boolean (integer)"
     publish :function => :GetBaseSourceID, :type => "integer ()"
     publish :function => :Init, :type => "void (boolean)"
     publish :function => :SlideShowSetUp, :type => "void (string)"
