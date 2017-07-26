@@ -1728,16 +1728,6 @@ module Yast
             return
           end
         end
-
-        # bug #159754, release the mounted CD
-        Pkg.SourceReleaseAll
-        Pkg.SourceDelete(initial_repository)
-        initial_repository = nil
-        if !Popup.ContinueCancel(_("Insert CD 1"))
-          @init_error = _("CD 1 not found")
-          @init_in_progress = false
-          return
-        end
       end
 
       # BNC #481828: Using LABEL from product

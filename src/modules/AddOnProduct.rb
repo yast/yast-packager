@@ -956,6 +956,7 @@ module Yast
 
       # FATE #302398: PATTERNS keyword in content file
       # changed for software section in installation.xml
+      # or 'defaultpattern()' product Provides (FATE#320199)
 
       # Adds workflow to the Workflow Store if any workflow exists
       WorkflowManager.AddWorkflow(:addon, srcid, "")
