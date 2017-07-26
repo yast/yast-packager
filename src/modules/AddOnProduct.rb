@@ -800,7 +800,6 @@ module Yast
     # @param [Fixnum] src_id source id
     def RegisterAddOnProduct(src_id)
       # FATE #305578: Add-On Product Requiring Registration
-      # or check the content file
       if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
 
