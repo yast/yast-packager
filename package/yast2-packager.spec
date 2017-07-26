@@ -30,8 +30,8 @@ BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
 BuildRequires:  rubygem(cfa) >= 0.5.0
 
-# Y2Storage::StorageManager#staging_revision
-BuildRequires:  yast2-storage-ng >= 0.1.8
+# New Y2Storage::StorageManager API
+BuildRequires:  yast2-storage-ng >= 0.1.32
 
 # Optional resolvables support in PackagesProposal
 BuildRequires:  yast2 >= 3.2.7
