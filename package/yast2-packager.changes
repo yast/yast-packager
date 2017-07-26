@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 26 14:18:31 UTC 2017 - jreidinger@suse.com
+
+- drop reading content file (FATE#322386)
+- 3.3.1
+
+-------------------------------------------------------------------
 Thu Jul 20 06:44:42 UTC 2017 - lslezak@suse.cz
 
 - Less strict low memory detection, there might be some rounding
