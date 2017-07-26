@@ -780,119 +780,19 @@ module Yast
       nil
     end
 
-    # Checks whether the content file of the add-on has a flag REGISTERPRODUCT
-    # set to "true" or "yes". If it has, product is added into list of pruducts
-    # that need registration. Cached content file is used if possible.
+    # Checks whether the addon at src_id need registration
+    # If it has, product is added into list of products that need registration.
     #
     # @param [Fixnum] src_id source id
     def PrepareForRegistration(src_id)
       control_file = WorkflowManager.GetCachedWorkflowFilename(:addon, src_id, "");
 
-      if WorkflowManager.IncorporateControlFileOptions(control_file) == true
+      return unless WorkflowManager.IncorporateControlFileOptions(control_file
         # FATE #305578: Add-On Product Requiring Registration
-        if WorkflowManager.WorkflowRequiresRegistration(src_id)
-            Builtins.y2milestone("REGISTERPRODUCT (require_registration) defined in control file")
-            @addons_requesting_registration << deep_copy(src_id)
-            return nil
-        end
-      end
+      return unless WorkflowManager.WorkflowRequiresRegistration(src_id)
 
-
-      tmpdir = Ops.add(
-        Convert.to_string(SCR.Read(path(".target.tmpdir"))),
-        "/add-on-content-files/"
-      )
-
-      # create directory if doesn't exist
-      if !FileUtils.Exists(tmpdir)
-        run = Convert.to_integer(
-          SCR.Execute(
-            path(".target.bash"),
-            Builtins.sformat("/bin/mkdir -p '%1'", tmpdir)
-          )
-        )
-        if run != 0
-          Builtins.y2error("Cannot create directory %1", tmpdir)
-          return nil
-        end
-      end
-
-      # use cached file if possible
-      contentfile = Builtins.sformat("%1content-%2", tmpdir, src_id)
-      if FileUtils.Exists(contentfile)
-        Builtins.y2milestone("Using cached contentfile %1", contentfile)
-      else
-        Builtins.y2milestone("Checking contentfile from repository")
-        sourcefile = GetCachedFileFromSource(
-          src_id,
-          1,
-          "/content",
-          "signed",
-          true
-        )
-        if sourcefile == nil
-          Builtins.y2warning("Cannot obtain content file!")
-          return nil
-        end
-        # copying content file
-        run = Convert.to_integer(
-          SCR.Execute(
-            path(".target.bash"),
-            Builtins.sformat(
-              "/bin/cp '%1' '%2'",
-              String.Quote(sourcefile),
-              String.Quote(contentfile)
-            )
-          )
-        )
-        if run != 0
-          Builtins.y2error("Cannot copy '%1' to '%2'", sourcefile, contentfile)
-          return nil
-        end
-      end
-
-      # registering agent for the current content file
-      SCR.RegisterAgent(
-        path(".addon.content"),
-        term(
-          :ag_ini,
-          term(
-            :IniAgent,
-            contentfile,
-            {
-              "options"  => ["read_only", "global_values", "flat"],
-              "comments" => ["^#.*", "^[ \t]*$"],
-              "params"   => [
-                {
-                  "match" => [
-                    "^[ \t]*([a-zA-Z0-9_.]+)[ \t]*(.*)[ \t]*$",
-                    "%s %s"
-                  ]
-                }
-              ]
-            }
-          )
-        )
-      )
-      register_product = Convert.to_string(
-        SCR.Read(path(".addon.content.REGISTERPRODUCT"))
-      )
-      SCR.UnregisterAgent(path(".addon.content"))
-
-      # evaluating REGISTERPRODUCT flag, default (nil == false)
-      Builtins.y2milestone(
-        "RegisterProduct flag for repository %1 is %2",
-        src_id,
-        register_product
-      )
-      if register_product == "yes" || register_product == "true"
-        @addons_requesting_registration = Builtins.add(
-          @addons_requesting_registration,
-          src_id
-        )
-      end
-
-      nil
+      log.info "REGISTERPRODUCT (require_registration) defined in control file"
+      @addons_requesting_registration << deep_copy(src_id)
     end
 
     # Calls registration client if needed.
@@ -1006,146 +906,6 @@ module Yast
       "Add-On-Product-ID:#{src_id}"
     end
 
-    # See also DeselectProductPatterns()
-    def SelectProductPatterns(content_file, src_id)
-      patterns_to_select = []
-
-      if content_file && File.exist?(content_file)
-        contentmap = Convert.to_map(SCR.Read(path(".content_file"), content_file)) || {}
-
-        # no PATTERNS defined
-        if !contentmap.key?("PATTERNS")
-          log.info "Add-On doesn't have any required patterns (PATTERNS in content)"
-        end
-
-        # parsing PATTERNS
-        patterns_to_select = contentmap.fetch("PATTERNS", "").split(/[\t ]/)
-        patterns_to_select.reject! { |p| p.nil? || p.empty? }
-      end
-
-      product_patterns = ProductPatterns.new(src: @src_id)
-      log.info "Found default product patterns: #{product_patterns.names}"
-      patterns_to_select.concat(product_patterns.names)
-      patterns_to_select.uniq!
-
-      log.info "Add-On requires these patterns: #{patterns_to_select.inspect}"
-
-      # clear/set
-      @patterns_preselected_by_addon[src_id] = []
-
-      # bnc #458297
-      # Using PackagesProposal to select the patterns itself
-      PackagesProposal.SetResolvables(
-        PackagesProposalAddonID(src_id),
-        :pattern,
-        patterns_to_select
-      )
-
-      if Stage.initial
-        log.info "Using PackagesProposal to select Add-On patterns"
-        return true
-      end
-
-      ret = true
-
-      Builtins.foreach(patterns_to_select) do |one_pattern|
-        pattern_properties = Pkg.ResolvableProperties(one_pattern, :pattern, "")
-        already_selected = false
-        Builtins.foreach(pattern_properties) do |one_pattern_found|
-          patt_status = Ops.get_symbol(one_pattern_found, "status", :unknown)
-          # patern is already selected
-          if patt_status == :installed || patt_status == :selected
-            already_selected = true
-            raise Break
-          end
-        end
-        if already_selected
-          Builtins.y2milestone(
-            "Pattern %1 is already installed/selected",
-            one_pattern
-          )
-          next
-        end
-        if !Pkg.ResolvableInstall(one_pattern, :pattern)
-          Builtins.y2error(
-            "Cannot select pattern: %1, reason: %2",
-            one_pattern,
-            Pkg.LastError
-          )
-          ret = false
-        else
-          Ops.set(
-            @patterns_preselected_by_addon,
-            src_id,
-            Builtins.add(
-              Ops.get(@patterns_preselected_by_addon, src_id, []),
-              one_pattern
-            )
-          )
-        end
-      end
-
-      ret
-    end
-
-
-    # See also SelectProductPatterns()
-    def DeselectProductPatterns(src_id)
-      # bnc #458297
-      # Using PackagesProposal to deselect the patterns itself
-      PackagesProposal.SetResolvables(
-        PackagesProposalAddonID(src_id),
-        :pattern,
-        []
-      )
-
-      if Stage.initial
-        Builtins.y2milestone(
-          "Initial stage, using PackagesProposal to deselect patterns"
-        )
-        return true
-      end
-
-      patterns_to_deselect = Ops.get(@patterns_preselected_by_addon, src_id, [])
-
-      if Builtins.size(patterns_to_deselect) == 0
-        Builtins.y2milestone("There's no pattern to be deselected")
-        return true
-      end
-
-      ret = true
-
-      Builtins.foreach(patterns_to_deselect) do |one_pattern|
-        if !Pkg.ResolvableNeutral(one_pattern, :pattern, true)
-          Builtins.y2error(
-            "Cannot deselect pattern: %1, reason: %2",
-            one_pattern,
-            Pkg.LastError
-          )
-          ret = false
-        end
-      end
-
-      ret
-    end
-    def HandleProductPATTERNS(srcid)
-      # FATE #302398: PATTERNS keyword in content file
-      content_file = GetCachedFileFromSource(
-        srcid,
-        1,
-        "/content",
-        "signed",
-        true
-      )
-
-      if content_file == nil
-        Builtins.y2warning("Add-On %1 doesn't have a content file", srcid)
-      end
-
-      SelectProductPatterns(content_file, srcid)
-
-      nil
-    end
 
     def IntegrateReleaseNotes(repo_id)
       products = Pkg.ResolvableProperties("", :product, ""). select do |product|
@@ -1196,7 +956,7 @@ module Yast
       end
 
       # FATE #302398: PATTERNS keyword in content file
-      HandleProductPATTERNS(srcid)
+      # changed for software section in installation.xml
 
       # Adds workflow to the Workflow Store if any workflow exists
       WorkflowManager.AddWorkflow(:addon, srcid, "")
@@ -1211,8 +971,6 @@ module Yast
     #
     # @param [Fixnum] srcid integer the ID of the repository
     def Disintegrate(srcid)
-      DeselectProductPatterns(srcid)
-
       WorkflowManager.RemoveWorkflow(:addon, srcid, "")
 
       nil
