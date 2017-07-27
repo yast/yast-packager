@@ -43,15 +43,6 @@ module Yast
 
     BASE_PRODUCT_FILE = "/etc/products.d/baseproduct".freeze
 
-    # Some products are already be "included" in other products. So they MUST
-    # not be installed anymore because the other product has a conflict to
-    # that one.
-    PRODUCT_CONFLICTS = {
-      # SLES_SAP contains "Conflicts: sles-release". So SLES will not be installed.
-      # see https://build.suse.de/package/view_file/SUSE:SLE-12-SP2:GA/_product/SLES_SAP-release.spec?expand=1
-      "SLES_SAP" => [ "SLES" ]
-    }
-
     def main
       Yast.import "UI"
       Yast.import "Pkg"
