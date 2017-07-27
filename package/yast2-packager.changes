@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Jul 27 11:12:01 CEST 2017 - schubi@suse.de
+
+- AutoYaST: Configuring EULA acceptance of add-on products has
+  not worked if the add-on product is on the medium of the base
+  product too. (bnc#1032523).
+  Now the add-on product has to be defined in the AutoYaST
+  configuration file explicit.
+- 3.2.15
+
+-------------------------------------------------------------------
 Tue Jul 11 14:41:58 UTC 2017 - lslezak@suse.cz
 
 - Properly handle multiple product renames (bsc#1048141)
@@ -56,6 +66,7 @@ Tue Mar  7 09:37:15 CET 2017 - schubi@suse.de
   product will not be installed because SLES_SAP already includes
   the SLES product.
   (bnc#1014861)
+<<<<<<< HEAD
 - 3.2.17
 
 -------------------------------------------------------------------
@@ -72,6 +83,9 @@ Mon Feb  6 14:00:13 UTC 2017 - lslezak@suse.cz
 - Do not allow changing services of type "plugin" and its
   repositories, they cannot be changed (related to bsc#1021117)
 - 3.2.15
+=======
+- 3.1.122
+>>>>>>> SLE-12-SP2
 
 -------------------------------------------------------------------
 Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
