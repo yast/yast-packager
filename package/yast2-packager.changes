@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Jul 27 11:12:01 CEST 2017 - schubi@suse.de
+
+- AutoYaST: Configuring EULA acceptance of add-on products has
+  not worked if the add-on product is on the medium of the base
+  product too. (bnc#1032523).
+  Now the add-on product has to be defined in the AutoYaST
+  configuration file explicit.
+- 3.3.2
+
+-------------------------------------------------------------------
 Wed Jul 26 14:18:31 UTC 2017 - jreidinger@suse.com
 
 - drop reading "/content" file (FATE#322386)
