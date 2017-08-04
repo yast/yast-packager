@@ -9,7 +9,7 @@ Thu Jul 27 11:12:01 CEST 2017 - schubi@suse.de
 - 3.1.123
 
 -------------------------------------------------------------------
-Tue Mar  7 09:37:15 CET 2017 - schubi@suse.de
+Tue Mar 28 09:37:15 CET 2017 - schubi@suse.de
 
 - Product selection: Do not reinstall already installed products
   or products which are already included in another product.
@@ -22,6 +22,19 @@ Tue Mar  7 09:37:15 CET 2017 - schubi@suse.de
 - 3.1.122
 
 -------------------------------------------------------------------
+Fri Mar 24 13:53:40 UTC 2017 - mvidner@suse.com
+
+- Do not ignore solver problems after touching the partitioning
+  (bsc#1029306)
+- 3.1.121.3
+
+-------------------------------------------------------------------
+Mon Mar 20 12:33:35 UTC 2017 - jreidinger@suse.com
+
+- make minimal changes when modify zypp.conf (bsc#1023204)
+- 3.1.121.2
+
+-------------------------------------------------------------------
 Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
 
 - Fix escaping spaces ( yast uses web form escaping to "+" but
@@ -30,14 +43,37 @@ Wed Feb  1 16:03:24 UTC 2017 - jreidinger@suse.com
   iso:/test?iso=test.iso&path=url%3A%2Finstall
 - Fix editing of iso:/ without triple slash that previously caused
   lost of first element of path
-- 3.1.121
+- 3.1.121.1
 
 -------------------------------------------------------------------
 Mon Jan 30 10:57:14 UTC 2017 - igonzalezsosa@suse.com
 
 - Packages module is able to perform a package selection proposal
   during system upgrade (bsc#1009834)
-- 3.1.120
+- 3.1.120.1
+
+-------------------------------------------------------------------
+Tue Jan 24 13:15:46 UTC 2017 - jsrain@suse.cz
+
+- do not check content file on media if there is none in the
+  ramdisk (fate#322276)
+- 3.1.119.3
+
+-------------------------------------------------------------------
+Wed Dec 21 15:06:31 CET 2016 - schubi@suse.de
+
+- Removed: Copy /etc/zypp/zypp.conf from inst_sys to target system.
+  Instead: Patching /etc/zypp/zypp.conf in the installed system
+           directly.
+  (FATE#321764)
+- 3.1.119.2
+
+-------------------------------------------------------------------
+Thu Dec  8 17:56:24 CET 2016 - schubi@suse.de
+
+- Copy /etc/zypp/zypp.conf from inst_sys to target system.
+  (FATE#321764)
+- 3.1.119.1
 
 -------------------------------------------------------------------
 Wed Nov  9 16:31:50 UTC 2016 - igonzalezsosa@suse.com

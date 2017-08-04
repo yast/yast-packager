@@ -32,12 +32,16 @@ BuildRequires:  yast2-testsuite
 BuildRequires:  yast2-xml
 BuildRequires:  yast2_theme
 BuildRequires:  rubygem(rspec)
+BuildRequires:  rubygem(cfa) >= 0.5.0
 
 # Packages::Repository and Packages::Product classes
 BuildRequires:  yast2 >= 3.1.187
 
 # Pkg::SourceRawURL() and Pkg:ExpandedUrl()
 BuildRequires:  yast2-pkg-bindings >= 3.1.30
+
+# Augeas lenses
+BuildRequires: augeas-lenses
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
@@ -62,6 +66,12 @@ Requires:       /usr/bin/md5sum
 
 # .process agent
 Requires:       yast2-core >= 2.16.35
+
+# Augeas lenses
+Requires: augeas-lenses
+
+# zypp.conf model and minimal modifications (bsc#1023204)
+Requires:  rubygem(cfa) >= 0.5.0
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
@@ -115,9 +125,11 @@ This package contains the libraries and modules for software management.
 %dir %{yast_yncludedir}/checkmedia
 %dir %{yast_yncludedir}/packager
 %dir %{yast_libdir}/packager
+%dir %{yast_libdir}/packager/cfa
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
+%{yast_libdir}/packager/cfa/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop

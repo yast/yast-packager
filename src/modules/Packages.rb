@@ -1285,6 +1285,12 @@ module Yast
         )
         return true
       end
+      if !File.exists?("/content")
+        Builtins.y2milestone(
+          "Ramdisk does not contain content file, not checking the file on media"
+        )
+        return true
+      end
       media_content = Pkg.SourceProvideSignedFile(source, 1, "/content", false)
       media = Convert.to_string(SCR.Read(path(".target.string"), media_content))
       ramdisk = Convert.to_string(SCR.Read(path(".target.string"), "/content"))
