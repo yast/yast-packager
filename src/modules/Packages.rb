@@ -19,7 +19,7 @@ module Yast
     RESOLVABLE_SORT_ORDER = { product: "source", pattern: "order" }.freeze
 
     # Minimum set of packages tags required to enable VNC server
-    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"].freeze
+    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"].freeze
     # Additional packages tags needed to run second stage in graphical mode
     AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"].freeze
     # Default window manager for VNC if none is installed
