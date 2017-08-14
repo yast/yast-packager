@@ -844,9 +844,6 @@ module Yast
       # FATE #301312
       PrepareForRegistration(@src_id)
 
-      # FATE #302398: PATTERNS keyword in content file
-      HandleProductPATTERNS(@src_id)
-
       # FATE #301997: Support update of add-on products properly
       add_on_mode = AddOnMode(@src_id)
       SetMode(add_on_mode)
