@@ -1583,10 +1583,8 @@ module Yast
       AskLicensesAgreement(directories, [], action, false, true, false)
     end
 
-    publish :function => :GetLicenseContent, :type => "term (string, map <string, string> &, string)"
     publish :function => :AcceptanceNeeded, :type => "boolean (string)"
     publish :function => :AskLicenseAgreement, :type => "symbol (integer, string, list <string>, string, boolean, boolean, boolean, string)"
-    publish :function => :AskLicensesAgreement, :type => "symbol (list <string>, list <string>, string, boolean, boolean, boolean)"
     publish :function => :AskAddOnLicenseAgreement, :type => "symbol (integer)"
     publish :function => :AskFirstStageLicenseAgreement, :type => "symbol (integer, string)"
     publish :function => :ShowFullScreenLicenseInInstallation, :type => "boolean (any, integer)"
