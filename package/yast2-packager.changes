@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 14 07:18:24 UTC 2017 - jreidinger@suse.com
+
+- prevent crash from add-on workflow (bsc#1053536)
+- 3.3.3
+
+-------------------------------------------------------------------
 Thu Jul 27 11:12:01 CEST 2017 - schubi@suse.de
 
 - AutoYaST: Configuring EULA acceptance of add-on products has
