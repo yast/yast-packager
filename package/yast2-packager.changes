@@ -33,7 +33,7 @@ Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
 - Removed the client wrapper_storage (obsolete with storage-ng).
 
 -------------------------------------------------------------------
-Mon Aug 14 11:35:33 UTC 2016 - ancor@suse.com
+Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
 
 - storage-ng: removed yast2-storage buildrequire.
 - commented unit tests code relying on the old yast2-storage so
