@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        3.3.3
+Version:        3.3.4
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -26,12 +26,12 @@ Source0:        %{name}-%{version}.tar.bz2
 Url:            https://github.com/kobliha/yast-packager
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
-BuildRequires:  yast2-xml
-# needed for space calculator to parse and convert sizes
-BuildRequires:  yast2-storage
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
 BuildRequires:  rubygem(cfa) >= 0.5.0
+
+# New Y2Storage::StorageManager API
+BuildRequires:  yast2-storage-ng >= 0.1.32
 
 # Optional resolvables support in PackagesProposal
 BuildRequires:  yast2 >= 3.2.7
@@ -69,6 +69,8 @@ Requires:       /usr/bin/md5sum
 # .process agent
 Requires:       yast2-core >= 2.16.35
 
+# Storage (methods to check the devicegraph)
+Requires:       libstorage-ng-ruby
 # Augeas lenses
 Requires: augeas-lenses
 
@@ -130,10 +132,12 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_yncludedir}/packager
 %dir %{yast_libdir}/packager
 %dir %{yast_libdir}/packager/cfa
+%dir %{yast_libdir}/y2packager
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
 %{yast_libdir}/packager/cfa/*
+%{yast_libdir}/y2packager/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop

@@ -1,4 +1,45 @@
 -------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
+
+- Merged storage-ng branch (fate#318196).
+- Note: all changes below with this date belong to the merge.
+- 3.3.4
+
+-------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
+
+- storage-ng: adapted to the new Y2Storage::StorageManager API
+
+-------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2017 - shundhammer@suse.de
+
+- Merged master to storage-ng branch
+
+-------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
+
+- Synced storage-ng and master branches. See changes below.
+
+-------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
+
+- Synced storage-ng and master branches. See changes below.
+
+-------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
+
+- Use storage-ng during installation (to check the available space
+  and whether the software proposal needs to be re-calculated).
+- Removed the client wrapper_storage (obsolete with storage-ng).
+
+-------------------------------------------------------------------
+Mon Aug 14 11:35:33 UTC 2016 - ancor@suse.com
+
+- storage-ng: removed yast2-storage buildrequire.
+- commented unit tests code relying on the old yast2-storage so
+  the package can be built without it.
+
+-------------------------------------------------------------------
 Mon Aug 14 07:18:24 UTC 2017 - jreidinger@suse.com
 
 - prevent crash from add-on workflow (bsc#1053536)
