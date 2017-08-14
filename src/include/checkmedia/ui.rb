@@ -15,7 +15,7 @@
 #
 module Yast
   module CheckmediaUiInclude
-    def initialize_checkmedia_ui(include_target)
+    def initialize_checkmedia_ui(_include_target)
       Yast.import "Pkg"
       Yast.import "UI"
 
@@ -45,8 +45,8 @@ module Yast
     def CDdevices(preferred)
       cds = Convert.convert(
         SCR.Read(path(".probe.cdrom")),
-        :from => "any",
-        :to   => "list <map>"
+        from: "any",
+        to:   "list <map>"
       )
       ret = []
 
@@ -54,13 +54,13 @@ module Yast
         dev = Ops.get_string(cd, "dev_name", "")
         model = Ops.get_string(cd, "model", "")
         deflt = preferred == dev
-        if dev != nil && dev != "" && model != nil
+        if !dev.nil? && dev != "" && !model.nil?
           ret = Builtins.add(
             ret,
             Item(Id(dev), Ops.add(model, Builtins.sformat(" (%1)", dev)), deflt)
           )
         end
-      end if cds != nil
+      end if !cds.nil?
 
       deep_copy(ret)
     end
@@ -145,12 +145,12 @@ module Yast
           key = ""
         end
         newstr = Ops.get(trasmap, key, "")
-        if newstr != nil && newstr != ""
+        if !newstr.nil? && newstr != ""
           newstr = Builtins.sformat(newstr, val)
 
           ret = Builtins.add(ret, newstr)
         end
-      end if info != nil
+      end if !info.nil?
 
       Builtins.y2milestone("Translated info: %1", ret)
 
@@ -163,7 +163,7 @@ module Yast
 
       res = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
 
-      if Ops.get_integer(res, "exit", -1) != 0
+      if Ops.get_integer(res, "exit", -1).nonzero?
         Builtins.y2warning("command failed: %1", command)
         return nil
       end
@@ -187,7 +187,7 @@ module Yast
         )
 
         # bugzilla #305495
-        if cdrom_device == nil || cdrom_device == ""
+        if cdrom_device.nil? || cdrom_device == ""
           Builtins.y2error("No Cdrom present in install.inf")
           # try to recover
           return true
@@ -199,8 +199,8 @@ module Yast
         # is the device mounted?
         mounts = Convert.convert(
           SCR.Read(path(".proc.mounts")),
-          :from => "any",
-          :to   => "list <map>"
+          from: "any",
+          to:   "list <map>"
         )
         mnt = Builtins.listmap(mounts) do |m|
           { Ops.get_string(m, "spec", "") => Ops.get_string(m, "file", "") }
@@ -230,7 +230,7 @@ module Yast
           )
         )
 
-        ret = succ == 0
+        ret = succ.zero?
 
         # reset to the previous state
         if mounted
@@ -244,15 +244,15 @@ module Yast
     end
 
     def RequireFirstMedium
-      while !InsertedCD1()
+      until InsertedCD1()
         # warning popup - the CD/DVD drive doesn't contain the first medium (CD1/DVD1)
         if Popup.AnyQuestion(
-            Popup.NoHeadline,
-            _("Insert the first installation medium."),
-            Label.OKButton,
-            Label.CancelButton,
-            :focus_yes
-          ) == false
+          Popup.NoHeadline,
+          _("Insert the first installation medium."),
+          Label.OKButton,
+          Label.CancelButton,
+          :focus_yes
+        ) == false
           break
         end
       end
@@ -302,15 +302,15 @@ module Yast
       help = _("<P><B>Media Check</B></P>") +
         # help text - media check 2/8
         _(
-          "<P>When you have a problem with\n" +
-            "the installation and you are using a CD or DVD installation medium, you should check\n" +
+          "<P>When you have a problem with\n" \
+            "the installation and you are using a CD or DVD installation medium, you should check\n" \
             "whether the medium is broken.</P>\n"
         ) +
         # help text - media check 3/8
         _(
-          "<P>Select a drive, insert a medium into the drive and press <B>Start Check</B>\n" +
-            "or use <B>Check ISO File</B> and select an ISO file.\n" +
-            "The check can take several minutes depending on speed of the\n" +
+          "<P>Select a drive, insert a medium into the drive and press <B>Start Check</B>\n" \
+            "or use <B>Check ISO File</B> and select an ISO file.\n" \
+            "The check can take several minutes depending on speed of the\n" \
             "drive and size of the medium. The check verifies the MD5 checksum.</P> "
         ) +
         # help text - media check 4/8
@@ -386,7 +386,7 @@ module Yast
       )
 
       ret = nil
-      while true
+      loop do
         # update state of the buttons (enabled/disabled)
         SetButtonState(false)
 
@@ -422,14 +422,14 @@ module Yast
             )
 
             # remember for the next run
-            @iso_filename = selecteddrive if selecteddrive != nil
+            @iso_filename = selecteddrive if !selecteddrive.nil?
           else
             selecteddrive = Convert.to_string(
               UI.QueryWidget(Id(:cddevices), :Value)
             )
           end
 
-          if selecteddrive != nil && selecteddrive != ""
+          if !selecteddrive.nil? && selecteddrive != ""
             SetButtonState(true)
 
             Builtins.y2milestone(
@@ -437,9 +437,9 @@ module Yast
               selecteddrive
             )
             # progress message, %1 is CD device name (e.g. /dev/hdc)
-            #UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
+            # UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
 
-            #LogLine(sformat(_("Check started (%1)...\n"), selecteddrive));
+            # LogLine(sformat(_("Check started (%1)...\n"), selecteddrive));
 
             # try to read one byte from the medium
             res = Convert.to_integer(
@@ -451,7 +451,7 @@ module Yast
                 )
               )
             )
-            if res != 0
+            if res.nonzero?
               # error message: the medium cannot be read or no medium in the drive; %1 = drive, e.g. /dev/hdc
               LogLine(
                 Ops.add(
@@ -468,13 +468,13 @@ module Yast
             else
               if md5sumTagPresent(selecteddrive) == false
                 if !Popup.ContinueCancel(
-                    _(
-                      "The medium does not contain a MD5 checksum.\n" +
-                        "The content of the medium cannot be verified.\n" +
-                        "\n" +
-                        "Only readability of the medium will be checked.\n"
-                    )
+                  _(
+                    "The medium does not contain a MD5 checksum.\n" \
+                      "The content of the medium cannot be verified.\n" \
+                      "\n" \
+                      "Only readability of the medium will be checked.\n"
                   )
+                )
                   next
                 end
               end
@@ -490,7 +490,7 @@ module Yast
                 progress = CheckMedia.Progress
                 data2 = CheckMedia.Info
 
-                if data2 != nil && Ops.greater_than(Builtins.size(data2), 0)
+                if !data2.nil? && Ops.greater_than(Builtins.size(data2), 0)
                   data2 = TranslateInfo(data2)
 
                   # add new output to the log view
@@ -537,7 +537,7 @@ module Yast
             CheckMedia.Process
             data = CheckMedia.Info
 
-            if data != nil && Ops.greater_than(Builtins.size(data), 0)
+            if !data.nil? && Ops.greater_than(Builtins.size(data), 0)
               data = TranslateInfo(data)
 
               # add new output to the log view
@@ -577,15 +577,14 @@ module Yast
       ret
     end
 
-
     # Main workflow of the idedma configuration
     # @return [Object] Result from WizardSequencer() function
     def MainSequence
-      aliases = { "checkmedia" => lambda { MainDialog() } }
+      aliases = { "checkmedia" => -> { MainDialog() } }
 
       sequence = {
         "ws_start"   => "checkmedia",
-        "checkmedia" => { :abort => :abort, :next => :next }
+        "checkmedia" => { abort: :abort, next: :next }
       }
 
       Wizard.CreateDialog

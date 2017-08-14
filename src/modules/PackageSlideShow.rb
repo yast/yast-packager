@@ -122,10 +122,9 @@ module Yast
       }
     end
 
-
-    #***************************************************************************
-    #**************  Formatting functions and helpers **************************
-    #***************************************************************************
+    # ***************************************************************************
+    # **************  Formatting functions and helpers **************************
+    # ***************************************************************************
 
     # Sum up all list items
     #
@@ -162,11 +161,9 @@ module Yast
       sum
     end
 
-
     def TotalRemainingSize
       ListSum(Builtins.flatten(@remaining_sizes_per_cd_per_src))
     end
-
 
     def TotalRemainingTime
       ListSumCutOff(
@@ -175,11 +172,9 @@ module Yast
       )
     end
 
-
     def TotalRemainingPkgCount
       ListSum(Builtins.flatten(@remaining_pkg_count_per_cd_per_src))
     end
-
 
     def TotalInstalledSize
       Ops.subtract(@total_size_to_install, TotalRemainingSize())
@@ -209,7 +204,6 @@ module Yast
       text
     end
 
-
     # Format number of remaining bytes to be installed as string.
     # @param [Fixnum] remaining		bytes remaining, -1 for 'done'
     # @return			[String] human readable remaining time or byte / kB/ MB size
@@ -219,11 +213,10 @@ module Yast
         # Nothing more to install from this CD (very concise - little space!!)
         return _("Done.")
       end
-      return "" if remaining == 0
+      return "" if remaining.zero?
 
       String.FormatSize(remaining)
     end
-
 
     # Format number of remaining packages to be installed as string.
     # @param [Fixnum] remaining		bytes remaining, -1 for 'done'
@@ -234,11 +227,10 @@ module Yast
         # Nothing more to install from this CD (very concise - little space!!)
         return _("Done.")
       end
-      return "" if remaining == 0
+      return "" if remaining.zero?
 
       Builtins.sformat("%1", remaining)
     end
-
 
     def FormatNextMedia
       text = ""
@@ -281,10 +273,9 @@ module Yast
       text
     end
 
-    #***************************************************************************
-    #**********************  Computing Helpers *********************************
-    #***************************************************************************
-
+    # ***************************************************************************
+    # **********************  Computing Helpers *********************************
+    # ***************************************************************************
 
     # Perform sanity check for correct initialzation etc.
     # @param [Boolean] silent	don't complain in log file
@@ -295,7 +286,7 @@ module Yast
       if !@init_pkg_data_complete
         if !silent
           Builtins.y2error(
-            "PackageSlideShow::SanityCheck(): Slide show not correctly initialized: " +
+            "PackageSlideShow::SanityCheck(): Slide show not correctly initialized: " \
               "PackageSlideShow::InitPkgData() never called!"
           )
         end
@@ -417,7 +408,6 @@ module Yast
               total = Ops.add(total, count)
             end
 
-
             Builtins.y2milestone(
               "Downloading %1 packages from remote repository %2",
               total,
@@ -428,7 +418,6 @@ module Yast
         end
         i = Ops.add(i, 1)
       end
-
 
       Builtins.y2milestone("Total number of packages to download: %1", ret)
 
@@ -454,8 +443,8 @@ module Yast
       ResetPackageSummary()
       # Reinititalize some globals (in case this is a second run)
       @total_size_installed = 0
-      #total_time_elapsed	= 0;
-      #start_time		= -1;
+      # total_time_elapsed	= 0;
+      # start_time		= -1;
       @current_src_no = -1 # 1..n
       @current_cd_no = -1 # 1..n
       @next_src_no = -1
@@ -486,7 +475,6 @@ module Yast
       @total_sizes_per_cd_per_src = Pkg.PkgMediaSizes
       @total_pkg_count_per_cd_per_src = Pkg.PkgMediaCount
 
-
       @total_size_to_install = ListSum(
         Builtins.flatten(@total_sizes_per_cd_per_src)
       )
@@ -509,7 +497,7 @@ module Yast
       )
       total = Ops.add(total_count_to_install, @total_count_to_download)
       @downloading_pct = Ops.divide(
-        Ops.multiply(total == 0 ? 0 : 100, @total_count_to_download),
+        Ops.multiply(total.zero? ? 0 : 100, @total_count_to_download),
         total
       )
       @init_pkg_data_complete = true
@@ -543,9 +531,9 @@ module Yast
       @last_cd = false
 
       while Ops.less_than(
-          @next_src_no,
-          Builtins.size(@remaining_sizes_per_cd_per_src)
-        )
+        @next_src_no,
+        Builtins.size(@remaining_sizes_per_cd_per_src)
+      )
         remaining_sizes = Ops.get(
           @remaining_sizes_per_cd_per_src,
           @next_src_no,
@@ -579,13 +567,12 @@ module Yast
       nil
     end
 
-
     # Set the current repository and CD number. Must be called for each CD change.
     # src_no: 1...n
     # cd_no:  1...n
     #
     def SetCurrentCdNo(src_no, cd_no)
-      if cd_no == 0
+      if cd_no.zero?
         Builtins.y2milestone("medium number 0, using medium number 1")
         cd_no = 1
       end
@@ -604,17 +591,13 @@ module Yast
           SlideShow.SwitchToDetailsView if SlideShow.user_switched_to_details
         end
 
-        if !SlideShow.user_switched_to_details # Don't override explicit user request!
-          SlideShow.SwitchToSlideView
-        end
+        SlideShow.SwitchToSlideView if !SlideShow.user_switched_to_details # Don't override explicit user request!
       else
         SlideShow.RebuildDialog if !SlideShow.ShowingDetails
       end
 
       nil
     end
-
-
 
     # Recalculate remaining times per CD based on package sizes remaining
     # and data rate so far. Recalculation is only done each 'recalc_interval'
@@ -637,7 +620,7 @@ module Yast
         elapsed += Yast2::SystemTime.uptime - SlideShow.start_time
       end
 
-      if elapsed == 0
+      if elapsed.zero?
         # Called too early - no calculation possible yet.
         # This happens regularly during initialization, so an error
         # message wouldn't be a good idea here.
@@ -729,13 +712,9 @@ module Yast
       true # just switched
     end
 
-
-
-    #***************************************************************************
-    #*****************  Callbacks and progress bars ****************************
-    #***************************************************************************
-
-
+    # ***************************************************************************
+    # *****************  Callbacks and progress bars ****************************
+    # ***************************************************************************
 
     # Update progress widgets for the current CD: Label and ProgressBar.
     # Use global statistics variables for that.
@@ -743,7 +722,6 @@ module Yast
     def UpdateCurrentCdProgress(silent_check)
       return if !SanityCheck(silent_check)
       return if !UI.WidgetExists(:cdStatisticsTable)
-
 
       #
       # Update table entries for current CD
@@ -816,7 +794,6 @@ module Yast
         )
       end
 
-
       #
       # Update "total" table entries
       #
@@ -848,7 +825,7 @@ module Yast
     def UpdateTotalProgressValue
       total_progress = 0
 
-      if @total_count_to_download == 0
+      if @total_count_to_download.zero?
         # no package to download, just use the install size
         total_progress = Ops.divide(
           Ops.multiply(TotalInstalledSize(), 100),
@@ -908,7 +885,6 @@ module Yast
       nil
     end
 
-
     # Returns a table widget item list for CD statistics
     #
     def CdStatisticsTableItems
@@ -940,7 +916,6 @@ module Yast
         )
       )
 
-
       #
       # Now go through all repositories
       #
@@ -967,7 +942,7 @@ module Yast
           Builtins.foreach(inst_src) do |remaining|
             if Ops.greater_than(remaining, 0) ||
                 Ops.add(src_no, 1) == @current_src_no &&
-                  Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
+                    Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
               caption = Builtins.sformat(@media_type, Ops.add(cd_no, 1)) # "Medium 1" - column #0
               rem_size = FormatRemainingSize(remaining) # column #1
               rem_count = FormatRemainingCount(
@@ -1014,8 +989,6 @@ module Yast
 
       deep_copy(itemList)
     end
-
-
 
     # Progress display update
     # This is called via the packager's progress callbacks.
@@ -1086,8 +1059,8 @@ module Yast
       nil
     end
 
-    def DoneProvide(error, reason, name)
-      if error == 0
+    def DoneProvide(error, _reason, _name)
+      if error.zero?
         @total_downloaded = Ops.add(@total_downloaded, @current_provide_size)
 
         @total_count_downloaded = Ops.add(@total_count_downloaded, 1)
@@ -1104,7 +1077,7 @@ module Yast
 
         if d_mode == :download_in_advance ||
             d_mode == :default && Mode.normal &&
-              !Installation.dirinstall_installing_into_dir
+                !Installation.dirinstall_installing_into_dir
           # display download progress in DownloadInAdvance mode
           # translations: progress message (part1)
           SlideShow.SetGlobalProgressLabel(
@@ -1137,7 +1110,6 @@ module Yast
       nil
     end
 
-
     # Return a CD's progress bar ID
     # @param [Fixnum] src_no number of the repository (from 0 on)
     # @param [Fixnum] cd_no number of the CD within that repository (from 0 on)
@@ -1145,9 +1117,6 @@ module Yast
     def CdProgressId(src_no, cd_no)
       Builtins.sformat("Src %1 CD %2", src_no, cd_no)
     end
-
-
-
 
     # package start display update
     # - this is called at the end of a new package
@@ -1206,7 +1175,6 @@ module Yast
       nil
     end
 
-
     # package start display update
     # - this is called at the beginning of a new package
     #
@@ -1263,7 +1231,6 @@ module Yast
         @current_install_size = pkg_size
       end
 
-
       #
       # Update package progress bar
       #
@@ -1284,8 +1251,6 @@ module Yast
 
       nil
     end
-
-
 
     def SlideGenericProvideStart(pkg_name, sz, pattern, remote)
       return if !SanityCheck(false)
@@ -1339,7 +1304,6 @@ module Yast
       nil
     end
 
-
     # Package providal start
     def SlideProvideStart(pkg_name, sz, remote)
       @current_provide_size = remote ? sz : 0
@@ -1358,47 +1322,47 @@ module Yast
       nil
     end
 
-    publish :variable => :total_sizes_per_cd_per_src, :type => "list <list <integer>>"
-    publish :variable => :remaining_sizes_per_cd_per_src, :type => "list <list <integer>>"
-    publish :variable => :remaining_times_per_cd_per_src, :type => "list <list <integer>>"
-    publish :variable => :inst_src_names, :type => "list <string>"
-    publish :variable => :total_pkg_count_per_cd_per_src, :type => "list <list <integer>>"
-    publish :variable => :remaining_pkg_count_per_cd_per_src, :type => "list <list <integer>>"
-    publish :variable => :srcid_to_current_src_no, :type => "map <integer, integer>"
-    publish :variable => :media_type, :type => "string"
-    publish :variable => :total_size_installed, :type => "integer"
-    publish :variable => :total_size_to_install, :type => "integer"
-    publish :variable => :total_count_to_download, :type => "integer"
-    publish :variable => :total_count_downloaded, :type => "integer"
-    publish :variable => :downloading_pct, :type => "integer"
-    publish :variable => :min_time_per_cd, :type => "integer"
-    publish :variable => :max_time_per_cd, :type => "integer"
-    publish :variable => :size_column, :type => "integer"
-    publish :variable => :pkg_count_column, :type => "integer"
-    publish :variable => :time_column, :type => "integer"
-    publish :variable => :current_src_no, :type => "integer"
-    publish :variable => :current_cd_no, :type => "integer"
-    publish :variable => :next_src_no, :type => "integer"
-    publish :variable => :next_cd_no, :type => "integer"
-    publish :variable => :last_cd, :type => "boolean"
-    publish :variable => :total_cd_count, :type => "integer"
-    publish :variable => :unit_is_seconds, :type => "boolean"
-    publish :variable => :bytes_per_second, :type => "integer"
-    publish :variable => :init_pkg_data_complete, :type => "boolean"
-    publish :function => :GetPackageSummary, :type => "map <string, any> ()"
-    publish :function => :InitPkgData, :type => "void (boolean)"
-    publish :function => :SetCurrentCdNo, :type => "void (integer, integer)"
-    publish :function => :UpdateCurrentCdProgress, :type => "void (boolean)"
-    publish :function => :UpdateCurrentPackageProgress, :type => "void (integer)"
-    publish :function => :UpdateCurrentPackageRateProgress, :type => "void (integer, integer, integer)"
-    publish :function => :DisplayGlobalProgress, :type => "void ()"
-    publish :function => :DoneProvide, :type => "void (integer, string, string)"
-    publish :function => :UpdateAllCdProgress, :type => "void (boolean)"
-    publish :function => :SlideDisplayDone, :type => "void (string, integer, boolean)"
-    publish :function => :SlideDisplayStart, :type => "void (string, string, string, integer, boolean)"
-    publish :function => :SlideGenericProvideStart, :type => "void (string, integer, string, boolean)"
-    publish :function => :SlideDeltaApplyStart, :type => "void (string)"
-    publish :function => :SlideProvideStart, :type => "void (string, integer, boolean)"
+    publish variable: :total_sizes_per_cd_per_src, type: "list <list <integer>>"
+    publish variable: :remaining_sizes_per_cd_per_src, type: "list <list <integer>>"
+    publish variable: :remaining_times_per_cd_per_src, type: "list <list <integer>>"
+    publish variable: :inst_src_names, type: "list <string>"
+    publish variable: :total_pkg_count_per_cd_per_src, type: "list <list <integer>>"
+    publish variable: :remaining_pkg_count_per_cd_per_src, type: "list <list <integer>>"
+    publish variable: :srcid_to_current_src_no, type: "map <integer, integer>"
+    publish variable: :media_type, type: "string"
+    publish variable: :total_size_installed, type: "integer"
+    publish variable: :total_size_to_install, type: "integer"
+    publish variable: :total_count_to_download, type: "integer"
+    publish variable: :total_count_downloaded, type: "integer"
+    publish variable: :downloading_pct, type: "integer"
+    publish variable: :min_time_per_cd, type: "integer"
+    publish variable: :max_time_per_cd, type: "integer"
+    publish variable: :size_column, type: "integer"
+    publish variable: :pkg_count_column, type: "integer"
+    publish variable: :time_column, type: "integer"
+    publish variable: :current_src_no, type: "integer"
+    publish variable: :current_cd_no, type: "integer"
+    publish variable: :next_src_no, type: "integer"
+    publish variable: :next_cd_no, type: "integer"
+    publish variable: :last_cd, type: "boolean"
+    publish variable: :total_cd_count, type: "integer"
+    publish variable: :unit_is_seconds, type: "boolean"
+    publish variable: :bytes_per_second, type: "integer"
+    publish variable: :init_pkg_data_complete, type: "boolean"
+    publish function: :GetPackageSummary, type: "map <string, any> ()"
+    publish function: :InitPkgData, type: "void (boolean)"
+    publish function: :SetCurrentCdNo, type: "void (integer, integer)"
+    publish function: :UpdateCurrentCdProgress, type: "void (boolean)"
+    publish function: :UpdateCurrentPackageProgress, type: "void (integer)"
+    publish function: :UpdateCurrentPackageRateProgress, type: "void (integer, integer, integer)"
+    publish function: :DisplayGlobalProgress, type: "void ()"
+    publish function: :DoneProvide, type: "void (integer, string, string)"
+    publish function: :UpdateAllCdProgress, type: "void (boolean)"
+    publish function: :SlideDisplayDone, type: "void (string, integer, boolean)"
+    publish function: :SlideDisplayStart, type: "void (string, string, string, integer, boolean)"
+    publish function: :SlideGenericProvideStart, type: "void (string, integer, string, boolean)"
+    publish function: :SlideDeltaApplyStart, type: "void (string)"
+    publish function: :SlideProvideStart, type: "void (string, integer, boolean)"
   end
 
   PackageSlideShow = PackageSlideShowClass.new

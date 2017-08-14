@@ -9,7 +9,6 @@ require "yast"
 module Yast
   class OneClickInstallStandardClass < Module
     def main
-
       textdomain "packager"
 
       Yast.import "FileUtils"
@@ -54,7 +53,7 @@ module Yast
 
       read_result = Convert.to_map(SCR.Read(path(".anyxml"), filename))
 
-      if read_result == nil
+      if read_result.nil?
         Builtins.y2error("Cannot read file: %1", filename)
         return deep_copy(ret)
       elsif read_result == {}
@@ -125,7 +124,7 @@ module Yast
       deep_copy(ret)
     end
 
-    publish :function => :GetRepositoriesFromXML, :type => "list <map <string, any>> (string)"
+    publish function: :GetRepositoriesFromXML, type: "list <map <string, any>> (string)"
   end
 
   OneClickInstallStandard = OneClickInstallStandardClass.new

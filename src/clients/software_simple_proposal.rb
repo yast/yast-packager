@@ -53,13 +53,11 @@ module Yast
           # the proposal for the packages requires manual intervention
           @ret = Builtins.union(
             @ret,
-            {
-              # warning text
-              "warning"       => _(
-                "Cannot solve dependencies automatically. Manual intervention is required."
-              ),
-              "warning_level" => :blocker
-            }
+            # warning text
+            "warning"       => _(
+              "Cannot solve dependencies automatically. Manual intervention is required."
+            ),
+            "warning_level" => :blocker
           )
         end
         return deep_copy(@ret)

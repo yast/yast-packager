@@ -87,6 +87,6 @@ class ProductFactory
     product = ProductFactory.create_product("status" => :selected,
       "source" => src, "product_package" => package_name)
 
-    [ pattern_name, package_name,  package, product ]
+    [pattern_name, package_name, package, product]
   end
 end

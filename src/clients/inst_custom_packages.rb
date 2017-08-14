@@ -28,8 +28,8 @@ module Yast
 
       @packages = Convert.convert(
         ProductFeatures.GetFeature("software", "packages"),
-        :from => "any",
-        :to   => "list <string>"
+        from: "any",
+        to:   "list <string>"
       )
       if !probeSource(Ops.add("dir://", Directory.custom_workflow_dir))
         # error popup
@@ -45,7 +45,7 @@ module Yast
         @solve = Pkg.PkgSolve(false)
         Builtins.y2error("Error solving package dependencies") if !@solve
       end
-      @result = PackagesUI.RunPackageSelector({ "mode" => :summaryMode })
+      @result = PackagesUI.RunPackageSelector("mode" => :summaryMode)
       Builtins.y2milestone("Package selector returned: %1", @result)
       @result = :next if @result == :accept
 

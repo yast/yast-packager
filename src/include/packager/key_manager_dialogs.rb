@@ -9,7 +9,7 @@
 # $Id$
 module Yast
   module PackagerKeyManagerDialogsInclude
-    def initialize_packager_key_manager_dialogs(include_target)
+    def initialize_packager_key_manager_dialogs(_include_target)
       Yast.import "Pkg"
       Yast.import "UI"
 
@@ -71,7 +71,7 @@ module Yast
             Ops.get_string(key, "expires", "")
           ) :
           # summary string - the GPG key never expires
-          expires == 0 ?
+          expires.zero? ?
             _("The key never expires.") :
             # %1 is the date when the GPG key expires (e.g. '21.3.2015') or "Never"
             Builtins.sformat(
@@ -98,8 +98,7 @@ module Yast
           )
         }
         ret = Builtins.add(ret, r)
-      end 
-
+      end
 
       Builtins.y2debug("table content: %1", ret)
 
@@ -114,7 +113,7 @@ module Yast
 
       WizardHW.SetContents(items)
 
-      if selected_key != nil
+      if !selected_key.nil?
         # set the previously selected key
         WizardHW.SetSelectedItem(selected_key)
       end
@@ -210,9 +209,9 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<p>\n" +
-            "<b>Adding a New GPG Key</b><br>\n" +
-            "To add a new GPG key, specify the path to the key file.\n" +
+          "<p>\n" \
+            "<b>Adding a New GPG Key</b><br>\n" \
+            "To add a new GPG key, specify the path to the key file.\n" \
             "</p>\n"
         )
       )
@@ -235,7 +234,7 @@ module Yast
             _("Select a GPG Key To Import")
           )
 
-          if newfile != nil
+          if !newfile.nil?
             UI.ChangeWidget(Id(:file), :Value, newfile)
             refreshNewKeyDetails(newfile)
           end
@@ -251,7 +250,7 @@ module Yast
           keyfile = Convert.to_string(UI.QueryWidget(Id(:file), :Value))
           Builtins.y2milestone("Selected file: %1", keyfile)
 
-          if keyfile == nil || keyfile == ""
+          if keyfile.nil? || keyfile == ""
             Report.Error(_("Enter a filename"))
             UI.SetFocus(Id(:file))
             ret = :_dummy
@@ -261,7 +260,7 @@ module Yast
           # always add as trusted
           @added_key = KeyManager.ImportFromFile(keyfile, true)
 
-          ret = :_dummy if @added_key == nil || Builtins.size(@added_key) == 0
+          ret = :_dummy if @added_key.nil? || Builtins.size(@added_key).zero?
         end
       end while !Builtins.contains([:back, :abort, :next], ret)
 
@@ -283,9 +282,9 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<p>\n" +
-            "<b>Adding a New GPG Key</b><br>\n" +
-            "To add a new GPG key, use <b>Add</b> and specify the path to the key file.\n" +
+          "<p>\n" \
+            "<b>Adding a New GPG Key</b><br>\n" \
+            "To add a new GPG key, use <b>Add</b> and specify the path to the key file.\n" \
             "</p>"
         )
       )
@@ -294,10 +293,10 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<p>\n" +
-            "<b>Modifying a GPG Key Status</b>\n" +
-            "To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use\n" +
-            "<b>Delete</b>.\n" +
+          "<p>\n" \
+            "<b>Modifying a GPG Key Status</b>\n" \
+            "To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use\n" \
+            "<b>Delete</b>.\n" \
             "</p>\n"
         )
       )
@@ -334,19 +333,19 @@ module Yast
           key = KeyManager.SearchGPGKey(key_id)
 
           if Popup.YesNo(
-              Builtins.sformat(
-                _("Really delete key '%1'\n'%2'?"),
-                key_id,
-                Ops.get_string(key, "name", "")
-              )
+            Builtins.sformat(
+              _("Really delete key '%1'\n'%2'?"),
+              key_id,
+              Ops.get_string(key, "name", "")
             )
+          )
             KeyManager.DeleteKey(key_id)
             # refresh the table
             SetItems(nil)
 
-            # hack - refresh (clear) the rich text part of the dialog
+            # HACK: - refresh (clear) the rich text part of the dialog
             # TODO: fix a bug in WizardHW?
-            SetItems("") if Builtins.size(KeyManager.GetKeys) == 0
+            SetItems("") if Builtins.size(KeyManager.GetKeys).zero?
           end
         end
       end while !Builtins.contains([:back, :abort, :next, :add], ret)
@@ -358,14 +357,14 @@ module Yast
     def RunGPGKeyMgmt(standalone)
       @gpg_mgr_standalone_mode = standalone
 
-      aliases = { "summary" => lambda { KeySummary() }, "add" => [lambda do
+      aliases = { "summary" => -> { KeySummary() }, "add" => [lambda do
         AddGPGKey()
       end, true] }
 
       sequence = {
         "ws_start" => "summary",
-        "summary"  => { :abort => :abort, :next => :next, :add => "add" },
-        "add"      => { :next => "summary", :abort => :abort }
+        "summary"  => { abort: :abort, next: :next, add: "add" },
+        "add"      => { next: "summary", abort: :abort }
       }
 
       Builtins.y2milestone(

@@ -21,7 +21,7 @@ SCR_BASH_PATH = Yast::Path.new(".target.bash")
 SCR_PROC_CMDLINE_PATH = Yast::Path.new(".proc.cmdline")
 
 CHECK_FOR_DELL_SYSTEM = Regexp.new(
-  'hwinfo .*bios .*grep .*vendor:.*dell inc',
+  "hwinfo .*bios .*grep .*vendor:.*dell inc",
   Regexp::IGNORECASE
 )
 
@@ -34,7 +34,7 @@ def load_zypp(file_name)
   YAML.load_file(file_name)
 end
 
-PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
+PRODUCTS_FROM_ZYPP = load_zypp("products.yml").freeze
 
 describe Yast::Packages do
   before(:each) do
@@ -166,22 +166,22 @@ describe Yast::Packages do
   end
 
   DEFAULT_PATTERN = {
-    "name" => "name",
-    "version" => "1.0.0",
-    "status" => :available,
-    "transact_by" => :app_high,
-  }
+    "name"        => "name",
+    "version"     => "1.0.0",
+    "status"      => :available,
+    "transact_by" => :app_high
+  }.freeze
 
   def pattern(properties = {})
     DEFAULT_PATTERN.merge(properties)
   end
 
   DEFAULT_PRODUCT = {
-    "name" => "name",
-    "version" => "1.0.0",
-    "status" => :available,
-    "transact_by" => :app_high,
-  }
+    "name"        => "name",
+    "version"     => "1.0.0",
+    "status"      => :available,
+    "transact_by" => :app_high
+  }.freeze
 
   def product(properties = {})
     DEFAULT_PRODUCT.merge(properties)
@@ -193,9 +193,9 @@ describe Yast::Packages do
         it "selects patterns for installation" do
           allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
           allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-            [pattern({ "name" => "p1" })],
-            [pattern({ "name" => "p2" })],
-            [pattern({ "name" => "p3" })]
+            [pattern("name" => "p1")],
+            [pattern("name" => "p2")],
+            [pattern("name" => "p3")]
           )
 
           allow(Yast::Pkg).to receive(:ResolvableInstall).with(/\Ap[1-3]/, :pattern).exactly(3).times.and_return(true)
@@ -207,9 +207,9 @@ describe Yast::Packages do
         it "selects patterns for installation that were not unselected by user already" do
           allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
           allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-            [pattern({ "name" => "p1", "transact_by" => :user })],
-            [pattern({ "name" => "p2", "transact_by" => :user })],
-            [pattern({ "name" => "p3" })]
+            [pattern("name" => "p1", "transact_by" => :user)],
+            [pattern("name" => "p2", "transact_by" => :user)],
+            [pattern("name" => "p3")]
           )
 
           expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p1", :pattern)
@@ -224,9 +224,9 @@ describe Yast::Packages do
       it "re-selects all patterns already selected for installation" do
         allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
         allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-          [pattern({ "name" => "p1", "transact_by" => :user, "status" => :selected })],
-          [pattern({ "name" => "p2", "transact_by" => :user, "status" => :selected })],
-          [pattern({ "name" => "p3" })]
+          [pattern("name" => "p1", "transact_by" => :user, "status" => :selected)],
+          [pattern("name" => "p2", "transact_by" => :user, "status" => :selected)],
+          [pattern("name" => "p3")]
         )
 
         expect(Yast::Pkg).to receive(:ResolvableRemove).with(/\Ap[1-2]/, :pattern).twice.and_return(true)
@@ -278,7 +278,7 @@ describe Yast::Packages do
       allow(Yast::Packages).to receive(:optional_default_patterns).and_return([])
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([{}])
 
-      product_patterns = [ "default_pattern_1", "default_pattern_2"]
+      product_patterns = ["default_pattern_1", "default_pattern_2"]
       expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once).and_return(product_patterns)
       expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[0], :pattern)
       expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[1], :pattern)
@@ -382,10 +382,12 @@ describe Yast::Packages do
       summary_string = Yast::Packages.product_update_summary(products).to_s
 
       expect(summary_string).to match(
-        /SUSE Linux Enterprise Server 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/)
+        /SUSE Linux Enterprise Server 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/
+      )
 
       expect(summary_string).to match(
-        /SUSE Linux Enterprise Software Development Kit 11 SP3.*will be automatically removed/)
+        /SUSE Linux Enterprise Software Development Kit 11 SP3.*will be automatically removed/
+      )
     end
 
     it "handles multiple products updated to a single product" do
@@ -393,10 +395,12 @@ describe Yast::Packages do
       summary_string = Yast::Packages.product_update_summary(smt_update).to_s
 
       expect(summary_string).to match(
-        /SUSE Linux Enterprise Server 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/)
+        /SUSE Linux Enterprise Server 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/
+      )
 
       expect(summary_string).to match(
-        /Subscription Management Tool for SUSE Linux Enterprise 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/)
+        /Subscription Management Tool for SUSE Linux Enterprise 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/
+      )
     end
   end
 
@@ -424,8 +428,8 @@ describe Yast::Packages do
     context "when fips pattern is available" do
       before do
         allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
-        allow(Yast::Pkg).to receive(:ResolvableProperties).
-          with("fips", :pattern, "").and_return([{ "name" => "fips" }])
+        allow(Yast::Pkg).to receive(:ResolvableProperties)
+          .with("fips", :pattern, "").and_return([{ "name" => "fips" }])
       end
 
       it "adds 'fips' pattern if fips=1 boot parameter is used" do
@@ -442,8 +446,8 @@ describe Yast::Packages do
     context "when fips pattern is not available" do
       before do
         allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
-        allow(Yast::Pkg).to receive(:ResolvableProperties).
-          with("fips", :pattern, "").and_return([])
+        allow(Yast::Pkg).to receive(:ResolvableProperties)
+          .with("fips", :pattern, "").and_return([])
       end
 
       it "does not add 'fips' pattern if fips=1 boot parameter is used" do
@@ -465,11 +469,11 @@ describe Yast::Packages do
     let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
     before do
-      (base_packages_and_wm + ['yast2-x11']).each do |pkg|
+      (base_packages_and_wm + ["yast2-x11"]).each do |pkg|
         allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
       end
-      allow(Yast::Pkg).to receive(:PkgQueryProvides).with('libyui-qt').
-        and_return([['libyui-qt6', :CAND, :NONE]])
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with("libyui-qt")
+        .and_return([["libyui-qt6", :CAND, :NONE]])
     end
 
     context "during installation" do
@@ -556,12 +560,12 @@ describe Yast::Packages do
     end
 
     context "when some package is missing" do
-      let(:package) { 'missing-pkg' }
+      let(:package) { "missing-pkg" }
 
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(package).and_return([])
       end
 
       it "includes the tag name in the packages list but logs an error" do
@@ -571,12 +575,12 @@ describe Yast::Packages do
     end
 
     context "when some package is not available" do
-      let(:package) { 'unavailable-pkg' }
+      let(:package) { "unavailable-pkg" }
 
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([[package, :NONE, :NONE]])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(package).and_return([[package, :NONE, :NONE]])
       end
 
       it "includes the tag name in the packages list but logs an error" do
@@ -586,75 +590,75 @@ describe Yast::Packages do
     end
 
     context "when more than one package provides a tag" do
-      let(:package) { 'multi-provider-pkg' }
+      let(:package) { "multi-provider-pkg" }
 
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
       end
 
       context "when a package named after the tag is found" do
-        let(:providers) { ['prov1', package] }
+        let(:providers) { ["prov1", package] }
 
         it "includes the tag as package name and logs a message" do
-          expect(Yast::Package.log).to receive(:warn).
-            with("More than one provider was found for '#{package}': " \
+          expect(Yast::Package.log).to receive(:warn)
+            .with("More than one provider was found for '#{package}': " \
                  "prov1, #{package}. Selecting '#{package}'.")
           expect(subject.vnc_packages).to include(package)
         end
       end
 
       context "when a package named after the tag is not found" do
-        let(:providers) { ['prov2', 'prov1'] }
+        let(:providers) { ["prov2", "prov1"] }
 
         it "includes the first provider (according to alphabetic order) and logs a message" do
-          expect(Yast::Package.log).to receive(:warn).
-            with("More than one provider was found for '#{package}': " \
+          expect(Yast::Package.log).to receive(:warn)
+            .with("More than one provider was found for '#{package}': " \
                  "prov2, prov1. Selecting 'prov1'.")
-          expect(subject.vnc_packages).to include('prov1')
+          expect(subject.vnc_packages).to include("prov1")
         end
       end
     end
 
     context "when a package is installed and have also a valid candidate (:BOTH)" do
-      let(:tag) { 'some-tag' }
-      let(:providers) { [['prov1', :CAND, :NONE], ['prov2', :BOTH, :INST]] }
+      let(:tag) { "some-tag" }
+      let(:providers) { [["prov1", :CAND, :NONE], ["prov2", :BOTH, :INST]] }
 
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(tag).and_return(providers)
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(tag).and_return(providers)
       end
 
       it "the yet installed package must be preferred" do
-        expect(subject.vnc_packages).to include('prov2')
+        expect(subject.vnc_packages).to include("prov2")
       end
     end
 
     context "when a package is installed but a valid candidate exists" do
-      let(:tag) { 'some-tag' }
-      let(:providers) { [['prov1', :INST, :INST], ['prov2', :CAND, :NONE]] }
+      let(:tag) { "some-tag" }
+      let(:providers) { [["prov1", :INST, :INST], ["prov2", :CAND, :NONE]] }
 
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(tag).and_return(providers)
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(tag).and_return(providers)
       end
 
       it "the candidate must be preferred" do
-        expect(subject.vnc_packages).to include('prov2')
+        expect(subject.vnc_packages).to include("prov2")
       end
     end
 
     context "when a package is installed but no valid candidate" do
-      let(:tag) { 'some-tag' }
-      let(:providers) { [['prov1', :INST, :INST]] }
+      let(:tag) { "some-tag" }
+      let(:providers) { [["prov1", :INST, :INST]] }
 
       before do
         stub_const("Yast::PackagesClass::VNC_BASE_TAGS", [tag])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(tag).and_return(providers)
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(tag).and_return(providers)
       end
 
       it "that installed package is ignored and an error is logged" do
@@ -670,11 +674,11 @@ describe Yast::Packages do
     let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
     before do
-      (base_packages + ['yast2-x11']).each do |pkg|
+      (base_packages + ["yast2-x11"]).each do |pkg|
         allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return([[pkg, :CAND, :NONE]])
       end
-      allow(Yast::Pkg).to receive(:PkgQueryProvides).with('libyui-qt').
-        and_return([['libyui-qt6', :CAND, :NONE]])
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with("libyui-qt")
+        .and_return([["libyui-qt6", :CAND, :NONE]])
     end
 
     context "during installation" do
@@ -710,12 +714,12 @@ describe Yast::Packages do
     end
 
     context "when some package is missing" do
-      let(:package) { 'missing-pkg' }
+      let(:package) { "missing-pkg" }
 
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(package).and_return([])
       end
 
       it "includes the tag name in the packages list but logs an error" do
@@ -725,12 +729,12 @@ describe Yast::Packages do
     end
 
     context "when some package is not available" do
-      let(:package) { 'unavailable-pkg' }
+      let(:package) { "unavailable-pkg" }
 
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return([[package, :NONE, :NONE]])
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(package).and_return([[package, :NONE, :NONE]])
       end
 
       it "includes the tag name in the packages list but logs an error" do
@@ -740,75 +744,75 @@ describe Yast::Packages do
     end
 
     context "when more than one package provides a tag" do
-      let(:package) { 'multi-provider-pkg' }
+      let(:package) { "multi-provider-pkg" }
 
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [package])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(package).and_return(providers.map { |n| [n, :CAND, :NONE] })
       end
 
       context "when a package named after the tag is found" do
-        let(:providers) { ['prov1', package] }
+        let(:providers) { ["prov1", package] }
 
         it "includes the tag as package name and logs a message" do
-          expect(Yast::Package.log).to receive(:warn).
-            with("More than one provider was found for '#{package}': " \
+          expect(Yast::Package.log).to receive(:warn)
+            .with("More than one provider was found for '#{package}': " \
                  "prov1, #{package}. Selecting '#{package}'.")
           expect(subject.remote_x11_packages).to include(package)
         end
       end
 
       context "when a package named after the tag is not found" do
-        let(:providers) { ['prov2', 'prov1'] }
+        let(:providers) { ["prov2", "prov1"] }
 
         it "includes the first provider (according to alphabetic order) and logs a message" do
-          expect(Yast::Package.log).to receive(:warn).
-            with("More than one provider was found for '#{package}': " \
+          expect(Yast::Package.log).to receive(:warn)
+            .with("More than one provider was found for '#{package}': " \
                  "prov2, prov1. Selecting 'prov1'.")
-          expect(subject.remote_x11_packages).to include('prov1')
+          expect(subject.remote_x11_packages).to include("prov1")
         end
       end
     end
 
     context "when a package is installed and have also a valid candidate (:BOTH)" do
-      let(:tag) { 'some-tag' }
-      let(:providers) { [['prov1', :CAND, :NONE], ['prov2', :BOTH, :INST]] }
+      let(:tag) { "some-tag" }
+      let(:providers) { [["prov1", :CAND, :NONE], ["prov2", :BOTH, :INST]] }
 
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(tag).and_return(providers)
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(tag).and_return(providers)
       end
 
       it "the yet installed package must be preferred" do
-        expect(subject.remote_x11_packages).to include('prov2')
+        expect(subject.remote_x11_packages).to include("prov2")
       end
     end
 
     context "when a package is installed but a valid candidate exists" do
-      let(:tag) { 'some-tag' }
-      let(:providers) { [['prov1', :INST, :INST], ['prov2', :CAND, :NONE]] }
+      let(:tag) { "some-tag" }
+      let(:providers) { [["prov1", :INST, :INST], ["prov2", :CAND, :NONE]] }
 
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(tag).and_return(providers)
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(tag).and_return(providers)
       end
 
       it "the candidate must be preferred" do
-        expect(subject.remote_x11_packages).to include('prov2')
+        expect(subject.remote_x11_packages).to include("prov2")
       end
     end
 
     context "when a package is installed but no valid candidate" do
-      let(:tag) { 'some-tag' }
-      let(:providers) { [['prov1', :INST, :INST]] }
+      let(:tag) { "some-tag" }
+      let(:providers) { [["prov1", :INST, :INST]] }
 
       before do
         stub_const("Yast::PackagesClass::REMOTE_X11_BASE_TAGS", [tag])
-        allow(Yast::Pkg).to receive(:PkgQueryProvides).
-          with(tag).and_return(providers)
+        allow(Yast::Pkg).to receive(:PkgQueryProvides)
+          .with(tag).and_return(providers)
       end
 
       it "that installed package is ignored and an error is logged" do
@@ -1010,7 +1014,7 @@ describe Yast::Packages do
       allow(Yast::SpaceCalculation).to receive(:GetFailedMounts).and_return([])
 
       allow(Yast::PackagesProposal).to receive(:GetAllResolvablesForAllTypes)
-        .and_return({package: ["grub2"], pattern: ["kde"]})
+        .and_return(package: ["grub2"], pattern: ["kde"])
     end
 
     context "YaST preselected items are deselected by user" do
@@ -1134,10 +1138,9 @@ describe Yast::Packages do
       context "when installable and installed products have been found" do
         before do
           allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-            [ product("name" => "installed_product", "status" => :installed),
-              product("name" => "p1"),
-              product("name" => "p2")
-            ]
+            [product("name" => "installed_product", "status" => :installed),
+             product("name" => "p1"),
+             product("name" => "p2")]
           )
         end
 
@@ -1152,9 +1155,8 @@ describe Yast::Packages do
       context "when conflicting products should be installed (SLES/SLES_SAP)" do
         before do
           allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-            [ product("name" => "SLES"),
-              product("name" => "SLES_SAP")
-            ]
+            [product("name" => "SLES"),
+             product("name" => "SLES_SAP")]
           )
         end
 
@@ -1207,7 +1209,7 @@ describe Yast::Packages do
 
       subject.Initialize_BaseInit(false, @base_url, @log_url)
       expect(@base_url.value).to eq "cd:/?device=/dev/disk/by-id/scsi-S__%5Cx5b"
-      expect{URI.parse(@base_url.value)}.to_not raise_error
+      expect { URI.parse(@base_url.value) }.to_not raise_error
     end
   end
 end

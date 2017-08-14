@@ -42,7 +42,7 @@ module Yast
         Builtins.foreach(records) do |popup_type, one_record|
           Builtins.foreach(one_record) do |url, record_options|
             # nil records are skipped
-            next if record_options == nil
+            next if record_options.nil?
             index_counter = Ops.add(index_counter, 1)
             table_items = Builtins.add(
               table_items,
@@ -68,8 +68,8 @@ module Yast
 
       # help text
       helptext = _(
-        "<p>Remove entries by selecting them in the table and clicking the \n" +
-          "<b>Delete</b> button. The entries will be removed immediately from \n" +
+        "<p>Remove entries by selecting them in the table and clicking the \n" \
+          "<b>Delete</b> button. The entries will be removed immediately from \n" \
           "the current configuration.</p>\n"
       )
 
@@ -116,7 +116,7 @@ module Yast
     def HandleDialog
       ret = nil
 
-      while true
+      loop do
         ret = UI.UserInput
 
         if ret == :abort || ret == :cancel || ret == :accept || ret == :next

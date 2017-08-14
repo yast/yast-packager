@@ -9,7 +9,7 @@
 #
 module Yast
   module PackagerStorageIncludeInclude
-    def initialize_packager_storage_include(include_target)
+    def initialize_packager_storage_include(_include_target)
       textdomain "installation"
 
       Yast.import "SourceManager"

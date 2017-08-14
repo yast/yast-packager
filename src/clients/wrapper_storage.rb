@@ -35,7 +35,7 @@ module Yast
       when "GetTargetChangeTime"
         @ret = Storage.GetTargetChangeTime
       when "RemoveDmMapsTo"
-        if Builtins.size(@param) == 0
+        if Builtins.size(@param).zero?
           Builtins.y2error("Missing argument for Storage::RemoveDmMapsTo()")
         else
           @param1 = Ops.get_string(@param, 0)
@@ -43,20 +43,20 @@ module Yast
           @ret = Storage.RemoveDmMapsTo(@param1)
         end
       when "GetWinPrimPartitions"
-        if Builtins.size(@param) == 0
+        if Builtins.size(@param).zero?
           Builtins.y2error(
             "Missing argument for Storage::GetWinPrimPartitions()"
           )
         else
           @param1 = Convert.convert(
             Ops.get(@param, 0),
-            :from => "any",
-            :to   => "map <string, map>"
+            from: "any",
+            to:   "map <string, map>"
           )
           @ret = Storage.GetWinPrimPartitions(@param1)
         end
       when "ClassicStringToByte"
-        if Builtins.size(@param) == 0
+        if Builtins.size(@param).zero?
           Builtins.y2error("Missing argument for Storage::ClassicStringToByte()")
         else
           @ret = Storage.ClassicStringToByte(@param.first)

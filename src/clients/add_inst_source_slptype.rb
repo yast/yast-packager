@@ -20,7 +20,7 @@ module Yast
       Yast.import "SourceManagerSLP"
 
       @service = SourceManagerSLP.AddSourceTypeSLP
-      if @service == nil
+      if @service.nil?
         Builtins.y2milestone("No service selected, returning back...")
 
         return :back

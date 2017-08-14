@@ -13,7 +13,7 @@ describe Yast::PkgFinishClient do
   Yast.import "WFM"
   Yast.import "ProductFeatures"
 
-  FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
+  FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages".freeze
 
   subject(:client) { Yast::PkgFinishClient.new }
   let(:repositories) { [] }
@@ -32,10 +32,9 @@ describe Yast::PkgFinishClient do
 
     it "returns a hash describing the client" do
       allow(client).to receive(:_).and_return("title")
-      expect(client.run).to eq({
-          "steps" => 1,
-          "title" => "title",
-          "when" => [:installation, :update, :autoinst]})
+      expect(client.run).to eq("steps" => 1,
+                               "title" => "title",
+                               "when"  => [:installation, :update, :autoinst])
     end
   end
 
@@ -43,7 +42,7 @@ describe Yast::PkgFinishClient do
     let(:args) { ["Write"] }
     let(:destdir) { "/mnt" }
     let(:update) { false }
-    let(:zypp_conf) { double("zypp_conf", load: true, save: true, :set_minimalistic! => true) }
+    let(:zypp_conf) { double("zypp_conf", load: true, save: true, set_minimalistic!: true) }
 
     before do
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
@@ -173,9 +172,9 @@ describe Yast::PkgFinishClient do
 
         it "logs an error if compression fails" do
           allow(Yast::SCR).to receive(:Execute).and_call_original
-          expect(Yast::SCR).to receive(:Execute).
-            with(Yast::Path.new(".target.bash_output"), /tar/).
-            and_return("exit" => -1)
+          expect(Yast::SCR).to receive(:Execute)
+            .with(Yast::Path.new(".target.bash_output"), /tar/)
+            .and_return("exit" => -1)
           expect(client.log).to receive(:error)
             .with(/Unable to backup/)
           client.run

@@ -69,18 +69,18 @@ module Yast
       # dialog caption
       Wizard.SetContents(_("Initializing..."), Empty(), "", false, true)
 
-      aliases = { "read" => lambda { Read() }, "edit" => lambda do
+      aliases = { "read" => -> { Read() }, "edit" => lambda do
         RunGPGKeyMgmt(true)
-      end, "write" => lambda(
-      ) do
+      end, "write" => lambda
+       do
         Write()
       end }
 
       sequence = {
         "ws_start" => "read",
-        "read"     => { :next => "edit" },
-        "edit"     => { :abort => :abort, :next => "write" },
-        "write"    => { :next => :next, :abort => :abort }
+        "read"     => { next: "edit" },
+        "edit"     => { abort: :abort, next: "write" },
+        "write"    => { next: :next, abort: :abort }
       }
 
       Builtins.y2milestone("Starting the key management sequence")

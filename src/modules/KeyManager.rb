@@ -32,7 +32,7 @@ module Yast
       @modified = false
     end
 
-    #////////////////////////////////////////////////////////////////////////////
+    # ////////////////////////////////////////////////////////////////////////////
 
     # Reset the internal state of the module. The current configuration and all
     # changes are deleted.
@@ -56,7 +56,6 @@ module Yast
       deep_copy(ret)
     end
 
-
     # Read the current configuration from the package manager. The previous changes are lost (@see Reset).
     # The target system of the package manager must be initialized before reading GPG keys!
     # @return [Boolean] true on success
@@ -68,7 +67,7 @@ module Yast
 
       @known_keys = ReadCurrentKeys()
 
-      if @known_keys == nil
+      if @known_keys.nil?
         @known_keys = []
         return false
       end
@@ -88,8 +87,7 @@ module Yast
           ret = deep_copy(key)
           raise Break
         end
-      end 
-
+      end
 
       deep_copy(ret)
     end
@@ -117,8 +115,7 @@ module Yast
           Ops.get_string(deleted_key, "id", ""),
           Ops.get_boolean(deleted_key, "trusted", false)
         ) && ret
-      end 
-
+      end
 
       # import the new keys
       Builtins.foreach(@import_from_file) do |new_key|
@@ -132,8 +129,7 @@ module Yast
           Ops.get_string(new_key, "file", ""),
           Ops.get_boolean(new_key, "trusted", false)
         ) && ret
-      end 
-
+      end
 
       # all changes are saved, reset them
       @deleted_keys = []
@@ -159,7 +155,7 @@ module Yast
     # @param [String] key_id ID of the key to delete
     # @return [Boolean] true on success
     def DeleteKey(key_id)
-      if key_id == nil || key_id == ""
+      if key_id.nil? || key_id == ""
         Builtins.y2error("Invalid key ID: %1", key_id)
         return false
       end
@@ -175,26 +171,24 @@ module Yast
           found = i
         end
         i = Ops.add(i, 1)
-      end 
-
+      end
 
       # remove from known keys when found
-      @known_keys = Builtins.remove(@known_keys, found) if found != nil
+      @known_keys = Builtins.remove(@known_keys, found) if !found.nil?
 
       found_in_imported = false
 
       # remove from imported keys (deleting a key scheduled for import)
       @import_from_file = Builtins.filter(@import_from_file) do |new_key|
         found_key = Ops.get_string(new_key, "id", "") == key_id
-        found_in_imported = found_in_imported || found_key
+        found_in_imported ||= found_key
         found_key
       end
 
       @modified = true
 
-      found != nil
+      !found.nil?
     end
-
 
     # Import key from a file
     # @param [String] file path to the file
@@ -205,7 +199,7 @@ module Yast
       key = Pkg.CheckGPGKeyFile(file)
       Builtins.y2milestone("File content: %1", key)
 
-      if key != nil && Ops.greater_than(Builtins.size(key), 0)
+      if !key.nil? && Ops.greater_than(Builtins.size(key), 0)
         # update the trusted flag
         Ops.set(key, "trusted", trusted)
       else
@@ -225,16 +219,15 @@ module Yast
         if Ops.get_string(k, "id", "") == Ops.get_string(key, "id", "")
           known = true
         end
-      end 
-
+      end
 
       if known
         # %1 is key ID (e.g. A84EDAE89C800ACA), %2 is key name (e.g. "SuSE Package Signing Key <build@suse.de>")
         Report.Error(
           Builtins.sformat(
             _(
-              "Key '%1'\n" +
-                "'%2'\n" +
+              "Key '%1'\n" \
+                "'%2'\n" \
                 "is already known, it cannot be added again."
             ),
             Ops.get_string(key, "id", ""),
@@ -249,7 +242,7 @@ module Yast
       @deleted_keys = Builtins.filter(@deleted_keys) do |deleted_key|
         key_found = Ops.get_string(deleted_key, "id", "") ==
           Ops.get_string(key, "id", "")
-        found_in_deleted = found_in_deleted || key_found
+        found_in_deleted ||= key_found
         !key_found
       end
 
@@ -275,7 +268,7 @@ module Yast
 
       out = Convert.to_integer(SCR.Execute(path(".target.bash"), command))
 
-      if out != 0
+      if out.nonzero?
         Report.Error(_("Cannot copy the key to the temporary directory."))
         return nil
       end
@@ -283,11 +276,9 @@ module Yast
       # store the import request
       @import_from_file = Builtins.add(
         @import_from_file,
-        {
-          "file"    => tmpfile,
-          "trusted" => trusted,
-          "id"      => Ops.get_string(key, "id", "")
-        }
+        "file"    => tmpfile,
+        "trusted" => trusted,
+        "id"      => Ops.get_string(key, "id", "")
       )
 
       # add the new key to the current config
@@ -298,14 +289,14 @@ module Yast
       deep_copy(key)
     end
 
-    publish :function => :Reset, :type => "void ()"
-    publish :function => :Read, :type => "boolean ()"
-    publish :function => :SearchGPGKey, :type => "map <string, any> (string)"
-    publish :function => :Write, :type => "boolean ()"
-    publish :function => :Modified, :type => "boolean ()"
-    publish :function => :GetKeys, :type => "list <map <string, any>> ()"
-    publish :function => :DeleteKey, :type => "boolean (string)"
-    publish :function => :ImportFromFile, :type => "map <string, any> (string, boolean)"
+    publish function: :Reset, type: "void ()"
+    publish function: :Read, type: "boolean ()"
+    publish function: :SearchGPGKey, type: "map <string, any> (string)"
+    publish function: :Write, type: "boolean ()"
+    publish function: :Modified, type: "boolean ()"
+    publish function: :GetKeys, type: "list <map <string, any>> ()"
+    publish function: :DeleteKey, type: "boolean (string)"
+    publish function: :ImportFromFile, type: "map <string, any> (string, boolean)"
   end
 
   KeyManager = KeyManagerClass.new

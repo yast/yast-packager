@@ -151,7 +151,6 @@ module Yast
         # if sw_single is called with an absolute package-pathname, there is no need to
         # mount the source medium or check SuSE version or dependencies
 
-
         PackageSlideShow.InitPkgData(true) # force reinitialization
 
         # create a temporary Plaindir repository
@@ -172,7 +171,7 @@ module Yast
           out = Convert.to_map(
             SCR.Execute(path(".target.bash_output"), command)
           )
-          if Ops.get_integer(out, "exit", -1) != 0
+          if Ops.get_integer(out, "exit", -1).nonzero?
             Builtins.y2warning(
               "Could not link the package, creating a full copy instead..."
             )
@@ -187,7 +186,7 @@ module Yast
               SCR.Execute(path(".target.bash_output"), command)
             )
 
-            if Ops.get_integer(out, "exit", -1) != 0
+            if Ops.get_integer(out, "exit", -1).nonzero?
               # error message (%1 is a package file name)
               Report.Error(
                 Builtins.sformat(
@@ -200,7 +199,7 @@ module Yast
           end
         end
 
-        url = URL.Build({ "scheme" => "file", "path" => tmprepo })
+        url = URL.Build("scheme" => "file", "path" => tmprepo)
         Builtins.y2milestone("Using tmp repo URL: %1", url)
 
         repo_id = nil
@@ -209,7 +208,7 @@ module Yast
           repo_id = Pkg.SourceCreateType(url, "", "Plaindir")
           Builtins.y2milestone("Adde temporary repository with ID %1", repo_id)
 
-          if repo_id == nil
+          if repo_id.nil?
             # error message
             Report.Error(
               Builtins.sformat(
@@ -236,7 +235,7 @@ module Yast
               )
             )
 
-            if Ops.get_integer(out, "exit", -1) != 0
+            if Ops.get_integer(out, "exit", -1).nonzero?
               # error message
               Report.Error(
                 Builtins.sformat(
@@ -259,7 +258,7 @@ module Yast
                 )
               )
             )
-            if Ops.get_integer(out, "exit", -1) != 0
+            if Ops.get_integer(out, "exit", -1).nonzero?
               # error message
               Report.Error(
                 Builtins.sformat(
@@ -297,9 +296,9 @@ module Yast
               Report.Error(
                 Builtins.sformat(
                   _(
-                    "Package %1 could not be installed.\n" +
-                      "\n" +
-                      "Details:\n" +
+                    "Package %1 could not be installed.\n" \
+                      "\n" \
+                      "Details:\n" \
                       "%2\n"
                   ),
                   package,
@@ -334,10 +333,10 @@ module Yast
           Builtins.y2milestone("Reading file %1", arg_name)
           @packagelist = Convert.convert(
             SCR.Read(path(".target.ycp"), arg_name),
-            :from => "any",
-            :to   => "list <string>"
+            from: "any",
+            to:   "list <string>"
           ) # try .ycp list first
-          if @packagelist == nil || @packagelist == []
+          if @packagelist.nil? || @packagelist == []
             packagestr = Convert.to_string(
               SCR.Read(path(".target.string"), arg_name)
             ) # string ascii file next
@@ -364,7 +363,7 @@ module Yast
           )
         )
       end
-      if Builtins.size(Pkg.SourceGetCurrent(enabled_only)) == 0
+      if Builtins.size(Pkg.SourceGetCurrent(enabled_only)).zero?
         Report.Warning(
           _("No repository is defined.\nOnly installed packages are displayed.")
         )
@@ -433,7 +432,7 @@ module Yast
     # higher version. Otherwise we would forcefully reinstall it. #222757#c9
     def CanBeUpdated(package)
       props = Pkg.ResolvableProperties(
-        package, #any version
+        package, # any version
         :package,
         ""
       )
@@ -472,17 +471,16 @@ module Yast
             repo_management = Ops.get_boolean(m, "repo_mgmt", false)
           end
         end
-      end 
-
+      end
 
       # use default parameters for missing or invalid values
-      if mode == nil
+      if mode.nil?
         # use summary mode if there is something to install (probably a suggested or recommended package) (bnc#465194)
         Pkg.PkgSolve(true) # select the packages
         mode = Pkg.IsAnyResolvable(:any, :to_install) ||
           Pkg.IsAnyResolvable(:any, :to_remove) ? :summaryMode : :searchMode
       end
-      repo_management = Mode.normal if repo_management == nil
+      repo_management = Mode.normal if repo_management.nil?
 
       ret = { "mode" => mode, "enable_repo_mgr" => repo_management }
 
@@ -553,7 +551,6 @@ module Yast
         return :next
       end
 
-
       force_restart = false
       found_descr = result == :found_descr
       begin
@@ -564,22 +561,22 @@ module Yast
 
         old_failed_packs = []
         if Ops.greater_than(
-            Convert.to_integer(
-              SCR.Read(path(".target.size"), "/var/lib/YaST2/failed_packages")
-            ),
-            0
-          )
+          Convert.to_integer(
+            SCR.Read(path(".target.size"), "/var/lib/YaST2/failed_packages")
+          ),
+          0
+        )
           old_failed_packs = Convert.convert(
             SCR.Read(path(".target.ycp"), "/var/lib/YaST2/failed_packages"),
-            :from => "any",
-            :to   => "list <string>"
+            from: "any",
+            to:   "list <string>"
           )
         end
         if Ops.greater_than(Builtins.size(old_failed_packs), 0) &&
             Popup.YesNo(
               _(
-                "During the last package installation\n" +
-                  "several packages failed to install.\n" +
+                "During the last package installation\n" \
+                  "several packages failed to install.\n" \
                   "Install them now?\n"
               )
             )
@@ -587,7 +584,7 @@ module Yast
         end
 
         if found_descr
-          if Builtins.size(@packagelist) == 0 # packages given ?
+          if Builtins.size(@packagelist).zero? # packages given ?
             # names of taboo packages
             taboo_packages = Pkg.GetPackages(:taboo, true)
 
@@ -677,7 +674,7 @@ module Yast
               @packagelist # Yes: install them
             ) do |package|
               if @action == :install ||
-                  # TODO `update: tell the user if already up to date
+                  # TODO: `update: tell the user if already up to date
                   @action == :update && CanBeUpdated(package)
                 # select package for installation
                 if !Pkg.PkgInstall(package)
@@ -775,7 +772,7 @@ module Yast
               SCR.Read(path(".sysconfig.yast2.PKGMGR_ACTION_AT_EXIT"))
             )
 
-            _PKGMGR_ACTION_AT_EXIT = "close" if _PKGMGR_ACTION_AT_EXIT == nil
+            _PKGMGR_ACTION_AT_EXIT = "close" if _PKGMGR_ACTION_AT_EXIT.nil?
 
             Builtins.y2milestone(
               "PKGMGR_ACTION_AT_EXIT: %1, force_summary: %2",
@@ -793,11 +790,11 @@ module Yast
                 )
               Builtins.y2milestone("Summary dialog needed")
               if PackagesUI.ShowInstallationSummary == :back &&
-                  Builtins.size(@packagelist) == 0
+                  Builtins.size(@packagelist).zero?
                 force_restart = true
               end
             elsif _PKGMGR_ACTION_AT_EXIT == "restart" &&
-                Builtins.size(@packagelist) == 0
+                Builtins.size(@packagelist).zero?
               force_restart = true
             end
           end

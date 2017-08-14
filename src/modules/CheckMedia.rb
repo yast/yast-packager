@@ -43,15 +43,15 @@ module Yast
     end
 
     def DetectedCDDevices
-      if @cd_cache == nil
+      if @cd_cache.nil?
         # the cache is not initialied, do it now
         cds = Convert.convert(
           SCR.Read(path(".probe.cdrom")),
-          :from => "any",
-          :to   => "list <map>"
+          from: "any",
+          to:   "list <map>"
         )
 
-        if cds == nil
+        if cds.nil?
           # initialize to empty list
           cds = []
         end
@@ -91,22 +91,22 @@ module Yast
     end
 
     def Process
-      return if @process == nil
+      return if @process.nil?
 
       if @inprogress
         # try to read whole lines
         out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
 
-        if out != nil
+        if !out.nil?
           @output = Builtins.add(@output, out)
 
           out = Convert.to_string(SCR.Read(path(".process.read"), @process))
 
-          if out != nil
+          if !out.nil?
             @output = Convert.convert(
               Builtins.merge(@output, Builtins.splitstring(out, "\n")),
-              :from => "list",
-              :to   => "list <string>"
+              from: "list",
+              to:   "list <string>"
             )
           end
 
@@ -117,12 +117,12 @@ module Yast
           # read progress status
           buffer = Convert.to_string(SCR.Read(path(".process.read"), @process))
 
-          if buffer != nil
+          if !buffer.nil?
             Builtins.y2debug("buffer: %1", buffer)
 
             percent = Builtins.regexpsub(buffer, "([0-9]*)%.*$", "\\1")
 
-            if percent != nil
+            if !percent.nil?
               @progress = Builtins.tointeger(percent)
               Builtins.y2milestone("progress: %1%%", @progress)
             end
@@ -131,7 +131,7 @@ module Yast
       else
         out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
 
-        if out != nil
+        if !out.nil?
           @output = Builtins.add(@output, out)
 
           # check whether we need to switch to progress mode
@@ -182,7 +182,7 @@ module Yast
         # get CD device name
         bootcd = Linuxrc.InstallInf("Cdrom")
 
-        if bootcd != nil && bootcd != ""
+        if !bootcd.nil? && bootcd != ""
           readycddrives = [Builtins.sformat("/dev/%1", bootcd)]
         else
           Builtins.y2milestone("CD device device is not known, probing...")
@@ -192,11 +192,11 @@ module Yast
           Builtins.foreach(cds) do |cd|
             devname = Ops.get_string(cd, "dev_name", "")
             # check whether the CD is ready
-            if Ops.get_boolean(cd, "notready", false) == false && devname != nil &&
+            if Ops.get_boolean(cd, "notready", false) == false && !devname.nil? &&
                 devname != ""
               readycddrives = Builtins.add(readycddrives, devname)
             end
-          end if cds != nil
+          end if !cds.nil?
         end
 
         Builtins.y2milestone("Ready CD drives: %1", readycddrives)
@@ -207,7 +207,7 @@ module Yast
 
     # Release resources used by the subprocess
     def Release
-      if @process != nil
+      if !@process.nil?
         SCR.Execute(path(".process.release"), @process)
         @process = nil
       end
@@ -215,18 +215,18 @@ module Yast
       nil
     end
 
-    publish :variable => :checkmedia, :type => "const string"
-    publish :variable => :preferred_drive, :type => "string"
-    publish :variable => :forced_start, :type => "boolean"
-    publish :function => :DetectedCDDevices, :type => "list <map> ()"
-    publish :function => :Start, :type => "boolean (string)"
-    publish :function => :Stop, :type => "boolean ()"
-    publish :function => :Process, :type => "void ()"
-    publish :function => :Running, :type => "boolean ()"
-    publish :function => :Info, :type => "list <string> ()"
-    publish :function => :Progress, :type => "integer ()"
-    publish :function => :GetReadyCDs, :type => "list <string> ()"
-    publish :function => :Release, :type => "void ()"
+    publish variable: :checkmedia, type: "const string"
+    publish variable: :preferred_drive, type: "string"
+    publish variable: :forced_start, type: "boolean"
+    publish function: :DetectedCDDevices, type: "list <map> ()"
+    publish function: :Start, type: "boolean (string)"
+    publish function: :Stop, type: "boolean ()"
+    publish function: :Process, type: "void ()"
+    publish function: :Running, type: "boolean ()"
+    publish function: :Info, type: "list <string> ()"
+    publish function: :Progress, type: "integer ()"
+    publish function: :GetReadyCDs, type: "list <string> ()"
+    publish function: :Release, type: "void ()"
   end
 
   CheckMedia = CheckMediaClass.new

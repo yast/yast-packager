@@ -1,13 +1,13 @@
 #! /usr/bin/env rspec
 
 require_relative "./test_helper"
-require 'yaml'
+require "yaml"
 
-Yast.import 'WFM'
-Yast.import 'Stage'
-Yast.import 'Mode'
-Yast.import 'SCR'
-Yast.import 'SpaceCalculation'
+Yast.import "WFM"
+Yast.import "Stage"
+Yast.import "Mode"
+Yast.import "SCR"
+Yast.import "SpaceCalculation"
 
 DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
 SCR_TMPDIR_PATH = Yast::Path.new(".target.tmpdir")
@@ -19,12 +19,12 @@ def stub_target_map(name, with_fstopt)
   tm = YAML.load_file(path)
   # Remove the "fstopt" key from every partition
   if with_fstopt == false
-    tm.each do |k,v|
-      v["partitions"].each {|p| p.delete("fstopt") }
+    tm.each do |_k, v|
+      v["partitions"].each { |p| p.delete("fstopt") }
     end
   end
   allow(Yast::WFM).to(receive(:call).with("wrapper_storage",
-      ["GetTargetMap"]).and_return(tm))
+    ["GetTargetMap"]).and_return(tm))
 end
 
 def expect_to_execute(command)
@@ -174,7 +174,8 @@ describe Yast::SpaceCalculation do
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "btrfs subvolume list -s #{dir}").and_return("stdout" => "", "exit" => 127)
       expect { Yast::SpaceCalculation.btrfs_snapshots?(dir) }.to raise_error(
-        /Cannot detect Btrfs snapshots, subvolume listing failed/)
+        /Cannot detect Btrfs snapshots, subvolume listing failed/
+      )
     end
   end
 
@@ -198,7 +199,8 @@ EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => "", "exit" => 127)
       expect { Yast::SpaceCalculation.btrfs_used_size(dir) }.to raise_error(
-        /Cannot detect Btrfs disk usage/)
+        /Cannot detect Btrfs disk usage/
+      )
     end
 
     it "ignores lines without 'used' value" do
@@ -226,11 +228,11 @@ EOF
     end
 
     it "Reads current disk usage and reserves extra free space" do
-      expect(Yast::SCR).to receive(:Read).with(Yast::Path.new(".run.df")).
-        and_return(run_df)
+      expect(Yast::SCR).to receive(:Read).with(Yast::Path.new(".run.df"))
+        .and_return(run_df)
 
-      result = [{"name" => "/", "filesystem" => "ext4", "used" => 3259080,
-          "growonly" => false, "free" => 2530736}]
+      result = [{ "name" => "/", "filesystem" => "ext4", "used" => 3259080,
+          "growonly" => false, "free" => 2530736 }]
 
       expect(Yast::Pkg).to receive(:TargetInitDU).with(result)
       expect(Yast::SpaceCalculation.EvaluateFreeSpace(15)).to eq(result)
@@ -240,15 +242,15 @@ EOF
       run_df_btrfs = run_df
       run_df_btrfs.last["type"] = "btrfs"
 
-      expect(Yast::SCR).to receive(:Read).with(Yast::Path.new(".run.df")).
-        and_return(run_df_btrfs)
-      expect(Yast::SpaceCalculation).to receive(:btrfs_used_size).with(destdir).
-        and_return(3259080*1024)
-      expect(Yast::SpaceCalculation).to receive(:btrfs_snapshots?).with(destdir).
-        and_return(true)
+      expect(Yast::SCR).to receive(:Read).with(Yast::Path.new(".run.df"))
+        .and_return(run_df_btrfs)
+      expect(Yast::SpaceCalculation).to receive(:btrfs_used_size).with(destdir)
+        .and_return(3259080 * 1024)
+      expect(Yast::SpaceCalculation).to receive(:btrfs_snapshots?).with(destdir)
+        .and_return(true)
 
-      result = [{"name" => "/", "filesystem" => "btrfs", "used" => 3259080,
-          "growonly" => true, "free" => 2939606}]
+      result = [{ "name" => "/", "filesystem" => "btrfs", "used" => 3259080,
+          "growonly" => true, "free" => 2939606 }]
 
       expect(Yast::Pkg).to receive(:TargetInitDU).with(result)
       expect(Yast::SpaceCalculation.EvaluateFreeSpace(15)).to eq(result)
@@ -303,13 +305,13 @@ EOF
   describe ".XfsJournalSize" do
     it "returns correct journal size depending on fs size" do
       data = { "size_k" => 2 << 10, "used_fs" => :xfs, "name" => "sda1" }
-      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq( 10 << 20)
+      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq(10 << 20)
 
       data = { "size_k" => 50 << 20, "used_fs" => :xfs, "name" => "sda1" }
-      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq( 25 << 20)
+      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq(25 << 20)
 
       data = { "size_k" => 5 << 30, "used_fs" => :xfs, "name" => "sda1" }
-      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq( 2 << 30)
+      expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq(2 << 30)
     end
   end
 
@@ -319,20 +321,20 @@ EOF
         "size_k" => 2 << 20, "used_fs" => :jfs, "name" => "sda1",
         "fs_options" => { "opt_log_size" => { "option_value" => "10" } }
       }
-      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 10 << 20)
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(10 << 20)
     end
 
     it "returns correct journal size depending on fs size" do
       data = { "size_k" => 5 << 20, "used_fs" => :jfs, "name" => "sda1" }
-      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 20 << 20)
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(20 << 20)
 
       # test rounding if few more kB appears
       data = { "size_k" => (5 << 20) + 5, "used_fs" => :jfs, "name" => "sda1" }
-      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 21 << 20)
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(21 << 20)
 
       # test too big limitation to 128MB
       data = { "size_k" => 50 << 30, "used_fs" => :jfs, "name" => "sda1" }
-      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq( 128 << 20)
+      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(128 << 20)
     end
   end
 
@@ -394,7 +396,7 @@ EOF
 
     it "returns new array with updated empty and used space" do
       data = [{ "name" => "/", "used" => 0, "free" => 10000000 }]
-      expected_data = [{"free" => 9879168, "name" => "/", "used" => 120832}] # data from old testsuite
+      expected_data = [{ "free" => 9879168, "name" => "/", "used" => 120832 }] # data from old testsuite
       expect(Yast::SpaceCalculation.EstimateTargetUsage(data)).to eq expected_data
 
       # separated home, nothing to install there
@@ -403,21 +405,21 @@ EOF
         { "name" => "/home", "used" => 0, "free" => 1000000 }
       ]
       expected_data = [
-        {"free" =>9879168, "name"=>"/", "used"=>120832},
-        {"free"=>1000000, "name"=>"/home", "used"=>0}
+        { "free" => 9879168, "name" => "/", "used" => 120832 },
+        { "free" => 1000000, "name" => "/home", "used" => 0 }
       ]
       expect(Yast::SpaceCalculation.EstimateTargetUsage(data)).to eq expected_data
 
       # multiple partitions
       data = [
-            { "name" => "/", "used" => 0, "free" => 10000000 },
-            { "name" => "/boot", "used" => 0, "free" => 1000000 },
-            { "name" => "/usr", "used" => 0, "free" => 1000000 }
-          ]
+        { "name" => "/", "used" => 0, "free" => 10000000 },
+        { "name" => "/boot", "used" => 0, "free" => 1000000 },
+        { "name" => "/usr", "used" => 0, "free" => 1000000 }
+      ]
       expected_data = [
-        {"free" => 9891456, "name" => "/", "used" => 108544},
-        {"free" => 988736, "name" => "/boot", "used" => 11264},
-        {"free" => 998976, "name" => "/usr", "used" => 1024}
+        { "free" => 9891456, "name" => "/", "used" => 108544 },
+        { "free" => 988736, "name" => "/boot", "used" => 11264 },
+        { "free" => 998976, "name" => "/usr", "used" => 1024 }
       ]
       expect(Yast::SpaceCalculation.EstimateTargetUsage(data)).to eq expected_data
     end

@@ -34,7 +34,6 @@ module Yast
       Yast.import "Installation"
       Yast.import "String"
 
-
       @newSources = []
 
       @numSources = 0
@@ -44,7 +43,6 @@ module Yast
       @sourceStatesIn = []
 
       @sourceStatesOut = []
-
 
       @url_tokens = {}
 
@@ -56,7 +54,6 @@ module Yast
 
       # Data was modified?
       @modified = false
-
 
       @proposal_valid = false
     end
@@ -80,7 +77,7 @@ module Yast
     # @return true if modified
     def Modified
       Builtins.y2debug("modified=%1", @modified)
-      #return modified;
+      # return modified;
       @sourceStatesIn != @sourceStatesOut
     end
 
@@ -100,7 +97,6 @@ module Yast
       caption = _("Initializing Available Repositories")
 
       steps = 2
-
 
       # We do not set help text here, because it was set outside
       Progress.New(
@@ -128,14 +124,12 @@ module Yast
       return false if Abort()
       Progress.NextStage
 
-
       # Error message
       Report.Error(_("Cannot read repositories.")) if !ReadSources()
 
       # read another database
       return false if Abort()
       Progress.NextStep
-
 
       # Error message
       Report.Error(_("Cannot detect available repositories.")) if false
@@ -153,7 +147,7 @@ module Yast
     def CommitSources
       Builtins.y2debug("In: %1  Out: %2", @sourceStatesIn, @sourceStatesOut)
       success = false
-      while true
+      loop do
         success = Pkg.SourceEditSet(@sourceStatesOut)
         if !success
           # popup message header
@@ -210,8 +204,6 @@ module Yast
 
       exit = CommitSources()
 
-
-
       return false if Abort()
       # Progress finished
       Progress.NextStage
@@ -251,7 +243,6 @@ module Yast
       nil
     end
 
-
     # Get Repository ID when only URL is known
     def getSourceId(url)
       @numSources = Builtins.size(@sourceStatesOut)
@@ -272,17 +263,12 @@ module Yast
       id
     end
 
-
-
-
-
-
     # Gather Repository Metadata
     def SourceData(source)
       g = Pkg.SourceGeneralData(source)
       Builtins.y2milestone("generalData: %1", g)
       p = Pkg.SourceProductData(source)
-      p = {} if p == nil
+      p = {} if p.nil?
 
       Builtins.y2milestone("productData: %1", p)
       Builtins.union(g, p)
@@ -300,8 +286,7 @@ module Yast
 
         UI.CloseDialog if !Mode.commandline
 
-
-        if Builtins.size(@newSources) == 0
+        if Builtins.size(@newSources).zero?
           __msg1 = Builtins.sformat(
             _("Unable to create repository\nfrom URL '%1'."),
             URL.HidePassword(url)
@@ -323,21 +308,21 @@ module Yast
             src_type = Ops.get_string(src_data, "type", "")
             src_type == "YaST"
           end
-          if Builtins.size(ul_sources) == 0
+          if Builtins.size(ul_sources).zero?
             if !Popup.AnyQuestion(
-                Popup.NoHeadline,
-                # continue-back popup
-                _(
-                  "There is no product information available at the given location.\n" +
-                    "If you expected to to point a product, go back and enter\n" +
-                    "the correct location.\n" +
-                    "To make rpm packages located at the specified location available\n" +
-                    "in the packages selection, continue.\n"
-                ),
-                Label.ContinueButton,
-                Label.BackButton,
-                :focus_yes
-              )
+              Popup.NoHeadline,
+              # continue-back popup
+              _(
+                "There is no product information available at the given location.\n" \
+                  "If you expected to to point a product, go back and enter\n" \
+                  "the correct location.\n" \
+                  "To make rpm packages located at the specified location available\n" \
+                  "in the packages selection, continue.\n"
+              ),
+              Label.ContinueButton,
+              Label.BackButton,
+              :focus_yes
+            )
               return :again
             end
           end
@@ -368,7 +353,6 @@ module Yast
       nil
     end
 
-
     # Delete Repository by the repository index
     def deleteSourceByIndex(idx)
       @sourceStatesOut = Builtins.remove(@sourceStatesOut, idx)
@@ -382,7 +366,7 @@ module Yast
     end
 
     # Create Summary Item
-    def createItem(index, source)
+    def createItem(_index, source)
       source = deep_copy(source)
       id = Ops.get_integer(source, "SrcId", 0)
       generalData = Pkg.SourceGeneralData(id)
@@ -414,14 +398,12 @@ module Yast
       sitem
     end
 
-
     # Create Repository Item for Overview
     def createOverviewItem(index, source)
       source = deep_copy(source)
       id = Ops.get_integer(source, "SrcId", 0)
       generalData = Pkg.SourceGeneralData(id)
       productData = Pkg.SourceProductData(id)
-
 
       item = Item(
         Id(index),
@@ -441,7 +423,6 @@ module Yast
       deep_copy(item)
     end
 
-
     # Handle Multiple repositories URLs (order/instorder)
     def HandleMultipleSources(url)
       metadir_used = false
@@ -452,17 +433,15 @@ module Yast
       tmpdir = Convert.to_string(SCR.Read(path(".target.tmpdir")))
       metadir = Ops.add(tmpdir, "/yast-install")
 
-
       Pkg.SourceStartManager(false)
       initial_source = Ops.get(Pkg.SourceScan(url, ""), 0)
-      if initial_source == nil
+      if initial_source.nil?
         Builtins.y2error("No repository in '%1'", url)
         return false
       end
 
       false
     end
-
 
     # Create a textual summary and a list of unconfigured cards
     # @return summary of the current configuration
@@ -481,7 +460,6 @@ module Yast
         i = Ops.add(i, 1)
       end
       summary = Summary.CloseList(summary)
-
 
       [summary, []]
     end
@@ -511,7 +489,7 @@ module Yast
       q_items = Builtins.splitstring(query, "&")
       q_map = Builtins.listmap(q_items) do |q_item|
         eqpos = Builtins.search(q_item, "=")
-        if eqpos == nil
+        if eqpos.nil?
           next { q_item => nil }
         else
           key = Builtins.substring(q_item, 0, eqpos)
@@ -526,7 +504,7 @@ module Yast
     # @return For existing repositories, get a mapping from an attribute to the id
     def get_attr_to_id(attr)
       src_ids = Pkg.SourceGetCurrent(
-        false #enabled only?
+        false # enabled only?
       )
       a2i = Builtins.listmap(src_ids) do |src_id|
         gendata = Pkg.SourceGeneralData(src_id)
@@ -545,8 +523,6 @@ module Yast
     def get_url_to_id
       get_attr_to_id("url")
     end
-
-
 
     # Extract an alias parameter from the URL and check whether we have
     # such a repository already.
@@ -596,10 +572,10 @@ module Yast
       # add the repositories
       # but do not make duplicates (#168740)
       # we detect them based on alias that suse_register gives us (#158850#c17)
-      #/ (but only for SLE... :-/ )
-      #/ Need to test what happens when we get two different update
-      #/ servers for SL
-      #/ Anyway that means only that #168740 remains unfixed for SL
+      # / (but only for SLE... :-/ )
+      # / Need to test what happens when we get two different update
+      # / servers for SL
+      # / Anyway that means only that #168740 remains unfixed for SL
       Builtins.foreach(urls) do |url|
         Builtins.y2milestone("Should add an update repository: %1", url)
         # inst_addon_update_sources also calls Pkg::SourceCreate
@@ -616,7 +592,7 @@ module Yast
         Builtins.y2milestone("Adding update repository...")
         toadd = Pkg.SourceCreate(url, "/")
         # adding failed, try http fallback for ftp repo (#227059)
-        if toadd == nil || Ops.less_than(toadd, 0)
+        if toadd.nil? || Ops.less_than(toadd, 0)
           parsed_url = URL.Parse(url)
           scheme = Ops.get_string(parsed_url, "scheme", "")
 
@@ -632,7 +608,7 @@ module Yast
             url = fallback_url
           end
         end
-        if toadd != -1 && toadd != nil
+        if toadd != -1 && !toadd.nil?
           ret = Builtins.add(ret, url) # #180820#c26
 
           # is there any patch available?
@@ -655,7 +631,6 @@ module Yast
       deep_copy(ret)
     end
 
-
     #
     def AskForCD(message)
       cdroms = SCR.Read(path(".probe.cdrom"))
@@ -663,11 +638,11 @@ module Yast
       drives_sel = Empty()
       if multiple_drives
         devices = cdroms.map do |d|
-          Item(Id(d["dev_name"] || ""), "#{d['model']} (#{d['dev_name']})")
+          Item(Id(d["dev_name"] || ""), "#{d["model"]} (#{d["dev_name"]})")
         end
         # To adjust the width of the dialog, look for the more lengthy device label
         # (and add some extra space for the frame)
-        min_width = devices.map {|d| d[1].to_s.size }.max + 4
+        min_width = devices.map { |d| d[1].to_s.size }.max + 4
         drives_sel = MinSize(min_width, 5, SelectionBox(Id(:drives), _("&Drive to eject"), devices))
       end
       contents = HBox(
@@ -699,7 +674,7 @@ module Yast
       end
       UI.SetFocus(Id(:cont))
       ret = nil
-      while true
+      loop do
         ret = Convert.to_symbol(UI.UserInput)
         break if ret == :cont || ret == :cancel
         if ret == :eject
@@ -750,7 +725,7 @@ module Yast
         install_partition = Linuxrc.InstallInf("Partition")
 
         # No partiton is defined - error
-        if install_partition == "" || install_partition == nil
+        if install_partition == "" || install_partition.nil?
           Builtins.y2error(
             "Despite the fact that the install-mode is '%1', install-partition is '%2'",
             install_mode,
@@ -813,7 +788,7 @@ module Yast
       download_dir = Ops.greater_than(tmp_space, var_tmp_space) ? "/tmp" : "/var/tmp"
       download_dir = Ops.add(Installation.destdir, download_dir)
       space = Ops.greater_than(tmp_space, var_tmp_space) ? tmp_space : var_tmp_space
-      if true # TODO check the size of the largest package on CD1
+      if true # TODO: check the size of the largest package on CD1
         successful = Convert.to_integer(
           SCR.Execute(
             path(".target.bash"),
@@ -823,7 +798,7 @@ module Yast
             )
           )
         )
-        if successful == 0
+        if successful.zero?
           Pkg.SourceMoveDownloadArea(download_dir)
         else
           Builtins.y2error("Unable to create %1 directory", download_dir)
@@ -833,39 +808,39 @@ module Yast
       nil
     end
 
-    publish :variable => :newSources, :type => "list <integer>"
-    publish :variable => :numSources, :type => "integer"
-    publish :variable => :sourceStates, :type => "list <integer>"
-    publish :variable => :sourceStatesIn, :type => "list <map <string, any>>"
-    publish :variable => :sourceStatesOut, :type => "list <map <string, any>>"
-    publish :variable => :url_tokens, :type => "map"
-    publish :variable => :currentUrl, :type => "string"
-    publish :variable => :just_removed_sources, :type => "list <integer>"
-    publish :function => :Modified, :type => "boolean ()"
-    publish :function => :createSource, :type => "symbol (string)"
-    publish :variable => :modified, :type => "boolean"
-    publish :variable => :proposal_valid, :type => "boolean"
-    publish :function => :AbortFunction, :type => "boolean ()"
-    publish :function => :Abort, :type => "boolean ()"
-    publish :function => :ReadSources, :type => "boolean ()"
-    publish :function => :Read, :type => "boolean ()"
-    publish :function => :CommitSources, :type => "boolean ()"
-    publish :function => :Write, :type => "boolean ()"
-    publish :function => :Import, :type => "boolean (map)"
-    publish :function => :Export, :type => "map ()"
-    publish :function => :GetSrcIdByIndex, :type => "integer (integer)"
-    publish :function => :SetUrlByIndex, :type => "void (integer)"
-    publish :function => :getSourceId, :type => "integer (string)"
-    publish :function => :SourceData, :type => "map (integer)"
-    publish :function => :deleteSourceBySrcId, :type => "void (integer)"
-    publish :function => :deleteSourceByIndex, :type => "void (integer)"
-    publish :function => :deleteSourceByUrl, :type => "void (string)"
-    publish :function => :Summary, :type => "list ()"
-    publish :function => :Overview, :type => "list ()"
-    publish :function => :AddUpdateSources, :type => "list <string> (list <string>)"
-    publish :function => :AskForCD, :type => "map <string, any> (string)"
-    publish :function => :InstallationSourceOnPartition, :type => "string ()"
-    publish :function => :InstInitSourceMoveDownloadArea, :type => "void ()"
+    publish variable: :newSources, type: "list <integer>"
+    publish variable: :numSources, type: "integer"
+    publish variable: :sourceStates, type: "list <integer>"
+    publish variable: :sourceStatesIn, type: "list <map <string, any>>"
+    publish variable: :sourceStatesOut, type: "list <map <string, any>>"
+    publish variable: :url_tokens, type: "map"
+    publish variable: :currentUrl, type: "string"
+    publish variable: :just_removed_sources, type: "list <integer>"
+    publish function: :Modified, type: "boolean ()"
+    publish function: :createSource, type: "symbol (string)"
+    publish variable: :modified, type: "boolean"
+    publish variable: :proposal_valid, type: "boolean"
+    publish function: :AbortFunction, type: "boolean ()"
+    publish function: :Abort, type: "boolean ()"
+    publish function: :ReadSources, type: "boolean ()"
+    publish function: :Read, type: "boolean ()"
+    publish function: :CommitSources, type: "boolean ()"
+    publish function: :Write, type: "boolean ()"
+    publish function: :Import, type: "boolean (map)"
+    publish function: :Export, type: "map ()"
+    publish function: :GetSrcIdByIndex, type: "integer (integer)"
+    publish function: :SetUrlByIndex, type: "void (integer)"
+    publish function: :getSourceId, type: "integer (string)"
+    publish function: :SourceData, type: "map (integer)"
+    publish function: :deleteSourceBySrcId, type: "void (integer)"
+    publish function: :deleteSourceByIndex, type: "void (integer)"
+    publish function: :deleteSourceByUrl, type: "void (string)"
+    publish function: :Summary, type: "list ()"
+    publish function: :Overview, type: "list ()"
+    publish function: :AddUpdateSources, type: "list <string> (list <string>)"
+    publish function: :AskForCD, type: "map <string, any> (string)"
+    publish function: :InstallationSourceOnPartition, type: "string ()"
+    publish function: :InstInitSourceMoveDownloadArea, type: "void ()"
   end
 
   SourceManager = SourceManagerClass.new

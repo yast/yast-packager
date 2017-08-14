@@ -41,7 +41,6 @@ module Yast
         "guihandler" => fun_ref(method(:MainSequence), "any ()")
       }
 
-
       @ret = CommandLine.Run(@cmdline)
 
       Builtins.y2debug("ret == %1", @ret)

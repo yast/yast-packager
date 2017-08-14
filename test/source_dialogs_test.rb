@@ -30,8 +30,8 @@ describe Yast::SourceDialogs do
     "smb://servername/share/path/on/the/share",
     "cifs://usern:passw@servername/share/path/on/the/share?mountoptions=ro,noguest",
     "cifs://usern:passw@servername/share/path/on/the/share?workgroup=mygroup",
-    "cifs://servername/share/path/on/the/share?user=usern&pass=passw",
-  ]
+    "cifs://servername/share/path/on/the/share?user=usern&pass=passw"
+  ].freeze
 
   describe "#valid_scheme?" do
     it "returns true for all known zypp uris" do

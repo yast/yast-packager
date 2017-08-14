@@ -7,7 +7,7 @@ module Yast
   class MtabClass < Module
     include Yast::Logger
 
-    MTABNAME = "/etc/mtab"
+    MTABNAME = "/etc/mtab".freeze
 
     def main
       Yast.import "Installation"
@@ -25,13 +25,10 @@ module Yast
       mtab_lines.map! do |mtab_line|
         # Filter out all non-existing entries/directories
         columns = mtab_line.split
-        if File.directory?(columns[1])
-          # remove heading /mnt from directory entry
-          columns[1] = columns[1][4..-1] if columns[1].start_with?("/mnt")
-          columns.join(" ")
-        else
-          nil
-        end
+        next unless File.directory?(columns[1])
+        # remove heading /mnt from directory entry
+        columns[1] = columns[1][4..-1] if columns[1].start_with?("/mnt")
+        columns.join(" ")
       end
 
       # join back the lines
@@ -41,7 +38,7 @@ module Yast
         File.join(Installation.destdir, MTABNAME), mtab)
     end
 
-    publish :function => :clone_to_target, :type => "boolean ()"
+    publish function: :clone_to_target, type: "boolean ()"
   end
 
   Mtab = MtabClass.new

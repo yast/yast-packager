@@ -14,7 +14,7 @@
 # $Id$
 module Yast
   module PackagerInstSourceDialogsInclude
-    def initialize_packager_inst_source_dialogs(include_target)
+    def initialize_packager_inst_source_dialogs(_include_target)
       textdomain "packager"
 
       Yast.import "Label"

@@ -42,13 +42,13 @@ module Yast
         desktop_def.value
       )
 
-      case key
-        when "order"
-          ret = 99
-        when "desktop"
-          ret = "unknown"
-        else
-          ret = ""
+      ret = case key
+      when "order"
+        99
+      when "desktop"
+        "unknown"
+      else
+        ""
       end
 
       deep_copy(ret)
@@ -64,7 +64,7 @@ module Yast
       @initialized = true
 
       # See BNC #424678
-      if @all_desktops == nil
+      if @all_desktops.nil?
         Builtins.y2milestone("Getting supported desktops from control file")
 
         desktops_from_cf = []
@@ -77,8 +77,8 @@ module Yast
         if any_desktops_from_cf != "" && any_desktops_from_cf != ""
           desktops_from_cf = Convert.convert(
             any_desktops_from_cf,
-            :from => "any",
-            :to   => "list <map>"
+            from: "any",
+            to:   "list <map>"
           )
         end
 
@@ -94,9 +94,9 @@ module Yast
           end
           desktop_label = Ops.get_string(one_desktop_cf, "label_id") do
             (
-              one_desktop_cf_ref = arg_ref(one_desktop_cf);
-              _MissingKey_result = MissingKey(one_desktop_cf_ref, "label_id");
-              one_desktop_cf = one_desktop_cf_ref.value;
+              one_desktop_cf_ref = arg_ref(one_desktop_cf)
+              _MissingKey_result = MissingKey(one_desktop_cf_ref, "label_id")
+              one_desktop_cf = one_desktop_cf_ref.value
               _MissingKey_result
             )
           end
@@ -104,25 +104,25 @@ module Yast
           one_desktop = {
             "desktop"  => Ops.get(one_desktop_cf, "desktop") do
               (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf);
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "desktop");
-                one_desktop_cf = one_desktop_cf_ref.value;
+                one_desktop_cf_ref = arg_ref(one_desktop_cf)
+                _MissingKey_result = MissingKey(one_desktop_cf_ref, "desktop")
+                one_desktop_cf = one_desktop_cf_ref.value
                 _MissingKey_result
               )
             end,
             "logon"    => Ops.get(one_desktop_cf, "logon") do
               (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf);
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "logon");
-                one_desktop_cf = one_desktop_cf_ref.value;
+                one_desktop_cf_ref = arg_ref(one_desktop_cf)
+                _MissingKey_result = MissingKey(one_desktop_cf_ref, "logon")
+                one_desktop_cf = one_desktop_cf_ref.value
                 _MissingKey_result
               )
             end,
             "cursor"   => Ops.get(one_desktop_cf, "cursor") do
               (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf);
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "logon");
-                one_desktop_cf = one_desktop_cf_ref.value;
+                one_desktop_cf_ref = arg_ref(one_desktop_cf)
+                _MissingKey_result = MissingKey(one_desktop_cf_ref, "logon")
+                one_desktop_cf = one_desktop_cf_ref.value
                 _MissingKey_result
               )
             end,
@@ -136,9 +136,9 @@ module Yast
             ),
             "order"    => Ops.get(one_desktop_cf, "order") do
               (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf);
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "order");
-                one_desktop_cf = one_desktop_cf_ref.value;
+                one_desktop_cf_ref = arg_ref(one_desktop_cf)
+                _MissingKey_result = MissingKey(one_desktop_cf_ref, "order")
+                one_desktop_cf = one_desktop_cf_ref.value
                 _MissingKey_result
               )
             end,
@@ -250,7 +250,7 @@ module Yast
 
       # all selected or installed patterns
       all_sel_or_inst_patterns = Builtins.filter(all_sel_or_inst_patterns) do |one_pattern|
-        one_pattern != nil
+        !one_pattern.nil?
       end
 
       selected_desktops = []
@@ -285,7 +285,7 @@ module Yast
     def SetDesktop(new_desktop)
       Init()
 
-      if new_desktop == nil
+      if new_desktop.nil?
         # Reset the selected patterns
         Builtins.y2milestone("Reseting DefaultDesktop")
         @desktop = nil
@@ -309,7 +309,7 @@ module Yast
 
         # Do not overwrite the autoyast pattern selection by
         # the default desktop pattern selection (bnc#888981)
-        if @desktop != nil && @desktop != "" && !Mode.autoinst
+        if !@desktop.nil? && @desktop != "" && !Mode.autoinst
           # Require new patterns and packages
           PackagesProposal.SetResolvables(
             @packages_proposal_ID_patterns,
@@ -362,21 +362,21 @@ module Yast
       # bnc #431251
       # A dummy desktop is selected, do not deselect already selected patterns
       if Ops.get_boolean(
-          @all_desktops,
-          [@desktop, "do_not_deselect_patterns"],
-          false
-        ) == true
+        @all_desktops,
+        [@desktop, "do_not_deselect_patterns"],
+        false
+      ) == true
         Builtins.y2milestone(
           "Desktop %1 has 'do_not_deselect_patterns' set",
           @desktop
         )
       else
         # go through all known system task definitions
-        Builtins.foreach(GetAllDesktopsMap()) do |one_desktop, desktop_descr|
+        Builtins.foreach(GetAllDesktopsMap()) do |_one_desktop, desktop_descr|
           # all patterns required by a system type
           Builtins.foreach(Ops.get_list(desktop_descr, "patterns", [])) do |one_pattern|
             # if not required, add it to 'to deselect'
-            if one_pattern != nil &&
+            if !one_pattern.nil? &&
                 !Builtins.contains(patterns_to_select, one_pattern)
               patterns_to_deselect = Builtins.add(
                 patterns_to_deselect,
@@ -408,18 +408,18 @@ module Yast
       )
     end
 
-    publish :function => :SetDesktop, :type => "void (string)"
-    publish :function => :Init, :type => "void ()"
-    publish :function => :ForceReinit, :type => "void ()"
-    publish :function => :GetAllDesktopsMap, :type => "map <string, map> ()"
-    publish :function => :SelectedDesktops, :type => "list <string> ()"
-    publish :function => :Desktop, :type => "string ()"
-    publish :function => :SelectedPatterns, :type => "list <string> ()"
-    publish :function => :SelectedPackages, :type => "list <string> ()"
-    publish :function => :PrefferedWindowManager, :type => "string ()"
-    publish :function => :PatternsToSelect, :type => "list <string> ()"
-    publish :function => :PatternsToDeselect, :type => "list <string> ()"
-    publish :function => :Description, :type => "string ()"
+    publish function: :SetDesktop, type: "void (string)"
+    publish function: :Init, type: "void ()"
+    publish function: :ForceReinit, type: "void ()"
+    publish function: :GetAllDesktopsMap, type: "map <string, map> ()"
+    publish function: :SelectedDesktops, type: "list <string> ()"
+    publish function: :Desktop, type: "string ()"
+    publish function: :SelectedPatterns, type: "list <string> ()"
+    publish function: :SelectedPackages, type: "list <string> ()"
+    publish function: :PrefferedWindowManager, type: "string ()"
+    publish function: :PatternsToSelect, type: "list <string> ()"
+    publish function: :PatternsToDeselect, type: "list <string> ()"
+    publish function: :Description, type: "string ()"
   end
 
   DefaultDesktop = DefaultDesktopClass.new

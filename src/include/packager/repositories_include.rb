@@ -12,7 +12,7 @@ module Yast
   module PackagerRepositoriesIncludeInclude
     include Yast::Logger
 
-    def initialize_packager_repositories_include(include_target)
+    def initialize_packager_repositories_include(_include_target)
       Yast.import "Pkg"
       Yast.import "Stage"
       Yast.import "Wizard"
@@ -99,7 +99,7 @@ module Yast
         service_type = Pkg.ServiceProbe(expanded_url)
         Builtins.y2milestone("Probed service type: %1", service_type)
 
-        if service_type != nil && service_type != "NONE"
+        if !service_type.nil? && service_type != "NONE"
           Builtins.y2milestone("Adding a service of type %1...", service_type)
           _alias = "service"
 
@@ -117,9 +117,7 @@ module Yast
           end
 
           # use alias as the name if it's missing
-          if preffered_name == nil || preffered_name == ""
-            preffered_name = _alias
-          end
+          preffered_name = _alias if preffered_name.nil? || preffered_name == ""
 
           new_service = {
             "alias"       => _alias,
@@ -140,7 +138,7 @@ module Yast
         Builtins.y2milestone("new_repos: %1", new_repos)
 
         # add at least one product if the scan result is empty (no product info available)
-        if Builtins.size(new_repos) == 0
+        if Builtins.size(new_repos).zero?
           url_path = Ops.get_string(URL.Parse(url), "path", "")
           p_elems = Builtins.splitstring(url_path, "/")
           fallback = _("Repository")
@@ -152,14 +150,14 @@ module Yast
               fallback
             )
 
-            if url_path == nil || url_path == ""
+            if url_path.nil? || url_path == ""
               url_path = Ops.get(
                 p_elems,
                 Ops.subtract(Builtins.size(p_elems), 2),
                 fallback
               )
 
-              url_path = fallback if url_path == nil || url_path == ""
+              url_path = fallback if url_path.nil? || url_path == ""
             end
           end
 
@@ -173,7 +171,7 @@ module Yast
         Builtins.foreach(new_repos) do |repo|
           next if enter_again
           name = Ops.get(repo, 0, "")
-          name = preffered_name if preffered_name != nil && preffered_name != ""
+          name = preffered_name if !preffered_name.nil? && preffered_name != ""
           prod_dir = Ops.get(repo, 1, "/")
           # probe repository type (do not probe plaindir repo)
           repo_type = plaindir ?
@@ -186,22 +184,22 @@ module Yast
             repo_type
           )
           # the probing has failed
-          if repo_type == nil || repo_type == "NONE"
+          if repo_type.nil? || repo_type == "NONE"
             if scheme == "dir"
               if !Popup.AnyQuestion(
-                  Popup.NoHeadline,
-                  # continue-back popup
-                  _(
-                    "There is no product information available at the given location.\n" +
-                      "If you expected to to point a product, go back and enter\n" +
-                      "the correct location.\n" +
-                      "To make rpm packages located at the specified location available\n" +
-                      "in the packages selection, continue.\n"
-                  ),
-                  Label.ContinueButton,
-                  Label.BackButton,
-                  :focus_no
-                )
+                Popup.NoHeadline,
+                # continue-back popup
+                _(
+                  "There is no product information available at the given location.\n" \
+                    "If you expected to to point a product, go back and enter\n" \
+                    "the correct location.\n" \
+                    "To make rpm packages located at the specified location available\n" \
+                    "in the packages selection, continue.\n"
+                ),
+                Label.ContinueButton,
+                Label.BackButton,
+                :focus_no
+              )
                 enter_again = true
                 next
               end
@@ -279,7 +277,7 @@ module Yast
 
         Builtins.y2milestone("New sources: %1", newSources)
 
-        if Builtins.size(newSources) == 0
+        if Builtins.size(newSources).zero?
           Builtins.y2error("Cannot add the repository")
 
           # popup message part 1
@@ -377,8 +375,8 @@ module Yast
         if !Stage.initial && !installed_before
           # Tries to Check and Install packages
           if !PackageSystem.CheckAndInstallPackagesInteractive(
-              [required_package]
-            ) ||
+            [required_package]
+          ) ||
               !PackageSystem.Installed(required_package)
             Report.Error(
               Builtins.sformat(
@@ -400,7 +398,7 @@ module Yast
 
         service = Convert.to_string(WFM.call("select_slp_source"))
 
-        if service == nil
+        if service.nil?
           Builtins.y2milestone("No SLP service selected, returning back...")
           return :back
         else
@@ -423,7 +421,7 @@ module Yast
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
 
-        return (sccrepos == :abort || sccrepos == :cancel) ? :back : :next
+        return sccrepos == :abort || sccrepos == :cancel ? :back : :next
       end
 
       ret = createSource(url, plaindir, @download_meta, name)

@@ -16,7 +16,7 @@ module Yast
       if HasInsufficientMemory()
         # User wants to continue
         if ContinueIfInsufficientMemory()
-          return :continue 
+          return :continue
           # User wants to skip
         else
           return :skip

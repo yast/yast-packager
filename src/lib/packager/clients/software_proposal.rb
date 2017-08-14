@@ -41,7 +41,7 @@ module Yast
       # if only partitioning has been changed just return the current state,
       # don't reset to default (bnc#450786, bnc#371875)
       if partitioning_changed? && !@language_changed && !@force_reset && !Packages.PackagesProposalChanged
-        @ret = Packages.Summary([ :product, :pattern, :selection, :size, :desktop ], false);
+        @ret = Packages.Summary([:product, :pattern, :selection, :size, :desktop], false)
       else
         @reinit = @language_changed
         Builtins.y2milestone(
@@ -72,13 +72,11 @@ module Yast
         # the proposal for the packages requires manual intervention
         @ret = Builtins.union(
           @ret,
-          {
-            # warning text
-            "warning"       => _(
-              "Cannot solve dependencies automatically. Manual intervention is required."
-            ),
-            "warning_level" => :blocker
-          }
+          # warning text
+          "warning"       => _(
+            "Cannot solve dependencies automatically. Manual intervention is required."
+          ),
+          "warning_level" => :blocker
         )
       end
       @ret
@@ -119,7 +117,7 @@ module Yast
       }
     end
 
-    private
+  private
 
     def partitioning_changed?
       changed = false
@@ -139,7 +137,7 @@ module Yast
         # check the partitioning in installation
         if Packages.timestamp != storage_timestamp
           # don't set changed if it's the first "change"
-          changed = true if Packages.timestamp != 0
+          changed = true if Packages.timestamp.nonzero?
         end
         # save information about target change time in module Packages
         Packages.timestamp = storage_timestamp
@@ -157,7 +155,7 @@ module Yast
         Pkg.SetPackageLocale(Language.language)
       end
       if !Builtins.contains(Pkg.GetAdditionalLocales, Language.language)
-        # FIXME this is temporary fix
+        # FIXME: this is temporary fix
         #	    language_changed = true;
         Pkg.SetAdditionalLocales(
           Builtins.add(Pkg.GetAdditionalLocales, Language.language)

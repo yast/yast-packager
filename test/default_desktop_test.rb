@@ -9,7 +9,7 @@ describe Yast::DefaultDesktop do
 
   def mock_product_features
     allow(Yast::ProductFeatures).to receive(:GetFeature)
-        .with("software", "default_desktop").and_return("kde")
+      .with("software", "default_desktop").and_return("kde")
     allow(Yast::ProductFeatures).to receive(:GetFeature)
       .with("software", "supported_desktops")
       .and_return(
@@ -92,9 +92,9 @@ describe Yast::DefaultDesktop do
 
   describe ".GetAllDesktopsMap" do
     it "returns hash with all desktops defined in product" do
-      expect(subject.GetAllDesktopsMap.keys).to (match_array(
+      expect(subject.GetAllDesktopsMap.keys).to match_array(
         ["gnome", "kde", "min_x", "xfce", "lxde", "textmode"]
-      ))
+      )
     end
   end
 
@@ -120,4 +120,3 @@ describe Yast::DefaultDesktop do
     end
   end
 end
-

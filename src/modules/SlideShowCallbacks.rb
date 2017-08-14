@@ -76,7 +76,6 @@ module Yast
       nil
     end
 
-
     #  at start of file providal
     def StartProvide(name, archivesize, remote)
       @pkg_inprogress = name
@@ -86,7 +85,6 @@ module Yast
 
       nil
     end
-
 
     # during file providal
     def ProgressProvide(percent)
@@ -106,7 +104,6 @@ module Yast
       !SlideShow.GetUserAbort
     end
 
-
     # during file providal
     def DoneProvide(error, reason, name)
       if @_remote_provide
@@ -115,11 +112,10 @@ module Yast
         @_remote_provide = false
       end
       return "C" if SlideShow.GetUserAbort
-      return PackageCallbacks.DoneProvide(error, reason, name) if error != 0
+      return PackageCallbacks.DoneProvide(error, reason, name) if error.nonzero?
 
       ""
     end
-
 
     def ScriptStart(patch_name, patch_version, patch_arch, script_path)
       patch_full_name = PackageCallbacks.FormatPatchName(
@@ -150,7 +146,7 @@ module Yast
     def ScriptProgress(ping, output)
       Builtins.y2milestone("ScriptProgress: ping:%1, output: %2", ping, output)
 
-      if output != nil && output != ""
+      if !output.nil? && output != ""
         log_line = output
 
         # remove the trailing new line character
@@ -202,8 +198,6 @@ module Yast
 
       nil
     end
-
-
 
     #--------------------------------------------------------------------------
     # slide show
@@ -275,8 +269,6 @@ module Yast
       ret == :yes
     end
 
-
-
     # Callback that will be called by the packager for each RPM as it is being installed or deleted.
     # Note: The packager doesn't call this directly - the corresponding wrapper callbacks do
     # and pass the "deleting" flag as appropriate.
@@ -297,7 +289,7 @@ module Yast
 
         Builtins.y2debug("PkgDU(%1): %2", @pkg_inprogress, pkgdu)
 
-        if pkgdu != nil
+        if !pkgdu.nil?
           # check each mount point
           Builtins.foreach(pkgdu) do |part, data|
             # skip read-only partitions, the package cannot be installed anyway
@@ -377,7 +369,6 @@ module Yast
       nil
     end
 
-
     #  at start of package install
     def StartPackage(name, location, summary, install_size, is_delete)
       PackageCallbacks._package_name = name
@@ -388,7 +379,6 @@ module Yast
 
       nil
     end
-
 
     # ProgressPackage percent
     #
@@ -413,17 +403,17 @@ module Yast
       PackageSlideShow.UpdateCurrentPackageProgress(100)
 
       ret = ""
-      if error != 0
+      if error.nonzero?
         ret = PackageCallbacks.DonePackage(error, reason)
       else
         # put additional rpm output to the installation log
-        if reason != nil && Ops.greater_than(Builtins.size(reason), 0)
+        if !reason.nil? && Ops.greater_than(Builtins.size(reason), 0)
           Builtins.y2milestone("Additional RPM output: %1", reason)
           SlideShow.AppendMessageToInstLog(reason)
         end
       end
 
-      if Builtins.size(ret) == 0 ||
+      if Builtins.size(ret).zero? ||
           Builtins.tolower(Builtins.substring(ret, 0, 1)) != "r"
         PackageSlideShow.SlideDisplayDone(
           PackageCallbacks._package_name,
@@ -434,11 +424,10 @@ module Yast
       ret
     end
 
-
     #  at start of file providal
     def StartDeltaProvide(name, archivesize)
       PackageSlideShow.SlideGenericProvideStart(
-        name, #remote
+        name, # remote
         archivesize,
         _("Downloading delta RPM %1 (download size %2)"),
         true
@@ -499,9 +488,6 @@ module Yast
 
       nil
     end
-
-
-
 
     def MediaChange(error_code, error, url, product, current, current_label, wanted, wanted_label, double_sided, devices, current_device)
       devices = deep_copy(devices)
@@ -663,28 +649,28 @@ module Yast
       nil
     end
 
-    publish :function => :StartProvide, :type => "void (string, integer, boolean)"
-    publish :function => :ProgressProvide, :type => "boolean (integer)"
-    publish :function => :ProgressDownload, :type => "boolean (integer, integer, integer)"
-    publish :function => :DoneProvide, :type => "string (integer, string, string)"
-    publish :function => :ScriptStart, :type => "void (string, string, string, string)"
-    publish :function => :ScriptProgress, :type => "boolean (boolean, string)"
-    publish :function => :ScriptProblem, :type => "string (string)"
-    publish :function => :ScriptFinish, :type => "void ()"
-    publish :function => :Message, :type => "void (string, string, string, string)"
-    publish :function => :DisplayStartInstall, :type => "void (string, string, string, integer, boolean)"
-    publish :function => :StartPackage, :type => "void (string, string, string, integer, boolean)"
-    publish :function => :ProgressPackage, :type => "boolean (integer)"
-    publish :function => :DonePackage, :type => "string (integer, string)"
-    publish :function => :StartDeltaProvide, :type => "void (string, integer)"
-    publish :function => :StartDeltaApply, :type => "void (string)"
-    publish :function => :ProgressDeltaApply, :type => "void (integer)"
-    publish :function => :ProblemDeltaDownload, :type => "void (string)"
-    publish :function => :ProblemDeltaApply, :type => "void (string)"
-    publish :function => :CallbackSourceChange, :type => "void (integer, integer)"
-    publish :function => :MediaChange, :type => "string (string, string, string, string, integer, string, integer, string, boolean, list <string>, integer)"
-    publish :function => :InstallSlideShowCallbacks, :type => "void ()"
-    publish :function => :RemoveSlideShowCallbacks, :type => "void ()"
+    publish function: :StartProvide, type: "void (string, integer, boolean)"
+    publish function: :ProgressProvide, type: "boolean (integer)"
+    publish function: :ProgressDownload, type: "boolean (integer, integer, integer)"
+    publish function: :DoneProvide, type: "string (integer, string, string)"
+    publish function: :ScriptStart, type: "void (string, string, string, string)"
+    publish function: :ScriptProgress, type: "boolean (boolean, string)"
+    publish function: :ScriptProblem, type: "string (string)"
+    publish function: :ScriptFinish, type: "void ()"
+    publish function: :Message, type: "void (string, string, string, string)"
+    publish function: :DisplayStartInstall, type: "void (string, string, string, integer, boolean)"
+    publish function: :StartPackage, type: "void (string, string, string, integer, boolean)"
+    publish function: :ProgressPackage, type: "boolean (integer)"
+    publish function: :DonePackage, type: "string (integer, string)"
+    publish function: :StartDeltaProvide, type: "void (string, integer)"
+    publish function: :StartDeltaApply, type: "void (string)"
+    publish function: :ProgressDeltaApply, type: "void (integer)"
+    publish function: :ProblemDeltaDownload, type: "void (string)"
+    publish function: :ProblemDeltaApply, type: "void (string)"
+    publish function: :CallbackSourceChange, type: "void (integer, integer)"
+    publish function: :MediaChange, type: "string (string, string, string, string, integer, string, integer, string, boolean, list <string>, integer)"
+    publish function: :InstallSlideShowCallbacks, type: "void ()"
+    publish function: :RemoveSlideShowCallbacks, type: "void ()"
   end
 
   SlideShowCallbacks = SlideShowCallbacksClass.new

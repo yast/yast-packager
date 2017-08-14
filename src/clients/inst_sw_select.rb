@@ -36,23 +36,22 @@ module Yast
           # display the installation summary in case there is a solver problem (bnc#436721)
           if Ops.greater_than(Packages.solve_errors, 0)
             Builtins.y2milestone("Unresolved conflicts, using summary mode")
-            @ret = PackagesUI.RunPackageSelector({ "mode" => :summaryMode })
+            @ret = PackagesUI.RunPackageSelector("mode" => :summaryMode)
           else
             @ret = PackagesUI.RunPatternSelector
           end
 
           Builtins.y2milestone("Package selector result: %1", @ret)
 
-          if @ret == :accept
-            # Package proposal cache has to be reset and recreated
-            # from scratch. See BNC #436925.
-            Packages.ResetProposalCache
+          next unless @ret == :accept
+          # Package proposal cache has to be reset and recreated
+          # from scratch. See BNC #436925.
+          Packages.ResetProposalCache
 
-            Packages.base_selection_modified = true
-            @ret = :next
-            Packages.solve_errors = 0 # all have been either solved
-            # or marked to ignore
-          end
+          Packages.base_selection_modified = true
+          @ret = :next
+          Packages.solve_errors = 0 # all have been either solved
+          # or marked to ignore
         end
       end
 

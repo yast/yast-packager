@@ -26,7 +26,6 @@ module Yast
 
       Yast.import "Label"
 
-
       @download_in_advance = nil
     end
 
@@ -39,7 +38,6 @@ module Yast
 
       nil
     end
-
 
     #  Show a dialog with either the list of failed packages (string a) or
     #  the complete log (string b).
@@ -79,7 +77,7 @@ module Yast
         )
       )
 
-      while true
+      loop do
         ret = Convert.to_symbol(UI.UserInput)
 
         if ret == :a || ret == :b
@@ -99,7 +97,6 @@ module Yast
       nil
     end
 
-
     #  commitPackages marked for deletion or installation
     #	Return: [ int successful, list failed, list remaining, list srcremaining, list update_messages ]
     #
@@ -111,7 +108,6 @@ module Yast
         return []
       end
       # install packages from this media
-
 
       sources = Pkg.SourceGetCurrent(false)
       source_id = Ops.get(sources, 0, 0)
@@ -126,7 +122,7 @@ module Yast
 
       Builtins.y2milestone("ID of the first repository: %1", first_source)
 
-      if Ops.get_integer(config, "medium_nr", 0) == 0
+      if Ops.get_integer(config, "medium_nr", 0).zero?
         PackageSlideShow.SetCurrentCdNo(first_source, 1)
       else
         PackageSlideShow.SetCurrentCdNo(
@@ -145,11 +141,10 @@ module Yast
 
       SlideShow.StopTimer
 
-      if commit_result == nil
+      if commit_result.nil?
         Builtins.y2error("Commit failed: %1", Pkg.LastError)
         return []
       end
-
 
       installation_time = Yast2::SystemTime.uptime - start_time
       Builtins.y2milestone(
@@ -170,15 +165,15 @@ module Yast
 
         old_failed_packs = []
         if Ops.greater_than(
-            Convert.to_integer(
-              SCR.Read(path(".target.size"), "/var/lib/YaST2/failed_packages")
-            ),
-            0
-          )
+          Convert.to_integer(
+            SCR.Read(path(".target.size"), "/var/lib/YaST2/failed_packages")
+          ),
+          0
+        )
           old_failed_packs = Convert.convert(
             SCR.Read(path(".target.ycp"), "/var/lib/YaST2/failed_packages"),
-            :from => "any",
-            :to   => "list <string>"
+            from: "any",
+            to:   "list <string>"
           )
         end
         SCR.Write(
@@ -195,7 +190,7 @@ module Yast
         summary = PackageSlideShow.GetPackageSummary
 
         Ops.set(summary, "time_seconds", installation_time)
-        Ops.set(summary, "success", Builtins.size(errpacks) == 0)
+        Ops.set(summary, "success", Builtins.size(errpacks).zero?)
         Ops.set(summary, "remaining", package_names(commit_result[2] || []))
         Ops.set(summary, "install_log", SlideShow.inst_log)
 
@@ -227,10 +222,8 @@ module Yast
         packages_installed,
         Pkg.TargetGetDU
       )
-      Commit({ "medium_nr" => media_number })
+      Commit("medium_nr" => media_number)
     end
-
-
 
     #
     # Fake progress bars for Mode::test ()
@@ -238,7 +231,7 @@ module Yast
     # NOTE: This is currently completely broken.
     # -- sh 2003-12-15
     #
-    def FakePackager(packages, inst_source, deleting)
+    def FakePackager(packages, _inst_source, _deleting)
       packages = deep_copy(packages)
       disk_usage = 20
       disk_capacity = 10000
@@ -251,7 +244,7 @@ module Yast
       )
 
       Builtins.foreach(packages) do |pac|
-        #y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
+        # y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
         pkg_name = Ops.get_string(pac, 0, "")
         pkg_size = 42 * 1024
         bytes_installed = 0
@@ -280,31 +273,31 @@ module Yast
         number = Ops.add(number, 1)
       end
 
-      if ret == :cancel || ret == :abort
-        ret = :cancel
+      ret = if ret == :cancel || ret == :abort
+        :cancel
       elsif ret == :diskfull
-        ret = :diskfull
+        :diskfull
       else
-        ret = :ok
+        :ok
       end
 
       Builtins.y2debug("FakePackager returning with %1", ret)
       deep_copy(ret)
     end
 
-    publish :function => :DownloadInAdvance, :type => "boolean ()"
-    publish :function => :SetDownloadInAdvance, :type => "void (boolean)"
-    publish :function => :FakePackager, :type => "any (list <list>, string, boolean)"
-    publish :function => :Commit, :type => "list (map <string, any>)"
-    publish :function => :CommitPackages, :type => "list (integer, integer)"
+    publish function: :DownloadInAdvance, type: "boolean ()"
+    publish function: :SetDownloadInAdvance, type: "void (boolean)"
+    publish function: :FakePackager, type: "any (list <list>, string, boolean)"
+    publish function: :Commit, type: "list (map <string, any>)"
+    publish function: :CommitPackages, type: "list (integer, integer)"
 
-    private
+  private
 
     # Get a human readable list of installed packages
     # @param [Array<Hash>] packages list of package data
     # @return [Array<String>] list of package names
     def package_names(packages)
-      packages.map{ |p| p["name"] }
+      packages.map { |p| p["name"] }
     end
   end
 

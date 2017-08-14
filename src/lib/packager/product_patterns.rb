@@ -146,7 +146,7 @@ module Yast
 
       provides.each do |provide|
         # is it a defaultpattern() provides?
-        if provide.match(/\Adefaultpattern\((.*)\)\z/)
+        if provide =~ /\Adefaultpattern\((.*)\)\z/
           log.info "Found default pattern provide: #{provide}"
           patterns << Regexp.last_match[1].strip
         end

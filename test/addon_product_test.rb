@@ -33,10 +33,10 @@ describe Yast::AddOnProduct do
     context "when according to libzypp a product is renamed" do
       let(:deps) do
         [
-          {"obsoletes" => "product:old_product1"},
-          {"obsoletes" => "product(old_product2)"},
-          {"provides" => "product:new_product"},
-          {"provides" => "product(old_name)"}
+          { "obsoletes" => "product:old_product1" },
+          { "obsoletes" => "product(old_product2)" },
+          { "provides" => "product:new_product" },
+          { "provides" => "product(old_name)" }
         ]
       end
 

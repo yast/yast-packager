@@ -96,7 +96,7 @@ module Yast
       nil
     end
 
-    publish :function => :show_info_txt, :type => "void (string)"
+    publish function: :show_info_txt, type: "void (string)"
   end
 
   InstShowInfo = InstShowInfoClass.new
