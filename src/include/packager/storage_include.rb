@@ -1,13 +1,6 @@
 # encoding: utf-8
-
-# File:	include/packager/storage_include.ycp
-# Module:	Packager
-# Summary:	Storage calls
-# Authors:	Lukas Ocilka <locilka@suse.cz>
-#
-# $Id$
-#
 module Yast
+  # Storage calls
   module PackagerStorageIncludeInclude
     def initialize_packager_storage_include(_include_target)
       textdomain "installation"

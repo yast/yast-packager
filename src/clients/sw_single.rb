@@ -5,17 +5,13 @@
 # Authors: 		Gabriele Strattner (gs@suse.de)
 #			Klaus Kaempf <kkaempf@suse.de>
 #
-# Purpose: 		contains dialog loop for workflows:
-#	"Install/Remove software"
-#
-# $Id$
-#
-# Note: sw_single accepts a map parameter: $[ "dialog_type" : symbol,
-#   "repo_mgmt" : boolean ]
-#
-# "dialog_type" can be `patternSelector, `searchMode, `summaryMode
-# "repo_mgmt" enables "Repositories" -> "Repository Manager..." menu option
 module Yast
+  # Purpose: 		contains dialog loop for workflows:
+  #	"Install/Remove software"
+  #
+  # @note: sw_single accepts a map parameter: $[ "dialog_type" : symbol,
+  #   "repo_mgmt" : boolean ], dialog_type" can be `patternSelector, `searchMode, `summaryMode
+  #   "repo_mgmt" enables "Repositories" -> "Repository Manager..." menu option
   class SwSingleClient < Client
     def main
       Yast.import "UI"
@@ -62,7 +58,8 @@ module Yast
           # Command line help text for the software management module, %1 is "zypper"
           "help"       => Builtins.sformat(
             _(
-              "Software Installation - This module does not support the command line interface, use '%1' instead."
+              "Software Installation - This module does not support the command " \
+                "line interface, use '%1' instead."
             ),
             "zypper"
           ),
@@ -70,9 +67,9 @@ module Yast
         }
 
         return CommandLine.Run(@cmdline_description)
-      else
-        return StartSWSingle()
       end
+
+      StartSWSingle()
     end
 
     # =============================================================
@@ -204,22 +201,20 @@ module Yast
 
         repo_id = nil
 
-        if url != ""
-          repo_id = Pkg.SourceCreateType(url, "", "Plaindir")
-          Builtins.y2milestone("Adde temporary repository with ID %1", repo_id)
+        return :failed if url == ""
 
-          if repo_id.nil?
-            # error message
-            Report.Error(
-              Builtins.sformat(
-                _(
-                  "Error: Cannot add a temporary directory, packages cannot be installed."
-                )
+        repo_id = Pkg.SourceCreateType(url, "", "Plaindir")
+        Builtins.y2milestone("Adde temporary repository with ID %1", repo_id)
+
+        if repo_id.nil?
+          # error message
+          Report.Error(
+            Builtins.sformat(
+              _(
+                "Error: Cannot add a temporary directory, packages cannot be installed."
               )
             )
-            return :failed
-          end
-        else
+          )
           return :failed
         end
 
@@ -406,7 +401,6 @@ module Yast
       b_size = Builtins.size(b_version_l)
       longer_size = Ops.greater_than(a_size, b_size) ? a_size : b_size
 
-      b_version_is_newer = false
       compare = 0 # <0 if a<b, =0 if a==b, >0 if a>b
       i = 0
       while Ops.less_than(i, longer_size)
@@ -475,10 +469,14 @@ module Yast
 
       # use default parameters for missing or invalid values
       if mode.nil?
-        # use summary mode if there is something to install (probably a suggested or recommended package) (bnc#465194)
+        # use summary mode if there is something to install
+        # (probably a suggested or recommended package) (bnc#465194)
         Pkg.PkgSolve(true) # select the packages
-        mode = Pkg.IsAnyResolvable(:any, :to_install) ||
-          Pkg.IsAnyResolvable(:any, :to_remove) ? :summaryMode : :searchMode
+        mode = if Pkg.IsAnyResolvable(:any, :to_install) || Pkg.IsAnyResolvable(:any, :to_remove)
+          :summaryMode
+        else
+          :searchMode
+        end
       end
       repo_management = Mode.normal if repo_management.nil?
 
@@ -515,8 +513,6 @@ module Yast
       Progress.NextStage
 
       Yast.import "Packages"
-
-      skip_source = false
 
       # check whether running as root
       # and having the packager for ourselves
@@ -585,9 +581,6 @@ module Yast
 
         if found_descr
           if Builtins.size(@packagelist).zero? # packages given ?
-            # names of taboo packages
-            taboo_packages = Pkg.GetPackages(:taboo, true)
-
             opts = GetPackagerOptions()
             Builtins.y2milestone("Using packager widget options: %1", opts)
 
@@ -597,9 +590,7 @@ module Yast
               result = :next
             # start the repository manager
             elsif result == :repo_mgr
-              repo_result = Convert.to_symbol(
-                WFM.CallFunction("repositories", [:sw_single_mode])
-              )
+              WFM.CallFunction("repositories", [:sw_single_mode])
               force_restart = true
             elsif result == :online_update_configuration
               required_package = "yast2-online-update-configuration"
@@ -609,7 +600,8 @@ module Yast
                 Report.Error(
                   Builtins.sformat(
                     _(
-                      "Cannot configure online update repository \nwithout having package %1 installed"
+                      "Cannot configure online update repository \n" \
+                        "without having package %1 installed"
                     ),
                     required_package
                   )
@@ -635,16 +627,15 @@ module Yast
                   Report.Error(
                     Builtins.sformat(
                       _(
-                        "Cannot search packages in online repositories\nwithout having package %1 installed"
+                        "Cannot search packages in online repositories\n" \
+                          "without having package %1 installed"
                       ),
                       required_package
                     )
                   )
                 end
               else
-                webpin_result = Convert.to_symbol(
-                  WFM.CallFunction("webpin_package_search", [])
-                )
+                WFM.CallFunction("webpin_package_search", [])
               end
               force_restart = true
             end
@@ -654,7 +645,6 @@ module Yast
             end
             if @action != :remove &&
                 Ops.greater_than(Builtins.size(nonexisting), 0)
-              missing = Builtins.mergestring(nonexisting, ", ")
               Builtins.y2error(
                 "Tags %1 aren't available",
                 Builtins.mergestring(nonexisting, ", ")
@@ -768,21 +758,21 @@ module Yast
           end
 
           if Mode.normal
-            _PKGMGR_ACTION_AT_EXIT = Convert.to_string(
+            pkgmgr_action_at_exit = Convert.to_string(
               SCR.Read(path(".sysconfig.yast2.PKGMGR_ACTION_AT_EXIT"))
             )
 
-            _PKGMGR_ACTION_AT_EXIT = "close" if _PKGMGR_ACTION_AT_EXIT.nil?
+            pkgmgr_action_at_exit = "close" if pkgmgr_action_at_exit.nil?
 
             Builtins.y2milestone(
               "PKGMGR_ACTION_AT_EXIT: %1, force_summary: %2",
-              _PKGMGR_ACTION_AT_EXIT,
+              pkgmgr_action_at_exit,
               @force_summary
             )
 
             # display installation summary if there has been an error
             # or if it's enabled in sysconfig
-            if _PKGMGR_ACTION_AT_EXIT == "summary" || @force_summary ||
+            if pkgmgr_action_at_exit == "summary" || @force_summary ||
                 commit_result == [-1] || # aborted by user
                 Ops.greater_than(
                   Builtins.size(Ops.get_list(commit_result, 1, [])),
@@ -793,7 +783,7 @@ module Yast
                   Builtins.size(@packagelist).zero?
                 force_restart = true
               end
-            elsif _PKGMGR_ACTION_AT_EXIT == "restart" &&
+            elsif pkgmgr_action_at_exit == "restart" &&
                 Builtins.size(@packagelist).zero?
               force_restart = true
             end

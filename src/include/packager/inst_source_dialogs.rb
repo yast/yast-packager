@@ -1,18 +1,9 @@
 # encoding: utf-8
 
-# File:		inst_source_dialogs.ycp
-#
-# Authors:		Klaus Kaempf <kkaempf@suse.de>
-#			Gabriele Strattner <gs@suse.de>
-#			Stefan Schubert <schubi@suse.de>
-#                      Cornelius Schumacher <cschum@suse.de>
-#
-# Purpose:
-# Displays possibilities to install from NFS, CD or partion
-# Do the "mount" for testing the input.
-#
-# $Id$
 module Yast
+  # Purpose:
+  # Displays possibilities to install from NFS, CD or partion
+  # Do the "mount" for testing the input.
   module PackagerInstSourceDialogsInclude
     def initialize_packager_inst_source_dialogs(_include_target)
       textdomain "packager"
@@ -23,9 +14,7 @@ module Yast
     end
 
     def editUrl2(url, allowHttps)
-      allowHttps ?
-        SourceDialogs.EditPopup(url) :
-        SourceDialogs.EditPopupNoHTTPS(url)
+      allowHttps ? SourceDialogs.EditPopup(url) : SourceDialogs.EditPopupNoHTTPS(url)
     end
 
     def editUrl(url)

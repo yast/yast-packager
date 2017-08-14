@@ -1,14 +1,6 @@
 # encoding: utf-8
-
-# Module:	media_proposal.ycp
-#
-# Author:	Arvin Schnell <arvin@suse.de>
-#
-# Purpose:	Initialize the installation media.
-#
-# $Id$
-#
 module Yast
+  # Initialize the installation media.
   class MediaProposalClient < Client
     def main
       Yast.import "Pkg"

@@ -8,6 +8,7 @@
 #
 # $Id$
 module Yast
+  # Helpers for creating dialogs
   module PackagerKeyManagerDialogsInclude
     def initialize_packager_key_manager_dialogs(_include_target)
       Yast.import "Pkg"
@@ -63,21 +64,23 @@ module Yast
           Builtins.sformat(_("Created: %1"), Ops.get_string(key, "created", ""))
         )
         expires = Ops.get_integer(key, "expires_raw", 0)
-        exp_str = Ops.greater_than(expires, 0) &&
-          ::Time.now.to_i > expires ?
+        exp_str = if Ops.greater_than(expires, 0) && ::Time.now.to_i > expires
           # %1 is the date when the GPG key expired (e.g. '10.6.2005'), display the date in red
           Builtins.sformat(
             _("Expires: <font color = \"red\">%1</font> (The key is expired.)"),
             Ops.get_string(key, "expires", "")
-          ) :
-          # summary string - the GPG key never expires
-          expires.zero? ?
-            _("The key never expires.") :
-            # %1 is the date when the GPG key expires (e.g. '21.3.2015') or "Never"
-            Builtins.sformat(
-              _("Expires: %1"),
-              Ops.get_string(key, "expires", "")
-            )
+          )
+
+        # summary string - the GPG key never expires
+        elsif expires.zero?
+          _("The key never expires.")
+        else
+          # %1 is the date when the GPG key expires (e.g. '21.3.2015') or "Never"
+          Builtins.sformat(
+            _("Expires: %1"),
+            Ops.get_string(key, "expires", "")
+          )
+        end
         descr = Builtins.add(descr, exp_str)
         icon_tag = Ops.add(
           Ops.add("<IMG SRC=\"", Directory.icondir),

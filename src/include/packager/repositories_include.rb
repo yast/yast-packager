@@ -1,14 +1,6 @@
 # encoding: utf-8
-
-# File:	packager/repositories_include.rb
-#
-# Author:	Cornelius Schumacher <cschum@suse.de>
-#		Ladislav Slezak <lslezak@suse.cz>
-#		Lukas Ocilka <locilka@suse.cz>
-#
-# Purpose:	Include file to be shared by yast2-packager and yast2-add-on
-#
 module Yast
+  # Include file to be shared by yast2-packager and yast2-add-on
   module PackagerRepositoriesIncludeInclude
     include Yast::Logger
 
@@ -101,7 +93,7 @@ module Yast
 
         if !service_type.nil? && service_type != "NONE"
           Builtins.y2milestone("Adding a service of type %1...", service_type)
-          _alias = "service"
+          alias_name = "service"
 
           # all current aliases
           aliases = Builtins.maplist(@serviceStatesOut) do |s|
@@ -111,16 +103,16 @@ module Yast
           # service alias must be unique
           # if it already exists add "_<number>" suffix to it
           idx = 1
-          while Builtins.contains(aliases, _alias)
-            _alias = Builtins.sformat("service_%1", idx)
+          while Builtins.contains(aliases, alias_name)
+            alias_name = Builtins.sformat("service_%1", idx)
             idx = Ops.add(idx, 1)
           end
 
           # use alias as the name if it's missing
-          preffered_name = _alias if preffered_name.nil? || preffered_name == ""
+          preffered_name = alias_name if preffered_name.nil? || preffered_name == ""
 
           new_service = {
-            "alias"       => _alias,
+            "alias"       => alias_name,
             "autorefresh" => autorefresh_for?(url),
             "enabled"     => true,
             "name"        => preffered_name,
@@ -174,9 +166,7 @@ module Yast
           name = preffered_name if !preffered_name.nil? && preffered_name != ""
           prod_dir = Ops.get(repo, 1, "/")
           # probe repository type (do not probe plaindir repo)
-          repo_type = plaindir ?
-            @plaindir_type :
-            Pkg.RepositoryProbe(expanded_url, prod_dir)
+          repo_type = plaindir ? @plaindir_type : Pkg.RepositoryProbe(expanded_url, prod_dir)
           Builtins.y2milestone(
             "Repository type (%1,%2): %3",
             URL.HidePassword(url),
@@ -208,15 +198,15 @@ module Yast
               Builtins.y2warning(
                 "Probing has failed, using Plaindir repository type."
               )
-            else
-              next
             end
+
+            next
           end
-          _alias = ""
+          alias_name = ""
           if force_alias == ""
             # replace " " -> "_" (avoid spaces in .repo file name)
-            _alias = Builtins.mergestring(Builtins.splitstring(name, " "), "_")
-            alias_orig = _alias
+            alias_name = Builtins.mergestring(Builtins.splitstring(name, " "), "_")
+            alias_orig = alias_name
 
             # all current aliases
             aliases = Builtins.maplist(Pkg.SourceGetCurrent(false)) do |i|
@@ -227,12 +217,12 @@ module Yast
             # repository alias must be unique
             # if it already exists add "_<number>" suffix to it
             idx = 1
-            while Builtins.contains(aliases, _alias)
-              _alias = Builtins.sformat("%1_%2", alias_orig, idx)
+            while Builtins.contains(aliases, alias_name)
+              alias_name = Builtins.sformat("%1_%2", alias_orig, idx)
               idx = Ops.add(idx, 1)
             end
           else
-            _alias = force_alias
+            alias_name = force_alias
           end
           # map with repository parameters: $[ "enabled" : boolean,
           # "autorefresh" : boolean, "name" : string, "alias" : string,
@@ -242,7 +232,7 @@ module Yast
           Ops.set(repo_prop, "autorefresh", autorefresh_for?(url))
           Ops.set(repo_prop, "name", name)
           Ops.set(repo_prop, "prod_dir", Ops.get(repo, 1, "/"))
-          Ops.set(repo_prop, "alias", _alias)
+          Ops.set(repo_prop, "alias", alias_name)
           Ops.set(repo_prop, "base_urls", [url])
           Ops.set(repo_prop, "type", repo_type)
           if force_alias != ""
@@ -295,7 +285,8 @@ module Yast
               msg = Ops.add(
                 Ops.add(msg, "\n\n"),
                 _(
-                  "Using an ISO image over ftp or http protocol is not possible.\nChange the protocol or unpack the ISO image on the server side."
+                  "Using an ISO image over ftp or http protocol is not possible.\n" \
+                    "Change the protocol or unpack the ISO image on the server side."
                 )
               )
             end
@@ -355,9 +346,9 @@ module Yast
 
     # create source with alias
     # *IMPORTANT*: make sure the alias is unique!! Otherwise the repo will be overwritten!!
-    def createSourceWithAlias(url, plaindir, download, preffered_name, _alias)
+    def createSourceWithAlias(url, plaindir, download, preffered_name, alias_name)
       Wizard.CreateDialog
-      ret = createSourceImpl(url, plaindir, download, preffered_name, _alias)
+      ret = createSourceImpl(url, plaindir, download, preffered_name, alias_name)
       Wizard.CloseDialog
       ret
     end
@@ -414,9 +405,9 @@ module Yast
         if commrepos == :abort || commrepos == :cancel
           Builtins.y2milestone("Using CR have been canceled")
           return :back
-        else
-          return :next
         end
+
+        return :next
       elsif url == "sccrepos://"
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)

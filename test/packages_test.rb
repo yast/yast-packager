@@ -76,7 +76,7 @@ describe Yast::Packages do
           change_scr_root(root, &example)
         end
 
-        it "does not return biosdevname within the list of required packages then value is invalid" do
+        it "does not return biosdevname within the list of required packages" do
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
         end
       end
@@ -105,7 +105,8 @@ describe Yast::Packages do
       context "and running on a Dell system" do
         it "returns biosdevname within the list of packages" do
           # 0 means `grep` succeeded
-          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(0)
+          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM)
+            .and_return(0)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(true)
         end
       end
@@ -113,7 +114,8 @@ describe Yast::Packages do
       context "and running on a non-Dell system" do
         it "does not return biosdevname within the list of packages" do
           # 1 means `grep` has not succeeded
-          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM).and_return(1)
+          allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, CHECK_FOR_DELL_SYSTEM)
+            .and_return(1)
           expect(Yast::Packages.kernelCmdLinePackages.include?("biosdevname")).to eq(false)
         end
       end
@@ -124,20 +126,24 @@ describe Yast::Packages do
   describe "#default_patterns" do
     context "software->default_patterns is not defined in control file" do
       it "returns empty list" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "default_patterns").and_return("")
         expect(Yast::Packages.default_patterns).to be_empty
       end
     end
 
     context "software->default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("a b c d")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "default_patterns").and_return("a b c d")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("  a    b\t c d\t  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
 
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "default_patterns").and_return("  a b \n c\nd  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
@@ -146,20 +152,24 @@ describe Yast::Packages do
   describe "#optional_default_patterns" do
     context "software->optional_default_patterns is not defined in control file" do
       it "returns empty list" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "optional_default_patterns").and_return("")
         expect(Yast::Packages.optional_default_patterns).to be_empty
       end
     end
 
     context "software->optional_default_patterns is filled with list of patterns" do
       it "returns list of patterns" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("a b c d")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "optional_default_patterns").and_return("a b c d")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
 
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "optional_default_patterns").and_return("  a    b\t c d\t  ")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
 
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("software", "optional_default_patterns").and_return("  a b \n c\nd  ")
         expect(Yast::Packages.optional_default_patterns).to eq(["a", "b", "c", "d"])
       end
     end
@@ -198,7 +208,8 @@ describe Yast::Packages do
             [pattern("name" => "p3")]
           )
 
-          allow(Yast::Pkg).to receive(:ResolvableInstall).with(/\Ap[1-3]/, :pattern).exactly(3).times.and_return(true)
+          allow(Yast::Pkg).to receive(:ResolvableInstall).with(/\Ap[1-3]/, :pattern)
+            .exactly(3).times.and_return(true)
           Yast::Packages.SelectSystemPatterns(false)
         end
       end
@@ -214,7 +225,8 @@ describe Yast::Packages do
 
           expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p1", :pattern)
           expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p2", :pattern)
-          expect(Yast::Pkg).to receive(:ResolvableInstall).with("p3", :pattern).once.and_return(true)
+          expect(Yast::Pkg).to receive(:ResolvableInstall).with("p3", :pattern).once
+            .and_return(true)
           Yast::Packages.SelectSystemPatterns(false)
         end
       end
@@ -229,7 +241,8 @@ describe Yast::Packages do
           [pattern("name" => "p3")]
         )
 
-        expect(Yast::Pkg).to receive(:ResolvableRemove).with(/\Ap[1-2]/, :pattern).twice.and_return(true)
+        expect(Yast::Pkg).to receive(:ResolvableRemove).with(/\Ap[1-2]/, :pattern).twice
+          .and_return(true)
         expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p3", :pattern)
         Yast::Packages.SelectSystemPatterns(true)
       end
@@ -246,7 +259,8 @@ describe Yast::Packages do
       Yast::Packages.SelectSystemPatterns(true)
       Yast::Packages.SelectSystemPatterns(false)
 
-      expect(Yast::Report).to have_received(:Error).with(/pattern p[1-3]/i).exactly(2 * default_patterns.size).times
+      expect(Yast::Report).to have_received(:Error).with(/pattern p[1-3]/i)
+        .exactly(2 * default_patterns.size).times
     end
 
     it "does not report an error but logs it if optional pattern is not found" do
@@ -254,7 +268,8 @@ describe Yast::Packages do
 
       # No default patterns, all are optional
       allow(Yast::Packages).to receive(:default_patterns).and_return([])
-      allow(Yast::Packages).to receive(:optional_default_patterns).and_return(optional_default_patterns)
+      allow(Yast::Packages).to receive(:optional_default_patterns)
+        .and_return(optional_default_patterns)
       allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
 
@@ -279,7 +294,8 @@ describe Yast::Packages do
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([{}])
 
       product_patterns = ["default_pattern_1", "default_pattern_2"]
-      expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once).and_return(product_patterns)
+      expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once)
+        .and_return(product_patterns)
       expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[0], :pattern)
       expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[1], :pattern)
 
@@ -290,10 +306,14 @@ describe Yast::Packages do
   describe "#log_software_selection" do
     it "logs all currently changed resolvables set by user or application (excluding solver)" do
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
-      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "").and_return(PRODUCTS_FROM_ZYPP.dup)
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(PRODUCTS_FROM_ZYPP.dup)
 
       expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
-        expect(msg).to match(/(transaction status [begin|end]|(locked)?resolvables of type .* set by .*|:name=>.*:version=>)/i)
+        expect(msg).to match(
+          /(transaction status [begin|end]|(locked)?resolvables
+            of type .* set by .*|:name=>.*:version=>)/ix
+        )
       end.exactly(8).times
 
       expect(Yast::Packages.log_software_selection).to be_nil
@@ -399,7 +419,8 @@ describe Yast::Packages do
       )
 
       expect(summary_string).to match(
-        /Subscription Management Tool for SUSE Linux Enterprise 11 SP3.*will be updated to.*SUSE Linux Enterprise Server 12/
+        /Subscription Management Tool for SUSE Linux Enterprise 11 SP3.*
+        will be updated to.*SUSE Linux Enterprise Server 12/x
       )
     end
   end
@@ -422,7 +443,8 @@ describe Yast::Packages do
       expect(Yast::Arch).to receive(:is_laptop).and_return(false)
       expect(Yast::Arch).to receive(:has_pcmcia).and_return(false)
       expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern).and_return([])
-      expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern, optional: true).and_return([])
+      expect(Yast::PackagesProposal).to receive(:GetAllResolvables).with(:pattern, optional: true)
+        .and_return([])
     end
 
     context "when fips pattern is available" do
@@ -1162,7 +1184,8 @@ describe Yast::Packages do
 
         it "does not install SLES product" do
           expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("SLES", :product)
-          expect(Yast::Pkg).to receive(:ResolvableInstall).with("SLES_SAP", :product).and_return(true)
+          expect(Yast::Pkg).to receive(:ResolvableInstall).with("SLES_SAP", :product)
+            .and_return(true)
           subject.SelectProduct
         end
       end
@@ -1205,7 +1228,8 @@ describe Yast::Packages do
     end
 
     it "escaped backslashes in base_url (bsc#1032506)" do
-      allow(Yast::InstURL).to receive("installInf2Url").and_return("cd:/?device=/dev/disk/by-id/scsi-S__\\x5b")
+      allow(Yast::InstURL).to receive("installInf2Url")
+        .and_return("cd:/?device=/dev/disk/by-id/scsi-S__\\x5b")
 
       subject.Initialize_BaseInit(false, @base_url, @log_url)
       expect(@base_url.value).to eq "cd:/?device=/dev/disk/by-id/scsi-S__%5Cx5b"

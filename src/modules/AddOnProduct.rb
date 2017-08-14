@@ -1,22 +1,11 @@
 # encoding: utf-8
-
-# File:
-#	AddOnProduct.ycp
-#
-# Module:
-#	AddOnProduct
-#
-# Summary:
-#	This module provides integration of the add-on products
-#
-# Authors:
-#	Jiri Srain <jsrain@suse.de>
-#	Lukas Ocilka <locilka@suse.cz>
 require "yast"
 
 require "packager/product_patterns"
 
+# Yast namespace
 module Yast
+  # This module provides integration of the add-on products
   class AddOnProductClass < Module
     include Yast::Logger
 
@@ -544,12 +533,13 @@ module Yast
     # @return [Boolean] whether the license has been accepted
     def AcceptedLicenseAndInfoFile(src_id)
       ret = ProductLicense.AskAddOnLicenseAgreement(src_id)
-      if ret.nil?
-        return nil
-      elsif ret == :abort || ret == :back
+      return nil if ret.nil?
+
+      if ret == :abort || ret == :back
         Builtins.y2milestone("License confirmation failed")
         return false
       end
+
       true
     end
 
@@ -799,15 +789,16 @@ module Yast
     # @param [Fixnum] src_id source id
     def RegisterAddOnProduct(src_id)
       # FATE #305578: Add-On Product Requiring Registration
-      if WorkflowManager.WorkflowRequiresRegistration(src_id) || Builtins.contains(@addons_requesting_registration, src_id)
+      if WorkflowManager.WorkflowRequiresRegistration(src_id) ||
+          Builtins.contains(@addons_requesting_registration, src_id)
         Builtins.y2milestone("Repository ID %1 requests registration", src_id)
 
         if !WFM.ClientExists("inst_scc")
           package_installed = Package.Install("yast2-registration")
 
           if !package_installed
-            Report.Error(_("Package '%s' is not installed.\nThe add-on product cannot be registered.") %
-              "yast2-registration")
+            Report.Error(_("Package '%s' is not installed.\n" \
+              "The add-on product cannot be registered.") % "yast2-registration")
             return nil
           end
         end
@@ -1004,8 +995,7 @@ module Yast
       true
     end
 
-    def CheckProductDependencies(products)
-      products = deep_copy(products)
+    def CheckProductDependencies(_products)
       # TODO: check the dependencies of the product
       true
     end
@@ -1056,8 +1046,8 @@ module Yast
         elements = Builtins.filter(elements) { |e| e != "" }
         url = Ops.get(elements, 0, "")
         pth = Ops.get(elements, 1, "/")
-        elements = Builtins.remove(elements, 0) if Ops.get(elements, 0) != nil
-        elements = Builtins.remove(elements, 0) if Ops.get(elements, 0) != nil
+        elements = Builtins.remove(elements, 0) unless Ops.get(elements, 0).nil?
+        elements = Builtins.remove(elements, 0) unless Ops.get(elements, 0).nil?
         # FATE #302123
         url = GetAbsoluteURL(base_url, url) if !base_url.nil? && base_url != ""
         ret = Builtins.add(
@@ -1145,7 +1135,8 @@ module Yast
           Left(
             Label(
               _(
-                "The installation repository also contains the listed additional repositories.\nSelect the ones you want to use.\n"
+                "The installation repository also contains the listed additional repositories.\n" \
+                  "Select the ones you want to use.\n"
               )
             )
           ),
@@ -1290,18 +1281,20 @@ module Yast
       parsed = URL.Parse(url)
       scheme = Builtins.tolower(Ops.get_string(parsed, "scheme", ""))
 
-      msg = product_name.nil? || product_name == "" ?
+      msg = if product_name.nil? || product_name == ""
         # %1 is either "CD" or "DVD"
         Builtins.sformat(
           _("Insert the addon %1 medium"),
           Builtins.toupper(scheme)
-        ) :
+        )
+      else
         # %1 is the product name, %2 is either "CD" or "DVD"
         Builtins.sformat(
           _("Insert the %1 %2 medium"),
           product_name,
           Builtins.toupper(scheme)
         )
+      end
 
       # make sure no medium is mounted (the drive is not locked)
       Pkg.SourceReleaseAll
@@ -1367,7 +1360,8 @@ module Yast
     # Auto-integrate add-on products in specified file (usually add_on_products or
     # add_on_products.xml file)
     #
-    # @param [Array<Hash{String => String>}] filelist list of maps describing one or several add_on_products files
+    # @param [Array<Hash{String => String>}] filelist list of maps describing one
+    #   or several add_on_products files
     # @see FATE #303675: Support several add-ons on standard medium
     # @return [Boolean] true on exit
     #
@@ -1524,10 +1518,7 @@ module Yast
     #
     # @return [Hash]
     #
-    #
-    # **Structure:**
-    #
-    #     This is an XML file created from exported map:
+    # @example This is an XML file created from exported map:
     #      <add-on>
     #        <add_on_products config:type="list">
     #          <listentry>
@@ -1561,36 +1552,34 @@ module Yast
     # If both are empty the URL is not modified.
     # If alias is already included in the URL then it is modified
     # only if the requested alias is not empty otherwise it is kept unchanged.
-    def SetRepoUrlAlias(url, _alias, name)
+    def SetRepoUrlAlias(url, alias_name, name)
       if url.nil? || url == ""
         Builtins.y2error("Invalid 'url' parameter: %1", url)
         return url
       end
 
       # set repository alias to product name or alias if specified
-      if !name.nil? && name != "" || !_alias.nil? && _alias != ""
+      if !name.nil? && name != "" || !alias_name.nil? && alias_name != ""
         url_p = URL.Parse(url)
         params = URL.MakeMapFromParams(Ops.get_string(url_p, "query", ""))
         new_alias = ""
 
-        if !_alias.nil? && _alias != ""
-          new_alias = _alias
+        if !alias_name.nil? && alias_name != ""
+          new_alias = alias_name
           Builtins.y2milestone("Using repository alias: '%1'", new_alias)
+        # no alias present in the URL, use the product name
+        elsif Ops.get(params, "alias", "") != ""
+          new_alias = name
+          Builtins.y2milestone(
+            "Using product name '%1' as repository alias",
+            new_alias
+          )
         else
-          # no alias present in the URL, use the product name
-          if Ops.get(params, "alias", "") != ""
-            new_alias = name
-            Builtins.y2milestone(
-              "Using product name '%1' as repository alias",
-              new_alias
-            )
-          else
-            Builtins.y2milestone(
-              "Keeping the original alias set in the URL: %1",
-              Ops.get(params, "alias", "")
-            )
-            return url
-          end
+          Builtins.y2milestone(
+            "Keeping the original alias set in the URL: %1",
+            Ops.get(params, "alias", "")
+          )
+          return url
         end
 
         Ops.set(params, "alias", new_alias)
@@ -1804,7 +1793,7 @@ module Yast
     end
 
     # <-- Export/Import
-
+    # @example
     #   <add-on>
     #     <add_on_products config:type="list">
     #       <listentry>
@@ -1813,7 +1802,9 @@ module Yast
     #         <product_dir>/</product_dir>
     #         <signature-handling>
     #            <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
-    #            <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+    #            <accept_file_without_checksum config:type="boolean">
+    #              true
+    #            </accept_file_without_checksum>
     #            <accept_verification_failed config:type="boolean">true</accept_verification_failed>
     #            <accept_unknown_gpg_key>
     #              <all config:type="boolean">true</all>
@@ -1848,13 +1839,15 @@ module Yast
           "accept_unsigned_file"
         )
           Pkg.CallbackAcceptUnsignedFile(
-            Ops.get_boolean(
+            if Ops.get_boolean(
               addon,
               ["signature-handling", "accept_unsigned_file"],
               false
-            ) ?
-              fun_ref(method(:AcceptUnsignedFile), "boolean (string, integer)") :
+            )
+              fun_ref(method(:AcceptUnsignedFile), "boolean (string, integer)")
+            else
               fun_ref(method(:RejectUnsignedFile), "boolean (string, integer)")
+            end
           )
         end
         if Builtins.haskey(
@@ -1862,13 +1855,15 @@ module Yast
           "accept_file_without_checksum"
         )
           Pkg.CallbackAcceptFileWithoutChecksum(
-            Ops.get_boolean(
+            if Ops.get_boolean(
               addon,
               ["signature-handling", "accept_file_without_checksum"],
               false
-            ) ?
-              fun_ref(method(:AcceptFileWithoutChecksum), "boolean (string)") :
+            )
+              fun_ref(method(:AcceptFileWithoutChecksum), "boolean (string)")
+            else
               fun_ref(method(:RejectFileWithoutChecksum), "boolean (string)")
+            end
           )
         end
         if Builtins.haskey(
@@ -1876,19 +1871,21 @@ module Yast
           "accept_verification_failed"
         )
           Pkg.CallbackAcceptVerificationFailed(
-            Ops.get_boolean(
+            if Ops.get_boolean(
               addon,
               ["signature-handling", "accept_verification_failed"],
               false
-            ) ?
+            )
               fun_ref(
                 method(:AcceptVerificationFailed),
                 "boolean (string, map <string, any>, integer)"
-              ) :
+              )
+            else
               fun_ref(
                 method(:RejectVerificationFailed),
                 "boolean (string, map <string, any>, integer)"
               )
+            end
           )
         end
         if Builtins.haskey(
@@ -1940,7 +1937,8 @@ module Yast
       # already known
       return if renamed_externally?(old_name, new_name)
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
-      self.external_product_renames = add_rename_to_hash(external_product_renames, old_name, new_name)
+      self.external_product_renames = add_rename_to_hash(external_product_renames,
+        old_name, new_name)
     end
 
     publish variable: :add_on_products, type: "list <map <string, any>>"
@@ -1951,7 +1949,8 @@ module Yast
     publish variable: :current_addon, type: "map <string, any>"
     publish variable: :low_memory_already_reported, type: "boolean"
     publish variable: :skip_add_ons, type: "boolean"
-    publish function: :GetCachedFileFromSource, type: "string (integer, integer, string, string, boolean)"
+    publish function: :GetCachedFileFromSource,
+            type:     "string (integer, integer, string, string, boolean)"
     publish function: :AddOnMode, type: "string (integer)"
     publish function: :SetBaseProductURL, type: "void (string)"
     publish function: :GetBaseProductURL, type: "string ()"
@@ -2044,9 +2043,11 @@ module Yast
     # @see add_rename_to_hash
     def product_renames_from_libzypp
       renames = {}
-      products = Pkg.ResolvableProperties("", :product, "") # Dependencies are not included in this call
+      # Dependencies are not included in this call
+      products = Pkg.ResolvableProperties("", :product, "")
       products.each do |product|
-        renames = names_from_product_packages(product["product_package"]).reduce(renames) do |hash, rename|
+        renames = names_from_product_packages(product["product_package"])
+                  .reduce(renames) do |hash, rename|
           add_rename_to_hash(hash, rename, product["name"])
         end
       end
@@ -2099,13 +2100,13 @@ module Yast
       # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
       packages = Pkg.ResolvableDependencies(package_name, :package, "")
       return [] if packages.nil? || packages.empty?
-      names = packages.each_with_object([]) do |package, names|
+      result = packages.each_with_object([]) do |package, names|
         next names unless package.key?("deps")
         # Get information from 'obsoletes' and 'provides' keys
         relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
         names.concat(relevant_deps.map { |d| product_name_from_dep(d) })
       end
-      names.compact.uniq
+      result.compact.uniq
     end
 
     # Adds a product from a CD/DVD
@@ -2117,7 +2118,8 @@ module Yast
     # @param priority    [Integer] Repository priority
     # @param prodname    [String]  Expected product's name
     # @param check_name  [Boolean] Check product's name
-    # @return            [Integer,nil] Repository id; nil if product was not found and user cancelled.
+    # @return            [Integer,nil] Repository id; nil if product was not found
+    #   and user cancelled.
     #
     # @see add_repo_from_cd
     def add_product_from_cd(url, pth, priority, prodname, check_name)
@@ -2129,7 +2131,8 @@ module Yast
           return repo_id if !check_name || prodname.empty?
           found_product = Pkg.SourceProductData(repo_id)
           return repo_id if found_product["label"] == prodname
-          log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}, expected: #{prodname}")
+          log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}," \
+            "expected: #{prodname}")
           Pkg.SourceDelete(repo_id)
         end
 
@@ -2162,8 +2165,6 @@ module Yast
         false
       end
     end
-
-  private
 
     # Download the y2update from the addon package.
     # @param src_id [Fixnum] repository ID

@@ -7,81 +7,81 @@ Yast.import "DefaultDesktop"
 describe Yast::DefaultDesktop do
   subject { Yast::DefaultDesktop }
 
+  SUPPORTED_DESKTOPS_MOCKUP = [
+    {
+      "cursor"   => "DMZ",
+      "desktop"  => "gnome",
+      "icon"     => "pattern-gnome",
+      "label_id" => "desktop_gnome",
+      "logon"    => "gdm",
+      "name"     => "gnome",
+      "order"    => 1,
+      "packages" => "gdm branding-openSUSE",
+      "patterns" => "gnome x11 base"
+    },
+    {
+      "cursor"   => "DMZ",
+      "desktop"  => "kde4",
+      "icon"     => "pattern-kde4",
+      "label_id" => "desktop_kde",
+      "logon"    => "kdm",
+      "name"     => "kde",
+      "order"    => 1,
+      "packages" => "kdm branding-openSUSE",
+      "patterns" => "kde x11 base"
+    },
+    {
+      "cursor"   => "DMZ",
+      "desktop"  => "xfce",
+      "icon"     => "pattern-xfce",
+      "label_id" => "desktop_xfce",
+      "logon"    => "lightdm",
+      "name"     => "xfce",
+      "order"    => 4,
+      "packages" => "lightdm branding-openSUSE",
+      "patterns" => "xfce x11 base"
+    },
+    {
+      "cursor"   => "DMZ",
+      "desktop"  => "lxde",
+      "icon"     => "pattern-lxde",
+      "label_id" => "desktop_lxde",
+      "logon"    => "lxdm",
+      "name"     => "lxde",
+      "order"    => 5,
+      "packages" => "lxde-common branding-openSUSE",
+      "patterns" => "lxde x11 base"
+    },
+    {
+      "cursor"   => "DMZ",
+      "desktop"  => "twm",
+      "icon"     => "yast-x11",
+      "label_id" => "desktop_min_x",
+      "logon"    => "xdm",
+      "name"     => "min_x",
+      "order"    => 6,
+      "packages" => "xorg-x11 branding-openSUSE",
+      "patterns" => "x11 base"
+    },
+    {
+      "cursor"   => "DMZ",
+      "desktop"  => "twm",
+      "icon"     => "yast-sshd",
+      "label_id" => "desktop_textmode",
+      "logon"    => "xdm",
+      "name"     => "textmode",
+      "order"    => 8,
+      "packages" => "branding-openSUSE",
+      "patterns" => "minimal_base minimal_base-conflicts"
+    }
+  ].freeze
+
   def mock_product_features
     allow(Yast::ProductFeatures).to receive(:GetFeature)
       .with("software", "default_desktop").and_return("kde")
     allow(Yast::ProductFeatures).to receive(:GetFeature)
       .with("software", "supported_desktops")
-      .and_return(
-        [
-          {
-            "cursor"   => "DMZ",
-            "desktop"  => "gnome",
-            "icon"     => "pattern-gnome",
-            "label_id" => "desktop_gnome",
-            "logon"    => "gdm",
-            "name"     => "gnome",
-            "order"    => 1,
-            "packages" => "gdm branding-openSUSE",
-            "patterns" => "gnome x11 base"
-          },
-          {
-            "cursor"   => "DMZ",
-            "desktop"  => "kde4",
-            "icon"     => "pattern-kde4",
-            "label_id" => "desktop_kde",
-            "logon"    => "kdm",
-            "name"     => "kde",
-            "order"    => 1,
-            "packages" => "kdm branding-openSUSE",
-            "patterns" => "kde x11 base"
-          },
-          {
-            "cursor"   => "DMZ",
-            "desktop"  => "xfce",
-            "icon"     => "pattern-xfce",
-            "label_id" => "desktop_xfce",
-            "logon"    => "lightdm",
-            "name"     => "xfce",
-            "order"    => 4,
-            "packages" => "lightdm branding-openSUSE",
-            "patterns" => "xfce x11 base"
-          },
-          {
-            "cursor"   => "DMZ",
-            "desktop"  => "lxde",
-            "icon"     => "pattern-lxde",
-            "label_id" => "desktop_lxde",
-            "logon"    => "lxdm",
-            "name"     => "lxde",
-            "order"    => 5,
-            "packages" => "lxde-common branding-openSUSE",
-            "patterns" => "lxde x11 base"
-          },
-          {
-            "cursor"   => "DMZ",
-            "desktop"  => "twm",
-            "icon"     => "yast-x11",
-            "label_id" => "desktop_min_x",
-            "logon"    => "xdm",
-            "name"     => "min_x",
-            "order"    => 6,
-            "packages" => "xorg-x11 branding-openSUSE",
-            "patterns" => "x11 base"
-          },
-          {
-            "cursor"   => "DMZ",
-            "desktop"  => "twm",
-            "icon"     => "yast-sshd",
-            "label_id" => "desktop_textmode",
-            "logon"    => "xdm",
-            "name"     => "textmode",
-            "order"    => 8,
-            "packages" => "branding-openSUSE",
-            "patterns" => "minimal_base minimal_base-conflicts"
-          }
-        ]
-      )
+      .and_return(SUPPORTED_DESKTOPS_MOCKUP.dup)
   end
 
   before do
@@ -115,7 +115,8 @@ describe Yast::DefaultDesktop do
     end
 
     it "the patterns are marked as optional for the PackagesProposal module" do
-      expect(Yast::PackagesProposal).to receive(:GetResolvables).with(anything, :pattern, optional: true)
+      expect(Yast::PackagesProposal).to receive(:GetResolvables)
+        .with(anything, :pattern, optional: true)
       subject.SelectedPatterns
     end
   end

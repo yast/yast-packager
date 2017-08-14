@@ -1,15 +1,6 @@
 # encoding: utf-8
-
-# File:	installation/include/load_release_notes.ycp
-# Module:	Installation
-# Summary:	Load release notes from media
-# Authors:	Arvin Schnell <arvin@suse.de>
-#              Jiri Srain <jsrain@suse.cz>
-#
-# Load release notes from media
-#
-# $Id: release_notes_popup.ycp 34411 2006-11-15 13:45:11Z locilka $
 module Yast
+  # Load release notes from media
   module PackagerLoadReleaseNotesInclude
     def initialize_packager_load_release_notes(_include_target)
       Yast.import "Pkg"

@@ -1,13 +1,9 @@
 # encoding: utf-8
-
-# File:	DefaultDesktop.rb
-# Package:	Handling of default desktop selection
-# Authors:	Jiri Srain <jsrain@suse.cz>
-#		Lukas Ocilka <locilka@suse.cz>
-
 require "yast"
 
+# Yast namespace
 module Yast
+  # Handling of default desktop selection
   class DefaultDesktopClass < Module
     def main
       Yast.import "Pkg"
@@ -34,15 +30,13 @@ module Yast
     end
 
     def MissingKey(desktop_def, key)
-      ret = nil
-
       Builtins.y2warning(
         "Wrong desktop def, missing '%1' key: %2",
         key,
         desktop_def.value
       )
 
-      ret = case key
+      case key
       when "order"
         99
       when "desktop"
@@ -50,8 +44,6 @@ module Yast
       else
         ""
       end
-
-      deep_copy(ret)
     end
 
     # Initialize default desktop from control file if specified there
@@ -95,9 +87,9 @@ module Yast
           desktop_label = Ops.get_string(one_desktop_cf, "label_id") do
             (
               one_desktop_cf_ref = arg_ref(one_desktop_cf)
-              _MissingKey_result = MissingKey(one_desktop_cf_ref, "label_id")
+              result = MissingKey(one_desktop_cf_ref, "label_id")
               one_desktop_cf = one_desktop_cf_ref.value
-              _MissingKey_result
+              result
             )
           end
           # required keys
@@ -105,25 +97,25 @@ module Yast
             "desktop"  => Ops.get(one_desktop_cf, "desktop") do
               (
                 one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "desktop")
+                result = MissingKey(one_desktop_cf_ref, "desktop")
                 one_desktop_cf = one_desktop_cf_ref.value
-                _MissingKey_result
+                result
               )
             end,
             "logon"    => Ops.get(one_desktop_cf, "logon") do
               (
                 one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "logon")
+                result = MissingKey(one_desktop_cf_ref, "logon")
                 one_desktop_cf = one_desktop_cf_ref.value
-                _MissingKey_result
+                result
               )
             end,
             "cursor"   => Ops.get(one_desktop_cf, "cursor") do
               (
                 one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "logon")
+                result = MissingKey(one_desktop_cf_ref, "logon")
                 one_desktop_cf = one_desktop_cf_ref.value
-                _MissingKey_result
+                result
               )
             end,
             "packages" => Builtins.splitstring(
@@ -137,9 +129,9 @@ module Yast
             "order"    => Ops.get(one_desktop_cf, "order") do
               (
                 one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                _MissingKey_result = MissingKey(one_desktop_cf_ref, "order")
+                result = MissingKey(one_desktop_cf_ref, "order")
                 one_desktop_cf = one_desktop_cf_ref.value
-                _MissingKey_result
+                result
               )
             end,
             # BNC #449818, after switching the language name should change too
@@ -207,20 +199,19 @@ module Yast
     #
     # @return [Hash{String => map}] all_system_tasks
     #
-    #
-    # **Structure:**
-    #
+    #  @example
     #     $[
     #          "desktop ID" : $[
     #              "desktop" : "desktop to start", // DEFAULT_WM
     #              "order" : integer,
     #              "label" : _("Desktop Name Visible in Dialog (localized - initial localization)"),
     #              "label_id" : _("Desktop Name Visible in Dialog (original)"),
-    #              "description" : _("Description text of the desktop (localized - initial localization)"),
+    #              "description" : _("Desktop description text (localized - initial localization)"),
     #              "description_id" : _("Description text of the desktop (originale)"),
     #              "patterns" : ["list", "of", "required", "patterns"],
     #              "packages" : ["list", "of", "packages", "to", "identify", "selected", "desktop"],
-    #              "icon" : "some-icon", // filename from the 64x64 directory of the current theme (without .png suffix)
+    #              // filename from the 64x64 directory of the current theme (without .png suffix)
+    #              "icon" : "some-icon",
     #          ],
     #      ]
     def GetAllDesktopsMap
@@ -281,7 +272,8 @@ module Yast
     end
 
     # Set the default desktop
-    # @param [String,nil] new_desktop one of those desktops defined in control file or nil for no desktop selected
+    # @param [String,nil] new_desktop one of those desktops defined in control file
+    #   or nil for no desktop selected
     def SetDesktop(new_desktop)
       Init()
 

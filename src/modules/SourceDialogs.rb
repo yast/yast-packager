@@ -1,22 +1,11 @@
 # encoding: utf-8
-
-# File:		SourceDialogs.ycp
-#
-# Authors:		Jiri Srain <jsrain@suse.cz>
-#			Klaus Kaempf <kkaempf@suse.de>
-#			Gabriele Strattner <gs@suse.de>
-#			Stefan Schubert <schubi@suse.de>
-#                      Cornelius Schumacher <cschum@suse.de>
-#
-# Purpose:
-# Displays possibilities to install from NFS, CD or partion
-#
-# $Id: inst_source_dialogs.ycp 31607 2006-06-22 07:02:01Z jsuchome $
 require "yast"
 
 require "uri"
 
+# Yast namespace
 module Yast
+  # Displays possibilities to install from NFS, CD or partion
   class SourceDialogsClass < Module
     # to use N_ in the class constant
     extend Yast::I18n
@@ -123,7 +112,8 @@ module Yast
 
       # Help text suffix for some types of the media
       @multi_cd_help = _(
-        "<p>If the repository is on multiple media,\nset the location of the first media of the set.</p>\n"
+        "<p>If the repository is on multiple media,\n" \
+          "set the location of the first media of the set.</p>\n"
       )
 
       # Belongs to a constant, but can't be there because of `fun_ref`
@@ -291,10 +281,9 @@ module Yast
 
         Ops.set(parsed, "path", "/") if Ops.get_string(parsed, "path", "") == ""
 
-        ret_url = URL.Build(parsed)
-        return ret_url
+        URL.Build(parsed)
       else
-        return @_url
+        @_url
       end
     end
 
@@ -364,7 +353,8 @@ module Yast
         return false
       end
 
-      return false if uri.scheme.nil? # empty or generic uri have nil scheme causing exception below (bnc#934216)
+      # empty or generic uri have nil scheme causing exception below (bnc#934216)
+      return false if uri.scheme.nil?
 
       params = URI.decode_www_form(uri.query || "").to_h
 
@@ -390,7 +380,8 @@ module Yast
       processed = URI(URI.encode(param_url))
       processed.scheme = "iso" if processed.scheme.casecmp("dir").zero?
       # we need to construct path from more potential sources, as url can look like
-      # `iso:/subdir?iso=test.iso&path=dir%3A%2Finstall` resulting in path "/install/subdir/test.iso"
+      # `iso:/subdir?iso=test.iso&path=dir%3A%2Finstall` resulting in
+      # path "/install/subdir/test.iso"
       processed.path = File.join(processed.path || "", uri.path, params.delete("iso") || "")
       processed.query = URI.encode_www_form(params) unless params.empty?
 
@@ -438,15 +429,13 @@ module Yast
     # @param [String] url string URL to get scheme for
     # @return [String] URL scheme
     def URLScheme(url)
-      scheme = ""
       if IsISOURL(url)
         tmp_url = PreprocessISOURL(url)
         parsed = URL.Parse(tmp_url)
-        scheme = Ops.get_string(parsed, "scheme", "")
       else
         parsed = URL.Parse(url)
-        scheme = Ops.get_string(parsed, "scheme", "")
       end
+      scheme = Ops.get_string(parsed, "scheme", "")
 
       scheme = "url" if scheme == "" || scheme.nil?
       Builtins.y2milestone(
@@ -466,17 +455,15 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def RepoNameStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def RepoNameStore(_key, _event)
       @_repo_name = Convert.to_string(UI.QueryWidget(Id(:repo_name), :Value))
 
       nil
     end
 
-    def RepoNameValidate(_key, event)
-      event = deep_copy(event)
+    def RepoNameValidate(_key, _event)
       repo_name = Convert.to_string(UI.QueryWidget(Id(:repo_name), :Value))
       if repo_name == "" && @_repo_name != "" # do not fail on new repo creation
         UI.SetFocus(Id(:repo_name))
@@ -510,7 +497,9 @@ module Yast
         ),
         # help text
         "help"              => _(
-          "<p><big><b>Repository Name</b></big><br>\nUse <b>Repository Name</b> to specify the name of the repository. If it is empty, YaST will use the product name (if available) or the URL as the name.</p>\n"
+          "<p><big><b>Repository Name</b></big><br>\nUse <b>Repository Name</b> " \
+            "to specify the name of the repository. If it is empty, " \
+            "YaST will use the product name (if available) or the URL as the name.</p>\n"
         )
       }
     end
@@ -532,7 +521,9 @@ module Yast
         ret,
         "help",
         _(
-          "<p><big><b>Service Name</b></big><br>\nUse <b>Service Name</b> to specify the name of the service. If it is empty, YaST will use part of the service URL as the name.</p>\n"
+          "<p><big><b>Service Name</b></big><br>\n" \
+            "Use <b>Service Name</b> to specify the name of the service. " \
+            "If it is empty, YaST will use part of the service URL as the name.</p>\n"
         )
       )
 
@@ -551,17 +542,15 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def PlainURLStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def PlainURLStore(_key, _event)
       @_url = Convert.to_string(UI.QueryWidget(Id(:url), :Value))
 
       nil
     end
 
-    def PlainURLValidate(_key, event)
-      event = deep_copy(event)
+    def PlainURLValidate(_key, _event)
       url = Convert.to_string(UI.QueryWidget(Id(:url), :Value))
       if url == ""
         UI.SetFocus(Id(:url))
@@ -595,7 +584,8 @@ module Yast
         # help text
         "help"              => Ops.add(
           _(
-            "<p><big><b>Repository URL</b></big><br>\nUse <b>URL</b> to specify the URL of the repository.</p>"
+            "<p><big><b>Repository URL</b></big><br>\n" \
+              "Use <b>URL</b> to specify the URL of the repository.</p>"
           ),
           @multi_cd_help
         )
@@ -698,10 +688,9 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def NFSStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def NFSStore(_key, _event)
       current_type = Convert.to_symbol(UI.QueryWidget(Id(:edit_type), :Value))
       Builtins.y2milestone("Current edit type: %1", current_type)
 
@@ -795,7 +784,8 @@ module Yast
           _(
             "<p><big><b>Mount Options</b></big><br>\n" \
               "You can specify extra options used for mounting the NFS volume.\n" \
-              "This is an expert option, keeping the default value is recommened. See <b>man 5 nfs</b>\n" \
+              "This is an expert option, keeping the default value is recommened. " \
+              "See <b>man 5 nfs</b>\n" \
               "for details and the list of supported options."
           )
         )
@@ -805,7 +795,7 @@ module Yast
     # CD/DVD repository widget
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def CDInit(_key)
       parsed = URL.Parse(@_url)
       scheme = Ops.get_string(parsed, "scheme", "")
@@ -819,10 +809,9 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def CDStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def CDStore(_key, _event)
       device = Convert.to_symbol(UI.QueryWidget(Id(:device), :CurrentButton))
       parsed = URL.Parse(@_url)
       scheme = Builtins.tolower(Ops.get_string(parsed, "scheme", ""))
@@ -855,7 +844,8 @@ module Yast
         "init"          => fun_ref(method(:CDInit), "void (string)"),
         "store"         => fun_ref(method(:CDStore), "void (string, map)"),
         "help"          => _(
-          "<p><big><b>CD or DVD Media</b></big><br>\nSet <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"
+          "<p><big><b>CD or DVD Media</b></big><br>\n" \
+            "Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"
         )
       }
     end
@@ -893,8 +883,8 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
     def DirStore(_key, _event)
       parsed = URL.Parse(@_url)
 
@@ -917,10 +907,9 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def IsoStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def IsoStore(_key, _event)
       parsed = {
         "scheme" => "iso",
         "path"   => Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
@@ -933,11 +922,10 @@ module Yast
     end
 
     # Handle function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
     # @return always nil
-    def DirHandle(_key, event)
-      event = deep_copy(event)
+    def DirHandle(_key, _event)
       dir = Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       # dialog caption
       result = UI.AskForExistingDirectory(dir, _("Local Directory"))
@@ -948,11 +936,10 @@ module Yast
     end
 
     # Handle function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
     # @return always nil
-    def IsoHandle(_key, event)
-      event = deep_copy(event)
+    def IsoHandle(_key, _event)
       dir = Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       # dialog caption
       result = UI.AskForExistingFile(dir, "*", _("ISO Image File"))
@@ -962,8 +949,7 @@ module Yast
       nil
     end
 
-    def DirValidate(_key, event)
-      event = deep_copy(event)
+    def DirValidate(_key, _event)
       s = Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       if s.nil? || s == ""
         # error popup
@@ -991,8 +977,7 @@ module Yast
       true
     end
 
-    def IsoValidate(_key, event)
-      event = deep_copy(event)
+    def IsoValidate(_key, _event)
       s = Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       if s.nil? || s == ""
         # error popup
@@ -1270,10 +1255,9 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def USBStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def USBStore(_key, _event)
       # build URL like this: usb:///openSUSE?device=/dev/sdb8&filesystem=auto
       query = Builtins.sformat(
         "device=%1&filesystem=%2",
@@ -1345,10 +1329,9 @@ module Yast
     end
 
     # Store function of a widget
-    # @param [String] key string widget key
-    # @param [Hash] event map which caused settings being stored
-    def DiskStore(_key, event)
-      event = deep_copy(event)
+    # @param [String] _key string widget key
+    # @param [Hash] _event map which caused settings being stored
+    def DiskStore(_key, _event)
       # build URL like this: usb:///openSUSE?device=/dev/sdb8&filesystem=auto
       query = Builtins.sformat(
         "device=%1&filesystem=%2",
@@ -1588,41 +1571,57 @@ module Yast
           ) &&
           current_type == :edit_url_parts
         type = Convert.to_symbol(UI.QueryWidget(Id(:rb_type), :CurrentButton))
-        server = UI.WidgetExists(Id(:server)) ?
-          Convert.to_string(UI.QueryWidget(Id(:server), :Value)) :
+        server = if UI.WidgetExists(Id(:server))
+          Convert.to_string(UI.QueryWidget(Id(:server), :Value))
+        else
           ""
-        dir = UI.WidgetExists(Id(:dir)) ?
-          Convert.to_string(UI.QueryWidget(Id(:dir), :Value)) :
+        end
+        dir = if UI.WidgetExists(Id(:dir))
+          Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
+        else
           ""
-        anonymous = UI.WidgetExists(Id(:anonymous)) ?
-          Convert.to_boolean(UI.QueryWidget(Id(:anonymous), :Value)) :
+        end
+        anonymous = if UI.WidgetExists(Id(:anonymous))
+          Convert.to_boolean(UI.QueryWidget(Id(:anonymous), :Value))
+        else
           false
-        username = UI.WidgetExists(Id(:username)) ?
-          Convert.to_string(UI.QueryWidget(Id(:username), :Value)) :
+        end
+        username = if UI.WidgetExists(Id(:username))
+          Convert.to_string(UI.QueryWidget(Id(:username), :Value))
+        else
           ""
-        password = UI.WidgetExists(Id(:password)) ?
-          Convert.to_string(UI.QueryWidget(Id(:password), :Value)) :
+        end
+        password = if UI.WidgetExists(Id(:password))
+          Convert.to_string(UI.QueryWidget(Id(:password), :Value))
+        else
           ""
-        port = UI.WidgetExists(Id(:port)) ?
-          Convert.to_string(UI.QueryWidget(Id(:port), :Value)) :
+        end
+        port = if UI.WidgetExists(Id(:port))
+          Convert.to_string(UI.QueryWidget(Id(:port), :Value))
+        else
           ""
+        end
 
         widget = VBox(
           HBox(
             # text entry
             InputField(Id(:server), Opt(:hstretch), _("Server &Name"), server),
-            type == :http || type == :https ?
+            if type == :http || type == :https
               HBox(
                 HSpacing(1),
                 HSquash(InputField(Id(:port), _("&Port"), port))
-              ) :
-              Empty(),
-            type == :samba ?
-              # text entry
-              InputField(Id(:share), Opt(:hstretch), _("&Share")) :
+              )
+            else
               Empty()
+            end,
+            if type == :samba
+              # text entry
+              InputField(Id(:share), Opt(:hstretch), _("&Share"))
+            else
+              Empty()
+            end
           ),
-          type == :samba ?
+          if type == :samba
             VBox(
               InputField(
                 Id(:dir),
@@ -1633,9 +1632,11 @@ module Yast
               ),
               # checkbox label
               Left(CheckBox(Id(:ch_iso), _("ISO &Image")))
-            ) :
+            )
+          else
             # text entry
-            InputField(Id(:dir), Opt(:hstretch), _("&Directory on Server"), dir),
+            InputField(Id(:dir), Opt(:hstretch), _("&Directory on Server"), dir)
+          end,
           HBox(
             HSpacing(0.5),
             # frame
@@ -1651,14 +1652,16 @@ module Yast
                     anonymous
                   )
                 ),
-                type == :samba ?
+                if type == :samba
                   # text entry
                   InputField(
                     Id(:workgroup),
                     Opt(:hstretch),
                     _("&Workgroup or Domain")
-                  ) :
-                  Empty(),
+                  )
+                else
+                  Empty()
+                end,
                 # text entry
                 VSpacing(0.4),
                 HBox(
@@ -1714,7 +1717,8 @@ module Yast
           Ops.get_string(event, "EventReason", "") == "ValueChanged"
         Builtins.y2milestone("Changing dialog type")
 
-        # store the current values (note: the radio button just has been switched, compare to the opposite value!)
+        # store the current values (note: the radio button just has been switched,
+        # compare to the opposite value!)
         if id == :edit_url_parts
           ServerStoreComplete()
         else
@@ -1846,8 +1850,7 @@ module Yast
       nil
     end
 
-    def ServerValidate(_key, event)
-      event = deep_copy(event)
+    def ServerValidate(_key, _event)
       current_type = Convert.to_symbol(UI.QueryWidget(Id(:edit_type), :Value))
       Builtins.y2debug("Current edit type: %1", current_type)
 
@@ -1873,7 +1876,6 @@ module Yast
     end
 
     def ServerStore(key, event)
-      event = deep_copy(event)
       Builtins.y2debug("Server store: %1, %2", key, event)
 
       current_type = Convert.to_symbol(UI.QueryWidget(Id(:edit_type), :Value))
@@ -1947,7 +1949,8 @@ module Yast
           ) +
             # help text - server dialog, there is a "Port" widget
             _(
-              "<p>It is possible to set the <b>Port</b> number for a HTTP/HTTPS repository.\nLeave it empty to use the default port.</p>\n"
+              "<p>It is possible to set the <b>Port</b> number for a HTTP/HTTPS repository.\n" \
+                "Leave it empty to use the default port.</p>\n"
             ),
           @multi_cd_help
         )
@@ -1975,7 +1978,7 @@ module Yast
           ret = true
         end
         # some devices are listed
-      elsif Ops.get_string(cmd_run, "stdout", "") != nil &&
+      elsif !Ops.get_string(cmd_run, "stdout", "").nil? &&
           Ops.get_string(cmd_run, "stdout", "") != ""
         ret = true
       end
@@ -1998,20 +2001,20 @@ module Yast
         Builtins.y2milestone(
           "No software/external_sources_link, community repos will be disabled"
         )
-        return false
+        false
       else
-        return true
+        true
       end
     end
 
     def addon_checkbox_term
-      @display_addon_checkbox ?
-        VBox(
-          Left(CheckBox(Id(:add_addon), Opt(:notify),
-            _("I would li&ke to install an additional Add On Product"), false)),
-          VSpacing(1)
-        ) :
-        Empty()
+      return Empty() unless @display_addon_checkbox
+
+      VBox(
+        Left(CheckBox(Id(:add_addon), Opt(:notify),
+          _("I would li&ke to install an additional Add On Product"), false)),
+        VSpacing(1)
+      )
     end
 
     def addon_spacing_term
@@ -2049,10 +2052,12 @@ module Yast
                   # radio button
                   Left(RadioButton(Id(:slp), _(WIDGET_LABELS[:slp]))),
                   # bnc #428370, No need to offer community repositories if not defined
-                  CRURLDefined() ?
+                  if CRURLDefined()
                     # radio button
-                    Left(RadioButton(Id(:comm_repos), _(WIDGET_LABELS[:comm_repos]))) :
-                    Empty(),
+                    Left(RadioButton(Id(:comm_repos), _(WIDGET_LABELS[:comm_repos])))
+                  else
+                    Empty()
+                  end,
                   scc_repos_widget,
                   VSpacing(0.4),
                   Left(RadioButton(Id(:specify_url), _(WIDGET_LABELS[:specify_url]))),
@@ -2062,7 +2067,7 @@ module Yast
                     :local_dir, :local_iso].map do |id|
                     Left(RadioButton(Id(id), _(WIDGET_LABELS[id])))
                   end,
-                  download_widget ?
+                  if download_widget
                     VBox(
                       VSpacing(2),
                       Left(
@@ -2072,8 +2077,10 @@ module Yast
                           @_download_metadata
                         )
                       )
-                    ) :
-                    Empty(),
+                    )
+                  else
+                    Empty()
+                  end,
                   VStretch()
                 )
               )
@@ -2104,7 +2111,7 @@ module Yast
                     *[:cd, :dvd, :hd, :usb, :local_dir, :local_iso].map do |id|
                       Left(RadioButton(Id(id), _(WIDGET_LABELS[id])))
                     end,
-                    download_widget ?
+                    if download_widget
                       VBox(
                         VSpacing(2),
                         Left(
@@ -2114,8 +2121,10 @@ module Yast
                             @_download_metadata
                           )
                         )
-                      ) :
-                      Empty(),
+                      )
+                    else
+                      Empty()
+                    end,
                     VStretch()
                   )
                 )
@@ -2195,9 +2204,11 @@ module Yast
       end
       if selected == :cd || selected == :dvd
         Pkg.SourceReleaseAll
-        msg = selected == :cd ?
-          _("Insert the add-on product CD") :
+        msg = if selected == :cd
+          _("Insert the add-on product CD")
+        else
           _("Insert the add-on product DVD")
+        end
 
         # reset the device name
         @cd_device_name = ""
@@ -2527,11 +2538,8 @@ module Yast
       ret = CWM.Run(w, {})
       Builtins.y2milestone("Ret: %1", ret)
       UI.CloseDialog
-      if ret == :ok
-        return GetURL()
-      else
-        return ""
-      end
+
+      ret == :ok ? GetURL() : ""
     end
 
     def EditDisplay
