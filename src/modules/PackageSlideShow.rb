@@ -272,9 +272,8 @@ module Yast
     # ***************************************************************************
 
     # Perform sanity check for correct initialzation etc.
-    # @param [Boolean] silent	don't complain in log file
+    # @param [Boolean] _silent	don't complain in log file
     # @return		true if OK, false if any error
-    #
     def SanityCheck(_silent)
       true # FIXME!
     end

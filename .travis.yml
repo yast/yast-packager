@@ -13,3 +13,4 @@ script:
   # storage-ng and master is not complete. It should be switched to YaST standard
   # docker image soon.
   - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image storage-ng-travis-ruby
+  - docker run -it yast-packager-image rake check:doc

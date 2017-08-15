@@ -381,8 +381,8 @@ module Yast
     # function ignores non-numerical values in versions.
     # Version and Release parts are merged!
     # FIXME make a binding to librpm.
-    # @param string first version
-    # @param string second version
+    # @param a_version [String] first version
+    # @param b_version [String] second version
     # @return [Boolean] true if the second one is newer than the first one
     def VersionALtB(a_version, b_version)
       a_version_l = Builtins.filter(Builtins.splitstring(a_version, "-.")) do |s|

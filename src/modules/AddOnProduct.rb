@@ -1932,7 +1932,7 @@ module Yast
     # Renames added will be tracked in order to not loose information.
     #
     # @param old_name [String] Old product's name
-    # @param old_name [String] New product's name
+    # @param new_name [String] New product's name
     def add_rename(old_name, new_name)
       # already known
       return if renamed_externally?(old_name, new_name)

@@ -493,8 +493,8 @@ module Yast
     # But ZENworks cannot completely disable a repository (unsubscribing a
     # repository merely decreases its priority) so we consider a disabled repository
     # like a deleted one.
-    # @param [Array<Hash{String => Object>}] statesOld sourceStates{In or Out}
-    # @param [Array<Hash{String => Object>}] statesNew sourceStates{In or Out}
+    # @param [Array<Hash{String => Object>}] statesOld sourceStates - In or Out
+    # @param [Array<Hash{String => Object>}] statesNew sourceStates - In or Out
     # @return the list of SrcId's that are enabled in statesNew
     #  but are not enabled in statesOld
     def newSources(statesOld, statesNew)

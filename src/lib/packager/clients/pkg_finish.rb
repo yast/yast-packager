@@ -188,7 +188,7 @@ module Yast
 
     # Remove old sources
     #
-    # @param [Array<String>] List of repositories to remove
+    # @param repos [Array<String>] List of repositories to remove
     def remove_old_sources(repos)
       repos.each do |repo|
         file = File.join(REPOS_DIR, repo)

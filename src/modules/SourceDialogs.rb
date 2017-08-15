@@ -447,7 +447,7 @@ module Yast
     end
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def RepoNameInit(_key)
       UI.ChangeWidget(Id(:repo_name), :Value, @_repo_name)
 
@@ -533,7 +533,7 @@ module Yast
     # raw URL editation widget
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def PlainURLInit(_key)
       UI.ChangeWidget(Id(:url), :Value, @_url)
       UI.SetFocus(:url)
@@ -593,7 +593,7 @@ module Yast
     end
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def NFSInit(_key)
       # check the current edit type
       current_type = Convert.to_symbol(UI.QueryWidget(Id(:edit_type), :Value))
@@ -853,7 +853,7 @@ module Yast
     # File / Directory repository widget
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def DirInit(_key)
       parsed = URL.Parse(@_url)
 
@@ -870,7 +870,7 @@ module Yast
     end
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def IsoInit(_key)
       @_url = PreprocessISOURL(@_url)
       parsed = URI.parse(@_url)
@@ -1245,7 +1245,7 @@ module Yast
     end
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def USBInit(_key)
       # detect disks
       usb_disks = DetectUSBDisk()
@@ -1319,7 +1319,7 @@ module Yast
     end
 
     # Init function of a widget
-    # @param [String] key string widget key
+    # @param [String] _key string widget key
     def DiskInit(_key)
       # refresh the cache
       disks = DetectHardDisk()
@@ -2235,7 +2235,7 @@ module Yast
 
     # Handles Ui events in New repository type selection dialog
     #
-    # @param [String] key widget key
+    # @param [String] _key widget key
     # @param [Hash] event event description
     # @return [Symbol]
     def SelectHandle(_key, event)
