@@ -21,6 +21,8 @@ module Yast
         end
       end
 
+      Builins.y2milestone "install src partition #{install_src_partition}"
+
       nil
     end
   end
