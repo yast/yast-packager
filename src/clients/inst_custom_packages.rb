@@ -1,14 +1,6 @@
 # encoding: utf-8
-
-# Module:	inst_custom_packages.ycp
-#
-# Authors:	Anas Nashif <nashif@suse.de>
-#
-# Purpose:	Client for 3rd prodcuts/addon products package installations
-#
-# $Id$
-#
 module Yast
+  # Client for 3rd prodcuts/addon products package installations
   class InstCustomPackagesClient < Client
     def main
       Yast.import "UI"

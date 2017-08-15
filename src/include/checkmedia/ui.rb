@@ -1,19 +1,6 @@
 # encoding: utf-8
-
-# File:
-#   include/checkmedia/ui.ycp
-#
-# Summary:
-#   User interface functions for checking media integrity
-#
-# Authors:
-#   Ladislav Slezak <lslezak@suse.cz>
-#
-# $Id$
-#
-# All user interface functions.
-#
 module Yast
+  # All user interface functions.
   module CheckmediaUiInclude
     def initialize_checkmedia_ui(_include_target)
       Yast.import "Pkg"
@@ -176,7 +163,8 @@ module Yast
       Builtins.regexpmatch(Ops.get_string(res, "stdout", ""), "md5sum=")
     end
 
-    # mount CD drive and check whether there is directory 'media.1' (the first medium) and 'boot' (bootable product CD)
+    # mount CD drive and check whether there is directory 'media.1' (the first medium)
+    # and 'boot' (bootable product CD)
     def InsertedCD1
       ret = true
       instmode = Convert.to_string(SCR.Read(path(".etc.install_inf.InstMode")))
@@ -303,8 +291,8 @@ module Yast
         # help text - media check 2/8
         _(
           "<P>When you have a problem with\n" \
-            "the installation and you are using a CD or DVD installation medium, you should check\n" \
-            "whether the medium is broken.</P>\n"
+            "the installation and you are using a CD or DVD installation medium, " \
+            "you should check\nwhether the medium is broken.</P>\n"
         ) +
         # help text - media check 3/8
         _(
@@ -315,11 +303,13 @@ module Yast
         ) +
         # help text - media check 4/8
         _(
-          "<P>If the check of the medium fails, you should not continue the installation.\nIt may fail or you may lose your data. Better replace the broken medium.</P>\n"
+          "<P>If the check of the medium fails, you should not continue the installation.\n" \
+            "It may fail or you may lose your data. Better replace the broken medium.</P>\n"
         ) +
         # help text - media check 5/8
         _(
-          "After the check, insert the next medium and start the procedure again. \nThe order of the media is irrelevant.\n"
+          "After the check, insert the next medium and start the procedure again. \n" \
+            "The order of the media is irrelevant.\n"
         ) +
         # help text - media check 6/8
         _(
@@ -327,24 +317,25 @@ module Yast
         ) +
         # help text - media check 7/8
         _(
-          "<P>To check media before the installation, use the media check item in the boot menu.</P>"
+          "<P>To check media before the installation, " \
+            "use the media check item in the boot menu.</P>"
         ) +
         # help text - media check 8/8
         _(
-          "<P>If you burn the media yourself, use the <B>pad</B> option in your recording\nsoftware. It avoids read errors at the end of the media during the check.</P>\n"
+          "<P>If you burn the media yourself, use the <B>pad</B> option in your recording\n" \
+            "software. It avoids read errors at the end of the media during the check.</P>\n"
         )
 
       # advice check of the media
       # for translators: split the message to more lines if needed, use max. 50 characters per line
       label = _(
-        "It is recommended to check all installation media\nto avoid installation problems. To skip this step press 'Next'"
+        "It is recommended to check all installation media\n" \
+          "to avoid installation problems. To skip this step press 'Next'"
       )
 
       contents = VBox(
         # combobox label
-        CheckMedia.forced_start ?
-          VBox(Left(Label(label)), VSpacing(0.6)) :
-          Empty(),
+        CheckMedia.forced_start ? VBox(Left(Label(label)), VSpacing(0.6)) : Empty(),
         # combo box
         HBox(
           ComboBox(
@@ -436,10 +427,6 @@ module Yast
               "starting media check at drive %1",
               selecteddrive
             )
-            # progress message, %1 is CD device name (e.g. /dev/hdc)
-            # UI::ChangeWidget(`id(`log), `LastLine, sformat(_("Check started (%1)...\n"), selecteddrive));
-
-            # LogLine(sformat(_("Check started (%1)...\n"), selecteddrive));
 
             # try to read one byte from the medium
             res = Convert.to_integer(
@@ -452,7 +439,8 @@ module Yast
               )
             )
             if res.nonzero?
-              # error message: the medium cannot be read or no medium in the drive; %1 = drive, e.g. /dev/hdc
+              # TRANSLATORS: error message: the medium cannot be read or no medium in the
+              # drive; %1 = drive, e.g. /dev/hdc
               LogLine(
                 Ops.add(
                   Ops.add(

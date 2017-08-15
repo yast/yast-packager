@@ -1,21 +1,8 @@
 # encoding: utf-8
-
-# Module: 		inst_rpmcopy.ycp
-#
-# Authors:		Klaus Kaempf <kkaempf@suse.de>
-#			Stefan Hundhammer <sh@suse.de> (slide show)
-#			Arvin Schnell <arvin@suse.de>
-#
-# Purpose:
-# Install all the RPM packages the user has selected.
-# Show installation dialogue. Show progress bars.
-# Request medium change from user.
-#
-# Packages module :
-#			"installed"
-#
-# $Id$
 module Yast
+  # Install all the RPM packages the user has selected.
+  # Show installation dialogue. Show progress bars.
+  # Request medium change from user.
   class InstRpmcopyClient < Client
     def main
       Yast.import "Pkg"
@@ -39,16 +26,8 @@ module Yast
 
       Yast.include self, "packager/storage_include.rb"
 
-      # ------------------------------------------------------------------------------------------------------
-      # begin of commit installation functions
-      # ------------------------------------------------------------------------------------------------------
-
       @remaining = []
       @srcremaining = []
-
-      # ------------------------------------------------------------------------------------------------------
-      # end of commit installation functions
-      # ------------------------------------------------------------------------------------------------------
 
       return :auto if Installation.image_only
 
@@ -263,9 +242,7 @@ module Yast
     def SomePackagesAreRemainForInstallation
       # Either 'remaining' or 'srcremaining' are not empty
       size_remaining = @remaining.nil? ? 0 : Builtins.size(@remaining)
-      size_srcremaining = @srcremaining.nil? ?
-        0 :
-        Builtins.size(@srcremaining)
+      size_srcremaining = @srcremaining.nil? ? 0 : Builtins.size(@srcremaining)
 
       Builtins.y2milestone(
         "remaining: %1, srcremaining: %2",
@@ -405,10 +382,6 @@ module Yast
 
         if commit_result.nil? || Builtins.size(commit_result).zero?
           Builtins.y2error("Commit failed")
-          failed2 = Builtins.mergestring(
-            Ops.get_list(commit_result, 1, []),
-            "\n"
-          )
           # error message - displayed in a scrollable text area
           # %1 - an error message (details)
           Report.LongError(

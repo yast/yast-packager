@@ -1,9 +1,8 @@
-#
-# Handling of /etc/mtab and /mnt/etc/mtab
-#
 require "yast"
 
+# Yast namespace
 module Yast
+  # Handling of /etc/mtab and /mnt/etc/mtab
   class MtabClass < Module
     include Yast::Logger
 

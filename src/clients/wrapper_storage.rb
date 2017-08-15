@@ -1,13 +1,6 @@
 # encoding: utf-8
-
-# Module:		wrapper_storage.ycp
-#
-# Authors:		Ladislav Slezak <lslezak@novell.com>
-#
-# Purpose:		A wrapper for Storage:: module, required for removing yast2-storage dependency
-#
-# $Id$
 module Yast
+  # wrapper for Storage:: module, required for removing yast2-storage dependency
   class WrapperStorageClient < Client
     def main
       @func = Convert.to_string(WFM.Args(0))

@@ -1,21 +1,7 @@
 # encoding: utf-8
-
-# Module:		inst_sw_select.ycp
-#
-# Authors:		Gabriele Strattner <gs@suse.de>
-#			Klaus Kaempf <kkaempf@suse.de>
-#
-# Purpose:
-# Displays software selection screen. Show radioboxes for software
-# main categories. Let the user select the software.
-#
-# Packages module read:
-#
-# Packages module write:
-#
-# $Id$
-#
 module Yast
+  # Displays software selection screen. Show radioboxes for software
+  # main categories. Let the user select the software.
   class InstSwSelectClient < Client
     def main
       Yast.import "Pkg"

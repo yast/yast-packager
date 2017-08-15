@@ -1,17 +1,6 @@
 # encoding: utf-8
-
-# File:
-#   clients/checkmedia-installation.ycp
-#
-# Summary:
-#   Client for checkig media integrity
-#
-# Authors:
-#   Ladislav Slezak <lslezak@suse.cz>
-#
-# $Id$
-#
 module Yast
+  # Client for checking media integrity
   class InstCheckmediaClient < Client
     def main
       textdomain "packager"
@@ -73,7 +62,8 @@ module Yast
             # test 'check' key
             if Ops.get(application_area, "check", "") == "1"
               @dotest = true
-              # propagate device name to the check media client (preselect the device in the combo box)
+              # propagate device name to the check media client
+              # (preselect the device in the combo box)
               CheckMedia.preferred_drive = drive
             end
           end

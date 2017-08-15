@@ -6,15 +6,16 @@
 #			Gabriele Strattner (gs@suse.de)
 #			Stefan Schubert (schubi@suse.de)
 #
-# Purpose:		Package installation functions usable
-#			when the installation media is available
-#			on Installation::sourcedir
 #
 
 require "yast"
 require "shellwords"
 
+# Yast namespace
 module Yast
+  # Package installation functions usable
+  # when the installation media is available
+  # on Installation::sourcedir
   class SpaceCalculationClass < Module
     include Yast::Logger
 
@@ -134,18 +135,16 @@ module Yast
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
           end # target is "/"
-        else
-          if mountName == "/"
-            part_info["name"] = mountName
-          # ignore some mount points
-          elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
-              mountName != "/dev/shm" &&
-              part["spec"] != "udev" &&
-              !mountName.start_with?("/media/") &&
-              !mountName.start_with?("/run/media/") &&
-              !mountName.start_with?("/var/adm/mount/")
-            part_info["name"] = mountName
-          end
+        elsif mountName == "/"
+          part_info["name"] = mountName
+        # ignore some mount points
+        elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
+            mountName != "/dev/shm" &&
+            part["spec"] != "udev" &&
+            !mountName.start_with?("/media/") &&
+            !mountName.start_with?("/run/media/") &&
+            !mountName.start_with?("/var/adm/mount/")
+          part_info["name"] = mountName
         end
 
         next if part_info.empty?
@@ -197,8 +196,6 @@ module Yast
         Builtins.y2milestone("No journal on ext2")
         return 0
       end
-
-      ret = 0
 
       part_size = Ops.multiply(1024, Ops.get_integer(part, "size_k", 0))
       # default block size is 4k
@@ -304,8 +301,7 @@ module Yast
       ret
     end
 
-    def ReiserJournalSize(part)
-      part = deep_copy(part)
+    def ReiserJournalSize(_part)
       # the default is 8193 of 4k blocks (max = 32749, min = 513 blocks)
       ret = 8193 * 4096
 
@@ -527,7 +523,8 @@ module Yast
 
       if !Stage.initial
         # read /proc/mounts as a list of maps
-        # $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
+        # $["file":"/boot", "freq":0, "mntops":"rw", "passno":0,
+        #   "spec":"/dev/sda1", "vfstype":"ext2"]
         mounts = SCR.Read(path(".proc.mounts"))
         log.info "mounts #{mounts}"
 
@@ -536,36 +533,35 @@ module Yast
           name = mpoint["file"]
           filesystem = mpoint["vfstype"]
 
-          if name.start_with?("/") &&
-              # filter out /dev/pts etc.
-              !name.start_with?("/dev/") &&
-              # filter out duplicate "/" entry
-              filesystem != "rootfs"
+          next if !name.start_with?("/")
+          # filter out /dev/pts etc.
+          next if name.start_with?("/dev/")
+          # filter out duplicate "/" entry
+          next if filesystem == "rootfs"
 
-            capacity = Pkg.TargetCapacity(name)
+          capacity = Pkg.TargetCapacity(name)
 
-            if capacity.nonzero? # dont look at pseudo-devices (proc, shmfs, ...)
-              used = Pkg.TargetUsed(name)
-              growonly = false
+          next unless capacity.nonzero? # dont look at pseudo-devices (proc, shmfs, ...)
+          used = Pkg.TargetUsed(name)
+          growonly = false
 
-              if filesystem == "btrfs"
-                log.info "Btrfs file system detected at #{name}"
-                growonly = btrfs_snapshots?(name)
-                log.info "Snapshots detected: #{growonly}"
-                new_used = btrfs_used_size(name) / 1024
-                log.info "Updated the used size by 'btrfs' utility from #{used} to #{new_used} (diff: #{new_used - used})"
-                used = new_used
-              end
-
-              partitions << {
-                "name"       => name,
-                "free"       => capacity - used,
-                "used"       => used,
-                "filesystem" => filesystem,
-                "growonly"   => growonly
-              }
-            end
+          if filesystem == "btrfs"
+            log.info "Btrfs file system detected at #{name}"
+            growonly = btrfs_snapshots?(name)
+            log.info "Snapshots detected: #{growonly}"
+            new_used = btrfs_used_size(name) / 1024
+            log.info "Updated the used size by 'btrfs' utility " \
+              "from #{used} to #{new_used} (diff: #{new_used - used})"
+            used = new_used
           end
+
+          partitions << {
+            "name"       => name,
+            "free"       => capacity - used,
+            "used"       => used,
+            "filesystem" => filesystem,
+            "growonly"   => growonly
+          }
         end
         Pkg.TargetInitDU(partitions)
         Builtins.y2milestone("get_partition_info: %1", partitions)
@@ -608,8 +604,7 @@ module Yast
             free_size = 0
             growonly = false
 
-            if Ops.get(part, "mount") != nil &&
-                part["mount"].start_with?("/")
+            if !Ops.get(part, "mount").nil? && part["mount"].start_with?("/")
               if Ops.get(part, "create") == true ||
                   Ops.get(part, "delete") == false ||
                   Ops.get(part, "create").nil? &&
@@ -736,7 +731,8 @@ module Yast
                 free_size_kib = free_size / 1024
                 used_kib = used / 1024
                 mount_name = part["mount"]
-                log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
+                log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, " \
+                  "used: #{used_kib}KiB"
 
                 mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
 
@@ -779,7 +775,8 @@ module Yast
       partition = []
 
       if Stage.cont
-        partition = EvaluateFreeSpace(0) # free spare already checked during first part of installation
+        # free spare already checked during first part of installation
+        partition = EvaluateFreeSpace(0)
       elsif Mode.update
         partition = EvaluateFreeSpace(15) # 15% free spare for update/upgrade
       elsif Mode.normal
@@ -883,7 +880,8 @@ module Yast
               "\n" +
                 # popup message
                 _(
-                  "Deselect packages or delete data or temporary files\nbefore updating the system.\n"
+                  "Deselect packages or delete data or temporary files\n" \
+                    "before updating the system.\n"
                 )
             )
           else
@@ -907,9 +905,9 @@ module Yast
       if Ops.greater_than(Builtins.size(message), 0)
         Builtins.y2warning("Warning: %1", message)
         Report.Message(Builtins.mergestring(message, "\n"))
-        return true
+        true
       else
-        return false
+        false
       end
     end
 
@@ -992,7 +990,8 @@ module Yast
             Ops.multiply(current_free_size, 100),
             total
           )
-          # ignore the partitions which were already full and no files will be installed there (bnc#259493)
+          # ignore the partitions which were already full
+          # and no files will be installed there (bnc#259493)
           if Ops.greater_than(used_future, used_now) &&
               Ops.greater_than(current_free_size, 0)
             if Ops.less_than(current_free_percent, free_percent) &&
@@ -1038,7 +1037,8 @@ module Yast
     # @return [Boolean] true when a snapshot is found
     def btrfs_snapshots?(directory)
       # list available snapshot subvolumes
-      ret = SCR.Execute(path(".target.bash_output"), "btrfs subvolume list -s #{Shellwords.escape(directory)}")
+      ret = SCR.Execute(path(".target.bash_output"),
+        "btrfs subvolume list -s #{Shellwords.escape(directory)}")
 
       if (ret["exit"]).nonzero?
         log.error "btrfs call failed: #{ret}"
@@ -1070,7 +1070,7 @@ module Yast
       used = df_info.reduce(0) do |acc, line|
         size = line[/used=(\S+)/, 1]
         size = size ? size_from_string(size) : 0
-        acc += size
+        acc + size
       end
 
       log.info "Detected total used size: #{used} (#{used / 1024 / 1024}MiB)"

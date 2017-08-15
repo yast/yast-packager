@@ -1,15 +1,10 @@
 # encoding: utf-8
-
-# Module:		PackageInstallation.ycp
-#
-# Authors:		Gabriele Strattner <gs@suse.de>
-#
-# $Id$
-#
 require "yast"
 require "yast2/system_time"
 
+# Yast namespace
 module Yast
+  # Perfoms package installation
   class PackageInstallationClass < Module
     def main
       Yast.import "Pkg"
@@ -97,10 +92,9 @@ module Yast
       nil
     end
 
-    #  commitPackages marked for deletion or installation
-    #	Return: [ int successful, list failed, list remaining, list srcremaining, list update_messages ]
-    #
-    #
+    # commitPackages marked for deletion or installation
+    # @return [Array] containing [ int successful, list failed, list remaining,
+    #   list srcremaining, list update_messages ]
     def Commit(config)
       config = deep_copy(config)
       if Mode.test
@@ -108,9 +102,6 @@ module Yast
         return []
       end
       # install packages from this media
-
-      sources = Pkg.SourceGetCurrent(false)
-      source_id = Ops.get(sources, 0, 0)
 
       PackageSlideShow.InitPkgData(false)
 
@@ -210,10 +201,9 @@ module Yast
       deep_copy(commit_result)
     end
 
-    #  commitPackages marked for deletion or installation
-    #	Return: [ int successful, list failed, list remaining, list srcremaining, list update_messages ]
-    #
-    #
+    # commitPackages marked for deletion or installation
+    # @return [Array] with content [ int successful, list failed, list remaining,
+    #   list srcremaining, list update_messages ]
     def CommitPackages(media_number, packages_installed)
       # this is a backward compatible wrapper for Commit()
       Builtins.y2milestone(
@@ -234,7 +224,6 @@ module Yast
     def FakePackager(packages, _inst_source, _deleting)
       packages = deep_copy(packages)
       disk_usage = 20
-      disk_capacity = 10000
       ret = nil
       number = 0
 
@@ -243,9 +232,7 @@ module Yast
         Builtins.size(packages)
       )
 
-      Builtins.foreach(packages) do |pac|
-        # y2debug( "Fake installing %1 from %2", select(pac,0), inst_source );
-        pkg_name = Ops.get_string(pac, 0, "")
+      Builtins.foreach(packages) do |_pac|
         pkg_size = 42 * 1024
         bytes_installed = 0
         if Ops.less_than(pkg_size, 0)
@@ -257,15 +244,6 @@ module Yast
         end
         while Ops.less_than(bytes_installed, pkg_size) && ret != :cancel &&
             ret != :diskfull
-          percent = Ops.divide(Ops.multiply(100, bytes_installed), pkg_size)
-          #	if ( deleting )
-          #	{
-          #	    // Handle deleting packages
-          #	}
-          #	else
-          #	{
-          #	    // Handle installing packages
-          #	}
           Builtins.sleep(300) # millisec
           bytes_installed = Ops.add(bytes_installed, 300 * 1024)
         end

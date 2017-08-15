@@ -1,17 +1,10 @@
 # encoding: utf-8
 
-# Module: 		SlideShowCallbacks.ycp
-#
-# Authors:		Gabriele Strattner <gs@suse.de>
-#			Klaus Kaempf <kkaempf@suse.de>
-#
-# Purpose: 		provides the Callbacks for SlideShow
-#
-# $Id$
-#
 require "yast"
 
+# Yast namespace
 module Yast
+  # Provides the Callbacks for SlideShow
   class SlideShowCallbacksClass < Module
     def main
       Yast.import "Pkg"
@@ -147,8 +140,6 @@ module Yast
       Builtins.y2milestone("ScriptProgress: ping:%1, output: %2", ping, output)
 
       if !output.nil? && output != ""
-        log_line = output
-
         # remove the trailing new line character
         if Builtins.substring(output, Ops.subtract(Builtins.size(output), 1), 1) == "\n"
           output = Builtins.substring(
@@ -323,7 +314,8 @@ module Yast
                 # warning popup - %1 is directory name (e.g. /boot)
                 Builtins.sformat(
                   _(
-                    "The disk space in partition %1 is nearly exhausted.\nContinue with the installation?"
+                    "The disk space in partition %1 is nearly exhausted.\n" \
+                      "Continue with the installation?"
                   ),
                   part
                 )
@@ -405,12 +397,10 @@ module Yast
       ret = ""
       if error.nonzero?
         ret = PackageCallbacks.DonePackage(error, reason)
-      else
-        # put additional rpm output to the installation log
-        if !reason.nil? && Ops.greater_than(Builtins.size(reason), 0)
-          Builtins.y2milestone("Additional RPM output: %1", reason)
-          SlideShow.AppendMessageToInstLog(reason)
-        end
+      # put additional rpm output to the installation log
+      elsif !reason.nil? && Ops.greater_than(Builtins.size(reason), 0)
+        Builtins.y2milestone("Additional RPM output: %1", reason)
+        SlideShow.AppendMessageToInstLog(reason)
       end
 
       if Builtins.size(ret).zero? ||
@@ -489,7 +479,8 @@ module Yast
       nil
     end
 
-    def MediaChange(error_code, error, url, product, current, current_label, wanted, wanted_label, double_sided, devices, current_device)
+    def MediaChange(error_code, error, url, product, current, current_label,
+      wanted, wanted_label, double_sided, devices, current_device)
       devices = deep_copy(devices)
       SlideShow.StopTimer if !Mode.normal
 
@@ -607,7 +598,8 @@ module Yast
       Pkg.CallbackMediaChange(
         fun_ref(
           method(:MediaChange),
-          "string (string, string, string, string, integer, string, integer, string, boolean, list <string>, integer)"
+          "string (string, string, string, string, integer, string, integer, " \
+            "string, boolean, list <string>, integer)"
         )
       )
 
@@ -668,7 +660,9 @@ module Yast
     publish function: :ProblemDeltaDownload, type: "void (string)"
     publish function: :ProblemDeltaApply, type: "void (string)"
     publish function: :CallbackSourceChange, type: "void (integer, integer)"
-    publish function: :MediaChange, type: "string (string, string, string, string, integer, string, integer, string, boolean, list <string>, integer)"
+    publish function: :MediaChange,
+            type:     "string (string, string, string, string, integer, string, integer, " \
+        "string, boolean, list <string>, integer)"
     publish function: :InstallSlideShowCallbacks, type: "void ()"
     publish function: :RemoveSlideShowCallbacks, type: "void ()"
   end

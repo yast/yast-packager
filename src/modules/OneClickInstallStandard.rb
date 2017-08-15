@@ -1,12 +1,10 @@
 # encoding: utf-8
-
-# Module:	OneClickInstallStandard.pm
-# Authors:	Lukas Ocilka <locilka@suse.cz>
-# Summary:	Module for parsing One Click Install Standard
-#		http://en.opensuse.org/Standards/One_Click_Install
 require "yast"
 
+# Yast namespace
 module Yast
+  # Module for parsing One Click Install Standard
+  # http://en.opensuse.org/Standards/One_Click_Install
   class OneClickInstallStandardClass < Module
     def main
       textdomain "packager"

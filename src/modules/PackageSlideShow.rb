@@ -1,16 +1,10 @@
 # encoding: utf-8
-
-# Module:		PackageSlideShow.ycp
-#
-# Purpose:		Module to access slides from installation repository
-#
-# Author:		Stefan Hundhammer <sh@suse.de>
-#                      Stanislav Visnovsky <visnov@suse.cz>
-#
 require "yast"
 require "yast2/system_time"
 
+# Yast namespace
 module Yast
+  # Module to access slides from installation repository
   class PackageSlideShowClass < Module
     include Yast::Logger
 
@@ -131,7 +125,7 @@ module Yast
     # @param sizes [Array<Fixnum>] Sizes to sum
     # @return [Fixnum] Sizes sum
     def ListSum(sizes)
-      sizes.reduce(0) { |s, i| i == -1 ? s : s + i }
+      sizes.reduce(0) { |a, e| e == -1 ? a : a + e }
     end
 
     # Sum up all positive list items, but cut off individual items at a maximum value.
@@ -281,35 +275,8 @@ module Yast
     # @param [Boolean] silent	don't complain in log file
     # @return		true if OK, false if any error
     #
-    def SanityCheck(silent)
-      return true # FIXME!
-      if !@init_pkg_data_complete
-        if !silent
-          Builtins.y2error(
-            "PackageSlideShow::SanityCheck(): Slide show not correctly initialized: " \
-              "PackageSlideShow::InitPkgData() never called!"
-          )
-        end
-        return false
-      end
-
-      if Ops.less_than(@current_src_no, 1) || Ops.less_than(@current_cd_no, 1)
-        # nothing to install but something is going to be deleted, so it's OK
-        if Pkg.IsAnyResolvable(:package, :to_remove)
-          return true
-        elsif !silent
-          Builtins.y2error(
-            -1,
-            "PackageSlideShow::SanityCheck(): Illegal values for current_src_no (%1) or current_cd_no (%2)",
-            @current_src_no,
-            @current_cd_no
-          )
-          Builtins.y2milestone("total sizes: %1", @total_sizes_per_cd_per_src)
-        end
-        return false
-      end
-
-      true
+    def SanityCheck(_silent)
+      true # FIXME!
     end
 
     # Update internal bookkeeping: subtract size of one package from the
@@ -591,9 +558,10 @@ module Yast
           SlideShow.SwitchToDetailsView if SlideShow.user_switched_to_details
         end
 
-        SlideShow.SwitchToSlideView if !SlideShow.user_switched_to_details # Don't override explicit user request!
-      else
-        SlideShow.RebuildDialog if !SlideShow.ShowingDetails
+        # Don't override explicit user request!
+        SlideShow.SwitchToSlideView if !SlideShow.user_switched_to_details
+      elsif !SlideShow.ShowingDetails
+        SlideShow.RebuildDialog
       end
 
       nil
@@ -860,13 +828,6 @@ module Yast
     # Update progress widgets
     #
     def UpdateTotalProgress(silent_check)
-      total_size_to_install_kB = Ops.shift_right(@total_size_to_install, 10)
-
-      # avoid division by zero
-      if Ops.less_or_equal(total_size_to_install_kB, 0)
-        total_size_to_install_kB = 1
-      end
-
       # update the overall progress value (download + installation)
       UpdateTotalProgressValue()
 
@@ -924,7 +885,8 @@ module Yast
 
       Builtins.foreach(@remaining_sizes_per_cd_per_src) do |inst_src|
         Builtins.y2milestone("src #%1: %2", src_no, inst_src)
-        if Ops.greater_than(ListSum(inst_src), 0) # Ignore repositories from where there is nothing is to install
+        # Ignore repositories from where there is nothing is to install
+        if Ops.greater_than(ListSum(inst_src), 0)
           # Add heading for this repository
           itemList = Builtins.add(
             itemList,
@@ -939,23 +901,23 @@ module Yast
 
           cd_no = 0
 
-          Builtins.foreach(inst_src) do |remaining|
-            if Ops.greater_than(remaining, 0) ||
+          Builtins.foreach(inst_src) do |src_remaining|
+            if Ops.greater_than(src_remaining, 0) ||
                 Ops.add(src_no, 1) == @current_src_no &&
                     Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
               caption = Builtins.sformat(@media_type, Ops.add(cd_no, 1)) # "Medium 1" - column #0
-              rem_size = FormatRemainingSize(remaining) # column #1
+              rem_size = FormatRemainingSize(src_remaining) # column #1
               rem_count = FormatRemainingCount(
-                Ops.get(@remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
+                Ops.get(@src_remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
               )
               rem_time = ""
 
               if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
-                remaining = Ops.divide(remaining, @bytes_per_second)
-                remaining = MIN_TIME_PER_CD if remaining < MIN_TIME_PER_CD
-                rem_time = String.FormatTime(remaining) # column #2
+                src_remaining = Ops.divide(src_remaining, @bytes_per_second)
+                src_remaining = MIN_TIME_PER_CD if src_remaining < MIN_TIME_PER_CD
+                rem_time = String.FormatTime(src_remaining) # column #2
 
-                if Ops.greater_than(remaining, MAX_TIME_PER_CD) # clip off at 2 hours
+                if Ops.greater_than(src_remaining, MAX_TIME_PER_CD) # clip off at 2 hours
                   # When data throughput goes downhill (stalled network connection etc.),
                   # cut off the predicted time at a reasonable maximum.
                   # "%1" is a predefined maximum time.
@@ -1031,17 +993,19 @@ module Yast
     end
 
     def DisplayGlobalProgress
-      rem_string = ""
       tot_rem_t = TotalRemainingTime()
 
-      rem_string = @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0) &&
-        Ops.greater_than(tot_rem_t, 0) ?
-        Builtins.sformat(
-          "%1 / %2",
-          FormatRemainingSize(TotalRemainingSize()),
-          FormatTimeShowOverflow(tot_rem_t)
-        ) :
-        FormatRemainingSize(TotalRemainingSize())
+      rem_string =
+        if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0) &&
+            Ops.greater_than(tot_rem_t, 0)
+          Builtins.sformat(
+            "%1 / %2",
+            FormatRemainingSize(TotalRemainingSize()),
+            FormatTimeShowOverflow(tot_rem_t)
+          )
+        else
+          FormatRemainingSize(TotalRemainingSize())
+        end
 
       rem_string = Ops.add(rem_string, ", ") if rem_string != ""
 
@@ -1180,11 +1144,11 @@ module Yast
     #
     # @param [String] pkg_name		package name
     # @param [String] pkg_location	full path to a package
-    # @param [String] pkg_summary	package summary (short description)
+    # @param [String] _pkg_summary	package summary (short description)
     # @param [Integer] pkg_size		package size in bytes
     # @param [Boolean] deleting		Flag: deleting (true) or installing (false) package?
     #
-    def SlideDisplayStart(pkg_name, pkg_location, pkg_summary, pkg_size, deleting)
+    def SlideDisplayStart(pkg_name, pkg_location, _pkg_summary, pkg_size, deleting)
       return if !SanityCheck(false)
 
       # remove path
@@ -1208,8 +1172,6 @@ module Yast
         # FIXME: SlideShow.PauseTimer
         SlideShow.ResetTimer
       end
-
-      pkg_summary ||= ""
 
       msg = ""
 

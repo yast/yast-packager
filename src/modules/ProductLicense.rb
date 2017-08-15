@@ -1,18 +1,10 @@
 # encoding: utf-8
-
-# File:	ProductLicense.ycp
-#
-# Module:	ProductLicense
-#
-# Summary:	Provide access / dialog for product license
-#
-# Author:	Jiri Srain <jsrain@suse.cz>
-#		Lukas Ocilka <locilka@suse.cz>
-#
 require "yast"
 require "uri"
 
+# Yast namespace
 module Yast
+  # Provide access / dialog for product license
   class ProductLicenseClass < Module
     attr_accessor :license_patterns, :license_file_print
 
@@ -157,7 +149,7 @@ module Yast
     #   If set to 'nil', the license is considered to belong to a base product
     # @param [String] dir string directory to look for the license in if src_id is nil
     #   and not 1st stage installation
-    # @param [Array<String>] patterns a list of patterns for the files, regular expressions
+    # @param [Array<String>] _patterns a list of patterns for the files, regular expressions
     #   with %1 for the language
     # @param [Boolean] enable_back sets the back_button status
     # @param [Boolean] base_product defines whether it is a base or add-on product
@@ -166,8 +158,8 @@ module Yast
     #   has been already accepetd, ask user to accept it again (because of 'going back'
     #   in the installation proposal).
     # @param [String] id usually source id but it can be any unique id in UI
-    def AskLicenseAgreement(src_id, dir, patterns, action, enable_back, base_product, require_agreement, id)
-      patterns = deep_copy(patterns)
+    def AskLicenseAgreement(src_id, dir, _patterns, action,
+      enable_back, base_product, require_agreement, id)
       @lic_lang = ""
       licenses = {}
       available_langs = []
@@ -177,7 +169,7 @@ module Yast
         licenses_ref = arg_ref(licenses)
         available_langs_ref = arg_ref(available_langs)
         license_ident_ref = arg_ref(license_ident)
-        _InitLicenseData_result = InitLicenseData(
+        result = InitLicenseData(
           src_id,
           dir,
           licenses_ref,
@@ -189,7 +181,7 @@ module Yast
         licenses = licenses_ref.value
         available_langs = available_langs_ref.value
         license_ident = license_ident_ref.value
-        _InitLicenseData_result
+        result
       )
 
       if init_ret == :auto || init_ret == :accepted
@@ -240,15 +232,11 @@ module Yast
       InstShowInfo.show_info_txt(@info_file) if !@info_file.nil?
 
       # initial loop
-      ret = (
-        licenses_ref = arg_ref(licenses)
-        _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
-          licenses_ref,
-          base_product,
-          action
-        )
-        licenses = licenses_ref.value
-        _HandleLicenseDialogRet_result
+      licenses_ref = arg_ref(licenses)
+      ret = HandleLicenseDialogRet(
+        licenses_ref,
+        base_product,
+        action
       )
 
       if ret == :accepted && !license_ident.nil?
@@ -290,10 +278,9 @@ module Yast
     # @see {AskLicensesAgreement} for details
     # @param caption [String] custom dialog title
     # @param heading [String] optional heading displayed above the license text
-    def AskLicensesAgreementWithHeading(dirs, patterns, action, enable_back,
+    def AskLicensesAgreementWithHeading(dirs, _patterns, action, enable_back,
       base_product, require_agreement, caption, heading)
       dirs = deep_copy(dirs)
-      patterns = deep_copy(patterns)
       if dirs.nil? || dirs == []
         Builtins.y2error("No directories: %1", dirs)
         # error message
@@ -315,17 +302,18 @@ module Yast
 
       license_idents = []
 
-      # initial loop
-      ret = nil
-
       licenses = []
       counter = -1
       contents = VBox(
-        heading ? VBox(
-          VSpacing(0.5),
-          Left(Heading(heading)),
-          VSpacing(0.5)
-        ) : Empty()
+        if heading
+          VBox(
+            VSpacing(0.5),
+            Left(Heading(heading)),
+            VSpacing(0.5)
+          )
+        else
+          Empty()
+        end
       )
 
       Builtins.foreach(dirs) do |dir|
@@ -335,30 +323,27 @@ module Yast
         available_langs = []
         license_ident = ""
         tmp_licenses = {}
-        init_ret2 = (
-          tmp_licenses_ref = arg_ref(tmp_licenses)
-          available_langs_ref = arg_ref(available_langs)
-          license_ident_ref = arg_ref(license_ident)
-          _InitLicenseData_result = InitLicenseData(
-            nil,
-            dir,
-            tmp_licenses_ref,
-            available_langs_ref,
-            require_agreement,
-            license_ident_ref,
-            dir
-          )
-          tmp_licenses = tmp_licenses_ref.value
-          available_langs = available_langs_ref.value
-          license_ident = license_ident_ref.value
-          _InitLicenseData_result
+        tmp_licenses_ref = arg_ref(tmp_licenses)
+        available_langs_ref = arg_ref(available_langs)
+        license_ident_ref = arg_ref(license_ident)
+        InitLicenseData(
+          nil,
+          dir,
+          tmp_licenses_ref,
+          available_langs_ref,
+          require_agreement,
+          license_ident_ref,
+          dir
         )
+        tmp_licenses = tmp_licenses_ref.value
+        available_langs = available_langs_ref.value
+        license_ident = license_ident_ref.value
         if !license_ident.nil?
           license_idents = Builtins.add(license_idents, license_ident)
         end
         license_term = (
           tmp_licenses_ref = arg_ref(tmp_licenses)
-          _GetLicenseDialog_result = GetLicenseDialog(
+          result = GetLicenseDialog(
             available_langs,
             @lic_lang,
             tmp_licenses_ref,
@@ -366,7 +351,7 @@ module Yast
             true
           )
           tmp_licenses = tmp_licenses_ref.value
-          _GetLicenseDialog_result
+          result
         )
         if license_term.nil?
           Builtins.y2error("Oops, license term is: %1", license_term)
@@ -392,13 +377,12 @@ module Yast
       tmp_licenses = {}
       ret = (
         tmp_licenses_ref = arg_ref(tmp_licenses)
-        _HandleLicenseDialogRet_result = HandleLicenseDialogRet(
+        result = HandleLicenseDialogRet(
           tmp_licenses_ref,
           base_product,
           action
         )
-        tmp_licenses = tmp_licenses_ref.value
-        _HandleLicenseDialogRet_result
+        result
       )
       Builtins.y2milestone("Dialog ret: %1", ret)
 
@@ -460,24 +444,20 @@ module Yast
       available_langs = []
       license_ident = ""
 
-      init_ret = (
-        licenses_ref = arg_ref(licenses)
-        available_langs_ref = arg_ref(available_langs)
-        license_ident_ref = arg_ref(license_ident)
-        _InitLicenseData_result = InitLicenseData(
-          nil,
-          "",
-          licenses_ref,
-          available_langs_ref,
-          true,
-          license_ident_ref,
-          Builtins.tostring(src_id)
-        )
-        licenses = licenses_ref.value
-        available_langs = available_langs_ref.value
-        license_ident = license_ident_ref.value
-        _InitLicenseData_result
+      licenses_ref = arg_ref(licenses)
+      available_langs_ref = arg_ref(available_langs)
+      license_ident_ref = arg_ref(license_ident)
+      InitLicenseData(
+        nil,
+        "",
+        licenses_ref,
+        available_langs_ref,
+        true,
+        license_ident_ref,
+        Builtins.tostring(src_id)
       )
+      licenses = licenses_ref.value
+      available_langs = available_langs_ref.value
 
       # Replaces the dialog content with Languages combo-box
       # and the current license text (richtext)
@@ -485,14 +465,14 @@ module Yast
         Id(replace_point_ID),
         (
           licenses_ref = arg_ref(licenses)
-          _GetLicenseDialogTerm_result = GetLicenseDialogTerm(
+          result = GetLicenseDialogTerm(
             available_langs,
             @lic_lang,
             licenses_ref,
             Builtins.tostring(src_id)
           )
           licenses = licenses_ref.value
-          _GetLicenseDialogTerm_result
+          result
         )
       )
 
@@ -527,34 +507,25 @@ module Yast
       available_langs = []
       license_ident = ""
 
-      init_ret = (
-        licenses_ref = arg_ref(licenses)
-        available_langs_ref = arg_ref(available_langs)
-        license_ident_ref = arg_ref(license_ident)
-        _InitLicenseData_result = InitLicenseData(
-          nil,
-          "",
-          licenses_ref,
-          available_langs_ref,
-          true,
-          license_ident_ref,
-          Builtins.tostring(src_id)
-        )
-        licenses = licenses_ref.value
-        available_langs = available_langs_ref.value
-        license_ident = license_ident_ref.value
-        _InitLicenseData_result
+      licenses_ref = arg_ref(licenses)
+      available_langs_ref = arg_ref(available_langs)
+      license_ident_ref = arg_ref(license_ident)
+      InitLicenseData(
+        nil,
+        "",
+        licenses_ref,
+        available_langs_ref,
+        true,
+        license_ident_ref,
+        Builtins.tostring(src_id)
       )
+      licenses = licenses_ref.value
 
-      rt = (
-        licenses_ref = arg_ref(licenses)
-        _GetLicenseContent_result = GetLicenseContent(
-          @lic_lang,
-          licenses_ref,
-          Builtins.tostring(src_id)
-        )
-        licenses = licenses_ref.value
-        _GetLicenseContent_result
+      licenses_ref = arg_ref(licenses)
+      rt = GetLicenseContent(
+        @lic_lang,
+        licenses_ref,
+        Builtins.tostring(src_id)
       )
       UI.ReplaceWidget(Id(replace_point_ID), rt)
 
@@ -587,7 +558,9 @@ module Yast
     end
 
     publish function: :AcceptanceNeeded, type: "boolean (string)"
-    publish function: :AskLicenseAgreement, type: "symbol (integer, string, list <string>, string, boolean, boolean, boolean, string)"
+    publish function: :AskLicenseAgreement,
+            type:     "symbol (integer, string, list <string>, string, " \
+             "boolean, boolean, boolean, string)"
     publish function: :AskAddOnLicenseAgreement, type: "symbol (integer)"
     publish function: :AskFirstStageLicenseAgreement, type: "symbol (integer, string)"
     publish function: :ShowFullScreenLicenseInInstallation, type: "boolean (any, integer)"
@@ -629,18 +602,18 @@ module Yast
     # @param [String] lang language of the currently displayed license
     # @param [Yast::ArgRef] licenses reference to the list of licenses
     def update_license_location(lang, licenses)
-      if location_is_url?(license_file_print) && UI.WidgetExists(:printing_hint)
-        # name of the license file
-        file = File.basename(WhichLicenceFile(lang, licenses))
+      return if !location_is_url?(license_file_print) || !UI.WidgetExists(:printing_hint)
 
-        url = URI(license_file_print)
-        url.path = File.join(url.path, file)
-        log.info "Updating license URL: #{url}"
+      # name of the license file
+      file = File.basename(WhichLicenceFile(lang, licenses))
 
-        display_url = format_url(url.to_s)
+      url = URI(license_file_print)
+      url.path = File.join(url.path, file)
+      log.info "Updating license URL: #{url}"
 
-        UI.ReplaceWidget(:printing_hint, Label(license_download_label(display_url)))
-      end
+      display_url = format_url(url.to_s)
+
+      UI.ReplaceWidget(:printing_hint, Label(license_download_label(display_url)))
     end
 
     # update license location displayed in the dialog
@@ -654,6 +627,8 @@ module Yast
         lic_url = File.join(src_url, @license_file_print)
         UI.ReplaceWidget(:printing_hint, Label(license_download_label(lic_url)))
       end
+
+      nil
     end
 
     # Display info as a popup if exists
@@ -669,9 +644,9 @@ module Yast
     def GetLicenseContent(lic_lang, licenses, id)
       license_file = (
         licenses_ref = arg_ref(licenses.value)
-        _WhichLicenceFile_result = WhichLicenceFile(lic_lang, licenses_ref)
+        result = WhichLicenceFile(lic_lang, licenses_ref)
         licenses.value = licenses_ref.value
-        _WhichLicenceFile_result
+        result
       )
 
       license_text = Convert.to_string(
@@ -683,7 +658,8 @@ module Yast
             "<b>%1</b><br>%2",
             Builtins.sformat(_("Cannot read license file %1"), license_file),
             _(
-              "To show the product license properly, put the license.tar.gz file to the root of the live media when building the image."
+              "To show the product license properly, put the license.tar.gz file to " \
+                "the root of the live media when building the image."
             )
           )
         else
@@ -770,16 +746,15 @@ module Yast
 
     def GetLicenseDialogTerm(languages, license_language, licenses, id)
       languages = deep_copy(languages)
-      license_text = ""
       rt = (
         licenses_ref = arg_ref(licenses.value)
-        _GetLicenseContent_result = GetLicenseContent(
+        result = GetLicenseContent(
           license_language,
           licenses_ref,
           id
         )
         licenses.value = licenses_ref.value
-        _GetLicenseContent_result
+        result
       )
 
       # bug #204791, no more "languages.ycp" client
@@ -840,9 +815,9 @@ module Yast
             "Unknown license language '%1', filtering out...",
             lang_pair
           )
-          next false
+          false
         else
-          next true
+          true
         end
       end
 
@@ -926,25 +901,29 @@ module Yast
               arg_ref(licenses.value),
               id
             ),
-            !@license_file_print.nil? ?
+            if !@license_file_print.nil?
               Left(
                 # FATE #302018
                 ReplacePoint(
                   Id(:printing_hint),
                   Label(
-                    @license_on_installed_system ?
+                    if @license_on_installed_system
                       # TRANSLATORS: addition license information
                       # %s is replaced with the directory name
                       _("This EULA can be found in the directory\n%s") % @license_file_print
-                    :
+                    else
                       # TRANSLATORS: addition license information
                       # %s is replaced with the filename
-                      _("If you want to print this EULA, you can find it\non the first media in the file %s") %
+                      _("If you want to print this EULA, you can find it\n" \
+                        "on the first media in the file %s") %
                       @license_file_print
+                    end
                   )
                 )
-              ) :
-              Empty(),
+              )
+            else
+              Empty()
+            end,
             # BNC #448598
             # yes/no buttons exist only if needed
             # if they don't exist, user is not asked to accept the license later
@@ -967,7 +946,8 @@ module Yast
     # Displays License dialog
     def DisplayLicenseDialog(languages, back, license_language, licenses, id)
       # dialog title
-      DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, _("License Agreement"))
+      DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id,
+        _("License Agreement"))
     end
 
     # Displays License with Help and ( ) Yes / ( ) No radio buttons
@@ -982,7 +962,7 @@ module Yast
 
       contents = (
         licenses_ref = arg_ref(licenses.value)
-        _GetLicenseDialog_result = GetLicenseDialog(
+        result = GetLicenseDialog(
           languages,
           license_language,
           licenses_ref,
@@ -990,7 +970,7 @@ module Yast
           false
         )
         licenses.value = licenses_ref.value
-        _GetLicenseDialog_result
+        result
       )
 
       Wizard.SetContents(
@@ -1120,13 +1100,9 @@ module Yast
         if UnpackLicenseTgzFileToDirectory(license_file, @tmpdir)
           @license_dir = @tmpdir
           @license_file_print = "license.tar.gz"
-        else
-          license_file = nil
         end
       else
         Builtins.y2milestone("Installation Product doesn't have a license")
-
-        license_file = nil
       end
 
       @info_file = "/info.txt" if FileUtils.Exists("/info.txt")
@@ -1362,7 +1338,8 @@ module Yast
       SetAcceptanceNeeded(id, license_acceptance_needed)
     end
 
-    def InitLicenseData(src_id, dir, licenses, available_langs, _require_agreement, _license_ident, id)
+    def InitLicenseData(src_id, dir, licenses, available_langs,
+      _require_agreement, _license_ident, id)
       # Downloads and unpacks all licenses for a given source ID
       GetSourceLicenseDirectory(src_id, dir)
       cache_license_acceptance_needed(id, @license_dir)
@@ -1435,15 +1412,12 @@ module Yast
       # fallback
       license_ident_lang = @lic_lang if license_ident_lang.nil?
 
-      base_license = (
-        licenses_ref = arg_ref(licenses.value)
-        _WhichLicenceFile_result = WhichLicenceFile(
-          license_ident_lang,
-          licenses_ref
-        )
-        licenses.value = licenses_ref.value
-        _WhichLicenceFile_result
+      licenses_ref = arg_ref(licenses.value)
+      WhichLicenceFile(
+        license_ident_lang,
+        licenses_ref
       )
+      licenses.value = licenses_ref.value
       log.info "License needs to be shown"
 
       # bugzilla #303922
@@ -1478,13 +1452,13 @@ module Yast
           rp_id,
           (
             licenses_ref = arg_ref(licenses.value)
-            _GetLicenseContent_result = GetLicenseContent(
+            result = GetLicenseContent(
               @lic_lang,
               licenses_ref,
               id
             )
             licenses.value = licenses_ref.value
-            _GetLicenseContent_result
+            result
           )
         )
       else

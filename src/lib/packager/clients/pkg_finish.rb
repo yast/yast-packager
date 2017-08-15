@@ -18,6 +18,7 @@ require "packages/repository"
 require "packager/cfa/zypp_conf"
 
 module Yast
+  # Finish client for packager
   class PkgFinishClient < ::Installation::FinishClient
     include Yast::I18n
     include Yast::Logger
@@ -94,6 +95,8 @@ module Yast
         ::FileUtils.cp(FAILED_PKGS_PATH, File.join(Installation.destdir, FAILED_PKGS_PATH),
           preserve: true)
       end
+
+      nil
     end
 
   private

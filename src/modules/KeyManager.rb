@@ -1,15 +1,9 @@
 # encoding: utf-8
-
-# File:	modules/KeyManager.ycp
-# Package:	GPG Key Management
-# Summary:	Manages GPG keys in the package manager
-# Authors:	Ladislav Slezák <lslezak@novell.com>
-#
-# $Id$
-#
 require "yast"
 
+# Yast namespace
 module Yast
+  # GPG Key Management
   class KeyManagerClass < Module
     def main
       Yast.import "Pkg"
@@ -56,7 +50,8 @@ module Yast
       deep_copy(ret)
     end
 
-    # Read the current configuration from the package manager. The previous changes are lost (@see Reset).
+    # Read the current configuration from the package manager.
+    # The previous changes are lost (@see Reset).
     # The target system of the package manager must be initialized before reading GPG keys!
     # @return [Boolean] true on success
     def Read
@@ -146,7 +141,8 @@ module Yast
     end
 
     # Return the current keys.
-    # @return [Array] list of known GPG keys ($[ "id" : string, "name" : string, "trusted" : boolean ])
+    # @return [Array] list of known GPG keys
+    #   ($[ "id" : string, "name" : string, "trusted" : boolean ])
     def GetKeys
       deep_copy(@known_keys)
     end
@@ -193,7 +189,8 @@ module Yast
     # Import key from a file
     # @param [String] file path to the file
     # @param [Boolean] trusted true if the key is trusted
-    # @return [Hash] map with the key, nil when import fails (invalid key, not existing file, already imported key...)
+    # @return [Hash] map with the key, nil when import fails
+    # (invalid key, not existing file, already imported key...)
     def ImportFromFile(file, trusted)
       # check whether the file is valid, copy the file to the tmpdir
       key = Pkg.CheckGPGKeyFile(file)
@@ -222,7 +219,8 @@ module Yast
       end
 
       if known
-        # %1 is key ID (e.g. A84EDAE89C800ACA), %2 is key name (e.g. "SuSE Package Signing Key <build@suse.de>")
+        # %1 is key ID (e.g. A84EDAE89C800ACA), %2 is key name
+        # (e.g. "SuSE Package Signing Key <build@suse.de>")
         Report.Error(
           Builtins.sformat(
             _(

@@ -22,6 +22,7 @@
 require "installation/proposal_client"
 
 module Yast
+  # Software installation proposal
   class SoftwareProposalClient < ::Installation::ProposalClient
     def initialize
       Yast.import "Pkg"
@@ -40,7 +41,8 @@ module Yast
 
       # if only partitioning has been changed just return the current state,
       # don't reset to default (bnc#450786, bnc#371875)
-      if partitioning_changed? && !@language_changed && !@force_reset && !Packages.PackagesProposalChanged
+      if partitioning_changed? && !@language_changed && !@force_reset &&
+          !Packages.PackagesProposalChanged
         @ret = Packages.Summary([:product, :pattern, :selection, :size, :desktop], false)
       else
         @reinit = @language_changed
@@ -86,7 +88,6 @@ module Yast
       chosen_id = params["chosen_id"]
       if chosen_id == "mediacheck"
         @result = Convert.to_symbol(WFM.CallFunction("checkmedia", WFM.Args))
-        @ret = { "workflow_sequence" => @result }
       else
         @result = :again
         @client_to_call = "inst_sw_select"
@@ -96,12 +97,8 @@ module Yast
             WFM.CallFunction(@client_to_call, [true, true])
           )
         end
-
-        # Fill return map
-
-        @ret = { "workflow_sequence" => @result }
       end
-      @ret
+      @ret = { "workflow_sequence" => @result }
     end
 
     def description

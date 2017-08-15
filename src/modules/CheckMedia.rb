@@ -1,21 +1,10 @@
 # encoding: utf-8
 
-# File:
-#   modules/CheckMedia.ycp
-#
-# Summary:
-#   Module for checking media intergrity
-#
-# Authors:
-#   Ladislav Slezak <lslezak@suse.cz>
-#
-# $Id$
-#
-# Input and output routines.
-#
 require "yast"
 
+# Yast namespace
 module Yast
+  # Module for checking media intergrity
   class CheckMediaClass < Module
     def main
       Yast.import "Linuxrc"

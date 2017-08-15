@@ -1,16 +1,9 @@
 # encoding: utf-8
-
-# Module:		InstURL.ycp
-#
-# Authors:		Klaus Kaempf (kkaempf@suse.de)
-#
-# Purpose:		Convert /etc/install.inf data to URL
-#
-#
-# $Id$
 require "yast"
 
+# Yast namespace
 module Yast
+  # Convert /etc/install.inf data to URL
   class InstURLClass < Module
     include Yast::Logger
 
