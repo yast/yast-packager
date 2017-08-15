@@ -25,7 +25,8 @@ describe Yast::ProductLicense do
       it "updates the UI with new license translation" do
         expect(Yast::UI).to receive(:UserInput).and_return("license_language_pt_BR", :next)
         expect(Yast::ProductLicense).to receive(:UpdateLicenseContent).and_return(nil)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+        expect(Yast::ProductLicense
+          .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
           .to eq(:accepted)
       end
     end
@@ -35,7 +36,8 @@ describe Yast::ProductLicense do
         expect(Yast::UI).to receive(:UserInput).and_return("eula_some_ID", :next)
         expect(Yast::ProductLicense).to receive(:AllLicensesAcceptedOrDeclined).and_return(true)
         expect(Yast::Wizard).to receive(:EnableNextButton).and_return(true)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+        expect(Yast::ProductLicense
+          .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
           .to eq(:accepted)
       end
     end
@@ -50,7 +52,8 @@ describe Yast::ProductLicense do
           it "returns :abort" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort)
             expect(Yast::Popup).to receive(:ConfirmAbort).and_return(true)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
               .to eq(:abort)
           end
         end
@@ -59,7 +62,8 @@ describe Yast::ProductLicense do
           it "continues handling the user input" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort, :next)
             expect(Yast::Popup).to receive(:ConfirmAbort).and_return(false)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
               .to eq(:accepted)
           end
         end
@@ -74,7 +78,8 @@ describe Yast::ProductLicense do
           it "returns :abort" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort)
             expect(Yast::Popup).to receive(:YesNo).and_return(true)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
               .to eq(:abort)
           end
         end
@@ -83,7 +88,8 @@ describe Yast::ProductLicense do
           it "continues handling the user input" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort, :next)
             expect(Yast::Popup).to receive(:YesNo).and_return(false)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
               .to eq(:accepted)
           end
         end
@@ -93,7 +99,8 @@ describe Yast::ProductLicense do
     context "while going back to previous dialog" do
       it "returns :back" do
         expect(Yast::UI).to receive(:UserInput).and_return(:back)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+        expect(Yast::ProductLicense
+          .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
           .to eq(:back)
       end
     end
@@ -108,7 +115,8 @@ describe Yast::ProductLicense do
       context "while all licenses have been accepted" do
         it "returns :accepted" do
           expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(true)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort"))
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
             .to eq(:accepted)
         end
       end
@@ -121,13 +129,17 @@ describe Yast::ProductLicense do
           allow(Yast::ProductLicense).to receive(:TimedOKCancel).and_return(true)
 
           base_prod = false
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "abort"))
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "abort"))
             .to eq(:abort)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "continue"))
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "continue"))
             .to eq(:accepted)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "halt"))
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "halt"))
             .to eq(:halt)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "unknown"))
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "unknown"))
             .to eq(:abort)
         end
       end

@@ -311,8 +311,8 @@ describe Yast::Packages do
 
       expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
         expect(msg).to match(
-          /(transaction status [begin|end]|(locked)?resolvables
-            of type .* set by .*|:name=>.*:version=>)/ix
+          /(transaction\sstatus\s[begin|end]|(locked)?resolvables\s
+           of\stype\s.*\sset\sby\s.*|:name=>.*:version=>)/ix
         )
       end.exactly(8).times
 
@@ -419,8 +419,8 @@ describe Yast::Packages do
       )
 
       expect(summary_string).to match(
-        /Subscription Management Tool for SUSE Linux Enterprise 11 SP3.*
-        will be updated to.*SUSE Linux Enterprise Server 12/x
+        /Subscription\sManagement\sTool\sfor\sSUSE\sLinux\sEnterprise\s11\sSP3.*
+         will\sbe\supdated\sto.*SUSE\sLinux\sEnterprise\sServer\s12/x
       )
     end
   end
