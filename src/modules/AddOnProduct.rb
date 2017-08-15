@@ -818,7 +818,6 @@ module Yast
     # Do installation of the add-on product within an installed system
     # srcid is got via AddOnProduct::src_id
     #
-    # @param string src_id
     # @return [Symbol] the result symbol from wizard sequencer
     def DoInstall
       # Display /media.1/info.txt if such file exists
