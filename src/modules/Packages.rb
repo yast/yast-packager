@@ -525,7 +525,7 @@ module Yast
         delim = summary.fetch("warning", "").empty? ? "" : "<BR>"
         if Builtins.contains(
           @basic_dirs,
-          Ops.get_string(failed_mount, "mount", "")
+          failed_mount.mountpoint
         )
           Ops.set(
             summary,
@@ -538,8 +538,8 @@ module Yast
                   "Error: Cannot check free space in basic directory %1 (device %2), " \
                     "cannot start installation."
                 ),
-                Ops.get_string(failed_mount, "mount", ""),
-                Ops.get_string(failed_mount, "device", "")
+                failed_mount.mountpoint,
+                fs_dev_name(failed_mount)
               )
             )
           )
@@ -558,8 +558,8 @@ module Yast
                 _(
                   "Warning: Cannot check free space in directory %1 (device %2)."
                 ),
-                Ops.get_string(failed_mount, "mount", ""),
-                Ops.get_string(failed_mount, "device", "")
+                failed_mount.mountpoint,
+                fs_dev_name(failed_mount)
               )
             )
           )
@@ -2633,6 +2633,14 @@ module Yast
         _("These items (%{type}) need to be selected to install: %{list}") %
           { type: type, list: list }
       end
+    end
+
+    # Device name of the given filesystem, used to identify the filesystem in
+    # the log messages
+    def fs_dev_name(filesystem)
+      blk_device = filesystem.blk_devices[0]
+      return "" unless blk_device
+      blk_device.name
     end
 
     # Checking if product2 has a conflict to product1

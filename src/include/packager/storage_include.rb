@@ -19,20 +19,6 @@ module Yast
             install_src_partition
           )
         end
-
-        Builtins.y2milestone(
-          "Calling Storage::RemoveDmMapsTo(%1)",
-          install_src_partition
-        )
-        ret = WFM.call(
-          "wrapper_storage",
-          ["RemoveDmMapsTo", [install_src_partition]]
-        )
-        Builtins.y2milestone(
-          "Storage::RemoveDmMapsTo(%1) result: %2",
-          install_src_partition,
-          ret
-        )
       end
 
       nil

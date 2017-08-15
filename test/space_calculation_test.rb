@@ -2,8 +2,8 @@
 
 require_relative "./test_helper"
 require "yaml"
+require "y2storage"
 
-Yast.import "WFM"
 Yast.import "Stage"
 Yast.import "Mode"
 Yast.import "SCR"
@@ -14,21 +14,26 @@ SCR_TMPDIR_PATH = Yast::Path.new(".target.tmpdir")
 SCR_BASH_PATH = Yast::Path.new(".target.bash")
 SCR_BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
 
-def stub_target_map(name, with_fstopt)
-  path = File.join(DATA_PATH, "#{name}_target_map.yml")
-  tm = YAML.load_file(path)
-  # Remove the "fstopt" key from every partition
-  if with_fstopt == false
-    tm.each do |_k, v|
-      v["partitions"].each { |p| p.delete("fstopt") }
-    end
-  end
-  allow(Yast::WFM).to(receive(:call).with("wrapper_storage",
-    ["GetTargetMap"]).and_return(tm))
+def stub_devicegraph(name)
+  path = File.join(DATA_PATH, "#{name}_devicegraph.yml")
+  Y2Storage::StorageManager.instance.probe_from_yaml(path)
 end
 
 def expect_to_execute(command)
   expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, command)
+end
+
+def filesystem(size_k: 0, block_size: 4096, type: :ext2, tune_options: "")
+  disk_size = Y2Storage::DiskSize.KiB(size_k)
+  region = Y2Storage::Region.create(0, disk_size.to_i, Y2Storage::DiskSize.B(block_size))
+  fs_type = Y2Storage::Filesystems::Type.new(type)
+  dev_sda1 = double("Y2Storage::BlkDevice", name: "/dev/sda1", region: region, size: disk_size)
+  double(
+    "Y2Storage::Filesystems::BlkFilesystem",
+    blk_devices:  [dev_sda1],
+    type:         fs_type,
+    tune_options: tune_options
+  )
 end
 
 describe Yast::SpaceCalculation do
@@ -39,7 +44,10 @@ describe Yast::SpaceCalculation do
         allow(Yast::Stage).to receive(:stage).and_return "initial"
         allow(Yast::Mode).to receive(:mode).and_return "normal"
 
-        stub_target_map(target_map, with_options)
+        stub_devicegraph(target_map)
+        if !with_options
+          allow_any_instance_of(Storage::BlkFilesystem).to receive(:fstab_options).and_return([])
+        end
 
         allow(Yast::SCR).to receive(:Read).with(SCR_TMPDIR_PATH).and_return "/tmp"
         allow(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, /^mkdir -p/)
@@ -69,6 +77,10 @@ describe Yast::SpaceCalculation do
       end
 
       context "on nfs" do
+        before(:all) do
+          skip "TODO: NFS not fully supported in libstorage-ng yet"
+        end
+
         let(:target_map) { "nfs" }
 
         context "with mount options" do
@@ -102,6 +114,10 @@ describe Yast::SpaceCalculation do
       end
 
       context "on encrypted device" do
+        before(:all) do
+          skip "TODO: Encryption not fully supported in libstorage-ng yet"
+        end
+
         let(:target_map) { "luks" }
         let(:with_options) { false }
 
@@ -155,6 +171,12 @@ describe Yast::SpaceCalculation do
     it "converts '0.00' to zero" do
       expect(Yast::SpaceCalculation.size_from_string("0.00")).to eq(0)
     end
+
+    it "does not modify the argument" do
+      str = "1"
+      Yast::SpaceCalculation.size_from_string(str)
+      expect(str).to eq "1"
+    end
   end
 
   describe "#btrfs_snapshots?" do
@@ -195,7 +217,7 @@ Metadata: total=8.00MiB, used=0.00B
 EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => stdout, "exit" => 0)
-      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_482)
+      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_483)
     end
 
     it "raises an exception when btrfs tool fails" do
@@ -217,7 +239,7 @@ Metadata: total=8.00MiB
 EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => stdout, "exit" => 0)
-      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_482)
+      expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_483)
     end
   end
 
@@ -262,88 +284,76 @@ EOF
 
   describe ".ExtJournalSize" do
     it "returns zero for ext2" do
-      data = { "size_k" => 5 << 20, "used_fs" => :ext2, "name" => "sda1" }
+      data = filesystem(size_k: 5 << 20, type: :ext2)
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq 0
     end
 
     it "returns zero for small ext3/4 partitions" do
-      data = { "size_k" => 2 << 10, "used_fs" => :ext3, "name" => "sda1" }
+      data = filesystem(size_k: 2 << 10, type: :ext3)
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq 0
     end
 
     it "returns zero if partition have no_journal option" do
-      data = {
-        "size_k" => 2 << 20, "used_fs" => :ext4, "name" => "sda1",
-        "fs_options" => { "no_journal" => { "option_value" => true } }
-      }
+      data = filesystem(size_k: 2 << 20, type: :ext4)
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(0)
     end
 
     it "returns correct journal size in bytes for ext3/4 partitions" do
-      data = { "size_k" => 5 << 20, "used_fs" => :ext3, "name" => "sda1" }
+      data = filesystem(size_k: 5 << 20, type: :ext3, tune_options: "has_journal")
       # returns in bytes, but input in kb
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(128 << 20)
 
-      data = { "size_k" => 5 << 20, "used_fs" => :ext4, "name" => "sda1" }
+      data = filesystem(size_k: 5 << 20, type: :ext4, tune_options: "has_journal")
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(128 << 20)
 
-      data = { "size_k" => 2 << 20, "used_fs" => :ext4, "name" => "sda1" }
+      data = filesystem(size_k: 2 << 20, type: :ext4, tune_options: "has_journal")
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(64 << 20)
 
       # use 1k blocks
-      data = {
-        "size_k" => 2 << 20, "used_fs" => :ext4, "name" => "sda1",
-        "fs_options" => { "opt_blocksize" => { "option_value" => "1024" } }
-      }
+      data = filesystem(size_k: 2 << 20, type: :ext4, tune_options: "has_journal", block_size: 1024)
       expect(Yast::SpaceCalculation.ExtJournalSize(data)).to eq(32 << 20)
     end
   end
 
   describe ".ReiserJournalSize" do
     it "returns 32MB + 4kB regardless fs size" do
-      data = { "size_k" => 5 << 20, "used_fs" => :reiser, "name" => "sda1" }
+      data = filesystem(size_k: 5 << 20, type: :reiserfs)
       expect(Yast::SpaceCalculation.ReiserJournalSize(data)).to eq((32 << 20) + (4 << 10))
     end
   end
 
   describe ".XfsJournalSize" do
     it "returns correct journal size depending on fs size" do
-      data = { "size_k" => 2 << 10, "used_fs" => :xfs, "name" => "sda1" }
+      data = filesystem(size_k: 2 << 10, type: :xfs)
       expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq(10 << 20)
 
-      data = { "size_k" => 50 << 20, "used_fs" => :xfs, "name" => "sda1" }
+      data = filesystem(size_k: 50 << 20, type: :xfs)
       expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq(25 << 20)
 
-      data = { "size_k" => 5 << 30, "used_fs" => :xfs, "name" => "sda1" }
+      data = filesystem(size_k: 50 << 30, type: :xfs)
       expect(Yast::SpaceCalculation.XfsJournalSize(data)).to eq(2 << 30)
     end
   end
 
   describe ".JfsJournalSize" do
-    it "returns user specified journal size if used" do
-      data = {
-        "size_k" => 2 << 20, "used_fs" => :jfs, "name" => "sda1",
-        "fs_options" => { "opt_log_size" => { "option_value" => "10" } }
-      }
-      expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(10 << 20)
-    end
-
     it "returns correct journal size depending on fs size" do
-      data = { "size_k" => 5 << 20, "used_fs" => :jfs, "name" => "sda1" }
+      data = filesystem(size_k: 5 << 20, type: :jfs)
       expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(20 << 20)
 
       # test rounding if few more kB appears
-      data = { "size_k" => (5 << 20) + 5, "used_fs" => :jfs, "name" => "sda1" }
+      data = filesystem(size_k: (5 << 20) + 5, type: :jfs)
       expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(21 << 20)
 
       # test too big limitation to 128MB
-      data = { "size_k" => 50 << 30, "used_fs" => :jfs, "name" => "sda1" }
+      data = filesystem(size_k: 5 << 40, type: :jfs)
       expect(Yast::SpaceCalculation.JfsJournalSize(data)).to eq(128 << 20)
     end
   end
 
   describe ".ReservedSpace" do
     it "count reserved space for given partition" do
+      skip "TODO: mkfs_options is not properly managed yet"
+
       data = {
         "size_k" => 1000 << 20, "used_fs" => :jfs, "name" => "sda1",
         "fs_options" => { "opt_reserved_blocks" => { "option_value" => "0.0" } }
@@ -367,25 +377,25 @@ EOF
   describe ".EstimateFsOverhead" do
     # sorry, no clue why given numbers from old testsuite
     it "returns number for FS overhead" do
-      ext2_data = { "size_k" => 5 << 20, "used_fs" => :ext2, "name" => "sda1" }
+      ext2_data = filesystem(size_k: 5 << 20, type: :ext2)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(ext2_data)).to eq 85899345
 
-      ext3_data = { "size_k" => 5 << 20, "used_fs" => :ext3, "name" => "sda1" }
+      ext3_data = filesystem(size_k: 5 << 20, type: :ext3)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(ext3_data)).to eq 85899345
 
-      ext4_data = { "size_k" => 5 << 20, "used_fs" => :ext4, "name" => "sda1" }
+      ext4_data = filesystem(size_k: 5 << 20, type: :ext4)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(ext4_data)).to eq 85899345
 
-      xfs_data = { "size_k" => 5 << 20, "used_fs" => :xfs, "name" => "sda1" }
+      xfs_data = filesystem(size_k: 5 << 20, type: :xfs)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(xfs_data)).to eq 5368709
 
-      jfs_data = { "size_k" => 5 << 20, "used_fs" => :jfs, "name" => "sda1" }
+      jfs_data = filesystem(size_k: 5 << 20, type: :jfs)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(jfs_data)).to eq 16106127
 
-      reiser_data = { "size_k" => 5 << 20, "used_fs" => :reiser, "name" => "sda1" }
+      reiser_data = filesystem(size_k: 5 << 20, type: :reiserfs)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(reiser_data)).to eq 0
 
-      btrfs_data = { "size_k" => 5 << 20, "used_fs" => :btrfs, "name" => "sda1" }
+      btrfs_data = filesystem(size_k: 5 << 20, type: :btrfs)
       expect(Yast::SpaceCalculation.EstimateFsOverhead(btrfs_data)).to eq 0
     end
   end
