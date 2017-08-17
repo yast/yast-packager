@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------------
 
 require "installation/finish_client"
-require "packages/repository"
+require "y2packager/repository"
 require "packager/cfa/zypp_conf"
 
 module Yast
@@ -143,9 +143,9 @@ module Yast
     # * if some product contained is not available through another
     #   repository, then it will be left untouched.
     #
-    # @return [Array<Packages::Repository>] List of disabled repositories
+    # @return [Array<Y2Packager::Repository>] List of disabled repositories
     def disable_local_repos
-      candidates_repos, other_repos = *::Packages::Repository.enabled.partition(&:local?)
+      candidates_repos, other_repos = *::Y2Packager::Repository.enabled.partition(&:local?)
       products = other_repos.map(&:products).flatten.uniq
       candidates_repos.each_with_object([]) do |repo, disabled|
         if repo.products.empty?
