@@ -39,8 +39,8 @@ module Y2Packager
     attr_reader :vendor
     # @return [Integer] Display order
     attr_reader :order
-    # package including installation.xml for install on top of lean os
-    attr_accessor :installation_package
+    # @return [String] package including installation.xml for install on top of lean os
+    attr_reader :installation_package
 
     def self.available_base_products
       Y2Packager::ProductReader.available_base_products
@@ -111,6 +111,35 @@ module Y2Packager
     # @return [String] Package label
     def label
       display_name || short_name || name
+    end
+
+    # Return the license to confirm
+    #
+    # It will return the empty string ("") ff the license does not exist or if
+    # it was already confirmed.
+    #
+    # @return [String,nil] License to confirm; nil if the product was not found.
+    def license_to_confirm
+      Yast::Pkg.PrdGetLicenseToConfirm(name)
+    end
+
+    # Determine whether the license should be accepted or not
+    #
+    # @return [Boolean] true if the license acceptance is required
+    def need_to_accept_license?
+      Yast::Pkg.PrdNeedToAcceptLicense(name)
+    end
+
+    # Confirm the license for the product
+    def confirm_license
+      Yast::Pkg.PrdMarkLicenseConfirmed(name)
+    end
+
+    # Determine is the license is confirmed
+    #
+    # @return [Boolean] true if the license was confirmed (or acceptance was not needed)
+    def license_confirmed?
+      license_to_confirm == ""
     end
   end
 end

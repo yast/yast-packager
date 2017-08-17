@@ -111,4 +111,83 @@ describe Y2Packager::Product do
       end
     end
   end
+
+  describe "#license_to_confirm" do
+    let(:license) { "license content" }
+
+    before do
+      allow(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product.name).and_return(license)
+    end
+
+    it "return the license" do
+      expect(product.license_to_confirm).to eq(license)
+    end
+
+    context "when the no license to confirm was found" do
+      let(:license) { "" }
+
+      it "return the empty string" do
+        expect(product.license_to_confirm).to eq("")
+      end
+    end
+
+    context "when the product does not exist" do
+      let(:license) { nil }
+
+      it "return nil" do
+        expect(product.license_to_confirm).to be_nil
+      end
+    end
+  end
+
+  describe "#need_to_accept_license?" do
+    before do
+      allow(Yast::Pkg).to receive(:PrdNeedToAcceptLicense).with(product.name).and_return(needed)
+    end
+
+    context "when accepting the license is required" do
+      let(:needed) { true }
+
+      it "returns true" do
+        expect(product.need_to_accept_license?).to eq(true)
+      end
+    end
+
+    context "when accepting the license is not required" do
+      let(:needed) { false }
+
+      it "returns false" do
+        expect(product.need_to_accept_license?).to eq(false)
+      end
+    end
+  end
+
+  describe "#confirm_license" do
+    it "confirms the license" do
+      expect(Yast::Pkg).to receive(:PrdMarkLicenseConfirmed).with(product.name)
+      product.confirm_license
+    end
+  end
+
+  describe "#license_confirmed?" do
+    before do
+      allow(product).to receive(:license_to_confirm).and_return(license)
+    end
+
+    context "when a license to be confirmed exists" do
+      let(:license) { "license content" }
+
+      it "returns false" do
+        expect(product.license_confirmed?).to eq(false)
+      end
+    end
+
+    context "when there is not license to be confirmed" do
+      let(:license) { "" }
+
+      it "returns true" do
+        expect(product.license_confirmed?).to eq(true)
+      end
+    end
+  end
 end
