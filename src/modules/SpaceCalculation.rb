@@ -6,9 +6,6 @@
 #			Gabriele Strattner (gs@suse.de)
 #			Stefan Schubert (schubi@suse.de)
 #
-# Purpose:		Package installation functions usable
-#			when the installation media is available
-#			on Installation::sourcedir
 #
 
 require "yast"
@@ -16,7 +13,11 @@ require "shellwords"
 require "y2storage"
 require "y2packager/storage_manager_proxy"
 
+# Yast namespace
 module Yast
+  # Package installation functions usable
+  # when the installation media is available
+  # on Installation::sourcedir
   class SpaceCalculationClass < Module
     include Yast::Logger
 
@@ -28,7 +29,10 @@ module Yast
     # 1 MiB in KiB
     MIB = 1024
 
-    TARGET_FS_TYPES_TO_IGNORE = [Y2Storage::Filesystems::Type::VFAT, Y2Storage::Filesystems::Type::NTFS]
+    TARGET_FS_TYPES_TO_IGNORE = [
+      Y2Storage::Filesystems::Type::VFAT,
+      Y2Storage::Filesystems::Type::NTFS
+    ].freeze
 
     def main
       Yast.import "Pkg"
@@ -103,11 +107,11 @@ module Yast
       partitions = SCR.Read(path(".run.df"))
 
       # filter out headline and other invalid entries
-      partitions.select!{ |p| p["name"].start_with?("/") }
+      partitions.select! { |p| p["name"].start_with?("/") }
 
       log.info "df result: #{partitions}"
 
-      # TODO FIXME dirinstall has been dropped, probably drop this block completely
+      # TODO: FIXME dirinstall has been dropped, probably drop this block completely
       if Installation.dirinstall_installing_into_dir
         target = GetDirMountPoint(Installation.dirinstall_target, partitions)
         log.info "Installing into a directory, target directory: " \
@@ -120,7 +124,7 @@ module Yast
         part_info = {}
         mountName = part["name"] || ""
 
-        # TODO FIXME dirinstall has been dropped, probably drop this block completely?
+        # TODO: FIXME dirinstall has been dropped, probably drop this block completely?
         if Installation.dirinstall_installing_into_dir
           mountName.prepend("/") unless mountName.start_with?("/")
           dir_target = Installation.dirinstall_target
@@ -138,18 +142,16 @@ module Yast
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
           end # target is "/"
-        else
-          if mountName == "/"
-            part_info["name"] = mountName
-          # ignore some mount points
-          elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
-              mountName != "/dev/shm" &&
-              part["spec"] != "udev" &&
-              !mountName.start_with?("/media/") &&
-              !mountName.start_with?("/run/media/") &&
-              !mountName.start_with?("/var/adm/mount/")
-            part_info["name"] = mountName
-          end
+        elsif mountName == "/"
+          part_info["name"] = mountName
+        # ignore some mount points
+        elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
+            mountName != "/dev/shm" &&
+            part["spec"] != "udev" &&
+            !mountName.start_with?("/media/") &&
+            !mountName.start_with?("/run/media/") &&
+            !mountName.start_with?("/var/adm/mount/")
+          part_info["name"] = mountName
         end
 
         next if part_info.empty?
@@ -201,9 +203,6 @@ module Yast
         return 0
       end
 
-      ret = 0
-
-      part_size = filesystem_size(filesystem)
       bs = filesystem.blk_devices[0].region.block_size.to_i
       blocks = Ops.divide(filesystem_size(filesystem), bs)
 
@@ -215,26 +214,25 @@ module Yast
       )
 
       # values extracted from ext2fs_default_journal_size() function in e2fsprogs sources
-      if Ops.less_than(blocks, 2048)
-        ret = 0
+      ret = if Ops.less_than(blocks, 2048)
+        0
       elsif Ops.less_than(blocks, 32768)
-        ret = 1024
+        1024
       elsif Ops.less_than(blocks, 256 * 1024)
-        ret = 4096
+        4096
       elsif Ops.less_than(blocks, 512 * 1024)
-        ret = 8192
+        8192
       elsif Ops.less_than(blocks, 1024 * 1024)
-        ret = 16384
+        16384
       else
         # maximum journal size
-        ret = 32768
+        32768
       end
 
       # converts blocks to bytes
       ret = Ops.multiply(ret, bs)
 
       Builtins.y2milestone("Default journal size: %1kB", Ops.divide(ret, 1024))
-
 
       ret
     end
@@ -298,7 +296,7 @@ module Yast
       ret
     end
 
-    def ReiserJournalSize(filesystem)
+    def ReiserJournalSize(_filesystem)
       # the default is 8193 of 4k blocks (max = 32749, min = 513 blocks)
       ret = 8193 * 4096
 
@@ -349,7 +347,7 @@ module Yast
       log.info "EstimateTargetUsage(#{parts})"
 
       # invalid or empty input
-      if parts == nil || parts.empty?
+      if parts.nil? || parts.empty?
         log.error "Invalid input: #{parts.inspect}"
         return []
       end
@@ -360,9 +358,9 @@ module Yast
         "/var/log"        => 14 * MIB, # system logs (YaST logs have ~12MB)
         "/var/adm/backup" => 10 * MIB, # backups
         "/var/cache/zypp" => 38 * MIB, # zypp metadata cache after refresh (with OSS + update repos)
-        "/etc"            =>  2 * MIB, # various /etc config files not belonging to any package
-        "/usr/share"      =>  1 * MIB, # some files created by postinstall scripts
-        "/boot/initrd"    => 11 * MIB  # depends on HW but better than nothing
+        "/etc"            => 2 * MIB, # various /etc config files not belonging to any package
+        "/usr/share"      => 1 * MIB, # some files created by postinstall scripts
+        "/boot/initrd"    => 11 * MIB # depends on HW but better than nothing
       }
 
       Builtins.y2milestone("Adding target size mapping: %1", used_mapping)
@@ -377,7 +375,6 @@ module Yast
         )
         { Ops.get_string(part, "name", "") => part }
       end
-
 
       Builtins.foreach(used_mapping) do |dir, used|
         mounted = String.FindMountPoint(dir, mount_points)
@@ -408,9 +405,8 @@ module Yast
         end
       end
 
-
       # convert back to list
-      ret = Builtins.maplist(mounts) { |dir, part| part }
+      ret = Builtins.maplist(mounts) { |_dir, part| part }
 
       Builtins.y2milestone("EstimateTargetUsage() result: %1", ret)
 
@@ -457,13 +453,11 @@ module Yast
       # creating the filesystem. So far we don't do it.
       # TODO: revisit this when we have proper management of the mkfs_options
       option = ""
-=begin
-      option = part["fs_options"]["opt_reserved_blocks"]["option_value"] || ""
-=end
+      #       option = part["fs_options"]["opt_reserved_blocks"]["option_value"] || ""
 
       ret = 0
 
-      if option != nil && option != ""
+      if !option.nil? && option != ""
         percent = Builtins.tofloat(option)
 
         if Ops.greater_than(percent, 0.0)
@@ -473,8 +467,8 @@ module Yast
             Ops.multiply(
               Convert.convert(
                 Ops.divide(fs_size, 100),
-                :from => "integer",
-                :to   => "float"
+                from: "integer",
+                to:   "float"
               ),
               percent
             )
@@ -511,7 +505,8 @@ module Yast
 
       if !Stage.initial
         # read /proc/mounts as a list of maps
-        # $["file":"/boot", "freq":0, "mntops":"rw", "passno":0, "spec":"/dev/sda1", "vfstype":"ext2"]
+        # $["file":"/boot", "freq":0, "mntops":"rw", "passno":0,
+        #   "spec":"/dev/sda1", "vfstype":"ext2"]
         mounts = SCR.Read(path(".proc.mounts"))
         log.info "mounts #{mounts}"
 
@@ -520,36 +515,35 @@ module Yast
           name = mpoint["file"]
           filesystem = mpoint["vfstype"]
 
-          if name.start_with?("/") &&
-              # filter out /dev/pts etc.
-              !name.start_with?("/dev/") &&
-              # filter out duplicate "/" entry
-              filesystem != "rootfs"
+          next if !name.start_with?("/")
+          # filter out /dev/pts etc.
+          next if name.start_with?("/dev/")
+          # filter out duplicate "/" entry
+          next if filesystem == "rootfs"
 
-            capacity = Pkg.TargetCapacity(name)
+          capacity = Pkg.TargetCapacity(name)
 
-            if capacity != 0 # dont look at pseudo-devices (proc, shmfs, ...)
-              used = Pkg.TargetUsed(name)
-              growonly = false
+          next unless capacity.nonzero? # dont look at pseudo-devices (proc, shmfs, ...)
+          used = Pkg.TargetUsed(name)
+          growonly = false
 
-              if filesystem == "btrfs"
-                log.info "Btrfs file system detected at #{name}"
-                growonly = btrfs_snapshots?(name)
-                log.info "Snapshots detected: #{growonly}"
-                new_used = btrfs_used_size(name) / 1024
-                log.info "Updated the used size by 'btrfs' utility from #{used} to #{new_used} (diff: #{new_used - used})"
-                used = new_used
-              end
-
-              partitions << {
-                "name" => name,
-                "free" => capacity - used,
-                "used" => used,
-                "filesystem" => filesystem,
-                "growonly" => growonly
-              }
-            end
+          if filesystem == "btrfs"
+            log.info "Btrfs file system detected at #{name}"
+            growonly = btrfs_snapshots?(name)
+            log.info "Snapshots detected: #{growonly}"
+            new_used = btrfs_used_size(name) / 1024
+            log.info "Updated the used size by 'btrfs' utility " \
+              "from #{used} to #{new_used} (diff: #{new_used - used})"
+            used = new_used
           end
+
+          partitions << {
+            "name"       => name,
+            "free"       => capacity - used,
+            "used"       => used,
+            "filesystem" => filesystem,
+            "growonly"   => growonly
+          }
         end
         Pkg.TargetInitDU(partitions)
         Builtins.y2milestone("get_partition_info: %1", partitions)
@@ -571,142 +565,143 @@ module Yast
         # coding standard) to avoid confusing developers and git about what had
         # really changed in the code below.
         # This should be fixed when merging storage-ng into master.
-                used_fs = filesystem.to_s.to_sym
-                free_size = 0
-                growonly = false
+        used_fs = filesystem.to_s.to_sym
+        free_size = 0
+        growonly = false
 
-                log.debug "get_partition_info: adding filesystem: #{filesystem.inspect}"
+        log.debug "get_partition_info: adding filesystem: #{filesystem.inspect}"
 
-                # get free_size on partition in kBytes
-                free_size = filesystem_size(filesystem)
-                free_size -= min_spare
+        # get free_size on partition in kBytes
+        free_size = filesystem_size(filesystem)
+        free_size -= min_spare
 
-                # free_size smaller than min_spare, fix negative value
-                if free_size <  0
-                  log.info "Fixing free size: #{free_size} to 0"
-                  free_size = 0
+        # free_size smaller than min_spare, fix negative value
+        if free_size < 0
+          log.info "Fixing free size: #{free_size} to 0"
+          free_size = 0
+        end
+
+        used = 0
+        # If reusing a previously existent filesystem
+        if filesystem.exists_in_probed?
+
+          # Mount the filesystem to check the available space.
+
+          tmpdir = SCR.Read(path(".target.tmpdir")) + "/diskspace_mount"
+          SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)}")
+
+          # mount options determined by partitioner
+          mount_options = filesystem.fstab_options.to_a
+
+          # mount in read-only mode (safer)
+          mount_options << "ro"
+
+          # add "nolock" if it's a NFS share (bnc#433893)
+          if used_fs == :nfs
+            log.info "Mounting NFS with 'nolock' option"
+            mount_options << "nolock"
+          end
+
+          # join the options
+          mount_options_str = mount_options.uniq.join(",")
+
+          # Use DM device if it's encrypted, plain device otherwise
+          # (bnc#889334)
+          # device = part["crypt_device"] || part["device"] || ""
+          device = filesystem_dev_name(filesystem)
+
+          mount_command = "mount -o #{mount_options_str} " \
+            "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
+
+          log.info "Executing mount command: #{mount_command}"
+
+          result = SCR.Execute(path(".target.bash"), mount_command)
+          log.info "Mount result: #{result}"
+
+          if result.zero?
+            # specific handler for btrfs
+            if used_fs == :btrfs
+              used = btrfs_used_size(tmpdir)
+              free_size -= used
+              growonly = btrfs_snapshots?(tmpdir)
+            else
+              partition = SCR.Read(path(".run.df"))
+
+              Builtins.foreach(partition) do |p|
+                if p["name"] == tmpdir
+                  log.info "Partition: #{p}"
+                  free_size = p["free"].to_i * 1024
+                  used = p["used"].to_i * 1024
                 end
+              end
+            end
 
-                used = 0
-                # If reusing a previously existent filesystem
-                if filesystem.exists_in_probed?
+            SCR.Execute(path(".target.bash"), "umount #{Shellwords.escape(tmpdir)}")
+          else
+            log.error "Mount failed, ignoring partition #{device}"
+            @failed_mounts << filesystem
 
-                  # Mount the filesystem to check the available space.
+            next
+          end
+        else
+          # for formatted partitions estimate free system size
+          # compute fs overhead
+          used = EstimateFsOverhead(filesystem)
+          device = filesystem_dev_name(filesystem)
+          log.info "#{device}: assuming fs overhead: #{used / 1024}KiB"
 
-                  tmpdir = SCR.Read(path(".target.tmpdir")) + "/diskspace_mount"
-                  SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)}")
+          # get the journal size
+          case used_fs
+          when :ext2, :ext3, :ext4
+            js = ExtJournalSize(filesystem)
+            reserved = ReservedSpace(filesystem)
+            used += reserved if reserved > 0
+          when :xfs
+            js = XfsJournalSize(filesystem)
+          when :reiserfs
+            js = ReiserJournalSize(filesystem)
+          when :jfs
+            js = JfsJournalSize(filesystem)
+          when :btrfs
+            # Btrfs uses temporary trees instead of a fixed journal,
+            # there is no journal, it's a logging FS
+            # http://en.wikipedia.org/wiki/Btrfs#Log_tree
+            js = 0
+          else
+            log.warn "Unknown journal size for filesystem: #{used_fs}"
+          end
 
-                  # mount options determined by partitioner
-                  mount_options = filesystem.fstab_options.to_a
+          if js && js > 0
+            log.info "Partition #{device}: assuming journal size: #{js / 1024}KiB"
+            used += js
+          end
 
-                  # mount in read-only mode (safer)
-                  mount_options << "ro"
+          # decrease free size
+          free_size -= used
 
-                  # add "nolock" if it's a NFS share (bnc#433893)
-                  if used_fs == :nfs
-                    log.info "Mounting NFS with 'nolock' option"
-                    mount_options << "nolock"
-                  end
+          # check for underflow
+          if free_size < 0
+            log.info "Fixing free size: #{free_size} to 0"
+            free_size = 0
+          end
+        end
 
-                  # join the options
-                  mount_options_str = mount_options.uniq.join(",")
+        # convert into KiB for TargetInitDU
+        free_size_kib = free_size / 1024
+        used_kib = used / 1024
 
-                  # Use DM device if it's encrypted, plain device otherwise
-                  # (bnc#889334)
-                  #device = part["crypt_device"] || part["device"] || ""
-                  device = filesystem_dev_name(filesystem)
+        mount_name = filesystem.mountpoint
+        log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
 
-                  mount_command = "mount -o #{mount_options_str} " \
-                    "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
+        mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
 
-                  log.info "Executing mount command: #{mount_command}"
-
-                  result = SCR.Execute(path(".target.bash"), mount_command)
-                  log.info "Mount result: #{result}"
-
-                  if result == 0
-                    # specific handler for btrfs
-                    if used_fs == :btrfs
-                      used = btrfs_used_size(tmpdir)
-                      free_size -= used
-                      growonly = btrfs_snapshots?(tmpdir)
-                    else
-                      partition = SCR.Read(path(".run.df"))
-
-                      Builtins.foreach(partition) do |p|
-                        if p["name"] == tmpdir
-                          log.info "Partition: #{p}"
-                          free_size = p["free"].to_i * 1024
-                          used = p["used"].to_i * 1024
-                        end
-                      end
-                    end
-
-                    SCR.Execute(path(".target.bash"), "umount #{Shellwords.escape(tmpdir)}")
-                  else
-                    log.error "Mount failed, ignoring partition #{device}"
-                    @failed_mounts << filesystem
-
-                    next
-                  end
-                else
-                  # for formatted partitions estimate free system size
-                  # compute fs overhead
-                  used = EstimateFsOverhead(filesystem)
-                  device = filesystem_dev_name(filesystem)
-                  log.info "#{device}: assuming fs overhead: #{used / 1024}KiB"
-
-                  # get the journal size
-                  case used_fs
-                  when :ext2, :ext3, :ext4
-                    js = ExtJournalSize(filesystem)
-                    reserved = ReservedSpace(filesystem)
-                    used += reserved if reserved > 0
-                  when :xfs
-                    js = XfsJournalSize(filesystem)
-                  when :reiserfs
-                    js = ReiserJournalSize(filesystem)
-                  when :jfs
-                    js = JfsJournalSize(filesystem)
-                  when :btrfs
-                    # Btrfs uses temporary trees instead of a fixed journal,
-                    # there is no journal, it's a logging FS
-                    # http://en.wikipedia.org/wiki/Btrfs#Log_tree
-                    js = 0
-                  else
-                    log.warn "Unknown journal size for filesystem: #{used_fs}"
-                  end
-
-                  if js && js > 0
-                    log.info "Partition #{device}: assuming journal size: #{js / 1024}KiB"
-                    used += js
-                  end
-
-                  # decrease free size
-                  free_size -= used
-
-                  # check for underflow
-                  if free_size < 0
-                    log.info "Fixing free size: #{free_size} to 0"
-                    free_size = 0
-                  end
-                end
-
-                # convert into KiB for TargetInitDU
-                free_size_kib = free_size / 1024
-                used_kib = used / 1024
-                mount_name = filesystem.mountpoint
-                log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
-
-                mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
-
-                target_partitions << {
-                  "filesystem" => used_fs.to_s,
-                  "growonly" => growonly,
-                  "name" => mount_name,
-                  "used" => used_kib,
-                  "free" => free_size_kib
-                }
+        target_partitions << {
+          "filesystem" => used_fs.to_s,
+          "growonly"   => growonly,
+          "name"       => mount_name,
+          "used"       => used_kib,
+          "free"       => free_size_kib
+        }
         # storage-ng: end of indentation gap (see comment above)
       end
 
@@ -736,7 +731,8 @@ module Yast
       partition = []
 
       if Stage.cont
-        partition = EvaluateFreeSpace(0) # free spare already checked during first part of installation
+        # free spare already checked during first part of installation
+        partition = EvaluateFreeSpace(0)
       elsif Mode.update
         partition = EvaluateFreeSpace(15) # 15% free spare for update/upgrade
       elsif Mode.normal
@@ -754,8 +750,6 @@ module Yast
 
       deep_copy(partition)
     end
-
-
 
     # get current space data for partitions
     # current_partitions = list of maps of
@@ -804,7 +798,7 @@ module Yast
       used = 0
       message = []
 
-      #$[ "dir" : [ total, usednow, usedfuture ], .... ]
+      # $[ "dir" : [ total, usednow, usedfuture ], .... ]
 
       Builtins.foreach(Pkg.TargetGetDU) do |dir, sizelist|
         Builtins.y2milestone(
@@ -842,7 +836,8 @@ module Yast
               "\n" +
                 # popup message
                 _(
-                  "Deselect packages or delete data or temporary files\nbefore updating the system.\n"
+                  "Deselect packages or delete data or temporary files\n" \
+                    "before updating the system.\n"
                 )
             )
           else
@@ -866,31 +861,29 @@ module Yast
       if Ops.greater_than(Builtins.size(message), 0)
         Builtins.y2warning("Warning: %1", message)
         Report.Message(Builtins.mergestring(message, "\n"))
-        return true
+        true
       else
-        return false
+        false
       end
     end
-
 
     #
     # Calculate required disk space
     #
-    def GetRequSpace(initialize)
+    def GetRequSpace(_initialize)
       GetPartitionInfo() if !@info_called
 
       # used space in kB
       used = 0
 
-      #$[ "dir" : [ total, usednow, usedfuture ], .... ]
-      Builtins.foreach(Pkg.TargetGetDU) do |dir, sizelist|
+      # $[ "dir" : [ total, usednow, usedfuture ], .... ]
+      Builtins.foreach(Pkg.TargetGetDU) do |_dir, sizelist|
         used = Ops.add(used, Ops.get_integer(sizelist, 2, 0))
       end
       Builtins.y2milestone("GetReqSpace Pkg::TargetGetDU() %1", Pkg.TargetGetDU)
       # used is in kB
       String.FormatSize(Ops.multiply(used, 1024))
     end
-
 
     #
     # Check, if the current selection fits on the disk
@@ -903,7 +896,7 @@ module Yast
 
       used = 0
 
-      #$[ "dir" : [ total, usednow, usedfuture ], .... ]
+      # $[ "dir" : [ total, usednow, usedfuture ], .... ]
       Builtins.foreach(Pkg.TargetGetDU) do |dir, sizelist|
         Builtins.y2milestone("%1: %2", dir, sizelist)
         needed = Ops.subtract(
@@ -942,7 +935,7 @@ module Yast
       ret = []
 
       if Ops.greater_than(free_percent, 0)
-        #$[ "dir" : [ total, usednow, usedfuture ], .... ]
+        # $[ "dir" : [ total, usednow, usedfuture ], .... ]
         Builtins.foreach(Pkg.TargetGetDU) do |dir, sizelist|
           Builtins.y2milestone("Disk usage of directory %1: %2", dir, sizelist)
           total = Ops.get_integer(sizelist, 0, 0)
@@ -953,7 +946,8 @@ module Yast
             Ops.multiply(current_free_size, 100),
             total
           )
-          # ignore the partitions which were already full and no files will be installed there (bnc#259493)
+          # ignore the partitions which were already full
+          # and no files will be installed there (bnc#259493)
           if Ops.greater_than(used_future, used_now) &&
               Ops.greater_than(current_free_size, 0)
             if Ops.less_than(current_free_percent, free_percent) &&
@@ -968,11 +962,9 @@ module Yast
 
               ret = Builtins.add(
                 ret,
-                {
-                  "dir"          => dir,
-                  "free_percent" => current_free_percent,
-                  "free_size"    => current_free_size
-                }
+                "dir"          => dir,
+                "free_percent" => current_free_percent,
+                "free_size"    => current_free_size
               )
             end
           end
@@ -984,16 +976,16 @@ module Yast
       deep_copy(ret)
     end
 
-    publish :function => :GetPartitionList, :type => "list ()"
-    publish :function => :GetFailedMounts, :type => "list <map> ()"
-    publish :function => :EvaluateFreeSpace, :type => "list <map <string, any>> (integer)"
-    publish :function => :GetPartitionInfo, :type => "list ()"
-    publish :function => :CheckCurrentSpace, :type => "list (list <map>)"
-    publish :function => :GetPartitionWarning, :type => "list <string> ()"
-    publish :function => :ShowPartitionWarning, :type => "boolean ()"
-    publish :function => :GetRequSpace, :type => "string (boolean)"
-    publish :function => :CheckDiskSize, :type => "boolean ()"
-    publish :function => :CheckDiskFreeSpace, :type => "list <map> (integer, integer)"
+    publish function: :GetPartitionList, type: "list ()"
+    publish function: :GetFailedMounts, type: "list <map> ()"
+    publish function: :EvaluateFreeSpace, type: "list <map <string, any>> (integer)"
+    publish function: :GetPartitionInfo, type: "list ()"
+    publish function: :CheckCurrentSpace, type: "list (list <map>)"
+    publish function: :GetPartitionWarning, type: "list <string> ()"
+    publish function: :ShowPartitionWarning, type: "boolean ()"
+    publish function: :GetRequSpace, type: "string (boolean)"
+    publish function: :CheckDiskSize, type: "boolean ()"
+    publish function: :CheckDiskFreeSpace, type: "list <map> (integer, integer)"
 
     # check whether the Btrfs filesystem at the specified directory contains
     # any snapshot (in any subvolume)
@@ -1001,9 +993,10 @@ module Yast
     # @return [Boolean] true when a snapshot is found
     def btrfs_snapshots?(directory)
       # list available snapshot subvolumes
-      ret = SCR.Execute(path(".target.bash_output"), "btrfs subvolume list -s #{Shellwords.escape(directory)}")
+      ret = SCR.Execute(path(".target.bash_output"),
+        "btrfs subvolume list -s #{Shellwords.escape(directory)}")
 
-      if ret["exit"] != 0
+      if (ret["exit"]).nonzero?
         log.error "btrfs call failed: #{ret}"
         raise "Cannot detect Btrfs snapshots, subvolume listing failed : #{ret["stderr"]}"
       end
@@ -1021,7 +1014,7 @@ module Yast
       ret = SCR.Execute(path(".target.bash_output"),
         "LC_ALL=C btrfs filesystem df #{Shellwords.escape(directory)}")
 
-      if ret["exit"] != 0
+      if (ret["exit"]).nonzero?
         log.error "btrfs call failed: #{ret}"
         raise "Cannot detect Btrfs disk usage: #{ret["stderr"]}"
       end
@@ -1030,10 +1023,10 @@ module Yast
       log.info "Usage reported by btrfs: #{df_info}"
 
       # sum the "used" sizes
-      used = df_info.reduce(0) do |acc, line |
+      used = df_info.reduce(0) do |acc, line|
         size = line[/used=(\S+)/, 1]
         size = size ? size_from_string(size) : 0
-        acc += size
+        acc + size
       end
 
       log.info "Detected total used size: #{used} (#{used / 1024 / 1024}MiB)"

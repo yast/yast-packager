@@ -1,17 +1,8 @@
 # encoding: utf-8
-
-# File:	installation/include/load_release_notes.ycp
-# Module:	Installation
-# Summary:	Load release notes from media
-# Authors:	Arvin Schnell <arvin@suse.de>
-#              Jiri Srain <jsrain@suse.cz>
-#
-# Load release notes from media
-#
-# $Id: release_notes_popup.ycp 34411 2006-11-15 13:45:11Z locilka $
 module Yast
+  # Load release notes from media
   module PackagerLoadReleaseNotesInclude
-    def initialize_packager_load_release_notes(include_target)
+    def initialize_packager_load_release_notes(_include_target)
       Yast.import "Pkg"
       textdomain "packager"
 
@@ -23,11 +14,11 @@ module Yast
       @media_text = ""
     end
 
-    # FIXME get rid of similar funciton in instlalation/clients/release_notes_popup.ycp
+    # FIXME: get rid of similar funciton in instlalation/clients/release_notes_popup.ycp
 
     # function to load release notes
     def load_release_notes(source_id)
-      if source_id == nil || Ops.less_than(source_id, 0)
+      if source_id.nil? || Ops.less_than(source_id, 0)
         Builtins.y2error("Source_id: %1", source_id)
         return false
       end
@@ -49,7 +40,7 @@ module Yast
       )
 
       # try 'es' for 'es_ES'
-      if tmp == nil
+      if tmp.nil?
         tmp = Builtins.sformat(
           path_templ,
           Builtins.substring(Language.language, 0, 2)
@@ -64,7 +55,7 @@ module Yast
       end
 
       # try 'en'
-      if tmp == nil
+      if tmp.nil?
         tmp = Builtins.sformat(path_templ, "en")
         Builtins.y2debug("Trying to get %1", tmp)
         tmp = Pkg.SourceProvideDigestedFile(
@@ -76,13 +67,13 @@ module Yast
       end
 
       # no other fallback
-      return false if tmp == nil
+      return false if tmp.nil?
 
       # read the release notes content
       @media_text = Convert.to_string(
         SCR.Read(path(".target.string"), [tmp, ""])
       )
-      return true if @media_text != "" && @media_text != nil
+      return true if @media_text != "" && !@media_text.nil?
 
       false
     end

@@ -1,16 +1,6 @@
 # encoding: utf-8
-
-# Module:		software_simple_proposal.ycp
-#
-# Author:		Klaus Kaempf <kkaempf@suse.de>
-#
-# Purpose:		Proposal function dispatcher - software.
-#
-#			See also file proposal-API.txt for details.
-#
-# $Id$
-#
 module Yast
+  # Proposal function dispatcher - software.
   class SoftwareSimpleProposalClient < Client
     def main
       textdomain "packager"
@@ -53,21 +43,17 @@ module Yast
           # the proposal for the packages requires manual intervention
           @ret = Builtins.union(
             @ret,
-            {
-              # warning text
-              "warning"       => _(
-                "Cannot solve dependencies automatically. Manual intervention is required."
-              ),
-              "warning_level" => :blocker
-            }
+            # warning text
+            "warning"       => _(
+              "Cannot solve dependencies automatically. Manual intervention is required."
+            ),
+            "warning_level" => :blocker
           )
         end
-        return deep_copy(@ret)
+        deep_copy(@ret)
       else
-        return WFM.CallFunction("software_proposal", [@func, @param])
+        WFM.CallFunction("software_proposal", [@func, @param])
       end
-
-      deep_copy(@ret)
     end
   end
 end

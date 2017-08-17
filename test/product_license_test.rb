@@ -25,7 +25,9 @@ describe Yast::ProductLicense do
       it "updates the UI with new license translation" do
         expect(Yast::UI).to receive(:UserInput).and_return("license_language_pt_BR", :next)
         expect(Yast::ProductLicense).to receive(:UpdateLicenseContent).and_return(nil)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+        expect(Yast::ProductLicense
+          .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+          .to eq(:accepted)
       end
     end
 
@@ -34,7 +36,9 @@ describe Yast::ProductLicense do
         expect(Yast::UI).to receive(:UserInput).and_return("eula_some_ID", :next)
         expect(Yast::ProductLicense).to receive(:AllLicensesAcceptedOrDeclined).and_return(true)
         expect(Yast::Wizard).to receive(:EnableNextButton).and_return(true)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+        expect(Yast::ProductLicense
+          .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+          .to eq(:accepted)
       end
     end
 
@@ -48,7 +52,9 @@ describe Yast::ProductLicense do
           it "returns :abort" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort)
             expect(Yast::Popup).to receive(:ConfirmAbort).and_return(true)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:abort)
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+              .to eq(:abort)
           end
         end
 
@@ -56,7 +62,9 @@ describe Yast::ProductLicense do
           it "continues handling the user input" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort, :next)
             expect(Yast::Popup).to receive(:ConfirmAbort).and_return(false)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+              .to eq(:accepted)
           end
         end
       end
@@ -70,7 +78,9 @@ describe Yast::ProductLicense do
           it "returns :abort" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort)
             expect(Yast::Popup).to receive(:YesNo).and_return(true)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:abort)
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+              .to eq(:abort)
           end
         end
 
@@ -78,7 +88,9 @@ describe Yast::ProductLicense do
           it "continues handling the user input" do
             expect(Yast::UI).to receive(:UserInput).and_return(:abort, :next)
             expect(Yast::Popup).to receive(:YesNo).and_return(false)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+              .to eq(:accepted)
           end
         end
       end
@@ -87,7 +99,9 @@ describe Yast::ProductLicense do
     context "while going back to previous dialog" do
       it "returns :back" do
         expect(Yast::UI).to receive(:UserInput).and_return(:back)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:back)
+        expect(Yast::ProductLicense
+          .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+          .to eq(:back)
       end
     end
 
@@ -101,21 +115,32 @@ describe Yast::ProductLicense do
       context "while all licenses have been accepted" do
         it "returns :accepted" do
           expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(true)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, "base_prod", "abort"))
+            .to eq(:accepted)
         end
       end
 
       context "while some license(s) have not been accepted" do
         it "returns symbol :abort, :accepted, :halt according to the third function parameter" do
-          expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(false).at_least(:once)
+          expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(false)
+            .at_least(:once)
           # :halt case
           allow(Yast::ProductLicense).to receive(:TimedOKCancel).and_return(true)
 
           base_prod = false
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "abort")).to eq(:abort)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "continue")).to eq(:accepted)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "halt")).to eq(:halt)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "unknown")).to eq(:abort)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "abort"))
+            .to eq(:abort)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "continue"))
+            .to eq(:accepted)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "halt"))
+            .to eq(:halt)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "unknown"))
+            .to eq(:abort)
         end
       end
     end
@@ -180,16 +205,19 @@ describe Yast::ProductLicense do
           before do
             expect(Yast::ProductLicense).to receive(:GetSourceLicenseDirectory).and_call_original
             expect(Yast::ProductLicense).to receive(:SetAcceptanceNeeded).and_call_original
-            expect(Yast::ProductLicense).to receive(:UnpackLicenseTgzFileToDirectory).and_return(true)
+            expect(Yast::ProductLicense).to receive(:UnpackLicenseTgzFileToDirectory)
+              .and_return(true)
           end
 
           it "returns that acceptance is needed if no-acceptance-needed file is not found" do
-            expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(false)
+            expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/)
+              .and_return(false)
             expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
           end
 
           it "returns that acceptance is not needed if the no-acceptance-needed file is found" do
-            expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/).and_return(true)
+            expect(Yast::FileUtils).to receive(:Exists).with(/no-acceptance-needed/)
+              .and_return(true)
             expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(false)
           end
         end
@@ -219,14 +247,14 @@ describe Yast::ProductLicense do
         end
 
         it "do not blame that there is no license directory" do
-           # This call is needed for checking the cache_license_acceptance_needed function
-           expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
-           Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
+          # This call is needed for checking the cache_license_acceptance_needed function
+          expect(Yast::ProductLicense.AcceptanceNeeded(base_product_id)).to eq(true)
+          Yast::ProductLicense.SetAcceptanceNeeded(add_on_product_id, false)
 
-           expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
+          expect(Yast::ProductLicense.AcceptanceNeeded(add_on_product_id)).to eq(false)
         end
 
-       end
+      end
     end
 
     context "when not called in initial installation" do

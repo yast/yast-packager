@@ -18,19 +18,20 @@ require "packages/repository"
 require "packager/cfa/zypp_conf"
 
 module Yast
+  # Finish client for packager
   class PkgFinishClient < ::Installation::FinishClient
     include Yast::I18n
     include Yast::Logger
 
     # Path to libzypp repositories
-    REPOS_DIR = "/etc/zypp/repos.d"
+    REPOS_DIR = "/etc/zypp/repos.d".freeze
     # Path to failed_packages file
-    FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages"
+    FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages".freeze
     # Command to create a tar.gz to back-up old repositories
     TAR_CMD = "mkdir -p '%<target>s' && cd '%<target>s' "\
-      "&& /bin/tar -czf '%<archive>s' '%<source>s'"
+      "&& /bin/tar -czf '%<archive>s' '%<source>s'".freeze
     # Format of the timestamp to be used as repositories backup
-    BACKUP_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
+    BACKUP_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S".freeze
 
     # Constructor
     def initialize
@@ -94,6 +95,8 @@ module Yast
         ::FileUtils.cp(FAILED_PKGS_PATH, File.join(Installation.destdir, FAILED_PKGS_PATH),
           preserve: true)
       end
+
+      nil
     end
 
   private
@@ -171,9 +174,9 @@ module Yast
     def backup_old_sources(source, target)
       archive_name = "repos_#{Time.now.strftime(BACKUP_TIMESTAMP_FORMAT)}.tgz"
       compress_cmd = format(TAR_CMD,
-        target: String.Quote(target),
+        target:  String.Quote(target),
         archive: archive_name,
-        source: String.Quote(source))
+        source:  String.Quote(source))
       cmd = SCR.Execute(path(".target.bash_output"), compress_cmd)
       if !cmd["exit"].zero?
         log.error("Unable to backup current repos; Command >#{compress_cmd}< returned: #{cmd}")
@@ -185,7 +188,7 @@ module Yast
 
     # Remove old sources
     #
-    # @param [Array<String>] List of repositories to remove
+    # @param repos [Array<String>] List of repositories to remove
     def remove_old_sources(repos)
       repos.each do |repo|
         file = File.join(REPOS_DIR, repo)

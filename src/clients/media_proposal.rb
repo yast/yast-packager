@@ -1,14 +1,6 @@
 # encoding: utf-8
-
-# Module:	media_proposal.ycp
-#
-# Author:	Arvin Schnell <arvin@suse.de>
-#
-# Purpose:	Initialize the installation media.
-#
-# $Id$
-#
 module Yast
+  # Initialize the installation media.
   class MediaProposalClient < Client
     def main
       Yast.import "Pkg"
@@ -23,11 +15,9 @@ module Yast
 
       Yast.import "Installation"
 
-
       @func = Convert.to_string(WFM.Args(0))
       @param = Convert.to_map(WFM.Args(1))
       @ret = {}
-
 
       if @func == "MakeProposal"
         @force_reset = Ops.get_boolean(@param, "force_reset", false)
@@ -47,9 +37,9 @@ module Yast
         if Ops.less_or_equal(@num, 0)
           Builtins.y2error("Invalid repository")
           @ret = {
-            "warning" =>
-              # Proposal for system to update, part of the richtext
-              _("No Valid Installation Media"),
+            "warning"       =>
+                               # Proposal for system to update, part of the richtext
+                               _("No Valid Installation Media"),
             "warning_level" => :blocker
           }
         else

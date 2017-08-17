@@ -1,17 +1,6 @@
 # encoding: utf-8
-
-# File:
-#   clients/checkmedia-installation.ycp
-#
-# Summary:
-#   Client for checkig media integrity
-#
-# Authors:
-#   Ladislav Slezak <lslezak@suse.cz>
-#
-# $Id$
-#
 module Yast
+  # Client for checking media integrity
   class InstCheckmediaClient < Client
     def main
       textdomain "packager"
@@ -50,7 +39,7 @@ module Yast
               )
             )
             application_area = {}
-            if Ops.get_integer(out, "exit", -1) == 0
+            if Ops.get_integer(out, "exit", -1).zero?
               # parse application area
               app = Ops.get_string(out, "stdout", "")
 
@@ -63,8 +52,8 @@ module Yast
                 v = Builtins.splitstring(val, "=")
                 key = Ops.get(v, 0)
                 value = Ops.get(v, 1)
-                Ops.set(application_area, key, value) if key != nil
-              end if values != nil
+                Ops.set(application_area, key, value) if !key.nil?
+              end if !values.nil?
               Builtins.y2milestone(
                 "Parsed application area: %1",
                 application_area
@@ -73,11 +62,11 @@ module Yast
             # test 'check' key
             if Ops.get(application_area, "check", "") == "1"
               @dotest = true
-              # propagate device name to the check media client (preselect the device in the combo box)
+              # propagate device name to the check media client
+              # (preselect the device in the combo box)
               CheckMedia.preferred_drive = drive
             end
-          end 
-
+          end
 
           if @dotest
             # start checkmedia client in forced mode

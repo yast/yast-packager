@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------------
 
 module Yast
+  # Interface for repository management
   class RepositoriesClient < Client
     include Yast::Logger
 
@@ -53,7 +54,6 @@ module Yast
       # cache for textmode value
       @text_mode = nil
 
-
       @sourcesToDelete = []
       @reposFromDeletedServices = []
 
@@ -78,7 +78,8 @@ module Yast
         # Command line help text for the repository module, %1 is "zypper"
         "help"       => Builtins.sformat(
           _(
-            "Installation Repositories - This module does not support the command line interface, use '%1' instead."
+            "Installation Repositories - This module does not support the command line " \
+              "interface, use '%1' instead."
           ),
           "zypper"
         ),
@@ -106,10 +107,12 @@ module Yast
     end
 
     def textmode
-      if @text_mode == nil
-        @text_mode = Mode.commandline ?
-          true :
+      if @text_mode.nil?
+        @text_mode = if Mode.commandline
+          true
+        else
           Ops.get_boolean(UI.GetDisplayInfo, "TextMode", false)
+        end
       end
 
       @text_mode
@@ -125,14 +128,14 @@ module Yast
       # sources deleted during this script run
       Builtins.foreach(@sourceStatesIn) do |one_source|
         src_id = Builtins.tointeger(Ops.get(one_source, "SrcId"))
-        deleted_repos = Builtins.add(deleted_repos, src_id) if src_id != nil
+        deleted_repos = Builtins.add(deleted_repos, src_id) if !src_id.nil?
       end
 
       # sources is a copy of sourceStatesOut
       Builtins.foreach(@sourceStatesOut) do |one_source|
         src_id = Builtins.tointeger(Ops.get(one_source, "SrcId"))
         if Builtins.contains(current_sources, src_id)
-          known_repos = Builtins.add(known_repos, src_id) if src_id != nil
+          known_repos = Builtins.add(known_repos, src_id) if !src_id.nil?
           ret = Builtins.add(ret, one_source)
         else
           Builtins.y2milestone("Source %1 has been removed already", one_source)
@@ -194,68 +197,78 @@ module Yast
       generalData = Pkg.SourceGeneralData(id)
       Builtins.y2milestone("generalData(%1): %2", id, generalData)
 
-      name = repository_mode ?
-        Builtins.haskey(source, "name") ?
-          Ops.get_string(source, "name", "") :
+      name = if repository_mode
+        if Builtins.haskey(source, "name")
+          Ops.get_string(source, "name", "")
+        else
           Ops.get_locale(
             # unkown name (alias) of the source
             generalData,
             "alias",
             Ops.get_locale(generalData, "type", _("Unknown Name"))
-          ) :
+          )
+        end
+      else
         Ops.get_string(source, "name", "")
+      end
 
       priority = Ops.get_integer(source, "priority", @default_priority)
-      url = repository_mode ?
-        Ops.get_string(generalData, "url", "") :
+      url = if repository_mode
+        Ops.get_string(generalData, "url", "")
+      else
         Ops.get_string(source, "url", "")
+      end
       service_alias = Ops.get_string(source, "service", "")
-      service_name = service_alias != "" ?
-        Ops.get_string(Pkg.ServiceGet(service_alias), "name", "") :
+      service_name = if service_alias != ""
+        Ops.get_string(Pkg.ServiceGet(service_alias), "name", "")
+      else
         ""
+      end
 
-      item = repository_mode ?
+      item = if repository_mode
         Item(
           Id(index),
           PriorityToString(priority),
-          Ops.get_boolean(
+          if Ops.get_boolean(
             # corresponds to the "Enable/Disable" button
             source,
             "enabled",
             true
-          ) ?
-            UI.Glyph(:CheckMark) :
-            "",
-          Ops.get_boolean(source, "autorefresh", true) ?
-            UI.Glyph(:CheckMark) :
-            "",
+          )
+            UI.Glyph(:CheckMark)
+          else
+            ""
+          end,
+          Ops.get_boolean(source, "autorefresh", true) ? UI.Glyph(:CheckMark) : "",
           # translators: unknown name for a given source
           name,
           service_name,
           url
-        ) :
+        )
+      else
         Item(
           Id(index),
-          Ops.get_boolean(
+          if Ops.get_boolean(
             # corresponds to the "Enable/Disable" button
             source,
             "enabled",
             true
-          ) ?
-            UI.Glyph(:CheckMark) :
-            "",
-          Ops.get_boolean(source, "autorefresh", true) ?
-            UI.Glyph(:CheckMark) :
-            "",
+          )
+            UI.Glyph(:CheckMark)
+          else
+            ""
+          end,
+          Ops.get_boolean(source, "autorefresh", true) ? UI.Glyph(:CheckMark) : "",
           # translators: unknown name for a given source
           name,
           url
         )
+      end
 
       deep_copy(item)
     end
 
-    def getSourceInfo(index, source)
+    def getSourceInfo(_index, source)
       source = deep_copy(source)
       id = Ops.get_integer(source, "SrcId", 0)
       generalData = Pkg.SourceGeneralData(id)
@@ -292,9 +305,7 @@ module Yast
         RemoveDeletedAddNewRepos()
       end
 
-      itemList = repo_mode ?
-        deep_copy(@sourceStatesOut) :
-        deep_copy(@serviceStatesOut)
+      itemList = repo_mode ? deep_copy(@sourceStatesOut) : deep_copy(@serviceStatesOut)
 
       # displaye only repositories from the selected service
       if repo_mode && service_name != ""
@@ -329,9 +340,7 @@ module Yast
       icon_tag = Ops.add(
         Ops.add(
           Ops.add(Ops.add("<IMG SRC=\"", Directory.icondir), "/22x22/apps/"),
-          schema == "cd" || schema == "dvd" || schema == "iso" ?
-            "yast-cd_update.png" :
-            "yast-http-server.png"
+          ["cd", "dvd", "iso"].include?(schema) ? "yast-cd_update.png" : "yast-http-server.png"
         ),
         "\">&nbsp;&nbsp;&nbsp;"
       )
@@ -357,16 +366,18 @@ module Yast
     end
 
     def repoInfoTerm
-      textmode ?
+      if textmode
         VBox(
           Left(Heading(Id(:name), Opt(:hstretch), "")),
           Left(Label(Id(:url), Opt(:hstretch), "")),
           Left(Label(Id(:category), Opt(:hstretch), ""))
-        ) :
+        )
+      else
         VSquash(MinHeight(4, RichText(Id(:repo_info), "")))
+      end
     end
 
-    def fillRepoInfo(index, source, repo_mode, service_name)
+    def fillRepoInfo(index, source, repo_mode, _service_name)
       source = deep_copy(source)
       info = repo_mode ? getSourceInfo(index, source) : deep_copy(source)
       if repo_mode
@@ -387,17 +398,6 @@ module Yast
         _("Category: %1"),
         Ops.get_locale(info, "type", _("Unknown"))
       )
-
-      # label, %1 is repo category (eg. YUM)
-      service = Ops.get_string(info, "service", "")
-
-      if service != ""
-        service_info = Pkg.ServiceGet(service)
-        service = Builtins.sformat(
-          _("Service: %1"),
-          Ops.get_string(service_info, "name", "")
-        )
-      end
 
       # don't display category for services
       category = "" if !repo_mode
@@ -464,34 +464,37 @@ module Yast
 
     def fillCurrentRepoInfo
       selected = Convert.to_integer(UI.QueryWidget(Id(:table), :CurrentItem))
-      if selected == nil
+      if selected.nil?
         clearRepoInfo
         return
       end
 
-      data = @repository_view ?
-        @displayed_service == "" ?
-          Ops.get(@sourceStatesOut, selected, {}) :
+      data = if @repository_view
+        if @displayed_service == ""
+          Ops.get(@sourceStatesOut, selected, {})
+        else
           Ops.get(
             ReposFromService(@displayed_service, @sourceStatesOut),
             selected,
             {}
-          ) :
+          )
+        end
+      else
         Ops.get(@serviceStatesOut, selected, {})
+      end
 
       fillRepoInfo(selected, data, @repository_view, @displayed_service)
 
       nil
     end
 
-
     # Find which repositories have to be added or deleted to ZENworks.
     # #182992: formerly we did not consider the enabled attribute.
     # But ZENworks cannot completely disable a repository (unsubscribing a
     # repository merely decreases its priority) so we consider a disabled repository
     # like a deleted one.
-    # @param [Array<Hash{String => Object>}] statesOld sourceStates{In or Out}
-    # @param [Array<Hash{String => Object>}] statesNew sourceStates{In or Out}
+    # @param [Array<Hash{String => Object>}] statesOld sourceStates - In or Out
+    # @param [Array<Hash{String => Object>}] statesNew sourceStates - In or Out
     # @return the list of SrcId's that are enabled in statesNew
     #  but are not enabled in statesOld
     def newSources(statesOld, statesNew)
@@ -517,7 +520,6 @@ module Yast
       deep_copy(ret)
     end
 
-
     def newServices(statesOld, statesNew)
       statesOld = deep_copy(statesOld)
       statesNew = deep_copy(statesNew)
@@ -529,9 +531,9 @@ module Yast
       end
 
       Builtins.foreach(statesNew) do |srv|
-        _alias = Ops.get_string(srv, "alias", "")
-        Builtins.y2milestone("Checking %1", _alias)
-        ret = Builtins.add(ret, _alias) if !Builtins.contains(seen, _alias)
+        alias_name = Ops.get_string(srv, "alias", "")
+        Builtins.y2milestone("Checking %1", alias_name)
+        ret = Builtins.add(ret, alias_name) if !Builtins.contains(seen, alias_name)
       end
       Builtins.y2milestone("Difference %1", ret)
       deep_copy(ret)
@@ -569,30 +571,29 @@ module Yast
       added_services = newServices(@serviceStatesIn, @serviceStatesOut)
       Builtins.y2milestone("Added services: %1", added_services)
 
-      Builtins.foreach(deleted_services) do |_alias|
-        Builtins.y2milestone("Removing service %1", _alias)
-        success = success && Pkg.ServiceDelete(_alias)
+      Builtins.foreach(deleted_services) do |alias_name|
+        Builtins.y2milestone("Removing service %1", alias_name)
+        success &&= Pkg.ServiceDelete(alias_name)
       end
-
 
       Builtins.y2milestone("New service config: %1", @serviceStatesOut)
       Builtins.foreach(@serviceStatesOut) do |s|
-        _alias = Ops.get_string(s, "alias", "")
-        if Builtins.contains(added_services, _alias)
-          Builtins.y2milestone("Adding service %1", _alias)
+        alias_name = Ops.get_string(s, "alias", "")
+        if Builtins.contains(added_services, alias_name)
+          Builtins.y2milestone("Adding service %1", alias_name)
           new_url = Ops.get_string(s, "url", "")
 
           if new_url != ""
             Builtins.y2milestone("aliases: %1", Pkg.ServiceAliases)
-            success = success && Pkg.ServiceAdd(_alias, new_url)
+            success &&= Pkg.ServiceAdd(alias_name, new_url)
             # set enabled and autorefresh flags
-            success = success && Pkg.ServiceSet(_alias, s)
+            success &&= Pkg.ServiceSet(alias_name, s)
           else
-            Builtins.y2error("Empty URL for service %1", _alias)
+            Builtins.y2error("Empty URL for service %1", alias_name)
           end
         else
-          Builtins.y2milestone("Modifying service %1", _alias)
-          success = success && Pkg.ServiceSet(_alias, s)
+          Builtins.y2milestone("Modifying service %1", alias_name)
+          success &&= Pkg.ServiceSet(alias_name, s)
         end
       end
 
@@ -609,12 +610,11 @@ module Yast
       end
 
       Builtins.y2milestone("New repo config: %1", @sourceStatesOut)
-      success = success && Pkg.SourceEditSet(@sourceStatesOut)
+      success &&= Pkg.SourceEditSet(@sourceStatesOut)
 
       # we must sync before the repositories are deleted from zypp
       # otherwise we will not get their details
       added = newSources(@sourceStatesIn, @sourceStatesOut)
-      deleted = newSources(@sourceStatesOut, @sourceStatesIn)
 
       Builtins.foreach(@sourcesToDelete) do |id|
         if Builtins.contains(@reposFromDeletedServices, id)
@@ -623,7 +623,7 @@ module Yast
             id
           )
         else
-          success = success && Pkg.SourceDelete(id)
+          success &&= Pkg.SourceDelete(id)
         end
       end
 
@@ -638,15 +638,14 @@ module Yast
         if Ops.get_boolean(src_state, "do_refresh", false)
           Builtins.y2milestone("Downloading metadata for source %1", srcid)
 
-          success = success && Pkg.SourceRefreshNow(srcid)
+          success &&= Pkg.SourceRefreshNow(srcid)
         end
       end
 
-
-      success = success && KeyManager.Write
+      success &&= KeyManager.Write
 
       # store repositories and services in the persistent libzypp storage
-      success = success && Pkg.SourceSaveAll # #176013
+      success &&= Pkg.SourceSaveAll # #176013
 
       success
     end
@@ -706,7 +705,7 @@ module Yast
     # return table widget definition
     # layout of the table depends on the current mode (services do not have priorities)
     def TableWidget(repository_mode)
-      tabheader = repository_mode ?
+      tabheader = if repository_mode
         Header(
           # table header - priority of the repository - keep the translation as short as possible!
           _("Priority"),
@@ -721,7 +720,8 @@ module Yast
           _("Service"),
           # table header - URL of the repo
           _("URL")
-        ) :
+        )
+      else
         Header(
           # table header - is the repo enabled? - keep the translation as short as possible!
           Center(_("Enabled")),
@@ -733,7 +733,7 @@ module Yast
           # table header - URL of the repo
           _("URL")
         )
-
+      end
 
       Table(Id(:table), Opt(:notify, :immediate), tabheader, [])
     end
@@ -744,7 +744,7 @@ module Yast
 
       UI.ReplaceWidget(
         Id(:priorp),
-        repo_mode ?
+        if repo_mode
           IntField(
             Id(:priority),
             Opt(:notify),
@@ -752,14 +752,18 @@ module Yast
             0,
             200,
             @default_priority
-          ) :
+          )
+        else
           Empty()
+        end
       )
       UI.ReplaceWidget(
         Id(:keeppkg_rp),
-        repo_mode ?
-          CheckBox(Id(:keeppackages), Opt(:notify), @keeppackages_label) :
+        if repo_mode
+          CheckBox(Id(:keeppackages), Opt(:notify), @keeppackages_label)
+        else
           Empty()
+        end
       )
 
       nil
@@ -830,16 +834,8 @@ module Yast
     def SummaryDialog
       Builtins.y2milestone("Running Summary dialog")
 
-      # push button - change URL of the selected repository
-      replaceButtonLabel = _("&Replace...")
       # push button - refresh the selected repository now
       refreshButtonLabel = _("Re&fresh Selected")
-      # push button - disable/enable the selected repository
-      enableButtonLabel = _("Status &on or off")
-      # push button - disable/enable automatic refresh of the selected repository
-      refreshOnOffButtonLabel = _("Refre&sh on or off")
-      # push button - set name of the selected repository
-      setAliasButtonLabel = _("Set &Name...")
 
       contents = VBox(
         Right(ReplacePoint(Id(:filter_rp), RepoFilterWidget())),
@@ -923,17 +919,30 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<P>A <B>service</B> or <B>Repository Index Service (RIS) </B> is a protocol for package repository management. A service can offer one or more software repositories which can be dynamically changed by the service administrator.</P>"
+          "<P>A <B>service</B> or <B>Repository Index Service (RIS) </B> is a protocol for " \
+            "package repository management. A service can offer one or more software " \
+            "repositories which can be dynamically changed by the service administrator.</P>"
         )
       )
 
       help_text = Ops.add(
         help_text,
         _(
-          "<p>\n" +
-            "<b>Adding a new Repository or a Service</b><br>\n" +
-            "To add a new repository, use <b>Add</b> and specify the software repository or service.\n" +
-            "YaST will automatically detect whether a service or a repository is available at the entered location.\n" +
+          "<p>\n" \
+            "<b>Adding a new Repository or a Service</b><br>\n" \
+            "To add a new repository, use <b>Add</b> and specify the software repository or " \
+            "service.\n YaST will automatically detect whether a service or a repository is " \
+            "available at the entered location.\n</p>\n"
+        )
+      )
+
+      # help, continued
+      help_text = Ops.add(
+        help_text,
+        _(
+          "<p>\n" \
+            "To install packages from <b>CD</b>,\n" \
+            "have the CD set or the DVD available.\n" \
             "</p>\n"
         )
       )
@@ -942,9 +951,13 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<p>\n" +
-            "To install packages from <b>CD</b>,\n" +
-            "have the CD set or the DVD available.\n" +
+          "<p>\n" \
+            "The CDs can be copied to <b>hard disk</b>\n" \
+            "and then used as a repository.\n" \
+            "Insert the path name where the first\n" \
+            "CD is located, for example, /data1/<b>CD1</b>.\n" \
+            "Only the base path is required if all CDs are copied\n" \
+            "into one directory.\n" \
             "</p>\n"
         )
       )
@@ -953,27 +966,12 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<p>\n" +
-            "The CDs can be copied to <b>hard disk</b>\n" +
-            "and then used as a repository.\n" +
-            "Insert the path name where the first\n" +
-            "CD is located, for example, /data1/<b>CD1</b>.\n" +
-            "Only the base path is required if all CDs are copied\n" +
-            "into one directory.\n" +
-            "</p>\n"
-        )
-      )
-
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
-        _(
-          "<p>\n" +
-            "<b>Modifying Status of a Repository or a Service</b><br>\n" +
-            "To change a repository location, use <b>Edit</b>. To remove a repository, use\n" +
-            "<b>Delete</b>. To enable or disable the repository or to change the refresh status at initialization time, select the repository in the table and use the check boxes below.\n" +
-            "</p>\n"
+          "<p>\n" \
+            "<b>Modifying Status of a Repository or a Service</b><br>\n" \
+            "To change a repository location, use <b>Edit</b>. To remove a repository, use\n" \
+            "<b>Delete</b>. To enable or disable the repository or to change the refresh status " \
+            "at initialization time, select the repository in the table and use the check boxes " \
+            "below.\n</p>\n"
         )
       )
 
@@ -981,7 +979,10 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<P><B>Priority of a Repository</B><BR>\nPriority of a repository is an integer value between 0 (the highest priority) and 200 (the lowest priority). Default is 99. If a package is available in more repositories, the repository with the highest priority is used.</P>\n"
+          "<P><B>Priority of a Repository</B><BR>\nPriority of a repository is " \
+            "an integer value between 0 (the highest priority) and 200 (the lowest priority). " \
+            "Default is 99. If a package is available in more repositories, " \
+            "the repository with the highest priority is used.</P>\n"
         )
       )
 
@@ -989,7 +990,8 @@ module Yast
       help_text = Ops.add(
         help_text,
         _(
-          "<P>Select the appropriate option on top of the window for navigation in repositories and services.</P>"
+          "<P>Select the appropriate option on top of the window for navigation in " \
+            "repositories and services.</P>"
         )
       )
       # help text, continued
@@ -997,13 +999,15 @@ module Yast
         Ops.add(
           help_text,
           _(
-            "<P><B>Keep Downloaded Packages</B><BR>Check this option to keep downloaded\n" +
-              "packages in a local cache so they can be reused later when the packages are\n" +
-              "reinstalled. If not checked, the downloaded packages are deleted after installation.</P>"
+            "<P><B>Keep Downloaded Packages</B><BR>Check this option to keep downloaded\n" \
+              "packages in a local cache so they can be reused later when the packages are\n" \
+              "reinstalled. If not checked, the downloaded packages are deleted after " \
+              "installation.</P>"
           )
         ),
         _(
-          "<P>The default local cache is located in directory <B>/var/cache/zypp/packages</B>. Change the location in <B>/etc/zypp/zypp.conf</B> file.</P>"
+          "<P>The default local cache is located in directory <B>/var/cache/zypp/packages</B>. " \
+            "Change the location in <B>/etc/zypp/zypp.conf</B> file.</P>"
         )
       )
 
@@ -1020,11 +1024,9 @@ module Yast
 
       current = -1
 
-      url = ""
-
       exit = false
       begin
-        if current != nil && Ops.greater_or_equal(current, 0)
+        if !current.nil? && Ops.greater_or_equal(current, 0)
           UI.ChangeWidget(Id(:table), :CurrentItem, current)
           fillCurrentRepoInfo
         end
@@ -1039,25 +1041,23 @@ module Yast
           input = :enable
         end
 
-        createResult = :again
-
         return :add if input == :add
         if input == :next
           # store the new state
           success = Write()
           if !success
             # popup message part 1
-            __msg1 = _(
+            message1 = _(
               "Unable to save changes to the repository\nconfiguration."
             )
             details = Pkg.LastError
             Builtins.y2milestone("LastError: %1", details)
             # popup message part 2 followed by other info
-            __msg2 = details != "" ? Ops.add(_("Details:") + "\n", details) : ""
+            message2 = details != "" ? Ops.add(_("Details:") + "\n", details) : ""
             # popup message part 3
-            __msg2 = Ops.add(Ops.add(__msg2, "\n"), _("Try again?"))
+            message2 = Ops.add(Ops.add(message2, "\n"), _("Try again?"))
 
-            tryagain = Popup.YesNo(Ops.add(Ops.add(__msg1, "\n"), __msg2))
+            tryagain = Popup.YesNo(Ops.add(Ops.add(message1, "\n"), message2))
             exit = true if !tryagain
           else
             exit = true
@@ -1081,9 +1081,9 @@ module Yast
           end
         elsif input == :key_mgr
           exit = true
-          #return `key_mgr;
+          # return `key_mgr;
           # start the GPG key manager
-          #RunGPGKeyMgmt();
+          # RunGPGKeyMgmt();
         elsif input == :service_filter
           # handle the combobox events here...
           current_item = UI.QueryWidget(Id(:service_filter), :Value)
@@ -1143,23 +1143,20 @@ module Yast
             if @displayed_service == ""
               sourceState = Ops.get(@sourceStatesOut, current, {})
               global_current = current
-            else
-              if current != nil
-                sources_from_service = ReposFromService(
-                  @displayed_service,
-                  @sourceStatesOut
-                )
-                sourceState = Ops.get(sources_from_service, current, {})
+            elsif !current.nil?
+              sources_from_service = ReposFromService(
+                @displayed_service,
+                @sourceStatesOut
+              )
+              sourceState = Ops.get(sources_from_service, current, {})
 
-                Builtins.find(@sourceStatesOut) do |s|
-                  global_current = Ops.add(global_current, 1)
-                  Ops.get(s, "SrcId") ==
-                    Ops.get_integer(sourceState, "SrcId", -1)
-                end
-
-
-                Builtins.y2milestone("global_current: %1", global_current)
+              Builtins.find(@sourceStatesOut) do |s|
+                global_current = Ops.add(global_current, 1)
+                Ops.get(s, "SrcId") ==
+                  Ops.get_integer(sourceState, "SrcId", -1)
               end
+
+              Builtins.y2milestone("global_current: %1", global_current)
             end
           end
 
@@ -1204,19 +1201,25 @@ module Yast
               "Refreshing all %1 %2%3...",
               input == :refresh_enabled ? "enabled" : "autorefreshed",
               @repository_view ? "repositories" : "services",
-              @repository_view && @displayed_service != "" ?
-                Ops.add(" from service ", @displayed_service) :
+              if @repository_view && @displayed_service != ""
+                Ops.add(" from service ", @displayed_service)
+              else
                 ""
+              end
             )
 
             refresh_autorefresh_only = input == :autorefresh_all
             to_refresh = 0
 
-            data = @repository_view ?
-              @displayed_service == "" ?
-                deep_copy(@sourceStatesOut) :
-                ReposFromService(@displayed_service, @sourceStatesOut) :
+            data = if @repository_view
+              if @displayed_service == ""
+                deep_copy(@sourceStatesOut)
+              else
+                ReposFromService(@displayed_service, @sourceStatesOut)
+              end
+            else
               deep_copy(@serviceStatesOut)
+            end
 
             Builtins.y2milestone("data: %1", data)
 
@@ -1224,15 +1227,17 @@ module Yast
               if Ops.get_boolean(src_state, "enabled", false) &&
                   (!refresh_autorefresh_only ||
                     Ops.get_boolean(src_state, "autorefresh", false))
-                url2 = @repository_view ?
+                url2 = if @repository_view
                   Ops.get_string(
                     Pkg.SourceGeneralData(
                       Ops.get_integer(src_state, "SrcId", -1)
                     ),
                     "url",
                     ""
-                  ) :
+                  )
+                else
                   Ops.get_string(src_state, "url", "")
+                end
                 schema = Builtins.tolower(Builtins.substring(url2, 0, 3))
 
                 if schema != "cd:" && schema != "dvd"
@@ -1240,7 +1245,6 @@ module Yast
                 end
               end
             end
-
 
             Builtins.y2milestone(
               "%1 %2 will be refreshed",
@@ -1252,15 +1256,11 @@ module Yast
               Wizard.CreateDialog
               # TODO: add help text
               Progress.New(
-                @repository_view ?
-                  _("Refreshing Repositories") :
-                  _("Refreshing Services"),
+                @repository_view ? _("Refreshing Repositories") : _("Refreshing Services"),
                 "",
                 Ops.add(to_refresh, 1),
                 [
-                  @repository_view ?
-                    _("Refresh Repositories") :
-                    _("Refresh Services")
+                  @repository_view ? _("Refresh Repositories") : _("Refresh Services")
                 ],
                 [],
                 ""
@@ -1330,7 +1330,6 @@ module Yast
                 end
               end
 
-
               Progress.Finish
               Wizard.CloseDialog
             end
@@ -1382,7 +1381,7 @@ module Yast
     def SortReposByPriority(repos)
       repos = deep_copy(repos)
       # check the input
-      return deep_copy(repos) if repos == nil
+      return deep_copy(repos) if repos.nil?
 
       # sort the maps by "repos" key (in ascending order)
       ret = Builtins.sort(repos) do |repo1, repo2|
@@ -1400,7 +1399,7 @@ module Yast
     def StartTypeDialog
       seturl = @selected_url_scheme
 
-      if seturl != nil && seturl != ""
+      if !seturl.nil? && seturl != ""
         seturl = Ops.add(@selected_url_scheme, "://")
       end
 
@@ -1416,7 +1415,7 @@ module Yast
         )
         Builtins.y2milestone("Selected URL scheme: %1", @selected_url_scheme)
 
-        if @selected_url_scheme == nil || @selected_url_scheme == ""
+        if @selected_url_scheme.nil? || @selected_url_scheme == ""
           @selected_url_scheme = "url"
         end
       end
@@ -1439,7 +1438,6 @@ module Yast
         ret = true if src_url == url
       end
 
-
       Builtins.y2milestone("URL exists: %1", ret)
 
       ret
@@ -1458,26 +1456,26 @@ module Yast
           if known_url
             # popup question, %1 is repository URL
             if !Popup.AnyQuestion(
-                "",
-                Builtins.sformat(
-                  _(
-                    "Repository %1\n" +
-                      "has been already added. Each repository should be added only once.\n" +
-                      "\n" +
-                      "Really add the repository again?"
-                  ),
-                  URL.HidePassword(url)
+              "",
+              Builtins.sformat(
+                _(
+                  "Repository %1\n" \
+                    "has been already added. Each repository should be added only once.\n" \
+                    "\n" \
+                    "Really add the repository again?"
                 ),
-                Label.YesButton,
-                Label.NoButton,
-                :focus_no
-              )
+                URL.HidePassword(url)
+              ),
+              Label.YesButton,
+              Label.NoButton,
+              :focus_no
+            )
               # ask again
               ret = nil
             end
           end
         end
-      end while ret == nil
+      end while ret.nil?
 
       Builtins.y2milestone("Result: %1", ret)
 
@@ -1565,32 +1563,31 @@ module Yast
         )
       end
 
-
       Builtins.y2milestone("Loaded services: %1", @serviceStatesIn)
 
       @serviceStatesOut = deep_copy(@serviceStatesIn)
 
       aliases = {
-        "summary" => lambda { SummaryDialog() },
-        "type"    => lambda { StartTypeDialog() },
-        "edit"    => lambda { StartEditDialog() },
-        "store"   => lambda { StartStoreSource() },
-        "keymgr"  => [lambda { RunGPGKeyMgmt(false) }, true]
+        "summary" => -> { SummaryDialog() },
+        "type"    => -> { StartTypeDialog() },
+        "edit"    => -> { StartEditDialog() },
+        "store"   => -> { StartStoreSource() },
+        "keymgr"  => [-> { RunGPGKeyMgmt(false) }, true]
       }
 
       sequence = {
         "ws_start" => "summary",
         "summary"  => {
-          :add     => "type",
-          :edit    => "edit",
-          :key_mgr => "keymgr",
-          :abort   => :abort,
-          :next    => :next
+          add:     "type",
+          edit:    "edit",
+          key_mgr: "keymgr",
+          abort:   :abort,
+          next:    :next
         },
-        "keymgr"   => { :next => "summary", :abort => "summary" },
-        "type"     => { :next => "edit", :finish => "store", :abort => :abort },
-        "edit"     => { :next => "store", :abort => :abort },
-        "store"    => { :next => "summary", :abort => "summary" }
+        "keymgr"   => { next: "summary", abort: "summary" },
+        "type"     => { next: "edit", finish: "store", abort: :abort },
+        "edit"     => { next: "store", abort: :abort },
+        "store"    => { next: "summary", abort: "summary" }
       }
 
       Builtins.y2milestone("Starting repository sequence")
@@ -1611,11 +1608,11 @@ module Yast
 
       # yes-no popup
       return if !Popup.YesNo(
-          Builtins.sformat(
-            _("Delete service %1\nand its repositories?"),
-            selected_service["name"]
-          )
+        Builtins.sformat(
+          _("Delete service %1\nand its repositories?"),
+          selected_service["name"]
         )
+      )
 
       RemoveReposFromService(service_alias)
 
@@ -1649,7 +1646,9 @@ module Yast
     # @param [Integer] current index of the selected item in the table
     def repo_enable_handler(sourceState, global_current, current)
       repo = @sourceStatesOut[global_current] || {}
-      return if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], repo_change_msg)
+      if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], repo_change_msg)
+        return
+      end
 
       state = !sourceState["enabled"]
       # corresponds to the "Enable/Disable" button
@@ -1779,7 +1778,7 @@ module Yast
       begin
         url2 = SourceDialogs.EditPopupType(url2, plaindir)
 
-        break if Builtins.size(url2) == 0
+        break if Builtins.size(url2).zero?
 
         same_url = url2 == old_url
 
@@ -1824,15 +1823,15 @@ module Yast
           # copy the refresh flag
 
           # get current alias
-          _alias = Ops.get_string(generalData, "alias", "alias")
-          Builtins.y2milestone("Reusing alias: %1", _alias)
+          alias_name = Ops.get_string(generalData, "alias", "alias")
+          Builtins.y2milestone("Reusing alias: %1", alias_name)
 
           createResult = createSourceWithAlias(
             url2,
             SourceDialogs.IsPlainDir,
             Ops.get_boolean(sourceState, "do_refresh", false),
             SourceDialogs.GetRepoName,
-            _alias
+            alias_name
           )
           if createResult == :ok
             # restore the origonal properties (enabled, autorefresh, keeppackages)
@@ -1861,7 +1860,8 @@ module Yast
                 @default_priority
               )
               Builtins.y2milestone(
-                "Restoring the original properties: enabled: %1, autorefresh: %2, keeppackages: %3, priority: %4",
+                "Restoring the original properties: enabled: %1, autorefresh: %2, " \
+                  "keeppackages: %3, priority: %4",
                 enabled,
                 auto_refresh,
                 keeppackages,
@@ -1951,7 +1951,7 @@ module Yast
       begin
         url2 = SourceDialogs.EditPopupService(url2)
 
-        break if Builtins.size(url2) == 0
+        break if Builtins.size(url2).zero?
         if url2 != old_url
           Builtins.y2milestone(
             "URL of the service has been changed, recreating the service"
@@ -1961,7 +1961,7 @@ module Yast
           service_type = Pkg.ServiceProbe(url2)
           Builtins.y2milestone("Probed service type: %1", service_type)
 
-          if service_type != nil && service_type != "NONE"
+          if !service_type.nil? && service_type != "NONE"
             createResult = createSource(
               url2,
               false,

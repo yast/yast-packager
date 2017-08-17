@@ -19,8 +19,8 @@ describe Yast::PackageSlideShow do
     end
 
     it "returns -x * max_cutoff where x is number of value higher then max_cutoff if any apear" do
-      expect(Yast::PackageSlideShow.ListSumCutOff([60, 70, 80, 150], 100)).to eq -100
-      expect(Yast::PackageSlideShow.ListSumCutOff([160, 170, 80, 150], 100)).to eq -300
+      expect(Yast::PackageSlideShow.ListSumCutOff([60, 70, 80, 150], 100)).to eq(-100)
+      expect(Yast::PackageSlideShow.ListSumCutOff([160, 170, 80, 150], 100)).to eq(-300)
     end
   end
 end

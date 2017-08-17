@@ -37,13 +37,11 @@ module Y2Packager
     include Yast::Logger
 
     def initialize
-      begin
-        require "y2storage"
-        @manager = Y2Storage::StorageManager.instance
-      rescue LoadError
-        log.info("Y2Storage not available. Fallback values will be used")
-        @manager = nil
-      end
+      require "y2storage"
+      @manager = Y2Storage::StorageManager.instance
+    rescue LoadError
+      log.info("Y2Storage not available. Fallback values will be used")
+      @manager = nil
     end
 
     # Staging devicegraph at Y2Storage::StorageManager or empty devicegraph if
@@ -67,6 +65,5 @@ module Y2Packager
   protected
 
     attr_reader :manager
-
   end
 end

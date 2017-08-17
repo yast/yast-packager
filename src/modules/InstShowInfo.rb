@@ -1,13 +1,10 @@
 # encoding: utf-8
 
-# Module:	InstShowInfo.ycp
-#
-# Author:	Stefan Hundhammer <sh@suse.de>
-#
-# Purpose:	Show /info.txt (if present) in a popup
 require "yast"
 
+# Yast namespace
 module Yast
+  # Show /info.txt (if present) in a popup
   class InstShowInfoClass < Module
     def main
       Yast.import "UI"
@@ -62,9 +59,11 @@ module Yast
       UI.OpenDialog(
         VBox(
           MinSize(size_x, size_y, RichText(Opt(:plainText), info_text)),
-          use_timeout ?
-            Label(Id(:timeout), Builtins.sformat("   %1   ", timeout_seconds)) :
-            VSpacing(0.2),
+          if use_timeout
+            Label(Id(:timeout), Builtins.sformat("   %1   ", timeout_seconds))
+          else
+            VSpacing(0.2)
+          end,
           button_box,
           VSpacing(0.2)
         )
@@ -96,7 +95,7 @@ module Yast
       nil
     end
 
-    publish :function => :show_info_txt, :type => "void (string)"
+    publish function: :show_info_txt, type: "void (string)"
   end
 
   InstShowInfo = InstShowInfoClass.new

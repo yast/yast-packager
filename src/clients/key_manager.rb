@@ -1,13 +1,6 @@
 # encoding: utf-8
-
-# File:	key_manager.ycp
-#
-# Author:	Ladislav Slezak <lslezak@novell.com>
-#
-# Purpose:	Manages GPG keys in the package manager
-#
-# $Id$
 module Yast
+  # Manages GPG keys in the package manager
   class KeyManagerClient < Client
     def main
       Yast.import "Pkg"
@@ -69,18 +62,17 @@ module Yast
       # dialog caption
       Wizard.SetContents(_("Initializing..."), Empty(), "", false, true)
 
-      aliases = { "read" => lambda { Read() }, "edit" => lambda do
-        RunGPGKeyMgmt(true)
-      end, "write" => lambda(
-      ) do
-        Write()
-      end }
+      aliases = {
+        "read"  => -> { Read() },
+        "edit"  => -> { RunGPGKeyMgmt(true) },
+        "write" => -> { Write() }
+      }
 
       sequence = {
         "ws_start" => "read",
-        "read"     => { :next => "edit" },
-        "edit"     => { :abort => :abort, :next => "write" },
-        "write"    => { :next => :next, :abort => :abort }
+        "read"     => { next: "edit" },
+        "edit"     => { abort: :abort, next: "write" },
+        "write"    => { next: :next, abort: :abort }
       }
 
       Builtins.y2milestone("Starting the key management sequence")

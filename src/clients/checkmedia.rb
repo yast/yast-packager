@@ -1,17 +1,6 @@
 # encoding: utf-8
-
-# File:
-#   clients/checkmedia.ycp
-#
-# Summary:
-#   Client for checkig media integrity
-#
-# Authors:
-#   Ladislav Slezak <lslezak@suse.cz>
-#
-# $Id$
-#
 module Yast
+  # Client for checking media integrity
   class CheckmediaClient < Client
     def main
       Yast.import "Pkg"
@@ -40,7 +29,6 @@ module Yast
         "id"         => "checkmedia",
         "guihandler" => fun_ref(method(:MainSequence), "any ()")
       }
-
 
       @ret = CommandLine.Run(@cmdline)
 

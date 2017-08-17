@@ -1,15 +1,8 @@
 # encoding: utf-8
-
-# Module:		wrapper_slideshow_callbacks.ycp
-#
-# Authors:		Ladislav Slezak <lslezak@novell.com>
-#
-# Purpose:		A wrapper for SlideShowCallbacks:: module,
-#			required for removing the cyclic import dependency
-#			between SlideShowCallbacks.ycp and SlideShow.ycp
-#
-# $Id$
 module Yast
+  # A wrapper for SlideShowCallbacks:: module,
+  # required for removing the cyclic import dependency
+  # between SlideShowCallbacks.ycp and SlideShow.ycp
   class WrapperSlideshowCallbacksClient < Client
     def main
       @func = Convert.to_string(WFM.Args(0))

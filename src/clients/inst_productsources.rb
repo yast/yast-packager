@@ -2,9 +2,58 @@
 
 require "yast2/hw_detection"
 
-module Yast
-  class InstProductsourcesClient < Client
+# rubocop:disable Style/Documentation
+# documentation cop is broken for this document, so lets disable it
 
+module Yast
+  # This is a stand-alone YaST client that allows you to add suggested
+  # repositories (repositories) to the libzypp.
+  # How it works:
+  # - First a list of servers/links is extracted from the YaST control file
+  #   (/etc/YaST2/control.xml)
+  # - Then servers/links are asked one by one to provide the suggested sources
+  # Only installation_repo=true (trusted) links are used during installation.
+  # See Bugzilla #293811.
+  # @example Format of the initial list of servers:
+  #   <?xml version="1.0"?>
+  #   <productDefines xmlns="http://www.suse.com/1.0/yast2ns"
+  #       xmlns:config="http://www.suse.com/1.0/configns">
+  #     <servers config:type="list">
+  #       <item>
+  #         <link>http://some.server/some_link.xml</link>
+  #	       <official config:type="boolean">true</official>
+  #         <installation_repo config:type="boolean">true</installation_repo>
+  #       </item>
+  #       <item>
+  #         <link>ftp://some.other.server/some_link.xml</link>
+  #         <official config:type="boolean">false</official>
+  #       </item>
+  #     </servers>
+  #   </productDefines>
+  # @example Format of Suggested sources:
+  #   <?xml version="1.0"?>
+  #   <metapackage xmlns:os="http://opensuse.org/Standards/One_Click_Install"
+  #       xmlns="http://opensuse.org/Standards/One_Click_Install">
+  #     <group distversion="openSUSE Factory">
+  #       <repositories>
+  #         <repository recommended="true" format="yast">
+  #           <name>Some name</name>
+  #           <name lang="en_GB">Some name</name>
+  #           <summary>Summary...</summary>
+  #           <summary lang="en_GB">Summary...</summary>
+  #           <description>Description...</description>
+  #           <url>http://some.server/some.dir/10.3/</url>
+  #         </repository>
+  #         <repository recommended="false" format="yast">
+  #           <name>Another name</name>
+  #           <summary>Summary...</summary>
+  #           <description>Description...</description>
+  #           <url>http://another.server/another.dir/10.3/</url>
+  #         </repository>
+  #       </repositories>
+  #     </group>
+  #   </metapackage>
+  class InstProductsourcesClient < Client
     # too low memory for using online repositories (in MiB),
     # at least 1GiB is recommended
     LOW_MEMORY_MIB = 1024
@@ -12,57 +61,6 @@ module Yast
     def main
       Yast.import "UI"
       Yast.import "Pkg"
-      #**
-      # This is a stand-alone YaST client that allows you to add suggested
-      # repositories (repositories) to the libzypp.
-      #
-      # How it works:
-      # - First a list of servers/links is extracted from the YaST control file
-      #   (/etc/YaST2/control.xml)
-      # - Then servers/links are asked one by one to provide the suggested sources
-      #
-      # Format of the initial list of servers:
-      # <?xml version="1.0"?>
-      # <productDefines xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-      #   <servers config:type="list">
-      #     <item>
-      #       <link>http://some.server/some_link.xml</link>
-      #	     <official config:type="boolean">true</official>
-      #       <installation_repo config:type="boolean">true</installation_repo>
-      #     </item>
-      #     <item>
-      #       <link>ftp://some.other.server/some_link.xml</link>
-      #       <official config:type="boolean">false</official>
-      #     </item>
-      #   </servers>
-      # </productDefines>
-      #
-      # Only installation_repo=true (trusted) links are used during installation.
-      # See Bugzilla #293811.
-      #
-      # Format of Suggested sources:
-      # <?xml version="1.0"?>
-      # <metapackage xmlns:os="http://opensuse.org/Standards/One_Click_Install" xmlns="http://opensuse.org/Standards/One_Click_Install">
-      #   <group distversion="openSUSE Factory">
-      #     <repositories>
-      #       <repository recommended="true" format="yast">
-      #         <name>Some name</name>
-      #         <name lang="en_GB">Some name</name>
-      #         <summary>Summary...</summary>
-      #         <summary lang="en_GB">Summary...</summary>
-      #         <description>Description...</description>
-      #         <url>http://some.server/some.dir/10.3/</url>
-      #       </repository>
-      #       <repository recommended="false" format="yast">
-      #         <name>Another name</name>
-      #         <summary>Summary...</summary>
-      #         <description>Description...</description>
-      #         <url>http://another.server/another.dir/10.3/</url>
-      #       </repository>
-      #     </repositories>
-      #   </group>
-      # </metapackage>
-
       textdomain "packager"
 
       Yast.import "Wizard"
@@ -118,8 +116,8 @@ module Yast
       end
 
       if Mode.normal && Ops.greater_than(Builtins.size(@args), 0) &&
-          Builtins.size(@script_noncmdline_args) == 0
-        CommandLine.Run({ "id" => "inst_productsources" })
+          Builtins.size(@script_noncmdline_args).zero?
+        CommandLine.Run("id" => "inst_productsources")
         return :auto
       end
 
@@ -157,8 +155,6 @@ module Yast
       # $[ "($url|$path)" : src_id ]
       @repos_already_used = {}
 
-
-
       @repos_visible_now = []
 
       @already_selected_in_dialog = []
@@ -170,14 +166,13 @@ module Yast
 
       @casesenschars = "^[abcdefghijklmnopqrstuvwyxzABCDEFGHIJKLMNOPQRSTUVWXYZ]$"
 
-
-      #*********************
+      # *********************
       Wizard.CreateDialog if Mode.normal
 
       @client_ret = RunMain()
 
       Wizard.CloseDialog if Mode.normal
-      #*********************
+      # *********************
 
       @client_ret
     end
@@ -188,7 +183,7 @@ module Yast
 
     # See bugzilla #309317
     def GetUniqueAlias(alias_orig)
-      alias_orig = "" if alias_orig == nil
+      alias_orig = "" if alias_orig.nil?
 
       # all current aliases
       aliases = Builtins.maplist(Pkg.SourceGetCurrent(false)) do |i|
@@ -197,21 +192,21 @@ module Yast
       end
 
       # default
-      _alias = alias_orig
+      alias_name = alias_orig
 
       # repository alias must be unique
       # if it already exists add "_<number>" suffix to it
       idx = 1
-      while Builtins.contains(aliases, _alias)
-        _alias = Builtins.sformat("%1_%2", alias_orig, idx)
+      while Builtins.contains(aliases, alias_name)
+        alias_name = Builtins.sformat("%1_%2", alias_orig, idx)
         idx = Ops.add(idx, 1)
       end
 
-      if alias_orig != _alias
-        Builtins.y2milestone("Alias '%1' changed to '%2'", alias_orig, _alias)
+      if alias_orig != alias_name
+        Builtins.y2milestone("Alias '%1' changed to '%2'", alias_orig, alias_name)
       end
 
-      _alias
+      alias_name
     end
 
     # See bugzilla #307680
@@ -240,7 +235,7 @@ module Yast
         item_value = Convert.to_string(
           SCR.Read(Builtins.add(path(".sysconfig.proxy"), sysconfig_item))
         )
-        item_value = "" if item_value == nil
+        item_value = "" if item_value.nil?
         if use_proxy == true && item_value != ""
           Builtins.y2milestone("Adjusting '%1'='%2'", proxy_item, item_value)
           Builtins.setenv(proxy_item, item_value)
@@ -295,7 +290,7 @@ module Yast
         end
       end
 
-      while true
+      loop do
         if NetworkService.isNetworkRunning
           ret = true
           break
@@ -303,18 +298,18 @@ module Yast
 
         # Network is not running
         if !Popup.AnyQuestion(
-            # TRANSLATORS: popup header
-            _("Network is not configured."),
-            # TRANSLATORS: popup question
-            _(
-              "Online sources defined by product require an Internet connection.\n" +
-                "\n" +
-                "Would you like to configure it?"
-            ),
-            Label.YesButton,
-            Label.NoButton,
-            :yes
-          )
+          # TRANSLATORS: popup header
+          _("Network is not configured."),
+          # TRANSLATORS: popup question
+          _(
+            "Online sources defined by product require an Internet connection.\n" \
+              "\n" \
+              "Would you like to configure it?"
+          ),
+          Label.YesButton,
+          Label.NoButton,
+          :yes
+        )
           Builtins.y2milestone("User decided not to setup the network")
           ret = false
           break
@@ -324,7 +319,7 @@ module Yast
         # Call InstLan client
         netret = WFM.call(
           "inst_lan",
-          [GetInstArgs.argmap.merge({"skip_detection" => true})]
+          [GetInstArgs.argmap.merge("skip_detection" => true)]
         )
 
         if netret == :abort
@@ -339,7 +334,7 @@ module Yast
     # Removes slashes from the end of the URL (or just string).
     # Needed to fix bug #329629.
     def NormalizeURL(url_string)
-      return url_string if url_string == nil || url_string == ""
+      return url_string if url_string.nil? || url_string == ""
 
       if Builtins.regexpmatch(url_string, "/+$")
         url_string = Builtins.regexpsub(url_string, "(.*)/+$", "\\1")
@@ -358,14 +353,6 @@ module Yast
     # -1 == not added
     # 0 or 1 or 2 ... or 'n' means 'added as source $id'
     def IsAddOnAlreadySelected(s_url, s_path)
-      #    AddOnProduct::add_on_products, $[
-      #	"media" : src_id,
-      #	"product" : prod["label"]:prod["productname"]:prod["productversion"]:list_of_repos[url,"name"]:"",
-      #	"autoyast_product" : prod["productname"]:"",
-      #	"media_url" : url,
-      #	"product_dir" : pth,
-      #    ];
-
       ret = -1
 
       s_url = NormalizeURL(s_url)
@@ -409,25 +396,23 @@ module Yast
         Builtins.foreach(Pkg.SourceGetCurrent(true)) do |one_id|
           source_data = Pkg.SourceGeneralData(one_id)
           if Ops.greater_or_equal(
-              IsAddOnAlreadySelected(
-                Ops.get_string(source_data, "url", ""),
-                Ops.get_string(source_data, "product_dir", "")
-              ),
-              -1
-            )
+            IsAddOnAlreadySelected(
+              Ops.get_string(source_data, "url", ""),
+              Ops.get_string(source_data, "product_dir", "")
+            ),
+            -1
+          )
             AddOnProduct.add_on_products = Builtins.add(
               AddOnProduct.add_on_products,
-              {
-                "media"            => one_id,
-                "media_url"        => Ops.get_string(source_data, "url", ""),
-                "product_dir"      => Ops.get_string(
-                  source_data,
-                  "product_dir",
-                  ""
-                ),
-                "product"          => "",
-                "autoyast_product" => ""
-              }
+              "media"            => one_id,
+              "media_url"        => Ops.get_string(source_data, "url", ""),
+              "product_dir"      => Ops.get_string(
+                source_data,
+                "product_dir",
+                ""
+              ),
+              "product"          => "",
+              "autoyast_product" => ""
             )
           end
         end
@@ -438,7 +423,7 @@ module Yast
 
     def ReadControlFile
       software_features = ProductFeatures.GetSection("software")
-      if software_features != nil
+      if !software_features.nil?
         @main_link = Ops.get_string(
           software_features,
           "external_sources_link",
@@ -449,7 +434,7 @@ module Yast
       end
       Builtins.y2milestone("Got link: %1", @main_link)
 
-      if @main_link == nil || @main_link == ""
+      if @main_link.nil? || @main_link == ""
         @main_link = ""
         Builtins.y2warning("No link")
         return false
@@ -457,7 +442,7 @@ module Yast
 
       Builtins.y2milestone("Using link: %1", @main_link)
 
-      @main_link != nil && @main_link != ""
+      !@main_link.nil? && @main_link != ""
     end
 
     def UseDownloadFile
@@ -504,7 +489,7 @@ module Yast
 
       Builtins.y2milestone("Server response: %1", server_response)
 
-      return false if server_response == nil
+      return false if server_response.nil?
 
       true
     end
@@ -517,7 +502,7 @@ module Yast
 
       xml_file_content = XML.XMLToYCPFile(download_file)
 
-      if xml_file_content == nil
+      if xml_file_content.nil?
         Builtins.y2error("Reading file %1 failed", download_file)
         return false
       end
@@ -537,17 +522,14 @@ module Yast
       # bugzilla #293811
       # only installation_repo (trusted) links are used during installation
       @list_of_servers = Builtins.filter(@list_of_servers) do |one_server|
-        if Ops.get_boolean(one_server, "installation_repo", false) == true
-          next true
-        else
-          Builtins.y2milestone(
-            "Sever %1 is not used during installation...",
-            one_server
-          )
-          next false
-        end
-      end if Stage.initial(
-      )
+        next true if Ops.get_boolean(one_server, "installation_repo", false)
+
+        Builtins.y2milestone(
+          "Sever %1 is not used during installation...",
+          one_server
+        )
+        false
+      end if Stage.initial
 
       true
     end
@@ -562,7 +544,7 @@ module Yast
         download_file
       )
 
-      if xml_file_content == nil
+      if xml_file_content.nil?
         Builtins.y2error("Parsing file %1 failed", download_file)
         return false
       end
@@ -609,16 +591,16 @@ module Yast
           )
 
           if !DownloadFile(
-              Ops.get_string(one_server, "link", ""),
-              UseDownloadFile()
-            )
+            Ops.get_string(one_server, "link", ""),
+            UseDownloadFile()
+          )
             Builtins.y2error("Unable to download list of online repositories")
             next
           end
           if !ParseListOfSources(
-              UseDownloadFile(),
-              Ops.get_string(one_server, "link", "")
-            )
+            UseDownloadFile(),
+            Ops.get_string(one_server, "link", "")
+          )
             Builtins.y2error("Unable to parse list of repositories")
             next
           end
@@ -688,7 +670,8 @@ module Yast
         actions_doing,
         # TRANSLATORS: dialog help
         _(
-          "<p>The packager is being initialized and \nthe list of servers downloaded from the Web.</p>\n"
+          "<p>The packager is being initialized and \n" \
+            "the list of servers downloaded from the Web.</p>\n"
         ),
         [icons_for_progress]
       )
@@ -737,7 +720,7 @@ module Yast
 
         # Client must have been already called
         if FileUtils.Exists(filename)
-          @preselect_recommended = false 
+          @preselect_recommended = false
           # Really for the very first time
         else
           @preselect_recommended = true
@@ -746,7 +729,7 @@ module Yast
             Builtins.sformat("touch '%1'", String.Quote(filename))
           )
           Builtins.y2milestone("Running for the first time...")
-        end 
+        end
         # ...but never on the running system
       else
         @preselect_recommended = false
@@ -767,21 +750,21 @@ module Yast
       @language_long = GetCurrentLang() if !Stage.initial
 
       # fallback if no LANG variable set
-      if @language_long == nil || @language_long == ""
+      if @language_long.nil? || @language_long == ""
         @language_long = Language.language
       end
 
       # de_DE.UTF-8 --> de_DE
       dot_pos = Builtins.search(@language_long, ".")
-      if dot_pos != nil
+      if !dot_pos.nil?
         @language_long = Builtins.substring(@language_long, 0, dot_pos)
       end
 
-      if @language_long != nil
-        if Ops.greater_or_equal(Builtins.size(@language_long), 2)
-          @language_short = Builtins.substring(@language_long, 0, 2)
+      if !@language_long.nil?
+        @language_short = if Ops.greater_or_equal(Builtins.size(@language_long), 2)
+          Builtins.substring(@language_long, 0, 2)
         else
-          @language_short = @language_long
+          @language_long
         end
       end
 
@@ -860,10 +843,10 @@ module Yast
       Builtins.foreach(possible_keys) do |possible_key|
         loc_key = Builtins.sformat("localized_%1", possible_key)
         if Ops.get_string(
-            @list_of_repos,
-            [current_id, loc_key, @language_long],
-            ""
-          ) != ""
+          @list_of_repos,
+          [current_id, loc_key, @language_long],
+          ""
+        ) != ""
           ret = Ops.get_string(
             @list_of_repos,
             [current_id, loc_key, @language_long],
@@ -871,10 +854,10 @@ module Yast
           )
           raise Break
         elsif Ops.get_string(
-            @list_of_repos,
-            [current_id, loc_key, @language_short],
-            ""
-          ) != ""
+          @list_of_repos,
+          [current_id, loc_key, @language_short],
+          ""
+        ) != ""
           ret = Ops.get_string(
             @list_of_repos,
             [current_id, loc_key, @language_short],
@@ -903,16 +886,16 @@ module Yast
       )
 
       # Nothing selected, no description
-      if current_id == nil || current_id == ""
+      if current_id.nil? || current_id == ""
         UI.ChangeWidget(Id("addon_description"), :Value, "")
         return
       end
 
-      recommended = Ops.get_boolean(
+      recommended = if Ops.get_boolean(
         @list_of_repos,
         [current_id, "recommended"],
         false
-      ) == true ?
+      )
         Builtins.sformat(
           # TRANSLATORS: HTML-formatted summary text
           # %1 is replaced with "Yes" (currently only "Yes")
@@ -920,11 +903,14 @@ module Yast
           _("<b>Recommended:</b> %1<br>"),
           # TRANSLATORS: used for "Recommended: Yes" (see *4)
           _("Yes")
-        ) :
+        )
+      else
         ""
+      end
 
       description = Builtins.sformat(
-        # TRANSLATORS: This is a complex HTML-formatted information about selecetd external repository
+        # TRANSLATORS: This is a complex HTML-formatted information about
+        # selected external repository
         # It contains "key: value" pair, one per line, separated by <br> tags
         # %1 is replaced with an URL of the selected repository
         # %2 is replaced with an URL from which we've got this repository information
@@ -932,12 +918,12 @@ module Yast
         # %4 is replaced with a description text for the selected repository
         # %5 is replaced with an emty string or "Recommended: Yes" (*4)
         _(
-          "<p>\n" +
-            "<b>URL:</b> %1<br>\n" +
-            "<b>Linked from:</b> %2<br>\n" +
-            "<b>Summary:</b> %3<br>\n" +
-            "<b>Description:</b> %4<br>\n" +
-            "%5\n" +
+          "<p>\n" \
+            "<b>URL:</b> %1<br>\n" \
+            "<b>Linked from:</b> %2<br>\n" \
+            "<b>Summary:</b> %3<br>\n" \
+            "<b>Description:</b> %4<br>\n" \
+            "%5\n" \
             "</p>"
         ),
         Ops.get_string(@list_of_repos, [current_id, "url"], ""),
@@ -969,7 +955,7 @@ module Yast
     #                   but only for the first time when running this client
     #
     # @see bugzilla #297628
-    def InitRepositoriesWidget(filter_string, first_init, current_item)
+    def InitRepositoriesWidget(filter_string, first_init, _current_item)
       items = []
       recommended_items = []
       @repos_visible_now = []
@@ -1003,17 +989,17 @@ module Yast
                 repo_id,
                 src_id
               )
-            else
-              next
             end
-          end 
+
+            next
+          end
           # repository has been already selected
         elsif IsSelectedInDialog(repo_id)
           already_used = true
         end
         # If this variable is true, no recoomended repos are preselected
         if already_used
-          some_repo_already_selected = true 
+          some_repo_already_selected = true
           # List of not-selected repos
         elsif !first_init
           @currently_NOT_selected = Builtins.add(
@@ -1028,9 +1014,9 @@ module Yast
         if filter_string != ""
           # neither "url" nor "name" matching
           if !Builtins.regexpmatch(
-              Ops.get_string(one_repo, "url", ""),
-              filter_string
-            ) &&
+            Ops.get_string(one_repo, "url", ""),
+            filter_string
+          ) &&
               !Builtins.regexpmatch(localized_name, filter_string)
             next
           end
@@ -1040,21 +1026,13 @@ module Yast
           Builtins.y2error("Repository %1 has no 'url'", one_repo)
           next
         end
-        recommended = false
-        # Only in stage initial and if no other repository is selected:
-        # preselect recommended repositories...
         # always fill-up this list -- later used for sorting using 'recommended' tag
         # Bugzilla #297628
-        #if (Stage::initial()) {
         recommended = Ops.get_boolean(one_repo, "recommended", false)
         if recommended
           recommended_items = Builtins.add(recommended_items, repo_id)
         end
-        #}
 
-        #	    // was 'current' and remains 'current'
-        #	    if (repo_id == current_item)
-        #		current_item_is_listed = true;
         Ops.set(items, counter, Item(Id(repo_id), localized_name, already_used))
         Ops.set(@repos_visible_now, counter, repo_id)
       end
@@ -1121,8 +1099,8 @@ module Yast
       # remember already selected items before filtering
       currently_selected = Convert.convert(
         UI.QueryWidget(Id("addon_repos"), :SelectedItems),
-        :from => "any",
-        :to   => "list <string>"
+        from: "any",
+        to:   "list <string>"
       )
 
       # all visible repos - just now
@@ -1134,18 +1112,16 @@ module Yast
             @already_selected_in_dialog = Builtins.filter(
               @already_selected_in_dialog
             ) { |o_r| o_r != one_repo }
-          end 
-
-          # visible repository is selected now
-        else
-          # wasn't selected
-          if !Builtins.contains(@already_selected_in_dialog, one_repo)
-            # add it
-            @already_selected_in_dialog = Builtins.add(
-              @already_selected_in_dialog,
-              one_repo
-            )
           end
+
+        # visible repository is selected now
+        # wasn't selected
+        elsif !Builtins.contains(@already_selected_in_dialog, one_repo)
+          # add it
+          @already_selected_in_dialog = Builtins.add(
+            @already_selected_in_dialog,
+            one_repo
+          )
         end
       end
 
@@ -1164,7 +1140,7 @@ module Yast
     end
 
     def EscapeChars(input)
-      return input if input == "" || input == nil
+      return input if input == "" || input.nil?
 
       # \ must be the first character!
       escape = "\\(){}[]+^$|"
@@ -1190,7 +1166,7 @@ module Yast
     # <- "aBc/iop"
     # -> "[Aa][Bb][Cc]/[Ii][Oo][Pp]"
     def MakeCaseInsensitiveRegexp(input)
-      return input if input == nil || input == ""
+      return input if input.nil? || input == ""
 
       characters = []
       counter = 0
@@ -1269,19 +1245,27 @@ module Yast
         _(
           "<p>List of default online repositories.\nClick on a repository for details.</p>\n"
         ) +
-          (Stage.initial ?
-            # TRANSLATORS: dialog help 2/3 (version for installation)
-            _(
-              "<p>Select the online repositories you want to use then click <b>Next</b>.</p>\n"
-            ) :
-            # TRANSLATORS: dialog help 2/3 (version for running system)
-            _(
-              "<p>Select the online repositories you want to use then click <b>Finish</b>.</p>\n"
-            )) +
+          (
+            if Stage.initial
+              # TRANSLATORS: dialog help 2/3 (version for installation)
+              _(
+                "<p>Select the online repositories you want to use then click <b>Next</b>.</p>\n"
+              )
+            else
+              # TRANSLATORS: dialog help 2/3 (version for running system)
+              _(
+                "<p>Select the online repositories you want to use then click <b>Finish</b>.</p>\n"
+              )
+            end
+          ) +
           # TRANSLATORS: dialog help 3/3
-          (@skip_already_used_repos != true ?
-            _("<p>To remove a used repository, simply deselect it.</p>") :
-            ""),
+          (
+            if @skip_already_used_repos
+              ""
+            else
+              _("<p>To remove a used repository, simply deselect it.</p>")
+            end
+          ),
         Mode.installation ? GetInstArgs.enable_back : false,
         Mode.installation ? GetInstArgs.enable_next : true
       )
@@ -1319,45 +1303,40 @@ module Yast
       # warn if there is low memory
       check_memory_size
 
-      while true
+      loop do
         dialog_ret = UI.UserInput
 
-        if dialog_ret == :back
+        case dialog_ret
+        when :back
           Builtins.y2milestone("Going back")
           dialog_ret = :special_go_back
           break
-        elsif dialog_ret == :next
-          if HandleSelectedSources()
-            break
-          else
-            next
-          end
-        elsif dialog_ret == :abort || dialog_ret == :cancel
+        when :next
+          HandleSelectedSources() ? break : next
+        when :abort, :cancel
           dialog_ret = :abort
           if Stage.initial
             # from add-ons
             if @script_called_from_another
               Builtins.y2milestone("Back to add-ons")
-              break 
+              break
               # from workflow
             elsif Popup.ConfirmAbort(:painless)
               break
             end
-          else
-            if @script_called_from_another
-              break
-            elsif Popup.ContinueCancelHeadline(
-                # TRANSLATORS: popup header
-                _("Aborting Configuration of Online Repository"),
-                # TRANSLATORS: popup question
-                _("Are you sure you want to abort the configuration?")
-              )
-              break
-            end
+          elsif @script_called_from_another
+            break
+          elsif Popup.ContinueCancelHeadline(
+            # TRANSLATORS: popup header
+            _("Aborting Configuration of Online Repository"),
+            # TRANSLATORS: popup question
+            _("Are you sure you want to abort the configuration?")
+          )
+            break
           end
-        elsif dialog_ret == "addon_repos"
+        when "addon_repos"
           PrintRepositoryDescription()
-        elsif dialog_ret == "do_filter"
+        when "do_filter"
           HandleFilterButton()
         else
           Builtins.y2error("Unknown ret: %1", dialog_ret)
@@ -1390,21 +1369,17 @@ module Yast
       nil
     end
 
-
-
-
-
-    def CreateSource(url, pth, repo_name, actions_todo, actions_doing, no_progress_updates)
+    def CreateSource(url, pth, repo_name, _actions_todo, _actions_doing, _no_progress_updates)
       src_id = nil
 
       repo_type = Pkg.RepositoryProbe(url, pth)
       Builtins.y2milestone("Probed repository type: %1", repo_type)
 
       # probing succeeded?
-      if repo_type != nil && repo_type != "NONE"
+      if !repo_type.nil? && repo_type != "NONE"
         # create alias in form "<hostname>-<last_path_element>"
         parsed_url = URL.Parse(url)
-        _alias = Ops.get_string(parsed_url, "host", "")
+        alias_name = Ops.get_string(parsed_url, "host", "")
 
         path_parts = Builtins.splitstring(
           Ops.get_string(parsed_url, "path", ""),
@@ -1432,31 +1407,29 @@ module Yast
             )
           end
 
-          _alias = Ops.add(Ops.add(_alias, "-"), suffix)
+          alias_name = Ops.add(Ops.add(alias_name, "-"), suffix)
         end
 
-        _alias = GetUniqueAlias(_alias)
-        Builtins.y2milestone("Using alias: %1", _alias)
+        alias_name = GetUniqueAlias(alias_name)
+        Builtins.y2milestone("Using alias: %1", alias_name)
 
         src_id = Pkg.RepositoryAdd(
-          {
-            "enabled"   => false,
-            "name"      => repo_name,
-            "base_urls" => [url],
-            "prod_dir"  => pth,
-            # alias needs to be unique
-            # bugzilla #309317
-            "alias"     => _alias,
-            "type"      => repo_type
-          }
+          "enabled"   => false,
+          "name"      => repo_name,
+          "base_urls" => [url],
+          "prod_dir"  => pth,
+          # alias needs to be unique
+          # bugzilla #309317
+          "alias"     => _alias,
+          "type"      => repo_type
         )
       end
 
-      if src_id == nil
+      if src_id.nil?
         error = ""
         details = ""
 
-        if repo_type == nil
+        if repo_type.nil?
           error = Pkg.LastError
           if Ops.greater_than(Builtins.size(error), 0)
             error = Ops.add("\n\n", error)
@@ -1538,13 +1511,11 @@ module Yast
 
         AddOnProduct.add_on_products = Builtins.add(
           AddOnProduct.add_on_products,
-          {
-            "media"            => src_id,
-            "product"          => repo_name,
-            "autoyast_product" => Ops.get_string(prod, "productname", ""),
-            "media_url"        => url,
-            "product_dir"      => pth
-          }
+          "media"            => src_id,
+          "product"          => repo_name,
+          "autoyast_product" => Ops.get_string(prod, "productname", ""),
+          "media_url"        => url,
+          "product_dir"      => pth
         )
       end
 
@@ -1561,9 +1532,9 @@ module Yast
       # repos_to_be_used
       # repos_already_used
 
-      #y2milestone ("ToBeDeleted: %1", repos_to_be_deleted);
-      #y2milestone ("ReposAlreadyUsed: %1", repos_already_used);
-      #y2milestone ("ReposToBeUsed: %1", repos_to_be_used);
+      # y2milestone ("ToBeDeleted: %1", repos_to_be_deleted);
+      # y2milestone ("ReposAlreadyUsed: %1", repos_already_used);
+      # y2milestone ("ReposToBeUsed: %1", repos_to_be_used);
 
       # go through all already initialized repositories
       # add unselected repository to 'repos_to_be_deleted'
@@ -1575,7 +1546,7 @@ module Yast
       Builtins.foreach(@repos_already_used) do |id_used, src_id|
         # was used, but isn't anymore
         if !Builtins.contains(@repos_to_be_used, id_used)
-          repos_to_be_deleted = Builtins.add(repos_to_be_deleted, src_id) 
+          repos_to_be_deleted = Builtins.add(repos_to_be_deleted, src_id)
 
           # was used and remains used
         else
@@ -1586,8 +1557,8 @@ module Yast
         end
       end if @skip_already_used_repos != true
 
-      #y2milestone ("WillBeDeleted: %1", repos_to_be_deleted);
-      #y2milestone ("WillBeUsed: %1", repos_to_be_used);
+      # y2milestone ("WillBeDeleted: %1", repos_to_be_deleted);
+      # y2milestone ("WillBeUsed: %1", repos_to_be_used);
 
       if repos_to_be_deleted != []
         Builtins.y2milestone("Repos to be deleted: %1", repos_to_be_deleted)
@@ -1633,7 +1604,7 @@ module Yast
         end
       end
 
-      if Builtins.size(actions_todo) == 0
+      if Builtins.size(actions_todo).zero?
         Builtins.y2milestone("Nothing to do...")
         return :next
       end
@@ -1687,7 +1658,7 @@ module Yast
 
       # Redraw installation wizard
       if Stage.initial
-        UpdateWizardSteps() 
+        UpdateWizardSteps()
         # Store repositories
       else
         Pkg.SourceSaveAll
@@ -1701,28 +1672,27 @@ module Yast
     end
 
     def RunMain
-      aliases = { "read" => lambda { ReadDialog() }, "sources" => lambda do
-        SourcesDialog()
-      end, "write" => lambda(
-      ) do
-        WriteDialog()
-      end }
+      aliases = {
+        "read"    => -> { ReadDialog() },
+        "sources" => -> { SourcesDialog() },
+        "write"   => -> { WriteDialog() }
+      }
 
       sequence = {
         "ws_start" => "read",
         "read"     => {
-          :next      => "sources",
+          next:      "sources",
           # not enough memory
-          :skip      => :next,
-          :nosources => :next,
-          :abort     => :abort
+          skip:      :next,
+          nosources: :next,
+          abort:     :abort
         },
         "sources"  => {
-          :special_go_back => :back,
-          :next            => "write",
-          :abort           => :abort
+          special_go_back: :back,
+          next:            "write",
+          abort:           :abort
         },
-        "write"    => { :next => :next, :abort => :abort }
+        "write"    => { next: :next, abort: :abort }
       }
 
       ret = Sequencer.Run(aliases, sequence)
@@ -1731,25 +1701,26 @@ module Yast
       Convert.to_symbol(ret)
     end
 
-    private
+  private
 
     # display a warning when online repositories are used on a system
     # with low memory (the installer may crash or freeze, see bnc#854755)
     def check_memory_size
+      return if !Mode.installation
       # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
       # rounding in hwinfo memory detection (bsc#1045915)
-      if Mode.installation && Yast2::HwDetection.memory < ((LOW_MEMORY_MIB - 64) << 20)
-        Report.Warning(_("Low memory detected.\n\nUsing online repositories " +
-              "during initial installation with less than\n" +
-              "%dMiB system memory is not recommended.\n\n" +
-              "The installer may crash or freeze if the additional package data\n" +
-              "need too much memory.\n\n" +
-              "Using the online repositories later in the installed system is\n" +
-              "recommended in this case.") % LOW_MEMORY_MIB)
-      end
-    end
+      return if Yast2::HwDetection.memory >= ((LOW_MEMORY_MIB - 64) << 20)
 
+      Report.Warning(_("Low memory detected.\n\nUsing online repositories " \
+            "during initial installation with less than\n" \
+            "%dMiB system memory is not recommended.\n\n" \
+            "The installer may crash or freeze if the additional package data\n" \
+            "need too much memory.\n\n" \
+            "Using the online repositories later in the installed system is\n" \
+            "recommended in this case.") % LOW_MEMORY_MIB)
+    end
   end unless defined? InstProductsourcesClient
 end
 
+# rubocop:enable Style/Documentation
 Yast::InstProductsourcesClient.new.main

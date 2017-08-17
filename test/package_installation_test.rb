@@ -8,7 +8,7 @@ describe Yast::PackageInstallation do
   subject { Yast::PackageInstallation }
 
   describe "#Commit" do
-    let(:config) { {"medium_nr" => 0} }
+    let(:config) { { "medium_nr" => 0 } }
     let(:result) { [1, [], [], [], []] }
 
     before do

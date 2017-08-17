@@ -33,15 +33,16 @@ describe Yast::AddOnProduct do
     context "when according to libzypp a product is renamed" do
       let(:deps) do
         [
-          {"obsoletes" => "product:old_product1"},
-          {"obsoletes" => "product(old_product2)"},
-          {"provides" => "product:new_product"},
-          {"provides" => "product(old_name)"}
+          { "obsoletes" => "product:old_product1" },
+          { "obsoletes" => "product(old_product2)" },
+          { "provides" => "product:new_product" },
+          { "provides" => "product(old_name)" }
         ]
       end
 
       let(:new_product) do
-        ProductFactory.create_product("name" => "new_product", "product_package" => "new_product-release")
+        ProductFactory.create_product("name"            => "new_product",
+                                      "product_package" => "new_product-release")
       end
 
       let(:new_product_package) do
@@ -55,7 +56,8 @@ describe Yast::AddOnProduct do
       let(:products) { [new_product] }
 
       it "returns true" do
-        allow(Yast::Pkg).to receive(:ResolvableDependencies).with(new_product["product_package"], :package, "")
+        allow(Yast::Pkg).to receive(:ResolvableDependencies)
+          .with(new_product["product_package"], :package, "")
           .and_return([installed_product_package, new_product_package])
         expect(subject.renamed?("old_product1", new_product["name"])).to eq(true)
         expect(subject.renamed?("old_product2", new_product["name"])).to eq(true)
@@ -146,15 +148,21 @@ describe Yast::AddOnProduct do
     end
 
     it "returns url untouched if url do not contain alias" do
-      expect(Yast::AddOnProduct.SetRepoUrlAlias(url_without_alias, nil, "mySLES")).to eq url_without_alias
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url_without_alias, nil, "mySLES")).to eq(
+        url_without_alias
+      )
     end
 
     it "overwrites alias with alias param if provided" do
-      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, "mySLES", nil)).to eq "http://example.com/repos/SLES11SP2?alias=mySLES"
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, "mySLES", nil)).to eq(
+        "http://example.com/repos/SLES11SP2?alias=mySLES"
+      )
     end
 
     it "overwrites alias with name param if alias is not provided" do
-      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, nil, "mySLES")).to eq "http://example.com/repos/SLES11SP2?alias=mySLES"
+      expect(Yast::AddOnProduct.SetRepoUrlAlias(url, nil, "mySLES")).to eq(
+        "http://example.com/repos/SLES11SP2?alias=mySLES"
+      )
     end
   end
 
@@ -173,7 +181,8 @@ describe Yast::AddOnProduct do
         end
 
         it "starts the registration client" do
-          expect(Yast::WFM).to receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+          expect(Yast::WFM).to receive(:CallFunction)
+            .with("inst_scc", ["register_media_addon", repo_id])
 
           Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
         end
@@ -186,14 +195,16 @@ describe Yast::AddOnProduct do
 
         it "asks to install yast2-registration and starts registration if installed" do
           expect(Yast::Package).to receive(:Install).with("yast2-registration").and_return(true)
-          expect(Yast::WFM).to receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+          expect(Yast::WFM).to receive(:CallFunction)
+            .with("inst_scc", ["register_media_addon", repo_id])
 
           Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
         end
 
         it "asks to install yast2-registration and skips registration if not installed" do
           expect(Yast::Package).to receive(:Install).with("yast2-registration").and_return(false)
-          expect(Yast::WFM).to_not receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+          expect(Yast::WFM).to_not receive(:CallFunction)
+            .with("inst_scc", ["register_media_addon", repo_id])
 
           Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
         end
@@ -207,7 +218,8 @@ describe Yast::AddOnProduct do
       end
 
       it "add-on registration is skipped" do
-        expect(Yast::WFM).to_not receive(:CallFunction).with("inst_scc", ["register_media_addon", repo_id])
+        expect(Yast::WFM).to_not receive(:CallFunction)
+          .with("inst_scc", ["register_media_addon", repo_id])
 
         Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
       end
@@ -483,16 +495,20 @@ describe Yast::AddOnProduct do
       allow(Yast::WorkflowManager).to receive(:AddWorkflow)
     end
 
-    it "updates the inst-sys with the y2update.tgz file from the installer extension package" do
-      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(true)
-      expect(subject).to receive(:UpdateInstSys).with(/\/y2update\.tgz\z/)
-      subject.Integrate(src_id)
+    context "installer extension package contains y2update.tgz" do
+      it "updates the inst-sys with the y2update.tgz" do
+        expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(true)
+        expect(subject).to receive(:UpdateInstSys).with(/\/y2update\.tgz\z/)
+        subject.Integrate(src_id)
+      end
     end
 
-    it "does not update inst-sys when y2update.tgz was not found in the installer extension package" do
-      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
-      expect(subject).to_not receive(:UpdateInstSys)
-      subject.Integrate(src_id)
+    context "installer extension package does not contain y2update.tgz" do
+      it "does not update inst-sys" do
+        expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
+        expect(subject).to_not receive(:UpdateInstSys)
+        subject.Integrate(src_id)
+      end
     end
   end
 
@@ -505,16 +521,20 @@ describe Yast::AddOnProduct do
       allow(subject).to receive(:RereadAllSCRAgents)
     end
 
-    it "updates the inst-sys with the y2update.tgz file from the installer extension package" do
-      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(true)
-      expect(Yast::SCR).to receive(:Execute).and_return("exit" => 0)
-      subject.IntegrateY2Update(src_id)
+    context "installer extension package contains y2update.tgz" do
+      it "updates the inst-sys with the y2update.tgz" do
+        expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(true)
+        expect(Yast::SCR).to receive(:Execute).and_return("exit" => 0)
+        subject.IntegrateY2Update(src_id)
+      end
     end
 
-    it "does not update inst-sys when y2update.tgz was not found in the installer extension package" do
-      expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
-      expect(Yast::SCR).to_not receive(:Execute)
-      subject.IntegrateY2Update(src_id)
+    context "installer extension package does not contain y2update.tgz" do
+      it "does not update inst-sys" do
+        expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
+        expect(Yast::SCR).to_not receive(:Execute)
+        subject.IntegrateY2Update(src_id)
+      end
     end
   end
 end

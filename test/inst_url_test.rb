@@ -6,8 +6,8 @@ Yast.import "InstURL"
 Yast.import "Linuxrc"
 
 describe Yast::InstURL do
-  subject(:inst_url)  { Yast::InstURL }
-    
+  subject(:inst_url) { Yast::InstURL }
+
   describe "#installInf2Url" do
     let(:zypp_repo_url) { "http://opensuse.org/repo" }
     let(:ssl_verify) { "yes" }

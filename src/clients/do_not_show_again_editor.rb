@@ -1,11 +1,6 @@
 # encoding: utf-8
-
-# File:    clients/do_not_show_again_editor.ycp
-# Authors: Lukas Ocilka <locilka@suse.cz>
-# Summary: Editor for "Do Not Show This Dialog Again" store
-#
-# $Id: DontShowAgain.ycp 11111 2006-05-30 12:27:15Z locilka $
 module Yast
+  # Editor for "Do Not Show This Dialog Again" store
   class DoNotShowAgainEditorClient < Client
     def main
       Yast.import "UI"
@@ -42,7 +37,7 @@ module Yast
         Builtins.foreach(records) do |popup_type, one_record|
           Builtins.foreach(one_record) do |url, record_options|
             # nil records are skipped
-            next if record_options == nil
+            next if record_options.nil?
             index_counter = Ops.add(index_counter, 1)
             table_items = Builtins.add(
               table_items,
@@ -68,8 +63,8 @@ module Yast
 
       # help text
       helptext = _(
-        "<p>Remove entries by selecting them in the table and clicking the \n" +
-          "<b>Delete</b> button. The entries will be removed immediately from \n" +
+        "<p>Remove entries by selecting them in the table and clicking the \n" \
+          "<b>Delete</b> button. The entries will be removed immediately from \n" \
           "the current configuration.</p>\n"
       )
 
@@ -116,17 +111,15 @@ module Yast
     def HandleDialog
       ret = nil
 
-      while true
+      loop do
         ret = UI.UserInput
 
-        if ret == :abort || ret == :cancel || ret == :accept || ret == :next
-          break
-        elsif ret == :delete
+        break if ret == :abort || ret == :cancel || ret == :accept || ret == :next
+
+        if ret == :delete
           DeleteItem()
-          next
         else
           Builtins.y2error("Undefined return %1", ret)
-          next
         end
       end
 

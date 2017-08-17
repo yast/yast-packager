@@ -1,36 +1,33 @@
 # encoding: utf-8
-
-# File:	Packages.ycp
-# Package:	Package selections
-# Authors:	Anas Nashif <nashif@suse.de>
-#
 require "yast"
 
 # html_escape()
 require "erb"
 require "fileutils"
 
+# Yast namespace
 module Yast
+  # Package selections
   class PackagesClass < Module
     include Yast::Logger
     include ERB::Util
 
     # All known types of resolvables
-    RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language]
+    RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language].freeze
 
     # Key to sort by resolvable selection
-    RESOLVABLE_SORT_ORDER = { :product => "source", :pattern => "order" }
+    RESOLVABLE_SORT_ORDER = { product: "source", pattern: "order" }.freeze
 
     # Minimum set of packages tags required to enable VNC server
-    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"]
+    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts", "xinetd"].freeze
     # Additional packages tags needed to run second stage in graphical mode
-    AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"]
+    AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"].freeze
     # Default window manager for VNC if none is installed
-    DEFAULT_WM = "icewm"
+    DEFAULT_WM = "icewm".freeze
     # Minimum set of packages required for installation with remote X11 server
-    REMOTE_X11_BASE_TAGS = [ "xorg-x11-server", "xorg-x11-fonts", "icewm" ]
+    REMOTE_X11_BASE_TAGS = ["xorg-x11-server", "xorg-x11-fonts", "icewm"].freeze
     # Graphical packages for VNC installation
-    GRAPHIC_PACKAGES = [ "xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11" ]
+    GRAPHIC_PACKAGES = ["xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11"].freeze
 
     # Some products are already be "included" in other products. So they MUST
     # not be installed anymore because the other product has a conflict to
@@ -38,8 +35,8 @@ module Yast
     PRODUCT_CONFLICTS = {
       # SLES_SAP contains "Conflicts: sles-release". So SLES will not be installed.
       # see https://build.suse.de/package/view_file/SUSE:SLE-12-SP2:GA/_product/SLES_SAP-release.spec?expand=1
-      "SLES_SAP" => [ "SLES" ]
-    }
+      "SLES_SAP" => ["SLES"]
+    }.freeze
 
     BASE_PRODUCT_FILE = "/etc/products.d/baseproduct".freeze
 
@@ -124,7 +121,6 @@ module Yast
 
       # Local variables
 
-
       @choosen_base_selection = ""
 
       # count of errors during packages solver
@@ -178,9 +174,9 @@ module Yast
     def ListSelected(what, format)
       selected = Pkg.ResolvableProperties("", what, "")
 
-      selected.select! {|r| r["status"] == :selected }
+      selected.select! { |r| r["status"] == :selected }
 
-      selected.select! {|r| r["user_visible"] } if what == :pattern
+      selected.select! { |r| r["user_visible"] } if what == :pattern
 
       sort_resolvable!(selected, what)
 
@@ -193,10 +189,11 @@ module Yast
       sz = 0
       media_sizes = Pkg.PkgMediaSizes
 
-      Builtins.foreach(media_sizes) { |inst_sizes| Builtins.foreach(inst_sizes) do |inst_size|
-        sz = Ops.add(sz, inst_size)
-      end }
-
+      Builtins.foreach(media_sizes) do |inst_sizes|
+        Builtins.foreach(inst_sizes) do |inst_size|
+          sz = Ops.add(sz, inst_size)
+        end
+      end
 
       Builtins.y2milestone(
         "Total size of packages to install %1 (%2kB)",
@@ -207,7 +204,6 @@ module Yast
     end
 
     def SrcMapping
-      srcid_to_current_src_no = {}
       index = 0
 
       src_list = Pkg.PkgMediaNames
@@ -246,9 +242,8 @@ module Yast
         end
       end
 
-
       # shortcut, no remote repository found
-      if Builtins.size(remote_repos) == 0
+      if Builtins.size(remote_repos).zero?
         Builtins.y2milestone("No remote repository found")
         return 0
       end
@@ -269,7 +264,6 @@ module Yast
         end
       end
 
-
       Builtins.y2milestone(
         "Total size of packages to download: %1 (%2kB)",
         ret,
@@ -282,22 +276,21 @@ module Yast
     # @return [String] the information string or empty string
     def InfoAboutSubOptimalDistribution
       if ProductFeatures.GetBooleanFeature(
-          "software",
-          "inform_about_suboptimal_distribution"
-        ) &&
+        "software",
+        "inform_about_suboptimal_distribution"
+      ) &&
           Arch.i386
         tmp = Convert.to_string(
           SCR.Read(path(".proc.cpuinfo.value.\"0\".\"flags\""))
         )
-        flags = Ops.greater_than(Builtins.size(tmp), 0) ?
-          Builtins.splitstring(tmp, " ") :
-          []
+        flags = tmp.empty? ? [] : tmp.split(" ")
 
         # this depends on the cpu (lm = long mode)
         if Builtins.contains(flags, "lm")
           # warning text
           return _(
-            "Your computer is a 64-bit x86-64 system, but you are trying to install a 32-bit distribution."
+            "Your computer is a 64-bit x86-64 system, " \
+              "but you are trying to install a 32-bit distribution."
           )
         end
       end
@@ -313,7 +306,8 @@ module Yast
         ret = Ops.add(
           ret,
           _(
-            "<P>The pattern list states which functionality will be available after installing the system.</P>"
+            "<P>The pattern list states which functionality will be available " \
+              "after installing the system.</P>"
           )
         )
       end
@@ -325,12 +319,18 @@ module Yast
             # (see bnc#178357 why these numbers)
             # translators: help text for software proposal
             _(
-              "<P>The proposal reports the total size of files which will be installed to the system. However, the system will contain some other files (temporary and working files) so the used space will be slightly larger than the proposed value. Therefore it is a good idea to have at least 25% (or about 300MB) free space before starting the installation.</P>"
+              "<P>The proposal reports the total size of files which will be installed " \
+                "to the system. However, the system will contain some other files " \
+                "(temporary and working files) so the used space will be slightly larger " \
+                "than the proposed value. Therefore it is a good idea to have at least " \
+                "25% (or about 300MB) free space before starting the installation.</P>"
             )
           ),
           # help text for software proposal
           _(
-            "<P>The total 'size to download' is the size of the packages which will be\ndownloaded from remote (network) repositories. This value is important if the connection is slow or if there is a data limit for downloading.</P>\n"
+            "<P>The total 'size to download' is the size of the packages which will be\n" \
+              "downloaded from remote (network) repositories. This value is important if " \
+              "the connection is slow or if there is a data limit for downloading.</P>\n"
           )
         )
       end
@@ -356,8 +356,8 @@ module Yast
         # (e.g. openSUSE 10.3, SUSE Linux Enterprise ...)
         output = Convert.convert(
           Builtins.merge(output, ListSelected(:product, _("Product: %1"))),
-          :from => "list",
-          :to   => "list <string>"
+          from: "list",
+          to:   "list <string>"
         )
       end
 
@@ -366,7 +366,8 @@ module Yast
         # BNC #431336 ... and even if it is defined, it needn't be visible
         ddd = DefaultDesktop.Description
         if ddd != ""
-          # installation proposal - SW summary, %1 is name of the selected desktop or system type (e.g. KDE)
+          # installation proposal - SW summary, %1 is name of the selected desktop or
+          # system type (e.g. KDE)
           output = Builtins.add(
             output,
             Builtins.sformat(_("System Type: %1"), ddd)
@@ -410,7 +411,7 @@ module Yast
         end
       end
 
-      output = Builtins.filter(output) { |o| o != "" && o != nil }
+      output = Builtins.filter(output) { |o| o != "" && !o.nil? }
 
       deep_copy(output)
     end
@@ -437,7 +438,7 @@ module Yast
       end
 
       # no such products
-      if Builtins.size(products) == 0
+      if Builtins.size(products).zero?
         Builtins.y2milestone("No products marked for auto-removal")
         return
       end
@@ -470,7 +471,7 @@ module Yast
       )
 
       # raising warning level if needed
-      if Ops.get(ret.value, "warning_level") == nil ||
+      if Ops.get(ret.value, "warning_level").nil? ||
           Builtins.contains(
             [:notice, :ok],
             Ops.get_symbol(ret.value, "warning_level", :warning)
@@ -479,23 +480,25 @@ module Yast
       end
 
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(ret.value, "warning", "")),
-          0
-        )
+        Builtins.size(Ops.get_string(ret.value, "warning", "")),
+        0
+      )
         Ops.set(
           ret.value,
           "warning",
           Ops.add(
             Ops.add(Ops.get_string(ret.value, "warning", ""), "<br>\n"),
-            Ops.greater_than(Builtins.size(products), 1) ?
+            if Ops.greater_than(Builtins.size(products), 1)
               # Warning message when some add-ons are marked to be removed automatically
               _(
                 "Contact the vendors of these add-ons to provide you with new installation media."
-              ) :
+              )
+            else
               # Warning message when some add-ons are marked to be removed automatically
               _(
                 "Contact the vendor of the add-on to provide you with a new installation media."
               )
+            end
           )
         )
       end
@@ -519,14 +522,11 @@ module Yast
       )
 
       Builtins.foreach(failed_mounts) do |failed_mount|
-        delim = Ops.greater_than(
-          Builtins.size(Ops.get_string(summary, "warning", "")),
-          0
-        ) ? "<BR>" : ""
+        delim = summary.fetch("warning", "").empty? ? "" : "<BR>"
         if Builtins.contains(
-            @basic_dirs,
-            failed_mount.mountpoint
-          )
+          @basic_dirs,
+          failed_mount.mountpoint
+        )
           Ops.set(
             summary,
             "warning",
@@ -535,7 +535,8 @@ module Yast
               # error message: %1: e.g. "/usr", %2: "/dev/sda2"
               Builtins.sformat(
                 _(
-                  "Error: Cannot check free space in basic directory %1 (device %2), cannot start installation."
+                  "Error: Cannot check free space in basic directory %1 (device %2), " \
+                    "cannot start installation."
                 ),
                 failed_mount.mountpoint,
                 fs_dev_name(failed_mount)
@@ -565,14 +566,13 @@ module Yast
 
           # keep blocker, fatal and error level, they are higher than warning
           if !Builtins.contains(
-              [:blocker, :fatal, :error],
-              Ops.get_symbol(summary, "warning_level", :ok)
-            )
+            [:blocker, :fatal, :error],
+            Ops.get_symbol(summary, "warning_level", :ok)
+          )
             Ops.set(summary, "warning_level", :warning)
           end
         end
       end
-
 
       Builtins.y2milestone("Proposal summary: %1", summary)
 
@@ -585,23 +585,24 @@ module Yast
     # @return [Hash] a map with proposal summary
     def Summary(flags, use_cache)
       flags = deep_copy(flags)
-      if @init_error != nil
+      if !@init_error.nil?
         return { "warning" => @init_error, "warning_level" => :blocker }
       end
       ret = {}
 
       if !CheckDiskSize(!use_cache)
+        fixed_selection = ProductFeatures.GetFeature("software", "selection_type") == :fixed
         ret = {
-          "warning"       => ProductFeatures.GetFeature(
-            "software",
-            "selection_type"
-          ) == :fixed ?
-            # summary warning
-            _("Not enough disk space.") :
-            # summary warning
-            _(
-              "Not enough disk space. Remove some packages in the single selection."
-            ),
+          "warning"       => if fixed_selection
+                               # summary warning
+                               _("Not enough disk space.")
+                             else
+                               # summary warning
+                               _(
+                                 "Not enough disk space. Remove some packages " \
+                                   "in the single selection."
+                               )
+                             end,
           "warning_level" => Mode.update ? :error : :blocker
         }
       else
@@ -628,7 +629,6 @@ module Yast
             warning = Ops.add(warning, w)
           end
 
-
           if warning != ""
             Ops.set(ret, "warning", warning)
             Ops.set(ret, "warning_level", :warning)
@@ -639,7 +639,7 @@ module Yast
       # Check the YaST required packages.
       missing_resolvables = check_missing_resolvables
       if !missing_resolvables.empty?
-        texts = missing_resolvables.map{ |type, list| format_missing_resolvables(type, list) }
+        texts = missing_resolvables.map { |type, list| format_missing_resolvables(type, list) }
         texts << _("Please manually select the needed items to install.")
 
         # include the existing warning if defined
@@ -680,10 +680,10 @@ module Yast
       to_install -= to_update.values
 
       ret = {
-        :new => to_install,
-        :removed => to_remove,
-        :kept => kept_products(products),
-        :updated => to_update
+        new:     to_install,
+        removed: to_remove,
+        kept:    kept_products(products),
+        updated: to_update
       }
 
       log.info "Product update status: #{ret}"
@@ -710,13 +710,15 @@ module Yast
         new_product = product_label(installed)
         log.info "Detected product update: #{old_product} -> #{new_product}"
 
-        (old_product == new_product) ?
+        if old_product == new_product
           # product update: %s is a product name
-        _("Product <b>%s</b> will be updated") % h(old_product) :
+          _("Product <b>%s</b> will be updated") % h(old_product)
+        else
           # product update: %{old_product} is an old product, %{new_product} is the new one
-        _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
-          :old_product => h(old_product), :new_product => h(new_product)
-        }
+          _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
+            old_product: h(old_product), new_product: h(new_product)
+          }
+        end
       end
 
       ret += status[:kept].map do |product|
@@ -730,10 +732,12 @@ module Yast
 
         # Removing another product might be an issue
         # (just warn if removed by user or by YaST)
-        msg = (transact_by == :user || transact_by == :app_high) ?
-          _("<b>Warning:</b> Product <b>%s</b> will be removed.") % h(product_label(product)) :
-          _("<b>Error:</b> Product <b>%s</b> will be automatically removed.") \
-            % h(product_label(product))
+        msg = if [:user, :app_high].include?(transact_by)
+          _("<b>Warning:</b> Product <b>%s</b> will be removed.") % h(product_label(product))
+        else
+          _("<b>Error:</b> Product <b>%s</b> will be automatically removed.") %
+            h(product_label(product))
+        end
 
         HTML.Colorize(msg, "red")
       end
@@ -754,17 +758,18 @@ module Yast
 
       # Automatic product removal MUST be confirmed by user, otherwise update
       # cannot be started.
-      return {
+      {
         "warning_level" => :blocker,
         # TRANSLATORS: update proposal warning, do NOT translate "-release",
         # it is part of a package name (like "sles-release")
-        "warning" => _(
+        "warning"       => _(
           "<ul><li><b>Some products are marked for automatic removal.</b></li>\n" \
             "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
             "installation media</li><li>Or select the appropriate online extension or module\n" \
             "in the registration step</li><li>Or to continue with product upgrade go to the\n" \
             "software selection and mark the product (the -release package) for removal.\n" \
-            "</li></ul></li></ul>")
+            "</li></ul></li></ul>"
+        )
       }
     end
 
@@ -834,9 +839,9 @@ module Yast
           @add_on_products_list
         )
         if Mode.auto
-          Builtins.y2warning( "This is an AutoYaST installation. "\
+          Builtins.y2warning("This is an AutoYaST installation. "\
             "Only Add-on products will be added which have been defined "\
-            "in the add-on section of the AutoYaST configuration file." )
+            "in the add-on section of the AutoYaST configuration file.")
         else
           AddOnProduct.AddPreselectedAddOnProducts(@add_on_products_list)
         end
@@ -845,7 +850,6 @@ module Yast
 
       nil
     end
-
 
     #-----------------------------------------------------------------------
     # LOCALE FUNCTIONS
@@ -879,8 +883,8 @@ module Yast
           pmac_board = ""
           pmac_compatible = Convert.convert(
             SCR.Read(path(".probe.cpu")),
-            :from => "any",
-            :to   => "list <map>"
+            from: "any",
+            to:   "list <map>"
           )
           Builtins.foreach(pmac_compatible) do |pmac_compatible_tmp|
             pmac_board = Ops.get_string(pmac_compatible_tmp, "system", "")
@@ -904,7 +908,7 @@ module Yast
 
       if Arch.ia64
         # install fpswa if the firmware has an older version
-        if SCR.Execute(path(".target.bash"), "/sbin/fpswa_check_version") != 0
+        if SCR.Execute(path(".target.bash"), "/sbin/fpswa_check_version").nonzero?
           packages = Builtins.add(packages, "fpswa")
         end
       end
@@ -936,7 +940,7 @@ module Yast
 
       packages = find_providers(tags)
       packages.concat(vnc_packages) if Linuxrc.vnc
-      #this means we have a remote X server
+      # this means we have a remote X server
       packages.concat(remote_x11_packages) if Linuxrc.display_ip
 
       Builtins.y2milestone("Installation mode packages: %1", packages)
@@ -948,7 +952,7 @@ module Yast
       command = "/usr/sbin/hwinfo --bios | grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'"
       Builtins.y2milestone("Executing: %1", command)
 
-      ret = SCR.Execute(path(".target.bash"), command) == 0
+      ret = SCR.Execute(path(".target.bash"), command).zero?
       Builtins.y2milestone("Detected a Dell system") if ret
 
       ret
@@ -960,11 +964,7 @@ module Yast
       add_biosdevname = false
       options = SCR.Read(path(".proc.cmdline"))
       option = options.grep(/^biosdevname=/i).first if options
-      if option
-        value = option[/^biosdevname=(\d+)/i, 1]
-      else #missing biosdevname option
-        value = nil
-      end
+      value = (option[/^biosdevname=(\d+)/i, 1] if option)
 
       if value == "1"
         Builtins.y2milestone("Biosdevname explicitly enabled")
@@ -986,19 +986,16 @@ module Yast
     # Compute board (vendor) dependant packages
     # @return [Array](string)
     def boardPackages
-      packages = []
-
       probe = Convert.convert(
         SCR.Read(path(".probe.system")),
-        :from => "any",
-        :to   => "list <map <string, any>>"
+        from: "any",
+        to:   "list <map <string, any>>"
       )
       packages = Ops.get_list(probe, [0, "requires"], [])
       Builtins.y2milestone("Board/Vendor specific packages: %1", packages)
 
-      deep_copy(packages)
+      packages
     end
-
 
     # Compute packages required to access the repository
     # @return [Array](string) list of the required packages
@@ -1036,11 +1033,11 @@ module Yast
       if extension != ""
         kernel_packages = Convert.convert(
           ProductFeatures.GetFeature("software", "kernel_packages"),
-          :from => "any",
-          :to   => "list <string>"
+          from: "any",
+          to:   "list <string>"
         )
         if Ops.greater_than(Builtins.size(kernel_packages), 0) &&
-            kernel_packages != nil
+            !kernel_packages.nil?
           akp = Builtins.maplist(kernel_packages) do |p|
             Ops.add(Ops.add(p, "-"), extension)
           end
@@ -1052,7 +1049,6 @@ module Yast
     #-----------------------------------------------------------------------
     # GLOBAL FUNCTIONS
     #-----------------------------------------------------------------------
-
 
     def ComputeSystemPatternList
       pattern_list = []
@@ -1085,7 +1081,6 @@ module Yast
       pattern_list
     end
 
-
     # Build and return list of packages which depends on the
     # the current target system and the preselected packages
     # (architecture, X11....)
@@ -1095,7 +1090,8 @@ module Yast
       install_list.concat(modePackages)
 
       if !@additional_packages.empty?
-        log.warn("Additional packages are still in use, please, change it to use PackagesProposal API")
+        log.warn("Additional packages are still in use, please, " \
+          "change it to use PackagesProposal API")
         log.info("Additional packages: #{@additional_packages}")
         install_list.concat(@additional_packages)
       end
@@ -1138,13 +1134,13 @@ module Yast
       if !pkg_mogrify_client.empty?
         tmp_list = Convert.convert(
           WFM.CallFunction(pkg_mogrify_client, [install_list]),
-          :from => "any",
-          :to   => "list <string>"
+          from: "any",
+          to:   "list <string>"
         )
 
         # Make sure we did not get a nil from calling the client, i.e.
         # if the client does not exist at all..
-        install_list = deep_copy(tmp_list) if tmp_list != nil
+        install_list = deep_copy(tmp_list) if !tmp_list.nil?
       end
 
       packages = ProductFeatures.GetFeature("software", "packages")
@@ -1232,8 +1228,8 @@ module Yast
       @base_source_id
     end
 
-
-    def FindAndCopySlideDir(our_slidedir, source, search_for_dir, lang_long, lang_short, fallback_lang)
+    def FindAndCopySlideDir(our_slidedir, source, search_for_dir, lang_long,
+      lang_short, fallback_lang)
       # directory used as a source of texts
       providedir = nil
 
@@ -1241,7 +1237,7 @@ module Yast
       used_loc_dir = ""
 
       Builtins.foreach([lang_long, lang_short, fallback_lang]) do |try_this_lang|
-        next if try_this_lang == nil || try_this_lang == ""
+        next if try_this_lang.nil? || try_this_lang == ""
         test_dir = Builtins.sformat("%1/txt/%2", search_for_dir, try_this_lang)
         Builtins.y2milestone("Checking '%1'", test_dir)
         providedir = Pkg.SourceProvideSignedDirectory(
@@ -1251,7 +1247,7 @@ module Yast
           true,
           true
         )
-        if providedir != nil
+        if !providedir.nil?
           Builtins.y2milestone("%1 lang found", try_this_lang)
           used_loc_dir = try_this_lang
           # don't check for other langs
@@ -1260,7 +1256,7 @@ module Yast
       end
 
       # no wanted localization found
-      if providedir == nil
+      if providedir.nil?
         Builtins.y2milestone(
           "Neither %1 nor %2 localization found",
           lang_long,
@@ -1299,7 +1295,7 @@ module Yast
         true
       )
 
-      if imagesdir != nil
+      if !imagesdir.nil?
         # where images should be cached
         our_imagesdir = Builtins.sformat("%1/pic/", our_slidedir)
         WFM.Execute(
@@ -1323,8 +1319,8 @@ module Yast
       true
     end
 
-
-    def FindAndCopySlideDirWithoutCallbacks(our_slidedir, source, search_for_dir, lang_long, lang_short, fallback_lang)
+    def FindAndCopySlideDirWithoutCallbacks(our_slidedir, source, search_for_dir,
+      lang_long, lang_short, fallback_lang)
       # disable callbacks
       PackageCallbacks.RegisterEmptyProgressCallbacks
 
@@ -1369,12 +1365,12 @@ module Yast
       # de_DE.UTF-8 -> de_DE
       # es_ES       -> es_ES
       # blah        -> ""
-      if wanted_language != nil && wanted_language != ""
+      if !wanted_language.nil? && wanted_language != ""
         Builtins.y2milestone("Selected language: %1", wanted_language)
 
         if Builtins.regexpmatch(wanted_language, "^.+_.+$")
           lang_long = wanted_language
-        elsif wanted_language != nil && wanted_language != "" &&
+        elsif !wanted_language.nil? && wanted_language != "" &&
             Builtins.regexpmatch(wanted_language, "^.+_.+..*$")
           lang_long = Builtins.regexpsub(
             wanted_language,
@@ -1383,10 +1379,10 @@ module Yast
           )
         end
 
-        if lang_long != nil && lang_long != "" &&
+        if !lang_long.nil? && lang_long != "" &&
             Builtins.regexpmatch(lang_long, ".*_.*")
           lang_short = Builtins.regexpsub(lang_long, "(.*)_.*", "\\1")
-        elsif wanted_language != nil && wanted_language != ""
+        elsif !wanted_language.nil? && wanted_language != ""
           lang_short = wanted_language
         end
 
@@ -1432,21 +1428,6 @@ module Yast
       # BNC #444612 comment #2
       SlideShow.SetLanguage(Language.language)
 
-      # fallback solution disabled
-      #     if (success != true) {
-      # 	y2milestone ("Using fallback solution, language is not supported");
-      # 	string fallback_slidedir = Pkg::SourceProvideDirectory (source, 1, search_for_dir, true, true);
-      #
-      # 	if (fallback_slidedir == nil) {
-      # 	    y2milestone ("No slide directory '%1' found in repository '%2'.",
-      # 		search_for_dir, source);
-      # 	} else {
-      # 	    // copy all files to our own cache
-      # 	    y2milestone ("Copying %1/* to %2/", fallback_slidedir, String::Quote (our_slidedir));
-      # 	    WFM::Execute (.local.bash, sformat ("cp -r %1/* '%2/'", fallback_slidedir, String::Quote (our_slidedir)));
-      # 	}
-      #     }
-
       Builtins.y2milestone(
         "Setting up the slide directory local copy: %1",
         our_slidedir
@@ -1457,8 +1438,8 @@ module Yast
         # TRANSLATORS: beginning of the rich text with the release notes
         SlideShow.relnotes = Ops.add(
           _(
-            "<p><b>The release notes for the initial release are part of the installation\n" +
-              "media. If an Internet connection is available during configuration, you can\n" +
+            "<p><b>The release notes for the initial release are part of the installation\n" \
+              "media. If an Internet connection is available during configuration, you can\n" \
               "download updated release notes from the SUSE Linux Web server.</b></p>\n"
           ),
           @media_text
@@ -1470,13 +1451,12 @@ module Yast
 
     def IntegrateServicePack(show_popup, base_url)
       # Check for Service Pack
-      servicepack_available = false
       if Ops.greater_than(
-          Convert.to_integer(
-            WFM.Read(path(".local.size"), @servicepack_metadata)
-          ),
-          0
-        )
+        Convert.to_integer(
+          WFM.Read(path(".local.size"), @servicepack_metadata)
+        ),
+        0
+      )
         Builtins.y2milestone("Service Pack data available")
         popup_open = false
         if show_popup
@@ -1499,10 +1479,7 @@ module Yast
         )
         sp_url = Ops.add("dir:", spdir)
         # close the popup in order to be able to ask about the license
-        if popup_open
-          popup_open = false
-          UI.CloseDialog
-        end
+        UI.CloseDialog if popup_open
         sp_source = Pkg.SourceCreate(sp_url, "")
         if sp_source == -1
           Report.Error(_("Failed to integrate the service pack repository."))
@@ -1549,11 +1526,11 @@ module Yast
       @init_error = nil
       Builtins.y2milestone("Packages::Initialize_BaseInit()")
 
-      if Mode.test
+      base_url.value = if Mode.test
         # Fake values for testing purposes
-        base_url.value = "dir:///dist/next-i386"
+        "dir:///dist/next-i386"
       else
-        base_url.value = InstURL.installInf2Url("")
+        InstURL.installInf2Url("")
       end
 
       # '\' is not reserved nor unreserved according to rfc https://tools.ietf.org/html/rfc3986#section-2.1
@@ -1568,10 +1545,7 @@ module Yast
       # language for additional packages only in Stage::initial ().
       Pkg.SetTextLocale(Language.language)
 
-      if popup_open
-        UI.CloseDialog
-        popup_open = false
-      end
+      UI.CloseDialog if popup_open
 
       true
     end
@@ -1585,7 +1559,7 @@ module Yast
     def AdjustSourcePropertiesAccordingToProduct(src_id)
       # This function is used from several places (also YaST Add-On)
 
-      if src_id == nil || Ops.less_than(src_id, 0)
+      if src_id.nil? || Ops.less_than(src_id, 0)
         Builtins.y2error("Wrong source ID: %1", src_id)
         return nil
       end
@@ -1596,10 +1570,9 @@ module Yast
       Builtins.foreach(all_products) do |one_product|
         # source ID matches
         if Ops.get_integer(one_product, "source", -1) == src_id
-          if Builtins.haskey(one_product, "name") &&
-              Ops.get(one_product, "name") != nil &&
-              Ops.get_string(one_product, "name", "") != ""
-            new_name = Ops.get_string(one_product, "name", "")
+          name = one_product["name"] || ""
+          if name != ""
+            new_name = name
             Builtins.y2milestone("Product name found: %1", new_name)
             raise Break
           end
@@ -1607,7 +1580,7 @@ module Yast
       end
 
       # Finally, some (new) name has been adjusted
-      if new_name != nil && new_name != ""
+      if !new_name.nil? && new_name != ""
         Builtins.y2milestone("Adjusting repository name")
         sources_got = Pkg.SourceEditGet
         sources_set = []
@@ -1648,14 +1621,14 @@ module Yast
           1,
           file
         )
-        if tmp_add_on_products != nil
+        if !tmp_add_on_products.nil?
           filename = Builtins.sformat(
             "%1/add_on_products_defined_by_repository",
             tmpdir
           )
           @add_on_products_list = Builtins.add(
             @add_on_products_list,
-            { "file" => filename, "type" => type }
+            "file" => filename, "type" => type
           )
           WFM.Execute(
             path(".local.bash"),
@@ -1688,7 +1661,7 @@ module Yast
           )
           @add_on_products_list = Builtins.add(
             @add_on_products_list,
-            { "file" => filename, "type" => type }
+            "file" => filename, "type" => type
           )
           WFM.Execute(
             path(".local.bash"),
@@ -1721,19 +1694,18 @@ module Yast
       # prefer CD/DVD media to download during installation/update
       # (BNC#780617,865819)
       Builtins.y2milestone("Prefer CD/DVD media to download")
-      Pkg.SetZConfig({ "download_media_prefer_download" => false })
+      Pkg.SetZConfig("download_media_prefer_download" => false)
 
-      while initial_repository == nil
+      while initial_repository.nil?
         initial_repository = Pkg.SourceCreateBase(base_url, "")
-        if initial_repository == -1 || initial_repository == nil
-          Builtins.y2error("No repository in '%1'", log_url)
-          base_url = UpdateSourceURL(base_url)
-          if base_url != ""
-            initial_repository = nil
-          else
-            @init_in_progress = false
-            return
-          end
+        next unless initial_repository == -1 || initial_repository.nil?
+        Builtins.y2error("No repository in '%1'", log_url)
+        base_url = UpdateSourceURL(base_url)
+        if base_url != ""
+          initial_repository = nil
+        else
+          @init_in_progress = false
+          return
         end
       end
 
@@ -1751,7 +1723,7 @@ module Yast
 
       @theSources = [initial_repository]
       sp_source = IntegrateServicePack(show_popup, base_url)
-      @theSources = Builtins.add(@theSources, sp_source) if sp_source != nil
+      @theSources = Builtins.add(@theSources, sp_source) if !sp_source.nil?
 
       if ProductFeatures.GetFeature("software", "selection_type") == :fixed
         # selections not supported anymore, install a pattern
@@ -1766,8 +1738,8 @@ module Yast
       nil
     end
 
-    def Initialize_StageNonInitial(show_popup, base_url, log_url)
-      if @theSources == nil || Ops.less_or_equal(Builtins.size(@theSources), 0)
+    def Initialize_StageNonInitial(_show_popup, base_url, _log_url)
+      if @theSources.nil? || Ops.less_or_equal(Builtins.size(@theSources), 0)
         Builtins.y2error("Pkg::SourceStartCache failed")
         @theSources = []
       elsif Stage.cont && # rewrite URL if cd/dvd since ide-scsi might have changed it
@@ -1841,7 +1813,8 @@ module Yast
             Ops.add(
               Builtins.sformat(
                 _(
-                  "Error while initializing package descriptions.\nCheck the log file %1 for more details."
+                  "Error while initializing package descriptions.\n" \
+                    "Check the log file %1 for more details."
                 ),
                 Ops.add(Directory.logdir, "/y2log")
               ),
@@ -1850,8 +1823,8 @@ module Yast
             Pkg.LastError
           )
 
-          # FIXME somewhere get correct current_label and wanted_label
-          result = PackageCallbacks.MediaChange(
+          # FIXME: somewhere get correct current_label and wanted_label
+          PackageCallbacks.MediaChange(
             "NO_ERROR",
             errortext,
             base_url,
@@ -1875,7 +1848,7 @@ module Yast
       nil
     end
 
-    def Init(unused)
+    def Init(_unused)
       Initialize(true)
 
       nil
@@ -1920,7 +1893,9 @@ module Yast
         selected_products.reject! do |product1|
           selected_products.any? do |product2|
             conflicts = product_conflicts?(product1, product2)
-            log.info("Product #{product1} conflicts with #{product2} and will not be installed.") if conflicts
+            if conflicts
+              log.info("Product #{product1} conflicts with #{product2} and will not be installed.")
+            end
             conflicts
           end
         end
@@ -1954,7 +1929,7 @@ module Yast
         patterns.select! do |pattern_name|
           descrs = Pkg.ResolvableProperties(pattern_name, :pattern, "")
           report_missing_pattern(pattern_name) if descrs.empty?
-          descrs.any?{ |descr| descr["status"] == :selected }
+          descrs.any? { |descr| descr["status"] == :selected }
         end
 
         log.info "Selected patterns to be reselected: #{patterns}"
@@ -2021,20 +1996,21 @@ module Yast
     # Make a proposal for package selection
     #
     # @param [Boolean] force_reset force reset (fully resets the proposal and creates a new one)
-    # @param [Boolean] reinit re-initialize (soft-reset, doesn't reset resolvable manually selected by user)
+    # @param [Boolean] reinit re-initialize
+    #   (soft-reset, doesn't reset resolvable manually selected by user)
     #
     # @return [Hash] for the API proposal
-    def Proposal(force_reset, reinit, simple)
+    def Proposal(force_reset, reinit, _simple)
       # Handle the default desktop
       DefaultDesktop.Init
 
       # set ignoreAlreadyRecommended solver flag
-      Pkg.SetSolverFlags({ "ignoreAlreadyRecommended" => Mode.normal })
+      Pkg.SetSolverFlags("ignoreAlreadyRecommended" => Mode.normal)
 
       # Force reinit
       if PackagesProposalChanged()
         @old_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
-        Builtins.y2milestone("Reinit package proposal");
+        Builtins.y2milestone("Reinit package proposal")
         reinit = true
       end
 
@@ -2056,7 +2032,7 @@ module Yast
 
       # if the cache is valid and reset or reinitialization is not required
       # then the cached proposal can be used
-      if @cached_proposal != nil && force_reset == false && reinit == false
+      if !@cached_proposal.nil? && force_reset == false && reinit == false
         # selected packages
         selected_packages = Pkg.GetPackages(:selected, false)
 
@@ -2084,10 +2060,9 @@ module Yast
         # selected languages
         selected_languages = Convert.convert(
           Builtins.union([Pkg.GetPackageLocale], Pkg.GetAdditionalLocales),
-          :from => "list",
-          :to   => "list <string>"
+          from: "list",
+          to:   "list <string>"
         )
-
 
         # if the package selection has not been changed the cache is up to date
         if selected_packages == @cached_proposal_packages &&
@@ -2102,18 +2077,19 @@ module Yast
         #
         # 'nil' is the default value
         # See also ResetProposalCache()
-        elsif @cached_proposal_packages != nil &&
-            @cached_proposal_patterns != nil &&
-            @cached_proposal_products != nil &&
-            @cached_proposal_patches != nil &&
-            @cached_proposal_languages != nil
+        elsif !@cached_proposal_packages.nil? &&
+            !@cached_proposal_patterns.nil? &&
+            !@cached_proposal_products.nil? &&
+            !@cached_proposal_patches.nil? &&
+            !@cached_proposal_languages.nil?
           Builtins.y2error(
             "invalid cache: the software selection has been chaged"
           )
           # bnc #436925
           Report.Message(
             _(
-              "The software selection has been changed externally.\nSoftware proposal will be called again."
+              "The software selection has been changed externally.\n" \
+                "Software proposal will be called again."
             )
           )
         end
@@ -2151,7 +2127,7 @@ module Yast
       initial_run = reinit || !@init_called
       Initialize(true)
 
-      if @init_error != nil
+      if !@init_error.nil?
         UI.CloseDialog
         return Summary([], false)
       end
@@ -2185,7 +2161,7 @@ module Yast
 
       # Question: is `desktop appropriate for SLE?
       ret = Summary([:product, :pattern, :size, :desktop], false)
-      # TODO simple proposal
+      # TODO: simple proposal
 
       # cache the proposal
       @cached_proposal = deep_copy(ret)
@@ -2209,8 +2185,8 @@ module Yast
       end
       @cached_proposal_languages = Convert.convert(
         Builtins.union([Pkg.GetPackageLocale], Pkg.GetAdditionalLocales),
-        :from => "list",
-        :to   => "list <string>"
+        from: "list",
+        to:   "list <string>"
       )
 
       UI.CloseDialog
@@ -2240,7 +2216,7 @@ module Yast
     end
 
     def InitFailed
-      ret = @init_error != nil
+      ret = !@init_error.nil?
       Builtins.y2milestone("Package manager initialization failed: %1", ret)
       ret
     end
@@ -2248,7 +2224,8 @@ module Yast
     # see bug 302398
     def SelectKernelPackages
       provides = Pkg.PkgQueryProvides("kernel")
-      # // e.g.: [["kernel-bigsmp", `CAND, `NONE], ["kernel-default", `CAND, `CAND], ["kernel-default", `BOTH, `INST]]
+      # e.g.: [["kernel-bigsmp", `CAND, `NONE], ["kernel-default", `CAND, `CAND],
+      # ["kernel-default", `BOTH, `INST]]
       Builtins.y2milestone("provides: %1", provides)
 
       # these kernels would be installed
@@ -2282,11 +2259,11 @@ module Yast
         # list of kernels to be installed
         kernels_to_be_installed = Convert.convert(
           Builtins.maplist(kernels) { |one_kernel| Ops.get(one_kernel, 0) },
-          :from => "list",
-          :to   => "list <string>"
+          from: "list",
+          to:   "list <string>"
         )
         kernels_to_be_installed = Builtins.filter(kernels_to_be_installed) do |one_kernel|
-          one_kernel != nil && one_kernel != ""
+          !one_kernel.nil? && one_kernel != ""
         end
 
         # remove all kernels (with some exceptions)
@@ -2298,7 +2275,7 @@ module Yast
           next if one_kernel == recommended_kernel
           # remove all packages of that kernel
           packages_to_remove = Kernel.ComputePackagesForBase(one_kernel, false)
-          if packages_to_remove != nil &&
+          if !packages_to_remove.nil? &&
               Ops.greater_than(Builtins.size(packages_to_remove), 0)
             Builtins.y2milestone(
               "Removing installed packages %1",
@@ -2344,10 +2321,10 @@ module Yast
     end
 
     # Log only resolvables with resolvable["status"] matching these below
-    LOG_RESOLVABLE_STATUS = [:selected, :removed]
+    LOG_RESOLVABLE_STATUS = [:selected, :removed].freeze
 
     # Log only resolvables with resolvable["transact_by"] matching these below
-    LOG_RESOLVABLE_TRANSACT_BY = [:user, :app_high]
+    LOG_RESOLVABLE_TRANSACT_BY = [:user, :app_high].freeze
 
     # Reads the current user selection and dumps it to log
     def log_software_selection
@@ -2355,17 +2332,19 @@ module Yast
 
       RESOLVABLE_TYPES.each do |type|
         resolvables = Pkg.ResolvableProperties("", type, "")
-        resolvables.select!{ |r| LOG_RESOLVABLE_TRANSACT_BY.include? r["transact_by"] }
+        resolvables.select! { |r| LOG_RESOLVABLE_TRANSACT_BY.include? r["transact_by"] }
 
         LOG_RESOLVABLE_TRANSACT_BY.each do |transact_by|
-          changed_resolvables = resolvables.select{ |r| r["transact_by"] == transact_by}
+          changed_resolvables = resolvables.select { |r| r["transact_by"] == transact_by }
           next if changed_resolvables.empty?
 
-          decided_resolvables = changed_resolvables.select{ |r| LOG_RESOLVABLE_STATUS.include? r["status"] }
+          decided_resolvables = changed_resolvables
+                                .select { |r| LOG_RESOLVABLE_STATUS.include? r["status"] }
           log_resolvables("Resolvables of type #{type} set by #{transact_by}:", decided_resolvables)
 
-          locked_resolvables = changed_resolvables.select{ |r| r["locked"] }
-          log_resolvables("Locked resolvables of type #{type} set by #{transact_by}:", locked_resolvables)
+          locked_resolvables = changed_resolvables.select { |r| r["locked"] }
+          log_resolvables("Locked resolvables of type #{type} set by #{transact_by}:",
+            locked_resolvables)
         end
       end
 
@@ -2396,6 +2375,49 @@ module Yast
       find_providers(tags)
     end
 
+    publish variable: :install_sources, type: "boolean"
+    publish variable: :timestamp, type: "integer"
+    publish variable: :metadir, type: "string"
+    publish variable: :metadir_used, type: "boolean"
+    publish variable: :theSources, type: "list <integer>"
+    publish variable: :theSourceDirectories, type: "list <string>"
+    publish variable: :theSourceOrder, type: "map <integer, integer>"
+    publish variable: :base_selection_modified, type: "boolean"
+    publish variable: :base_selection_changed, type: "boolean"
+    publish variable: :solve_errors, type: "integer"
+    publish variable: :add_on_products_list, type: "list <map <string, string>>"
+    publish function: :ResetProposalCache, type: "void ()"
+    publish function: :ListSelected, type: "list <string> (symbol, string)"
+    publish function: :CountSizeToBeInstalled, type: "string ()"
+    publish function: :CountSizeToBeDownloaded, type: "integer ()"
+    publish function: :InfoAboutSubOptimalDistribution, type: "string ()"
+    publish function: :SummaryOutput, type: "list <string> (list <symbol>)"
+    publish function: :CheckDiskSize, type: "boolean (boolean)"
+    publish function: :CheckOldAddOns, type: "void (map &)"
+    publish function: :Summary, type: "map (list <symbol>, boolean)"
+    publish function: :ForceFullRepropose, type: "void ()"
+    publish function: :SelectProduct, type: "boolean ()"
+    publish function: :Reset, type: "void (list <symbol>)"
+    publish function: :InitializeAddOnProducts, type: "void ()"
+    publish function: :addAdditionalPackage, type: "void (string)"
+    publish function: :ComputeSystemPatternList, type: "list <string> ()"
+    publish function: :ComputeSystemPackageList, type: "list <string> ()"
+    publish function: :GetBaseSourceID, type: "integer ()"
+    publish function: :Init, type: "void (boolean)"
+    publish function: :SlideShowSetUp, type: "void (string)"
+    publish function: :AdjustSourcePropertiesAccordingToProduct, type: "boolean (integer)"
+    publish function: :Initialize_StageInitial, type: "void (boolean, string, string)"
+    publish function: :Initialize_StageNonInitial, type: "void (boolean, string, string)"
+    publish function: :Initialize, type: "void (boolean)"
+    publish function: :Proposal, type: "map (boolean, boolean, boolean)"
+    publish function: :InitializeCatalogs, type: "void ()"
+    publish function: :InitFailed, type: "boolean ()"
+    publish function: :SelectKernelPackages, type: "void ()"
+    publish function: :default_patterns, type: "list <string> ()"
+    publish function: :log_software_selection, type: "void ()"
+    publish function: :vnc_packages, type: "list <string> ()"
+    publish function: :remote_x11_packages, type: "list <string> ()"
+
   private
 
     # Reads product feature defined by parameters, logs what it gets
@@ -2416,17 +2438,17 @@ module Yast
       log.info text
 
       resolvables.each do |r|
-        r_info = {:name => r["name"], :version => r["version"], :arch => r["arch"], :status => r["status"]}
+        r_info = { name: r["name"], version: r["version"], arch: r["arch"], status: r["status"] }
         log.info "- #{r_info}"
       end
     end
 
     # Prepares a list of formatted selected resolvables
     #
-    # @param [Array<Hash>] list of selected resolvables to format
-    # @param [String] string format to use
+    # @param [Array<Hash>] selected list of selected resolvables to format
+    # @param [String] format string format to use
     def formatted_resolvables(selected, format)
-      format = "%1" if format == "" || format == nil
+      format = "%1" if format == "" || format.nil?
 
       Builtins.maplist(selected) do |r|
         disp = Ops.get_string(r, "summary", Ops.get_string(r, "name", ""))
@@ -2439,7 +2461,7 @@ module Yast
     # :pattern resolvables are sorted by "order"
     # :product resolvables are sorted by "source"
     #
-    # @param [Array<Hash>] list of selected resolvables to sort
+    # @param [Array<Hash>] selected list of selected resolvables to sort
     # @param [Symbol] what symbol specifying the type of resolvables to select
     # @see RESOLVABLE_SORT_ORDER
     def sort_resolvable!(selected, what)
@@ -2474,9 +2496,9 @@ module Yast
         log.error "Pattern #{pattern_name} does not exist"
         # Error message, %{pattern_name} is replaced with the missing pattern name in runtime
         Report.Error(_(
-          "Failed to select default product pattern %{pattern_name}.\n" +
+          "Failed to select default product pattern %{pattern_name}.\n" \
           "Pattern has not been found."
-        ) % {:pattern_name => pattern_name})
+        ) % { pattern_name: pattern_name })
       end
     end
 
@@ -2517,53 +2539,10 @@ module Yast
       provider = names.include?(tag) ? tag : names.sort.first
       if names.size > 1
         log.warn "More than one provider was found for '#{tag}': "\
-          "#{names.join(', ')}. Selecting '#{provider}'."
+          "#{names.join(", ")}. Selecting '#{provider}'."
       end
       provider
     end
-
-    publish :variable => :install_sources, :type => "boolean"
-    publish :variable => :timestamp, :type => "integer"
-    publish :variable => :metadir, :type => "string"
-    publish :variable => :metadir_used, :type => "boolean"
-    publish :variable => :theSources, :type => "list <integer>"
-    publish :variable => :theSourceDirectories, :type => "list <string>"
-    publish :variable => :theSourceOrder, :type => "map <integer, integer>"
-    publish :variable => :base_selection_modified, :type => "boolean"
-    publish :variable => :base_selection_changed, :type => "boolean"
-    publish :variable => :solve_errors, :type => "integer"
-    publish :variable => :add_on_products_list, :type => "list <map <string, string>>"
-    publish :function => :ResetProposalCache, :type => "void ()"
-    publish :function => :ListSelected, :type => "list <string> (symbol, string)"
-    publish :function => :CountSizeToBeInstalled, :type => "string ()"
-    publish :function => :CountSizeToBeDownloaded, :type => "integer ()"
-    publish :function => :InfoAboutSubOptimalDistribution, :type => "string ()"
-    publish :function => :SummaryOutput, :type => "list <string> (list <symbol>)"
-    publish :function => :CheckDiskSize, :type => "boolean (boolean)"
-    publish :function => :CheckOldAddOns, :type => "void (map &)"
-    publish :function => :Summary, :type => "map (list <symbol>, boolean)"
-    publish :function => :ForceFullRepropose, :type => "void ()"
-    publish :function => :SelectProduct, :type => "boolean ()"
-    publish :function => :Reset, :type => "void (list <symbol>)"
-    publish :function => :InitializeAddOnProducts, :type => "void ()"
-    publish :function => :addAdditionalPackage, :type => "void (string)"
-    publish :function => :ComputeSystemPatternList, :type => "list <string> ()"
-    publish :function => :ComputeSystemPackageList, :type => "list <string> ()"
-    publish :function => :GetBaseSourceID, :type => "integer ()"
-    publish :function => :Init, :type => "void (boolean)"
-    publish :function => :SlideShowSetUp, :type => "void (string)"
-    publish :function => :AdjustSourcePropertiesAccordingToProduct, :type => "boolean (integer)"
-    publish :function => :Initialize_StageInitial, :type => "void (boolean, string, string)"
-    publish :function => :Initialize_StageNonInitial, :type => "void (boolean, string, string)"
-    publish :function => :Initialize, :type => "void (boolean)"
-    publish :function => :Proposal, :type => "map (boolean, boolean, boolean)"
-    publish :function => :InitializeCatalogs, :type => "void ()"
-    publish :function => :InitFailed, :type => "boolean ()"
-    publish :function => :SelectKernelPackages, :type => "void ()"
-    publish :function => :default_patterns, :type => "list <string> ()"
-    publish :function => :log_software_selection, :type => "void ()"
-    publish :function => :vnc_packages, :type => "list <string> ()"
-    publish :function => :remote_x11_packages, :type => "list <string> ()"
 
     # list of all products that will be installed (are selected)
     def products_to_install(products)
@@ -2621,12 +2600,13 @@ module Yast
           statuses = Pkg.ResolvableProperties(item, type, "")
 
           # :selected = selected to install/update, :installed = keep installed (at upgrade)
-          if statuses.nil? || !statuses.find { |s| s["status"] == :selected || s["status"] == :installed }
-            missing[type] = [] unless missing[type]
-            # use quoted "summary" value for patterns as they usually contain spaces
-            name = (type == :pattern) ? statuses.first["summary"].inspect : item
-            missing[type] << name
+          if !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s["status"]) }
+            next
           end
+          missing[type] = [] unless missing[type]
+          # use quoted "summary" value for patterns as they usually contain spaces
+          name = type == :pattern ? statuses.first["summary"].inspect : item
+          missing[type] << name
         end
       end
 
@@ -2650,7 +2630,8 @@ module Yast
       else
         # TRANSLATORS: %{type} is a resolvable type, %{list} is a list of names
         # This is a fallback message for unknown types, normally it should not be displayed
-        _("These items (%{type}) need to be selected to install: %{list}") % {type: type, list: list}
+        _("These items (%{type}) need to be selected to install: %{list}") %
+          { type: type, list: list }
       end
     end
 
@@ -2666,8 +2647,8 @@ module Yast
     #
     # @return [Boolean] true if there are conflicts
     def product_conflicts?(product1, product2)
-      return false unless  PRODUCT_CONFLICTS[product2]
-       PRODUCT_CONFLICTS[product2].include?(product1)
+      return false unless PRODUCT_CONFLICTS[product2]
+      PRODUCT_CONFLICTS[product2].include?(product1)
     end
 
     # Create the baseproduct file pointing to a found product file.

@@ -1,18 +1,10 @@
 # encoding: utf-8
-
-# File:	modules/SourceManagerSLP.ycp
-# Package:	SLP Source Management
-# Summary:	SLP-related SourceManager settings
-# Authors:	Lukas Ocilka <locilka@suse.cz>
-# Status:      Work in Progress
-#
-# $Id$
-#
-# This module provides a complete set of functions that allows you to search
-# and select a new SLP repository.
 require "yast"
 
+# YaST Namespace
 module Yast
+  # This module provides a complete set of functions that allows you to search
+  # and select a new SLP repository.
   class SourceManagerSLPClass < Module
     def main
       Yast.import "UI"
@@ -192,7 +184,7 @@ module Yast
       current = Convert.to_integer(
         UI.QueryWidget(Id(:tree_of_services), :CurrentItem)
       )
-      if current == nil || Ops.less_than(current, 0)
+      if current.nil? || Ops.less_than(current, 0)
         UI.ChangeWidget(Id(:details), :Enabled, false)
       else
         UI.ChangeWidget(Id(:details), :Enabled, true)
@@ -205,7 +197,7 @@ module Yast
       current = Convert.to_integer(
         UI.QueryWidget(Id(:tree_of_services), :CurrentItem)
       )
-      if current == nil || Ops.less_than(current, 0)
+      if current.nil? || Ops.less_than(current, 0)
         Builtins.y2error("No service selected, no details")
         # error popup
         Report.Error(_("No details are available."))
@@ -241,11 +233,11 @@ module Yast
             )
             curr_len_key = Builtins.size(Builtins.tostring(key))
             curr_len_val = Builtins.size(Builtins.tostring(value))
-            if curr_len_key != nil &&
+            if !curr_len_key.nil? &&
                 Ops.greater_than(curr_len_key, max_len_key)
               max_len_key = curr_len_key
             end
-            if curr_len_val != nil &&
+            if !curr_len_val.nil? &&
                 Ops.greater_than(curr_len_val, max_len_val)
               max_len_val = curr_len_val
             end
@@ -300,7 +292,8 @@ module Yast
     # Initializes the listed SLP services.
     #
     # @param [Yast::ArgRef] services reference to services (Array<Hash>)
-    # @param [String,nil] filter_string regexp for services that should be visible (nil or "" for all)
+    # @param [String,nil] filter_string regexp for services that should be visible
+    #   (nil or "" for all)
     def InitSLPListFoundDialog(services, filter_string)
       filter_string = nil if filter_string == ""
 
@@ -331,12 +324,12 @@ module Yast
           end
         end
         # search works in "label" or in "srvurl" as a fallback
-        if filter_string != nil
+        if !filter_string.nil?
           # filter out all services that don't match the filter
           next if !service_label.downcase.include?(filter_string.downcase)
         end
         # define an empty list if it is not defined at all
-        if Ops.get(inst_products, service_label) == nil
+        if Ops.get(inst_products, service_label).nil?
           Ops.set(inst_products, service_label, [])
         end
         Ops.set(
@@ -358,11 +351,10 @@ module Yast
       Builtins.foreach(inst_products) do |one_product, service_ids|
         product_counter = Ops.add(product_counter, 1)
         if Builtins.size(service_ids) == 1
-          service_id = Ops.get(service_ids, 0)
           Ops.set(
             tree_of_services,
             product_counter,
-            Item(Id(service_id), one_product)
+            Item(Id(Ops.get(service_ids, 0)), one_product)
           )
         else
           urls_for_product = []
@@ -397,22 +389,23 @@ module Yast
         UI.QueryWidget(Id(:tree_of_services), :CurrentItem)
       )
 
-      if current == nil || Ops.less_than(current, 0)
+      if current.nil? || Ops.less_than(current, 0)
         # message popup
         Report.Message(
           _(
-            "Select one of the offered options.\nMore repositories are available for this product.\n"
+            "Select one of the offered options.\n" \
+              "More repositories are available for this product.\n"
           )
         )
 
-        return nil
+        nil
       else
         service_url = Builtins.substring(
           Ops.get_string(services.value, [current, "srvurl"], ""),
           21
         )
 
-        if service_url == nil || service_url == ""
+        if service_url.nil? || service_url == ""
           Builtins.y2error(
             "An internal error occurred, service ID %1, %2 has no URL!",
             current,
@@ -425,9 +418,9 @@ module Yast
             )
           )
           return nil
-        else
-          return service_url
         end
+
+        service_url
       end
     end
 
@@ -439,7 +432,7 @@ module Yast
       dialog_ret = nil
       ret = nil
 
-      while true
+      loop do
         ret = UI.UserInput
 
         if ret == :cancel
@@ -447,15 +440,15 @@ module Yast
           break
         elsif ret == :ok
           dialog_ret = (
-            services_ref = arg_ref(services.value);
-            _GetCurrentlySelectedURL_result = GetCurrentlySelectedURL(
+            services_ref = arg_ref(services.value)
+            result = GetCurrentlySelectedURL(
               services_ref
-            );
-            services.value = services_ref.value;
-            _GetCurrentlySelectedURL_result
+            )
+            services.value = services_ref.value
+            result
           )
           Builtins.y2milestone("Selected URL: '%1'", dialog_ret)
-          break if dialog_ret != "" && dialog_ret != nil
+          break if dialog_ret != "" && !dialog_ret.nil?
         elsif ret == :tree_of_services
           InitDetailsButton()
         elsif ret == :filter
@@ -503,50 +496,16 @@ module Yast
 
       new_services = []
 
-      dns_cache = {}
-
       counter = -1
       Builtins.foreach(services.value) do |slp_service|
         counter = Ops.add(counter, 1)
         server_ip = Ops.get_string(slp_service, "ip", "")
         service_url = Ops.get_string(slp_service, "srvurl", "")
-        # bugzilla #219759
-        # /usr/bin/host not in inst-sys
-        # Anyway, it's not needed - key "ip" defines the server which has sent this reply
-        #
-        #	    if (!IP::Check4(server_ip))
-        #	    {
-        #		if (haskey(dns_cache, server_ip))
-        #		{
-        #		    server_ip = dns_cache[server_ip]:"";
-        #		}
-        #		else if (FileUtils::Exists ("/usr/bin/host"))
-        #		{
-        #		    string server_ip_quoted = "'" + String::Quote (server_ip) + "'";
-        #		    y2milestone ("Resolving host %1...", server_ip_quoted);
-        #		    map m = (map)SCR::Execute (.target.bash_output, sformat ("/usr/bin/host %1 | /bin/grep address", server_ip_quoted));
-        #
-        #		    if (m["exit"]:0 == 0)
-        #		    {
-        #			string out = m["stdout"]:"";
-        #			string ip = regexpsub (out, "has address (.*)$", "\\1");
-        #			if (ip != nil)
-        #			{
-        #			    y2milestone("...resolved to %1", ip);
-        #			    // cache the IP address
-        #			    dns_cache[server_ip] = ip;
-        #
-        #			    server_ip = ip;
-        #			}
-        #		    }
-        #		}
-        #	    }
-
         # empty server_ip
         if service_url != "" && server_ip != ""
           attrs = SLP.GetUnicastAttrMap(service_url, server_ip)
 
-          if attrs != nil && attrs != {}
+          if !attrs.nil? && attrs != {}
             slp_service = Builtins.union(slp_service, attrs)
           end
         end
@@ -573,7 +532,7 @@ module Yast
       SearchForSLPServices(slp_services_found_ref)
       slp_services_found = slp_services_found_ref.value
 
-      if slp_services_found == nil || Builtins.size(slp_services_found) == 0
+      if slp_services_found.nil? || Builtins.size(slp_services_found).zero?
         Builtins.y2warning("No SLP repositories found")
       else
         slp_services_found_ref = arg_ref(slp_services_found)
@@ -583,14 +542,14 @@ module Yast
       CloseSearchUI()
 
       # no servers found
-      if slp_services_found == nil || Builtins.size(slp_services_found) == 0
+      if slp_services_found.nil? || Builtins.size(slp_services_found).zero?
         Builtins.y2warning("No SLP repositories were found")
         if !Stage.initial && SuSEFirewall.IsStarted
           Report.Message(
             # error popup
             _(
-              "No SLP repositories have been found on your network.\n" +
-                "This could be caused by a running SuSEfirewall2,\n" +
+              "No SLP repositories have been found on your network.\n" \
+                "This could be caused by a running SuSEfirewall2,\n" \
                 "which probably blocks the network scanning."
             )
           )
@@ -607,12 +566,8 @@ module Yast
       CreateSLPListFoundDialog(slp_services_found_ref)
       slp_services_found = slp_services_found_ref.value
       selected_service = (
-        slp_services_found_ref = arg_ref(slp_services_found);
-        _HandleSLPListDialog_result = HandleSLPListDialog(
-          slp_services_found_ref
-        );
-        slp_services_found = slp_services_found_ref.value;
-        _HandleSLPListDialog_result
+        slp_services_found_ref = arg_ref(slp_services_found)
+        HandleSLPListDialog(slp_services_found_ref)
       )
       CloseSLPListFoundDialog()
 
@@ -628,8 +583,8 @@ module Yast
       url
     end
 
-    publish :function => :SelectOneSLPService, :type => "string ()"
-    publish :function => :AddSourceTypeSLP, :type => "string ()"
+    publish function: :SelectOneSLPService, type: "string ()"
+    publish function: :AddSourceTypeSLP, type: "string ()"
   end
 
   SourceManagerSLP = SourceManagerSLPClass.new

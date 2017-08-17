@@ -50,24 +50,24 @@ describe Yast::ProductPatterns do
     end
 
     it "returns the default patterns from all products" do
-      pattern_name1, package_name1, package1, product1 =
-        ProductFactory.create_product_packages(product_name: "product1")
+      pattern_name_first, package_name_first, package_first, product_first =
+        ProductFactory.create_product_packages(product_name: "product_first")
 
-      pattern_name2, package_name2, package2, product2 =
-        ProductFactory.create_product_packages(product_name: "product2")
+      pattern_name_second, package_name_second, package_second, product_second =
+        ProductFactory.create_product_packages(product_name: "product_second")
 
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
-        .and_return([product1, product2])
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product1["name"], :product, "")
-        .and_return([product1])
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product2["name"], :product, "")
-        .and_return([product2])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name1, :package, "")
-        .and_return([package1])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name2, :package, "")
-        .and_return([package2])
+        .and_return([product_first, product_second])
+      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product_first["name"], :product, "")
+        .and_return([product_first])
+      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product_second["name"], :product, "")
+        .and_return([product_second])
+      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name_first, :package, "")
+        .and_return([package_first])
+      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name_second, :package, "")
+        .and_return([package_second])
 
-      expect(subject.names.sort).to eq([pattern_name1, pattern_name2].sort)
+      expect(subject.names.sort).to eq([pattern_name_first, pattern_name_second].sort)
     end
 
     context "repository parameter has been set" do
@@ -75,24 +75,28 @@ describe Yast::ProductPatterns do
       subject { Yast::ProductPatterns.new(src: 2) }
 
       it "returns the default patterns only from the selected repository" do
-        pattern_name1, package_name1, package1, product1 =
-          ProductFactory.create_product_packages(product_name: "product1", src: 1)
+        _pattern_name_other, package_name_other, _package_other, product_other =
+          ProductFactory.create_product_packages(product_name: "product_other", src: 1)
 
-        pattern_name2, package_name2, package2, product2 =
-          ProductFactory.create_product_packages(product_name: "product2", src: 2)
+        pattern_name_selected, package_name_selected, package_selected, product_selected =
+          ProductFactory.create_product_packages(product_name: "product_selected", src: 2)
 
         expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
-          .and_return([product1, product2])
-        expect(Yast::Pkg).to receive(:ResolvableProperties).with(product1["name"], :product, "")
-          .and_return([product1])
-        expect(Yast::Pkg).to receive(:ResolvableProperties).with(product2["name"], :product, "")
-          .and_return([product2])
-        # the product1 package should not be checked, it's in different repo
-        expect(Yast::Pkg).to_not receive(:ResolvableDependencies).with(package_name1, :package, "")
-        expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name2, :package, "")
-          .and_return([package2])
+          .and_return([product_other, product_selected])
+        expect(Yast::Pkg).to receive(:ResolvableProperties)
+          .with(product_other["name"], :product, "")
+          .and_return([product_other])
+        expect(Yast::Pkg).to receive(:ResolvableProperties)
+          .with(product_selected["name"], :product, "")
+          .and_return([product_selected])
+        # the product_other package should not be checked, it's in different repo
+        expect(Yast::Pkg).to_not receive(:ResolvableDependencies)
+          .with(package_name_other, :package, "")
+        expect(Yast::Pkg).to receive(:ResolvableDependencies)
+          .with(package_name_selected, :package, "")
+          .and_return([package_selected])
 
-        expect(subject.names).to eq([pattern_name2])
+        expect(subject.names).to eq([pattern_name_selected])
       end
     end
   end

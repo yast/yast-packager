@@ -1,21 +1,8 @@
 # encoding: utf-8
-
-# Module: 		inst_rpmcopy.ycp
-#
-# Authors:		Klaus Kaempf <kkaempf@suse.de>
-#			Stefan Hundhammer <sh@suse.de> (slide show)
-#			Arvin Schnell <arvin@suse.de>
-#
-# Purpose:
-# Install all the RPM packages the user has selected.
-# Show installation dialogue. Show progress bars.
-# Request medium change from user.
-#
-# Packages module :
-#			"installed"
-#
-# $Id$
 module Yast
+  # Install all the RPM packages the user has selected.
+  # Show installation dialogue. Show progress bars.
+  # Request medium change from user.
   class InstRpmcopyClient < Client
     def main
       Yast.import "Pkg"
@@ -39,16 +26,8 @@ module Yast
 
       Yast.include self, "packager/storage_include.rb"
 
-      # ------------------------------------------------------------------------------------------------------
-      # begin of commit installation functions
-      # ------------------------------------------------------------------------------------------------------
-
       @remaining = []
       @srcremaining = []
-
-      # ------------------------------------------------------------------------------------------------------
-      # end of commit installation functions
-      # ------------------------------------------------------------------------------------------------------
 
       return :auto if Installation.image_only
 
@@ -101,7 +80,7 @@ module Yast
 
       # initial mode, move download area, check for repository caching
       if Stage.initial
-        SourceManager.InstInitSourceMoveDownloadArea 
+        SourceManager.InstInitSourceMoveDownloadArea
 
         # continue mode, set remaining packages to be installed
       elsif !Mode.live_installation
@@ -120,7 +99,7 @@ module Yast
       PackageSlideShow.InitPkgData(true)
 
       @get_setup = SlideShow.GetSetup
-      if @get_setup == nil || @get_setup == {}
+      if @get_setup.nil? || @get_setup == {}
         Builtins.y2milestone("No SlideShow setup has been set, adjusting")
         SlideShow.Setup(
           [
@@ -228,10 +207,10 @@ module Yast
       if FileUtils.Exists(file_remaining_packages)
         @remaining = Convert.convert(
           SCR.Read(path(".target.ycp"), [file_remaining_packages, []]),
-          :from => "any",
-          :to   => "list <map <string, any>>"
+          from: "any",
+          to:   "list <map <string, any>>"
         )
-        @remaining = [] if @remaining == nil
+        @remaining = [] if @remaining.nil?
         Builtins.y2milestone(
           "File %1 contains %2 packages",
           file_remaining_packages,
@@ -243,10 +222,10 @@ module Yast
       if FileUtils.Exists(file_remaining_srcs)
         @srcremaining = Convert.convert(
           SCR.Read(path(".target.ycp"), [file_remaining_srcs, []]),
-          :from => "any",
-          :to   => "list <string>"
+          from: "any",
+          to:   "list <string>"
         )
-        @srcremaining = [] if @srcremaining == nil
+        @srcremaining = [] if @srcremaining.nil?
         Builtins.y2milestone(
           "File %1 contains %2 packages",
           file_remaining_srcs,
@@ -262,10 +241,8 @@ module Yast
     # @return [Boolean] whether some packages need to be installed
     def SomePackagesAreRemainForInstallation
       # Either 'remaining' or 'srcremaining' are not empty
-      size_remaining = @remaining == nil ? 0 : Builtins.size(@remaining)
-      size_srcremaining = @srcremaining == nil ?
-        0 :
-        Builtins.size(@srcremaining)
+      size_remaining = @remaining.nil? ? 0 : Builtins.size(@remaining)
+      size_srcremaining = @srcremaining.nil? ? 0 : Builtins.size(@srcremaining)
 
       Builtins.y2milestone(
         "remaining: %1, srcremaining: %2",
@@ -287,7 +264,7 @@ module Yast
           [Ops.add(Installation.destdir, "/var/lib/YaST2/backup_path"), ""]
         )
       )
-      if backupPath != nil && backupPath != ""
+      if !backupPath.nil? && backupPath != ""
         Builtins.y2milestone("create package backups in %1", backupPath)
         Pkg.CreateBackups(true)
         Pkg.SetBackupPath(backupPath)
@@ -403,28 +380,23 @@ module Yast
 
         commit_result = PackageInstallation.Commit(config)
 
-        if commit_result == nil || Builtins.size(commit_result) == 0
+        if commit_result.nil? || Builtins.size(commit_result).zero?
           Builtins.y2error("Commit failed")
-          failed2 = Builtins.mergestring(
-            Ops.get_list(commit_result, 1, []),
-            "\n"
-          )
           # error message - displayed in a scrollable text area
           # %1 - an error message (details)
           Report.LongError(
             Builtins.sformat(
               _(
-                "Installation failed.\n" +
-                  "\n" +
-                  "Details:\n" +
-                  "%1\n" +
-                  "\n" +
+                "Installation failed.\n" \
+                  "\n" \
+                  "Details:\n" \
+                  "%1\n" \
+                  "\n" \
                   "Package installation will be aborted.\n"
               ),
               Pkg.LastError
             )
           )
-
 
           return :abort
         end
@@ -533,7 +505,7 @@ module Yast
           "StartingAndMaxMediaNumber: Stage initial %1/%2",
           Ops.get(ret, "current_cd_no"),
           Ops.get(ret, "maxnumbercds")
-        ) 
+        )
 
         # Three following cases have the same solution, CDstart = 0, CDfinish = 0
         # ZYPP should solve what it needs and when.

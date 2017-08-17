@@ -1,14 +1,6 @@
 # encoding: utf-8
-
-# Module:	inst_custom_packages.ycp
-#
-# Authors:	Anas Nashif <nashif@suse.de>
-#
-# Purpose:	Client for 3rd prodcuts/addon products package installations
-#
-# $Id$
-#
 module Yast
+  # Client for 3rd prodcuts/addon products package installations
   class InstCustomPackagesClient < Client
     def main
       Yast.import "UI"
@@ -28,8 +20,8 @@ module Yast
 
       @packages = Convert.convert(
         ProductFeatures.GetFeature("software", "packages"),
-        :from => "any",
-        :to   => "list <string>"
+        from: "any",
+        to:   "list <string>"
       )
       if !probeSource(Ops.add("dir://", Directory.custom_workflow_dir))
         # error popup
@@ -45,7 +37,7 @@ module Yast
         @solve = Pkg.PkgSolve(false)
         Builtins.y2error("Error solving package dependencies") if !@solve
       end
-      @result = PackagesUI.RunPackageSelector({ "mode" => :summaryMode })
+      @result = PackagesUI.RunPackageSelector("mode" => :summaryMode)
       Builtins.y2milestone("Package selector returned: %1", @result)
       @result = :next if @result == :accept
 

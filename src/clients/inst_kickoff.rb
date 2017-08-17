@@ -1,17 +1,9 @@
 # encoding: utf-8
 
-# Module:	inst_kickoff.ycp
-#
-# Authors:	Arvin Schnell <arvin@suse.de>
-#
-# Purpose:	Do various tasks before starting with installation of rpms.
-#
-# $Id$
-#
-
 require "fileutils"
 
 module Yast
+  # Do various tasks before starting with installation of rpms.
   class InstKickoffClient < Client
     def main
       Yast.import "Pkg"
@@ -42,7 +34,7 @@ module Yast
           # When upgrading system, remove devs.rpm just from rpm database
           LocalCommand(
             "/bin/rpm -q 'devs' && /bin/rpm --nodeps --justdb -e 'devs'"
-          ) 
+          )
           # normal upgrade
         else
           # When upgrading system, remove devs.rpm if installed
@@ -56,7 +48,8 @@ module Yast
           # Mount (bind) the current /dev/ to the /installed_system/dev/
           LocalCommand(
             Builtins.sformat(
-              "/bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && /bin/mount -v --bind '/dev/' '%1/dev/'",
+              "/bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && " \
+                "/bin/mount -v --bind '/dev/' '%1/dev/'",
               String.Quote(Installation.destdir)
             )
           )
@@ -89,7 +82,7 @@ module Yast
         if Installation.dirinstall_installing_into_dir
           @template_dir = "/var/adm/fillup-templates"
 
-          # hack 'pre-req' cyclic dependency between bash, aaa_base, and perl
+          # HACK: 'pre-req' cyclic dependency between bash, aaa_base, and perl
           Builtins.foreach(["passwd", "group", "shadow"]) do |filename|
             filename_copy_to = Builtins.sformat(
               "%1/etc/%2",
@@ -173,75 +166,73 @@ module Yast
         #	if (Stage::initial ())
         #    	{
         # call it always, it handles installation mode inside
-        WFM.CallFunction("inst_bootloader", WFM.Args) 
+        WFM.CallFunction("inst_bootloader", WFM.Args)
         #	}
+      elsif Stage.normal
+        Yast.import "Kernel"
+        @kernel = Kernel.ComputePackage
+        Kernel.SetInformAboutKernelChange(Pkg.IsSelected(@kernel))
+
+        SCR.Execute(
+          path(".target.mkdir"),
+          Ops.add(Installation.destdir, Installation.update_backup_path)
+        )
+        backup_stuff
+        createmdadm
       else
-        if Stage.normal
-          Yast.import "Kernel"
-          @kernel = Kernel.ComputePackage
-          Kernel.SetInformAboutKernelChange(Pkg.IsSelected(@kernel))
+        # disable all repositories at the target
+        Pkg.TargetDisableSources
 
-          SCR.Execute(
-            path(".target.mkdir"),
-            Ops.add(Installation.destdir, Installation.update_backup_path)
-          )
-          backup_stuff
-          createmdadm
-        else
-          # disable all repositories at the target
-          Pkg.TargetDisableSources
+        # make some directories
+        SCR.Execute(
+          path(".target.mkdir"),
+          Ops.add(Installation.destdir, Directory.logdir)
+        )
+        SCR.Execute(
+          path(".target.mkdir"),
+          Ops.add(Installation.destdir, Installation.update_backup_path)
+        )
 
-          # make some directories
-          SCR.Execute(
-            path(".target.mkdir"),
-            Ops.add(Installation.destdir, Directory.logdir)
-          )
-          SCR.Execute(
-            path(".target.mkdir"),
-            Ops.add(Installation.destdir, Installation.update_backup_path)
-          )
+        # backup some stuff
+        backup_stuff
 
-          # backup some stuff
-          backup_stuff
+        # remove some stuff
+        # do not remove when updating running system (#49608)
+        remove_stuff
 
-          # remove some stuff
-          # do not remove when updating running system (#49608)
-          remove_stuff
+        # set update mode to yes
+        SCR.Write(
+          path(".target.string"),
+          Ops.add(Installation.destdir, "/var/lib/YaST2/update_mode"),
+          "YES"
+        )
+        SCR.Execute(
+          path(".target.remove"),
+          Ops.add(Installation.destdir, "/var/lib/YaST/update.inf")
+        )
 
-          # set update mode to yes
-          SCR.Write(
-            path(".target.string"),
-            Ops.add(Installation.destdir, "/var/lib/YaST2/update_mode"),
-            "YES"
-          )
-          SCR.Execute(
-            path(".target.remove"),
-            Ops.add(Installation.destdir, "/var/lib/YaST/update.inf")
-          )
-
-          # check passwd and group of target
-          SCR.Execute(
-            path(".target.bash"),
+        # check passwd and group of target
+        SCR.Execute(
+          path(".target.bash"),
+          Ops.add(
             Ops.add(
-              Ops.add(
-                "/usr/lib/YaST2/bin/update_users_groups " + "'",
-                String.Quote(Installation.destdir)
-              ),
-              "'"
-            )
+              "/usr/lib/YaST2/bin/update_users_groups " + "'",
+              String.Quote(Installation.destdir)
+            ),
+            "'"
           )
+        )
 
-          # create /etc/mdadm.conf if it does not exist
-          createmdadm
+        # create /etc/mdadm.conf if it does not exist
+        createmdadm
 
-          # load all network modules
-          load_network_modules 
+        # load all network modules
+        load_network_modules
 
-          # initialize bootloader
-          # will return immediatly unless bootloader configuration was
-          # proposed from scratch (bnc#899743)
-          WFM.CallFunction("inst_bootloader", WFM.Args) 
-        end
+        # initialize bootloader
+        # will return immediatly unless bootloader configuration was
+        # proposed from scratch (bnc#899743)
+        WFM.CallFunction("inst_bootloader", WFM.Args)
       end
 
       :next
@@ -271,7 +262,6 @@ module Yast
 
       nil
     end
-
 
     #  Handle the backup.
     def backup_stuff
@@ -318,90 +308,88 @@ module Yast
       # timestamp
       date = Builtins.timestring("%Y%m%d", ::Time.now.to_i, false)
 
-      if true
-        Builtins.y2milestone("Creating backup of %1", Directory.logdir)
+      Builtins.y2milestone("Creating backup of %1", Directory.logdir)
 
-        filename = ""
-        num = 0
+      filename = ""
+      num = 0
 
-        while Ops.less_than(num, 42)
-          filename = Ops.add(
+      while Ops.less_than(num, 42)
+        filename = Ops.add(
+          Ops.add(
             Ops.add(
               Ops.add(
-                Ops.add(
-                  Ops.add(Installation.update_backup_path, "/YaST2-"),
-                  date
-                ),
-                "-"
+                Ops.add(Installation.update_backup_path, "/YaST2-"),
+                date
               ),
-              Builtins.sformat("%1", num)
+              "-"
             ),
-            ".tar.gz"
-          )
-          if SCR.Read(
-              path(".target.size"),
-              Ops.add(Installation.destdir, filename)
-            ) == -1
-            break
-          end
-          num = Ops.add(num, 1)
+            Builtins.sformat("%1", num)
+          ),
+          ".tar.gz"
+        )
+        if SCR.Read(
+          path(".target.size"),
+          Ops.add(Installation.destdir, filename)
+        ) == -1
+          break
         end
+        num = Ops.add(num, 1)
+      end
 
-        if SCR.Execute(
-            path(".target.bash"),
+      if SCR.Execute(
+        path(".target.bash"),
+        Ops.add(
+          Ops.add(
             Ops.add(
               Ops.add(
                 Ops.add(
-                  Ops.add(
-                    Ops.add(
-                      Ops.add("cd '", String.Quote(Installation.destdir)),
-                      "'; "
-                    ),
-                    "/bin/tar czf ."
-                  ),
-                  filename
+                  Ops.add("cd '", String.Quote(Installation.destdir)),
+                  "'; "
                 ),
-                " "
+                "/bin/tar czf ."
               ),
-              "var/log/YaST2"
-            )
-          ) != 0
-          Builtins.y2error(
-            "backup of %1 to %2 failed",
+              filename
+            ),
+            " "
+          ),
+          "var/log/YaST2"
+        )
+      ).nonzero?
+        Builtins.y2error(
+          "backup of %1 to %2 failed",
+          Directory.logdir,
+          filename
+        )
+        # an error popup
+        Popup.Error(
+          Builtins.sformat(
+            _("Backup of %1 failed. See %2 for details."),
             Directory.logdir,
-            filename
+            Ops.add(Directory.logdir, "/y2log")
           )
-          # an error popup
-          Popup.Error(
-            Builtins.sformat(
-              _("Backup of %1 failed. See %2 for details."),
-              Directory.logdir,
-              Ops.add(Directory.logdir, "/y2log")
-            )
-          )
-        else
-          SCR.Execute(
-            path(".target.bash"),
+        )
+      else
+        SCR.Execute(
+          path(".target.bash"),
+          Ops.add(
             Ops.add(
-              Ops.add(
-                Ops.add("cd '", String.Quote(Installation.destdir)),
-                "'; "
-              ),
-              "/bin/rm -rf var/log/YaST2/*"
-            )
+              Ops.add("cd '", String.Quote(Installation.destdir)),
+              "'; "
+            ),
+            "/bin/rm -rf var/log/YaST2/*"
           )
-        end
+        )
       end
 
       if Installation.update_backup_sysconfig
         # backup /etc/sysconfig
         if Ops.greater_than(
-            SCR.Read(
-              path(".target.size"),
-              Ops.add(Installation.destdir, "/etc/sysconfig")
-            ),
-            0
-          )
+          SCR.Read(
+            path(".target.size"),
+            Ops.add(Installation.destdir, "/etc/sysconfig")
+          ),
+          0
+        )
           Builtins.y2milestone("backup of /etc/sysconfig")
 
           filename = ""
@@ -422,33 +410,33 @@ module Yast
               ".tar.gz"
             )
             if SCR.Read(
-                path(".target.size"),
-                Ops.add(Installation.destdir, filename)
-              ) == -1
+              path(".target.size"),
+              Ops.add(Installation.destdir, filename)
+            ) == -1
               break
             end
             num = Ops.add(num, 1)
           end
 
           if SCR.Execute(
-              path(".target.bash"),
+            path(".target.bash"),
+            Ops.add(
               Ops.add(
                 Ops.add(
                   Ops.add(
                     Ops.add(
-                      Ops.add(
-                        Ops.add("cd '", String.Quote(Installation.destdir)),
-                        "'; "
-                      ),
-                      "/bin/tar czf ."
+                      Ops.add("cd '", String.Quote(Installation.destdir)),
+                      "'; "
                     ),
-                    filename
+                    "/bin/tar czf ."
                   ),
-                  " "
+                  filename
                 ),
-                "etc/sysconfig"
-              )
-            ) != 0
+                " "
+              ),
+              "etc/sysconfig"
+            )
+          ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",
               "/etc/sysconfig",
@@ -465,12 +453,12 @@ module Yast
           end
         # backup of /etc/rc.config*
         elsif Ops.greater_than(
-            SCR.Read(
-              path(".target.size"),
-              Ops.add(Installation.destdir, "/etc/rc.config")
-            ),
-            0
-          ) &&
+          SCR.Read(
+            path(".target.size"),
+            Ops.add(Installation.destdir, "/etc/rc.config")
+          ),
+          0
+        ) &&
             Ops.greater_than(
               SCR.Read(
                 path(".target.size"),
@@ -498,33 +486,33 @@ module Yast
               ".tar.gz"
             )
             if SCR.Read(
-                path(".target.size"),
-                Ops.add(Installation.destdir, filename)
-              ) == -1
+              path(".target.size"),
+              Ops.add(Installation.destdir, filename)
+            ) == -1
               break
             end
             num = Ops.add(num, 1)
           end
 
           if SCR.Execute(
-              path(".target.bash"),
+            path(".target.bash"),
+            Ops.add(
               Ops.add(
                 Ops.add(
                   Ops.add(
                     Ops.add(
-                      Ops.add(
-                        Ops.add("cd '", String.Quote(Installation.destdir)),
-                        "'; "
-                      ),
-                      "/bin/tar czf ."
+                      Ops.add("cd '", String.Quote(Installation.destdir)),
+                      "'; "
                     ),
-                    filename
+                    "/bin/tar czf ."
                   ),
-                  " "
+                  filename
                 ),
-                "etc/rc.config etc/rc.config.d"
-              )
-            ) != 0
+                " "
+              ),
+              "etc/rc.config etc/rc.config.d"
+            )
+          ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",
               "/etc/rc.config",
@@ -585,7 +573,7 @@ module Yast
           Ops.add(Installation.destdir, filename)
         )
 
-        if SCR.Execute(path(".target.bash"), cmd) != 0
+        if SCR.Execute(path(".target.bash"), cmd).nonzero?
           Builtins.y2error("backup command failed: %1", cmd)
           # an error popup
           Popup.Error(
@@ -626,7 +614,7 @@ module Yast
           )
         )
       )
-      if Ops.get_integer(out, "exit", -1) != 0
+      if Ops.get_integer(out, "exit", -1).nonzero?
         Builtins.y2error(
           "Error occurred while getting raid configuration: %1",
           out
@@ -658,14 +646,13 @@ module Yast
       nil
     end
 
-
     #  Load all network modules.  The package sysconfig requires this during
     #  update.
     def load_network_modules
       cards = Convert.convert(
         SCR.Read(path(".probe.netcard")),
-        :from => "any",
-        :to   => "list <map>"
+        from: "any",
+        to:   "list <map>"
       )
 
       Builtins.foreach(cards) do |card|
@@ -690,14 +677,12 @@ module Yast
       cmd = Convert.to_map(WFM.Execute(path(".local.bash_output"), command))
       Builtins.y2milestone("Command %1 returned: %2", command, cmd)
 
-      if Ops.get_integer(cmd, "exit", -1) == 0
-        return true
-      else
-        if Ops.get_string(cmd, "stderr", "") != ""
-          Builtins.y2error("Error: %1", Ops.get_string(cmd, "stderr", ""))
-        end
-        return false
+      return true if Ops.get_integer(cmd, "exit", -1).zero?
+
+      if Ops.get_string(cmd, "stderr", "") != ""
+        Builtins.y2error("Error: %1", Ops.get_string(cmd, "stderr", ""))
       end
+      false
     end
   end
 end
