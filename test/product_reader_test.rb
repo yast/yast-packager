@@ -17,6 +17,7 @@ require "y2packager/product_reader"
 
 describe Y2Packager::ProductReader do
   subject { Y2Packager::ProductReader }
+  let(:products) { YAML.load(File.read(FIXTURES_PATH.join("products-sles15.yml"))) }
 
   describe "#available_base_products" do
     before do
@@ -30,15 +31,13 @@ describe Y2Packager::ProductReader do
       expect(subject.available_base_products).to eq([])
     end
 
-    xit "returns Installation::Product objects" do
-      products = YAML.load(load_fixture("products", "sles15.yml"))
+    it "returns Installation::Product objects" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return(products)
       expect(subject.available_base_products.first).to be_a(Y2Packager::Product)
     end
 
-    xit "returns the correct product properties" do
-      products = YAML.load(load_fixture("products", "sles15.yml"))
+    it "returns the correct product properties" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
         .and_return(products)
       ret = subject.available_base_products.first
@@ -46,8 +45,8 @@ describe Y2Packager::ProductReader do
       expect(ret.label).to eq("SUSE Linux Enterprise Server 15 Alpha1")
     end
 
-    xit "returns only the products from the initial repository" do
-      sp3 = YAML.load(load_fixture("products", "sles15.yml")).first
+    it "returns only the products from the initial repository" do
+      sp3 = products.first
       addon1 = sp3.dup
       addon1["source"] = 1
       addon2 = sp3.dup

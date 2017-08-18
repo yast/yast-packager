@@ -140,7 +140,7 @@ describe Y2Packager::Product do
     end
   end
 
-  describe "#need_to_accept_license?" do
+  describe "#license_confirmation_required?" do
     before do
       allow(Yast::Pkg).to receive(:PrdNeedToAcceptLicense).with(product.name).and_return(needed)
     end
@@ -149,7 +149,7 @@ describe Y2Packager::Product do
       let(:needed) { true }
 
       it "returns true" do
-        expect(product.need_to_accept_license?).to eq(true)
+        expect(product.license_confirmation_required?).to eq(true)
       end
     end
 
@@ -157,7 +157,7 @@ describe Y2Packager::Product do
       let(:needed) { false }
 
       it "returns false" do
-        expect(product.need_to_accept_license?).to eq(false)
+        expect(product.license_confirmation_required?).to eq(false)
       end
     end
   end
