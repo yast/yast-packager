@@ -39,8 +39,8 @@ BuildRequires:  yast2 >= 3.2.7
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
 
-# Pkg::SourceSetPriority()
-BuildRequires:  yast2-pkg-bindings >= 3.2.1
+# Pkg::PrdGetLicenseToConfirm Pkg::PrdMarkLicenseConfirmed Pkg::PrdNeedToAcceptLicense
+BuildRequires:  yast2-pkg-bindings >= 3.2.4
 
 # Augeas lenses
 BuildRequires: augeas-lenses
