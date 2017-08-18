@@ -48,17 +48,16 @@ module Y2Packager
 
     # Constructor
     #
-    # @param name         [String]  Name
-    # @param short_name   [String]  Short name
-    # @param display_name [String]  Display name
-    # @param version      [String]  Version
-    # @param arch         [String]  Architecture
-    # @param status       [Symbol]  Status (:selected, :removed, :installed, :available)
-    # @param category     [Symbol]  Category (:base, :addon)
-    # @param vendor       [String]  Vendor
-    # @param repo_id      [Integer] Repository ID
-    # @param order        [Integer] Display order
-    # @param package      [String]  Installation package name
+    # @param name                 [String]  Name
+    # @param short_name           [String]  Short name
+    # @param display_name         [String]  Display name
+    # @param version              [String]  Version
+    # @param arch                 [String]  Architecture
+    # @param status               [Symbol]  Status (:selected, :removed, :installed, :available)
+    # @param category             [Symbol]  Category (:base, :addon)
+    # @param vendor               [String]  Vendor
+    # @param order                [Integer] Display order
+    # @param installation_package [String]  Installation package name
     def initialize(name: nil, short_name: nil, display_name: nil, version: nil, arch: nil,
       status: nil, category: nil, vendor: nil, order: nil, installation_package: nil)
       @name = name
