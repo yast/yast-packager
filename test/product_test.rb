@@ -88,7 +88,9 @@ describe Y2Packager::Product do
 
   describe "#label" do
     context "when 'display_name' is present" do
-      subject(:product) { Y2Packager::Product.new(name: "NAME", display_name: "DISPLAY", short_name: "SHORT") }
+      subject(:product) do
+        Y2Packager::Product.new(name: "NAME", display_name: "DISPLAY", short_name: "SHORT")
+      end
 
       it "returns 'display_name'" do
         expect(product.label).to eq("DISPLAY")

@@ -15,12 +15,21 @@ require_relative "test_helper"
 require "y2packager/product"
 require "y2packager/product_sorter"
 
-describe "Y2Packager::PRODUCT_SORTER" do
+describe Y2Packager::PRODUCT_SORTER do
 
   # testing products with defined ordering
-  let(:p1) { Y2Packager::Product.new(name: "p10", display_name: "Product with order 10", order: 10) }
-  let(:p2) { Y2Packager::Product.new(name: "p20", display_name: "Product with order 20", order: 20) }
-  let(:p3) { Y2Packager::Product.new(name: "p30", display_name: "Product with order 30", order: 30) }
+  let(:p1) do
+    Y2Packager::Product.new(name: "p10", display_name: "Product with order 10", order: 10)
+  end
+
+  let(:p2) do
+    Y2Packager::Product.new(name: "p20", display_name: "Product with order 20", order: 20)
+  end
+
+  let(:p3) do
+    Y2Packager::Product.new(name: "p30", display_name: "Product with order 30", order: 30)
+  end
+
   # testing products with undefined (nil) ordering
   let(:pnil1) { Y2Packager::Product.new(name: "p1", display_name: "Product 1 without order") }
   let(:pnil2) { Y2Packager::Product.new(name: "p2", display_name: "Product 2 without order") }

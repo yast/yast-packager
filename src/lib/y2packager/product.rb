@@ -59,8 +59,8 @@ module Y2Packager
     # @param repo_id      [Integer] Repository ID
     # @param order        [Integer] Display order
     # @param package      [String]  Installation package name
-    def initialize(name: nil, short_name: nil, display_name: nil, version: nil, arch: nil, status: nil,
-      category: nil, vendor: nil, order: nil, installation_package: nil)
+    def initialize(name: nil, short_name: nil, display_name: nil, version: nil, arch: nil,
+      status: nil, category: nil, vendor: nil, order: nil, installation_package: nil)
       @name = name
       @short_name = short_name
       @display_name = display_name
