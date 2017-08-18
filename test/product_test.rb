@@ -86,6 +86,13 @@ describe Y2Packager::Product do
     end
   end
 
+  describe "#restore" do
+    it "restores product status" do
+      expect(Yast::Pkg).to receive(:ResolvableNeutral).with(product.name, :product, true)
+      product.restore
+    end
+  end
+
   describe "#label" do
     context "when 'display_name' is present" do
       subject(:product) do

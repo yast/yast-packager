@@ -103,6 +103,11 @@ module Y2Packager
       Yast::Pkg.ResolvableInstall(name, :product, "")
     end
 
+    def restore
+      log.info "Restoring product #{name} status"
+      Yast::Pkg.ResolvableNeutral(name, :product, true)
+    end
+
     # Return a package label
     #
     # It will use 'display_name', 'short_name' or 'name'.
