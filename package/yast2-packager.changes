@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 18 11:11:16 CEST 2017 - snwint@suse.de
+
+- fix typo in storage_include.rb
+- 3.3.5
+
+-------------------------------------------------------------------
 Mon Aug 14 11:35:33 UTC 2017 - ancor@suse.com
 
 - Merged storage-ng branch (fate#318196).
