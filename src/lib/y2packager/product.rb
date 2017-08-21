@@ -11,6 +11,7 @@
 # ------------------------------------------------------------------------------
 
 Yast.import "Pkg"
+Yast.import "Language"
 require "y2packager/product_reader"
 
 module Y2Packager
@@ -123,8 +124,9 @@ module Y2Packager
     # it was already confirmed.
     #
     # @return [String,nil] License to confirm; nil if the product was not found.
-    def license_to_confirm
-      Yast::Pkg.PrdGetLicenseToConfirm(name)
+    def license_to_confirm(lang = nil)
+      license_lang = lang || Yast::Language.language
+      Yast::Pkg.PrdGetLicenseToConfirm(name, license_lang)
     end
 
     # Determine whether the license should be accepted or not

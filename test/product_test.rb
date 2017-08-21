@@ -123,20 +123,22 @@ describe Y2Packager::Product do
 
   describe "#license_to_confirm" do
     let(:license) { "license content" }
+    let(:lang) { "en_US" }
 
     before do
-      allow(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product.name).and_return(license)
+      allow(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product.name, lang)
+        .and_return(license)
     end
 
     it "return the license" do
-      expect(product.license_to_confirm).to eq(license)
+      expect(product.license_to_confirm(lang)).to eq(license)
     end
 
     context "when the no license to confirm was found" do
       let(:license) { "" }
 
       it "return the empty string" do
-        expect(product.license_to_confirm).to eq("")
+        expect(product.license_to_confirm(lang)).to eq("")
       end
     end
 
@@ -144,7 +146,20 @@ describe Y2Packager::Product do
       let(:license) { nil }
 
       it "return nil" do
-        expect(product.license_to_confirm).to be_nil
+        expect(product.license_to_confirm(lang)).to be_nil
+      end
+    end
+
+    context "when a language was not specified" do
+      let(:current_language) { "de_DE" }
+
+      before do
+        allow(Yast::Language).to receive(:language).and_return(current_language)
+      end
+
+      it "uses the YaST current language" do
+        expect(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product.name, current_language)
+        product.license_to_confirm
       end
     end
   end
