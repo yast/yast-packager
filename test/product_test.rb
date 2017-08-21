@@ -223,6 +223,13 @@ describe Y2Packager::Product do
     end
   end
 
+  describe "#unconfirm_license" do
+    it "unconfirms the license" do
+      expect(Yast::Pkg).to receive(:PrdMarkLicenseUnconfirmed).with(product.name)
+      product.unconfirm_license
+    end
+  end
+
   describe "#license_confirmed?" do
     before do
       allow(Yast::Pkg).to receive(:PrdHasLicenseConfirmed).with(product.name)

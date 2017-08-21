@@ -154,7 +154,12 @@ module Y2Packager
       Yast::Pkg.PrdMarkLicenseConfirmed(name)
     end
 
-    # Determine is the license is confirmed
+    # Unconfirm the license for the product
+    def unconfirm_license
+      Yast::Pkg.PrdMarkLicenseUnconfirmed(name)
+    end
+
+    # Determine whether the license is confirmed
     #
     # @return [Boolean] true if the license was confirmed (or acceptance was not needed)
     def license_confirmed?
