@@ -134,6 +134,14 @@ module Y2Packager
       Yast::Pkg.PrdGetLicenseToConfirm(name, license_lang)
     end
 
+    # Determines whether the product has a license
+    #
+    # @return [Boolean] true if the product has a license
+    def license?
+      return false unless license
+      license != ""
+    end
+
     # Determine whether the license should be accepted or not
     #
     # @return [Boolean] true if the license acceptance is required

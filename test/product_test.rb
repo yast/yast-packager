@@ -159,7 +159,37 @@ describe Y2Packager::Product do
 
       it "uses the YaST current language" do
         expect(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product.name, current_language)
-        product.license_to_confirm
+        product.license
+      end
+    end
+  end
+
+  describe "#license?" do
+    before do
+      allow(product).to receive(:license).and_return(license)
+    end
+
+    context "when product has a license" do
+      let(:license) { "license content" }
+
+      it "returns the license content" do
+        expect(product.license?).to eq(true)
+      end
+    end
+
+    context "when product does not have a license" do
+      let(:license) { "" }
+
+      it "returns false" do
+        expect(product.license?).to eq(false)
+      end
+    end
+
+    context "when product is not found" do
+      let(:license) { nil }
+
+      it "returns nil" do
+        expect(product.license?).to eq(false)
       end
     end
   end
