@@ -14,14 +14,6 @@ RSpec.configure do |config|
   config.include Yast::I18n # available in it/let/before/...
 end
 
-# stub module to prevent its Import
-# Useful for modules from different yast packages, to avoid build dependencies
-def stub_module(name)
-  Yast.const_set name.to_sym, Class.new { def self.fake_method; end }
-end
-
-stub_module("Language")
-
 if ENV["COVERAGE"]
   require "simplecov"
   SimpleCov.start do
