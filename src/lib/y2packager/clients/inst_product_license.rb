@@ -16,14 +16,15 @@ require "y2packager/product"
 
 module Y2Packager
   module Clients
+    # This client shows a license confirmation dialog for the base selected product
     class InstProductLicense
       def main
-        dialog = Y2Packager::Dialogs::InstProductLicense.new(selected_product)
-        dialog.run
+        return :next unless selected_product.license?
+        Y2Packager::Dialogs::InstProductLicense.new(selected_product).run
       end
 
       def selected_product
-        @selected_product ||= Y2Packager::Product.available_base_products.find(&:selected?)
+        @selected_product ||= Y2Packager::Product.selected_base
       end
     end
   end
