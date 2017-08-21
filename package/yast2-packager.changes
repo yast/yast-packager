@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Aug 21 08:20:26 UTC 2017 - igonzalezsosa@suse.com
+
+- Moved repositories and product related classes to this module
+- Extended repositories and product related classes
+  (FATE#322276)
+- 3.3.6
+
+-------------------------------------------------------------------
 Fri Aug 18 11:11:16 CEST 2017 - snwint@suse.de
 
 - fix typo in storage_include.rb
