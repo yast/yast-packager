@@ -145,7 +145,7 @@ module Y2Packager
     #
     # @return [Boolean] true if the license was confirmed (or acceptance was not needed)
     def license_confirmed?
-      license_to_confirm == ""
+      Yast::Pkg.PrdHasLicenseConfirmed(name)
     end
   end
 end

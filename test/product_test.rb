@@ -195,19 +195,20 @@ describe Y2Packager::Product do
 
   describe "#license_confirmed?" do
     before do
-      allow(product).to receive(:license_to_confirm).and_return(license)
+      allow(Yast::Pkg).to receive(:PrdHasLicenseConfirmed).with(product.name)
+        .and_return(confirmed)
     end
 
-    context "when a license to be confirmed exists" do
-      let(:license) { "license content" }
+    context "when the license has not been confirmed" do
+      let(:confirmed) { false }
 
       it "returns false" do
         expect(product.license_confirmed?).to eq(false)
       end
     end
 
-    context "when there is not license to be confirmed" do
-      let(:license) { "" }
+    context "when the license was already confirmed" do
+      let(:confirmed) { true }
 
       it "returns true" do
         expect(product.license_confirmed?).to eq(true)
