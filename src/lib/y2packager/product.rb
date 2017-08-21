@@ -47,6 +47,15 @@ module Y2Packager
       Y2Packager::ProductReader.available_base_products
     end
 
+    # Returns the selected base product
+    #
+    # It assumes that at most 1 product could be selected.
+    #
+    # @return [Y2Packager::Product] Selected base product
+    def self.selected_base
+      available_base_products.find(&:selected?)
+    end
+
     # Constructor
     #
     # @param name                 [String]  Name
