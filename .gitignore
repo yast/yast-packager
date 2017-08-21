@@ -29,6 +29,6 @@ tmp.*
 *.log
 /test-driver
 /testsuite/site.bak
-/test/*.trs
+*.trs
 /.yardoc/
 /doc/autodocs
