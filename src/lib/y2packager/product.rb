@@ -98,6 +98,11 @@ module Y2Packager
     end
 
     # select the product to install
+    #
+    # Only the 'name' will be used to select the product, ignoring the
+    # architecture, version, vendor or any other property. libzypp will take
+    # care of selecting the proper product.
+    #
     # @return [Boolean] true if the product has been sucessfully selected
     def select
       log.info "Selecting product #{name} to install"
