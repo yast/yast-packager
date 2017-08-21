@@ -125,11 +125,11 @@ module Y2Packager
 
     # Return the license to confirm
     #
-    # It will return the empty string ("") ff the license does not exist or if
+    # It will return the empty string ("") if the license does not exist or if
     # it was already confirmed.
     #
-    # @return [String,nil] License to confirm; nil if the product was not found.
-    def license_to_confirm(lang = nil)
+    # @return [String,nil] Product's license; nil if the product was not found.
+    def license(lang = nil)
       license_lang = lang || Yast::Language.language
       Yast::Pkg.PrdGetLicenseToConfirm(name, license_lang)
     end

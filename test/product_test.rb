@@ -121,7 +121,7 @@ describe Y2Packager::Product do
     end
   end
 
-  describe "#license_to_confirm" do
+  describe "#license" do
     let(:license) { "license content" }
     let(:lang) { "en_US" }
 
@@ -131,14 +131,14 @@ describe Y2Packager::Product do
     end
 
     it "return the license" do
-      expect(product.license_to_confirm(lang)).to eq(license)
+      expect(product.license(lang)).to eq(license)
     end
 
     context "when the no license to confirm was found" do
       let(:license) { "" }
 
       it "return the empty string" do
-        expect(product.license_to_confirm(lang)).to eq("")
+        expect(product.license(lang)).to eq("")
       end
     end
 
@@ -146,7 +146,7 @@ describe Y2Packager::Product do
       let(:license) { nil }
 
       it "return nil" do
-        expect(product.license_to_confirm(lang)).to be_nil
+        expect(product.license(lang)).to be_nil
       end
     end
 
