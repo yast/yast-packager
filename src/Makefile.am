@@ -72,8 +72,13 @@ desktop_DATA = \
 
 ylibclientdir = "${yast2dir}/lib/packager/clients"
 ylibclient_DATA = \
-  lib/packager/clients/pkg_finish.rb
+  lib/packager/clients/pkg_finish.rb \
+  lib/packager/clients/software_proposal.rb
 
-EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA) $(ylibclient_DATA) $(ylib_DATA)
+ylibcfadir = "${yast2dir}/lib/packager/cfa"
+ylibcfa_DATA = \
+  lib/packager/cfa/zypp_conf.rb
+
+EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(ynclude1_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(desktop_DATA) $(ylibclient_DATA) $(ylib_DATA) $(ylibcfa_DATA)
 
 include $(top_srcdir)/Makefile.am.common

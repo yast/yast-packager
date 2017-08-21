@@ -8,7 +8,9 @@ TESTS = \
   product_license_test.rb \
   product_patterns_test.rb \
   source_dialogs_test.rb \
-  space_calculation_test.rb
+  space_calculation_test.rb \
+  lib/cfa/zypp_conf_test.rb \
+  lib/clients/software_proposal_test.rb
 
 TEST_EXTENSIONS = .rb
 RB_LOG_COMPILER = rspec

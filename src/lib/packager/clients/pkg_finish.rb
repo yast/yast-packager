@@ -15,6 +15,7 @@
 
 require "installation/finish_client"
 require "packages/repository"
+require "packager/cfa/zypp_conf"
 
 module Yast
   class PkgFinishClient < ::Installation::FinishClient
@@ -43,6 +44,7 @@ module Yast
       Yast.import "FileUtils"
       Yast.import "Packages"
       Yast.import "Directory"
+      Yast.import "ProductFeatures"
     end
 
     # @see Implements ::Installation::FinishClient#modes
@@ -79,6 +81,13 @@ module Yast
       # save repository metadata cache to the installed system
       # (needs to be done _after_ saving repositories, see bnc#700881)
       Pkg.SourceCacheCopyTo(Installation.destdir)
+
+      # Patching /etc/zypp/zypp.conf in order not to install
+      # recommended packages, doc-packages,...
+      # (needed for products like CASP)
+      if ProductFeatures.GetBooleanFeature("software", "minimalistic_libzypp_config")
+        set_minimalistic_libzypp_conf
+      end
 
       # copy list of failed packages to installed system
       if File.exist?(FAILED_PKGS_PATH)
@@ -193,6 +202,17 @@ module Yast
     def sync_target_sources
       Pkg.TargetFinish
       Pkg.TargetInitialize(Installation.destdir)
+    end
+
+    # Set libzypp configuration to install the minimal amount of packages
+    #
+    # @see Yast::Packager::CFA::ZyppConf#set_minimalistic!
+    def set_minimalistic_libzypp_conf
+      log.info("Setting libzypp configuration as minimalistic")
+      config = Packager::CFA::ZyppConf.new
+      config.load
+      config.set_minimalistic!
+      config.save
     end
   end
 end
