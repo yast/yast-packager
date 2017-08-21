@@ -13,13 +13,17 @@
 require "yast"
 require "y2packager/dialogs/inst_product_license"
 require "y2packager/product"
+Yast.import "GetInstArgs"
 
 module Y2Packager
   module Clients
     # This client shows a license confirmation dialog for the base selected product
     class InstProductLicense
       def main
-        return :next unless selected_product.license?
+        if !selected_product.license?
+          return Yast::GetInstArgs.going_back ? :back : :next
+        end
+
         Y2Packager::Dialogs::InstProductLicense.new(selected_product).run
       end
 
