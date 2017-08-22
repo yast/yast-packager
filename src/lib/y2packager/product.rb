@@ -160,7 +160,7 @@ module Y2Packager
 
     # Set license confirmation for the product
     #
-    # @param [Boolean] determines whether the license should be accepted or not
+    # @param confirmed [Boolean] determines whether the license should be accepted or not
     def license_confirmation=(confirmed)
       if confirmed
         Yast::Pkg.PrdMarkLicenseConfirmed(name)
