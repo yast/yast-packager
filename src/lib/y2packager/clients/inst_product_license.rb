@@ -29,6 +29,12 @@ module Y2Packager
         Y2Packager::Dialogs::InstProductLicense.new(selected_product).run
       end
 
+    private
+
+      # Return the selected base product
+      #
+      # @return [Y2Packager::Product]
+      # @see Y2Packager::Product.selected_base
       def selected_product
         @selected_product ||= Y2Packager::Product.selected_base
       end
