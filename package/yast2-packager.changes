@@ -1,9 +1,16 @@
 -------------------------------------------------------------------
-Mon Aug 21 08:20:26 UTC 2017 - igonzalezsosa@suse.com
+Tue Aug 22 14:09:50 UTC 2017 - igonzalezsosa@suse.com
 
 - Moved repositories and product related classes to this module
 - Extended repositories and product related classes
   (FATE#322276)
+- 3.3.7
+
+-------------------------------------------------------------------
+Tue Aug 22 10:11:10 UTC 2017 - ancor@suse.com
+
+- Fixed a bug introduced during the code refactoring associated to
+  bsc#1047060
 - 3.3.6
 
 -------------------------------------------------------------------

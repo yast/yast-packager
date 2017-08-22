@@ -1420,7 +1420,7 @@ module Yast
           "prod_dir"  => pth,
           # alias needs to be unique
           # bugzilla #309317
-          "alias"     => _alias,
+          "alias"     => alias_name,
           "type"      => repo_type
         )
       end
