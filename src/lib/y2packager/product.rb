@@ -47,6 +47,15 @@ module Y2Packager
       Y2Packager::ProductReader.available_base_products
     end
 
+    # Returns the selected base product
+    #
+    # It assumes that at most 1 product could be selected.
+    #
+    # @return [Y2Packager::Product] Selected base product
+    def self.selected_base
+      available_base_products.find(&:selected?)
+    end
+
     # Constructor
     #
     # @param name                 [String]  Name
@@ -159,14 +168,15 @@ module Y2Packager
       Yast::Pkg.PrdNeedToAcceptLicense(name)
     end
 
-    # Confirm the license for the product
-    def confirm_license
-      Yast::Pkg.PrdMarkLicenseConfirmed(name)
-    end
-
-    # Unconfirm the license for the product
-    def unconfirm_license
-      Yast::Pkg.PrdMarkLicenseUnconfirmed(name)
+    # Set license confirmation for the product
+    #
+    # @param confirmed [Boolean] determines whether the license should be accepted or not
+    def license_confirmation=(confirmed)
+      if confirmed
+        Yast::Pkg.PrdMarkLicenseConfirmed(name)
+      else
+        Yast::Pkg.PrdMarkLicenseUnconfirmed(name)
+      end
     end
 
     # Determine whether the license is confirmed
