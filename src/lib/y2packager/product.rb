@@ -99,6 +99,10 @@ module Y2Packager
 
     # is the product selected to install?
     #
+    # Only the 'name' will be used to find out whether the product is selected,
+    # ignoring the architecture, version, vendor or any other property. libzypp
+    # will take care of finding the proper product.
+    #
     # @return [Boolean] true if it is selected
     def selected?
       Yast::Pkg.ResolvableProperties(name, :product, "").any? do |res|
@@ -118,6 +122,12 @@ module Y2Packager
       Yast::Pkg.ResolvableInstall(name, :product, "")
     end
 
+    # Restore the status of a product
+    #
+    # Only the 'name' will be used to restore the product status, ignoring the
+    # architecture, version, vendor or any other property. libzypp will take
+    # care of modifying the proper product.
+    #
     def restore
       log.info "Restoring product #{name} status"
       Yast::Pkg.ResolvableNeutral(name, :product, true)
