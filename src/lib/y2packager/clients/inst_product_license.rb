@@ -20,6 +20,8 @@ module Y2Packager
     # This client shows a license confirmation dialog for the base selected product
     class InstProductLicense
       def main
+        textdomain "installation"
+
         if !selected_product.license?
           return Yast::GetInstArgs.going_back ? :back : :next
         end
