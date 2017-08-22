@@ -7,11 +7,10 @@ describe Y2Packager::Dialogs::InstProductLicense do
   let(:product) do
     instance_double(
       Y2Packager::Product,
-      label:              "openSUSE",
-      license:            "content",
-      license_confirmed?: confirmed?,
-      confirm_license:    nil,
-      unconfirm_license:  nil
+      label:                   "openSUSE",
+      license:                 "content",
+      license_confirmed?:       confirmed?,
+      :license_confirmation= => nil
     )
   end
 
@@ -34,7 +33,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
         let(:button) { :next }
 
         it "confirms the license" do
-          expect(product).to receive(:confirm_license)
+          expect(product).to receive(:license_confirmation=).with(true)
           dialog.run
         end
 
@@ -47,7 +46,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
         let(:button) { :back }
 
         it "confirms the license" do
-          expect(product).to receive(:confirm_license)
+          expect(product).to receive(:license_confirmation=).with(true)
           dialog.run
         end
 
@@ -79,7 +78,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
         end
 
         it "does not confirm the license" do
-          expect(product).to_not receive(:confirm_license)
+          expect(product).to_not receive(:license_confirmation=)
           dialog.run
         end
       end
@@ -99,7 +98,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
         end
 
         it "confirms the license" do
-          expect(product).to receive(:unconfirm_license)
+          expect(product).to receive(:license_confirmation=).with(false)
           dialog.run
         end
 
@@ -117,7 +116,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
         end
 
         it "unconfirms the license" do
-          expect(product).to receive(:unconfirm_license)
+          expect(product).to receive(:license_confirmation=).with(false)
           dialog.run
         end
 

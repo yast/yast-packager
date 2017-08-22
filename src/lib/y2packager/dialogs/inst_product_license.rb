@@ -136,11 +136,7 @@ module Y2Packager
       # It will not update the status if it has not changed.
       def update_product_confirmation
         return if product.license_confirmed? == confirmed
-        if confirmed
-          product.confirm_license
-        else
-          product.unconfirm_license
-        end
+        product.license_confirmation = confirmed
       end
     end
   end
