@@ -19,6 +19,8 @@ module Y2Packager
   module Clients
     # This client shows a license confirmation dialog for the base selected product
     class InstProductLicense
+      include Yast::I18n
+
       def main
         textdomain "installation"
 
