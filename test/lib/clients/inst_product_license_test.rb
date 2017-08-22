@@ -52,18 +52,8 @@ describe Y2Packager::Clients::InstProductLicense do
         client.main
       end
 
-      it "returns :next" do
-        expect(client.main).to eq(:next)
-      end
-
-      context "and user was going back" do
-        before do
-          allow(Yast::GetInstArgs).to receive(:going_back).and_return(true)
-        end
-
-        it "returns :back" do
-          expect(client.main).to eq(:back)
-        end
+      it "returns :auto" do
+        expect(client.main).to eq(:auto)
       end
     end
   end

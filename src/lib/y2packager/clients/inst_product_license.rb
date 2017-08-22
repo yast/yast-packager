@@ -13,7 +13,6 @@
 require "yast"
 require "y2packager/dialogs/inst_product_license"
 require "y2packager/product"
-Yast.import "GetInstArgs"
 
 module Y2Packager
   module Clients
@@ -23,11 +22,7 @@ module Y2Packager
 
       def main
         textdomain "installation"
-
-        if !selected_product.license?
-          return Yast::GetInstArgs.going_back ? :back : :next
-        end
-
+        return :auto unless selected_product.license?
         Y2Packager::Dialogs::InstProductLicense.new(selected_product).run
       end
 
