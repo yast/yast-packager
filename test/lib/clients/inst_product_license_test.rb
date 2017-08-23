@@ -43,6 +43,20 @@ describe Y2Packager::Clients::InstProductLicense do
       end
     end
 
+    context "when no base product is found" do
+      let(:product) { nil }
+
+      it "does not open the license dialog" do
+        expect(Y2Packager::Dialogs::InstProductLicense).to_not receive(:new)
+          .with(product)
+        client.main
+      end
+
+      it "returns :auto" do
+        expect(client.main).to eq(:auto)
+      end
+    end
+
     context "when no license is found for the selected base product" do
       let(:license?) { false }
 

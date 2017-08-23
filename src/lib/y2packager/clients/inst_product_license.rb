@@ -22,7 +22,7 @@ module Y2Packager
 
       def main
         textdomain "installation"
-        return :auto unless selected_product.license?
+        return :auto unless selected_product && selected_product.license?
         Y2Packager::Dialogs::InstProductLicense.new(selected_product).run
       end
 
