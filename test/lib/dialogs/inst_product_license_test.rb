@@ -84,7 +84,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
       end
     end
 
-    context "when the user unconfirms a previously confirmed license" do
+    context "when the user set as unconfirmed a previously confirmed license" do
       let(:confirmed?) { true }
 
       before do
@@ -115,7 +115,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
           allow(Yast::UI).to receive(:UserInput).and_return(:license_confirmation, button)
         end
 
-        it "unconfirms the license" do
+        it "set as unconfirmed a license" do
           expect(product).to receive(:license_confirmation=).with(false)
           dialog.run
         end

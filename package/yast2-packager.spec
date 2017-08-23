@@ -40,8 +40,9 @@ BuildRequires:  yast2 >= 3.2.7
 BuildRequires:       yast2_theme
 
 # Pkg::PrdGetLicenseToConfirm Pkg::PrdMarkLicenseConfirmed
-# Pkg::PrdNeedToAcceptLicense Pkg::PrdHasLicenseConfirmed
-BuildRequires:  yast2-pkg-bindings >= 3.3.1
+# Pkg::PrdMarkLicenseNotConfirmed Pkg::PrdHasLicenseConfirmed
+# Pkg::PrdNeedToAcceptLicense
+BuildRequires:  yast2-pkg-bindings >= 3.3.2
 
 # Augeas lenses
 BuildRequires: augeas-lenses

@@ -175,7 +175,7 @@ module Y2Packager
       if confirmed
         Yast::Pkg.PrdMarkLicenseConfirmed(name)
       else
-        Yast::Pkg.PrdMarkLicenseUnconfirmed(name)
+        Yast::Pkg.PrdMarkLicenseNotConfirmed(name)
       end
     end
 

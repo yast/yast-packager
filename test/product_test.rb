@@ -237,8 +237,8 @@ describe Y2Packager::Product do
     end
 
     context "when 'false' is given" do
-      it "unconfirms the license" do
-        expect(Yast::Pkg).to receive(:PrdMarkLicenseUnconfirmed).with(product.name)
+      it "sets as unconfirmed the license" do
+        expect(Yast::Pkg).to receive(:PrdMarkLicenseNotConfirmed).with(product.name)
         product.license_confirmation = false
       end
     end
