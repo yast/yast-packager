@@ -8,7 +8,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
     instance_double(
       Y2Packager::Product,
       label:                   "openSUSE",
-      license:                 "content",
+      license:                  content,
       license_confirmed?:       confirmed?,
       :license_confirmation= => nil
     )
@@ -16,6 +16,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
 
   let(:language) { "en_US" }
   let(:confirmed?) { false }
+  let(:content) { "content" }
 
   describe "#run" do
     before do
@@ -122,6 +123,31 @@ describe Y2Packager::Dialogs::InstProductLicense do
 
         it "returns :back" do
           expect(dialog.run).to eq(:back)
+        end
+      end
+    end
+
+    context "license formatting" do
+      before do
+        allow(Yast::UI).to receive(:UserInput).and_return(:license_confirmation, :back)
+      end
+
+      context "when license content is richtext" do
+        let(:content) { "<h1>title</h1>" }
+
+        it "does not modify the text" do
+          expect(subject).to receive(:RichText).with(Id(:license_content), content)
+          dialog.run
+        end
+      end
+
+      context "when license content is not richtext" do
+        let(:content) { "SLE 15 > SLE 12" }
+
+        it "converts to richtext" do
+          expect(subject).to receive(:RichText)
+            .with(Id(:license_content), "<pre>SLE 15 &gt; SLE 12</pre>")
+          dialog.run
         end
       end
     end

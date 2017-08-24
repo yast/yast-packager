@@ -15,6 +15,7 @@ require "ui/installation_dialog"
 Yast.import "Language"
 Yast.import "UI"
 Yast.import "Report"
+Yast.import "String"
 
 module Y2Packager
   module Dialogs
@@ -111,8 +112,24 @@ module Y2Packager
       def license_content
         MinWidth(
           80,
-          RichText(Id(:license_content), product.license(language))
+          RichText(Id(:license_content), formatted_license_text)
         )
+      end
+
+      RICHTEXT_REGEXP = /<\/.*>/.freeze
+      # Return the license text
+      #
+      # It detects whether license text is richtext or not and format it
+      # accordingly.
+      #
+      # @return [String] Formatted license text
+      def formatted_license_text
+        text = product.license(language)
+        if RICHTEXT_REGEXP =~ text
+          text
+        else
+          "<pre>#{Yast::String.EscapeTags(text)}</pre>"
+        end
       end
 
       # Return the UI for the confirmation checkbox
