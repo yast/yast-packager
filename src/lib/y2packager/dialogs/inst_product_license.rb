@@ -12,10 +12,10 @@
 
 require "yast"
 require "ui/installation_dialog"
+require "cgi/util"
 Yast.import "Language"
 Yast.import "UI"
 Yast.import "Report"
-Yast.import "String"
 
 module Y2Packager
   module Dialogs
@@ -130,7 +130,7 @@ module Y2Packager
         if RICHTEXT_REGEXP =~ text
           text
         else
-          "<pre>#{Yast::String.EscapeTags(text)}</pre>"
+          "<pre>#{CGI.escapeHTML(text)}</pre>"
         end
       end
 
