@@ -116,7 +116,9 @@ module Y2Packager
         )
       end
 
-      RICHTEXT_REGEXP = /<\/.*>/.freeze
+      # Regexp to determine whether the text is formatted as richtext
+      RICHTEXT_REGEXP = /<\/.*>/
+
       # Return the license text
       #
       # It detects whether license text is richtext or not and format it
