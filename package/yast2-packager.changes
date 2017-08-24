@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Aug 22 14:09:50 UTC 2017 - igonzalezsosa@suse.com
+
+- Moved repositories and product related classes to this module
+- Extended repositories and product related API (FATE#322276)
+- Added clients and dialogs to handle products licenses using
+  the new yast2-pkg-bindings API
+- 3.3.7
+
+-------------------------------------------------------------------
 Tue Aug 22 10:11:10 UTC 2017 - ancor@suse.com
 
 - Fixed a bug introduced during the code refactoring associated to

@@ -2,7 +2,7 @@
 
 require_relative "test_helper"
 require "packager/clients/pkg_finish"
-require "packages/repository"
+require "y2packager/repository"
 require "uri"
 require "tmpdir"
 require "fileutils"
@@ -21,7 +21,7 @@ describe Yast::PkgFinishClient do
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
-    allow(::Packages::Repository).to receive(:enabled).and_return(repositories)
+    allow(::Y2Packager::Repository).to receive(:enabled).and_return(repositories)
     allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
       .with("software", "minimalistic_libzypp_config")
       .and_return(minimalistic_libzypp_config)
@@ -77,22 +77,22 @@ describe Yast::PkgFinishClient do
       let(:repositories) { [local_repo, remote_repo] }
 
       let(:local_repo) do
-        Packages::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
+        Y2Packager::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
           url: URI("cd://dev/sr0"), autorefresh: false)
       end
 
       let(:remote_repo) do
-        Packages::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
+        Y2Packager::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
           url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
       end
 
       let(:sles_product) do
-        Packages::Product.new(name: "SLES", version: "12.2",
+        Y2Packager::Product.new(name: "SLES", version: "12.2",
           arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
       end
 
       let(:sles_ha_product) do
-        Packages::Product.new(name: "SLESHA", version: "12.2",
+        Y2Packager::Product.new(name: "SLESHA", version: "12.2",
           arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
       end
 
