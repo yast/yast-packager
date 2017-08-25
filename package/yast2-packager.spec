@@ -47,9 +47,6 @@ BuildRequires:  yast2-pkg-bindings >= 3.3.2
 # Augeas lenses
 BuildRequires: augeas-lenses
 
-# Language.language, Language.GetLanguagesItems, Language.GetLanguagesMap
-BuildRequires:  yast2-country
-
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
 
@@ -82,9 +79,6 @@ Requires: augeas-lenses
 
 # zypp.conf model and minimal modifications (bsc#1023204)
 Requires:  rubygem(cfa) >= 0.5.0
-
-# Language.language, Language.GetLanguagesItems, Language.GetLanguagesMap
-Requires:       yast2-country
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
