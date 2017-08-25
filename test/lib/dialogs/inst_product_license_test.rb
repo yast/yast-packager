@@ -21,6 +21,7 @@ describe Y2Packager::Dialogs::InstProductLicense do
   describe "#run" do
     before do
       allow(Yast::Language).to receive(:language).and_return(language)
+      allow(Yast::Language).to receive(:GetLanguageItems).and_return([])
     end
 
     context "when user accepts the license" do
