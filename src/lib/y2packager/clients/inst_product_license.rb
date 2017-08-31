@@ -19,11 +19,12 @@ module Y2Packager
     # This client shows a license confirmation dialog for the base selected product
     class InstProductLicense
       include Yast::I18n
+      include Yast::Logger
 
       def main
         textdomain "installation"
-        return :auto unless selected_product && selected_product.license?
-        Y2Packager::Dialogs::InstProductLicense.new(selected_product).run
+        return :auto unless show_license?
+        Y2Packager::Dialogs::InstProductLicense.new(product).run
       end
 
     private
@@ -32,8 +33,36 @@ module Y2Packager
       #
       # @return [Y2Packager::Product]
       # @see Y2Packager::Product.selected_base
-      def selected_product
-        @selected_product ||= Y2Packager::Product.selected_base
+      def product
+        @product ||= Y2Packager::Product.selected_base
+      end
+
+      # Determines whether the license should be shown
+      #
+      # @return [Boolean]
+      def show_license?
+        multi_product_media? && available_license?
+      end
+
+      # Determines whether a multi-product media is being used
+      #
+      # This client only makes sense when using a multi-product media.
+      #
+      # @return [Boolean]
+      def multi_product_media?
+        Y2Packager::Product.available_base_products.size > 1
+      end
+
+      # Determine whether the product's license should be shown
+      #
+      # @return [Boolean] true if the license is available; false otherwise.
+      def available_license?
+        return false unless product
+        if !product.license?
+          log.warn "No license for product '#{product.label}' was found"
+          return false
+        end
+        true
       end
     end
   end
