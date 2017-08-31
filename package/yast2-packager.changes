@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 31 15:45:38 UTC 2017 - igonzalezsosa@suse.com
+
+- Add widgets to show/confirm product licenses (fate#322276)
+- 3.3.8 
+
+-------------------------------------------------------------------
 Tue Aug 22 14:09:50 UTC 2017 - igonzalezsosa@suse.com
 
 - Moved repositories and product related classes to this module
