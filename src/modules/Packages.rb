@@ -1051,28 +1051,11 @@ module Yast
     #-----------------------------------------------------------------------
 
     def ComputeSystemPatternList
-      pattern_list = []
-      # also add the 'laptop' selection if PCMCIA detected
-      if Arch.is_laptop || Arch.has_pcmcia
-        ["laptop", "Laptop"].each do |pat_name|
-          pat_list = Pkg.ResolvableProperties(pat_name, :pattern, "")
-          pattern_list << pat_name unless pat_list.empty?
-        end
-      end
-
-      # select FIPS pattern
-      if (Linuxrc.InstallInf("Cmdline") || "").split.include?("fips=1")
-        fips_pattern = "fips"
-        if !Pkg.ResolvableProperties(fips_pattern, :pattern, "").empty?
-          log.info "fips=1 boot option detected, adding '#{fips_pattern}' pattern"
-          pattern_list << fips_pattern
-        end
-      end
+      pattern_list = extra_system_patterns
 
       # FATE #302116, BNC #431580
       # select both mandatory and optional patterns
-      proposed_patterns = PackagesProposal.GetAllResolvables(:pattern)
-      proposed_patterns.concat(PackagesProposal.GetAllResolvables(:pattern, optional: true))
+      proposed_patterns = (resolvable_mandatory_patterns | resolvable_optional_patterns)
 
       log.info("PackagesProposal patterns: #{proposed_patterns}")
       pattern_list.concat(proposed_patterns)
@@ -2320,6 +2303,44 @@ module Yast
       product_feature_items("software", "optional_default_patterns")
     end
 
+    # @return [Array] list of optional patterns
+    def resolvable_optional_patterns
+      PackagesProposal.GetAllResolvables(:pattern, optional: true)
+    end
+
+    # Get all the mandatory patterns
+    #
+    # @return [Array] list of mandatory patterns
+    def resolvable_mandatory_patterns
+      PackagesProposal.GetAllResolvables(:pattern)
+    end
+
+    # Extra patterns for the current target system
+    #
+    # @return [Array<String>] packages
+    def extra_system_patterns
+      pattern_list = []
+
+      # 'laptop' selection if PCMCIA detected
+      if Arch.is_laptop || Arch.has_pcmcia
+        ["laptop", "Laptop"].each do |pat_name|
+          pat_list = Pkg.ResolvableProperties(pat_name, :pattern, "")
+          pattern_list << pat_name unless pat_list.empty?
+        end
+      end
+
+      # FIPS pattern
+      if (Linuxrc.InstallInf("Cmdline") || "").split.include?("fips=1")
+        fips_pattern = "fips"
+        if !Pkg.ResolvableProperties(fips_pattern, :pattern, "").empty?
+          log.info "fips=1 boot option detected, adding '#{fips_pattern}' pattern"
+          pattern_list << fips_pattern
+        end
+      end
+
+      pattern_list
+    end
+
     # Log only resolvables with resolvable["status"] matching these below
     LOG_RESOLVABLE_STATUS = [:selected, :removed].freeze
 
@@ -2490,7 +2511,7 @@ module Yast
     end
 
     def report_missing_pattern(pattern_name)
-      if optional_default_patterns.include?(pattern_name)
+      if (optional_default_patterns | resolvable_optional_patterns).include?(pattern_name)
         log.info "Optional pattern #{pattern_name} does not exist, skipping..."
       else
         log.error "Pattern #{pattern_name} does not exist"
