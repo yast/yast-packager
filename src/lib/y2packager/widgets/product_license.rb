@@ -46,6 +46,7 @@ module Y2Packager
       # @see CWM::CustomWidget#contents
       def contents
         VBox(
+          Left(Label(_("License Agreement"))),
           license_content,
           confirmation_checkbox
         )

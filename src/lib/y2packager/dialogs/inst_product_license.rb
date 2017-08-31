@@ -103,7 +103,7 @@ module Y2Packager
         ComboBox(
           Id(:language),
           Opt(:notify, :hstretch),
-          _("&Language"),
+          _("&License Language"),
           Yast::Language.GetLanguageItems(:primary)
         )
       end
