@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 31 13:29:47 UTC 2017 - knut.anderssen@suse.com
+
+- Do not report an error for optional resolvable patterns
+  (bsc#1054670).
+- 3.3.8
+
+-------------------------------------------------------------------
 Tue Aug 22 14:09:50 UTC 2017 - igonzalezsosa@suse.com
 
 - Moved repositories and product related classes to this module
