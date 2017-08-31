@@ -13,6 +13,8 @@
 require "yast"
 require "cwm"
 
+Yast.import "Report"
+
 module Y2Packager
   module Widgets
     # Widget for product license confirmation
@@ -54,6 +56,14 @@ module Y2Packager
         product.license_confirmed? ? check : uncheck
       end
 
+      # Handle value changes
+      #
+      # @see CWM::AbstractWidget#handle
+      # @see #store
+      def handle
+        store
+      end
+
       # Update product license confirmation status
       #
       # @see CWM::AbstractWidget#store
@@ -62,6 +72,20 @@ module Y2Packager
         return if product.license_confirmed? == value
         product.license_confirmation = value
         nil
+      end
+
+      # Validate value
+      #
+      # The value is not valid if license is required but not confirmed.
+      # This method shows an error if validation fails.
+      #
+      # @return [Boolean] true if the value is valid; false otherwise
+      # @see CWM::AbstractWidget#validate
+      def validate
+        return true if !product.license_confirmation_required? || product.license_confirmed?
+
+        Yast::Report.Message(_("You must accept the license to install this product"))
+        false
       end
     end
   end

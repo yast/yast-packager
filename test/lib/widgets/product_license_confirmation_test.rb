@@ -11,14 +11,23 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
 
   subject(:widget) { described_class.new(product) }
 
-  let(:license_confirmed) { false }
+  let(:license_confirmed?) { false }
+  let(:confirmation_required?) { false }
   let(:product) do
-    instance_double(Y2Packager::Product, license_confirmed?: license_confirmed)
+    instance_double(
+      Y2Packager::Product,
+      license_confirmed?:             license_confirmed?,
+      license_confirmation_required?: confirmation_required?
+    )
+  end
+
+  before do
+    allow(product).to receive(:license_confirmation=)
   end
 
   describe "#init" do
     context "when product license is unconfirmed" do
-      let(:license_confirmed) { false }
+      let(:license_confirmed?) { false }
 
       it "sets value to false" do
         expect(widget).to receive(:uncheck)
@@ -27,7 +36,7 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
     end
 
     context "when product license is confirmed" do
-      let(:license_confirmed) { true }
+      let(:license_confirmed?) { true }
 
       it "sets value to true" do
         expect(widget).to receive(:check)
@@ -45,7 +54,7 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
       let(:value) { true }
 
       context "and product license is unconfirmed" do
-        let(:license_confirmed) { false }
+        let(:license_confirmed?) { false }
 
         it "sets the license as confirmed" do
           expect(product).to receive(:license_confirmation=).with(true)
@@ -54,7 +63,7 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
       end
 
       context "and product license is confirmed" do
-        let(:license_confirmed) { true }
+        let(:license_confirmed?) { true }
 
         it "does not modify product's license confirmation" do
           expect(product).to_not receive(:license_confirmation=)
@@ -67,7 +76,7 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
       let(:value) { false }
 
       context "and product license is unconfirmed" do
-        let(:license_confirmed) { false }
+        let(:license_confirmed?) { false }
 
         it "does not modify product's license confirmation" do
           expect(product).to_not receive(:license_confirmation=)
@@ -76,11 +85,48 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
       end
 
       context "and product license is confirmed" do
-        let(:license_confirmed) { true }
+        let(:license_confirmed?) { true }
 
         it "sets the license as unconfirmed" do
           expect(product).to receive(:license_confirmation=).with(false)
           widget.store
+        end
+      end
+    end
+  end
+
+  describe "#handle" do
+    it "calls #store" do
+      expect(widget).to receive(:store)
+      widget.handle
+    end
+  end
+
+  describe "#validate" do
+    context "when license confirmation is not needed" do
+      let(:confirmation_required?) { false }
+
+      it "returns true" do
+        expect(widget.validate).to eq(true)
+      end
+    end
+
+    context "when license confirmation is required" do
+      let(:confirmation_required?) { true }
+
+      context "and license is confirmed" do
+        let(:license_confirmed?) { true }
+
+        it "returns true" do
+          expect(widget.validate).to eq(true)
+        end
+      end
+
+      context "and license is still unconfirmed" do
+        let(:license_confirmed?) { false }
+
+        it "returns false" do
+          expect(widget.validate).to eq(false)
         end
       end
     end
