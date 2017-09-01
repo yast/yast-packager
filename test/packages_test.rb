@@ -249,8 +249,12 @@ describe Yast::Packages do
     end
 
     it "reports an error if pattern is not found" do
-      default_patterns = ["p1", "p2", "p3"]
+      default_patterns = ["p1", "p2"]
+      optional_default_patterns = ["p5", "p6"]
 
+      allow(Yast::Packages).to receive(:default_patterns).and_return(default_patterns)
+      allow(Yast::Packages).to receive(:optional_default_patterns)
+        .and_return(optional_default_patterns)
       allow(Yast::Packages).to receive(:patterns_to_install).and_return(default_patterns)
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
       allow(Yast::Report).to receive(:Error).and_return(nil)
@@ -270,7 +274,8 @@ describe Yast::Packages do
       allow(Yast::Packages).to receive(:default_patterns).and_return([])
       allow(Yast::Packages).to receive(:optional_default_patterns)
         .and_return(optional_default_patterns)
-      allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
+      allow(Yast::Packages).to receive(:ComputeSystemPatternList)
+        .and_return(optional_default_patterns)
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return([])
 
       expect(Yast::Report).not_to receive(:Error)
