@@ -2507,14 +2507,14 @@ module Yast
       log.info "Found default product patterns: #{product_patterns.names}"
       patterns.concat(product_patterns.names)
 
-      patterns
+      patterns.uniq
     end
 
     def report_missing_pattern(pattern_name)
-      if (optional_default_patterns | resolvable_optional_patterns).include?(pattern_name)
+      unless (default_patterns | resolvable_mandatory_patterns).include?(pattern_name)
         log.info "Optional pattern #{pattern_name} does not exist, skipping..."
       else
-        log.error "Pattern #{pattern_name} does not exist"
+        log.error "Mandatory pattern #{pattern_name} does not exist"
         # Error message, %{pattern_name} is replaced with the missing pattern name in runtime
         Report.Error(_(
           "Failed to select default product pattern %{pattern_name}.\n" \
