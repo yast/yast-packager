@@ -84,13 +84,5 @@ describe Y2Packager::Clients::InstProductLicense do
         expect(client.main).to eq(:auto)
       end
     end
-
-    context "when only 1 product is available" do
-      let(:products) { [product] }
-
-      it "returns :auto" do
-        expect(client.main).to eq(:auto)
-      end
-    end
   end
 end

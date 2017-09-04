@@ -23,7 +23,7 @@ module Y2Packager
 
       def main
         textdomain "installation"
-        return :auto unless show_license?
+        return :auto unless available_license?
         Y2Packager::Dialogs::InstProductLicense.new(product).run
       end
 
@@ -35,13 +35,6 @@ module Y2Packager
       # @see Y2Packager::Product.selected_base
       def product
         @product ||= Y2Packager::Product.selected_base
-      end
-
-      # Determines whether the license should be shown
-      #
-      # @return [Boolean]
-      def show_license?
-        multi_product_media? && available_license?
       end
 
       # Determines whether a multi-product media is being used
@@ -57,12 +50,12 @@ module Y2Packager
       #
       # @return [Boolean] true if the license is available; false otherwise.
       def available_license?
-        return false unless product
-        if !product.license?
+        return true if product && product.license?
+        log.warn "No base product is selected for installation" unless product
+        if product && !product.license?
           log.warn "No license for product '#{product.label}' was found"
-          return false
         end
-        true
+        false
       end
     end
   end
