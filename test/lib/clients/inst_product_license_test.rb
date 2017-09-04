@@ -7,13 +7,27 @@ describe Y2Packager::Clients::InstProductLicense do
   subject(:client) { described_class.new }
 
   let(:dialog) { instance_double(Y2Packager::Dialogs::InstProductLicense, run: :next) }
-  let(:product) { instance_double(Y2Packager::Product, license?: license?) }
+  let(:product) do
+    instance_double(
+      Y2Packager::Product,
+      label:                          "SLES",
+      license?:                       license?,
+      license_confirmation_required?: confirmation_required?,
+      license_confirmed?:             license_confirmed?
+    )
+  end
+  let(:other_product) { instance_double(Y2Packager::Product) }
+  let(:products) { [product, other_product] }
+
   let(:license?) { true }
+  let(:confirmation_required?) { true }
+  let(:license_confirmed?) { false }
 
   before do
     allow(Y2Packager::Dialogs::InstProductLicense).to receive(:new)
       .and_return(dialog)
     allow(Y2Packager::Product).to receive(:selected_base).and_return(product)
+    allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
   end
 
   describe "#main" do
