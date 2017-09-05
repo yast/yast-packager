@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep  5 12:47:26 UTC 2017 - igonzalezsosa@suse.com
+
+- Product's detection on single product media does not require
+  the 'system-installation()' tag anymore (fate#322276)
+- 3.3.11
+
+-------------------------------------------------------------------
 Tue Sep  5 10:24:26 UTC 2017 - igonzalezsosa@suse.com
 
 - Report an error when no available base products are found

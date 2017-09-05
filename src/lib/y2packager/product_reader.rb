@@ -41,6 +41,13 @@ module Y2Packager
                                 installation_package: installation_mapping[prod["name"]])
       end
 
+      # If no product contains a 'system-installation()' tag but there is only 1 product,
+      # we assume that it is the base one.
+      if result.size == 1 && installation_mapping.empty?
+        log.info "Assuming that #{result.inspect} is the base product."
+        return result
+      end
+
       # only installable products
       result.select!(&:installation_package)
 
