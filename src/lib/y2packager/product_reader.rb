@@ -77,6 +77,7 @@ module Y2Packager
 
     def self.installation_package_mapping
       installation_packages = Yast::Pkg.PkgQueryProvides("system-installation()")
+      log.info "Installation packages: #{installation_packages.inspect}"
 
       mapping = {}
       installation_packages.each do |list|

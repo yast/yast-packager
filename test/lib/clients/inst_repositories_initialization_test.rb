@@ -9,7 +9,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
   let(:success) { true }
   let(:prod1) { instance_double(Y2Packager::Product) }
   let(:prod2) { instance_double(Y2Packager::Product) }
-  let(:products) { [] }
+  let(:products) { [prod1] }
 
   describe "#main" do
     before do
@@ -36,7 +36,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       end
 
       it "shows an error" do
-        expect(Yast::Popup).to receive(:Message)
+        expect(Yast::Popup).to receive(:Error)
         client.main
       end
     end
@@ -56,6 +56,19 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       it "unselects all products" do
         expect(prod1).to receive(:restore)
         expect(prod2).to receive(:restore)
+        client.main
+      end
+    end
+
+    context "when no products are found" do
+      let(:products) { [] }
+
+      it "returns :abort" do
+        expect(client.main).to eq(:abort)
+      end
+
+      it "shows an error" do
+        expect(Yast::Popup).to receive(:Error)
         client.main
       end
     end

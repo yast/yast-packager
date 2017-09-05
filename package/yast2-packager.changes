@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Sep  5 10:24:26 UTC 2017 - igonzalezsosa@suse.com
+
+- Report an error when no available base products are found
+- Add support to skip validations in the product license widget
+  (fate#322276)
+- 3.3.10
+
+-------------------------------------------------------------------
 Thu Aug 31 15:45:38 UTC 2017 - igonzalezsosa@suse.com
 
 - Add widgets to show/confirm product licenses (fate#322276)

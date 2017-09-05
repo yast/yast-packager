@@ -23,14 +23,17 @@ module Y2Packager
     class ProductLicense < CWM::CustomWidget
       # @return [Y2Packager::Product] Product
       attr_reader :product
+      # @param skip_validation [Boolean] Skip value validation
+      attr_reader :skip_validation
 
       # Constructor
       #
       # @param product [Y2Packager::Product] Product to ask for the license
-      def initialize(product, language = nil)
+      def initialize(product, language: nil, skip_validation: false)
         textdomain "packager"
         @product = product
         @language = language || Yast::Language.language
+        @skip_validation = skip_validation
       end
 
       # Widget label
@@ -97,7 +100,7 @@ module Y2Packager
         VBox(
           VSpacing(0.5),
           Left(
-            ::Y2Packager::Widgets::ProductLicenseConfirmation.new(product)
+            ProductLicenseConfirmation.new(product, skip_validation: skip_validation)
           )
         )
       end

@@ -24,13 +24,16 @@ module Y2Packager
     class ProductLicenseConfirmation < CWM::CheckBox
       # @return [Y2Packager::Product] Product
       attr_reader :product
+      # @param skip_validation [Boolean] Skip value validation
+      attr_reader :skip_validation
 
       # Constructor
       #
       # @param product [Y2Packager::Product] Product to confirm license
-      def initialize(product)
+      def initialize(product, skip_validation: false)
         textdomain "packager"
         @product = product
+        @skip_validation = skip_validation
       end
 
       # Widget label
@@ -82,7 +85,9 @@ module Y2Packager
       # @return [Boolean] true if the value is valid; false otherwise
       # @see CWM::AbstractWidget#validate
       def validate
-        return true if !product.license_confirmation_required? || product.license_confirmed?
+        if skip_validation || !product.license_confirmation_required? || product.license_confirmed?
+          return true
+        end
 
         Yast::Report.Message(_("You must accept the license to install this product"))
         false
