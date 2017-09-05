@@ -37,15 +37,22 @@ module Y2Packager
       def main
         textdomain "installation"
 
-        if init_installation_repositories
-          adjust_base_product_selection
-          :next
-        else
-          Yast::Popup.Message(
+        if !init_installation_repositories
+          Yast::Popup.Error(
             _("Failed to initialize the software repositories.\nAborting the installation.")
           )
-          :abort
+          return :abort
         end
+
+        if products.empty?
+          Yast::Popup.Error(
+            _("Unable to find base products to install.\nAborting the installation.")
+          )
+          return :abort
+        end
+
+        adjust_base_product_selection
+        :next
       end
 
     private
@@ -71,8 +78,15 @@ module Y2Packager
       #
       # See https://github.com/yast/yast-packager/blob/7e1a0bbb90823b03c15d92f408036a560dca8aa3/src/modules/Packages.rb#L1876
       def adjust_base_product_selection
-        products = Y2Packager::Product.available_base_products
-        products.each(&:restore) if products.size > 1
+        return unless products.size > 1
+        products.each(&:restore)
+      end
+
+      # Return base available products
+      #
+      # @return [Array<Y2Product>] Available base products
+      def products
+        @products ||= Y2Packager::Product.available_base_products
       end
     end
   end
