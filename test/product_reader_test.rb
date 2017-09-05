@@ -18,11 +18,12 @@ require "y2packager/product_reader"
 describe Y2Packager::ProductReader do
   subject { Y2Packager::ProductReader }
   let(:products) { YAML.load(File.read(FIXTURES_PATH.join("products-sles15.yml"))) }
+  let(:installation_package_map) { { "SLES" => "skelcd-SLES" } }
 
   describe "#available_base_products" do
     before do
       # TODO: proper mocking of pkg methods
-      allow(subject).to receive(:installation_package_mapping).and_return("SLES" => "skelcd-SLES")
+      allow(subject).to receive(:installation_package_mapping).and_return(installation_package_map)
     end
 
     it "returns empty list if there is no product" do
@@ -56,6 +57,33 @@ describe Y2Packager::ProductReader do
         .and_return([addon2, addon1, sp3])
 
       expect(subject.available_base_products.size).to eq(1)
+    end
+
+    context "when no product with system-installation() tag exists" do
+      let(:installation_package_map) { {} }
+      let(:prod1) { { "name" => "SLES" } }
+      let(:prod2) { { "name" => "SLED" } }
+
+      before do
+        allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+          .and_return(products)
+      end
+
+      context "and only 1 product exists" do
+        let(:products) { [prod1] }
+
+        it "returns the found product" do
+          expect(subject.available_base_products.size).to eq(1)
+        end
+      end
+
+      context "and more than 1 product exsits" do
+        let(:products) { [prod1, prod2] }
+
+        it "returns an empty array" do
+          expect(subject.available_base_products).to be_empty
+        end
+      end
     end
   end
 end
