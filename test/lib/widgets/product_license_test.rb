@@ -39,7 +39,19 @@ describe Y2Packager::Widgets::ProductLicense do
     end
 
     it "includes a confirmation checkbox" do
+      expect(Y2Packager::Widgets::ProductLicenseConfirmation).to receive(:new)
+        .with(product, skip_validation: false)
       expect(widget.contents.to_s).to include("confirmation_widget")
+    end
+
+    context "when validation is disabled" do
+      subject(:widget) { described_class.new(product, skip_validation: true) }
+
+      it "disables confirmation widget validation" do
+        expect(Y2Packager::Widgets::ProductLicenseConfirmation).to receive(:new)
+          .with(product, skip_validation: true)
+        expect(widget.contents.to_s).to include("confirmation_widget")
+      end
     end
 
     context "when license confirmation is not needed" do

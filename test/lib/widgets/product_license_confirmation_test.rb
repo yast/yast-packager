@@ -130,5 +130,16 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
         end
       end
     end
+
+    context "when validation is disabled" do
+      let(:confirmation_required?) { true }
+      let(:license_confirmed?) { false }
+
+      subject(:widget) { described_class.new(product, skip_validation: true) }
+
+      it "returns true" do
+        expect(widget.validate).to eq(true)
+      end
+    end
   end
 end
