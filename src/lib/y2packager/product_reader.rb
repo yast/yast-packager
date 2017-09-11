@@ -65,6 +65,17 @@ module Y2Packager
       end
     end
 
+    def release_notes_package_for(product_name)
+      provides = Yast::Pkg.PkgQueryProvides("release-notes()")
+      release_notes_packages = provides.map(&:first).uniq
+      release_notes_packages.find do |name|
+        dependencies = Yast::Pkg.ResolvableDependencies(name, :package, "").first["deps"]
+        dependencies.any? do |dep|
+          dep["provides"].to_s.match(/release-notes\(\)\s*=\s*#{product_name}\s*/)
+        end
+      end
+    end
+
   private
 
     # read the available products, remove potential duplicates

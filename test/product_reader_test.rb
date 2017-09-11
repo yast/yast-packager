@@ -86,4 +86,41 @@ describe Y2Packager::ProductReader do
       end
     end
   end
+
+  describe "#release_notes_for" do
+    let(:providers) { [["release-notes-SLES", :BOTH, :INST]] }
+    let(:packages) do
+      [
+        {
+          "name" => "release-notes-SLES",
+          "deps" => [{ "provides" => "some-feature" }, { "provides" => "release-notes() = SLES" }]
+        }
+      ]
+    end
+
+    before do
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with("release-notes()")
+        .and_return(providers)
+      allow(Yast::Pkg).to receive(:ResolvableDependencies).with("release-notes-SLES", :package, "")
+        .and_return(packages)
+    end
+
+    it "returns the name of the package containing release notes for given product" do
+      expect(subject.release_notes_package_for("SLES")).to eq("release-notes-SLES")
+    end
+
+    context "when there is no provider for release notes" do
+      it "returns the name of the package containing release notes for given product" do
+        expect(subject.release_notes_package_for("openSUSE")).to be_nil
+      end
+    end
+
+    context "when no release notes are found" do
+      let(:providers) { [] }
+
+      it "returns nil" do
+        expect(subject.release_notes_package_for("SLES")).to be_nil
+      end
+    end
+  end
 end
