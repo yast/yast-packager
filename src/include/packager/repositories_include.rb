@@ -163,6 +163,24 @@ module Yast
 
         enter_again = false
 
+        # more products on the medium, let the user choose the products to install
+        if !Mode.auto && new_repos.size > 1
+          require "y2packager/product_location"
+          require "y2packager/dialogs/addon_selector"
+          products = new_repos.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
+
+          dialog = Y2Packager::Dialogs::AddonSelector.new(products)
+          ui = dialog.run
+
+          # abort/cancel/back/... => do not continue
+          return :cancel unless ui == :next
+
+          new_repos = dialog.selected_products.map { |p| [p.name, p.dir] }
+
+          # nothing selected
+          return :cancel if new_repos.empty?
+        end
+
         Builtins.foreach(new_repos) do |repo|
           next if enter_again
           prod_dir = Ops.get(repo, 1, "/")

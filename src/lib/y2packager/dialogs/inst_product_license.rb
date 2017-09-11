@@ -61,7 +61,7 @@ module Y2Packager
         end
       end
 
-      # Handler for the :next action
+      # Handler for the :back action
       #
       # This action happens when the user clicks the 'Back' button
       def back_handler
