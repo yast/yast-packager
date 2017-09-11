@@ -16,7 +16,7 @@ require_relative "test_helper"
 require "y2packager/product_reader"
 
 describe Y2Packager::ProductReader do
-  subject { Y2Packager::ProductReader }
+  subject { Y2Packager::ProductReader.new }
   let(:products) { YAML.load(File.read(FIXTURES_PATH.join("products-sles15.yml"))) }
   let(:installation_package_map) { { "SLES" => "skelcd-SLES" } }
 

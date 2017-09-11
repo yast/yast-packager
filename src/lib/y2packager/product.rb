@@ -44,7 +44,7 @@ module Y2Packager
     attr_reader :installation_package
 
     def self.available_base_products
-      Y2Packager::ProductReader.available_base_products
+      Y2Packager::ProductReader.new.available_base_products
     end
 
     # Returns the selected base product

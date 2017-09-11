@@ -24,10 +24,9 @@ module Y2Packager
     # In installation Read the available libzypp base products for installation
     # @return [Array<Y2Packager::Product>] the found available base products,
     #   the products are sorted by the 'displayorder' provides value
-    def self.available_base_products
+    def available_base_products
       products = available_products
 
-      installation_mapping = installation_package_mapping
       result = products.map do |prod|
         prod_pkg = product_package(prod["product_package"], prod["source"])
 
@@ -38,12 +37,12 @@ module Y2Packager
 
         Y2Packager::Product.new(name: prod["name"], short_name: prod["short_name"],
                                 display_name: prod["display_name"], order: displayorder,
-                                installation_package: installation_mapping[prod["name"]])
+                                installation_package: installation_package_mapping[prod["name"]])
       end
 
       # If no product contains a 'system-installation()' tag but there is only 1 product,
       # we assume that it is the base one.
-      if result.size == 1 && installation_mapping.empty?
+      if result.size == 1 && installation_package_mapping.empty?
         log.info "Assuming that #{result.inspect} is the base product."
         return result
       end
@@ -59,16 +58,18 @@ module Y2Packager
       result
     end
 
-    def self.product_package(name, repo_id)
+    def product_package(name, repo_id)
       return nil unless name
       Yast::Pkg.ResolvableDependencies(name, :package, "").find do |prod|
         prod["source"] == repo_id
       end
     end
 
+  private
+
     # read the available products, remove potential duplicates
     # @return [Array<Hash>] pkg-bindings data structure
-    def self.available_products
+    def available_products
       products = Yast::Pkg.ResolvableProperties("", :product, "")
 
       # remove duplicates, there migth be different flavors ("DVD"/"POOL")
@@ -80,13 +81,12 @@ module Y2Packager
       products
     end
 
-    private_class_method :available_products
-
-    def self.installation_package_mapping
+    def installation_package_mapping
+      return @installation_package_mapping if @installation_package_mapping
       installation_packages = Yast::Pkg.PkgQueryProvides("system-installation()")
       log.info "Installation packages: #{installation_packages.inspect}"
 
-      mapping = {}
+      @installation_package_mapping = {}
       installation_packages.each do |list|
         pkg_name = list.first
         # There can be more instances of same package in different version. We except that one
@@ -100,10 +100,10 @@ module Y2Packager
         # `system-installation() = <product_name>`
         product_name = install_provide["provides"][/system-installation\(\)\s*=\s*(\S+)/, 1]
         log.info "package #{pkg_name} install product #{product_name}"
-        mapping[product_name] = pkg_name
+        @installation_package_mapping[product_name] = pkg_name
       end
 
-      mapping
+      @installation_package_mapping
     end
   end
 end
