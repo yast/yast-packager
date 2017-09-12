@@ -21,6 +21,42 @@ module Y2Packager
   class ProductReader
     include Yast::Logger
 
+    class << self
+
+      # Installation packages map
+      #
+      # This map contains the correspondence between products and the
+      # installation package for each product.
+      #
+      # The information is read only once and cached for further queries.
+      #
+      # @return [Hash<String,String>] product name -> installation package name
+      def installation_package_mapping
+        return @installation_package_mapping if @installation_package_mapping
+        installation_packages = Yast::Pkg.PkgQueryProvides("system-installation()")
+        log.info "Installation packages: #{installation_packages.inspect}"
+
+        @installation_package_mapping = {}
+        installation_packages.each do |list|
+          pkg_name = list.first
+          # There can be more instances of same package in different version. We except that one
+          # package provide same product installation. So we just pick the first one.
+          dependencies = Yast::Pkg.ResolvableDependencies(pkg_name, :package, "").first["deps"]
+          install_provide = dependencies.find do |d|
+            d["provides"] && d["provides"].match(/system-installation\(\)/)
+          end
+
+          # parse product name from provides. Format of provide is
+          # `system-installation() = <product_name>`
+          product_name = install_provide["provides"][/system-installation\(\)\s*=\s*(\S+)/, 1]
+          log.info "package #{pkg_name} install product #{product_name}"
+          @installation_package_mapping[product_name] = pkg_name
+        end
+
+        @installation_package_mapping
+      end
+    end
+
     # In installation Read the available libzypp base products for installation
     # @return [Array<Y2Packager::Product>] the found available base products,
     #   the products are sorted by the 'displayorder' provides value
@@ -93,28 +129,7 @@ module Y2Packager
     end
 
     def installation_package_mapping
-      return @installation_package_mapping if @installation_package_mapping
-      installation_packages = Yast::Pkg.PkgQueryProvides("system-installation()")
-      log.info "Installation packages: #{installation_packages.inspect}"
-
-      @installation_package_mapping = {}
-      installation_packages.each do |list|
-        pkg_name = list.first
-        # There can be more instances of same package in different version. We except that one
-        # package provide same product installation. So we just pick the first one.
-        dependencies = Yast::Pkg.ResolvableDependencies(pkg_name, :package, "").first["deps"]
-        install_provide = dependencies.find do |d|
-          d["provides"] && d["provides"].match(/system-installation\(\)/)
-        end
-
-        # parse product name from provides. Format of provide is
-        # `system-installation() = <product_name>`
-        product_name = install_provide["provides"][/system-installation\(\)\s*=\s*(\S+)/, 1]
-        log.info "package #{pkg_name} install product #{product_name}"
-        @installation_package_mapping[product_name] = pkg_name
-      end
-
-      @installation_package_mapping
+      self.class.installation_package_mapping
     end
   end
 end
