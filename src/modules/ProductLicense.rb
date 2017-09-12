@@ -11,6 +11,7 @@ module Yast
     include Yast::Logger
 
     DOWNLOAD_URL_SCHEMA = ["http", "https", "ftp"].freeze
+    INFO_FILE = "/README.BETA"
 
     def main
       Yast.import "Pkg"
@@ -1105,7 +1106,7 @@ module Yast
         Builtins.y2milestone("Installation Product doesn't have a license")
       end
 
-      @info_file = "/info.txt" if FileUtils.Exists("/info.txt")
+      @info_file = INFO_FILE if FileUtils.Exists(INFO_FILE)
 
       nil
     end
@@ -1146,7 +1147,7 @@ module Yast
       end
 
       Builtins.foreach(license_locations) do |info_location|
-        info_location = Builtins.sformat("%1/README.BETA", info_location)
+        info_location = info_location + INFO_FILE
         if FileUtils.Exists(info_location)
           Builtins.y2milestone("Using info file: %1", info_location)
           @info_file = info_location
@@ -1173,7 +1174,7 @@ module Yast
         @license_dir = nil
       end
 
-      @info_file = "/info.txt" if FileUtils.Exists("/info.txt")
+      @info_file = INFO_FILE if FileUtils.Exists(INFO_FILE)
 
       nil
     end
@@ -1184,7 +1185,7 @@ module Yast
       @info_file = Pkg.SourceProvideDigestedFile(
         src_id, # optional
         1,
-        "/media.1/info.txt",
+        "/media.1" + INFO_FILE,
         true
       )
 

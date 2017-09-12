@@ -4,7 +4,7 @@ require "yast"
 
 # Yast namespace
 module Yast
-  # Show /info.txt (if present) in a popup
+  # Show a given info file (if present) in a popup
   class InstShowInfoClass < Module
     def main
       Yast.import "UI"
@@ -17,7 +17,7 @@ module Yast
       Yast.import "Label"
     end
 
-    # @param [String] info_file (/info.txt" - Copied from inst media to inst-sys by linuxrc)
+    # @param [String] info_file path to be shown
     def show_info_txt(info_file)
       display_info = UI.GetDisplayInfo
       size_x = Builtins.tointeger(Ops.get_integer(display_info, "Width", 800))

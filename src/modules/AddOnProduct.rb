@@ -526,7 +526,7 @@ module Yast
       nil
     end
 
-    # Show /media.1/info.txt file in a pop-up message if such file exists.
+    # Show beta file in a pop-up message if such file exists.
     # Show license if such exists and return whether users accepts it.
     # Returns 'nil' when did not succed.
     #
@@ -820,7 +820,7 @@ module Yast
     #
     # @return [Symbol] the result symbol from wizard sequencer
     def DoInstall
-      # Display /media.1/info.txt if such file exists
+      # Display beta file if such file exists
       # Display license and wait for agreement
       # Not needed here, license already shown in the workflow
       # boolean license_ret = AcceptedLicenseAndInfoFile(src_id);

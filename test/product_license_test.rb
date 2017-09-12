@@ -9,6 +9,8 @@ Yast.import "Popup"
 Yast.import "Stage"
 
 describe Yast::ProductLicense do
+  let(:beta_file) { "README.BETA" }
+
   describe "#HandleLicenseDialogRet" do
     before(:each) do
       # By default, always exit the dialog with :accepted (all licenses accepted)
@@ -197,8 +199,8 @@ describe Yast::ProductLicense do
         before do
           # Tarball with licenses exists
           allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(true)
-          # Info file exists
-          allow(Yast::FileUtils).to receive(:Exists).with(/info.txt/).and_return(true)
+          # beta file exists
+          allow(Yast::FileUtils).to receive(:Exists).with(/#{beta_file}/).and_return(true)
         end
 
         context "when called for base-product" do
@@ -242,8 +244,8 @@ describe Yast::ProductLicense do
         before do
           # Tarball with licenses does not exist
           allow(Yast::FileUtils).to receive(:Exists).with(/license.tar.gz/).and_return(false)
-          # Info file does not exist
-          allow(Yast::FileUtils).to receive(:Exists).with(/info.txt/).and_return(false)
+          # beta file does not exist
+          allow(Yast::FileUtils).to receive(:Exists).with(/#{beta_file}/).and_return(false)
         end
 
         it "do not blame that there is no license directory" do
