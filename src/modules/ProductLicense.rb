@@ -11,7 +11,7 @@ module Yast
     include Yast::Logger
 
     DOWNLOAD_URL_SCHEMA = ["http", "https", "ftp"].freeze
-    INFO_FILE = "/README.BETA"
+    INFO_FILE = "/README.BETA".freeze
 
     def main
       Yast.import "Pkg"
@@ -1147,7 +1147,7 @@ module Yast
       end
 
       Builtins.foreach(license_locations) do |info_location|
-        info_location = info_location + INFO_FILE
+        info_location += INFO_FILE
         if FileUtils.Exists(info_location)
           Builtins.y2milestone("Using info file: %1", info_location)
           @info_file = info_location
