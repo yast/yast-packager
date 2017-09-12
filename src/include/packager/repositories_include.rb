@@ -201,7 +201,7 @@ module Yast
           URL.HidePassword(url)
         )
 
-        if Builtins.regexpmatch(url, "\\.iso$")
+        if url.end_with?(".iso")
           parsed_url = URL.Parse(url)
           scheme2 = Builtins.tolower(Ops.get_string(parsed_url, "scheme", ""))
 
@@ -223,10 +223,7 @@ module Yast
           _("Change the URL and try again?")
         )
 
-        tryagain = Popup.YesNo(msg)
-        return :again if tryagain
-
-        return :cancel
+        Popup.YesNo(msg) ? :again : :cancel
       else
         Progress.NextStage
         license_accepted = true
@@ -253,7 +250,7 @@ module Yast
         # relese (unmount) the medium
         Pkg.SourceReleaseAll
 
-        return license_accepted ? :ok : :abort
+        license_accepted ? :ok : :abort
       end
     end
 
