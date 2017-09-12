@@ -57,13 +57,11 @@ module Y2Packager
       end
     end
 
-    # In installation Read the available libzypp base products for installation
-    # @return [Array<Y2Packager::Product>] the found available base products,
-    #   the products are sorted by the 'displayorder' provides value
-    def available_base_products
-      products = available_products
-
-      result = products.map do |prod|
+    # Available products
+    #
+    # @return [Array<Product>] Available products
+    def all_products
+      @all_products ||= available_products.map do |prod|
         prod_pkg = product_package(prod["product_package"], prod["source"])
 
         if prod_pkg
@@ -71,44 +69,35 @@ module Y2Packager
           displayorder = Regexp.last_match[1].to_i if Regexp.last_match
         end
 
-        Y2Packager::Product.new(name: prod["name"], short_name: prod["short_name"],
-                                display_name: prod["display_name"], order: displayorder,
-                                installation_package: installation_package_mapping[prod["name"]])
+        Y2Packager::Product.new(
+          name: prod["name"], short_name: prod["short_name"], display_name: prod["display_name"],
+          version: prod["version"], status: prod["status"], order: displayorder,
+          installation_package: installation_package_mapping[prod["name"]]
+        )
       end
+    end
 
+    # In installation Read the available libzypp base products for installation
+    # @return [Array<Y2Packager::Product>] the found available base products,
+    #   the products are sorted by the 'displayorder' provides value
+    def available_base_products
       # If no product contains a 'system-installation()' tag but there is only 1 product,
       # we assume that it is the base one.
-      if result.size == 1 && installation_package_mapping.empty?
-        log.info "Assuming that #{result.inspect} is the base product."
-        return result
+      if all_products.size == 1 && installation_package_mapping.empty?
+        log.info "Assuming that #{all_products.inspect} is the base product."
+        return all_products
       end
 
       # only installable products
-      result.select!(&:installation_package)
-
-      # sort the products
-      result.sort!(&::Y2Packager::PRODUCT_SORTER)
-
-      log.info "available base products #{result}"
-
-      result
+      products = all_products.select(&:installation_package).sort(&::Y2Packager::PRODUCT_SORTER)
+      log.info "available base products #{products}"
+      products
     end
 
     def product_package(name, repo_id)
       return nil unless name
       Yast::Pkg.ResolvableDependencies(name, :package, "").find do |prod|
         prod["source"] == repo_id
-      end
-    end
-
-    def release_notes_package_for(product_name)
-      provides = Yast::Pkg.PkgQueryProvides("release-notes()")
-      release_notes_packages = provides.map(&:first).uniq
-      release_notes_packages.find do |name|
-        dependencies = Yast::Pkg.ResolvableDependencies(name, :package, "").first["deps"]
-        dependencies.any? do |dep|
-          dep["provides"].to_s.match(/release-notes\(\)\s*=\s*#{product_name}\s*/)
-        end
       end
     end
 
