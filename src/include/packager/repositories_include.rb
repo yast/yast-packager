@@ -7,6 +7,9 @@ module Yast
   module PackagerRepositoriesIncludeInclude
     include Yast::Logger
 
+    # constant Plaindir
+    PLAINDIR_TYPE = "Plaindir"
+
     def initialize_packager_repositories_include(_include_target)
       Yast.import "Pkg"
       Yast.import "Stage"
@@ -28,9 +31,6 @@ module Yast
       @serviceStatesIn = []
       @serviceStatesOut = []
 
-      # constant Plaindir
-      @plaindir_type = "Plaindir"
-
       @download_meta = true
     end
 
@@ -42,220 +42,218 @@ module Yast
     # shell unfriendly characters we want to remove from alias, so it is easier to use with zypper
     SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`".freeze
 
+    # @param url [String] repository or service URL
+    # @param plaindir [Boolean] true to use "PlainDir" format (no repository
+    #   metadata present at the URL)
+    # @param preffered_name [String] (optional) preferred repository name, use
+    #   empty string "" to generate the name
+    # @param force_alias [String] alias for the new repository, if a repository
+    #   with this alias already exists then it is overwritten, use empty string ""
+    #   to generate an unique alias
     def createSourceImpl(url, plaindir, download, preffered_name, force_alias)
-      Builtins.y2milestone(
-        "createSource: %1, plaindir: %2, download: %3, name: %4",
-        URL.HidePassword(url),
-        plaindir,
-        download,
-        preffered_name
-      )
+      log.info("createSource: #{URL.HidePassword(url)}, plaindir: #{plaindir}," \
+        "download: #{download}, name: #{preffered_name}")
 
-      if url != ""
-        expanded_url = Pkg.ExpandedUrl(url)
-
-        # for Plaindir repository we have to use SourceCreateType() binding
-        parsed = URL.Parse(url)
-        scheme = Ops.get_string(parsed, "scheme", "")
-
-        if plaindir == true
-          Builtins.y2milestone("Using PlainDir repository type")
-        end
-
-        # check if SMB/CIFS share can be mounted
-        if scheme == "smb" &&
-            Ops.less_than(SCR.Read(path(".target.size"), "/sbin/mount.cifs"), 0)
-          Builtins.y2milestone(
-            "SMB/CIFS share cannot be mounted, installing missing 'cifs-mount' package..."
-          )
-          # install cifs-mount package
-          PackageSystem.CheckAndInstallPackages(["cifs-mount"])
-        end
-
-        initialize_progress
-
-        Progress.NextStage
-        service_type = Pkg.ServiceProbe(expanded_url)
-        Builtins.y2milestone("Probed service type: %1", service_type)
-
-        if !service_type.nil? && service_type != "NONE"
-          add_service()
-          return :ok
-        end
-
-        found_products = scan_products(expanded_url)
-        newSources = []
-
-        enter_again = false
-
-        # more products on the medium, let the user choose the products to install
-        if !Mode.auto && new_repos.size > 1
-          require "y2packager/dialogs/addon_selector"
-          products = new_repos.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
-
-          dialog = Y2Packager::Dialogs::AddonSelector.new(products)
-          ui = dialog.run
-
-          # abort/cancel/back/... => do not continue
-          return :cancel unless ui == :next
-
-          found_products = dialog.selected_products
-          # nothing selected
-          return :cancel if found_products.empty?
-        end
-
-        found_products.each do |product|
-          next if enter_again
-          name = product.name
-          if !preffered_name.nil? && preffered_name != ""
-            name = preffered_name
-            name += " (#{product.dir})" if ![nil, "", "/"].include?(product.dir)
-          end
-          # probe repository type (do not probe plaindir repo)
-          repo_type = plaindir ? @plaindir_type : Pkg.RepositoryProbe(expanded_url, product.dir)
-          log.info("Repository type (#{URL.HidePassword(url)},#{repo.dir}): #{repo_type}")
-
-          # the probing has failed
-          if repo_type.nil? || repo_type == "NONE"
-            if scheme == "dir"
-              if !Popup.AnyQuestion(
-                Popup.NoHeadline,
-                # continue-back popup
-                _(
-                  "There is no product information available at the given location.\n" \
-                    "If you expected to to point a product, go back and enter\n" \
-                    "the correct location.\n" \
-                    "To make rpm packages located at the specified location available\n" \
-                    "in the packages selection, continue.\n"
-                ),
-                Label.ContinueButton,
-                Label.BackButton,
-                :focus_no
-              )
-                enter_again = true
-                next
-              end
-
-              repo_type = @plaindir_type
-              Builtins.y2warning(
-                "Probing has failed, using Plaindir repository type."
-              )
-            end
-
-            next
-          end
-
-          alias_name = (force_alias == "") ? propose_alias(product.name) : force_alias
-
-          # map with repository parameters: $[ "enabled" : boolean,
-          # "autorefresh" : boolean, "name" : string, "alias" : string,
-          # "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
-          repo_prop = {
-            "enabled" => true,
-            "autorefresh" => autorefresh_for?(url),
-            "name" => name,
-            "prod_dir" => product.dir,
-            "alias" => alias_name,
-            "base_urls" => [url],
-            "type" => repo_type
-          }
-          if force_alias != ""
-            # don't check uniqueness of the alias, force the alias
-            repo_prop["check_alias"] = false
-          end
-          Progress.NextStage
-          new_repo_id = Pkg.RepositoryAdd(repo_prop)
-
-          # hide the URL password in the log
-          repo_prop_log = deep_copy(repo_prop)
-          repo_prop_log["base_urls"] = [URL.HidePassword(url)]
-          log.info("Added repository: #{new_repo_id}: #{repo_prop_log}")
-
-          newSources << new_repo_id
-
-          # for local repositories (e.g. CD/DVD) which have autorefresh disabled
-          # download the metadata immediately, the medium is in the drive right
-          # now, it can be changed later and accidentally added a different repository
-          if !autorefresh_for?(url)
-            log.info "Adding a local repository, refreshing it now..."
-            Pkg.SourceRefreshNow(new_repo_id)
-          end
-        end
-
-        # broken repository or wrong URL - enter the URL again
-        if enter_again
-          Pkg.SourceReleaseAll
-          return :again
-        end
-
-        Builtins.y2milestone("New sources: %1", newSources)
-
-        if newSources.empty?
-          Builtins.y2error("Cannot add the repository")
-
-          # popup message part 1
-          msg = Builtins.sformat(
-            _("Unable to create repository\nfrom URL '%1'."),
-            URL.HidePassword(url)
-          )
-
-          if Builtins.regexpmatch(url, "\\.iso$")
-            parsed_url = URL.Parse(url)
-            scheme2 = Builtins.tolower(Ops.get_string(parsed_url, "scheme", ""))
-
-            if Builtins.contains(["ftp", "sftp", "http", "https"], scheme2)
-              # error message
-              msg = Ops.add(
-                Ops.add(msg, "\n\n"),
-                _(
-                  "Using an ISO image over ftp or http protocol is not possible.\n" \
-                    "Change the protocol or unpack the ISO image on the server side."
-                )
-              )
-            end
-          end
-
-          # popup message part 2
-          msg = Ops.add(
-            Ops.add(msg, "\n\n"),
-            _("Change the URL and try again?")
-          )
-
-          tryagain = Popup.YesNo(msg)
-          return :again if tryagain
-
-          return :cancel
-        else
-          Progress.NextStage
-          license_accepted = true
-          Builtins.foreach(newSources) do |id|
-            if !LicenseAccepted(id)
-              Builtins.y2milestone("License NOT accepted, removing the source")
-              Pkg.SourceDelete(id)
-              license_accepted = false
-            else
-              src_data = Pkg.SourceGeneralData(id)
-              Builtins.y2milestone("Addded repository: %1", src_data)
-
-              sourceState = {
-                "SrcId"       => id,
-                "enabled"     => Ops.get_boolean(src_data, "enabled", true),
-                "autorefresh" => Ops.get_boolean(src_data, "autorefresh", true),
-                "name"        => Ops.get_string(src_data, "name", ""),
-                "do_refresh"  => download
-              }
-              @sourceStatesOut = Builtins.add(@sourceStatesOut, sourceState)
-            end
-          end
-
-          # relese (unmount) the medium
-          Pkg.SourceReleaseAll
-
-          return license_accepted ? :ok : :abort
-        end
-      else
+      if url.nil? || url.empty?
         Builtins.y2error(-1, "Empty URL! Backtrace:")
         return :again
+      end
+
+      expanded_url = Pkg.ExpandedUrl(url)
+
+      # for Plaindir repository we have to use SourceCreateType() binding
+      parsed = URL.Parse(url)
+      scheme = parsed["scheme"]
+
+      log.info("Using PlainDir repository type") if plaindir
+
+      # check if SMB/CIFS share can be mounted
+      if scheme == "smb" &&
+          Ops.less_than(SCR.Read(path(".target.size"), "/sbin/mount.cifs"), 0)
+        Builtins.y2milestone(
+          "SMB/CIFS share cannot be mounted, installing missing 'cifs-mount' package..."
+        )
+        # install cifs-mount package
+        PackageSystem.CheckAndInstallPackages(["cifs-mount"])
+      end
+
+      initialize_progress
+
+      Progress.NextStage
+      service_type = Pkg.ServiceProbe(expanded_url)
+      Builtins.y2milestone("Probed service type: %1", service_type)
+
+      # create a new service if a service is detected at the URL
+      if !service_type.nil? && service_type != "NONE"
+        add_service()
+        return :ok
+      end
+
+      found_products = scan_products(expanded_url)
+      newSources = []
+
+      enter_again = false
+
+      # more products on the medium, let the user choose the products to install
+      if !Mode.auto && new_repos.size > 1
+        require "y2packager/dialogs/addon_selector"
+        products = new_repos.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
+
+        dialog = Y2Packager::Dialogs::AddonSelector.new(products)
+        ui = dialog.run
+
+        # abort/cancel/back/... => do not continue
+        return :cancel unless ui == :next
+
+        found_products = dialog.selected_products
+        # nothing selected
+        return :cancel if found_products.empty?
+      end
+
+      found_products.each do |product|
+        next if enter_again
+        name = !preffered_name.nil? && preffered_name != "" ? preffered_name : product.name
+        # probe repository type (do not probe plaindir repo)
+        repo_type = plaindir ? PLAINDIR_TYPE : Pkg.RepositoryProbe(expanded_url, product.dir)
+        log.info("Repository type (#{URL.HidePassword(url)},#{repo.dir}): #{repo_type}")
+
+        # the probing has failed
+        if repo_type.nil? || repo_type == "NONE"
+          if scheme == "dir"
+            if !Popup.AnyQuestion(
+              Popup.NoHeadline,
+              # continue-back popup
+              _(
+                "There is no product information available at the given location.\n" \
+                  "If you expected to to point a product, go back and enter\n" \
+                  "the correct location.\n" \
+                  "To make rpm packages located at the specified location available\n" \
+                  "in the packages selection, continue.\n"
+              ),
+              Label.ContinueButton,
+              Label.BackButton,
+              :focus_no
+            )
+              enter_again = true
+              next
+            end
+
+            repo_type = PLAINDIR_TYPE
+            Builtins.y2warning(
+              "Probing has failed, using Plaindir repository type."
+            )
+          end
+
+          next
+        end
+
+        alias_name = (force_alias == "") ? propose_alias(product.name) : force_alias
+
+        # map with repository parameters: $[ "enabled" : boolean,
+        # "autorefresh" : boolean, "name" : string, "alias" : string,
+        # "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
+        repo_prop = {
+          "enabled" => true,
+          "autorefresh" => autorefresh_for?(url),
+          "name" => name,
+          "prod_dir" => product.dir,
+          "alias" => alias_name,
+          "base_urls" => [url],
+          "type" => repo_type
+        }
+        if force_alias != ""
+          # don't check uniqueness of the alias, force the alias
+          repo_prop["check_alias"] = false
+        end
+        Progress.NextStage
+        new_repo_id = Pkg.RepositoryAdd(repo_prop)
+
+        # hide the URL password in the log
+        repo_prop_log = deep_copy(repo_prop)
+        repo_prop_log["base_urls"] = [URL.HidePassword(url)]
+        log.info("Added repository: #{new_repo_id}: #{repo_prop_log}")
+
+        newSources << new_repo_id
+
+        # for local repositories (e.g. CD/DVD) which have autorefresh disabled
+        # download the metadata immediately, the medium is in the drive right
+        # now, it can be changed later and accidentally added a different repository
+        if !autorefresh_for?(url)
+          log.info "Adding a local repository, refreshing it now..."
+          Pkg.SourceRefreshNow(new_repo_id)
+        end
+      end
+
+      # broken repository or wrong URL - enter the URL again
+      if enter_again
+        Pkg.SourceReleaseAll
+        return :again
+      end
+
+      Builtins.y2milestone("New sources: %1", newSources)
+
+      if newSources.empty?
+        Builtins.y2error("Cannot add the repository")
+
+        # popup message part 1
+        msg = Builtins.sformat(
+          _("Unable to create repository\nfrom URL '%1'."),
+          URL.HidePassword(url)
+        )
+
+        if Builtins.regexpmatch(url, "\\.iso$")
+          parsed_url = URL.Parse(url)
+          scheme2 = Builtins.tolower(Ops.get_string(parsed_url, "scheme", ""))
+
+          if Builtins.contains(["ftp", "sftp", "http", "https"], scheme2)
+            # error message
+            msg = Ops.add(
+              Ops.add(msg, "\n\n"),
+              _(
+                "Using an ISO image over ftp or http protocol is not possible.\n" \
+                  "Change the protocol or unpack the ISO image on the server side."
+              )
+            )
+          end
+        end
+
+        # popup message part 2
+        msg = Ops.add(
+          Ops.add(msg, "\n\n"),
+          _("Change the URL and try again?")
+        )
+
+        tryagain = Popup.YesNo(msg)
+        return :again if tryagain
+
+        return :cancel
+      else
+        Progress.NextStage
+        license_accepted = true
+        Builtins.foreach(newSources) do |id|
+          if !LicenseAccepted(id)
+            Builtins.y2milestone("License NOT accepted, removing the source")
+            Pkg.SourceDelete(id)
+            license_accepted = false
+          else
+            src_data = Pkg.SourceGeneralData(id)
+            Builtins.y2milestone("Addded repository: %1", src_data)
+
+            sourceState = {
+              "SrcId"       => id,
+              "enabled"     => src_data["enabled"],
+              "autorefresh" => src_data["autorefresh"],
+              "name"        => src_data["name"],
+              "do_refresh"  => download
+            }
+            @sourceStatesOut << sourceState
+          end
+        end
+
+        # relese (unmount) the medium
+        Pkg.SourceReleaseAll
+
+        return license_accepted ? :ok : :abort
       end
     end
 
