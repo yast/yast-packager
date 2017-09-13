@@ -8,7 +8,7 @@ module Yast
     include Yast::Logger
 
     # constant Plaindir
-    PLAINDIR_TYPE = "Plaindir"
+    PLAINDIR_TYPE = "Plaindir".freeze
 
     def initialize_packager_repositories_include(_include_target)
       Yast.import "Pkg"
@@ -35,13 +35,13 @@ module Yast
     end
 
     def LicenseAccepted(id)
-      ret = AddOnProduct.AcceptedLicenseAndInfoFile(id)
-      ret
+      AddOnProduct.AcceptedLicenseAndInfoFile(id)
     end
 
     # shell unfriendly characters we want to remove from alias, so it is easier to use with zypper
     SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`".freeze
 
+    # Create a new repository or service.
     # @param url [String] repository or service URL
     # @param plaindir [Boolean] true to use "PlainDir" format (no repository
     #   metadata present at the URL)
@@ -50,9 +50,14 @@ module Yast
     # @param force_alias [String] alias for the new repository, if a repository
     #   with this alias already exists then it is overwritten, use empty string ""
     #   to generate an unique alias
+    # @return [Symbol] the result
+    #   :ok => successfully added
+    #   :again => failed, but user wants to edit the URL and try again
+    #   :cancel => failed, don't retry
+    #   :abort => repository added successfully, but user rejected the license
     def createSourceImpl(url, plaindir, download, preffered_name, force_alias)
       log.info("createSource: #{URL.HidePassword(url)}, plaindir: #{plaindir}," \
-        "download: #{download}, name: #{preffered_name}")
+        "download: #{download}, name: #{preffered_name}, force_alias: #{force_alias}")
 
       if url.nil? || url.empty?
         Builtins.y2error(-1, "Empty URL! Backtrace:")
@@ -63,19 +68,10 @@ module Yast
 
       # for Plaindir repository we have to use SourceCreateType() binding
       parsed = URL.Parse(url)
-      scheme = parsed["scheme"]
+      scheme = parsed["scheme"].downcase
 
-      log.info("Using PlainDir repository type") if plaindir
-
-      # check if SMB/CIFS share can be mounted
-      if scheme == "smb" &&
-          Ops.less_than(SCR.Read(path(".target.size"), "/sbin/mount.cifs"), 0)
-        Builtins.y2milestone(
-          "SMB/CIFS share cannot be mounted, installing missing 'cifs-mount' package..."
-        )
-        # install cifs-mount package
-        PackageSystem.CheckAndInstallPackages(["cifs-mount"])
-      end
+      # check if the URL can be accessed/mounted, install the missing packages
+      install_mount_package(scheme)
 
       initialize_progress
 
@@ -85,7 +81,7 @@ module Yast
 
       # create a new service if a service is detected at the URL
       if !service_type.nil? && service_type != "NONE"
-        add_service()
+        add_service(url, preffered_name)
         return :ok
       end
 
@@ -95,11 +91,9 @@ module Yast
       enter_again = false
 
       # more products on the medium, let the user choose the products to install
-      if !Mode.auto && new_repos.size > 1
+      if !Mode.auto && found_products.size > 1
         require "y2packager/dialogs/addon_selector"
-        products = new_repos.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
-
-        dialog = Y2Packager::Dialogs::AddonSelector.new(products)
+        dialog = Y2Packager::Dialogs::AddonSelector.new(found_products)
         ui = dialog.run
 
         # abort/cancel/back/... => do not continue
@@ -115,33 +109,18 @@ module Yast
         name = !preffered_name.nil? && preffered_name != "" ? preffered_name : product.name
         # probe repository type (do not probe plaindir repo)
         repo_type = plaindir ? PLAINDIR_TYPE : Pkg.RepositoryProbe(expanded_url, product.dir)
-        log.info("Repository type (#{URL.HidePassword(url)},#{repo.dir}): #{repo_type}")
+        log.info("Repository type (#{URL.HidePassword(url)},#{product.dir}): #{repo_type}")
 
         # the probing has failed
         if repo_type.nil? || repo_type == "NONE"
           if scheme == "dir"
-            if !Popup.AnyQuestion(
-              Popup.NoHeadline,
-              # continue-back popup
-              _(
-                "There is no product information available at the given location.\n" \
-                  "If you expected to to point a product, go back and enter\n" \
-                  "the correct location.\n" \
-                  "To make rpm packages located at the specified location available\n" \
-                  "in the packages selection, continue.\n"
-              ),
-              Label.ContinueButton,
-              Label.BackButton,
-              :focus_no
-            )
+            if !confirm_plain_repo
               enter_again = true
               next
             end
 
             repo_type = PLAINDIR_TYPE
-            Builtins.y2warning(
-              "Probing has failed, using Plaindir repository type."
-            )
+            log.info("Probing has failed, using Plaindir repository type.")
           end
 
           next
@@ -153,13 +132,13 @@ module Yast
         # "autorefresh" : boolean, "name" : string, "alias" : string,
         # "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
         repo_prop = {
-          "enabled" => true,
+          "enabled"     => true,
           "autorefresh" => autorefresh_for?(url),
-          "name" => name,
-          "prod_dir" => product.dir,
-          "alias" => alias_name,
-          "base_urls" => [url],
-          "type" => repo_type
+          "name"        => name,
+          "prod_dir"    => product.dir,
+          "alias"       => alias_name,
+          "base_urls"   => [url],
+          "type"        => repo_type
         }
         if force_alias != ""
           # don't check uniqueness of the alias, force the alias
@@ -190,51 +169,22 @@ module Yast
         return :again
       end
 
-      Builtins.y2milestone("New sources: %1", newSources)
+      log.info("New sources: #{newSources}")
 
       if newSources.empty?
-        Builtins.y2error("Cannot add the repository")
-
-        # popup message part 1
-        msg = Builtins.sformat(
-          _("Unable to create repository\nfrom URL '%1'."),
-          URL.HidePassword(url)
-        )
-
-        if url.end_with?(".iso")
-          parsed_url = URL.Parse(url)
-          scheme2 = Builtins.tolower(Ops.get_string(parsed_url, "scheme", ""))
-
-          if Builtins.contains(["ftp", "sftp", "http", "https"], scheme2)
-            # error message
-            msg = Ops.add(
-              Ops.add(msg, "\n\n"),
-              _(
-                "Using an ISO image over ftp or http protocol is not possible.\n" \
-                  "Change the protocol or unpack the ISO image on the server side."
-              )
-            )
-          end
-        end
-
-        # popup message part 2
-        msg = Ops.add(
-          Ops.add(msg, "\n\n"),
-          _("Change the URL and try again?")
-        )
-
-        Popup.YesNo(msg) ? :again : :cancel
+        log.error("Cannot add the repository")
+        try_again(url, scheme) ? :again : :cancel
       else
         Progress.NextStage
         license_accepted = true
         Builtins.foreach(newSources) do |id|
           if !LicenseAccepted(id)
-            Builtins.y2milestone("License NOT accepted, removing the source")
+            log.info("License NOT accepted, removing the source")
             Pkg.SourceDelete(id)
             license_accepted = false
           else
             src_data = Pkg.SourceGeneralData(id)
-            Builtins.y2milestone("Addded repository: %1", src_data)
+            log.info("Addded repository: #{src_data}")
 
             sourceState = {
               "SrcId"       => id,
@@ -365,8 +315,7 @@ module Yast
     end
 
     def EditDialog
-      ret = SourceDialogs.EditDialog
-      ret
+      SourceDialogs.EditDialog
     end
 
     # Evaluate the default autorefresh flag for the given repository URL.
@@ -382,7 +331,7 @@ module Yast
       autorefresh
     end
 
-    private
+  private
 
     # scan the repository URL and return the available products
     # @return [Array<Y2Packager::ProductLocation>] Found products
@@ -470,7 +419,11 @@ module Yast
       )
     end
 
-    def add_service(url, type, preffered_name)
+    # Add a new repository service.
+    # @param url [String] service URL
+    # @param type [String] probed service type
+    # @param preffered_name [String] service name, empty string means generate it
+    def add_service(url, preffered_name)
       Builtins.y2milestone("Adding a service of type %1...", service_type)
 
       # all current aliases
@@ -501,5 +454,59 @@ module Yast
       @serviceStatesOut << new_service
     end
 
+    # Ask user whether to use plaindir repository type when no repository
+    # metadata has been found at the specified URL.
+    # @return [Boolean] true to use plaindir repository
+    def confirm_plain_repo
+      Popup.AnyQuestion(
+        Popup.NoHeadline,
+        # continue-back popup
+        _(
+          "There is no product information available at the given location.\n" \
+            "If you expected to to point a product, go back and enter\n" \
+            "the correct location.\n" \
+            "To make rpm packages located at the specified location available\n" \
+            "in the packages selection, continue.\n"
+        ),
+        Label.ContinueButton,
+        Label.BackButton,
+        :focus_no
+      )
+    end
+
+    # Check and install the packages needed for accessing the URL scheme.
+    # @param scheme [String] URL scheme of the new repository
+    def install_mount_package(scheme)
+      if scheme == "smb" && !File.exist?("/sbin/mount.cifs")
+        log.info("Installing missing 'cifs-mount' package...")
+        # install cifs-mount package
+        PackageSystem.CheckAndInstallPackages(["cifs-mount"])
+      end
+    end
+
+    # Ask user whether to change the entered URL and try again
+    # @param url [String] repository URL
+    # @param scheme [String] scheme part of the URL
+    # @return [Boolean] true to try again
+    def try_again(url, scheme)
+      # TRANSLATORS: error message (1/3), %1 is repository URL
+      msgs = [Builtins.sformat(
+        _("Unable to create repository\nfrom URL '%1'."),
+        URL.HidePassword(url)
+      )]
+
+      if url.end_with?(".iso") && ["ftp", "sftp", "http", "https"].include?(scheme)
+        # TRANSLATORS: error message (2/3)
+        msgs << _(
+          "Using an ISO image over ftp or http protocol is not possible.\n" \
+              "Change the protocol or unpack the ISO image on the server side."
+        )
+      end
+
+      # TRANSLATORS: error message (3/3)
+      msgs << _("Change the URL and try again?")
+
+      Popup.YesNo(msgs.join("\n\n"))
+    end
   end
 end
