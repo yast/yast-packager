@@ -162,9 +162,12 @@ module Yast
 
         Builtins.foreach(new_repos) do |repo|
           next if enter_again
-          name = Ops.get(repo, 0, "")
-          name = preffered_name if !preffered_name.nil? && preffered_name != ""
           prod_dir = Ops.get(repo, 1, "/")
+          name = Ops.get(repo, 0, "")
+          if !preffered_name.nil? && preffered_name != ""
+            name = preffered_name
+            name += " (#{prod_dir})" if ![nil, "", "/"].include?(prod_dir)
+          end
           # probe repository type (do not probe plaindir repo)
           repo_type = plaindir ? @plaindir_type : Pkg.RepositoryProbe(expanded_url, prod_dir)
           Builtins.y2milestone(
