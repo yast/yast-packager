@@ -44,17 +44,37 @@ module Y2Packager
     # @return [String] package including installation.xml for install on top of lean os
     attr_reader :installation_package
 
-    def self.available_base_products
-      Y2Packager::ProductReader.new.available_base_products
-    end
+    class << self
+      # Return all known products
+      #
+      # @return [Array<Product>] Known products
+      def all
+        Y2Packager::ProductReader.new.all_products
+      end
 
-    # Returns the selected base product
-    #
-    # It assumes that at most 1 product could be selected.
-    #
-    # @return [Y2Packager::Product] Selected base product
-    def self.selected_base
-      available_base_products.find(&:selected?)
+      # Return available base products
+      #
+      # @return [Array<Product>] Available base products
+      def available_base_products
+        Y2Packager::ProductReader.new.available_base_products
+      end
+
+      # Returns the selected base product
+      #
+      # It assumes that at most 1 product could be selected.
+      #
+      # @return [Product] Selected base product
+      def selected_base
+        available_base_products.find(&:selected?)
+      end
+
+      # Return the products with a given status
+      #
+      # @param statuses [Array<Product>] Product status (:available, :installed, :selected, etc.)
+      # @return [Array<Product>] Products with the given status
+      def with_status(*statuses)
+        all.select { |s| statuses.include?(s.status) }
+      end
     end
 
     # Constructor

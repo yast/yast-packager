@@ -14,6 +14,16 @@ describe Y2Packager::Product do
     Y2Packager::Product.new(BASE_ATTRS)
   end
 
+  let(:reader) { Y2Packager::ProductReader.new }
+  let(:sles) { instance_double(Y2Packager::Product, status: :installed) }
+  let(:sdk) { instance_double(Y2Packager::Product, status: :available) }
+  let(:products) { [sles, sdk] }
+
+  before do
+    allow(Y2Packager::ProductReader).to receive(:new).and_return(reader)
+    allow(reader).to receive(:all_products).and_return(products)
+  end
+
   describe ".selected_base" do
     let(:not_selected) { instance_double(Y2Packager::Product, selected?: false) }
     let(:selected) { instance_double(Y2Packager::Product, selected?: true) }
@@ -23,6 +33,19 @@ describe Y2Packager::Product do
         .and_return([not_selected, selected])
 
       expect(described_class.selected_base).to eq(selected)
+    end
+  end
+
+  describe ".all" do
+    it "returns all known products" do
+      expect(described_class.all).to eq(products)
+    end
+  end
+
+  describe ".with_status" do
+    it "filters package with the given status" do
+      expect(described_class.with_status(:installed))
+        .to eq([sles])
     end
   end
 
