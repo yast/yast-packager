@@ -13,6 +13,7 @@
 Yast.import "Pkg"
 Yast.import "Language"
 require "y2packager/product_reader"
+require "y2packager/release_notes_reader"
 
 module Y2Packager
   # Represent a product which is present in a repository. At this
@@ -184,6 +185,17 @@ module Y2Packager
     # @return [Boolean] true if the license was confirmed (or acceptance was not needed)
     def license_confirmed?
       Yast::Pkg.PrdHasLicenseConfirmed(name)
+    end
+
+    # Return product's release notes
+    #
+    # @param format     [Symbol] Release notes format (:txt, :rtf, etc.)
+    # @return pref_lang [String] Preferred language (fallback to english)
+    # @return [String] Release notes
+    # @see ReleaseNotesReader
+    def release_notes(format = :txt, lang = nil)
+      release_notes_lang = lang || Yast::Language.language
+      ReleaseNotesReader.new.for(self, lang: release_notes_lang, format: format)
     end
   end
 end
