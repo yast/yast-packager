@@ -1182,11 +1182,10 @@ module Yast
     def SearchForLicense_AddOnProduct(src_id, _fallback_dir)
       Builtins.y2milestone("Getting license info from repository %1", src_id)
 
-      @info_file = Pkg.SourceProvideDigestedFile(
+      @info_file = Pkg.SourceProvideOptionalFile(
         src_id, # optional
         1,
-        "/media.1" + INFO_FILE,
-        true
+        INFO_FILE,
       )
 
       # using a separate license directory for all products
@@ -1323,6 +1322,8 @@ module Yast
         @tmpdir,
         @info_file
       )
+
+      display_info(src_id) if @info_file && !info_seen?(src_id)
 
       nil
     end
