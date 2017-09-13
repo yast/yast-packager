@@ -207,8 +207,8 @@ module Yast
           end
           alias_name = ""
           if force_alias == ""
-            # replace " " -> "_" (avoid spaces in .repo file name), and remove shell unfriendly '/()'
-            alias_name = name.tr(" ","_").delete("/()")
+            # replace " " -> "_" (avoid spaces in .repo file name) and remove shell unfriendly '/()'
+            alias_name = name.tr(" ", "_").delete("/()")
             alias_orig = alias_name
 
             # all current aliases
