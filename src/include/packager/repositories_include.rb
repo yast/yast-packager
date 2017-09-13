@@ -37,7 +37,8 @@ module Yast
     end
 
     # shell unfriendly characters we want to remove from alias, so it is easier to use with zypper
-    SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`"
+    SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`".freeze
+
     def createSourceImpl(url, plaindir, download, preffered_name, force_alias)
       Builtins.y2milestone(
         "createSource: %1, plaindir: %2, download: %3, name: %4",
