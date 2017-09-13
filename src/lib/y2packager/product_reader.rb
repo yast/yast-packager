@@ -22,7 +22,6 @@ module Y2Packager
     include Yast::Logger
 
     class << self
-
       # Installation packages map
       #
       # This map contains the correspondence between products and the
