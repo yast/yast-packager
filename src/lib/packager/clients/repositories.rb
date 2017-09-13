@@ -218,6 +218,9 @@ module Yast
       else
         Ops.get_string(source, "url", "")
       end
+      if ![nil, "", "/"].include?(generalData["product_dir"])
+        url += " (#{generalData["product_dir"]})"
+      end
       service_alias = Ops.get_string(source, "service", "")
       service_name = if service_alias != ""
         Ops.get_string(Pkg.ServiceGet(service_alias), "name", "")
