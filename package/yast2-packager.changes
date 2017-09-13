@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 13 14:23:40 UTC 2017 - igonzalezsosa@suse.com
+
+- Add support to read release notes from an RPM in the
+  repository (fate#323273)
+- 4.0.1
+
+-------------------------------------------------------------------
 Tue Sep 12 10:19:41 UTC 2017 - knut.anderssen@suse.com
 
 - Replace /info.txt by /README.BETA as beta file to be shown
