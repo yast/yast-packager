@@ -36,6 +36,8 @@ module Yast
       ret
     end
 
+    # shell unfriendly characters we want to remove from alias, so it is easier to use with zypper
+    SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`"
     def createSourceImpl(url, plaindir, download, preffered_name, force_alias)
       Builtins.y2milestone(
         "createSource: %1, plaindir: %2, download: %3, name: %4",
@@ -208,7 +210,7 @@ module Yast
           alias_name = ""
           if force_alias == ""
             # replace " " -> "_" (avoid spaces in .repo file name) and remove shell unfriendly '/()'
-            alias_name = name.tr(" ", "_").delete("/()")
+            alias_name = name.tr(" ", "_").delete(SHELL_UNFRIENDLY)
             alias_orig = alias_name
 
             # all current aliases
