@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Sep 14 14:30:50 UTC 2017 - jreidinger@suse.com
+
+- show product path in url for multi product media
+- for multi product media add product path to repository name
+  (fate#323450)
+- 4.0.1
+
+-------------------------------------------------------------------
 Tue Sep 12 10:19:41 UTC 2017 - knut.anderssen@suse.com
 
 - Replace /info.txt by /README.BETA as beta file to be shown
