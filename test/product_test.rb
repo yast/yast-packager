@@ -302,14 +302,16 @@ describe Y2Packager::Product do
     end
 
     it "returns release notes in the current language" do
-      expect(reader).to receive(:for).with(product, lang: lang, format: :txt)
+      expect(reader).to receive(:release_notes_for)
+        .with(product, lang: lang, format: :txt)
         .and_return(relnotes_content)
       expect(product.release_notes).to eq(relnotes_content)
     end
 
     context "when language/format are given" do
       it "returns release notes in the given language/format" do
-        expect(reader).to receive(:for).with(product, lang: "de_DE", format: :rtf)
+        expect(reader).to receive(:release_notes_for)
+          .with(product, lang: "de_DE", format: :rtf)
           .and_return(relnotes_content)
         expect(product.release_notes(:rtf, "de_DE")).to eq(relnotes_content)
       end

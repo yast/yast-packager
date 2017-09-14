@@ -19,12 +19,13 @@ module Y2Packager
   class ReleaseNotesReader
     include Yast::Logger
 
-    # @return [Pathname] Place to store all release notes
+    # @return [Pathname] Place to store all release notes.
     attr_reader :work_dir
 
     # Constructor
     #
-    # @param work_dir [Pathname] Temporal directory to work
+    # @param work_dir [Pathname,nil] Temporal directory to work. If `nil` it will
+    #   use the default YaST temporary directory + "/release-notes".
     def initialize(work_dir = nil)
       @work_dir = work_dir || Pathname(Yast::Directory.tmpdir).join("release-notes")
     end
@@ -36,11 +37,12 @@ module Y2Packager
     # "xx".
     #
     # @param product [Y2Packager::Product] Product
-    # @param lang    [String]              Release notes language (falling back to "en")
+    # @param lang    [String]              Release notes language (falling back to "en_US"
+    #                                      and "en")
     # @param format  [Symbol]              Release notes format (:txt or :rtf)
     # @return [String,nil] Release notes or nil if a release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def for(product, lang: "en_US", format: :txt)
+    def release_notes_for(product, lang: "en_US", format: :txt)
       package = release_notes_package_for(product)
       return nil if package.nil?
       download_and_extract(package)
@@ -55,6 +57,7 @@ module Y2Packager
       ::FileUtils.rm_r(work_dir) if work_dir.directory?
     end
 
+    AVAILABLE_STATUSES = [:available, :selected].freeze
     # Return the release notes package for a given product
     #
     # This method queries libzypp asking for the package which contains release
@@ -73,7 +76,7 @@ module Y2Packager
       end
       return nil if package_name.nil?
       # FIXME: make sure we get the latest version
-      Y2Packager::Package.find(package_name).find { |s| s.status == :available }
+      Y2Packager::Package.find(package_name).find { |s| AVAILABLE_STATUSES.include?(s.status) }
     end
 
     # Return release notes content for a package, language and format
@@ -103,7 +106,7 @@ module Y2Packager
     # @param format  [Symbol] Content format (:txt, :rtf, etc.).
     def release_notes_file(package, lang, format)
       langs = [lang]
-      langs << lang[0..1] if lang.size > 2
+      langs << lang.split("_", 2).first if lang.include?("_")
       langs.concat(FALLBACK_LANGS)
 
       Dir.glob(

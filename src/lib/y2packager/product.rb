@@ -213,9 +213,8 @@ module Y2Packager
     # @return pref_lang [String] Preferred language (fallback to english)
     # @return [String] Release notes
     # @see ReleaseNotesReader
-    def release_notes(format = :txt, lang = nil)
-      release_notes_lang = lang || Yast::Language.language
-      ReleaseNotesReader.new.for(self, lang: release_notes_lang, format: format)
+    def release_notes(format = :txt, lang = Yast::Language.language)
+      ReleaseNotesReader.new.release_notes_for(self, lang: lang, format: format)
     end
   end
 end

@@ -9,13 +9,9 @@ describe Y2Packager::ReleaseNotesReader do
 
   let(:work_dir) { FIXTURES_PATH.join("release-notes") }
 
-  let(:product) do
-    instance_double(Y2Packager::Product, name: "dummy")
-  end
+  let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
 
-  let(:package) do
-    Y2Packager::Package.new("release-notes-dummy", 2, :available)
-  end
+  let(:package) { Y2Packager::Package.new("release-notes-dummy", 2) }
 
   let(:dependencies) do
     [
@@ -35,43 +31,41 @@ describe Y2Packager::ReleaseNotesReader do
     allow(Y2Packager::Package).to receive(:find).with(package.name).and_return([package])
     allow(package).to receive(:download_to) do |path|
       ::FileUtils.cp(FIXTURES_PATH.join("release-notes-dummy.rpm"), path)
-      true
     end
+    allow(package).to receive(:status).and_return(:available)
   end
 
-  describe "#for" do
-    let(:download) { true }
-
+  describe "#release_notes_for" do
     it "returns product release notes in english" do
-      expect(reader.for(product)).to eq("Release Notes\n")
+      expect(reader.release_notes_for(product)).to eq("Release Notes\n")
     end
 
     it "cleans up temporary files" do
-      reader.for(product)
+      reader.release_notes_for(product)
       expect(File).to_not be_directory(work_dir)
     end
 
     context "when a full language code is given (xx_XX)" do
       it "returns product release notes for the given language" do
-        expect(reader.for(product, lang: "en_US")).to eq("Release Notes\n")
+        expect(reader.release_notes_for(product, lang: "en_US")).to eq("Release Notes\n")
       end
 
       context "and release notes are not available" do
         it "returns product release notes for the short language code (xx)" do
-          expect(reader.for(product, lang: "de_DE")).to eq("Versionshinweise\n")
+          expect(reader.release_notes_for(product, lang: "de_DE")).to eq("Versionshinweise\n")
         end
       end
     end
 
     context "when a format is given" do
       it "returns product release notes in the given format" do
-        expect(reader.for(product, format: :html))
+        expect(reader.release_notes_for(product, format: :html))
           .to eq("<h1>Release Notes</h1>\n")
       end
 
       context "and release notes are not available in the given format" do
         it "returns the english version" do
-          expect(reader.for(product, lang: "de_DE", format: :html))
+          expect(reader.release_notes_for(product, lang: "de_DE", format: :html))
             .to eq("<h1>Release Notes</h1>\n")
         end
       end
@@ -79,7 +73,7 @@ describe Y2Packager::ReleaseNotesReader do
 
     context "when release notes are not available" do
       it "returns the english version" do
-        expect(reader.for(product, lang: "es")).to eq("Release Notes\n")
+        expect(reader.release_notes_for(product, lang: "es")).to eq("Release Notes\n")
       end
     end
 
@@ -89,7 +83,7 @@ describe Y2Packager::ReleaseNotesReader do
       end
 
       it "returns nil" do
-        expect(reader.for(product)).to be_nil
+        expect(reader.release_notes_for(product)).to be_nil
       end
     end
 
@@ -97,7 +91,7 @@ describe Y2Packager::ReleaseNotesReader do
       let(:provides) { [] }
 
       it "returns nil" do
-        expect(reader.for(product)).to be_nil
+        expect(reader.release_notes_for(product)).to be_nil
       end
     end
   end
