@@ -1185,7 +1185,7 @@ module Yast
       @info_file = Pkg.SourceProvideOptionalFile(
         src_id, # optional
         1,
-        INFO_FILE,
+        INFO_FILE
       )
 
       # using a separate license directory for all products
