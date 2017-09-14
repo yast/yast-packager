@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 12 10:19:41 UTC 2017 - knut.anderssen@suse.com
+
+- Replace /info.txt by /README.BETA as beta file to be shown
+  (bsc#1047060).
+- 4.0.0
+
+-------------------------------------------------------------------
 Thu Sep  7 16:09:38 UTC 2017 - knut.anderssen@suse.com
 
 - Do not copy passwd, group and shadow from ins-sys anymore
