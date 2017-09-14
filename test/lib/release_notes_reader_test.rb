@@ -34,7 +34,6 @@ describe Y2Packager::ReleaseNotesReader do
       .with("release-notes-dummy", :package, "").and_return(dependencies)
     allow(Y2Packager::Package).to receive(:find).with(package.name).and_return([package])
     allow(package).to receive(:download_to) do |path|
-      ::FileUtils.mkdir_p(path) unless work_dir.directory?
       ::FileUtils.cp(FIXTURES_PATH.join("release-notes-dummy.rpm"), path)
       true
     end

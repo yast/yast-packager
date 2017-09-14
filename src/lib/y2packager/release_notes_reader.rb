@@ -1,6 +1,7 @@
 require "yast"
 require "fileutils"
 require "y2packager/package"
+require "packages/package_downloader"
 require "pathname"
 
 Yast.import "Directory"

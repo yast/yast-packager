@@ -12,6 +12,8 @@
 
 require "yast"
 require "yast2/execute"
+require "packages/package_downloader"
+require "packages/package_extractor"
 
 Yast.import "Pkg"
 
@@ -54,29 +56,25 @@ module Y2Packager
 
     # Download a package to the given path
     #
-    # @param path [String] Path to download the package to
-    # @return [Boolean] true if the package was downloaded
+    # @param path [String,Pathname] Path to download the package to
+    # @see Packages::PackageDownloader
     def download_to(path)
-      Yast::Pkg.ProvidePackage(repo_id, name, path)
+      downloader = Packages::PackageDownloader.new(repo_id, name)
+      downloader.download(path.to_s)
     end
 
     # Download and extract the package to the given directory
     #
-    # @param path [String] Path to download the package to
-    # @return [Boolean] true if the package was extracted
+    # @param path [String,Pathname] Path to extract the package to
+    # @see Packages::PackageExtractor
     def extract_to(directory)
-      rpm_path = File.join(directory, "#{name}.rpm")
-      return false unless download_to(rpm_path)
-
-      Dir.chdir(directory) do
-        log.info("Extracting package #{rpm_path} to #{directory}")
-        Yast::Execute.locally(
-          ["rpm2cpio", rpm_path],
-          ["cpio", "--quiet", "--sparse", "-dimu", "--no-absolute-filename"]
-        )
-      end
-
-      true
+      tmpfile = Tempfile.new("downloaded-package-#{name}")
+      download_to(tmpfile.path)
+      extractor = Packages::PackageExtractor.new(tmpfile.path)
+      extractor.extract(directory.to_s)
+    ensure
+      tmpfile.close
+      tmpfile.unlink
     end
   end
 end

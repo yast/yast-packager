@@ -7,62 +7,57 @@ require "fileutils"
 describe Y2Packager::Package do
   subject(:package) { Y2Packager::Package.new("release-notes-dummy", 1, :available) }
 
+  let(:downloader) { instance_double(Packages::PackageDownloader, download: nil) }
+
   describe "#download_to" do
-    let(:success) { true }
-
-    before do
-      allow(Yast::Pkg).to receive(:ProvidePackage)
-        .with(package.repo_id, package.name, FIXTURES_PATH.to_s).and_return(success)
-    end
-
-    it "downloads package" do
-      expect(Yast::Pkg).to receive(:ProvidePackage)
-        .with(package.repo_id, package.name, FIXTURES_PATH.to_s).and_return(true)
-      package.download_to(FIXTURES_PATH.to_s)
-    end
-
-    it "returns true" do
-      expect(package.download_to(FIXTURES_PATH.to_s)).to eq(true)
+    it "downloads the package" do
+      expect(Packages::PackageDownloader).to receive(:new)
+        .with(package.repo_id, package.name).and_return(downloader)
+      expect(downloader).to receive(:download).with(FIXTURES_PATH.to_s)
+      package.download_to(FIXTURES_PATH)
     end
 
     context "when package download fails" do
-      let(:success) { false }
+      before do
+        allow(downloader).to receive(:download)
+          .and_raise(Packages::PackageDownloader::FetchError)
+      end
 
-      it "returns false" do
-        expect(package.download_to(FIXTURES_PATH.to_s)).to eq(false)
+      it "raises the error" do
+        expect { package.download_to(FIXTURES_PATH) }
+          .to raise_error(Packages::PackageDownloader::FetchError)
       end
     end
   end
 
   describe "#extract_to" do
-    let(:downloaded) { true }
+    let(:extractor) { instance_double(Packages::PackageExtractor, extract: nil) }
+    let(:tempfile) do
+      instance_double(Tempfile, close: nil, unlink: nil, path: "/tmp/some-package") 
+    end
 
     before do
-      allow(package).to receive(:download_to).and_return(downloaded)
+      allow(Packages::PackageExtractor).to receive(:new).and_return(extractor)
+      allow(Tempfile).to receive(:new).and_return(tempfile)
+      allow(package).to receive(:download_to)
     end
 
-    context "when the package is successfully downloaded" do
-      after do
-        ::FileUtils.rm_rf(FIXTURES_PATH.join("usr"))
-      end
-
-      it "extracts the content to the given path" do
-        package.extract_to(FIXTURES_PATH.to_s)
-        expect(File).to be_directory(
-          FIXTURES_PATH.join("usr", "share", "doc", "release-notes", "dummy")
-        )
-      end
-
-      it "returns true" do
-        expect(package.extract_to(FIXTURES_PATH.to_s)).to eq(true)
-      end
+    it "extracts the content to the given path" do
+      expect(Packages::PackageExtractor).to receive(:new).with(tempfile.path)
+        .and_return(extractor)
+      expect(extractor).to receive(:extract).with("/path")
+      package.extract_to("/path")
     end
 
-    context "when the package could not be downloaded" do
-      let(:downloaded) { false }
+    context "when the package could not be extracted" do
+      before do
+        allow(extractor).to receive(:extract)
+          .and_raise(Packages::PackageExtractor::ExtractionFailed)
+      end
 
-      it "returns false" do
-        expect(package.extract_to(FIXTURES_PATH.to_s)).to eq(false)
+      it "raises the error" do
+        expect { package.extract_to("/path") }
+          .to raise_error(Packages::PackageExtractor::ExtractionFailed)
       end
     end
   end
