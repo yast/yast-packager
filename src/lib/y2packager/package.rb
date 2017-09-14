@@ -39,7 +39,7 @@ module Y2Packager
       def find(name)
         props = Yast::Pkg.ResolvableProperties(name, :package, "")
         return nil if props.nil?
-        props.map { |i| new(i["name"], i["source"], i["status"]) }
+        props.map { |i| new(i["name"], i["source"]) }
       end
     end
 
@@ -47,11 +47,19 @@ module Y2Packager
     #
     # @param name    [String]  Package name
     # @param repo_id [Integer] Repository ID
-    # @param status  [Symbol]  Package status (:installed, :available, etc.)
-    def initialize(name, repo_id, status)
+    def initialize(name, repo_id)
       @name = name
       @repo_id = repo_id
-      @status = status
+    end
+
+    # Return package status
+    #
+    # Asks libzypp about package status.
+    #
+    # @return [Symbol] Package status (:installed, :available, etc.)
+    # @see Yast::Pkg.PkgProperties
+    def status
+      Yast::Pkg.PkgProperties(name)["status"]
     end
 
     # Download a package to the given path
