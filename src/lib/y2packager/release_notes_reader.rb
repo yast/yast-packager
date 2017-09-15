@@ -13,6 +13,8 @@
 require "yast"
 require "fileutils"
 require "y2packager/package"
+require "y2packager/release_notes_store"
+require "y2packager/release_notes"
 require "packages/package_downloader"
 require "pathname"
 
@@ -38,8 +40,10 @@ module Y2Packager
     #
     # @param work_dir [Pathname,nil] Temporal directory to work. If `nil` it will
     #   use the default YaST temporary directory + "/release-notes".
-    def initialize(work_dir = nil)
+    # @param release_notes_store [ReleaseNotesStore] Release notes store to cache data
+    def initialize(work_dir = nil, release_notes_store = nil)
       @work_dir = work_dir || Pathname(Yast::Directory.tmpdir).join("release-notes")
+      @release_notes_store = release_notes_store
     end
 
     # Get release notes for a given product
@@ -48,23 +52,27 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param product [Y2Packager::Product] Product
-    # @param lang    [String]              Release notes language (falling back to "en_US"
-    #                                      and "en")
-    # @param format  [Symbol]              Release notes format (:txt or :rtf)
+    # @param product   [Y2Packager::Product] Product
+    # @param user_lang [String]              Release notes language (falling back to "en_US"
+    #                                        and "en")
+    # @param format    [Symbol]              Release notes format (:txt or :rtf)
     # @return [String,nil] Release notes or nil if a release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes_for(product, lang: "en_US", format: :txt)
+    def release_notes_for(product, user_lang: "en_US", format: :txt)
       package = release_notes_package_for(product)
       return nil if package.nil?
-      download_and_extract(package)
-      content = release_notes_content(package, lang, format)
-      cleanup
-      content
+
+      from_store = release_notes_store.retrieve(product.name, user_lang, format, package.version)
+      return from_store if from_store
+
+      release_notes = build_release_notes(product, package, user_lang, format)
+      release_notes_store.store(release_notes) if release_notes
+      release_notes
     end
 
   private
 
+    # Clean-up working directory
     def cleanup
       ::FileUtils.rm_r(work_dir) if work_dir.directory?
     end
@@ -97,13 +105,17 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param package [String] Release notes package name
-    # @param lang    [String] Language code ("en_US", "en", etc.)
-    # @param format  [Symbol] Content format (:txt, :rtf, etc.).
+    # @param package   [String] Release notes package name
+    # @param user_lang [String] Language code ("en_US", "en", etc.)
+    # @param format    [Symbol] Content format (:txt, :rtf, etc.).
+    # @return [Array<String,String>] Array containing content and language code
     # @see release_notes_file
-    def release_notes_content(package, lang, format)
-      file = release_notes_file(package, lang, format)
-      file ? File.read(file) : nil
+    def release_notes_content(package, user_lang, format)
+      download_and_extract(package)
+      file, lang = release_notes_file(package, user_lang, format)
+      content = file ? [File.read(file), lang] : nil
+      cleanup
+      content
     end
 
     FALLBACK_LANGS = ["en_US", "en"].freeze
@@ -113,19 +125,22 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param package [String] Release notes package name
-    # @param lang    [String] Language code ("en_US", "en", etc.)
-    # @param format  [Symbol] Content format (:txt, :rtf, etc.).
-    def release_notes_file(package, lang, format)
-      langs = [lang]
-      langs << lang.split("_", 2).first if lang.include?("_")
+    # @param package   [String] Release notes package name
+    # @param user_lang [String] Language code ("en_US", "en", etc.)
+    # @param format    [Symbol] Content format (:txt, :rtf, etc.).
+    # @return [Array<String,String>] Array containing path and language code
+    def release_notes_file(package, user_lang, format)
+      langs = [user_lang]
+      langs << user_lang.split("_", 2).first if user_lang.include?("_")
       langs.concat(FALLBACK_LANGS)
 
-      Dir.glob(
+      path = Dir.glob(
         File.join(
           release_notes_path(package), "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}"
         )
       ).first
+      return nil if path.nil?
+      [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
     end
 
     # Download and extract package
@@ -144,6 +159,35 @@ module Y2Packager
     # @return [String] Path to extracted release notes
     def release_notes_path(package)
       work_dir.join(package.name)
+    end
+
+    # Return release notes instance
+    #
+    # @param product   [Product] Product
+    # @param package   [Package] Package containing release notes
+    # @param user_lang [String]  User preferred language
+    # @param format    [Symbol]  Release notes format
+    # @return [ReleaseNotes] Release notes for given arguments
+    def build_release_notes(product, package, user_lang, format)
+      content, lang = release_notes_content(package, user_lang, format)
+      return nil if content.nil?
+      Y2Packager::ReleaseNotes.new(
+        product_name: product.name,
+        content:      content,
+        user_lang:    user_lang,
+        lang:         lang,
+        format:       format,
+        version:      package.version
+      )
+    end
+
+    # Release notes store
+    #
+    # This store is used to cache already retrieved release notes.
+    #
+    # @return [ReleaseNotesStore] Release notes store
+    def release_notes_store
+      @release_notes_store ||= Y2Packager::ReleaseNotesStore.current
     end
   end
 end

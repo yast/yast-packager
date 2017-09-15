@@ -210,11 +210,12 @@ module Y2Packager
     # Return product's release notes
     #
     # @param format     [Symbol] Release notes format (:txt, :rtf, etc.)
-    # @return pref_lang [String] Preferred language (fallback to english)
-    # @return [String] Release notes
+    # @return user_lang [String] Preferred language (fallback to english)
+    # @return [ReleaseNotes] Release notes for product, language and format
     # @see ReleaseNotesReader
-    def release_notes(format = :txt, lang = Yast::Language.language)
-      ReleaseNotesReader.new.release_notes_for(self, lang: lang, format: format)
+    # @see ReleaseNotes
+    def release_notes(format = :txt, user_lang = Yast::Language.language)
+      ReleaseNotesReader.new.release_notes_for(self, user_lang: user_lang, format: format)
     end
   end
 end

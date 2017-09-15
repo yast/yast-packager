@@ -5,7 +5,7 @@ require "y2packager/package"
 require "fileutils"
 
 describe Y2Packager::Package do
-  subject(:package) { Y2Packager::Package.new("release-notes-dummy", 1) }
+  subject(:package) { Y2Packager::Package.new("release-notes-dummy", 1, "15.0") }
 
   let(:downloader) { instance_double(Packages::PackageDownloader, download: nil) }
 
@@ -15,8 +15,8 @@ describe Y2Packager::Package do
 
     it "returns packages with a given name" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(name, :package, "")
-        .and_return([{ "name" => "yast2", "source" => 1 }])
-      expect(Y2Packager::Package).to receive(:new).with(name, 1)
+        .and_return([{ "name" => "yast2", "source" => 1, "version" => "12.3" }])
+      expect(Y2Packager::Package).to receive(:new).with(name, 1, "12.3")
         .and_return(package)
       expect(described_class.find(name)).to eq([package])
     end
@@ -46,7 +46,7 @@ describe Y2Packager::Package do
   describe "#extract_to" do
     let(:extractor) { instance_double(Packages::PackageExtractor, extract: nil) }
     let(:tempfile) do
-      instance_double(Tempfile, close: nil, unlink: nil, path: "/tmp/some-package") 
+      instance_double(Tempfile, close: nil, unlink: nil, path: "/tmp/some-package")
     end
 
     before do

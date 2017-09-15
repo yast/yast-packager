@@ -28,8 +28,8 @@ module Y2Packager
     attr_reader :name
     # @return [Integer] Id of the repository where the package lives
     attr_reader :repo_id
-    # @return [Symbol] Package's status (:installed, :available, etc.).
-    attr_reader :status
+    # @return [Symbol] Package's version
+    attr_reader :version
 
     class << self
       # Find packages by name
@@ -39,7 +39,7 @@ module Y2Packager
       def find(name)
         props = Yast::Pkg.ResolvableProperties(name, :package, "")
         return nil if props.nil?
-        props.map { |i| new(i["name"], i["source"]) }
+        props.map { |i| new(i["name"], i["source"], i["version"]) }
       end
     end
 
@@ -47,9 +47,10 @@ module Y2Packager
     #
     # @param name    [String]  Package name
     # @param repo_id [Integer] Repository ID
-    def initialize(name, repo_id)
+    def initialize(name, repo_id, version)
       @name = name
       @repo_id = repo_id
+      @version = version
     end
 
     # Return package status

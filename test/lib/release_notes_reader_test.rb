@@ -8,11 +8,8 @@ describe Y2Packager::ReleaseNotesReader do
   subject(:reader) { described_class.new(work_dir) }
 
   let(:work_dir) { FIXTURES_PATH.join("release-notes") }
-
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
-
-  let(:package) { Y2Packager::Package.new("release-notes-dummy", 2) }
-
+  let(:package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.0") }
   let(:dependencies) do
     [
       { "deps" => [{ "provides" => "release-notes() = dummy" }] }
@@ -33,11 +30,15 @@ describe Y2Packager::ReleaseNotesReader do
       ::FileUtils.cp(FIXTURES_PATH.join("release-notes-dummy.rpm"), path)
     end
     allow(package).to receive(:status).and_return(:available)
+    Y2Packager::ReleaseNotesStore.current.clear
   end
 
   describe "#release_notes_for" do
     it "returns product release notes in english" do
-      expect(reader.release_notes_for(product)).to eq("Release Notes\n")
+      rn = reader.release_notes_for(product)
+      expect(rn.content).to eq("Release Notes\n")
+      expect(rn.lang).to eq("en_US")
+      expect(rn.user_lang).to eq("en_US")
     end
 
     it "cleans up temporary files" do
@@ -47,33 +48,44 @@ describe Y2Packager::ReleaseNotesReader do
 
     context "when a full language code is given (xx_XX)" do
       it "returns product release notes for the given language" do
-        expect(reader.release_notes_for(product, lang: "en_US")).to eq("Release Notes\n")
+        rn = reader.release_notes_for(product, user_lang: "en_US")
+        expect(rn.content).to eq("Release Notes\n")
+        expect(rn.lang).to eq("en_US")
+        expect(rn.user_lang).to eq("en_US")
       end
 
       context "and release notes are not available" do
         it "returns product release notes for the short language code (xx)" do
-          expect(reader.release_notes_for(product, lang: "de_DE")).to eq("Versionshinweise\n")
+          rn = reader.release_notes_for(product, user_lang: "de_DE")
+          expect(rn.content).to eq("Versionshinweise\n")
+          expect(rn.lang).to eq("de")
+          expect(rn.user_lang).to eq("de_DE")
         end
       end
     end
 
     context "when a format is given" do
       it "returns product release notes in the given format" do
-        expect(reader.release_notes_for(product, format: :html))
-          .to eq("<h1>Release Notes</h1>\n")
+        rn = reader.release_notes_for(product, format: :html)
+        expect(rn.content).to eq("<h1>Release Notes</h1>\n")
+        expect(rn.format).to eq(:html)
       end
 
       context "and release notes are not available in the given format" do
         it "returns the english version" do
-          expect(reader.release_notes_for(product, lang: "de_DE", format: :html))
-            .to eq("<h1>Release Notes</h1>\n")
+          rn = reader.release_notes_for(product, user_lang: "de_DE", format: :html)
+          expect(rn.content).to eq("<h1>Release Notes</h1>\n")
+          expect(rn.format).to eq(:html)
         end
       end
     end
 
     context "when release notes are not available" do
       it "returns the english version" do
-        expect(reader.release_notes_for(product, lang: "es")).to eq("Release Notes\n")
+        rn = reader.release_notes_for(product, user_lang: "es")
+        expect(rn.content).to eq("Release Notes\n")
+        expect(rn.lang).to eq("en_US")
+        expect(rn.user_lang).to eq("es")
       end
     end
 
