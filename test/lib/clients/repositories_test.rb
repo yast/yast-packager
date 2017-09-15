@@ -61,7 +61,7 @@ describe Yast::RepositoriesClient do
     end
 
     context "url already used for repository" do
-      let (:url) { "http://pepa.suse.cz/repo1" }
+      let(:url) { "http://pepa.suse.cz/repo1" }
 
       before do
         client.instance_variable_set(:"@sourceStatesOut", [{ "SrcId" => "1" }])
@@ -69,7 +69,7 @@ describe Yast::RepositoriesClient do
 
       it "returns false if repository is multi product media" do
         allow(Yast::Pkg).to receive(:SourceGeneralData).with(1).and_return(
-          { "url" => url, "product_dir" => "/product1" }
+          "url" => url, "product_dir" => "/product1"
         )
 
         expect(client.url_occupied?(url)).to eq false
@@ -77,7 +77,7 @@ describe Yast::RepositoriesClient do
 
       it "returns true otherwise" do
         allow(Yast::Pkg).to receive(:SourceGeneralData).with(1).and_return(
-          { "url" => url, "product_dir" => "/" }
+          "url" => url, "product_dir" => "/"
         )
 
         expect(client.url_occupied?(url)).to eq true

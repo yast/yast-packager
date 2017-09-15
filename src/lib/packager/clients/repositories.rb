@@ -35,8 +35,6 @@ Yast.import "Progress"
 Yast.import "Directory"
 Yast.import "URL"
 
-
-
 module Yast
   # Interface for repository management
   class RepositoriesClient < Client
