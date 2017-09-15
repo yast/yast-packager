@@ -46,4 +46,42 @@ describe Yast::RepositoriesClient do
       end
     end
   end
+
+  describe "#url_occupied?" do
+    it "returns false for cd repository" do
+      expect(client.url_occupied?("cd://")).to eq false
+    end
+
+    it "returns false for dvd repository" do
+      expect(client.url_occupied?("dvd://")).to eq false
+    end
+
+    it "returns false when url is not yet used" do
+      expect(client.url_occupied?("http://pepa.suse.cz/repo1")).to eq false
+    end
+
+    context "url already used for repository" do
+      let (:url) { "http://pepa.suse.cz/repo1" }
+
+      before do
+        client.instance_variable_set(:"@sourceStatesOut", [{ "SrcId" => "1" }])
+      end
+
+      it "returns false if repository is multi product media" do
+        allow(Yast::Pkg).to receive(:SourceGeneralData).with(1).and_return(
+          { "url" => url, "product_dir" => "/product1" }
+        )
+
+        expect(client.url_occupied?(url)).to eq false
+      end
+
+      it "returns true otherwise" do
+        allow(Yast::Pkg).to receive(:SourceGeneralData).with(1).and_return(
+          { "url" => url, "product_dir" => "/" }
+        )
+
+        expect(client.url_occupied?(url)).to eq true
+      end
+    end
+  end
 end

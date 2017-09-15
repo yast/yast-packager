@@ -13,6 +13,30 @@
 #
 # ------------------------------------------------------------------------------
 
+Yast.import "Pkg"
+Yast.import "UI"
+
+Yast.import "Confirm"
+Yast.import "Mode"
+Yast.import "PackageCallbacks"
+Yast.import "PackageLock"
+Yast.import "Report"
+# SourceManager overlaps quite a bit with inst_source,
+# so far we only use it for ZMD sync, TODO refactor better
+Yast.import "SourceManager"
+Yast.import "SourceDialogs"
+Yast.import "Wizard"
+
+Yast.import "Label"
+Yast.import "Popup"
+Yast.import "Sequencer"
+Yast.import "CommandLine"
+Yast.import "Progress"
+Yast.import "Directory"
+Yast.import "URL"
+
+
+
 module Yast
   # Interface for repository management
   class RepositoriesClient < Client
@@ -22,28 +46,7 @@ module Yast
     NO_SERVICE_ITEM = :no_service_item
 
     def main
-      Yast.import "Pkg"
-      Yast.import "UI"
       textdomain "packager"
-
-      Yast.import "Confirm"
-      Yast.import "Mode"
-      Yast.import "PackageCallbacks"
-      Yast.import "PackageLock"
-      Yast.import "Report"
-      # SourceManager overlaps quite a bit with inst_source,
-      # so far we only use it for ZMD sync, TODO refactor better
-      Yast.import "SourceManager"
-      Yast.import "SourceDialogs"
-      Yast.import "Wizard"
-
-      Yast.import "Label"
-      Yast.import "Popup"
-      Yast.import "Sequencer"
-      Yast.import "CommandLine"
-      Yast.import "Progress"
-      Yast.import "Directory"
-      Yast.import "URL"
 
       Yast.include self, "packager/inst_source_dialogs.rb"
       Yast.include self, "packager/key_manager_dialogs.rb"
@@ -1426,7 +1429,7 @@ module Yast
       ret
     end
 
-    def KnownURL(url)
+    def url_occupied?(url)
       scheme = Builtins.tolower(Ops.get_string(URL.Parse(url), "scheme", ""))
 
       # alway create CD/DVD repository
@@ -1438,7 +1441,13 @@ module Yast
         src_id = Builtins.tointeger(Ops.get(src, "SrcId"))
         generalData = Pkg.SourceGeneralData(src_id)
         src_url = Ops.get_string(generalData, "url", "")
-        ret = true if src_url == url
+        multi_modules = ![nil, "", "/"].include?(generalData["product_dir"])
+        # for multi modules single url can be used for multi repositories, so
+        # so it is not occupied
+        if (src_url == url) && !multi_modules
+          ret = true
+          break
+        end
       end
 
       Builtins.y2milestone("URL exists: %1", ret)
@@ -1454,9 +1463,9 @@ module Yast
 
         if ret == :next
           url = SourceDialogs.GetURL
-          known_url = KnownURL(url)
+          occupied = url_occupied?(url)
 
-          if known_url
+          if occupied
             # popup question, %1 is repository URL
             if !Popup.AnyQuestion(
               "",
