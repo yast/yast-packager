@@ -45,6 +45,7 @@ module Yast
     # @param url [String] repository or service URL
     # @param plaindir [Boolean] true to use "PlainDir" format (no repository
     #   metadata present at the URL)
+    # @param download [Boolean] whether to refresh the repository or not
     # @param preffered_name [String] (optional) preferred repository name, use
     #   empty string "" to generate the name
     # @param force_alias [String] alias for the new repository, if a repository
@@ -85,23 +86,22 @@ module Yast
         return :ok
       end
 
-      found_products = scan_products(expanded_url)
+      found_products = scan_products(expanded_url, url)
       newSources = []
 
       enter_again = false
 
       # more products on the medium, let the user choose the products to install
+      # this code is not used in AutoYaST, but rather be on the safe side...
       if !Mode.auto && found_products.size > 1
         require "y2packager/dialogs/addon_selector"
         dialog = Y2Packager::Dialogs::AddonSelector.new(found_products)
+
         ui = dialog.run
-
-        # abort/cancel/back/... => do not continue
-        return :cancel unless ui == :next
-
         found_products = dialog.selected_products
-        # nothing selected
-        return :cancel if found_products.empty?
+
+        # nothing selected or pressed abort/cancel/close/back/...
+        return :cancel if found_products.empty? || ui != :next
       end
 
       found_products.each do |product|
@@ -335,7 +335,7 @@ module Yast
 
     # scan the repository URL and return the available products
     # @return [Array<Y2Packager::ProductLocation>] Found products
-    def scan_products(expanded_url)
+    def scan_products(expanded_url, original_url)
       new_repos = Pkg.RepositoryScan(expanded_url)
       found_products = new_repos.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
       log.info("Found products: #{found_products}")
@@ -343,7 +343,7 @@ module Yast
       # add at least one product if the scan result is empty (no product info available)
       # to try adding the repository at the root (/) of the medium
       if found_products.empty?
-        url_path = URL.Parse(url)["path"]
+        url_path = URL.Parse(original_url)["path"]
         p_elems = url_path.split("/")
 
         fallback = _("Repository")
