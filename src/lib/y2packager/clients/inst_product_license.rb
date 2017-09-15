@@ -17,13 +17,20 @@ require "y2packager/product"
 module Y2Packager
   module Clients
     # This client shows a license confirmation dialog for the base selected product
+    #
+    # The client will be skipped (returning `:auto`) in these situations:
+    #
+    # * There is no license available for the selected base product.
+    # * There is only 1 base product (not a multi-product media at all).  In
+    #   that case, the license is supposed to has been already accepted in the
+    #   welcome screen.
     class InstProductLicense
       include Yast::I18n
       include Yast::Logger
 
       def main
         textdomain "installation"
-        return :auto unless available_license?
+        return :auto unless multi_product_media? && available_license?
         Y2Packager::Dialogs::InstProductLicense.new(product).run
       end
 
