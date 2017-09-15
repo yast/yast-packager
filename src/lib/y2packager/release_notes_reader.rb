@@ -77,7 +77,6 @@ module Y2Packager
       ::FileUtils.rm_r(work_dir) if work_dir.directory?
     end
 
-    AVAILABLE_STATUSES = [:available, :selected].freeze
     # Return the release notes package for a given product
     #
     # This method queries libzypp asking for the package which contains release
@@ -95,8 +94,21 @@ module Y2Packager
         end
       end
       return nil if package_name.nil?
-      # FIXME: make sure we get the latest version
-      Y2Packager::Package.find(package_name).find { |s| AVAILABLE_STATUSES.include?(s.status) }
+
+      find_package(package_name)
+    end
+
+    AVAILABLE_STATUSES = [:available, :selected].freeze
+
+    # Find the latest available/selected package containing release notes
+    #
+    # @return [Package,nil] Package containing release notes; nil if not found
+    def find_package(name)
+      Y2Packager::Package
+        .find(name)
+        .select { |i| AVAILABLE_STATUSES.include?(i.status) }
+        .sort_by { |i| Gem::Version.new(i.version) }
+        .last
     end
 
     # Return release notes content for a package, language and format

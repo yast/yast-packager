@@ -9,7 +9,7 @@ describe Y2Packager::ReleaseNotesReader do
 
   let(:work_dir) { FIXTURES_PATH.join("release-notes") }
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
-  let(:package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.0") }
+  let(:package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.1") }
   let(:dependencies) do
     [
       { "deps" => [{ "provides" => "release-notes() = dummy" }] }
@@ -20,12 +20,15 @@ describe Y2Packager::ReleaseNotesReader do
     [["release-notes-dummy", :CAND, :NONE]]
   end
 
+  let(:packages) { [package] }
+
   before do
     allow(Yast::Pkg).to receive(:PkgQueryProvides).with("release-notes()")
       .and_return(provides)
     allow(Yast::Pkg).to receive(:ResolvableDependencies)
       .with("release-notes-dummy", :package, "").and_return(dependencies)
-    allow(Y2Packager::Package).to receive(:find).with(package.name).and_return([package])
+    allow(Y2Packager::Package).to receive(:find).with(package.name)
+      .and_return(packages)
     allow(package).to receive(:download_to) do |path|
       ::FileUtils.cp(FIXTURES_PATH.join("release-notes-dummy.rpm"), path)
     end
@@ -89,20 +92,34 @@ describe Y2Packager::ReleaseNotesReader do
       end
     end
 
-    context "when package could not be retrieved" do
-      before do
-        allow(package).to receive(:extract_to).and_return(false)
-      end
+    context "when no package containing release notes was found" do
+      let(:provides) { [] }
 
       it "returns nil" do
         expect(reader.release_notes_for(product)).to be_nil
       end
     end
 
-    context "when no package containing release notes was found" do
-      let(:provides) { [] }
+    context "when there is more than one package" do
+      let(:other_package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.0") }
+      let(:packages) { [other_package, package] }
 
-      it "returns nil" do
+      before do
+        allow(other_package).to receive(:status).and_return(:selected)
+      end
+
+      it "selects the latest one" do
+        rn = reader.release_notes_for(product)
+        expect(rn.version).to eq("15.1")
+      end
+    end
+
+    context "when release package is not available/selected" do
+      before do
+        allow(package).to receive(:status).and_return(:removed)
+      end
+
+      it "ignores the package" do
         expect(reader.release_notes_for(product)).to be_nil
       end
     end
