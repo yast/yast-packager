@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 15 08:05:17 UTC 2017 - jreidinger@suse.com
+
+- do not warn that url is already used for multi modules media
+ (fate#323450)
+- 4.0.2
+
+-------------------------------------------------------------------
 Thu Sep 14 14:30:50 UTC 2017 - jreidinger@suse.com
 
 - show product path in url for multi product media
