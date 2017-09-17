@@ -16,6 +16,10 @@ describe Y2Packager::ReleaseNotesReader do
     ]
   end
 
+  let(:release_notes_store) do
+    instance_double(Y2Packager::ReleaseNotesStore, clear: nil, retrieve: nil, store: nil)
+  end
+
   let(:provides) do
     [["release-notes-dummy", :CAND, :NONE]]
   end
@@ -33,7 +37,8 @@ describe Y2Packager::ReleaseNotesReader do
       ::FileUtils.cp(FIXTURES_PATH.join("release-notes-dummy.rpm"), path)
     end
     allow(package).to receive(:status).and_return(:available)
-    Y2Packager::ReleaseNotesStore.current.clear
+    allow(Y2Packager::ReleaseNotesStore).to receive(:current)
+      .and_return(release_notes_store)
   end
 
   describe "#release_notes_for" do
@@ -47,6 +52,30 @@ describe Y2Packager::ReleaseNotesReader do
     it "cleans up temporary files" do
       reader.release_notes_for(product)
       expect(File).to_not be_directory(work_dir)
+    end
+
+    it "stores the result for later retrieval" do
+      expect(release_notes_store).to receive(:store)
+        .with(Y2Packager::ReleaseNotes)
+      reader.release_notes_for(product)
+    end
+
+    context "when the release notes were already downloaded" do
+      let(:relnotes) { instance_double(Y2Packager::ReleaseNotes) }
+
+      before do
+        allow(release_notes_store).to receive(:retrieve)
+          .and_return(relnotes)
+      end
+
+      it "does not download them again" do
+        expect(reader.release_notes_for(product)).to eq(relnotes)
+      end
+
+      it "does not try to store the result" do
+        expect(release_notes_store).to_not receive(:store)
+        expect(reader.release_notes_for(product)).to eq(relnotes)
+      end
     end
 
     context "when a full language code is given (xx_XX)" do
@@ -97,6 +126,11 @@ describe Y2Packager::ReleaseNotesReader do
 
       it "returns nil" do
         expect(reader.release_notes_for(product)).to be_nil
+      end
+
+      it "does not try to store the result" do
+        expect(release_notes_store).to_not receive(:store)
+        reader.release_notes_for(product)
       end
     end
 
