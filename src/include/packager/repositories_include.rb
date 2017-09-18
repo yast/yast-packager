@@ -10,6 +10,9 @@ module Yast
     # constant Plaindir
     PLAINDIR_TYPE = "Plaindir".freeze
 
+    # shell unfriendly characters we want to remove from alias, so it is easier to use with zypper
+    SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`".freeze
+
     def initialize_packager_repositories_include(_include_target)
       Yast.import "Pkg"
       Yast.import "Stage"
@@ -37,9 +40,6 @@ module Yast
     def LicenseAccepted(id)
       AddOnProduct.AcceptedLicenseAndInfoFile(id)
     end
-
-    # shell unfriendly characters we want to remove from alias, so it is easier to use with zypper
-    SHELL_UNFRIENDLY = "()/!'\"*?;&|<>{}$#`".freeze
 
     # Create a new repository or service.
     # @param url [String] repository or service URL
@@ -206,10 +206,7 @@ module Yast
 
     # start createSource() function in extra wizard dialog
     def createSource(url, plaindir, download, preffered_name)
-      Wizard.CreateDialog
-      ret = createSourceImpl(url, plaindir, download, preffered_name, "")
-      Wizard.CloseDialog
-      ret
+      createSourceWithAlias(url, plaindir, download, preffered_name, "")
     end
 
     # create source with alias
@@ -364,6 +361,8 @@ module Yast
 
             url_path = fallback if url_path.nil? || url_path == ""
           end
+        elsif url_path == "/"
+          url_path = fallback
         end
 
         found_products << Y2Packager::ProductLocation.new(url_path, "/")
