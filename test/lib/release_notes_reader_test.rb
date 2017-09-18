@@ -5,9 +5,8 @@ require "y2packager/release_notes_reader"
 require "y2packager/product"
 
 describe Y2Packager::ReleaseNotesReader do
-  subject(:reader) { described_class.new(work_dir) }
+  subject(:reader) { described_class.new }
 
-  let(:work_dir) { FIXTURES_PATH.join("release-notes") }
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
   let(:package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.1") }
   let(:dependencies) do
@@ -50,8 +49,10 @@ describe Y2Packager::ReleaseNotesReader do
     end
 
     it "cleans up temporary files" do
+      dir = Dir.mktmpdir
+      allow(Dir).to receive(:mktmpdir).and_return(dir)
       reader.release_notes_for(product)
-      expect(File).to_not be_directory(work_dir)
+      expect(File).to_not be_directory(dir)
     end
 
     it "stores the result for later retrieval" do
@@ -157,9 +158,5 @@ describe Y2Packager::ReleaseNotesReader do
         expect(reader.release_notes_for(product)).to be_nil
       end
     end
-  end
-
-  after do
-    ::FileUtils.rm_rf(work_dir) if work_dir.exist?
   end
 end

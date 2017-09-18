@@ -16,7 +16,7 @@ require "y2packager/package"
 require "y2packager/release_notes_store"
 require "y2packager/release_notes"
 require "packages/package_downloader"
-require "pathname"
+require "tmpdir"
 
 Yast.import "Directory"
 Yast.import "Pkg"
@@ -33,16 +33,10 @@ module Y2Packager
   class ReleaseNotesReader
     include Yast::Logger
 
-    # @return [Pathname] Place to store all release notes.
-    attr_reader :work_dir
-
     # Constructor
     #
-    # @param work_dir [Pathname,nil] Temporal directory to work. If `nil` it will
-    #   use the default YaST temporary directory + "/release-notes".
     # @param release_notes_store [ReleaseNotesStore] Release notes store to cache data
-    def initialize(work_dir = nil, release_notes_store = nil)
-      @work_dir = work_dir || Pathname(Yast::Directory.tmpdir).join("release-notes")
+    def initialize(release_notes_store = nil)
       @release_notes_store = release_notes_store
     end
 
@@ -123,11 +117,14 @@ module Y2Packager
     # @return [Array<String,String>] Array containing content and language code
     # @see release_notes_file
     def release_notes_content(package, user_lang, format)
-      download_and_extract(package)
-      file, lang = release_notes_file(package, user_lang, format)
-      content = file ? [File.read(file), lang] : nil
-      cleanup
-      content
+      tmpdir = Dir.mktmpdir
+      begin
+        package.extract_to(tmpdir)
+        file, lang = release_notes_file(tmpdir, user_lang, format)
+        file ? [File.read(file), lang] : nil
+      ensure
+        FileUtils.remove_entry_secure(tmpdir)
+      end
     end
 
     FALLBACK_LANGS = ["en_US", "en"].freeze
@@ -137,32 +134,20 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param package   [String] Release notes package name
+    # @param directory [String] Directory where release notes were uncompressed
     # @param user_lang [String] Language code ("en_US", "en", etc.)
-    # @param format    [Symbol] Content format (:txt, :rtf, etc.).
+    # @param format    [Symbol] Content format (:txt, :rtf, etc.)
     # @return [Array<String,String>] Array containing path and language code
-    def release_notes_file(package, user_lang, format)
+    def release_notes_file(directory, user_lang, format)
       langs = [user_lang]
       langs << user_lang.split("_", 2).first if user_lang.include?("_")
       langs.concat(FALLBACK_LANGS)
 
       path = Dir.glob(
-        File.join(
-          release_notes_path(package), "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}"
-        )
+        File.join(directory, "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}")
       ).first
       return nil if path.nil?
       [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
-    end
-
-    # Download and extract package
-    #
-    # @return [Boolean]
-    def download_and_extract(package)
-      target = release_notes_path(package)
-      return true if ::File.directory?(target)
-      ::FileUtils.mkdir_p(target)
-      package.extract_to(target)
     end
 
     # Return the location of the extracted release notes package

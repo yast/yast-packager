@@ -14,6 +14,7 @@ require "yast"
 require "yast2/execute"
 require "packages/package_downloader"
 require "packages/package_extractor"
+require "tempfile"
 
 Yast.import "Pkg"
 
@@ -77,7 +78,7 @@ module Y2Packager
     # @param path [String,Pathname] Path to extract the package to
     # @see Packages::PackageExtractor
     def extract_to(directory)
-      tmpfile = Tempfile.new("downloaded-package-#{name}")
+      tmpfile = Tempfile.new("downloaded-package-#{name}-")
       download_to(tmpfile.path)
       extractor = Packages::PackageExtractor.new(tmpfile.path)
       extractor.extract(directory.to_s)
