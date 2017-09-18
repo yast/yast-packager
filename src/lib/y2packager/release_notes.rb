@@ -18,7 +18,7 @@ module Y2Packager
   # This class stores the content and some additional metadata about release
   # notes for a given product.
   class ReleaseNotes
-    # @return [String] Product name
+    # @return [String] Product name (internal libzypp name)
     attr_reader :product_name
     # @return [String] Release notes content
     attr_reader :content
@@ -33,7 +33,7 @@ module Y2Packager
 
     # Constructor
     #
-    # @param product_name [String] Product's name
+    # @param product_name [String] Product name (internal libzypp name)
     # @param content      [String] Release notes content
     # @param user_lang    [String] Language asked by user
     # @param lang         [String] Contents language

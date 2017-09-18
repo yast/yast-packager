@@ -41,7 +41,7 @@ describe Y2Packager::ReleaseNotesReader do
   end
 
   describe "#release_notes_for" do
-    it "returns product release notes in english" do
+    it "returns product release notes in English" do
       rn = reader.release_notes_for(product)
       expect(rn.content).to eq("Release Notes\n")
       expect(rn.lang).to eq("en_US")
@@ -105,7 +105,7 @@ describe Y2Packager::ReleaseNotesReader do
       end
 
       context "and release notes are not available in the given format" do
-        it "returns the english version" do
+        it "returns the English version" do
           rn = reader.release_notes_for(product, user_lang: "de_DE", format: :html)
           expect(rn.content).to eq("<h1>Release Notes</h1>\n")
           expect(rn.format).to eq(:html)
@@ -114,7 +114,7 @@ describe Y2Packager::ReleaseNotesReader do
     end
 
     context "when release notes are not available" do
-      it "returns the english version" do
+      it "returns the English version" do
         rn = reader.release_notes_for(product, user_lang: "es")
         expect(rn.content).to eq("Release Notes\n")
         expect(rn.lang).to eq("en_US")
