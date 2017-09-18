@@ -11,7 +11,7 @@ module Yast
     include Yast::Logger
 
     DOWNLOAD_URL_SCHEMA = ["http", "https", "ftp"].freeze
-    INFO_FILE = "/README.BETA".freeze
+    README_BETA = "/README.BETA".freeze
 
     def main
       Yast.import "Pkg"
@@ -72,12 +72,12 @@ module Yast
 
       @tmpdir = nil
       @license_dir = nil
-      @info_file = nil
+      @beta_file = nil
 
       @lic_lang = ""
 
       # FIXME: map <string, boolean> ...
-      @info_file_already_seen = {}
+      @beta_file_already_seen = {}
     end
 
     # Returns whether accepting the license manually is requied.
@@ -229,8 +229,8 @@ module Yast
 
       update_license_archive_location(src_id) if src_id
 
-      # Display info as a popup if exists
-      InstShowInfo.show_info_txt(@info_file) if !@info_file.nil?
+      # Display beta file as a popup if exists
+      InstShowInfo.show_info_txt(@beta_file) if !@beta_file.nil?
 
       # initial loop
       licenses_ref = arg_ref(licenses)
@@ -359,8 +359,8 @@ module Yast
         else
           contents = Builtins.add(contents, license_term)
         end
-        # Display info as a popup if exists
-        InstShowInfo.show_info_txt(@info_file) if !@info_file.nil?
+        # Display beta file as a popup if exists
+        InstShowInfo.show_info_txt(@beta_file) if !@beta_file.nil?
         Ops.set(licenses, counter, tmp_licenses)
       end
 
@@ -530,7 +530,7 @@ module Yast
       )
       UI.ReplaceWidget(Id(replace_point_ID), rt)
 
-      display_info(src_id) if @info_file && !info_seen?(src_id)
+      display_beta(src_id) if @beta_file && !beta_seen?(src_id)
 
       CleanUp()
 
@@ -632,13 +632,13 @@ module Yast
       nil
     end
 
-    # Display info as a popup if exists
-    def display_info(id)
+    # Display beta file as a popup if exists
+    def display_beta(id)
       if Mode.autoinst
-        Builtins.y2milestone("Autoinstallation: Skipping info file...")
+        Builtins.y2milestone("Autoinstallation: Skipping beta file...")
       else
-        InstShowInfo.show_info_txt(@info_file)
-        info_seen!(id)
+        InstShowInfo.show_info_txt(@beta_file)
+        beta_seen!(id)
       end
     end
 
@@ -1106,7 +1106,7 @@ module Yast
         Builtins.y2milestone("Installation Product doesn't have a license")
       end
 
-      @info_file = INFO_FILE if FileUtils.Exists(INFO_FILE)
+      @beta_file = README_BETA if FileUtils.Exists(README_BETA)
 
       nil
     end
@@ -1118,7 +1118,7 @@ module Yast
       license_locations = ["/usr/share/doc/licenses/", "/"]
 
       @license_dir = nil
-      @info_file = nil
+      @beta_file = nil
 
       Builtins.foreach(license_locations) do |license_location|
         license_location = Builtins.sformat(
@@ -1146,17 +1146,17 @@ module Yast
         Builtins.y2milestone("No license found in: %1", license_locations)
       end
 
-      Builtins.foreach(license_locations) do |info_location|
-        info_location += INFO_FILE
-        if FileUtils.Exists(info_location)
-          Builtins.y2milestone("Using info file: %1", info_location)
-          @info_file = info_location
+      Builtins.foreach(license_locations) do |beta_location|
+        beta_location += README_BETA
+        if FileUtils.Exists(beta_location)
+          Builtins.y2milestone("Using beta file: %1", beta_location)
+          @beta_file = beta_location
           raise Break
         end
       end
 
-      if @info_file.nil?
-        Builtins.y2milestone("No info file found in: %1", license_locations)
+      if @beta_file.nil?
+        Builtins.y2milestone("No beta file found in: %1", license_locations)
       end
 
       nil
@@ -1174,18 +1174,18 @@ module Yast
         @license_dir = nil
       end
 
-      @info_file = INFO_FILE if FileUtils.Exists(INFO_FILE)
+      @beta_file = README_BETA if FileUtils.Exists(README_BETA)
 
       nil
     end
 
     def SearchForLicense_AddOnProduct(src_id, _fallback_dir)
-      Builtins.y2milestone("Getting license info from repository %1", src_id)
+      Builtins.y2milestone("Getting license beta from repository %1", src_id)
 
-      @info_file = Pkg.SourceProvideOptionalFile(
+      @beta_file = Pkg.SourceProvideOptionalFile(
         src_id, # optional
         1,
-        INFO_FILE
+        README_BETA
       )
 
       # using a separate license directory for all products
@@ -1317,13 +1317,13 @@ module Yast
       end
 
       Builtins.y2milestone(
-        "ProductLicense settings: license_dir: %1, tmpdir: %2, info_file: %3",
+        "ProductLicense settings: license_dir: %1, tmpdir: %2, beta_file: %3",
         @license_dir,
         @tmpdir,
-        @info_file
+        @beta_file
       )
 
-      display_info(src_id) if @info_file && !info_seen?(src_id)
+      display_beta(src_id) if @beta_file && !beta_seen?(src_id)
 
       nil
     end
@@ -1351,7 +1351,7 @@ module Yast
       # all other 'licenses' could be replaced by this one
       Ops.set(@all_licenses, id, licenses.value)
 
-      return :auto if @info_file.nil? && Builtins.size(licenses.value).zero?
+      return :auto if @beta_file.nil? && Builtins.size(licenses.value).zero?
 
       # Let's do getenv here. Language::language may not be initialized
       # by now (see bnc#504803, c#28). Language::Language does only
@@ -1615,14 +1615,14 @@ module Yast
       ret
     end
 
-    # Check if installation info had been seen to given ID
-    def info_seen?(id)
-      @info_file_already_seen.fetch(id, false)
+    # Check if installation beta file had been seen to given ID
+    def beta_seen?(id)
+      @beta_file_already_seen.fetch(id, false)
     end
 
     # Mark given id as seen
-    def info_seen!(id)
-      @info_file_already_seen[id] = true
+    def beta_seen!(id)
+      @beta_file_already_seen[id] = true
     end
   end
 
