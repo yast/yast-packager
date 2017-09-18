@@ -2438,6 +2438,7 @@ module Yast
     publish function: :log_software_selection, type: "void ()"
     publish function: :vnc_packages, type: "list <string> ()"
     publish function: :remote_x11_packages, type: "list <string> ()"
+    publish variable: :init_called, type: "boolean"
 
   private
 
