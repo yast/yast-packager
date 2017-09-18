@@ -1,8 +1,30 @@
 -------------------------------------------------------------------
-Wed Sep 13 14:23:40 UTC 2017 - igonzalezsosa@suse.com
+Mon Sep 18 06:57:40 UTC 2017 - igonzalezsosa@suse.com
 
 - Add support to read release notes from an RPM in the
   repository (fate#323273)
+- 4.0.4
+
+-------------------------------------------------------------------
+Fri Sep 15 08:27:49 UTC 2017 - igonzalezsosa@suse.com
+
+- Do not show license agreement twice for multi product media
+  (bsc#1058503)
+- 4.0.3
+
+-------------------------------------------------------------------
+Fri Sep 15 08:05:17 UTC 2017 - jreidinger@suse.com
+
+- do not warn that url is already used for multi modules media
+ (fate#323450)
+- 4.0.2
+
+-------------------------------------------------------------------
+Thu Sep 14 14:30:50 UTC 2017 - jreidinger@suse.com
+
+- show product path in url for multi product media
+- for multi product media add product path to repository name
+  (fate#323450)
 - 4.0.1
 
 -------------------------------------------------------------------

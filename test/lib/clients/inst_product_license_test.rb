@@ -71,6 +71,14 @@ describe Y2Packager::Clients::InstProductLicense do
       end
     end
 
+    context "when only one base product is found" do
+      let(:products) { [product] }
+
+      it "returns :auto" do
+        expect(client.main).to eq(:auto)
+      end
+    end
+
     context "when no license is found for the selected base product" do
       let(:license?) { false }
 
