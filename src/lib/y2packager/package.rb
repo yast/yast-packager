@@ -25,18 +25,19 @@ module Y2Packager
   class Package
     include Yast::Logger
 
-    # @return [String] Package's name
+    # @return [String] Package name
     attr_reader :name
     # @return [Integer] Id of the repository where the package lives
     attr_reader :repo_id
-    # @return [Symbol] Package's version
+    # @return [String] Package version
     attr_reader :version
 
     class << self
       # Find packages by name
       #
       # @param name [String] Package name
-      # @return [Array<Package>] Packages named like `name`
+      # @return [Array<Package>,nil] Packages named like `name`. It returns `nil`
+      #   if some problem occurs interacting with libzypp.
       def find(name)
         props = Yast::Pkg.ResolvableProperties(name, :package, "")
         return nil if props.nil?
@@ -48,6 +49,7 @@ module Y2Packager
     #
     # @param name    [String]  Package name
     # @param repo_id [Integer] Repository ID
+    # @param version [String]  Package version
     def initialize(name, repo_id, version)
       @name = name
       @repo_id = repo_id
@@ -56,7 +58,7 @@ module Y2Packager
 
     # Return package status
     #
-    # Asks libzypp about package status.
+    # Ask libzypp about package status.
     #
     # @return [Symbol] Package status (:installed, :available, etc.)
     # @see Yast::Pkg.PkgProperties

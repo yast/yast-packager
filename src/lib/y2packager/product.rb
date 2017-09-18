@@ -61,7 +61,7 @@ module Y2Packager
 
       # Returns the selected base product
       #
-      # It assumes that at most 1 product could be selected.
+      # It assumes that at most 1 base product can be selected.
       #
       # @return [Product] Selected base product
       def selected_base
@@ -209,8 +209,8 @@ module Y2Packager
 
     # Return product's release notes
     #
-    # @param format     [Symbol] Release notes format (:txt, :rtf, etc.)
-    # @return user_lang [String] Preferred language (fallback to english)
+    # @param format     [Symbol] Release notes format (use :txt as default)
+    # @return user_lang [String] Preferred language (use current language as default)
     # @return [ReleaseNotes] Release notes for product, language and format
     # @see ReleaseNotesReader
     # @see ReleaseNotes

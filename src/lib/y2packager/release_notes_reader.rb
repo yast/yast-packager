@@ -87,6 +87,7 @@ module Y2Packager
       find_package(package_name)
     end
 
+    # Valid statuses for packages containing release notes
     AVAILABLE_STATUSES = [:available, :selected].freeze
 
     # Find the latest available/selected package containing release notes
@@ -143,14 +144,6 @@ module Y2Packager
       ).first
       return nil if path.nil?
       [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
-    end
-
-    # Return the location of the extracted release notes package
-    #
-    # @param [Package] Release notes package
-    # @return [String] Path to extracted release notes
-    def release_notes_path(package)
-      work_dir.join(package.name)
     end
 
     # Return release notes instance

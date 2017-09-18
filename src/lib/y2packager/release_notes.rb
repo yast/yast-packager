@@ -18,7 +18,7 @@ module Y2Packager
   # This class stores the content and some additional metadata about release
   # notes for a given product.
   class ReleaseNotes
-    # @return [String] Product's name
+    # @return [String] Product name
     attr_reader :product_name
     # @return [String] Release notes content
     attr_reader :content
@@ -48,7 +48,7 @@ module Y2Packager
       @format = format
     end
 
-    # Determines whether a release notes matches language, format and version requirements
+    # Determine whether a release notes matches language, format and version requirements
     #
     # @param user_lang    [String] Language asked by user
     # @param format       [Symbol] Symbol
