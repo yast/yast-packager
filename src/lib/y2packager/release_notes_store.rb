@@ -29,10 +29,10 @@ module Y2Packager
 
     # Retrieve release notes for a given product, lang, format and version
     #
-    # @param product_name [String] Product's name
+    # @param product_name [String] Product name
     # @param user_lang    [String] Language asked by user
     # @param format       [Symbol] Symbol
-    # @param version      [String] Release note's version
+    # @param version      [String,Symbol] Release note version (or :latest)
     # @return [ReleaseNotes] Release notes matching given criteria
     def retrieve(product_name, user_lang, format, version)
       rn = release_notes[product_name]
