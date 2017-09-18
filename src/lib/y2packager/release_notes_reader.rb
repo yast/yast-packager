@@ -66,11 +66,6 @@ module Y2Packager
 
   private
 
-    # Clean-up working directory
-    def cleanup
-      ::FileUtils.rm_r(work_dir) if work_dir.directory?
-    end
-
     # Return the release notes package for a given product
     #
     # This method queries libzypp asking for the package which contains release
