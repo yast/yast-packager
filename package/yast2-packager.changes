@@ -1,8 +1,15 @@
 -------------------------------------------------------------------
-Mon Sep 18 06:57:40 UTC 2017 - igonzalezsosa@suse.com
+Mon Sep 18 08:32:16 UTC 2017 - igonzalezsosa@suse.com
 
 - Add support to read release notes from an RPM in the
   repository (fate#323273)
+- 4.0.5
+
+-------------------------------------------------------------------
+Mon Sep 18 07:55:11 UTC 2017 - knut.anderssen@suse.com
+
+- Display beta info even if the license is not present
+  (bsc#1047060).
 - 4.0.4
 
 -------------------------------------------------------------------
