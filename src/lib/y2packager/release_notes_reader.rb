@@ -54,13 +54,24 @@ module Y2Packager
     #   (no package providing release notes or notes not found in the package)
     def release_notes_for(product, user_lang: "en_US", format: :txt)
       package = release_notes_package_for(product)
-      return nil if package.nil?
+      if package.nil?
+        log.info "No package containing release notes for #{product.name} was found"
+        return nil
+      end
 
       from_store = release_notes_store.retrieve(product.name, user_lang, format, package.version)
-      return from_store if from_store
+      if from_store
+        log.info "Release notes for #{product.name} were found in the cache"
+        return from_store
+      end
 
       release_notes = build_release_notes(product, package, user_lang, format)
-      release_notes_store.store(release_notes) if release_notes
+      if release_notes
+        log.info "Release notes for #{product.name} were found"
+        release_notes_store.store(release_notes)
+      else
+        log.warn "No release notes for #{product.name} were found in #{package.name}"
+      end
       release_notes
     end
 
