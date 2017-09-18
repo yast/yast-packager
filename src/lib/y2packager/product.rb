@@ -13,6 +13,7 @@
 Yast.import "Pkg"
 Yast.import "Language"
 require "y2packager/product_reader"
+require "y2packager/release_notes_reader"
 
 module Y2Packager
   # Represent a product which is present in a repository. At this
@@ -43,17 +44,37 @@ module Y2Packager
     # @return [String] package including installation.xml for install on top of lean os
     attr_reader :installation_package
 
-    def self.available_base_products
-      Y2Packager::ProductReader.available_base_products
-    end
+    class << self
+      # Return all known products
+      #
+      # @return [Array<Product>] Known products
+      def all
+        Y2Packager::ProductReader.new.all_products
+      end
 
-    # Returns the selected base product
-    #
-    # It assumes that at most 1 product could be selected.
-    #
-    # @return [Y2Packager::Product] Selected base product
-    def self.selected_base
-      available_base_products.find(&:selected?)
+      # Return available base products
+      #
+      # @return [Array<Product>] Available base products
+      def available_base_products
+        Y2Packager::ProductReader.new.available_base_products
+      end
+
+      # Returns the selected base product
+      #
+      # It assumes that at most 1 base product can be selected.
+      #
+      # @return [Product] Selected base product
+      def selected_base
+        available_base_products.find(&:selected?)
+      end
+
+      # Return the products with a given status
+      #
+      # @param statuses [Array<Product>] Product status (:available, :installed, :selected, etc.)
+      # @return [Array<Product>] Products with the given status
+      def with_status(*statuses)
+        all.select { |s| statuses.include?(s.status) }
+      end
     end
 
     # Constructor
@@ -184,6 +205,17 @@ module Y2Packager
     # @return [Boolean] true if the license was confirmed (or acceptance was not needed)
     def license_confirmed?
       Yast::Pkg.PrdHasLicenseConfirmed(name)
+    end
+
+    # Return product's release notes
+    #
+    # @param format     [Symbol] Release notes format (use :txt as default)
+    # @return user_lang [String] Preferred language (use current language as default)
+    # @return [ReleaseNotes] Release notes for product, language and format
+    # @see ReleaseNotesReader
+    # @see ReleaseNotes
+    def release_notes(format = :txt, user_lang = Yast::Language.language)
+      ReleaseNotesReader.new.release_notes_for(self, user_lang: user_lang, format: format)
     end
   end
 end

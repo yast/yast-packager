@@ -16,7 +16,7 @@ require_relative "test_helper"
 require "y2packager/product_reader"
 
 describe Y2Packager::ProductReader do
-  subject { Y2Packager::ProductReader }
+  subject { Y2Packager::ProductReader.new }
   let(:products) { YAML.load(File.read(FIXTURES_PATH.join("products-sles15.yml"))) }
   let(:installation_package_map) { { "SLES" => "skelcd-SLES" } }
 
@@ -84,6 +84,19 @@ describe Y2Packager::ProductReader do
           expect(subject.available_base_products).to be_empty
         end
       end
+    end
+  end
+
+  describe "#products" do
+    before do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(products)
+      allow(Yast::Pkg).to receive(:PkgQueryProvides).with("system-installation()")
+        .and_return([])
+    end
+
+    it "returns available products" do
+      expect(subject.all_products.size).to eq(1)
     end
   end
 end
