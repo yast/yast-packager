@@ -24,6 +24,17 @@ describe Y2Packager::ReleaseNotesReader do
     )
   end
 
+  let(:relnotes_from_url) do
+    Y2Packager::ReleaseNotes.new(
+      product_name: product.name,
+      content:      "Release Notes\n",
+      user_lang:    "en_US",
+      lang:         "en_US",
+      format:       :txt,
+      version:      :latest
+    )
+  end
+
   let(:rpm_reader) do
     instance_double(
       Y2Packager::ReleaseNotesRpmReader,
@@ -36,7 +47,7 @@ describe Y2Packager::ReleaseNotesReader do
     instance_double(
       Y2Packager::ReleaseNotesRpmReader,
       latest_version: :latest,
-      release_notes:  release_notes
+      release_notes:  relnotes_from_url
     )
   end
 
@@ -50,42 +61,64 @@ describe Y2Packager::ReleaseNotesReader do
   end
 
   describe "#release_notes" do
+    let(:registered?) { true }
+
     before do
-      allow(reader).to receive(:registered?).and_return(true)
+      stub_const("Yast::Registration", double("Yast::Registration", is_registered?: registered?))
+      allow(Yast).to receive(:import).and_call_original
+      allow(Yast).to receive(:import).with("Registration")
     end
 
     context "when system is registered" do
+      let(:registered) { true }
+
       it "retrieves release notes from RPM packages" do
-        expect(Y2Packager::ReleaseNotesRpmReader).to receive(:new)
-          .with(product).and_return(rpm_reader)
-        expect(rpm_reader).to receive(:latest_version).and_return("15.0")
         rn = reader.release_notes(user_lang: "en_US", format: :txt)
         expect(rn).to eq(release_notes)
       end
 
       context "when release notes are not found" do
+        let(:release_notes) { nil }
+
         it "tries to get release notes from the relnotes_url property" do
-          expect(Y2Packager::ReleaseNotesUrlReader).to receive(:new)
-            .with(product).and_return(url_reader)
+          rn = reader.release_notes(user_lang: "en_US", format: :txt)
+          expect(rn).to eq(relnotes_from_url)
+        end
+      end
+    end
+
+    context "when system is not registered" do
+      let(:registered?) { false }
+
+      it "retrieves release notes from external sources" do
+        rn = reader.release_notes(user_lang: "en_US", format: :txt)
+        expect(rn).to eq(relnotes_from_url)
+      end
+
+      context "when release notes are not found" do
+        let(:relnotes_from_url) { nil }
+
+        it "tries to get release notes from RPM packages" do
           rn = reader.release_notes(user_lang: "en_US", format: :txt)
           expect(rn).to eq(release_notes)
         end
       end
     end
 
-    context "when system is not registered" do
+    context "when no registration support is available" do
+      before do
+        allow(Yast).to receive(:import).with("Registration").and_raise(NameError)
+      end
+
       it "retrieves release notes from external sources" do
-        expect(Y2Packager::ReleaseNotesUrlReader).to receive(:new)
-          .with(product).and_return(url_reader)
         rn = reader.release_notes(user_lang: "en_US", format: :txt)
-        expect(rn).to eq(release_notes)
+        expect(rn).to eq(relnotes_from_url)
       end
 
       context "when release notes are not found" do
+        let(:relnotes_from_url) { nil }
+
         it "tries to get release notes from RPM packages" do
-          expect(Y2Packager::ReleaseNotesRpmReader).to receive(:new)
-            .with(product).and_return(rpm_reader)
-          expect(rpm_reader).to receive(:latest_version).and_return("15.0")
           rn = reader.release_notes(user_lang: "en_US", format: :txt)
           expect(rn).to eq(release_notes)
         end
