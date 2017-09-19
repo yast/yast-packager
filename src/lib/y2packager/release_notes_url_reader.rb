@@ -194,14 +194,17 @@ module Y2Packager
       return nil unless release_notes_index.empty? || indexed_release_notes_for?(lang, format)
 
       # Where we want to store the downloaded release notes
-      filename = Yast::Builtins.sformat(
-        "%1/relnotes", Yast::SCR.Read(Yast::Path.new(".target.tmpdir"))
-      )
+      tmpfile = Tempfile.new("relnotes-")
 
-      return nil unless curl_download(release_notes_file_url(lang, format), filename)
+      return nil unless curl_download(release_notes_file_url(lang, format), tmpfile.path)
 
       log.info("Release notes downloaded successfully")
-      Yast::SCR.Read(Yast::Path.new(".target.string"), filename)
+      File.read(tmpfile.path)
+    ensure
+      if tmpfile
+        tmpfile.close
+        tmpfile.unlink
+      end
     end
 
     # Determine whether the relnotes URL is valid
@@ -308,15 +311,14 @@ module Y2Packager
     def download_release_notes_index(url_base)
       url_index = url_base + "/directory.yast"
       log.info("Index with available files: #{url_index}")
-      filename = Yast::Builtins.sformat(
-        "%1/directory.yast", Yast::SCR.Read(Yast::Path.new(".target.tmpdir"))
-      )
+      tmpfile = Tempfile.new("directory.yast-")
+
       # download the index with much shorter time-out
-      ok = curl_download(url_index, filename, max_time: 30)
+      ok = curl_download(url_index, tmpfile.path, max_time: 30)
 
       if ok
         log.info("Release notes index downloaded successfully")
-        index_file = File.read(filename)
+        index_file = File.read(tmpfile.path)
         if index_file.nil? || index_file.empty?
           log.info("Release notes index empty, not filtering further downloads")
           nil
@@ -331,6 +333,9 @@ module Y2Packager
         log.info "Downloading index failed, trying all files according to selected language"
         nil
       end
+    ensure
+      tmpfile.close
+      tmpfile.unlink
     end
 
     # Download *url* to *filename*

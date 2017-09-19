@@ -9,22 +9,28 @@ describe Y2Packager::ReleaseNotesUrlReader do
 
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
   let(:relnotes_url) { "http://doc.opensuse.org/openSUSE/release-notes-openSUSE.rpm" }
+  let(:content) { "Release Notes\n" }
   let(:language) { double("Yast::Language", language: "de_DE") }
   let(:curl_retcode) { 0 }
+  let(:relnotes_tmpfile) do
+    instance_double(Tempfile, path: "/tmp/relnotes", close: nil, unlink: nil)
+  end
+  let(:index_tmpfile) do
+    instance_double(Tempfile, path: "/tmp/directory.yast", close: nil, unlink: nil)
+  end
 
   before do
     allow(Yast::Pkg).to receive(:ResolvableProperties)
       .with(product.name, :product, "").and_return(["relnotes_url" => relnotes_url])
-    allow(Yast::SCR).to receive(:Read).with(Yast::Path.new(".target.tmpdir"))
-      .and_return("/tmp")
-    allow(Yast::SCR).to receive(:Read).with(Yast::Path.new(".target.string"), /relnotes/)
-      .and_return("Release Notes\n")
+    allow(File).to receive(:read).with(/relnotes/).and_return(content)
     allow(Yast::SCR).to receive(:Execute)
       .with(Yast::Path.new(".target.bash"), /curl.*directory.yast/)
       .and_return(1)
     allow(Yast::SCR).to receive(:Execute)
       .with(Yast::Path.new(".target.bash"), /curl.*RELEASE-NOTES/)
       .and_return(curl_retcode)
+    allow(Tempfile).to receive(:new).with(/relnotes/).and_return(relnotes_tmpfile)
+    allow(Tempfile).to receive(:new).with(/directory.yast/).and_return(index_tmpfile)
     described_class.clear_blacklist
     described_class.enable!
 
@@ -41,12 +47,11 @@ describe Y2Packager::ReleaseNotesUrlReader do
       cmd = %r{curl.*'http://doc.opensuse.org/openSUSE/RELEASE-NOTES.de_DE.txt'}
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
         .and_return(0)
-      expect(Yast::SCR).to receive(:Read).with(Yast::Path.new(".target.string"), /relnotes/)
-        .and_return("Release Notes\n")
+      expect(File).to receive(:read).with(/relnotes/).and_return(content)
       rn = reader.release_notes(user_lang: "de_DE", format: :txt)
 
       expect(rn.product_name).to eq("dummy")
-      expect(rn.content).to eq("Release Notes\n")
+      expect(rn.content).to eq(content)
       expect(rn.user_lang).to eq("de_DE")
       expect(rn.format).to eq(:txt)
       expect(rn.version).to eq(:latest)
