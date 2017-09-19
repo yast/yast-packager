@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 18 14:02:10 UTC 2017 - lslezak@suse.cz
+
+- Display a product selection dialog when the add-on medium
+  contains multiple products (fate#323886)
+- 4.0.6
+
+-------------------------------------------------------------------
 Mon Sep 18 08:32:16 UTC 2017 - igonzalezsosa@suse.com
 
 - Add support to read release notes from an RPM in the
