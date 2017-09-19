@@ -48,18 +48,18 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param user_lang [String] Release notes language (falling back to "en_US"
-    #                           and "en")
-    # @param format    [Symbol] Release notes format (:txt or :rtf)
+    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
+    # @param format        [Symbol] Release notes format (:txt or :rtf)
+    # @param fallback_lang [String] Release notes fallback language
     # @return [String,nil] Release notes or nil if a release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes(user_lang: "en_US", format: :txt)
+    def release_notes(user_lang: "en_US", format: :txt, fallback_lang: "en")
       if release_notes_package.nil?
         log.info "No package containing release notes for #{product.name} was found"
         return nil
       end
 
-      extract_release_notes(user_lang, format)
+      extract_release_notes(user_lang, format, fallback_lang)
     end
 
     # Return release notes latest version
@@ -107,60 +107,19 @@ module Y2Packager
         .last
     end
 
-    # Return release notes content for a package, language and format
-    #
-    # Release notes are downloaded and extracted to work directory.  When
-    # release notes for a language "xx_XX" are not found, it will fallback to
-    # "xx".
-    #
-    # @param package   [String] Release notes package name
-    # @param user_lang [String] Language code ("en_US", "en", etc.)
-    # @param format    [Symbol] Content format (:txt, :rtf, etc.).
-    # @return [Array<String,String>] Array containing content and language code
-    # @see release_notes_file
-    def release_notes_content(package, user_lang, format)
-      tmpdir = Dir.mktmpdir
-      begin
-        package.extract_to(tmpdir)
-        file, lang = release_notes_file(tmpdir, user_lang, format)
-        file ? [File.read(file), lang] : nil
-      ensure
-        FileUtils.remove_entry_secure(tmpdir)
-      end
-    end
-
-    FALLBACK_LANGS = ["en_US", "en"].freeze
-    # Return release notes file path for a given package, language and format
-    #
-    # Release notes are downloaded and extracted to work directory.  When
-    # release notes for a language "xx_XX" are not found, it will fallback to
-    # "xx".
-    #
-    # @param directory [String] Directory where release notes were uncompressed
-    # @param user_lang [String] Language code ("en_US", "en", etc.)
-    # @param format    [Symbol] Content format (:txt, :rtf, etc.)
-    # @return [Array<String,String>] Array containing path and language code
-    def release_notes_file(directory, user_lang, format)
-      langs = [user_lang]
-      langs << user_lang.split("_", 2).first if user_lang.include?("_")
-      langs.concat(FALLBACK_LANGS)
-
-      path = Dir.glob(
-        File.join(directory, "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}")
-      ).first
-      return nil if path.nil?
-      [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
-    end
-
     # Return release notes instance
     #
-    # @param package   [Package] Package containing release notes
-    # @param user_lang [String]  User preferred language
-    # @param format    [Symbol]  Release notes format
+    # @param package       [Package] Package containing release notes
+    # @param user_lang     [String]  User preferred language (falling back to fallback_lang)
+    # @param format        [Symbol]  Release notes format
+    # @param fallback_lang [String]  Release notes fallback language
     # @return [ReleaseNotes] Release notes for given arguments
-    def extract_release_notes(user_lang, format)
-      content, lang = release_notes_content(release_notes_package, user_lang, format)
+    def extract_release_notes(user_lang, format, fallback_lang)
+      content, lang = release_notes_content(
+        release_notes_package, user_lang, format, fallback_lang
+      )
       return nil if content.nil?
+
       Y2Packager::ReleaseNotes.new(
         product_name: product.name,
         content:      content,
@@ -169,6 +128,52 @@ module Y2Packager
         format:       format,
         version:      release_notes_package.version
       )
+    end
+
+    # Return release notes content for a package, language and format
+    #
+    # Release notes are downloaded and extracted to work directory.  When
+    # release notes for a language "xx_XX" are not found, it will fallback to
+    # "xx".
+    #
+    # @param package       [String] Release notes package name
+    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
+    # @param format        [Symbol] Content format (:txt, :rtf, etc.).
+    # @param fallback_lang [String] Release notes fallback language
+    # @return [Array<String,String>] Array containing content and language code
+    # @see release_notes_file
+    def release_notes_content(package, user_lang, format, fallback_lang)
+      tmpdir = Dir.mktmpdir
+      begin
+        package.extract_to(tmpdir)
+        file, lang = release_notes_file(tmpdir, user_lang, format, fallback_lang)
+        file ? [File.read(file), lang] : nil
+      ensure
+        FileUtils.remove_entry_secure(tmpdir)
+      end
+    end
+
+    # Return release notes file path for a given package, language and format
+    #
+    # Release notes are downloaded and extracted to work directory.  When
+    # release notes for a language "xx_XX" are not found, it will fallback to
+    # "xx".
+    #
+    # @param directory     [String] Directory where release notes were uncompressed
+    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
+    # @param format        [Symbol] Content format (:txt, :rtf, etc.)
+    # @param fallback_lang [String] Release notes fallback language
+    # @return [Array<String,String>] Array containing path and language code
+    def release_notes_file(directory, user_lang, format, fallback_lang)
+      langs = [user_lang]
+      langs << user_lang.split("_", 2).first if user_lang.include?("_")
+      langs << fallback_lang
+
+      path = Dir.glob(
+        File.join(directory, "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}")
+      ).first
+      return nil if path.nil?
+      [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
     end
   end
 end

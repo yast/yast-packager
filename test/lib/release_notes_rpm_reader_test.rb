@@ -38,7 +38,7 @@ describe Y2Packager::ReleaseNotesRpmReader do
     it "returns product release notes in English" do
       rn = reader.release_notes
       expect(rn.content).to eq("Release Notes\n")
-      expect(rn.lang).to eq("en_US")
+      expect(rn.lang).to eq("en")
       expect(rn.user_lang).to eq("en_US")
     end
 
@@ -53,7 +53,7 @@ describe Y2Packager::ReleaseNotesRpmReader do
       it "returns product release notes for the given language" do
         rn = reader.release_notes(user_lang: "en_US")
         expect(rn.content).to eq("Release Notes\n")
-        expect(rn.lang).to eq("en_US")
+        expect(rn.lang).to eq("en")
         expect(rn.user_lang).to eq("en_US")
       end
 
@@ -87,7 +87,7 @@ describe Y2Packager::ReleaseNotesRpmReader do
       it "returns the English version" do
         rn = reader.release_notes(user_lang: "es")
         expect(rn.content).to eq("Release Notes\n")
-        expect(rn.lang).to eq("en_US")
+        expect(rn.lang).to eq("en")
         expect(rn.user_lang).to eq("es")
       end
     end
