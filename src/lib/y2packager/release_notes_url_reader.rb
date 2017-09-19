@@ -193,7 +193,6 @@ module Y2Packager
       release_notes_index
       return nil unless release_notes_index.empty? || indexed_release_notes_for?(lang, format)
 
-
       # Where we want to store the downloaded release notes
       filename = Yast::Builtins.sformat(
         "%1/relnotes", Yast::SCR.Read(Yast::Path.new(".target.tmpdir"))
