@@ -45,7 +45,7 @@ module Y2Packager
       # @return [Boolean]
       # @see disable!
       def enabled?
-        return true if @enabled.nil? # default value
+        return true if @enabled.nil?
         @enabled
       end
 
@@ -302,10 +302,8 @@ module Y2Packager
     end
 
     # Download of index of release notes for a specific product
-    # @param url_base URL pointing to directory with the index
-    # @param proxy the proxy URL to be passed to curl
     #
-    # May set InstData.stop_relnotes_download on download failure.
+    # @param url_base URL pointing to directory with the index
     # @return [Array<String>,nil] filenames, nil if not found
     def download_release_notes_index(url_base)
       url_index = url_base + "/directory.yast"

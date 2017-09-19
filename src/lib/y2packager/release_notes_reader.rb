@@ -27,7 +27,7 @@ module Y2Packager
   # * ReleaseNotesUrlReader which gets release notes from an external URL
   #   (using the relnotes_url property from the given product).
   #
-  # == How it works
+  # ### How it works
   #
   # We can distinguish two different case:
   #
@@ -38,7 +38,7 @@ module Y2Packager
   # * When the system *is not registered*: it will work the other way around, trying
   #   first relnotes_url and falling back to RPM packages.
   #
-  # == Cached release notes
+  # ### Cached release notes
   #
   # Release notes are stored using an instance of `Y2Packager::ReleaseNotesStore`.
   # When trying to read a product license for second time, this class will try to fetch

@@ -109,7 +109,6 @@ module Y2Packager
 
     # Return release notes instance
     #
-    # @param package       [Package] Package containing release notes
     # @param user_lang     [String]  User preferred language (falling back to fallback_lang)
     # @param format        [Symbol]  Release notes format
     # @param fallback_lang [String]  Release notes fallback language
