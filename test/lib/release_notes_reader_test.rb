@@ -32,25 +32,64 @@ describe Y2Packager::ReleaseNotesReader do
     )
   end
 
+  let(:url_reader) do
+    instance_double(
+      Y2Packager::ReleaseNotesRpmReader,
+      latest_version: :latest,
+      release_notes:  release_notes
+    )
+  end
+
   before do
     allow(Y2Packager::ReleaseNotesStore).to receive(:current)
       .and_return(release_notes_store)
     allow(Y2Packager::ReleaseNotesRpmReader).to receive(:new)
       .with(product).and_return(rpm_reader)
+    allow(Y2Packager::ReleaseNotesUrlReader).to receive(:new)
+      .with(product).and_return(url_reader)
   end
 
   describe "#release_notes" do
+    before do
+      allow(reader).to receive(:registered?).and_return(true)
+    end
+
     context "when system is registered" do
       it "retrieves release notes from RPM packages" do
         expect(Y2Packager::ReleaseNotesRpmReader).to receive(:new)
           .with(product).and_return(rpm_reader)
-        expect(rpm_reader).to receive(:latest_version).and_return("15.0)")
-        reader.release_notes(user_lang: "en_US", format: :txt)
+        expect(rpm_reader).to receive(:latest_version).and_return("15.0")
+        rn = reader.release_notes(user_lang: "en_US", format: :txt)
+        expect(rn).to eq(release_notes)
+      end
+
+      context "when release notes are not found" do
+        it "tries to get release notes from the relnotes_url property" do
+          expect(Y2Packager::ReleaseNotesUrlReader).to receive(:new)
+            .with(product).and_return(url_reader)
+          rn = reader.release_notes(user_lang: "en_US", format: :txt)
+          expect(rn).to eq(release_notes)
+        end
       end
     end
 
     context "when system is not registered" do
-      it "retrieves release notes from external sources"
+      it "retrieves release notes from external sources" do
+        expect(Y2Packager::ReleaseNotesUrlReader).to receive(:new)
+          .with(product).and_return(url_reader)
+        rn = reader.release_notes(user_lang: "en_US", format: :txt)
+        expect(rn).to eq(release_notes)
+      end
+
+      context "when release notes are not found" do
+        it "tries to get release notes from RPM packages" do
+          expect(Y2Packager::ReleaseNotesRpmReader).to receive(:new)
+            .with(product).and_return(rpm_reader)
+          expect(rpm_reader).to receive(:latest_version).and_return("15.0")
+          rn = reader.release_notes(user_lang: "en_US", format: :txt)
+          expect(rn).to eq(release_notes)
+        end
+      end
     end
 
     it "stores the result for later retrieval" do
