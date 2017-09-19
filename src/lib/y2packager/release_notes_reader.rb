@@ -64,6 +64,15 @@ module Y2Packager
       @product = product
     end
 
+    # Fallback language
+    FALLBACK_LANG = "en".freeze
+
+    # Get release notes for a given product
+    #
+    # @param user_lang [String] Release notes language (falling back to "en")
+    # @param format    [Symbol] Release notes format (:txt or :rtf)
+    # @return [String,nil] Release notes or nil if release notes were not found
+    #   (no package providing release notes or notes not found in the package)
     def release_notes(user_lang: "en_US", format: :txt)
       readers =
         # registered system: get relnotes from RPMs and fallback to relnotes_url property
@@ -80,21 +89,24 @@ module Y2Packager
         end
 
       readers.each do |reader|
-        rn = release_notes_via_reader(reader, user_lang: user_lang, format: format)
+        rn = release_notes_via_reader(reader, user_lang, format, FALLBACK_LANG)
         return rn if rn
       end
 
       nil
     end
 
-    # Get release notes for a given product
+    # Get release notes for a given product using a reader instance
     #
-    # @param user_lang [String]              Release notes language (falling back to "en_US"
-    #                                        and "en")
-    # @param format    [Symbol]              Release notes format (:txt or :rtf)
+    # @param reader        [ReleaseNotesRpmReader,ReleaseNotesUrlReader] Release notes reader
+    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
+    # @param format        [Symbol] Release notes format (:txt or :rtf)
+    # @param fallback_lang [String] Release notes fallback language
     # @return [String,nil] Release notes or nil if release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes_via_reader(reader, user_lang: "en_US", format: :txt)
+    # @see ReleaseNotesRpmReader#release_notes
+    # @see ReleaseNotesUrlReader#release_notes
+    def release_notes_via_reader(reader, user_lang, format, fallback_lang)
       from_store = release_notes_store.retrieve(
         product.name, user_lang, format, reader.latest_version
       )
@@ -104,7 +116,10 @@ module Y2Packager
         return from_store
       end
 
-      release_notes = reader.release_notes(user_lang: user_lang, format: format)
+      release_notes = reader.release_notes(
+        user_lang: user_lang, format: format, fallback_lang: fallback_lang
+      )
+
       if release_notes
         log.info "Release notes for #{product.name} were found"
         release_notes_store.store(release_notes)
