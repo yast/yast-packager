@@ -96,9 +96,7 @@ module Y2Packager
       def read_user_selection
         selected_items = Yast::UI.QueryWidget(Id("addon_repos"), :SelectedItems)
 
-        self.selected_products = selected_items.map do |s|
-          products.find { |p| p.name == s }
-        end
+        self.selected_products = products.select { |p| selected_items.include?(p.name) }
 
         log.info("Selected products: #{selected_products.inspect}")
       end

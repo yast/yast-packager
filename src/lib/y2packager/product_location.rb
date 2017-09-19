@@ -24,7 +24,6 @@ module Y2Packager
     # @param name [String] Product name
     # @param dir [String] Location (path starting at the media root)
     def initialize(name, dir)
-      super()
       @name = name
       @dir = dir
     end

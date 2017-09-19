@@ -8,18 +8,15 @@ require "y2packager/dialogs/addon_selector"
 module Yast
   class RepositoryIncludeTesterClass < Module
     extend Yast::I18n
-  end
 
-  def main
-    Yast.include self, "packager/repositories_include.rb"
+    def main
+      Yast.include self, "packager/repositories_include.rb"
+    end
   end
 end
 
 RepositoryIncludeTester = Yast::RepositoryIncludeTesterClass.new
 RepositoryIncludeTester.main
-
-# require "byebug"
-# byebug
 
 describe "PackagerRepositoriesIncludeInclude" do
   describe ".autorefresh_for?" do

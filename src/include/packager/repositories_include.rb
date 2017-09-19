@@ -81,7 +81,7 @@ module Yast
       Builtins.y2milestone("Probed service type: %1", service_type)
 
       # create a new service if a service is detected at the URL
-      if !service_type.nil? && service_type != "NONE"
+      if ![nil, "NONE"].include?(service_type)
         add_service(url, preffered_name)
         return :ok
       end
@@ -164,10 +164,7 @@ module Yast
       end
 
       # broken repository or wrong URL - enter the URL again
-      if enter_again
-        Pkg.SourceReleaseAll
-        return :again
-      end
+      return :again if enter_again
 
       log.info("New sources: #{newSources}")
 
@@ -197,11 +194,11 @@ module Yast
           end
         end
 
-        # relese (unmount) the medium
-        Pkg.SourceReleaseAll
-
         license_accepted ? :ok : :abort
       end
+    ensure
+      # relese (unmount) the medium
+      Pkg.SourceReleaseAll
     end
 
     # start createSource() function in extra wizard dialog
@@ -334,7 +331,7 @@ module Yast
     # @return [Array<Y2Packager::ProductLocation>] Found products
     def scan_products(expanded_url, original_url)
       new_repos = Pkg.RepositoryScan(expanded_url)
-      found_products = new_repos.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
+      found_products = new_repos.map { |(name, dir)| Y2Packager::ProductLocation.new(name, dir) }
       log.info("Found products: #{found_products}")
 
       # add at least one product if the scan result is empty (no product info available)
