@@ -39,5 +39,13 @@ describe Y2Packager::ReleaseNotes do
         expect(rn.matches?(user_lang, format, "12.3")).to eq(false)
       end
     end
+
+    context "when everything matches but version is :latest" do
+      let(:version) { :latest }
+
+      it "returns true" do
+        expect(rn.matches?(user_lang, format, "12.3")).to eq(true)
+      end
+    end
   end
 end
