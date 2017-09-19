@@ -924,9 +924,6 @@ module Yast
       # Adds workflow to the Workflow Store if any workflow exists
       WorkflowManager.AddWorkflow(:addon, srcid, "")
 
-      # Adjust the release notes - display RN from add-ons during installation
-      WFM.CallFunction("inst_download_release_notes") if Stage.initial
-
       true
     end
 

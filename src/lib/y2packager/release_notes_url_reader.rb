@@ -17,6 +17,7 @@ require "tmpdir"
 
 Yast.import "Pkg"
 Yast.import "Proxy"
+Yast.import "String"
 
 module Y2Packager
   # This class reads release notes from the relnotes_url product property
@@ -27,6 +28,13 @@ module Y2Packager
     include Yast::Logger
 
     class << self
+      # Enable downloading release notes
+      #
+      # This method is intended to be used during testing.
+      def enable!
+        @enabled = true
+      end
+
       # Disable downloading release notes due to communication errors
       def disable!
         @enabled = false
@@ -37,7 +45,8 @@ module Y2Packager
       # @return [Boolean]
       # @see disable!
       def enabled?
-        @enabled.nil? ? true : @enabled
+        return true if @enabled.nil? # default value
+        @enabled
       end
 
       # Blacklist of URLs that failed to download and should not be retried
@@ -76,7 +85,6 @@ module Y2Packager
       28 => "Operation timeout."
     }.freeze
 
-
     # Product to get release notes for
     attr_reader :product
 
@@ -93,11 +101,12 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param user_lang [String] Release notes language (falling back to "en")
-    # @param format    [Symbol] Release notes format (:txt or :rtf)
+    # @param user_lang     [String]  User preferred language (falling back to fallback_lang)
+    # @param format        [Symbol] Release notes format (:txt or :rtf)
+    # @param fallback_lang [String] Release notes fallback language
     # @return [String,nil] Release notes or nil if a release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes(user_lang: "en_US", format: :txt)
+    def release_notes(user_lang: "en_US", format: :txt, fallback_lang: "en")
       if !self.class.enabled?
         log.info("Skipping release notes download due to previous download issues")
         return nil
@@ -108,9 +117,12 @@ module Y2Packager
         return nil
       end
 
-      return unless relnotes_url_valid?
+      if !relnotes_url_valid?
+        log.warn("Skipping release notes download for #{product.name}: '#{relnotes_url}'")
+        return nil
+      end
 
-      release_notes = fetch_release_notes(user_lang, format)
+      release_notes = fetch_release_notes(user_lang, format, fallback_lang)
 
       return release_notes if release_notes
 
@@ -124,12 +136,14 @@ module Y2Packager
     #
     # It relies on #release_notes_content to get release notes content.
     #
-    # @param user_lang [String] Release notes language (falling back to "en")
-    # @param format    [Symbol] Release notes format (:txt or :rtf)
+    # @param user_lang     [String] Release notes language (falling back to fallback_lang)
+    # @param format        [Symbol] Release notes format (:txt or :rtf)
+    # @param fallback_lang [String] Release notes fallback language
     # @return [String,nil] Release notes or nil if a release notes were not found
     # @see release_notes_content
-    def fetch_release_notes(user_lang, format)
-      content, lang = release_notes_content(user_lang, format)
+    def fetch_release_notes(user_lang, format, fallback_lang)
+      content, lang = release_notes_content(user_lang, format, fallback_lang)
+      return nil if content.nil?
 
       Y2Packager::ReleaseNotes.new(
         product_name: product.name,
@@ -151,18 +165,19 @@ module Y2Packager
       :latest
     end
 
-    FALLBACK_LANG = "en".freeze
-
-    # Return release notes content
+    # Search for release notes content
     #
+    # @param user_lang     [String] Release notes language (falling back to fallback_lang)
+    # @param format        [Symbol] Release notes format (:txt or :rtf)
+    # @param fallback_lang [String] Release notes fallback language
     # @return [String,nil] Return release notes content or nil if it release
     #   notes were not found
-    def release_notes_content(user_lang, format)
+    def release_notes_content(user_lang, format, fallback_lang)
       langs = [user_lang]
       langs << user_lang.split("_", 2).first if user_lang.include?("_")
-      langs << FALLBACK_LANG
+      langs << fallback_lang
 
-      langs.each do |lang|
+      langs.uniq.each do |lang|
         content = release_notes_content_for_lang_and_format(lang, format)
         return [content, lang] if content
       end
@@ -170,17 +185,20 @@ module Y2Packager
       nil
     end
 
-    # Return release notes content for a given language
+    # Return release notes content for a given language and format
+    #
+    # @return [String,nil] Return release notes content or nil if it release
     def release_notes_content_for_lang_and_format(lang, format)
       # If there is an index and the language is not indexed
+      release_notes_index
       return nil unless release_notes_index.empty? || indexed_release_notes_for?(lang, format)
+
 
       # Where we want to store the downloaded release notes
       filename = Yast::Builtins.sformat(
         "%1/relnotes", Yast::SCR.Read(Yast::Path.new(".target.tmpdir"))
       )
 
-      # download release notes now
       return nil unless curl_download(release_notes_file_url(lang, format), filename)
 
       log.info("Release notes downloaded successfully")
@@ -319,12 +337,15 @@ module Y2Packager
     end
 
     # Download *url* to *filename*
-    # May set InstData.stop_relnotes_download on download failure.
+    #
+    # May disable release notes downloading by calling .disable!.
     #
     # @return [Boolean,nil] true: success, false: failure, nil: failure+dont retry
     def curl_download(url, filename, max_time: 300)
+      return nil unless self.class.enabled?
       cmd = Yast::Builtins.sformat(
-        "/usr/bin/curl --location --verbose --fail --max-time %6 --connect-timeout 15  %1 '%2' --output '%3' > '%4/%5' 2>&1",
+        "/usr/bin/curl --location --verbose --fail --max-time %6 " \
+        "--connect-timeout 15  %1 '%2' --output '%3' > '%4/%5' 2>&1",
         curl_proxy_args,
         url,
         Yast::String.Quote(filename),
