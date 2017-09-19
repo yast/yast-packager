@@ -12,12 +12,17 @@ describe Y2Packager::ReleaseNotesUrlReader do
   let(:content) { "Release Notes\n" }
   let(:language) { double("Yast::Language", language: "de_DE") }
   let(:curl_retcode) { 0 }
+
   let(:relnotes_tmpfile) do
     instance_double(Tempfile, path: "/tmp/relnotes", close: nil, unlink: nil)
   end
+
   let(:index_tmpfile) do
     instance_double(Tempfile, path: "/tmp/directory.yast", close: nil, unlink: nil)
   end
+
+  let(:proxy_enabled) { false }
+  let(:proxy) { double("Yast::Proxy", Read: nil, enabled: proxy_enabled) }
 
   before do
     allow(Yast::Pkg).to receive(:ResolvableProperties)
@@ -35,14 +40,10 @@ describe Y2Packager::ReleaseNotesUrlReader do
     described_class.enable!
 
     stub_const("Yast::Language", language)
-    stub_const("Yast::Proxy", double("proxy"))
+    stub_const("Yast::Proxy", proxy)
   end
 
   describe "#release_notes" do
-    before do
-      allow(reader).to receive(:curl_proxy_args).and_return("")
-    end
-
     it "returns release notes" do
       cmd = %r{curl.*'http://doc.opensuse.org/openSUSE/RELEASE-NOTES.de_DE.txt'}
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
@@ -58,11 +59,9 @@ describe Y2Packager::ReleaseNotesUrlReader do
     end
 
     it "uses cURL to download release notes" do
-      allow(reader).to receive(:curl_proxy_args).and_return("--proxy http://proxy.example.com")
-
-      cmd = "/usr/bin/curl --location --verbose --fail --max-time 300 --connect-timeout 15  " \
-        "--proxy http://proxy.example.com '#{reader.release_notes_file_url("de_DE", :txt)}' " \
-        "--output '/tmp/relnotes' > '/var/log/YaST2/curl_log' 2>&1"
+      cmd = "/usr/bin/curl --location --verbose --fail --max-time 300 --connect-timeout 15   " \
+        "'http://doc.opensuse.org/openSUSE/RELEASE-NOTES.de_DE.txt' --output '/tmp/relnotes' " \
+        "> '/var/log/YaST2/curl_log' 2>&1"
 
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
       reader.release_notes(user_lang: "de_DE", format: :txt)
@@ -151,7 +150,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
       let(:curl_retcode) { 1 }
 
       it "blacklists the URL" do
-        expect(described_class).to receive(:add_to_blacklist).with(reader.relnotes_url)
+        expect(described_class).to receive(:add_to_blacklist).with(relnotes_url)
         reader.release_notes
       end
     end
@@ -220,29 +219,14 @@ describe Y2Packager::ReleaseNotesUrlReader do
         reader.release_notes
       end
     end
-  end
-
-  describe "#latest_version" do
-    it "returns :latest" do
-      expect(reader.latest_version).to eq(:latest)
-    end
-  end
-
-  describe "#curl_proxy_args" do
-    before do
-      allow(Yast::Proxy).to receive(:Read)
-    end
-
-    it "returns an empty string when no proxy is needed" do
-      expect(Yast::Proxy).to receive(:enabled).and_return(false)
-      expect(reader.curl_proxy_args).to eq ""
-    end
 
     context "when a proxy is needed " do
+      let(:proxy_enabled) { true }
+
       before do
-        allow(Yast::Proxy).to receive(:enabled).and_return(true)
-        allow(Yast::Proxy).to receive(:http).twice
-          .and_return("http://proxy.example.com")
+        allow(Yast::Proxy).to receive(:http).twice.and_return("http://proxy.example.com")
+        allow(Yast::Proxy).to receive(:user).and_return(proxy_user)
+        allow(Yast::Proxy).to receive(:pass).and_return(proxy_pass)
         test = {
           "HTTP" => {
             "tested" => true,
@@ -252,21 +236,37 @@ describe Y2Packager::ReleaseNotesUrlReader do
         allow(Yast::Proxy).to receive(:RunTestProxy).and_return(test)
       end
 
-      it "returns correct args for an unauthenticated proxy" do
-        allow(Yast::Proxy).to receive(:user).and_return("")
-        allow(Yast::Proxy).to receive(:pass).and_return("")
+      context "and no user or password are specified" do
+        let(:proxy_user) { "" }
+        let(:proxy_pass) { "" }
 
-        expect(reader.curl_proxy_args)
-          .to eq "--proxy http://proxy.example.com"
+        it "uses an unauthenticated proxy" do
+          expect(Yast::SCR).to receive(:Execute) do |_path, cmd|
+            expect(cmd).to include("--proxy http://proxy.example.com")
+          end
+
+          reader.release_notes
+        end
       end
 
-      it "returns correct args for an authenticated proxy" do
-        allow(Yast::Proxy).to receive(:user).and_return("baggins")
-        allow(Yast::Proxy).to receive(:pass).and_return("thief")
+      context "and user and password are specified" do
+        let(:proxy_user) { "baggins" }
+        let(:proxy_pass) { "thief" }
 
-        expect(reader.curl_proxy_args)
-          .to eq "--proxy http://proxy.example.com --proxy-user 'baggins:thief'"
+        it "uses an authenticated proxy" do
+          expect(Yast::SCR).to receive(:Execute) do |_path, cmd|
+            expect(cmd).to include("--proxy http://proxy.example.com --proxy-user 'baggins:thief'")
+          end
+
+          reader.release_notes
+        end
       end
+    end
+  end
+
+  describe "#latest_version" do
+    it "returns :latest" do
+      expect(reader.latest_version).to eq(:latest)
     end
   end
 end

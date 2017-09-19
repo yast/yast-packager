@@ -132,6 +132,18 @@ module Y2Packager
       nil
     end
 
+    # Return release notes latest version
+    #
+    # Release notes that lives in relnotes_url are considered always to be the
+    # latest version.
+    #
+    # @return [Symbol] Package version
+    def latest_version
+      :latest
+    end
+
+  private
+
     # Return the release notes instance
     #
     # It relies on #release_notes_content to get release notes content.
@@ -153,16 +165,6 @@ module Y2Packager
         format:       format,
         version:      :latest
       )
-    end
-
-    # Return release notes latest version
-    #
-    # Release notes that lives in relnotes_url are considered always to be the
-    # latest version.
-    #
-    # @return [Symbol] Package version
-    def latest_version
-      :latest
     end
 
     # Search for release notes content
