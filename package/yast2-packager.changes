@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Sep 20 06:24:58 UTC 2017 - igonzalezsosa@suse.com
+
+- Bring back support to read release notes from an URL
+  on non-registered systems and as fallback mechanism
+  for registered ones (related to fate#323273)
+- 4.0.6
+
+-------------------------------------------------------------------
 Mon Sep 18 08:32:16 UTC 2017 - igonzalezsosa@suse.com
 
 - Add support to read release notes from an RPM in the
