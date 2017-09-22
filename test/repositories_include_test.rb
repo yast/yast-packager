@@ -74,6 +74,24 @@ describe "PackagerRepositoriesIncludeInclude" do
       expect(ret).to eq(:again)
     end
 
+    context "if the URL cannot be expanded (is invalid)" do
+      before do
+        # URL expansion returns nil (bsc#1059744)
+        allow(Yast::Pkg).to receive(:ExpandedUrl).with(url).and_return(nil)
+      end
+
+      it "returns :again symbol" do
+        puts url
+        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        expect(ret).to eq(:again)
+      end
+
+      it "displays an error popup" do
+        expect(Yast::Report).to receive(:Error).with(/Invalid URL/)
+        RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+      end
+    end
+
     it "creates the repository" do
       repo_props = { "enabled"     => true,
                      "autorefresh" => false,
