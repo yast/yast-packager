@@ -81,7 +81,6 @@ describe "PackagerRepositoriesIncludeInclude" do
       end
 
       it "returns :again symbol" do
-        puts url
         ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
         expect(ret).to eq(:again)
       end
