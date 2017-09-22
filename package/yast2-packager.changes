@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 22 10:37:14 UTC 2017 - lslezak@suse.cz
+
+- Report error when the repository URL cannot be expanded by
+  libzypp (e.g. it is invalid) (bsc#1059744)
+- 4.0.7
+
+-------------------------------------------------------------------
 Mon Sep 18 14:02:10 UTC 2017 - lslezak@suse.cz
 
 - Display a product selection dialog when the add-on medium
