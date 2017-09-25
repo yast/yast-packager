@@ -5,7 +5,7 @@ require "y2packager/release_notes_fetchers/rpm"
 require "y2packager/product"
 
 describe Y2Packager::ReleaseNotesFetchers::Rpm do
-  subject(:reader) { described_class.new(product) }
+  subject(:fetcher) { described_class.new(product) }
 
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
   let(:package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.1") }
@@ -42,13 +42,13 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
     it "cleans up temporary files" do
       dir = Dir.mktmpdir
       allow(Dir).to receive(:mktmpdir).and_return(dir)
-      reader.release_notes(prefs)
+      fetcher.release_notes(prefs)
       expect(File).to_not be_directory(dir)
     end
 
     context "when a full language code is given (xx_XX)" do
       it "returns product release notes for the given language" do
-        rn = reader.release_notes(prefs)
+        rn = fetcher.release_notes(prefs)
         expect(rn.content).to eq("Release Notes\n")
         expect(rn.lang).to eq("en")
         expect(rn.user_lang).to eq("en_US")
@@ -58,7 +58,7 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
         let(:user_lang) { "de_DE" }
 
         it "returns product release notes for the short language code (xx)" do
-          rn = reader.release_notes(prefs)
+          rn = fetcher.release_notes(prefs)
           expect(rn.content).to eq("Versionshinweise\n")
           expect(rn.lang).to eq("de")
           expect(rn.user_lang).to eq("de_DE")
@@ -70,7 +70,7 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
       let(:format) { :html }
 
       it "returns product release notes in the given format" do
-        rn = reader.release_notes(prefs)
+        rn = fetcher.release_notes(prefs)
         expect(rn.content).to eq("<h1>Release Notes</h1>\n")
         expect(rn.format).to eq(:html)
       end
@@ -80,7 +80,7 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
         let(:format) { :html }
 
         it "returns the English version" do
-          rn = reader.release_notes(prefs)
+          rn = fetcher.release_notes(prefs)
           expect(rn.content).to eq("<h1>Release Notes</h1>\n")
           expect(rn.format).to eq(:html)
         end
@@ -91,7 +91,7 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
       let(:provides) { [] }
 
       it "returns nil" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
     end
 
@@ -104,7 +104,7 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
       end
 
       it "selects the latest one" do
-        rn = reader.release_notes(prefs)
+        rn = fetcher.release_notes(prefs)
         expect(rn.version).to eq("15.1")
       end
     end
@@ -115,23 +115,23 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
       end
 
       it "ignores the package" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
     end
   end
 
   describe "#latest_version" do
     it "returns latest version from release notes package" do
-      expect(reader.latest_version).to eq(package.version)
+      expect(fetcher.latest_version).to eq(package.version)
     end
 
     context "when no release notes package was found" do
       before do
-        allow(reader).to receive(:release_notes_package).and_return(nil)
+        allow(fetcher).to receive(:release_notes_package).and_return(nil)
       end
 
       it "returns :none" do
-        expect(reader.latest_version).to eq(:none)
+        expect(fetcher.latest_version).to eq(:none)
       end
     end
   end

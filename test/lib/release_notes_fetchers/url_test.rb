@@ -5,7 +5,7 @@ require "y2packager/release_notes_fetchers/url"
 require "y2packager/product"
 
 describe Y2Packager::ReleaseNotesFetchers::Url do
-  subject(:reader) { described_class.new(product) }
+  subject(:fetcher) { described_class.new(product) }
 
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }
   let(:relnotes_url) { "http://doc.opensuse.org/openSUSE/release-notes-openSUSE.rpm" }
@@ -54,7 +54,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
         .and_return(0)
       expect(File).to receive(:read).with(/relnotes/).and_return(content)
-      rn = reader.release_notes(prefs)
+      rn = fetcher.release_notes(prefs)
 
       expect(rn.product_name).to eq("dummy")
       expect(rn.content).to eq(content)
@@ -69,7 +69,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
         "> '/var/log/YaST2/curl_log' 2>&1"
 
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
-      reader.release_notes(prefs)
+      fetcher.release_notes(prefs)
     end
 
     context "when release notes are not found for the given language" do
@@ -83,7 +83,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
         expect(Yast::SCR).to receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.de.txt/)
           .and_return(0)
-        reader.release_notes(prefs)
+        fetcher.release_notes(prefs)
       end
 
       context "and are not found for the generic language" do
@@ -97,7 +97,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
           expect(Yast::SCR).to receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.en.txt/)
             .and_return(0)
-          reader.release_notes(prefs)
+          fetcher.release_notes(prefs)
         end
       end
 
@@ -109,7 +109,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
           expect(Yast::SCR).to receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.en.txt/)
             .once.and_return(1)
-          reader.release_notes(prefs)
+          fetcher.release_notes(prefs)
         end
       end
     end
@@ -132,7 +132,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
           expect(Yast::SCR).to receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.de_DE.txt/)
             .and_return(0)
-          reader.release_notes(prefs)
+          fetcher.release_notes(prefs)
         end
       end
 
@@ -144,7 +144,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
         it "does not try to download release notes" do
           expect(Yast::SCR).to_not receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.de_DE.txt/)
-          reader.release_notes(prefs)
+          fetcher.release_notes(prefs)
         end
       end
     end
@@ -154,7 +154,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
 
       it "blacklists the URL" do
         expect(described_class).to receive(:add_to_blacklist).with(relnotes_url)
-        reader.release_notes(prefs)
+        fetcher.release_notes(prefs)
       end
     end
 
@@ -163,7 +163,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
 
       it "disables downloading release notes via relnotes_url" do
         expect(described_class).to receive(:disable!).and_call_original
-        reader.release_notes(prefs)
+        fetcher.release_notes(prefs)
       end
     end
 
@@ -171,7 +171,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
       let(:relnotes_url) { "http" }
 
       it "returns nil" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
     end
 
@@ -179,7 +179,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
       let(:relnotes_url) { nil }
 
       it "returns nil" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
     end
 
@@ -187,7 +187,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
       let(:relnotes_url) { "" }
 
       it "returns nil" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
     end
 
@@ -197,13 +197,13 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
       end
 
       it "returns nil" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
 
       it "does not tries to download anything" do
         expect(Yast::SCR).to_not receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /curl/)
-        reader.release_notes(prefs)
+        fetcher.release_notes(prefs)
       end
     end
 
@@ -213,13 +213,13 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
       end
 
       it "returns nil" do
-        expect(reader.release_notes(prefs)).to be_nil
+        expect(fetcher.release_notes(prefs)).to be_nil
       end
 
       it "does not tries to download anything" do
         expect(Yast::SCR).to_not receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /curl/)
-        reader.release_notes(prefs)
+        fetcher.release_notes(prefs)
       end
     end
 
@@ -248,7 +248,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
             expect(cmd).to include("--proxy http://proxy.example.com")
           end
 
-          reader.release_notes(prefs)
+          fetcher.release_notes(prefs)
         end
       end
 
@@ -261,7 +261,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
             expect(cmd).to include("--proxy http://proxy.example.com --proxy-user 'baggins:thief'")
           end
 
-          reader.release_notes(prefs)
+          fetcher.release_notes(prefs)
         end
       end
     end
@@ -269,7 +269,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
 
   describe "#latest_version" do
     it "returns :latest" do
-      expect(reader.latest_version).to eq(:latest)
+      expect(fetcher.latest_version).to eq(:latest)
     end
   end
 end
