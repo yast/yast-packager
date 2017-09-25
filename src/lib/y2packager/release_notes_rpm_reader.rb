@@ -14,6 +14,7 @@ require "yast"
 require "fileutils"
 require "y2packager/package"
 require "y2packager/release_notes"
+require "y2packager/release_notes_content_prefs"
 require "packages/package_downloader"
 require "tmpdir"
 
@@ -48,18 +49,16 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
-    # @param format        [Symbol] Release notes format (:txt or :rtf)
-    # @param fallback_lang [String] Release notes fallback language
+    # @param prefs [ReleaseNotesContentPrefs] Content preferences
     # @return [String,nil] Release notes or nil if a release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes(user_lang: "en_US", format: :txt, fallback_lang: "en")
+    def release_notes(prefs)
       if release_notes_package.nil?
         log.info "No package containing release notes for #{product.name} was found"
         return nil
       end
 
-      extract_release_notes(user_lang, format, fallback_lang)
+      extract_release_notes(prefs)
     end
 
     # Return release notes latest version identifier
@@ -118,22 +117,18 @@ module Y2Packager
 
     # Return release notes instance
     #
-    # @param user_lang     [String]  User preferred language (falling back to fallback_lang)
-    # @param format        [Symbol]  Release notes format
-    # @param fallback_lang [String]  Release notes fallback language
+    # @param prefs [ReleaseNotesContentPrefs] Content preferences
     # @return [ReleaseNotes,nil] Release notes for given arguments
-    def extract_release_notes(user_lang, format, fallback_lang)
-      content, lang = release_notes_content(
-        release_notes_package, user_lang, format, fallback_lang
-      )
+    def extract_release_notes(prefs)
+      content, lang = release_notes_content(release_notes_package, prefs)
       return nil if content.nil?
 
       Y2Packager::ReleaseNotes.new(
         product_name: product.name,
         content:      content,
-        user_lang:    user_lang,
+        user_lang:    prefs.user_lang,
         lang:         lang,
-        format:       format,
+        format:       prefs.format,
         version:      release_notes_package.version
       )
     end
@@ -144,17 +139,15 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param package       [String] Release notes package name
-    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
-    # @param format        [Symbol] Content format (:txt, :rtf, etc.).
-    # @param fallback_lang [String] Release notes fallback language
+    # @param package [String] Release notes package name
+    # @param prefs   [ReleaseNotesContentPrefs] Content preferences
     # @return [Array<String,String>] Array containing content and language code
     # @see release_notes_file
-    def release_notes_content(package, user_lang, format, fallback_lang)
+    def release_notes_content(package, prefs)
       tmpdir = Dir.mktmpdir
       begin
         package.extract_to(tmpdir)
-        file, lang = release_notes_file(tmpdir, user_lang, format, fallback_lang)
+        file, lang = release_notes_file(tmpdir, prefs)
         file ? [File.read(file), lang] : nil
       ensure
         FileUtils.remove_entry_secure(tmpdir)
@@ -167,21 +160,19 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param directory     [String] Directory where release notes were uncompressed
-    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
-    # @param format        [Symbol] Content format (:txt, :rtf, etc.)
-    # @param fallback_lang [String] Release notes fallback language
+    # @param directory [String] Directory where release notes were uncompressed
+    # @param prefs     [ReleaseNotesContentPrefs] Content preferences
     # @return [Array<String,String>] Array containing path and language code
-    def release_notes_file(directory, user_lang, format, fallback_lang)
-      langs = [user_lang]
-      langs << user_lang.split("_", 2).first if user_lang.include?("_")
-      langs << fallback_lang
+    def release_notes_file(directory, prefs)
+      langs = [prefs.user_lang]
+      langs << prefs.user_lang.split("_", 2).first if prefs.user_lang.include?("_")
+      langs << prefs.fallback_lang
 
       path = Dir.glob(
-        File.join(directory, "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}")
+        File.join(directory, "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{prefs.format}")
       ).first
       return nil if path.nil?
-      [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
+      [path, path[/RELEASE-NOTES\.(.+)\.#{prefs.format}\z/, 1]] if path
     end
   end
 end

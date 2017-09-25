@@ -14,6 +14,7 @@ require "yast"
 require "y2packager/release_notes_store"
 require "y2packager/release_notes_rpm_reader"
 require "y2packager/release_notes_url_reader"
+require "y2packager/release_notes_content_prefs"
 
 Yast.import "Directory"
 Yast.import "Pkg"
@@ -88,8 +89,9 @@ module Y2Packager
           ]
         end
 
+      prefs = ReleaseNotesContentPrefs.new(user_lang, FALLBACK_LANG, format)
       readers.each do |reader|
-        rn = release_notes_via_reader(reader, user_lang, format, FALLBACK_LANG)
+        rn = release_notes_via_reader(reader, prefs)
         return rn if rn
       end
 
@@ -98,17 +100,15 @@ module Y2Packager
 
     # Get release notes for a given product using a reader instance
     #
-    # @param reader        [ReleaseNotesRpmReader,ReleaseNotesUrlReader] Release notes reader
-    # @param user_lang     [String] User preferred language (falling back to fallback_lang)
-    # @param format        [Symbol] Release notes format (:txt or :rtf)
-    # @param fallback_lang [String] Release notes fallback language
+    # @param reader [ReleaseNotesRpmReader,ReleaseNotesUrlReader] Release notes reader
+    # @param prefs  [ReleaseNotesContentPrefs] Content preferences
     # @return [String,nil] Release notes or nil if release notes were not found
     #   (no package providing release notes or notes not found in the package)
     # @see ReleaseNotesRpmReader#release_notes
     # @see ReleaseNotesUrlReader#release_notes
-    def release_notes_via_reader(reader, user_lang, format, fallback_lang)
+    def release_notes_via_reader(reader, prefs)
       from_store = release_notes_store.retrieve(
-        product.name, user_lang, format, reader.latest_version
+        product.name, prefs.user_lang, prefs.format, reader.latest_version
       )
 
       if from_store
@@ -116,9 +116,7 @@ module Y2Packager
         return from_store
       end
 
-      release_notes = reader.release_notes(
-        user_lang: user_lang, format: format, fallback_lang: fallback_lang
-      )
+      release_notes = reader.release_notes(prefs)
 
       if release_notes
         log.info "Release notes for #{product.name} were found"

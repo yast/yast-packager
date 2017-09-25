@@ -24,6 +24,11 @@ describe Y2Packager::ReleaseNotesUrlReader do
   let(:proxy_enabled) { false }
   let(:proxy) { double("Yast::Proxy", Read: nil, enabled: proxy_enabled) }
 
+  let(:user_lang) { "de_DE" }
+  let(:format) { :txt }
+  let(:fallback_lang) { "en" }
+  let(:prefs) { Y2Packager::ReleaseNotesContentPrefs.new(user_lang, format, fallback_lang) }
+
   before do
     allow(Yast::Pkg).to receive(:ResolvableProperties)
       .with(product.name, :product, "").and_return(["relnotes_url" => relnotes_url])
@@ -49,7 +54,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
         .and_return(0)
       expect(File).to receive(:read).with(/relnotes/).and_return(content)
-      rn = reader.release_notes(user_lang: "de_DE", format: :txt)
+      rn = reader.release_notes(prefs)
 
       expect(rn.product_name).to eq("dummy")
       expect(rn.content).to eq(content)
@@ -64,12 +69,10 @@ describe Y2Packager::ReleaseNotesUrlReader do
         "> '/var/log/YaST2/curl_log' 2>&1"
 
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash"), cmd)
-      reader.release_notes(user_lang: "de_DE", format: :txt)
+      reader.release_notes(prefs)
     end
 
     context "when release notes are not found for the given language" do
-      let(:user_lang) { "de_DE" }
-
       before do
         allow(Yast::SCR).to receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.#{user_lang}.txt/)
@@ -80,7 +83,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
         expect(Yast::SCR).to receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.de.txt/)
           .and_return(0)
-        reader.release_notes(user_lang: "de_DE", format: :txt)
+        reader.release_notes(prefs)
       end
 
       context "and are not found for the generic language" do
@@ -94,7 +97,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
           expect(Yast::SCR).to receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.en.txt/)
             .and_return(0)
-          reader.release_notes(user_lang: "de_DE", format: :txt)
+          reader.release_notes(prefs)
         end
       end
 
@@ -106,7 +109,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
           expect(Yast::SCR).to receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.en.txt/)
             .once.and_return(1)
-          reader.release_notes(user_lang: "en_US", format: :txt)
+          reader.release_notes(prefs)
         end
       end
     end
@@ -129,7 +132,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
           expect(Yast::SCR).to receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.de_DE.txt/)
             .and_return(0)
-          reader.release_notes(user_lang: "de_DE", format: :txt)
+          reader.release_notes(prefs)
         end
       end
 
@@ -141,7 +144,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
         it "does not try to download release notes" do
           expect(Yast::SCR).to_not receive(:Execute)
             .with(Yast::Path.new(".target.bash"), /RELEASE-NOTES.de_DE.txt/)
-          reader.release_notes(user_lang: "de_DE", format: :txt)
+          reader.release_notes(prefs)
         end
       end
     end
@@ -151,7 +154,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
 
       it "blacklists the URL" do
         expect(described_class).to receive(:add_to_blacklist).with(relnotes_url)
-        reader.release_notes
+        reader.release_notes(prefs)
       end
     end
 
@@ -160,7 +163,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
 
       it "disables downloading release notes via relnotes_url" do
         expect(described_class).to receive(:disable!).and_call_original
-        reader.release_notes
+        reader.release_notes(prefs)
       end
     end
 
@@ -168,7 +171,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
       let(:relnotes_url) { "http" }
 
       it "returns nil" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
     end
 
@@ -176,7 +179,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
       let(:relnotes_url) { nil }
 
       it "returns nil" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
     end
 
@@ -184,7 +187,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
       let(:relnotes_url) { "" }
 
       it "returns nil" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
     end
 
@@ -194,13 +197,13 @@ describe Y2Packager::ReleaseNotesUrlReader do
       end
 
       it "returns nil" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
 
       it "does not tries to download anything" do
         expect(Yast::SCR).to_not receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /curl/)
-        reader.release_notes
+        reader.release_notes(prefs)
       end
     end
 
@@ -210,13 +213,13 @@ describe Y2Packager::ReleaseNotesUrlReader do
       end
 
       it "returns nil" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
 
       it "does not tries to download anything" do
         expect(Yast::SCR).to_not receive(:Execute)
           .with(Yast::Path.new(".target.bash"), /curl/)
-        reader.release_notes
+        reader.release_notes(prefs)
       end
     end
 
@@ -245,7 +248,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
             expect(cmd).to include("--proxy http://proxy.example.com")
           end
 
-          reader.release_notes
+          reader.release_notes(prefs)
         end
       end
 
@@ -258,7 +261,7 @@ describe Y2Packager::ReleaseNotesUrlReader do
             expect(cmd).to include("--proxy http://proxy.example.com --proxy-user 'baggins:thief'")
           end
 
-          reader.release_notes
+          reader.release_notes(prefs)
         end
       end
     end

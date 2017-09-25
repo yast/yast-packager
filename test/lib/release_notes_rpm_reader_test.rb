@@ -20,6 +20,10 @@ describe Y2Packager::ReleaseNotesRpmReader do
   end
 
   let(:packages) { [package] }
+  let(:user_lang) { "en_US" }
+  let(:format) { :txt }
+  let(:fallback_lang) { "en" }
+  let(:prefs) { Y2Packager::ReleaseNotesContentPrefs.new(user_lang, format, fallback_lang) }
 
   before do
     allow(Yast::Pkg).to receive(:PkgQueryProvides).with("release-notes()")
@@ -35,31 +39,26 @@ describe Y2Packager::ReleaseNotesRpmReader do
   end
 
   describe "#release_notes" do
-    it "returns product release notes in English" do
-      rn = reader.release_notes
-      expect(rn.content).to eq("Release Notes\n")
-      expect(rn.lang).to eq("en")
-      expect(rn.user_lang).to eq("en_US")
-    end
-
     it "cleans up temporary files" do
       dir = Dir.mktmpdir
       allow(Dir).to receive(:mktmpdir).and_return(dir)
-      reader.release_notes
+      reader.release_notes(prefs)
       expect(File).to_not be_directory(dir)
     end
 
     context "when a full language code is given (xx_XX)" do
       it "returns product release notes for the given language" do
-        rn = reader.release_notes(user_lang: "en_US")
+        rn = reader.release_notes(prefs)
         expect(rn.content).to eq("Release Notes\n")
         expect(rn.lang).to eq("en")
         expect(rn.user_lang).to eq("en_US")
       end
 
       context "and release notes are not available" do
+        let(:user_lang) { "de_DE" }
+
         it "returns product release notes for the short language code (xx)" do
-          rn = reader.release_notes(user_lang: "de_DE")
+          rn = reader.release_notes(prefs)
           expect(rn.content).to eq("Versionshinweise\n")
           expect(rn.lang).to eq("de")
           expect(rn.user_lang).to eq("de_DE")
@@ -68,27 +67,23 @@ describe Y2Packager::ReleaseNotesRpmReader do
     end
 
     context "when a format is given" do
+      let(:format) { :html }
+
       it "returns product release notes in the given format" do
-        rn = reader.release_notes(format: :html)
+        rn = reader.release_notes(prefs)
         expect(rn.content).to eq("<h1>Release Notes</h1>\n")
         expect(rn.format).to eq(:html)
       end
 
       context "and release notes are not available in the given format" do
+        let(:user_lang) { "de_DE" }
+        let(:format) { :html }
+
         it "returns the English version" do
-          rn = reader.release_notes(user_lang: "de_DE", format: :html)
+          rn = reader.release_notes(prefs)
           expect(rn.content).to eq("<h1>Release Notes</h1>\n")
           expect(rn.format).to eq(:html)
         end
-      end
-    end
-
-    context "when release notes are not available" do
-      it "returns the English version" do
-        rn = reader.release_notes(user_lang: "es")
-        expect(rn.content).to eq("Release Notes\n")
-        expect(rn.lang).to eq("en")
-        expect(rn.user_lang).to eq("es")
       end
     end
 
@@ -96,7 +91,7 @@ describe Y2Packager::ReleaseNotesRpmReader do
       let(:provides) { [] }
 
       it "returns nil" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
     end
 
@@ -109,7 +104,7 @@ describe Y2Packager::ReleaseNotesRpmReader do
       end
 
       it "selects the latest one" do
-        rn = reader.release_notes
+        rn = reader.release_notes(prefs)
         expect(rn.version).to eq("15.1")
       end
     end
@@ -120,7 +115,7 @@ describe Y2Packager::ReleaseNotesRpmReader do
       end
 
       it "ignores the package" do
-        expect(reader.release_notes).to be_nil
+        expect(reader.release_notes(prefs)).to be_nil
       end
     end
   end

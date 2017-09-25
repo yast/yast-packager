@@ -101,12 +101,10 @@ module Y2Packager
     # release notes for a language "xx_XX" are not found, it will fallback to
     # "xx".
     #
-    # @param user_lang     [String]  User preferred language (falling back to fallback_lang)
-    # @param format        [Symbol] Release notes format (:txt or :rtf)
-    # @param fallback_lang [String] Release notes fallback language
+    # @param prefs [ReleaseNotesContentPrefs] Content preferences
     # @return [String,nil] Release notes or nil if a release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes(user_lang: "en_US", format: :txt, fallback_lang: "en")
+    def release_notes(prefs)
       if !self.class.enabled?
         log.info("Skipping release notes download due to previous download issues")
         return nil
@@ -122,7 +120,7 @@ module Y2Packager
         return nil
       end
 
-      release_notes = fetch_release_notes(user_lang, format, fallback_lang)
+      release_notes = fetch_release_notes(prefs)
 
       return release_notes if release_notes
 
@@ -148,39 +146,35 @@ module Y2Packager
     #
     # It relies on #release_notes_content to get release notes content.
     #
-    # @param user_lang     [String] Release notes language (falling back to fallback_lang)
-    # @param format        [Symbol] Release notes format (:txt or :rtf)
-    # @param fallback_lang [String] Release notes fallback language
+    # @param prefs [ReleaseNotesContentPrefs] Content preferences
     # @return [ReleaseNotes,nil] Release notes or nil if a release notes were not found
     # @see release_notes_content
-    def fetch_release_notes(user_lang, format, fallback_lang)
-      content, lang = release_notes_content(user_lang, format, fallback_lang)
+    def fetch_release_notes(prefs)
+      content, lang = release_notes_content(prefs)
       return nil if content.nil?
 
       Y2Packager::ReleaseNotes.new(
         product_name: product.name,
         content:      content,
-        user_lang:    user_lang,
+        user_lang:    prefs.user_lang,
         lang:         lang,
-        format:       format,
+        format:       prefs.format,
         version:      :latest
       )
     end
 
     # Search for release notes content
     #
-    # @param user_lang     [String] Release notes language (falling back to fallback_lang)
-    # @param format        [Symbol] Release notes format (:txt or :rtf)
-    # @param fallback_lang [String] Release notes fallback language
+    # @param prefs [ReleaseNotesContentPrefs] Content preferences
     # @return [String,nil] Return release notes content or nil if it release
     #   notes were not found
-    def release_notes_content(user_lang, format, fallback_lang)
-      langs = [user_lang]
-      langs << user_lang.split("_", 2).first if user_lang.include?("_")
-      langs << fallback_lang
+    def release_notes_content(prefs)
+      langs = [prefs.user_lang]
+      langs << prefs.user_lang.split("_", 2).first if prefs.user_lang.include?("_")
+      langs << prefs.fallback_lang
 
       langs.uniq.each do |lang|
-        content = release_notes_content_for_lang_and_format(lang, format)
+        content = release_notes_content_for_lang_and_format(lang, prefs.format)
         return [content, lang] if content
       end
 
