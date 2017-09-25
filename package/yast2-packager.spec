@@ -39,10 +39,8 @@ BuildRequires:  yast2 >= 3.2.7
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
 
-# Pkg::PrdGetLicenseToConfirm Pkg::PrdMarkLicenseConfirmed
-# Pkg::PrdMarkLicenseNotConfirmed Pkg::PrdHasLicenseConfirmed
-# Pkg::PrdNeedToAcceptLicense
-BuildRequires:  yast2-pkg-bindings >= 3.3.2
+# Pkg::CompareVersions
+BuildRequires:  yast2-pkg-bindings >= 4.0.1
 
 # Augeas lenses
 BuildRequires: augeas-lenses
@@ -50,9 +48,8 @@ BuildRequires: augeas-lenses
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
 
-# Pkg::PrdGetLicenseToConfirm Pkg::PrdMarkLicenseConfirmed
-# Pkg::PrdNeedToAcceptLicense Pkg::PrdHasLicenseConfirmed
-Requires:       yast2-pkg-bindings >= 3.3.1
+# Pkg::CompareVersions
+Requires:       yast2-pkg-bindings >= 4.0.1
 
 # Optional resolvables support in PackagesProposal
 Requires:       yast2 >= 3.2.7

@@ -103,7 +103,7 @@ module Y2Packager
       Y2Packager::Package
         .find(name)
         .select { |i| AVAILABLE_STATUSES.include?(i.status) }
-        .sort_by { |i| Gem::Version.new(i.version) }
+        .sort { |a, b| Yast::Pkg.CompareVersions(a.version, b.version) }
         .last
     end
 
