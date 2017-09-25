@@ -50,7 +50,10 @@ module Y2Packager
           return nil
         end
 
-        extract_release_notes(prefs)
+        relnotes = extract_release_notes(prefs)
+        log.info "Release notes for #{product.name} in #{release_notes_package} " \
+          "with #{prefs.inspect}: #{relnotes.inspect}"
+        relnotes
       end
 
       # Return release notes latest version identifier

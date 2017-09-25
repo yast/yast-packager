@@ -111,9 +111,12 @@ module Y2Packager
           return nil
         end
 
-        release_notes = fetch_release_notes(prefs)
+        relnotes = fetch_release_notes(prefs)
 
-        return release_notes if release_notes
+        if relnotes
+          log.info "Release notes for #{product.name} with #{prefs.inspect}: #{relnotes.inspect}"
+          return relnotes
+        end
 
         log.warn("Release notes for product #{product.name} not found. " \
                  "Blacklisting #{relnotes_url}...")
