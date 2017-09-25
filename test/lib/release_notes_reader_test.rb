@@ -52,6 +52,8 @@ describe Y2Packager::ReleaseNotesReader do
     )
   end
 
+  let(:registration) { double("Registration::Registration", is_registered?: registered?) }
+
   before do
     allow(Y2Packager::ReleaseNotesStore).to receive(:current)
       .and_return(release_notes_store)
@@ -65,9 +67,8 @@ describe Y2Packager::ReleaseNotesReader do
     let(:registered?) { true }
 
     before do
-      stub_const("Yast::Registration", double("Yast::Registration", is_registered?: registered?))
-      allow(Yast).to receive(:import).and_call_original
-      allow(Yast).to receive(:import).with("Registration")
+      stub_const("Registration::Registration", registration)
+      allow(reader).to receive(:require).with("registration/registration")
     end
 
     context "when system is registered" do
@@ -120,7 +121,8 @@ describe Y2Packager::ReleaseNotesReader do
 
     context "when no registration support is available" do
       before do
-        allow(Yast).to receive(:import).with("Registration").and_raise(NameError)
+        expect(reader).to receive(:require).with("registration/registration")
+          .and_raise(LoadError)
       end
 
       it "retrieves release notes from external sources" do

@@ -132,9 +132,9 @@ module Y2Packager
     #
     # @return [Boolean]
     def registered?
-      Yast.import "Registration"
-      Yast::Registration.is_registered?
-    rescue NameError
+      require "registration/registration"
+      Registration::Registration.is_registered?
+    rescue LoadError
       false
     end
 
