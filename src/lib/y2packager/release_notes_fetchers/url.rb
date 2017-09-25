@@ -180,7 +180,6 @@ module Y2Packager
       # @return [String,nil] Return release notes content or nil if it release
       def release_notes_content_for_lang_and_format(lang, format)
         # If there is an index and the language is not indexed
-        release_notes_index
         return nil unless release_notes_index.empty? || indexed_release_notes_for?(lang, format)
 
         # Where we want to store the downloaded release notes
