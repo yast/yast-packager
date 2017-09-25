@@ -23,7 +23,7 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
   let(:user_lang) { "en_US" }
   let(:format) { :txt }
   let(:fallback_lang) { "en" }
-  let(:prefs) { Y2Packager::ReleaseNotesContentPrefs.new(user_lang, format, fallback_lang) }
+  let(:prefs) { Y2Packager::ReleaseNotesContentPrefs.new(user_lang, fallback_lang, format) }
 
   before do
     allow(Yast::Pkg).to receive(:PkgQueryProvides).with("release-notes()")

@@ -27,7 +27,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
   let(:user_lang) { "de_DE" }
   let(:format) { :txt }
   let(:fallback_lang) { "en" }
-  let(:prefs) { Y2Packager::ReleaseNotesContentPrefs.new(user_lang, format, fallback_lang) }
+  let(:prefs) { Y2Packager::ReleaseNotesContentPrefs.new(user_lang, fallback_lang, format) }
 
   before do
     allow(Yast::Pkg).to receive(:ResolvableProperties)

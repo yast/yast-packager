@@ -15,9 +15,9 @@ module Y2Packager
   #
   # @!attribute [rw] user_lang
   #   @return [String] User preferred language
-  # @!attribute [rw] format
-  #   @return [Symbol] Release notes format (:txt or :rtf)
   # @!attribute [rw] fallback_lang
   #   @return [Symbol] Language to use if release notes for user_lang are not available
-  ReleaseNotesContentPrefs = Struct.new(:user_lang, :format, :fallback_lang)
+  # @!attribute [rw] format
+  #   @return [Symbol] Release notes format (:txt or :rtf)
+  ReleaseNotesContentPrefs = Struct.new(:user_lang, :fallback_lang, :format)
 end
