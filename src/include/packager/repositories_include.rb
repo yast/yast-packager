@@ -67,6 +67,12 @@ module Yast
 
       expanded_url = Pkg.ExpandedUrl(url)
 
+      if expanded_url.nil?
+        # TRANSLATORS: Error message, %{url} is replaced by the real URL
+        Report.Error(_("Invalid URL:\n%{url}") % { url: url })
+        return :again
+      end
+
       # for Plaindir repository we have to use SourceCreateType() binding
       parsed = URL.Parse(url)
       scheme = parsed["scheme"].downcase
