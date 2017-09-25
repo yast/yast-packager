@@ -15,6 +15,7 @@ require "fileutils"
 require "y2packager/package"
 require "y2packager/release_notes"
 require "y2packager/release_notes_content_prefs"
+require "y2packager/release_notes_fetchers/base"
 require "packages/package_downloader"
 require "tmpdir"
 
@@ -23,7 +24,7 @@ Yast.import "Pkg"
 
 module Y2Packager
   module ReleaseNotesFetchers
-    # This class is able to read release notes for a given product
+    # This class is able to read release notes from a RPM package
     #
     # Release notes for a product are available in a specific package which provides
     # "release-notes()" for the given product. For instance, a package which provides
@@ -31,19 +32,9 @@ module Y2Packager
     #
     # This reader takes care of downloading the release notes package (if any),
     # extracting its content and returning release notes for a given language/format.
-    class Rpm
-      include Yast::Logger
-
-      # @return [Product] Product to get release notes for
-      attr_reader :product
-
-      # Constructor
-      #
-      # @param product [Product] Product to get release notes for
-      def initialize(product)
-        @product = product
-      end
-
+    #
+    # @see Base
+    class Rpm < Base
       # Get release notes for the given product
       #
       # Release notes are downloaded and extracted to work directory.  When

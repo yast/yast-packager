@@ -11,8 +11,8 @@
 # ------------------------------------------------------------------------------
 
 require "yast"
-require "fileutils"
 require "y2packager/release_notes"
+require "y2packager/release_notes_fetchers/base"
 require "tmpdir"
 
 Yast.import "Pkg"
@@ -25,9 +25,9 @@ module Y2Packager
     #
     # The code was extracted from the old version of the InstDownloadReleaseNotesClient
     # and adapted. See https://github.com/yast/yast-installation/blob/62596684d6de242667a0957765c85712874e77ef/src/lib/installation/clients/inst_download_release_notes.rb
-    class Url
-      include Yast::Logger
-
+    #
+    # @see Base
+    class Url < Base
       class << self
         # Enable downloading release notes
         #
@@ -85,16 +85,6 @@ module Y2Packager
         7  => "Failed to connect to host.",
         28 => "Operation timeout."
       }.freeze
-
-      # @return [Product] Product to get release notes for
-      attr_reader :product
-
-      # Constructor
-      #
-      # @param product [Product] {Product} to get release notes for
-      def initialize(product)
-        @product = product
-      end
 
       # Get release notes for the given product
       #
