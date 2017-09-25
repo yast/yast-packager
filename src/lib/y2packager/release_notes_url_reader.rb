@@ -85,12 +85,12 @@ module Y2Packager
       28 => "Operation timeout."
     }.freeze
 
-    # Product to get release notes for
+    # @return [Product] Product to get release notes for
     attr_reader :product
 
     # Constructor
     #
-    # @param product [Product] Product to get release notes for
+    # @param product [Product] {Product} to get release notes for
     def initialize(product)
       @product = product
     end
@@ -132,12 +132,12 @@ module Y2Packager
       nil
     end
 
-    # Return release notes latest version
+    # Return release notes latest version identifier
     #
     # Release notes that lives in relnotes_url are considered always to be the
-    # latest version.
+    # latest version, hence this method always returns :latest.
     #
-    # @return [Symbol] Package version
+    # @return [:latest]
     def latest_version
       :latest
     end
@@ -151,7 +151,7 @@ module Y2Packager
     # @param user_lang     [String] Release notes language (falling back to fallback_lang)
     # @param format        [Symbol] Release notes format (:txt or :rtf)
     # @param fallback_lang [String] Release notes fallback language
-    # @return [String,nil] Release notes or nil if a release notes were not found
+    # @return [ReleaseNotes,nil] Release notes or nil if a release notes were not found
     # @see release_notes_content
     def fetch_release_notes(user_lang, format, fallback_lang)
       content, lang = release_notes_content(user_lang, format, fallback_lang)

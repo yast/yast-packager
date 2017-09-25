@@ -23,8 +23,8 @@ module Y2Packager
   #
   # It can use two different strategies or backends:
   #
-  # * ReleaseNotesRpmReader which gets release notes from a package.
-  # * ReleaseNotesUrlReader which gets release notes from an external URL
+  # * {ReleaseNotesRpmReader} which gets release notes from a package.
+  # * {ReleaseNotesUrlReader} which gets release notes from an external URL
   #   (using the relnotes_url property from the given product).
   #
   # ### How it works
@@ -41,7 +41,7 @@ module Y2Packager
   # ### Cached release notes
   #
   # Release notes are stored using an instance of `Y2Packager::ReleaseNotesStore`.
-  # When trying to read a product license for second time, this class will try to fetch
+  # When trying to read a product release notes for second time, this class will try to fetch
   # the latest version (determined by ReleaseNotesRpmReader#latest_version or
   # ReleaseNotesUrlReader#latest_version from the store). If release notes are not there,
   # or the stored version is outdated (maybe a new package is now available), it will

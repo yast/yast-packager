@@ -62,9 +62,18 @@ module Y2Packager
       extract_release_notes(user_lang, format, fallback_lang)
     end
 
-    # Return release notes latest version
+    # Return release notes latest version identifier
     #
-    # @return [String] Package version
+    # @example Getting release notes version
+    #   reader = ReleaseNotesRpmReader.new(product)
+    #   reader.latest_version # => "15.0"
+    #
+    # @example Not defined product
+    #   reader = ReleaseNotesRpmReader.new(product)
+    #   reader.latest_version # => :none
+    #
+    # @return [String,:none] Package version; :none if no release notes package
+    #   was found.
     def latest_version
       return :none if release_notes_package.nil?
       release_notes_package.version
@@ -112,7 +121,7 @@ module Y2Packager
     # @param user_lang     [String]  User preferred language (falling back to fallback_lang)
     # @param format        [Symbol]  Release notes format
     # @param fallback_lang [String]  Release notes fallback language
-    # @return [ReleaseNotes] Release notes for given arguments
+    # @return [ReleaseNotes,nil] Release notes for given arguments
     def extract_release_notes(user_lang, format, fallback_lang)
       content, lang = release_notes_content(
         release_notes_package, user_lang, format, fallback_lang
