@@ -12,8 +12,8 @@
 
 require "yast"
 require "y2packager/release_notes_store"
-require "y2packager/release_notes_rpm_reader"
-require "y2packager/release_notes_url_reader"
+require "y2packager/release_notes_fetchers/rpm"
+require "y2packager/release_notes_fetchers/url"
 require "y2packager/release_notes_content_prefs"
 
 Yast.import "Directory"
@@ -24,8 +24,8 @@ module Y2Packager
   #
   # It can use two different strategies or backends:
   #
-  # * {ReleaseNotesRpmReader} which gets release notes from a package.
-  # * {ReleaseNotesUrlReader} which gets release notes from an external URL
+  # * {ReleaseNotesFetchers::Rpm} which gets release notes from a package.
+  # * {ReleaseNotesFetchers::Url} which gets release notes from an external URL
   #   (using the relnotes_url property from the given product).
   #
   # ### How it works
@@ -43,13 +43,13 @@ module Y2Packager
   #
   # Release notes are stored using an instance of `Y2Packager::ReleaseNotesStore`.
   # When trying to read a product release notes for second time, this class will try to fetch
-  # the latest version (determined by ReleaseNotesRpmReader#latest_version or
-  # ReleaseNotesUrlReader#latest_version from the store). If release notes are not there,
+  # the latest version (determined by ReleaseNotesFetchers::Rpm#latest_version or
+  # ReleaseNotesFetchers::Url#latest_version from the store). If release notes are not there,
   # or the stored version is outdated (maybe a new package is now available), it will
   # try to get that version.
   #
   # Take into account that, when using the relnotes_url property, a URL that already
-  # failed will not be retried again. See ReleaseNotesUrlReader for further details.
+  # failed will not be retried again. See ReleaseNotesFetchers::Url for further details.
   class ReleaseNotesReader
     include Yast::Logger
 
@@ -79,13 +79,13 @@ module Y2Packager
         # registered system: get relnotes from RPMs and fallback to relnotes_url property
         if registered?
           [
-            ReleaseNotesRpmReader.new(product),
-            ReleaseNotesUrlReader.new(product)
+            ReleaseNotesFetchers::Rpm.new(product),
+            ReleaseNotesFetchers::Url.new(product)
           ]
         else # unregistered system: try relnotes first and fallback to RPMs
           [
-            ReleaseNotesUrlReader.new(product),
-            ReleaseNotesRpmReader.new(product)
+            ReleaseNotesFetchers::Url.new(product),
+            ReleaseNotesFetchers::Rpm.new(product)
           ]
         end
 
@@ -100,12 +100,12 @@ module Y2Packager
 
     # Get release notes for a given product using a reader instance
     #
-    # @param reader [ReleaseNotesRpmReader,ReleaseNotesUrlReader] Release notes reader
+    # @param reader [ReleaseNotesFetchers::Rpm,ReleaseNotesFetchers::Url] Release notes reader
     # @param prefs  [ReleaseNotesContentPrefs] Content preferences
     # @return [String,nil] Release notes or nil if release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    # @see ReleaseNotesRpmReader#release_notes
-    # @see ReleaseNotesUrlReader#release_notes
+    # @see ReleaseNotesFetchers::Rpm#release_notes
+    # @see ReleaseNotesFetchers::Url#release_notes
     def release_notes_via_reader(reader, prefs)
       from_store = release_notes_store.retrieve(
         product.name, prefs.user_lang, prefs.format, reader.latest_version

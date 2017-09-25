@@ -1,10 +1,10 @@
 #!/usr/bin/env rspec
 
-require_relative "../test_helper"
-require "y2packager/release_notes_url_reader"
+require_relative "../../test_helper"
+require "y2packager/release_notes_fetchers/url"
 require "y2packager/product"
 
-describe Y2Packager::ReleaseNotesUrlReader do
+describe Y2Packager::ReleaseNotesFetchers::Url do
   subject(:reader) { described_class.new(product) }
 
   let(:product) { instance_double(Y2Packager::Product, name: "dummy") }

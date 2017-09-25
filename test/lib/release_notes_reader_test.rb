@@ -37,7 +37,7 @@ describe Y2Packager::ReleaseNotesReader do
 
   let(:rpm_reader) do
     instance_double(
-      Y2Packager::ReleaseNotesRpmReader,
+      Y2Packager::ReleaseNotesFetchers::Rpm,
       latest_version: "15.0",
       release_notes:  release_notes
     )
@@ -45,7 +45,7 @@ describe Y2Packager::ReleaseNotesReader do
 
   let(:url_reader) do
     instance_double(
-      Y2Packager::ReleaseNotesRpmReader,
+      Y2Packager::ReleaseNotesFetchers::Rpm,
       latest_version: :latest,
       release_notes:  relnotes_from_url
     )
@@ -54,9 +54,9 @@ describe Y2Packager::ReleaseNotesReader do
   before do
     allow(Y2Packager::ReleaseNotesStore).to receive(:current)
       .and_return(release_notes_store)
-    allow(Y2Packager::ReleaseNotesRpmReader).to receive(:new)
+    allow(Y2Packager::ReleaseNotesFetchers::Rpm).to receive(:new)
       .with(product).and_return(rpm_reader)
-    allow(Y2Packager::ReleaseNotesUrlReader).to receive(:new)
+    allow(Y2Packager::ReleaseNotesFetchers::Url).to receive(:new)
       .with(product).and_return(url_reader)
   end
 
