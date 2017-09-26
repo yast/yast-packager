@@ -30,6 +30,9 @@ module Y2Packager
     # "release-notes()" for the given product. For instance, a package which provides
     # "release-notes() = SLES" will provide release notes for the SLES product.
     #
+    # If more than one product provide release notes for that product, the first
+    # one in alphabetical order will be selected.
+    #
     # This reader takes care of downloading the release notes package (if any),
     # extracting its content and returning release notes for a given language/format.
     #
@@ -80,13 +83,15 @@ module Y2Packager
       #
       # This method queries libzypp asking for the package which contains release
       # notes for the given product. It relies on the `release-notes()` tag.
+      # If more than one product provide release notes for that product, the first
+      # one in alphabetical order will be selected.
       #
       # @return [Package,nil] Package containing the release notes; nil if not found
       def release_notes_package
         return @release_notes_package if @release_notes_package
         provides = Yast::Pkg.PkgQueryProvides("release-notes()")
         release_notes_packages = provides.map(&:first).uniq
-        package_name = release_notes_packages.find do |name|
+        package_name = release_notes_packages.sort.find do |name|
           dependencies = Yast::Pkg.ResolvableDependencies(name, :package, "").first["deps"]
           dependencies.any? do |dep|
             dep["provides"].to_s.match(/release-notes\(\)\s*=\s*#{product.name}\s*/)

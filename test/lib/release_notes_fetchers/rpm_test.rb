@@ -95,7 +95,24 @@ describe Y2Packager::ReleaseNotesFetchers::Rpm do
       end
     end
 
-    context "when there is more than one package" do
+    context "when more than one package provides release notes" do
+      let(:provides) do
+        [
+          ["release-notes-more-dummy", :CAND, :NONE],
+          ["release-notes-dummy", :CAND, :NONE]
+        ]
+      end
+
+      it "uses the first in alphabetical order" do
+        expect(Y2Packager::Package).to receive(:find)
+          .with("release-notes-dummy").and_return([package])
+        expect(Y2Packager::Package).to_not receive(:find)
+          .with("release-notes-more-dummy")
+        fetcher.release_notes(prefs)
+      end
+    end
+
+    context "when there is more than one package version" do
       let(:other_package) { Y2Packager::Package.new("release-notes-dummy", 2, "15.0") }
       let(:packages) { [other_package, package] }
 

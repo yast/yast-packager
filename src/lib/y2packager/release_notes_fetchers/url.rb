@@ -313,9 +313,9 @@ module Y2Packager
             log.info("Release notes index empty, not filtering further downloads")
             nil
           else
-            rn_filter = index_file.split("\n")
-            log.info("Index of RN files at the server: #{rn_filter}")
-            rn_filter
+            rn_index = index_file.split("\n")
+            log.info("Index of RN files at the server: #{rn_index}")
+            rn_index
           end
         elsif ok.nil?
           nil
@@ -346,7 +346,8 @@ module Y2Packager
           max_time
         )
         ret = Yast::SCR.Execute(Yast::Path.new(".target.bash"), cmd)
-        log.info("#{cmd} returned #{ret}")
+        filtered_cmd = cmd.sub(/--proxy-user '[^']*'/, "--proxy-user @PROXYPASSWORD@")
+        log.info("#{filtered_cmd} returned #{ret}")
         reason = CURL_GIVE_UP_RETURN_CODES[ret]
         if reason
           log.info "Communication with server failed (#{reason}), skipping further attempts."

@@ -33,9 +33,9 @@ module Y2Packager
   # We can distinguish two different case:
   #
   # * When the system *is registered*: release notes will be obtained from RPM packages.
-  #   If release notes are not found there, it will fall back to the relnotes_url property.
-  #   This behaviour covers the case in which you are installing behind a SMT but without
-  #   access to Internet.
+  #   If release notes are not found there, it will fall back to the
+  #   "relnotes_url" product property.  This behaviour covers the case in which
+  #   you are installing behind a SMT but without access to Internet.
   # * When the system *is not registered*: it will work the other way around, trying
   #   first relnotes_url and falling back to RPM packages.
   #
@@ -48,7 +48,7 @@ module Y2Packager
   # or the stored version is outdated (maybe a new package is now available), it will
   # try to get that version.
   #
-  # Take into account that, when using the relnotes_url property, a URL that already
+  # Take into account that, when using the relnotes_url property, an URL that already
   # failed will not be retried again. See ReleaseNotesFetchers::Url for further details.
   class ReleaseNotesReader
     include Yast::Logger

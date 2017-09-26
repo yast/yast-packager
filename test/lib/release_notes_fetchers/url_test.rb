@@ -246,6 +246,7 @@ describe Y2Packager::ReleaseNotesFetchers::Url do
         it "uses an unauthenticated proxy" do
           expect(Yast::SCR).to receive(:Execute) do |_path, cmd|
             expect(cmd).to include("--proxy http://proxy.example.com")
+            expect(cmd).to_not include("--proxy-user")
           end
 
           fetcher.release_notes(prefs)

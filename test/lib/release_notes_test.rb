@@ -24,7 +24,7 @@ describe Y2Packager::ReleaseNotes do
 
     context "when language does not match" do
       it "returns false" do
-        expect(rn.matches?("cz_CZ", format, version)).to eq(false)
+        expect(rn.matches?("cs_CZ", format, version)).to eq(false)
       end
     end
 

@@ -100,9 +100,9 @@ describe Y2Packager::ReleaseNotesReader do
 
       it "retrieves release notes from external sources" do
         expect(url_reader).to receive(:release_notes).with(
-          Y2Packager::ReleaseNotesContentPrefs.new("cz_CZ", "en", :txt)
+          Y2Packager::ReleaseNotesContentPrefs.new("cs_CZ", "en", :txt)
         )
-        rn = reader.release_notes(user_lang: "cz_CZ", format: :txt)
+        rn = reader.release_notes(user_lang: "cs_CZ", format: :txt)
         expect(rn).to eq(relnotes_from_url)
       end
 
@@ -111,9 +111,9 @@ describe Y2Packager::ReleaseNotesReader do
 
         it "tries to get release notes from RPM packages" do
           expect(url_reader).to receive(:release_notes).with(
-            Y2Packager::ReleaseNotesContentPrefs.new("cz_CZ", "en", :html)
+            Y2Packager::ReleaseNotesContentPrefs.new("cs_CZ", "en", :html)
           )
-          rn = reader.release_notes(user_lang: "cz_CZ", format: :html)
+          rn = reader.release_notes(user_lang: "cs_CZ", format: :html)
           expect(rn).to eq(release_notes)
         end
       end
