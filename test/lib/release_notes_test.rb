@@ -24,7 +24,7 @@ describe Y2Packager::ReleaseNotes do
 
     context "when language does not match" do
       it "returns false" do
-        expect(rn.matches?("cz_CZ", format, version)).to eq(false)
+        expect(rn.matches?("cs_CZ", format, version)).to eq(false)
       end
     end
 
@@ -37,6 +37,14 @@ describe Y2Packager::ReleaseNotes do
     context "when version does not match" do
       it "returns false" do
         expect(rn.matches?(user_lang, format, "12.3")).to eq(false)
+      end
+    end
+
+    context "when everything matches but version is :latest" do
+      let(:version) { :latest }
+
+      it "returns true" do
+        expect(rn.matches?(user_lang, format, "12.3")).to eq(true)
       end
     end
   end

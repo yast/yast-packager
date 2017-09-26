@@ -11,12 +11,10 @@
 # ------------------------------------------------------------------------------
 
 require "yast"
-require "fileutils"
-require "y2packager/package"
 require "y2packager/release_notes_store"
-require "y2packager/release_notes"
-require "packages/package_downloader"
-require "tmpdir"
+require "y2packager/release_notes_fetchers/rpm"
+require "y2packager/release_notes_fetchers/url"
+require "y2packager/release_notes_content_prefs"
 
 Yast.import "Directory"
 Yast.import "Pkg"
@@ -24,157 +22,120 @@ Yast.import "Pkg"
 module Y2Packager
   # This class is able to read release notes for a given product
   #
-  # Release notes for a product are available in a specific package which provides
-  # "release-notes()" for the given product. For instance, a package which provides
-  # "release-notes() = SLES" will provide release notes for the SLES product.
+  # It can use two different strategies or backends:
   #
-  # This reader takes care of downloading the release notes package (if any),
-  # extracting its content and returning release notes for a given language/format.
+  # * {ReleaseNotesFetchers::Rpm} which gets release notes from a package.
+  # * {ReleaseNotesFetchers::Url} which gets release notes from an external URL
+  #   (using the relnotes_url property from the given product).
+  #
+  # ### How it works
+  #
+  # We can distinguish two different case:
+  #
+  # * When the system *is registered*: release notes will be obtained from RPM packages.
+  #   If release notes are not found there, it will fall back to the
+  #   "relnotes_url" product property.  This behaviour covers the case in which
+  #   you are installing behind a SMT but without access to Internet.
+  # * When the system *is not registered*: it will work the other way around, trying
+  #   first relnotes_url and falling back to RPM packages.
+  #
+  # ### Cached release notes
+  #
+  # Release notes are stored using an instance of `Y2Packager::ReleaseNotesStore`.
+  # When trying to read a product release notes for second time, this class will try to fetch
+  # the latest version (determined by ReleaseNotesFetchers::Rpm#latest_version or
+  # ReleaseNotesFetchers::Url#latest_version from the store). If release notes are not there,
+  # or the stored version is outdated (maybe a new package is now available), it will
+  # try to get that version.
+  #
+  # Take into account that, when using the relnotes_url property, an URL that already
+  # failed will not be retried again. See ReleaseNotesFetchers::Url for further details.
   class ReleaseNotesReader
     include Yast::Logger
 
+    # Product to get release notes for
+    attr_reader :product
+
     # Constructor
     #
+    # @param product             [Product]           Product to get release notes for
     # @param release_notes_store [ReleaseNotesStore] Release notes store to cache data
-    def initialize(release_notes_store = nil)
+    def initialize(product, release_notes_store = nil)
       @release_notes_store = release_notes_store
+      @product = product
     end
+
+    # Fallback language
+    FALLBACK_LANG = "en".freeze
 
     # Get release notes for a given product
     #
-    # Release notes are downloaded and extracted to work directory.  When
-    # release notes for a language "xx_XX" are not found, it will fallback to
-    # "xx".
-    #
-    # @param product   [Y2Packager::Product] Product
-    # @param user_lang [String]              Release notes language (falling back to "en_US"
-    #                                        and "en")
-    # @param format    [Symbol]              Release notes format (:txt or :rtf)
-    # @return [String,nil] Release notes or nil if a release notes were not found
+    # @param user_lang [String] Release notes language (falling back to "en")
+    # @param format    [Symbol] Release notes format (:txt or :rtf)
+    # @return [String,nil] Release notes or nil if release notes were not found
     #   (no package providing release notes or notes not found in the package)
-    def release_notes_for(product, user_lang: "en_US", format: :txt)
-      package = release_notes_package_for(product)
-      if package.nil?
-        log.info "No package containing release notes for #{product.name} was found"
-        return nil
+    def release_notes(user_lang: "en_US", format: :txt)
+      readers =
+        # registered system: get relnotes from RPMs and fallback to relnotes_url property
+        if registered?
+          [
+            ReleaseNotesFetchers::Rpm.new(product),
+            ReleaseNotesFetchers::Url.new(product)
+          ]
+        else # unregistered system: try relnotes first and fallback to RPMs
+          [
+            ReleaseNotesFetchers::Url.new(product),
+            ReleaseNotesFetchers::Rpm.new(product)
+          ]
+        end
+
+      prefs = ReleaseNotesContentPrefs.new(user_lang, FALLBACK_LANG, format)
+      readers.each do |reader|
+        rn = release_notes_via_reader(reader, prefs)
+        return rn if rn
       end
 
-      from_store = release_notes_store.retrieve(product.name, user_lang, format, package.version)
+      nil
+    end
+
+    # Get release notes for a given product using a reader instance
+    #
+    # @param reader [ReleaseNotesFetchers::Rpm,ReleaseNotesFetchers::Url] Release notes reader
+    # @param prefs  [ReleaseNotesContentPrefs] Content preferences
+    # @return [String,nil] Release notes or nil if release notes were not found
+    #   (no package providing release notes or notes not found in the package)
+    # @see ReleaseNotesFetchers::Rpm#release_notes
+    # @see ReleaseNotesFetchers::Url#release_notes
+    def release_notes_via_reader(reader, prefs)
+      from_store = release_notes_store.retrieve(
+        product.name, prefs.user_lang, prefs.format, reader.latest_version
+      )
+
       if from_store
-        log.info "Release notes for #{product.name} were found in the cache"
+        log.info "Release notes for #{product.name} were found"
         return from_store
       end
 
-      release_notes = build_release_notes(product, package, user_lang, format)
+      release_notes = reader.release_notes(prefs)
+
       if release_notes
         log.info "Release notes for #{product.name} were found"
         release_notes_store.store(release_notes)
-      else
-        log.warn "No release notes for #{product.name} were found in #{package.name}"
       end
+
       release_notes
     end
 
   private
 
-    # Return the release notes package for a given product
+    # Determine whether the system is registered
     #
-    # This method queries libzypp asking for the package which contains release
-    # notes for the given product. It relies on the `release-notes()` tag.
-    #
-    # @param product [Product] Product
-    # @return [Package,nil] Package containing the release notes; nil if not found
-    def release_notes_package_for(product)
-      provides = Yast::Pkg.PkgQueryProvides("release-notes()")
-      release_notes_packages = provides.map(&:first).uniq
-      package_name = release_notes_packages.find do |name|
-        dependencies = Yast::Pkg.ResolvableDependencies(name, :package, "").first["deps"]
-        dependencies.any? do |dep|
-          dep["provides"].to_s.match(/release-notes\(\)\s*=\s*#{product.name}\s*/)
-        end
-      end
-      return nil if package_name.nil?
-
-      find_package(package_name)
-    end
-
-    # Valid statuses for packages containing release notes
-    AVAILABLE_STATUSES = [:available, :selected].freeze
-
-    # Find the latest available/selected package containing release notes
-    #
-    # @return [Package,nil] Package containing release notes; nil if not found
-    def find_package(name)
-      Y2Packager::Package
-        .find(name)
-        .select { |i| AVAILABLE_STATUSES.include?(i.status) }
-        .sort_by { |i| Gem::Version.new(i.version) }
-        .last
-    end
-
-    # Return release notes content for a package, language and format
-    #
-    # Release notes are downloaded and extracted to work directory.  When
-    # release notes for a language "xx_XX" are not found, it will fallback to
-    # "xx".
-    #
-    # @param package   [String] Release notes package name
-    # @param user_lang [String] Language code ("en_US", "en", etc.)
-    # @param format    [Symbol] Content format (:txt, :rtf, etc.).
-    # @return [Array<String,String>] Array containing content and language code
-    # @see release_notes_file
-    def release_notes_content(package, user_lang, format)
-      tmpdir = Dir.mktmpdir
-      begin
-        package.extract_to(tmpdir)
-        file, lang = release_notes_file(tmpdir, user_lang, format)
-        file ? [File.read(file), lang] : nil
-      ensure
-        FileUtils.remove_entry_secure(tmpdir)
-      end
-    end
-
-    FALLBACK_LANGS = ["en_US", "en"].freeze
-    # Return release notes file path for a given package, language and format
-    #
-    # Release notes are downloaded and extracted to work directory.  When
-    # release notes for a language "xx_XX" are not found, it will fallback to
-    # "xx".
-    #
-    # @param directory [String] Directory where release notes were uncompressed
-    # @param user_lang [String] Language code ("en_US", "en", etc.)
-    # @param format    [Symbol] Content format (:txt, :rtf, etc.)
-    # @return [Array<String,String>] Array containing path and language code
-    def release_notes_file(directory, user_lang, format)
-      langs = [user_lang]
-      langs << user_lang.split("_", 2).first if user_lang.include?("_")
-      langs.concat(FALLBACK_LANGS)
-
-      path = Dir.glob(
-        File.join(directory, "**", "RELEASE-NOTES.{#{langs.join(",")}}.#{format}")
-      ).first
-      return nil if path.nil?
-      [path, path[/RELEASE-NOTES\.(.+)\.#{format}\z/, 1]] if path
-    end
-
-    # Return release notes instance
-    #
-    # @param product   [Product] Product
-    # @param package   [Package] Package containing release notes
-    # @param user_lang [String]  User preferred language
-    # @param format    [Symbol]  Release notes format
-    # @return [ReleaseNotes] Release notes for given arguments
-    def build_release_notes(product, package, user_lang, format)
-      content, lang = release_notes_content(package, user_lang, format)
-      return nil if content.nil?
-      Y2Packager::ReleaseNotes.new(
-        product_name: product.name,
-        content:      content,
-        user_lang:    user_lang,
-        lang:         lang,
-        format:       format,
-        version:      package.version
-      )
+    # @return [Boolean]
+    def registered?
+      require "registration/registration"
+      Registration::Registration.is_registered?
+    rescue LoadError
+      false
     end
 
     # Release notes store

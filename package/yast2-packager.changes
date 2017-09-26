@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep 25 14:10:51 UTC 2017 - igonzalezsosa@suse.com
+
+- Bring back support to read release notes from an URL
+  on non-registered systems and as fallback mechanism
+  for registered ones (related to fate#323273)
+- 4.0.8
+
+-------------------------------------------------------------------
 Fri Sep 22 10:37:14 UTC 2017 - lslezak@suse.cz
 
 - Report error when the repository URL cannot be expanded by

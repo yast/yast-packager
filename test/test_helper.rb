@@ -25,6 +25,7 @@ def stub_module(name)
 end
 
 stub_module("Language")
+stub_module("Proxy")
 
 if ENV["COVERAGE"]
   require "simplecov"

@@ -215,7 +215,7 @@ module Y2Packager
     # @see ReleaseNotesReader
     # @see ReleaseNotes
     def release_notes(format = :txt, user_lang = Yast::Language.language)
-      ReleaseNotesReader.new.release_notes_for(self, user_lang: user_lang, format: format)
+      ReleaseNotesReader.new(self).release_notes(user_lang: user_lang, format: format)
     end
   end
 end

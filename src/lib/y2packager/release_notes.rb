@@ -55,7 +55,8 @@ module Y2Packager
     # @param version      [String] Release note's version
     # @return [Boolean] true if it matches; false otherwise.
     def matches?(user_lang, format, version)
-      self.user_lang == user_lang && self.format == format && self.version == version
+      self.user_lang == user_lang && self.format == format &&
+        (self.version == version || self.version == :latest)
     end
   end
 end
