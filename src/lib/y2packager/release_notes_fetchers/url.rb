@@ -114,7 +114,8 @@ module Y2Packager
         relnotes = fetch_release_notes(prefs)
 
         if relnotes
-          log.info "Release notes for #{product.name} with #{prefs.inspect}: #{relnotes.inspect}"
+          log.info "Got release notes for #{product.name} from URL #{relnotes_url} " \
+            "with #{prefs}"
           return relnotes
         end
 

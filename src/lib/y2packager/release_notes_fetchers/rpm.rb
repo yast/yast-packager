@@ -51,8 +51,9 @@ module Y2Packager
         end
 
         relnotes = extract_release_notes(prefs)
-        log.info "Release notes for #{product.name} in #{release_notes_package} " \
-          "with #{prefs.inspect}: #{relnotes.inspect}"
+        log.info "Got release notes for #{product.name} from RPM " \
+          "#{release_notes_package.name} #{release_notes_package.version} " \
+          "with #{prefs}"
         relnotes
       end
 
