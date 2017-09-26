@@ -346,8 +346,7 @@ module Y2Packager
           max_time
         )
         ret = Yast::SCR.Execute(Yast::Path.new(".target.bash"), cmd)
-        filtered_cmd = cmd.sub(/--proxy-user '[^']*'/, "--proxy-user @PROXYPASSWORD@")
-        log.info("#{filtered_cmd} returned #{ret}")
+        log.info("#{cmd.sub(curl_proxy_args, "--proxy-user @PROXYPASSWORD@")} returned #{ret}")
         reason = CURL_GIVE_UP_RETURN_CODES[ret]
         if reason
           log.info "Communication with server failed (#{reason}), skipping further attempts."
