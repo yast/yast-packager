@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 28 16:32:30 CEST 2017 - schubi@suse.de
+
+- Disable vpn, ssh,... and inform the user if the needed packages
+  are not available. (bnc#1055279, bnc#1058071)
+- 4.0.9
+
+-------------------------------------------------------------------
 Mon Sep 25 14:10:51 UTC 2017 - igonzalezsosa@suse.com
 
 - Bring back support to read release notes from an URL
