@@ -974,8 +974,8 @@ module Yast
 
       missing_remote_packages.flatten!
       unless missing_remote_packages.empty?
-        error_string = (_("Cannot support %s due missing packages %s. It will be disabled.") %
-          [@missing_remote_kind.join(", "), @missing_remote_packages.join(", ")])
+        error_string = format(_("Cannot support %s due missing packages %s. It will be disabled."),
+          @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
         if Mode.auto
           error_string << " \n"
           error_string << _("But the AutoYaST installation will be finished offline.")
