@@ -953,8 +953,8 @@ describe Yast::Packages do
       context "needed packages are available" do
         before do
           braille_packages.each do |pkg|
-            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return(
-              [[pkg, :CAND, :CAND]])
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
           end
         end
 
@@ -990,8 +990,8 @@ describe Yast::Packages do
       context "needed packages are available" do
         before do
           (remote_x11_packages + ssh_packages).each do |pkg|
-            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return(
-              [[pkg, :CAND, :CAND]])
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
           end
         end
 
@@ -1009,8 +1009,8 @@ describe Yast::Packages do
               .and_return([[pkg, :CAND, :NONE]])
           end
           remote_x11_packages.each do |pkg|
-            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return(
-              [[pkg, :CAND, :CAND]])
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
           end
         end
 
@@ -1047,8 +1047,8 @@ describe Yast::Packages do
       context "needed packages are available" do
         before do
           vnc_packages.each do |pkg|
-            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg).and_return(
-              [[pkg, :CAND, :CAND]])
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
           end
         end
 
