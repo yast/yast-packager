@@ -975,16 +975,16 @@ module Yast
       missing_remote_packages.flatten!
       unless missing_remote_packages.empty?
         error_string = format(
-          _("Cannot support %s remote access in the installed system due missing packages \n%s. \n" \
-            "It will be disabled."),
+          _("Cannot support %s remote access in the installed system due missing " \
+            "packages \n%s. \nIt will be disabled."),
           @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
         if Mode.auto
           error_string << " \n"
           error_string << _("But the AutoYaST installation will be still finished automatically " \
             "without any user interaction.")
         end
-        log.warn ("Cannot support #{@missing_remote_kind.join(", ")} remote access in the " \
-          "installed system due missing packages #{@missing_remote_packages.join(", ")}")
+        log.warn("Cannot support #{@missing_remote_kind} remote access in the " \
+          "installed system due missing packages #{@missing_remote_packages}")
         return error_string
       end
       ""
@@ -2774,7 +2774,7 @@ module Yast
       # ["kernel-default", `BOTH, :INST]]
       ret = provides.any? { |p| p[2] != :NONE }
       log.info("#{tag} will #{ret ? "" : "not "}be installed")
-      return ret
+      ret
     end
   end
 
