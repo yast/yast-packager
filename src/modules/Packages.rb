@@ -974,9 +974,8 @@ module Yast
 
       missing_remote_packages.flatten!
       unless missing_remote_packages.empty?
-        error_string = format(
-          _("Cannot support %s remote access in the installed system due missing " \
-            "packages \n%s. \nIt will be disabled."),
+        error_string = format(_("Cannot support %s remote access in the installed system" \
+          " due missing packages \n%s. \nIt will be disabled."),
           @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
         if Mode.auto
           error_string << " \n"
