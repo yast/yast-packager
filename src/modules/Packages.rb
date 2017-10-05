@@ -947,40 +947,44 @@ module Yast
         missing = braille_packages.reject { |tag| pkg_will_be_installed(tag) }
         unless missing.empty?
           @missing_remote_packages << missing
-          @missing_remote_kind << "braille"
+          @missing_remote_kind << "BRAILLE"
         end
       end
       if Linuxrc.usessh
         missing = ssh_packages.reject { |tag| pkg_will_be_installed(tag) }
         unless missing.empty?
           @missing_remote_packages << missing
-          @missing_remote_kind << "ssh"
+          @missing_remote_kind << "SSH"
         end
       end
       if Linuxrc.vnc
         missing = vnc_packages.reject { |tag| pkg_will_be_installed(tag) }
         unless missing.empty?
           @missing_remote_packages << missing
-          @missing_remote_kind << "vnc"
+          @missing_remote_kind << "VNC"
         end
       end
       if Linuxrc.display_ip
         missing = remote_x11_packages.reject { |tag| pkg_will_be_installed(tag) }
         unless missing.empty?
           @missing_remote_packages << missing
-          @missing_remote_kind << "display-ip"
+          @missing_remote_kind << "DISPLAY_IP"
         end
       end
 
       missing_remote_packages.flatten!
       unless missing_remote_packages.empty?
-        error_string = format(_("Cannot support %s due missing packages %s. It will be disabled."),
+        error_string = format(
+          _("Cannot support %s remote access in the installed system due missing packages \n%s. \n" \
+            "It will be disabled."),
           @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
         if Mode.auto
           error_string << " \n"
-          error_string << _("But the AutoYaST installation will be finished offline.")
+          error_string << _("But the AutoYaST installation will be still finished automatically " \
+            "without any user interaction.")
         end
-        log.warn error_string
+        log.warn ("Cannot support #{@missing_remote_kind.join(", ")} remote access in the " \
+          "installed system due missing packages #{@missing_remote_packages.join(", ")}")
         return error_string
       end
       ""
@@ -2768,14 +2772,9 @@ module Yast
       provides = Pkg.PkgQueryProvides(tag)
       # e.g.: [["kernel-bigsmp", :CAND, :NONE], ["kernel-default", :CAND, :CAND],
       # ["kernel-default", `BOTH, :INST]]
-      log.info("provides: #{provides}")
-      if provides.any? { |p| p[2] != :NONE }
-        log.info("#{tag} will be installed")
-        return true
-      else
-        log.info("#{tag} will not be installed")
-        return false
-      end
+      ret = provides.any? { |p| p[2] != :NONE }
+      log.info("#{tag} will #{ret ? "" : "not "}be installed")
+      return ret
     end
   end
 
