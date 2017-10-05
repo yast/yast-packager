@@ -976,7 +976,7 @@ describe Yast::Packages do
         it "reports error" do
           expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
           expect(Yast::Packages.missing_remote_packages).to eq(braille_packages)
-          expect(Yast::Packages.missing_remote_kind).to eq(["braille"])
+          expect(Yast::Packages.missing_remote_kind).to eq(["BRAILLE"])
         end
       end
     end
@@ -1017,7 +1017,7 @@ describe Yast::Packages do
         it "reports error for X11 packages" do
           expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
           expect(Yast::Packages.missing_remote_packages).to eq(ssh_packages)
-          expect(Yast::Packages.missing_remote_kind).to eq(["ssh"])
+          expect(Yast::Packages.missing_remote_kind).to eq(["SSH"])
         end
       end
 
@@ -1033,7 +1033,7 @@ describe Yast::Packages do
           expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
           expect(Yast::Packages.missing_remote_packages.sort)
             .to eq((ssh_packages + remote_x11_packages).sort)
-          expect(Yast::Packages.missing_remote_kind).to eq(["ssh", "display-ip"])
+          expect(Yast::Packages.missing_remote_kind).to eq(["SSH", "DISPLAY_IP"])
         end
       end
     end
@@ -1070,7 +1070,7 @@ describe Yast::Packages do
         it "reports error" do
           expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
           expect(Yast::Packages.missing_remote_packages).to eq(vnc_packages)
-          expect(Yast::Packages.missing_remote_kind).to eq(["vnc"])
+          expect(Yast::Packages.missing_remote_kind).to eq(["VNC"])
         end
       end
     end
