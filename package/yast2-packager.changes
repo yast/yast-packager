@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 06 12:49:47 CEST 2017 - aschnell@suse.com
+
+- added dependency to yast2-storage-ng (bsc#1062009)
+- 4.0.9
+
+-------------------------------------------------------------------
 Mon Sep 25 14:10:51 UTC 2017 - igonzalezsosa@suse.com
 
 - Bring back support to read release notes from an URL
