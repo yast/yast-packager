@@ -81,6 +81,18 @@ module Yast
           "warning_level" => :blocker
         )
       end
+      remote_installation_error = Packages.check_remote_installation_packages
+      unless remote_installation_error.empty?
+        # The Default warning_level is "error". So the user can continue
+        # installation.
+        if @ret["warning"]
+          @ret["warning"] << "\n"
+          @ret["warning"] << remote_installation_error
+        else
+          @ret["warning"] = remote_installation_error
+        end
+      end
+
       @ret
     end
 
