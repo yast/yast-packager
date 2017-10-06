@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.9
+Version:        4.0.10
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -69,8 +69,9 @@ Requires:       /usr/bin/md5sum
 # .process agent
 Requires:       yast2-core >= 2.16.35
 
-# Storage (methods to check the devicegraph)
-Requires:       libstorage-ng-ruby
+# Storage (requires y2storage)
+Requires:       yast2-storage-ng
+
 # Augeas lenses
 Requires: augeas-lenses
 
