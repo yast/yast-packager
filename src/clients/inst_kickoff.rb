@@ -27,6 +27,9 @@ module Yast
         Mtab.clone_to_target
       end
 
+      # Disabling VPN, SSH,.... if the packages are not available
+      Linuxrc.disable_remote(Packages.missing_remote_kind)
+
       # Feature #301903, bugzilla #244937
       if Mode.update
         # "/" means updating the running system, bugzilla #246389

@@ -914,6 +914,168 @@ describe Yast::Packages do
     end
   end
 
+  describe "#check_remote_installation_packages" do
+    before do
+      allow(Yast::Linuxrc).to receive(:vnc).and_return vnc
+      allow(Yast::Linuxrc).to receive(:display_ip).and_return display_ip
+      allow(Yast::Linuxrc).to receive(:braille).and_return braille
+      allow(Yast::Linuxrc).to receive(:usessh).and_return usessh
+      allow(Yast::Packages).to receive(:vnc_packages).and_return(vnc_packages)
+      allow(Yast::Packages).to receive(:remote_x11_packages).and_return(remote_x11_packages)
+      allow(Yast::Packages).to receive(:ssh_packages).and_return(ssh_packages)
+      allow(Yast::Packages).to receive(:braille_packages).and_return(braille_packages)
+    end
+
+    let(:vnc_packages) { %w(some-vnc-packages) }
+    let(:remote_x11_packages) { %w(some-x11-packages) }
+    let(:ssh_packages) { %w(openssh iproute2) }
+    let(:braille_packages) { %w(sbl) }
+
+    context "on a boring local regular installation" do
+      let(:vnc) { false }
+      let(:display_ip) { false }
+      let(:braille) { false }
+      let(:usessh) { false }
+
+      it "reports no error" do
+        expect(Yast::Packages.check_remote_installation_packages).to be_empty
+        expect(Yast::Packages.missing_remote_packages).to be_empty
+        expect(Yast::Packages.missing_remote_kind).to be_empty
+      end
+    end
+
+    context "on a installation with braille enabled" do
+      let(:vnc) { false }
+      let(:display_ip) { false }
+      let(:braille) { true }
+      let(:usessh) { false }
+
+      context "needed packages are available" do
+        before do
+          braille_packages.each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
+          end
+        end
+
+        it "reports no error" do
+          expect(Yast::Packages.check_remote_installation_packages).to be_empty
+          expect(Yast::Packages.missing_remote_packages).to be_empty
+          expect(Yast::Packages.missing_remote_kind).to be_empty
+        end
+      end
+
+      context "needed packages are not available" do
+        before do
+          braille_packages.each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :NONE]])
+          end
+        end
+
+        it "reports error" do
+          expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
+          expect(Yast::Packages.missing_remote_packages).to eq(braille_packages)
+          expect(Yast::Packages.missing_remote_kind).to eq(["BRAILLE"])
+        end
+      end
+    end
+
+    context "over ssh with a remote X server" do
+      let(:vnc) { false }
+      let(:display_ip) { true }
+      let(:braille) { false }
+      let(:usessh) { true }
+
+      context "needed packages are available" do
+        before do
+          (remote_x11_packages + ssh_packages).each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
+          end
+        end
+
+        it "reports no error" do
+          expect(Yast::Packages.check_remote_installation_packages).to be_empty
+          expect(Yast::Packages.missing_remote_packages).to be_empty
+          expect(Yast::Packages.missing_remote_kind).to be_empty
+        end
+      end
+
+      context "only ssh packages are available" do
+        before do
+          ssh_packages.each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :NONE]])
+          end
+          remote_x11_packages.each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
+          end
+        end
+
+        it "reports error for X11 packages" do
+          expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
+          expect(Yast::Packages.missing_remote_packages).to eq(ssh_packages)
+          expect(Yast::Packages.missing_remote_kind).to eq(["SSH"])
+        end
+      end
+
+      context "no package is available" do
+        before do
+          (remote_x11_packages + ssh_packages).each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :NONE]])
+          end
+        end
+
+        it "reports error for X11 and ssh packages" do
+          expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
+          expect(Yast::Packages.missing_remote_packages.sort)
+            .to eq((ssh_packages + remote_x11_packages).sort)
+          expect(Yast::Packages.missing_remote_kind).to eq(["SSH", "DISPLAY_IP"])
+        end
+      end
+    end
+
+    context "on vnc installation" do
+      let(:vnc) { true }
+      let(:display_ip) { false }
+      let(:braille) { false }
+      let(:usessh) { false }
+
+      context "needed packages are available" do
+        before do
+          vnc_packages.each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :CAND]])
+          end
+        end
+
+        it "reports no error" do
+          expect(Yast::Packages.check_remote_installation_packages).to be_empty
+          expect(Yast::Packages.missing_remote_packages).to be_empty
+          expect(Yast::Packages.missing_remote_kind).to be_empty
+        end
+      end
+
+      context "needed packages are not available" do
+        before do
+          vnc_packages.each do |pkg|
+            allow(Yast::Pkg).to receive(:PkgQueryProvides).with(pkg)
+              .and_return([[pkg, :CAND, :NONE]])
+          end
+        end
+
+        it "reports error" do
+          expect(Yast::Packages.check_remote_installation_packages).to_not be_empty
+          expect(Yast::Packages.missing_remote_packages).to eq(vnc_packages)
+          expect(Yast::Packages.missing_remote_kind).to eq(["VNC"])
+        end
+      end
+    end
+  end
+
   describe "#Reset" do
     # Reset all package changes done by YaST then re-select only the products
     # which previously were selected. (see bsc#963036).

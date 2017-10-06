@@ -12,6 +12,8 @@ module Yast
     include Yast::Logger
     include ERB::Util
 
+    attr_reader :missing_remote_packages, :missing_remote_kind
+
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language].freeze
 
@@ -151,6 +153,13 @@ module Yast
       @base_source_id = nil
 
       @old_packages_proposal = nil
+
+      # Remote kinds (vnc, ssh,...) which cannot be used in an
+      # installed system.
+      @missing_remote_kind = []
+      # Packages which are missed to enable remote handling in
+      # an installed system.
+      @missing_remote_packages = []
     end
 
     # summary functions
@@ -851,6 +860,59 @@ module Yast
       nil
     end
 
+    # Checking if all needed packages for remote installation
+    # will be installed on the target system.
+    # @return [String] empty string or error message if there are missing packages
+    def check_remote_installation_packages
+      @missing_remote_kind = []
+      @missing_remote_packages = []
+
+      if Linuxrc.braille
+        missing = braille_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "BRAILLE"
+        end
+      end
+      if Linuxrc.usessh
+        missing = ssh_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "SSH"
+        end
+      end
+      if Linuxrc.vnc
+        missing = vnc_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "VNC"
+        end
+      end
+      if Linuxrc.display_ip
+        missing = remote_x11_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "DISPLAY_IP"
+        end
+      end
+
+      missing_remote_packages.flatten!
+      unless missing_remote_packages.empty?
+        error_string = format(_("Cannot support %s remote access in the installed system" \
+          " due missing packages \n%s. \nIt will be disabled."),
+          @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
+        if Mode.auto
+          error_string << " \n"
+          error_string << _("But the AutoYaST installation will be still finished automatically " \
+            "without any user interaction.")
+        end
+        log.warn("Cannot support #{@missing_remote_kind} remote access in the " \
+          "installed system due missing packages #{@missing_remote_packages}")
+        return error_string
+      end
+      ""
+    end
+
     #-----------------------------------------------------------------------
     # LOCALE FUNCTIONS
     #-----------------------------------------------------------------------
@@ -930,20 +992,13 @@ module Yast
     # Compute special packages
     # @return [Array](string)
     def modePackages
-      tags = []
-      tags << "sbl" if Linuxrc.braille
-      # ssh installation
-      if Linuxrc.usessh
-        # "ip" tool is needed by the YaST2.ssh start script (bnc#920175)
-        tags.concat(["openssh", "iproute2"])
-      end
-
-      packages = find_providers(tags)
-      packages.concat(vnc_packages) if Linuxrc.vnc
-      # this means we have a remote X server
-      packages.concat(remote_x11_packages) if Linuxrc.display_ip
-
-      Builtins.y2milestone("Installation mode packages: %1", packages)
+      packages = []
+      packages << braille_packages if Linuxrc.braille
+      packages << ssh_packages if Linuxrc.usessh
+      packages << vnc_packages if Linuxrc.vnc
+      packages << remote_x11_packages if Linuxrc.display_ip
+      packages.flatten!
+      log.info("Installation mode packages: #{packages}")
       packages
     end
 
@@ -2374,6 +2429,25 @@ module Yast
     end
 
     # List of packages expected to be installed in order to enable
+    # ssh.
+    #
+    # @return [Array<String>] package list
+    def ssh_packages
+      # "ip" tool is needed by the YaST2.ssh start script (bnc#920175)
+      tags = ["openssh", "iproute2"]
+      find_providers(tags)
+    end
+
+    # List of packages expected to be installed in order to enable
+    # braille
+    #
+    # @return [Array<String>] package list
+    def braille_packages
+      tags = ["sbl"]
+      find_providers(tags)
+    end
+
+    # List of packages expected to be installed in order to enable
     # remote administration (VNC)
     #
     # @return [Array<String>] package list
@@ -2439,6 +2513,7 @@ module Yast
     publish function: :vnc_packages, type: "list <string> ()"
     publish function: :remote_x11_packages, type: "list <string> ()"
     publish variable: :init_called, type: "boolean"
+    publish function: :check_remote_installation_packages, type: "void (string)"
 
   private
 
@@ -2687,6 +2762,19 @@ module Yast
       product_file = prod_files.first
       log.info("Creating #{BASE_PRODUCT_FILE} symlink pointing to #{product_file}")
       ::FileUtils.ln_s(product_file, BASE_PRODUCT_FILE)
+    end
+
+    # Checking if a package will be installed or is already installed
+    # on a system and will not be deleted.
+    # @param [String] package name
+    # @return [Boolean] true if the package will be on the installed system
+    def pkg_will_be_installed(tag)
+      provides = Pkg.PkgQueryProvides(tag)
+      # e.g.: [["kernel-bigsmp", :CAND, :NONE], ["kernel-default", :CAND, :CAND],
+      # ["kernel-default", `BOTH, :INST]]
+      ret = provides.any? { |p| p[2] != :NONE }
+      log.info("#{tag} will #{ret ? "" : "not "}be installed")
+      ret
     end
   end
 
