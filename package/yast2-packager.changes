@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 24 15:53:07 UTC 2017 - aschnell@suse.com
+
+- added dependency to yast2-storage-ng (bsc#1062009)
+- 4.0.14
+
+-------------------------------------------------------------------
 Thu Oct 19 10:39:38 UTC 2017 - lslezak@suse.cz
 
 - Use `nil` for the default "display_addon_checkbox" value
