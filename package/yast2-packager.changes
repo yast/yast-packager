@@ -2,6 +2,13 @@
 Fri Oct 06 12:49:47 CEST 2017 - aschnell@suse.com
 
 - added dependency to yast2-storage-ng (bsc#1062009)
+- 4.0.10
+
+-------------------------------------------------------------------
+Thu Sep 28 16:32:30 CEST 2017 - schubi@suse.de
+
+- Disable vpn, ssh,... and inform the user if the needed packages
+  are not available. (bnc#1055279, bnc#1058071)
 - 4.0.9
 
 -------------------------------------------------------------------
