@@ -860,6 +860,59 @@ module Yast
       nil
     end
 
+    # Checking if all needed packages for remote installation
+    # will be installed on the target system.
+    # @return [String] empty string or error message if there are missing packages
+    def check_remote_installation_packages
+      @missing_remote_kind = []
+      @missing_remote_packages = []
+
+      if Linuxrc.braille
+        missing = braille_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "BRAILLE"
+        end
+      end
+      if Linuxrc.usessh
+        missing = ssh_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "SSH"
+        end
+      end
+      if Linuxrc.vnc
+        missing = vnc_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "VNC"
+        end
+      end
+      if Linuxrc.display_ip
+        missing = remote_x11_packages.reject { |tag| pkg_will_be_installed(tag) }
+        unless missing.empty?
+          @missing_remote_packages << missing
+          @missing_remote_kind << "DISPLAY_IP"
+        end
+      end
+
+      missing_remote_packages.flatten!
+      unless missing_remote_packages.empty?
+        error_string = format(_("Cannot support %s remote access in the installed system" \
+          " due missing packages \n%s. \nIt will be disabled."),
+          @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
+        if Mode.auto
+          error_string << " \n"
+          error_string << _("But the AutoYaST installation will be still finished automatically " \
+            "without any user interaction.")
+        end
+        log.warn("Cannot support #{@missing_remote_kind} remote access in the " \
+          "installed system due missing packages #{@missing_remote_packages}")
+        return error_string
+      end
+      ""
+    end
+
     #-----------------------------------------------------------------------
     # LOCALE FUNCTIONS
     #-----------------------------------------------------------------------
@@ -934,59 +987,6 @@ module Yast
       end
 
       deep_copy(packages)
-    end
-
-    # Checking if all needed packages for remote installation
-    # will be installed on the target system.
-    # @return [String] empty string or error message if there are missing packages
-    def check_remote_installation_packages
-      @missing_remote_kind = []
-      @missing_remote_packages = []
-
-      if Linuxrc.braille
-        missing = braille_packages.reject { |tag| pkg_will_be_installed(tag) }
-        unless missing.empty?
-          @missing_remote_packages << missing
-          @missing_remote_kind << "BRAILLE"
-        end
-      end
-      if Linuxrc.usessh
-        missing = ssh_packages.reject { |tag| pkg_will_be_installed(tag) }
-        unless missing.empty?
-          @missing_remote_packages << missing
-          @missing_remote_kind << "SSH"
-        end
-      end
-      if Linuxrc.vnc
-        missing = vnc_packages.reject { |tag| pkg_will_be_installed(tag) }
-        unless missing.empty?
-          @missing_remote_packages << missing
-          @missing_remote_kind << "VNC"
-        end
-      end
-      if Linuxrc.display_ip
-        missing = remote_x11_packages.reject { |tag| pkg_will_be_installed(tag) }
-        unless missing.empty?
-          @missing_remote_packages << missing
-          @missing_remote_kind << "DISPLAY_IP"
-        end
-      end
-
-      missing_remote_packages.flatten!
-      unless missing_remote_packages.empty?
-        error_string = format(_("Cannot support %s remote access in the installed system" \
-          " due missing packages \n%s. \nIt will be disabled."),
-          @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
-        if Mode.auto
-          error_string << " \n"
-          error_string << _("But the AutoYaST installation will be still finished automatically " \
-            "without any user interaction.")
-        end
-        log.warn("Cannot support #{@missing_remote_kind} remote access in the " \
-          "installed system due missing packages #{@missing_remote_packages}")
-        return error_string
-      end
-      ""
     end
 
     # Compute special packages
@@ -2513,6 +2513,7 @@ module Yast
     publish function: :vnc_packages, type: "list <string> ()"
     publish function: :remote_x11_packages, type: "list <string> ()"
     publish variable: :init_called, type: "boolean"
+    publish function: :check_remote_installation_packages, type: "void (string)"
 
   private
 
