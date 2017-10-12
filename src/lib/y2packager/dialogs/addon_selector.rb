@@ -46,10 +46,11 @@ module Y2Packager
         finish_dialog(:next)
       end
 
-      # Handler for the :next action
-      # The default implementation asks for confirmation, here we abort only
-      # adding an addon-on, not the whole installation.
+      # Handler for the :abort action
+      # Confirm abort when running in the initial stage (inst-sys)
       def abort_handler
+        return if Yast::Stage.initial && !Yast::Popup.ConfirmAbort(:painless)
+
         finish_dialog(:abort)
       end
 

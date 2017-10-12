@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 12 08:55:58 UTC 2017 - lslezak@suse.cz
+
+- Do not abort installation when no add-on product is selected from
+  a multi-repository medium (bsc#1062356)
+- 4.0.10
+
+-------------------------------------------------------------------
 Thu Sep 28 16:32:30 CEST 2017 - schubi@suse.de
 
 - Disable vpn, ssh,... and inform the user if the needed packages

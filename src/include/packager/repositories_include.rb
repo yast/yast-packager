@@ -106,8 +106,11 @@ module Yast
         ui = dialog.run
         found_products = dialog.selected_products
 
-        # nothing selected or pressed abort/cancel/close/back/...
-        return :cancel if found_products.empty? || ui != :next
+        # pressed abort/cancel/close/back/...
+        return ui if ui != :next
+
+        # nothing selected, just skip adding the repos and continue in the workflow
+        return :next if found_products.empty?
       end
 
       found_products.each do |product|

@@ -149,17 +149,20 @@ describe "PackagerRepositoriesIncludeInclude" do
         RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
       end
 
-      it "return :cancel if nothing is selected" do
+      it "returns :next if nothing is selected" do
         expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:selected_products)
           .and_return([])
-        RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
+          .and_return(:next)
+        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        expect(ret).to eq(:next)
       end
 
-      it "return :cancel if product selection is aborted" do
+      it "returns :abort if product selection is aborted" do
         expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
           .and_return(:abort)
         ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
-        expect(ret).to eq(:cancel)
+        expect(ret).to eq(:abort)
       end
     end
   end
