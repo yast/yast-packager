@@ -7,7 +7,7 @@ module Yast
   class DefaultDesktopClass < Module
     include Yast::Logger
 
-    PROPOSAL_ID = "DefaultDesktopPatterns"
+    PROPOSAL_ID = "DefaultDesktopPatterns".freeze
 
     def main
       textdomain "packager"
@@ -29,12 +29,13 @@ module Yast
     end
 
     # Defaults when something in control file is not defined
-    DEFAULT_VALUES = {
+    DEFAULT_VALUES = { # rubocop:disable Style/MutableConstant default_proc conflict
       "order"   => 99,
       "desktop" => "unknown"
     }
 
-    DEFAULT_VALUES.default_proc = Proc.new { "" }
+    # Define default for other keys that are not explicitelly mentioned
+    DEFAULT_VALUES.default_proc = proc { "" }
     DEFAULT_VALUES.freeze
 
     # Initialize default desktop from control file if specified there
@@ -96,7 +97,7 @@ module Yast
       ["packages", "patterns"].each do |key|
         one_desktop[key] = (control_file_entry[key] || "").split
       end
-      # 'icon' in optional
+      # 'description' is optional
       if control_file_entry["description_id"]
         one_desktop["description_id"] = control_file_entry["description_id"]
         one_desktop["description"] =
