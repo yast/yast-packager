@@ -108,16 +108,4 @@ describe Yast::DefaultDesktop do
       expect(subject.Desktop).to eq "gnome"
     end
   end
-
-  describe ".SelectedPatterns" do
-    it "returns resolved patterns specified in control for chosen desktop" do
-      expect(subject.SelectedPatterns).to eq ["kde", "x11", "base"]
-    end
-
-    it "the patterns are marked as optional for the PackagesProposal module" do
-      expect(Yast::PackagesProposal).to receive(:GetResolvables)
-        .with(anything, :pattern, optional: true)
-      subject.SelectedPatterns
-    end
-  end
 end

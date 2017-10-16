@@ -6,13 +6,10 @@ module Yast
   # Handling of default desktop selection
   class DefaultDesktopClass < Module
     def main
-      Yast.import "Pkg"
-
       textdomain "packager"
 
       Yast.import "ProductFeatures"
       Yast.import "ProductControl"
-      Yast.import "Installation"
       Yast.import "PackagesProposal"
       Yast.import "Mode"
 
@@ -220,49 +217,6 @@ module Yast
       deep_copy(@all_desktops)
     end
 
-    # Return list installed desktops or desktop selected for installation.
-    #
-    # @see #GetAllDesktopsMap
-    def SelectedDesktops
-      Init()
-
-      Pkg.TargetInit(Installation.destdir, true)
-      Pkg.SourceStartManager(true)
-      Pkg.PkgSolve(true)
-
-      all_sel_or_inst_patterns = Builtins.maplist(
-        Pkg.ResolvableProperties("", :pattern, "")
-      ) do |one_pattern|
-        if Ops.get_symbol(one_pattern, "status", :unknown) == :selected ||
-            Ops.get_symbol(one_pattern, "status", :unknown) == :installed
-          next Ops.get_string(one_pattern, "name", "")
-        end
-      end
-
-      # all selected or installed patterns
-      all_sel_or_inst_patterns = Builtins.filter(all_sel_or_inst_patterns) do |one_pattern|
-        !one_pattern.nil?
-      end
-
-      selected_desktops = []
-      selected = true
-
-      Builtins.foreach(GetAllDesktopsMap()) do |desktop_name, desktop_def|
-        selected = true
-        Builtins.foreach(Ops.get_list(desktop_def, "patterns", [])) do |one_pattern|
-          if !Builtins.contains(all_sel_or_inst_patterns, one_pattern)
-            selected = false
-            next
-          end
-        end
-        if selected
-          selected_desktops = Builtins.add(selected_desktops, desktop_name)
-        end
-      end
-
-      deep_copy(selected_desktops)
-    end
-
     # Get the currently set default desktop, nil if none set
     # @return [String] desktop or nil
     def Desktop
@@ -315,79 +269,6 @@ module Yast
       nil
     end
 
-    def SelectedPatterns
-      PackagesProposal.GetResolvables(@packages_proposal_ID_patterns, :pattern, optional: true)
-    end
-
-    # Deprecated: Packages are not selected by a desktop selection only patterns
-    # bnc#866724
-    def SelectedPackages
-      []
-    end
-
-    # Get preffered window/desktop manager for the selected desktop
-    # @return [String] preffered window/desktop manager, empty if no one
-    def PrefferedWindowManager
-      Init()
-
-      Ops.get_string(@all_desktops, [@desktop, "desktop"], "")
-    end
-
-    # Get patterns which should be selected for currently selected desktop
-    # @return a list of patterns
-    def PatternsToSelect
-      Init()
-
-      Ops.get_list(@all_desktops, [@desktop, "patterns"], [])
-    end
-
-    # Get patterns which should be NOT selected for currently selected desktop
-    # @return a list of patterns
-    def PatternsToDeselect
-      Init()
-
-      # patterns which must be selected
-      patterns_to_select = PatternsToSelect()
-
-      patterns_to_deselect = []
-
-      # bnc #431251
-      # A dummy desktop is selected, do not deselect already selected patterns
-      if Ops.get_boolean(
-        @all_desktops,
-        [@desktop, "do_not_deselect_patterns"],
-        false
-      ) == true
-        Builtins.y2milestone(
-          "Desktop %1 has 'do_not_deselect_patterns' set",
-          @desktop
-        )
-      else
-        # go through all known system task definitions
-        Builtins.foreach(GetAllDesktopsMap()) do |_one_desktop, desktop_descr|
-          # all patterns required by a system type
-          Builtins.foreach(Ops.get_list(desktop_descr, "patterns", [])) do |one_pattern|
-            # if not required, add it to 'to deselect'
-            if !one_pattern.nil? &&
-                !Builtins.contains(patterns_to_select, one_pattern)
-              patterns_to_deselect = Builtins.add(
-                patterns_to_deselect,
-                one_pattern
-              )
-            end
-          end
-        end
-      end
-
-      Builtins.y2milestone(
-        "Patterns to deselect '%1' -> %2",
-        @desktop,
-        patterns_to_deselect
-      )
-
-      deep_copy(patterns_to_deselect)
-    end
-
     # Get the description of the currently selected desktop for the summary
     # @return [String] the description of the desktop
     def Description
@@ -404,13 +285,7 @@ module Yast
     publish function: :Init, type: "void ()"
     publish function: :ForceReinit, type: "void ()"
     publish function: :GetAllDesktopsMap, type: "map <string, map> ()"
-    publish function: :SelectedDesktops, type: "list <string> ()"
     publish function: :Desktop, type: "string ()"
-    publish function: :SelectedPatterns, type: "list <string> ()"
-    publish function: :SelectedPackages, type: "list <string> ()"
-    publish function: :PrefferedWindowManager, type: "string ()"
-    publish function: :PatternsToSelect, type: "list <string> ()"
-    publish function: :PatternsToDeselect, type: "list <string> ()"
     publish function: :Description, type: "string ()"
   end
 
