@@ -5,6 +5,10 @@ require "yast"
 module Yast
   # Handling of default desktop selection
   class DefaultDesktopClass < Module
+    include Yast::Logger
+
+    PROPOSAL_ID = "DefaultDesktopPatterns"
+
     def main
       textdomain "packager"
 
@@ -22,153 +26,47 @@ module Yast
       @desktop = nil
 
       @initialized = false
-
-      @packages_proposal_ID_patterns = "DefaultDesktopPatterns"
     end
 
-    def MissingKey(desktop_def, key)
-      Builtins.y2warning(
-        "Wrong desktop def, missing '%1' key: %2",
-        key,
-        desktop_def.value
-      )
+    # Defaults when something in control file is not defined
+    DEFAULT_VALUES = {
+      "order"   => 99,
+      "desktop" => "unknown"
+    }
 
-      case key
-      when "order"
-        99
-      when "desktop"
-        "unknown"
-      else
-        ""
-      end
-    end
+    DEFAULT_VALUES.default_proc = Proc.new { "" }
+    DEFAULT_VALUES.freeze
 
     # Initialize default desktop from control file if specified there
     def Init
-      if @initialized == true
-        Builtins.y2debug("Already initialized")
-        return
-      end
+      return if @initialized
 
       @initialized = true
 
       # See BNC #424678
       if @all_desktops.nil?
-        Builtins.y2milestone("Getting supported desktops from control file")
+        log.info "Getting supported desktops from control file"
 
-        desktops_from_cf = []
         # supported_desktops migh be undefined
-        any_desktops_from_cf = ProductFeatures.GetFeature(
+        desktops_from_cf = ProductFeatures.GetFeature(
           "software",
           "supported_desktops"
         )
 
-        if any_desktops_from_cf != "" && any_desktops_from_cf != ""
-          desktops_from_cf = Convert.convert(
-            any_desktops_from_cf,
-            from: "any",
-            to:   "list <map>"
-          )
-        end
+        log.info "desktops from control file #{desktops_from_cf.inspect}"
+        desktops_from_cf = [] unless desktops_from_cf.is_a?(::Array)
 
         @all_desktops = {}
-        one_desktop = {}
-        desktop_name = ""
 
-        Builtins.foreach(desktops_from_cf) do |one_desktop_cf|
-          desktop_name = Ops.get_string(one_desktop_cf, "name", "")
+        desktops_from_cf.each do |one_desktop_cf|
+          one_desktop_cf ||= {}
+          desktop_name = one_desktop_cf["name"] || ""
           if desktop_name == ""
-            Builtins.y2error("Missing 'name' in %1", one_desktop_cf)
+            log.error "Missing 'name' in #{one_desktop_cf}"
             next
           end
-          desktop_label = Ops.get_string(one_desktop_cf, "label_id") do
-            (
-              one_desktop_cf_ref = arg_ref(one_desktop_cf)
-              result = MissingKey(one_desktop_cf_ref, "label_id")
-              one_desktop_cf = one_desktop_cf_ref.value
-              result
-            )
-          end
-          # required keys
-          one_desktop = {
-            "desktop"  => Ops.get(one_desktop_cf, "desktop") do
-              (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                result = MissingKey(one_desktop_cf_ref, "desktop")
-                one_desktop_cf = one_desktop_cf_ref.value
-                result
-              )
-            end,
-            "logon"    => Ops.get(one_desktop_cf, "logon") do
-              (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                result = MissingKey(one_desktop_cf_ref, "logon")
-                one_desktop_cf = one_desktop_cf_ref.value
-                result
-              )
-            end,
-            "cursor"   => Ops.get(one_desktop_cf, "cursor") do
-              (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                result = MissingKey(one_desktop_cf_ref, "logon")
-                one_desktop_cf = one_desktop_cf_ref.value
-                result
-              )
-            end,
-            "packages" => Builtins.splitstring(
-              Ops.get_string(one_desktop_cf, "packages", ""),
-              " \t\n"
-            ),
-            "patterns" => Builtins.splitstring(
-              Ops.get_string(one_desktop_cf, "patterns", ""),
-              " \t\n"
-            ),
-            "order"    => Ops.get(one_desktop_cf, "order") do
-              (
-                one_desktop_cf_ref = arg_ref(one_desktop_cf)
-                result = MissingKey(one_desktop_cf_ref, "order")
-                one_desktop_cf = one_desktop_cf_ref.value
-                result
-              )
-            end,
-            # BNC #449818, after switching the language name should change too
-            "label_id" => desktop_label,
-            "label"    => ProductControl.GetTranslatedText(desktop_label)
-          }
-          # 'icon' in optional
-          if Builtins.haskey(one_desktop_cf, "icon")
-            Ops.set(
-              one_desktop,
-              "icon",
-              Ops.get_string(one_desktop_cf, "icon", "")
-            )
-          end
-          # 'description' is optional
-          if Builtins.haskey(one_desktop_cf, "description_id")
-            description_id = Ops.get_string(
-              one_desktop_cf,
-              "description_id",
-              ""
-            )
 
-            Ops.set(
-              one_desktop,
-              "description",
-              ProductControl.GetTranslatedText(description_id)
-            )
-            # BNC #449818, after switching the language description should change too
-            Ops.set(one_desktop, "description_id", description_id)
-          end
-          # bnc #431251
-          # If this desktop is selected, do not deselect patterns
-          if Builtins.haskey(one_desktop_cf, "do_not_deselect_patterns")
-            Ops.set(
-              one_desktop,
-              "do_not_deselect_patterns",
-              Ops.get_boolean(one_desktop_cf, "do_not_deselect_patterns", false)
-            )
-          end
-          Ops.set(@all_desktops, desktop_name, one_desktop)
+          @all_desktops[desktop_name] = desktop_entry(one_desktop_cf)
         end
       end
 
@@ -178,10 +76,34 @@ module Yast
       )
       default_desktop = nil if default_desktop == ""
 
-      Builtins.y2milestone("Default desktop: '%1'", default_desktop)
+      log.info "Default desktop: '#{default_desktop}'"
       SetDesktop(default_desktop)
 
       nil
+    end
+
+    def desktop_entry(control_file_entry)
+      desktop_label = control_file_entry["label_id"] || DEFAULT_VALUES["label_id"]
+      # required keys
+      one_desktop = {
+        # BNC #449818, after switching the language name should change too
+        "label_id" => desktop_label,
+        "label"    => ProductControl.GetTranslatedText(desktop_label)
+      }
+      ["desktop", "logon", "cursor", "order"].each do |key|
+        one_desktop[key] = control_file_entry[key] || DEFAULT_VALUES[key]
+      end
+      ["packages", "patterns"].each do |key|
+        one_desktop[key] = (control_file_entry[key] || "").split
+      end
+      # 'icon' in optional
+      if control_file_entry["description_id"]
+        one_desktop["description_id"] = control_file_entry["description_id"]
+        one_desktop["description"] =
+          ProductControl.GetTranslatedText(one_desktop["description_id"])
+      end
+
+      one_desktop
     end
 
     # Forces new initialization...
@@ -240,7 +162,7 @@ module Yast
         # the default desktop pattern selection (bnc#888981)
         unless Mode.autoinst
           PackagesProposal.SetResolvables(
-            @packages_proposal_ID_patterns,
+            PROPOSAL_ID,
             :pattern,
             [],
             optional: true
@@ -258,7 +180,7 @@ module Yast
         if !@desktop.nil? && @desktop != "" && !Mode.autoinst
           # Require new patterns and packages
           PackagesProposal.SetResolvables(
-            @packages_proposal_ID_patterns,
+            PROPOSAL_ID,
             :pattern,
             Ops.get_list(@all_desktops, [@desktop, "patterns"], []),
             optional: true
