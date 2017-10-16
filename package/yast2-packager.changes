@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 16 15:13:58 UTC 2017 - jreidinger@suse.com
+
+- Cleaning up DefaultDesktop as its usage is now reduced even for
+  SLE (bsc#1057538)
+- 4.0.11
+
+-------------------------------------------------------------------
 Thu Oct 12 08:55:58 UTC 2017 - lslezak@suse.cz
 
 - Do not abort installation when no add-on product is selected from
