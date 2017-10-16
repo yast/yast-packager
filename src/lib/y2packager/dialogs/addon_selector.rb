@@ -43,6 +43,9 @@ module Y2Packager
       # This action happens when the user clicks the 'Next' button
       def next_handler
         read_user_selection
+
+        return if selected_products.empty? && !Yast::Popup.ContinueCancel(continue_msg)
+
         finish_dialog(:next)
       end
 
@@ -108,6 +111,15 @@ module Y2Packager
       def dialog_title
         # TODO: does it make sense also for the 3rd party addons?
         _("Extension and Module Selection")
+      end
+
+      # A message for asking the user whether to continue without adding any addon.
+      #
+      # @return [String] translated message
+      def continue_msg
+        # TRANSLATORS: Popup with [Continue] [Cancel] buttons
+        _("No product has been selected.\n\n" \
+          "Do you really want to continue without adding any product?")
       end
     end
   end
