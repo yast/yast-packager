@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 16 15:13:58 UTC 2017 - jreidinger@suse.com
+
+- Cleaning up DefaultDesktop as its usage is now reduced even for
+  SLE (bsc#1057538)
+- 4.0.12
+
+-------------------------------------------------------------------
 Mon Oct 16 07:41:53 UTC 2017 - lslezak@suse.cz
 
 - Display a confirmation popup when no add-on is selected from
