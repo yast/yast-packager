@@ -17,13 +17,13 @@
 
 
 Name:           yast2-packager
-Version:        4.0.11
+Version:        4.0.12
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %{name}-%{version}.tar.bz2
 
-Url:            https://github.com/kobliha/yast-packager
+Url:            https://github.com/yast/yast-packager
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem(rspec)
