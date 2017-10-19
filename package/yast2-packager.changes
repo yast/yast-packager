@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Oct 19 10:39:38 UTC 2017 - lslezak@suse.cz
+
+- Use `nil` for the default "display_addon_checkbox" value
+  to distinguish between the default and a changed value
+  to possibly hide the "I would like to install an additional Add On
+  Product" check box from the external code (FATE#323163)
+- 4.0.13
+
+-------------------------------------------------------------------
 Mon Oct 16 15:13:58 UTC 2017 - jreidinger@suse.com
 
 - Cleaning up DefaultDesktop as its usage is now reduced even for
