@@ -99,7 +99,8 @@ module Yast
       @_allow_https = true
 
       # display a check box in type selection dialog in the next run
-      @display_addon_checkbox = false
+      # use nil to indicate the default value, true/false override the default
+      @display_addon_checkbox = nil
 
       # CD/DVD device name to use (e.g. /dev/sr1) in case of multiple
       # devices in the system. Empty string means use the default.
