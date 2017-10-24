@@ -88,6 +88,7 @@ module Yast
 
       # create a new service if a service is detected at the URL
       if ![nil, "NONE"].include?(service_type)
+        Builtins.y2milestone("Adding a service of type %1...", service_type)
         add_service(url, preffered_name)
         return :ok
       end
@@ -429,8 +430,6 @@ module Yast
     # @param type [String] probed service type
     # @param preffered_name [String] service name, empty string means generate it
     def add_service(url, preffered_name)
-      Builtins.y2milestone("Adding a service of type %1...", service_type)
-
       # all current aliases
       aliases = @serviceStatesOut.map { |s| s["alias"] }
 
