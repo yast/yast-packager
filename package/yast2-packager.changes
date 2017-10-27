@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 27 15:28:29 UTC 2017 - lslezak@suse.cz
+
+- Do not install all available products (like SLED on SLES) during
+  upgrade (bsc#1065485)
+- 4.0.16
+
+-------------------------------------------------------------------
 Thu Oct 26 16:11:50 CEST 2017 - schubi@suse.de
 
 - Fixed spelling. (bnc#1055279, bnc#1058071)

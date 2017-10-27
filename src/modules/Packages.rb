@@ -1902,6 +1902,11 @@ module Yast
         return true
       end
 
+      if Mode.update
+        log.info("Update mode - skipping product selection")
+        return true
+      end
+
       products = Pkg.ResolvableProperties("", :product, "")
 
       if !products || products.empty?
