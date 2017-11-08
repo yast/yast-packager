@@ -73,13 +73,22 @@ module Y2Packager
 
       # Adjust product selection
       #
-      # All products are selected by default. So if there is more than 1, we should unselect
-      # them all. The user will select one later.
+      # During installation, all products are selected by default. So if there
+      # is more than 1, we should unselect them all. The user will select one
+      # later.
       #
-      # See https://github.com/yast/yast-packager/blob/7e1a0bbb90823b03c15d92f408036a560dca8aa3/src/modules/Packages.rb#L1876
+      # On the other hand, if only one product is available, we should make
+      # sure that it is selected for installation because, during upgrade, it
+      # is not automatically selected.
+      #
+      # @see https://github.com/yast/yast-packager/blob/7e1a0bbb90823b03c15d92f408036a560dca8aa3/src/modules/Packages.rb#L1876
+      # @see https://github.com/yast/yast-packager/blob/fbc396df910e297915f9f785fc460e72e30d1948/src/modules/Packages.rb#L1905
       def adjust_base_product_selection
-        return unless products.size > 1
-        products.each(&:restore)
+        if products.size == 1
+          products.first.select
+        else
+          products.each(&:restore)
+        end
       end
 
       # Return base available products
