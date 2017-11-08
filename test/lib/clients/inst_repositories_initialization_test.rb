@@ -7,8 +7,8 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
   subject(:client) { described_class.new }
 
   let(:success) { true }
-  let(:prod1) { instance_double(Y2Packager::Product) }
-  let(:prod2) { instance_double(Y2Packager::Product) }
+  let(:prod1) { instance_double(Y2Packager::Product, select: nil) }
+  let(:prod2) { instance_double(Y2Packager::Product, select: nil) }
   let(:products) { [prod1] }
 
   describe "#main" do
@@ -44,8 +44,8 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
     context "when only one product is available" do
       let(:products) { [prod1] }
 
-      it "does not unselect the product for installation" do
-        expect(prod1).to_not receive(:restore)
+      it "selects the product for installation" do
+        expect(prod1).to receive(:select)
         client.main
       end
     end
