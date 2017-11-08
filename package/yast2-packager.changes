@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov  8 12:03:13 UTC 2017 - igonzalezsosa@suse.com
+
+- On single product media, select the available product during
+  upgrade (bsc#1066709 and bsc#1065172).
+- 4.0.17 
+
+-------------------------------------------------------------------
 Fri Oct 27 15:28:29 UTC 2017 - lslezak@suse.cz
 
 - Do not install all available products (like SLED on SLES) during
