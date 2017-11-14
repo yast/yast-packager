@@ -2,8 +2,9 @@
 Feature: Test the repository manager
 
   Scenario: Adding a new repository
-    Given the dialog heading should be "Configured Software Repositories"
-    And I click button "Add"
+    Given I start the "/sbin/yast2 repositories" application
+    Then the dialog heading should be "Configured Software Repositories"
+    When I click button "Add"
     Then the dialog heading should be "Add On Product"
 
     When I click button "Next"
@@ -16,4 +17,5 @@ Feature: Test the repository manager
 
     When I click button "Next"
     Then the dialog heading should be "Configured Software Repositories"
-  
+    Then I click button "OK"
+    Then I wait for the application to finish

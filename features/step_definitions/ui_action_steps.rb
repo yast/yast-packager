@@ -1,4 +1,4 @@
-When("I click button \"{string}\"") do |string|
+When(/^I click button "(.*)"$/) do |button|
   pending # Write code here that turns the phrase above into concrete actions
 end
 
