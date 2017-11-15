@@ -1,7 +1,7 @@
 
 # kill the testing process if it is still running after finishing a scenario,
 # use @keep_running tag to avoid killing the process
-After('~@keep_running') do
+After('not @keep_running') do
   return unless @app_pid
   begin
     Process.waitpid(@app_pid, Process::WNOHANG)
@@ -23,4 +23,3 @@ AfterStep do
   delay = ENV["STEP_DELAY"]
   sleep(delay.to_f) if delay
 end
- 
