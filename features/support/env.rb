@@ -18,4 +18,9 @@ After('~@keep_running') do
   end
 end
 
+# allow a short delay between the steps to watch the UI changes and reactions
+AfterStep do
+  delay = ENV["STEP_DELAY"]
+  sleep(delay.to_f) if delay
+end
  

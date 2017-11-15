@@ -26,7 +26,7 @@ def wait_for_port(host, port)
   Timeout.timeout(DEFAULT_TIMEOUT) do
     loop do
       sleep(1)
-      puts "Waiting for port #{host}:#{port}..."
+      puts "Waiting for #{host}:#{port}..."
       break if port_open?(host, port)
     end
   end
