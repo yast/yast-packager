@@ -1,5 +1,5 @@
 When(/^I click button "(.*)"$/) do |button|
-  pending # Write code here that turns the phrase above into concrete actions
+  pending
 end
 
 When("I enter {string} into input field {string}") do |string, string2|
