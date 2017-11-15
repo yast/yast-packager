@@ -1,5 +1,7 @@
 
-Then("the dialog heading should be {string}") do |string|
-  pending # Write code here that turns the phrase above into concrete actions
+Then("the dialog heading should be {string}") do |heading|
+  puts "Testing heading: #{heading}"
+  # read_dialog_heading
+  expect(read_dialog_heading).to eq(heading)
 end
 
