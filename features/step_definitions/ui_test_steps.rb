@@ -13,7 +13,7 @@ def send_request(method, path, params = {})
     res = Net::HTTP.get_response(uri)
   elsif (method == :post)
     # a trick how to add query parameters to a POST request,
-    # usall Net::HTTP.post(uri, data) does not allow using query
+    # the usuall Net::HTTP.post(uri, data) does not allow using a query
     req = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
     http = Net::HTTP.new(uri.host, uri.port)
     res = http.request(req)
@@ -26,7 +26,7 @@ def send_request(method, path, params = {})
   elsif res.is_a?(Net::HTTPNotFound)
     raise "Widget not found"
   else
-    raise "Unknown error"
+    raise "Error code: #{res.code} #{res.message}"
   end
 end
 
@@ -54,12 +54,54 @@ def send_action(action: nil, type: nil, label:nil, id: nil, value: nil)
   send_request(:post, "/widgets", params)
 end
 
-Then(/^the dialog heading should be "(.*)"(?: in (\d+) seconds)?$/) do |heading, seconds|
-  Timeout.timeout(seconds || DEFAULT_TIMEOUT) do
+def with_label(widgets, label)
+  widgets.select{ |w| w["debug_label"] == label}
+end
+
+def including_label(widgets, label)
+  widgets.select{ |w| ["debug_label"].include?(label) }
+end
+
+def matching_label(widget, rexp)
+  regexp = Regexp.new(rexp)
+  widgets.select{ |w| regexp.match(w["debug_label"]) }
+end
+
+def timed_retry(seconds, &block)
+  timeout = seconds.to_i
+  timeout = DEFAULT_TIMEOUT if timeout == 0
+
+  Timeout.timeout(timeout) do
     loop do
-      break if heading == read_widget(type: "YWizard")["debug_label"]
+      break if block.call
+      puts "Retrying..." if ENV["DEBUG"]
       sleep(1)
     end
   end
 end
 
+Then(/^the dialog heading should be "(.*)"(?: in (\d+) seconds)?$/) do |heading, seconds|
+  timed_retry(seconds) do
+    read_widget(type: "YWizard")["debug_label"] == heading
+  end
+end
+
+Then(/^(?:the )?"(.*)" (exact |matching |)label should be displayed(?: in (\d+) seconds)?$/) do |label, match, seconds|
+  Timeout.timeout(DEFAULT_TIMEOUT) do
+    loop do
+      widgets = read_widgets(type: "YLabel")
+      break if match == "exact " && !with_label(widgets, label).empty?
+      break if match == "matching " && !matching_label(widgets, label).empty?
+      break if match == "" && !including_label(widgets, label).empty?
+
+      puts "Label not found retrying..." if ENV["DEBUG"]
+      sleep(1)
+    end
+  end
+end
+
+Then(/^(?:a )popup should be displayed(?: in (\d+) seconds)?$/) do |seconds|
+  timed_retry(seconds) do
+    read_widget(type: "YDialog")["type"] == "popup"
+  end
+end
