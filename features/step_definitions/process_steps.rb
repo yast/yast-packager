@@ -2,8 +2,10 @@
 require "timeout"
 require "socket"
 
+# the default timeout for the possibly time consuming actions
 DEFAULT_TIMEOUT = 15
 
+# set the application introspection port for communication
 def set_port
   # 14155 is currently an unassigned port
   ENV["YUI_HTTP_PORT"] ||= "14155"
@@ -35,6 +37,8 @@ def wait_for_port(host, port)
   end
 end
 
+# start the application in background
+# @param application [String] the command to start
 def start_app(application)
   @app_host = "localhost"
   @app_port = set_port
