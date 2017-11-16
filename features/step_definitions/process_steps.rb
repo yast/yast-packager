@@ -21,6 +21,10 @@ rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
   false
 end
 
+# wait until the specified port is open or until the timeout is reached
+# @param host [Integer] the host to connect to
+# @param port [Integer] the port number
+# @raise Timeout::Error when the port is not opened in time
 def wait_for_port(host, port)
   Timeout.timeout(DEFAULT_TIMEOUT) do
     loop do

@@ -11,7 +11,7 @@ ENV["LC_ALL"] = "en_US.UTF-8"
 require "aruba/cucumber"
 
 # kill the testing process if it is still running after finishing a scenario,
-# use @keep_running tag to avoid killing the process
+# use the @keep_running tag to avoid killing the process
 After("not @keep_running") do
   if @app_pid
     begin
@@ -30,7 +30,7 @@ After("not @keep_running") do
   end
 end
 
-# allow a short delay between the steps to watch the UI changes and reactions
+# optionally allow a short delay between the steps to watch the UI changes
 AfterStep do
   delay = ENV["STEP_DELAY"].to_f
   sleep(delay) if delay > 0

@@ -27,21 +27,6 @@ end
 stub_module("Language")
 stub_module("Proxy")
 
-if ENV["COVERAGE"]
-  require "simplecov"
-  SimpleCov.start do
-    add_filter "/test/"
-  end
-
-  # track all ruby files under src
-  SimpleCov.track_files("#{srcdir}/**/*.rb")
-
-  # use coveralls for on-line code coverage reporting at Travis CI
-  if ENV["TRAVIS"]
-    require "coveralls"
-    SimpleCov.formatters = [
-      SimpleCov::Formatter::HTMLFormatter,
-      Coveralls::SimpleCov::Formatter
-    ]
-  end
-end
+# the simplecov configuration is shared with the integration tests in
+# the ".simplecov" file at the root, it is automatically loaded at "require"
+require "simplecov" if ENV["COVERAGE"]
