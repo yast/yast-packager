@@ -25,7 +25,7 @@ Feature: To install the 3rd party packages I must be able to add a new package
     When I enter "Tumbleweed OSS" into input field "Repository Name"
     And I enter "https://download.opensuse.org/tumbleweed/repo/oss/" into input field "URL"
     And I click button "Next"
-    Then the dialog heading should be "Tumbleweed OSS License Agreement"
+    Then the dialog heading should be "Tumbleweed OSS License Agreement" in 60 seconds
 
     When I click button "Next"
     Then the dialog heading should be "Configured Software Repositories"
@@ -55,13 +55,13 @@ Feature: To install the 3rd party packages I must be able to add a new package
     When I enter "Tumbleweed OSS" into input field "Repository Name"
     And I enter "https://download.opensuse.org/tumbleweed/repo/oss/" into input field "URL"
     And I click button "Next"
-    Then the dialog heading should be "Tumbleweed OSS License Agreement"
+    Then the dialog heading should be "Tumbleweed OSS License Agreement" in 60 seconds
 
     When I click button "Next"
     Then the dialog heading should be "Configured Software Repositories"
 
     Then I click button "OK"
-    And I wait for the application to finish
+    And I wait for the application to finish for up to 60 seconds
 
     # verify that the tested repository was added
     When I run `zypper repos --uri`

@@ -1,4 +1,8 @@
 
+srcdir = File.expand_path("../../../src", __FILE__)
+y2dirs = ENV.fetch("Y2DIR", "").split(":")
+ENV["Y2DIR"] = y2dirs.unshift(srcdir).join(":")
+
 # use the aruba extension, it provides many generic step definitions
 # for running commands and checking files
 require "aruba/cucumber"
@@ -25,6 +29,6 @@ end
 
 # allow a short delay between the steps to watch the UI changes and reactions
 AfterStep do
-  delay = ENV["STEP_DELAY"]
-  sleep(delay.to_f) if delay
+  delay = ENV["STEP_DELAY"].to_f
+  sleep(delay) if delay > 0
 end
