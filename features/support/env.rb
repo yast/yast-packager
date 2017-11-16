@@ -3,13 +3,16 @@ srcdir = File.expand_path("../../../src", __FILE__)
 y2dirs = ENV.fetch("Y2DIR", "").split(":")
 ENV["Y2DIR"] = y2dirs.unshift(srcdir).join(":")
 
+# ensure we run in the English locale
+ENV["LC_ALL"] = "en_US.UTF-8"
+
 # use the aruba extension, it provides many generic step definitions
 # for running commands and checking files
 require "aruba/cucumber"
 
 # kill the testing process if it is still running after finishing a scenario,
 # use @keep_running tag to avoid killing the process
-After('not @keep_running') do
+After("not @keep_running") do
   if @app_pid
     begin
       Process.waitpid(@app_pid, Process::WNOHANG)

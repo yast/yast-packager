@@ -15,12 +15,10 @@ end
 # @param port [Integer] the port number
 # @return [Boolean] true if the port is open, false otherwise
 def port_open?(host, port)
-  begin
-    TCPSocket.new(host, port).close
-    true
-  rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
-    false
-  end
+  TCPSocket.new(host, port).close
+  true
+rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+  false
 end
 
 def wait_for_port(host, port)

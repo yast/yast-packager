@@ -4,13 +4,12 @@ Feature: To install the 3rd party packages I must be able to add a new package
 
   Background:
 
-    # ensure we run in the English locale
-    Given I set the environment variable "LC_ALL" to "en_US.UTF-8"
     # make sure the tested repository does not already exist
     When I run `zypper repos --uri`
     Then the output should not contain "https://download.opensuse.org/tumbleweed/repo/oss/"
 
-  @read-only
+
+  @read-only @network
   Scenario: Aborting the repository manager keeps the old settings
 
     Given I start the "/usr/sbin/yast2 repositories" application
@@ -41,6 +40,7 @@ Feature: To install the 3rd party packages I must be able to add a new package
     When I run `zypper repos --uri`
     Then the output should not contain "https://download.opensuse.org/tumbleweed/repo/oss/"
 
+  @network
   Scenario: The remote repository is added to the system
 
     Given I start the "/usr/sbin/yast2 repositories" application

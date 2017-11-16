@@ -9,9 +9,9 @@ def send_request(method, path, params = {})
   uri.path = path
   uri.query = URI.encode_www_form(params)
 
-  if (method == :get)
+  if method == :get
     res = Net::HTTP.get_response(uri)
-  elsif (method == :post)
+  elsif method == :post
     # a trick how to add query parameters to a POST request,
     # the usuall Net::HTTP.post(uri, data) does not allow using a query
     req = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
@@ -31,7 +31,7 @@ def send_request(method, path, params = {})
   end
 end
 
-def read_widgets(type: nil, label:nil, id: nil)
+def read_widgets(type: nil, label: nil, id: nil)
   params = {}
   params[:id] = id if id
   params[:label] = label if label
@@ -40,11 +40,11 @@ def read_widgets(type: nil, label:nil, id: nil)
   send_request(:get, "/widgets", params)
 end
 
-def read_widget(type: nil, label:nil, id: nil)
+def read_widget(type: nil, label: nil, id: nil)
   read_widgets(type: type, label: label, id: id).first
 end
 
-def send_action(action: nil, type: nil, label:nil, id: nil, value: nil)
+def send_action(action: nil, type: nil, label: nil, id: nil, value: nil)
   params = {}
   params[:action] = action if action
   params[:id] = id if id
@@ -56,16 +56,16 @@ def send_action(action: nil, type: nil, label:nil, id: nil, value: nil)
 end
 
 def with_label(widgets, label)
-  widgets.select{ |w| w["debug_label"] == label || w["label"] == label}
+  widgets.select { |w| w["debug_label"] == label || w["label"] == label }
 end
 
 def including_label(widgets, label)
-  widgets.select{ |w| w["debug_label"].include?(label) || w["label"].include?(label)}
+  widgets.select { |w| w["debug_label"].include?(label) || w["label"].include?(label) }
 end
 
-def matching_label(widget, rexp)
+def matching_label(widgets, rexp)
   regexp = Regexp.new(rexp)
-  widgets.select{ |w| regexp.match(w["debug_label"]) || regexp.match(w["label"]) }
+  widgets.select { |w| regexp.match(w["debug_label"]) || regexp.match(w["label"]) }
 end
 
 def timed_retry(seconds, &block)
@@ -87,8 +87,8 @@ Then(/^the dialog heading should be "(.*)"(?: in (\d+) seconds)?$/) do |heading,
   end
 end
 
-Then(/^(?:the )?"(.*)" (exact |matching |)label should be displayed(?: in (\d+) seconds)?$/) do |label, match, seconds|
-  puts "Matching label: #{label.inspect}, match: #{match.inspect}, seconds: #{seconds.inspect}" if ENV["DEBUG"]
+Then(/^(?:the )?"(.*)" (exact |matching |)label should be displayed(?: in (\d+) seconds)?$/) \
+do |label, match, seconds|
   timed_retry(seconds) do
     widgets = read_widgets(type: "YLabel")
 
