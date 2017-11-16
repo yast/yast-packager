@@ -22,6 +22,7 @@ def send_request(method, path, params = {})
   end
 
   if res.is_a?(Net::HTTPSuccess)
+    puts "Response: #{res.body}" if ENV["DEBUG"]
     res.body.empty? ? nil : JSON.parse(res.body)
   elsif res.is_a?(Net::HTTPNotFound)
     raise "Widget not found"
@@ -55,16 +56,16 @@ def send_action(action: nil, type: nil, label:nil, id: nil, value: nil)
 end
 
 def with_label(widgets, label)
-  widgets.select{ |w| w["debug_label"] == label}
+  widgets.select{ |w| w["debug_label"] == label || w["label"] == label}
 end
 
 def including_label(widgets, label)
-  widgets.select{ |w| ["debug_label"].include?(label) }
+  widgets.select{ |w| w["debug_label"].include?(label) || w["label"].include?(label)}
 end
 
 def matching_label(widget, rexp)
   regexp = Regexp.new(rexp)
-  widgets.select{ |w| regexp.match(w["debug_label"]) }
+  widgets.select{ |w| regexp.match(w["debug_label"]) || regexp.match(w["label"]) }
 end
 
 def timed_retry(seconds, &block)
@@ -87,15 +88,17 @@ Then(/^the dialog heading should be "(.*)"(?: in (\d+) seconds)?$/) do |heading,
 end
 
 Then(/^(?:the )?"(.*)" (exact |matching |)label should be displayed(?: in (\d+) seconds)?$/) do |label, match, seconds|
-  Timeout.timeout(DEFAULT_TIMEOUT) do
-    loop do
-      widgets = read_widgets(type: "YLabel")
-      break if match == "exact " && !with_label(widgets, label).empty?
-      break if match == "matching " && !matching_label(widgets, label).empty?
-      break if match == "" && !including_label(widgets, label).empty?
+  puts "Matching label: #{label.inspect}, match: #{match.inspect}, seconds: #{seconds.inspect}" if ENV["DEBUG"]
+  timed_retry(seconds) do
+    widgets = read_widgets(type: "YLabel")
 
-      puts "Label not found retrying..." if ENV["DEBUG"]
-      sleep(1)
+    case match
+    when "exact"
+      !with_label(widgets, label).empty?
+    when "matching "
+      !matching_label(widgets, label).empty?
+    when ""
+      !including_label(widgets, label).empty?
     end
   end
 end
