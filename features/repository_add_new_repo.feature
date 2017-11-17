@@ -31,7 +31,7 @@ Feature: To install the 3rd party packages I must be able to add a new package
 
     When I click button "Cancel"
     Then a popup should be displayed
-    And the "Abort the repository configuration?" label should be displayed
+    And the label including "Abort the repository configuration?" should be displayed
 
     Then I click button "Yes"
     And I wait for the application to finish

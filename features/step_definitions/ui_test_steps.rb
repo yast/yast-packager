@@ -81,29 +81,44 @@ def timed_retry(seconds, &block)
   end
 end
 
-Then(/^the dialog heading should be "(.*)"(?: in (\d+) seconds)?$/) do |heading, seconds|
+WIDGET_MAPPING = {
+  "label" => "YLabel",
+  "checkbox" => "YCheckBox",
+  "check box" => "YCheckBox",
+  "radiobutton" => "YRadioButton",
+  "radio button" => "YRadioButton",
+  "pushbutton" => "YPushButton",
+  "push button" => "YPushButton",
+  "button" => "YPushButton",
+}
+
+TIMEOUT_REGEXP = "(?: in (\\d+) seconds)?"
+
+WIDGET_REGEXP = "(widget|label|check(?: )?box|radio(?: )?button|(?:push(?: )?)?button) "
+
+Then(/^the dialog heading should be "(.*)"#{TIMEOUT_REGEXP}$/) do |heading, seconds|
   timed_retry(seconds) do
     read_widget(type: "YWizard")["debug_label"] == heading
   end
 end
 
-Then(/^(?:the )?"(.*)" (exact |matching |)label should be displayed(?: in (\d+) seconds)?$/) \
-do |label, match, seconds|
+Then(/^(?:a |the )?#{WIDGET_REGEXP}(?:having )?(matching |including |)"(.*)"(label )? should be displayed#{TIMEOUT_REGEXP}$/) \
+do |type, match, label, label_type, seconds|
   timed_retry(seconds) do
-    widgets = read_widgets(type: "YLabel")
+    widgets = read_widgets(type: WIDGET_MAPPING[type])
 
     case match
-    when "exact"
+    when ""
       !with_label(widgets, label).empty?
     when "matching "
       !matching_label(widgets, label).empty?
-    when ""
+    when "including "
       !including_label(widgets, label).empty?
     end
   end
 end
 
-Then(/^(?:a )popup should be displayed(?: in (\d+) seconds)?$/) do |seconds|
+Then(/^(?:a )popup should be displayed#{TIMEOUT_REGEXP}$/) do |seconds|
   timed_retry(seconds) do
     read_widget(type: "YDialog")["type"] == "popup"
   end
