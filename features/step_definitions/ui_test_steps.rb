@@ -21,8 +21,8 @@ def send_request(method, path, params = {})
     raise "Unknown HTTP method: #{method.inspect}"
   end
 
+  puts "Response (#{res.code}:#{res.message}): #{res.body}" if ENV["DEBUG"]
   if res.is_a?(Net::HTTPSuccess)
-    puts "Response: #{res.body}" if ENV["DEBUG"]
     res.body.empty? ? nil : JSON.parse(res.body)
   elsif res.is_a?(Net::HTTPNotFound)
     raise "Widget not found"
@@ -98,6 +98,9 @@ WIDGET_REGEXP = "(widget|label|check(?: )?box|radio(?: )?button|(?:push(?: )?)?b
 
 Then(/^the dialog heading should be "(.*)"#{TIMEOUT_REGEXP}$/) do |heading, seconds|
   timed_retry(seconds) do
+    # FIXME: non-wizard windows use "Heading" widget:
+    # test case:
+    # read_widget(type: "YLabel_Heading")["debug_label"] == heading
     read_widget(type: "YWizard")["debug_label"] == heading
   end
 end
