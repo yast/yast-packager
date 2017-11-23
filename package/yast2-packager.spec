@@ -26,9 +26,9 @@ Source0:        %{name}-%{version}.tar.bz2
 Url:            https://github.com/yast/yast-packager
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
-BuildRequires:  rubygem(rspec)
-BuildRequires:  rubygem(yast-rake)
-BuildRequires:  rubygem(cfa) >= 0.5.0
+BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
+BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
+BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 
 # New Y2Storage::StorageManager API
 BuildRequires:  yast2-storage-ng >= 0.1.32
@@ -76,7 +76,7 @@ Requires:       yast2-storage-ng
 Requires: augeas-lenses
 
 # zypp.conf model and minimal modifications (bsc#1023204)
-Requires:  rubygem(cfa) >= 0.5.0
+Requires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
