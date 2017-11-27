@@ -491,7 +491,7 @@ describe Yast::Packages do
 
   describe "#vnc_packages" do
     let(:packages) { Yast::Packages.vnc_packages.sort.uniq }
-    let(:base_packages) { ["xinetd", "xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"] }
+    let(:base_packages) { ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"] }
     let(:base_packages_and_wm) { ["icewm"] + base_packages }
     let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
@@ -514,7 +514,7 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsSelected).and_return true
         end
 
-        it "includes xinetd and xorg" do
+        it "includes xorg" do
           expect(packages).to eq(base_packages)
         end
       end
@@ -524,7 +524,7 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsSelected).and_return false
         end
 
-        it "includes xinetd, xorg and icewm" do
+        it "includes xorg and icewm" do
           expect(packages).to eq(base_packages_and_wm)
         end
       end
@@ -541,7 +541,7 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsSelected).and_return true
         end
 
-        it "includes xinetd, xorg and autoyast X11 packages" do
+        it "includes xorg and autoyast X11 packages" do
           expected = (base_packages + autoyast_x11_packages).sort
           expect(packages).to eq(expected)
         end
@@ -552,7 +552,7 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsSelected).and_return false
         end
 
-        it "includes xinetd, xorg and icewm" do
+        it "includes xorg and icewm" do
           expected = (base_packages_and_wm + autoyast_x11_packages).sort
           expect(packages).to eq(expected)
         end
@@ -570,7 +570,7 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsProvided).and_return true
         end
 
-        it "includes xinetd and xorg" do
+        it "includes xorg" do
           expect(packages).to eq(base_packages)
         end
       end
@@ -580,7 +580,7 @@ describe Yast::Packages do
           allow(Yast::Pkg).to receive(:IsProvided).and_return false
         end
 
-        it "includes xinetd, xorg and icewm" do
+        it "includes xorg and icewm" do
           expect(packages).to eq(base_packages_and_wm)
         end
       end
