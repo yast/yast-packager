@@ -1,6 +1,7 @@
+-------------------------------------------------------------------
 Thu Nov  9 14:45:15 UTC 2017 - knut.anderssen@suse.com
 
-- VNC does not depend on xinetd anymore. (bsc#1067169)
+- VNC does not depend on xinetd anymore. (bsc#1058820)
 - 4.0.18
 
 -------------------------------------------------------------------
