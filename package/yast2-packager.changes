@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Dec  1 16:04:22 CET 2017 - schubi@suse.de
+
+- Allowing AutoYaST to add initialize add-on products provided
+  by the repository in order to add DriverUpdate. (bnc#1070804)
+- 4.0.19
+
+-------------------------------------------------------------------
 Thu Nov  9 14:45:15 UTC 2017 - knut.anderssen@suse.com
 
 - VNC does not depend on xinetd anymore. (bsc#1058820)
