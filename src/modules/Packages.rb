@@ -847,13 +847,7 @@ module Yast
           "Found list of add-on products to preselect: %1",
           @add_on_products_list
         )
-        if Mode.auto
-          Builtins.y2warning("This is an AutoYaST installation. "\
-            "Only Add-on products will be added which have been defined "\
-            "in the add-on section of the AutoYaST configuration file.")
-        else
-          AddOnProduct.AddPreselectedAddOnProducts(@add_on_products_list)
-        end
+        AddOnProduct.AddPreselectedAddOnProducts(@add_on_products_list)
         @add_on_products_list = [] # do not select them any more
       end
 
