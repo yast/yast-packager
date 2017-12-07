@@ -87,22 +87,24 @@ describe Yast::PkgFinishClient do
       end
 
       let(:sles_product) do
-        Y2Packager::Product.new(name: "SLES", version: "12.2",
-          arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
+        instance_double(Y2Packager::Product, name: "SLES", installed?: true)
+      end
+
+      let(:sled_product) do
+        instance_double(Y2Packager::Product, name: "SLED", installed?: false)
       end
 
       let(:sles_ha_product) do
-        Y2Packager::Product.new(name: "SLESHA", version: "12.2",
-          arch: "x86_64", category: "base", status: :available, vendor: "SUSE")
+        instance_double(Y2Packager::Product, name: "SLESHA", installed?: false)
       end
 
       before do
-        allow(local_repo).to receive(:products).and_return([sles_product.clone])
+        allow(local_repo).to receive(:products).and_return([sles_product, sled_product])
       end
 
-      context "if their products are available through other repos" do
+      context "if installed products are available through other repos" do
         before do
-          allow(remote_repo).to receive(:products).and_return([sles_product.clone])
+          allow(remote_repo).to receive(:products).and_return([sles_product])
         end
 
         it "disables the local repository" do
@@ -111,7 +113,7 @@ describe Yast::PkgFinishClient do
         end
       end
 
-      context "if their products are not available through other repos" do
+      context "if installed products are not available through other repos" do
         before do
           allow(remote_repo).to receive(:products).and_return([sles_ha_product])
         end

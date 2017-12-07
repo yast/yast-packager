@@ -126,9 +126,19 @@ module Y2Packager
     #
     # @return [Boolean] true if it is selected
     def selected?
-      Yast::Pkg.ResolvableProperties(name, :product, "").any? do |res|
-        res["status"] == :selected
-      end
+      status?(:selected)
+    end
+
+    # is the product selected to install?
+    #
+    # Only the 'name' will be used to find out whether the product is installed,
+    # ignoring the architecture, version, vendor or any other property. libzypp
+    # will take care of finding the proper product.
+    #
+    # @see #status?
+    # @return [Boolean] true if it is installed
+    def installed?
+      status?(:installed)
     end
 
     # select the product to install
@@ -216,6 +226,22 @@ module Y2Packager
     # @see ReleaseNotes
     def release_notes(format = :txt, user_lang = Yast::Language.language)
       ReleaseNotesReader.new(self).release_notes(user_lang: user_lang, format: format)
+    end
+
+  private
+
+    # Determine whether a product is in a given status
+    #
+    # Only the 'name' will be used to find out whether the product is installed,
+    # ignoring the architecture, version, vendor or any other property. libzypp
+    # will take care of finding the proper product.
+    #
+    # @param status [Symbol] Status to compare with.
+    # @return [Boolean] true if it is in the given status
+    def status?(status)
+      Yast::Pkg.ResolvableProperties(name, :product, "").any? do |res|
+        res["status"] == status
+      end
     end
   end
 end

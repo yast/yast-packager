@@ -114,6 +114,29 @@ describe Y2Packager::Product do
     end
   end
 
+  describe "#installed?" do
+    before do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with(product.name, :product, "")
+        .and_return([{ "name" => product.name, "status" => status }])
+    end
+
+    context "if product is installed" do
+      let(:status) { :installed }
+
+      it "returns true" do
+        expect(product).to be_installed
+      end
+    end
+
+    context "if product is not installed" do
+      let(:status) { :available }
+
+      it "returns false" do
+        expect(product).to_not be_installed
+      end
+    end
+  end
+
   describe "#select" do
     it "selects the product for installation" do
       expect(Yast::Pkg).to receive(:ResolvableInstall).with(product.name, :product, "")
