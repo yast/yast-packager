@@ -145,14 +145,14 @@ module Yast
     #
     # @return [Array<Y2Packager::Repository>] List of disabled repositories
     def disable_local_repos
-      candidates_repos, other_repos = *::Y2Packager::Repository.enabled.partition(&:local?)
-      products = other_repos.map(&:products).flatten.uniq
-      candidates_repos.each_with_object([]) do |repo, disabled|
+      local_repos, remote_repos = *::Y2Packager::Repository.enabled.partition(&:local?)
+      remote_products = remote_repos.map(&:products).flatten.uniq
+      local_repos.each_with_object([]) do |repo, disabled|
         if repo.products.empty?
           log.info("Repo #{repo.repo_id} (#{repo.name}) does not have products; ignored")
           next
         end
-        uncovered = repo.products.reject { |p| products.include?(p) }
+        uncovered = repo.products.select { |p| p.installed? && !remote_products.include?(p) }
         if uncovered.empty?
           log.info("Repo #{repo.repo_id} (#{repo.name}) will be disabled because products " \
             "are present in other repositories")
