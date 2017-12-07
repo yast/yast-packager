@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec  7 15:04:15 UTC 2017 - igonzalezsosa@suse.com
+
+- Consider only installed products when deciding whether to disable
+  or not local repositories (bsc#1071702). 
+- 4.0.20
+
+-------------------------------------------------------------------
 Fri Dec  1 16:04:22 CET 2017 - schubi@suse.de
 
 - Allowing AutoYaST to add initialize add-on products provided
