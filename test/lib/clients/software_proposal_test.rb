@@ -72,13 +72,13 @@ describe Yast::SoftwareProposalClient do
       end
 
       it "returns warning message if second stage is not possible" do
-        allow(Yast::AutoinstConfig).to receive(:check_second_stage_environment)
+        allow(Yast::AutoinstData).to receive(:autoyast_second_stage_error)
           .and_return("second_error")
         expect(subject.make_proposal({})["warning"]).to include("second_error")
       end
 
       it "returns no warning if second stage is possible" do
-        expect(Yast::AutoinstConfig).to receive(:check_second_stage_environment).and_return("")
+        expect(Yast::AutoinstData).to receive(:autoyast_second_stage_error).and_return("")
         expect(subject.make_proposal({})).to_not have_key("warning")
       end
     end
