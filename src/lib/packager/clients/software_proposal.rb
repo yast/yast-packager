@@ -30,7 +30,12 @@ module Yast
 
       Yast.import "Packages"
       Yast.import "Language"
+      Yast.import "Mode"
+      # The following imports are modules which are used in the inst-sys
+      # only. So they have not to be required by the package because
+      # the software proposal will be called in inst-sys only.
       Yast.import "Installation"
+      Yast.import "AutoinstConfig"
     end
 
     def make_proposal(flags)
@@ -90,6 +95,15 @@ module Yast
           @ret["warning"] << remote_installation_error
         else
           @ret["warning"] = remote_installation_error
+        end
+      end
+
+      if Yast::Mode.auto
+        # AY: Checking if second stage is needed and the environment has been setup.
+        error_message = Yast::AutoinstConfig.check_second_stage_environment
+        unless error_message.empty?
+          @ret["warning"] ? @ret["warning"] << "\n" : @ret["warning"] = ""
+          @ret["warning"] << error_message
         end
       end
 
