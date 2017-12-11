@@ -33,8 +33,6 @@ module Y2Packager
     attr_reader :version
     # @return [String] Architecture
     attr_reader :arch
-    # @return [Symbol] Status
-    attr_reader :status
     # @return [Symbol] Category
     attr_reader :category
     # @return [String] Vendor
@@ -70,10 +68,10 @@ module Y2Packager
 
       # Return the products with a given status
       #
-      # @param statuses [Array<Product>] Product status (:available, :installed, :selected, etc.)
+      # @param statuses [Array<Symbol>] Product status (:available, :installed, :selected, etc.)
       # @return [Array<Product>] Products with the given status
       def with_status(*statuses)
-        all.select { |s| statuses.include?(s.status) }
+        all.select { |p| p.status?(*statuses) }
       end
     end
 
@@ -84,19 +82,17 @@ module Y2Packager
     # @param display_name         [String]  Display name
     # @param version              [String]  Version
     # @param arch                 [String]  Architecture
-    # @param status               [Symbol]  Status (:selected, :removed, :installed, :available)
     # @param category             [Symbol]  Category (:base, :addon)
     # @param vendor               [String]  Vendor
     # @param order                [Integer] Display order
     # @param installation_package [String]  Installation package name
     def initialize(name: nil, short_name: nil, display_name: nil, version: nil, arch: nil,
-      status: nil, category: nil, vendor: nil, order: nil, installation_package: nil)
+      category: nil, vendor: nil, order: nil, installation_package: nil)
       @name = name
       @short_name = short_name
       @display_name = display_name
       @version = version
       @arch = arch.to_sym if arch
-      @status = status.to_sym if status
       @category = category.to_sym if category
       @vendor = vendor
       @order = order
@@ -228,19 +224,17 @@ module Y2Packager
       ReleaseNotesReader.new(self).release_notes(user_lang: user_lang, format: format)
     end
 
-  private
-
     # Determine whether a product is in a given status
     #
-    # Only the 'name' will be used to find out whether the product is installed,
+    # Only the 'name' will be used to find out whether the product status,
     # ignoring the architecture, version, vendor or any other property. libzypp
     # will take care of finding the proper product.
     #
-    # @param status [Symbol] Status to compare with.
+    # @param status [Array<Symbol>] Status to compare with.
     # @return [Boolean] true if it is in the given status
-    def status?(status)
+    def status?(*statuses)
       Yast::Pkg.ResolvableProperties(name, :product, "").any? do |res|
-        res["status"] == status
+        statuses.include?(res["status"])
       end
     end
   end

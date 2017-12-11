@@ -151,8 +151,7 @@ module Y2Packager
       # Build an array of Y2Packager::Product objects
       @products = candidates.map do |data|
         Y2Packager::Product.new(name: data["name"], version: data["version"],
-          arch: data["arch"], category: data["category"], status: data["status"],
-          vendor: data["vendor"])
+          arch: data["arch"], category: data["category"], vendor: data["vendor"])
       end
     end
 
