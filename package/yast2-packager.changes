@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 11 14:07:50 CET 2017 - schubi@suse.de
+
+- Warn the user if the infrastructure is not available for running
+  the second stage (bnc#1061754)
+- 4.0.21
+
+-------------------------------------------------------------------
 Thu Dec  7 15:04:15 UTC 2017 - igonzalezsosa@suse.com
 
 - Consider only installed products when deciding whether to disable
