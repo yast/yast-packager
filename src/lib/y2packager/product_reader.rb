@@ -70,7 +70,7 @@ module Y2Packager
 
         Y2Packager::Product.new(
           name: prod["name"], short_name: prod["short_name"], display_name: prod["display_name"],
-          version: prod["version"], status: prod["status"], order: displayorder,
+          version: prod["version"], order: displayorder,
           installation_package: installation_package_mapping[prod["name"]]
         )
       end

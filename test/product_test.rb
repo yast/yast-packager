@@ -7,7 +7,7 @@ require "y2packager/product"
 describe Y2Packager::Product do
   BASE_ATTRS = {
     name: "openSUSE", version: "20160405", arch: "x86_64",
-    category: "addon", status: :installed, vendor: "openSUSE"
+    category: "addon", vendor: "openSUSE"
   }.freeze
 
   subject(:product) do
@@ -15,8 +15,8 @@ describe Y2Packager::Product do
   end
 
   let(:reader) { Y2Packager::ProductReader.new }
-  let(:sles) { instance_double(Y2Packager::Product, status: :installed) }
-  let(:sdk) { instance_double(Y2Packager::Product, status: :available) }
+  let(:sles) { instance_double(Y2Packager::Product) }
+  let(:sdk) { instance_double(Y2Packager::Product) }
   let(:products) { [sles, sdk] }
 
   before do
@@ -43,6 +43,11 @@ describe Y2Packager::Product do
   end
 
   describe ".with_status" do
+    before do
+      allow(sles).to receive(:status?).with(:installed).and_return(true)
+      allow(sdk).to receive(:status?).with(:installed).and_return(false)
+    end
+
     it "filters package with the given status" do
       expect(described_class.with_status(:installed))
         .to eq([sles])
@@ -337,6 +342,32 @@ describe Y2Packager::Product do
           .with(user_lang: "de_DE", format: :rtf)
           .and_return(relnotes_content)
         expect(product.release_notes(:rtf, "de_DE")).to eq(relnotes_content)
+      end
+    end
+  end
+
+  describe "#status?" do
+    let(:properties) do
+      [
+        { "name" => "openSUSE", "status" => :removed },
+        { "name" => "openSUSE", "status" => :selected }
+      ]
+    end
+
+    before do
+      allow(Yast::Pkg).to receive(:ResolvableProperties)
+        .with("openSUSE", :product, "").and_return(properties)
+    end
+
+    context "when given status is within product statuses" do
+      it "returns true" do
+        expect(product.status?(:installed, :selected)).to eq(true)
+      end
+    end
+
+    context "when given status is not within product statuses" do
+      it "returns false" do
+        expect(product.status?(:installed)).to eq(false)
       end
     end
   end
