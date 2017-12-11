@@ -23,7 +23,7 @@ module Y2Packager
     class ProductLicense < CWM::CustomWidget
       # @return [Y2Packager::Product] Product
       attr_reader :product
-      # @param skip_validation [Boolean] Skip value validation
+      # @return [Boolean] Skip value validation
       attr_reader :skip_validation
 
       # Constructor

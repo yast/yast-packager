@@ -36,7 +36,7 @@ module Y2Packager
 
       # Get release notes for the given product
       #
-      # @param prefs [ReleaseNotesContentPrefs] Content preferences
+      # @param _prefs [ReleaseNotesContentPrefs] Content preferences
       # @return [String,nil] Release notes or nil if a release notes were not found
       #   (no package providing release notes or notes not found in the package)
       def release_notes(_prefs)

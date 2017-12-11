@@ -29,7 +29,7 @@ module Y2Packager
 
       # Constructor
       #
-      # @param product [Array<Y2Packager::ProductLocation>] Products on the medium
+      # @param products [Array<Y2Packager::ProductLocation>] Products on the medium
       def initialize(products)
         super()
         textdomain "packager"

@@ -2765,7 +2765,7 @@ module Yast
 
     # Checking if a package will be installed or is already installed
     # on a system and will not be deleted.
-    # @param [String] package name
+    # @param tag [String] package name
     # @return [Boolean] true if the package will be on the installed system
     def pkg_will_be_installed(tag)
       provides = Pkg.PkgQueryProvides(tag)

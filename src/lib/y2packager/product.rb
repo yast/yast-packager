@@ -215,8 +215,8 @@ module Y2Packager
 
     # Return product's release notes
     #
-    # @param format     [Symbol] Release notes format (use :txt as default)
-    # @return user_lang [String] Preferred language (use current language as default)
+    # @param format    [Symbol] Release notes format (use :txt as default)
+    # @param user_lang [String] Preferred language (use current language as default)
     # @return [ReleaseNotes] Release notes for product, language and format
     # @see ReleaseNotesReader
     # @see ReleaseNotes
@@ -230,7 +230,7 @@ module Y2Packager
     # ignoring the architecture, version, vendor or any other property. libzypp
     # will take care of finding the proper product.
     #
-    # @param status [Array<Symbol>] Status to compare with.
+    # @param statuses [Array<Symbol>] Status to compare with.
     # @return [Boolean] true if it is in the given status
     def status?(*statuses)
       Yast::Pkg.ResolvableProperties(name, :product, "").any? do |res|
