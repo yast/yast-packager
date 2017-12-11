@@ -31,11 +31,8 @@ module Yast
       Yast.import "Packages"
       Yast.import "Language"
       Yast.import "Mode"
-      # The following imports are modules which are used in the inst-sys
-      # only. So they have not to be required by the package because
-      # the software proposal will be called in inst-sys only.
       Yast.import "Installation"
-      Yast.import "AutoinstConfig"
+      Yast.import "AutoinstData"
     end
 
     def make_proposal(flags)
@@ -100,7 +97,7 @@ module Yast
 
       if Yast::Mode.auto
         # AY: Checking if second stage is needed and the environment has been setup.
-        error_message = Yast::AutoinstConfig.check_second_stage_environment
+        error_message = Yast::AutoinstData.autoyast_second_stage_error
         unless error_message.empty?
           @ret["warning"] ? @ret["warning"] << "\n" : @ret["warning"] = ""
           @ret["warning"] << error_message
