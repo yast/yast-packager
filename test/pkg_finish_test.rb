@@ -43,6 +43,7 @@ describe Yast::PkgFinishClient do
     let(:destdir) { "/mnt" }
     let(:update) { false }
     let(:zypp_conf) { double("zypp_conf", load: true, save: true, set_minimalistic!: true) }
+    let(:base_products) { [] }
 
     before do
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
@@ -53,6 +54,8 @@ describe Yast::PkgFinishClient do
       allow(File).to receive(:exist?).with(FAILED_PKGS_PATH).and_return(false)
       allow(Yast::Packager::CFA::ZyppConf)
         .to receive(:new).and_return(zypp_conf)
+      allow(Y2Packager::Product).to receive(:available_base_products)
+        .and_return(base_products)
     end
 
     it "saves repository information" do
@@ -75,6 +78,7 @@ describe Yast::PkgFinishClient do
 
     context "given some local repository" do
       let(:repositories) { [local_repo, remote_repo] }
+      let(:base_products) { [sles_product, sled_product] }
 
       let(:local_repo) do
         Y2Packager::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
@@ -95,14 +99,14 @@ describe Yast::PkgFinishClient do
       end
 
       let(:sles_ha_product) do
-        instance_double(Y2Packager::Product, name: "SLESHA", installed?: false)
+        instance_double(Y2Packager::Product, name: "SLESHA")
       end
 
       before do
         allow(local_repo).to receive(:products).and_return([sles_product, sled_product])
       end
 
-      context "if installed products are available through other repos" do
+      context "if installed base products are available through other repos" do
         before do
           allow(remote_repo).to receive(:products).and_return([sles_product])
         end
@@ -113,7 +117,18 @@ describe Yast::PkgFinishClient do
         end
       end
 
-      context "if installed products are not available through other repos" do
+      context "if installed base products are not available through other repos" do
+        before do
+          allow(remote_repo).to receive(:products).and_return([])
+        end
+
+        it "does not disable the local repository" do
+          expect(local_repo).to_not receive(:disable!)
+          client.run
+        end
+      end
+
+      context "if (non base) products are not available through other repos" do
         before do
           allow(remote_repo).to receive(:products).and_return([sles_ha_product])
         end

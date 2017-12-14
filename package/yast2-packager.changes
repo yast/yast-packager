@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Dec 14 14:33:52 UTC 2017 - igonzalezsosa@suse.com
+
+- Do not take into account non-installed products when deciding
+  which local repositories should be disabled after the
+  installation (bsc#1072595 and also related to bsc#1071702).
+- 4.0.23
+
+-------------------------------------------------------------------
 Wed Dec 13 09:10:23 UTC 2017 - lslezak@suse.cz
 
 - Make the dialog for selecting modules from DVD look similar
