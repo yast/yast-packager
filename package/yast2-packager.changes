@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 17 13:07:52 UTC 2018 - lslezak@suse.cz
+
+- Added a new client for displaying the product license at upgrade
+  (bsc#1069124)
+- 4.0.29
+
+-------------------------------------------------------------------
 Thu Jan 11 11:54:47 UTC 2018 - lslezak@suse.cz
 
 - Decrease the priority of the initial DVD installation repository
@@ -32,7 +39,7 @@ Mon Jan  8 09:49:09 UTC 2018 - lslezak@suse.cz
 - 4.0.25
 
 -------------------------------------------------------------------
-Mon Dec 15 14:07:50 CET 2017 - schubi@suse.de
+Fri Dec 15 14:07:50 CET 2017 - schubi@suse.de
 
 - Warn the user if the infrastructure is not available for running
   the second stage (bnc#1061754)
