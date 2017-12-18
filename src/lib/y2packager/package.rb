@@ -77,7 +77,7 @@ module Y2Packager
 
     # Download and extract the package to the given directory
     #
-    # @param path [String,Pathname] Path to extract the package to
+    # @param directory [String,Pathname] Path to extract the package to
     # @see Packages::PackageExtractor
     def extract_to(directory)
       tmpfile = Tempfile.new("downloaded-package-#{name}-")

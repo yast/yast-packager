@@ -13,8 +13,10 @@
 require "yast"
 require "ui/installation_dialog"
 
-Yast.import "UI"
 Yast.import "Report"
+Yast.import "Stage"
+Yast.import "UI"
+Yast.import "Wizard"
 
 module Y2Packager
   module Dialogs
@@ -29,7 +31,7 @@ module Y2Packager
 
       # Constructor
       #
-      # @param product [Array<Y2Packager::ProductLocation>] Products on the medium
+      # @param products [Array<Y2Packager::ProductLocation>] Products on the medium
       def initialize(products)
         super()
         textdomain "packager"
@@ -70,6 +72,16 @@ module Y2Packager
           "cannot be automatically detected and checked.</p>")
       end
 
+      # Display the the dialog title on the left side at installation
+      # (in the first stage) to have the same layout as in the registration
+      # addons dialog.
+      def run
+        Yast::Wizard.OpenLeftTitleNextBackDialog if Yast::Stage.initial
+        super()
+      ensure
+        Yast::Wizard.CloseDialog if Yast::Stage.initial
+      end
+
     private
 
       attr_writer :selected_products
@@ -82,18 +94,19 @@ module Y2Packager
       #
       # @see ::UI::Dialog
       def dialog_content
-        # do not stretch the MultiSelectionBox widget over the entire screen,
-        # squash it to as small as possible size...
-        HVSquash(
-          # ...and then set a resonable minimum size
-          MinSize(60, 16,
+        VBox(
+          # TRANSLATORS: Product selection label (above a multi-selection box)
+          Left(Heading(_("Available Extensions and Modules"))),
+
+          VWeight(75, MinHeight(12,
             MultiSelectionBox(
               Id("addon_repos"),
-
-              # TRANSLATORS: Product selection label (multi-selection box)
-              _("&Select Products to Install"),
+              "",
               selection_content
-            ))
+            ))),
+
+          VSpacing(0.4),
+          details_widget
         )
       end
 
@@ -120,6 +133,22 @@ module Y2Packager
         # TRANSLATORS: Popup with [Continue] [Cancel] buttons
         _("No product has been selected.\n\n" \
           "Do you really want to continue without adding any product?")
+      end
+
+      # description widget
+      # @return [Yast::Term] the addon details widget
+      def details_widget
+        MinHeight(3,
+          VWeight(25, RichText(Id(:details), Opt(:disabled), "<small>" +
+          description + "</small>")))
+      end
+
+      # extra help text
+      # @return [String] translated text
+      def description
+        # TRANSLATORS: inline help text displayed below the product selection widget
+        _("The dependencies between products are not handled automatically. " \
+          "The dependent modules or extensions must be selected manually.")
       end
     end
   end

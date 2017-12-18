@@ -427,7 +427,6 @@ module Yast
 
     # Add a new repository service.
     # @param url [String] service URL
-    # @param type [String] probed service type
     # @param preffered_name [String] service name, empty string means generate it
     def add_service(url, preffered_name)
       # all current aliases

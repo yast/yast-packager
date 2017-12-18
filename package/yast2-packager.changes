@@ -1,8 +1,29 @@
 -------------------------------------------------------------------
-Mon Dec 11 14:07:50 CET 2017 - schubi@suse.de
+Mon Dec 15 14:07:50 CET 2017 - schubi@suse.de
 
 - Warn the user if the infrastructure is not available for running
   the second stage (bnc#1061754)
+- 4.0.24
+
+-------------------------------------------------------------------
+Thu Dec 14 14:33:52 UTC 2017 - igonzalezsosa@suse.com
+
+- Do not take into account non-installed products when deciding
+  which local repositories should be disabled after the
+  installation (bsc#1072595 and also related to bsc#1071702).
+- 4.0.23
+
+-------------------------------------------------------------------
+Wed Dec 13 09:10:23 UTC 2017 - lslezak@suse.cz
+
+- Make the dialog for selecting modules from DVD look similar
+  to the module selection dialog in registration (bsc#1071771)
+- 4.0.22
+
+-------------------------------------------------------------------
+Mon Dec 11 13:29:10 UTC 2017 - igonzalezsosa@suse.com
+
+- Do not cache products status (related to bsc#1072063)
 - 4.0.21
 
 -------------------------------------------------------------------

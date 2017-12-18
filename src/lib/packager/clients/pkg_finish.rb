@@ -140,19 +140,29 @@ module Yast
     #
     # * if all products it contains are available through another repository,
     #   then it will be disabled;
-    # * if some product contained is not available through another
-    #   repository, then it will be left untouched.
+    # * if some product is not available through another repository, then it
+    #   will be left untouched.
+    #
+    # As a side note, not installed base products will be ignored when taking
+    # this decision.
     #
     # @return [Array<Y2Packager::Repository>] List of disabled repositories
     def disable_local_repos
       local_repos, remote_repos = *::Y2Packager::Repository.enabled.partition(&:local?)
       remote_products = remote_repos.map(&:products).flatten.uniq
+      non_installed_base = Y2Packager::Product.available_base_products.reject(&:installed?)
+      products_whitelist = (remote_products + non_installed_base).uniq
+
+      log.info "Products available in remote repositories: #{remote_products.map(&:name)}"
+      log.info "Not installed base products: #{non_installed_base.map(&:name)} "
+
       local_repos.each_with_object([]) do |repo, disabled|
         if repo.products.empty?
           log.info("Repo #{repo.repo_id} (#{repo.name}) does not have products; ignored")
           next
         end
-        uncovered = repo.products.select { |p| p.installed? && !remote_products.include?(p) }
+
+        uncovered = repo.products.reject { |p| products_whitelist.include?(p) }
         if uncovered.empty?
           log.info("Repo #{repo.repo_id} (#{repo.name}) will be disabled because products " \
             "are present in other repositories")
