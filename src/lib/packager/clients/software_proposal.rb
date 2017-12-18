@@ -99,7 +99,11 @@ module Yast
         # AY: Checking if second stage is needed and the environment has been setup.
         error_message = Yast::AutoinstData.autoyast_second_stage_error
         unless error_message.empty?
-          @ret["warning"] ? @ret["warning"] << "\n" : @ret["warning"] = ""
+          if @ret["warning"]
+            @ret["warning"] << "\n"
+          else
+            @ret["warning"] = ""
+          end
           @ret["warning"] << error_message
         end
       end
