@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.23
+Version:        4.0.24
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -51,8 +51,8 @@ Requires:       yast2-country-data >= 2.16.3
 # Pkg::CompareVersions
 Requires:       yast2-pkg-bindings >= 4.0.1
 
-# Optional resolvables support in PackagesProposal
-Requires:       yast2 >= 3.2.7
+# Yast::AutoinstData.autoyast_second_stage_error
+Requires:       yast2 >= 4.0.27
 
 # unzipping license file
 Requires:       unzip

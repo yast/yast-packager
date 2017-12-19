@@ -61,5 +61,26 @@ describe Yast::SoftwareProposalClient do
 
       expect(subject.make_proposal({})).to include("warning_level" => :blocker)
     end
+
+    context "AutoYaST mode" do
+      before do
+        allow(Yast::Mode).to receive(:auto).and_return(true)
+        allow(subject).to receive(:adjust_locales).and_return false
+        allow(subject).to receive(:partitioning_changed?).and_return true
+        allow(Yast::Packages).to receive(:Summary).and_return(foo: :bar)
+        allow(Yast::Packages).to receive(:solve_errors).and_return(0)
+      end
+
+      it "returns warning message if second stage is not possible" do
+        allow(Yast::AutoinstData).to receive(:autoyast_second_stage_error)
+          .and_return("second_error")
+        expect(subject.make_proposal({})["warning"]).to include("second_error")
+      end
+
+      it "returns no warning if second stage is possible" do
+        expect(Yast::AutoinstData).to receive(:autoyast_second_stage_error).and_return("")
+        expect(subject.make_proposal({})).to_not have_key("warning")
+      end
+    end
   end
 end

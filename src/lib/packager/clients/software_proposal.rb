@@ -30,7 +30,9 @@ module Yast
 
       Yast.import "Packages"
       Yast.import "Language"
+      Yast.import "Mode"
       Yast.import "Installation"
+      Yast.import "AutoinstData"
     end
 
     def make_proposal(flags)
@@ -90,6 +92,19 @@ module Yast
           @ret["warning"] << remote_installation_error
         else
           @ret["warning"] = remote_installation_error
+        end
+      end
+
+      if Yast::Mode.auto
+        # AY: Checking if second stage is needed and the environment has been setup.
+        error_message = Yast::AutoinstData.autoyast_second_stage_error
+        unless error_message.empty?
+          if @ret["warning"]
+            @ret["warning"] << "\n"
+          else
+            @ret["warning"] = ""
+          end
+          @ret["warning"] << error_message
         end
       end
 
