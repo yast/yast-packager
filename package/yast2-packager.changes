@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan  8 13:17:00 UTC 2018 - lslezak@suse.cz
+
+- Improved disk usage check - check the parent directory if the
+  target directory does not exist (yet) (bsc#1073696)
+- 4.0.26
+
+-------------------------------------------------------------------
 Mon Jan  8 09:49:09 UTC 2018 - lslezak@suse.cz
 
 - Allow different handling handling of addons without
