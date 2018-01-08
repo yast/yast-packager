@@ -1,11 +1,14 @@
 # encoding: utf-8
 
 require "yast"
+require "pathname"
 
 # Yast namespace
 module Yast
   # Provides the Callbacks for SlideShow
   class SlideShowCallbacksClass < Module
+    include Yast::Logger
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -288,12 +291,18 @@ module Yast
               Builtins.y2debug("Skipping read-only partition %1", part)
               next
             end
-            # add slash if missing (needed for target_dir)
-            if part != "/" && Ops.greater_or_equal(Builtins.size(part), 1) &&
-                Builtins.substring(part, 0, 1) != "/"
-              part = Ops.add("/", part)
+
+            target_dir = File.join(Installation.destdir, part)
+
+            # handle missing directories (not existing yet or incorrect metadata),
+            # if the directory does not exist then go up, normally it should
+            # stop at Installation.destdir (but it will stop at "/" at last)
+            until File.exist?(target_dir)
+              log.warn("Directory #{target_dir} does not exist")
+              target_dir = Pathname.new(target_dir).parent.to_s
+              log.info("Checking the parent directory (#{target_dir})")
             end
-            target_dir = Ops.add(Installation.destdir, part)
+
             disk_available = Pkg.TargetAvailable(target_dir)
             Builtins.y2debug(
               "partition: %1 (%2), available: %3",
@@ -303,7 +312,7 @@ module Yast
             )
             if Ops.less_than(disk_available, Ops.get(data, 2, 0))
               Builtins.y2warning(
-                "Not enought free space in %1 (%2): available: %3, required: %4",
+                "Not enough free space in %1 (%2): available: %3, required: %4",
                 part,
                 target_dir,
                 disk_available,
