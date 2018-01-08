@@ -818,10 +818,10 @@ module Yast
     # Do installation of the add-on product within an installed system
     # srcid is got via AddOnProduct::src_id
     #
-    # @param install_packages [Boolean] install the selected packages,
-    #   can be optionally disabled
+    # @param install_packages [Boolean] install the selected packages if no
+    #   installation.xml is found on the addon, can be optionally disabled
     # @return [Symbol] the result symbol from wizard sequencer
-    def DoInstall(install_packages = true)
+    def DoInstall(install_packages: true)
       # Display beta file if such file exists
       # Display license and wait for agreement
       # Not needed here, license already shown in the workflow
