@@ -567,8 +567,8 @@ module Yast
       )
 
       # display pattern the dialog when there is a pattern provided by the addon
-      # otherwise use search mode
-      mode = AnyPatternInRepo() ? :patternSelector : :searchMode
+      # otherwise use the summary mode
+      mode = AnyPatternInRepo() ? :patternSelector : :summaryMode
       # enable repository management if not in installation mode
       enable_repo_management = Mode.normal
 
@@ -818,8 +818,10 @@ module Yast
     # Do installation of the add-on product within an installed system
     # srcid is got via AddOnProduct::src_id
     #
+    # @param install_packages [Boolean] install the selected packages if no
+    #   installation.xml is found on the addon, can be optionally disabled
     # @return [Symbol] the result symbol from wizard sequencer
-    def DoInstall
+    def DoInstall(install_packages: true)
       # Display beta file if such file exists
       # Display license and wait for agreement
       # Not needed here, license already shown in the workflow
@@ -855,7 +857,7 @@ module Yast
       # Fallback -- Repository didn't provide needed control file
       # or control file doesn't contain needed stage/mode
       # Handling as it was a repository
-      ret = DoInstall_NoControlFile() if control.nil? || ret.nil?
+      ret = DoInstall_NoControlFile() if install_packages && (control.nil? || ret.nil?)
 
       Builtins.y2milestone("Result of the add-on installation: %1", ret)
 
