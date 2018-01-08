@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Jan  8 09:49:09 UTC 2018 - lslezak@suse.cz
+
+- Allow different handling handling of addons without
+  installation.xml file (related to bsc#1074766)
+- Display the installation summary tab by default in the package
+  manager when adding addons
+- 4.0.25
+
+-------------------------------------------------------------------
 Mon Dec 15 14:07:50 CET 2017 - schubi@suse.de
 
 - Warn the user if the infrastructure is not available for running
