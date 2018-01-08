@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jan  9 14:48:08 UTC 2018 - lslezak@suse.cz
+
+- Space check: ignore the partitions mounted before the installer
+  is started, e.g. ignore the HDD installation source or the user
+  mounts for remote logging (bsc#1073696)
+- 4.0.27
+
+-------------------------------------------------------------------
 Mon Jan  8 13:17:00 UTC 2018 - lslezak@suse.cz
 
 - Improved disk usage check - check the parent directory if the

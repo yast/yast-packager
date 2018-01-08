@@ -23,6 +23,10 @@ def expect_to_execute(command)
   expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_PATH, command)
 end
 
+def expect_to_not_execute(command)
+  expect(Yast::SCR).to_not receive(:Execute).with(SCR_BASH_PATH, command)
+end
+
 def filesystem(size_k: 0, block_size: 4096, type: :ext2, tune_options: "")
   disk_size = Y2Storage::DiskSize.KiB(size_k)
   region = Y2Storage::Region.create(0, disk_size.to_i, Y2Storage::DiskSize.B(block_size))
@@ -125,6 +129,19 @@ describe Yast::SpaceCalculation do
           expect_to_execute(
             /mount -o ro \/dev\/mapper\/cr_ata-VBOX_HARDDISK_VB57271fd6-27adef38-part3/
           ).and_return(-1)
+          Yast::SpaceCalculation.get_partition_info
+        end
+      end
+
+      context "on non-fstab device" do
+        let(:target_map) { "xfs" }
+        let(:with_options) { false }
+
+        it "skips non-fstab devices" do
+          # for simplicity simulate nothing in fstab
+          allow_any_instance_of(Storage::MountPoint).to receive(:in_etc_fstab?).and_return(false)
+          # ensure nothing is mounted
+          expect_to_not_execute(/mount/)
           Yast::SpaceCalculation.get_partition_info
         end
       end

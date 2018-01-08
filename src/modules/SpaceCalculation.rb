@@ -1052,7 +1052,23 @@ module Yast
     # @return [Array<Storage::Filesystem>]
     def target_filesystems
       filesystems = Y2Storage::Filesystems::BlkFilesystem.all(staging_devicegraph)
-      filesystems.select! { |fs| fs.mountpoint && fs.mountpoint.start_with?("/") }
+      filesystems.select! do |fs|
+        # Ignore the devices mounted before starting the installer (e.g. the
+        # installation repository mounted by linuxrc when installing from HDD or
+        # the user mounted devices like for remote logging). Such devices will
+        # not be saved in the final /etc/fstab therefore check that flag.
+        # Check this only in the initial installation (as the non-fstab values
+        # will be missing in "/mnt"), in installed system they will stay available
+        # at "/".
+        # TODO: use a better API when provided by the libstorage-ng wrapper
+        if fs.mountpoint
+          log.debug("#{fs.mountpoint.inspect} in fstab: " \
+            "#{fs.to_storage_value.mount_point.in_etc_fstab?}")
+        end
+
+        fs.mountpoint && fs.mountpoint.start_with?("/") &&
+          (!Stage.initial || fs.to_storage_value.mount_point.in_etc_fstab?)
+      end
       filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
       filesystems
     end
