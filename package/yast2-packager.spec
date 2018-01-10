@@ -69,8 +69,8 @@ Requires:       /usr/bin/md5sum
 # .process agent
 Requires:       yast2-core >= 2.16.35
 
-# Storage (requires y2storage)
-Requires:       yast2-storage-ng
+# Mountable#persistent?
+Requires:       yast2-storage-ng >= 4.0.68
 
 # Augeas lenses
 Requires: augeas-lenses

@@ -138,8 +138,9 @@ describe Yast::SpaceCalculation do
         let(:with_options) { false }
 
         it "skips non-fstab devices" do
-          # for simplicity simulate nothing in fstab
-          allow_any_instance_of(Storage::MountPoint).to receive(:in_etc_fstab?).and_return(false)
+          # for simplicity simulate no persistent mount at all
+          allow_any_instance_of(Y2Storage::Filesystems::BlkFilesystem).to \
+            receive(:persistent?).and_return(false)
           # ensure nothing is mounted
           expect_to_not_execute(/mount/)
           Yast::SpaceCalculation.get_partition_info

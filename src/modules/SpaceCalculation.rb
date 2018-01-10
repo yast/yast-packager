@@ -1056,18 +1056,15 @@ module Yast
         # Ignore the devices mounted before starting the installer (e.g. the
         # installation repository mounted by linuxrc when installing from HDD or
         # the user mounted devices like for remote logging). Such devices will
-        # not be saved in the final /etc/fstab therefore check that flag.
+        # not be saved in the final /etc/fstab therefore check the persistency.
         # Check this only in the initial installation (as the non-fstab values
         # will be missing in "/mnt"), in installed system they will stay available
-        # at "/".
-        # TODO: use a better API when provided by the libstorage-ng wrapper
+        # at "/". See bsc#1073696 for details.
         if fs.mountpoint
-          log.debug("#{fs.mountpoint.inspect} in fstab: " \
-            "#{fs.to_storage_value.mount_point.in_etc_fstab?}")
+          log.debug("Persistent #{fs.mountpoint.inspect}: #{fs.persistent?}")
         end
 
-        fs.mountpoint && fs.mountpoint.start_with?("/") &&
-          (!Stage.initial || fs.to_storage_value.mount_point.in_etc_fstab?)
+        fs.mountpoint && fs.mountpoint.start_with?("/") && (!Stage.initial || fs.persistent?)
       end
       filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
       filesystems
