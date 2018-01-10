@@ -1741,6 +1741,10 @@ module Yast
         end
       end
 
+      # Lower the priority of the initial installation repository to prefer
+      # the packages from the other media (bsc#1071742)
+      lower_repo_priority(initial_repository)
+
       # BNC #481828: Using LABEL from product
       AdjustSourcePropertiesAccordingToProduct(@base_source_id)
 
@@ -2774,6 +2778,15 @@ module Yast
       ret = provides.any? { |p| p[2] != :NONE }
       log.info("#{tag} will #{ret ? "" : "not "}be installed")
       ret
+    end
+
+    # Set a lower repository priority (prio+1, the higher number the lower priority!)
+    # to prefer the packages from the other repositories.
+    # @param src_id [Integer] the repository ID
+    def lower_repo_priority(src_id)
+      priority = Pkg.SourceGeneralData(src_id)["priority"]
+      # decrease the priority (the higher number the lower priority!)
+      Pkg.SourceSetPriority(src_id, priority + 1)
     end
   end
 
