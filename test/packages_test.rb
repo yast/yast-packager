@@ -1403,4 +1403,97 @@ describe Yast::Packages do
       expect { URI.parse(@base_url.value) }.to_not raise_error
     end
   end
+
+  describe "#adjust_repo_priority" do
+    before do
+      expect(Yast::Pkg).to receive(:SourceGetCurrent).with(true).and_return(repos.keys)
+      repos.each do |id, data|
+        expect(Yast::Pkg).to receive(:SourceGeneralData).with(id).and_return(data).at_least(:once)
+      end
+    end
+
+    # define the common repository cases
+    let(:volatile_repo) { { "url" => "dvd:///", "priority" => 99 } }
+    let(:local_repo) { { "url" => "hd:///", "priority" => 99 } }
+    let(:remote_repo) { { "url" => "http:///example.com/repo", "priority" => 99 } }
+
+    # share the testing scenarios
+    shared_examples "keeps priority" do
+      it "does not change the priority" do
+        expect(Yast::Pkg).to_not receive(:SourceSetPriority)
+        subject.send(:adjust_repo_priority)
+      end
+    end
+
+    shared_examples "sets priority" do |repo, prio|
+      it "changes the priority" do
+        expect(Yast::Pkg).to receive(:SourceSetPriority).with(repo, prio)
+        subject.send(:adjust_repo_priority)
+      end
+    end
+
+    # no priority change scenarios
+
+    context "installing from a DVD without any addon" do
+      let(:repos) { { 0 => volatile_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a DVD with a remote addon" do
+      let(:repos) { { 0 => volatile_repo, 1 => remote_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a DVD with a USB addon" do
+      let(:repos) { { 0 => volatile_repo, 1 => local_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a DVD with an USB and a remote addon" do
+      let(:repos) { { 0 => volatile_repo, 1 => local_repo, 2 => remote_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a DVD with a DVD and a remote addon" do
+      let(:repos) { { 0 => volatile_repo, 1 => volatile_repo, 2 => remote_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a remote repo without any addon" do
+      let(:repos) { { 0 => remote_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a remote repo with a remote addon" do
+      let(:repos) { { 0 => remote_repo, 1 => remote_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a remote repo with a DVD addon" do
+      let(:repos) { { 0 => remote_repo, 1 => volatile_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    context "installing from a remote repo with 2 DVD addons" do
+      let(:repos) { { 0 => remote_repo, 1 => volatile_repo, 2 => volatile_repo } }
+      it_behaves_like "keeps priority"
+    end
+
+    # priority changed scenarios
+
+    context "installing from a DVD with a DVD addon" do
+      let(:repos) { { 0 => volatile_repo, 1 => volatile_repo } }
+      it_behaves_like "sets priority", 0, 100
+    end
+
+    context "installing from a DVD with 2 DVD addons" do
+      let(:repos) { { 0 => volatile_repo, 1 => volatile_repo, 2 => volatile_repo } }
+      it_behaves_like "sets priority", 0, 100
+    end
+
+    context "installing from a DVD with an USB and a DVD addon" do
+      let(:repos) { { 0 => volatile_repo, 1 => local_repo, 2 => volatile_repo } }
+      it_behaves_like "sets priority", 0, 100
+    end
+  end
 end

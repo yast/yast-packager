@@ -4,6 +4,7 @@ require "yast"
 # html_escape()
 require "erb"
 require "fileutils"
+require "uri"
 
 # Yast namespace
 module Yast
@@ -2146,6 +2147,11 @@ module Yast
         Label(_("Evaluating package selection..."))
       )
 
+      # Lower the priority of the initial DVD installation repository
+      # to prefer the packages from the DVD addons, in the other cases the
+      # priority is not changed. (bsc#1071742)
+      adjust_repo_priority
+
       Builtins.y2milestone(
         "Packages::Proposal: force_reset %1, reinit %2, lang '%3'",
         force_reset,
@@ -2774,6 +2780,68 @@ module Yast
       ret = provides.any? { |p| p[2] != :NONE }
       log.info("#{tag} will #{ret ? "" : "not "}be installed")
       ret
+    end
+
+    # the default libzypp repository priority
+    DEFAULT_PRIORITY = 99
+
+    # Adjust the priority of the initial installation repository. (bsc#1071742)
+    #
+    # The initial repository priority is decreased (a higher number used!) to
+    # prefer the packages from the other media to avoid unecessary media changes
+    # for the same packages present on multiple media only if:
+    #  - The initial repository is volatile (CD or DVD)
+    #  - If all repositories are local (CD, DVD, HDD, USB...)
+    #  - If there is at least one more volatile (CD or DVD) repository used
+    #    as an addon
+    #
+    # Otherwise changing the priority does not make sense (installing from DVD
+    # without any addon, installing from DVD + network addon, installing from
+    # USB + a DVD addon,...).
+    #
+    # If there is a remote addon then the priority for the installation DVD
+    # cannot be lowered because that would break the DVD preference set via the
+    # "download_media_prefer_download" libzypp option.
+    def adjust_repo_priority
+      # all enabled repositories
+      enabled_repos = Pkg.SourceGetCurrent(true)
+      # just a sanity check, should not happen (TM)
+      return if enabled_repos.empty?
+
+      # all enabled repositories are local (CD, DVD, HDD, USB...)
+      all_local = true
+      # number of volatile media (CD or DVD)
+      volatile_media = 0
+
+      enabled_repos.each do |repo|
+        url = Pkg.SourceGeneralData(repo)["url"]
+        next if url.nil? || url.empty?
+        scheme = URI(url).scheme
+        all_local &= Pkg.UrlSchemeIsLocal(scheme)
+        volatile_media += 1 if Pkg.UrlSchemeIsVolatile(scheme)
+      end
+
+      repo_id = enabled_repos.first
+      repo_priority = Pkg.SourceGeneralData(repo_id)["priority"]
+      repo_url = Pkg.SourceGeneralData(repo_id)["url"]
+      repo_volatile = repo_url.empty? ? false : Pkg.UrlSchemeIsVolatile(URI(repo_url).scheme)
+
+      log.info("All installation repositories are local: #{all_local}")
+      log.info("Installing from volatile medium: #{repo_volatile}")
+      log.info("Number of volatile media: #{volatile_media}")
+
+      # change the priority only if:
+      # - installing from a CD or DVD
+      # - all repositories are local, no remote repository is used
+      # - at least one CD or DVD addon is used (more than 2 media in total)
+      if repo_volatile && all_local && volatile_media >= 2
+        # decrease the priority (the higher number the lower priority!)
+        Pkg.SourceSetPriority(repo_id, repo_priority + 1) if repo_priority == DEFAULT_PRIORITY
+      # set the default if not set (e.g. reset after going back and adding
+      # a remote repository or removing all other repositories)
+      elsif repo_priority != DEFAULT_PRIORITY
+        Pkg.SourceSetPriority(repo_id, DEFAULT_PRIORITY)
+      end
     end
   end
 
