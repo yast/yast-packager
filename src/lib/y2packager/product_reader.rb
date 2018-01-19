@@ -108,10 +108,13 @@ module Y2Packager
     def available_products
       products = Yast::Pkg.ResolvableProperties("", :product, "")
 
+      # remove e.g. installed products
+      products.select! { |p| p["status"] == :available || p["status"] == :selected }
+
       # remove duplicates, there migth be different flavors ("DVD"/"POOL")
       # or archs (x86_64/i586), when selecting the product to install later
       # libzypp will select the correct arch automatically
-      products.uniq! { |prod| prod["name"] }
+      products.uniq! { |prod| "#{prod["name"]}__#{prod["version"]}" }
       log.info "Found products: #{products.map { |prod| prod["name"] }}"
 
       products

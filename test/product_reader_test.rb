@@ -61,8 +61,8 @@ describe Y2Packager::ProductReader do
 
     context "when no product with system-installation() tag exists" do
       let(:installation_package_map) { {} }
-      let(:prod1) { { "name" => "SLES" } }
-      let(:prod2) { { "name" => "SLED" } }
+      let(:prod1) { { "name" => "SLES", "status" => :available } }
+      let(:prod2) { { "name" => "SLED", "status" => :available } }
 
       before do
         allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
