@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 23 11:19:28 UTC 2018 - lslezak@suse.cz
+
+- Do not display the license again when going back (bsc#1069124)
+- 4.0.30
+
+-------------------------------------------------------------------
 Wed Jan 17 13:07:52 UTC 2018 - lslezak@suse.cz
 
 - Added a new client for displaying the product license at upgrade

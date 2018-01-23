@@ -17,6 +17,7 @@ require "y2packager/product"
 
 Yast.import "Pkg"
 Yast.import "Report"
+Yast.import "GetInstArgs"
 
 module Y2Packager
   module Clients
@@ -24,10 +25,14 @@ module Y2Packager
     #
     # The client will display an error and return :back if not product is found.
     # If no license is found for the selected product it returns :auto.
+    # The license is not displayed when going back in the workflow.
     # @see Y2Packager::Clients::InstProductLicense
     class InstProductUpgradeLicense < InstProductLicense
       def main
         textdomain "installation"
+
+        # do not display the license when going back, skip the dialog
+        return :back if Yast::GetInstArgs.going_back
 
         if !product
           # TRANSLATORS: An error message, the package solver could not find
