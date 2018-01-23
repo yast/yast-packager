@@ -6,10 +6,28 @@ require "y2packager/clients/inst_product_upgrade_license"
 describe Y2Packager::Clients::InstProductUpgradeLicense do
   describe "#main" do
     before do
-      expect(Yast::Pkg).to receive(:PkgUpdateAll)
-      expect(Yast::Pkg).to receive(:PkgReset)
+      allow(Yast::Pkg).to receive(:PkgUpdateAll)
+      allow(Yast::Pkg).to receive(:PkgReset)
       allow(Y2Packager::Product).to receive(:selected_base).and_return(product)
       allow(Yast::Report).to receive(:Error)
+      allow(Yast::GetInstArgs).to receive(:going_back).and_return(false)
+    end
+
+    context "going back in the workflow" do
+      let(:product) { nil }
+
+      before do
+        expect(Yast::GetInstArgs).to receive(:going_back).and_return(true)
+      end
+
+      it "returns :back" do
+        expect(subject.main).to eq(:back)
+      end
+
+      it "does not display the license" do
+        expect_any_instance_of(Y2Packager::Dialogs::InstProductLicense).to_not receive(:run)
+        subject.main
+      end
     end
 
     context "no product found" do
