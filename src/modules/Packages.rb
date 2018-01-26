@@ -2411,7 +2411,7 @@ module Yast
     def log_software_selection
       log.info "-" * 10 << " Transaction Status Begin " << "-" * 10
 
-      RESOLVABLE_TYPES.each do |type|
+      [:product, :pattern].each do |type|
         resolvables = Pkg.ResolvableProperties("", type, "")
         resolvables.select! { |r| LOG_RESOLVABLE_TRANSACT_BY.include? r["transact_by"] }
 
