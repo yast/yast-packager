@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jan 26 12:32:28 UTC 2018 - lslezak@suse.cz
+
+- Display a correct product license and release notes at upgrade
+  from SLE12, correctly filter out the old installed products
+  (fate#1076513)
+- 4.0.32
+
+-------------------------------------------------------------------
 Fri Jan 26 11:09:11 UTC 2018 - jreidinger@suse.com
 
 - Hot fix for big memory consumption during NET installer with
