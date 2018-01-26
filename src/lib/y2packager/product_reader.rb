@@ -114,8 +114,8 @@ module Y2Packager
       # remove duplicates, there migth be different flavors ("DVD"/"POOL")
       # or archs (x86_64/i586), when selecting the product to install later
       # libzypp will select the correct arch automatically
-      products.uniq! { |prod| "#{prod["name"]}__#{prod["version"]}" }
-      log.info "Found products: #{products.map { |prod| prod["name"] }}"
+      products.uniq! { |p| "#{p["name"]}__#{p["version"]}" }
+      log.info "Found products: #{products.map { |p| p["name"] }}"
 
       products
     end
