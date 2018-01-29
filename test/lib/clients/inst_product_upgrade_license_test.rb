@@ -8,14 +8,23 @@ describe Y2Packager::Clients::InstProductUpgradeLicense do
     before do
       allow(Yast::Pkg).to receive(:PkgUpdateAll)
       allow(Yast::Pkg).to receive(:PkgReset)
+      allow(Yast::Pkg).to receive(:GetPackages).and_return([])
       allow(Y2Packager::Product).to receive(:selected_base).and_return(product)
       allow(Yast::Report).to receive(:Error)
       allow(Yast::GetInstArgs).to receive(:going_back).and_return(false)
     end
 
-    context "going back in the workflow" do
-      let(:product) { nil }
+    let(:product) { nil }
 
+    it "resets the temporarily selected and removed packages" do
+      expect(Yast::Pkg).to receive(:GetPackages).with(:selected, true).and_return(["foo"])
+      expect(Yast::Pkg).to receive(:GetPackages).with(:removed, true).and_return(["bar"])
+      expect(Yast::Pkg).to receive(:PkgNeutral).with("foo")
+      expect(Yast::Pkg).to receive(:PkgNeutral).with("bar")
+      subject.main
+    end
+
+    context "going back in the workflow" do
       before do
         expect(Yast::GetInstArgs).to receive(:going_back).and_return(true)
       end
@@ -31,8 +40,6 @@ describe Y2Packager::Clients::InstProductUpgradeLicense do
     end
 
     context "no product found" do
-      let(:product) { nil }
-
       it "displays an error popup" do
         expect(Yast::Report).to receive(:Error).with(/Cannot find any product to upgrade/)
         subject.main

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 29 07:59:43 UTC 2018 - lslezak@suse.cz
+
+- Reimplemented package reset to require less memory
+  (related to bsc#1076768)
+- 4.0.33
+
+-------------------------------------------------------------------
 Fri Jan 26 12:32:28 UTC 2018 - lslezak@suse.cz
 
 - Display a correct product license and release notes at upgrade

@@ -64,12 +64,18 @@ module Y2Packager
         @product = Y2Packager::Product.selected_base
         # restore the initial status, the package update will be turned on later again
         Yast::Pkg.PkgReset
-        changed = Yast::Pkg.ResolvableProperties("", :package, "").select do |p|
-          p["status"] != :available || p["status"] != :installed
-        end
-        changed.each { |p| Yast::Pkg.PkgNeutral(p["name"]) }
+        reset_packages(:removed)
+        reset_packages(:selected)
 
         @product
+      end
+
+      # Reset packages having the specific status
+      # @param status [Symbol] Status symbol, `:removed`, `:selected`, `:installed`, `:available`
+      # @see Yast::Pkg.GetPackages
+      def reset_packages(status)
+        # packages in the required status
+        Yast::Pkg.GetPackages(status, true).each { |p| Yast::Pkg.PkgNeutral(p) }
       end
     end
   end
