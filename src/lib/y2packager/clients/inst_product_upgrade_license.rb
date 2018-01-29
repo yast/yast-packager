@@ -71,11 +71,14 @@ module Y2Packager
       end
 
       # Reset packages having the specific status
-      # @param status [Symbol] Status symbol, `:removed`, `:selected`, `:installed`, `:available`
+      # @param status [Symbol] Status symbol, `:removed`, `:selected`, `:installed`,
+      # `:available`, `:taboo`, `:locked`
       # @see Yast::Pkg.GetPackages
       def reset_packages(status)
+        # package names only, without version
+        names_only = true
         # packages in the required status
-        Yast::Pkg.GetPackages(status, true).each { |p| Yast::Pkg.PkgNeutral(p) }
+        Yast::Pkg.GetPackages(status, names_only).each { |p| Yast::Pkg.PkgNeutral(p) }
       end
     end
   end
