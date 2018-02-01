@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb  1 19:36:15 UTC 2018 - lslezak@suse.cz
+
+- Remove also the release_notes_fetchers/base.rb file
+  (related to fate#323163)
+- 4.0.34
+
+-------------------------------------------------------------------
 Thu Feb  1 08:41:35 UTC 2018 - lslezak@suse.cz
 
 - Move some Y2Packager files to yast2 package to avoid circular
