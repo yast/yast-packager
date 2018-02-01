@@ -2,8 +2,8 @@
 Thu Feb  1 08:41:35 UTC 2018 - lslezak@suse.cz
 
 - Move some Y2Packager files to yast2 package to avoid circular
-  dependency (related to fate#1076513)
-- 4.0.34
+  dependency (related to fate#323163)
+- 4.0.33
 
 -------------------------------------------------------------------
 Mon Jan 29 07:59:43 UTC 2018 - lslezak@suse.cz
