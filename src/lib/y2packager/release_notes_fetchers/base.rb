@@ -29,7 +29,7 @@ module Y2Packager
 
       # Constructor
       #
-      # @param product [Product] {Product} to get release notes for
+      # @param product [Product] Product to get release notes for
       def initialize(product)
         @product = product
       end
