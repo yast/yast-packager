@@ -5,6 +5,8 @@ require "y2packager/clients/inst_product_upgrade_license"
 
 describe Y2Packager::Clients::InstProductUpgradeLicense do
   describe "#main" do
+    let(:language) { double("Yast::Language", language: "en_US") }
+
     before do
       allow(Yast::Pkg).to receive(:PkgUpdateAll)
       allow(Yast::Pkg).to receive(:PkgReset)
@@ -12,6 +14,7 @@ describe Y2Packager::Clients::InstProductUpgradeLicense do
       allow(Y2Packager::Product).to receive(:selected_base).and_return(product)
       allow(Yast::Report).to receive(:Error)
       allow(Yast::GetInstArgs).to receive(:going_back).and_return(false)
+      stub_const("Yast::Language", language)
     end
 
     let(:product) { nil }

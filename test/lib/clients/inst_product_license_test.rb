@@ -22,12 +22,14 @@ describe Y2Packager::Clients::InstProductLicense do
   let(:license?) { true }
   let(:confirmation_required?) { true }
   let(:license_confirmed?) { false }
+  let(:language) { double("Yast::Language", language: "en_US") }
 
   before do
     allow(Y2Packager::Dialogs::InstProductLicense).to receive(:new)
       .and_return(dialog)
     allow(Y2Packager::Product).to receive(:selected_base).and_return(product)
     allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
+    stub_const("Yast::Language", language)
   end
 
   describe "#main" do

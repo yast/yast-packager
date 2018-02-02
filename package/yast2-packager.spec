@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.34
+Version:        4.0.35
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -33,8 +33,8 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 # New Y2Storage::StorageManager API
 BuildRequires:  yast2-storage-ng >= 0.1.32
 
-# Optional resolvables support in PackagesProposal
-BuildRequires:  yast2 >= 3.2.7
+# Mandatory language in Product#license and Product#license?
+BuildRequires:  yast2 >= 4.0.49
 
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
@@ -51,8 +51,8 @@ Requires:       yast2-country-data >= 2.16.3
 # Pkg::CompareVersions
 Requires:       yast2-pkg-bindings >= 4.0.1
 
-# moved Y2Packager files
-Requires:       yast2 >= 4.0.46
+# Mandatory language in Product#license and Product#license?
+Requires:       yast2 >= 4.0.49
 
 # unzipping license file
 Requires:       unzip

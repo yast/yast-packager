@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Feb  2 11:56:09 UTC 2018 - igonzalezsosa@suse.com
+
+- InstProductLicense client provides the current language when
+  asking for the product's license to the yast2.rpm API
+ (related to bsc#1079045).
+- 4.0.35
+
+-------------------------------------------------------------------
 Thu Feb  1 19:36:15 UTC 2018 - lslezak@suse.cz
 
 - Remove also the release_notes_fetchers/base.rb file

@@ -13,6 +13,7 @@
 require "yast"
 require "y2packager/dialogs/inst_product_license"
 require "y2packager/product"
+Yast.import "Language"
 
 module Y2Packager
   module Clients
@@ -57,9 +58,10 @@ module Y2Packager
       #
       # @return [Boolean] true if the license is available; false otherwise.
       def available_license?
-        return true if product && product.license?
-        log.warn "No base product is selected for installation" unless product
-        if product && !product.license?
+        return true if product && product.license?(Yast::Language.language)
+        if product.nil?
+          log.warn "No base product is selected for installation"
+        else
           log.warn "No license for product '#{product.label}' was found"
         end
         false
