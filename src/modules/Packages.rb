@@ -1730,7 +1730,7 @@ module Yast
       Pkg.SetZConfig("download_media_prefer_download" => false)
 
       while initial_repository.nil?
-        initial_repository = Pkg.SourceCreateBase(base_url, "")
+        initial_repository = Pkg.SourceCreateBase(base_url, "/")
         next unless initial_repository == -1 || initial_repository.nil?
         Builtins.y2error("No repository in '%1'", log_url)
         base_url = UpdateSourceURL(base_url)
