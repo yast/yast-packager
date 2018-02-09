@@ -591,7 +591,7 @@ module Yast
           SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)}")
 
           # mount options determined by partitioner
-          mount_options = filesystem.fstab_options.to_a
+          mount_options = filesystem.mount_options
 
           # mount in read-only mode (safer)
           mount_options << "ro"
@@ -690,7 +690,7 @@ module Yast
         free_size_kib = free_size / 1024
         used_kib = used / 1024
 
-        mount_name = filesystem.mountpoint
+        mount_name = filesystem.mount_path
         log.info "partition: mount: #{mount_name}, free: #{free_size_kib}KiB, used: #{used_kib}KiB"
 
         mount_name = mount_name[1..-1] if remove_slash && mount_name != "/"
@@ -1060,11 +1060,11 @@ module Yast
         # Check this only in the initial installation (as the non-fstab values
         # will be missing in "/mnt"), in installed system they will stay available
         # at "/". See bsc#1073696 for details.
-        if fs.mountpoint
-          log.debug("Persistent #{fs.mountpoint.inspect}: #{fs.persistent?}")
+        if fs.mount_path
+          log.debug("Persistent #{fs.mount_path.inspect}: #{fs.persistent?}")
         end
 
-        fs.mountpoint && fs.mountpoint.start_with?("/") && (!Stage.initial || fs.persistent?)
+        fs.mount_path && fs.mount_path.start_with?("/") && (!Stage.initial || fs.persistent?)
       end
       filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
       filesystems
