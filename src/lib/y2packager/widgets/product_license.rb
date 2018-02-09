@@ -13,6 +13,8 @@
 require "yast"
 require "cwm"
 require "y2packager/widgets/product_license_confirmation"
+require "y2packager/widgets/license_translations_button"
+require "y2packager/widgets/product_license_content"
 
 module Y2Packager
   module Widgets
@@ -50,9 +52,22 @@ module Y2Packager
       def contents
         VBox(
           Left(Label(_("License Agreement"))),
-          license_content,
-          confirmation_checkbox
+          product_license_content,
+          VSpacing(0.5),
+          HBox(
+            confirmation_checkbox,
+            HStretch(),
+            translations_button
+          )
         )
+      end
+
+      # Translate the license content to the given language
+      #
+      # @param language [String] Language code (en_US, de_DE, etc.).
+      def translate(new_language)
+        self.language = new_language
+        product_license_content.translate(language)
       end
 
     private
@@ -60,49 +75,29 @@ module Y2Packager
       # @return [String] Language code (en_US, es_ES, etc.).
       attr_accessor :language
 
-      # Return the UI for the license content
+      # Widget containing the license translated to the language determined by #language
       #
-      # @return [Yast::Term] UI for the license content
-      def license_content
-        MinWidth(
-          80,
-          RichText(Id(:license_content), formatted_license_text)
-        )
+      # @return [CWM::ProductLicenseContent]
+      def product_license_content
+        @product_license_content ||= ProductLicenseContent.new(product, language)
       end
 
-      # Regexp to determine whether the text is formatted as richtext
-      RICHTEXT_REGEXP = /<\/.*>/
-
-      # Return the license text
-      #
-      # It detects whether license text is richtext or not and format it
-      # accordingly.
-      #
-      # @return [String] Formatted license text
-      def formatted_license_text
-        text = product.license(language)
-        if RICHTEXT_REGEXP =~ text
-          text
-        else
-          "<pre>#{CGI.escapeHTML(text)}</pre>"
-        end
-      end
-
-      # Return the UI for the confirmation checkbox
+      # Return the license confirmation widget if required
       #
       # It returns Empty() if confirmation is not needed.
       #
-      # @return [Yast::Term] Product confirmation license widget or Empty() if
-      #   confirmation is not needed.
+      # @return [Yast::Term,ProductLicenseConfirmation] Product confirmation license widget
+      #   or Empty() if confirmation is not needed.
       def confirmation_checkbox
         return Empty() unless product.license_confirmation_required?
+        ProductLicenseConfirmation.new(product, skip_validation: skip_validation)
+      end
 
-        VBox(
-          VSpacing(0.5),
-          Left(
-            ProductLicenseConfirmation.new(product, skip_validation: skip_validation)
-          )
-        )
+      # Return the UI for the translation confirmation button
+      #
+      # @return [LicenseTranslationButton] License translations button
+      def translations_button
+        LicenseTranslationsButton.new(product)
       end
     end
   end
