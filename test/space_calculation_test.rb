@@ -50,7 +50,8 @@ describe Yast::SpaceCalculation do
 
         stub_devicegraph(target_map)
         if !with_options
-          allow_any_instance_of(Storage::BlkFilesystem).to receive(:fstab_options).and_return([])
+          allow_any_instance_of(Y2Storage::Filesystems::BlkFilesystem)
+            .to receive(:mount_options).and_return([])
         end
 
         allow(Yast::SCR).to receive(:Read).with(SCR_TMPDIR_PATH).and_return "/tmp"

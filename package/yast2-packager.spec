@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.36
+Version:        4.0.37
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -30,8 +30,8 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 
-# New Y2Storage::StorageManager API
-BuildRequires:  yast2-storage-ng >= 0.1.32
+# Y2Storage::Mountable#mount_path
+BuildRequires:  yast2-storage-ng >= 4.0.90
 
 # Mandatory language in Product#license and Product#license?
 BuildRequires:  yast2 >= 4.0.49
@@ -69,8 +69,8 @@ Requires:       /usr/bin/md5sum
 # .process agent
 Requires:       yast2-core >= 2.16.35
 
-# Mountable#persistent?
-Requires:       yast2-storage-ng >= 4.0.68
+# Y2Storage::Mountable#mount_path
+Requires:       yast2-storage-ng >= 4.0.90
 
 # Augeas lenses
 Requires: augeas-lenses
