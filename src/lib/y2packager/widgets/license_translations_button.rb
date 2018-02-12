@@ -12,7 +12,7 @@
 
 require "yast"
 require "cwm"
-require "y2packager/dialogs/product_license"
+require "y2packager/dialogs/product_license_translations"
 
 module Y2Packager
   module Widgets
@@ -20,10 +20,12 @@ module Y2Packager
     class LicenseTranslationsButton < CWM::PushButton
       # @return [Y2Packager::Product] Product
       attr_reader :product
+      attr_reader :language
 
-      def initialize(product)
+      def initialize(product, language = nil)
         super()
         @product = product
+        @language = language || Yast::Language.language
       end
 
       # Widget label
@@ -38,7 +40,7 @@ module Y2Packager
       #
       # @see CWM::AbstractWidget#handle
       def handle
-        Y2Packager::Dialogs::ProductLicense.new(product).run
+        Y2Packager::Dialogs::ProductLicenseTranslations.new(product, language).run
         nil
       end
     end

@@ -19,16 +19,20 @@ require "y2packager/product"
 describe Y2Packager::Widgets::LicenseTranslationsButton do
   subject(:widget) { described_class.new(product) }
   let(:product) { instance_double(Y2Packager::Product, license: "content") }
+  let(:language) { "en_US" }
 
   describe "#handle" do
-    let(:dialog) { instance_double(Y2Packager::Dialogs::ProductLicense, run: nil) }
+    let(:dialog) { instance_double(Y2Packager::Dialogs::ProductLicenseTranslations, run: nil) }
 
     before do
-      allow(Y2Packager::Dialogs::ProductLicense).to receive(:new)
-        .with(product).and_return(dialog)
+      allow(Yast::Language).to receive(:language).and_return(language)
+      allow(Y2Packager::Dialogs::ProductLicenseTranslations).to receive(:new)
+        .and_return(dialog)
     end
 
     it "opens a dialog" do
+      expect(Y2Packager::Dialogs::ProductLicenseTranslations).to receive(:new)
+        .with(product, language).and_return(dialog)
       expect(dialog).to receive(:run)
       widget.handle
     end
