@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "yast"
 require "uri"
+require "fileutils"
 
 # Yast namespace
 module Yast
@@ -1182,17 +1183,16 @@ module Yast
     def SearchForLicense_AddOnProduct(src_id, _fallback_dir)
       Builtins.y2milestone("Getting license beta from repository %1", src_id)
 
+      # use a separate license directory for each product
+      @tmpdir = File.join(SCR.Read(path(".target.tmpdir")), "product-license", src_id.to_s)
+
+      # try reading the product license from libzypp first
+      return if product_license(src_id, @tmpdir)
+
       @beta_file = Pkg.SourceProvideOptionalFile(
         src_id, # optional
         1,
         README_BETA
-      )
-
-      # using a separate license directory for all products
-      @tmpdir = Builtins.sformat(
-        "%1/product-license/%2/",
-        Convert.to_string(SCR.Read(path(".target.tmpdir"))),
-        src_id
       )
 
       # FATE #302018 comment #54
@@ -1623,6 +1623,59 @@ module Yast
     # Mark given id as seen
     def beta_seen!(id)
       @beta_file_already_seen[id] = true
+    end
+
+    # Search for the product licenses in the addon repository.
+    # @param id [Integer] repository ID
+    # @param tmpdir [String] where to save the licenses
+    # @return [Boolean] true if a license has been found
+    def product_license(id, tmpdir)
+      # make sure the resolvables are loaded into the libzypp pool
+      Pkg.SourceLoad
+      ::FileUtils.mkdir_p(tmpdir)
+
+      products = Pkg.ResolvableProperties("", :product, "")
+      products.reject! { |p| p["source"] != id }
+      product_names = products.map { |p| p["name"] }.uniq
+      log.info("Found products from source #{id}: #{product_names.inspect}")
+      found_license = false
+
+      product_names.each do |product_name|
+        locales = Pkg.PrdLicenseLocales(product_name)
+        log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
+
+        locales.each do |locale|
+          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
+          next unless license && !license.empty?
+
+          found_license = true
+          log.info("Found license for language #{locale.inspect}, size: #{license.bytesize} bytes")
+
+          path = File.join(tmpdir, locale.empty? ? "license.txt" : "license.#{locale}.txt")
+          File.write(path, license)
+          log.info("License saved to #{path}")
+        end
+      end
+
+      if found_license
+        @license_dir = tmpdir
+        @license_file_print = repo_license_file(id)
+      end
+
+      found_license
+    end
+
+    # build the path to the repository license tarball
+    # @param id [Integer] repository ID
+    # @return [String] path
+    def repo_license_file(id)
+      repo = Pkg.SourceGeneralData(id)
+      # add the product dir and the license tarball to the path,
+      # the file name contains unique hash which we cannot get easily,
+      # use the "*" wildcard to make it simple
+      path = File.join(repo["product_dir"], "repodata", "*-license*.tar.gz")
+      log.info("License path: #{path}")
+      path
     end
   end
 

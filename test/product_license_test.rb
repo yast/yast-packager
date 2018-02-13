@@ -10,6 +10,7 @@ Yast.import "Stage"
 
 describe Yast::ProductLicense do
   let(:beta_file) { "README.BETA" }
+  subject { Yast::ProductLicense }
 
   describe "#HandleLicenseDialogRet" do
     before(:each) do
@@ -294,6 +295,41 @@ describe Yast::ProductLicense do
           end
         end
       end
+    end
+  end
+
+  describe "#product_license" do
+    let(:src) { 42 }
+    let(:product) { "testing-product" }
+    let(:locale) { "en" }
+
+    before do
+      allow(FileUtils).to receive(:mkdir_p)
+      allow(Yast::Pkg).to receive(:SourceLoad)
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return([{ "name" => product, "source" => src }])
+      allow(Yast::Pkg).to receive(:SourceGeneralData).with(src)
+        .and_return("product_dir" => "/test")
+      allow(File).to receive(:write)
+    end
+
+    it "returns true if a license is found" do
+      expect(Yast::Pkg).to receive(:PrdLicenseLocales).with(product).and_return([locale])
+      expect(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product, locale)
+        .and_return("License")
+      expect(subject.send(:product_license, src, "/foo")).to eq(true)
+    end
+
+    it "returns false if no license is found" do
+      expect(Yast::Pkg).to receive(:PrdLicenseLocales).with(product).and_return([])
+      expect(subject.send(:product_license, src, "/foo")).to eq(false)
+    end
+
+    it "returns false if an empty license is found" do
+      expect(Yast::Pkg).to receive(:PrdLicenseLocales).with(product).and_return([locale])
+      expect(Yast::Pkg).to receive(:PrdGetLicenseToConfirm).with(product, locale)
+        .and_return("")
+      expect(subject.send(:product_license, src, "/foo")).to eq(false)
     end
   end
 
