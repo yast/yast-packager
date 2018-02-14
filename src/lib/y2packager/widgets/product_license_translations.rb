@@ -12,7 +12,7 @@
 
 require "yast"
 require "cwm"
-require "y2country/widgets/simple_language_selection"
+require "y2packager/widgets/simple_language_selection"
 require "y2packager/widgets/product_license"
 
 module Y2Packager
@@ -21,7 +21,7 @@ module Y2Packager
     #
     # The widget serves a glue between a pair of widgets:
     #
-    # * {Y2Country::Widgets::SimpleLanguageSelector} to select the language,
+    # * {Y2Packager::Widgets::SimpleLanguageSelector} to select the language,
     # * {Y2Packager::Widgets::ProductLicenseContent} to display the license.
     class ProductLicenseTranslations < CWM::CustomWidget
       # @return [Y2Packager::Product] Product
@@ -65,10 +65,10 @@ module Y2Packager
 
       # Language selection widget
       #
-      # @return [Y2Country::Widgets::SimpleLanguageSelection]
+      # @return [Y2Packager::Widgets::SimpleLanguageSelection]
       def language_selection
         @language_selection ||=
-          Y2Country::Widgets::SimpleLanguageSelection.new(product.license_locales, language)
+          Y2Packager::Widgets::SimpleLanguageSelection.new(product.license_locales, language)
       end
 
       # Product  selection widget

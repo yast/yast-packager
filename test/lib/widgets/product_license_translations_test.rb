@@ -29,7 +29,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
 
   describe "#contents" do
     it "includes a language selector" do
-      expect(Y2Country::Widgets::SimpleLanguageSelection).to receive(:new)
+      expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
         .with(languages: product.license_locales, default: language)
       widget.contents
     end
@@ -43,12 +43,12 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
 
   describe "#handle" do
     let(:language_widget) do
-      Y2Country::Widgets::SimpleLanguageSelection.new(["en_US", "es"], "en_US")
+      Y2Packager::Widgets::SimpleLanguageSelection.new(["en_US", "es"], "en_US")
     end
     let(:content_widget) { instance_double(Y2Packager::Widgets::ProductLicenseContent) }
 
     before do
-      allow(Y2Country::Widgets::SimpleLanguageSelection).to receive(:new)
+      allow(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
         .and_return(language_widget)
       allow(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
         .and_return(content_widget)
