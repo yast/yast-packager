@@ -1646,7 +1646,7 @@ module Yast
 
         locales.each do |locale|
           license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
-          next unless license && !license.empty?
+          next if license.nil? || license.empty?
 
           found_license = true
           log.info("Found license for language #{locale.inspect}, size: #{license.bytesize} bytes")
@@ -1655,6 +1655,10 @@ module Yast
           File.write(path, license)
           log.info("License saved to #{path}")
         end
+
+        # we can display only one license at one time, there should be only one
+        # product per addon repository anyway
+        break if found_license
       end
 
       if found_license
