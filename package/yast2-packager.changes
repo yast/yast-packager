@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Feb 15 12:15:00 UTC 2018 - lslezak@suse.cz
+
+- Also display the licenses stored in the RPM-MD repository
+  metadata, fixes displaying the license e.g. for SLE15-HA
+  product on the Packages DVD (bsc#1057223)
+- 4.0.38
+
+-------------------------------------------------------------------
 Fri Feb  9 14:17:05 UTC 2018 - jlopez@suse.com
 
 - Adapt to new MountPoint API (part of fate#318196).
