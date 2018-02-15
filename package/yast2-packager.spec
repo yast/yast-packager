@@ -34,7 +34,7 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 BuildRequires:  yast2-storage-ng >= 4.0.90
 
 # Y2Packager::Product#license_locales
-BuildRequires:  yast2 >= 4.0.51
+BuildRequires:  yast2 >= 4.0.52
 
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
@@ -52,7 +52,7 @@ Requires:       yast2-country-data >= 2.16.3
 Requires:       yast2-pkg-bindings >= 4.0.8
 
 # Y2Packager::Product#license_locales
-Requires:       yast2 >= 4.0.51
+Requires:       yast2 >= 4.0.52
 
 # unzipping license file
 Requires:       unzip
