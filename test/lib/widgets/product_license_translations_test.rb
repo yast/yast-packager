@@ -30,7 +30,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
   describe "#contents" do
     it "includes a language selector" do
       expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
-        .with(languages: product.license_locales, default: language)
+        .with(product.license_locales, language)
       widget.contents
     end
 
