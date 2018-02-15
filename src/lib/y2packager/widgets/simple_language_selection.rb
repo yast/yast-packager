@@ -65,7 +65,7 @@ module Y2Packager
       # Initialize to the given default language
       #
       # If the language is not in the list of options, it will try with the
-      # short code (for instance, "de" for "de_DE"). If it fails again, it
+      # short code (for instance, "de" for "de_DE"). If it fails again, its
       # initial value will be set to "en_US".
       def init
         languages = items.map(&:first)
@@ -106,7 +106,7 @@ module Y2Packager
           langs << [code, attrs[4]]
         end
         @items.uniq!
-        @items.sort_by! { |l| l[1] }
+        @items.sort_by!(&:last)
       end
     end
   end

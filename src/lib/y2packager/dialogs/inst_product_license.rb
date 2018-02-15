@@ -37,6 +37,7 @@ module Y2Packager
       #
       # @return [String] Dialog's title
       def title
+        # TRANSLATORS: %s is a product name
         format(_("%s License Agreement"), product.label)
       end
 

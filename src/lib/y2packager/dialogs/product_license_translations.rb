@@ -30,6 +30,8 @@ module Y2Packager
       # @return [String] Default language code (eg. "en_US")
       attr_reader :language
 
+      # @param product  [Y2Packager::Product] Product
+      # @param language [String] Default language code (eg. "en_US")
       def initialize(product, language = nil)
         super()
         @product = product

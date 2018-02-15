@@ -55,7 +55,7 @@ module Y2Packager
 
     private
 
-      # @!method language=
+      # @!method language=(new_language)
       #   @param new_language [String] Language code
       attr_writer :language
 

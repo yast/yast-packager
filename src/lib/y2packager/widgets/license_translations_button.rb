@@ -30,7 +30,7 @@ module Y2Packager
 
       # Widget label
       #
-      # @teturn [String] Translated label
+      # @return [String] Translated label
       # @see CWM::AbstractWidget#label
       def label
         _("License &Translations...")

@@ -64,7 +64,7 @@ module Y2Packager
 
       # Translate the license content to the given language
       #
-      # @param language [String] Language code (en_US, de_DE, etc.).
+      # @param new_language [String] Language code (en_US, de_DE, etc.).
       def translate(new_language)
         self.language = new_language
         product_license_content.translate(language)

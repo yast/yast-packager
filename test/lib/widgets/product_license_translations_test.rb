@@ -34,7 +34,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
       widget.contents
     end
 
-    it "includes a the product license text" do
+    it "includes the product license text" do
       expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
         .with(product, language)
       widget.contents
