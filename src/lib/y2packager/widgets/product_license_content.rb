@@ -55,8 +55,8 @@ module Y2Packager
 
     private
 
-      # @!method language=(new_language)
-      #   @param new_language [String] Language code
+      # @!attribute [w] language
+      #   @return [String] Language code
       attr_writer :language
 
       # License content UI
