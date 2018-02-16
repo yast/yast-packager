@@ -34,7 +34,8 @@ describe Y2Packager::Widgets::ProductLicense do
     end
 
     it "shows the license in the given language" do
-      expect(product).to receive(:license).with(language).and_return("de_DE license")
+      expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
+        .with(product, language).and_return("de_DE license")
       expect(widget.contents.to_s).to include("de_DE license")
     end
 
@@ -60,6 +61,21 @@ describe Y2Packager::Widgets::ProductLicense do
       it "does includes a confirmation checkbox" do
         expect(widget.contents.to_s).to_not include("confirmation_widget")
       end
+    end
+  end
+
+  describe "#translate" do
+    let(:license_content) { instance_double(Y2Packager::Widgets::ProductLicenseContent) }
+
+    before do
+      allow(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
+        .and_return(license_content)
+    end
+
+    it "translate the license to the given language" do
+      widget.contents
+      expect(license_content).to receive(:translate).with("es_ES")
+      widget.translate("es_ES")
     end
   end
 end

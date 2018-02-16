@@ -1,6 +1,6 @@
 #!/usr/bin/env rspec
 # ------------------------------------------------------------------------------
-# Copyright (c) 2018 SUSE LLC, All Rights Reserved.
+# Copyright (c) 2017 SUSE LLC, All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of version 2 of the GNU General Public License as published by the
@@ -12,32 +12,33 @@
 # ------------------------------------------------------------------------------
 
 require_relative "../../test_helper"
-require "y2packager/dialogs/inst_product_license"
+require "cwm/rspec"
+require "y2packager/widgets/license_translations_button"
 require "y2packager/product"
 
-describe Y2Packager::Dialogs::InstProductLicense do
-  subject(:dialog) { described_class.new(product) }
-  let(:product) do
-    instance_double(Y2Packager::Product)
-  end
-
+describe Y2Packager::Widgets::LicenseTranslationsButton do
+  subject(:widget) { described_class.new(product) }
+  let(:product) { instance_double(Y2Packager::Product, license: "content") }
   let(:language) { "en_US" }
 
-  describe "#contents" do
+  describe "#handle" do
+    let(:dialog) { instance_double(Y2Packager::Dialogs::ProductLicenseTranslations, run: nil) }
+
     before do
       allow(Yast::Language).to receive(:language).and_return(language)
+      allow(Y2Packager::Dialogs::ProductLicenseTranslations).to receive(:new)
+        .and_return(dialog)
     end
 
-    it "includes a confirmation checkbox" do
-      expect(Y2Packager::Widgets::ProductLicenseConfirmation).to receive(:new)
-        .with(product)
-      dialog.contents
+    it "opens a dialog" do
+      expect(Y2Packager::Dialogs::ProductLicenseTranslations).to receive(:new)
+        .with(product, language).and_return(dialog)
+      expect(dialog).to receive(:run)
+      widget.handle
     end
 
-    it "includes product translations using the current language as default" do
-      expect(Y2Packager::Widgets::ProductLicenseTranslations).to receive(:new)
-        .with(product, language)
-      dialog.contents
+    it "returns nil" do
+      expect(widget.handle).to be_nil
     end
   end
 end

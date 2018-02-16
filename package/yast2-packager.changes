@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 15 18:52:40 UTC 2018 - igonzalezsosa@suse.com
+
+- Display licenses translations (related to FATE#322276).
+- 4.0.39
+
+-------------------------------------------------------------------
 Thu Feb 15 12:15:00 UTC 2018 - lslezak@suse.cz
 
 - Also display the licenses stored in the RPM-MD repository
