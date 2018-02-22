@@ -12,14 +12,17 @@ module Yast
     # @return [Hash] Product renames default map. Used when information is not
     #                found elsewhere.
     DEFAULT_PRODUCT_RENAMES = {
-      "SUSE_SLES"     => ["SLES"],
+      "SUSE_SLES"            => ["SLES"],
       # SLED or Workstation extension
-      "SUSE_SLED"     => ["SLED", "sle-we"],
-      "sle-haegeo"    => ["sle-ha-geo"],
-      "sle-hae"       => ["sle-ha"],
-      "SUSE_SLES_SAP" => ["SLES_SAP"],
+      "SUSE_SLED"            => ["SLED", "sle-we"],
+      "sle-haegeo"           => ["sle-ha-geo"],
+      "sle-hae"              => ["sle-ha"],
+      "SUSE_SLES_SAP"        => ["SLES_SAP"],
       # SMT is now integrated into the base SLES
-      "sle-smt"       => ["SLES"]
+      "sle-smt"              => ["SLES"],
+      # Toolchain and SDK are now included in the Development Tools SLE15 module
+      "sle-module-toolchain" => ["sle-module-development-tools"],
+      "sle-sdk"              => ["sle-module-development-tools"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
