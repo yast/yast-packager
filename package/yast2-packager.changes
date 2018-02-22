@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 22 13:01:05 UTC 2018 - lslezak@suse.cz
+
+- Added product renames for the SDK and the Toolchain module
+  (bsc#1080913)
+- 4.0.40
+
+-------------------------------------------------------------------
 Thu Feb 15 18:52:40 UTC 2018 - igonzalezsosa@suse.com
 
 - Display licenses translations (related to FATE#322276).

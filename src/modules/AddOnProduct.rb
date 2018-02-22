@@ -19,7 +19,10 @@ module Yast
       "sle-hae"       => ["sle-ha"],
       "SUSE_SLES_SAP" => ["SLES_SAP"],
       # SMT is now integrated into the base SLES
-      "sle-smt"       => ["SLES"]
+      "sle-smt"       => ["SLES"],
+      # Toolchain and SDK are now included in the Development Tools SLE15 module
+      "sle-module-toolchain" => ["sle-module-development-tools"],
+      "sle-sdk" => ["sle-module-development-tools"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
