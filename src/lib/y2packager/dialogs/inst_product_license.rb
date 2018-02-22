@@ -30,6 +30,8 @@ module Y2Packager
       # @param product [Y2Packager::Product] Product to ask for the license
       def initialize(product)
         super()
+        textdomain "packager"
+
         @product = product
       end
 

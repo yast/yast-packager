@@ -34,6 +34,8 @@ module Y2Packager
       # @param language [String] Default language code (eg. "en_US")
       def initialize(product, language = nil)
         super()
+        textdomain "packager"
+
         @product = product
         @language = language || Yast::Language.language
       end
