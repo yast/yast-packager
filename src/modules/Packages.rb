@@ -1073,7 +1073,7 @@ module Yast
       schemes = []
 
       # all enabled repositories
-      Pkg.SourceGetCurrent(true).map do |repo|
+      Pkg.SourceGetCurrent(true).each do |repo|
         url = Pkg.SourceURL(repo)
 
         begin
