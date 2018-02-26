@@ -5,6 +5,7 @@ require "yast"
 require "erb"
 require "fileutils"
 require "uri"
+require "cgi"
 
 # Yast namespace
 module Yast
@@ -1047,26 +1048,57 @@ module Yast
       packages
     end
 
-    # Compute packages required to access the repository
+    # Compute packages required to access the repositories
     # @return [Array](string) list of the required packages
     def sourceAccessPackages
-      # TODO: rather check all registered repositories...
-      ret = []
+      packages = []
+      schemes = repo_schemes
 
-      instmode = Linuxrc.InstallInf("InstMode")
-      Builtins.y2milestone("Installation mode: %1", instmode)
+      # /sbin/mount.cifs is required to mount a SMB/CIFS share
+      packages << "cifs-mount" if schemes.include?("smb") || schemes.include?("cifs")
 
-      if instmode == "smb" || instmode == "cifs"
-        # /sbin/mount.cifs is required to mount a SMB/CIFS share
-        ret = ["cifs-mount"]
-      elsif instmode == "nfs"
-        # portmap is required to mount an NFS export
-        ret = ["nfs-client"]
+      # portmap is required to mount an NFS export
+      packages << "nfs-client" if schemes.include?("nfs")
+
+      log.info("Packages for accessing the repositories: #{packages.inspect}")
+      packages
+    end
+
+    # Return the URL schemes for the currently defined repositories (only enabled
+    # repositories are evaluated). For ISO repositories the base URL schema
+    # is returned (i.e. the location of the ISO), invalid URLs are ignored.
+    # @return [Array<String>] the list of the URL schemes, empty if
+    #   no repository is defined
+    def repo_schemes
+      schemes = []
+
+      # all enabled repositories
+      Pkg.SourceGetCurrent(true).map do |repo|
+        url = Pkg.SourceURL(repo)
+
+        begin
+          uri = URI(url)
+
+          # handle the ISO scheme specifically
+          # Note: scheme is converted to lowercase by Ruby
+          if uri.scheme == "iso" && uri.query
+            # parse the query string into a hash, extract the base URL from the query
+            # CGI.parse output is a hash: key => [val1, val2, ...]
+            params = CGI.parse(uri.query)
+            # expect only one "url" parameter
+            scheme = URI(params["url"].first).scheme if params["url"] && !params["url"].empty?
+          else
+            scheme = uri.scheme
+          end
+
+          schemes << scheme if scheme && !schemes.include?(scheme)
+        # normally should not happen, the URLs from libzypp should be always valid
+        rescue URI::InvalidURIError => e
+          log.error(e.message)
+        end
       end
 
-      Builtins.y2milestone("Packages for accessing the repository: %1", ret)
-
-      deep_copy(ret)
+      schemes
     end
 
     # Additional kernel packages from control file
