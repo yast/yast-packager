@@ -20,6 +20,8 @@ module Yast
       "SUSE_SLES_SAP"        => ["SLES_SAP"],
       # SMT is now integrated into the base SLES
       "sle-smt"              => ["SLES"],
+      # Live patching is a module now (bsc#1074154)
+      "sle-live-patching"    => ["sle-module-live-patching"],
       # Toolchain and SDK are now included in the Development Tools SLE15 module
       "sle-module-toolchain" => ["sle-module-development-tools"],
       "sle-sdk"              => ["sle-module-development-tools"]
