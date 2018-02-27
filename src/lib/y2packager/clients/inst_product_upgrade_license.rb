@@ -29,7 +29,7 @@ module Y2Packager
     # @see Y2Packager::Clients::InstProductLicense
     class InstProductUpgradeLicense < InstProductLicense
       def main
-        textdomain "installation"
+        textdomain "packager"
 
         # do not display the license when going back, skip the dialog
         return :back if Yast::GetInstArgs.going_back
