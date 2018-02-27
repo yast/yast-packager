@@ -15,8 +15,12 @@ module Yast
       "SUSE_SLES"            => ["SLES"],
       # SLED or Workstation extension
       "SUSE_SLED"            => ["SLED", "sle-we"],
-      "sle-haegeo"           => ["sle-ha-geo"],
+      # SLE11 HA has been renamed since SLE12
       "sle-hae"              => ["sle-ha"],
+      # SLE11 HA GEO is now included in SLE15 HA
+      "sle-haegeo"           => ["sle-ha"],
+      # SLE12 HA GEO is now included in SLE15 HA
+      "sle-ha-geo"           => ["sle-ha"],
       "SUSE_SLES_SAP"        => ["SLES_SAP"],
       # SMT is now integrated into the base SLES
       "sle-smt"              => ["SLES"],

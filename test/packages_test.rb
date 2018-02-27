@@ -369,17 +369,35 @@ describe "Yast::Packages" do
     end
 
     it "returns updated product which has been renamed" do
-      products = [
-        { "name" => "sle-haegeo", "status" => :removed },
-        { "name" => "sle-ha-geo", "status" => :selected }
-      ]
+      hae = { "name" => "sle-hae", "status" => :removed }
+      ha = { "name" => "sle-ha", "status" => :selected }
+      products = [hae, ha]
 
       status = Yast::Packages.group_products_by_status(products)
 
-      expect(status[:updated].size).to eq(1)
-      old_product, new_product = status[:updated].first
-      expect(old_product["name"]).to eq("sle-haegeo")
-      expect(new_product["name"]).to eq("sle-ha-geo")
+      updates = status[:updated]
+      expect(updates.size).to eq(1)
+
+      # check the HAE => HA rename
+      expect(updates[hae]).to eq(ha)
+    end
+
+    it "returns updated products which have been merged" do
+      hae = { "name" => "sle-hae", "status" => :removed }
+      haegeo = { "name" => "sle-haegeo", "status" => :removed }
+      ha = { "name" => "sle-ha", "status" => :selected }
+      products = [hae, haegeo, ha]
+
+      status = Yast::Packages.group_products_by_status(products)
+
+      # product updates
+      updates = status[:updated]
+      expect(updates.size).to eq(2)
+
+      # check the HAE => HA rename
+      expect(updates[hae]).to eq(ha)
+      # check the HAE GEO => HA merge
+      expect(updates[haegeo]).to eq(ha)
     end
 
     it "handles mixed renamed and unchanged products" do

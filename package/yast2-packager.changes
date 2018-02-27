@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 27 10:37:41 UTC 2018 - lslezak@suse.cz
+
+- Added product merge: SLE11/12 HA GEO has been merged to SLE15 HA
+  (bsc#1069705)
+
+-------------------------------------------------------------------
 Tue Feb 27 08:36:20 UTC 2018 - lslezak@suse.cz
 
 - Added Live Patching product rename (bsc#1074154)
