@@ -24,6 +24,8 @@ module Y2Packager
 
       def initialize(product, language = nil)
         super()
+        textdomain "packager"
+
         @product = product
         @language = language || Yast::Language.language
       end

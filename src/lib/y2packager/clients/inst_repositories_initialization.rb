@@ -35,7 +35,7 @@ module Y2Packager
 
       # Client main method
       def main
-        textdomain "installation"
+        textdomain "packager"
 
         if !init_installation_repositories
           Yast::Popup.Error(
