@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar  2 13:38:40 UTC 2018 - lslezak@suse.cz
+
+- Updated repository selection label to be more understandable
+  (bsc#1081508)
+- 4.0.45
+
+-------------------------------------------------------------------
 Tue Feb 27 10:37:41 UTC 2018 - lslezak@suse.cz
 
 - Added product merge: SLE11/12 HA GEO has been merged to SLE15 HA

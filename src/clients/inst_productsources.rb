@@ -1231,8 +1231,8 @@ module Yast
             MultiSelectionBox(
               Id("addon_repos"),
               Opt(:notify, :hstretch),
-              # TRANSLATORS: multi-selection box
-              _("&List of Repositories"),
+              # TRANSLATORS: multi-selection box, contains a list of online repositories
+              _("&Use Additional Online Repositories"),
               []
             )
           ),
