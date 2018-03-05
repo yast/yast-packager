@@ -36,14 +36,14 @@ describe Y2Packager::Clients::InstProductLicense do
     it "opens the license dialog with the selected product (without back button)" do
       expect(Yast::GetInstArgs).to receive(:enable_back).and_return(false)
       expect(Y2Packager::Dialogs::InstProductLicense).to receive(:new)
-        .with(product, {:disable_buttons=>[:back]})
+        .with(product, disable_buttons: [:back])
       client.main
     end
 
     it "opens the license dialog with the selected product (with back button)" do
       expect(Yast::GetInstArgs).to receive(:enable_back).and_return(true)
       expect(Y2Packager::Dialogs::InstProductLicense).to receive(:new)
-        .with(product, {:disable_buttons=>[]})
+        .with(product, disable_buttons: [])
       client.main
     end
 
