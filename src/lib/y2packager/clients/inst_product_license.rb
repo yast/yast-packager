@@ -14,6 +14,7 @@ require "yast"
 require "y2packager/dialogs/inst_product_license"
 require "y2packager/product"
 Yast.import "Language"
+Yast.import "GetInstArgs"
 
 module Y2Packager
   module Clients
@@ -32,7 +33,11 @@ module Y2Packager
       def main
         textdomain "installation"
         return :auto unless multi_product_media? && available_license?
-        Y2Packager::Dialogs::InstProductLicense.new(product).run
+
+        Yast::Wizard.EnableAbortButton
+        disable_buttons = !Yast::GetInstArgs.enable_back ? [:back] : []
+        Y2Packager::Dialogs::InstProductLicense.new(product,
+          disable_buttons: disable_buttons).run
       end
 
     private
