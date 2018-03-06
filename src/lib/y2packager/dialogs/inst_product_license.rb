@@ -31,6 +31,7 @@ module Y2Packager
       # Constructor
       #
       # @param product [Y2Packager::Product] Product to ask for the license
+      # @param disable_buttons [Array<String>] list of buttons to disable
       def initialize(product, disable_buttons: [])
         super()
         textdomain "packager"
