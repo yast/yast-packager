@@ -25,14 +25,19 @@ module Y2Packager
       # @return [Y2Packager::Product] Product
       attr_reader :product
 
+      # @return [Array<String>] list of buttons to disable ("next_button",...)
+      attr_reader :disable_buttons
+
       # Constructor
       #
       # @param product [Y2Packager::Product] Product to ask for the license
-      def initialize(product)
+      # @param disable_buttons [Array<String>] list of buttons to disable
+      def initialize(product, disable_buttons: [])
         super()
         textdomain "packager"
 
         @product = product
+        @disable_buttons = disable_buttons.map { |b| "#{b}_button" }
       end
 
       # Returns the dialog title
