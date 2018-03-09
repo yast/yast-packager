@@ -56,6 +56,9 @@ module Yast
     #   :again => failed, but user wants to edit the URL and try again
     #   :cancel => failed, don't retry
     #   :abort => repository added successfully, but user rejected the license
+    #   TODO: abort is problematic as abort is used to abort installation, for license
+    #         should be own symbol. Now abort in addon view in upgrade proposal ask for abort
+    #         properly, but then just go back to proposal instead of full abort.
     def createSourceImpl(url, plaindir, download, preffered_name, force_alias)
       log.info("createSource: #{URL.HidePassword(url)}, plaindir: #{plaindir}," \
         "download: #{download}, name: #{preffered_name}, force_alias: #{force_alias}")
