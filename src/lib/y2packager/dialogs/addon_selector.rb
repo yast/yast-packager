@@ -82,6 +82,15 @@ module Y2Packager
         Yast::Wizard.CloseDialog if Yast::Stage.initial
       end
 
+      # overwrite dialog creation to always enable back/next by default
+      def create_dialog
+        res = super
+        Yast::Wizard.EnableNextButton
+        Yast::Wizard.EnableBackButton
+
+        res
+      end
+
     private
 
       attr_writer :selected_products
