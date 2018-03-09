@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  9 08:43:47 UTC 2018 - jreidinger@suse.com
+
+- Always allow next/back for adding new addon (bsc#1082286)
+- 4.0.47
+
+-------------------------------------------------------------------
 Mon Mar  5 16:08:55 CET 2018 - schubi@suse.de
 
 - Confirm base license: parameter for disabling back button.
