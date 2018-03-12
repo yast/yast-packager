@@ -559,6 +559,141 @@ module Yast
       AskLicensesAgreement(directories, [], action, false, true, false)
     end
 
+    # FIXME: this is needed only by yast2-registration, fix it later
+    # and make this method private
+    def HandleLicenseDialogRet(licenses, base_product, action)
+      ret = nil
+
+      loop do
+        ret = UI.UserInput
+        log.info "User ret: #{ret}"
+
+        if ret.is_a?(::String) && ret.start_with?("license_language_")
+          licenses_ref = arg_ref(licenses.value)
+          UpdateLicenseContent(licenses_ref, GetId(ret))
+          licenses.value = licenses_ref.value
+          ret = :language
+        # bugzilla #303828
+        # disabled next button unless yes/no is selected
+        elsif ret.is_a?(::String) && ret.start_with?("eula_")
+          Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined()
+        # Aborting the license dialog
+        elsif ret == :abort
+          # bnc#886662
+          if Stage.initial
+            next unless Popup.ConfirmAbort(:painless)
+          else
+            # popup question
+            next unless Popup.YesNo(_("Really abort the add-on product installation?"))
+          end
+
+          log.warn "Aborting..."
+          break
+        elsif ret == :next
+          if AllLicensesAccepted()
+            log.info "All licenses have been accepted."
+            ret = :accepted
+            break
+          end
+
+          # License declined
+
+          # message is void in case not accepting license doesn't stop the installation
+          if action == "continue"
+            log.info "action in case of license refusal is continue, not asking user"
+            ret = :accepted
+            break
+          end
+
+          if base_product
+            # TODO: refactor to use same widget as in inst_complex_welcome
+            # NOTE: keep in sync with inst_compex_welcome client, for grabing its translation
+            # mimic inst_complex_welcome behavior see bnc#993530
+            refuse_popup_text = Builtins.dgettext(
+              "installation",
+              "You must accept the license to install this product"
+            )
+            Popup.Message(refuse_popup_text)
+            next
+          else
+            # text changed due to bug #162499
+            # TRANSLATORS: text asking whether to refuse a license (Yes-No popup)
+            refuse_popup_text = _("Refusing the license agreement cancels the add-on\n" \
+              "product installation. Really refuse the agreement?")
+            next unless Popup.YesNo(refuse_popup_text)
+          end
+
+          log.info "License has been declined."
+
+          case action
+          when "abort"
+            ret = :abort
+          when "halt"
+            # timed ok/cancel popup
+            next unless Popup.TimedOKCancel(_("The system is shutting down..."), 10)
+            ret = :halt
+          else
+            log.error "Unknown action #{action}"
+            ret = :abort
+          end
+
+          break
+        elsif ret == :back
+          ret = :back
+          break
+        else
+          log.error "Unhandled input: #{ret}"
+        end
+      end
+
+      log.info "Returning #{ret}"
+      ret
+    end
+
+    # FIXME: this is needed only by yast2-registration, fix it later
+    # and make this method private
+    #
+    # Displays License with Help and ( ) Yes / ( ) No radio buttons
+    # @param [Array<String>] languages list of license translations
+    # @param [Boolean] back enable "Back" button
+    # @param [String] license_language default license language
+    # @param [Hash<String,String>] licenses licenses (mapping "langugage_code" => "license")
+    # @param [String] id unique license ID
+    # @param [String] caption dialog title
+    def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
+      languages = deep_copy(languages)
+
+      contents = (
+        licenses_ref = arg_ref(licenses.value)
+        result = GetLicenseDialog(
+          languages,
+          license_language,
+          licenses_ref,
+          id,
+          false
+        )
+        licenses.value = licenses_ref.value
+        result
+      )
+
+      Wizard.SetContents(
+        caption,
+        contents,
+        GetLicenseDialogHelp(),
+        back,
+        # always allow next button, as if not accepted, it will raise popup (bnc#993530)
+        true
+      )
+
+      # set the initial license download URL
+      update_license_location(license_language, licenses)
+
+      Wizard.SetTitleIcon("yast-license")
+      Wizard.SetFocusToNextButton
+
+      nil
+    end
+
     publish function: :AcceptanceNeeded, type: "boolean (string)"
     publish function: :AskLicenseAgreement,
             type:     "symbol (integer, string, list <string>, string, " \
@@ -950,47 +1085,6 @@ module Yast
       # dialog title
       DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id,
         _("License Agreement"))
-    end
-
-    # Displays License with Help and ( ) Yes / ( ) No radio buttons
-    # @param [Array<String>] languages list of license translations
-    # @param [Boolean] back enable "Back" button
-    # @param [String] license_language default license language
-    # @param [Hash<String,String>] licenses licenses (mapping "langugage_code" => "license")
-    # @param [String] id unique license ID
-    # @param [String] caption dialog title
-    def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
-      languages = deep_copy(languages)
-
-      contents = (
-        licenses_ref = arg_ref(licenses.value)
-        result = GetLicenseDialog(
-          languages,
-          license_language,
-          licenses_ref,
-          id,
-          false
-        )
-        licenses.value = licenses_ref.value
-        result
-      )
-
-      Wizard.SetContents(
-        caption,
-        contents,
-        GetLicenseDialogHelp(),
-        back,
-        # always allow next button, as if not accepted, it will raise popup (bnc#993530)
-        true
-      )
-
-      # set the initial license download URL
-      update_license_location(license_language, licenses)
-
-      Wizard.SetTitleIcon("yast-license")
-      Wizard.SetFocusToNextButton
-
-      nil
     end
 
     # Removes the temporary directory for licenses
@@ -1523,95 +1617,6 @@ module Yast
         end
       end
 
-      ret
-    end
-
-    def HandleLicenseDialogRet(licenses, base_product, action)
-      ret = nil
-
-      loop do
-        ret = UI.UserInput
-        log.info "User ret: #{ret}"
-
-        if ret.is_a?(::String) && ret.start_with?("license_language_")
-          licenses_ref = arg_ref(licenses.value)
-          UpdateLicenseContent(licenses_ref, GetId(ret))
-          licenses.value = licenses_ref.value
-          ret = :language
-        # bugzilla #303828
-        # disabled next button unless yes/no is selected
-        elsif ret.is_a?(::String) && ret.start_with?("eula_")
-          Wizard.EnableNextButton if AllLicensesAcceptedOrDeclined()
-        # Aborting the license dialog
-        elsif ret == :abort
-          # bnc#886662
-          if Stage.initial
-            next unless Popup.ConfirmAbort(:painless)
-          else
-            # popup question
-            next unless Popup.YesNo(_("Really abort the add-on product installation?"))
-          end
-
-          log.warn "Aborting..."
-          break
-        elsif ret == :next
-          if AllLicensesAccepted()
-            log.info "All licenses have been accepted."
-            ret = :accepted
-            break
-          end
-
-          # License declined
-
-          # message is void in case not accepting license doesn't stop the installation
-          if action == "continue"
-            log.info "action in case of license refusal is continue, not asking user"
-            ret = :accepted
-            break
-          end
-
-          if base_product
-            # TODO: refactor to use same widget as in inst_complex_welcome
-            # NOTE: keep in sync with inst_compex_welcome client, for grabing its translation
-            # mimic inst_complex_welcome behavior see bnc#993530
-            refuse_popup_text = Builtins.dgettext(
-              "installation",
-              "You must accept the license to install this product"
-            )
-            Popup.Message(refuse_popup_text)
-            next
-          else
-            # text changed due to bug #162499
-            # TRANSLATORS: text asking whether to refuse a license (Yes-No popup)
-            refuse_popup_text = _("Refusing the license agreement cancels the add-on\n" \
-              "product installation. Really refuse the agreement?")
-            next unless Popup.YesNo(refuse_popup_text)
-          end
-
-          log.info "License has been declined."
-
-          case action
-          when "abort"
-            ret = :abort
-          when "halt"
-            # timed ok/cancel popup
-            next unless Popup.TimedOKCancel(_("The system is shutting down..."), 10)
-            ret = :halt
-          else
-            log.error "Unknown action #{action}"
-            ret = :abort
-          end
-
-          break
-        elsif ret == :back
-          ret = :back
-          break
-        else
-          log.error "Unhandled input: #{ret}"
-        end
-      end
-
-      log.info "Returning #{ret}"
       ret
     end
 
