@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 15 12:35:23 UTC 2018 - lslezak@suse.cz
+
+- Cleanup, do not use the obsolete scripts which have been dropped
+  (part of bsc#1080979)
+- 4.0.49
+
+-------------------------------------------------------------------
 Mon Mar 12 12:39:13 UTC 2018 - lslezak@suse.cz
 
 - Fixed crash when displaying license agreement in the registration
