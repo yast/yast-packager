@@ -120,10 +120,6 @@ module Yast
         # backup some stuff
         backup_stuff
 
-        # remove some stuff
-        # do not remove when updating running system (#49608)
-        remove_stuff
-
         # set update mode to yes
         SCR.Write(
           path(".target.string"),
@@ -133,18 +129,6 @@ module Yast
         SCR.Execute(
           path(".target.remove"),
           Ops.add(Installation.destdir, "/var/lib/YaST/update.inf")
-        )
-
-        # check passwd and group of target
-        SCR.Execute(
-          path(".target.bash"),
-          Ops.add(
-            Ops.add(
-              "/usr/lib/YaST2/bin/update_users_groups " + "'",
-              String.Quote(Installation.destdir)
-            ),
-            "'"
-          )
         )
 
         # create /etc/mdadm.conf if it does not exist
@@ -160,31 +144,6 @@ module Yast
       end
 
       :next
-    end
-
-    #  Remove some old junk.
-    def remove_stuff
-      # remove old junk, script is in yast2-update
-      SCR.Execute(
-        path(".target.bash"),
-        Ops.add(
-          Ops.add(
-            Ops.add(Ops.add(Directory.ybindir, "/remove_junk "), "'"),
-            String.Quote(Installation.destdir)
-          ),
-          "'"
-        )
-      )
-
-      # possibly remove /usr/share/info/dir
-      if !Pkg.TargetFileHasOwner("/usr/share/info/dir")
-        SCR.Execute(
-          path(".target.remove"),
-          Ops.add(Installation.destdir, "/usr/share/info/dir")
-        )
-      end
-
-      nil
     end
 
     #  Handle the backup.
