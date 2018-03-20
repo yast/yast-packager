@@ -5,6 +5,7 @@
 ------------------------------------------------------------
   https://download.opensuse.org/tumbleweed/repo/oss/license.tar.gz
   content:
+```
   < no-acceptance-needed
   < license.ar.txt
   < license.ca.txt
@@ -12,14 +13,15 @@
   < license.da.txt
   < license.de.txt
   < license.txt
-
+```
   This license has to be handled by YAST manually (without libzypp).
 
 1.2 libzypp licenses of SLES15, LEAP,...:
 ------------------------------------------
-  https://download.opensuse.org/distribution/leap/15.0/repo/oss/
-  repodata/61add773f5583f065ff25a54eb476023dc2a906cabb1ce0740f5223a70b650dc-license.tar.gz
+  https://download.opensuse.org/distribution/leap/15.0/repo/oss/repodata/61add773f5583f065ff25a54eb476023dc2a906cabb1ce0740f5223a70b650dc-license.tar.gz
+
   The content is the same as in 1.1 described.
+
   This license will be handled by libzypp completely.
 
 
@@ -28,8 +30,11 @@
   The SCC license accesses to the repository that is granted *after* registering, but you
   need to accept the license *before* registering. So for the SCC license there is a separate
   repository which has public access and contains only the license.
+
   https://updates.suse.com/SUSE/Products/SLE-WE/12-SP3/x86_64/product.license/
   content:
+
+```
   < license.de.txt
   < license.es.txt
   < license.fr.txt
@@ -39,13 +44,17 @@
   < license.pt_BR.txt
   < license.ru.txt
   < license.txt
+```
+
   Without file "no-acceptance-needed". So it has to be accepted by the user.
 
 2.0 Product description:
 ==========================
 
+```
 lib/y2packager/product.rb
 product.rb - Handles all product items.
+
   Y2Packager::Product.selected_base
   <instance>.license_confirmation_required?
   <instance>.license_confirmed?
@@ -58,6 +67,7 @@ product.rb - Handles all product items.
   .
 
 modules/Product.rb
+
   Product.FindBaseProducts
   Product.ReadProducts
   <instance>.version
@@ -65,7 +75,6 @@ modules/Product.rb
   ...
   ..
   .
-
 
 lib/y2packager/product_reader.rb
   Reads the product information from libzypp 
@@ -78,6 +87,7 @@ lib/y2packager/release_notes.rb
 lib/y2packager/release_notes_content_prefs.rb
 lib/y2packager/release_notes_reader.rb
   Handles release notes for a given product
+```
 
 3.0 Installation workflow
 ================================
@@ -85,6 +95,7 @@ lib/y2packager/release_notes_reader.rb
 3.1 Calling client/inst_complex_welcome.rb
 -------------------------------------------
   and lib/installation/clients/inst_complex_welcome.rb
+```
   - calling ::Installation::Dialogs::ComplexWelcome.run(product)
     (file: lib/installation/dialogs/complex_welcome.rb)   
        - installation: product = Y2Packager::Product.available_base_products
@@ -105,10 +116,12 @@ lib/y2packager/release_notes_reader.rb
                 (file: lib/y2packager/widgets/license_translations_button.rb)
                 This button calls Y2Packager::Dialogs::ProductLicenseTranslations
                 which is a popup. (file: lib/y2packager/dialogs/product_license_translations.rb)
+```
 
 3.2 Calling client/inst_product_license.rb
 -------------------------------------------
   and lib/y2packager/clients/inst_product_license.rb 
+```
   - calling Y2Packager::Dialogs::InstProductLicense(product)
     (file: lib/y2packager/dialogs/inst_product_license.rb)
     - using Widgets::ProductLicenseTranslations (license WITH language selection)
@@ -120,6 +133,7 @@ lib/y2packager/release_notes_reader.rb
     - using Widgets::ProductLicenseConfirmation (Accept button)
       (file: lib/y2packager/widgets/product_license_confirmation.rb)
          Calling product.license_confirmation to write decision.
+```
   
 4.0 Adding a new product
 ==========================
@@ -130,7 +144,7 @@ Calling ProductLicense.AskAddOnLicenseAgreement(src_id) (file: modules/AddOnProd
 The class ProductLicense (file: modules/ProductLicense.rb) is quite old and handles
 the licenses acceptance completely (reading, showing and accepting license)
 It can handle all license types ( license is in /license.tar.gz, SCC license and libzypp license )
-License types are stored under /tmp/YaST2-<number>/product-license
+License types are stored under /tmp/YaST2-<number>/product-license .
 
 5.0 Firstboot module
 ======================
@@ -158,11 +172,13 @@ special SCC licenses which have to be accepted before the regarding repo will be
 (see 1.3)
 
 This lib uses modules/ProductLicense.rb which is explained in 4.0.
+
 Only the UI part is used in ProductLicense.rb
-    - Yast::ProductLicense.SetAcceptanceNeeded(id, true) - Product has to be accepted
-    - Yast::ProductLicense.license_file_print = ... - Setting print path
-    - Yast::ProductLicense.DisplayLicenseDialogWithTitle(...) - Establish UI
-    - Yast::ProductLicense.HandleLicenseDialogRet(...) - User acceptance
+
+- Yast::ProductLicense.SetAcceptanceNeeded(id, true) - Product has to be accepted
+- Yast::ProductLicense.license_file_print = ... - Setting print path
+- Yast::ProductLicense.DisplayLicenseDialogWithTitle(...) - Establish UI
+- Yast::ProductLicense.HandleLicenseDialogRet(...) - User acceptance
 
 7.0 Upgrade
 =============
@@ -186,7 +202,7 @@ We have two main code streams which handles license agreements.
 
 9.1.1 New code stream
 - - - - - - - - - - - -
-
+```
 lib/y2packager/dialogs/inst_product_license.rb
 lib/y2packager/dialogs/product_license_translations.rb
 lib/y2packager/widgets/product_license.rb
@@ -194,8 +210,10 @@ lib/y2packager/widgets/product_license_content.rb
 lib/y2packager/widgets/product_license_confirmation.rb
 lib/y2packager/widgets/simple_language_translations.rb
 lib/y2packager/widgets/license_translations_button.rb
+```
 
 Handles libzypp licenses (section 1.2 ) only.
+
 Is used for Installation/Update workflow.
 
 9.1.2 Old code stream
@@ -213,8 +231,10 @@ Sitll used for Add-Ons, SCC licenses, first-boot workflow.
 - - - - - - - - - - - - - - -
 Both of these two classes provide information about products (some information is double):
 
+```
 lib/y2packager/product.rb
 modules/Product.rb
+```
 
 Would it makes sense to put it into one class or to include one class into another at least ?
 
@@ -234,7 +254,9 @@ be adapted:
 The UI of the old code stream is showing the location of the stored license
 text. If this is still needed we would have to add this in the new code stream
 too.
+
 This is requested in:
+
 https://trello.com/c/tUy82u79/2112-create-bug-report-add-license-url-to-product-license-dialog
             
 
