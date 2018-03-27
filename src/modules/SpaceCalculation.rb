@@ -583,7 +583,7 @@ module Yast
 
         used = 0
         # If reusing a previously existent filesystem
-        if filesystem.exists_in_probed?
+        if filesystem.exists_in_raw_probed?
 
           # Mount the filesystem to check the available space.
 
