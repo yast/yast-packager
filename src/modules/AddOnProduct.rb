@@ -24,6 +24,8 @@ module Yast
       "SUSE_SLES_SAP"        => ["SLES_SAP"],
       # SLES-12 with HPC module can be replaced by SLES_HPC-15
       "SLES"                 => ["SLES_HPC"],
+      # this is an internal product so far...
+      "SLE-HPC"              => ["SLES_HPC"],
       # SMT is now integrated into the base SLES
       "sle-smt"              => ["SLES"],
       # Live patching is a module now (bsc#1074154)
