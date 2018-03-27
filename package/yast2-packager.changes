@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 27 07:29:09 UTC 2018 - jlopez@suse.com
+
+- Adapt to API changes in storage-ng (part of bsc#1082542).
+- 4.0.52
+
+-------------------------------------------------------------------
 Tue Mar 27 07:14:16 UTC 2018 - lslezak@suse.cz
 
 - Added a known upgrade from SLE-HPC to SLES_HPC (bsc#1086734)
