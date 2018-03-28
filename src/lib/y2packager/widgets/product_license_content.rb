@@ -83,7 +83,7 @@ module Y2Packager
       #
       # @return [String] Formatted license text
       def formatted_license_text
-        text = product.license(language)
+        text = product.license_content(language)
         if RICHTEXT_REGEXP =~ text
           text
         else
