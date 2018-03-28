@@ -14,6 +14,7 @@ require "yast"
 
 require "y2packager/clients/inst_product_license"
 require "y2packager/product"
+require "y2packager/product_upgrade"
 
 Yast.import "Pkg"
 Yast.import "Report"
@@ -56,29 +57,7 @@ module Y2Packager
       # @return [Y2Packager::Product]
       # @see Y2Packager::Product.selected_base
       def product
-        return @product if @product
-
-        # temporarily run the update mode to let the solver select the product for upgrade
-        # (this will correctly handle possible product renames)
-        Yast::Pkg.PkgUpdateAll({})
-        @product = Y2Packager::Product.selected_base
-        # restore the initial status, the package update will be turned on later again
-        Yast::Pkg.PkgReset
-        reset_packages(:removed)
-        reset_packages(:selected)
-
-        @product
-      end
-
-      # Reset packages having the specific status
-      # @param status [Symbol] Status symbol, `:removed`, `:selected`, `:installed`,
-      # `:available`, `:taboo`, `:locked`
-      # @see Yast::Pkg.GetPackages
-      def reset_packages(status)
-        # package names only, without version
-        names_only = true
-        # packages in the required status
-        Yast::Pkg.GetPackages(status, names_only).each { |p| Yast::Pkg.PkgNeutral(p) }
+        @product ||= Y2Packager::ProductUpgrade.new_base_product
       end
     end
   end
