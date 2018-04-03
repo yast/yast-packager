@@ -191,6 +191,8 @@ module Yast
         return init_ret
       end
 
+      return :accepted if license_accepted_for?(src_id, licenses)
+
       created_new_dialog = false
 
       # #459391
@@ -657,7 +659,7 @@ module Yast
     # @param [Array<String>] languages list of license translations
     # @param [Boolean] back enable "Back" button
     # @param [String] license_language default license language
-    # @param [Hash<String,String>] licenses licenses (mapping "langugage_code" => "license")
+    # @param [Hash<String,String>] licenses licenses (mapping "language_code" => "license")
     # @param [String] id unique license ID
     # @param [String] caption dialog title
     def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
@@ -776,6 +778,30 @@ module Yast
         InstShowInfo.show_info_txt(@beta_file)
         beta_seen!(id)
       end
+    end
+
+    def license_accepted_for?(id, licenses)
+      license_file = licenses["en_US"] || licenses["en"] || licenses[""]
+      content = SCR.Read(path(".target.string"), license_file).to_s
+      if content.empty?
+        log.info "No license was found in the repository (#{id})."
+        return false
+      end
+
+      product = Y2Packager::Product.all.find { |p| p.resolvable_properties["source"] == id }
+
+      unless product
+        log.info "No product was found in the repository (#{id})"
+        return false
+      end
+
+      license =
+        Y2Packager::LicenseStore.instance.add_license_for(
+          product.name,
+          Y2Packager::License.new(content: content)
+        )
+
+      license && license.accepted?
     end
 
     def GetLicenseContent(lic_lang, licenses, id)
