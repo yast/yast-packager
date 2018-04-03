@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  3 10:30:27 UTC 2018 - jlopez@suse.com
+
+- Fix tests to use correct storage instance (part of fate#318196).
+- 4.0.53
+
+-------------------------------------------------------------------
 Tue Mar 27 07:29:09 UTC 2018 - jlopez@suse.com
 
 - Adapt to API changes in storage-ng (part of bsc#1082542).

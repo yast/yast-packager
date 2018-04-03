@@ -41,6 +41,10 @@ def filesystem(size_k: 0, block_size: 4096, type: :ext2, tune_options: "")
 end
 
 describe Yast::SpaceCalculation do
+  before do
+    Y2Storage::StorageManager.create_test_instance
+  end
+
   describe "#get_partition_info" do
 
     context "on test mount during installation" do
