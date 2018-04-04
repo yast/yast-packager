@@ -6,25 +6,13 @@ require "y2packager/clients/inst_product_upgrade_license"
 describe Y2Packager::Clients::InstProductUpgradeLicense do
   describe "#main" do
     let(:language) { double("Yast::Language", language: "en_US") }
+    let(:product) { nil }
 
     before do
-      allow(Yast::Pkg).to receive(:PkgUpdateAll)
-      allow(Yast::Pkg).to receive(:PkgReset)
-      allow(Yast::Pkg).to receive(:GetPackages).and_return([])
-      allow(Y2Packager::Product).to receive(:selected_base).and_return(product)
+      allow(Y2Packager::ProductUpgrade).to receive(:new_base_product).and_return(product)
       allow(Yast::Report).to receive(:Error)
       allow(Yast::GetInstArgs).to receive(:going_back).and_return(false)
       stub_const("Yast::Language", language)
-    end
-
-    let(:product) { nil }
-
-    it "resets the temporarily selected and removed packages" do
-      expect(Yast::Pkg).to receive(:GetPackages).with(:selected, true).and_return(["foo"])
-      expect(Yast::Pkg).to receive(:GetPackages).with(:removed, true).and_return(["bar"])
-      expect(Yast::Pkg).to receive(:PkgNeutral).with("foo")
-      expect(Yast::Pkg).to receive(:PkgNeutral).with("bar")
-      subject.main
     end
 
     context "going back in the workflow" do

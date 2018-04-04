@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Apr  4 06:57:12 UTC 2018 - lslezak@suse.cz
+
+- Better evaluate the product to upgrade, do not use the package
+  solver if there is only one base product to install, use some
+  fallbacks when the solver fails (bsc#1086259)
+- 4.0.54
+
+-------------------------------------------------------------------
 Tue Apr  3 10:30:27 UTC 2018 - jlopez@suse.com
 
 - Fix tests to use correct storage instance (part of fate#318196).
