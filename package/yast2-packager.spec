@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.54
+Version:        4.0.55
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -33,8 +33,8 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 # Y2Storage::Device#exists_in_raw_probed
 BuildRequires:  yast2-storage-ng >= 4.0.141
 
-# Y2Packager::ProductUpgrade
-BuildRequires:  yast2 >= 4.0.62
+# Y2Packager::ProductLicense
+BuildRequires:  yast2 >= 4.0.63
 
 # needed for icon for desktop file, it is verified at the end of build
 BuildRequires:       yast2_theme
@@ -51,8 +51,8 @@ Requires:       yast2-country-data >= 2.16.3
 # Pkg::PrdLicenseLocales
 Requires:       yast2-pkg-bindings >= 4.0.8
 
-# Y2Packager::ProductUpgrade
-Requires:       yast2 >= 4.0.62
+# Y2Packager::ProductLicense
+Requires:       yast2 >= 4.0.63
 
 # unzipping license file
 Requires:       unzip
