@@ -333,4 +333,63 @@ describe Yast::ProductLicense do
     end
   end
 
+  describe "#license_accepted_for?" do
+    let(:product) { instance_double(Y2Packager::Product, name: "SLES") }
+    let(:content) { "license content" }
+    let(:licenses) { { "en_US" => "license.txt" } }
+    let(:product_license) { instance_double(Y2Packager::ProductLicense, accepted?: accepted?) }
+    let(:accepted?) { true }
+
+    before do
+      allow(Yast::SCR).to receive(:Read).with(path(".target.string"), "license.txt")
+        .and_return(content)
+      allow(Y2Packager::ProductLicense).to receive(:find).and_return(product_license)
+    end
+
+    it "reads the license and asks for a already seen license with the same content" do
+      expect(Y2Packager::ProductLicense).to receive(:find)
+        .with(product.name, content: content)
+      subject.send(:license_accepted_for?, product, licenses)
+    end
+
+    context "when license has been already accepted" do
+      let(:accepted?) { true }
+
+      it "returns true" do
+        expect(subject.send(:license_accepted_for?, product, licenses)).to eq(true)
+      end
+    end
+
+    context "when the license has not been already accepted" do
+      let(:accepted?) { false }
+
+      it "returns false" do
+        expect(subject.send(:license_accepted_for?, product, licenses)).to eq(false)
+      end
+    end
+  end
+
+  describe "#repository_product" do
+    let(:resolvable_properties) do
+      [{ "name" => "SLES-HA", "source" => 1 }, { "name" => "SLES-SDK", "source" => 2 }]
+    end
+
+    before do
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(resolvable_properties)
+    end
+
+    context "when a product exists in the given repository" do
+      it "returns the product" do
+        product = subject.send(:repository_product, 2)
+        expect(product.name).to eq("SLES-SDK")
+      end
+    end
+
+    context "when no product exists in the given repository" do
+      it "returns nil" do
+        expect(subject.send(:repository_product, 3)).to be_nil
+      end
+    end
+  end
 end
