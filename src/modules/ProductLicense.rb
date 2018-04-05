@@ -3,6 +3,9 @@ require "yast"
 require "uri"
 require "fileutils"
 
+require "y2packager/product"
+require "y2packager/product_license"
+
 # Yast namespace
 module Yast
   # Provide access / dialog for product license
@@ -81,7 +84,7 @@ module Yast
       @beta_file_already_seen = {}
     end
 
-    # Returns whether accepting the license manually is requied.
+    # Returns whether accepting the license manually is required.
     #
     # @see BNC #448598
     # @param [Any] id unique ID
@@ -191,7 +194,8 @@ module Yast
         return init_ret
       end
 
-      return :accepted if license_accepted_for?(src_id, licenses)
+      product = repository_product(src_id)
+      return :accepted if product && license_accepted_for?(product, licenses)
 
       created_new_dialog = false
 
@@ -243,9 +247,10 @@ module Yast
         action
       )
 
-      if ret == :accepted && !license_ident.nil?
+      if ret == :accepted
         # store already accepted license ID
         LicenseHasBeenAccepted(license_ident)
+        product.license.accept! if product && product.license
       end
 
       CleanUpLicense(@tmpdir)
@@ -780,28 +785,42 @@ module Yast
       end
     end
 
-    def license_accepted_for?(id, licenses)
+    # Determines whether the license was accepted for a given product
+    #
+    # This method reads the license content and uses the new
+    # Y2Packager::ProductLicense API to determine whether the license was
+    # accepted or not. This is just a transitory method because, in the future,
+    # all licenses should be read through the new API.
+    #
+    # @param product  [Y2Packager::Product] Product instance
+    # @param licenses [Hash<String,String>] License files indexed by language
+    # @return [boolean] true if the license was already accepted; false if it was
+    #   not acceptedd or it is not found.
+    def license_accepted_for?(product, licenses)
       license_file = licenses["en_US"] || licenses["en"] || licenses[""]
       content = SCR.Read(path(".target.string"), license_file).to_s
       if content.empty?
-        log.info "No license was found in the repository (#{id})."
+        log.info "No license was found for #{product.name} in the repository"
         return false
       end
 
-      product = Y2Packager::Product.all.find { |p| p.resolvable_properties["source"] == id }
-
-      unless product
-        log.info "No product was found in the repository (#{id})"
-        return false
-      end
-
-      license =
-        Y2Packager::LicenseStore.instance.add_license_for(
-          product.name,
-          Y2Packager::License.new(content: content)
-        )
-
+      license = Y2Packager::ProductLicense.find(product.name, content: content)
       license && license.accepted?
+    end
+
+    # Find the product in the given repository
+    #
+    # @param src_id [Integer] Repository ID
+    # @return [Y2Packager::Product,nil] Product or nil if it was not found
+    def repository_product(src_id)
+      product_h = Yast::Pkg.ResolvableProperties("", :product, "").find do |properties|
+        properties["source"] == src_id
+      end
+      if product_h.nil?
+        log.info "No product was found in the repository (#{src_id})" unless product_h
+        return
+      end
+      Y2Packager::Product.from_h(product_h)
     end
 
     def GetLicenseContent(lic_lang, licenses, id)
