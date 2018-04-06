@@ -800,7 +800,7 @@ module Yast
       license_file = licenses["en_US"] || licenses["en"] || licenses[""]
       content = SCR.Read(path(".target.string"), license_file).to_s
       if content.empty?
-        log.info "No license was found for #{product.name} in the repository"
+        log.error "No license found for #{product.name} in the repository"
         return false
       end
 
@@ -817,7 +817,7 @@ module Yast
         properties["source"] == src_id
       end
       if product_h.nil?
-        log.info "No product was found in the repository (#{src_id})" unless product_h
+        log.error "No product found in the repository (#{src_id})"
         return
       end
       Y2Packager::Product.from_h(product_h)
