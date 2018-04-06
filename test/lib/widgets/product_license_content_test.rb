@@ -22,11 +22,11 @@ describe Y2Packager::Widgets::ProductLicenseContent do
   subject(:widget) { described_class.new(product, language) }
 
   let(:language) { "de_DE" }
-  let(:product) { instance_double(Y2Packager::Product, license: "content") }
+  let(:product) { instance_double(Y2Packager::Product, license_content: "content") }
 
   describe "#contents" do
     it "includes license content in the given language" do
-      expect(product).to receive(:license).with(language)
+      expect(product).to receive(:license_content).with(language)
         .and_return("license content")
       widget.contents
     end
@@ -36,7 +36,7 @@ describe Y2Packager::Widgets::ProductLicenseContent do
     let(:richtext) { CWM::RichText.new }
 
     before do
-      allow(product).to receive(:license).with("es_ES")
+      allow(product).to receive(:license_content).with("es_ES")
         .and_return("content es_ES")
       allow(CWM::RichText).to receive(:new).and_return(richtext)
     end

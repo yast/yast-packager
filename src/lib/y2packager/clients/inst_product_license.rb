@@ -63,7 +63,7 @@ module Y2Packager
       #
       # @return [Boolean] true if the license is available; false otherwise.
       def available_license?
-        return true if product && product.license?(Yast::Language.language)
+        return true if product && product.license?
         if product.nil?
           log.warn "No base product is selected for installation"
         else
