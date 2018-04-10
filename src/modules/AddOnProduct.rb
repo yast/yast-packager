@@ -39,6 +39,9 @@ module Yast
     attr_accessor :external_product_renames
     private :external_product_renames, :external_product_renames=
 
+    # Products which are selected for installation in libzypp.
+    attr_reader :selected_installation_products
+
     def main
       Yast.import "UI"
       Yast.import "Pkg"
@@ -154,6 +157,13 @@ module Yast
       # additional product renames needed for detecting the product update
       # @see #add_rename
       @external_product_renames = {}
+
+      # Products which are selected for installation in libzypp. Due the
+      # Due the "buddy" libypp functionality alse the release packages will
+      # be regarded.
+      # E.g.: product:sle-module-basesystem-15-0.x86_64 has buddy
+      # sle-module-basesystem-release-15-91.2.x86_64
+      @selected_installation_products = [] #e.g.:  ["sle-module-basesystem"]
     end
 
     # Downloads a requested file, caches it and returns path to that cached file.
@@ -1237,7 +1247,15 @@ module Yast
             "Selecting product '%1' for installation",
             one_prod
           )
-          Pkg.ResolvableInstall(one_prod, :product)
+          if !Pkg.ResolvableInstall(one_prod, :product)
+            Report.Error(
+              # TRANSLATORS: Product cannot be set for installation.
+              # %1 is the product name.
+              Builtins.sformat(_("Product %1 not found on media."), one_prod)
+            )
+          else
+            @selected_installation_products << one_prod
+          end
         end
 
         # install all products from the destination
@@ -1253,9 +1271,12 @@ module Yast
             "Selecting product '%1' for installation",
             Ops.get_string(p, "name", "")
           )
-          Pkg.ResolvableInstall(Ops.get_string(p, "name", ""), :product)
+          one_prod = Ops.get_string(p, "name", "")
+          Pkg.ResolvableInstall(one_prod, :product)
+          @selected_installation_products << one_prod
         end
       end
+      @selected_installation_products.uniq!
 
       nil
     end
@@ -1470,6 +1491,7 @@ module Yast
           # adding the product to the list of products (BNC #269625)
           prod = Pkg.SourceProductData(repo_id)
           log.info "Repository (#{repo_id} product data: #{prod})"
+          @selected_installation_products = []
           InstallProductsFromRepository(one_product.fetch("install_products", []), repo_id)
           new_add_on_product = {
             "media"            => repo_id,
