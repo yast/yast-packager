@@ -292,7 +292,10 @@ describe Yast::AddOnProduct do
 
     context "when install_products is given in the add-on description" do
       let(:repo_id) { 1 }
-      let(:repo) { ADDON_REPO.merge("install_products" => ["available_product", "not_available_product"]) }
+      let(:repo) do
+        ADDON_REPO.merge("install_products" => ["available_product",
+                                                "not_available_product"])
+      end
 
       before do
         allow(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
