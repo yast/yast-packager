@@ -300,8 +300,10 @@ describe Yast::AddOnProduct do
       before do
         allow(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
         allow(Yast::Pkg).to receive(:SourceProductData).with(repo_id)
-        expect(Yast::Pkg).to receive(:ResolvableInstall).with("available_product", :product).and_return(true)
-        expect(Yast::Pkg).to receive(:ResolvableInstall).with("not_available_product", :product).and_return(false)
+        expect(Yast::Pkg).to receive(:ResolvableInstall).with("available_product",
+          :product).and_return(true)
+        expect(Yast::Pkg).to receive(:ResolvableInstall).with("not_available_product",
+          :product).and_return(false)
         allow(subject).to receive(:ReIntegrateFromScratch)
         allow(subject).to receive(:Integrate)
       end
