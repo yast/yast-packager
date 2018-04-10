@@ -163,7 +163,7 @@ module Yast
       # be regarded.
       # E.g.: product:sle-module-basesystem-15-0.x86_64 has buddy
       # sle-module-basesystem-release-15-91.2.x86_64
-      @selected_installation_products = [] #e.g.:  ["sle-module-basesystem"]
+      @selected_installation_products = [] # e.g.:  ["sle-module-basesystem"]
     end
 
     # Downloads a requested file, caches it and returns path to that cached file.
