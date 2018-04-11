@@ -158,8 +158,8 @@ module Yast
       # @see #add_rename
       @external_product_renames = {}
 
-      # Products which are selected for installation in libzypp. Due the
-      # Due the "buddy" libypp functionality alse the release packages will
+      # Products which are selected for installation in libzypp.
+      # Due the "buddy" libzypp functionality also the release packages will
       # be regarded.
       # E.g.: product:sle-module-basesystem-15-0.x86_64 has buddy
       # sle-module-basesystem-release-15-91.2.x86_64
@@ -1271,7 +1271,7 @@ module Yast
             "Selecting product '%1' for installation",
             Ops.get_string(p, "name", "")
           )
-          one_prod = Ops.get_string(p, "name", "")
+          one_prod = p["name"] || ""
           Pkg.ResolvableInstall(one_prod, :product)
           @selected_installation_products << one_prod
         end

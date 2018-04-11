@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Tue Apr 10 16:21:29 CEST 2018 - schubi@suse.de
 
-- Error: Add-On products has been reset while the installation
+- Error: Add-On products has been reset during the installation
   workflow (bnc#1086846). Set it again while setting the base
   product.
 - 4.0.56

@@ -306,16 +306,20 @@ describe Yast::AddOnProduct do
           :product).and_return(false)
         allow(subject).to receive(:ReIntegrateFromScratch)
         allow(subject).to receive(:Integrate)
-      end
-
-      it "adds the repository and reports error for none existing products" do
-        expect(Yast::Report).to receive(:Error)
-          .with(format(_("Product %s not found on media."), "not_available_product"))
         expect(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
           .and_return(repo_id)
+      end
+
+      it "adds the repository" do
         subject.AddPreselectedAddOnProducts(filelist)
         expect(subject.add_on_products).to_not be_empty
         expect(subject.selected_installation_products).to eq(["available_product"])
+      end
+
+      it "reports an error for none existing products" do
+        expect(Yast::Report).to receive(:Error)
+          .with(format(_("Product %s not found on media."), "not_available_product"))
+        subject.AddPreselectedAddOnProducts(filelist)
       end
     end
 
