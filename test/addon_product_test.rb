@@ -300,6 +300,10 @@ describe Yast::AddOnProduct do
       before do
         allow(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
         allow(Yast::Pkg).to receive(:SourceProductData).with(repo_id)
+        allow(Yast::Pkg).to receive(:ResolvableInstall).with("available_product",
+          :product).and_return(true)
+        allow(Yast::Pkg).to receive(:ResolvableInstall).with("not_available_product",
+          :product).and_return(false)
         allow(subject).to receive(:ReIntegrateFromScratch)
         allow(subject).to receive(:Integrate)
         allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
@@ -321,10 +325,6 @@ describe Yast::AddOnProduct do
       end
 
       it "reports an error for none existing products" do
-        expect(Yast::Pkg).to receive(:ResolvableInstall).with("available_product",
-          :product).and_return(true)
-        expect(Yast::Pkg).to receive(:ResolvableInstall).with("not_available_product",
-          :product).and_return(false)
         expect(Yast::Report).to receive(:Error)
           .with(format(_("Product %s not found on media."), "not_available_product"))
         subject.AddPreselectedAddOnProducts(filelist)
