@@ -290,6 +290,48 @@ describe Yast::AddOnProduct do
       end
     end
 
+    context "when install_products is given in the add-on description" do
+      let(:repo_id) { 1 }
+      let(:repo) do
+        ADDON_REPO.merge("install_products" => ["available_product",
+                                                "not_available_product"])
+      end
+
+      before do
+        allow(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
+        allow(Yast::Pkg).to receive(:SourceProductData).with(repo_id)
+        allow(Yast::Pkg).to receive(:ResolvableInstall).with("available_product",
+          :product).and_return(true)
+        allow(Yast::Pkg).to receive(:ResolvableInstall).with("not_available_product",
+          :product).and_return(false)
+        allow(subject).to receive(:ReIntegrateFromScratch)
+        allow(subject).to receive(:Integrate)
+        allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
+          .and_return(repo_id)
+      end
+
+      it "adds the repository" do
+        subject.AddPreselectedAddOnProducts(filelist)
+        expect(subject.add_on_products).to_not be_empty
+      end
+
+      it "tries to install given products" do
+        expect(Yast::Pkg).to receive(:ResolvableInstall).with("available_product",
+          :product).and_return(true)
+        expect(Yast::Pkg).to receive(:ResolvableInstall).with("not_available_product",
+          :product).and_return(false)
+        subject.AddPreselectedAddOnProducts(filelist)
+        expect(subject.selected_installation_products).to eq(["available_product"])
+      end
+
+      it "reports an error for none existing products" do
+        expect(Yast::Report).to receive(:Error)
+          .with(format(_("Product %s not found on media."), "not_available_product"))
+        subject.AddPreselectedAddOnProducts(filelist)
+      end
+
+    end
+
     context "when the add-on is on a CD/DVD" do
       let(:repo_id) { 1 }
       let(:cd_url) { "cd:///?device=/dev/sr0" }
