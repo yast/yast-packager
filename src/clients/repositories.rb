@@ -567,7 +567,7 @@ module Yast
       Builtins.foreach(deleted_services) do |_alias|
         Builtins.y2milestone("Removing service %1", _alias)
         success = success && Pkg.ServiceDelete(_alias)
-      end 
+      end
 
 
       Builtins.y2milestone("New service config: %1", @serviceStatesOut)
@@ -589,7 +589,7 @@ module Yast
           Builtins.y2milestone("Modifying service %1", _alias)
           success = success && Pkg.ServiceSet(_alias, s)
         end
-      end 
+      end
 
 
       Builtins.y2milestone("New repo config: %1", @sourceStatesOut)
@@ -624,7 +624,7 @@ module Yast
 
           success = success && Pkg.SourceRefreshNow(srcid)
         end
-      end 
+      end
 
 
       success = success && KeyManager.Write
@@ -1139,7 +1139,7 @@ module Yast
                   global_current = Ops.add(global_current, 1)
                   Ops.get(s, "SrcId") ==
                     Ops.get_integer(sourceState, "SrcId", -1)
-                end 
+                end
 
 
                 Builtins.y2milestone("global_current: %1", global_current)
@@ -1458,7 +1458,7 @@ module Yast
                   to_refresh = Ops.add(to_refresh, 1)
                 end
               end
-            end 
+            end
 
 
             Builtins.y2milestone(
@@ -1547,7 +1547,7 @@ module Yast
                     Pkg.ServiceRefresh(service_alias)
                   end
                 end
-              end 
+              end
 
 
               Progress.Finish
@@ -1669,6 +1669,10 @@ module Yast
             current = -1
           elsif input == :priority
             if @repository_view
+              msg = _("Repo #{sourceState["name"]} is managed by service "\
+                "#{sourceState["service"]}.\nVolatile changes are reset by "\
+                "the next service refresh!")
+              Popup.Warning(msg) if sourceState["service"] != ""
               # refresh the value in the table
               new_priority = Convert.to_integer(
                 UI.QueryWidget(Id(:priority), :Value)
@@ -1903,7 +1907,7 @@ module Yast
           @serviceStatesIn,
           Pkg.ServiceGet(srv_alias)
         )
-      end 
+      end
 
 
       Builtins.y2milestone("Loaded services: %1", @serviceStatesIn)
