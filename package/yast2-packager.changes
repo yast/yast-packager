@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Apr 12 08:17:13 UTC 2018 - gsouza@suse.com
+
+- Added warning to inform the user that volatiles changes in a 
+  repository of a service will be reset in the next service refresh
+  (bsc#1078323).
+- 3.1.124
+
+-------------------------------------------------------------------
 Thu Jul 27 11:12:01 CEST 2017 - schubi@suse.de
 
 - AutoYaST: Configuring EULA acceptance of add-on products has
