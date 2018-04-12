@@ -80,6 +80,10 @@ module Yast
         "guihandler" => fun_ref(method(:StartInstSource), "symbol ()")
       }
 
+      # list of repositories that was already informed to the user that they are
+      # managed by service
+      @services_repos = []
+
       if WFM.Args == [:sw_single_mode]
         Builtins.y2milestone("Started from sw_single, switching the mode")
 
@@ -1669,10 +1673,7 @@ module Yast
             current = -1
           elsif input == :priority
             if @repository_view
-              msg = _("Repo #{sourceState["name"]} is managed by service "\
-                "#{sourceState["service"]}.\nVolatile changes are reset by "\
-                "the next service refresh!")
-              Popup.Warning(msg) if sourceState["service"] != ""
+              warn_service_repository(sourceState)
               # refresh the value in the table
               new_priority = Convert.to_integer(
                 UI.QueryWidget(Id(:priority), :Value)
@@ -1942,6 +1943,16 @@ module Yast
 
       UI.CloseDialog
       ret
+    end
+
+    def warn_service_repository(source_state)
+      msg = _("Repo %{name} is managed by service %{service}.\n"\
+        "Volatile changes are reset by the next service refresh!") % {name: source_state["name"],
+          service: source_state["service"]}
+      if source_state["service"] != "" && !@services_repos.include?(source_state["SrcId"])
+        Popup.Warning(msg)
+        @services_repos.push(source_state["SrcId"])
+      end
     end
   end unless defined? (Yast::RepositoriesClient)
 end
