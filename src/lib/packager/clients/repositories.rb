@@ -85,6 +85,10 @@ module Yast
         "guihandler" => fun_ref(method(:StartInstSource), "symbol ()")
       }
 
+      # list of repositories that was already informed to the user that they are
+      # managed by service
+      @services_repos = []
+
       if WFM.Args == [:sw_single_mode]
         Builtins.y2milestone("Started from sw_single, switching the mode")
 
@@ -1734,6 +1738,7 @@ module Yast
     def repo_priority_handler(sourceState, global_current, current)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
 
+      warn_service_repository(sourceState)
       # refresh the value in the table
       new_priority = UI.QueryWidget(Id(:priority), :Value)
       log.debug("New priority: #{new_priority}")
@@ -2045,6 +2050,18 @@ module Yast
 
       Popup.Message(msg)
       false
+    end
+
+    # Shows a warning message when repository managed by a service
+    # @param [Hash] sourceState the current state of the repository or service
+    def warn_service_repository(source_state)
+      msg = _("Repo %{name} is managed by service %{service}.\n"\
+        "Your manual changes will be reset by the next service refresh!") % {name: source_state["name"],
+        service: source_state["service"]}
+      if source_state["service"] != "" && !@services_repos.include?(source_state["SrcId"])
+        Popup.Warning(msg)
+        @services_repos.push(source_state["SrcId"])
+      end
     end
   end
 end
