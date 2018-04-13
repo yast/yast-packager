@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 13 08:26:41 UTC 2018 - gsouza@suse.com
+
+- Added warning to inform the user that changes in a  repository
+  managed by a service will be lost in the next refresh of the
+  service (bsc#1078323).
+- 3.2.26
+
+-------------------------------------------------------------------
 Thu Jul 27 11:12:01 CEST 2017 - schubi@suse.de
 
 - AutoYaST: Configuring EULA acceptance of add-on products has
