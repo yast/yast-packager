@@ -15,24 +15,32 @@ require "y2packager/dialogs/inst_product_license"
 require "y2packager/product"
 Yast.import "Language"
 Yast.import "GetInstArgs"
+Yast.import "Mode"
 
 module Y2Packager
   module Clients
     # This client shows a license confirmation dialog for the base selected product
     #
-    # The client will be skipped (returning `:auto`) in these situations:
+    # The client will be skipped (returning `:auto` or `:next`) in these
+    # situations:
     #
     # * There is no license available for the selected base product.
-    # * There is only 1 base product (not a multi-product media at all).  In
-    #   that case, the license is supposed to has been already accepted in the
-    #   welcome screen.
+    # * Running AutoYaST but the license has been already confirmed.
+    # * Running a normal installation but there is only 1 base product
+    #   (not a multi-product media at all). In that case, the license is
+    #   supposed to has been already confirmed in the welcome screen.
     class InstProductLicense
       include Yast::I18n
       include Yast::Logger
 
       def main
         textdomain "installation"
-        return :auto unless multi_product_media? && available_license?
+
+        if Yast::Mode.auto
+          return :next if !available_license? || license_confirmed?
+        else
+          return :auto unless available_license? && multi_product_media?
+        end
 
         Yast::Wizard.EnableAbortButton
         disable_buttons = !Yast::GetInstArgs.enable_back ? [:back] : []
@@ -47,7 +55,10 @@ module Y2Packager
       # @return [Y2Packager::Product]
       # @see Y2Packager::Product.selected_base
       def product
-        @product ||= Y2Packager::Product.selected_base
+        return @product if @product
+        @product = Y2Packager::Product.selected_base
+        log.warn "No base product is selected for installation" unless @product
+        @product
       end
 
       # Determines whether a multi-product media is being used
@@ -64,12 +75,15 @@ module Y2Packager
       # @return [Boolean] true if the license is available; false otherwise.
       def available_license?
         return true if product && product.license?
-        if product.nil?
-          log.warn "No base product is selected for installation"
-        else
-          log.warn "No license for product '#{product.label}' was found"
-        end
+        log.warn "No license for product '#{product.label}' was found" if product
         false
+      end
+
+      # Determine whether the product's license has been already confirmed
+      #
+      # @return [Boolean] true if the license was confirmed; false otherwise.
+      def license_confirmed?
+        product && product.license_confirmed?
       end
     end
   end
