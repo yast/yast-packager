@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 16 16:48:14 UTC 2018 - igonzalezsosa@suse.com
+
+- In AutoYaST, skip base product license dialog when the same
+  license was already accepted (fate#325461).
+- 4.0.58
+
+-------------------------------------------------------------------
 Mon Apr 16 13:46:16 UTC 2018 - lslezak@suse.cz
 
 - The Advanced Systems Management Module has been moved to the
