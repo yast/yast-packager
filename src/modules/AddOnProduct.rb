@@ -12,27 +12,29 @@ module Yast
     # @return [Hash] Product renames default map. Used when information is not
     #                found elsewhere.
     DEFAULT_PRODUCT_RENAMES = {
-      "SUSE_SLES"            => ["SLES"],
+      "SUSE_SLES"                         => ["SLES"],
       # SLED or Workstation extension
-      "SUSE_SLED"            => ["SLED", "sle-we"],
+      "SUSE_SLED"                         => ["SLED", "sle-we"],
       # SLE11 HA has been renamed since SLE12
-      "sle-hae"              => ["sle-ha"],
+      "sle-hae"                           => ["sle-ha"],
       # SLE11 HA GEO is now included in SLE15 HA
-      "sle-haegeo"           => ["sle-ha"],
+      "sle-haegeo"                        => ["sle-ha"],
       # SLE12 HA GEO is now included in SLE15 HA
-      "sle-ha-geo"           => ["sle-ha"],
-      "SUSE_SLES_SAP"        => ["SLES_SAP"],
+      "sle-ha-geo"                        => ["sle-ha"],
+      "SUSE_SLES_SAP"                     => ["SLES_SAP"],
       # SLES-12 with HPC module can be replaced by SLES_HPC-15
-      "SLES"                 => ["SLES_HPC"],
+      "SLES"                              => ["SLES_HPC"],
       # this is an internal product so far...
-      "SLE-HPC"              => ["SLES_HPC"],
+      "SLE-HPC"                           => ["SLES_HPC"],
       # SMT is now integrated into the base SLES
-      "sle-smt"              => ["SLES"],
+      "sle-smt"                           => ["SLES"],
       # Live patching is a module now (bsc#1074154)
-      "sle-live-patching"    => ["sle-module-live-patching"],
+      "sle-live-patching"                 => ["sle-module-live-patching"],
+      # The Advanced Systems Management Module has been moved to the Basesystem module
+      "sle-module-adv-systems-management" => ["sle-module-basesystem"],
       # Toolchain and SDK are now included in the Development Tools SLE15 module
-      "sle-module-toolchain" => ["sle-module-development-tools"],
-      "sle-sdk"              => ["sle-module-development-tools"]
+      "sle-module-toolchain"              => ["sle-module-development-tools"],
+      "sle-sdk"                           => ["sle-module-development-tools"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
