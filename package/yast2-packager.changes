@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Apr 16 13:46:16 UTC 2018 - lslezak@suse.cz
+
+- The Advanced Systems Management Module has been moved to the
+  Basesystem module, added the product change into the list
+  (related to bsc#1089477)
+- 4.0.57
+
+-------------------------------------------------------------------
 Tue Apr 10 16:21:29 CEST 2018 - schubi@suse.de
 
 - Error: Add-On products has been reset during the installation
