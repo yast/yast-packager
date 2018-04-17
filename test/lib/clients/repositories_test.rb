@@ -52,7 +52,7 @@ describe Yast::RepositoriesClient do
       let(:source_state) { { "name" => "repo", "service" => "some-service", "SrcId" => "1" } }
 
       it "shows a warning message only once" do
-        expect(Yast::Popup).to receive(:Warning).once
+        expect(Yast::Popup).to receive(:Warning).with(/manual changes will be reset/).once
         client.warn_service_repository(source_state)
         client.warn_service_repository(source_state)
       end
