@@ -20,10 +20,9 @@ module Yast
     NO_SERVICE = :no_service
     NO_SERVICE_ITEM = :no_service_item
 
-    def main
+    def import_modules
       Yast.import "Pkg"
       Yast.import "UI"
-      textdomain "packager"
 
       Yast.import "Confirm"
       Yast.import "Mode"
@@ -47,12 +46,15 @@ module Yast
       Yast.include self, "packager/inst_source_dialogs.rb"
       Yast.include self, "packager/key_manager_dialogs.rb"
       Yast.include self, "packager/repositories_include.rb"
+    end
+
+    def initialize
+      textdomain "packager"
 
       @full_mode = false
 
       # cache for textmode value
       @text_mode = nil
-
 
       @sourcesToDelete = []
       @reposFromDeletedServices = []
@@ -88,6 +90,10 @@ module Yast
       # list of repositories that was already informed to the user that they are
       # managed by service
       @services_repos = []
+    end
+
+    def main
+      import_modules
 
       if WFM.Args == [:sw_single_mode]
         Builtins.y2milestone("Started from sw_single, switching the mode")

@@ -26,7 +26,7 @@ describe "PackagerRepositoriesIncludeInclude" do
         expect(RepositoryIncludeTester.autorefresh_for?(url)).to eq(true)
       end
     end
-    
+
     it "handles uppercase URLs correctly" do
       expect(RepositoryIncludeTester.autorefresh_for?("FTP://FOO/BAR")).to eq(true)
       expect(RepositoryIncludeTester.autorefresh_for?("DVD://FOO/BAR")).to eq(false)

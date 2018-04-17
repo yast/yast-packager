@@ -48,15 +48,10 @@ describe Yast::RepositoriesClient do
   end
 
   describe "#warn_service_repository" do
-
-    before do
-      client.main
-    end
-
     context "when the repository is managed by a service" do
       let(:source_state) { { "name" => "repo", "service" => "some-service", "SrcId" => "1" } }
 
-      it "shows an warning message once" do
+      it "shows a warning message only once" do
         expect(Yast::Popup).to receive(:Warning).once
         client.warn_service_repository(source_state)
         client.warn_service_repository(source_state)
