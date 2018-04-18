@@ -1661,6 +1661,7 @@ module Yast
       repo = @sourceStatesOut[global_current] || {}
       return if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], repo_change_msg)
 
+      warn_service_repository(sourceState)
       state = !sourceState["enabled"]
       # corresponds to the "Enable/Disable" button
       state_symbol = state ? UI.Glyph(:CheckMark) : ""
@@ -1701,6 +1702,8 @@ module Yast
       source_id = sourceState["SrcId"]
       src_data = Pkg.SourceGeneralData(source_id)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      warn_service_repository(sourceState)
 
       type = src_data["type"]
       state = !sourceState["autorefresh"]
@@ -1763,6 +1766,8 @@ module Yast
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
     def repo_keeppackages_handler(sourceState, global_current)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      warn_service_repository(sourceState)
 
       # refresh the value in the table
       new_keep = UI.QueryWidget(Id(:keeppackages), :Value)
@@ -1922,6 +1927,8 @@ module Yast
 
           new_name = SourceDialogs.GetRepoName
           if new_name != Ops.get_string(sourceState, "name", "")
+            warn_service_repository(sourceState)
+
             Ops.set(sourceState, "name", new_name)
             Ops.set(@sourceStatesOut, global_current, sourceState)
 
@@ -2062,7 +2069,7 @@ module Yast
     # @param [Hash] sourceState the current state of the repository or service
     def warn_service_repository(source_state)
       msg = _("Repository '%{name}' is managed by service '%{service}'.\n"\
-        "Your manual changes will be reset by the next service refresh!") % {name: source_state["name"],
+        "Your manual changes might be reset by the next service refresh!") % {name: source_state["name"],
         service: source_state["service"]}
       if source_state["service"] != "" && !@services_repos.include?(source_state["SrcId"])
         Popup.Warning(msg)
