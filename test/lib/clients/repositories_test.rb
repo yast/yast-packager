@@ -84,4 +84,25 @@ describe Yast::RepositoriesClient do
       end
     end
   end
+
+  describe "#warn_service_repository" do
+    context "when the repository is managed by a service" do
+      let(:source_state) { { "name" => "repo", "service" => "some-service", "SrcId" => "1" } }
+
+      it "shows a warning message only once" do
+        expect(Yast::Popup).to receive(:Warning).with(/manual changes might be reset/).once
+        client.warn_service_repository(source_state)
+        client.warn_service_repository(source_state)
+      end
+    end
+
+    context "when the repository is not managed by a service" do
+      let(:source_state) { { "name" => "repo", "service" => "", "SrcId" => "1" } }
+
+      it "shows no warning message" do
+        expect(Yast::Popup).to_not receive(:Warning)
+        client.warn_service_repository(source_state)
+      end
+    end
+  end
 end

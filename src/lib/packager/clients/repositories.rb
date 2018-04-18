@@ -43,12 +43,17 @@ module Yast
     NO_SERVICE = :no_service
     NO_SERVICE_ITEM = :no_service_item
 
-    def main
-      textdomain "packager"
+    def import_modules
+      Yast.import "Pkg"
+      Yast.import "UI"
 
       Yast.include self, "packager/inst_source_dialogs.rb"
       Yast.include self, "packager/key_manager_dialogs.rb"
       Yast.include self, "packager/repositories_include.rb"
+    end
+
+    def initialize
+      textdomain "packager"
 
       @full_mode = false
 
@@ -86,6 +91,14 @@ module Yast
         ),
         "guihandler" => fun_ref(method(:StartInstSource), "symbol ()")
       }
+
+      # list of repositories that was already informed to the user that they are
+      # managed by service
+      @services_repos = []
+    end
+
+    def main
+      import_modules
 
       if WFM.Args == [:sw_single_mode]
         Builtins.y2milestone("Started from sw_single, switching the mode")
@@ -1660,6 +1673,7 @@ module Yast
         return
       end
 
+      warn_service_repository(sourceState)
       state = !sourceState["enabled"]
       # corresponds to the "Enable/Disable" button
       state_symbol = state ? UI.Glyph(:CheckMark) : ""
@@ -1700,6 +1714,8 @@ module Yast
       source_id = sourceState["SrcId"]
       src_data = Pkg.SourceGeneralData(source_id)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      warn_service_repository(sourceState)
 
       type = src_data["type"]
       state = !sourceState["autorefresh"]
@@ -1743,6 +1759,7 @@ module Yast
     def repo_priority_handler(sourceState, global_current, current)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
 
+      warn_service_repository(sourceState)
       # refresh the value in the table
       new_priority = UI.QueryWidget(Id(:priority), :Value)
       log.debug("New priority: #{new_priority}")
@@ -1761,6 +1778,8 @@ module Yast
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
     def repo_keeppackages_handler(sourceState, global_current)
       return if !plugin_service_check(sourceState["service"], repo_change_msg)
+
+      warn_service_repository(sourceState)
 
       # refresh the value in the table
       new_keep = UI.QueryWidget(Id(:keeppackages), :Value)
@@ -1921,6 +1940,8 @@ module Yast
 
           new_name = SourceDialogs.GetRepoName
           if new_name != Ops.get_string(sourceState, "name", "")
+            warn_service_repository(sourceState)
+
             Ops.set(sourceState, "name", new_name)
             Ops.set(@sourceStatesOut, global_current, sourceState)
 
@@ -2055,6 +2076,18 @@ module Yast
 
       Popup.Message(msg)
       false
+    end
+
+    # Shows a warning message when repository managed by a service
+    # @param [Hash] sourceState the current state of the repository or service
+    def warn_service_repository(source_state)
+      msg = _("Repository '%{name}' is managed by service '%{service}'.\n"\
+        "Your manual changes might be reset by the next service refresh!") % {name: source_state["name"],
+        service: source_state["service"]}
+      if source_state["service"] != "" && !@services_repos.include?(source_state["SrcId"])
+        Popup.Warning(msg)
+        @services_repos.push(source_state["SrcId"])
+      end
     end
   end
 end
