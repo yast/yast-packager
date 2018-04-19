@@ -2079,7 +2079,7 @@ module Yast
     end
 
     # Shows a warning message when repository managed by a service
-    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Hash] source_state the current state of the repository or service
     def warn_service_repository(source_state)
       msg = _("Repository '%{name}' is managed by service '%{service}'.\n"\
         "Your manual changes might be reset by the next service refresh!") %
