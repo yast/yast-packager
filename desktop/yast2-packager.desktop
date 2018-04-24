@@ -10,4 +10,4 @@ Categories=System;PackageManager;X-SuSE-ControlCenter-System;
 MimeType=application/x-rpm;application/x-redhat-package-manager;
 NotShowIn=GNOME;MATE;
 StartupNotify=true
-
+InitialPreference=10
