@@ -387,12 +387,12 @@ module Yast
       end
 
       if Builtins.contains(flags, :pattern)
-        patterns = ListSelected(:pattern, "+  %1")
+        patterns = ListSelected(:pattern, "%1")
 
         if Ops.greater_than(Builtins.size(patterns), 0)
           output = Builtins.add(
             output,
-            Ops.add(_("Patterns:<br>"), Builtins.mergestring(patterns, "<br>"))
+            Ops.add(_("Patterns:"), HTML.List(patterns))
           )
         end
       end
