@@ -1,10 +1,17 @@
 -------------------------------------------------------------------
+Tue Apr 24 19:49:40 UTC 2018 - igonzalezsosa@suse.com
+
+- Fix text direction for RTL languages in software patterns list
+  (bsc#1089846).
+- 4.0.60
+
+-------------------------------------------------------------------
 Fri Apr 19 08:26:41 UTC 2018 - gsouza@suse.com
 
 - Added warning to inform the user that changes in a repository
   managed by a service will be lost in the next refresh of the
   service (bsc#1078323).
-- 3.2.26
+- 4.0.59
 
 -------------------------------------------------------------------
 Mon Apr 16 16:48:14 UTC 2018 - igonzalezsosa@suse.com
