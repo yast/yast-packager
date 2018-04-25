@@ -392,7 +392,8 @@ module Yast
         if Ops.greater_than(Builtins.size(patterns), 0)
           output = Builtins.add(
             output,
-            Ops.add(_("Patterns:"), HTML.List(patterns))
+            # TODO: simply delete the br once we can afford to break translations again
+            Ops.add(_("Patterns:<br>").chomp("<br>"), HTML.List(patterns))
           )
         end
       end
