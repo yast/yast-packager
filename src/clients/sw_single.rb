@@ -5,6 +5,9 @@
 # Authors: 		Gabriele Strattner (gs@suse.de)
 #			Klaus Kaempf <kkaempf@suse.de>
 #
+
+require "y2packager/pkg_helpers"
+
 module Yast
   # Purpose: 		contains dialog loop for workflows:
   #	"Install/Remove software"
@@ -203,7 +206,7 @@ module Yast
 
         return :failed if url == ""
 
-        repo_id = Pkg.SourceCreateType(url, "", "Plaindir")
+        repo_id = Y2Packager::PkgHelpers.source_create_type(url, "", "Plaindir")
         Builtins.y2milestone("Adde temporary repository with ID %1", repo_id)
 
         if repo_id.nil?

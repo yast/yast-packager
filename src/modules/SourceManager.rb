@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "yast"
+require "y2packager/pkg_helpers"
 
 # Yast namespace
 module Yast
@@ -553,7 +554,7 @@ module Yast
         end
         # then add the new one
         Builtins.y2milestone("Adding update repository...")
-        toadd = Pkg.SourceCreate(url, "/")
+        toadd = Y2Packager::PkgHelpers.source_create(url, "/")
         # adding failed, try http fallback for ftp repo (#227059)
         if toadd.nil? || Ops.less_than(toadd, 0)
           parsed_url = URL.Parse(url)
@@ -567,7 +568,7 @@ module Yast
             Ops.set(parsed_url, "scheme", "http")
             fallback_url = URL.Build(parsed_url)
 
-            toadd = Pkg.SourceCreate(fallback_url, "/")
+            toadd = Y2Packager::PkgHelpers.source_create(fallback_url, "/")
             url = fallback_url
           end
         end
