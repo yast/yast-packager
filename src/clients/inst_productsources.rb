@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "yast2/hw_detection"
+require "y2packager/pkg_helpers"
 
 # rubocop:disable Style/Documentation
 # documentation cop is broken for this document, so lets disable it
@@ -1372,7 +1373,7 @@ module Yast
     def CreateSource(url, pth, repo_name, _actions_todo, _actions_doing, _no_progress_updates)
       src_id = nil
 
-      repo_type = Pkg.RepositoryProbe(url, pth)
+      repo_type = Y2Packager::PkgHelpers.repository_probe(url, pth)
       Builtins.y2milestone("Probed repository type: %1", repo_type)
 
       # probing succeeded?
@@ -1413,7 +1414,7 @@ module Yast
         alias_name = GetUniqueAlias(alias_name)
         Builtins.y2milestone("Using alias: %1", alias_name)
 
-        src_id = Pkg.RepositoryAdd(
+        src_id = Y2Packager::PkgHelpers.repository_add(
           "enabled"   => false,
           "name"      => repo_name,
           "base_urls" => [url],
@@ -1481,6 +1482,8 @@ module Yast
         )
         return false
       end
+
+      Pkg.SourceChangeUrl(src_id, url)
 
       if !Pkg.SourceSetEnabled(src_id, true)
         Report.Error(
