@@ -579,4 +579,124 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#Import" do
+    let(:settings) { {"add_on_products" => [product] } }
+    let(:url) { "http://example.net/leap/15.0/" }
+    let(:product) do
+      {
+        "media_url" => url, "product_dir" => "/extras", "alias" => "extras",
+        "name" => "Extra Packages", "product" => "Extra Product", "priority" => 99
+      }
+    end
+    let(:src_id) { 1 }
+
+    before do
+      allow(Yast::Mode).to receive(:config).and_return(config)
+      allow(Y2Packager::PkgHelpers).to receive(:source_create).and_return(src_id)
+    end
+
+    context "when running in config mode" do
+      let(:config) { true }
+
+      it "adds the given add-ons" do
+        expect(Y2Packager::PkgHelpers).to receive(:source_create).with(
+          url, "/extras", alias_name: "extras", name: "Extra Packages"
+        )
+        subject.Import(settings)
+      end
+
+      context "when a product name is given" do
+        it "sets product name and priority" do
+          expect(Yast::Pkg).to receive(:SourceEditSet)
+            .with(["SrcId" => src_id, "name" => "Extra Product", "priority" => 99])
+          subject.Import(settings)
+        end
+
+        context "but the add-on could not be added" do
+          let(:src_id) { -1 }
+
+          it "does not set product name and priority" do
+            expect(Yast::Pkg).to_not receive(:SourceEditSet)
+            subject.Import(settings)
+          end
+        end
+      end
+
+      context "when no product name is given" do
+        let(:product_name) { nil }
+        let(:product) do
+          {
+            "media_url" => url, "product_dir" => "/extras", "alias" => "extras",
+            "name" => "Extra Packages", "priority" => 99
+          }
+        end
+
+        it "does not set priority" do
+          expect(Yast::Pkg).to_not receive(:SourceEditSet)
+          subject.Import(settings)
+        end
+      end
+    end
+
+    context "when not running in config mode" do
+      let(:config) { false }
+
+      it "returns true" do
+        expect(subject.Import(settings)).to eq(true)
+      end
+
+      it "does not add any add-on" do
+        expect(Y2Packager::PkgHelpers).to_not receive(:source_create)
+        subject.Import(settings)
+      end
+    end
+  end
+
+  describe "#AddRepo" do
+    let(:url) { "http://example.net/leap/15.0/" }
+    let(:pth) { "/" }
+    let(:src_id) { 1 }
+
+    before do
+      allow(Yast::Pkg).to receive(:SourceSaveAll)
+      allow(Yast::Pkg).to receive(:SourceRefreshNow)
+      allow(Yast::Pkg).to receive(:SourceLoad)
+      allow(Yast::Pkg).to receive(:SourceChangeUrl)
+      allow(Y2Packager::PkgHelpers).to receive(:repository_add).and_return(src_id)
+    end
+
+    it "returns the new repository id" do
+      expect(subject.AddRepo(url, pth, 99)).to eq(src_id)
+    end
+
+    it "adds the repository" do
+      expect(Y2Packager::PkgHelpers).to receive(:repository_add).with(
+        hash_including("base_urls" => [url], "prod_dir" => pth, "priority" => 99)
+      )
+      subject.AddRepo(url, pth, 99)
+    end
+
+    it "sets the URL to the original one" do
+      expect(Yast::Pkg).to receive(:SourceChangeUrl).with(src_id, url)
+      subject.AddRepo(url, pth, 99)
+    end
+
+    context "when no priority is set to -1" do
+      it "does not set the priority" do
+        expect(Y2Packager::PkgHelpers).to receive(:repository_add).with(
+          hash_not_including("priority" => 99)
+        )
+        subject.AddRepo(url, pth, -1)
+      end
+    end
+
+    context "when the repository could not be added" do
+      let(:src_id) { nil }
+
+      it "returns nil" do
+        expect(subject.AddRepo(url, pth, 99)).to be_nil
+      end
+    end
+  end
 end
