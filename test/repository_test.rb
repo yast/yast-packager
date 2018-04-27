@@ -94,6 +94,37 @@ describe Y2Packager::Repository do
     end
   end
 
+  describe ".create" do
+    let(:name) { "Repository Name" }
+    let(:repo_url) { URI("http://download.opensuse.org/update/leap/42.1/oss") }
+    let(:src_id) { 1 }
+
+    before do
+      allow(Y2Packager::PkgHelpers).to receive(:repository_add).and_return(src_id)
+    end
+
+    it "adds a repository" do
+      expect(Y2Packager::PkgHelpers).to receive(:repository_add)
+        .with("name" => name, "base_urls" => [repo_url], "enabled" => true, "autorefresh" => true)
+        .and_return(src_id)
+      described_class.create(name: name, url: repo_url)
+    end
+
+    it "returns the new repository" do
+      repo = described_class.create(name: name, url: repo_url)
+      expect(repo.repo_id).to eq(src_id)
+    end
+
+    context "if the repo is not successfully added" do
+      let(:src_id) { nil }
+
+      it "returns nil" do
+        repo = described_class.create(name: name, url: repo_url)
+        expect(repo).to be_nil
+      end
+    end
+  end
+
   describe "#scheme" do
     context "when URL contains a scheme" do
       let(:repo_url) { URI("cd://dev/sr1") }
