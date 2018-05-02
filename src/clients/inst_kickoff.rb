@@ -51,7 +51,9 @@ module Yast
           # Mount (bind) the current /dev/ to the /installed_system/dev/
           LocalCommand(
             Builtins.sformat(
-              "/bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && " \
+              # try unmounting the /mnt/dev directory before the cleanup, usually there
+              # is a bind mount /dev -> /mnt/dev which would remove the files also from /dev
+              "/usr/bin/umount '%1/dev/'; /bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && " \
                 "/bin/mount -v --bind '/dev/' '%1/dev/'",
               String.Quote(Installation.destdir)
             )
