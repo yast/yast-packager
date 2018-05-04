@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May  3 14:02:55 UTC 2018 - lslezak@suse.cz
+
+- Adapted /dev cleanup at upgrade to work properly with the
+  registration rollback (bsc#1089643)
+- 4.0.61
+
+-------------------------------------------------------------------
 Tue Apr 24 19:49:40 UTC 2018 - igonzalezsosa@suse.com
 
 - Fix text direction for RTL languages in software patterns list
