@@ -2,6 +2,7 @@
 
 require "yast"
 require "pathname"
+require "shellwords"
 
 # Yast namespace
 module Yast
@@ -420,6 +421,25 @@ module Yast
           PackageCallbacks._deleting_package
         )
       end
+
+      # FIXME: this needs to be optional, each `fuser` call takes ~0.1s
+      # which for installing/upgrading 2000 packages takes too much time...
+      if Stage.initial
+        fuser =
+          begin
+            # (the details are printed on STDERR, redirect it)
+            `LC_ALL=C fuser -v -m #{Shellwords.escape(Installation.destdir)} 2>&1`
+          rescue => e
+            "fuser failed: #{e}"
+          end
+        # ignore a warning line
+        fuser.gsub!(/Specified filename .* has no mountpoint\.\n/, "")
+
+        if !fuser.empty?
+          Report.LongError("Processes running in #{Installation.destdir}:<br><pre>#{fuser}</pre>")
+        end
+      end
+
       ret
     end
 
