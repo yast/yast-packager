@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.60
+Version:        4.0.62
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -134,6 +134,8 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_libdir}/packager
 %dir %{yast_libdir}/packager/cfa
 %dir %{yast_libdir}/y2packager
+%dir %{yast_ybindir}
+%{yast_ybindir}/*
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
