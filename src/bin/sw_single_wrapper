@@ -1,0 +1,16 @@
+#! /bin/sh
+
+# This is a small wrapper around "yast2 sw_single"
+# which quotes all arguments before passing them
+# to xdg-su (to properly process file names contaning
+# spaces or special shell characters like quotes, ampersand...)
+
+$ARGS=""
+for ARG in "$@"
+do
+    QUOTED_ARG=`printf %q "$ARG"`
+    ARGS="$ARGS $QUOTED_ARG"
+done
+
+xdg-su -c "/sbin/yast2 sw_single $ARGS"
+
