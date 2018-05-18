@@ -478,13 +478,20 @@ describe "Yast::Packages" do
           .with("fips", :pattern, "").and_return([{ "name" => "fips" }])
       end
 
-      it "adds 'fips' pattern if fips=1 boot parameter is used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo fips=1 bar")
+      it "adds 'fips' pattern if the FIPS mode is active" do
+        expect(File).to receive(:exist?).with("/proc/sys/crypto/fips_enabled").and_return(true)
+        expect(File).to receive(:read).with("/proc/sys/crypto/fips_enabled").and_return("1\n")
         expect(Yast::Packages.ComputeSystemPatternList).to include("fips")
       end
 
-      it "does not add 'fips' pattern if fips=1 boot parameter is not used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo bar")
+      it "does not add 'fips' pattern if the FIPS mode is not active" do
+        expect(File).to receive(:exist?).with("/proc/sys/crypto/fips_enabled").and_return(true)
+        expect(File).to receive(:read).with("/proc/sys/crypto/fips_enabled").and_return("0\n")
+        expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+      end
+
+      it "does not add 'fips' pattern if the FIPS mode is not supported" do
+        expect(File).to receive(:exist?).with("/proc/sys/crypto/fips_enabled").and_return(false)
         expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
       end
     end
@@ -494,16 +501,41 @@ describe "Yast::Packages" do
         allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
         allow(Yast::Pkg).to receive(:ResolvableProperties)
           .with("fips", :pattern, "").and_return([])
+        allow(Yast::Report).to receive(:Error)
       end
 
-      it "does not add 'fips' pattern if fips=1 boot parameter is used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo fips=1 bar")
-        expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+      context "kernel does not support the FIPS mode" do
+        before do
+          expect(File).to receive(:exist?).with("/proc/sys/crypto/fips_enabled").and_return(false)
+        end
+
+        it "does not report an error if the FIPS mode is not supported" do
+          expect(Yast::Report).to_not receive(:Error)
+          Yast::Packages.ComputeSystemPatternList
+        end
       end
 
-      it "does not add 'fips' pattern if fips=1 boot parameter is not used" do
-        expect(Yast::Linuxrc).to receive(:InstallInf).with("Cmdline").and_return("foo bar")
-        expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+      context "kernel supports the FIPS mode" do
+        before do
+          expect(File).to receive(:exist?).with("/proc/sys/crypto/fips_enabled").and_return(true)
+        end
+
+        it "does not report an error if the FIPS mode is not active" do
+          expect(File).to receive(:read).with("/proc/sys/crypto/fips_enabled").and_return("0\n")
+          expect(Yast::Report).to_not receive(:Error)
+          Yast::Packages.ComputeSystemPatternList
+        end
+
+        it "reports an error if the FIPS mode is active" do
+          expect(File).to receive(:read).with("/proc/sys/crypto/fips_enabled").and_return("1\n")
+          expect(Yast::Report).to receive(:Error).with(/the 'fips' pattern is not available/)
+          Yast::Packages.ComputeSystemPatternList
+        end
+
+        it "does not add 'fips' pattern if the FIPS mode is active" do
+          expect(File).to receive(:read).with("/proc/sys/crypto/fips_enabled").and_return("1\n")
+          expect(Yast::Packages.ComputeSystemPatternList).to_not include("fips")
+        end
       end
     end
   end
