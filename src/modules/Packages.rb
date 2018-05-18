@@ -2422,17 +2422,41 @@ module Yast
         end
       end
 
-      # FIPS pattern
-      if (Linuxrc.InstallInf("Cmdline") || "").split.include?("fips=1")
-        fips_pattern = "fips"
-        if !Pkg.ResolvableProperties(fips_pattern, :pattern, "").empty?
-          log.info "fips=1 boot option detected, adding '#{fips_pattern}' pattern"
-          pattern_list << fips_pattern
-        end
+      # is the FIPS compliant mode enabled?
+      return pattern_list unless File.exist?(FIPS_FILE) && File.read(FIPS_FILE).chomp == "1"
+
+      # install the FIPS pattern when the FIPS mode is enabled
+      # see https://en.wikipedia.org/wiki/FIPS_140-2 for more details
+      if Pkg.ResolvableProperties(FIPS_PATTERN, :pattern, "").empty?
+        # TRANSLATORS: error popup, use at most 70 characters per line
+        # the %{fips_option} string is replaced by the FIPS boot option ("fips=1"),
+        # the %{fips_pattern} is replaced by the FIPS pattern name ("fips").
+        Report.Error(_("The FIPS compliant mode has been enabled\n" \
+          "but the '%{fips_pattern}' pattern is not available to install.\n\n" \
+          "The installation will very likely fail and the installed system\n" \
+          "might not work properly.\n\n" \
+          "Either add an additional software repository providing\n" \
+          "the '%{fips_pattern}' pattern or reboot the installation\n"\
+          "without the '%{fips_option}' boot option.") %
+            { fips_option: FIPS_BOOT_OPTION, fips_pattern: FIPS_PATTERN })
+      else
+        log.info "#{FIPS_BOOT_OPTION} boot option detected, adding '#{FIPS_PATTERN}' pattern"
+        pattern_list << FIPS_PATTERN
       end
 
       pattern_list
     end
+
+    # the name of the FIPS pattern
+    FIPS_PATTERN = "fips".freeze
+    # the kernel boot option which activates the FIPS behavior
+    FIPS_BOOT_OPTION = "fips=1".freeze
+    # the kernel file indicating whether the FIPS mode is supported and active
+    # - if the kernel does not support the FIPS mode the file does not exist (openSUSE)
+    # - if the kernel supports the FIPS mode the file exists (SLES)
+    #   - if the FIPS mode is not active "0\n" is read
+    #   - if the FIPS mode is active "1\n" is read
+    FIPS_FILE = "/proc/sys/crypto/fips_enabled".freeze
 
     # Log only resolvables with resolvable["status"] matching these below
     LOG_RESOLVABLE_STATUS = [:selected, :removed].freeze
