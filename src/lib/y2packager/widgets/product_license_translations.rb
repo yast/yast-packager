@@ -85,6 +85,7 @@ module Y2Packager
       # Available license translations
       #
       # When running on textmode, only the preselected/given language is considered.
+      # see #default_language for further details.
       #
       # @return [Array<String>] Locale codes of the available translations
       # @see #default_language
@@ -96,6 +97,7 @@ module Y2Packager
       # License translation language
       #
       # When running on textmode, it returns the preselected/default language.
+      # see #default_language for further details.
       #
       # @return [String] License content language
       # @see #default_language
@@ -108,9 +110,15 @@ module Y2Packager
 
       # Default language
       #
-      # During 1st stage, it returns the preselected language (from install.inf). On an installed
-      # system, it prefers the given language. Finally, if the license translation is not available,
-      # the fallback language is returned.
+      # For some languages (like Japanese, Chinese or Korean) YaST needs to use a fbiterm in order
+      # to display symbols correctly when running on textmode.  However, if none of those languages
+      # is selected on boot, this special terminal won't be used.
+      #
+      # So during 1st stage and when running in textmode, it returns the preselected language (from
+      # install.inf).
+      #
+      # On an installed system, it prefers the given language. Finally, if the license translation
+      # is not available, the fallback language is returned.
       #
       # @return [String] Language code
       def default_language
