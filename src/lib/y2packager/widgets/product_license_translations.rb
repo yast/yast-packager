@@ -115,7 +115,8 @@ module Y2Packager
       # @return [String] Language code
       def default_language
         candidate_lang = Yast::Stage.initial ? Yast::Language.preselected : language
-        return candidate_lang if product.license_locales.include?(candidate_lang)
+        translated = product.license_locales.any? { |l| candidate_lang.start_with?(l) }
+        return candidate_lang if translated
         DEFAULT_FALLBACK_LANGUAGE
       end
     end

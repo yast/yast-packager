@@ -24,7 +24,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
 
   let(:language) { "de_DE" }
   let(:product) do
-    instance_double(Y2Packager::Product, license_locales: ["en_US", "es_ES"], license: "content")
+    instance_double(Y2Packager::Product, license_locales: ["en_US", "ja"], license: "content")
   end
 
   describe "#contents" do
@@ -41,7 +41,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
     end
 
     context "when running on textmode" do
-      let(:preselected) { "es_ES" }
+      let(:preselected) { "ja_JP" }
 
       before do
         allow(Yast::UI).to receive(:TextMode).and_return(true)
@@ -83,7 +83,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
 
       context "on the installed system" do
         let(:initial) { false }
-        let(:language) { "es_ES" }
+        let(:language) { "ja_JP" }
 
         it "the language selector includes only the default language" do
           expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
