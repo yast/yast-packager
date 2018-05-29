@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 29 14:27:25 UTC 2018 - jsrain@suse.cz
+
+- rename SLES_HPC => SLE_HPC (bsc#1095053)
+- 4.0.65
+
+-------------------------------------------------------------------
 Tue May 29 11:12:41 UTC 2018 - igonzalezsosa@suse.com
 
 - When running the installation in textmode, consider only the
