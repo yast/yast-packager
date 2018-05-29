@@ -25,7 +25,8 @@ module Y2Packager
     # This client shows a license confirmation dialog for the upgraded base product
     #
     # The client will display an error and return :back if not product is found.
-    # If no license is found for the selected product it returns :auto.
+    # It returns true if no license is found or if the license was already
+    # accepted for the selected product.
     # The license is not displayed when going back in the workflow.
     # @see Y2Packager::Clients::InstProductLicense
     class InstProductUpgradeLicense < InstProductLicense
@@ -43,7 +44,7 @@ module Y2Packager
           return :back
         end
 
-        return :auto unless available_license?
+        return :auto if !available_license? || license_confirmed?
 
         log.info "Displaying license for product: #{product.inspect}"
 
