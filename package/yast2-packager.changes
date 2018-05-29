@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 29 11:12:41 UTC 2018 - igonzalezsosa@suse.com
+
+- When running the installation in textmode, consider only the
+  preselected language when showing the license (bsc#1094793).
+- 4.0.64
+
+-------------------------------------------------------------------
 Thu May 17 10:51:58 UTC 2018 - lslezak@suse.cz
 
 - Display an error popup when the FIPS compliant mode is active
