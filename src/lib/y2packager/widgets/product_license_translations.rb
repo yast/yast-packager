@@ -15,6 +15,9 @@ require "cwm"
 require "y2packager/widgets/simple_language_selection"
 require "y2packager/widgets/product_license"
 
+Yast.import "UI"
+Yast.import "Stage"
+
 module Y2Packager
   module Widgets
     # This widget display license translations for a given product
@@ -68,15 +71,52 @@ module Y2Packager
       # @return [Y2Packager::Widgets::SimpleLanguageSelection]
       def language_selection
         @language_selection ||=
-          Y2Packager::Widgets::SimpleLanguageSelection.new(product.license_locales, language)
+          Y2Packager::Widgets::SimpleLanguageSelection.new(available_locales, content_language)
       end
 
-      # Product  selection widget
+      # Product selection widget
       #
       # @return [Widgets::ProductLicenseContent]
       def product_license
         @product_license ||=
-          Y2Packager::Widgets::ProductLicenseContent.new(product, language)
+          Y2Packager::Widgets::ProductLicenseContent.new(product, content_language)
+      end
+
+      # Available license translations
+      #
+      # When running on textmode, only the preselected/given language is considered.
+      #
+      # @return [Array<String>] Locale codes of the available translations
+      # @see #default_language
+      def available_locales
+        return product.license_locales unless Yast::UI.TextMode
+        [default_language]
+      end
+
+      # License translation language
+      #
+      # When running on textmode, it returns the preselected/default language.
+      #
+      # @return [String] License content language
+      # @see #default_language
+      def content_language
+        Yast::UI.TextMode ? default_language : language
+      end
+
+      # @return [String] Fallback language
+      DEFAULT_FALLBACK_LANGUAGE = "en_US".freeze
+
+      # Default language
+      #
+      # During 1st stage, it returns the preselected language (from install.inf). On an installed
+      # system, it prefers the given language. Finally, if the license translation is not available,
+      # the fallback language is returned.
+      #
+      # @return [String] Language code
+      def default_language
+        candidate_lang = Yast::Stage.initial ? Yast::Language.preselected : language
+        return candidate_lang if product.license_locales.include?(candidate_lang)
+        DEFAULT_FALLBACK_LANGUAGE
       end
     end
   end
