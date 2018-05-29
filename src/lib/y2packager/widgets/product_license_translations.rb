@@ -90,8 +90,7 @@ module Y2Packager
       # @return [Array<String>] Locale codes of the available translations
       # @see #default_language
       def available_locales
-        return product.license_locales unless Yast::UI.TextMode
-        [default_language]
+        Yast::UI.TextMode ? [default_language] : product.license_locales
       end
 
       # License translation language
