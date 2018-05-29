@@ -657,6 +657,9 @@ module Yast
       ret
     end
 
+    # @return [Array<String>] Fallback languages
+    DEFAULT_FALLBACK_LANGUAGES = ["en_US", "en"].freeze
+
     # FIXME: this is needed only by yast2-registration, fix it later
     # and make this method private
     #
@@ -669,6 +672,18 @@ module Yast
     # @param [String] caption dialog title
     def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
       languages = deep_copy(languages)
+
+      # For some languages (like Japanese, Chinese or Korean) YaST needs to use a fbiterm in order
+      # to display symbols correctly when running on textmode. To avoid such problems, consider only
+      # the preselected (on installation) or the default language (on running system). See
+      # bsc#1094793 for further information.
+      if Yast::UI.TextMode
+        lang = default_language
+        candidate_languages = [lang, lang[0..1]] + DEFAULT_FALLBACK_LANGUAGES
+        license_language = (candidate_languages & languages).first || ""
+        languages = [license_language]
+        log.info "Adjusted license language to #{license_language}"
+      end
 
       contents = (
         licenses_ref = arg_ref(licenses.value)
@@ -1695,7 +1710,8 @@ module Yast
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|
-          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
+          license_locale = Yast::UI.TextMode ? default_language : locale
+          license = Pkg.PrdGetLicenseToConfirm(product_name, license_locale)
           next if license.nil? || license.empty?
 
           found_license = true
@@ -1730,6 +1746,13 @@ module Yast
       path = File.join(repo["product_dir"], "repodata", "*-license*.tar.gz")
       log.info("License path: #{path}")
       path
+    end
+
+    # Return the default language to be used in licenses
+    #
+    # @return [String] Default language
+    def default_language
+      Yast::Stage.initial ? Yast::Language.preselected : Yast::Language.language
     end
   end
 
