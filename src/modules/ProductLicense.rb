@@ -675,8 +675,8 @@ module Yast
 
       # For some languages (like Japanese, Chinese or Korean) YaST needs to use a fbiterm in order
       # to display symbols correctly when running on textmode. To avoid such problems, consider only
-      # the preselected (on installation) or the default language (on running system). See
-      # bsc#1094793 for further information.
+      # the preselected (on installation) or the default language (on running system). This will
+      # setup fbiterm correctly. See bsc#1094793 for further information.
       if Yast::UI.TextMode
         lang = default_language
         candidate_languages = [lang, lang[0..1]] + DEFAULT_FALLBACK_LANGUAGES
