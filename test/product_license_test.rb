@@ -12,6 +12,75 @@ describe Yast::ProductLicense do
   let(:beta_file) { "README.BETA" }
   subject { Yast::ProductLicense }
 
+  describe "#DisplayLicenseDialogWithTitle (partial test)" do
+    context "when running in text mode" do
+      let(:langs) { ["en_US", "ja"] }
+      let(:lang) { "es_ES" }
+      let(:licenses) { Yast.arg_ref("en_US" => "en_US license") }
+      let(:license_id) { "id" }
+      let(:preselected) { "ja_JP" }
+
+      before do
+        allow(Yast::Language).to receive(:GetLanguagesMap).and_return({})
+        allow(Yast::UI).to receive(:TextMode).and_return(true)
+        allow(Yast::Language).to receive(:preselected).and_return(preselected)
+        allow(Yast::Stage).to receive(:initial).and_return(initial)
+        allow(Yast::Language).to receive(:language).and_return(lang)
+      end
+
+      context "on the installation" do
+        let(:initial) { true }
+
+        it "uses the preselected language" do
+          expect(subject).to receive(:GetLicenseDialog)
+            .with(["ja"], "ja", anything, license_id, false)
+            .and_call_original
+          subject.DisplayLicenseDialogWithTitle(
+            langs, "Back", lang, licenses, license_id, "License"
+          )
+        end
+
+        context "when there is no translation for the preselected language" do
+          let(:preselected) { "es_ES" }
+
+          it "falls back to 'english'" do
+            expect(subject).to receive(:GetLicenseDialog)
+              .with(["en_US"], "en_US", anything, license_id, false)
+              .and_call_original
+            subject.DisplayLicenseDialogWithTitle(
+              langs, "Back", lang, licenses, license_id, "License"
+            )
+          end
+        end
+      end
+
+      context "on the installed system" do
+        let(:initial) { false }
+        let(:lang) { "ja_JP" }
+
+        it "uses the default language" do
+          expect(subject).to receive(:GetLicenseDialog)
+            .with(["ja"], "ja", anything, license_id, false)
+          subject.DisplayLicenseDialogWithTitle(
+            langs, "Back", lang, licenses, license_id, "License"
+          )
+        end
+
+        context "when there is no translation for the default language" do
+          let(:lang) { "es_ES" }
+
+          it "falls back to 'english'" do
+            expect(subject).to receive(:GetLicenseDialog)
+              .with(["en_US"], "en_US", anything, license_id, false)
+            subject.DisplayLicenseDialogWithTitle(
+              langs, "Back", lang, licenses, license_id, "License"
+            )
+          end
+        end
+      end
+    end
+  end
+
   describe "#HandleLicenseDialogRet" do
     before(:each) do
       # By default, always exit the dialog with :accepted (all licenses accepted)

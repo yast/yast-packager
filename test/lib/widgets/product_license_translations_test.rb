@@ -64,7 +64,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
           widget.contents
         end
 
-        context "when there is not translation for the preselected language" do
+        context "when there is no translation for the preselected language" do
           let(:preselected) { "hu_HU" }
 
           it "the language selector includes only 'english'" do
