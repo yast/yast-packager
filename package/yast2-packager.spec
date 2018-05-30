@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.0.63
+Version:        4.0.67
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

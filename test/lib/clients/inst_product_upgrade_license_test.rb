@@ -56,6 +56,11 @@ describe Y2Packager::Clients::InstProductUpgradeLicense do
         expect(subject.main).to eq(:auto)
       end
 
+      it "returns :auto if the product license was already accepted" do
+        expect(product).to receive(:license_confirmed?).at_least(:once).and_return(true)
+        expect(subject.main).to eq(:auto)
+      end
+
       it "displays the product license" do
         allow(Yast::Language).to receive(:language).and_return("en_US")
         expect_any_instance_of(Y2Packager::Dialogs::InstProductLicense).to receive(:run)
