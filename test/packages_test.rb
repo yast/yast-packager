@@ -36,7 +36,8 @@ end
 
 PRODUCTS_FROM_ZYPP = load_zypp('products.yml').freeze
 
-describe Yast::Packages do
+describe "Yast::Packages" do
+  subject { Yast::Packages }
   before(:each) do
     log.info "--- test ---"
   end
@@ -1208,6 +1209,120 @@ describe Yast::Packages do
       subject.Initialize_BaseInit(false, @base_url, @log_url)
       expect(@base_url.value).to eq "cd:/?device=/dev/disk/by-id/scsi-S__%5Cx5b"
       expect{URI.parse(@base_url.value)}.to_not raise_error
+    end
+  end
+
+  # helper for the #repo_schemes tests to mock the repository configuration
+  def expect_source_urls(mapping)
+    expect(Yast::Pkg).to receive(:SourceGetCurrent).with(true).and_return(mapping.keys)
+
+    mapping.each do |id, url|
+      expect(Yast::Pkg).to receive(:SourceURL).with(id).and_return(url)
+    end
+  end
+
+  describe "#repo_schemes" do
+    it "returns empty list if no repository is defined" do
+      expect_source_urls({})
+      expect(subject.repo_schemes).to eq([])
+    end
+
+    it "returns all used schemes" do
+      expect_source_urls(
+        0 => "http://example.com",
+        1 => "https://example.com",
+        2 => "ftp://example.com",
+        3 => "dir:///packages",
+        4 => "dvd:///"
+      )
+      expect(subject.repo_schemes).to eq(["http", "https", "ftp", "dir", "dvd"])
+    end
+
+    it "returns unique list" do
+      expect_source_urls(
+        0 => "http://example.com",
+        1 => "http://example2.com",
+        7 => "ftp://example.com",
+        8 => "ftp://example2.com"
+      )
+      expect(subject.repo_schemes).to eq(["http", "ftp"])
+    end
+
+    it "returns the scheme of the base URL for ISO scheme" do
+      expect_source_urls(
+        # ISO over NFS, see "man zypper"
+        0 => "iso:/subdir?iso=DVD1.iso&url=nfs://server/dir&mnt=/nfs&filesystem=udf"
+      )
+      expect(subject.repo_schemes).to eq(["nfs"])
+    end
+
+    it "converts the scheme names to lower case" do
+      expect_source_urls(
+        0 => "HTTP://example.com",
+        8 => "FTP://example2.com"
+      )
+      expect(subject.repo_schemes).to eq(["http", "ftp"])
+    end
+
+    it "ignores invalid URL" do
+      expect_source_urls(0 => ":")
+      expect(subject.repo_schemes).to eq([])
+    end
+
+    it "ignores incomplete ISO URL (missing 'url' parameter)" do
+      expect_source_urls(0 => "iso:/subdir?iso=DVD1.iso&mnt=/nfs&filesystem=udf")
+      expect(subject.repo_schemes).to eq([])
+    end
+
+    it "ignores incomplete ISO URL (empty 'url' parameter)" do
+      expect_source_urls(0 => "iso:/subdir?iso=DVD1.iso&url=&mnt=/nfs&filesystem=udf")
+      expect(subject.repo_schemes).to eq([])
+    end
+
+    it "ignores invalid ISO URL (invalid 'url' parameter)" do
+      expect_source_urls(
+        0 => "iso:/subdir?iso=DVD1.iso&url=:&filesystem=udf"
+      )
+      expect(subject.repo_schemes).to eq([])
+    end
+  end
+
+  describe "#sourceAccessPackages" do
+    it "returns empty list if no repository is defined" do
+      expect(subject).to receive(:repo_schemes).and_return([])
+      expect(subject.sourceAccessPackages).to eq([])
+    end
+
+    # these do not need any extra package to access them
+    it "returns empty list for http(s), ftp, hd, cd, dvd and dir schemes" do
+      schemes = ["http", "https", "ftp", "hd", "cd", "dvd", "dir"]
+      expect(subject).to receive(:repo_schemes).and_return(schemes)
+      expect(subject.sourceAccessPackages).to eq([])
+    end
+
+    it "returns 'nfs-client' for nfs scheme" do
+      schemes = ["nfs"]
+      expect(subject).to receive(:repo_schemes).and_return(schemes)
+      expect(subject.sourceAccessPackages).to eq(["nfs-client"])
+    end
+
+    it "returns 'cifs-mount' for smb scheme" do
+      schemes = ["smb"]
+      expect(subject).to receive(:repo_schemes).and_return(schemes)
+      expect(subject.sourceAccessPackages).to eq(["cifs-mount"])
+    end
+
+    it "returns 'cifs-mount' for cifs scheme" do
+      schemes = ["cifs"]
+      expect(subject).to receive(:repo_schemes).and_return(schemes)
+      expect(subject.sourceAccessPackages).to eq(["cifs-mount"])
+    end
+
+    it "returns 'cifs-mount' and 'nfs-client' for smb and nfs schemes" do
+      schemes = ["cifs", "nfs"]
+      expect(subject).to receive(:repo_schemes).and_return(schemes)
+      # sort the result to make it order independent
+      expect(subject.sourceAccessPackages.sort).to eq(["cifs-mount", "nfs-client"])
     end
   end
 end
