@@ -1396,17 +1396,11 @@ module Yast
     end
 
     def SortReposByPriority(repos)
-      repos = deep_copy(repos)
       # check the input
-      return deep_copy(repos) if repos.nil?
+      return nil unless repos
 
-      # sort the maps by "repos" key (in ascending order)
-      ret = Builtins.sort(repos) do |repo1, repo2|
-        Ops.less_than(
-          Ops.get_integer(repo1, "priority", @default_priority),
-          Ops.get_integer(repo2, "priority", @default_priority)
-        )
-      end
+      # sort the maps by "repos" key (in ascending order) and if same use name (bsc#957372)
+      ret = repos.sort_by { |r| [r.fetch("priority", @default_priority), r["name"]] }
 
       Builtins.y2milestone("SortReposByPriority: %1 -> %2", repos, ret)
 
