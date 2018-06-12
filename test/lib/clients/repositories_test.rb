@@ -105,4 +105,46 @@ describe Yast::RepositoriesClient do
       end
     end
   end
+
+  describe "#SortReposByPriority" do
+    it "returns nil if param is nil" do
+      expect(client.SortReposByPriority(nil)).to eq nil
+    end
+
+    it "returns input sort by priorities" do
+      repos = [
+        { "priority" => 10, "name" => "repo1" },
+        { "priority" => 30, "name" => "repo2" },
+        { "priority" => 20, "name" => "repo3" }
+      ]
+
+      expected_output = [
+        { "priority" => 10, "name" => "repo1" },
+        { "priority" => 20, "name" => "repo3" },
+        { "priority" => 30, "name" => "repo2" }
+      ]
+
+      expect(client.SortReposByPriority(repos)).to eq expected_output
+    end
+
+    it "sorts by name when priority is same" do
+      repos = [
+        { "priority" => 10, "name" => "repo1" },
+        { "priority" => 30, "name" => "repo2" },
+        { "priority" => 20, "name" => "repo4" },
+        { "priority" => 20, "name" => "repo3" },
+        { "priority" => 20, "name" => "repo5" }
+      ]
+
+      expected_output = [
+        { "priority" => 10, "name" => "repo1" },
+        { "priority" => 20, "name" => "repo3" },
+        { "priority" => 20, "name" => "repo4" },
+        { "priority" => 20, "name" => "repo5" },
+        { "priority" => 30, "name" => "repo2" }
+      ]
+
+      expect(client.SortReposByPriority(repos)).to eq expected_output
+    end
+  end
 end
