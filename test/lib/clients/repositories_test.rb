@@ -111,7 +111,7 @@ describe Yast::RepositoriesClient do
       expect(client.SortReposByPriority(nil)).to eq nil
     end
 
-    it "returns input sort by priorities" do
+    it "sorts by priorities" do
       repos = [
         { "priority" => 10, "name" => "repo1" },
         { "priority" => 30, "name" => "repo2" },
