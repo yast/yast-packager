@@ -13,6 +13,7 @@ X-SuSE-YaST-AutoInst=
 X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
+X-SuSE-YaST-Keywords=software,packages,rpm,repositories
 
 Icon=yast-sw_source
 Exec=xdg-su -c "/sbin/yast2 repositories"
