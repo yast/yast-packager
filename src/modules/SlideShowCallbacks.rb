@@ -10,9 +10,12 @@
 # $Id$
 #
 require "yast"
+require "pathname"
 
 module Yast
   class SlideShowCallbacksClass < Module
+    include Yast::Logger
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -300,8 +303,13 @@ module Yast
         if pkgdu != nil
           # check each mount point
           Builtins.foreach(pkgdu) do |part, data|
+            # disk sizes from libzypp, in KiB!
+            _disk_size, used_now, used_future, read_only = *data
+            # the size difference, how much the package needs on this partition
+            required_space = used_future - used_now
+
             # skip read-only partitions, the package cannot be installed anyway
-            if Ops.get(data, 3, 0) == 1
+            if read_only == 1
               Builtins.y2debug("Skipping read-only partition %1", part)
               next
             end
@@ -310,6 +318,24 @@ module Yast
                 Builtins.substring(part, 0, 1) != "/"
               part = Ops.add("/", part)
             end
+
+            # nothing to install on this partition, skip it (bsc#926841)
+            if required_space <= 0
+              log.debug("Nothing to install at #{part}, skipping")
+              next
+            end
+
+            target_dir = File.join(Installation.destdir, part)
+
+            # handle missing directories (not existing yet or incorrect metadata),
+            # if the directory does not exist then go up, normally it should
+            # stop at Installation.destdir (but it will stop at "/" at last)
+            until File.exist?(target_dir)
+              log.warn("Directory #{target_dir} does not exist")
+              target_dir = Pathname.new(target_dir).parent.to_s
+              log.info("Checking the parent directory (#{target_dir})")
+            end
+
             target_dir = Ops.add(Installation.destdir, part)
             disk_available = Pkg.TargetAvailable(target_dir)
             Builtins.y2debug(
@@ -318,13 +344,19 @@ module Yast
               target_dir,
               disk_available
             )
-            if Ops.less_than(disk_available, Ops.get(data, 2, 0))
+
+            if disk_available < 0
+              log.debug("Data overflow, too much free space available, skipping the check")
+              next
+            end
+
+            if disk_available < required_space
               Builtins.y2warning(
-                "Not enought free space in %1 (%2): available: %3, required: %4",
+                "Not enough free space in %1 (%2): available: %3, required: %4",
                 part,
                 target_dir,
                 disk_available,
-                Ops.get(data, 2, 0)
+                required_space
               )
 
               cont = YesNoAgainWarning(
@@ -354,7 +386,9 @@ module Yast
             disk_available
           )
 
-          if Ops.less_than(disk_available, pkg_size)
+          if disk_available < 0
+            log.debug("Data overflow, too much free space available, skipping the check")
+          elsif disk_available < pkg_size
             Builtins.y2warning(
               "Not enough free space in %1: available: %2, required: %3",
               Installation.destdir,
