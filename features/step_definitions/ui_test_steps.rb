@@ -4,10 +4,15 @@ require "uri"
 require "timeout"
 require "socket"
 
+class WidgetNotFound < RuntimeError
+end
+
 def send_request(method, path, params = {})
   uri = URI("http://#{@app_host}:#{@app_port}")
   uri.path = path
   uri.query = URI.encode_www_form(params)
+
+  puts "Query: #{uri}" if ENV["DEBUG"]
 
   if method == :get
     res = Net::HTTP.get_response(uri)
@@ -25,7 +30,7 @@ def send_request(method, path, params = {})
   if res.is_a?(Net::HTTPSuccess)
     res.body.empty? ? nil : JSON.parse(res.body)
   elsif res.is_a?(Net::HTTPNotFound)
-    raise "Widget not found"
+    raise WidgetNotFound, "Widget not found"
   else
     raise "Error code: #{res.code} #{res.message}"
   end
@@ -73,10 +78,15 @@ def timed_retry(seconds, &block)
   timeout = DEFAULT_TIMEOUT if timeout == 0
 
   Timeout.timeout(timeout) do
-    loop do
-      break if block.call
-      puts "Retrying..." if ENV["DEBUG"]
+    begin
+      loop do
+        break if block.call
+        puts "Retrying..." if ENV["DEBUG"]
+        sleep(1)
+      end
+    rescue WidgetNotFound
       sleep(1)
+      retry
     end
   end
 end
@@ -98,10 +108,14 @@ WIDGET_REGEXP = "(widget|label|check(?: )?box|radio(?: )?button|(?:push(?: )?)?b
 
 Then(/^the dialog heading should be "(.*)"#{TIMEOUT_REGEXP}$/) do |heading, seconds|
   timed_retry(seconds) do
-    # FIXME: non-wizard windows use "Heading" widget:
-    # test case:
-    # read_widget(type: "YLabel_Heading")["debug_label"] == heading
-    read_widget(type: "YWizard")["debug_label"] == heading
+    dialog_type = read_widget(type: "YDialog")["type"]
+
+    if dialog_type == "wizard"
+      read_widget(type: "YWizard")["debug_label"] == heading
+    else
+      # non-wizard windows (ncurses) use "Heading" widget
+      read_widget(type: "YLabel_Heading")["debug_label"] == heading
+    end
   end
 end
 

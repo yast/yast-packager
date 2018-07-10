@@ -13,7 +13,7 @@ Feature: To install the 3rd party packages I must be able to add a new package
   Scenario: Aborting the repository manager keeps the old settings
 
     Given I start the "/usr/sbin/yast2 repositories" application
-    Then the dialog heading should be "Configured Software Repositories"
+    Then the dialog heading should be "Configured Software Repositories" in 10 seconds
 
     When I click button "Add"
     Then the dialog heading should be "Add On Product"
@@ -23,11 +23,10 @@ Feature: To install the 3rd party packages I must be able to add a new package
 
     When I enter "Tumbleweed OSS" into input field "Repository Name"
     And I enter "https://download.opensuse.org/tumbleweed/repo/oss/" into input field "URL"
-    And I click button "Next"
-    Then the dialog heading should be "Tumbleweed OSS License Agreement" in 60 seconds
 
     When I click button "Next"
-    Then the dialog heading should be "Configured Software Repositories"
+    # refreshing the repository might take some time...
+    Then the dialog heading should be "Configured Software Repositories" in 60 seconds
 
     When I click button "Cancel"
     Then a popup should be displayed
@@ -54,11 +53,10 @@ Feature: To install the 3rd party packages I must be able to add a new package
 
     When I enter "Tumbleweed OSS" into input field "Repository Name"
     And I enter "https://download.opensuse.org/tumbleweed/repo/oss/" into input field "URL"
-    And I click button "Next"
-    Then the dialog heading should be "Tumbleweed OSS License Agreement" in 60 seconds
 
     When I click button "Next"
-    Then the dialog heading should be "Configured Software Repositories"
+    # refreshing the repository might take some time...
+    Then the dialog heading should be "Configured Software Repositories" in 60 seconds
 
     Then I click button "OK"
     And I wait for the application to finish for up to 60 seconds
