@@ -42,6 +42,12 @@ end
 def start_app(application)
   @app_host = "localhost"
   @app_port = set_port
+
+  # another app already running?
+  if port_open?(@app_host, @app_port)
+    raise "The port #{@app_host}:#{@app_port} is already open!"
+  end
+
   # create a new process group so we can easily kill it will all subprocesses
   @app_pid = spawn(application, pgroup: true)
   wait_for_port(@app_host, @app_port)

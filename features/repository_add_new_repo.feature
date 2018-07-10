@@ -12,6 +12,8 @@ Feature: To install the 3rd party packages I must be able to add a new package
   @read-only @network
   Scenario: Aborting the repository manager keeps the old settings
 
+    # Given I start the "tmux new-session -d '/usr/sbin/yast repositories'" application
+    # Given I start the "xterm -e '/usr/sbin/yast repositories'" application
     Given I start the "/usr/sbin/yast2 repositories" application
     Then the dialog heading should be "Configured Software Repositories" in 10 seconds
 
