@@ -53,11 +53,28 @@ def start_app(application)
   wait_for_port(@app_host, @app_port)
 end
 
+# attach to an already runnign application
+# @param host [String] the host name ("localhost" when running on the same machine)
+def attach(host, port)
+  @app_host = host
+  @app_port = sport
+
+  # is the app running?
+  if !port_open?(@app_host, @app_port)
+    raise "Cannot attach to #{@app_host}:#{@app_port}!"
+  end
+end
+
 Given(/^I start the "(.*)" application$/) do |application|
   start_app(application)
 end
 
+Given(/^I attach to the application running at "(.*)" port "(.*)"$/) do |host, port|
+  attach(host, port)
+end
+
 Then(/^I wait for the application to finish(?: for up to (\d+) seconds)?$/) do |seconds|
+  raise "Unknown process PID" unless @app_pid
   timeout = seconds.to_i
   timeout = DEFAULT_TIMEOUT if timeout == 0
 
