@@ -73,6 +73,10 @@ def matching_label(widgets, rexp)
   widgets.select { |w| regexp.match(w["debug_label"]) || regexp.match(w["label"]) }
 end
 
+def with_id(widgets, id)
+  widgets.select { |w| w["id"] == id }
+end
+
 def timed_retry(seconds, &block)
   timeout = seconds.to_i
   timeout = DEFAULT_TIMEOUT if timeout == 0
@@ -97,6 +101,7 @@ WIDGET_MAPPING = {
   "check box" => "YCheckBox",
   "radiobutton" => "YRadioButton",
   "radio button" => "YRadioButton",
+  # um, there is also YQWizardButton class...
   "pushbutton" => "YPushButton",
   "push button" => "YPushButton",
   "button" => "YPushButton",
@@ -119,7 +124,55 @@ Then(/^the dialog heading should be "(.*)"#{TIMEOUT_REGEXP}$/) do |heading, seco
   end
 end
 
-Then(/^(?:a |the )?#{WIDGET_REGEXP}(?:having )?(matching |including |)"(.*)"(label )? should be displayed#{TIMEOUT_REGEXP}$/) \
+Then(/^(?:a |the )?(?:combobox|ComboBox|combo box) (?:having )?(matching |including |)(label |id )?"(.*)" should (not |NOT |)have value "(.*)"#{TIMEOUT_REGEXP}$/)\
+  do |match, id_type, id, is_not, value, seconds|
+  timed_retry(seconds) do
+    widgets = read_widgets(type: "YComboBox")
+
+    if (id_type != "id ")
+      widgets = case match
+      when ""
+        with_label(widgets, id)
+      when "matching "
+        matching_label(widgets, id)
+      when "including "
+        including_label(widgets, id)
+      end
+    else
+      widgets = with_id(id)
+    end
+
+    widgets.all? do |w|
+      # TODO: simplify by using "value" widget attribute
+      item = w["items"].find{|i| i["label"] == value}
+      is_not.empty? ? item["selected"] == true : item["selected"] != true
+    end
+  end
+end
+
+Then(/^(?:a |the )?(?:radiobutton|RadioButton|radio button) (?:having )?(matching |including |)(label |id )?"(.*)" should (not |NOT |)be selected#{TIMEOUT_REGEXP}$/)\
+  do |match, identification, value, is_not, seconds|
+  timed_retry(seconds) do
+      widgets = read_widgets(type: "YRadioButton")
+
+      if (identification != "id ")
+        widgets = case match
+        when ""
+          with_label(widgets, value)
+        when "matching "
+          matching_label(widgets, value)
+        when "including "
+          including_label(widgets, value)
+        end
+      else
+        widgets = with_id(value)
+      end
+    expected = is_not.empty?
+    widgets.all?{|w| w["value"] == expected}
+  end
+end
+
+Then(/^(?:a |the )?#{WIDGET_REGEXP}(?:having )?(matching |including |)"(.*)"( label)? should be displayed#{TIMEOUT_REGEXP}$/) \
 do |type, match, label, label_type, seconds|
   timed_retry(seconds) do
     widgets = read_widgets(type: WIDGET_MAPPING[type])

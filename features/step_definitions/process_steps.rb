@@ -57,7 +57,7 @@ end
 # @param host [String] the host name ("localhost" when running on the same machine)
 def attach(host, port)
   @app_host = host
-  @app_port = sport
+  @app_port = port
 
   # is the app running?
   if !port_open?(@app_host, @app_port)
