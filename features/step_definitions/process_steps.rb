@@ -48,6 +48,7 @@ def start_app(application)
     raise "The port #{@app_host}:#{@app_port} is already open!"
   end
 
+  puts "Starting #{application}..."
   # create a new process group so we can easily kill it will all subprocesses
   @app_pid = spawn(application, pgroup: true)
   wait_for_port(@app_host, @app_port)
@@ -65,7 +66,12 @@ def attach(host, port)
   end
 end
 
-Given(/^I start the "(.*)" application$/) do |application|
+Given(/^I start the "(.*)" command$/) do |application|
+  start_app(application)
+end
+
+Given(/^I start (?:.*)application$/) do
+  application = ENV["TEST_TARGET_COMMAND"]
   start_app(application)
 end
 

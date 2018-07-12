@@ -15,6 +15,11 @@ require "aruba/cucumber"
 After("not @keep_running") do
   if @app_pid
     begin
+      for _i in 1..5 do
+        Process.waitpid(@app_pid, Process::WNOHANG)
+        sleep(1)
+      end
+
       Process.waitpid(@app_pid, Process::WNOHANG)
       puts "The process is still running, sending TERM signal..."
       # the minus flag sends the signal to the whole process group
@@ -24,7 +29,7 @@ After("not @keep_running") do
       puts "The process is still running, sending KILL signal..."
       Process.kill("-KILL", @app_pid)
     rescue Errno::ECHILD, Errno::ESRCH
-      # the process has exited
+      # the process has already exited
       @app_pid = nil
     end
   end

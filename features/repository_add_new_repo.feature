@@ -14,7 +14,7 @@ Feature: To install the 3rd party packages I must be able to add a new package
 
     # Given I start the "tmux new-session -d '/usr/sbin/yast repositories'" application
     # Given I start the "xterm -e '/usr/sbin/yast repositories'" application
-    Given I start the "/usr/sbin/yast2 repositories" application
+    Given I start the "/usr/sbin/yast2 repositories" command
     Then the dialog heading should be "Configured Software Repositories" in 10 seconds
 
     When I click button "Add"
@@ -44,7 +44,7 @@ Feature: To install the 3rd party packages I must be able to add a new package
   @network
   Scenario: The remote repository is added to the system
 
-    Given I start the "/usr/sbin/yast2 repositories" application
+    Given I start the "/usr/sbin/yast2 repositories" command
     Then the dialog heading should be "Configured Software Repositories"
 
     When I click button "Add"

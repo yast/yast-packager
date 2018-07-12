@@ -129,8 +129,30 @@ Then(/^the dialog heading should be "(.*)"#{TIMEOUT_REGEXP}$/) do |heading, seco
   end
 end
 
+Then(/^(?:a |the )?(?:radiobutton|RadioButton|radio button) (?:having )?(matching |including |)(label |id )?"(.*)" should (not |NOT |) be selected#{TIMEOUT_REGEXP}$/)\
+  do |match, id_type, id, negative, value, seconds|
+  timed_retry(seconds) do
+    widgets = read_widgets(type: "YRadioButton")
+
+    if (id_type != "id ")
+      widgets = case match
+      when ""
+        with_label(widgets, id)
+      when "matching "
+        matching_label(widgets, id)
+      when "including "
+        including_label(widgets, id)
+      end
+    else
+      widgets = with_id(id)
+    end
+
+    widgets.all?{|w| w["value"] == value}
+  end
+end
+
 Then(/^(?:a |the )?(?:combobox|ComboBox|combo box) (?:having )?(matching |including |)(label |id )?"(.*)" should (not |NOT |)have value "(.*)"#{TIMEOUT_REGEXP}$/)\
-  do |match, id_type, id, is_not, value, seconds|
+  do |match, id_type, id, negative, value, seconds|
   timed_retry(seconds) do
     widgets = read_widgets(type: "YComboBox")
 
@@ -151,10 +173,10 @@ Then(/^(?:a |the )?(?:combobox|ComboBox|combo box) (?:having )?(matching |includ
   end
 end
 
-Then(/^(?:a |the )?(?:radiobutton|RadioButton|radio button) (?:having )?(matching |including |)(label |id )?"(.*)" should (not |NOT |)be selected#{TIMEOUT_REGEXP}$/)\
-  do |match, identification, value, is_not, seconds|
+Then(/^(?:a |the )?(?:checkbox|CheckBox|check box) (?:having )?(matching |including |)(label |id )?"(.*)" should (not |NOT |)be checked#{TIMEOUT_REGEXP}$/)\
+  do |match, identification, value, negative, seconds|
   timed_retry(seconds) do
-      widgets = read_widgets(type: "YRadioButton")
+      widgets = read_widgets(type: "YCheckBox")
 
       if (identification != "id ")
         widgets = case match
@@ -168,7 +190,7 @@ Then(/^(?:a |the )?(?:radiobutton|RadioButton|radio button) (?:having )?(matchin
       else
         widgets = with_id(value)
       end
-    expected = is_not.empty?
+    expected = negative.empty?
     widgets.all?{|w| w["value"] == expected}
   end
 end
