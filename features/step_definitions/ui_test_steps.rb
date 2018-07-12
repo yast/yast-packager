@@ -115,12 +115,17 @@ Then(/^the dialog heading should be "(.*)"#{TIMEOUT_REGEXP}$/) do |heading, seco
   timed_retry(seconds) do
     dialog_type = read_widget(type: "YDialog")["type"]
 
-    if dialog_type == "wizard"
-      read_widget(type: "YWizard")["debug_label"] == heading
+    label = if dialog_type == "wizard"
+      read_widget(type: "YWizard")["debug_label"]
     else
       # non-wizard windows (ncurses) use "Heading" widget
-      read_widget(type: "YLabel_Heading")["debug_label"] == heading
+      read_widget(type: "YLabel_Heading")["label"]
     end
+
+    # remove the shortcut markers, they are assigned dynamically
+    label.tr("&", "")
+
+    heading == label
   end
 end
 
@@ -142,11 +147,7 @@ Then(/^(?:a |the )?(?:combobox|ComboBox|combo box) (?:having )?(matching |includ
       widgets = with_id(id)
     end
 
-    widgets.all? do |w|
-      # TODO: simplify by using "value" widget attribute
-      item = w["items"].find{|i| i["label"] == value}
-      is_not.empty? ? item["selected"] == true : item["selected"] != true
-    end
+    widgets.all?{|w| w["value"] == value}
   end
 end
 

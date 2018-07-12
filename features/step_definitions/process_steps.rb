@@ -69,7 +69,16 @@ Given(/^I start the "(.*)" application$/) do |application|
   start_app(application)
 end
 
-Given(/^I attach to the application running at "(.*)" port "(.*)"$/) do |host, port|
+Given(/^I attach to the application running at "(.*)" port (\d+)"$/) do |host, port|
+  attach(host, port)
+end
+
+# get the hostname and port via environment - flexible testing without hardcoding
+# the data into the test description
+Given(/^I attach to (?:an |a )?(?:already )?runnig (?:.*)application$/) do
+  host = ENV["TEST_TARGET_HOSTNAME"]
+  port = ENV["TEST_TARGET_PORT"]
+  puts "Attaching to #{host}:#{port}..."
   attach(host, port)
 end
 
