@@ -337,6 +337,7 @@ module Yast
             end
 
             target_dir = Ops.add(Installation.destdir, part)
+            # the current free space (in bytes)
             disk_available = Pkg.TargetAvailable(target_dir)
             Builtins.y2debug(
               "partition: %1 (%2), available: %3",
@@ -350,7 +351,8 @@ module Yast
               next
             end
 
-            if disk_available < required_space
+            # we need to convert the size to KiB to compare it with the libzypp size
+            if (disk_available / 1024) < required_space
               Builtins.y2warning(
                 "Not enough free space in %1 (%2): available: %3, required: %4",
                 part,
@@ -377,7 +379,8 @@ module Yast
           end
         else
           # disk usage for each partition is not known
-          # assume that all files will be installed into the root directory
+          # assume that all files will be installed into the root directory,
+          # this is the current free space (in bytes)
           disk_available = Pkg.TargetAvailable(Installation.destdir)
 
           Builtins.y2milestone(
