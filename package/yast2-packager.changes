@@ -7,7 +7,7 @@ Mon Jul 16 11:19:03 UTC 2018 - lslezak@suse.cz
   where nothing is going to be installed (bsc#926841)
 - Back ported disk usage fix - check the parent directory if the
   target directory does not exist (yet) (bsc#1073696)
-- 3.2.27
+- 3.2.26.1
 
 -------------------------------------------------------------------
 Fri Apr 13 08:26:41 UTC 2018 - gsouza@suse.com
