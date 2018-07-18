@@ -286,9 +286,20 @@ module Yast
         if !pkgdu.nil?
           # check each mount point
           Builtins.foreach(pkgdu) do |part, data|
+            # disk sizes from libzypp, in KiB!
+            _disk_size, used_now, used_future, read_only = *data
+            # the size difference, how much the package needs on this partition
+            required_space = used_future - used_now
+
             # skip read-only partitions, the package cannot be installed anyway
-            if Ops.get(data, 3, 0) == 1
+            if read_only == 1
               Builtins.y2debug("Skipping read-only partition %1", part)
+              next
+            end
+
+            # nothing to install on this partition, skip it (bsc#926841)
+            if required_space <= 0
+              log.debug("Nothing to install at #{part}, skipping")
               next
             end
 
@@ -310,13 +321,20 @@ module Yast
               target_dir,
               disk_available
             )
-            if Ops.less_than(disk_available, Ops.get(data, 2, 0))
+
+            if disk_available < 0
+              log.debug("Data overflow, too much free space available, skipping the check")
+              next
+            end
+
+            # we need to convert the size to KiB to compare it with the libzypp size
+            if (disk_available / 1024) < required_space
               Builtins.y2warning(
                 "Not enough free space in %1 (%2): available: %3, required: %4",
                 part,
                 target_dir,
                 disk_available,
-                Ops.get(data, 2, 0)
+                required_space
               )
 
               cont = YesNoAgainWarning(
@@ -338,7 +356,8 @@ module Yast
           end
         else
           # disk usage for each partition is not known
-          # assume that all files will be installed into the root directory
+          # assume that all files will be installed into the root directory,
+          # this is the current free space (in bytes)
           disk_available = Pkg.TargetAvailable(Installation.destdir)
 
           Builtins.y2milestone(
@@ -347,7 +366,9 @@ module Yast
             disk_available
           )
 
-          if Ops.less_than(disk_available, pkg_size)
+          if disk_available < 0
+            log.debug("Data overflow, too much free space available, skipping the check")
+          elsif disk_available < pkg_size
             Builtins.y2warning(
               "Not enough free space in %1: available: %2, required: %3",
               Installation.destdir,
