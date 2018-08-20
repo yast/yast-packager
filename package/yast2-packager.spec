@@ -148,7 +148,7 @@ rake install DESTDIR="%{buildroot}"
 %{yast_scrconfdir}/*
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
-%doc %{yast_docdir}/COPYING
+%license %{yast_docdir}/COPYING
 %doc %{yast_docdir}/README.md
 %doc %{yast_docdir}/CONTRIBUTING.md
 
