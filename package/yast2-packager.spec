@@ -102,7 +102,7 @@ Obsoletes:      yast2-packager-webpin < %version
 
 Requires:       yast2-ruby-bindings >= 1.0.0
 Summary:        YaST2 - Package Library
-License:        GPL-2.0+
+License:        GPL-2.0-or-later
 Group:          System/YaST
 
 %description
