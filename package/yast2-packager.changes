@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 20 09:24:15 CEST 2018 - schubi@suse.de
+
+- Changed destination directory of COPYING file.
+
+-------------------------------------------------------------------
 Mon Jul 16 11:19:03 UTC 2018 - lslezak@suse.cz
 
 - Do not display a false "not enough free space" warning popup if
