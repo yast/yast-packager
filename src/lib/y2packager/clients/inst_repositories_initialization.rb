@@ -15,6 +15,7 @@
 
 require "yast"
 require "y2packager/product"
+require "installation/skelcd_update_repositories_finder"
 
 Yast.import "Packages"
 Yast.import "PackageCallbacks"
@@ -57,11 +58,30 @@ module Y2Packager
 
     private
 
+      def skelcd_update_repositories_finder
+        @skelcd_update_repositories_finder ||= ::Installation::SkelcdUpdateRepositoriesFinder.new
+      end
+
+      def skelcd_update_repositories
+        return @skelcd_update_repositories if @skelcd_update_repositories
+        @skelcd_update_repositories = skelcd_update_repositories_finder.updates
+        log.info("skelcd update repositories are #{@skelcd_update_repositories.inspect}")
+
+        @skelcd_update_repositories
+      end
+
       # Initialize installation repositories
       def init_installation_repositories
         Yast::PackageCallbacks.RegisterEmptyProgressCallbacks
         Yast::Packages.InitializeCatalogs
         return false if Yast::Packages.InitFailed
+
+        # Add skelcd repositories if exist
+        unless skelcd_update_repositories.empty?
+          repos_added = skelcd_update_repositories.map {|u| u.repo_id }
+          log.info("Repositories added #{repos_added}")
+        end
+
         Yast::Packages.InitializeAddOnProducts
 
         # bnc#886608: Adjusting product name (for &product; macro) right after we
