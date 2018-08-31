@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 31 14:03:43 UTC 2018 - snwint@suse.com
+
+- allow hard disks with file systems to be selected in add-on dialog (bsc#1003263)
+- 4.1.3
+
+-------------------------------------------------------------------
 Wed Aug 22 14:14:44 CEST 2018 - schubi@suse.de
 
 - Switched license in spec file from SPDX2 to SPDX3 format.
