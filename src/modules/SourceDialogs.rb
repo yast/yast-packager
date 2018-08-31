@@ -1077,7 +1077,7 @@ module Yast
 
     def DetectPartitions(disk_id)
       # this kills things like /dev/fd0 (that don't have a disk_id)
-      return [ ] if disk_id.empty?
+      return [] if disk_id.empty?
 
       command = Builtins.sformat("ls %1-part*", disk_id)
 
@@ -1085,7 +1085,7 @@ module Yast
 
       if Ops.get_integer(out, "exit", -1).nonzero?
         Builtins.y2milestone("no partitions on %1, using full disk", disk_id)
-        return [ disk_id ]
+        return [disk_id]
       end
 
       ret = Builtins.splitstring(Ops.get_string(out, "stdout", ""), "\n")
