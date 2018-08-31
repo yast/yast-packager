@@ -1091,13 +1091,16 @@ module Yast
     end
 
     def DetectPartitions(disk_id)
+      # this kills things like /dev/fd0 (that don't have a disk_id)
+      return [ ] if disk_id.empty?
+
       command = Builtins.sformat("ls %1-part*", disk_id)
 
       out = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
 
       if Ops.get_integer(out, "exit", -1) != 0
-        Builtins.y2error("Command %1 failed", command)
-        return []
+        Builtins.y2milestone("no partitions on %1, using full disk", disk_id)
+        return [ disk_id ]
       end
 
       ret = Builtins.splitstring(Ops.get_string(out, "stdout", ""), "\n")
@@ -1192,7 +1195,7 @@ module Yast
         dev = Ops.get_string(disk, "dev", "")
         Builtins.foreach(Ops.get_list(disk, "partitions", [])) do |part|
           partnum = Builtins.regexpsub(part, ".*-part([0-9]*)$", "\\1")
-          disk_label = Ops.add(label, Builtins.sformat(" (%1%2)", dev, partnum))
+          disk_label = "#{label} (#{dev}#{partnum})"
           found = found || part == selected
           ret = Builtins.add(ret, Item(Id(part), disk_label, part == selected))
         end
