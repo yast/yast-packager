@@ -2078,7 +2078,7 @@ module Yast
       msg = _("Repository '%{name}' is managed by service '%{service}'.\n"\
         "Your manual changes might be reset by the next service refresh!") %
         { name: source_state["name"], service: source_state["service"] }
-      if source_state["service"] != "" && !@services_repos.include?(source_state["SrcId"])
+      if !source_state["service"].to_s.empty? && !@services_repos.include?(source_state["SrcId"])
         Popup.Warning(msg)
         @services_repos.push(source_state["SrcId"])
       end
