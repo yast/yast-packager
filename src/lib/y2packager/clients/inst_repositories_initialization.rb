@@ -15,6 +15,7 @@
 
 require "yast"
 require "y2packager/product"
+require "installation/selfupdate_addon_repo"
 
 Yast.import "Packages"
 Yast.import "PackageCallbacks"
@@ -68,6 +69,12 @@ module Y2Packager
         # initialize libzypp and get the base product name (intentionally not translated)
         # FIXME: UI.SetProductName(Product.name || "SUSE Linux")
         Yast::PackageCallbacks.RestorePreviousProgressCallbacks
+
+        # add extra addon repo built from the initial self update repository (bsc#1101016)
+        if Installation::SelfupdateAddonRepo.present?
+          Installation::SelfupdateAddonRepo.create_repo
+        end
+
         true
       end
 

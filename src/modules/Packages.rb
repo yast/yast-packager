@@ -1801,14 +1801,6 @@ module Yast
 
       FindAndRememberAddOnProductsFiles(initial_repository)
 
-      # lazy loading, this module is used in installed system as well...
-      require "installation/selfupdate_addon_repo"
-      # add extra addon repo built from the initial self update repository (bsc#1101016)
-      if Installation::SelfupdateAddonRepo.present?
-        repo = Installation::SelfupdateAddonRepo.create_repo
-        @theSources << repo if repo
-      end
-
       nil
     end
 
