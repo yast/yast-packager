@@ -1,5 +1,7 @@
 #!/usr/bin/env rspec
 
+__END__
+
 require_relative "../../test_helper"
 require "y2packager/clients/inst_repositories_initialization"
 
