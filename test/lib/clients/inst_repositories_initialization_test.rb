@@ -1,7 +1,5 @@
 #!/usr/bin/env rspec
 
-__END__
-
 require_relative "../../test_helper"
 require "y2packager/clients/inst_repositories_initialization"
 
@@ -19,6 +17,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       allow(Yast::Packages).to receive(:InitializeAddOnProducts)
       allow(Yast::Packages).to receive(:InitFailed).and_return(!success)
       allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
+      allow(Y2Packager::SelfupdateAddonRepo).to receive(:present?).and_return(false)
     end
 
     it "initializes Packages subsystem" do
@@ -28,6 +27,18 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
 
     it "returns :next" do
       expect(client.main).to eq(:next)
+    end
+
+    it "adds the self update repo if it is present" do
+      expect(Y2Packager::SelfupdateAddonRepo).to receive(:present?).and_return(true)
+      expect(Y2Packager::SelfupdateAddonRepo).to receive(:create_repo)
+      client.main
+    end
+
+    it "does not add the self update repo if it is missing" do
+      expect(Y2Packager::SelfupdateAddonRepo).to receive(:present?).and_return(false)
+      expect(Y2Packager::SelfupdateAddonRepo).to_not receive(:create_repo)
+      client.main
     end
 
     context "when initialization fails" do
