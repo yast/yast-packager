@@ -22,8 +22,8 @@ describe Y2Packager::SelfupdateAddonFilter do
         .and_return(["source" => pkg_src]).twice
 
       expect(Y2Packager::SelfupdateAddonFilter.packages(pkg_src)).to eq(
-          ["skelcd-control-SLED", "skelcd-control-SLES"]
-        )
+        ["skelcd-control-SLED", "skelcd-control-SLES"]
+      )
     end
 
     it "returns an empty list if the packages are not from the required repository" do

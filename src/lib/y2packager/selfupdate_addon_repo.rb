@@ -59,6 +59,5 @@ module Y2Packager
       log.info("Created self update addon repo: #{ret}")
       ret
     end
-
   end
 end

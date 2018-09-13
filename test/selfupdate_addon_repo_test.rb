@@ -10,20 +10,20 @@ describe Y2Packager::SelfupdateAddonRepo do
     it "returns true if the repository path is a directory and is not empty" do
       expect(File).to receive(:exist?).with(path).and_return(true)
       expect(Dir).to receive(:empty?).with(path).and_return(false)
-       
+
       expect(Y2Packager::SelfupdateAddonRepo.present?(path)).to be true
     end
 
     it "returns false if the repository path is an empty directory" do
       expect(File).to receive(:exist?).with(path).and_return(true)
       expect(Dir).to receive(:empty?).with(path).and_return(true)
-       
+
       expect(Y2Packager::SelfupdateAddonRepo.present?(path)).to be false
     end
 
     it "returns false if the repository path does not exist" do
       expect(File).to receive(:exist?).with(path).and_return(false)
-       
+
       expect(Y2Packager::SelfupdateAddonRepo.present?(path)).to be false
     end
   end
