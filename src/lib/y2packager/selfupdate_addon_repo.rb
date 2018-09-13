@@ -11,6 +11,7 @@ Yast.import "Directory"
 Yast.import "Pkg"
 
 module Y2Packager
+  # create a local add-on repository from a self-update repository
   class SelfupdateAddonRepo
     extend Yast::Logger
 
@@ -55,7 +56,8 @@ module Y2Packager
 
     def self.create_repo(path = REPO_PATH)
       # create a plaindir repository, there is no package metadata
-      ret = Yast::Pkg.SourceCreateType("dir://#{URI.escape(path)}?alias=SelfUpdate0", "", "Plaindir")
+      ret = Yast::Pkg.SourceCreateType("dir://#{URI.escape(path)}?alias=SelfUpdate0",
+        "", "Plaindir")
       log.info("Created self update addon repo: #{ret}")
       ret
     end

@@ -5,8 +5,11 @@ require "yast"
 Yast.import "Pkg"
 
 module Y2Packager
+  # filter the packages from a self-update repository which should be
+  # used as an add-on instead of applying into the inst-sys
   class SelfupdateAddonFilter
     PROVIDES_INSTALLATION = "system-installation()".freeze
+    PROVIDES_PRODUCT = "product()".freeze
 
     #
     # Returns package name from the selected repository which should be used
@@ -19,9 +22,10 @@ module Y2Packager
     def self.packages(repo_id)
       # returns list like [["skelcd-control-SLED", :CAND, :NONE],
       # ["skelcd-control-SLES", :CAND, :NONE],...]
-      skelcds = Yast::Pkg.PkgQueryProvides(PROVIDES_INSTALLATION)
+      package_data = Yast::Pkg.PkgQueryProvides(PROVIDES_INSTALLATION) +
+        Yast::Pkg.PkgQueryProvides(PROVIDES_PRODUCT)
 
-      pkgs = skelcds.map(&:first).uniq
+      pkgs = package_data.map(&:first).uniq
 
       # there should not be present any other repository except the self update at this point,
       # but rather be safe than sorry...

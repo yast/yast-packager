@@ -4,7 +4,7 @@ require_relative "test_helper"
 require "y2packager/selfupdate_addon_repo"
 
 describe Y2Packager::SelfupdateAddonRepo do
-  let (:path) { "/var/tmp/testing/path" }
+  let(:path) { "/var/tmp/testing/path" }
 
   describe ".present?" do
     it "returns true if the repository path is a directory and is not empty" do
@@ -37,7 +37,7 @@ describe Y2Packager::SelfupdateAddonRepo do
   end
 
   describe ".copy_packages" do
-    let (:repo) { 42 }
+    let(:repo) { 42 }
 
     context "no addon package is found in the repository" do
       before do
