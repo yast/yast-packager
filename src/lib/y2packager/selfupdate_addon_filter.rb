@@ -8,6 +8,8 @@ module Y2Packager
   # filter the packages from a self-update repository which should be
   # used as an add-on instead of applying into the inst-sys
   class SelfupdateAddonFilter
+    extend Yast::Logger
+
     PROVIDES_INSTALLATION = "system-installation()".freeze
     PROVIDES_PRODUCT = "product()".freeze
 
