@@ -1,9 +1,9 @@
 #!/usr/bin/env rspec
 
 require_relative "test_helper"
-require "y2packager/selfupdate_addon_filter"
+require "y2packager/self_update_addon_filter"
 
-describe Y2Packager::SelfupdateAddonFilter do
+describe Y2Packager::SelfUpdateAddonFilter do
   describe ".packages" do
     let(:packages) do
       [
@@ -29,7 +29,7 @@ describe Y2Packager::SelfupdateAddonFilter do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(anything, :package, "")
         .and_return(["source" => pkg_src]).exactly(3).times
 
-      expect(Y2Packager::SelfupdateAddonFilter.packages(pkg_src)).to eq(
+      expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to eq(
         ["skelcd-control-SLED", "skelcd-control-SLES", "SLES-release"]
       )
     end
@@ -38,7 +38,7 @@ describe Y2Packager::SelfupdateAddonFilter do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(anything, :package, "")
         .and_return(["source" => 999]).exactly(3).times
 
-      expect(Y2Packager::SelfupdateAddonFilter.packages(pkg_src)).to eq([])
+      expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to eq([])
     end
   end
 end

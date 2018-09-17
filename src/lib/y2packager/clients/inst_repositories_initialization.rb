@@ -15,7 +15,7 @@
 
 require "yast"
 require "y2packager/product"
-require "y2packager/selfupdate_addon_repo"
+require "y2packager/self_update_addon_repo"
 
 Yast.import "Packages"
 Yast.import "PackageCallbacks"
@@ -71,8 +71,8 @@ module Y2Packager
         Yast::PackageCallbacks.RestorePreviousProgressCallbacks
 
         # add extra addon repo built from the initial self update repository (bsc#1101016)
-        if Y2Packager::SelfupdateAddonRepo.present?
-          Y2Packager::SelfupdateAddonRepo.create_repo
+        if Y2Packager::SelfUpdateAddonRepo.present?
+          Y2Packager::SelfUpdateAddonRepo.create_repo
         end
 
         true
