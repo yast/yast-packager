@@ -73,7 +73,7 @@ module Yast
       # If repositories weren't load during installation (for example, in openSUSE
       # if online repositories were not enabled), resolvables should be loaded now.
       Pkg.SourceLoad
-      remove_selfupdate_addon
+      remove_self_update_addon
       disable_local_repos
 
       # save all repositories and finish target
@@ -179,7 +179,7 @@ module Yast
     #
     # Remove the temporary add-on repository created from the self-update repo
     #
-    def remove_selfupdate_addon
+    def remove_self_update_addon
       log.info("Removing optional self-update addon repositories...")
       repos = ::Y2Packager::Repository.all
       repos.each do |r|
