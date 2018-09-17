@@ -180,13 +180,15 @@ module Yast
     # Remove the temporary add-on repository created from the self-update repo
     #
     def remove_selfupdate_addon
+      log.info("Removing optional self-update addon repositories...")
       repos = ::Y2Packager::Repository.all
       repos.each do |r|
+        log.debug("Evaluating repo: #{r}")
         # remove the repositories with name beginning with the "SelfUpdate" and
         # with the "dir://" scheme
-        next unless r.name.start_with?("SelfUpdate") && r.scheme.downcase == "dir"
+        next unless r.name.start_with?("SelfUpdate") && r.scheme == :dir
 
-        log.info("Removing a self update addon repository #{r}")
+        log.info("Removing a self update addon repository #{r.name}")
         Pkg.SourceDelete(r.repo_id)
       end
     end
