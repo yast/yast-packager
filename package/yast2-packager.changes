@@ -4,6 +4,15 @@ Fri Sep 21 12:58:42 CEST 2018 - schubi@suse.de
 - add_on_products.xml : Added tag "confirm_license" to handle
   Add-On-products licenses which will be added while installation.
   (bsc#1105758)
+- 4.0.70  
+
+-------------------------------------------------------------------
+Mon Jul 16 11:19:03 UTC 2018 - lslezak@suse.cz
+
+- Do not display a false "not enough free space" warning popup if
+  the free space is bigger than 8EiB (2^63) (bsc#991090)
+- Do not display the "not enough free space" warning for partitions
+  where nothing is going to be installed (bsc#926841)
 - 4.0.69
 
 -------------------------------------------------------------------
