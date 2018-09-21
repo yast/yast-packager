@@ -1463,6 +1463,15 @@ module Yast
           priority = one_product.fetch("priority", -1).to_i
           prodname = one_product.fetch("name", "")
           check_name = one_product.fetch("check_name", true)
+          if Mode.auto
+            # Default value in AutoYaST is false.
+            confirm_license = one_product.fetch("confirm_license", false)
+          else
+            # Otherwise it is true.
+            confirm_license = one_product.fetch("confirm_license", true)
+          end
+          Builtins.y2milestone("confirm_license: %1", confirm_license)
+
           # Check URL and setup network if required or prompt to insert CD/DVD
           parsed = URL.Parse(url)
           scheme = parsed.fetch("scheme", "").downcase
@@ -1484,7 +1493,7 @@ module Yast
             end
           next false unless repo_id
 
-          if !AcceptedLicenseAndInfoFile(repo_id)
+          if confirm_license && !AcceptedLicenseAndInfoFile(repo_id)
             log.warn "License not accepted, delete the repository"
             Pkg.SourceDelete(repo_id)
             next false
