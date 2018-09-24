@@ -1463,13 +1463,8 @@ module Yast
           priority = one_product.fetch("priority", -1).to_i
           prodname = one_product.fetch("name", "")
           check_name = one_product.fetch("check_name", true)
-          confirm_license = if Mode.auto
-            # Default value in AutoYaST is false.
-            one_product.fetch("confirm_license", false)
-          else
-            # Otherwise it is true.
-            one_product.fetch("confirm_license", true)
-          end
+          # the default value in AutoYaST is false, otherwise it is true
+          confirm_license = one_product.fetch("confirm_license", !Mode.auto)
           Builtins.y2milestone("confirm_license: %1", confirm_license)
 
           # Check URL and setup network if required or prompt to insert CD/DVD
