@@ -1425,6 +1425,10 @@ module Yast
     #     				Libzypp uses its default priority if not set.
     #     			-->
     #     			<priority config:type="integer">20</priority>
+    #     			<!--
+    #     				User has to accept license?
+    #     			-->    
+    #                           <confirm_license config:type="boolean">true</confirm_license>
     #     		</product_item>
     #     		<product_item>
     #     			...
