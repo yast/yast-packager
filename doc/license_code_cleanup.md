@@ -152,8 +152,14 @@ License types are stored under /tmp/YaST2-<number>/product-license .
 While installation it is possible to add products automatically. The concerning product
 has already to be on the medium. Adding products will be defined by the file
 add_on_products.xml in the root directory of the installation source.
-The flag -confirm_license- defines if the user has to accepted the license which has been
+The flag -confirm_license- defines if the user has to accept the license which has been
 defined in the product.
+
+Note: The `add_on_products.xml` file is also read from the installation system (inst-sys)
+root directory (/). It is created by linuxrc when using a driver update. In that case YaST
+automatically prefers the updated packages from the driver update instead of the original
+package from the media. This XML is for internal use by YaST and should not be changed
+by users.
 
 AddPreselectedAddOnProducts in modules/AddOnProduct.rb
 
