@@ -1425,6 +1425,10 @@ module Yast
     #     				Libzypp uses its default priority if not set.
     #     			-->
     #     			<priority config:type="integer">20</priority>
+    #     			<!--
+    #     				User has to accept license?
+    #     			-->
+    #                           <confirm_license config:type="boolean">true</confirm_license>
     #     		</product_item>
     #     		<product_item>
     #     			...
@@ -1463,6 +1467,10 @@ module Yast
           priority = one_product.fetch("priority", -1).to_i
           prodname = one_product.fetch("name", "")
           check_name = one_product.fetch("check_name", true)
+          # the default value in AutoYaST is false, otherwise it is true
+          confirm_license = one_product.fetch("confirm_license", !Mode.auto)
+          Builtins.y2milestone("confirm_license: %1", confirm_license)
+
           # Check URL and setup network if required or prompt to insert CD/DVD
           parsed = URL.Parse(url)
           scheme = parsed.fetch("scheme", "").downcase
@@ -1484,7 +1492,7 @@ module Yast
             end
           next false unless repo_id
 
-          if !AcceptedLicenseAndInfoFile(repo_id)
+          if confirm_license && !AcceptedLicenseAndInfoFile(repo_id)
             log.warn "License not accepted, delete the repository"
             Pkg.SourceDelete(repo_id)
             next false

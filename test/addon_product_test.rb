@@ -290,6 +290,71 @@ describe Yast::AddOnProduct do
       end
     end
 
+    context "when -confirm_license- is not set in add-on description" do
+      let(:repo_id) { 1 }
+      before do
+        allow(Yast::Pkg). to receive(:SourceProductData).with(repo_id)
+        allow(subject).to receive(:InstallProductsFromRepository)
+        allow(subject).to receive(:ReIntegrateFromScratch)
+        allow(subject).to receive(:AddRepo).and_return(repo_id)
+        allow(subject).to receive(:add_product_from_cd).and_return(repo_id)
+        allow(subject).to receive(:Integrate)
+      end
+
+      it "does not check license in AY mode" do
+        expect(Yast::Mode).to receive(:auto).and_return(true)
+        expect(subject).to_not receive(:AcceptedLicenseAndInfoFile)
+        subject.AddPreselectedAddOnProducts(filelist)
+      end
+      it "checks license in none AY mode" do
+        expect(Yast::Mode).to receive(:auto).and_return(false)
+        expect(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
+        subject.AddPreselectedAddOnProducts(filelist)
+      end
+    end
+
+    context "when -confirm_license- is defined in add-on description" do
+      let(:repo_id) { 1 }
+      before do
+        allow(Yast::Pkg). to receive(:SourceProductData).with(repo_id)
+        allow(subject).to receive(:InstallProductsFromRepository)
+        allow(subject).to receive(:ReIntegrateFromScratch)
+        allow(subject).to receive(:AddRepo).and_return(repo_id)
+        allow(subject).to receive(:add_product_from_cd).and_return(repo_id)
+        allow(subject).to receive(:Integrate)
+      end
+
+      context "when it is set to true" do
+        let(:repo) { ADDON_REPO.merge("confirm_license" => true) }
+
+        it "checks license in AY mode" do
+          expect(Yast::Mode).to receive(:auto).and_return(true)
+          expect(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
+          subject.AddPreselectedAddOnProducts(filelist)
+        end
+        it "checks license in none AY mode" do
+          expect(Yast::Mode).to receive(:auto).and_return(false)
+          expect(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
+          subject.AddPreselectedAddOnProducts(filelist)
+        end
+      end
+
+      context "when it is set to false" do
+        let(:repo) { ADDON_REPO.merge("confirm_license" => false) }
+
+        it "does not check license in AY mode" do
+          expect(Yast::Mode).to receive(:auto).and_return(true)
+          expect(subject).to_not receive(:AcceptedLicenseAndInfoFile)
+          subject.AddPreselectedAddOnProducts(filelist)
+        end
+        it "does not check license in none AY mode" do
+          expect(Yast::Mode).to receive(:auto).and_return(false)
+          expect(subject).to_not receive(:AcceptedLicenseAndInfoFile)
+          subject.AddPreselectedAddOnProducts(filelist)
+        end
+      end
+    end
+
     context "when install_products is given in the add-on description" do
       let(:repo_id) { 1 }
       let(:repo) do

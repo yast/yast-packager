@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Sep 21 12:58:42 CEST 2018 - schubi@suse.de
+
+- add_on_products.xml : Added tag "confirm_license" to handle
+  Add-On-products licenses which will be added while installation.
+  (bsc#1105758)
+- 4.1.6
+
+-------------------------------------------------------------------
 Thu Sep 13 12:23:04 UTC 2018 - lslezak@suse.cz
 
 - Copy the selected packages from the self-update repository to an
