@@ -27,8 +27,14 @@ module Y2Packager
   class SelfUpdateAddonFilter
     extend Yast::Logger
 
-    PROVIDES_INSTALLATION = "system-installation()".freeze
-    PROVIDES_PRODUCT = "product()".freeze
+    PROVIDES = [
+      # skelcd-* packages providing installation.xml for base products
+      "system-installation()",
+      # the *-release packages providing a product
+      "product()",
+      # used by roles-* packages providing installation.xml for roles
+      "installer_module_extension()"
+    ].freeze
 
     #
     # Returns package name from the selected repository which should be used
@@ -41,8 +47,9 @@ module Y2Packager
     def self.packages(repo_id)
       # returns list like [["skelcd-control-SLED", :CAND, :NONE],
       # ["skelcd-control-SLES", :CAND, :NONE],...]
-      package_data = Yast::Pkg.PkgQueryProvides(PROVIDES_INSTALLATION) +
-        Yast::Pkg.PkgQueryProvides(PROVIDES_PRODUCT)
+      package_data = PROVIDES.reduce([]) do |memo, p|
+        memo.concat(Yast::Pkg.PkgQueryProvides(p))
+      end
 
       pkgs = package_data.map(&:first).uniq
 

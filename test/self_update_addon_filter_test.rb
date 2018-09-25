@@ -16,6 +16,12 @@ describe Y2Packager::SelfUpdateAddonFilter do
         ["SLES-release", :CAND, :NONE]
       ]
     end
+    let(:roles_packages) do
+      [
+        ["system-role-server-default", :CAND, :NONE]
+      ]
+    end
+
     let(:pkg_src) { 42 }
 
     before do
@@ -23,20 +29,22 @@ describe Y2Packager::SelfUpdateAddonFilter do
         .and_return(packages)
       expect(Yast::Pkg).to receive(:PkgQueryProvides).with("product()")
         .and_return(product_packages)
+      expect(Yast::Pkg).to receive(:PkgQueryProvides).with("installer_module_extension()")
+        .and_return(roles_packages)
     end
 
     it "returns packages providing 'system-installation()' from the required repository" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(anything, :package, "")
-        .and_return(["source" => pkg_src]).exactly(3).times
+        .and_return(["source" => pkg_src]).exactly(4).times
 
-      expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to eq(
-        ["skelcd-control-SLED", "skelcd-control-SLES", "SLES-release"]
+      expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to contain_exactly(
+        "skelcd-control-SLED", "skelcd-control-SLES", "SLES-release", "system-role-server-default"
       )
     end
 
     it "returns an empty list if the packages are not from the required repository" do
       expect(Yast::Pkg).to receive(:ResolvableProperties).with(anything, :package, "")
-        .and_return(["source" => 999]).exactly(3).times
+        .and_return(["source" => 999]).exactly(4).times
 
       expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to eq([])
     end
