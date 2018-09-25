@@ -135,8 +135,8 @@ lib/y2packager/release_notes_reader.rb
          Calling product.license_confirmation to write decision.
 ```
   
-4.0 Adding a new product
-==========================
+4.0 Adding a new product via UI
+=================================
 
 Calling ProductLicense.AskAddOnLicenseAgreement(src_id) (file: modules/AddOnProduct.rb):
   - ProductLicense.AskAddOnLicenseAgreement(src_id)
@@ -145,6 +145,23 @@ The class ProductLicense (file: modules/ProductLicense.rb) is quite old and hand
 the licenses acceptance completely (reading, showing and accepting license)
 It can handle all license types ( license is in /license.tar.gz, SCC license and libzypp license )
 License types are stored under /tmp/YaST2-<number>/product-license .
+
+4.0 Adding products via file add_on_products.xml
+==================================================
+
+While installation it is possible to add products automatically. The concerning product
+has already to be on the medium. Adding products will be defined by the file
+add_on_products.xml in the root directory of the installation source.
+The flag -confirm_license- defines if the user has to accept the license which has been
+defined in the product.
+
+Note: The `add_on_products.xml` file is also read from the installation system (inst-sys)
+root directory (/). It is created by linuxrc when using a driver update. In that case YaST
+automatically prefers the updated packages from the driver update instead of the original
+package from the media. This XML is for internal use by YaST and should not be changed
+by users.
+
+AddPreselectedAddOnProducts in modules/AddOnProduct.rb
 
 5.0 Firstboot module
 ======================
