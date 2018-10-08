@@ -10,6 +10,7 @@
 #
 
 require "fileutils"
+require "shellwords"
 
 module Yast
   class InstKickoffClient < Client
@@ -349,22 +350,8 @@ module Yast
 
         if SCR.Execute(
             path(".target.bash"),
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add(
-                    Ops.add(
-                      Ops.add("cd '", String.Quote(Installation.destdir)),
-                      "'; "
-                    ),
-                    "/bin/tar czf ."
-                  ),
-                  filename
-                ),
-                " "
-              ),
-              "var/log/YaST2"
-            )
+            "cd #{Shellwords.escape(Installation.destdir)}; " \
+              "/bin/tar --ignore-failed-read -czf .#{Shellwords.escape(filename)} var/log/YaST2"
           ) != 0
           Builtins.y2error(
             "backup of %1 to %2 failed",
