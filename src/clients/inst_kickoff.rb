@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "fileutils"
+require "shellwords"
 
 module Yast
   # Do various tasks before starting with installation of rpms.
@@ -223,22 +224,8 @@ module Yast
 
       if SCR.Execute(
         path(".target.bash"),
-        Ops.add(
-          Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add("cd '", String.Quote(Installation.destdir)),
-                  "'; "
-                ),
-                "/bin/tar czf ."
-              ),
-              filename
-            ),
-            " "
-          ),
-          "var/log/YaST2"
-        )
+        "cd #{Shellwords.escape(Installation.destdir)}; " \
+          "/bin/tar --ignore-failed-read -czf .#{Shellwords.escape(filename)} var/log/YaST2"
       ).nonzero?
         Builtins.y2error(
           "backup of %1 to %2 failed",
