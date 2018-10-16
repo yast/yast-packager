@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 16 11:33:07 CEST 2018 - schubi@suse.de
+
+- Fixed path to license file. Build error in bsc#1110913.
+- 4.1.9
+
+-------------------------------------------------------------------
 Mon Oct  8 08:12:54 UTC 2018 - lslezak@suse.cz
 
 - Ignore a read failure when backing up /var/log/YaST2, YaST might
