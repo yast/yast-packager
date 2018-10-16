@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.1.8
+Version:        4.1.9
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -148,7 +148,7 @@ rake install DESTDIR="%{buildroot}"
 %{yast_scrconfdir}/*
 %{yast_execcompdir}/servers_non_y2/ag_*
 %dir %{yast_docdir}
-%license %{yast_docdir}/COPYING
+%license COPYING
 %doc %{yast_docdir}/README.md
 %doc %{yast_docdir}/CONTRIBUTING.md
 
