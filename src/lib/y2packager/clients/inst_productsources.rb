@@ -113,13 +113,9 @@ module Yast
 
       # similar to commandline mode but actually it's called from another YaST script
       @script_noncmdline_args = {}
+      @script_noncmdline_args = @args.first if @args.first.is_a?(Hash)
 
-      if Ops.is_map?(Ops.get_map(@args, 0, {}))
-        @script_noncmdline_args = Ops.get_map(@args, 0, {})
-      end
-
-      if Mode.normal && Ops.greater_than(Builtins.size(@args), 0) &&
-          Builtins.size(@script_noncmdline_args).zero?
+      if Mode.normal && !@args.empty? && @script_noncmdline_args.empty?
         CommandLine.Run("id" => "inst_productsources")
         return :auto
       end
@@ -131,7 +127,7 @@ module Yast
 
       @script_called_from_another = false
 
-      if Ops.get(@script_noncmdline_args, "skip_already_used_repos") == true
+      if @script_noncmdline_args["skip_already_used_repos"]
         Builtins.y2milestone("Already used repos will be hidden")
         @skip_already_used_repos = true
         @script_called_from_another = true
@@ -528,7 +524,7 @@ module Yast
         next true if Ops.get_boolean(one_server, "installation_repo", false)
 
         Builtins.y2milestone(
-          "Sever %1 is not used during installation...",
+          "Server %1 is not used during installation...",
           one_server
         )
         false

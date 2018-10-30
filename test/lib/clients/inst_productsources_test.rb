@@ -28,7 +28,7 @@ describe Yast::InstProductsourcesClient do
     context "run as command line" do
       before do
         allow(Yast::Mode).to receive(:normal).and_return(true)
-        allow(Yast::WFM).to receive(:Args).and_return("help")
+        allow(Yast::WFM).to receive(:Args).and_return(["help"])
         allow(Yast::CommandLine).to receive(:Run)
       end
 
@@ -50,6 +50,34 @@ describe Yast::InstProductsourcesClient do
       allow(Yast::Mode).to receive(:normal).and_return(true)
 
       client.main
+    end
+  end
+
+  describe "#ParseListOfSources" do
+    let(:file) do
+      File.expand_path("../../../data/_openSUSE_Leap_15.0_Default.xml", __FILE__)
+    end
+    let(:url) { "http://yast.rulezz.com" }
+
+    def list_of_repos
+      client.instance_variable_get(:@list_of_repos)
+    end
+
+    before do
+      client.instance_variable_set(:@list_of_repos, {})
+    end
+
+    it "returns false if file does not exist" do
+      expect(client.ParseListOfSources("/dev/non_existing_device", url)).to eq false
+    end
+
+    it "returns false if file is empty" do
+      expect(client.ParseListOfSources("/dev/zero", url)).to eq false
+    end
+
+    it "adds repos to list of repos" do
+      client.ParseListOfSources(file, url)
+      expect(list_of_repos).to_not be_empty
     end
   end
 end
