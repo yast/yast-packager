@@ -35,9 +35,6 @@ Yast.import "OneClickInstallStandard"
 Yast.import "Language"
 Yast.import "String"
 Yast.import "URL"
-
-
-# rubocop:disable Style/Documentation
 # documentation cop is broken for this document, so lets disable it
 
 module Yast
