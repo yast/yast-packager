@@ -1,6 +1,41 @@
 # encoding: utf-8
 
+require "yast"
 require "yast2/hw_detection"
+
+Yast.import "UI"
+Yast.import "Pkg"
+
+Yast.import "Wizard"
+Yast.import "Sequencer"
+
+Yast.import "NetworkService"
+Yast.import "Mode"
+Yast.import "Popup"
+Yast.import "Label"
+Yast.import "Installation"
+Yast.import "PackageLock"
+Yast.import "ProductFeatures"
+Yast.import "Directory"
+Yast.import "Progress"
+Yast.import "Stage"
+Yast.import "Report"
+Yast.import "CommandLine"
+Yast.import "PackageCallbacks"
+Yast.import "SourceManager"
+
+Yast.import "FileUtils"
+Yast.import "HTTP"
+Yast.import "FTP"
+Yast.import "XML"
+Yast.import "ProductControl"
+Yast.import "AddOnProduct"
+Yast.import "GetInstArgs"
+Yast.import "OneClickInstallStandard"
+Yast.import "Language"
+Yast.import "String"
+Yast.import "URL"
+
 
 # rubocop:disable Style/Documentation
 # documentation cop is broken for this document, so lets disable it
@@ -59,39 +94,7 @@ module Yast
     LOW_MEMORY_MIB = 1024
 
     def main
-      Yast.import "UI"
-      Yast.import "Pkg"
       textdomain "packager"
-
-      Yast.import "Wizard"
-      Yast.import "Sequencer"
-
-      Yast.import "NetworkService"
-      Yast.import "Mode"
-      Yast.import "Popup"
-      Yast.import "Label"
-      Yast.import "Installation"
-      Yast.import "PackageLock"
-      Yast.import "ProductFeatures"
-      Yast.import "Directory"
-      Yast.import "Progress"
-      Yast.import "Stage"
-      Yast.import "Report"
-      Yast.import "CommandLine"
-      Yast.import "PackageCallbacks"
-      Yast.import "SourceManager"
-
-      Yast.import "FileUtils"
-      Yast.import "HTTP"
-      Yast.import "FTP"
-      Yast.import "XML"
-      Yast.import "ProductControl"
-      Yast.import "AddOnProduct"
-      Yast.import "GetInstArgs"
-      Yast.import "OneClickInstallStandard"
-      Yast.import "Language"
-      Yast.import "String"
-      Yast.import "URL"
 
       Yast.include self, "installation/misc.rb"
 
@@ -1719,8 +1722,5 @@ module Yast
             "Using the online repositories later in the installed system is\n" \
             "recommended in this case.") % LOW_MEMORY_MIB)
     end
-  end unless defined? InstProductsourcesClient
+  end
 end
-
-# rubocop:enable Style/Documentation
-Yast::InstProductsourcesClient.new.main
