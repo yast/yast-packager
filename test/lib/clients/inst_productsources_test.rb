@@ -79,5 +79,43 @@ describe Yast::InstProductsourcesClient do
       client.ParseListOfSources(file, url)
       expect(list_of_repos).to_not be_empty
     end
+
+    it "fills also alias for repo" do
+      client.ParseListOfSources(file, url)
+      expect(list_of_repos.values.first["alias"]).to_not be_nil
+    end
+  end
+
+  describe "#CreateSource" do
+    before do
+      allow(Yast::Pkg).to receive(:RepositoryProbe).and_return("RPM-MD")
+      allow(Yast::Pkg).to receive(:RepositoryAdd).and_return(1)
+    end
+
+    it "probes repo" do
+      allow(Yast::Pkg).to receive(:RepositoryProbe).and_return("RPM-MD")
+
+      client.CreateSource("http://yast.rulezz.com", "/", "main", "alias1")
+    end
+
+    it "uses passed alias" do
+      expect(Yast::Pkg).to receive(:RepositoryAdd)
+        .with("enabled" => false, "name" => "main", "base_urls" => ["http://yast.rulezz.com"],
+          "prod_dir" => "/", "alias" => "alias1", "type" => "RPM-MD"
+        )
+        .and_return(1)
+
+      client.CreateSource("http://yast.rulezz.com", "/", "main", "alias1")
+    end
+
+    it "uses fallback alias when passed alias" do
+      expect(Yast::Pkg).to receive(:RepositoryAdd)
+        .with("enabled" => false, "name" => "main", "base_urls" => ["http://yast.rulezz.com"],
+          "prod_dir" => "/prod1", "alias" => "yast.rulezz.com", "type" => "RPM-MD"
+        )
+        .and_return(1)
+
+      client.CreateSource("http://yast.rulezz.com", "/prod1", "main", nil)
+    end
   end
 end

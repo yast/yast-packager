@@ -1365,48 +1365,19 @@ module Yast
       nil
     end
 
-    def CreateSource(url, pth, repo_name, _actions_todo, _actions_doing, _no_progress_updates)
+    # Creates source from passed parameters
+    #
+    # @param url [String] url of repo
+    # @param path [String] path  of repo related to url
+    def CreateSource(url, pth, repo_name, alias_s)
       src_id = nil
 
       repo_type = Pkg.RepositoryProbe(url, pth)
       Builtins.y2milestone("Probed repository type: %1", repo_type)
 
-      # probing succeeded?
       if !repo_type.nil? && repo_type != "NONE"
-        # create alias in form "<hostname>-<last_path_element>"
-        parsed_url = URL.Parse(url)
-        alias_name = Ops.get_string(parsed_url, "host", "")
+        alias_name = GetUniqueAlias(alias_s || fallback_alias(url))
 
-        path_parts = Builtins.splitstring(
-          Ops.get_string(parsed_url, "path", ""),
-          "/"
-        )
-        # remove empty parts
-        path_parts = Builtins.filter(path_parts) do |p|
-          Ops.greater_than(Builtins.size(p), 0)
-        end
-
-        if Ops.greater_than(Builtins.size(path_parts), 0)
-          suffix = Ops.get(
-            path_parts,
-            Ops.subtract(Builtins.size(path_parts), 1),
-            ""
-          )
-
-          if Builtins.regexpmatch(suffix, "[0-9]+$") &&
-              Ops.greater_than(Builtins.size(path_parts), 1)
-            Builtins.y2milestone("Version string detected in path element")
-            suffix = Ops.get(
-              path_parts,
-              Ops.subtract(Builtins.size(path_parts), 2),
-              ""
-            )
-          end
-
-          alias_name = Ops.add(Ops.add(alias_name, "-"), suffix)
-        end
-
-        alias_name = GetUniqueAlias(alias_name)
         Builtins.y2milestone("Using alias: %1", alias_name)
 
         src_id = Pkg.RepositoryAdd(
@@ -1636,18 +1607,12 @@ module Yast
         # If not at once, call one stage per repository
         Progress.NextStage if !at_once
         next :abort if UserWantsToAbort()
-        actions_todo_ref = arg_ref(actions_todo)
-        actions_doing_ref = arg_ref(actions_doing)
         CreateSource(
           Ops.get_string(@list_of_repos, [repo_id, "url"], ""),
           Ops.get_string(@list_of_repos, [repo_id, "path"], "/"),
           GetLocalizedString(repo_id, ["name"]),
-          actions_todo_ref,
-          actions_doing_ref,
-          at_once
+          Ops.get_string(@list_of_repos, [repo_id, "alias"])
         )
-        actions_todo = actions_todo_ref.value
-        actions_doing = actions_doing_ref.value
       end
 
       return :abort if UserWantsToAbort()
@@ -1714,6 +1679,44 @@ module Yast
             "need too much memory.\n\n" \
             "Using the online repositories later in the installed system is\n" \
             "recommended in this case.") % LOW_MEMORY_MIB)
+    end
+
+    # fallback when alias is not defined
+    def fallback_alias(url)
+      # create alias in form "<hostname>-<last_path_element>"
+      parsed_url = URL.Parse(url)
+      alias_name = Ops.get_string(parsed_url, "host", "")
+
+      path_parts = Builtins.splitstring(
+        Ops.get_string(parsed_url, "path", ""),
+        "/"
+      )
+      # remove empty parts
+      path_parts = Builtins.filter(path_parts) do |p|
+        Ops.greater_than(Builtins.size(p), 0)
+      end
+
+      if Ops.greater_than(Builtins.size(path_parts), 0)
+        suffix = Ops.get(
+          path_parts,
+          Ops.subtract(Builtins.size(path_parts), 1),
+          ""
+        )
+
+        if Builtins.regexpmatch(suffix, "[0-9]+$") &&
+            Ops.greater_than(Builtins.size(path_parts), 1)
+          Builtins.y2milestone("Version string detected in path element")
+          suffix = Ops.get(
+            path_parts,
+            Ops.subtract(Builtins.size(path_parts), 2),
+            ""
+          )
+        end
+
+        alias_name = Ops.add(Ops.add(alias_name, "-"), suffix)
+      end
+
+      alias_name
     end
   end
 end

@@ -24,6 +24,7 @@ module Yast
     #              "distversion" : "openSUSE Factory",
     #              "url" : "full url of the repository (http://.../)",
     #              "format" : "yast",
+    #              "alias" : "factory",
     #              "recommended" : true,
     #              "description" : "repository description",
     #              "localized_description" : $[
@@ -80,6 +81,7 @@ module Yast
               ""
             ),
             "format"      => Ops.get_string(repository, "format", ""),
+            "alias"       => repository["alias"],
             "recommended" => Ops.get_string(repository, "recommended", "false") == "true"
           }
           # Required + dynamic (localized) keys

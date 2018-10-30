@@ -2,7 +2,7 @@
 <metapackage xmlns:os="http://opensuse.org/Standards/One_Click_Install" xmlns="http://opensuse.org/Standards/One_Click_Install">
     <group distversion="openSUSE Main Repository">
         <repositories>
-            <repository recommended="true" format="yast">
+            <repository recommended="true" format="yast" alias="main">
                 <name>Main Repository (OSS)</name>
                 <name xml:lang="ar">المستودع الرئيسي (حرة)</name>
                 <name xml:lang="ast">Repositoriu principal (OSS)</name>
@@ -92,7 +92,7 @@
                 <description xml:lang="zh_TW">openSUSE Leap 巨大的開放原始碼軟體 (OSS) 套件庫，提供了數千個由 openSUSE 社群維護的套件讓您取用。</description>
                 <url>http://download.opensuse.org/distribution/leap/15.0/repo/oss/</url>
             </repository>
-            <repository recommended="true" format="yast">
+            <repository recommended="true" format="yast" alias="main-non-oss">
                 <name>Main Repository (NON-OSS)</name>
                 <name xml:lang="ar">المستودع الرئيسي (غير-حرة)</name>
                 <name xml:lang="ast">Repositoriu principal (NON-OSS)</name>
@@ -181,7 +181,7 @@
                 <description xml:lang="zh_TW">由 openSUSE 社群維護之非開放原始碼軟體的官方 openSUSE Leap 套件庫，包含了 Opera、Steam 以及其他更多軟體。</description>
                 <url>http://download.opensuse.org/distribution/leap/15.0/repo/non-oss/</url>
             </repository>
-            <repository recommended="false" format="yast">
+            <repository recommended="false" format="yast" alias="main-sources">
                 <name>Main Repository (Sources)</name>
                 <name xml:lang="ar">المستودع الرئيسي (المصادر)</name>
                 <name xml:lang="ast">Repositoriu principal (Fontes)</name>
@@ -269,7 +269,7 @@
                 <description xml:lang="zh_TW">openSUSE Leap 所有原始碼套件的套件庫。僅提供專家使用。</description>
                 <url>http://download.opensuse.org/source/distribution/leap/15.0/repo/oss/</url>
             </repository>
-            <repository recommended="false" format="yast">
+            <repository recommended="false" format="yast" alias="main-debug">
                 <name>Main Repository (DEBUG)</name>
                 <name xml:lang="ar">المستودع الرئيسي (التصحيح)</name>
                 <name xml:lang="ast">Repositoriu principal (DEPURACIÓN)</name>
@@ -358,7 +358,7 @@
                 <description xml:lang="zh_TW">這個套件庫對想要在 openSUSE Leap 偵錯應用程式非常有用。僅提供專家使用。</description>
                 <url>http://download.opensuse.org/debug/distribution/leap/15.0/repo/oss/</url>
             </repository>
-            <repository recommended="true" format="rpm-md">
+            <repository recommended="true" format="rpm-md" alias="main-update">
                 <name>Main Update Repository</name>
                 <name xml:lang="ar">مستودع التحديث الرئيسي</name>
                 <name xml:lang="ast">Repositoriu principal d'anovamientu</name>
@@ -448,7 +448,7 @@
                 <description xml:lang="zh_TW">在這個套件庫您可以找到 openSUSE Leap 的安全性與維護性更新。</description>
                 <url>http://download.opensuse.org/update/leap/15.0/oss</url>
             </repository>
-            <repository recommended="true" format="rpm-md">
+            <repository recommended="true" format="rpm-md" alias="main-update-non-oss">
                 <name>Update Repository (Non-Oss)</name>
                 <name xml:lang="ar">تحديث مستودع (برمجيات غير حرة المصدر)</name>
                 <name xml:lang="ca">Repositori d'actualització (No OSS)</name>
@@ -528,7 +528,7 @@
                 <description xml:lang="zh_TW">在這個套件庫您可以找到 openSUSE Leap 的安全性與維護性更新。</description>
                 <url>http://download.opensuse.org/update/leap/15.0/non-oss/</url>
             </repository>
-            <repository recommended="false" format="yast">
+            <repository recommended="false" format="yast" alias="main-update-debug">
                 <name>Update Repository (DEBUG)</name>
                 <name xml:lang="ar">تحديث المستودع (تصحيح)</name>
                 <name xml:lang="ca">Repositori d'actualització (DEBUG)</name>
