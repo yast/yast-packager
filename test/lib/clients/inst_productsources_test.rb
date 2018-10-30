@@ -101,8 +101,7 @@ describe Yast::InstProductsourcesClient do
     it "uses passed alias" do
       expect(Yast::Pkg).to receive(:RepositoryAdd)
         .with("enabled" => false, "name" => "main", "base_urls" => ["http://yast.rulezz.com"],
-          "prod_dir" => "/", "alias" => "alias1", "type" => "RPM-MD"
-        )
+          "prod_dir" => "/", "alias" => "alias1", "type" => "RPM-MD")
         .and_return(1)
 
       client.CreateSource("http://yast.rulezz.com", "/", "main", "alias1")
@@ -111,8 +110,7 @@ describe Yast::InstProductsourcesClient do
     it "uses fallback alias when passed alias" do
       expect(Yast::Pkg).to receive(:RepositoryAdd)
         .with("enabled" => false, "name" => "main", "base_urls" => ["http://yast.rulezz.com"],
-          "prod_dir" => "/prod1", "alias" => "yast.rulezz.com", "type" => "RPM-MD"
-        )
+          "prod_dir" => "/prod1", "alias" => "yast.rulezz.com", "type" => "RPM-MD")
         .and_return(1)
 
       client.CreateSource("http://yast.rulezz.com", "/prod1", "main", nil)
