@@ -1368,7 +1368,11 @@ module Yast
     # Creates source from passed parameters
     #
     # @param url [String] url of repo
-    # @param path [String] path  of repo related to url
+    # @param pth [String] path  of repo related to url
+    # @param repo_name [String] name for repo
+    # @param alias_s [String,nil] use given alias or fallback when nil passed.
+    #   Note that if alias is not unique it can append some suffix to it.
+    # @return [nil, false] returns false if failed and nil if it goes well.
     def CreateSource(url, pth, repo_name, alias_s)
       src_id = nil
 
