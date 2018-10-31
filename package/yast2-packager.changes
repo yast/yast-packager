@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 31 08:35:29 UTC 2018 - Josef Reidinger <jreidinger@suse.com>
+
+- Allow specify alias for online repos (bsc#1017823)
+- 4.1.10
+
+-------------------------------------------------------------------
 Tue Oct 16 11:33:07 CEST 2018 - schubi@suse.de
 
 - Fixed path to license file. Build error in bsc#1110913.
