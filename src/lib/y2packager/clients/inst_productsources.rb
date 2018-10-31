@@ -93,8 +93,6 @@ module Yast
     def main
       textdomain "packager"
 
-      Yast.include self, "installation/misc.rb"
-
       if AddOnProduct.skip_add_ons
         Builtins.y2milestone("Skipping module (as requested before)")
         return :auto
@@ -1623,7 +1621,7 @@ module Yast
 
       # Redraw installation wizard
       if Stage.initial
-        UpdateWizardSteps()
+        update_wizard_steps
         # Store repositories
       else
         Pkg.SourceSaveAll
@@ -1721,6 +1719,22 @@ module Yast
       end
 
       alias_name
+    end
+
+    # Copy from installation/misc.rb to avoid dependency on yast2-installation (bsc#876533)
+    def update_wizard_steps
+      wizard_mode = Mode.mode
+      Builtins.y2milestone("Switching Steps to %1 ", wizard_mode)
+
+      stage_mode = [
+        { "stage" => "initial", "mode" => wizard_mode },
+        { "stage" => "continue", "mode" => wizard_mode }
+      ]
+      Builtins.y2milestone("Updating wizard steps: %1", stage_mode)
+
+      ProductControl.UpdateWizardSteps(stage_mode)
+
+      nil
     end
   end
 end
