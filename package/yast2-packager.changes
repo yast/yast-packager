@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov  1 08:11:38 UTC 2018 - Josef Reidinger <jreidinger@suse.com>
+
+- Set during upgrade proper release version for newly added repos
+  (bsc#1090193)
+- 4.1.11
+
+-------------------------------------------------------------------
 Wed Oct 31 08:35:29 UTC 2018 - Josef Reidinger <jreidinger@suse.com>
 
 - Allow specify alias for online repos (bsc#1017823)
