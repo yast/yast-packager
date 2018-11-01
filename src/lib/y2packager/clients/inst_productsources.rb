@@ -28,6 +28,7 @@ Yast.import "FileUtils"
 Yast.import "HTTP"
 Yast.import "FTP"
 Yast.import "XML"
+Yast.import "Product"
 Yast.import "ProductControl"
 Yast.import "AddOnProduct"
 Yast.import "GetInstArgs"
@@ -89,6 +90,9 @@ module Yast
     # too low memory for using online repositories (in MiB),
     # at least 1GiB is recommended
     LOW_MEMORY_MIB = 1024
+    # variable to set target release version ( useful during upgrade when
+    # we want new target in releaseversion and not old one )
+    RELEASEVER_ENV = "ZYPP_REPO_RELEASEVER".freeze
 
     def main
       textdomain "packager"
@@ -100,6 +104,7 @@ module Yast
 
       if GetInstArgs.going_back
         Builtins.y2milestone("Going back...")
+        ENV.delete(RELEASEVER_ENV)
         return :back
       end
 
@@ -114,6 +119,10 @@ module Yast
         CommandLine.Run("id" => "inst_productsources")
         return :auto
       end
+
+      # set release version for update as for newly added repositories
+      # we want to use new product and not old
+      ENV[RELEASEVER_ENV] = Product.version if Mode.update
 
       # (Applicable only in inst-sys)
       @preselect_recommended = true
