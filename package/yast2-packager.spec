@@ -1,7 +1,7 @@
 #
 # spec file for package yast2-packager
 #
-# Copyright (c) 2016 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.1.11
+Version:        4.1.12
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -26,24 +26,28 @@ Source0:        %{name}-%{version}.tar.bz2
 Url:            https://github.com/yast/yast-packager
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
+BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
-BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 
 # Y2Storage::Device#exists_in_raw_probed
 BuildRequires:  yast2-storage-ng >= 4.0.141
+# breake the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
+#!BuildIgnore: yast2-packager
+
+BuildRequires:  yast2-transfer
 
 # Y2Packager::ProductLicense
 BuildRequires:  yast2 >= 4.0.63
 
 # needed for icon for desktop file, it is verified at the end of build
-BuildRequires:       yast2_theme
+BuildRequires:  yast2_theme
 
 # Pkg::PrdLicenseLocales
 BuildRequires:  yast2-pkg-bindings >= 4.0.8
 
 # Augeas lenses
-BuildRequires: augeas-lenses
+BuildRequires:  augeas-lenses
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
@@ -73,10 +77,10 @@ Requires:       yast2-core >= 2.16.35
 Requires:       yast2-storage-ng >= 4.0.141
 
 # Augeas lenses
-Requires: augeas-lenses
+Requires:       augeas-lenses
 
 # zypp.conf model and minimal modifications (bsc#1023204)
-Requires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
+Requires:       rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10
