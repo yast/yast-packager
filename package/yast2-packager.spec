@@ -35,8 +35,6 @@ BuildRequires:  yast2-storage-ng >= 4.0.141
 # breake the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
 
-BuildRequires:  yast2-transfer
-
 # Y2Packager::ProductLicense
 BuildRequires:  yast2 >= 4.0.63
 
