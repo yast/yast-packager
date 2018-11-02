@@ -32,7 +32,7 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
 
 # Y2Storage::Device#exists_in_raw_probed
 BuildRequires:  yast2-storage-ng >= 4.0.141
-# breake the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
+# break the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
 
 # Y2Packager::ProductLicense
