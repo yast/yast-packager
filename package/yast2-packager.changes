@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov  2 15:34:01 UTC 2018 - lslezak@suse.cz
+
+- Break the yast2-packager -> yast2-storage-ng -> yast2-packager
+  build cycle (bsc#1114517)
+- 4.1.12
+
+-------------------------------------------------------------------
 Thu Nov  1 08:11:38 UTC 2018 - Josef Reidinger <jreidinger@suse.com>
 
 - Set during upgrade proper release version for newly added repos
