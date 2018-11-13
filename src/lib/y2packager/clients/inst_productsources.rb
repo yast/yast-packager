@@ -1288,7 +1288,6 @@ module Yast
         # bnc #392111
         Wizard.RestoreNextButton
         Wizard.EnableNextButton
-        Wizard.DisableBackButton
 
         # from add-ons
         if @script_called_from_another
