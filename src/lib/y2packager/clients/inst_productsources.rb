@@ -1732,7 +1732,9 @@ module Yast
       # Ask only once
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
-      msg = _("Would you like to activate online repositories?")
+      msg = _("Your system has an active network connection.\n" \
+              "Additional software is available online.\n"      \
+              "Would you like to activate online repositories?")
 
       if low_memory?
         msg += "\n\n"
