@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Nov 14 13:56:53 UTC 2018 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Support for adding online repos during installation (bsc#1112937)
+- Added pop-up dialog to ask user first if he would like to add
+  online repos during installation and upgrade (only once)
+- 4.1.13
+
+-------------------------------------------------------------------
 Fri Nov  2 15:34:01 UTC 2018 - lslezak@suse.cz
 
 - Break the yast2-packager -> yast2-storage-ng -> yast2-packager
