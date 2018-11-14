@@ -87,6 +87,7 @@ module Yast
   #     </group>
   #   </metapackage>
   class InstProductsourcesClient < Client
+    # rubocop:disable Style/ClassVars
     include Yast::Logger
 
     # too low memory for using online repositories (in MiB),
@@ -119,6 +120,7 @@ module Yast
         end
 
         if !ask_activate_online_repos
+          log.info("Skipping module")
           return :auto
         end
       end
