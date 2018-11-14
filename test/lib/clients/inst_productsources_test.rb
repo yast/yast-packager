@@ -19,12 +19,6 @@ describe Yast::InstProductsourcesClient do
       expect(client.main).to eq :auto
     end
 
-    it "returns :back if going back" do
-      allow(Yast::GetInstArgs).to receive(:going_back).and_return(true)
-
-      expect(client.main).to eq :back
-    end
-
     context "run as command line" do
       before do
         allow(Yast::Mode).to receive(:normal).and_return(true)
