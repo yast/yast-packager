@@ -113,6 +113,11 @@ module Yast
       end
 
       if Mode.installation || Mode.update
+        if !NetworkService.isNetworkRunning
+          log.info("No network connection - skipping module")
+          return :auto
+        end
+
         if !ask_activate_online_repos
           return :auto
         end
