@@ -1756,12 +1756,8 @@ module Yast
         @@posted_low_memory_warning = true
       end
 
-      @@ask_activate_online_repos_result = Popup.AnyQuestion(
-        Popup.NoHeadline,
-        msg,
-        Label.YesButton,
-        Label.NoButton,
-        default_button)
+      @@ask_activate_online_repos_result = Popup.AnyQuestion(Popup.NoHeadline,
+        msg, Label.YesButton, Label.NoButton, default_button)
     end
 
     # fallback when alias is not defined
