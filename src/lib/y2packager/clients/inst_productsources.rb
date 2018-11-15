@@ -1739,6 +1739,7 @@ module Yast
       # Ask only once
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
+      default_button = :focus_yes
       msg = _("Your system has an active network connection.\n" \
               "Additional software is available online.\n"      \
               "Would you like to activate online repositories?")
@@ -1751,10 +1752,16 @@ module Yast
                  "\n"                                                      \
                  "Using the online repositories later in the installed\n"  \
                  "system is recommended.") % LOW_MEMORY_MIB
+        default_button = :focus_no
         @@posted_low_memory_warning = true
       end
 
-      @@ask_activate_online_repos_result = Yast::Popup.YesNo(msg)
+      @@ask_activate_online_repos_result = Popup.AnyQuestion(
+        Popup.NoHeadline,
+        msg,
+        Label.YesButton,
+        Label.NoButton,
+        default_button)
     end
 
     # fallback when alias is not defined
