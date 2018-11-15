@@ -163,6 +163,12 @@ module Yast
           next
         end
 
+        if [:cd, :dvd].include?(repo.scheme)
+          log.info("Repo #{repo.repo_id} (#{repo.name}) is at CD / DVD; disabling")
+          repo.disable!
+          disabled << repo
+        end
+
         uncovered = repo.products.reject { |p| products_whitelist.include?(p) }
         if uncovered.empty?
           log.info("Repo #{repo.repo_id} (#{repo.name}) will be disabled because products " \
