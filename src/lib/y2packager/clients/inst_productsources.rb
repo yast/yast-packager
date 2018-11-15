@@ -1695,8 +1695,6 @@ module Yast
     # with low memory (the installer may crash or freeze, see bnc#854755)
     def check_memory_size
       return if !Mode.installation
-      # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
-      # rounding in hwinfo memory detection (bsc#1045915)
       return unless low_memory?
 
       # Warn only once
@@ -1717,6 +1715,8 @@ module Yast
     # @return Boolean
     #
     def low_memory?
+      # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
+      # rounding in hwinfo memory detection (bsc#1045915)
       Yast2::HwDetection.memory < ((LOW_MEMORY_MIB - 64) << 20)
     end
 
