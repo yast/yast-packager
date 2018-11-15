@@ -87,6 +87,9 @@ module Yast
   #     </group>
   #   </metapackage>
   class InstProductsourcesClient < Client
+    # rubocop:disable Style/ClassVars
+    include Yast::Logger
+
     # too low memory for using online repositories (in MiB),
     # at least 1GiB is recommended
     LOW_MEMORY_MIB = 1024
@@ -94,22 +97,36 @@ module Yast
     # we want new target in releaseversion and not old one )
     RELEASEVER_ENV = "ZYPP_REPO_RELEASEVER".freeze
 
+    @@posted_low_memory_warning = false
+    @@ask_activate_online_repos_result = nil
+
     def main
       textdomain "packager"
 
       if AddOnProduct.skip_add_ons
-        Builtins.y2milestone("Skipping module (as requested before)")
+        log.info("Skipping module (as requested before)")
         return :auto
       end
 
-      if GetInstArgs.going_back
-        Builtins.y2milestone("Going back...")
+      if GetInstArgs.going_back && Mode.update
+        log.info("Going back...")
         ENV.delete(RELEASEVER_ENV)
-        return :back
+      end
+
+      if Mode.installation || Mode.update
+        if !NetworkService.isNetworkRunning
+          log.info("No network connection - skipping module")
+          return :auto
+        end
+
+        if !ask_activate_online_repos
+          log.info("Skipping module")
+          return :auto
+        end
       end
 
       @args = WFM.Args
-      Builtins.y2milestone("Script args: %1", @args)
+      log.info("Script args: #{@args}")
 
       # similar to commandline mode but actually it's called from another YaST script
       @script_noncmdline_args = {}
@@ -1288,7 +1305,6 @@ module Yast
         # bnc #392111
         Wizard.RestoreNextButton
         Wizard.EnableNextButton
-        Wizard.DisableBackButton
 
         # from add-ons
         if @script_called_from_another
@@ -1679,17 +1695,69 @@ module Yast
     # with low memory (the installer may crash or freeze, see bnc#854755)
     def check_memory_size
       return if !Mode.installation
-      # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
-      # rounding in hwinfo memory detection (bsc#1045915)
-      return if Yast2::HwDetection.memory >= ((LOW_MEMORY_MIB - 64) << 20)
+      return unless low_memory?
 
+      # Warn only once
+      return if @@posted_low_memory_warning
+
+      @@posted_low_memory_warning = true
       Report.Warning(_("Low memory detected.\n\nUsing online repositories " \
             "during initial installation with less than\n" \
-            "%dMiB system memory is not recommended.\n\n" \
+            "%d MiB system memory is not recommended.\n\n" \
             "The installer may crash or freeze if the additional package data\n" \
             "need too much memory.\n\n" \
             "Using the online repositories later in the installed system is\n" \
             "recommended in this case.") % LOW_MEMORY_MIB)
+    end
+
+    # Return 'true' if running on a system with low memory, 'false' if not.
+    #
+    # @return Boolean
+    #
+    def low_memory?
+      # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
+      # rounding in hwinfo memory detection (bsc#1045915)
+      Yast2::HwDetection.memory < ((LOW_MEMORY_MIB - 64) << 20)
+    end
+
+    # Ask the user if he wishes to activate online repos.
+    # Return 'true' if the user answered "Yes", 'false' if 'No'.
+    #
+    # @return Boolean
+    #
+    def ask_activate_online_repos
+      if GetInstArgs.going_back && @@ask_activate_online_repos_result == false
+        # If the user previously answered "no" and he is now going back, give
+        # him a chance to change his mind when he comes here the next time
+        # going forward again. But for now, since we are going back, prepare to
+        # skip this step since otherwise it would open the full dialog which he
+        # has not seen before, so that would be awkward.
+        @@ask_activate_online_repos_result = nil
+        return false
+      end
+
+      # Ask only once
+      return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
+
+      default_button = :focus_yes
+      msg = _("Your system has an active network connection.\n" \
+              "Additional software is available online.\n"      \
+              "Would you like to activate online repositories?")
+
+      if low_memory?
+        msg += "\n\n"
+        msg += _("Since your system has less than %d MiB memory,\n"        \
+                 "there is a significant risk of running out of memory,\n" \
+                 "and the installer may crash or freeze.\n"                \
+                 "\n"                                                      \
+                 "Using the online repositories later in the installed\n"  \
+                 "system is recommended.") % LOW_MEMORY_MIB
+        default_button = :focus_no
+        @@posted_low_memory_warning = true
+      end
+
+      @@ask_activate_online_repos_result = Popup.AnyQuestion(Popup.NoHeadline,
+        msg, Label.YesButton, Label.NoButton, default_button)
     end
 
     # fallback when alias is not defined
