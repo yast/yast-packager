@@ -77,17 +77,22 @@ describe Yast::PkgFinishClient do
     end
 
     context "given some local repository" do
-      let(:repositories) { [local_repo, remote_repo] }
+      let(:repositories) { [local_repo, local_dvd_repo, remote_repo] }
       let(:base_products) { [sles_product, sled_product] }
 
       let(:local_repo) do
         Y2Packager::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
-          url: URI("cd://dev/sr0"), autorefresh: false)
+          url: URI("dir:///path/to/extracted_ISO"), autorefresh: false)
       end
 
       let(:remote_repo) do
         Y2Packager::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
           url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
+      end
+
+      let(:local_dvd_repo) do
+        Y2Packager::Repository.new(repo_id: 3, name: "SLE-15-SP1-0", enabled: true,
+          url: URI("dvd:///?devices=/dev/sr0"), autorefresh: false)
       end
 
       let(:sles_product) do
@@ -104,6 +109,7 @@ describe Yast::PkgFinishClient do
 
       before do
         allow(local_repo).to receive(:products).and_return([sles_product, sled_product])
+        allow(local_dvd_repo).to receive(:products).and_return([sles_product, sled_product])
       end
 
       context "if installed base products are available through other repos" do
@@ -117,12 +123,28 @@ describe Yast::PkgFinishClient do
         end
       end
 
+      context "dvd repository is disabled even if base products are not availeble through other repos" do
+        before do
+          allow(remote_repo).to receive(:products).and_return([])
+        end
+
+        it "disables the local repository" do
+          expect(local_dvd_repo).to receive(:disable!)
+          client.run
+        end
+      end
+
       context "if installed base products are not available through other repos" do
         before do
           allow(remote_repo).to receive(:products).and_return([])
         end
 
-        it "does not disable the local repository" do
+        it "disables local dvd repo" do
+          expect(local_dvd_repo).to receive(:disable!)
+          client.run
+        end
+
+        it "does not disable the local repository if not CD / DVD" do
           expect(local_repo).to_not receive(:disable!)
           client.run
         end
