@@ -13,3 +13,4 @@ script:
   # see https://github.com/yast/docker-yast-ruby/blob/master/yast-travis-ruby
   - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image yast-travis-ruby
   - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image rake check:doc
+  - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image shellcheck src/bin/sw_single_wrapper
