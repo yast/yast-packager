@@ -25,7 +25,10 @@ RSpec.shared_examples "Installation::ProposalClient" do
 end
 
 describe Yast::SoftwareProposalClient do
+  let(:ntp) { double("Yast::NtpClient", modified: false) }
+
   before do
+    stub_const("Yast::NtpClient", ntp)
     allow(Yast::WFM).to receive(:CallFunction).and_return(:next)
   end
 
