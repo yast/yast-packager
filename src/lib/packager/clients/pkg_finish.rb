@@ -102,6 +102,19 @@ module Yast
 
   private
 
+    # Checks if given source repo should be disabled
+    #
+    # Currently CD / DVD repositories are disabled after installation, when
+    # enabled in control file
+    #
+    # @param source [Symbol] if :cd or :dvd then control file is checked if the
+    #                        repo should be disabled
+    # @return [Boolean] true if the repo should be disabled
+    def disable_media_repo?(source)
+      disable_repo = ProductFeatures.GetBooleanFeature("software", "disable_media_repo")
+      [:cd, :dvd].include?(source) && disable_repo
+    end
+
     # Backup old sources
     #
     # During upgrade, old sources are reinitialized
@@ -164,7 +177,7 @@ module Yast
         end
 
         uncovered = repo.products.reject { |p| products_whitelist.include?(p) }
-        disable = if [:cd, :dvd].include?(repo.scheme)
+        disable = if disable_media_repo?(repo.scheme)
           log.info("Repo #{repo.repo_id} (#{repo.name}) is at CD / DVD; disabling")
           true
         elsif uncovered.empty?
