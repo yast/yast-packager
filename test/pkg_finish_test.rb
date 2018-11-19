@@ -22,6 +22,9 @@ describe Yast::PkgFinishClient do
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Y2Packager::Repository).to receive(:enabled).and_return(repositories)
+    allow(Yast::ProductFeatures)
+      .to receive(:GetBooleanFeature)
+      .and_call_original
     allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
       .with("software", "minimalistic_libzypp_config")
       .and_return(minimalistic_libzypp_config)
@@ -123,30 +126,40 @@ describe Yast::PkgFinishClient do
         end
       end
 
-      context "dvd repository is disabled even if base products are not availeble through other repos" do
-        before do
-          allow(remote_repo).to receive(:products).and_return([])
+      context "when control file option disable_media_repo is enabled" do
+        before(:each) do
+          allow(Yast::ProductFeatures)
+            .to receive(:GetBooleanFeature)
+            .with("software", "disable_media_repo")
+            .and_return(true)
         end
 
-        it "disables the local repository" do
-          expect(local_dvd_repo).to receive(:disable!)
-          client.run
-        end
-      end
+        context "dvd repository is disabled even if base products are not availeble through other repos" do
+          before do
+            allow(remote_repo).to receive(:products).and_return([])
+          end
 
-      context "if installed base products are not available through other repos" do
-        before do
-          allow(remote_repo).to receive(:products).and_return([])
-        end
+          it "disables the local repository if set in the control file" do
+            expect(local_dvd_repo).to receive(:disable!)
 
-        it "disables local dvd repo" do
-          expect(local_dvd_repo).to receive(:disable!)
-          client.run
+            client.run
+          end
         end
 
-        it "does not disable the local repository if not CD / DVD" do
-          expect(local_repo).to_not receive(:disable!)
-          client.run
+        context "if installed base products are not available through other repos" do
+          before do
+            allow(remote_repo).to receive(:products).and_return([])
+          end
+
+          it "disables local dvd repo" do
+            expect(local_dvd_repo).to receive(:disable!)
+            client.run
+          end
+
+          it "does not disable the local repository if not CD / DVD" do
+            expect(local_repo).to_not receive(:disable!)
+            client.run
+          end
         end
       end
 
