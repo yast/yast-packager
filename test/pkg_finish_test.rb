@@ -134,7 +134,7 @@ describe Yast::PkgFinishClient do
             .and_return(true)
         end
 
-        context "dvd repository is disabled even if base products are not availeble through other repos" do
+        context "dvd repo is disabled even if base products aren't available using other repos" do
           before do
             allow(remote_repo).to receive(:products).and_return([])
           end
