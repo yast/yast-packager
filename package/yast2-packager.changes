@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 19 07:27:24 UTC 2018 - mfilka@suse.com
+
+- fate#325541
+  - disabling CD / DVD repositories according to control file setup
+- 4.1.15
+
+-------------------------------------------------------------------
 Fri Nov 16 13:29:45 UTC 2018 - lslezak@suse.cz
 
 - sw_single_wrapper: fixed invalid variable reset causing a
