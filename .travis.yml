@@ -11,6 +11,7 @@ before_install:
 script:
   # the "yast-travis-ruby" script is included in the base yastdevel/ruby image
   # see https://github.com/yast/docker-yast-ruby/blob/master/yast-travis-ruby
-  - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image yast-travis-ruby
+  # exclude the yardoc step, we run the more strict check:doc later
+  - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image yast-travis-ruby -x yardoc
   - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image rake check:doc
   - docker run -it -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image shellcheck src/bin/sw_single_wrapper
