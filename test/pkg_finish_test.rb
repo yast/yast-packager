@@ -22,6 +22,9 @@ describe Yast::PkgFinishClient do
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Y2Packager::Repository).to receive(:enabled).and_return(repositories)
+    allow(Yast::ProductFeatures)
+      .to receive(:GetBooleanFeature)
+      .and_call_original
     allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
       .with("software", "minimalistic_libzypp_config")
       .and_return(minimalistic_libzypp_config)
@@ -77,17 +80,22 @@ describe Yast::PkgFinishClient do
     end
 
     context "given some local repository" do
-      let(:repositories) { [local_repo, remote_repo] }
+      let(:repositories) { [local_repo, local_dvd_repo, remote_repo] }
       let(:base_products) { [sles_product, sled_product] }
 
       let(:local_repo) do
         Y2Packager::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
-          url: URI("cd://dev/sr0"), autorefresh: false)
+          url: URI("hd:/?devices=/dev/sda"), autorefresh: false)
       end
 
       let(:remote_repo) do
         Y2Packager::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
           url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
+      end
+
+      let(:local_dvd_repo) do
+        Y2Packager::Repository.new(repo_id: 3, name: "SLE-15-SP1-0", enabled: true,
+          url: URI("dvd:///?devices=/dev/sr0"), autorefresh: false)
       end
 
       let(:sles_product) do
@@ -104,6 +112,7 @@ describe Yast::PkgFinishClient do
 
       before do
         allow(local_repo).to receive(:products).and_return([sles_product, sled_product])
+        allow(local_dvd_repo).to receive(:products).and_return([sles_product, sled_product])
       end
 
       context "if installed base products are available through other repos" do
@@ -117,14 +126,40 @@ describe Yast::PkgFinishClient do
         end
       end
 
-      context "if installed base products are not available through other repos" do
-        before do
-          allow(remote_repo).to receive(:products).and_return([])
+      context "when control file option disable_media_repo is enabled" do
+        before(:each) do
+          allow(Yast::ProductFeatures)
+            .to receive(:GetBooleanFeature)
+            .with("software", "disable_media_repo")
+            .and_return(true)
         end
 
-        it "does not disable the local repository" do
-          expect(local_repo).to_not receive(:disable!)
-          client.run
+        context "dvd repo is disabled even if base products aren't available using other repos" do
+          before do
+            allow(remote_repo).to receive(:products).and_return([])
+          end
+
+          it "disables the local repository if set in the control file" do
+            expect(local_dvd_repo).to receive(:disable!)
+
+            client.run
+          end
+        end
+
+        context "if installed base products are not available through other repos" do
+          before do
+            allow(remote_repo).to receive(:products).and_return([])
+          end
+
+          it "disables local dvd repo" do
+            expect(local_dvd_repo).to receive(:disable!)
+            client.run
+          end
+
+          it "does not disable the local repository if not CD / DVD" do
+            expect(local_repo).to_not receive(:disable!)
+            client.run
+          end
         end
       end
 
