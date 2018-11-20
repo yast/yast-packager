@@ -111,8 +111,8 @@ module Yast
     #                        repo should be disabled
     # @return [Boolean] true if the repo should be disabled
     def disable_media_repo?(source)
-      disable_repo = ProductFeatures.GetBooleanFeature("software", "disable_media_repo")
-      [:cd, :dvd].include?(source) && disable_repo
+      return false if ![:cd, :dvd].include?(source)
+      ProductFeatures.GetBooleanFeature("software", "disable_media_repo")
     end
 
     # Backup old sources

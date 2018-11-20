@@ -85,7 +85,7 @@ describe Yast::PkgFinishClient do
 
       let(:local_repo) do
         Y2Packager::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
-          url: URI("dir:///path/to/extracted_ISO"), autorefresh: false)
+          url: URI("hd:/?devices=/dev/sda"), autorefresh: false)
       end
 
       let(:remote_repo) do
