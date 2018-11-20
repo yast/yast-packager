@@ -837,7 +837,6 @@ module Yast
 
     # Initialize add-on products provided by the repository
     def InitializeAddOnProducts
-      SelectProduct()
       PackageCallbacks.SetMediaCallbacks
 
       # Set the base workflow before adding more AddOnProducts using the add_on_products file
@@ -1781,12 +1780,6 @@ module Yast
       @base_source_id = initial_repository
       Builtins.y2milestone("Base source ID: %1", @base_source_id)
 
-      # Set the product before setting up add-on products
-      # In the autoyast mode it could be that the proposal
-      # screen will not be displayed. So the product will
-      # not be set. Bug 178831
-      SelectProduct()
-
       @theSources = [initial_repository]
       sp_source = IntegrateServicePack(show_popup, base_url)
       @theSources = Builtins.add(@theSources, sp_source) if !sp_source.nil?
@@ -1918,62 +1911,6 @@ module Yast
       Initialize(true)
 
       nil
-    end
-
-    # Select the base product on the media for installation
-    # @return [Boolean] true on success
-    def SelectProduct
-      Initialize(true)
-
-      if Stage.cont
-        log.info("Second stage - skipping product selection")
-        return true
-      end
-
-      if Mode.update
-        log.info("Update mode - skipping product selection")
-        return true
-      end
-
-      products = Pkg.ResolvableProperties("", :product, "")
-
-      if !products || products.empty?
-        log.info("No product found on media")
-        return true
-      end
-
-      # no product selected -> select them all
-      ret = true
-      unless products.any? { |p| p["status"] == :selected }
-        log.info("No product selected so far...")
-        selected_products = []
-        products.each do |p|
-          product_name = p["name"] || ""
-          if p["status"] == :installed
-            log.info("Ignoring already installed product: #{product_name}")
-          else
-            log.info("Selecting product #{product_name}")
-            selected_products << product_name
-          end
-        end
-
-        # Due selecting all available products there can be products which
-        # are conflicting.
-        # E.g products are already be "included" by other products. So they MUST
-        # not be installed anymore.
-        selected_products.reject! do |product1|
-          selected_products.any? do |product2|
-            conflicts = product_conflicts?(product1, product2)
-            if conflicts
-              log.info("Product #{product1} conflicts with #{product2} and will not be installed.")
-            end
-            conflicts
-          end
-        end
-        ret = selected_products.all? { |name| Pkg.ResolvableInstall(name, :product) }
-      end
-
-      ret
     end
 
     # Selects system-specific and default patterns for installation
@@ -2213,8 +2150,6 @@ module Yast
         # we don't want to overwrite this
         Pkg.SetAdditionalLocales([Language.language]) if !Mode.autoinst
       end
-
-      SelectProduct()
 
       if ProductFeatures.GetFeature("software", "selection_type") == :auto
         Builtins.y2milestone("Doing pattern-based software selection")
@@ -2554,7 +2489,6 @@ module Yast
     publish function: :CheckOldAddOns, type: "void (map &)"
     publish function: :Summary, type: "map (list <symbol>, boolean)"
     publish function: :ForceFullRepropose, type: "void ()"
-    publish function: :SelectProduct, type: "boolean ()"
     publish function: :Reset, type: "void (list <symbol>)"
     publish function: :InitializeAddOnProducts, type: "void ()"
     publish function: :addAdditionalPackage, type: "void (string)"
