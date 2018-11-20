@@ -80,7 +80,6 @@ module Yast
       Yast.import "URL"
       Yast.import "PackagesProposal"
       Yast.import "HTML"
-      Yast.import "NtpClient"
 
       Yast.include self, "packager/load_release_notes.rb"
 
@@ -862,12 +861,14 @@ module Yast
     # service package is selected to be installed or not.
     # @return [String] empty string or error message if the package is missing
     def check_ntp_installation_packages
+      Yast.import "NtpClient"
+
       return "" unless NtpClient.modified
       return "" if pkg_will_be_installed(NtpClientClass::REQUIRED_PACKAGE)
 
-      # TRANSLATORS: warning message, %s is the service name
-      _("The NTP configuration (%s) has been modified, " \
-        "but the package is not selected to be installed.") % "chrony"
+      # TRANSLATORS: warning message
+      _("The NTP configuration (chrony) has been modified, " \
+        "but the package is not selected to be installed.")
     end
 
     # Checking if all needed packages for remote installation
