@@ -83,30 +83,13 @@ module Yast
           "warning_level" => :blocker
         )
       end
-      remote_installation_error = Packages.check_remote_installation_packages
-      unless remote_installation_error.empty?
-        # The Default warning_level is "error". So the user can continue
-        # installation.
-        if @ret["warning"]
-          @ret["warning"] << "\n"
-          @ret["warning"] << remote_installation_error
-        else
-          @ret["warning"] = remote_installation_error
-        end
-      end
 
-      if Yast::Mode.auto
-        # AY: Checking if second stage is needed and the environment has been setup.
-        error_message = Yast::AutoinstData.autoyast_second_stage_error
-        unless error_message.empty?
-          if @ret["warning"]
-            @ret["warning"] << "\n"
-          else
-            @ret["warning"] = ""
-          end
-          @ret["warning"] << error_message
-        end
-      end
+      # The Default warning_level is "error". So the user can continue
+      # installation.
+      add_warning_if_needed(Packages.check_ntp_installation_packages)
+      add_warning_if_needed(Packages.check_remote_installation_packages)
+      # AY: Checking if second stage is needed and the environment has been setup.
+      add_warning_if_needed(Yast::AutoinstData.autoyast_second_stage_error) if Yast::Mode.auto
 
       @ret
     end
@@ -142,6 +125,17 @@ module Yast
     end
 
   private
+
+    # @param msg [String] warning message to be added
+    def add_warning_if_needed(msg)
+      return if msg.empty?
+
+      if @ret.key?("warning")
+        @ret["warning"] << "\n#{msg}"
+      else
+        @ret["warning"] = msg
+      end
+    end
 
     def partitioning_changed?
       changed = false

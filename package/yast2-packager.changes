@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Nov 20 10:37:59 UTC 2018 - knut.anderssen@suse.com
+
+- software_proposal: Added warning in case the NTP configuration
+  was modified but the package is not selected to be installed
+  (bsc#1082369)
+- 4.0.72
+
+-------------------------------------------------------------------
 Fri Nov 16 13:29:45 UTC 2018 - lslezak@suse.cz
 
 - sw_single_wrapper: fixed invalid variable reset causing a
