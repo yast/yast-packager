@@ -847,6 +847,20 @@ module Yast
       nil
     end
 
+    # When the NTP configuration has been modified, it checks whether the
+    # service package is selected to be installed or not.
+    # @return [String] empty string or error message if the package is missing
+    def check_ntp_installation_packages
+      Yast.import "NtpClient"
+
+      return "" unless NtpClient.modified
+      return "" if pkg_will_be_installed(NtpClientClass::REQUIRED_PACKAGE)
+
+      # TRANSLATORS: warning message
+      _("The NTP configuration (chrony) has been modified, " \
+        "but the package is not selected to be installed.")
+    end
+
     # Checking if all needed packages for remote installation
     # will be installed on the target system.
     # @return [String] empty string or error message if there are missing packages
