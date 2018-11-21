@@ -33,15 +33,6 @@ module Yast
     # Graphical packages for VNC installation
     GRAPHIC_PACKAGES = ["xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11"].freeze
 
-    # Some products are already be "included" in other products. So they MUST
-    # not be installed anymore because the other product has a conflict to
-    # that one.
-    PRODUCT_CONFLICTS = {
-      # SLES_SAP contains "Conflicts: sles-release". So SLES will not be installed.
-      # see https://build.suse.de/package/view_file/SUSE:SLE-12-SP2:GA/_product/SLES_SAP-release.spec?expand=1
-      "SLES_SAP" => ["SLES"]
-    }.freeze
-
     BASE_PRODUCT_FILE = "/etc/products.d/baseproduct".freeze
 
     def main
@@ -2735,14 +2726,6 @@ module Yast
       blk_device = filesystem.blk_devices[0]
       return "" unless blk_device
       blk_device.name
-    end
-
-    # Checking if product2 has a conflict to product1
-    #
-    # @return [Boolean] true if there are conflicts
-    def product_conflicts?(product1, product2)
-      return false unless PRODUCT_CONFLICTS[product2]
-      PRODUCT_CONFLICTS[product2].include?(product1)
     end
 
     # Create the baseproduct file pointing to a found product file.
