@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Nov 21 10:04:59 UTC 2018 - knut.anderssen@suse.com
+
+- software_proposal: Added warning in case the NTP configuration
+  was modified but the package is not selected to be installed
+  (bsc#1082369)
+- 4.1.17
+
+-------------------------------------------------------------------
 Tue Nov 20 10:49:25 CET 2018 - schubi@suse.de
 
 - Function SelectProduct removed in order NOT to select All
