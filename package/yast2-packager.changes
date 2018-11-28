@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 28 08:01:43 UTC 2018 - Noah Davis <noahadvs@gmail.com>
+
+- Provide icon with module (boo#1109310)
+- 4.1.18
+
+-------------------------------------------------------------------
 Wed Nov 21 10:04:59 UTC 2018 - knut.anderssen@suse.com
 
 - software_proposal: Added warning in case the NTP configuration

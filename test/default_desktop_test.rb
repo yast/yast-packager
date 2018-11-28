@@ -21,13 +21,13 @@ describe Yast::DefaultDesktop do
     },
     {
       "cursor"   => "DMZ",
-      "desktop"  => "kde4",
-      "icon"     => "pattern-kde4",
+      "desktop"  => "kde",
+      "icon"     => "pattern-kde",
       "label_id" => "desktop_kde",
-      "logon"    => "kdm",
+      "logon"    => "sddm",
       "name"     => "kde",
       "order"    => 1,
-      "packages" => "kdm branding-openSUSE",
+      "packages" => "sddm branding-openSUSE",
       "patterns" => "kde x11 base"
     },
     {
@@ -55,7 +55,7 @@ describe Yast::DefaultDesktop do
     {
       "cursor"   => "DMZ",
       "desktop"  => "twm",
-      "icon"     => "yast-x11",
+      "icon"     => "pattern-x11",
       "label_id" => "desktop_min_x",
       "logon"    => "xdm",
       "name"     => "min_x",
