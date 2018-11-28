@@ -28,10 +28,7 @@ module Yast
         return Empty()
       end
 
-      Image(
-        Builtins.sformat("%1/22x22/apps/%2.png", Directory.icondir, icon_name),
-        "[x]"
-      )
+      Image(icon_name, "[x]")
     end
 
     def CreateSearchUI

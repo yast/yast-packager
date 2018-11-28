@@ -222,10 +222,7 @@ module Yast
       ui_capabilities = UI.GetDisplayInfo
 
       if Ops.get_boolean(ui_capabilities, "HasLocalImageSupport", false)
-        icon = Image(
-          Ops.add(Directory.icondir, "32x32/apps/msg_warning.png"),
-          ""
-        )
+        icon = Image("dialog-warning", "")
       end
 
       content = MarginBox(
