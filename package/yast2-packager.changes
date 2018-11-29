@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Nov 29 14:47:37 UTC 2018 - lslezak@suse.cz
+
+- We do not need yast2_theme for building this package,
+  the desktopfile icon is included in this package now
+  (related to boo#1109310)
+- 4.1.19
+
+-------------------------------------------------------------------
 Wed Nov 28 08:01:43 UTC 2018 - Noah Davis <noahadvs@gmail.com>
 
 - Provide icon with module (boo#1109310)

@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.1.18
+Version:        4.1.19
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -37,9 +37,6 @@ BuildRequires:  yast2-storage-ng >= 4.0.141
 
 # Y2Packager::ProductLicense
 BuildRequires:  yast2 >= 4.0.63
-
-# needed for icon for desktop file, it is verified at the end of build
-BuildRequires:  yast2_theme
 
 # Pkg::PrdLicenseLocales
 BuildRequires:  yast2-pkg-bindings >= 4.0.8
