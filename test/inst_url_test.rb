@@ -29,8 +29,8 @@ describe Yast::InstURL do
     context "when ZyppRepoURL is not defined" do
       let(:zypp_repo_url) { nil }
 
-      it "returns cd:///" do
-        expect(inst_url.installInf2Url("")).to eq("cd:///")
+      it "returns an empty string" do
+        expect(inst_url.installInf2Url("")).to be_empty
       end
     end
 
