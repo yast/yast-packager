@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec  5 09:52:52 UTC 2018 - snwint@suse.com
+
+- remove cd:/// fallback installation URL (fate#325482)
+- 4.1.20
+
+-------------------------------------------------------------------
 Thu Nov 29 14:47:37 UTC 2018 - lslezak@suse.cz
 
 - We do not need yast2_theme for building this package,
