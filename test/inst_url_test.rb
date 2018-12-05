@@ -30,7 +30,7 @@ describe Yast::InstURL do
       let(:zypp_repo_url) { nil }
 
       it "returns an empty string" do
-        expect(inst_url.installInf2Url("")).to be_empty
+        expect(inst_url.installInf2Url("")).to eq("")
       end
     end
 
