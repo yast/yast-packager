@@ -1212,7 +1212,8 @@ module Yast
         out = SCR.Execute(
           path(".target.bash_output"),
           Builtins.sformat(
-            "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && /usr/bin/tar -xzf #{unpack_file.shellescape}\n",
+            "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && " \
+              "/usr/bin/tar -xzf #{unpack_file.shellescape}\n",
             to_directory.shellescape
           )
         )
@@ -1397,7 +1398,8 @@ module Yast
         SCR.Execute(
           path(".target.bash_output"),
           Builtins.sformat(
-            "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && /usr/bin/unzip -qqo #{license_file.shellescape}\n",
+            "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && " \
+              "/usr/bin/unzip -qqo #{license_file.shellescape}\n",
             @tmpdir.shellescape
           )
         )

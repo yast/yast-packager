@@ -1966,7 +1966,8 @@ module Yast
     def IsAnyNetworkAvailable
       ret = false
 
-      command = "TERM=dumb /sbin/ip -o address show | /usr/bin/grep inet | /usr/bin/grep -v scope.host"
+      command = "TERM=dumb /sbin/ip -o address show | /usr/bin/grep inet | " \
+        "/usr/bin/grep -v scope.host"
       Builtins.y2milestone("Running %1", command)
       cmd_run = SCR.Execute(path(".target.bash_output"), command)
       Builtins.y2milestone("Command returned: %1", cmd_run)

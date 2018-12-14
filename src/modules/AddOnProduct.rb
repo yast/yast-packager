@@ -240,7 +240,8 @@ module Yast
         # Where the file is finally cached
         cached_file = Builtins.sformat("%1%2", @filecachedir, @filecachecounter)
 
-        cmd = "/usr/bin/mkdir -p #{@filecachedir.shellescape}; /usr/bin/cp #{provided_file.shellescape} #{cached_file.shellescape}"
+        cmd = "/usr/bin/mkdir -p #{@filecachedir.shellescape}; " \
+          "/usr/bin/cp #{provided_file.shellescape} #{cached_file.shellescape}"
         cmd_run = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
 
         # Unable to cache a file, the original file will be returned

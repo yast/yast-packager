@@ -275,7 +275,8 @@ module Yast
 
           if SCR.Execute(
             path(".target.bash"),
-            "cd #{Installation.destdir.shellescape}; /bin/tar czf .#{filename.shellescape} etc/sysconfig"
+            "cd #{Installation.destdir.shellescape}; " \
+              "/bin/tar czf .#{filename.shellescape} etc/sysconfig"
           ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",
