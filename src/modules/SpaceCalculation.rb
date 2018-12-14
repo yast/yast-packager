@@ -10,6 +10,7 @@
 
 require "yast"
 require "shellwords"
+require "fileutils"
 require "y2storage"
 require "y2packager/storage_manager_proxy"
 
@@ -588,7 +589,7 @@ module Yast
           # Mount the filesystem to check the available space.
 
           tmpdir = SCR.Read(path(".target.tmpdir")) + "/diskspace_mount"
-          SCR.Execute(path(".target.bash"), "mkdir -p #{Shellwords.escape(tmpdir)}")
+          ::FileUtils.mkdir_p(tmpdir)
 
           # mount options determined by partitioner
           mount_options = filesystem.mount_options
@@ -610,7 +611,7 @@ module Yast
           # device = part["crypt_device"] || part["device"] || ""
           device = filesystem_dev_name(filesystem)
 
-          mount_command = "mount -o #{mount_options_str} " \
+          mount_command = "/usr/bin/mount -o #{mount_options_str} " \
             "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
 
           log.info "Executing mount command: #{mount_command}"
@@ -636,7 +637,7 @@ module Yast
               end
             end
 
-            SCR.Execute(path(".target.bash"), "umount #{Shellwords.escape(tmpdir)}")
+            SCR.Execute(path(".target.bash"), "/usr/bin/umount #{Shellwords.escape(tmpdir)}")
           else
             log.error "Mount failed, ignoring partition #{device}"
             @failed_mounts << filesystem

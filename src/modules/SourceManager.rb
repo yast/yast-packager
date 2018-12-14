@@ -2,6 +2,8 @@
 
 require "yast"
 
+require "shellwords"
+
 # Yast namespace
 module Yast
   # Representation of the configuration of source-manager.
@@ -645,14 +647,14 @@ module Yast
             device = Convert.to_string(UI.QueryWidget(Id(:drives), :Value))
             SCR.Execute(
               path(".target.bash"),
-              Builtins.sformat("/bin/eject %1", device)
+              "/usr/bin/eject #{device.shellescape}"
             )
           else
             SCR.Execute(
               path(".target.bash"),
               Builtins.sformat(
-                "/bin/eject %1",
-                Ops.get_string(cdroms, [0, "dev_name"], "")
+                "/usr/bin/eject %1",
+                Ops.get_string(cdroms, [0, "dev_name"], "").shellescape
               )
             )
           end
@@ -751,14 +753,9 @@ module Yast
       download_dir = Ops.greater_than(tmp_space, var_tmp_space) ? "/tmp" : "/var/tmp"
       download_dir = Ops.add(Installation.destdir, download_dir)
       # TODO: check the size of the largest package on CD1
-      successful = Convert.to_integer(
-        SCR.Execute(
-          path(".target.bash"),
-          Builtins.sformat(
-            "test -d '%1' || mkdir -p '%1'",
-            String.Quote(download_dir)
-          )
-        )
+      successful = SCR.Execute(
+        path(".target.bash"),
+        "test -d #{download_dir.shellescape} || /usr/bin/mkdir -p #{download_dir.shellescape}"
       )
       if successful.zero?
         Pkg.SourceMoveDownloadArea(download_dir)

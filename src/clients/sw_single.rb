@@ -5,6 +5,8 @@
 # Authors: 		Gabriele Strattner (gs@suse.de)
 #			Klaus Kaempf <kkaempf@suse.de>
 #
+require "shellwords"
+
 module Yast
   # Purpose: 		contains dialog loop for workflows:
   #	"Install/Remove software"
@@ -159,29 +161,17 @@ module Yast
 
         Builtins.foreach(arg_list) do |package|
           # a symbolic link
-          command = Builtins.sformat(
-            "ln -- '%1' '%2'",
-            String.Quote(package),
-            String.Quote(tmprepo)
-          )
+          command = "/usr/bin/ln -- #{package.shellescape} #{tmprepo.shellescape}"
           Builtins.y2milestone("Linking package using command: %1", command)
-          out = Convert.to_map(
-            SCR.Execute(path(".target.bash_output"), command)
-          )
+          out = SCR.Execute(path(".target.bash_output"), command)
           if Ops.get_integer(out, "exit", -1).nonzero?
             Builtins.y2warning(
               "Could not link the package, creating a full copy instead..."
             )
-            command = Builtins.sformat(
-              "cp -- '%1' '%2'",
-              String.Quote(package),
-              String.Quote(tmprepo)
-            )
+            command = "/usr/bin/cp -- #{package.shellescape} #{tmprepo.shellescape}"
 
             Builtins.y2milestone("Copying package using command: %1", command)
-            out = Convert.to_map(
-              SCR.Execute(path(".target.bash_output"), command)
-            )
+            out = SCR.Execute(path(".target.bash_output"), command)
 
             if Ops.get_integer(out, "exit", -1).nonzero?
               # error message (%1 is a package file name)
@@ -220,14 +210,9 @@ module Yast
 
         Builtins.foreach(arg_list) do |package|
           if Ops.greater_than(SCR.Read(path(".target.size"), package), 0)
-            out = Convert.to_map(
-              SCR.Execute(
-                path(".target.bash_output"),
-                Builtins.sformat(
-                  "/bin/rpm -q --qf '%%{NAME}' -p '%1'",
-                  String.Quote(package)
-                )
-              )
+            out = SCR.Execute(
+              path(".target.bash_output"),
+              "/bin/rpm -q --qf '%%{NAME}' -p #{package.shellescape}"
             )
 
             if Ops.get_integer(out, "exit", -1).nonzero?
@@ -244,14 +229,9 @@ module Yast
             package_name = Ops.get_string(out, "stdout", "")
 
             # is it a source package?
-            out = Convert.to_map(
-              SCR.Execute(
-                path(".target.bash_output"),
-                Builtins.sformat(
-                  "/bin/rpm -q --qf '%%{SOURCEPACKAGE}' -p '%1'",
-                  String.Quote(package)
-                )
-              )
+            out = SCR.Execute(
+              path(".target.bash_output"),
+              "/bin/rpm -q --qf '%%{SOURCEPACKAGE}' -p #{package.shellescape}"
             )
             if Ops.get_integer(out, "exit", -1).nonzero?
               # error message

@@ -2,6 +2,7 @@
 require "yast"
 require "uri"
 require "fileutils"
+require "shellwords"
 
 require "y2packager/product"
 require "y2packager/product_license"
@@ -1153,7 +1154,7 @@ module Yast
       if !tmpdir.nil? && tmpdir != "/"
         SCR.Execute(
           path(".target.bash_output"),
-          Builtins.sformat("rm -rf '%1'", String.Quote(tmpdir))
+          "/usr/bin/rm -rf #{tmpdir.shellescape}"
         )
       end
 
@@ -1208,14 +1209,11 @@ module Yast
     def UnpackLicenseTgzFileToDirectory(unpack_file, to_directory)
       # License file exists
       if FileUtils.Exists(unpack_file)
-        out = Convert.to_map(
-          SCR.Execute(
-            path(".target.bash_output"),
-            Builtins.sformat(
-              "\nrm -rf '%1' && mkdir -p '%1' && cd '%1' && tar -xzf '%2'\n",
-              String.Quote(to_directory),
-              String.Quote(unpack_file)
-            )
+        out = SCR.Execute(
+          path(".target.bash_output"),
+          Builtins.sformat(
+            "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && /usr/bin/tar -xzf #{unpack_file.shellescape}\n",
+            to_directory.shellescape
           )
         )
 
@@ -1399,9 +1397,8 @@ module Yast
         SCR.Execute(
           path(".target.bash_output"),
           Builtins.sformat(
-            "\nrm -rf '%1' && mkdir -p '%1' && cd '%1' && unzip -qqo '%2'\n",
-            String.Quote(@tmpdir),
-            String.Quote(license_file)
+            "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && /usr/bin/unzip -qqo #{license_file.shellescape}\n",
+            @tmpdir.shellescape
           )
         )
       )

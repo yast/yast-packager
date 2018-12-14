@@ -1,6 +1,8 @@
 # encoding: utf-8
 require "yast"
 
+require "shellwords"
+
 # Yast namespace
 module Yast
   # GPG Key Management
@@ -256,11 +258,7 @@ module Yast
         Directory.tmpdir,
         Builtins.size(@known_keys)
       )
-      command = Builtins.sformat(
-        "/bin/cp -- '%1' '%2'",
-        String.Quote(file),
-        String.Quote(tmpfile)
-      )
+      command = "/usr/bin/cp -- #{file.shellescape} #{tmpfile.shellescape}"
 
       Builtins.y2milestone("Copying the key: %1", command)
 

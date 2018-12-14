@@ -3,6 +3,8 @@
 require "yast"
 require "yast2/hw_detection"
 
+require "shellwords"
+
 Yast.import "UI"
 Yast.import "Pkg"
 
@@ -634,10 +636,7 @@ module Yast
     end
 
     def GetCurrentLang
-      cmd = Convert.to_map(
-        SCR.Execute(path(".target.bash_output"), "echo -n $LANG")
-      )
-      ret = Builtins.tostring(Ops.get_string(cmd, "stdout", ""))
+      ret = ENV["LANG"]
 
       ret = nil if ret == "C" || ret == "" || ret == "POSIX"
 
@@ -746,7 +745,7 @@ module Yast
           @preselect_recommended = true
           SCR.Execute(
             path(".target.bash"),
-            Builtins.sformat("touch '%1'", String.Quote(filename))
+            "/usr/bin/touch #{filename.shellescape}"
           )
           Builtins.y2milestone("Running for the first time...")
         end

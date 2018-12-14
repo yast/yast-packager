@@ -1,6 +1,8 @@
 # encoding: utf-8
 require "yast"
 
+require "shellwords"
+
 require "packager/product_patterns"
 
 # Yast namespace
@@ -238,12 +240,7 @@ module Yast
         # Where the file is finally cached
         cached_file = Builtins.sformat("%1%2", @filecachedir, @filecachecounter)
 
-        cmd = Builtins.sformat(
-          "/bin/mkdir -p '%1'; /bin/cp '%2' '%3'",
-          String.Quote(@filecachedir),
-          String.Quote(provided_file),
-          String.Quote(cached_file)
-        )
+        cmd = "/usr/bin/mkdir -p #{@filecachedir.shellescape}; /usr/bin/cp #{provided_file.shellescape} #{cached_file.shellescape}"
         cmd_run = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
 
         # Unable to cache a file, the original file will be returned
@@ -502,18 +499,16 @@ module Yast
       @src_cache_id = Ops.add(@src_cache_id, 1)
       tmpdir = Convert.to_string(SCR.Read(path(".target.tmpdir")))
       tmpdir = Builtins.sformat("%1/%2", tmpdir, @src_cache_id)
-      out = Convert.to_map(
-        SCR.Execute(
-          path(".target.bash_output"),
-          Builtins.sformat(
-            "\n" \
-              "/bin/mkdir %1;\n" \
-              "cd %1;\n" \
-              "/bin/tar -xvf %2;\n" \
-              "/sbin/adddir %1 /;\n",
-            tmpdir,
-            filename
-          )
+      out = SCR.Execute(
+        path(".target.bash_output"),
+        Builtins.sformat(
+          "\n" \
+            "/usr/bin/mkdir %1;\n" \
+            "cd %1;\n" \
+            "/bin/tar -xvf %2;\n" \
+            "/sbin/adddir %1 /;\n",
+          tmpdir.shellescape,
+          filename.shellescape
         )
       )
       if Ops.get_integer(out, "exit", 0).nonzero?
@@ -630,14 +625,14 @@ module Yast
             path(".target.bash_output"),
             Builtins.sformat(
               "\n" \
-                "test -d /y2update && rm -rf /y2update;\n" \
+                "/usr/bin/test -d /y2update && /usr/bin/rm -rf /y2update;\n" \
                 "/bin/mkdir -p /y2update/all;\n" \
                 "cd /y2update/all;\n" \
                 "/bin/tar -xvf %1;\n" \
                 "cd /y2update;\n" \
-                "ln -s all/usr/share/YaST2/* .;\n" \
-                "ln -s all/usr/lib/YaST2/* .;\n",
-              binaries
+                "/usr/bin/ln -s all/usr/share/YaST2/* .;\n" \
+                "/usr/bin/ln -s all/usr/lib/YaST2/* .;\n",
+              binaries.shellescape
             )
           )
         )
@@ -670,7 +665,7 @@ module Yast
       tmp = Ops.add(tmp, "/installation.xml")
       SCR.Execute(
         path(".target.bash"),
-        Builtins.sformat("/bin/cp %1 %2", control, tmp)
+        "/usr/bin/cp #{control.shellescape} #{tmp.shellescape}"
       )
       control = tmp
 

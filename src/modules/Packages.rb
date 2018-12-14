@@ -6,6 +6,7 @@ require "erb"
 require "fileutils"
 require "uri"
 require "cgi"
+require "shellwords"
 
 # Yast namespace
 module Yast
@@ -1005,7 +1006,7 @@ module Yast
 
     # CHeck whether this is a Dell system
     def DellSystem
-      command = "/usr/sbin/hwinfo --bios | grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'"
+      command = "/usr/sbin/hwinfo --bios | /usr/bin/grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'"
       Builtins.y2milestone("Executing: %1", command)
 
       ret = SCR.Execute(path(".target.bash"), command).zero?
@@ -1227,7 +1228,7 @@ module Yast
     # Import GPG keys found in the inst-sys
     def ImportGPGKeys
       out = Convert.to_map(
-        SCR.Execute(path(".target.bash_output"), "/bin/ls -d /*.gpg")
+        SCR.Execute(path(".target.bash_output"), "/usr/bin/ls -d /*.gpg")
       )
       Builtins.foreach(
         Builtins.splitstring(Ops.get_string(out, "stdout", ""), "\n")
@@ -1337,19 +1338,11 @@ module Yast
 
       # where texts are stored later
       loc_slidedir = Builtins.sformat("%1/txt/%2/", our_slidedir, used_loc_dir)
-      WFM.Execute(
-        path(".local.bash"),
-        Builtins.sformat("mkdir -p '%1'", String.Quote(loc_slidedir))
-      )
+      ::FileUtils.mkdir_p(loc_slidedir)
 
       # copy all files to our own cache
-      copy_command = Builtins.sformat(
-        "cp -r '%1/%2/txt/%3'/* '%4'",
-        String.Quote(providedir),
-        String.Quote(search_for_dir),
-        String.Quote(used_loc_dir),
-        String.Quote(loc_slidedir)
-      )
+      source_path = File.join(providedir, search_for_dir, "txt", used_loc_dir, "*")
+      copy_command = "/usr/bin/cp -r #{source_path.shellescape} #{loc_slidedir.shellescape}"
 
       Builtins.y2milestone("Copying: %1", copy_command)
       WFM.Execute(path(".local.bash"), copy_command)
@@ -1367,18 +1360,12 @@ module Yast
 
       if !imagesdir.nil?
         # where images should be cached
-        our_imagesdir = Builtins.sformat("%1/pic/", our_slidedir)
-        WFM.Execute(
-          path(".local.bash"),
-          Builtins.sformat("mkdir -p '%1'", String.Quote(our_imagesdir))
-        )
+        our_imagesdir = File.join(our_slidedir, "pic/")
+        ::FileUtils.mkdir_p(our_imagesdir)
 
-        copy_command = Builtins.sformat(
-          "cp -r '%1/%2/pic'/* '%3'",
-          String.Quote(imagesdir),
-          String.Quote(search_for_dir),
-          String.Quote(our_imagesdir)
-        )
+        source_path = File.join(imagesdir, search_for_dir, "pic", "*")
+
+        copy_command = "/usr/bin/cp -r #{source_path.shellescape} #{our_imagesdir.shellescape}"
 
         Builtins.y2milestone("Copying: %1", copy_command)
         WFM.Execute(path(".local.bash"), copy_command)
@@ -1474,10 +1461,7 @@ module Yast
         "%1/slidedir/",
         Convert.to_string(WFM.Read(path(".local.tmpdir"), ""))
       )
-      WFM.Execute(
-        path(".local.bash"),
-        Builtins.sformat("mkdir -p '%1'", our_slidedir)
-      )
+      ::FileUtils.mkdir_p(our_slidedir)
 
       # media directory
       # bugzilla #305097
@@ -1542,10 +1526,7 @@ module Yast
         Builtins.y2milestone("Filling %1", spdir)
         WFM.Execute(
           path(".local.bash"),
-          Ops.add(
-            Ops.add(Ops.add("tar -zxvf ", @servicepack_metadata), " -C "),
-            spdir
-          )
+          "/usr/bin/tar -zxvf #{@servicepack_metadata.shellescape} -C #{spdir.shellescape}"
         )
         sp_url = Ops.add("dir:", spdir)
         # close the popup in order to be able to ask about the license
@@ -1702,11 +1683,7 @@ module Yast
           )
           WFM.Execute(
             path(".local.bash"),
-            Builtins.sformat(
-              "cp '%1' '%2'",
-              String.Quote(tmp_add_on_products),
-              String.Quote(filename)
-            )
+            "/usr/bin/cp #{tmp_add_on_products.shellescape} #{filename.shellescape}"
           )
           Builtins.y2milestone(
             "Found add_on_products (repository) %1 type %2",
@@ -1735,11 +1712,7 @@ module Yast
           )
           WFM.Execute(
             path(".local.bash"),
-            Builtins.sformat(
-              "cp '%1' '%2'",
-              String.Quote(file),
-              String.Quote(filename)
-            )
+            "/usr/bin/cp #{file.shellescape} #{filename.shellescape}"
           )
           Builtins.y2milestone(
             "Found add_on_products (inst-sys) %1 type %2",
