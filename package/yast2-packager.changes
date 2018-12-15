@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Dec 15 13:16:11 UTC 2018 - Stasiek Michalski <hellcp@mailbox.org>
+
+- Add missing icons and edit current ones (boo#1109310)
+- 4.1.21
+
+-------------------------------------------------------------------
 Wed Dec  5 09:52:52 UTC 2018 - snwint@suse.com
 
 - remove cd:/// fallback installation URL (fate#325482)
