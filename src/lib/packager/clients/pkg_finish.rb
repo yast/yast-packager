@@ -17,6 +17,8 @@ require "installation/finish_client"
 require "y2packager/repository"
 require "packager/cfa/zypp_conf"
 
+Yast.import "InstURL"
+
 module Yast
   # Finish client for packager
   class PkgFinishClient < ::Installation::FinishClient
@@ -73,7 +75,7 @@ module Yast
       # If repositories weren't load during installation (for example, in openSUSE
       # if online repositories were not enabled), resolvables should be loaded now.
       Pkg.SourceLoad
-      remove_self_update_addon
+      remove_auto_added_sources
       disable_local_repos
 
       # save all repositories and finish target
@@ -197,21 +199,38 @@ module Yast
       end
     end
 
+    # Remove the temporary repositories created by the installer for its own
+    # purposes
     #
-    # Remove the temporary add-on repository created from the self-update repo
-    #
-    def remove_self_update_addon
-      log.info("Removing optional self-update addon repositories...")
+    # This includes the add-on repository created from the self-update repo and
+    # the fallback repo used in some cases to read the products information
+    def remove_auto_added_sources
+      log.info("Removing optional self-update addon repositories and fallback repository...")
       repos = ::Y2Packager::Repository.all
       repos.each do |r|
         log.debug("Evaluating repo: #{r}")
-        # remove the repositories with name beginning with the "SelfUpdate" and
-        # with the "dir://" scheme
-        next unless r.name.start_with?("SelfUpdate") && r.scheme == :dir
+        next unless added_by_installer?(r)
 
-        log.info("Removing a self update addon repository #{r.name}")
+        log.info("Removing auto-added repository (self update addon or fallback repo) #{r.name}")
         Pkg.SourceDelete(r.repo_id)
       end
+    end
+
+    # Whether the given repository was created for the own purposes of the
+    # installer
+    #
+    # @see #remove_auto_added_sources
+    #
+    # @param repo [Y2Packager::Repository]
+    # @return [Boolean]
+    def added_by_installer?(repo)
+      # Remove the fallback repository added only to read the list of
+      # products (fate#325482)
+      return true if repo.url == Yast::InstURL.fallback_repo_url
+
+      # Also remove the repositories with name beginning with the "SelfUpdate" and
+      # with the "dir://" scheme
+      repo.name.start_with?("SelfUpdate") && repo.scheme == :dir
     end
 
     # Backup sources
