@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Dec 17 16:12:36 UTC 2018 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- If linuxrc does not provide a repo URL (parameter NOREPO), use
+  the fallback repository included in the inst-sys to get the
+  information about the products (fate#325482).
+- 4.1.22
+
+-------------------------------------------------------------------
 Sat Dec 15 13:16:11 UTC 2018 - Stasiek Michalski <hellcp@mailbox.org>
 
 - Add missing icons and edit current ones (boo#1109310)
