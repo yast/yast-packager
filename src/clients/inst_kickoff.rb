@@ -32,20 +32,18 @@ module Yast
       Linuxrc.disable_remote(Packages.missing_remote_kind)
 
       # Feature #301903, bugzilla #244937
-      if Mode.update
-        # "/" means updating the running system, bugzilla #246389
-        if Installation.destdir != "/"
-          # Mount (bind) the current /dev/ to the /installed_system/dev/
-          LocalCommand(
-            Builtins.sformat(
-              # try unmounting the /mnt/dev directory before the cleanup, usually there
-              # is a bind mount /dev -> /mnt/dev which would remove the files also from /dev
-              "/usr/bin/umount %1/dev/; /bin/rm -rf %1/dev/ && /bin/mkdir -p %1/dev/ && " \
-                "/bin/mount -v --bind /dev/ %1/dev/",
-              Installation.destdir.shellescape
-            )
+      # "/" means updating the running system, bugzilla #246389
+      if Mode.update && Installation.destdir != "/"
+        # Mount (bind) the current /dev/ to the /installed_system/dev/
+        LocalCommand(
+          Builtins.sformat(
+            # try unmounting the /mnt/dev directory before the cleanup, usually there
+            # is a bind mount /dev -> /mnt/dev which would remove the files also from /dev
+            "/usr/bin/umount %1/dev/; /bin/rm -rf %1/dev/ && /bin/mkdir -p %1/dev/ && " \
+              "/bin/mount -v --bind /dev/ %1/dev/",
+            Installation.destdir.shellescape
           )
-        end
+        )
       end
 
       # copy the credential files, libzypp loads them from target
