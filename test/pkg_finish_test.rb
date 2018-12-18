@@ -22,6 +22,7 @@ describe Yast::PkgFinishClient do
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
     allow(::Y2Packager::Repository).to receive(:enabled).and_return(repositories)
+    allow(::Y2Packager::Repository).to receive(:all).and_return(repositories)
     allow(Yast::ProductFeatures)
       .to receive(:GetBooleanFeature)
       .and_call_original
@@ -183,6 +184,52 @@ describe Yast::PkgFinishClient do
           allow(client.log).to receive(:info).and_call_original
           expect(local_repo).to_not receive(:disable!)
           expect(client.log).to receive(:info).with(/ignored/)
+          client.run
+        end
+      end
+    end
+
+    context "if the fallback repo was used" do
+      let(:repositories) { [fallback_repo, remote_repo] }
+      let(:base_products) { [sles_product, sled_product] }
+
+      let(:fallback_repo) do
+        Y2Packager::Repository.new(repo_id: 4, name: "dir-a1234", enabled: true,
+          url: URI("dir:///var/lib/fallback-repo"), autorefresh: false)
+      end
+
+      let(:remote_repo) do
+        Y2Packager::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
+          url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
+      end
+
+      let(:sles_product) do
+        instance_double(Y2Packager::Product, name: "SLES", installed?: true)
+      end
+
+      let(:sled_product) do
+        instance_double(Y2Packager::Product, name: "SLED", installed?: false)
+      end
+
+      before do
+        allow(fallback_repo).to receive(:products).and_return([sles_product, sled_product])
+        allow(remote_repo).to receive(:products).and_return(remote_products)
+      end
+
+      context "and the products are also defined in the remote repos" do
+        let(:remote_products) { [sles_product, sled_product] }
+
+        it "removes the fallback repository" do
+          expect(Yast::Pkg).to receive(:SourceDelete).with fallback_repo.repo_id
+          client.run
+        end
+      end
+
+      context "and the products are defined only in the fallback repo" do
+        let(:remote_products) { [] }
+
+        it "removes the fallback repository" do
+          expect(Yast::Pkg).to receive(:SourceDelete).with fallback_repo.repo_id
           client.run
         end
       end
