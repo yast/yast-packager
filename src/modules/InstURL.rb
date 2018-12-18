@@ -143,9 +143,9 @@ module Yast
       @installInf2Url = Linuxrc.InstallInf("ZyppRepoURL")
 
       if @installInf2Url.to_s.empty?
-        # no fallback URL any more
+        # If possible, use the fallback repository containing only products information
         log.info "No install URL specified through ZyppRepoURL"
-        @installInf2Url = ""
+        @installInf2Url = fallback_repo? ? fallback_repo_url.to_s : ""
       else
         # The URL is parsed/built only if needed to avoid potential problems with corner cases.
         @installInf2Url = add_extra_dir_to_url(@installInf2Url, extra_dir) unless extra_dir.empty?
@@ -154,6 +154,28 @@ module Yast
 
       log.info "Using install URL: #{URL.HidePassword(@installInf2Url)}"
       @installInf2Url
+    end
+
+    # Location of the fallback repository in the int-sys
+    FALLBACK_REPO_PATH = "/var/lib/fallback-repo".freeze
+    private_constant :FALLBACK_REPO_PATH
+
+    # URL of the fallback repository, located in the int-sys, that is used to
+    # get the products information when the NOREPO option has been passed to
+    # the installer (fate#325482)
+    #
+    # @return [URI::Generic]
+    def fallback_repo_url
+      ::URI.parse("dir://#{FALLBACK_REPO_PATH}")
+    end
+
+    # Where there is a fallback repository in the int-sys
+    #
+    # @see #fallback_repo_url
+    #
+    # @return [Boolean]
+    def fallback_repo?
+      ::File.exist?(FALLBACK_REPO_PATH)
     end
 
   private
