@@ -1681,10 +1681,7 @@ module Yast
             @add_on_products_list,
             "file" => filename, "type" => type
           )
-          WFM.Execute(
-            path(".local.bash"),
-            "/usr/bin/cp #{tmp_add_on_products.shellescape} #{filename.shellescape}"
-          )
+          ::FileUtils.cp(tmp_add_on_products, filename)
           Builtins.y2milestone(
             "Found add_on_products (repository) %1 type %2",
             tmp_add_on_products,

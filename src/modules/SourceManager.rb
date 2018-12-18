@@ -755,7 +755,7 @@ module Yast
       # TODO: check the size of the largest package on CD1
       successful = SCR.Execute(
         path(".target.bash"),
-        "test -d #{download_dir.shellescape} || /usr/bin/mkdir -p #{download_dir.shellescape}"
+        "/usr/bin/mkdir -p #{download_dir.shellescape}"
       )
       if successful.zero?
         Pkg.SourceMoveDownloadArea(download_dir)

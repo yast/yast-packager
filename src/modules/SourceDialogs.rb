@@ -4,6 +4,8 @@ require "yast"
 require "uri"
 require "shellwords"
 
+Yast.import "NetworkService"
+
 # Yast namespace
 module Yast
   # Displays possibilities to install from NFS, CD or partion
@@ -1961,34 +1963,6 @@ module Yast
       }
     end
 
-    # Checks whether some network is available in the current moment,
-    # see the bug #170147 for more information.
-    def IsAnyNetworkAvailable
-      ret = false
-
-      command = "TERM=dumb /sbin/ip -o address show | /usr/bin/grep inet | " \
-        "/usr/bin/grep -v scope.host"
-      Builtins.y2milestone("Running %1", command)
-      cmd_run = SCR.Execute(path(".target.bash_output"), command)
-      Builtins.y2milestone("Command returned: %1", cmd_run)
-
-      # command failed
-      if Ops.get_integer(cmd_run, "exit", -1).nonzero?
-        # some errors were there, we don't know the status, rather return that it's available
-        # `grep` also returns non zero exit code when there is nothing to do...
-        if Ops.get_string(cmd_run, "stdout", "") != ""
-          Builtins.y2error("Checking the network failed")
-          ret = true
-        end
-        # some devices are listed
-      elsif !Ops.get_string(cmd_run, "stdout", "").nil? &&
-          Ops.get_string(cmd_run, "stdout", "") != ""
-        ret = true
-      end
-
-      ret
-    end
-
     # Returns whether Community Repositories are defined in the control file.
     #
     # @return [Boolean] whether defined
@@ -2092,7 +2066,7 @@ module Yast
         ),
         HStretch()
       )
-      if !IsAnyNetworkAvailable()
+      if !NetworkService.isNetworkRunning
         Builtins.y2milestone(
           "Network is not available, skipping all Network-related options..."
         )

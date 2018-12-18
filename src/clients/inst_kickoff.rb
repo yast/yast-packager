@@ -34,21 +34,7 @@ module Yast
       # Feature #301903, bugzilla #244937
       if Mode.update
         # "/" means updating the running system, bugzilla #246389
-        if Installation.destdir == "/"
-          # When upgrading system, remove devs.rpm just from rpm database
-          LocalCommand(
-            "/bin/rpm -q 'devs' && /bin/rpm --nodeps --justdb -e 'devs'"
-          )
-          # normal upgrade
-        else
-          # When upgrading system, remove devs.rpm if installed
-          LocalCommand(
-            Builtins.sformat(
-              "/bin/rpm --root %1 -q 'devs' && /bin/rpm --nodeps --root %1 -e 'devs'",
-              Installation.destdir.shellescape
-            )
-          )
-
+        if Installation.destdir != "/"
           # Mount (bind) the current /dev/ to the /installed_system/dev/
           LocalCommand(
             Builtins.sformat(
