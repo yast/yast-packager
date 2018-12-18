@@ -28,9 +28,22 @@ describe Yast::InstURL do
 
     context "when ZyppRepoURL is not defined" do
       let(:zypp_repo_url) { nil }
+      before { allow(::File).to receive(:exist?).and_return fallback_present }
 
-      it "returns the url of the fallback repo for products" do
-        expect(inst_url.installInf2Url("")).to eq(inst_url.fallback_repo_url.to_s)
+      context "if the inst-sys contains a fallback repo to get the products" do
+        let(:fallback_present) { true }
+
+        it "returns the url of the fallback repository" do
+          expect(inst_url.installInf2Url("")).to eq(inst_url.fallback_repo_url.to_s)
+        end
+      end
+
+      context "if there is no fallback repository" do
+        let(:fallback_present) { false }
+
+        it "returns an empty string" do
+          expect(inst_url.installInf2Url("")).to eq("")
+        end
       end
     end
 
