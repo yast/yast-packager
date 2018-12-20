@@ -32,34 +32,18 @@ module Yast
       Linuxrc.disable_remote(Packages.missing_remote_kind)
 
       # Feature #301903, bugzilla #244937
-      if Mode.update
-        # "/" means updating the running system, bugzilla #246389
-        if Installation.destdir == "/"
-          # When upgrading system, remove devs.rpm just from rpm database
-          LocalCommand(
-            "/bin/rpm -q 'devs' && /bin/rpm --nodeps --justdb -e 'devs'"
+      # "/" means updating the running system, bugzilla #246389
+      if Mode.update && Installation.destdir != "/"
+        # Mount (bind) the current /dev/ to the /installed_system/dev/
+        LocalCommand(
+          Builtins.sformat(
+            # try unmounting the /mnt/dev directory before the cleanup, usually there
+            # is a bind mount /dev -> /mnt/dev which would remove the files also from /dev
+            "/usr/bin/umount %1/dev/; /bin/rm -rf %1/dev/ && /bin/mkdir -p %1/dev/ && " \
+              "/bin/mount -v --bind /dev/ %1/dev/",
+            Installation.destdir.shellescape
           )
-          # normal upgrade
-        else
-          # When upgrading system, remove devs.rpm if installed
-          LocalCommand(
-            Builtins.sformat(
-              "/bin/rpm --root '%1' -q 'devs' && /bin/rpm --nodeps --root '%1' -e 'devs'",
-              String.Quote(Installation.destdir)
-            )
-          )
-
-          # Mount (bind) the current /dev/ to the /installed_system/dev/
-          LocalCommand(
-            Builtins.sformat(
-              # try unmounting the /mnt/dev directory before the cleanup, usually there
-              # is a bind mount /dev -> /mnt/dev which would remove the files also from /dev
-              "/usr/bin/umount '%1/dev/'; /bin/rm -rf '%1/dev/' && /bin/mkdir -p '%1/dev/' && " \
-                "/bin/mount -v --bind '/dev/' '%1/dev/'",
-              String.Quote(Installation.destdir)
-            )
-          )
-        end
+        )
       end
 
       # copy the credential files, libzypp loads them from target
@@ -175,19 +159,8 @@ module Yast
         )
         SCR.Execute(
           path(".target.bash"),
-          Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add("cd '", String.Quote(Installation.destdir)),
-                  "'; "
-                ),
-                "/bin/rm -f "
-              ),
-              Installation.update_backup_path
-            ),
-            "/*-*-*.tar.{gz,bz2}"
-          )
+          "cd #{Installation.destdir.shellescape}; " \
+            "/bin/rm -f #{Installation.update_backup_path.shellescape}/*-*-*.tar.{gz,bz2}"
         )
       end
 
@@ -243,13 +216,7 @@ module Yast
       else
         SCR.Execute(
           path(".target.bash"),
-          Ops.add(
-            Ops.add(
-              Ops.add("cd '", String.Quote(Installation.destdir)),
-              "'; "
-            ),
-            "/bin/rm -rf var/log/YaST2/*"
-          )
+          "cd #{Installation.destdir.shellescape}; /bin/rm -rf var/log/YaST2/*"
         )
       end
 
@@ -258,7 +225,7 @@ module Yast
         if Ops.greater_than(
           SCR.Read(
             path(".target.size"),
-            Ops.add(Installation.destdir, "/etc/sysconfig")
+            File.join(Installation.destdir, "/etc/sysconfig")
           ),
           0
         )
@@ -292,22 +259,8 @@ module Yast
 
           if SCR.Execute(
             path(".target.bash"),
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add(
-                    Ops.add(
-                      Ops.add("cd '", String.Quote(Installation.destdir)),
-                      "'; "
-                    ),
-                    "/bin/tar czf ."
-                  ),
-                  filename
-                ),
-                " "
-              ),
-              "etc/sysconfig"
-            )
+            "cd #{Installation.destdir.shellescape}; " \
+              "/bin/tar czf .#{filename.shellescape} etc/sysconfig"
           ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",
@@ -368,22 +321,8 @@ module Yast
 
           if SCR.Execute(
             path(".target.bash"),
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add(
-                    Ops.add(
-                      Ops.add("cd '", String.Quote(Installation.destdir)),
-                      "'; "
-                    ),
-                    "/bin/tar czf ."
-                  ),
-                  filename
-                ),
-                " "
-              ),
-              "etc/rc.config etc/rc.config.d"
-            )
+            "cd #{Installation.destdir.shellescape}; " \
+              "/bin/tar czf .#{filename} etc/rc.config etc/rc.config.d"
           ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",
@@ -428,15 +367,15 @@ module Yast
           num = Ops.add(num, 1)
         end
 
-        what_to_backup = "etc/pam.d etc/security etc/securetty etc/environment"
+        what_to_backup = ["etc/pam.d", "etc/security", "etc/securetty", "etc/environment"]
 
         # enters the Installation::destdir
         # and creates backup of etc/pam.d directory in Installation::update_backup_path
         cmd = Builtins.sformat(
-          "cd '%1'; /bin/tar --ignore-failed-read -czf '.%2' %3",
-          String.Quote(Installation.destdir),
-          String.Quote(filename),
-          what_to_backup
+          "cd %1; /bin/tar --ignore-failed-read -czf .%2 %3",
+          Installation.destdir.shellescape,
+          filename.shellescape,
+          what_to_backup.map(&:shellescape).join(" ")
         )
 
         Builtins.y2milestone(
@@ -474,17 +413,9 @@ module Yast
       end
 
       # get the current raid configuration
-      out = Convert.to_map(
-        SCR.Execute(
-          path(".target.bash_output"),
-          Ops.add(
-            Ops.add(
-              Ops.add("chroot '", String.Quote(Installation.destdir)),
-              "' "
-            ),
-            "mdadm -Ds"
-          )
-        )
+      out = SCR.Execute(
+        path(".target.bash_output"),
+        "/usr/bin/chroot #{Installation.destdir.shellescape} mdadm -Ds"
       )
       if Ops.get_integer(out, "exit", -1).nonzero?
         Builtins.y2error(

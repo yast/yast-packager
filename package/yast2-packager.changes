@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 17 16:12:37 UTC 2018 - jreidinger@suse.com
+
+- always use absolute path to binaries (bsc#1118291)
+- properly escape shell arguments (bsc#1118291)
+- 4.1.23
+
+-------------------------------------------------------------------
 Mon Dec 17 16:12:36 UTC 2018 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - If linuxrc does not provide a repo URL (parameter NOREPO), use

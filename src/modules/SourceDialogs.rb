@@ -2,6 +2,9 @@
 require "yast"
 
 require "uri"
+require "shellwords"
+
+Yast.import "NetworkService"
 
 # Yast namespace
 module Yast
@@ -978,6 +981,8 @@ module Yast
       true
     end
 
+    FILE_BIN = "/usr/bin/file".freeze
+
     def IsoValidate(_key, _event)
       s = Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       if s.nil? || s == ""
@@ -1001,14 +1006,11 @@ module Yast
         return false
       end
 
-      file = "/usr/bin/file"
       # try to detect ISO image by file if it's present
-      if Ops.greater_than(SCR.Read(path(".target.size"), file), 0)
+      if SCR.Read(path(".target.size"), FILE_BIN) > 0
         # Use also -k as new images contain at first DOS boot sector for UEFI
         # then iso magic block
-        command = Builtins.sformat("%1 -kb -- '%2'", file, String.Quote(s))
-
-        out = SCR.Execute(path(".target.bash_output"), command)
+        out = SCR.Execute(path(".target.bash_output"), "#{FILE_BIN} -kb -- #{s.shellescape}")
 
         stdout = out["stdout"] || ""
 
@@ -1079,9 +1081,9 @@ module Yast
       # this kills things like /dev/fd0 (that don't have a disk_id)
       return [] if disk_id.empty?
 
-      command = Builtins.sformat("ls %1-part*", disk_id)
+      command = "/usr/bin/ls #{disk_id.shellescape}-part*"
 
-      out = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
+      out = SCR.Execute(path(".target.bash_output"), command)
 
       if Ops.get_integer(out, "exit", -1).nonzero?
         Builtins.y2milestone("no partitions on %1, using full disk", disk_id)
@@ -1961,35 +1963,6 @@ module Yast
       }
     end
 
-    # Checks whether some network is available in the current moment,
-    # see the bug #170147 for more information.
-    def IsAnyNetworkAvailable
-      ret = false
-
-      command = "TERM=dumb /sbin/ip -o address show | grep inet | grep -v scope.host"
-      Builtins.y2milestone("Running %1", command)
-      cmd_run = Convert.to_map(
-        SCR.Execute(path(".target.bash_output"), command)
-      )
-      Builtins.y2milestone("Command returned: %1", cmd_run)
-
-      # command failed
-      if Ops.get_integer(cmd_run, "exit", -1).nonzero?
-        # some errors were there, we don't know the status, rather return that it's available
-        # `grep` also returns non zero exit code when there is nothing to do...
-        if Ops.get_string(cmd_run, "stdout", "") != ""
-          Builtins.y2error("Checking the network failed")
-          ret = true
-        end
-        # some devices are listed
-      elsif !Ops.get_string(cmd_run, "stdout", "").nil? &&
-          Ops.get_string(cmd_run, "stdout", "") != ""
-        ret = true
-      end
-
-      ret
-    end
-
     # Returns whether Community Repositories are defined in the control file.
     #
     # @return [Boolean] whether defined
@@ -2093,7 +2066,7 @@ module Yast
         ),
         HStretch()
       )
-      if !IsAnyNetworkAvailable()
+      if !NetworkService.isNetworkRunning
         Builtins.y2milestone(
           "Network is not available, skipping all Network-related options..."
         )

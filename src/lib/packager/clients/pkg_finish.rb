@@ -30,7 +30,7 @@ module Yast
     # Path to failed_packages file
     FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages".freeze
     # Command to create a tar.gz to back-up old repositories
-    TAR_CMD = "mkdir -p '%<target>s' && cd '%<target>s' "\
+    TAR_CMD = "/usr/bin/mkdir -p '%<target>s' && cd '%<target>s' "\
       "&& /bin/tar -czf '%<archive>s' '%<source>s'".freeze
     # Format of the timestamp to be used as repositories backup
     BACKUP_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S".freeze

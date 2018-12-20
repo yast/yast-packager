@@ -1,3 +1,5 @@
+require "shellwords"
+
 # encoding: utf-8
 module Yast
   # All user interface functions.
@@ -146,9 +148,9 @@ module Yast
 
     # does the medium contain MD5 checksum in the application area?
     def md5sumTagPresent(input)
-      command = Builtins.sformat("dd if=%1 bs=1 skip=33651 count=512", input)
+      command = "/usr/bin/dd if=#{input.shellescape} bs=1 skip=33651 count=512"
 
-      res = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
+      res = SCR.Execute(path(".target.bash_output"), command)
 
       if Ops.get_integer(res, "exit", -1).nonzero?
         Builtins.y2warning("command failed: %1", command)
@@ -211,11 +213,9 @@ module Yast
         end
 
         # check for the first medium
-        succ = Convert.to_integer(
-          SCR.Execute(
-            path(".target.bash"),
-            Builtins.sformat("test -d %1/media.1 && test -d %1/boot", dir)
-          )
+        succ = SCR.Execute(
+          path(".target.bash"),
+          "test -d #{dir.shellescape}/media.1 && test -d #{dir.shellescape}/boot"
         )
 
         ret = succ.zero?
@@ -429,14 +429,9 @@ module Yast
             )
 
             # try to read one byte from the medium
-            res = Convert.to_integer(
-              SCR.Execute(
-                path(".target.bash"),
-                Builtins.sformat(
-                  "/usr/bin/head -c 1 %1 > /dev/null",
-                  selecteddrive
-                )
-              )
+            res = SCR.Execute(
+              path(".target.bash"),
+              "/usr/bin/head -c 1 #{selecteddrive.shellescape} > /dev/null"
             )
             if res.nonzero?
               # TRANSLATORS: error message: the medium cannot be read or no medium in the
@@ -544,7 +539,7 @@ module Yast
           selecteddrive = Convert.to_string(
             UI.QueryWidget(Id(:cddevices), :Value)
           )
-          command = Ops.add("/bin/eject ", selecteddrive)
+          command = "/bin/eject #{selecteddrive.shellescape}"
 
           Builtins.y2milestone("Executing '%1'", command)
 

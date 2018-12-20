@@ -1,3 +1,5 @@
+require "shellwords"
+
 # encoding: utf-8
 module Yast
   # Client for checking media integrity
@@ -29,14 +31,9 @@ module Yast
           # check whether "offer-extra-media-test" bit is present on any(!) medium
           Builtins.foreach(@readycddrives) do |drive|
             # read application area on the medium
-            out = Convert.to_map(
-              SCR.Execute(
-                path(".target.bash_output"),
-                Builtins.sformat(
-                  "/bin/dd if=%1 bs=1 skip=33651 count=512",
-                  drive
-                )
-              )
+            out = SCR.Execute(
+              path(".target.bash_output"),
+              "/bin/dd if=#{drive.shellescape} bs=1 skip=33651 count=512"
             )
             application_area = {}
             if Ops.get_integer(out, "exit", -1).zero?
