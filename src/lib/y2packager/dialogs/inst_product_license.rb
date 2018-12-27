@@ -55,10 +55,23 @@ module Y2Packager
         VBox(
           Widgets::ProductLicenseTranslations.new(product, Yast::Language.language),
           HBox(
-            Left(Widgets::ProductLicenseConfirmation.new(product)),
+            confirmation_checkbox,
             HStretch()
           )
         )
+      end
+
+    private
+
+      # Return the license confirmation widget if required
+      #
+      # It returns Empty() if confirmation is not needed.
+      #
+      # @return [Yast::Term,ProductLicenseConfirmation] Product confirmation license widget
+      #   or Empty() if confirmation is not needed.
+      def confirmation_checkbox
+        return Empty() unless product.license_confirmation_required?
+        Widgets::ProductLicenseConfirmation.new(product)
       end
     end
   end
