@@ -22,16 +22,30 @@ describe Y2Packager::Dialogs::InstProductLicense do
   end
 
   let(:language) { "en_US" }
+  let(:confirmation_required) { true }
 
   describe "#contents" do
     before do
       allow(Yast::Language).to receive(:language).and_return(language)
+      allow(product).to receive(:license_confirmation_required?).and_return(confirmation_required)
     end
 
-    it "includes a confirmation checkbox" do
-      expect(Y2Packager::Widgets::ProductLicenseConfirmation).to receive(:new)
-        .with(product)
-      dialog.contents
+    context "when license acceptance is required" do
+      it "includes a confirmation checkbox" do
+        expect(Y2Packager::Widgets::ProductLicenseConfirmation).to receive(:new).with(product)
+
+        dialog.contents
+      end
+    end
+
+    context "when license acceptance is not required" do
+      let(:confirmation_required) { false }
+
+      it "doest not include a confirmation checkbox" do
+        expect(Y2Packager::Widgets::ProductLicenseConfirmation).to_not receive(:new).with(product)
+
+        dialog.contents
+      end
     end
 
     it "includes product translations using the current language as default" do

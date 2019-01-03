@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 27 17:29:32 UTC 2018 - dgonzalez@suse.com
+
+- Display the license agreement checkbox only when needed
+  (related to fate#325482)
+- 4.1.24
+
+-------------------------------------------------------------------
 Mon Dec 17 16:12:37 UTC 2018 - jreidinger@suse.com
 
 - always use absolute path to binaries (bsc#1118291)
