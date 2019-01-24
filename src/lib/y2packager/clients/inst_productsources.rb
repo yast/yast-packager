@@ -1739,13 +1739,12 @@ module Yast
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
       default_button = :focus_yes
-      msg = _("Your system has an active network connection.\n" \
-              "Additional software is available online.\n"      \
-              "Would you like to activate online repositories?")
+      msg = _("The system has an active network connection.\n" \
+              "Additional software is available online.\n")
 
       if low_memory?
         msg += "\n\n"
-        msg += _("Since your system has less than %d MiB memory,\n"        \
+        msg += _("Since the system has less than %d MiB memory,\n"        \
                  "there is a significant risk of running out of memory,\n" \
                  "and the installer may crash or freeze.\n"                \
                  "\n"                                                      \
@@ -1754,6 +1753,9 @@ module Yast
         default_button = :focus_no
         @@posted_low_memory_warning = true
       end
+
+      msg += "\n"
+      msg += _("Activate online repositories now?")
 
       @@ask_activate_online_repos_result = Popup.AnyQuestion(Popup.NoHeadline,
         msg, Label.YesButton, Label.NoButton, default_button)
