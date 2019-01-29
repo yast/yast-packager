@@ -1725,6 +1725,7 @@ module Yast
     # @return Boolean
     #
     def ask_activate_online_repos
+      msg = []
       if GetInstArgs.going_back && @@ask_activate_online_repos_result == false
         # If the user previously answered "no" and he is now going back, give
         # him a chance to change his mind when he comes here the next time
@@ -1738,27 +1739,28 @@ module Yast
       # Ask only once
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
-      default_button = :focus_yes
-      msg = _("The system has an active network connection.\n" \
-              "Additional software is available online.\n")
+      msg << _("The system has an active network connection.\n" \
+              "Additional software is available online.")
 
       if low_memory?
-        msg += "\n\n"
-        msg += _("Since the system has less than %d MiB memory,\n"        \
+        msg << _("Since the system has less than %d MiB memory,\n"         \
                  "there is a significant risk of running out of memory,\n" \
                  "and the installer may crash or freeze.\n"                \
                  "\n"                                                      \
                  "Using the online repositories later in the installed\n"  \
                  "system is recommended.") % LOW_MEMORY_MIB
-        default_button = :focus_no
         @@posted_low_memory_warning = true
       end
 
-      msg += "\n"
-      msg += _("Activate online repositories now?")
+      msg << _("Activate online repositories now?")
 
-      @@ask_activate_online_repos_result = Popup.AnyQuestion(Popup.NoHeadline,
-        msg, Label.YesButton, Label.NoButton, default_button)
+      @@ask_activate_online_repos_result = Popup.AnyQuestion(
+        Popup.NoHeadline,
+        msg.join("\n\n"),
+        Label.YesButton,
+        Label.NoButton,
+        @@posted_low_memory_warning ? :focus_no : :focus_yes
+      )
     end
 
     # fallback when alias is not defined
