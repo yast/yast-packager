@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 14 07:46:00 UTC 2019 - lslezak@suse.cz
+
+- Automatically preselect the driver packages from new repositories
+  (bsc#953522)
+- 4.1.27
+
+-------------------------------------------------------------------
 Fri Feb  8 17:21:41 UTC 2019 - knut.anderssen@suse.com
 
 - Replaced SuSEFirewall2 by firewalld when checking if the firewall
