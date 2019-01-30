@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 29 08:08:04 UTC 2019 - dgonzalez@suse.com
+
+- Change wording of the popup that asks to enable online repos
+  (related to bsc#1112937).
+- 4.1.25
+
+-------------------------------------------------------------------
 Thu Dec 27 17:29:32 UTC 2018 - dgonzalez@suse.com
 
 - Display the license agreement checkbox only when needed
