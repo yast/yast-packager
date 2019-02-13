@@ -264,8 +264,8 @@ describe "Yast::Packages" do
       Yast::Packages.SelectSystemPatterns(true)
       Yast::Packages.SelectSystemPatterns(false)
 
-      expect(Yast::Report).to have_received(:Error).with(/pattern p[1-3]/i)
-        .exactly(2 * default_patterns.size).times
+      expect(Yast::Report).to have_received(:Error).with(/patterns:\np1, p2\n/i)
+        .exactly(2).times
     end
 
     it "does not report an error but logs it if optional pattern is not found" do
@@ -306,6 +306,33 @@ describe "Yast::Packages" do
       expect(Yast::Pkg).to receive(:ResolvableInstall).with(product_patterns[1], :pattern)
 
       Yast::Packages.SelectSystemPatterns(false)
+    end
+
+    it "raises if the actions helper uses an unknown action" do
+      allow(Yast::Packages).to receive(:patterns_to_install).and_return(["p1", "p2", "p3"])
+      expect(Yast::Packages).to receive(:select_system_patterns_actions)
+        .and_return([
+                      ["p1", :surprise],
+                      ["p2", :install],
+                      ["p3", :install]
+                    ])
+      expect { Yast::Packages.SelectSystemPatterns(false) }.to raise_error(ArgumentError)
+    end
+
+    # private helper
+    describe "#report_missing_patterns" do
+      it "does nothing for an empty list" do
+        expect(Yast::Report).not_to receive(:Error)
+        Yast::Packages.send(:report_missing_patterns, [])
+      end
+
+      it "formats the list of patterns" do
+        ps = ["p1", "p2", "p3", "p4", "p5", "p6",
+              "p7", "p8", "p9", "p10", "p11", "p12"]
+        formatted = /patterns:\np1, p2, p3, p4, p5,\np6, p7, p8, p9, p10,\np11, p12\n/
+        expect(Yast::Report).to receive(:Error).with(formatted)
+        Yast::Packages.send(:report_missing_patterns, ps)
+      end
     end
   end
 

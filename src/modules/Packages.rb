@@ -1888,41 +1888,71 @@ module Yast
       nil
     end
 
+    # Determine what should be done about each pattern
+    # @param [Array<String>] pattern_names
+    # @param [Boolean] reselect whether to re-select all already selected patterns
+    # @return [Array<Array(String,Symbol)>] list of [pattern_name, action]
+    def select_system_patterns_actions(pattern_names, reselect:)
+      mandatory_patterns = nil
+      pattern_names.map do |pattern_name|
+        props = Pkg.ResolvableProperties(pattern_name, :pattern, "")
+        prop = props.first
+        if props.empty?
+          mandatory_patterns ||= default_patterns | resolvable_mandatory_patterns
+          action = if mandatory_patterns.include?(pattern_name)
+            :missing
+          else
+            :missing_optional
+          end
+        elsif !reselect && prop["status"] == :available && prop["transact_by"] == :user
+          action = :skipped_by_user
+        elsif !reselect
+          action = :install
+        elsif props.any? { |descr| descr["status"] == :selected }
+          action = :reselect
+        else
+          action = :skipped_reselection
+        end
+        [pattern_name, action]
+      end.to_h
+    end
+
     # Selects system-specific and default patterns for installation
     #
     # @param [Boolean] reselect whether to re-select all already selected patterns
     def SelectSystemPatterns(reselect)
-      patterns = patterns_to_install.dup
-      log.info "Selecting system patterns #{patterns}"
+      pattern_names = patterns_to_install.dup
+      log.info "Selecting system patterns #{pattern_names}"
 
-      if !reselect
-        patterns.each do |pattern_name|
-          prop = Pkg.ResolvableProperties(pattern_name, :pattern, "").first
+      # determine what to do first, do it afterwards
+      # (so that we have at most 1 pop-up instead of many, for each item)
+      pattern_actions = select_system_patterns_actions(pattern_names, reselect: reselect)
 
-          if prop.nil?
-            report_missing_pattern(pattern_name)
-            next
-          elsif prop["status"] == :available && prop["transact_by"] == :user
-            log.info "Skipping pattern #{pattern_name} deselected by user"
-          else
-            Pkg.ResolvableInstall(pattern_name, :pattern)
-          end
-        end
-      else
-        patterns.select! do |pattern_name|
-          descrs = Pkg.ResolvableProperties(pattern_name, :pattern, "")
-          report_missing_pattern(pattern_name) if descrs.empty?
-          descrs.any? { |descr| descr["status"] == :selected }
-        end
-
-        log.info "Selected patterns to be reselected: #{patterns}"
-
-        patterns.each do |pattern_name|
+      pattern_actions.each do |pattern_name, action|
+        case action
+        when :install
+          Pkg.ResolvableInstall(pattern_name, :pattern)
+        when :reselect
           Pkg.ResolvableRemove(pattern_name, :pattern)
           Pkg.ResolvableInstall(pattern_name, :pattern)
+        when :missing
+          log.error "Mandatory pattern #{pattern_name} does not exist"
+          # see also the pop-up later
+        when :missing_optional
+          log.info "Optional pattern #{pattern_name} does not exist, skipping..."
+        when :skipped_by_user
+          log.info "Skipping pattern #{pattern_name} deselected by user"
+        when :skipped_reselection
+          # not logged
+        else
+          raise ArgumentError, "Unhandled action #{action}"
         end
       end
 
+      missing_patterns = pattern_actions
+                         .find_all { |_pn, action| action == :missing }
+                         .map(&:first)
+      report_missing_patterns(missing_patterns)
       nil
     end
 
@@ -2558,17 +2588,23 @@ module Yast
       patterns.uniq
     end
 
-    def report_missing_pattern(pattern_name)
-      if (default_patterns | resolvable_mandatory_patterns).include?(pattern_name)
-        log.error "Mandatory pattern #{pattern_name} does not exist"
-        # Error message, %{pattern_name} is replaced with the missing pattern name in runtime
-        Report.Error(_(
-          "Failed to select default product pattern %{pattern_name}.\n" \
-          "Pattern has not been found."
-        ) % { pattern_name: pattern_name })
-      else
-        log.info "Optional pattern #{pattern_name} does not exist, skipping..."
-      end
+    # @return [void]
+    def report_missing_patterns(pattern_names)
+      return if pattern_names.empty?
+
+      # "p1, p2, p3, p4, p5,\n" \
+      # "p6, p7, p8"
+      names_s = pattern_names.each_slice(5).map { |n5| n5.join ", " }.join ",\n"
+      # %s is a list of pattern names
+      Report.Error(_(
+        "Failed to select default product patterns:\n" \
+        "%s\n" \
+        "Patterns have not been found.\n" \
+        "\n" \
+        "This can be probably be fixed by adding\n" \
+        "more installation repositories by going back to\n" \
+        "Registration or Add On Product screens."
+      ) % names_s)
     end
 
     # Search for providers for a list of tags
