@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "yast"
+require "y2firewall/firewalld"
 
 # YaST Namespace
 module Yast
@@ -12,7 +13,6 @@ module Yast
       Yast.import "Wizard"
       Yast.import "Directory"
       Yast.import "Stage"
-      Yast.import "SuSEFirewall"
       Yast.import "Report"
       Yast.import "Label"
       #    import "IP";
@@ -541,12 +541,12 @@ module Yast
       # no servers found
       if slp_services_found.nil? || Builtins.size(slp_services_found).zero?
         Builtins.y2warning("No SLP repositories were found")
-        if !Stage.initial && SuSEFirewall.IsStarted
+        if !Stage.initial && firewalld.running?
           Report.Message(
             # error popup
             _(
               "No SLP repositories have been found on your network.\n" \
-                "This could be caused by a running SuSEfirewall2,\n" \
+                "This could be caused by a running firewall,\n" \
                 "which probably blocks the network scanning."
             )
           )
@@ -578,6 +578,10 @@ module Yast
       Builtins.y2milestone("Selected URL: %1", url)
 
       url
+    end
+
+    def firewalld
+      Y2Firewall::Firewalld.instance
     end
 
     publish function: :SelectOneSLPService, type: "string ()"
