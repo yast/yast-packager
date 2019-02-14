@@ -1277,21 +1277,6 @@ module Yast
       ret
     end
 
-    def LocaleVersions(lang)
-      ret = [lang]
-      components = Builtins.splitstring(lang, ".")
-      if Ops.get(components, 0, "") != lang && Ops.get(components, 0, "") != ""
-        lang = Ops.get(components, 0, "")
-        ret = Builtins.add(ret, lang)
-      end
-      components = Builtins.splitstring(lang, "_")
-      if Ops.get(components, 0, "") != lang && Ops.get(components, 0, "") != ""
-        lang = Ops.get(components, 0, "")
-        ret = Builtins.add(ret, lang)
-      end
-      deep_copy(ret)
-    end
-
     # Returns ID of the base product repository.
     #
     # @return [Fixnum] base source ID
