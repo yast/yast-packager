@@ -2222,89 +2222,6 @@ module Yast
       ret
     end
 
-    # see bug 302398
-    def SelectKernelPackages
-      provides = Pkg.PkgQueryProvides("kernel")
-      # e.g.: [["kernel-bigsmp", `CAND, `NONE], ["kernel-default", `CAND, `CAND],
-      # ["kernel-default", `BOTH, `INST]]
-      Builtins.y2milestone("provides: %1", provides)
-
-      # these kernels would be installed
-      kernels = Builtins.filter(provides) do |l|
-        Ops.get_symbol(l, 1, :NONE) == :BOTH ||
-          Ops.get_symbol(l, 1, :NONE) == Ops.get_symbol(l, 2, :NONE)
-      end
-
-      if Builtins.size(kernels) != 1
-        Builtins.y2warning("not exactly one package provides tag kernel")
-      end
-
-      selected_kernel = Ops.get_string(kernels, [0, 0], "none")
-      recom_kernel = Kernel.ComputePackages
-      recommended_kernel = Ops.get(recom_kernel, 0, "")
-
-      Builtins.y2milestone(
-        "Selected kernel: %1, recommended kernel: %2",
-        selected_kernel,
-        recom_kernel
-      )
-
-      # when the recommended Kernel is not available (installable)
-      if recommended_kernel != "" && !Pkg.IsAvailable(recommended_kernel)
-        recommended_kernel = selected_kernel
-      end
-
-      # recommended package is different to the selected one
-      # select the recommended one
-      if recommended_kernel != "" && recommended_kernel != selected_kernel
-        # list of kernels to be installed
-        kernels_to_be_installed = Convert.convert(
-          Builtins.maplist(kernels) { |one_kernel| Ops.get(one_kernel, 0) },
-          from: "list",
-          to:   "list <string>"
-        )
-        kernels_to_be_installed = Builtins.filter(kernels_to_be_installed) do |one_kernel|
-          !one_kernel.nil? && one_kernel != ""
-        end
-
-        # remove all kernels (with some exceptions)
-        Builtins.foreach(kernels_to_be_installed) do |one_kernel|
-          # XEN can be installed in parallel
-          next if one_kernel == "kernel-xen"
-          next if one_kernel == "kernel-xenpae"
-          # don't remove the recommended one
-          next if one_kernel == recommended_kernel
-          # remove all packages of that kernel
-          packages_to_remove = Kernel.ComputePackagesForBase(one_kernel, false)
-          if !packages_to_remove.nil? &&
-              Ops.greater_than(Builtins.size(packages_to_remove), 0)
-            Builtins.y2milestone(
-              "Removing installed packages %1",
-              packages_to_remove
-            )
-            Pkg.DoRemove(packages_to_remove)
-          end
-        end
-
-        # compute recommended kernel packages
-        kernel_packs = Kernel.ComputePackages
-
-        Builtins.y2milestone("Install kernel packages: %1", kernel_packs)
-
-        # installing all recommended packages
-        Builtins.foreach(kernel_packs) do |p|
-          if Pkg.PkgAvailable(p)
-            Builtins.y2milestone("Selecting package %1 for installation", p)
-            Pkg.PkgInstall(p)
-          else
-            Builtins.y2error("Package %1 is not available", p)
-          end
-        end
-      end
-
-      nil
-    end
-
     # Reads software->default_patterns and returns lisf of patterns that should
     # be selected for installation by default
     #
@@ -2494,7 +2411,6 @@ module Yast
     publish function: :Proposal, type: "map (boolean, boolean, boolean)"
     publish function: :InitializeCatalogs, type: "void ()"
     publish function: :InitFailed, type: "boolean ()"
-    publish function: :SelectKernelPackages, type: "void ()"
     publish function: :default_patterns, type: "list <string> ()"
     publish function: :log_software_selection, type: "void ()"
     publish function: :vnc_packages, type: "list <string> ()"
