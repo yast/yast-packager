@@ -1333,6 +1333,12 @@ describe "Yast::Packages" do
     end
   end
 
+  describe "#SummaryHelp" do
+    it "runs all code and returns a String" do
+      expect(subject.SummaryHelp([:pattern, :size])).to be_a(String)
+    end
+  end
+
   describe "#proposal_for_update" do
     before do
       allow(subject).to receive(:PackagesProposalChanged).and_return(changed)
