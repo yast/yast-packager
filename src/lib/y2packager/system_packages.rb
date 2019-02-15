@@ -50,8 +50,8 @@ module Y2Packager
     # @return [Array<Integer>] List of repository IDs
     #
     def repo_ids(urls)
-      repo_ids = Yast::Pkg.SourceGetCurrent(true)
-      repo_ids.select { |i| urls.include?(Yast::Pkg.SourceGeneralData(i)["url"]) }
+      all_ids = Yast::Pkg.SourceGetCurrent(true)
+      all_ids.select { |i| urls.include?(Yast::Pkg.SourceGeneralData(i)["url"]) }
     end
 
     def find_packages
