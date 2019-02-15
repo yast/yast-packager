@@ -7,6 +7,9 @@
 #
 require "shellwords"
 
+require "y2packager/known_repositories"
+require "y2packager/system_packages"
+
 module Yast
   # Purpose: 		contains dialog loop for workflows:
   #	"Install/Remove software"
@@ -449,9 +452,10 @@ module Yast
 
       # use default parameters for missing or invalid values
       if mode.nil?
+        preselect_system_packages
+
         # use summary mode if there is something to install
         # (probably a suggested or recommended package) (bnc#465194)
-        Pkg.PkgSolve(true) # select the packages
         mode = if Pkg.IsAnyResolvable(:any, :to_install) || Pkg.IsAnyResolvable(:any, :to_remove)
           :summaryMode
         else
@@ -465,6 +469,22 @@ module Yast
       Builtins.y2milestone("PackagesUI::RunPackageSelector() options: %1", ret)
 
       deep_copy(ret)
+    end
+
+    # select the system packages (drivers) from the new repositories
+    def preselect_system_packages
+      known_repos = Y2Packager::KnownRepositories.new
+      system_packages = Y2Packager::SystemPackages.new(known_repos.new_repositories)
+      system_packages.select
+    end
+
+    def save_known_repositories
+      known_repos = Y2Packager::KnownRepositories.new
+      # nothing new, no need to update the file
+      return if known_repos.new_repositories.empty?
+
+      known_repos.update
+      known_repos.write
     end
 
     # =============================================================
@@ -570,7 +590,10 @@ module Yast
               result = :next
             # start the repository manager
             elsif result == :repo_mgr
+              save_known_repositories
               WFM.CallFunction("repositories", [:sw_single_mode])
+              # preselect the driver packages from new repositories
+              preselect_system_packages
               force_restart = true
             elsif result == :online_update_configuration
               required_package = "yast2-online-update-configuration"
@@ -767,6 +790,9 @@ module Yast
                 Builtins.size(@packagelist).zero?
               force_restart = true
             end
+
+            # remember the current repositories for the next time
+            save_known_repositories
           end
         end
       end while force_restart
