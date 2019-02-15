@@ -35,10 +35,8 @@ describe Y2Packager::KnownRepositories do
     it "writes the known repositories to the file" do
       allow(subject).to receive(:repositories).and_return(repos)
 
-      file = double("file")
-      expect(File).to receive(:open).with(Y2Packager::KnownRepositories::STATUS_FILE, "w", 0o600)
-        .and_yield(file)
-      expect(file).to receive(:write).with(repos.to_yaml)
+      expect(File).to receive(:write)
+        .with(Y2Packager::KnownRepositories::STATUS_FILE, repos.to_yaml, open_args: ["w", 0o600])
 
       subject.write
     end

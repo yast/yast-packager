@@ -37,9 +37,7 @@ module Y2Packager
 
       # accessible only for the root user, the repository URLs should not contain
       # any passwords but rather be safe than sorry
-      File.open(status_file, "w", 0o600) do |f|
-        f.write(repositories.to_yaml)
-      end
+      File.write(status_file, repositories.to_yaml, open_args: ["w", 0o600])
     end
 
     def update

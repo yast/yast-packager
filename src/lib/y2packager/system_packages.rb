@@ -51,9 +51,7 @@ module Y2Packager
     #
     def repo_ids(urls)
       repo_ids = Yast::Pkg.SourceGetCurrent(true)
-      repo_ids.each_with_object([]) do |i, list|
-        list << i if urls.include?(Yast::Pkg.SourceGeneralData(i)["url"])
-      end
+      repo_ids.select { |i| urls.include?(Yast::Pkg.SourceGeneralData(i)["url"]) }
     end
 
     def find_packages
@@ -65,6 +63,8 @@ module Y2Packager
       original_solver_flags = Yast::Pkg.GetSolverFlags
 
       # solver flags for selecting minimal recommended packages (e.g. drivers)
+      # see https://github.com/yast/yast-packager/wiki/Selecting-the-Driver-Packages,
+      # https://bugzilla.suse.com/show_bug.cgi?id=953522
       Yast::Pkg.SetSolverFlags(
         "ignoreAlreadyRecommended" => false,
         "onlyRequires"             => true
