@@ -539,7 +539,7 @@ module Yast
           selecteddrive = Convert.to_string(
             UI.QueryWidget(Id(:cddevices), :Value)
           )
-          command = "/bin/eject #{selecteddrive.shellescape}"
+          command = "/usr/bin/eject #{selecteddrive.shellescape}"
 
           Builtins.y2milestone("Executing '%1'", command)
 
