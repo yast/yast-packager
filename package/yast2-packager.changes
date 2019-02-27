@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 14 12:17:04 UTC 2019 - mvidner@suse.com
+
+- When patterns are missing, use 1 pop-up instead of many,
+  and suggest to register or apply add-ons (bsc#1117535).
+- 4.1.28
+
+-------------------------------------------------------------------
 Thu Feb 14 07:46:00 UTC 2019 - lslezak@suse.cz
 
 - Automatically preselect the driver packages from new repositories

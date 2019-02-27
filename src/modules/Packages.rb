@@ -1277,21 +1277,6 @@ module Yast
       ret
     end
 
-    def LocaleVersions(lang)
-      ret = [lang]
-      components = Builtins.splitstring(lang, ".")
-      if Ops.get(components, 0, "") != lang && Ops.get(components, 0, "") != ""
-        lang = Ops.get(components, 0, "")
-        ret = Builtins.add(ret, lang)
-      end
-      components = Builtins.splitstring(lang, "_")
-      if Ops.get(components, 0, "") != lang && Ops.get(components, 0, "") != ""
-        lang = Ops.get(components, 0, "")
-        ret = Builtins.add(ret, lang)
-      end
-      deep_copy(ret)
-    end
-
     # Returns ID of the base product repository.
     #
     # @return [Fixnum] base source ID
@@ -1888,41 +1873,71 @@ module Yast
       nil
     end
 
+    # Determine what should be done about each pattern
+    # @param [Array<String>] pattern_names
+    # @param [Boolean] reselect whether to re-select all already selected patterns
+    # @return [Array<Array(String,Symbol)>] list of [pattern_name, action]
+    def select_system_patterns_actions(pattern_names, reselect:)
+      mandatory_patterns = nil
+      pattern_names.map do |pattern_name|
+        props = Pkg.ResolvableProperties(pattern_name, :pattern, "")
+        prop = props.first
+        if props.empty?
+          mandatory_patterns ||= default_patterns | resolvable_mandatory_patterns
+          action = if mandatory_patterns.include?(pattern_name)
+            :missing
+          else
+            :missing_optional
+          end
+        elsif !reselect && prop["status"] == :available && prop["transact_by"] == :user
+          action = :skipped_by_user
+        elsif !reselect
+          action = :install
+        elsif props.any? { |descr| descr["status"] == :selected }
+          action = :reselect
+        else
+          action = :skipped_reselection
+        end
+        [pattern_name, action]
+      end.to_h
+    end
+
     # Selects system-specific and default patterns for installation
     #
     # @param [Boolean] reselect whether to re-select all already selected patterns
     def SelectSystemPatterns(reselect)
-      patterns = patterns_to_install.dup
-      log.info "Selecting system patterns #{patterns}"
+      pattern_names = patterns_to_install.dup
+      log.info "Selecting system patterns #{pattern_names}"
 
-      if !reselect
-        patterns.each do |pattern_name|
-          prop = Pkg.ResolvableProperties(pattern_name, :pattern, "").first
+      # determine what to do first, do it afterwards
+      # (so that we have at most 1 pop-up instead of many, for each item)
+      pattern_actions = select_system_patterns_actions(pattern_names, reselect: reselect)
 
-          if prop.nil?
-            report_missing_pattern(pattern_name)
-            next
-          elsif prop["status"] == :available && prop["transact_by"] == :user
-            log.info "Skipping pattern #{pattern_name} deselected by user"
-          else
-            Pkg.ResolvableInstall(pattern_name, :pattern)
-          end
-        end
-      else
-        patterns.select! do |pattern_name|
-          descrs = Pkg.ResolvableProperties(pattern_name, :pattern, "")
-          report_missing_pattern(pattern_name) if descrs.empty?
-          descrs.any? { |descr| descr["status"] == :selected }
-        end
-
-        log.info "Selected patterns to be reselected: #{patterns}"
-
-        patterns.each do |pattern_name|
+      pattern_actions.each do |pattern_name, action|
+        case action
+        when :install
+          Pkg.ResolvableInstall(pattern_name, :pattern)
+        when :reselect
           Pkg.ResolvableRemove(pattern_name, :pattern)
           Pkg.ResolvableInstall(pattern_name, :pattern)
+        when :missing
+          log.error "Mandatory pattern #{pattern_name} does not exist"
+          # see also the pop-up later
+        when :missing_optional
+          log.info "Optional pattern #{pattern_name} does not exist, skipping..."
+        when :skipped_by_user
+          log.info "Skipping pattern #{pattern_name} deselected by user"
+        when :skipped_reselection
+          # not logged
+        else
+          raise ArgumentError, "Unhandled action #{action}"
         end
       end
 
+      missing_patterns = pattern_actions
+                         .find_all { |_pn, action| action == :missing }
+                         .map(&:first)
+      report_missing_patterns(missing_patterns)
       nil
     end
 
@@ -2207,89 +2222,6 @@ module Yast
       ret
     end
 
-    # see bug 302398
-    def SelectKernelPackages
-      provides = Pkg.PkgQueryProvides("kernel")
-      # e.g.: [["kernel-bigsmp", `CAND, `NONE], ["kernel-default", `CAND, `CAND],
-      # ["kernel-default", `BOTH, `INST]]
-      Builtins.y2milestone("provides: %1", provides)
-
-      # these kernels would be installed
-      kernels = Builtins.filter(provides) do |l|
-        Ops.get_symbol(l, 1, :NONE) == :BOTH ||
-          Ops.get_symbol(l, 1, :NONE) == Ops.get_symbol(l, 2, :NONE)
-      end
-
-      if Builtins.size(kernels) != 1
-        Builtins.y2warning("not exactly one package provides tag kernel")
-      end
-
-      selected_kernel = Ops.get_string(kernels, [0, 0], "none")
-      recom_kernel = Kernel.ComputePackages
-      recommended_kernel = Ops.get(recom_kernel, 0, "")
-
-      Builtins.y2milestone(
-        "Selected kernel: %1, recommended kernel: %2",
-        selected_kernel,
-        recom_kernel
-      )
-
-      # when the recommended Kernel is not available (installable)
-      if recommended_kernel != "" && !Pkg.IsAvailable(recommended_kernel)
-        recommended_kernel = selected_kernel
-      end
-
-      # recommended package is different to the selected one
-      # select the recommended one
-      if recommended_kernel != "" && recommended_kernel != selected_kernel
-        # list of kernels to be installed
-        kernels_to_be_installed = Convert.convert(
-          Builtins.maplist(kernels) { |one_kernel| Ops.get(one_kernel, 0) },
-          from: "list",
-          to:   "list <string>"
-        )
-        kernels_to_be_installed = Builtins.filter(kernels_to_be_installed) do |one_kernel|
-          !one_kernel.nil? && one_kernel != ""
-        end
-
-        # remove all kernels (with some exceptions)
-        Builtins.foreach(kernels_to_be_installed) do |one_kernel|
-          # XEN can be installed in parallel
-          next if one_kernel == "kernel-xen"
-          next if one_kernel == "kernel-xenpae"
-          # don't remove the recommended one
-          next if one_kernel == recommended_kernel
-          # remove all packages of that kernel
-          packages_to_remove = Kernel.ComputePackagesForBase(one_kernel, false)
-          if !packages_to_remove.nil? &&
-              Ops.greater_than(Builtins.size(packages_to_remove), 0)
-            Builtins.y2milestone(
-              "Removing installed packages %1",
-              packages_to_remove
-            )
-            Pkg.DoRemove(packages_to_remove)
-          end
-        end
-
-        # compute recommended kernel packages
-        kernel_packs = Kernel.ComputePackages
-
-        Builtins.y2milestone("Install kernel packages: %1", kernel_packs)
-
-        # installing all recommended packages
-        Builtins.foreach(kernel_packs) do |p|
-          if Pkg.PkgAvailable(p)
-            Builtins.y2milestone("Selecting package %1 for installation", p)
-            Pkg.PkgInstall(p)
-          else
-            Builtins.y2error("Package %1 is not available", p)
-          end
-        end
-      end
-
-      nil
-    end
-
     # Reads software->default_patterns and returns lisf of patterns that should
     # be selected for installation by default
     #
@@ -2479,7 +2411,6 @@ module Yast
     publish function: :Proposal, type: "map (boolean, boolean, boolean)"
     publish function: :InitializeCatalogs, type: "void ()"
     publish function: :InitFailed, type: "boolean ()"
-    publish function: :SelectKernelPackages, type: "void ()"
     publish function: :default_patterns, type: "list <string> ()"
     publish function: :log_software_selection, type: "void ()"
     publish function: :vnc_packages, type: "list <string> ()"
@@ -2558,17 +2489,23 @@ module Yast
       patterns.uniq
     end
 
-    def report_missing_pattern(pattern_name)
-      if (default_patterns | resolvable_mandatory_patterns).include?(pattern_name)
-        log.error "Mandatory pattern #{pattern_name} does not exist"
-        # Error message, %{pattern_name} is replaced with the missing pattern name in runtime
-        Report.Error(_(
-          "Failed to select default product pattern %{pattern_name}.\n" \
-          "Pattern has not been found."
-        ) % { pattern_name: pattern_name })
-      else
-        log.info "Optional pattern #{pattern_name} does not exist, skipping..."
-      end
+    # @return [void]
+    def report_missing_patterns(pattern_names)
+      return if pattern_names.empty?
+
+      # "p1, p2, p3, p4, p5,\n" \
+      # "p6, p7, p8"
+      names_s = pattern_names.each_slice(5).map { |n5| n5.join ", " }.join ",\n"
+      # %s is a list of pattern names
+      Report.Error(_(
+        "Failed to select default product patterns:\n" \
+        "%s\n" \
+        "Patterns have not been found.\n" \
+        "\n" \
+        "This can be probably be fixed by adding\n" \
+        "more installation repositories by going back to\n" \
+        "Registration or Add On Product screens."
+      ) % names_s)
     end
 
     # Search for providers for a list of tags
