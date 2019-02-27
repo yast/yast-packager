@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 27 12:14:18 UTC 2019 - mvidner@suse.com
+
+- Use the correct path for /usr/bin/eject (bsc#1127138)
+- 4.1.29
+
+-------------------------------------------------------------------
 Thu Feb 14 12:17:04 UTC 2019 - mvidner@suse.com
 
 - When patterns are missing, use 1 pop-up instead of many,
