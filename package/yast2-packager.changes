@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  6 21:05:39 UTC 2019 - Oliver Kurz <okurz@suse.com>
+
+- Correct english wording for missing patterns (bsc#1117535).
+- 4.1.31
+
+-------------------------------------------------------------------
 Mon Mar  4 14:27:30 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
 - fix showing help text for product license (bsc#1126491)
