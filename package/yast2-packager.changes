@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 28 21:05:39 UTC 2019 - Oliver Kurz <okurz@suse.com>
+
+- Correct english wording for missing patterns (bsc#1117535).
+- 4.1.30
+
+-------------------------------------------------------------------
 Wed Feb 27 12:14:18 UTC 2019 - mvidner@suse.com
 
 - Use the correct path for /usr/bin/eject (bsc#1127138)
