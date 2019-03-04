@@ -717,6 +717,16 @@ module Yast
       nil
     end
 
+    # Help text for asking license for product
+    def GetLicenseDialogHelp
+      # help text
+      _(
+        "<p>Read the license agreement carefully and select\n" \
+          "one of the available options. If you do not agree to the license agreement,\n" \
+          "the configuration will be aborted.</p>\n"
+      )
+    end
+
     publish function: :AcceptanceNeeded, type: "boolean (string)"
     publish function: :AskLicenseAgreement,
             type:     "symbol (integer, string, list <string>, string, " \
@@ -1129,15 +1139,6 @@ module Yast
           ),
           HSpacing(2 * space)
         )
-      )
-    end
-
-    def GetLicenseDialogHelp
-      # help text
-      _(
-        "<p>Read the license agreement carefully and select\n" \
-          "one of the available options. If you do not agree to the license agreement,\n" \
-          "the configuration will be aborted.</p>\n"
       )
     end
 
