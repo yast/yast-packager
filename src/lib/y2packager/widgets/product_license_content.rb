@@ -13,6 +13,8 @@
 require "yast"
 require "cwm"
 
+Yast.import "ProductLicense"
+
 module Y2Packager
   module Widgets
     # Widget to show a product's license content
@@ -51,6 +53,11 @@ module Y2Packager
         return if language == new_language
         self.language = new_language
         update_license_text
+      end
+
+      # Help text for license content
+      def help
+        Yast::ProductLicense.GetLicenseDialogHelp
       end
 
     private
