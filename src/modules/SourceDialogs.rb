@@ -2540,7 +2540,11 @@ module Yast
       Builtins.y2milestone("Ret: %1", ret)
       UI.CloseDialog
 
-      ret == :ok ? GetURL() : ""
+      if ret == :ok || ret == :next
+        GetURL() 
+      else
+        ""
+      end
     end
 
     def EditDisplay
