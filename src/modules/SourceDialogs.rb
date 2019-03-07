@@ -2541,7 +2541,7 @@ module Yast
       UI.CloseDialog
 
       if ret == :ok || ret == :next
-        GetURL() 
+        GetURL()
       else
         ""
       end
