@@ -2502,9 +2502,9 @@ module Yast
         "%s\n" \
         "Patterns have not been found.\n" \
         "\n" \
-        "This can be probably be fixed by adding\n" \
+        "This can probably be fixed by adding\n" \
         "more installation repositories by going back to\n" \
-        "Registration or Add On Product screens."
+        "the 'Registration' or 'Add On Product' screens."
       ) % names_s)
     end
 
