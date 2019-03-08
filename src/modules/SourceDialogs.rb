@@ -2539,12 +2539,7 @@ module Yast
       ret = CWM.Run(w, {})
       Builtins.y2milestone("Ret: %1", ret)
       UI.CloseDialog
-
-      if ret == :ok || ret == :next
-        GetURL()
-      else
-        ""
-      end
+      [:ok, :next].include?(ret) ? GetURL() : ""
     end
 
     def EditDisplay
