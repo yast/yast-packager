@@ -2653,13 +2653,11 @@ module Yast
         "Running repository type dialog with download option"
       )
 
-      # dialog caption
-      caption = _("Add On Product")
       ui = CWM.ShowAndRun(
         "widget_names"       => ["select_dl"],
         "widget_descr"       => Widgets(),
         "contents"           => VBox(network_button, "select_dl"),
-        "caption"            => caption,
+        "caption"            => dialog_caption,
         "back_button"        => Label.BackButton,
         "next_button"        => Label.NextButton,
         "fallback_functions" => @default_cwm_fallback_functions
@@ -2686,6 +2684,18 @@ module Yast
       Report.Error(_("URL scheme '%s' is not valid.") % scheme) unless ret
 
       ret
+    end
+
+    # Build the dialog title (depending on the current UI)
+    # @return [String] the translated title
+    def dialog_caption
+      if UI.TextMode
+        # TRANSLATORS: dialog title (short form for text mode)
+        _("Add On Product")
+      else
+        # TRANSLATORS: dialog title (long form for GUI, but still keep as short as possible)
+        _("Add On Product (Products, Extensions, Modules or Other Repositories)")
+      end
     end
 
     publish function: :SetURL, type: "void (string)"
