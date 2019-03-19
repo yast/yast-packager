@@ -29,6 +29,7 @@ stub_module("Proxy")
 stub_module("FTP")
 stub_module("HTTP")
 stub_module("NtpClient")
+stub_module("InstFunctions")
 
 if ENV["COVERAGE"]
   require "simplecov"
