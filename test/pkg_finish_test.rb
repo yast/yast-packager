@@ -18,6 +18,7 @@ describe Yast::PkgFinishClient do
   subject(:client) { Yast::PkgFinishClient.new }
   let(:repositories) { [] }
   let(:minimalistic_libzypp_config) { false }
+  let(:second_stage_required) { false }
 
   before do
     allow(Yast::WFM).to receive(:Args).and_return(args)
@@ -29,6 +30,7 @@ describe Yast::PkgFinishClient do
     allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
       .with("software", "minimalistic_libzypp_config")
       .and_return(minimalistic_libzypp_config)
+    allow(Yast::InstFunctions).to receive(:second_stage_required?).and_return(second_stage_required)
   end
 
   describe "Info" do
@@ -124,7 +126,6 @@ describe Yast::PkgFinishClient do
         context "second stage will not be called" do
           before do
             allow(Yast::Stage).to receive(:cont).and_return(false)
-            allow(Yast::InstFunctions).to receive(:second_stage_required?).and_return(false)
           end
 
           it "disables the local repository" do
@@ -134,9 +135,7 @@ describe Yast::PkgFinishClient do
         end
 
         context "second stage will be called due AutoYaST" do
-          before do
-            allow(Yast::InstFunctions).to receive(:second_stage_required?).and_return(true)
-          end
+          let(:second_stage_required) { true }
 
           context "in first installation stage" do
             before do
