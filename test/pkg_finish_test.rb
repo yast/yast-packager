@@ -121,9 +121,44 @@ describe Yast::PkgFinishClient do
           allow(remote_repo).to receive(:products).and_return([sles_product])
         end
 
-        it "disables the local repository" do
-          expect(local_repo).to receive(:disable!)
-          client.run
+        context "second stage will not be called" do
+          before do
+            allow(Yast::Stage).to receive(:cont).and_return(false)
+            allow(Yast::InstFunctions).to receive(:second_stage_required?).and_return(false)
+          end
+
+          it "disables the local repository" do
+            expect(local_repo).to receive(:disable!)
+            client.run
+          end
+        end
+
+        context "second stage will be called due AutoYaST" do
+          before do
+            allow(Yast::InstFunctions).to receive(:second_stage_required?).and_return(true)
+          end
+
+          context "in first installation stage" do
+            before do
+              allow(Yast::Stage).to receive(:cont).and_return(false)
+            end
+
+            it "does not disable the local repository" do
+              expect(local_repo).not_to receive(:disable!)
+              client.run
+            end
+          end
+
+          context "in second installation stage" do
+            before do
+              allow(Yast::Stage).to receive(:cont).and_return(true)
+            end
+
+            it "disables the local repository" do
+              expect(local_repo).to receive(:disable!)
+              client.run
+            end
+          end
         end
       end
 

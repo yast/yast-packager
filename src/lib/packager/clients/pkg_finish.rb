@@ -48,6 +48,7 @@ module Yast
       Yast.import "Packages"
       Yast.import "Directory"
       Yast.import "ProductFeatures"
+      Yast.import "InstFunctions"
     end
 
     # @see Implements ::Installation::FinishClient#modes
@@ -62,6 +63,16 @@ module Yast
 
     # @see Implements ::Installation::FinishClient#write
     def write
+      if Stage.cont
+        # AutoYaST second stage. We only have to disable local repos.
+        Pkg.SourceLoad
+        disable_local_repos
+        # save all repositories and finish target
+        Pkg.SourceSaveAll
+        Pkg.TargetFinish
+        return nil
+      end
+
       # Remove (backup) all sources not used during the update
       # BNC #556469: Backup and remove all the old repositories before any Pkg::SourceSaveAll call
       backup_all_target_sources if Stage.initial && Mode.update
@@ -76,7 +87,8 @@ module Yast
       # if online repositories were not enabled), resolvables should be loaded now.
       Pkg.SourceLoad
       remove_auto_added_sources
-      disable_local_repos
+      # AutoYaST: disable_local_repos will be called in second install
+      disable_local_repos unless InstFunctions.second_stage_required?
 
       # save all repositories and finish target
       Pkg.SourceSaveAll
