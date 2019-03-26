@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 26 16:48:09 UTC 2019 - David Díaz <dgonzalez@suse.com>
+
+- Fix malformed rpm commands (bsc#1129422).
+- 4.1.35
+
+-------------------------------------------------------------------
 Mon Mar 25 15:34:46 UTC 2019 - Stefan Hundhammer <shundhammer@suse.com>
 
 - Use correct method name mount_path, not nonexistent mountpoint
