@@ -1744,18 +1744,18 @@ describe "Yast::Packages" do
       allow(Yast::Pkg).to receive(:GetAdditionalLocales).and_return([])
       allow(Yast::Pkg).to receive(:GetPackageLocale).and_return("en_US")
 
-      subject.cached_proposal = { "packages"=>["SUSEConnect 0.3.16 5.13 x86_64",
-        "aaa_base 84.87+git20180409.04c9dae 3.3.2 x86_64",
-        "bash 4.4 9.7.1 x86_64"],
-        "patterns"=>["base", "minimal_base"],
-        "products"=>["SLES"], "patches"=>[], "languages"=>["en_US"]}
+      subject.cached_proposal = { "packages" => ["SUSEConnect 0.3.16 5.13 x86_64",
+                                                 "aaa_base 84.87+git20180409.04c9dae 3.3.2 x86_64",
+                                                 "bash 4.4 9.7.1 x86_64"],
+        "patterns" => ["base", "minimal_base"],
+        "products" => ["SLES"], "patches" => [], "languages" => ["en_US"] }
     end
 
     context "current selection has not been changed" do
       it "returns false" do
         allow(Yast::Pkg).to receive(:GetPackages)
           .and_return(["aaa_base 84.87+git20180409.04c9dae 3.3.2 x86_64",
-          "bash 4.4 9.7.1 x86_64", "SUSEConnect 0.3.16 5.13 x86_64"])
+                       "bash 4.4 9.7.1 x86_64", "SUSEConnect 0.3.16 5.13 x86_64"])
         expect(Yast::Packages.send(:proposal_changed?)).to eq false
       end
     end
@@ -1764,7 +1764,7 @@ describe "Yast::Packages" do
       it "returns true" do
         allow(Yast::Pkg).to receive(:GetPackages)
           .and_return(["aaa_base 84.87+git20180409.04c9dae 3.3.2 x86_64",
-          "bash 4.4 9.7.1 x86_64"])
+                       "bash 4.4 9.7.1 x86_64"])
         expect(Yast::Packages.send(:proposal_changed?)).to eq true
       end
     end

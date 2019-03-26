@@ -2121,7 +2121,7 @@ module Yast
       @cached_proposal_summary = deep_copy(ret)
 
       # remember the status
-      @cached_proposal = current_proposal()
+      @cached_proposal = current_proposal
 
       UI.CloseDialog
 
@@ -2359,14 +2359,14 @@ module Yast
     def current_proposal
       selected_packages = Pkg.GetPackages(:selected, false)
       selected_patterns = Pkg.ResolvableProperties("", :pattern, "").map do |p|
-          p["name"] if p["status"] == :selected
-        end
+        p["name"] if p["status"] == :selected
+      end
       selected_products = Pkg.ResolvableProperties("", :product, "").map do |p|
-          p["name"] if p["status"] == :selected
-        end
+        p["name"] if p["status"] == :selected
+      end
       selected_patches = Pkg.ResolvableProperties("", :patch, "").map do |p|
-          p["name"] if p["status"] == :selected
-        end
+        p["name"] if p["status"] == :selected
+      end
       selected_languages = [Pkg.GetPackageLocale] + Pkg.GetAdditionalLocales
 
       { "packages"  => selected_packages.compact.sort,
