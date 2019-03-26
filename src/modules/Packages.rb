@@ -529,7 +529,7 @@ module Yast
         delim = summary.fetch("warning", "").empty? ? "" : "<BR>"
         if Builtins.contains(
           @basic_dirs,
-          failed_mount.mountpoint
+          failed_mount.mount_path
         )
           Ops.set(
             summary,
@@ -542,7 +542,7 @@ module Yast
                   "Error: Cannot check free space in basic directory %1 (device %2), " \
                     "cannot start installation."
                 ),
-                failed_mount.mountpoint,
+                failed_mount.mount_path,
                 fs_dev_name(failed_mount)
               )
             )
@@ -562,7 +562,7 @@ module Yast
                 _(
                   "Warning: Cannot check free space in directory %1 (device %2)."
                 ),
-                failed_mount.mountpoint,
+                failed_mount.mount_path,
                 fs_dev_name(failed_mount)
               )
             )
