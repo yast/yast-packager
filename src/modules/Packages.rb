@@ -16,6 +16,7 @@ module Yast
     include ERB::Util
 
     attr_reader :missing_remote_packages, :missing_remote_kind
+    attr_accessor :cached_proposal
 
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language].freeze
@@ -88,15 +89,11 @@ module Yast
       @init_error = nil
 
       # cache for the proposed summary
-      @cached_proposal = nil
+      @cached_proposal_summary = nil
 
       # the selection used for the cached proposal
       # the default values 'nil' say that the proposal hasn't been called yet
-      @cached_proposal_packages = nil
-      @cached_proposal_patterns = nil
-      @cached_proposal_products = nil
-      @cached_proposal_patches = nil
-      @cached_proposal_languages = nil
+      @cached_proposal = nil
 
       @install_sources = false # Installing source packages ?
       @timestamp = 0 # last time of getting the target map
@@ -161,12 +158,7 @@ module Yast
     def ResetProposalCache
       Builtins.y2milestone("Reseting the software proposal cache")
 
-      @cached_proposal_packages = nil
-      @cached_proposal_patterns = nil
-      @cached_proposal_products = nil
-      @cached_proposal_patches = nil
-      @cached_proposal_languages = nil
-
+      @cached_proposal = nil
       nil
     end
 
@@ -2030,56 +2022,18 @@ module Yast
 
       # if the cache is valid and reset or reinitialization is not required
       # then the cached proposal can be used
-      if !@cached_proposal.nil? && force_reset == false && reinit == false
-        # selected packages
-        selected_packages = Pkg.GetPackages(:selected, false)
+      if !@cached_proposal_summary.nil? && force_reset == false && reinit == false
 
-        # selected patterns
-        selected_patterns = Builtins.filter(
-          Pkg.ResolvableProperties("", :pattern, "")
-        ) do |p|
-          Ops.get_symbol(p, "status", :unknown) == :selected
-        end
-
-        # selected products
-        selected_products = Builtins.filter(
-          Pkg.ResolvableProperties("", :product, "")
-        ) do |p|
-          Ops.get_symbol(p, "status", :unknown) == :selected
-        end
-
-        # selected patches
-        selected_patches = Builtins.filter(
-          Pkg.ResolvableProperties("", :patch, "")
-        ) do |p|
-          Ops.get_symbol(p, "status", :unknown) == :selected
-        end
-
-        # selected languages
-        selected_languages = Convert.convert(
-          Builtins.union([Pkg.GetPackageLocale], Pkg.GetAdditionalLocales),
-          from: "list",
-          to:   "list <string>"
-        )
-
-        # if the package selection has not been changed the cache is up to date
-        if selected_packages == @cached_proposal_packages &&
-            selected_patterns == @cached_proposal_patterns &&
-            selected_products == @cached_proposal_products &&
-            selected_patches == @cached_proposal_patches &&
-            selected_languages == @cached_proposal_languages
+        # if the package, pattern,... selection has not been changed the cache is up to date
+        if !proposal_changed?
           Builtins.y2milestone("using cached software proposal")
-          return deep_copy(@cached_proposal)
+          return deep_copy(@cached_proposal_summary)
         # do not show the error message during the first proposal
         # (and the only way to change to software selection manually -> software_proposal/AskUser)
         #
         # 'nil' is the default value
         # See also ResetProposalCache()
-        elsif !@cached_proposal_packages.nil? &&
-            !@cached_proposal_patterns.nil? &&
-            !@cached_proposal_products.nil? &&
-            !@cached_proposal_patches.nil? &&
-            !@cached_proposal_languages.nil?
+        elsif !@cached_proposal.nil?
           Builtins.y2error(
             "invalid cache: the software selection has been chaged"
           )
@@ -2162,33 +2116,12 @@ module Yast
 
       # Question: is `desktop appropriate for SLE?
       ret = Summary([:product, :pattern, :size, :desktop], false)
-      # TODO: simple proposal
 
-      # cache the proposal
-      @cached_proposal = deep_copy(ret)
+      # cache the proposal summary
+      @cached_proposal_summary = deep_copy(ret)
 
       # remember the status
-      @cached_proposal_packages = Pkg.GetPackages(:selected, false)
-      @cached_proposal_patterns = Builtins.filter(
-        Pkg.ResolvableProperties("", :pattern, "")
-      ) do |p|
-        Ops.get_symbol(p, "status", :unknown) == :selected
-      end
-      @cached_proposal_products = Builtins.filter(
-        Pkg.ResolvableProperties("", :product, "")
-      ) do |p|
-        Ops.get_symbol(p, "status", :unknown) == :selected
-      end
-      @cached_proposal_patches = Builtins.filter(
-        Pkg.ResolvableProperties("", :patch, "")
-      ) do |p|
-        Ops.get_symbol(p, "status", :unknown) == :selected
-      end
-      @cached_proposal_languages = Convert.convert(
-        Builtins.union([Pkg.GetPackageLocale], Pkg.GetAdditionalLocales),
-        from: "list",
-        to:   "list <string>"
-      )
+      @cached_proposal = current_proposal()
 
       UI.CloseDialog
 
@@ -2419,6 +2352,37 @@ module Yast
     publish function: :check_remote_installation_packages, type: "void (string)"
 
   private
+
+    # Current package, pattern, product, patch and language selection.
+    #
+    # @return [Hash] selected packages, patterns, products,...
+    def current_proposal
+      selected_packages = Pkg.GetPackages(:selected, false)
+      selected_patterns = Pkg.ResolvableProperties("", :pattern, "").map do |p|
+          p["name"] if p["status"] == :selected
+        end
+      selected_products = Pkg.ResolvableProperties("", :product, "").map do |p|
+          p["name"] if p["status"] == :selected
+        end
+      selected_patches = Pkg.ResolvableProperties("", :patch, "").map do |p|
+          p["name"] if p["status"] == :selected
+        end
+      selected_languages = [Pkg.GetPackageLocale] + Pkg.GetAdditionalLocales
+
+      { "packages"  => selected_packages.compact.sort,
+        "patterns"  => selected_patterns.compact.sort,
+        "products"  => selected_products.compact.sort,
+        "patches"   => selected_patches.compact.sort,
+        "languages" => selected_languages.compact.sort }
+    end
+
+    # Checking if there have been changes around package, pattern, product,
+    # patch and language selection.
+    #
+    # @return [Boolean] changed ?
+    def proposal_changed?
+      current_proposal != @cached_proposal
+    end
 
     # Reads product feature defined by parameters, logs what it gets
     # and returns list of items split by whitespaces
