@@ -2035,7 +2035,7 @@ module Yast
         # See also ResetProposalCache()
         elsif !@cached_proposal.nil?
           Builtins.y2error(
-            "invalid cache: the software selection has been chaged"
+            "invalid cache: the software selection has been changed"
           )
           # bnc #436925
           Report.Message(
@@ -2381,7 +2381,32 @@ module Yast
     #
     # @return [Boolean] changed ?
     def proposal_changed?
-      current_proposal != @cached_proposal
+      changed = current_proposal != @cached_proposal
+      log_proposal_diff if changed
+      changed
+    end
+
+    #
+    # Log changed proposal
+    #
+    def log_proposal_diff
+      current = current_proposal
+      current.each_key do |kind|
+        log_array_diff(kind, current[kind], @cached_proposal[kind])
+      end
+    end
+
+    #
+    # Log array differences
+    #
+    # @param kind [String] type of array, just used in the log message
+    # @param current [Array] the current array
+    # @param old [Array] the old array
+    def log_array_diff(kind, current, old)
+      if current != old
+        log.info("New #{kind}: #{current - old}")
+        log.info("Removed #{kind}: #{old - current}")
+      end
     end
 
     # Reads product feature defined by parameters, logs what it gets
