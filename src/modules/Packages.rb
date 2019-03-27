@@ -93,7 +93,7 @@ module Yast
 
       # the selection used for the cached proposal
       # the default values 'nil' say that the proposal hasn't been called yet
-      cached_proposal = nil
+      @cached_proposal = nil
 
       @install_sources = false # Installing source packages ?
       @timestamp = 0 # last time of getting the target map
@@ -158,7 +158,7 @@ module Yast
     def ResetProposalCache
       Builtins.y2milestone("Reseting the software proposal cache")
 
-      cached_proposal = nil
+      @cached_proposal = nil
       nil
     end
 
@@ -2123,7 +2123,7 @@ module Yast
       @cached_proposal_summary = deep_copy(ret)
 
       # remember the status
-      cached_proposal = current_proposal
+      @cached_proposal = current_proposal
 
       UI.CloseDialog
 
