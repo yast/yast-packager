@@ -215,7 +215,7 @@ module Yast
           if Ops.greater_than(SCR.Read(path(".target.size"), package), 0)
             out = SCR.Execute(
               path(".target.bash_output"),
-              "/bin/rpm -q --qf '%%{NAME}' -p #{package.shellescape}"
+              "/bin/rpm -q --qf '%{NAME}' -p #{package.shellescape}"
             )
 
             if Ops.get_integer(out, "exit", -1).nonzero?
@@ -234,7 +234,7 @@ module Yast
             # is it a source package?
             out = SCR.Execute(
               path(".target.bash_output"),
-              "/bin/rpm -q --qf '%%{SOURCEPACKAGE}' -p #{package.shellescape}"
+              "/bin/rpm -q --qf '%{SOURCEPACKAGE}' -p #{package.shellescape}"
             )
             if Ops.get_integer(out, "exit", -1).nonzero?
               # error message
