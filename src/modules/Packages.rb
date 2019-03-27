@@ -2357,14 +2357,14 @@ module Yast
 
     def fetch_selected(category)
       items = Pkg.ResolvableProperties("", category, "").select { |i| i["status"] == :selected }
-      items.each_with_object([]) { |i, a| a << i["name"] }.sort
+      items.map { |i| i["name"] }.sort
     end
 
     # Current package, pattern, product, patch and language selection.
     #
     # @return [Hash] selected packages, patterns, products,...
     def current_proposal
-      { "packages"  => Pkg.GetPackages(:selected, false).compact.sort,
+      { "packages"  => Pkg.GetPackages(:selected, false).sort,
         "patterns"  => fetch_selected(:pattern),
         "products"  => fetch_selected(:product),
         "patches"   => fetch_selected(:patch),
