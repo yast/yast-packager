@@ -93,7 +93,7 @@ module Yast
 
       # the selection used for the cached proposal
       # the default values 'nil' say that the proposal hasn't been called yet
-      @cached_proposal = nil
+      cached_proposal = nil
 
       @install_sources = false # Installing source packages ?
       @timestamp = 0 # last time of getting the target map
@@ -158,7 +158,7 @@ module Yast
     def ResetProposalCache
       Builtins.y2milestone("Reseting the software proposal cache")
 
-      @cached_proposal = nil
+      cached_proposal = nil
       nil
     end
 
@@ -2033,10 +2033,12 @@ module Yast
         #
         # 'nil' is the default value
         # See also ResetProposalCache()
-        elsif !@cached_proposal.nil?
-          Builtins.y2error(
+        elsif !cached_proposal.nil?
+          log.error(
             "invalid cache: the software selection has been changed"
           )
+          log_proposal_diff
+
           # bnc #436925
           Report.Message(
             _(
@@ -2121,7 +2123,7 @@ module Yast
       @cached_proposal_summary = deep_copy(ret)
 
       # remember the status
-      @cached_proposal = current_proposal
+      cached_proposal = current_proposal
 
       UI.CloseDialog
 
@@ -2353,27 +2355,20 @@ module Yast
 
   private
 
+    def fetch_selected(category)
+      items = Pkg.ResolvableProperties("", category, "").select { |i| i["status"] == :selected }
+      items.each_with_object([]) { |i, a| a << i["name"] }.sort
+    end
+
     # Current package, pattern, product, patch and language selection.
     #
     # @return [Hash] selected packages, patterns, products,...
     def current_proposal
-      selected_packages = Pkg.GetPackages(:selected, false)
-      selected_patterns = Pkg.ResolvableProperties("", :pattern, "").map do |p|
-        p["name"] if p["status"] == :selected
-      end
-      selected_products = Pkg.ResolvableProperties("", :product, "").map do |p|
-        p["name"] if p["status"] == :selected
-      end
-      selected_patches = Pkg.ResolvableProperties("", :patch, "").map do |p|
-        p["name"] if p["status"] == :selected
-      end
-      selected_languages = [Pkg.GetPackageLocale] + Pkg.GetAdditionalLocales
-
-      { "packages"  => selected_packages.compact.sort,
-        "patterns"  => selected_patterns.compact.sort,
-        "products"  => selected_products.compact.sort,
-        "patches"   => selected_patches.compact.sort,
-        "languages" => selected_languages.compact.sort }
+      { "packages"  => Pkg.GetPackages(:selected, false).compact.sort,
+        "patterns"  => fetch_selected(:pattern),
+        "products"  => fetch_selected(:product),
+        "patches"   => fetch_selected(:patch),
+        "languages" => [Pkg.GetPackageLocale].concat(Pkg.GetAdditionalLocales).compact.sort }
     end
 
     # Checking if there have been changes around package, pattern, product,
@@ -2381,31 +2376,18 @@ module Yast
     #
     # @return [Boolean] changed ?
     def proposal_changed?
-      changed = current_proposal != @cached_proposal
-      log_proposal_diff if changed
-      changed
+      current_proposal != cached_proposal
     end
 
     #
     # Log changed proposal
     #
     def log_proposal_diff
-      current = current_proposal
-      current.each_key do |kind|
-        log_array_diff(kind, current[kind], @cached_proposal[kind])
-      end
-    end
-
-    #
-    # Log array differences
-    #
-    # @param kind [String] type of array, just used in the log message
-    # @param current [Array] the current array
-    # @param old [Array] the old array
-    def log_array_diff(kind, current, old)
-      if current != old
-        log.info("New #{kind}: #{current - old}")
-        log.info("Removed #{kind}: #{old - current}")
+      current_proposal.each do |kind, current|
+        if current != cached_proposal[kind]
+          log.info("New #{kind}: #{current - cached_proposal[kind]}")
+          log.info("Removed #{kind}: #{cached_proposal[kind] - current}")
+        end
       end
     end
 
