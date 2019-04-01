@@ -13,6 +13,9 @@ before_install:
   - docker images
   - docker pull registry.opensuse.org/yast/head/containers/yast-ruby:latest | tee $HOME/docker.log
   - docker images
+  - pwd
+  - "ls -l"
+  - "du -h ."
   - docker build -t yast-packager-image .
   - docker images
   - docker build -t yast-packager-image .
