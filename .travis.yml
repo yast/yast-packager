@@ -6,9 +6,11 @@ services:
 
 cache:
   directories:
-    - /var/lib/docker
+    - docker
 
 before_install:
+  - 'if [ -f docker/yast-ruby.tar ]; then docker load -i docker/yast-ruby.tar; fi'
+  - docker pull registry.opensuse.org/yast/head/containers/yast-ruby:latest
   - docker build -t yast-packager-image .
   # list the installed packages (just for easier debugging)
   - docker run --rm -it yast-packager-image rpm -qa | sort
@@ -20,3 +22,4 @@ script:
   - docker run -it --rm -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image yast-travis-ruby -x yardoc
   - docker run -it --rm -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image rake check:doc
   - docker run -it --rm -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image shellcheck src/bin/sw_single_wrapper
+  - mkdir docker; docker save -o docker/yast-ruby.tar registry.opensuse.org/yast/head/containers/yast-ruby:latest
