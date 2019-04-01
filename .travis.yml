@@ -29,6 +29,5 @@ script:
   - docker run -it --rm -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image yast-travis-ruby -x yardoc
   - docker run -it --rm -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image rake check:doc
   - docker run -it --rm -e TRAVIS=1 -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" yast-packager-image shellcheck src/bin/sw_single_wrapper
-
-after_script:
   - mkdir -p $HOME/docker; grep -q "up to date" $HOME/docker.log || docker save -o $HOME/docker/yast-ruby.tar registry.opensuse.org/yast/head/containers/yast-ruby:latest
+
