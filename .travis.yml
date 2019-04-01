@@ -10,7 +10,9 @@ cache:
 
 before_install:
   - 'if [ -f $HOME/docker/yast-ruby.tar ]; then docker load -i $HOME/docker/yast-ruby.tar; fi'
-  - docker pull registry.opensuse.org/yast/head/containers/yast-ruby:latest
+  - docker images
+  - docker pull registry.opensuse.org/yast/head/containers/yast-ruby:latest | tee $HOME/docker.log
+  - docker images
   - docker build -t yast-packager-image .
   # list the installed packages (just for easier debugging)
   - docker run --rm -it yast-packager-image rpm -qa | sort
