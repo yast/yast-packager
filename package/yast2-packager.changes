@@ -2,7 +2,7 @@
 Wed Apr  3 10:38:03 CEST 2019 - schubi@suse.de
 
 - Package proposal: Reset solver state before starting the next
-  solver run (bsc#1077399).
+  solver run (related to bsc#1077399).
 - 4.1.36
 
 -------------------------------------------------------------------
