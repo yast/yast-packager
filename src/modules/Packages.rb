@@ -2158,6 +2158,7 @@ module Yast
         )
       end
 
+      @solve_errors = 0
       @solve_errors = Pkg.PkgSolveErrors if !Pkg.PkgSolve(false)
 
       # Question: is `desktop appropriate for SLE?
