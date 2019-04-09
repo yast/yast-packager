@@ -770,7 +770,7 @@ module Yast
 
       ret = status[:removed].all? do |product|
         product["transact_by"] != :solver ||
-          !Y2Packager::ProductUpgrade.will_be_obsolated_by(product["name"].empty?)
+          !Y2Packager::ProductUpgrade.will_be_obsolated_by(product["name"]).empty?
       end
 
       return {} if ret
