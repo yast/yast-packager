@@ -8,6 +8,8 @@ require "uri"
 require "cgi"
 require "shellwords"
 
+require "y2packager/product_upgrade"
+
 # Yast namespace
 module Yast
   # Package selections
@@ -731,19 +733,26 @@ module Yast
       end
 
       ret += status[:removed].map do |product|
-        transact_by = product["transact_by"]
-        log.warn "Product will be removed (by #{transact_by}): #{product}"
+        obsolete = Y2Packager::ProductUpgrade.will_be_obsolated_by(product["name"])
+        if obsolete.empty?
+          transact_by = product["transact_by"]
+          log.warn "Product will be removed (by #{transact_by}): #{product}"
 
-        # Removing another product might be an issue
-        # (just warn if removed by user or by YaST)
-        msg = if [:user, :app_high].include?(transact_by)
-          _("<b>Warning:</b> Product <b>%s</b> will be removed.") % h(product_label(product))
+          # Removing another product might be an issue
+          # (just warn if removed by user or by YaST)
+          msg = if [:user, :app_high].include?(transact_by)
+            _("<b>Warning:</b> Product <b>%s</b> will be removed.") % h(product_label(product))
+          else
+            _("<b>Error:</b> Product <b>%s</b> will be automatically removed.") %
+              h(product_label(product))
+          end
+
+          re = HTML.Colorize(msg, "red")
         else
-          _("<b>Error:</b> Product <b>%s</b> will be automatically removed.") %
-            h(product_label(product))
+          re = _("Product <b>%{p}</b> will be obsolated by %{o}") %
+                 { p: h(product_label(product)), o: obsolete.join(", ") }
         end
-
-        HTML.Colorize(msg, "red")
+        re
       end
 
       log.info "Product update summary: #{ret}"
@@ -758,7 +767,12 @@ module Yast
     def product_update_warning(products)
       status = group_products_by_status(products)
 
-      return {} if status[:removed].all? { |product| product["transact_by"] != :solver }
+      ret = status[:removed].all? do |product|
+        product["transact_by"] != :solver ||
+        Y2Packager::ProductUpgrade.will_be_obsolated_by(product["name"])
+      end
+
+      return {} if ret
 
       # Automatic product removal MUST be confirmed by user, otherwise update
       # cannot be started.
