@@ -484,7 +484,8 @@ describe "Yast::Packages" do
 
     context "product will be removed due an obsolete" do
       before do
-        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsolated_by).and_return(["new_product"])
+        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsolated_by)
+          .and_return(["new_product"])
       end
 
       it "returns empty hash" do
@@ -498,7 +499,8 @@ describe "Yast::Packages" do
       end
 
       it "returns a hash with warning when there is an automatically removed product" do
-        expect(Yast::Packages.product_update_warning(products)).to include("warning", "warning_level")
+        expect(Yast::Packages.product_update_warning(products)).to include("warning",
+          "warning_level")
       end
 
       it "returns empty hash when there is no automatically removed product" do
