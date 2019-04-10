@@ -449,7 +449,7 @@ describe "Yast::Packages" do
   describe "#product_update_summary" do
     let(:products) { load_zypp("products_update.yml") }
     before do
-      allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsolated_by).and_return([])
+      allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).and_return([])
     end
 
     it "describes the product update as a human readable summary" do
@@ -484,7 +484,7 @@ describe "Yast::Packages" do
 
     context "product will be removed due an obsolete" do
       before do
-        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsolated_by)
+        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by)
           .and_return(["new_product"])
       end
 
@@ -495,7 +495,7 @@ describe "Yast::Packages" do
 
     context "product will be removed" do
       before do
-        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsolated_by).and_return([])
+        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).and_return([])
       end
 
       it "returns a hash with warning when there is an automatically removed product" do

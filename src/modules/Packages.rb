@@ -733,7 +733,7 @@ module Yast
       end
 
       ret += status[:removed].map do |product|
-        obsolete = Y2Packager::ProductUpgrade.will_be_obsolated_by(product["name"])
+        obsolete = Y2Packager::ProductUpgrade.will_be_obsoleted_by(product["name"])
         if obsolete.empty?
           transact_by = product["transact_by"]
           log.warn "Product will be removed (by #{transact_by}): #{product}"
@@ -750,7 +750,7 @@ module Yast
           re = HTML.Colorize(msg, "red")
         else
           # TRANSLATORS: Product %{p} will be obsoleted by %{o} products
-          re = _("Product <b>%{p}</b> will be obsolated by %{o}") %
+          re = _("Product <b>%{p}</b> will be obsoleted by %{o}") %
             { p: h(product_label(product)), o: obsolete.join(", ") }
         end
         re
@@ -770,7 +770,7 @@ module Yast
 
       ret = status[:removed].all? do |product|
         product["transact_by"] != :solver ||
-          !Y2Packager::ProductUpgrade.will_be_obsolated_by(product["name"]).empty?
+          !Y2Packager::ProductUpgrade.will_be_obsoleted_by(product["name"]).empty?
       end
 
       return {} if ret
