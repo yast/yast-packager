@@ -36,7 +36,7 @@ BuildRequires:  yast2-storage-ng >= 4.0.141
 #!BuildIgnore: yast2-packager
 
 # Y2Packager::will_be_obsoleted_by
-BuildRequires:  yast2 >= 4.0.68
+BuildRequires:  yast2 >= 4.1.68
 
 # Pkg::PrdLicenseLocales
 BuildRequires:  yast2-pkg-bindings >= 4.0.8
@@ -51,7 +51,7 @@ Requires:       yast2-country-data >= 2.16.3
 Requires:       yast2-pkg-bindings >= 4.0.8
 
 # Y2Packager::will_be_obsoleted_by
-Requires:       yast2 >= 4.0.68
+Requires:       yast2 >= 4.1.68
 
 # unzipping license file
 Requires:       unzip
