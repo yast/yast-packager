@@ -448,6 +448,9 @@ describe "Yast::Packages" do
 
   describe "#product_update_summary" do
     let(:products) { load_zypp("products_update.yml") }
+    before do
+      allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).and_return([])
+    end
 
     it "describes the product update as a human readable summary" do
       summary_string = Yast::Packages.product_update_summary(products).to_s
@@ -479,13 +482,31 @@ describe "Yast::Packages" do
   describe "#product_update_warning" do
     let(:products) { load_zypp("products_update.yml") }
 
-    it "returns a hash with warning when there is an automatically removed product" do
-      expect(Yast::Packages.product_update_warning(products)).to include("warning", "warning_level")
+    context "product will be removed due an obsolete" do
+      before do
+        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by)
+          .and_return(["new_product"])
+      end
+
+      it "returns empty hash" do
+        expect(Yast::Packages.product_update_warning(products)).to eq({})
+      end
     end
 
-    it "returns empty hash when there is no automatically removed product" do
-      products.each { |product| product["transact_by"] = :user }
-      expect(Yast::Packages.product_update_warning(products)).to eq({})
+    context "product will be removed" do
+      before do
+        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).and_return([])
+      end
+
+      it "returns a hash with warning when there is an automatically removed product" do
+        expect(Yast::Packages.product_update_warning(products)).to include("warning",
+          "warning_level")
+      end
+
+      it "returns empty hash when there is no automatically removed product" do
+        products.each { |product| product["transact_by"] = :user }
+        expect(Yast::Packages.product_update_warning(products)).to eq({})
+      end
     end
   end
 
