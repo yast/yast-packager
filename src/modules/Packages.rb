@@ -750,7 +750,7 @@ module Yast
           re = HTML.Colorize(msg, "red")
         else
           # TRANSLATORS: Old product %{old_product} will be obsoleted by %{new_product} products.
-          _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
+          re = _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
             old_product: h(product_label(product)), new_product: obsolete.join(", ")
           }
         end
