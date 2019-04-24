@@ -508,6 +508,22 @@ describe "Yast::Packages" do
         expect(Yast::Packages.product_update_warning(products)).to eq({})
       end
     end
+
+    context "SUSE Manager 3.2 upgrade" do
+      # upgrade SLES12-SP3 + SUMA-3.2 to SLE15-SP1 (actually SUMA 4.0)
+      let(:suma_products) { load_zypp("products_update_suma.yml") }
+
+      before do
+        allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+          .and_return(suma_products)
+      end
+
+      # the SLES12-SP3 is replaced by the SUMA base product,
+      # do not complain for the automatic SLES removal
+      it "does not report any upgrade problem" do
+        expect(Yast::Packages.product_update_warning(suma_products)).to eq({})
+      end
+    end
   end
 
   describe "#ComputeSystemPatternList" do
