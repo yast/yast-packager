@@ -734,6 +734,7 @@ module Yast
 
       ret += status[:removed].map do |product|
         obsolete = Y2Packager::ProductUpgrade.will_be_obsoleted_by(product["name"])
+        log.info "Product #{product["name"].inspect} will be obsoleted by #{obsolete.inspect}"
         if obsolete.empty?
           transact_by = product["transact_by"]
           log.warn "Product will be removed (by #{transact_by}): #{product}"
@@ -749,9 +750,18 @@ module Yast
 
           re = HTML.Colorize(msg, "red")
         else
+          selected_products = Y2Packager::Product.with_status(:selected)
+          # get the human readable product names from libzypp data
+          new_products = obsolete.map do |p|
+            new_product = selected_products.find { |selected_prod| selected_prod.name == p }
+            # fallback to the internal product name if not found (should never happen™,
+            # ProductUpgrade.will_be_obsoleted_by should return only the selected products)
+            new_product ? new_product.display_name : p
+          end
+
           # TRANSLATORS: Old product %{old_product} will be obsoleted by %{new_product} products.
           re = _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
-            old_product: h(product_label(product)), new_product: obsolete.join(", ")
+            old_product: h(product_label(product)), new_product: new_products.join(", ")
           }
         end
         re
