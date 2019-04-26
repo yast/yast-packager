@@ -1,4 +1,5 @@
 --no-private
+--use-cache
 --markup markdown
 --protected
 src/**/*.rb
