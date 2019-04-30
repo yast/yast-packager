@@ -750,18 +750,11 @@ module Yast
 
           re = HTML.Colorize(msg, "red")
         else
-          selected_products = Y2Packager::Product.with_status(:selected)
-          # get the human readable product names from libzypp data
-          new_products = obsolete.map do |p|
-            new_product = selected_products.find { |selected_prod| selected_prod.name == p }
-            # fallback to the internal product name if not found (should never happen™,
-            # ProductUpgrade.will_be_obsoleted_by should return only the selected products)
-            new_product ? new_product.display_name : p
-          end
+          new_products_str = new_product_names(obsolete).join(", ")
 
           # TRANSLATORS: Old product %{old_product} will be obsoleted by %{new_product} products.
           re = _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
-            old_product: h(product_label(product)), new_product: new_products.join(", ")
+            old_product: h(product_label(product)), new_product: h(new_products_str)
           }
         end
         re
@@ -2764,6 +2757,21 @@ module Yast
       # a remote repository or removing all other repositories)
       elsif repo_priority != DEFAULT_PRIORITY
         Pkg.SourceSetPriority(repo_id, DEFAULT_PRIORITY)
+      end
+    end
+
+    # Get the human readable names for the internal product names
+    # @param obsolete [Array<String>] list of internal product IDs
+    # @return [Array<String>] Human readable product names,
+    #   if not found the original names are returned
+    def new_product_names(obsolete)
+      selected_products = Y2Packager::Product.with_status(:selected)
+
+      # get the human readable product names from the libzypp data
+      obsolete.map do |p|
+        new_product = selected_products.find { |selected_prod| selected_prod.name == p }
+        # fallback to the internal product name if not found
+        new_product ? new_product.display_name : p
       end
     end
   end
