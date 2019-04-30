@@ -448,6 +448,8 @@ describe "Yast::Packages" do
 
   describe "#product_update_summary" do
     let(:products) { load_zypp("products_update.yml") }
+    let(:suma_products) { load_zypp("products_update_suma_branch_server.yml") }
+
     before do
       allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).and_return([])
     end
@@ -475,6 +477,40 @@ describe "Yast::Packages" do
       expect(summary_string).to match(
         /Subscription\sManagement\sTool\sfor\sSUSE\sLinux\sEnterprise\s11\sSP3.*
          will\sbe\supdated\sto.*SUSE\sLinux\sEnterprise\sServer\s12/x
+      )
+    end
+
+    # test conversion of the internal product name "SUSE-Manager-Retail-Branch-Server" to
+    # human readable text "SUSE Manager Retail Branch Server 4.0"
+    it "converts obsolete product identifiers to human readable names" do
+      allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).with("SLES")
+        .and_return(["SUSE-Manager-Retail-Branch-Server"])
+      allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).with("SUSE-Manager-Proxy")
+        .and_return(["SUSE-Manager-Retail-Branch-Server"])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        .and_return(suma_products)
+      allow(Y2Packager::Product).to receive(:with_status).with(:selected).and_return(
+        suma_products.select { |p| p["status"] == :selected }
+        .map { |p| Y2Packager::Product.from_h(p) }
+      )
+
+      summary_string = Yast::Packages.product_update_summary(suma_products).to_s
+
+      # just to make the lines shorter
+      rbs = "SUSE Manager Retail Branch Server"
+      # SLES is removed from the system, but it is actually replaced by the SUMA Branch Server
+      # (which is additionally upgraded to version 4.0)
+      expect(summary_string).to match(
+        /SUSE Linux Enterprise Server 12 SP3.* will be updated to .*#{rbs} 4\.0/
+      )
+      # SUMA Proxy is removed from the system, but it is actually replaced by the SUMA Branch Server
+      # (which is additionally upgraded to version 4.0)
+      expect(summary_string).to match(
+        /SUSE Manager Proxy 3\.2.*will be updated to.*#{rbs} 4\.0/
+      )
+      # SUSE Manager Retail Branch Server is upgraded to version 4.0
+      expect(summary_string).to match(
+        /SUSE Manager Retail Branch Server 3\.2.*will be updated to.*#{rbs} 4\.0/
       )
     end
   end
