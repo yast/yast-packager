@@ -446,25 +446,17 @@ module Yast
     def ReadControlFile
       software_features = ProductFeatures.GetSection("software")
       if !software_features.nil?
-        @main_link = Ops.get_string(
-          software_features,
-          "external_sources_link",
-          ""
-        )
-      else
-        @main_link = ""
+        @main_link = software_features["external_sources_link"]
       end
-      Builtins.y2milestone("Got link: %1", @main_link)
+      @main_link ||= ""
 
-      if @main_link.nil? || @main_link == ""
-        @main_link = ""
+      if @main_link == ""
         Builtins.y2warning("No link")
         return false
       end
 
       Builtins.y2milestone("Using link: %1", @main_link)
-
-      !@main_link.nil? && @main_link != ""
+      true
     end
 
     def UseDownloadFile
