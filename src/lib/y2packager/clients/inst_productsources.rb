@@ -444,6 +444,10 @@ module Yast
     end
 
     def ReadControlFile
+      # Prefer control.xml to /etc/YaST2/ProductFeatures (bsc#1132613)
+      ProductControl.Init
+      # Notably GetSection does not call ProductFeatures.Restore
+      # which would overwrite the ProductControl data we've just read
       software_features = ProductFeatures.GetSection("software")
       if !software_features.nil?
         @main_link = software_features["external_sources_link"]
