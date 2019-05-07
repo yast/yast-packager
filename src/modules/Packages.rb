@@ -821,11 +821,16 @@ module Yast
     # @param [Array<Symbol>] keep a list of symbols specifying type of objects to be kept selected
     def Reset(keep)
       restore = []
+      restore_packages = []
 
       # collect the currently selected resolvables
       keep.each do |type|
-        resolvables = Pkg.ResolvableProperties("", type, "")
+        # handle packages differently, there might be tens of thousands packages,
+        # the package list might be HUGE (bsc#1132650)
+        # but there are usually just few dozens of products, patterns, etc.
+        next if type == :package
 
+        resolvables = Pkg.ResolvableProperties("", type, "")
         resolvables.each do |resolvable|
           # only selected items but ignore the selections done by solver,
           # during restoration they would be changed to be selected by YaST and they
@@ -836,10 +841,25 @@ module Yast
         end
       end
 
+      # special handling for packages, there might be tens of thousands packages
+      # so we need to do it more effectively
+      if keep.include?(:package)
+        # first query the selected packages, then get the details for each selected
+        # package separately to avoid processing a huge list at once
+        # (true = names only without version)
+        Pkg.GetPackages(:selected, true).each do |pkg|
+          Pkg.ResolvableProperties(pkg, :package, "").each do |resolvable|
+            next if resolvable["status"] != :selected || resolvable["transact_by"] == :solver
+            restore_packages << pkg
+          end
+        end
+      end
+
       # This keeps the user-made changes (BNC#446406)
       Pkg.PkgApplReset
 
       restore.each { |name, type| Pkg.ResolvableInstall(name, type) }
+      restore_packages.each { |name| Pkg.ResolvableInstall(name, :package) }
 
       @system_packages_selected = false
 
