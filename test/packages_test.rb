@@ -552,6 +552,11 @@ describe "Yast::Packages" do
       before do
         allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
           .and_return(suma_products)
+
+        suma_products.map { |p| p["name"] }.uniq.each do |prod_name|
+          allow(Yast::Pkg).to receive(:ResolvableProperties).with(prod_name, :product, "")
+            .and_return(suma_products.select { |p| p["name"] == prod_name })
+        end
       end
 
       # the SLES12-SP3 is replaced by the SUMA base product,
