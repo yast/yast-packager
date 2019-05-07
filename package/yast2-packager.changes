@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May  7 11:15:29 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Properly handle going back when selecting the modules from the
+  Packages DVD medium (bsc#1131968)
+- 4.1.40
+
+-------------------------------------------------------------------
 Thu May  2 12:10:07 UTC 2019 - mvidner@suse.com
 
 - Prefer control.xml to ProductFeatures for Community Repositories

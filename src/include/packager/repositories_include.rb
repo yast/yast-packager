@@ -293,14 +293,14 @@ module Yast
       ret = createSource(url, plaindir, @download_meta, name)
 
       case ret
-      when :again
+      when :again, :back
         :back
       when :abort, :cancel
         :abort
       when :next
         :next
       else
-        log.warn "Received unknown result: #{ret}, using :next instead"
+        log.warn "Received unknown result: #{ret.inspect}, using :next instead"
         :next
       end
     end
