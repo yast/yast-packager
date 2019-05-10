@@ -1,9 +1,8 @@
 -------------------------------------------------------------------
-Tue May  7 15:09:10 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+Fri May 10 12:12:50 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
 
-- Memory optimizations, avoid freezing the installer when
-  running with 1GB RAM and using the online repositories
-  (bsc#1132650)
+- Increase the memory limit warning for the online repositories to
+  1.5GiB to avoid freezing the installer (bsc#1132650)
 - 4.1.41
 
 -------------------------------------------------------------------
