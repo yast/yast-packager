@@ -1212,11 +1212,13 @@ describe "Yast::Packages" do
   end
 
   describe "#Reset" do
+    before do
+      allow(Yast::Pkg).to receive(:PkgApplReset)
+    end
+
     # Reset all package changes done by YaST then re-select only the products
     # which previously were selected. (see bsc#963036).
     it "does not select previously unselected items" do
-      allow(Yast::Pkg).to receive(:PkgApplReset)
-
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
         [product("name" => "p1", "status" => :selected), product("name" => "p2")]
       )
@@ -1231,8 +1233,6 @@ describe "Yast::Packages" do
     # (to not change their "transact_by" value). They will be selected again by
     # solver if they are still needed.
     it "does not restore items selected by solver" do
-      allow(Yast::Pkg).to receive(:PkgApplReset)
-
       allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
         [product("name" => "p1", "status" => :selected, "transact_by" => :solver)]
       )
@@ -1240,6 +1240,31 @@ describe "Yast::Packages" do
       expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p1", :product)
 
       Yast::Packages.Reset([:product])
+    end
+
+    # do not use the Pkg.ResolvableProperties("", :package, "") call,
+    # it eats too much RAM (bsc#1132650)
+    it "does not use ineffective pkg calls" do
+      pkg1 = "package1"
+      pkg2 = "package2"
+
+      allow(Yast::Pkg).to receive(:GetPackages).with(:selected, true).and_return([pkg1, pkg2])
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with(pkg1, :package, "").and_return(
+        ["name" => pkg1, "status" => :selected, "transact_by" => :solver]
+      )
+      allow(Yast::Pkg).to receive(:ResolvableProperties).with(pkg2, :package, "").and_return(
+        ["name" => pkg1, "status" => :selected, "transact_by" => :app_high]
+      )
+
+      # make sure this memory expensive call is not used
+      expect(Yast::Pkg).not_to receive(:ResolvableProperties).with("", :package, "")
+
+      # pkg1 was selected by solver, do not restore it
+      expect(Yast::Pkg).not_to receive(:ResolvableInstall).with(pkg1, :package)
+      # pkg2 was selected by YaST, restore it
+      expect(Yast::Pkg).to receive(:ResolvableInstall).with(pkg2, :package)
+
+      Yast::Packages.Reset([:package])
     end
   end
 
