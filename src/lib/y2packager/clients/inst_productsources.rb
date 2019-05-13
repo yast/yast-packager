@@ -444,27 +444,24 @@ module Yast
     end
 
     def ReadControlFile
+      # Prefer control.xml to /etc/YaST2/ProductFeatures (bsc#1132613)
+      # (The latter file does not exist during the installation)
+      ProductControl.Init unless Stage.initial
+      # Notably GetSection does not call ProductFeatures.Restore
+      # which would overwrite the ProductControl data we've just read
       software_features = ProductFeatures.GetSection("software")
       if !software_features.nil?
-        @main_link = Ops.get_string(
-          software_features,
-          "external_sources_link",
-          ""
-        )
-      else
-        @main_link = ""
+        @main_link = software_features["external_sources_link"]
       end
-      Builtins.y2milestone("Got link: %1", @main_link)
+      @main_link ||= ""
 
-      if @main_link.nil? || @main_link == ""
-        @main_link = ""
+      if @main_link == ""
         Builtins.y2warning("No link")
         return false
       end
 
       Builtins.y2milestone("Using link: %1", @main_link)
-
-      !@main_link.nil? && @main_link != ""
+      true
     end
 
     def UseDownloadFile
