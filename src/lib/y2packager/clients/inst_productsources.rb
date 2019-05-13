@@ -445,7 +445,8 @@ module Yast
 
     def ReadControlFile
       # Prefer control.xml to /etc/YaST2/ProductFeatures (bsc#1132613)
-      ProductControl.Init
+      # (The latter file does not exist during the installation)
+      ProductControl.Init unless Stage.initial
       # Notably GetSection does not call ProductFeatures.Restore
       # which would overwrite the ProductControl data we've just read
       software_features = ProductFeatures.GetSection("software")
