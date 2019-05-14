@@ -360,7 +360,7 @@ module Yast
       return url_string if url_string.nil? || url_string == ""
 
       # removing all slashes at the end of the url
-      url_string.sub!(/(\/)+$/,'')
+      url_string.sub!(/(\/)+$/, "")
 
       # unescape it
       URI.unescape(url_string)

@@ -116,12 +116,13 @@ describe Yast::InstProductsourcesClient do
   describe "#NormalizeURL" do
     it "removes all slashes at the end of the url" do
       expect(client.NormalizeURL("http://test.suse.de/test_dir///")).to eq(
-        "http://test.suse.de/test_dir")
+        "http://test.suse.de/test_dir"
+      )
     end
 
     it "unescape URL" do
-      expect(client.NormalizeURL("http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f")).
-        to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs/")
+      expect(client.NormalizeURL("http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f"))
+        .to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs/")
     end
   end
 
@@ -129,29 +130,29 @@ describe Yast::InstProductsourcesClient do
     let(:add_on_products) do
       [
         {
-          "media"=>0,
-          "media_url"=>"cd:/?devices=/dev/disk/by-id/ata-QEMU_DVD-ROM_QM00003",
-          "product_dir"=>"/"
+          "media"       => 0,
+          "media_url"   => "cd:/?devices=/dev/disk/by-id/ata-QEMU_DVD-ROM_QM00003",
+          "product_dir" => "/"
         },
         {
-          "media"=>1,
-          "media_url"=>"http://download.opensuse.org/debug/distribution/leap/15.1/repo/oss/",
-          "product_dir"=>""
+          "media"       => 1,
+          "media_url"   => "http://download.opensuse.org/debug/distribution/leap/15.1/repo/oss/",
+          "product_dir" => ""
         },
         {
-          "media"=>2,
-          "media_url"=>"http://download.opensuse.org/debug/distribution/leap/15.1/repo/non-oss/",
-          "product_dir"=>""
+          "media"       => 2,
+          "media_url"   => "http://download.opensuse.org/debug/distribution/leap/15.1/repo/non-oss/",
+          "product_dir" => ""
         },
         {
-          "media"=>3,
-          "media_url"=>"http://download.opensuse.org/debug/update/leap/15.1/oss/",
-          "product_dir"=>""
+          "media"       => 3,
+          "media_url"   => "http://download.opensuse.org/debug/update/leap/15.1/oss/",
+          "product_dir" => ""
         },
         {
-          "media"=>4,
-          "media_url"=>"http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
-          "product_dir"=>""
+          "media"       => 4,
+          "media_url"   => "http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
+          "product_dir" => ""
         }
       ]
     end
@@ -188,7 +189,7 @@ describe Yast::InstProductsourcesClient do
 
     context "is added but will be removed" do
       before do
-        allow(Yast::SourceManager).to receive(:just_removed_sources).and_return([1,2,3])
+        allow(Yast::SourceManager).to receive(:just_removed_sources).and_return([1, 2, 3])
       end
 
       it "returns -1" do
