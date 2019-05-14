@@ -121,7 +121,9 @@ describe Yast::InstProductsourcesClient do
     end
 
     it "unescape URL" do
-      expect(client.NormalizeURL("http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f"))
+      expect(client.NormalizeURL(
+               "http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f"
+      ))
         .to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs/")
     end
   end
@@ -164,12 +166,18 @@ describe Yast::InstProductsourcesClient do
 
     context "is already added" do
       it "returns source id" do
-        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
-          "/")).to eq(4)
-        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
-          "")).to eq(4)
-        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
-          nil)).to eq(4)
+        expect(client.IsAddOnAlreadySelected(
+          "http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
+          "/"
+        )).to eq(4)
+        expect(client.IsAddOnAlreadySelected(
+          "http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
+          ""
+        )).to eq(4)
+        expect(client.IsAddOnAlreadySelected(
+          "http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
+          nil
+        )).to eq(4)
       end
     end
 
@@ -182,8 +190,10 @@ describe Yast::InstProductsourcesClient do
 
     context "url contains $releasever" do
       it "replaces $releasever and returns source id" do
-        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/debug/update/leap/$releasever/non-oss/",
-          "/")).to eq(4)
+        expect(client.IsAddOnAlreadySelected(
+          "http://download.opensuse.org/debug/update/leap/$releasever/non-oss/",
+          "/"
+        )).to eq(4)
       end
     end
 
@@ -193,8 +203,10 @@ describe Yast::InstProductsourcesClient do
       end
 
       it "returns -1" do
-        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/debug/distribution/leap/15.1/repo/non-oss/",
-          "/")).to eq(-1)
+        expect(client.IsAddOnAlreadySelected(
+          "http://download.opensuse.org/debug/distribution/leap/15.1/repo/non-oss/",
+          "/"
+        )).to eq(-1)
       end
     end
   end
