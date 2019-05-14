@@ -4,6 +4,7 @@ require "yast"
 require "yast2/hw_detection"
 
 require "shellwords"
+require "uri"
 
 Yast.import "UI"
 Yast.import "Pkg"
@@ -93,8 +94,8 @@ module Yast
     include Yast::Logger
 
     # too low memory for using online repositories (in MiB),
-    # at least 1GiB is recommended
-    LOW_MEMORY_MIB = 1024
+    # at least 1.5GiB is recommended
+    LOW_MEMORY_MIB = 1536
     # variable to set target release version ( useful during upgrade when
     # we want new target in releaseversion and not old one )
     RELEASEVER_ENV = "ZYPP_REPO_RELEASEVER".freeze
@@ -358,17 +359,11 @@ module Yast
     def NormalizeURL(url_string)
       return url_string if url_string.nil? || url_string == ""
 
-      if Builtins.regexpmatch(url_string, "/+$")
-        url_string = Builtins.regexpsub(url_string, "(.*)/+$", "\\1")
-      end
+      # unescape it
+      url_string = URI.unescape(url_string)
 
-      # URL is escaped
-      if Builtins.regexpmatch(url_string, "%")
-        # unescape it
-        url_string = URL.UnEscapeString(url_string, URL.transform_map_filename)
-      end
-
-      url_string
+      # removing all slashes at the end of the url
+      url_string.sub(/(\/)+$/, "")
     end
 
     # Returns whether this URL/Path is already added as a source
@@ -377,23 +372,16 @@ module Yast
     def IsAddOnAlreadySelected(s_url, s_path)
       ret = -1
 
-      s_url = NormalizeURL(s_url)
-
-      Builtins.foreach(AddOnProduct.add_on_products) do |one_add_on|
-        Ops.set(
-          one_add_on,
-          "media_url",
-          NormalizeURL(Ops.get_string(one_add_on, "media_url", ""))
-        )
-        if Ops.get(one_add_on, "media_url") == s_url &&
-            Ops.get(one_add_on, "product_dir") == s_path
-          ret = Ops.get_integer(one_add_on, "media", -1)
-          raise Break
-        end
+      search_url = NormalizeURL((s_url || "") + (s_path || ""))
+      # replace e.g. $releasever by the real version
+      search_url = Pkg.ExpandedUrl(search_url)
+      found_product = AddOnProduct.add_on_products.find do |add_on|
+        NormalizeURL(add_on["media_url"] + add_on["product_dir"]) == search_url
       end
+      ret = found_product["media"] || -1 if found_product
 
-      if Builtins.contains(SourceManager.just_removed_sources, ret)
-        Builtins.y2milestone("Just deleted: %1", ret)
+      if SourceManager.just_removed_sources.include?(ret)
+        log.info("Just deleted: #{ret}")
         ret = -1
       end
 
@@ -412,10 +400,9 @@ module Yast
       Pkg.TargetInitialize(Installation.destdir)
       # the fastest way
       Pkg.SourceRestore
-
       if !Mode.installation
         # repos_already_used
-        Builtins.foreach(Pkg.SourceGetCurrent(true)) do |one_id|
+        Builtins.foreach(Pkg.SourceGetCurrent(false)) do |one_id|
           source_data = Pkg.SourceGeneralData(one_id)
           if Ops.greater_or_equal(
             IsAddOnAlreadySelected(
@@ -924,6 +911,10 @@ module Yast
         ""
       end
 
+      # replace e.g. $releasever by the real version
+      url_string = @list_of_repos[current_id]["url"] || ""
+      url_string = Pkg.ExpandedUrl(url_string)
+
       description = Builtins.sformat(
         # TRANSLATORS: This is a complex HTML-formatted information about
         # selected external repository
@@ -942,7 +933,7 @@ module Yast
             "%5\n" \
             "</p>"
         ),
-        Ops.get_string(@list_of_repos, [current_id, "url"], ""),
+        url_string,
         Ops.get_string(@list_of_repos, [current_id, "url_from"], ""),
         GetLocalizedString(current_id, ["summary", "name"]),
         GetLocalizedString(current_id, ["description"]),
@@ -1060,7 +1051,7 @@ module Yast
         )
       end
 
-      # Preselect the recommended repositories when ne repository has been selected yet
+      # Preselect the recommended repositories when no repository has been selected yet
       if @preselect_recommended
         tmp_items = deep_copy(items)
         counter2 = -1
@@ -1497,7 +1488,10 @@ module Yast
         Builtins.y2milestone("Product Data: %1", prod)
 
         repo_id = CreateRepoId(url, pth)
-        Builtins.y2milestone("Addind repository with ID: %1", repo_id)
+        Builtins.y2milestone("Adding repository with ID: %1", repo_id)
+
+        # replace e.g. $releasever by the real version
+        url = Pkg.ExpandedUrl(url)
 
         AddOnProduct.add_on_products = Builtins.add(
           AddOnProduct.add_on_products,
