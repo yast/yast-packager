@@ -180,10 +180,10 @@ describe Yast::InstProductsourcesClient do
 
     context "url contains $releasever" do
       it "replaces $releasever and returns source id" do
-        expect(Yast::Pkg).to receive(:ExpandedUrl).
-          with("http://download.opensuse.org/" \
-          "debug/update/leap/$releasever/non-oss").
-          and_return("http://download.opensuse.org/" \
+        expect(Yast::Pkg).to receive(:ExpandedUrl)
+          .with("http://download.opensuse.org/" \
+          "debug/update/leap/$releasever/non-oss")
+          .and_return("http://download.opensuse.org/" \
           "debug/update/leap/15.1/non-oss")
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/" \
           "debug/update/leap/$releasever/non-oss/",
