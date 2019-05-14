@@ -2,7 +2,6 @@
 
 require_relative "../../test_helper"
 require "y2packager/clients/inst_productsources"
-Yast.import "Product"
 Yast.import "SourceManager"
 
 describe Yast::InstProductsourcesClient do
@@ -124,7 +123,7 @@ describe Yast::InstProductsourcesClient do
       expect(client.NormalizeURL(
                "http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f"
       ))
-        .to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs/")
+        .to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs")
     end
   end
 
@@ -156,7 +155,6 @@ describe Yast::InstProductsourcesClient do
 
     before do
       allow(Yast::AddOnProduct).to receive(:add_on_products).and_return(add_on_products)
-      allow(Yast::Product).to receive(:version).and_return("15.1")
     end
 
     context "is already added" do
@@ -182,6 +180,11 @@ describe Yast::InstProductsourcesClient do
 
     context "url contains $releasever" do
       it "replaces $releasever and returns source id" do
+        expect(Yast::Pkg).to receive(:ExpandedUrl).
+          with("http://download.opensuse.org/" \
+          "debug/update/leap/$releasever/non-oss").
+          and_return("http://download.opensuse.org/" \
+          "debug/update/leap/15.1/non-oss")
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/" \
           "debug/update/leap/$releasever/non-oss/",
           "/")).to eq(4)
