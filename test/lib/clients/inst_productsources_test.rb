@@ -158,7 +158,7 @@ describe Yast::InstProductsourcesClient do
     end
 
     context "is already added" do
-      it "returns source id" do
+      it "handles the default and empty product directory correctly" do
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
           "/debug/update/leap/15.1/non-oss/",
           "/")).to eq(4)
