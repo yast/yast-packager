@@ -2,6 +2,7 @@
 
 require_relative "../../test_helper"
 require "y2packager/clients/inst_productsources"
+Yast.import "SourceManager"
 
 describe Yast::InstProductsourcesClient do
   subject(:client) { described_class.new }
@@ -108,6 +109,98 @@ describe Yast::InstProductsourcesClient do
         .and_return(1)
 
       client.CreateSource("http://yast.rulezz.com", "/prod1", "main", nil)
+    end
+  end
+
+  describe "#NormalizeURL" do
+    it "removes all slashes at the end of the url" do
+      expect(client.NormalizeURL("http://test.suse.de/test_dir///")).to eq(
+        "http://test.suse.de/test_dir"
+      )
+    end
+
+    it "unescape URL" do
+      expect(client.NormalizeURL(
+               "http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f"
+      ))
+        .to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs")
+    end
+  end
+
+  describe "#IsAddOnAlreadySelected" do
+    let(:add_on_products) do
+      [
+        {
+          "media"       => 0,
+          "media_url"   => "cd:/?devices=/dev/disk/by-id/ata-QEMU_DVD-ROM_QM00003",
+          "product_dir" => "/"
+        },
+        {
+          "media"       => 1,
+          "media_url"   => "http://download.opensuse.org/debug/distribution/leap/15.1/repo/oss/",
+          "product_dir" => ""
+        },
+        {
+          "media"       => 3,
+          "media_url"   => "http://download.opensuse.org/debug/update/leap/15.1/oss/",
+          "product_dir" => ""
+        },
+        {
+          "media"       => 4,
+          "media_url"   => "http://download.opensuse.org/debug/update/leap/15.1/non-oss/",
+          "product_dir" => ""
+        }
+      ]
+    end
+
+    before do
+      allow(Yast::AddOnProduct).to receive(:add_on_products).and_return(add_on_products)
+    end
+
+    context "is already added" do
+      it "handles the default and empty product directory correctly" do
+        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
+          "/debug/update/leap/15.1/non-oss/",
+          "/")).to eq(4)
+        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
+          "/debug/update/leap/15.1/non-oss/",
+          "")).to eq(4)
+        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
+          "/debug/update/leap/15.1/non-oss/",
+          nil)).to eq(4)
+      end
+    end
+
+    context "is not added" do
+      it "returns -1" do
+        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/debug/non-found/",
+          "/")).to eq(-1)
+      end
+    end
+
+    context "url contains $releasever" do
+      it "replaces $releasever and returns source id" do
+        expect(Yast::Pkg).to receive(:ExpandedUrl)
+          .with("http://download.opensuse.org/" \
+          "debug/update/leap/$releasever/non-oss")
+          .and_return("http://download.opensuse.org/" \
+          "debug/update/leap/15.1/non-oss")
+        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/" \
+          "debug/update/leap/$releasever/non-oss/",
+          "/")).to eq(4)
+      end
+    end
+
+    context "is added but will be removed" do
+      before do
+        allow(Yast::SourceManager).to receive(:just_removed_sources).and_return([1, 2, 3])
+      end
+
+      it "returns -1" do
+        expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/" \
+          "debug/distribution/leap/15.1/repo/non-oss/",
+          "/")).to eq(-1)
+      end
     end
   end
 end
