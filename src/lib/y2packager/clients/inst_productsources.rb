@@ -359,11 +359,11 @@ module Yast
     def NormalizeURL(url_string)
       return url_string if url_string.nil? || url_string == ""
 
-      # removing all slashes at the end of the url
-      url_string.sub!(/(\/)+$/, "")
-
       # unescape it
-      URI.unescape(url_string)
+      url_string = URI.unescape(url_string)
+
+      # removing all slashes at the end of the url
+      url_string.sub(/(\/)+$/, "")
     end
 
     # Returns whether this URL/Path is already added as a source
@@ -373,9 +373,8 @@ module Yast
       ret = -1
 
       search_url = NormalizeURL((s_url || "") + (s_path || ""))
-      # replace $releasever by the real version
-      search_url.gsub!("$releasever", Product.version)
-
+      # replace e.g. $releasever by the real version
+      search_url = Pkg.ExpandedUrl(search_url)
       found_product = AddOnProduct.add_on_products.find do |add_on|
         NormalizeURL(add_on["media_url"] + add_on["product_dir"]) == search_url
       end
@@ -911,9 +910,9 @@ module Yast
         ""
       end
 
-      # replace $releasever by the real version
+      # replace e.g. $releasever by the real version
       url_string = @list_of_repos[current_id]["url"] || ""
-      url_string.gsub!("$releasever", Product.version)
+      url_string = Pkg.ExpandedUrl(url_string)
 
       description = Builtins.sformat(
         # TRANSLATORS: This is a complex HTML-formatted information about
@@ -1490,8 +1489,8 @@ module Yast
         repo_id = CreateRepoId(url, pth)
         Builtins.y2milestone("Adding repository with ID: %1", repo_id)
 
-        # replace $releasever by the real version
-        url.gsub!("$releasever", Product.version)
+        # replace e.g. $releasever by the real version
+        url = Pkg.ExpandedUrl(url)
 
         AddOnProduct.add_on_products = Builtins.add(
           AddOnProduct.add_on_products,
