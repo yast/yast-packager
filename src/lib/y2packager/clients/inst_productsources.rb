@@ -1406,7 +1406,7 @@ module Yast
           # bugzilla #309317
           "alias"       => alias_name,
           "type"        => repo_type,
-          "check_alias" => Stage.initial ? false : true
+          "check_alias" => !Stage.initial
         )
       end
 
