@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 21 15:19:38 CEST 2019 - schubi@suse.de
+
+- List of Online Repositories: Overwrite already existing repos in
+  "new installation" mode (bsc#1132622).
+- 4.2.7
+
+-------------------------------------------------------------------
 Tue May 14 09:16:22 CEST 2019 - schubi@suse.de
 
 - List of Online Repositories: Do not show already added repos.
