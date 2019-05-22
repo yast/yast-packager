@@ -90,7 +90,7 @@ module Y2Packager
       # @return [Array<String>] Locale codes of the available translations
       # @see #default_language
       def available_locales
-        Yast::UI.TextMode ? [default_language] : product.license_locales
+        supported_language? ? product.license_locales : [default_language]
       end
 
       # License translation language
@@ -101,7 +101,7 @@ module Y2Packager
       # @return [String] License content language
       # @see #default_language
       def content_language
-        Yast::UI.TextMode ? default_language : language
+        supported_language? ? language : default_language
       end
 
       # @return [String] Fallback language
@@ -125,6 +125,16 @@ module Y2Packager
         translated = product.license_locales.any? { |l| candidate_lang.start_with?(l) }
         return candidate_lang if translated
         DEFAULT_FALLBACK_LANGUAGE
+      end
+
+      # Whether the preselected language is supported
+      #
+      # It should not allow to change the language if it is a not fbiterm supported language.
+      #
+      # @return [Boolean]
+      # @see Yast::Language.supported_language?
+      def supported_language?
+        Yast::Language.supported_language?(Yast::Language.preselected)
       end
     end
   end

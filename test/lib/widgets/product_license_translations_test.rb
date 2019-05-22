@@ -23,8 +23,15 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
   subject(:widget) { described_class.new(product, language) }
 
   let(:language) { "de_DE" }
+  let(:preselected) { "de_DE" }
+  let(:supported_language) { true }
   let(:product) do
     instance_double(Y2Packager::Product, license_locales: ["en_US", "ja"], license: "content")
+  end
+
+  before do
+    allow(Yast::Language).to receive(:supported_language?).and_return(supported_language)
+    allow(Yast::Language).to receive(:preselected).and_return(preselected)
   end
 
   describe "#contents" do
@@ -42,10 +49,10 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
 
     context "when running on textmode" do
       let(:preselected) { "ja_JP" }
+      let(:supported_language) { false }
 
       before do
         allow(Yast::UI).to receive(:TextMode).and_return(true)
-        allow(Yast::Language).to receive(:preselected).and_return(preselected)
         allow(Yast::Stage).to receive(:initial).and_return(initial)
       end
 
