@@ -1394,15 +1394,20 @@ module Yast
 
         Builtins.y2milestone("Using alias: %1", alias_name)
 
+        # With "check_alias"=false the added repo will not be checked
+        # if it already there but the old values will be overwriten.
+        # This is useful in the installation stage e.g. with the Live-CD
+        # where repos are already added in the running system.
         src_id = Pkg.RepositoryAdd(
-          "enabled"   => false,
-          "name"      => repo_name,
-          "base_urls" => [url],
-          "prod_dir"  => pth,
+          "enabled"     => false,
+          "name"        => repo_name,
+          "base_urls"   => [url],
+          "prod_dir"    => pth,
           # alias needs to be unique
           # bugzilla #309317
-          "alias"     => alias_name,
-          "type"      => repo_type
+          "alias"       => alias_name,
+          "type"        => repo_type,
+          "check_alias" => !Stage.initial
         )
       end
 
