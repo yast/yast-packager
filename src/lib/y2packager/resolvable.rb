@@ -84,11 +84,13 @@ module Y2Packager
     # Dynamically load the missing attributes from libzypp.
     #
     # @param method [Symbol] the method called
-    # @param _args no used so far
+    # @param args not used so far, raises ArgumentError if anything is passed
     #
-    # @return [<Type>] <description>
+    # @return the loaded value from libzypp
     #
-    def method_missing(method, *_args)
+    def method_missing(method, *args)
+      raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
+
       return instance_variable_get("@#{method}") if instance_variable_defined?("@#{method}")
 
       # load a missing attribute

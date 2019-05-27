@@ -94,5 +94,10 @@ describe Y2Packager::Resolvable do
       res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
       expect { res.not_existing_method }.to raise_error(NoMethodError)
     end
+
+    it "raises ArgumentError when an argument is passed" do
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
+      expect { res.not_existing_method("dummy") }.to raise_error(ArgumentError)
+    end
   end
 end
