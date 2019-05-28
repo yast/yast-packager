@@ -94,7 +94,7 @@ module Y2Packager
 
       # License translation language
       #
-      # If the wanted language is presant among those displayable, use it,
+      # If the wanted language is present among those displayable, use it,
       # otherwise use the default
       #
       # @return [String] License content language
