@@ -11,6 +11,7 @@ require "erb"
 require "fileutils"
 require "uri"
 require "cgi"
+require "y2packager/resolvable"
 
 module Yast
   class PackagesClass < Module
@@ -802,26 +803,21 @@ module Yast
     # Reset package selection, but keep the selected objects of the specified type
     # @param [Array<Symbol>] keep a list of symbols specifying type of objects to be kept selected
     def Reset(keep)
-      restore = []
+      restore = {}
 
       # collect the currently selected resolvables
       keep.each do |type|
-        resolvables = Pkg.ResolvableProperties("", type, "")
-
-        resolvables.each do |resolvable|
-          # only selected items but ignore the selections done by solver,
-          # during restoration they would be changed to be selected by YaST and they
-          # will be selected by solver again anyway
-          next if resolvable["status"] != :selected || resolvable["transact_by"] == :solver
-
-          restore << [resolvable["name"], type]
-        end
+        # get the items selected by YaST (the items selected by solver will be later selected again,
+        # the items selected by user are not reset by the Pkg.PkgApplReset call)
+        resolvables = Y2Packager::Resolvable.find(kind: type, status: :selected,
+          transact_by: :app_high)
+        restore[type] = resolvables.map(&:name)
       end
 
       # This keeps the user-made changes (BNC#446406)
       Pkg.PkgApplReset
 
-      restore.each { |name, type| Pkg.ResolvableInstall(name, type) }
+      restore.each { |type, list| list.each { |name| Pkg.ResolvableInstall(name, type) } }
 
       @system_packages_selected = false
 
