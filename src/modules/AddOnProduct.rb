@@ -36,7 +36,9 @@ module Yast
       "sle-module-adv-systems-management" => ["sle-module-basesystem"],
       # Toolchain and SDK are now included in the Development Tools SLE15 module
       "sle-module-toolchain"              => ["sle-module-development-tools"],
-      "sle-sdk"                           => ["sle-module-development-tools"]
+      "sle-sdk"                           => ["sle-module-development-tools"],
+      # openSUSE => SLES migration
+      "openSUSE"                          => ["SLES"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
