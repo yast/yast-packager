@@ -89,13 +89,17 @@ module Y2Packager
     # @return the loaded value from libzypp
     #
     def method_missing(method, *args)
-      raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
-
-      return instance_variable_get("@#{method}") if instance_variable_defined?("@#{method}")
+      if instance_variable_defined?("@#{method}")
+        raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
+        return instance_variable_get("@#{method}")
+      end
 
       # load a missing attribute
       if UNIQUE_ATTRIBUTES.all? { |a| instance_variable_defined?("@#{a}") }
         load_attribute(method)
+        super unless instance_variable_defined?("@#{method}")
+        raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
+        instance_variable_get("@#{method}")
       else
         raise "Missing attributes for identifying the resolvable."
       end
@@ -128,7 +132,7 @@ module Y2Packager
       log.warn("Found several resolvables: #{resolvables.inspect}") if resolvables.size > 1
 
       resolvable = resolvables.first
-      raise NoMethodError unless resolvable && resolvable.key?(attr.to_s)
+      return unless resolvable && resolvable.key?(attr.to_s)
       instance_variable_set("@#{attr}", resolvable[attr.to_s])
     end
   end

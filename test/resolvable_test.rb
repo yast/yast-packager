@@ -92,12 +92,17 @@ describe Y2Packager::Resolvable do
   describe "#method_missing" do
     it "raises NoMethodError when the attribute does not exist" do
       res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
-      expect { res.not_existing_method }.to raise_error(NoMethodError)
+      expect { res.not_existing_method(:foo) }.to raise_error(NoMethodError)
     end
 
-    it "raises ArgumentError when an argument is passed" do
+    it "raises ArgumentError when an argument is passed to a preloaded attribute" do
       res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
-      expect { res.not_existing_method("dummy") }.to raise_error(ArgumentError)
+      expect { res.name("dummy") }.to raise_error(ArgumentError)
+    end
+
+    it "raises ArgumentError when an argument is passed to a lazy loaded method" do
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
+      expect { res.vendor("dummy") }.to raise_error(ArgumentError)
     end
   end
 end
