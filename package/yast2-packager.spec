@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.2.7
+Version:        4.2.8
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -38,8 +38,8 @@ BuildRequires:  yast2-storage-ng >= 4.0.141
 # Y2Packager::will_be_obsoleted_by
 BuildRequires:  yast2 >= 4.1.68
 
-# Pkg::PrdLicenseLocales
-BuildRequires:  yast2-pkg-bindings >= 4.0.8
+# Pkg::Resolvables
+BuildRequires:  yast2-pkg-bindings >= 4.2.0
 
 # Augeas lenses
 BuildRequires:  augeas-lenses
@@ -47,8 +47,8 @@ BuildRequires:  augeas-lenses
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
 
-# Pkg::PrdLicenseLocales
-Requires:       yast2-pkg-bindings >= 4.0.8
+# Pkg::Resolvables
+Requires:       yast2-pkg-bindings >= 4.2.0
 
 # Y2Packager::will_be_obsoleted_by
 Requires:       yast2 >= 4.1.68
