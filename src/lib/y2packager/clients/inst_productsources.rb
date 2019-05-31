@@ -94,8 +94,8 @@ module Yast
     include Yast::Logger
 
     # too low memory for using online repositories (in MiB),
-    # at least 1GiB is recommended
-    LOW_MEMORY_MIB = 1024
+    # at least 1.5GiB is recommended
+    LOW_MEMORY_MIB = 1536
     # variable to set target release version ( useful during upgrade when
     # we want new target in releaseversion and not old one )
     RELEASEVER_ENV = "ZYPP_REPO_RELEASEVER".freeze
