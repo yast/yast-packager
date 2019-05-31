@@ -19,6 +19,7 @@ X-SuSE-YaST-Keywords=software,media,check,dvd,cd,packages,repositories
 Icon=yast-checkmedia
 Exec=/sbin/yast2 checkmedia
 
-Name=Media Check
-GenericName=Verify CD and DVD media integrity
+Name=YaST Media Check
+GenericName=Media Check
+Comment=Verify CD and DVD media integrity
 StartupNotify=true

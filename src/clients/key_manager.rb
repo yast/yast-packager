@@ -58,7 +58,7 @@ module Yast
     # main function - start the workflow
     def Main
       Wizard.CreateDialog
-      Wizard.SetDesktopIcon("security")
+      Wizard.SetDesktopIcon("org.openSUSE.YaST.Security")
       # dialog caption
       Wizard.SetContents(_("Initializing..."), Empty(), "", false, true)
 

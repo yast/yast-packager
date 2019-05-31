@@ -1513,7 +1513,7 @@ module Yast
     # main function - start the workflow
     def StartInstSource
       Wizard.CreateDialog
-      Wizard.SetDesktopIcon("sw_source")
+      Wizard.SetDesktopIcon("org.openSUSE.YaST.SWSource")
 
       if !@full_mode
         # dialog caption
@@ -1521,7 +1521,7 @@ module Yast
         Pkg.TargetInit("/", true)
       end
 
-      Wizard.SetDesktopTitleAndIcon("sw_source")
+      Wizard.SetDesktopTitleAndIcon("org.openSUSE.YaST.SWSource")
 
       # check whether running as root
       if !Confirm.MustBeRoot ||
