@@ -571,7 +571,7 @@ module Yast
       }
 
       Wizard.CreateDialog
-      Wizard.SetDesktopIcon("org.openSUSE.YaST.CheckMedia")
+      Wizard.SetDesktopIcon("org.opensuse.yast.CheckMedia")
 
       ret = Sequencer.Run(aliases, sequence)
 

@@ -490,7 +490,7 @@ module Yast
     # =============================================================
     def StartSWSingle
       Wizard.CreateDialog
-      Wizard.SetDesktopTitleAndIcon("org.openSUSE.YaST.SWSingle")
+      Wizard.SetDesktopTitleAndIcon("org.opensuse.yast.SWSingle")
 
       # a stage in the progress dialog
       stages = [

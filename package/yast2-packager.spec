@@ -98,7 +98,7 @@ This package contains the libraries and modules for software management.
 
 %install
 %yast_install
-%suse_update_desktop_file org.openSUSE.YaST.Packager
+%suse_update_desktop_file org.opensuse.yast.Packager
 %yast_metainfo
 
 %files
