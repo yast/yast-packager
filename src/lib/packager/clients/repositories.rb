@@ -356,8 +356,7 @@ module Yast
       )
       icon_tag = Ops.add(
         Ops.add("<IMG SRC=\"icon://22/\"",
-          ["cd", "dvd", "iso"].include?(schema) ? "yast-cd_update.png" : "yast-http-server.png"
-        ),
+          ["cd", "dvd", "iso"].include?(schema) ? "yast-cd_update.png" : "yast-http-server.png"),
         "\">&nbsp;&nbsp;&nbsp;"
       )
 

@@ -75,9 +75,8 @@ module Yast
         trasmap = {
           # rich text message, %1 = CD identification
           "app"        => Ops.add(
-              Ops.add("<P><IMG SRC=\"icon://22/yast-checkmedia\">&nbsp;&nbsp;&nbsp;",
-              _("<BIG><B>%1</B></BIG>")
-            ),
+            Ops.add("<P><IMG SRC=\"icon://22/yast-checkmedia\">&nbsp;&nbsp;&nbsp;",
+              _("<BIG><B>%1</B></BIG>")),
             @checking_file ? Builtins.sformat("  (%1)", @iso_filename) : ""
           ),
           # rich text message, %1 medium number, e.g. CD1,CD2...
