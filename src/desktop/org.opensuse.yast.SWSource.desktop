@@ -18,6 +18,7 @@ X-SuSE-YaST-Keywords=software,packages,rpm,repositories
 Icon=yast-sw_source
 Exec=xdg-su -c "/sbin/yast2 repositories"
 
-Name=Software Repositories
-GenericName=Choose the repositories for installation of software packages (CD, network, etc.), add the community repositories
+Name=YaST Software Repositories
+GenericName=Software Repositories
+Comment=Choose the repositories for installation of software packages (CD, network, etc.), add the community repositories
 StartupNotify=true
