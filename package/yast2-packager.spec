@@ -27,7 +27,7 @@ Url:            https://github.com/yast/yast-packager
 Source0:        %{name}-%{version}.tar.bz2
 
 BuildRequires:  update-desktop-files
-BuildRequires:  yast2-devtools >= 3.1.10
+BuildRequires:  yast2-devtools >= 4.2.2
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
