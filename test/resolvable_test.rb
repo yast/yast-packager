@@ -38,15 +38,10 @@ describe Y2Packager::Resolvable do
     end
 
     it "finds packages with a name" do
-      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2")
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2-add-on")
       expect(res).to_not be_empty
-      expect(res.all? { |r| r.kind == :package && r.name == "yast2" }).to be true
-    end
-
-    it "finds patterns" do
-      res = Y2Packager::Resolvable.find(kind: :pattern)
-      expect(res).to_not be_empty
-      expect(res.all? { |r| r.kind == :pattern }).to be true
+      expect(res.all? { |r| r.kind == :package && r.name == "yast2-add-on" }).to be true
     end
   end
 
@@ -56,7 +51,8 @@ describe Y2Packager::Resolvable do
     end
 
     it "returns true if a package with name is found" do
-      expect(Y2Packager::Resolvable.any?(kind: :package, name: "yast2")).to be true
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      expect(Y2Packager::Resolvable.any?(kind: :package, name: "yast2-add-on")).to be true
     end
 
     it "returns false if a package is not found" do
@@ -70,13 +66,14 @@ describe Y2Packager::Resolvable do
 
   describe "#vendor" do
     it "lazy loads the missing attributes" do
-      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2-add-on").first
       expect(Yast::Pkg).to receive(:Resolvables).with(anything, [:vendor]).and_call_original
       expect(res.vendor).to eq("obs://build.opensuse.org/YaST")
     end
 
     it "does not load the preloaded attributes again" do
-      res = Y2Packager::Resolvable.find({ kind: :package, name: "yast2" }, [:vendor]).first
+      res = Y2Packager::Resolvable.find({ kind: :package, name: "yast2-add-on" }, [:vendor]).first
       expect(Yast::Pkg).to_not receive(:Resolvables).with(anything, [:vendor])
       expect(res.vendor).to eq("obs://build.opensuse.org/YaST")
     end
@@ -84,24 +81,28 @@ describe Y2Packager::Resolvable do
     it "raises an exception if the resolvable cannot be uniquely identified for lazy loading" do
       # this a bit artificial situation, create a Resolvable from an incomplete hash
       # (missing version and other attributes)
-      res = Y2Packager::Resolvable.new(kind: :package, name: "yast2")
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      res = Y2Packager::Resolvable.new(kind: :package, name: "yast2-add-on")
       expect { res.vendor }.to raise_error(RuntimeError, /missing attributes/i)
     end
   end
 
   describe "#method_missing" do
     it "raises NoMethodError when the attribute does not exist" do
-      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2-add-on").first
       expect { res.not_existing_method(:foo) }.to raise_error(NoMethodError)
     end
 
     it "raises ArgumentError when an argument is passed to a preloaded attribute" do
-      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2-add-on").first
       expect { res.name("dummy") }.to raise_error(ArgumentError)
     end
 
     it "raises ArgumentError when an argument is passed to a lazy loaded method" do
-      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2").first
+      # use some noarch package here, the testing data covers only the x86_64 arch
+      res = Y2Packager::Resolvable.find(kind: :package, name: "yast2-add-on").first
       expect { res.vendor("dummy") }.to raise_error(ArgumentError)
     end
   end
