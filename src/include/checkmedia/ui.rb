@@ -75,7 +75,6 @@ module Yast
         trasmap = {
           # rich text message, %1 = CD identification
           "app"        => Ops.add(
-            Ops.add(
               Ops.add("<P><IMG SRC=\"icon://22/yast-checkmedia\">&nbsp;&nbsp;&nbsp;",
               _("<BIG><B>%1</B></BIG>")
             ),
