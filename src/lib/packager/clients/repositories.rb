@@ -354,13 +354,8 @@ module Yast
       schema = Builtins.tolower(
         Ops.get_string(URL.Parse(url), "scheme", "")
       )
-      icon_tag = Ops.add(
-        Ops.add(
-          Ops.add(Ops.add("<IMG SRC=\"", Directory.icondir), "/22x22/apps/"),
-          ["cd", "dvd", "iso"].include?(schema) ? "yast-cd_update.png" : "yast-http-server.png"
-        ),
-        "\">&nbsp;&nbsp;&nbsp;"
-      )
+      icon = ["cd", "dvd", "iso"].include?(schema) ? "yast-cd_update" : "yast-http-server"
+      icon_tag = "<IMG HEIGHT=\"22\" SRC=\"#{icon}\">&nbsp;&nbsp;&nbsp;"
 
       url = _("Unknown") if url == ""
       raw_url = _("Unknown") if raw_url == ""
