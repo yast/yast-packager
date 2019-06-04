@@ -82,7 +82,7 @@ module Yast
           )
         end
         descr = Builtins.add(descr, exp_str)
-        icon_tag = "<IMG SRC=\"icon://22/yast-security\">&nbsp;&nbsp;&nbsp;"
+        icon_tag = "<IMG HEIGHT=\"22\" SRC=\"yast-security\">&nbsp;&nbsp;&nbsp;"
         r = {
           "id"          => Ops.get_string(key, "id", ""),
           "table_descr" => [
