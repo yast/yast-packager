@@ -11,6 +11,7 @@
 # ------------------------------------------------------------------------------
 
 require "yast"
+require "erb"
 require "ui/installation_dialog"
 
 Yast.import "Report"
@@ -23,11 +24,16 @@ module Y2Packager
     # Dialog which shows the user available products on the medium
     class AddonSelector < ::UI::InstallationDialog
       include Yast::Logger
+      include ERB::Util
 
       # @return [Array<Y2Packager::ProductLocation>] Products on the medium
       attr_reader :products
       # @return [Array<Y2Packager::ProductLocation>] User selected products
       attr_reader :selected_products
+
+      # TODO: handle a theoretical case when a product subdirectory contains several
+      # libzypp products (only for 3rd party or manually created media, the official
+      # SUSE media always contain one product per repository)
 
       # Constructor
       #
@@ -37,6 +43,9 @@ module Y2Packager
         textdomain "packager"
 
         @products = products
+        # do not offer base products, they would conflict with the already selected base product,
+        # allow a hidden way to force displaying them in some special cases
+        @products.reject!(&:base) unless ENV["Y2_DISPLAY_BASE_PRODUCTS"] == "1"
         @selected_products = []
       end
 
@@ -63,13 +72,21 @@ module Y2Packager
       #
       # @return [String]
       def help_text
-        # TRANSLATORS: help text (1/2)
+        # TRANSLATORS: help text
         _("<p>The selected repository contains several products in independent " \
-        "subdirectories. Select which products you want to install.</p>") +
-          # TRANSLATORS: help text (2/2)
-          _("<p>Note: If there are dependencies between the products you have " \
-          "to manually select the dependent products. The product dependencies "\
-          "cannot be automatically detected and checked.</p>")
+        "subdirectories. Select which products you want to install.</p>")
+      end
+
+      # Handle changing the current item or chaging the selection
+      def addon_repos_handler
+        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
+        current_product = products.find { |p| p.dir == current_item }
+
+        return unless current_product
+
+        refresh_details(current_product)
+
+        select_dependant_products
       end
 
       # Display the the dialog title on the left side at installation
@@ -96,7 +113,7 @@ module Y2Packager
       attr_writer :selected_products
 
       def selection_content
-        products.map(&:name)
+        products.map { |p| Item(Id(p.dir), p.summary || p.name) }
       end
 
       # Dialog content
@@ -107,9 +124,10 @@ module Y2Packager
           # TRANSLATORS: Product selection label (above a multi-selection box)
           Left(Heading(_("Available Extensions and Modules"))),
 
-          VWeight(75, MinHeight(12,
+          VWeight(60, MinHeight(8,
             MultiSelectionBox(
-              Id("addon_repos"),
+              Id(:addon_repos),
+              Opt(:notify, :immediate),
               "",
               selection_content
             ))),
@@ -119,12 +137,49 @@ module Y2Packager
         )
       end
 
-      def read_user_selection
-        selected_items = Yast::UI.QueryWidget(Id("addon_repos"), :SelectedItems)
+      # select the dependant products for the active selection
+      def select_dependant_products
+        # select the dependent products
+        new_selection = current_selection
 
-        self.selected_products = products.select { |p| selected_items.include?(p.name) }
+        # the selection has not changed, nothing to do
+        return if new_selection == selected_products
+
+        # add the dependant items to the selected list
+        selected_items = Yast::UI.QueryWidget(Id(:addon_repos), :SelectedItems)
+        new_items = new_selection - selected_products
+        new_items.each do |p|
+          # the dependencies contain also the transitive (indirect) dependencies,
+          # we do not need to recursively evaluate the list
+          selected_items.concat(p.depends_on)
+        end
+
+        selected_items.uniq!
+
+        Yast::UI.ChangeWidget(:addon_repos, :SelectedItems, selected_items)
+      end
+
+      # refresh the details of the currently selected add-on
+      def refresh_details(current_product)
+        details = product_description(current_product)
+        Yast::UI.ChangeWidget(Id(:details), :Value, details)
+        Yast::UI.ChangeWidget(Id(:details), :Enabled, true)
+      end
+
+      def read_user_selection
+        self.selected_products = current_selection
 
         log.info("Selected products: #{selected_products.inspect}")
+      end
+
+      #
+      # The currently selected products
+      #
+      # @return [Array<Y2Packager::ProductLocation>] list of selected products
+      #
+      def current_selection
+        selected_items = Yast::UI.QueryWidget(Id(:addon_repos), :SelectedItems)
+        products.select { |p| selected_items.include?(p.dir) }
       end
 
       # Dialog title
@@ -147,17 +202,35 @@ module Y2Packager
       # description widget
       # @return [Yast::Term] the addon details widget
       def details_widget
-        MinHeight(3,
-          VWeight(25, RichText(Id(:details), Opt(:disabled), "<small>" +
-          description + "</small>")))
+        VWeight(40, RichText(Id(:details), Opt(:disabled), "<small>" +
+        description + "</small>"))
       end
 
       # extra help text
       # @return [String] translated text
       def description
         # TRANSLATORS: inline help text displayed below the product selection widget
-        _("The dependencies between products are not handled automatically. " \
-          "The dependent modules or extensions must be selected manually.")
+        _("Select a product to see it's description here. The dependent products " \
+          "are selected automatically.")
+      end
+
+      def product_description(product)
+        erb_file = File.join(__dir__, "product_summary.erb")
+        log.info "Loading ERB template #{erb_file}"
+        erb = ERB.new(File.read(erb_file))
+
+        # compute the dependant products
+        dependencies = []
+        if product.depends_on && !product.depends_on.empty?
+          product.depends_on.each do |p|
+            # display the human readable product name instead of the product directory
+            prod = @products.find { |pr| pr.dir == p }
+            dependencies << (prod.summary || prod.name) if prod
+          end
+        end
+
+        # render the ERB template in the context of this object
+        erb.result(binding)
       end
     end
   end

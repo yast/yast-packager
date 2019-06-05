@@ -41,6 +41,7 @@ BuildRequires:  yast2 >= 4.2.8
 BuildRequires:  yast2-pkg-bindings >= 4.2.0
 # Augeas lenses
 BuildRequires:  augeas-lenses
+BuildRequires:  ruby-solv
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
@@ -67,6 +68,7 @@ Requires:       rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 # One of libyui-qt-pkg, libyui-ncurses-pkg, libyui-gtk-pkg
 Requires:       libyui_pkg
 Requires:       yast2-ruby-bindings >= 1.0.0
+Requires:       ruby-solv
 
 # setenv() builtin
 Conflicts:      yast2-core < 2.15.10

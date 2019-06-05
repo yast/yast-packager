@@ -51,8 +51,8 @@ describe Y2Packager::Dialogs::AddonSelector do
   describe "#next_handler" do
     context "an addon is selected" do
       before do
-        expect(Yast::UI).to receive(:QueryWidget).with(Id("addon_repos"), :SelectedItems)
-          .and_return(["SLE-15-Module-Basesystem 15.0-0"])
+        expect(Yast::UI).to receive(:QueryWidget).with(Id(:addon_repos), :SelectedItems)
+          .and_return(["/Basesystem"])
       end
 
       it "returns :next if an addon is selected" do
@@ -67,7 +67,7 @@ describe Y2Packager::Dialogs::AddonSelector do
 
     context "no addon is selected" do
       before do
-        expect(Yast::UI).to receive(:QueryWidget).with(Id("addon_repos"), :SelectedItems)
+        expect(Yast::UI).to receive(:QueryWidget).with(Id(:addon_repos), :SelectedItems)
           .and_return([])
       end
 

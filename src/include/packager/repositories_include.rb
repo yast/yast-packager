@@ -1,5 +1,6 @@
 
 require "y2packager/product_location"
+require "y2packager/product"
 
 # encoding: utf-8
 module Yast
@@ -340,9 +341,17 @@ module Yast
 
     # scan the repository URL and return the available products
     # @return [Array<Y2Packager::ProductLocation>] Found products
-    def scan_products(expanded_url, original_url)
-      new_repos = Pkg.RepositoryScan(expanded_url)
-      found_products = new_repos.map { |(name, dir)| Y2Packager::ProductLocation.new(name, dir) }
+    def scan_products(_expanded_url, original_url)
+      # use the selected base product during installation,
+      # in installed system use the installed base product
+      base_product = if Stage.initial
+        Y2Packager::Product.selected_base.name
+      else
+        Y2Packager::Product.installed_base_product.name
+      end
+
+      log.info("Using base product: #{base_product}")
+      found_products = Y2Packager::ProductLocation.scan(original_url, base_product)
       log.info("Found products: #{found_products}")
 
       # add at least one product if the scan result is empty (no product info available)
