@@ -72,7 +72,7 @@ module Y2Packager
         new_value =
           if languages.include?(default)
             default
-          elsif default.include?("_")
+          elsif default.include?("_")    # LC#generalize ???
             short_code = default.split("_").first
             languages.include?(short_code) ? short_code : nil
           end
@@ -92,21 +92,72 @@ module Y2Packager
       # @return [Array<Array<String,String>>] Array of languages in form [code, description]
       def items
         return @items if @items
-        languages_map = Yast::Language.GetLanguagesMap(false)
-        @items = languages.each_with_object([]) do |code, langs|
-          attrs = languages_map.key?(code) ? languages_map[code] : nil
-          lang, attrs = languages_map.find { |k, _v| k.start_with?(code) } if attrs.nil?
-
-          if attrs.nil?
-            log.warn "Not valid language '#{lang}'"
-            next
-          end
-
-          log.debug "Using language '#{lang}' instead of '#{code}'" if lang != code
-          langs << [code, attrs[4]]
+        lmap = Yast::Language.GetLanguagesMap(false)
+        @items = languages.map do |lang|
+          [lang, LanguageTag.new(lang).name(lang_map_cache: lmap)]
         end
+        @items.reject! { |_lang, name| name.nil? }
         @items.uniq!
         @items.sort_by!(&:last)
+      end
+    end
+
+    # {::Comparable} enforces a total ordering, contrary to its
+    # documentation, WTF.
+    module PartiallyComparable
+      def <(other)
+        cmp = self.<=>(other)
+        return nil if cmp.nil?
+        cmp < 0
+      end
+
+      def >(other)
+        cmp = self.<=>(other)
+        return nil if cmp.nil?
+        cmp > 0
+      end
+    end
+
+    # Language tags like "cs" "cs_CZ" "cs_CZ.UTF-8".
+    #
+    # FIXME: improve the simplistic string comparisons
+    class LanguageTag
+      include Yast::Logger
+
+      # @param s [String]
+      def initialize(s)
+        @tag = s
+      end
+
+      def to_s
+        @tag
+      end
+
+      include PartiallyComparable
+
+      # Like with classes (where Special < General) "en_US" < "en"
+      # Mnemonics: number of speakers
+      def <=>(other)
+        return 0 if to_s == other.to_s
+        return -1 if to_s.start_with?(other.to_s)
+        return 1 if other.to_s.start_with?(to_s)
+        nil
+      end
+
+      # @return [String,nil]
+      def name(lang_map_cache: nil)
+        lang_map_cache ||= Yast::Language.GetLanguagesMap(false)
+        attrs = lang_map_cache[@tag]
+        if attrs.nil?
+          # we're en, find en_US
+          _tag, attrs = lang_map_cache.find { |k, _v| self > LanguageTag.new(k) }
+        end
+        if attrs.nil?
+          log.warn "Could not find name for language '#{@tag}'"
+          return nil
+        end
+
+        attrs[4]
       end
     end
   end
