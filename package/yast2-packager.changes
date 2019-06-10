@@ -4,6 +4,7 @@ Wed May 22 14:33:54 UTC 2019 - David Diaz <dgonzalez@suse.com>
 - Allow to select the license language when running in textmode
   (bsc#1135901)
 - 4.1.44
+
 -------------------------------------------------------------------
 Tue May 21 15:19:38 CEST 2019 - schubi@suse.de
 
