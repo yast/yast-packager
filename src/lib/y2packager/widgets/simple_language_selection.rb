@@ -69,14 +69,11 @@ module Y2Packager
       # initial value will be set to "en_US".
       def init
         languages = items.map(&:first)
-        new_value =
-          if languages.include?(default)
-            default
-          elsif default.include?("_")    # LC#generalize ???
-            short_code = default.split("_").first
-            languages.include?(short_code) ? short_code : nil
-          end
-
+        candidates = [
+          default,
+          LanguageTag.new(default).generalize.to_s
+        ]
+        new_value = candidates.compact.find { |c| languages.include?(c) }
         self.value = new_value || DEFAULT_LICENSE_LANG
       end
 
@@ -142,6 +139,14 @@ module Y2Packager
         return -1 if to_s.start_with?(other.to_s)
         return 1 if other.to_s.start_with?(to_s)
         nil
+      end
+
+      # A more general tag: "en_US" -> "en" (-> nil)
+      # @return [LanguageTag,nil]
+      def generalize
+        self.class.new(@tag.split("_").first) if @tag.include? "_"
+        # else nil
+        # FIXME: or self, find out what makes more sense
       end
 
       # @return [String,nil]
