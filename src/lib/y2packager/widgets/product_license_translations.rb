@@ -12,6 +12,7 @@
 
 require "yast"
 require "cwm"
+require "language_tag"
 require "y2packager/widgets/simple_language_selection"
 require "y2packager/widgets/product_license"
 
@@ -99,7 +100,8 @@ module Y2Packager
       #
       # @return [String] License content language
       def content_language
-        l = selectable_locales.find { |loc| language.start_with?(loc) }
+        # this selects "en" if we want "en_US"
+        l = selectable_locales.find { |loc| LanguageTag.new(loc) >= language }
         l || DEFAULT_FALLBACK_LANGUAGE
       end
 
