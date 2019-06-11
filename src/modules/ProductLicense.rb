@@ -1083,6 +1083,11 @@ module Yast
       current_sources.any? ? current_sources.first : 0
     end
 
+    # @param [Array<String>] languages list of license translations
+    # @param [String] license_language default license language
+    # @param [Ref<Hash<String,String>>] licenses licenses (mapping "language_code" => "license")
+    # @param [String] id unique license ID
+    # @param [Boolean] spare_space
     def GetLicenseDialog(languages, license_language, licenses, id, spare_space)
       space = UI.TextMode ? 1 : 3
 
