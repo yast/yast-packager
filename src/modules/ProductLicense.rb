@@ -682,18 +682,12 @@ module Yast
       languages = languages.find_all { |lang| displayable_language?(lang) }
       log.info "Displayable languages: #{languages}, wanted: #{license_language}"
 
-
-      contents = (
-        licenses_ref = arg_ref(licenses.value)
-        result = GetLicenseDialog(
-          languages,
-          license_language,
-          licenses_ref,
-          id,
-          false
-        )
-        licenses.value = licenses_ref.value
-        result
+      contents = GetLicenseDialog(
+        languages,
+        license_language,
+        licenses,
+        id,
+        false
       )
 
       Wizard.SetContents(
