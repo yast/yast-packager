@@ -12,7 +12,8 @@ module Yast
     include Yast::Logger
 
     # @return [Hash] Product renames default map. Used when information is not
-    #                found elsewhere.
+    #                found elsewhere. Also describes the allowed migration paths
+    #                 (e.g. openSUSE Leap => SLES).
     DEFAULT_PRODUCT_RENAMES = {
       "SUSE_SLES"                         => ["SLES"],
       # SLED or Workstation extension
@@ -36,7 +37,9 @@ module Yast
       "sle-module-adv-systems-management" => ["sle-module-basesystem"],
       # Toolchain and SDK are now included in the Development Tools SLE15 module
       "sle-module-toolchain"              => ["sle-module-development-tools"],
-      "sle-sdk"                           => ["sle-module-development-tools"]
+      "sle-sdk"                           => ["sle-module-development-tools"],
+      # openSUSE => SLES migration
+      "openSUSE"                          => ["SLES"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
