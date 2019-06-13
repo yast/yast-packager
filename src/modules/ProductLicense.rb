@@ -1713,8 +1713,7 @@ module Yast
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|
-          license_locale = (Yast::UI.TextMode && locale.empty?) ? default_language : locale
-          license = Pkg.PrdGetLicenseToConfirm(product_name, license_locale)
+          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
           next if license.nil? || license.empty?
 
           found_license = true
