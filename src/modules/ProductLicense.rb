@@ -569,6 +569,7 @@ module Yast
 
     # FIXME: this is needed only by yast2-registration, fix it later
     # and make this method private
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def HandleLicenseDialogRet(licenses, base_product, action)
       ret = nil
 
@@ -674,7 +675,7 @@ module Yast
     # @param [Array<String>] languages list of license translations
     # @param [Boolean] back enable "Back" button
     # @param [String] license_language default license language
-    # @param [Hash<String,String>] licenses licenses (mapping "language_code" => "license")
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     # @param [String] id unique license ID
     # @param [String] caption dialog title
     def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
@@ -766,7 +767,7 @@ module Yast
     # update license location displayed in the dialog (e.g. after license translation
     # is changed)
     # @param [String] lang language of the currently displayed license
-    # @param [Yast::ArgRef] licenses reference to the list of licenses
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def update_license_location(lang, licenses)
       return if !location_is_url?(license_file_print) || !UI.WidgetExists(:printing_hint)
 
@@ -845,6 +846,7 @@ module Yast
       Y2Packager::Product.from_h(product_h)
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def GetLicenseContent(lic_lang, licenses, id)
       license_file = (
         licenses_ref = arg_ref(licenses.value)
@@ -932,6 +934,7 @@ module Yast
       nil
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def WhichLicenceFile(license_language, licenses)
       license_file = Ops.get(licenses.value, license_language, "")
 
@@ -948,6 +951,7 @@ module Yast
       license_file
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def GetLicenseDialogTerm(languages, license_language, licenses, id)
       languages = deep_copy(languages)
       rt = (
@@ -1081,7 +1085,7 @@ module Yast
 
     # @param [Array<String>] languages list of license translations
     # @param [String] license_language default license language
-    # @param [Ref<Hash<String,String>>] licenses licenses (mapping "language_code" => "license")
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     # @param [String] id unique license ID
     # @param [Boolean] spare_space
     def GetLicenseDialog(languages, license_language, licenses, id, spare_space)
@@ -1144,6 +1148,7 @@ module Yast
     end
 
     # Displays License dialog
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def DisplayLicenseDialog(languages, back, license_language, licenses, id)
       # dialog title
       DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id,
@@ -1167,7 +1172,7 @@ module Yast
     # @param [String] dir string directory to look into
     # @param [Array<String>] patterns a list of patterns for the files, regular expressions
     #   with %1 for the language
-    # @return a map $[ lang_code : filename ]
+    # @return [Hash{String, String}] a map $[ lang_code : filename ]
     def LicenseFiles(dir, patterns)
       patterns = deep_copy(patterns)
       ret = {}
@@ -1495,6 +1500,8 @@ module Yast
       SetAcceptanceNeeded(id, license_acceptance_needed)
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
+    # @return [:cont,:auto]
     def InitLicenseData(src_id, dir, licenses, available_langs,
       _require_agreement, _license_ident, id)
       # Downloads and unpacks all licenses for a given source ID
@@ -1595,6 +1602,7 @@ module Yast
     end
 
     # Should have been named 'UpdateLicenseContentBasedOnSelectedLanguage' :->
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def UpdateLicenseContent(licenses, id)
       # read the selected language
       @lic_lang = Convert.to_string(
