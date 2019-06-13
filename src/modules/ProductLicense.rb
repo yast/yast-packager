@@ -661,6 +661,12 @@ module Yast
     # @return [Array<String>] Fallback languages
     DEFAULT_FALLBACK_LANGUAGES = ["en_US", "en"].freeze
 
+    def displayable_language?(lang)
+      return true if lang.empty? # zypp means English here
+      Yast::Language.supported_language?(lang)
+    end
+    private :displayable_language?
+
     # FIXME: this is needed only by yast2-registration, fix it later
     # and make this method private
     #
@@ -672,19 +678,9 @@ module Yast
     # @param [String] id unique license ID
     # @param [String] caption dialog title
     def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
-      languages = deep_copy(languages)
+      languages = languages.find_all { |lang| displayable_language?(lang) }
+      log.info "Displayable languages: #{languages}, wanted: #{license_language}"
 
-      # For some languages (like Japanese, Chinese or Korean) YaST needs to use a fbiterm in order
-      # to display symbols correctly when running on textmode. To avoid such problems, consider only
-      # the preselected (on installation) or the default language (on running system). This will
-      # setup fbiterm correctly. See bsc#1094793 for further information.
-      if Yast::UI.TextMode
-        lang = default_language
-        candidate_languages = [lang, lang[0..1]] + DEFAULT_FALLBACK_LANGUAGES
-        license_language = (candidate_languages & languages).first || ""
-        languages = [license_language]
-        log.info "Adjusted license language to #{license_language}"
-      end
 
       contents = (
         licenses_ref = arg_ref(licenses.value)
