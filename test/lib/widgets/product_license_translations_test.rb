@@ -20,9 +20,7 @@ require "y2packager/product"
 RSpec::Matchers.define :array_not_including do |x|
   match do |actual|
     return false unless actual.is_a?(Array)
-    return false if actual.include?(x)
-
-    true
+    !actual.include?(x)
   end
 end
 
