@@ -81,9 +81,10 @@ class LanguageTag
     # FIXME: or self, find out what makes more sense
   end
 
-  # @return [String,nil]
+  # @return [String,nil] a translated name, eg. "Tschechisch" for "cs" or "cs_CZ"
   def name(lang_map_cache: nil)
-    lang_map_cache ||= Yast::Language.GetLanguagesMap(false)
+    force_retranslation = false
+    lang_map_cache ||= Yast::Language.GetLanguagesMap(force_retranslation)
     attrs = lang_map_cache[@tag]
     if attrs.nil?
       # we're en, find en_US
