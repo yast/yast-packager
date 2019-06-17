@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.2.13
+Version:        4.2.14
 Release:        0
 Summary:        YaST2 - Package Library
 License:        GPL-2.0-or-later
@@ -111,6 +111,7 @@ This package contains the libraries and modules for software management.
 %{yast_ybindir}/*
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
+%{yast_libdir}/language_tag.rb
 %{yast_libdir}/packager/*
 %{yast_libdir}/packager/cfa/*
 %{yast_libdir}/y2packager/*

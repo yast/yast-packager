@@ -6,8 +6,8 @@ require "packager/cfa/zypp_conf"
 require "tmpdir"
 
 describe Yast::Packager::CFA::ZyppConf do
-  ZYPP_CONF_EXAMPLE = FIXTURES_PATH.join("zypp/zypp.conf").freeze
-  ZYPP_CONF_EXPECTED = FIXTURES_PATH.join("zypp/zypp.conf.expected").freeze
+  ZYPP_CONF_EXAMPLE = DATA_PATH.join("zypp/zypp.conf").freeze
+  ZYPP_CONF_EXPECTED = DATA_PATH.join("zypp/zypp.conf.expected").freeze
 
   subject(:config) { Yast::Packager::CFA::ZyppConf.new }
   let(:zypp_conf_path) { ZYPP_CONF_EXAMPLE }
@@ -31,7 +31,7 @@ describe Yast::Packager::CFA::ZyppConf do
   describe "#save" do
     let(:tmpdir) { Dir.mktmpdir }
     let(:zypp_conf_path) { File.join(tmpdir, "zypp.conf") }
-    let(:expected_content) { File.read(FIXTURES_PATH.join("zypp/zypp.conf.expected")) }
+    let(:expected_content) { File.read(DATA_PATH.join("zypp/zypp.conf.expected")) }
 
     before do
       FileUtils.cp(ZYPP_CONF_EXAMPLE, File.join(tmpdir, "zypp.conf"))
