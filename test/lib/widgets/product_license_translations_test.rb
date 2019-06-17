@@ -81,7 +81,7 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
         widget.contents
       end
 
-      it "shows the product license in the default language (AmE)" do
+      it "shows the product license in the default language (en_US)" do
         expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
           .with(product, "en_US")
         widget.contents
