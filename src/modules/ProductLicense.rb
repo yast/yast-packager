@@ -569,6 +569,7 @@ module Yast
 
     # FIXME: this is needed only by yast2-registration, fix it later
     # and make this method private
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def HandleLicenseDialogRet(licenses, base_product, action)
       ret = nil
 
@@ -661,6 +662,12 @@ module Yast
     # @return [Array<String>] Fallback languages
     DEFAULT_FALLBACK_LANGUAGES = ["en_US", "en"].freeze
 
+    def displayable_language?(lang)
+      return true if lang.empty? # zypp means English here
+      Yast::Language.supported_language?(lang)
+    end
+    private :displayable_language?
+
     # FIXME: this is needed only by yast2-registration, fix it later
     # and make this method private
     #
@@ -668,35 +675,19 @@ module Yast
     # @param [Array<String>] languages list of license translations
     # @param [Boolean] back enable "Back" button
     # @param [String] license_language default license language
-    # @param [Hash<String,String>] licenses licenses (mapping "language_code" => "license")
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     # @param [String] id unique license ID
     # @param [String] caption dialog title
     def DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id, caption)
-      languages = deep_copy(languages)
+      languages = languages.find_all { |lang| displayable_language?(lang) }
+      log.info "Displayable languages: #{languages}, wanted: #{license_language}"
 
-      # For some languages (like Japanese, Chinese or Korean) YaST needs to use a fbiterm in order
-      # to display symbols correctly when running on textmode. To avoid such problems, consider only
-      # the preselected (on installation) or the default language (on running system). This will
-      # setup fbiterm correctly. See bsc#1094793 for further information.
-      if Yast::UI.TextMode
-        lang = default_language
-        candidate_languages = [lang, lang[0..1]] + DEFAULT_FALLBACK_LANGUAGES
-        license_language = (candidate_languages & languages).first || ""
-        languages = [license_language]
-        log.info "Adjusted license language to #{license_language}"
-      end
-
-      contents = (
-        licenses_ref = arg_ref(licenses.value)
-        result = GetLicenseDialog(
-          languages,
-          license_language,
-          licenses_ref,
-          id,
-          false
-        )
-        licenses.value = licenses_ref.value
-        result
+      contents = GetLicenseDialog(
+        languages,
+        license_language,
+        licenses,
+        id,
+        false
       )
 
       Wizard.SetContents(
@@ -770,7 +761,7 @@ module Yast
     # update license location displayed in the dialog (e.g. after license translation
     # is changed)
     # @param [String] lang language of the currently displayed license
-    # @param [Yast::ArgRef] licenses reference to the list of licenses
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def update_license_location(lang, licenses)
       return if !location_is_url?(license_file_print) || !UI.WidgetExists(:printing_hint)
 
@@ -849,6 +840,7 @@ module Yast
       Y2Packager::Product.from_h(product_h)
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def GetLicenseContent(lic_lang, licenses, id)
       license_file = (
         licenses_ref = arg_ref(licenses.value)
@@ -936,6 +928,7 @@ module Yast
       nil
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def WhichLicenceFile(license_language, licenses)
       license_file = Ops.get(licenses.value, license_language, "")
 
@@ -952,6 +945,7 @@ module Yast
       license_file
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def GetLicenseDialogTerm(languages, license_language, licenses, id)
       languages = deep_copy(languages)
       rt = (
@@ -1083,6 +1077,11 @@ module Yast
       current_sources.any? ? current_sources.first : 0
     end
 
+    # @param [Array<String>] languages list of license translations
+    # @param [String] license_language default license language
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
+    # @param [String] id unique license ID
+    # @param [Boolean] spare_space
     def GetLicenseDialog(languages, license_language, licenses, id, spare_space)
       space = UI.TextMode ? 1 : 3
 
@@ -1143,6 +1142,7 @@ module Yast
     end
 
     # Displays License dialog
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def DisplayLicenseDialog(languages, back, license_language, licenses, id)
       # dialog title
       DisplayLicenseDialogWithTitle(languages, back, license_language, licenses, id,
@@ -1166,7 +1166,7 @@ module Yast
     # @param [String] dir string directory to look into
     # @param [Array<String>] patterns a list of patterns for the files, regular expressions
     #   with %1 for the language
-    # @return a map $[ lang_code : filename ]
+    # @return [Hash{String, String}] a map $[ lang_code : filename ]
     def LicenseFiles(dir, patterns)
       patterns = deep_copy(patterns)
       ret = {}
@@ -1494,6 +1494,8 @@ module Yast
       SetAcceptanceNeeded(id, license_acceptance_needed)
     end
 
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
+    # @return [:cont,:auto]
     def InitLicenseData(src_id, dir, licenses, available_langs,
       _require_agreement, _license_ident, id)
       # Downloads and unpacks all licenses for a given source ID
@@ -1594,6 +1596,7 @@ module Yast
     end
 
     # Should have been named 'UpdateLicenseContentBasedOnSelectedLanguage' :->
+    # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
     def UpdateLicenseContent(licenses, id)
       # read the selected language
       @lic_lang = Convert.to_string(
@@ -1710,8 +1713,7 @@ module Yast
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|
-          license_locale = (Yast::UI.TextMode && locale.empty?) ? default_language : locale
-          license = Pkg.PrdGetLicenseToConfirm(product_name, license_locale)
+          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
           next if license.nil? || license.empty?
 
           found_license = true

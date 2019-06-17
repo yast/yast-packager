@@ -12,6 +12,7 @@
 
 require "yast"
 require "cwm"
+require "language_tag"
 require "y2packager/widgets/simple_language_selection"
 require "y2packager/widgets/product_license"
 
@@ -71,7 +72,7 @@ module Y2Packager
       # @return [Y2Packager::Widgets::SimpleLanguageSelection]
       def language_selection
         @language_selection ||=
-          Y2Packager::Widgets::SimpleLanguageSelection.new(available_locales, content_language)
+          Y2Packager::Widgets::SimpleLanguageSelection.new(selectable_locales, content_language)
       end
 
       # Product selection widget
@@ -82,49 +83,38 @@ module Y2Packager
           Y2Packager::Widgets::ProductLicenseContent.new(product, content_language)
       end
 
-      # Available license translations
+      # Selectable license translations
       #
-      # When running on textmode, only the preselected/given language is considered.
+      # When running on textmode, the terminal is not able to display *some* languages
       # see #default_language for further details.
       #
       # @return [Array<String>] Locale codes of the available translations
-      # @see #default_language
-      def available_locales
-        Yast::UI.TextMode ? [default_language] : product.license_locales
+      def selectable_locales
+        product.license_locales.find_all { |loc| displayable_language?(loc) }
       end
 
       # License translation language
       #
-      # When running on textmode, it returns the preselected/default language.
-      # see #default_language for further details.
+      # If the wanted language is present among those displayable, use it,
+      # otherwise use the default
       #
       # @return [String] License content language
-      # @see #default_language
       def content_language
-        Yast::UI.TextMode ? default_language : language
+        # this selects "en" if we want "en_US"
+        l = selectable_locales.find { |loc| LanguageTag.new(loc) >= language }
+        l || DEFAULT_FALLBACK_LANGUAGE
       end
 
       # @return [String] Fallback language
       DEFAULT_FALLBACK_LANGUAGE = "en_US".freeze
 
-      # Default language
+      # Whether a language is displayable
       #
-      # For some languages (like Japanese, Chinese or Korean) YaST needs to use a fbiterm in order
-      # to display symbols correctly when running on textmode.  However, if none of those languages
-      # is selected on boot, this special terminal won't be used.
-      #
-      # So during 1st stage and when running in textmode, it returns the preselected language (from
-      # install.inf).
-      #
-      # On an installed system, it prefers the given language. Finally, if the license translation
-      # is not available, the fallback language is returned.
-      #
-      # @return [String] Language code
-      def default_language
-        candidate_lang = Yast::Stage.initial ? Yast::Language.preselected : language
-        translated = product.license_locales.any? { |l| candidate_lang.start_with?(l) }
-        return candidate_lang if translated
-        DEFAULT_FALLBACK_LANGUAGE
+      # @param lang [String] "cs" or "cs_CZ"
+      # @return [Boolean]
+      # @see Yast::Language.supported_language?
+      def displayable_language?(lang)
+        Yast::Language.supported_language?(lang)
       end
     end
   end

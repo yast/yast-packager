@@ -24,78 +24,60 @@ describe Y2Packager::Widgets::ProductLicenseTranslations do
 
   let(:language) { "de_DE" }
   let(:product) do
-    instance_double(Y2Packager::Product, license_locales: ["en_US", "ja"], license: "content")
+    instance_double(
+      Y2Packager::Product,
+      license_locales: ["en_US", "de_DE", "ja_JP"],
+      license:         "content"
+    )
+  end
+
+  before do
+    allow(Yast::Language).to receive(:supported_language?).and_return(true)
   end
 
   describe "#contents" do
     it "includes a language selector" do
       expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
-        .with(product.license_locales, language)
       widget.contents
     end
 
     it "includes the product license text" do
       expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
-        .with(product, language)
       widget.contents
     end
 
-    context "when running on textmode" do
-      let(:preselected) { "ja_JP" }
-
+    context "when selected language cannot be displayed" do
       before do
-        allow(Yast::UI).to receive(:TextMode).and_return(true)
-        allow(Yast::Language).to receive(:preselected).and_return(preselected)
-        allow(Yast::Stage).to receive(:initial).and_return(initial)
+        allow(Yast::Language).to receive(:supported_language?)
+          .with(language).and_return(false)
       end
 
-      context "on installation" do
-        let(:initial) { true }
-
-        it "the language selector includes only the preselected language" do
-          expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
-            .with([preselected], preselected)
-          widget.contents
-        end
-
-        it "shows the product license in the preselected language" do
-          expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
-            .with(product, preselected)
-          widget.contents
-        end
-
-        context "when there is no translation for the preselected language" do
-          let(:preselected) { "hu_HU" }
-
-          it "the language selector includes only 'english'" do
-            expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
-              .with(["en_US"], "en_US")
-            widget.contents
-          end
-
-          it "shows the product license in 'english'" do
-            expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
-              .with(product, "en_US")
-            widget.contents
-          end
-        end
+      it "does not include it in the language selector" do
+        expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
+          .with(array_not_including("de_DE"), anything)
+        widget.contents
       end
 
-      context "on the installed system" do
-        let(:initial) { false }
-        let(:language) { "ja_JP" }
+      it "shows the product license in the default language (AmE)" do
+        expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
+          .with(product, "en_US")
+        widget.contents
+      end
+    end
 
-        it "the language selector includes only the default language" do
-          expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
-            .with([language], language)
-          widget.contents
-        end
+    context "when there is no translation for the given language" do
+      let(:language) { "hu_HU" }
 
-        it "shows the product license in the default language" do
-          expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
-            .with(product, language)
-          widget.contents
-        end
+      it "does not include it in the language selector" do
+        expect(Y2Packager::Widgets::SimpleLanguageSelection).to receive(:new)
+          .with(array_not_including("hu_HU"), anything)
+        widget.contents
+      end
+
+      it "shows the product license in the default language (en_US)" do
+        expect(Y2Packager::Widgets::ProductLicenseContent).to receive(:new)
+          .with(product, "en_US")
+        widget.contents
       end
     end
   end
