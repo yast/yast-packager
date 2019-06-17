@@ -11,7 +11,9 @@ require "yast/rspec"
 require "pathname"
 
 TESTS_PATH = Pathname.new(File.dirname(__FILE__))
-FIXTURES_PATH = TESTS_PATH.join("data")
+DATA_PATH = TESTS_PATH.join("data")
+
+SCR_BASH_PATH = Yast::Path.new(".target.bash")
 
 RSpec.configure do |config|
   config.extend Yast::I18n  # available in context/describe
