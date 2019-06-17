@@ -18,6 +18,13 @@ RSpec.configure do |config|
   config.include Yast::I18n # available in it/let/before/...
 end
 
+RSpec::Matchers.define :array_not_including do |x|
+  match do |actual|
+    return false unless actual.is_a?(Array)
+    !actual.include?(x)
+  end
+end
+
 # stub module to prevent its Import
 # Useful for modules from different yast packages, to avoid build dependencies
 def stub_module(name)

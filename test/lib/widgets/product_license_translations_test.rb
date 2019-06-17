@@ -17,13 +17,6 @@ require "cwm/rspec"
 require "y2packager/widgets/product_license_translations"
 require "y2packager/product"
 
-RSpec::Matchers.define :array_not_including do |x|
-  match do |actual|
-    return false unless actual.is_a?(Array)
-    !actual.include?(x)
-  end
-end
-
 describe Y2Packager::Widgets::ProductLicenseTranslations do
   include_examples "CWM::CustomWidget"
 
