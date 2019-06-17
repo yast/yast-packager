@@ -9,9 +9,7 @@ Yast.import "Mode"
 Yast.import "SCR"
 Yast.import "SpaceCalculation"
 
-DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
 SCR_TMPDIR_PATH = Yast::Path.new(".target.tmpdir")
-SCR_BASH_PATH = Yast::Path.new(".target.bash")
 SCR_BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
 
 def stub_devicegraph(name)

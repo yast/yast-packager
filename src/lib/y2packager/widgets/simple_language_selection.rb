@@ -19,6 +19,7 @@
 
 require "yast"
 require "cwm/widget"
+require "language_tag"
 
 Yast.import "Language"
 
@@ -69,14 +70,11 @@ module Y2Packager
       # initial value will be set to "en_US".
       def init
         languages = items.map(&:first)
-        new_value =
-          if languages.include?(default)
-            default
-          elsif default.include?("_")
-            short_code = default.split("_").first
-            languages.include?(short_code) ? short_code : nil
-          end
-
+        candidates = [
+          default,
+          LanguageTag.new(default).generalize.to_s
+        ]
+        new_value = candidates.compact.find { |c| languages.include?(c) }
         self.value = new_value || DEFAULT_LICENSE_LANG
       end
 
@@ -92,19 +90,11 @@ module Y2Packager
       # @return [Array<Array<String,String>>] Array of languages in form [code, description]
       def items
         return @items if @items
-        languages_map = Yast::Language.GetLanguagesMap(false)
-        @items = languages.each_with_object([]) do |code, langs|
-          attrs = languages_map.key?(code) ? languages_map[code] : nil
-          lang, attrs = languages_map.find { |k, _v| k.start_with?(code) } if attrs.nil?
-
-          if attrs.nil?
-            log.warn "Not valid language '#{lang}'"
-            next
-          end
-
-          log.debug "Using language '#{lang}' instead of '#{code}'" if lang != code
-          langs << [code, attrs[4]]
+        lmap = Yast::Language.GetLanguagesMap(false)
+        @items = languages.map do |lang|
+          [lang, LanguageTag.new(lang).name(lang_map_cache: lmap)]
         end
+        @items.reject! { |_lang, name| name.nil? }
         @items.uniq!
         @items.sort_by!(&:last)
       end
