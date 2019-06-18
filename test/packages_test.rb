@@ -17,16 +17,12 @@ Yast.import "Pkg"
 require "packager/product_patterns"
 
 SCR_STRING_PATH = Yast::Path.new(".target.string")
-SCR_BASH_PATH = Yast::Path.new(".target.bash")
 SCR_PROC_CMDLINE_PATH = Yast::Path.new(".proc.cmdline")
 
 CHECK_FOR_DELL_SYSTEM = Regexp.new(
   "hwinfo .*bios .*grep .*vendor:.*dell inc",
   Regexp::IGNORECASE
 )
-
-# Path to a test data - service file - mocking the default data path
-DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
 
 def load_zypp(file_name)
   file_name = File.join(DATA_PATH, "zypp", file_name)

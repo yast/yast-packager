@@ -6,7 +6,6 @@ Yast.import "Mtab"
 Yast.import "WFM"
 Yast.import "SCR"
 
-DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
 MTABNAME = "/etc/mtab".freeze
 DESTDIR = "/mnt".freeze
 
