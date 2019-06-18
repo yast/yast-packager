@@ -35,7 +35,6 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
 BuildRequires:  yast2-storage-ng >= 4.0.141
 # break the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
-
 # inst_rpmcopy.rb: SlideShow.RebuildDialog(true)
 BuildRequires:  yast2 >= 4.2.8
 # Pkg::Resolvables
