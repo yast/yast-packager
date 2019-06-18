@@ -132,6 +132,9 @@ module Yast
       # move the progress to the packages stage
       SlideShow.MoveToStage("packages")
 
+      # (true) : Showing release tab if needed
+      SlideShow.RebuildDialog(true)
+
       # bnc#875350: Log the current user/app_high software selection
       Packages.log_software_selection
 
