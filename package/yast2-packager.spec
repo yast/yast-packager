@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.2.14
+Version:        4.2.15
 Release:        0
 Summary:        YaST2 - Package Library
 License:        GPL-2.0-or-later
@@ -35,19 +35,23 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
 BuildRequires:  yast2-storage-ng >= 4.0.141
 # break the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
-# Y2Packager::will_be_obsoleted_by
-BuildRequires:  yast2 >= 4.1.68
+
+# inst_rpmcopy.rb: SlideShow.RebuildDialog(true)
+BuildRequires:  yast2 >= 4.2.8
 # Pkg::Resolvables
 BuildRequires:  yast2-pkg-bindings >= 4.2.0
+
 # Augeas lenses
 BuildRequires:  augeas-lenses
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
+
 # Pkg::Resolvables
 Requires:       yast2-pkg-bindings >= 4.2.0
-# Y2Packager::will_be_obsoleted_by
-Requires:       yast2 >= 4.1.68
+# inst_rpmcopy.rb: SlideShow.RebuildDialog(true)
+Requires:       yast2 >= 4.2.8
+
 # unzipping license file
 Requires:       unzip
 # HTTP, FTP, HTTPS modules (inst_productsources.ycp)
