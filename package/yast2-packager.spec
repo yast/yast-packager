@@ -40,18 +40,15 @@ BuildRequires:  yast2-storage-ng >= 4.0.141
 BuildRequires:  yast2 >= 4.2.8
 # Pkg::Resolvables
 BuildRequires:  yast2-pkg-bindings >= 4.2.0
-
 # Augeas lenses
 BuildRequires:  augeas-lenses
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
-
 # Pkg::Resolvables
 Requires:       yast2-pkg-bindings >= 4.2.0
 # inst_rpmcopy.rb: SlideShow.RebuildDialog(true)
 Requires:       yast2 >= 4.2.8
-
 # unzipping license file
 Requires:       unzip
 # HTTP, FTP, HTTPS modules (inst_productsources.ycp)
