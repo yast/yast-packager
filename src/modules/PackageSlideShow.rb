@@ -480,8 +480,6 @@ module Yast
         @total_pkg_count_per_cd_per_src
       )
 
-      # RebuildDialog(true);
-
       nil
     end
 
@@ -552,7 +550,8 @@ module Yast
 
       if Slides.HaveSlides && Slides.HaveSlideSupport
         if !SlideShow.HaveSlideWidget
-          SlideShow.RebuildDialog
+          # (true) : Showing release tab if needed
+          SlideShow.RebuildDialog(true)
 
           SlideShow.SwitchToDetailsView if SlideShow.user_switched_to_details
         end
@@ -560,7 +559,8 @@ module Yast
         # Don't override explicit user request!
         SlideShow.SwitchToSlideView if !SlideShow.user_switched_to_details
       elsif !SlideShow.ShowingDetails
-        SlideShow.RebuildDialog
+        # (true) : Showing release tab if needed
+        SlideShow.RebuildDialog(true)
       end
 
       nil
