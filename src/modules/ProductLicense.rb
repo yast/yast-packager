@@ -635,6 +635,8 @@ module Yast
           log.info "License has been declined."
 
           case action
+          when "refuse"
+            ret = :refused
           when "abort"
             ret = :abort
           when "halt"

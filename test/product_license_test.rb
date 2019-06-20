@@ -146,7 +146,7 @@ describe Yast::ProductLicense do
       end
 
       context "while some license(s) have not been accepted" do
-        it "returns symbol :abort, :accepted, :halt according to the third function parameter" do
+        it "returns symbol :abort, :accepted, :refused, :halt according to the third function parameter" do
           expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(false)
             .at_least(:once)
           # :halt case
@@ -154,11 +154,14 @@ describe Yast::ProductLicense do
 
           base_prod = false
           expect(Yast::ProductLicense
-            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "abort"))
-            .to eq(:abort)
-          expect(Yast::ProductLicense
             .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "continue"))
             .to eq(:accepted)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "refuse"))
+            .to eq(:refused)
+          expect(Yast::ProductLicense
+            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "abort"))
+            .to eq(:abort)
           expect(Yast::ProductLicense
             .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "halt"))
             .to eq(:halt)
