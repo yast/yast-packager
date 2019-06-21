@@ -416,7 +416,7 @@ module Yast
         src_id,
         "",
         @license_patterns,
-        "abort",
+        "refuse",
         # back button is disabled
         false,
         false,
