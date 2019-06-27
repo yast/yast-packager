@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "yast"
 
 # Yast namespace
@@ -178,14 +176,16 @@ module Yast
           # booted from another location (network), test all CD drives
           cds = DetectedCDDevices()
 
-          Builtins.foreach(cds) do |cd|
-            devname = Ops.get_string(cd, "dev_name", "")
-            # check whether the CD is ready
-            if Ops.get_boolean(cd, "notready", false) == false && !devname.nil? &&
-                devname != ""
-              readycddrives = Builtins.add(readycddrives, devname)
+          if !cds.nil?
+            Builtins.foreach(cds) do |cd|
+              devname = Ops.get_string(cd, "dev_name", "")
+              # check whether the CD is ready
+              if Ops.get_boolean(cd, "notready", false) == false && !devname.nil? &&
+                  devname != ""
+                readycddrives = Builtins.add(readycddrives, devname)
+              end
             end
-          end if !cds.nil?
+          end
         end
 
         Builtins.y2milestone("Ready CD drives: %1", readycddrives)

@@ -71,6 +71,7 @@ module Y2Packager
       #   or Empty() if confirmation is not needed.
       def confirmation_checkbox
         return Empty() unless product.license_confirmation_required?
+
         Widgets::ProductLicenseConfirmation.new(product)
       end
     end

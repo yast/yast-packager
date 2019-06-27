@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 module Yast
   # Purpose:
   # Displays possibilities to install from NFS, CD or partion

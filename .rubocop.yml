@@ -1,6 +1,6 @@
 # use the shared Yast defaults
 inherit_from:
-  /usr/share/YaST2/data/devtools/data/rubocop_yast_style.yml
+  /usr/share/YaST2/data/devtools/data/rubocop-0.71.0_yast_style.yml
 
 # Offense count: 108
 Metrics/AbcSize:
@@ -38,6 +38,11 @@ Metrics/ParameterLists:
 Metrics/PerceivedComplexity:
   Max: 90
 
+Metrics/BlockLength:
+  Exclude:
+    # rspec DSL contain huge blocks
+    - "test/**/*.rb"
+
 # Offense count: 8
 Lint/Loop:
   Exclude:
@@ -47,20 +52,20 @@ Lint/Loop:
     - 'src/modules/InstShowInfo.rb'
 
 # Offense count: 3
-Style/AccessorMethodName:
+Naming/AccessorMethodName:
   Exclude:
     - 'src/modules/SourceManager.rb'
     - 'src/modules/SpaceCalculation.rb'
 
 # Offense count: 17
 # Configuration parameters: ExpectMatchingDefinition, Regex, IgnoreExecutableScripts.
-Style/FileName:
+Naming/FileName:
   Enabled: false
 
 # Offense count: 473
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 # SupportedStyles: snake_case, camelCase
-Style/MethodName:
+Naming/MethodName:
   Enabled: false
 
 # Offense count: 1
@@ -68,7 +73,7 @@ Style/MethodName:
 # NamePrefix: is_, has_, have_
 # NamePrefixBlacklist: is_, has_, have_
 # NameWhitelist: is_a?
-Style/PredicateName:
+Naming/PredicateName:
   Exclude:
     - 'spec/**/*'
     - 'src/modules/Packages.rb'
@@ -76,11 +81,15 @@ Style/PredicateName:
 # Offense count: 148
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 # SupportedStyles: snake_case, camelCase
-Style/VariableName:
+Naming/VariableName:
   Enabled: false
 
 # Offense count: 10
 # Configuration parameters: SupportedStyles.
 # SupportedStyles: snake_case, normalcase, non_integer
-Style/VariableNumber:
+Naming/VariableNumber:
+  Enabled: false
+
+# needs more testing before enabled
+Style/FrozenStringLiteralComment:
   Enabled: false

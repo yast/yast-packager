@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 require "uri"
 require "fileutils"
@@ -251,7 +250,7 @@ module Yast
       if ret == :accepted
         # store already accepted license ID
         LicenseHasBeenAccepted(license_ident)
-        product.license.accept! if product && product.license
+        product.license.accept! if product&.license
       end
 
       CleanUpLicense(@tmpdir)
@@ -348,9 +347,7 @@ module Yast
         tmp_licenses = tmp_licenses_ref.value
         available_langs = available_langs_ref.value
         license_ident = license_ident_ref.value
-        if !license_ident.nil?
-          license_idents = Builtins.add(license_idents, license_ident)
-        end
+        license_idents = Builtins.add(license_idents, license_ident) if !license_ident.nil?
         license_term = (
           tmp_licenses_ref = arg_ref(tmp_licenses)
           result = GetLicenseDialog(
@@ -397,9 +394,11 @@ module Yast
       Builtins.y2milestone("Dialog ret: %1", ret)
 
       # store already accepted license IDs
-      Builtins.foreach(license_idents) do |license_ident|
-        LicenseHasBeenAccepted(license_ident)
-      end if ret == :accepted
+      if ret == :accepted
+        Builtins.foreach(license_idents) do |license_ident|
+          LicenseHasBeenAccepted(license_ident)
+        end
+      end
 
       CleanUpLicense(@tmpdir)
 
@@ -640,6 +639,7 @@ module Yast
           when "halt"
             # timed ok/cancel popup
             next unless Popup.TimedOKCancel(_("The system is shutting down..."), 10)
+
             ret = :halt
           else
             log.error "Unknown action #{action}"
@@ -664,6 +664,7 @@ module Yast
 
     def displayable_language?(lang)
       return true if lang.empty? # zypp means English here
+
       Yast::Language.supported_language?(lang)
     end
     private :displayable_language?
@@ -736,6 +737,7 @@ module Yast
     # @return [Boolean] true if it is a HTTP, HTTPS or an FTP URL
     def location_is_url?(location)
       return false unless location.is_a?(::String)
+
       DOWNLOAD_URL_SCHEMA.include?(URI(location).scheme)
     rescue URI::InvalidURIError => e
       log.error "Error while parsing URL #{location.inspect}: #{e.message}"
@@ -754,8 +756,7 @@ module Yast
     # return [String] translated label
     def license_download_label(display_url)
       # TRANSLATORS: %{license_url} is an URL where the displayed license can be found
-      (_("If you want to print this EULA, you can download it from\n%{license_url}") %
-        { license_url: display_url })
+      format(_("If you want to print this EULA, you can download it from\n%{license_url}"), license_url: display_url)
     end
 
     # update license location displayed in the dialog (e.g. after license translation
@@ -822,7 +823,7 @@ module Yast
       end
 
       license = Y2Packager::ProductLicense.find(product.name, content: content)
-      license && license.accepted?
+      license&.accepted?
     end
 
     # Find the product in the given repository
@@ -872,15 +873,15 @@ module Yast
       rt = Empty()
 
       # License is HTML (or RichText)
-      if Builtins.regexpmatch(license_text, "</.*>")
-        rt = MinWidth(
+      rt = if Builtins.regexpmatch(license_text, "</.*>")
+        MinWidth(
           80,
           RichText(Id(Builtins.sformat("welcome_text_%1", id)), license_text)
         )
       else
         # License is plain text
         # details in BNC #449188
-        rt = MinWidth(
+        MinWidth(
           80,
           RichText(
             Id(Builtins.sformat("welcome_text_%1", id)),
@@ -1189,9 +1190,7 @@ module Yast
             # Possible license file names are regexp patterns
             # (see list <string> license_patterns)
             # so we should treat them as such (bnc#533026)
-            if Builtins.regexpmatch(file, p)
-              Ops.set(ret, "", Ops.add(Ops.add(dir, "/"), file))
-            end
+            Ops.set(ret, "", Ops.add(Ops.add(dir, "/"), file)) if Builtins.regexpmatch(file, p)
           end
         else
           regpat = Builtins.sformat(p, "(.+)")
@@ -1231,12 +1230,12 @@ module Yast
         end
 
         # Success
-        return true
+        true
 
         # Nothing to unpack
       else
         Builtins.y2error("No such file: %1", unpack_file)
-        return false
+        false
       end
     end
 
@@ -1297,9 +1296,7 @@ module Yast
         end
       end
 
-      if @license_dir.nil?
-        Builtins.y2milestone("No license found in: %1", license_locations)
-      end
+      Builtins.y2milestone("No license found in: %1", license_locations) if @license_dir.nil?
 
       Builtins.foreach(license_locations) do |beta_location|
         beta_location += README_BETA
@@ -1310,9 +1307,7 @@ module Yast
         end
       end
 
-      if @beta_file.nil?
-        Builtins.y2milestone("No beta file found in: %1", license_locations)
-      end
+      Builtins.y2milestone("No beta file found in: %1", license_locations) if @beta_file.nil?
 
       nil
     end
@@ -1541,6 +1536,7 @@ module Yast
 
       Builtins.y2milestone("Preffered lang: %1", language)
       return :auto if Builtins.size(available_langs.value).zero? # no license available
+
       @lic_lang = Builtins.find(langs) { |l| Builtins.haskey(licenses.value, l) }
       @lic_lang = Ops.get(available_langs.value, 0, "") if @lic_lang.nil?
 
@@ -1674,6 +1670,7 @@ module Yast
       eula_id = nil
       Builtins.foreach(@license_ids) do |one_license_id|
         next if AcceptanceNeeded(one_license_id) != true
+
         eula_id = Builtins.sformat("eula_%1", one_license_id)
         if UI.WidgetExists(Id(eula_id)) != true
           Builtins.y2error("Widget %1 does not exist", eula_id)
@@ -1703,7 +1700,7 @@ module Yast
       ::FileUtils.mkdir_p(tmpdir)
 
       products = Pkg.ResolvableProperties("", :product, "")
-      products.reject! { |p| p["source"] != id }
+      products.select! { |p| p["source"] == id }
       product_names = products.map { |p| p["name"] }.uniq
       log.info("Found products from source #{id}: #{product_names.inspect}")
       found_license = false

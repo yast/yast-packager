@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Editor for "Do Not Show This Dialog Again" store
   class DoNotShowAgainEditorClient < Client
@@ -34,10 +33,12 @@ module Yast
       Builtins.foreach(current_configuration) do |dont_show_type, records|
         # DontShowAgain cannot handle other types, there's no functionality for that
         next if dont_show_type != "inst-source"
+
         Builtins.foreach(records) do |popup_type, one_record|
           Builtins.foreach(one_record) do |url, record_options|
             # nil records are skipped
             next if record_options.nil?
+
             index_counter = Ops.add(index_counter, 1)
             table_items = Builtins.add(
               table_items,

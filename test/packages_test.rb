@@ -1015,10 +1015,10 @@ describe "Yast::Packages" do
     end
 
     let(:packages) { Yast::Packages.modePackages.sort.uniq }
-    let(:vnc_packages) { %w(some-vnc-packages) }
-    let(:remote_x11_packages) { %w(some-x11-packages) }
-    let(:ssh_packages) { %w(openssh iproute2) }
-    let(:braille_packages) { %w(sbl) }
+    let(:vnc_packages) { %w[some-vnc-packages] }
+    let(:remote_x11_packages) { %w[some-x11-packages] }
+    let(:ssh_packages) { %w[openssh iproute2] }
+    let(:braille_packages) { %w[sbl] }
 
     context "on a boring local regular installation" do
       let(:vnc) { false }
@@ -1078,10 +1078,10 @@ describe "Yast::Packages" do
       allow(Yast::Packages).to receive(:braille_packages).and_return(braille_packages)
     end
 
-    let(:vnc_packages) { %w(some-vnc-packages) }
-    let(:remote_x11_packages) { %w(some-x11-packages) }
-    let(:ssh_packages) { %w(openssh iproute2) }
-    let(:braille_packages) { %w(sbl) }
+    let(:vnc_packages) { %w[some-vnc-packages] }
+    let(:remote_x11_packages) { %w[some-x11-packages] }
+    let(:ssh_packages) { %w[openssh iproute2] }
+    let(:braille_packages) { %w[sbl] }
 
     context "on a boring local regular installation" do
       let(:vnc) { false }

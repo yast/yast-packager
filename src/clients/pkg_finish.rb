@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 # File:
 #  pkg_finish.ycp
 #

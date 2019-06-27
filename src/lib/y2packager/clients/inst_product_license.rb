@@ -43,7 +43,7 @@ module Y2Packager
         end
 
         Yast::Wizard.EnableAbortButton
-        disable_buttons = !Yast::GetInstArgs.enable_back ? [:back] : []
+        disable_buttons = Yast::GetInstArgs.enable_back ? [] : [:back]
         Y2Packager::Dialogs::InstProductLicense.new(product,
           disable_buttons: disable_buttons).run
       end
@@ -56,6 +56,7 @@ module Y2Packager
       # @see Y2Packager::Product.selected_base
       def product
         return @product if @product
+
         @product = Y2Packager::Product.selected_base
         log.warn "No base product is selected for installation" unless @product
         @product
@@ -74,7 +75,8 @@ module Y2Packager
       #
       # @return [Boolean] true if the license is available; false otherwise.
       def available_license?
-        return true if product && product.license?
+        return true if product&.license?
+
         log.warn "No license for product '#{product.label}' was found" if product
         false
       end
@@ -83,7 +85,7 @@ module Y2Packager
       #
       # @return [Boolean] true if the license was confirmed; false otherwise.
       def license_confirmed?
-        product && product.license_confirmed?
+        product&.license_confirmed?
       end
     end
   end

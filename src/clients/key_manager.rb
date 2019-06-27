@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Manages GPG keys in the package manager
   class KeyManagerClient < Client

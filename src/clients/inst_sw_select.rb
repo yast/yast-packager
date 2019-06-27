@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Displays software selection screen. Show radioboxes for software
   # main categories. Let the user select the software.
@@ -15,7 +14,7 @@ module Yast
       while @ret == :again
         # add additional (internal) packages, like kernel etc.
         # they are added by proposal!!!! (#155819)
-        #	Pkg::DoProvide (Packages::ComputeSystemPackageList());
+        #  Pkg::DoProvide (Packages::ComputeSystemPackageList());
         Pkg.PkgSolve(false)
 
         while @ret == :again
@@ -30,6 +29,7 @@ module Yast
           Builtins.y2milestone("Package selector result: %1", @ret)
 
           next unless @ret == :accept
+
           # Package proposal cache has to be reset and recreated
           # from scratch. See BNC #436925.
           Packages.ResetProposalCache

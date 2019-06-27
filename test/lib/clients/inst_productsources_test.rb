@@ -50,7 +50,7 @@ describe Yast::InstProductsourcesClient do
 
   describe "#ParseListOfSources" do
     let(:file) do
-      File.expand_path("../../../data/_openSUSE_Leap_15.0_Default.xml", __FILE__)
+      File.expand_path("../../data/_openSUSE_Leap_15.0_Default.xml", __dir__)
     end
     let(:url) { "http://yast.rulezz.com" }
 
@@ -123,7 +123,7 @@ describe Yast::InstProductsourcesClient do
     it "unescape URL" do
       expect(client.NormalizeURL(
                "http%3a%2f%2fsome.nice.url%2f%3awith%3a%2f%24p#ci%26l%2fch%40rs%2f"
-      ))
+             ))
         .to eq("http://some.nice.url/:with:/$p#ci&l/ch@rs")
     end
   end

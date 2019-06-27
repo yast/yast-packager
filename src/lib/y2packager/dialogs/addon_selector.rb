@@ -106,14 +106,12 @@ module Y2Packager
         VBox(
           # TRANSLATORS: Product selection label (above a multi-selection box)
           Left(Heading(_("Available Extensions and Modules"))),
-
           VWeight(75, MinHeight(12,
             MultiSelectionBox(
               Id("addon_repos"),
               "",
               selection_content
             ))),
-
           VSpacing(0.4),
           details_widget
         )

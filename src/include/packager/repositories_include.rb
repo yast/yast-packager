@@ -1,4 +1,3 @@
-
 require "y2packager/product_location"
 
 # encoding: utf-8
@@ -72,7 +71,7 @@ module Yast
 
       if expanded_url.nil?
         # TRANSLATORS: Error message, %{url} is replaced by the real URL
-        Report.Error(_("Invalid URL:\n%{url}") % { url: url })
+        Report.Error(format(_("Invalid URL:\n%{url}"), url: url))
         return :again
       end
 
@@ -119,7 +118,8 @@ module Yast
 
       found_products.each do |product|
         next if enter_again
-        name = !preffered_name.nil? && preffered_name != "" ? preffered_name : product.name
+
+        name = (!preffered_name.nil? && preffered_name != "") ? preffered_name : product.name
         # probe repository type (do not probe plaindir repo)
         repo_type = plaindir ? PLAINDIR_TYPE : Pkg.RepositoryProbe(expanded_url, product.dir)
         log.info("Repository type (#{URL.HidePassword(url)},#{product.dir}): #{repo_type}")
@@ -287,7 +287,7 @@ module Yast
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
 
-        return sccrepos == :abort || sccrepos == :cancel ? :back : :next
+        return (sccrepos == :abort || sccrepos == :cancel) ? :back : :next
       end
 
       ret = createSource(url, plaindir, @download_meta, name)

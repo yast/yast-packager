@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "yast"
 
 require "shellwords"
@@ -76,6 +74,7 @@ module Yast
     def ReadSources
       success = Pkg.SourceStartManager(false)
       return success if !success
+
       @sourceStates = Pkg.SourceStartCache(false)
       @sourceStatesIn = Pkg.SourceEditGet
       @sourceStatesOut = deep_copy(@sourceStatesIn)
@@ -114,6 +113,7 @@ module Yast
 
       # read database
       return false if Abort()
+
       Progress.NextStage
 
       # Error message
@@ -121,13 +121,16 @@ module Yast
 
       # read another database
       return false if Abort()
+
       Progress.NextStep
 
       return false if Abort()
+
       # Progress finished
       Progress.NextStage
 
       return false if Abort()
+
       @modified = false
       true
     end
@@ -188,6 +191,7 @@ module Yast
       exit = CommitSources()
 
       return false if Abort()
+
       # Progress finished
       Progress.NextStage
 
@@ -502,9 +506,7 @@ module Yast
       Builtins.y2milestone("parsed: %1", parsed_url)
       # (reassemble and warn if it differs)
       reassembled = URL.Build(parsed_url)
-      if url != reassembled
-        Builtins.y2warning("reassembled differs: %1", reassembled)
-      end
+      Builtins.y2warning("reassembled differs: %1", reassembled) if url != reassembled
       # get the alias
       q_map = ParseUrlQuery(Ops.get_string(parsed_url, "query", ""))
       Builtins.y2milestone("query: %1", q_map)
@@ -514,6 +516,7 @@ module Yast
       if alias_name != "" && Builtins.haskey(alias_to_id, alias_name)
         return Ops.get(alias_to_id, alias_name, -1)
       end
+
       # #188572: if no match by alias, try url
       Ops.get(url_to_id, url, -1)
     end
@@ -596,7 +599,6 @@ module Yast
       deep_copy(ret)
     end
 
-    #
     def AskForCD(message)
       cdroms = SCR.Read(path(".probe.cdrom"))
       multiple_drives = (cdroms.size > 1)
@@ -642,6 +644,7 @@ module Yast
       loop do
         ret = Convert.to_symbol(UI.UserInput)
         break if ret == :cont || ret == :cancel
+
         if ret == :eject
           if multiple_drives
             device = Convert.to_string(UI.QueryWidget(Id(:drives), :Value))
@@ -720,9 +723,7 @@ module Yast
       future = current if Ops.less_than(future, current)
       tmp_space = Ops.subtract(total, future)
       # no temp space left or read-only
-      if Ops.less_than(tmp_space, 0) || Ops.get_integer(root_info, 3, 1) == 1
-        tmp_space = 0
-      end
+      tmp_space = 0 if Ops.less_than(tmp_space, 0) || Ops.get_integer(root_info, 3, 1) == 1
 
       var_info = Ops.get_list(
         spaces,
@@ -743,9 +744,7 @@ module Yast
       future = current if Ops.less_than(future, current)
       var_tmp_space = Ops.subtract(total, future)
       # no temp space left or read-only
-      if Ops.less_than(var_tmp_space, 0) || Ops.get_integer(var_info, 3, 1) == 1
-        var_tmp_space = 0
-      end
+      var_tmp_space = 0 if Ops.less_than(var_tmp_space, 0) || Ops.get_integer(var_info, 3, 1) == 1
 
       #-------
       # /tmp or /var/tmp ?

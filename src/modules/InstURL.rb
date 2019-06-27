@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 
 # Yast namespace
@@ -85,7 +84,6 @@ module Yast
       options
     end
 
-    #
     def GetURLOptions(url)
       option_map = {}
       pos = Builtins.findfirstof(url, "?")
@@ -108,7 +106,6 @@ module Yast
       ssl_verify != "no"
     end
 
-    #
     def RewriteCDUrl(url)
       tokens = URL.Parse(url)
       new_url = ""
@@ -200,6 +197,7 @@ module Yast
     def add_ssl_verify_no_to_url(url)
       parts = URL.Parse(url)
       return url if !parts["scheme"].casecmp("https").zero?
+
       log.warn "Disabling certificate check for the installation repository"
       parts["query"] << "&" unless parts["query"].empty?
       parts["query"] << "ssl_verify=no"

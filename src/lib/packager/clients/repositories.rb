@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 # ------------------------------------------------------------------------------
 # Copyright (c) 2017 SUSE LLC
 #
@@ -163,6 +161,7 @@ module Yast
         next if Builtins.contains(deleted_repos, one_srcid)
         # already deleted repository
         next if Builtins.contains(SourceManager.just_removed_sources, one_srcid)
+
         # repository has been added recently (by some external functionality
         # that doesn't use these internal variables)
         generalData = Pkg.SourceGeneralData(one_srcid)
@@ -187,9 +186,7 @@ module Yast
         rest = Ops.subtract(rest, 1)
       end
 
-      if priority == @default_priority
-        ret = Ops.add(Ops.add(Ops.add(ret, " ("), _("Default")), ")")
-      end
+      ret = Ops.add(Ops.add(Ops.add(ret, " ("), _("Default")), ")") if priority == @default_priority
 
       ret
     end
@@ -325,9 +322,7 @@ module Yast
       itemList = repo_mode ? deep_copy(@sourceStatesOut) : deep_copy(@serviceStatesOut)
 
       # displaye only repositories from the selected service
-      if repo_mode && service_name != ""
-        itemList = ReposFromService(service_name, itemList)
-      end
+      itemList = ReposFromService(service_name, itemList) if repo_mode && service_name != ""
 
       numItems = Builtins.size(itemList)
 
@@ -392,9 +387,7 @@ module Yast
     def fillRepoInfo(index, source, repo_mode, _service_name)
       source = deep_copy(source)
       info = repo_mode ? getSourceInfo(index, source) : deep_copy(source)
-      if repo_mode
-        Builtins.y2milestone("getSourceInfo(%1, %2): %3", index, source, info)
-      end
+      Builtins.y2milestone("getSourceInfo(%1, %2): %3", index, source, info) if repo_mode
 
       # heading - in case repo name not found
       name = Ops.get_locale(info, "name", _("Unknown Repository Name"))
@@ -1054,6 +1047,7 @@ module Yast
         end
 
         return :add if input == :add
+
         if input == :next
           # store the new state
           success = Write()
@@ -1065,7 +1059,7 @@ module Yast
             details = Pkg.LastError
             Builtins.y2milestone("LastError: %1", details)
             # popup message part 2 followed by other info
-            message2 = details != "" ? Ops.add(_("Details:") + "\n", details) : ""
+            message2 = (details != "") ? Ops.add(_("Details:") + "\n", details) : ""
             # popup message part 3
             message2 = Ops.add(Ops.add(message2, "\n"), _("Try again?"))
 
@@ -1211,7 +1205,7 @@ module Yast
           elsif input == :autorefresh_all || input == :refresh_enabled
             Builtins.y2milestone(
               "Refreshing all %1 %2%3...",
-              input == :refresh_enabled ? "enabled" : "autorefreshed",
+              (input == :refresh_enabled) ? "enabled" : "autorefreshed",
               @repository_view ? "repositories" : "services",
               if @repository_view && @displayed_service != ""
                 Ops.add(" from service ", @displayed_service)
@@ -1252,9 +1246,7 @@ module Yast
                 end
                 schema = Builtins.tolower(Builtins.substring(url2, 0, 3))
 
-                if schema != "cd:" && schema != "dvd"
-                  to_refresh = Ops.add(to_refresh, 1)
-                end
+                to_refresh = Ops.add(to_refresh, 1) if schema != "cd:" && schema != "dvd"
               end
             end
 
@@ -1405,9 +1397,7 @@ module Yast
     def StartTypeDialog
       seturl = @selected_url_scheme
 
-      if !seturl.nil? && seturl != ""
-        seturl = Ops.add(@selected_url_scheme, "://")
-      end
+      seturl = Ops.add(@selected_url_scheme, "://") if !seturl.nil? && seturl != ""
 
       ret = TypeDialogOpts(true, seturl)
 
@@ -1421,9 +1411,7 @@ module Yast
         )
         Builtins.y2milestone("Selected URL scheme: %1", @selected_url_scheme)
 
-        if @selected_url_scheme.nil? || @selected_url_scheme == ""
-          @selected_url_scheme = "url"
-        end
+        @selected_url_scheme = "url" if @selected_url_scheme.nil? || @selected_url_scheme == ""
       end
 
       ret
@@ -1528,7 +1516,7 @@ module Yast
       PackageCallbacks.InitPackageCallbacks if !@full_mode
 
       # read repositories & services
-      restore = !@full_mode ? Pkg.SourceRestore : true
+      restore = @full_mode ? true : Pkg.SourceRestore
 
       Builtins.y2milestone("Known services: %1", Pkg.ServiceAliases)
 
@@ -1972,6 +1960,7 @@ module Yast
         url2 = SourceDialogs.EditPopupService(url2)
 
         break if Builtins.size(url2).zero?
+
         if url2 != old_url
           Builtins.y2milestone(
             "URL of the service has been changed, recreating the service"
@@ -2070,9 +2059,8 @@ module Yast
     # Shows a warning message when repository managed by a service
     # @param [Hash] source_state the current state of the repository or service
     def warn_service_repository(source_state)
-      msg = _("Repository '%{name}' is managed by service '%{service}'.\n"\
-        "Your manual changes might be reset by the next service refresh!") %
-        { name: source_state["name"], service: source_state["service"] }
+      msg = format(_("Repository '%{name}' is managed by service '%{service}'.\n"\
+        "Your manual changes might be reset by the next service refresh!"), name: source_state["name"], service: source_state["service"])
       if !source_state["service"].to_s.empty? && !@services_repos.include?(source_state["SrcId"])
         Popup.Warning(msg)
         @services_repos.push(source_state["SrcId"])

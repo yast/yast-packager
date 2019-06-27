@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 # ------------------------------------------------------------------------------
 # Copyright (c) 2016 SUSE LLC
 #
@@ -126,6 +124,7 @@ module Yast
     # @return [Boolean] true if the repo should be disabled
     def disable_media_repo?(source)
       return false if ![:cd, :dvd].include?(source)
+
       ProductFeatures.GetBooleanFeature("software", "disable_media_repo")
     end
 
@@ -273,9 +272,7 @@ module Yast
       repos.each do |repo|
         file = File.join(REPOS_DIR, repo)
         log.info("Removing target repository #{file}")
-        if !SCR.Execute(path(".target.remove"), file)
-          log.error("Cannot remove #{repo} file")
-        end
+        log.error("Cannot remove #{repo} file") if !SCR.Execute(path(".target.remove"), file)
       end
       log.info("All old repositories were removed from the target")
     end

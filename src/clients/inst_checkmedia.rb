@@ -45,12 +45,14 @@ module Yast
 
               values = Builtins.splitstring(app, ";")
 
-              Builtins.foreach(values) do |val|
-                v = Builtins.splitstring(val, "=")
-                key = Ops.get(v, 0)
-                value = Ops.get(v, 1)
-                Ops.set(application_area, key, value) if !key.nil?
-              end if !values.nil?
+              if !values.nil?
+                Builtins.foreach(values) do |val|
+                  v = Builtins.splitstring(val, "=")
+                  key = Ops.get(v, 0)
+                  value = Ops.get(v, 1)
+                  Ops.set(application_area, key, value) if !key.nil?
+                end
+              end
               Builtins.y2milestone(
                 "Parsed application area: %1",
                 application_area

@@ -89,6 +89,7 @@ module Y2Packager
       def find(repo_id)
         repo_data = Yast::Pkg.SourceGeneralData(repo_id)
         raise NotFound if repo_data.nil?
+
         new(repo_id: repo_id, enabled: repo_data["enabled"],
           name: repo_data["name"], autorefresh: repo_data["autorefresh"],
           url: URI(repo_data["url"]))
@@ -106,6 +107,7 @@ module Y2Packager
           "name" => name, "base_urls" => [url], "enabled" => enabled, "autorefresh" => autorefresh
         )
         return nil unless repo_id
+
         new(repo_id: repo_id, name: name, url: URI(url), enabled: enabled, autorefresh: autorefresh)
       end
     end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Client for 3rd prodcuts/addon products package installations
   class InstCustomPackagesClient < Client

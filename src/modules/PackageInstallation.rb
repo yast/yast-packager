@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 require "yast2/system_time"
 

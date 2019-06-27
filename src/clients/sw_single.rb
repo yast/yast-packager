@@ -1,9 +1,7 @@
-# encoding: utf-8
-
-# Module: 		sw_single.ycp
+# Module:     sw_single.ycp
 #
-# Authors: 		Gabriele Strattner (gs@suse.de)
-#			Klaus Kaempf <kkaempf@suse.de>
+# Authors:     Gabriele Strattner (gs@suse.de)
+#      Klaus Kaempf <kkaempf@suse.de>
 #
 require "shellwords"
 
@@ -11,8 +9,8 @@ require "y2packager/known_repositories"
 require "y2packager/system_packages"
 
 module Yast
-  # Purpose: 		contains dialog loop for workflows:
-  #	"Install/Remove software"
+  # Purpose:     contains dialog loop for workflows:
+  #  "Install/Remove software"
   #
   # @note: sw_single accepts a map parameter: $[ "dialog_type" : symbol,
   #   "repo_mgmt" : boolean ], dialog_type" can be `patternSelector, `searchMode, `summaryMode
@@ -123,9 +121,9 @@ module Yast
     # If we're called with an absolute package path just install
     # this package without paying attention to dependencies.
     #
-    # returns	`done		all done
-    #		`failed		package not found
-    #		`found_descr	started package manager
+    # returns  `done    all done
+    #    `failed    package not found
+    #    `found_descr  started package manager
     #
 
     def CheckWhichPackages(arg_list)
@@ -141,9 +139,7 @@ module Yast
 
       first_arg = ""
 
-      if Ops.greater_than(Builtins.size(arg_list), 0)
-        first_arg = Ops.get(arg_list, 0, "")
-      end
+      first_arg = Ops.get(arg_list, 0, "") if Ops.greater_than(Builtins.size(arg_list), 0)
 
       # If the first argument is a package ending with .rpm call Pkg::TargetInstall for
       # each arg.
@@ -440,9 +436,7 @@ module Yast
         if Ops.is_map?(a)
           m = Convert.to_map(a)
 
-          if Builtins.haskey(m, "dialog_type")
-            mode = Ops.get_symbol(m, "dialog_type", :searchMode)
-          end
+          mode = Ops.get_symbol(m, "dialog_type", :searchMode) if Builtins.haskey(m, "dialog_type")
 
           if Builtins.haskey(m, "repo_mgmt")
             repo_management = Ops.get_boolean(m, "repo_mgmt", false)

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "yast"
 require "pathname"
 
@@ -404,13 +402,9 @@ module Yast
     def ProgressPackage(pkg_percent)
       HandleInput()
 
-      if !SlideShow.GetUserAbort
-        PackageSlideShow.UpdateCurrentPackageProgress(pkg_percent)
-      end
+      PackageSlideShow.UpdateCurrentPackageProgress(pkg_percent) if !SlideShow.GetUserAbort
 
-      if SlideShow.GetUserAbort
-        Builtins.y2milestone("Aborted at %1%%", pkg_percent)
-      end
+      Builtins.y2milestone("Aborted at %1%%", pkg_percent) if SlideShow.GetUserAbort
 
       !SlideShow.GetUserAbort
     end
@@ -419,6 +413,7 @@ module Yast
     # just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
     def DonePackage(error, reason)
       return "I" if SlideShow.GetUserAbort
+
       PackageSlideShow.UpdateCurrentPackageProgress(100)
 
       ret = ""

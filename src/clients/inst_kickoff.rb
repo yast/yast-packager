@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "fileutils"
 require "shellwords"
 
@@ -74,11 +72,11 @@ module Yast
 
         # F#302660: System installation and upgrade workflow: kernel %post
         # calling ins_bootloader write all config files for bootloader
-        #	if (Stage::initial ())
-        #    	{
+        #  if (Stage::initial ())
+        #      {
         # call it always, it handles installation mode inside
         WFM.CallFunction("inst_bootloader", WFM.Args)
-        #	}
+        #  }
       elsif Stage.normal
         Yast.import "Kernel"
         @kernel = Kernel.ComputePackage
@@ -192,6 +190,7 @@ module Yast
         ) == -1
           break
         end
+
         num = Ops.add(num, 1)
       end
 
@@ -254,6 +253,7 @@ module Yast
             ) == -1
               break
             end
+
             num = Ops.add(num, 1)
           end
 
@@ -316,6 +316,7 @@ module Yast
             ) == -1
               break
             end
+
             num = Ops.add(num, 1)
           end
 
@@ -364,6 +365,7 @@ module Yast
 
           # avoid from filename conflicts
           break if !FileUtils.Exists(Ops.add(Installation.destdir, filename))
+
           num = Ops.add(num, 1)
         end
 
@@ -466,9 +468,7 @@ module Yast
         end
         if !one_active
           name = Ops.get_string(drivers, [0, "modules", 0, 0], "")
-          if name != ""
-            ModuleLoading.Load(name, "", "Linux", "", Linuxrc.manual, true)
-          end
+          ModuleLoading.Load(name, "", "Linux", "", Linuxrc.manual, true) if name != ""
         end
       end
 

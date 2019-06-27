@@ -38,6 +38,7 @@ module Y2Packager
 
     def select
       return if packages.empty?
+
       log.info "Preselecting system packages: #{packages.inspect}"
       packages.each { |p| Yast::Pkg.PkgInstall(p) }
     end

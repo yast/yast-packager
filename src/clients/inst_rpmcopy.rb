@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Install all the RPM packages the user has selected.
   # Show installation dialogue. Show progress bars.
@@ -311,12 +310,14 @@ module Yast
     def AutoinstPostPackages
       # post packages from autoinstall
       res = Pkg.DoProvide(AutoinstData.post_packages)
-      Builtins.foreach(res) do |s, a|
-        Builtins.y2warning("Pkg::DoProvide failed for %1: %2", s, a)
-      end if Ops.greater_than(
+      if Ops.greater_than(
         Builtins.size(res),
         0
       )
+        Builtins.foreach(res) do |s, a|
+          Builtins.y2warning("Pkg::DoProvide failed for %1: %2", s, a)
+        end
+      end
 
       failed = []
       patterns = deep_copy(AutoinstData.post_patterns)

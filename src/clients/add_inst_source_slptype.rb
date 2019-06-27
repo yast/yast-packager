@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   #  Client for searching for and adding SLP repositories.
   #  The purpose is to make yast2-installation independent on yast-slp

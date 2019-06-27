@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Checking whether system has enough memory (bugzilla #305554)
   class InstCheckMemsizeClient < Client

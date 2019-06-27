@@ -229,13 +229,13 @@ describe Yast::SpaceCalculation do
     let(:dir) { "/mnt" }
 
     it "returns sum of used sizes reported by btrfs tool" do
-      stdout = <<EOF
-Data: total=1.33GiB, used=876.35MiB
-System, DUP: total=8.00MiB, used=4.00KiB
-System: total=4.00MiB, used=0.00B
-Metadata, DUP: total=339.00MiB, used=77.03MiB
-Metadata: total=8.00MiB, used=0.00B
-EOF
+      stdout = <<~EOF
+        Data: total=1.33GiB, used=876.35MiB
+        System, DUP: total=8.00MiB, used=4.00KiB
+        System: total=4.00MiB, used=0.00B
+        Metadata, DUP: total=339.00MiB, used=77.03MiB
+        Metadata: total=8.00MiB, used=0.00B
+      EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => stdout, "exit" => 0)
       expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_483)
@@ -251,13 +251,13 @@ EOF
 
     it "ignores lines without 'used' value" do
       # the same as in the test above, but removed "used=0.00B" values
-      stdout = <<EOF
-Data: total=1.33GiB, used=876.35MiB
-System, DUP: total=8.00MiB, used=4.00KiB
-System: total=4.00MiB
-Metadata, DUP: total=339.00MiB, used=77.03MiB
-Metadata: total=8.00MiB
-EOF
+      stdout = <<~EOF
+        Data: total=1.33GiB, used=876.35MiB
+        System, DUP: total=8.00MiB, used=4.00KiB
+        System: total=4.00MiB
+        Metadata, DUP: total=339.00MiB, used=77.03MiB
+        Metadata: total=8.00MiB
+      EOF
       expect(Yast::SCR).to receive(:Execute).with(SCR_BASH_OUTPUT_PATH,
         "LC_ALL=C btrfs filesystem df #{dir}").and_return("stdout" => stdout, "exit" => 0)
       expect(Yast::SpaceCalculation.btrfs_used_size(dir)).to eq(999_695_483)

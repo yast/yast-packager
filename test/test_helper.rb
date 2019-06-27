@@ -1,4 +1,4 @@
-srcdir = File.expand_path("../../src", __FILE__)
+srcdir = File.expand_path("../src", __dir__)
 y2dirs = ENV.fetch("Y2DIR", "").split(":")
 ENV["Y2DIR"] = y2dirs.unshift(srcdir).join(":")
 
@@ -23,6 +23,7 @@ end
 RSpec::Matchers.define :array_not_including do |x|
   match do |actual|
     return false unless actual.is_a?(Array)
+
     !actual.include?(x)
   end
 end

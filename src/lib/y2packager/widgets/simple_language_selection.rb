@@ -90,6 +90,7 @@ module Y2Packager
       # @return [Array<Array<String,String>>] Array of languages in form [code, description]
       def items
         return @items if @items
+
         lmap = Yast::Language.GetLanguagesMap(false)
         @items = languages.map do |lang|
           [lang, LanguageTag.new(lang).name(lang_map_cache: lmap)]
