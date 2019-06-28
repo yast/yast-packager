@@ -42,7 +42,6 @@ Metrics/BlockLength:
   Exclude:
     # rspec DSL contain huge blocks
     - "test/**/*.rb"
-  Max: 200 # some ui loops are huge
 
 # Offense count: 8
 Lint/Loop:

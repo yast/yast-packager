@@ -3,7 +3,6 @@ require "yast2/hw_detection"
 
 require "shellwords"
 require "uri"
-require "cgi"
 
 Yast.import "UI"
 Yast.import "Pkg"
@@ -357,7 +356,7 @@ module Yast
       return url_string if url_string.nil? || url_string == ""
 
       # unescape it
-      url_string = CGI.unescape(url_string)
+      url_string = URI.unescape(url_string)
 
       # removing all slashes at the end of the url
       url_string.sub(/(\/)+$/, "")

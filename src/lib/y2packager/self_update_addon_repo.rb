@@ -18,7 +18,7 @@
 # find current contact information at www.suse.com.
 
 require "fileutils"
-require "cgi"
+require "uri"
 
 require "yast"
 require "y2packager/self_update_addon_filter"
@@ -88,7 +88,7 @@ module Y2Packager
     # @return [Boolean] true on success, false if failed
     #
     def self.create_repo(path = REPO_PATH)
-      ret = Yast::Pkg.SourceCreateType("dir://#{CGI.escape(path)}?alias=SelfUpdate0",
+      ret = Yast::Pkg.SourceCreateType("dir://#{URI.escape(path)}?alias=SelfUpdate0",
         "", "Plaindir")
       log.info("Created self update addon repo: #{ret}")
       ret
