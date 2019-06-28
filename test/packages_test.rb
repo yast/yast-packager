@@ -5,8 +5,6 @@ require_relative "./test_helper"
 require "yaml"
 require "uri"
 
-include Yast::Logger
-
 Yast.import "Packages"
 Yast.import "SCR"
 Yast.import "Product"
@@ -26,16 +24,16 @@ CHECK_FOR_DELL_SYSTEM = Regexp.new(
 
 def load_zypp(file_name)
   file_name = File.join(DATA_PATH, "zypp", file_name)
-  log.info "Loading file: #{file_name}"
+  Yast.y2milestone "Loading file: #{file_name}"
   YAML.load_file(file_name)
 end
 
 PRODUCTS_FROM_ZYPP = load_zypp("products.yml").freeze
 
-describe "Yast::Packages" do
+describe Yast::Packages do
   subject { Yast::Packages }
   before(:each) do
-    log.info "--- test ---"
+    Yast.y2milestone "--- test ---"
   end
 
   describe "#kernelCmdLinePackages" do
@@ -781,7 +779,7 @@ describe "Yast::Packages" do
         let(:providers) { ["prov1", package] }
 
         it "includes the tag as package name and logs a message" do
-          expect(Yast::Package.log).to receive(:warn)
+          expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
                  "prov1, #{package}. Selecting '#{package}'.")
           expect(subject.vnc_packages).to include(package)
@@ -792,7 +790,7 @@ describe "Yast::Packages" do
         let(:providers) { ["prov2", "prov1"] }
 
         it "includes the first provider (according to alphabetic order) and logs a message" do
-          expect(Yast::Package.log).to receive(:warn)
+          expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
                  "prov2, prov1. Selecting 'prov1'.")
           expect(subject.vnc_packages).to include("prov1")
@@ -935,7 +933,7 @@ describe "Yast::Packages" do
         let(:providers) { ["prov1", package] }
 
         it "includes the tag as package name and logs a message" do
-          expect(Yast::Package.log).to receive(:warn)
+          expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
                  "prov1, #{package}. Selecting '#{package}'.")
           expect(subject.remote_x11_packages).to include(package)
@@ -946,7 +944,7 @@ describe "Yast::Packages" do
         let(:providers) { ["prov2", "prov1"] }
 
         it "includes the first provider (according to alphabetic order) and logs a message" do
-          expect(Yast::Package.log).to receive(:warn)
+          expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
                  "prov2, prov1. Selecting 'prov1'.")
           expect(subject.remote_x11_packages).to include("prov1")
