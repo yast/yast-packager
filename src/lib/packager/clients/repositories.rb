@@ -1248,7 +1248,7 @@ module Yast
                 end
                 schema = Builtins.tolower(Builtins.substring(url2, 0, 3))
 
-                to_refresh = Ops.add(to_refresh, 1) if schema != "cd:" && schema != "dvd"
+                to_refresh += 1 if schema != "cd:" && schema != "dvd"
               end
             end
 
