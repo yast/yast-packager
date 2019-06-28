@@ -712,7 +712,11 @@ module Yast
           _("Product <b>%s</b> will be updated") % h(old_product)
         else
           # product update: %{old_product} is an old product, %{new_product} is the new one
-          format(_("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>"), old_product: h(old_product), new_product: h(new_product))
+          format(
+            _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>"),
+            old_product: h(old_product),
+            new_product: h(new_product)
+          )
         end
       end
 
@@ -742,7 +746,11 @@ module Yast
           new_products_str = new_product_names(obsolete).join(", ")
 
           # TRANSLATORS: Old product %{old_product} will be obsoleted by %{new_product} products.
-          re = format(_("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>"), old_product: h(product_label(product)), new_product: h(new_products_str))
+          re = format(
+            _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>"),
+            old_product: h(product_label(product)),
+            new_product: h(new_products_str)
+          )
         end
         re
       end
@@ -2223,13 +2231,19 @@ module Yast
         # TRANSLATORS: error popup, use at most 70 characters per line
         # the %{fips_option} string is replaced by the FIPS boot option ("fips=1"),
         # the %{fips_pattern} is replaced by the FIPS pattern name ("fips").
-        Report.Error(format(_("The FIPS compliant mode has been enabled\n" \
-          "but the '%{fips_pattern}' pattern is not available to install.\n\n" \
-          "The installation will very likely fail and the installed system\n" \
-          "might not work properly.\n\n" \
-          "Either add an additional software repository providing\n" \
-          "the '%{fips_pattern}' pattern or reboot the installation\n"\
-          "without the '%{fips_option}' boot option."), fips_option: FIPS_BOOT_OPTION, fips_pattern: FIPS_PATTERN))
+        Report.Error(
+          format(
+            _("The FIPS compliant mode has been enabled\n" \
+              "but the '%{fips_pattern}' pattern is not available to install.\n\n" \
+              "The installation will very likely fail and the installed system\n" \
+              "might not work properly.\n\n" \
+              "Either add an additional software repository providing\n" \
+              "the '%{fips_pattern}' pattern or reboot the installation\n"\
+              "without the '%{fips_option}' boot option."),
+            fips_option:  FIPS_BOOT_OPTION,
+            fips_pattern: FIPS_PATTERN
+          )
+        )
       else
         log.info "#{FIPS_BOOT_OPTION} boot option detected, adding '#{FIPS_PATTERN}' pattern"
         pattern_list << FIPS_PATTERN
@@ -2620,7 +2634,11 @@ module Yast
       else
         # TRANSLATORS: %{type} is a resolvable type, %{list} is a list of names
         # This is a fallback message for unknown types, normally it should not be displayed
-        format(_("These items (%{type}) need to be selected to install: %{list}"), type: type, list: list)
+        format(
+          _("These items (%{type}) need to be selected to install: %{list}"),
+          type: type,
+          list: list
+        )
       end
     end
 

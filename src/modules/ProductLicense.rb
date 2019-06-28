@@ -756,7 +756,10 @@ module Yast
     # return [String] translated label
     def license_download_label(display_url)
       # TRANSLATORS: %{license_url} is an URL where the displayed license can be found
-      format(_("If you want to print this EULA, you can download it from\n%{license_url}"), license_url: display_url)
+      format(
+        _("If you want to print this EULA, you can download it from\n%{license_url}"),
+        license_url: display_url
+      )
     end
 
     # update license location displayed in the dialog (e.g. after license translation

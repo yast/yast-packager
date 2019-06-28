@@ -67,75 +67,74 @@ module Yast
     end
 
     def TranslateInfo(info)
-      info = deep_copy(info)
+      return [] if info.nil?
+
       ret = []
 
-      if !info.nil?
-        Builtins.foreach(info) do |i|
-          parts = Builtins.splitstring(i, ":")
-          key = String.CutBlanks(Ops.get(parts, 0, ""))
-          val = String.CutBlanks(Ops.get(parts, 1, ""))
-          trasmap = {
-            # rich text message, %1 = CD identification
-            "app"        => Ops.add(
-              "<P><IMG HEIGHT=\"22\" SRC=\"yast-checkmedia\">&nbsp;&nbsp;&nbsp;<BIG><B>%1</B></BIG>",
-              @checking_file ? Builtins.sformat("  (%1)", @iso_filename) : ""
-            ),
-            # rich text message, %1 medium number, e.g. CD1,CD2...
-            "media"      => _(
-              "<UL><LI>Medium: %1</LI></UL>"
-            ),
-            # rich text message, %1 = size of the medium
-            "size"       => _(
-              "<UL><LI>Size: %1</LI></UL>"
-            ),
-            # rich text message, %1 = result of the check
-            "check"      => _(
-              "<UL><LI>Result: %1</LI></UL>"
-            ),
-            # rich text -  error message
-            "not an iso" => "<FONT COLOR=red>" +
+      Builtins.foreach(info) do |i|
+        parts = Builtins.splitstring(i, ":")
+        key = String.CutBlanks(Ops.get(parts, 0, ""))
+        val = String.CutBlanks(Ops.get(parts, 1, ""))
+        trasmap = {
+          # rich text message, %1 = CD identification
+          "app"        => Ops.add(
+            "<P><IMG HEIGHT=\"22\" SRC=\"yast-checkmedia\">&nbsp;&nbsp;&nbsp;<BIG><B>%1</B></BIG>",
+            @checking_file ? Builtins.sformat("  (%1)", @iso_filename) : ""
+          ),
+          # rich text message, %1 medium number, e.g. CD1,CD2...
+          "media"      => _(
+            "<UL><LI>Medium: %1</LI></UL>"
+          ),
+          # rich text message, %1 = size of the medium
+          "size"       => _(
+            "<UL><LI>Size: %1</LI></UL>"
+          ),
+          # rich text message, %1 = result of the check
+          "check"      => _(
+            "<UL><LI>Result: %1</LI></UL>"
+          ),
+          # rich text -  error message
+          "not an iso" => "<FONT COLOR=red>" +
+            _(
+              "The drive does not contain a medium or the ISO file system is broken."
+            ) + "</FONT>"
+        }
+        if key == "check"
+          # try to translate result string
+          # correct MD5
+          if val == "md5sum ok"
+            # result of the check - success
+            val = "<FONT COLOR=\"darkGreen\">" +
+              _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>"
+          elsif val == "md5sum wrong"
+            # wrong MD5
+            val = "<FONT COLOR=red>" +
               _(
-                "The drive does not contain a medium or the ISO file system is broken."
+                "<B>Error</B> -- MD5 sum does not match<BR>This medium should not be used."
               ) + "</FONT>"
-          }
-          if key == "check"
-            # try to translate result string
-            # correct MD5
-            if val == "md5sum ok"
-              # result of the check - success
-              val = "<FONT COLOR=\"darkGreen\">" +
-                _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>"
-            elsif val == "md5sum wrong"
-              # wrong MD5
-              val = "<FONT COLOR=red>" +
-                _(
-                  "<B>Error</B> -- MD5 sum does not match<BR>This medium should not be used."
-                ) + "</FONT>"
-            elsif val == "md5sum not checked"
-              # the correct MD5 is unknown
-              val = _(
-                "<B>Unknown</B> -- The correct MD5 sum of the medium is unknown."
-              )
-            # progress output
-            elsif Builtins.issubstring(val, "%\b\b\b\b")
-              key = ""
-              Builtins.y2milestone(
-                "Ignoring progress output: %1",
-                Builtins.mergestring(Builtins.splitstring(val, "\b"), "\\b")
-              )
-            end
-          # don't print MD5 sum (it doesn't help user)
-          elsif key == "md5"
-            Builtins.y2milestone("Expected MD5 of the medium: %1", val)
+          elsif val == "md5sum not checked"
+            # the correct MD5 is unknown
+            val = _(
+              "<B>Unknown</B> -- The correct MD5 sum of the medium is unknown."
+            )
+          # progress output
+          elsif Builtins.issubstring(val, "%\b\b\b\b")
             key = ""
+            Builtins.y2milestone(
+              "Ignoring progress output: %1",
+              Builtins.mergestring(Builtins.splitstring(val, "\b"), "\\b")
+            )
           end
-          newstr = Ops.get(trasmap, key, "")
-          if !newstr.nil? && newstr != ""
-            newstr = Builtins.sformat(newstr, val)
+        # don't print MD5 sum (it doesn't help user)
+        elsif key == "md5"
+          Builtins.y2milestone("Expected MD5 of the medium: %1", val)
+          key = ""
+        end
+        newstr = Ops.get(trasmap, key, "")
+        if !newstr.nil? && newstr != ""
+          newstr = Builtins.sformat(newstr, val)
 
-            ret = Builtins.add(ret, newstr)
-          end
+          ret = Builtins.add(ret, newstr)
         end
       end
 

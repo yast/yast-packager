@@ -87,7 +87,8 @@ module Yast
   #       </repositories>
   #     </group>
   #   </metapackage>
-  class InstProductsourcesClient < Client # rubocop:disable Style/ClassVars
+  class InstProductsourcesClient < Client
+    # rubocop:disable Style/ClassVars
     include Yast::Logger
 
     # too low memory for using online repositories (in MiB),
@@ -1796,5 +1797,6 @@ module Yast
 
       nil
     end
+    # rubocop:enable Style/ClassVars
   end
 end
