@@ -33,14 +33,14 @@ module Yast
       nil
     end
 
-    #  Show a dialog with either the list of failed packages (string a) or
-    #  the complete log (string b).
-    def ShowFailedPackages(a, b)
+    #  Show a dialog with either the list of failed packages (string failed_packages) or
+    #  the complete log (string full_log).
+    def ShowFailedPackages(failed_packages, full_log)
       rbuttons = RadioButtonGroup(
         VBox(
           Left(
             RadioButton(
-              Id(:a),
+              Id(:failed_packages),
               Opt(:notify),
               # button label
               _("&Show Failed Packages List"),
@@ -49,7 +49,7 @@ module Yast
           ),
           Left(
             RadioButton(
-              Id(:b),
+              Id(:full_log),
               Opt(:notify),
               # button label
               _("&Show Full Log"),
@@ -66,7 +66,7 @@ module Yast
           # dialog headline
           Left(Heading(_("Installation of some Packages Failed"))),
           rbuttons,
-          RichText(Id(:text), Opt(:plainText), a),
+          RichText(Id(:text), Opt(:plainText), full_log),
           PushButton(Id(:ok), Opt(:default, :key_F10), Label.OKButton)
         )
       )
@@ -74,11 +74,11 @@ module Yast
       loop do
         ret = Convert.to_symbol(UI.UserInput)
 
-        if ret == :a || ret == :b
+        if ret == :failed_packages || ret == :full_log
           UI.ChangeWidget(
             Id(:text),
             :Value,
-            Convert.to_boolean(UI.QueryWidget(Id(:a), :Value)) ? a : b
+            UI.QueryWidget(Id(:failed_packages), :Value) ? failed_packages : full_log
           )
           next
         end

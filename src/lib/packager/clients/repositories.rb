@@ -498,16 +498,16 @@ module Yast
     # But ZENworks cannot completely disable a repository (unsubscribing a
     # repository merely decreases its priority) so we consider a disabled repository
     # like a deleted one.
-    # @param [Array<Hash{String => Object>}] statesOld sourceStates - In or Out
-    # @param [Array<Hash{String => Object>}] statesNew sourceStates - In or Out
+    # @param [Array<Hash{String => Object>}] states_old sourceStates - In or Out
+    # @param [Array<Hash{String => Object>}] states_new sourceStates - In or Out
     # @return the list of SrcId's that are enabled in statesNew
-    #  but are not enabled in statesOld
-    def newSources(statesOld, statesNew)
-      statesOld = deep_copy(statesOld)
-      statesNew = deep_copy(statesNew)
-      Builtins.y2milestone("From %1 To %2", statesOld, statesNew)
+    #  but are not enabled in states_old
+    def newSources(states_old, states_new)
+      states_old = deep_copy(states_old)
+      states_new = deep_copy(states_new)
+      Builtins.y2milestone("From %1 To %2", states_old, states_new)
       ret = []
-      seen = Builtins.listmap(statesOld) do |src|
+      seen = Builtins.listmap(states_old) do |src|
         {
           Ops.get_integer(src, "SrcId", -1) => Ops.get_boolean(
             src,
@@ -516,7 +516,7 @@ module Yast
           )
         }
       end
-      Builtins.foreach(statesNew) do |src|
+      Builtins.foreach(states_new) do |src|
         newid = Ops.get_integer(src, "SrcId", -1)
         newena = Ops.get_boolean(src, "enabled", true)
         ret = Builtins.add(ret, newid) if newena && !Ops.get(seen, newid, false)
@@ -525,17 +525,17 @@ module Yast
       deep_copy(ret)
     end
 
-    def newServices(statesOld, statesNew)
-      statesOld = deep_copy(statesOld)
-      statesNew = deep_copy(statesNew)
-      Builtins.y2milestone("Services from %1 To %2", statesOld, statesNew)
+    def newServices(states_old, states_new)
+      states_old = deep_copy(states_old)
+      states_new = deep_copy(states_new)
+      Builtins.y2milestone("Services from %1 To %2", states_old, states_new)
       ret = []
 
-      seen = Builtins.maplist(statesOld) do |srv|
+      seen = Builtins.maplist(states_old) do |srv|
         Ops.get_string(srv, "alias", "")
       end
 
-      Builtins.foreach(statesNew) do |srv|
+      Builtins.foreach(states_new) do |srv|
         alias_name = Ops.get_string(srv, "alias", "")
         Builtins.y2milestone("Checking %1", alias_name)
         ret = Builtins.add(ret, alias_name) if !Builtins.contains(seen, alias_name)
@@ -1140,33 +1140,33 @@ module Yast
 
           Builtins.y2debug("Current item: %1", current)
 
-          sourceState = {}
+          source_state = {}
 
           # global_current - 'current' that points to global sourceStatesOut
           global_current = -1
 
           if @repository_view
             if @displayed_service == ""
-              sourceState = Ops.get(@sourceStatesOut, current, {})
+              source_state = Ops.get(@sourceStatesOut, current, {})
               global_current = current
             elsif !current.nil?
               sources_from_service = ReposFromService(
                 @displayed_service,
                 @sourceStatesOut
               )
-              sourceState = Ops.get(sources_from_service, current, {})
+              source_state = Ops.get(sources_from_service, current, {})
 
               Builtins.find(@sourceStatesOut) do |s|
                 global_current = Ops.add(global_current, 1)
                 Ops.get(s, "SrcId") ==
-                  Ops.get_integer(sourceState, "SrcId", -1)
+                  Ops.get_integer(source_state, "SrcId", -1)
               end
 
               Builtins.y2milestone("global_current: %1", global_current)
             end
           end
 
-          id = Ops.get_integer(sourceState, "SrcId", -1)
+          id = Ops.get_integer(source_state, "SrcId", -1)
 
           if Ops.less_than(id, 0) && @repository_view &&
               @displayed_service == ""
@@ -1178,7 +1178,7 @@ module Yast
 
           if input == :replace
             if @repository_view
-              repo_replace_handler(sourceState, global_current)
+              repo_replace_handler(source_state, global_current)
             else
               service_replace_handler(current)
             end
@@ -1186,7 +1186,7 @@ module Yast
             if @repository_view
               Pkg.SourceRefreshNow(id)
 
-              if @full_mode && Ops.get_boolean(sourceState, "enabled", false)
+              if @full_mode && Ops.get_boolean(source_state, "enabled", false)
                 # force loading of the resolvables
                 Pkg.SourceSetEnabled(id, false)
                 Pkg.SourceSetEnabled(id, true)
@@ -1345,19 +1345,19 @@ module Yast
             end
           elsif input == :enable
             if @repository_view
-              repo_enable_handler(sourceState, global_current, current)
+              repo_enable_handler(source_state, global_current, current)
             else
               service_enable_handler(current)
             end
           elsif input == :autorefresh
             if @repository_view
-              repo_autorefresh_handler(sourceState, global_current, current)
+              repo_autorefresh_handler(source_state, global_current, current)
             else
               service_autorefresh_handler(current)
             end
           elsif input == :priority
             if @repository_view
-              repo_priority_handler(sourceState, global_current, current)
+              repo_priority_handler(source_state, global_current, current)
             else
               Builtins.y2error(
                 "Ignoring event `priority: the widget should NOT be displayed in service mode!"
@@ -1365,7 +1365,7 @@ module Yast
             end
           elsif input == :keeppackages
             if @repository_view
-              repo_keeppackages_handler(sourceState, global_current)
+              repo_keeppackages_handler(source_state, global_current)
             else
               Builtins.y2error(
                 "Ignoring event `keeppackages: the widget should NOT be displayed in service mode!"
@@ -1641,22 +1641,22 @@ module Yast
     end
 
     # Handle the "Enable" checkbox in the repository view
-    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Hash] source_state the current state of the repository or service
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
     # @param [Integer] current index of the selected item in the table
-    def repo_enable_handler(sourceState, global_current, current)
+    def repo_enable_handler(source_state, global_current, current)
       repo = @sourceStatesOut[global_current] || {}
       if !repo["service"].to_s.empty? && !plugin_service_check(repo["service"], repo_change_msg)
         return
       end
 
-      warn_service_repository(sourceState)
-      state = !sourceState["enabled"]
+      warn_service_repository(source_state)
+      state = !source_state["enabled"]
       # corresponds to the "Enable/Disable" button
       state_symbol = state ? UI.Glyph(:CheckMark) : ""
       UI.ChangeWidget(Id(:table), term(:Item, current, 1), state_symbol)
-      sourceState["enabled"] = state
-      @sourceStatesOut[global_current] = sourceState
+      source_state["enabled"] = state
+      @sourceStatesOut[global_current] = source_state
     end
 
     # Handle the "Enable" checkbox in the service view
@@ -1684,18 +1684,18 @@ module Yast
     end
 
     # Handle the "Autorefresh" checkbox in the repository view
-    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Hash] source_state the current state of the repository or service
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
     # @param [Integer] current index of the selected item in the table
-    def repo_autorefresh_handler(sourceState, global_current, current)
-      source_id = sourceState["SrcId"]
+    def repo_autorefresh_handler(source_state, global_current, current)
+      source_id = source_state["SrcId"]
       src_data = Pkg.SourceGeneralData(source_id)
-      return if !plugin_service_check(sourceState["service"], repo_change_msg)
+      return if !plugin_service_check(source_state["service"], repo_change_msg)
 
-      warn_service_repository(sourceState)
+      warn_service_repository(source_state)
 
       type = src_data["type"]
-      state = !sourceState["autorefresh"]
+      state = !source_state["autorefresh"]
 
       if type == "PlainDir" && state
         # popup message
@@ -1706,8 +1706,8 @@ module Yast
       new_symbol = state ? UI.Glyph(:CheckMark) : ""
       UI.ChangeWidget(Id(:table), term(:Item, current, 2), new_symbol)
 
-      sourceState["autorefresh"] = state
-      @sourceStatesOut[global_current] = sourceState
+      source_state["autorefresh"] = state
+      @sourceStatesOut[global_current] = source_state
     end
 
     # Handle the "Autorefresh" checkbox in the service view
@@ -1730,13 +1730,13 @@ module Yast
     end
 
     # Handle the "Priority" field in the repository view
-    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Hash] source_state the current state of the repository or service
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
     # @param [Integer] current index of the selected item in the table
-    def repo_priority_handler(sourceState, global_current, current)
-      return if !plugin_service_check(sourceState["service"], repo_change_msg)
+    def repo_priority_handler(source_state, global_current, current)
+      return if !plugin_service_check(source_state["service"], repo_change_msg)
 
-      warn_service_repository(sourceState)
+      warn_service_repository(source_state)
       # refresh the value in the table
       new_priority = UI.QueryWidget(Id(:priority), :Value)
       log.debug("New priority: #{new_priority}")
@@ -1746,31 +1746,31 @@ module Yast
         term(:Item, current, 0),
         PriorityToString(new_priority)
       )
-      sourceState["priority"] = new_priority
-      @sourceStatesOut[global_current] = sourceState
+      source_state["priority"] = new_priority
+      @sourceStatesOut[global_current] = source_state
     end
 
     # Handle the "Keep packages" check box in the repository view
-    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Hash] source_state the current state of the repository or service
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
-    def repo_keeppackages_handler(sourceState, global_current)
-      return if !plugin_service_check(sourceState["service"], repo_change_msg)
+    def repo_keeppackages_handler(source_state, global_current)
+      return if !plugin_service_check(source_state["service"], repo_change_msg)
 
-      warn_service_repository(sourceState)
+      warn_service_repository(source_state)
 
       # refresh the value in the table
       new_keep = UI.QueryWidget(Id(:keeppackages), :Value)
       log.info("New keep packages option: #{new_keep}")
 
-      sourceState["keeppackages"] = new_keep
-      @sourceStatesOut[global_current] = sourceState
+      source_state["keeppackages"] = new_keep
+      @sourceStatesOut[global_current] = source_state
     end
 
     # Handle the "Edit" button in the repository view
-    # @param [Hash] sourceState the current state of the repository or service
+    # @param [Hash] source_state the current state of the repository or service
     # @param [Integer] global_current index of the repository in the @sourceStatesOut
-    def repo_replace_handler(sourceState, global_current)
-      id = sourceState["SrcId"]
+    def repo_replace_handler(source_state, global_current)
+      id = source_state["SrcId"]
       generalData = Pkg.SourceGeneralData(id)
 
       return if !plugin_service_check(generalData["service"], repo_change_msg)
@@ -1780,7 +1780,7 @@ module Yast
       old_url = url2
       plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
 
-      SourceDialogs.SetRepoName(Ops.get_string(sourceState, "name", ""))
+      SourceDialogs.SetRepoName(Ops.get_string(source_state, "name", ""))
       begin
         url2 = SourceDialogs.EditPopupType(url2, plaindir)
 
@@ -1814,7 +1814,7 @@ module Yast
             if Ops.get_string(new_url_parsed, "path", "") ==
                 Ops.get_string(old_url_parsed, "path", "")
               Pkg.SourceChangeUrl(
-                Ops.get_integer(sourceState, "SrcId", -1),
+                Ops.get_integer(source_state, "SrcId", -1),
                 url2
               )
               same_url = true
@@ -1835,7 +1835,7 @@ module Yast
           createResult = createSourceWithAlias(
             url2,
             SourceDialogs.IsPlainDir,
-            Ops.get_boolean(sourceState, "do_refresh", false),
+            Ops.get_boolean(source_state, "do_refresh", false),
             SourceDialogs.GetRepoName,
             alias_name
           )
@@ -1845,23 +1845,23 @@ module Yast
             idx = Ops.subtract(Builtins.size(@sourceStatesOut), 1)
             addedSource = Ops.get(@sourceStatesOut, idx, {})
 
-            Builtins.y2milestone("Orig repo: %1", sourceState)
+            Builtins.y2milestone("Orig repo: %1", source_state)
             Builtins.y2milestone("Added repo: %1", addedSource)
 
             if addedSource != {}
               auto_refresh = Ops.get_boolean(
-                sourceState,
+                source_state,
                 "autorefresh",
                 true
               )
               keeppackages = Ops.get_boolean(
-                sourceState,
+                source_state,
                 "keeppackages",
                 false
               )
-              enabled = Ops.get_boolean(sourceState, "enabled", true)
+              enabled = Ops.get_boolean(source_state, "enabled", true)
               priority = Ops.get_integer(
-                sourceState,
+                source_state,
                 "priority",
                 @default_priority
               )
@@ -1916,11 +1916,11 @@ module Yast
           )
 
           new_name = SourceDialogs.GetRepoName
-          if new_name != Ops.get_string(sourceState, "name", "")
-            warn_service_repository(sourceState)
+          if new_name != Ops.get_string(source_state, "name", "")
+            warn_service_repository(source_state)
 
-            Ops.set(sourceState, "name", new_name)
-            Ops.set(@sourceStatesOut, global_current, sourceState)
+            Ops.set(source_state, "name", new_name)
+            Ops.set(@sourceStatesOut, global_current, source_state)
 
             # update only the name cell in the table
             UI.ChangeWidget(

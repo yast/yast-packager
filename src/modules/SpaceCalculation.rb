@@ -413,8 +413,8 @@ module Yast
     end
 
     # is the filesystem one of Ext2/3/4?
-    def ExtFs(fs)
-      fs == :ext2 || fs == :ext3 || fs == :ext4
+    def ExtFs(filesystem)
+      [:ext2, :ext3, :ext4].include?(filesystem)
     end
 
     # return estimated fs overhead

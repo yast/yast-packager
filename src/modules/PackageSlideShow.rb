@@ -1206,7 +1206,7 @@ module Yast
       nil
     end
 
-    def SlideGenericProvideStart(pkg_name, sz, pattern, remote)
+    def SlideGenericProvideStart(pkg_name, size, pattern, remote)
       return if !SanityCheck(false)
       return if !SlideShow.ShowingDetails
 
@@ -1214,7 +1214,7 @@ module Yast
 
       if remote
         @provide_name = pkg_name
-        @provide_size = String.FormatSize(sz)
+        @provide_size = String.FormatSize(size)
 
         provide_msg = Builtins.sformat(
           _("Downloading %1 (download size %2)"),
@@ -1239,7 +1239,7 @@ module Yast
       # message in the installatino log, %1 is package name,
       # %2 is package size
       SlideShow.AppendMessageToInstLog(
-        Builtins.sformat(pattern, pkg_name, String.FormatSize(sz))
+        Builtins.sformat(pattern, pkg_name, String.FormatSize(size))
       )
 
       nil
@@ -1259,15 +1259,15 @@ module Yast
     end
 
     # Package providal start
-    def SlideProvideStart(pkg_name, sz, remote)
-      @current_provide_size = remote ? sz : 0
+    def SlideProvideStart(pkg_name, size, remote)
+      @current_provide_size = remote ? size : 0
 
       if remote
         # message in the installatino log, %1 is package name,
         # %2 is package size
         SlideGenericProvideStart(
           pkg_name,
-          sz,
+          size,
           _("Downloading %1 (download size %2)"),
           remote
         )

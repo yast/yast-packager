@@ -446,8 +446,8 @@ module Yast
     end
 
     # Called from the first stage Welcome dialog by clicking on a button
-    def ShowFullScreenLicenseInInstallation(replace_point_ID, src_id)
-      replace_point_ID = deep_copy(replace_point_ID)
+    def ShowFullScreenLicenseInInstallation(replace_point_id, src_id)
+      replace_point_id = deep_copy(replace_point_id)
       @lic_lang = ""
       licenses = {}
       available_langs = []
@@ -471,7 +471,7 @@ module Yast
       # Replaces the dialog content with Languages combo-box
       # and the current license text (richtext)
       UI.ReplaceWidget(
-        Id(replace_point_ID),
+        Id(replace_point_id),
         (
           licenses_ref = arg_ref(licenses)
           result = GetLicenseDialogTerm(
@@ -509,8 +509,8 @@ module Yast
     end
 
     # Used in the first-stage Welcome dialog
-    def ShowLicenseInInstallation(replace_point_ID, src_id)
-      replace_point_ID = deep_copy(replace_point_ID)
+    def ShowLicenseInInstallation(replace_point_id, src_id)
+      replace_point_id = deep_copy(replace_point_id)
       @lic_lang = ""
       licenses = {}
       available_langs = []
@@ -536,7 +536,7 @@ module Yast
         licenses_ref,
         Builtins.tostring(src_id)
       )
-      UI.ReplaceWidget(Id(replace_point_ID), rt)
+      UI.ReplaceWidget(Id(replace_point_id), rt)
 
       display_beta(src_id) if @beta_file && !beta_seen?(src_id)
 

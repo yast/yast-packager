@@ -11,8 +11,8 @@ module Yast
       Yast.import "SourceDialogs"
     end
 
-    def editUrl2(url, allowHttps)
-      allowHttps ? SourceDialogs.EditPopup(url) : SourceDialogs.EditPopupNoHTTPS(url)
+    def editUrl2(url, allow_https)
+      allow_https ? SourceDialogs.EditPopup(url) : SourceDialogs.EditPopupNoHTTPS(url)
     end
 
     def editUrl(url)

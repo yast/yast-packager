@@ -59,9 +59,9 @@ end
 class LanguageTag
   include Yast::Logger
 
-  # @param s [String]
-  def initialize(s)
-    @tag = s
+  # @param value [String]
+  def initialize(value)
+    @tag = value
   end
 
   def to_s
