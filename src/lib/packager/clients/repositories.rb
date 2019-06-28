@@ -186,7 +186,7 @@ module Yast
         rest = Ops.subtract(rest, 1)
       end
 
-      ret = Ops.add(Ops.add(Ops.add(ret, " ("), _("Default")), ")") if priority == @default_priority
+      ret +=  " (" + _("Default") + ")" if priority == @default_priority
 
       ret
     end
