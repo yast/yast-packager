@@ -42,6 +42,7 @@ Metrics/BlockLength:
   Exclude:
     # rspec DSL contain huge blocks
     - "test/**/*.rb"
+  Max: 150 # some UI loops are huge
 
 # Offense count: 8
 Lint/Loop:
@@ -92,4 +93,8 @@ Naming/VariableNumber:
 
 # needs more testing before enabled
 Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# needs more testing to replace all URI.escape calls. Ideally own class for libzypp path
+Lint/UriEscapeUnescape:
   Enabled: false
