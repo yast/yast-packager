@@ -107,6 +107,14 @@ module Y2Packager
       instance_variable_get("@#{method}")
     end
 
+    # defines for dynamic methods also respond_to?
+    def respond_to_missing?(method, _private)
+      return true if instance_variable_defined?("@#{method}")
+      return true if UNIQUE_ATTRIBUTES.include?(method.to_sym)
+
+      false
+    end
+
   private
 
     # attributes required for identifying a resolvable
