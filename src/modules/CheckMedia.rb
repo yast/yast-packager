@@ -80,18 +80,17 @@ module Yast
     def Process
       return if @process.nil?
 
+      # try to read whole lines
+      out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
       if @inprogress
-        # try to read whole lines
-        out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
-
+        # read progress status
+        buffer = Convert.to_string(SCR.Read(path(".process.read"), @process))
         if !out.nil?
           @output = Builtins.add(@output, out)
 
-          out = Convert.to_string(SCR.Read(path(".process.read"), @process))
-
-          if !out.nil?
+          if !buffer.nil?
             @output = Convert.convert(
-              Builtins.merge(@output, Builtins.splitstring(out, "\n")),
+              Builtins.merge(@output, Builtins.splitstring(buffer, "\n")),
               from: "list",
               to:   "list <string>"
             )
@@ -100,32 +99,23 @@ module Yast
           # finished
           @progress = 100
           @inprogress = false
-        else
-          # read progress status
-          buffer = Convert.to_string(SCR.Read(path(".process.read"), @process))
+        elsif !buffer.nil?
+          Builtins.y2debug("buffer: %1", buffer)
 
-          if !buffer.nil?
-            Builtins.y2debug("buffer: %1", buffer)
+          percent = Builtins.regexpsub(buffer, "([0-9]*)%.*$", "\\1")
 
-            percent = Builtins.regexpsub(buffer, "([0-9]*)%.*$", "\\1")
-
-            if !percent.nil?
-              @progress = Builtins.tointeger(percent)
-              Builtins.y2milestone("progress: %1%%", @progress)
-            end
+          if !percent.nil?
+            @progress = Builtins.tointeger(percent)
+            Builtins.y2milestone("progress: %1%%", @progress)
           end
         end
-      else
-        out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
+      elsif !out.nil?
+        @output = Builtins.add(@output, out)
 
-        if !out.nil?
-          @output = Builtins.add(@output, out)
-
-          # check whether we need to switch to progress mode
-          if Builtins.regexpmatch(out, "^ *pad: ")
-            @inprogress = true
-            Builtins.y2milestone("Switching into progress mode")
-          end
+        # check whether we need to switch to progress mode
+        if Builtins.regexpmatch(out, "^ *pad: ")
+          @inprogress = true
+          Builtins.y2milestone("Switching into progress mode")
         end
       end
 
