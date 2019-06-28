@@ -30,7 +30,7 @@ module Yast
       @pkg_inprogress = ""
 
       # never show the disk space warning popup during autoinstallation
-      @ask_again = Mode.autoinst ? false : true
+      @ask_again = !Mode.autoinst
       # true == continue with the installtion
       @user_input = true
     end
@@ -44,7 +44,7 @@ module Yast
       button = UI.PollInput
 
       # in case of cancel ask user if he really wants to quit installation
-      if button == :abort || button == :cancel
+      if [:abort, :cancel].include?(button)
         if Mode.normal
           SlideShow.SetUserAbort(
             Popup.AnyQuestion(
@@ -157,9 +157,7 @@ module Yast
       input = UI.PollInput
       Builtins.y2milestone("input: %1", input)
 
-      return false if input == :abort || input == :close
-
-      true
+      [:abort, :close].include?(input)
     end
 
     def ScriptProblem(description)

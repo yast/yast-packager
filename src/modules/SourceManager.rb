@@ -643,7 +643,7 @@ module Yast
       ret = nil
       loop do
         ret = Convert.to_symbol(UI.UserInput)
-        break if ret == :cont || ret == :cancel
+        break if [:cont, :cancel].include?(ret)
 
         if ret == :eject
           if multiple_drives

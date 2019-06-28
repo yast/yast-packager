@@ -1521,7 +1521,7 @@ module Yast
       Ops.set(parsed, "path", directory)
 
       # set HTTP/HTTPS port
-      if type == :http || type == :https
+      if [:http, :https].include?(type)
         Ops.set(
           parsed,
           "port",
@@ -1612,7 +1612,7 @@ module Yast
           HBox(
             # text entry
             InputField(Id(:server), Opt(:hstretch), _("Server &Name"), server),
-            if type == :http || type == :https
+            if [:http, :https].include?(type)
               HBox(
                 HSpacing(1),
                 HSquash(InputField(Id(:port), _("&Port"), port))
@@ -1715,7 +1715,7 @@ module Yast
         UI.ChangeWidget(Id(:password), :Enabled, !anonymous)
         UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous) if UI.WidgetExists(Id(:workgroup))
         return nil
-      elsif (id == :edit_url_parts || id == :edit_complete_url) &&
+      elsif [:edit_url_parts, :edit_complete_url].include?(id) &&
           Ops.get_string(event, "EventReason", "") == "ValueChanged"
         Builtins.y2milestone("Changing dialog type")
 
@@ -1834,7 +1834,7 @@ module Yast
         end
 
         # set HTTP/HTTPS port if it's specified
-        if type == :http || type == :https
+        if [:http, :https].include?(type)
           port_num = Ops.get_string(parsed, "port", "")
 
           UI.ChangeWidget(Id(:port), :Value, port_num) if !port_num.nil? && port_num != ""
@@ -2170,7 +2170,8 @@ module Yast
         Popup.Message(_("Select the media type"))
         return false
       end
-      if selected == :cd || selected == :dvd
+      case selected
+      when :cd, :dvd
         Pkg.SourceReleaseAll
         msg = if selected == :cd
           _("Insert the add-on product CD")
@@ -2190,7 +2191,7 @@ module Yast
           Builtins.y2milestone("Selected CD/DVD device: %1", cd_device)
           @cd_device_name = cd_device
         end
-      elsif selected == :usb
+      when :usb
         usb_disks = DetectUSBDisk()
 
         if Builtins.size(usb_disks).zero?
@@ -2266,19 +2267,20 @@ module Yast
         ],
         selected
       )
-        if selected == :ftp
+        case selected
+        when :ftp
           @_url = "ftp://"
-        elsif selected == :http
+        when :http
           @_url = "http://"
-        elsif selected == :https
+        when :https
           @_url = "https://"
-        elsif selected == :samba
+        when :samba
           @_url = "smb://"
-        elsif selected == :nfs
+        when :nfs
           @_url = "nfs://"
         # this case is specific, as it return complete path and not just
         # prefix as others
-        elsif selected == :cd || selected == :dvd
+        when :cd, :dvd
           # use three slashes as third slash means path
           @_url = (selected == :cd) ? "cd:///" : "dvd:///"
           if @cd_device_name != ""
@@ -2287,19 +2289,19 @@ module Yast
               URLRecode.EscapeQuery(@cd_device_name)
             )
           end
-        elsif selected == :hd
+        when :hd
           @_url = "hd://"
-        elsif selected == :usb
+        when :usb
           @_url = "usb://"
-        elsif selected == :local_dir
+        when :local_dir
           @_url = "dir://"
-        elsif selected == :local_iso
+        when :local_iso
           @_url = "iso://"
-        elsif selected == :slp
+        when :slp
           @_url = "slp://"
-        elsif selected == :comm_repos
+        when :comm_repos
           @_url = "commrepos://"
-        elsif selected == :sccrepos
+        when :sccrepos
           @_url = "sccrepos://"
         end
       else

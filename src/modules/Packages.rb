@@ -233,7 +233,7 @@ module Yast
       Builtins.foreach(repos) do |repo|
         url = Ops.get_string(Pkg.SourceGeneralData(repo), "url", "")
         scheme = Builtins.tolower(Ops.get_string(URL.Parse(url), "scheme", ""))
-        if scheme == "http" || scheme == "https" || scheme == "ftp"
+        if ["http", "https", "ftp"].include?(scheme)
           Builtins.y2milestone("Found remote repository %1: %2", repo, url)
           remote_repos = Builtins.add(remote_repos, repo)
         end
@@ -1938,7 +1938,7 @@ module Yast
           log.info "Optional pattern #{pattern_name} does not exist, skipping..."
         when :skipped_by_user
           log.info "Skipping pattern #{pattern_name} deselected by user"
-        when :skipped_reselection
+        when :skipped_reselection # rubocop:disable Lint/EmptyWhen
           # not logged
         else
           raise ArgumentError, "Unhandled action #{action}"

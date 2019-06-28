@@ -614,7 +614,7 @@ module Yast
     def GetCurrentLang
       ret = ENV["LANG"]
 
-      ret = nil if ret == "C" || ret == "" || ret == "POSIX"
+      ret = nil if ["C", "", "POSIX"].include?(ret)
 
       Builtins.y2milestone("Using lang: %1", ret)
       ret

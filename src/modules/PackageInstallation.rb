@@ -74,7 +74,7 @@ module Yast
       loop do
         ret = Convert.to_symbol(UI.UserInput)
 
-        if ret == :failed_packages || ret == :full_log
+        if [:failed_packages, :full_log].include?(ret)
           UI.ChangeWidget(
             Id(:text),
             :Value,
@@ -250,9 +250,10 @@ module Yast
         number = Ops.add(number, 1)
       end
 
-      ret = if ret == :cancel || ret == :abort
+      ret = case ret
+      when :cancel, :abort
         :cancel
-      elsif ret == :diskfull
+      when :diskfull
         :diskfull
       else
         :ok

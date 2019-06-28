@@ -189,7 +189,7 @@ module Yast
         result
       )
 
-      if init_ret == :auto || init_ret == :accepted
+      if [:auto, :accepted].include?(init_ret)
         Builtins.y2milestone("Returning %1", init_ret)
         return init_ret
       end

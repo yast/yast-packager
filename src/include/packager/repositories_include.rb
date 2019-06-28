@@ -277,7 +277,7 @@ module Yast
         )
         Builtins.y2milestone("Community Repositories returned: %1", commrepos)
 
-        if commrepos == :abort || commrepos == :cancel
+        if [:abort, :cancel].include?(commrepos)
           Builtins.y2milestone("Using CR have been canceled")
           return :back
         end
@@ -287,7 +287,7 @@ module Yast
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
 
-        return (sccrepos == :abort || sccrepos == :cancel) ? :back : :next
+        return [:abort, :cancel].include?(sccrepos) ? :back : :next
       end
 
       ret = createSource(url, plaindir, @download_meta, name)

@@ -498,7 +498,7 @@ module Yast
         )
       elsif Stage.initial
         # is CD or DVD medium mounted? (inst-sys)
-        if umount_result != "0" && (media == "cd" || media == "dvd")
+        if umount_result != "0" && ["cd", "dvd"].include?(media)
           Builtins.y2milestone("The installation CD/DVD cannot be changed.")
           # only the first CD will be installed
           Ops.set(ret, "current_cd_no", 1)

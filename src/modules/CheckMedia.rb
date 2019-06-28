@@ -163,33 +163,33 @@ module Yast
       instmode = Linuxrc.InstallInf("InstMode")
       Builtins.y2milestone("Installation mode: %1", instmode)
 
+      return [] unless ["cd", "dvd"].include?(instmode)
+
       readycddrives = []
 
-      if instmode == "cd" || instmode == "dvd"
-        # get CD device name
-        bootcd = Linuxrc.InstallInf("Cdrom")
+      # get CD device name
+      bootcd = Linuxrc.InstallInf("Cdrom")
 
-        if !bootcd.nil? && bootcd != ""
-          readycddrives = [Builtins.sformat("/dev/%1", bootcd)]
-        else
-          Builtins.y2milestone("CD device device is not known, probing...")
-          # booted from another location (network), test all CD drives
-          cds = DetectedCDDevices()
+      if !bootcd.nil? && bootcd != ""
+        readycddrives = [Builtins.sformat("/dev/%1", bootcd)]
+      else
+        Builtins.y2milestone("CD device device is not known, probing...")
+        # booted from another location (network), test all CD drives
+        cds = DetectedCDDevices()
 
-          if !cds.nil?
-            Builtins.foreach(cds) do |cd|
-              devname = Ops.get_string(cd, "dev_name", "")
-              # check whether the CD is ready
-              if Ops.get_boolean(cd, "notready", false) == false && !devname.nil? &&
-                  devname != ""
-                readycddrives = Builtins.add(readycddrives, devname)
-              end
+        if !cds.nil?
+          Builtins.foreach(cds) do |cd|
+            devname = Ops.get_string(cd, "dev_name", "")
+            # check whether the CD is ready
+            if Ops.get_boolean(cd, "notready", false) == false && !devname.nil? &&
+                devname != ""
+              readycddrives = Builtins.add(readycddrives, devname)
             end
           end
         end
-
-        Builtins.y2milestone("Ready CD drives: %1", readycddrives)
       end
+
+      Builtins.y2milestone("Ready CD drives: %1", readycddrives)
 
       deep_copy(readycddrives)
     end

@@ -168,61 +168,61 @@ module Yast
       ret = true
       instmode = Convert.to_string(SCR.Read(path(".etc.install_inf.InstMode")))
 
-      if instmode == "cd" || instmode == "dvd"
-        cdrom_device = Convert.to_string(
-          SCR.Read(path(".etc.install_inf.Cdrom"))
+      return ret unless ["cd", "dvd"].include?(instmode)
+
+      cdrom_device = Convert.to_string(
+        SCR.Read(path(".etc.install_inf.Cdrom"))
+      )
+
+      # bugzilla #305495
+      if cdrom_device.nil? || cdrom_device == ""
+        Builtins.y2error("No Cdrom present in install.inf")
+        # try to recover
+        return true
+      end
+
+      # get CD device name
+      bootcd = Ops.add("/dev/", cdrom_device)
+
+      # is the device mounted?
+      mounts = Convert.convert(
+        SCR.Read(path(".proc.mounts")),
+        from: "any",
+        to:   "list <map>"
+      )
+      mnt = Builtins.listmap(mounts) do |m|
+        { Ops.get_string(m, "spec", "") => Ops.get_string(m, "file", "") }
+      end
+
+      dir = ""
+      mounted = false
+
+      if Builtins.haskey(mnt, bootcd)
+        dir = Ops.get(mnt, bootcd, "")
+      else
+        dir = Ops.add(
+          Convert.to_string(SCR.Read(path(".target.tmpdir"))),
+          "/YaST.mnt"
         )
-
-        # bugzilla #305495
-        if cdrom_device.nil? || cdrom_device == ""
-          Builtins.y2error("No Cdrom present in install.inf")
-          # try to recover
-          return true
-        end
-
-        # get CD device name
-        bootcd = Ops.add("/dev/", cdrom_device)
-
-        # is the device mounted?
-        mounts = Convert.convert(
-          SCR.Read(path(".proc.mounts")),
-          from: "any",
-          to:   "list <map>"
+        SCR.Execute(path(".target.mkdir"), dir)
+        mounted = Convert.to_boolean(
+          SCR.Execute(path(".target.mount"), [bootcd, dir], "-o ro")
         )
-        mnt = Builtins.listmap(mounts) do |m|
-          { Ops.get_string(m, "spec", "") => Ops.get_string(m, "file", "") }
-        end
+      end
 
-        dir = ""
-        mounted = false
+      # check for the first medium
+      succ = SCR.Execute(
+        path(".target.bash"),
+        "test -d #{dir.shellescape}/media.1 && test -d #{dir.shellescape}/boot"
+      )
 
-        if Builtins.haskey(mnt, bootcd)
-          dir = Ops.get(mnt, bootcd, "")
-        else
-          dir = Ops.add(
-            Convert.to_string(SCR.Read(path(".target.tmpdir"))),
-            "/YaST.mnt"
-          )
-          SCR.Execute(path(".target.mkdir"), dir)
-          mounted = Convert.to_boolean(
-            SCR.Execute(path(".target.mount"), [bootcd, dir], "-o ro")
-          )
-        end
+      ret = succ.zero?
 
-        # check for the first medium
-        succ = SCR.Execute(
-          path(".target.bash"),
-          "test -d #{dir.shellescape}/media.1 && test -d #{dir.shellescape}/boot"
-        )
-
-        ret = succ.zero?
-
-        # reset to the previous state
-        if mounted
-          # unmount back
-          umnt = Convert.to_boolean(SCR.Execute(path(".target.umount"), dir))
-          Builtins.y2milestone("unmounted %1: %2", dir, umnt)
-        end
+      # reset to the previous state
+      if mounted
+        # unmount back
+        umnt = Convert.to_boolean(SCR.Execute(path(".target.umount"), dir))
+        Builtins.y2milestone("unmounted %1: %2", dir, umnt)
       end
 
       ret
@@ -382,21 +382,22 @@ module Yast
 
         Builtins.y2milestone("ui: %1", ret)
 
-        if ret == :next || ret == :back
+        case ret
+        when :next, :back
           # avoid reproposing of the installation -  always return `back in
           # the initial mode when the module start wasn't forced (after
           # language selection)
           ret = :back if Stage.initial && !CheckMedia.forced_start
           break
-        elsif ret == :cancel
+        when :cancel
           ret = :abort
           break
-        elsif ret == :abort
+        when :abort
           if Popup.ConfirmAbort(:painless)
             ret = :abort
             break
           end
-        elsif ret == :start || ret == :iso_file
+        when :start, :iso_file
           selecteddrive = ""
 
           @checking_file = ret == :iso_file
@@ -482,11 +483,12 @@ module Yast
 
                 ui = Convert.to_symbol(UI.PollInput)
 
-                if ui == :stop || ui == :cancel
+                case ui
+                when :stop, :cancel
                   CheckMedia.Stop
                   loop = false
                   aborted = true
-                elsif ui == :abort
+                when :abort
                   if Popup.ConfirmAbort(:painless)
                     CheckMedia.Stop
 
@@ -530,7 +532,7 @@ module Yast
             # set zero progress
             UI.ChangeWidget(Id(:progress), :Value, 0)
           end
-        elsif ret == :eject
+        when :eject
           selecteddrive = Convert.to_string(
             UI.QueryWidget(Id(:cddevices), :Value)
           )

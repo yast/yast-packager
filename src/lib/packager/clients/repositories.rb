@@ -1048,7 +1048,8 @@ module Yast
 
         return :add if input == :add
 
-        if input == :next
+        case input
+        when :next
           # store the new state
           success = Write()
           if !success
@@ -1069,7 +1070,7 @@ module Yast
             exit = true
           end
         # Wizard::UserInput returns `back instead of `cancel when window is closed by WM
-        elsif input == :abort || input == :cancel
+        when :abort, :cancel
           # handle cancel as abort
           input = :abort
 
@@ -1085,12 +1086,12 @@ module Yast
             )
             exit = true if Popup.YesNoHeadline(headline, msg)
           end
-        elsif input == :key_mgr
+        when :key_mgr
           exit = true
           # return `key_mgr;
           # start the GPG key manager
           # RunGPGKeyMgmt();
-        elsif input == :service_filter
+        when :service_filter
           # handle the combobox events here...
           current_item = UI.QueryWidget(Id(:service_filter), :Value)
 
@@ -1176,13 +1177,14 @@ module Yast
             next
           end
 
-          if input == :replace
+          case input
+          when :replace
             if @repository_view
               repo_replace_handler(source_state, global_current)
             else
               service_replace_handler(current)
             end
-          elsif input == :refresh
+          when :refresh
             if @repository_view
               Pkg.SourceRefreshNow(id)
 
@@ -1202,7 +1204,7 @@ module Yast
               Builtins.y2milestone("Refreshing service %1...", service_alias)
               Pkg.ServiceRefresh(service_alias)
             end
-          elsif input == :autorefresh_all || input == :refresh_enabled
+          when :autorefresh_all, :refresh_enabled
             Builtins.y2milestone(
               "Refreshing all %1 %2%3...",
               (input == :refresh_enabled) ? "enabled" : "autorefreshed",
@@ -1337,25 +1339,25 @@ module Yast
               Progress.Finish
               Wizard.CloseDialog
             end
-          elsif input == :delete
+          when :delete
             if @repository_view
               repo_delete_handler(global_current)
             else
               service_delete_handler(current)
             end
-          elsif input == :enable
+          when :enable
             if @repository_view
               repo_enable_handler(source_state, global_current, current)
             else
               service_enable_handler(current)
             end
-          elsif input == :autorefresh
+          when :autorefresh
             if @repository_view
               repo_autorefresh_handler(source_state, global_current, current)
             else
               service_autorefresh_handler(current)
             end
-          elsif input == :priority
+          when :priority
             if @repository_view
               repo_priority_handler(source_state, global_current, current)
             else
@@ -1363,7 +1365,7 @@ module Yast
                 "Ignoring event `priority: the widget should NOT be displayed in service mode!"
               )
             end
-          elsif input == :keeppackages
+          when :keeppackages
             if @repository_view
               repo_keeppackages_handler(source_state, global_current)
             else
@@ -1371,7 +1373,7 @@ module Yast
                 "Ignoring event `keeppackages: the widget should NOT be displayed in service mode!"
               )
             end
-          elsif input != :table
+          when :table
             Builtins.y2warning("Unknown user input: %1", input)
           end
         end
@@ -1421,7 +1423,7 @@ module Yast
       scheme = Builtins.tolower(Ops.get_string(URL.Parse(url), "scheme", ""))
 
       # alway create CD/DVD repository
-      return false if scheme == "cd" || scheme == "dvd"
+      return false if optical?(scheme)
 
       ret = false
 
@@ -1485,7 +1487,7 @@ module Yast
     def StartStoreSource
       ret = StoreSource()
 
-      if ret == :next || ret == :abort || ret == :close
+      if [:next, :abort, :close].include?(ret)
         Builtins.y2milestone("Resetting selected URL scheme")
         @selected_url_scheme = ""
       end
@@ -1808,8 +1810,7 @@ module Yast
           )
 
           # ignore cd:// <-> dvd:// changes if the path is not changed
-          if (new_url_scheme == "cd" || new_url_scheme == "dvd") &&
-              (old_url_scheme == "cd" || old_url_scheme == "dvd")
+          if optical?(new_url_scheme) && optical?(old_url_scheme)
             # compare only directories, ignore e.g. ?device=/dev/sr0 options
             if Ops.get_string(new_url_parsed, "path", "") ==
                 Ops.get_string(old_url_parsed, "path", "")
@@ -2070,6 +2071,11 @@ module Yast
       )
       Popup.Warning(msg)
       @services_repos.push(source_state["SrcId"])
+    end
+
+    OPTICAL = ["cd", "dvd"].freeze
+    def optical?(scheme)
+      OPTICAL.include?(scheme)
     end
   end
 end

@@ -115,9 +115,10 @@ module Yast
       loop do
         ret = UI.UserInput
 
-        break if ret == :abort || ret == :cancel || ret == :accept || ret == :next
-
-        if ret == :delete
+        case ret
+        when :abort, :cancel, :accept, :next
+          abort
+        when :delete
           DeleteItem()
         else
           Builtins.y2error("Undefined return %1", ret)

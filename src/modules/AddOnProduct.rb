@@ -561,7 +561,7 @@ module Yast
       ret = ProductLicense.AskAddOnLicenseAgreement(src_id)
       return nil if ret.nil?
 
-      if ret == :abort || ret == :back
+      if [:abort, :back].include?(ret)
         Builtins.y2milestone("License confirmation failed")
         return false
       end
@@ -604,7 +604,7 @@ module Yast
       ret = WFM.CallFunction("sw_single", [args])
       Builtins.y2milestone("sw_single returned: %1", ret)
 
-      return :abort if ret == :abort || ret == :cancel || ret == :close
+      return :abort if [:abort, :cancel, :close].include?(ret)
 
       :register
     end

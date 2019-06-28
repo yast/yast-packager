@@ -536,7 +536,7 @@ module Yast
 
       Builtins.y2milestone("SW_SINGLE: result CheckWhichPackages %1", result)
 
-      if result == :done || result == :failed
+      if [:done, :failed].include?(result)
         UI.CloseDialog
         return :next
       end
