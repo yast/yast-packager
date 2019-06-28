@@ -1248,6 +1248,7 @@ module Yast
                 end
                 schema = Builtins.tolower(Builtins.substring(url2, 0, 3))
 
+                # schema is substring, so that is reason why it is "cd:" and "dvd"
                 to_refresh += 1 if schema != "cd:" && schema != "dvd"
               end
             end

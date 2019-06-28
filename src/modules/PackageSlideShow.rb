@@ -88,7 +88,6 @@ module Yast
       @removed_packages = 0
       @total_downloaded = 0
       @total_installed = 0
-      #  avg_download_rate = 0;
 
       @installed_packages_list = []
       @updated_packages_list = []
