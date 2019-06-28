@@ -96,15 +96,15 @@ module Y2Packager
       end
 
       # load a missing attribute
-      if UNIQUE_ATTRIBUTES.all? { |a| instance_variable_defined?("@#{a}") }
-        load_attribute(method)
-        super unless instance_variable_defined?("@#{method}")
-        raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
-
-        instance_variable_get("@#{method}")
-      else
+      if !UNIQUE_ATTRIBUTES.all? { |a| instance_variable_defined?("@#{a}") }
         raise "Missing attributes for identifying the resolvable."
       end
+
+      load_attribute(method)
+      super unless instance_variable_defined?("@#{method}")
+      raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
+
+      instance_variable_get("@#{method}")
     end
 
   private

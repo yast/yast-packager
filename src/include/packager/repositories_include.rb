@@ -483,11 +483,12 @@ module Yast
     # Check and install the packages needed for accessing the URL scheme.
     # @param scheme [String] URL scheme of the new repository
     def install_mount_package(scheme)
-      if scheme == "smb" && !File.exist?("/sbin/mount.cifs")
-        log.info("Installing missing 'cifs-mount' package...")
-        # install cifs-mount package
-        PackageSystem.CheckAndInstallPackages(["cifs-mount"])
-      end
+      return if scheme != "smb"
+      return if File.exist?("/sbin/mount.cifs")
+
+      log.info("Installing missing 'cifs-mount' package...")
+      # install cifs-mount package
+      PackageSystem.CheckAndInstallPackages(["cifs-mount"])
     end
 
     # Ask user whether to change the entered URL and try again
