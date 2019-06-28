@@ -140,7 +140,7 @@ module Yast
             partName = mountName[target.size..-1]
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
-          end # target is "/"
+          end
         elsif mountName == "/"
           part_info["name"] = mountName
         # ignore some mount points
@@ -548,7 +548,7 @@ module Yast
         Pkg.TargetInitDU(partitions)
         Builtins.y2milestone("get_partition_info: %1", partitions)
         return partitions
-      end # !Stage::initial ()
+      end
 
       # remove the previous failures
       @failed_mounts = []

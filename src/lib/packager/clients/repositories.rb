@@ -1938,7 +1938,7 @@ module Yast
 
           createResult = :ok
         end
-      end while createResult == :again # service view
+      end while createResult == :again
     end
 
     # Handle the "Edit" button in the service view

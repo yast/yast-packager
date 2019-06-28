@@ -112,7 +112,7 @@ module Yast
 
       Builtins.y2milestone("action: %1", @action)
       deep_copy(arg_list)
-    end # CheckArguments
+    end
 
     #
     # CheckWhichPackages
@@ -352,7 +352,7 @@ module Yast
       end
 
       :found_descr
-    end # CheckWhichPackages
+    end
 
     # originally stolen from inst_do_net_test.ycp:IsDownloadedVersionNewer
     # Function checks two versions of installed rpm and decides
