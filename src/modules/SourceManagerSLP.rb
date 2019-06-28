@@ -23,7 +23,7 @@ module Yast
 
     def Icon(icon_name)
       ui_info = UI.GetDisplayInfo
-      return Empty() if Ops.get_boolean(ui_info, "HasLocalImageSupport", false) == false
+      return Empty() if !Ops.get_boolean(ui_info, "HasLocalImageSupport", false)
 
       Image(icon_name, "[x]")
     end
