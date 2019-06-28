@@ -347,7 +347,7 @@ module Yast
         tmp_licenses = tmp_licenses_ref.value
         available_langs = available_langs_ref.value
         license_ident = license_ident_ref.value
-        license_idents = Builtins.add(license_idents, license_ident) if !license_ident.nil?
+        license_idents << license_ident if license_ident
         license_term = (
           tmp_licenses_ref = arg_ref(tmp_licenses)
           result = GetLicenseDialog(
