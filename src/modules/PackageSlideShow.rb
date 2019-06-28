@@ -177,9 +177,7 @@ module Yast
     # absolute value is used.
     #
     def FormatTimeShowOverflow(seconds)
-      text = ""
-
-      text = if Ops.less_than(seconds, 0) # Overflow (indicated by negative value)
+      if Ops.less_than(seconds, 0) # Overflow (indicated by negative value)
         # When data throughput goes downhill (stalled network connection etc.),
         # cut off the predicted time at a reasonable maximum.
         # "%1" is a predefined maximum time.
@@ -191,8 +189,6 @@ module Yast
       else
         String.FormatTime(seconds)
       end
-
-      text
     end
 
     # Format number of remaining bytes to be installed as string.
@@ -785,8 +781,6 @@ module Yast
 
     # update the overall progress value (download + installation)
     def UpdateTotalProgressValue
-      total_progress = 0
-
       total_progress = if @total_count_to_download.zero?
         # no package to download, just use the install size
         Ops.divide(

@@ -870,8 +870,6 @@ module Yast
           license_text = ""
         end
       end
-      rt = Empty()
-
       # License is HTML (or RichText)
       rt = if Builtins.regexpmatch(license_text, "</.*>")
         MinWidth(

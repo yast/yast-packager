@@ -728,8 +728,6 @@ module Yast
     #
     # Will be called from Packages when re-doing proposal !!
     def GetPartitionInfo
-      partition = []
-
       partition = if Stage.cont
         # free spare already checked during first part of installation
         EvaluateFreeSpace(0)

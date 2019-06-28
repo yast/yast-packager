@@ -276,8 +276,6 @@ module Yast
 
       return false if ret != :abort
 
-      function_ret = false
-
       # `abort pressed
       function_ret = if Stage.initial
         Popup.ConfirmAbort(:painless)
