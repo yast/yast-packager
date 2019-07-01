@@ -10,112 +10,257 @@ Yast.import "Stage"
 
 describe Yast::ProductLicense do
   describe "#HandleLicenseDialogRet" do
-    before(:each) do
-      # By default, always exit the dialog with :accepted (all licenses accepted)
-      allow(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(true)
+    let(:user_input) { :next }
+    let(:licenses_ref) { Yast::ArgRef.new({}) }
+    let(:base_product) { nil }
+    let(:cancel_action) { nil }
 
-      # Make sure that Yast::UI.:UserInput always returns a symbol as the last item
-      # to exit from the while loop, :back is a safe default
-      allow(Yast::UI).to receive(:UserInput).and_return(:back)
+    before do
+      allow(Yast::UI).to receive(:UserInput).and_return(*user_input)
     end
 
-    licenses_ref = Yast::ArgRef.new({})
-
     context "while changing a license language" do
+      let(:user_input) { ["license_language_pt_BR", :back] }
+
       it "updates the UI with new license translation" do
-        expect(Yast::UI).to receive(:UserInput).and_return("license_language_pt_BR", :next)
         expect(Yast::ProductLicense).to receive(:UpdateLicenseContent).and_return(nil)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+
+        described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
       end
     end
 
     context "while adjusting EULA agreement buttons" do
-      it "enables the [Next] button" do
-        expect(Yast::UI).to receive(:UserInput).and_return("eula_some_ID", :next)
-        expect(Yast::ProductLicense).to receive(:AllLicensesAcceptedOrDeclined).and_return(true)
-        expect(Yast::Wizard).to receive(:EnableNextButton).and_return(true)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+      let(:user_input) { ["eula_some_ID", :next] }
+
+      before do
+        allow(Yast::ProductLicense).to receive(:AllLicensesAcceptedOrDeclined)
+          .and_return(all_licenses_accepted_or_declined)
+      end
+
+      context "and all licenses accepted or declined" do
+        let(:all_licenses_accepted_or_declined) { true }
+
+        it "enables the [Next] button" do
+          expect(Yast::Wizard).to receive(:EnableNextButton)
+
+          described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+        end
+      end
+
+      context "but not all licenses accpeted or declined" do
+        let(:all_licenses_accepted_or_declined) { false }
+
+        it "enables the [Next] button" do
+          expect(Yast::Wizard).to_not receive(:EnableNextButton)
+
+          described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+        end
       end
     end
 
     context "while user wants to abort from the License Agreement dialog" do
       context "in inst-sys" do
-        before(:each) do
-          expect(Yast::Stage).to receive(:stage).and_return("initial")
+        before do
+          allow(Yast::Stage).to receive(:stage).and_return("initial")
+          allow(Yast::Popup).to receive(:ConfirmAbort).and_return(confirm_abort)
         end
 
-        context "user confirms the aborting" do
+        context "and the user confirms to abort" do
+          let(:user_input) { :abort }
+          let(:confirm_abort) { true }
+
           it "returns :abort" do
-            expect(Yast::UI).to receive(:UserInput).and_return(:abort)
-            expect(Yast::Popup).to receive(:ConfirmAbort).and_return(true)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:abort)
+            result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+            expect(result).to eq(:abort)
           end
         end
 
-        context "user declines the aborting" do
-          it "continues handling the user input" do
-            expect(Yast::UI).to receive(:UserInput).and_return(:abort, :next)
-            expect(Yast::Popup).to receive(:ConfirmAbort).and_return(false)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+        context "and the user does not confirm to abort" do
+          let(:user_input) { [:abort, :back] }
+          let(:confirm_abort) { false }
+
+          it "does not return :abort" do
+            result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+            expect(result).to_not eq(:abort)
           end
         end
       end
 
-      context "on running system" do
-        before(:each) do
-          expect(Yast::Stage).to receive(:stage).and_return("normal")
+      context "in a running system" do
+        before do
+          allow(Yast::Stage).to receive(:stage).and_return("normal")
+          allow(Yast::Popup).to receive(:YesNo).and_return(confirm_abort)
         end
 
-        context "user confirms the aborting" do
+        context "and the user confirms to abort" do
+          let(:user_input) { :abort }
+          let(:confirm_abort) { true }
+
           it "returns :abort" do
-            expect(Yast::UI).to receive(:UserInput).and_return(:abort)
-            expect(Yast::Popup).to receive(:YesNo).and_return(true)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:abort)
+            result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+            expect(result).to eq(:abort)
           end
         end
 
-        context "user declines the aborting" do
-          it "continues handling the user input" do
-            expect(Yast::UI).to receive(:UserInput).and_return(:abort, :next)
-            expect(Yast::Popup).to receive(:YesNo).and_return(false)
-            expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+        context "and the user does not confirm to abort" do
+          let(:user_input) { [:abort, :back] }
+          let(:confirm_abort) { false }
+
+          it "does not return :abort" do
+            result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+            expect(result).to_not eq(:abort)
           end
         end
       end
     end
 
     context "while going back to previous dialog" do
+      let(:user_input) { :back }
+
       it "returns :back" do
-        expect(Yast::UI).to receive(:UserInput).and_return(:back)
-        expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:back)
+        result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+        expect(result).to eq(:back)
       end
     end
 
     context "while going to the next dialog" do
+      let(:licenses_accepted) { false }
+
       before(:each) do
-        expect(Yast::UI).to receive(:UserInput).and_return(:next).at_least(:once)
-        # Confirm that I do not agree with the license
-        allow(Yast::Popup).to receive(:YesNo).and_return(true)
+        allow(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(licenses_accepted)
       end
 
-      context "while all licenses have been accepted" do
+      context "when license(s) have been accepted" do
+        let(:licenses_accepted) { true }
+
         it "returns :accepted" do
-          expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(true)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, "base_prod", "abort")).to eq(:accepted)
+          result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+          expect(result).to eq(:accepted)
         end
       end
 
-      context "while some license(s) have not been accepted" do
-        it "returns symbol :abort, :accepted, :halt according to the third function parameter" do
-          expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(false).at_least(:once)
-          # :halt case
-          allow(Yast::ProductLicense).to receive(:TimedOKCancel).and_return(true)
+      context "when some license(s) have not been accepted" do
+        context "but using 'continue' as cancel action" do
+          let(:cancel_action) { "continue" }
 
-          base_prod = false
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "abort")).to eq(:abort)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "continue")).to eq(:accepted)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "halt")).to eq(:halt)
-          expect(Yast::ProductLicense.HandleLicenseDialogRet(licenses_ref, base_prod, "unknown")).to eq(:abort)
+          it "returns :accepted" do
+            result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+            expect(result).to eq(:accepted)
+          end
+        end
+
+        context "and is handling the license of a base product" do
+          let(:base_product) { "Fake base product" }
+          let(:user_input) { [:next, :back] }
+
+          it "displays a message" do
+            expect(Yast::Popup).to receive(:Message)
+
+            described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+          end
+        end
+
+        context "and is handling an not base product license" do
+          let(:base_product) { nil }
+          let(:refuse_license) { true }
+
+          before do
+            allow(Yast::Popup).to receive(:YesNo).and_return(refuse_license)
+          end
+
+          it "asks user if really want to refuse it" do
+            expect(Yast::Popup).to receive(:YesNo)
+
+            described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+          end
+
+          context "but users does not confirm to decline the license" do
+            let(:refuse_license) { false }
+            let(:user_input) { [:next, :back] }
+
+            it "does not decline it" do
+              result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+              expect(result).to eq(:back)
+            end
+          end
+
+          context "and the user confirms that really wants to decline it" do
+            let(:refuse_license) { true }
+
+            context "using 'abort' as cancel action" do
+              let(:cancel_action) { "abort" }
+
+              it "returns :abort" do
+                result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+                expect(result).to eq(:abort)
+              end
+            end
+
+            context "using 'refuse' as cancel action" do
+              let(:cancel_action) { "refuse" }
+
+              it "returns :refuse" do
+                result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+                expect(result).to eq(:refused)
+              end
+            end
+
+            context "using 'halt' as cancel action" do
+              let(:cancel_action) { "halt" }
+              let(:halt_confirmation) { true }
+
+              before do
+                allow(Yast::Popup).to receive(:TimedOKCancel).and_return(halt_confirmation)
+              end
+
+              it "displays a timed popup to continue or cancel halting the system" do
+                expect(Yast::Popup).to receive(:TimedOKCancel)
+
+                described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+              end
+
+              context "and the user agrees halting the system" do
+                let(:halt_confirmation) { true }
+
+                it "returns :halt" do
+                  result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+                  expect(result).to eq(:halt)
+                end
+              end
+
+              context "and the user does not agree halting the system" do
+                let(:halt_confirmation) { false }
+                let(:user_input) { [:next, :back] }
+
+                it "does not return :halt" do
+                  result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+                  expect(result).to_not eq(:halt)
+                end
+              end
+            end
+
+            context "using an unknown cancel action" do
+              let(:cancel_action) { "not_known_action" }
+
+              it "returns :abort" do
+                result = described_class.HandleLicenseDialogRet(licenses_ref, base_product, cancel_action)
+
+                expect(result).to eq(:abort)
+              end
+            end
+          end
         end
       end
     end
