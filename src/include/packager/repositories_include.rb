@@ -186,12 +186,10 @@ module Yast
         try_again(url, scheme) ? :again : :cancel
       else
         Progress.NextStage
-        license_accepted = true
         Builtins.foreach(newSources) do |id|
           if !LicenseAccepted(id)
             log.info("License NOT accepted, removing the source")
             Pkg.SourceDelete(id)
-            license_accepted = false
           else
             src_data = Pkg.SourceGeneralData(id)
             log.info("Addded repository: #{src_data}")
@@ -207,7 +205,7 @@ module Yast
           end
         end
 
-        license_accepted ? :ok : :abort
+        :ok
       end
     ensure
       # relese (unmount) the medium

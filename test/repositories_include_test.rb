@@ -111,13 +111,12 @@ describe "PackagerRepositoriesIncludeInclude" do
       expect(ret).to eq(:ok)
     end
 
-    it "returns :abort and removes the repository if license is rejected" do
+    it "removes the repository if license is rejected" do
       expect(Yast::AddOnProduct).to receive(:AcceptedLicenseAndInfoFile)
         .with(repo_id).and_return(false)
       expect(Yast::Pkg).to receive(:SourceDelete).with(repo_id)
 
-      ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
-      expect(ret).to eq(:abort)
+      RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
     end
 
     context "more products available on the medium" do

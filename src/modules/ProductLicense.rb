@@ -416,7 +416,7 @@ module Yast
         src_id,
         "",
         @license_patterns,
-        "abort",
+        "refuse",
         # back button is disabled
         false,
         false,
@@ -635,6 +635,8 @@ module Yast
           log.info "License has been declined."
 
           case action
+          when "refuse"
+            ret = :refused
           when "abort"
             ret = :abort
           when "halt"
