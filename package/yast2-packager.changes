@@ -1,10 +1,11 @@
 -------------------------------------------------------------------
-Tue Jun 18 08:59:39 UTC 2019 - David Diaz <dgonzalez@suse.com>
+Tue Jun 21 08:59:39 UTC 2019 - David Diaz <dgonzalez@suse.com>
 
 - Better handling of license agreement dialog, allowing to
   distinguish when the user is declining a license or aborting
   the installation (bsc#1114018)
 - 3.3.1
+
 -------------------------------------------------------------------
 Thu Jun 20 13:47:59 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
