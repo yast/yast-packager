@@ -86,7 +86,7 @@ module Y2Packager
 
         refresh_details(current_product)
 
-        select_dependant_products
+        select_dependent_products
       end
 
       # Display the the dialog title on the left side at installation
@@ -138,7 +138,7 @@ module Y2Packager
       end
 
       # select the dependant products for the active selection
-      def select_dependant_products
+      def select_dependent_products
         # select the dependent products
         new_selection = current_selection
 
@@ -221,7 +221,7 @@ module Y2Packager
 
         # compute the dependant products
         dependencies = []
-        if product.depends_on && !product.depends_on.empty?
+        if product.depends_on
           product.depends_on.each do |p|
             # display the human readable product name instead of the product directory
             prod = @products.find { |pr| pr.dir == p }

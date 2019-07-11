@@ -37,7 +37,7 @@ module Y2Packager
     attr_reader :summary
     # @return [String] Product description
     attr_reader :description
-    # @return [Integer] Display order
+    # @return [Integer,nil] Display order (nil if not specified)
     attr_reader :order
     # @return [Boolean] Base product flag
     attr_reader :base
@@ -65,8 +65,16 @@ module Y2Packager
       repomd_files = downloader.download
       return [] if repomd_files.empty?
 
-      repomd_files.each do |repoindex|
-        pool.add_rpmmd_repo(repoindex, "/" + repoindex.split("/")[-3])
+      repomd_files.each do |repomd|
+        # Use the directory name as the repository name so we can easily map
+        # the found products to their directories on the medium.
+        # The repomd path looks like
+        #   /var/tmp/.../Module-Basesystem/repodata/*primary.xml.gz
+        # so the third component from the end is the repository subdirectory.
+        # The directories in the /media.1/products index file start with
+        # a slash, add it here as well so we can easily compare that data.
+        repo_name = "/" + repomd.split("/")[-3]
+        pool.add_rpmmd_repo(repomd, repo_name)
       end
 
       finder = Y2Packager::ProductFinder.new(pool)

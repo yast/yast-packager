@@ -36,12 +36,15 @@ module Y2Packager
     def products(base = nil)
       marked_base_products = base_product_tags
       # evaluate all products
-      pool.whatprovides(pool.str2id("product()")).each_with_object([]) do |s, list|
+      pool.whatprovides(pool.str2id(PRODUCT_PROVIDES))
+          .each_with_object([]) do |product_solvable, list|
+
         # the dependant repositories, includes also the transient dependencies
         required = []
         solver = pool.Solver
         # select this product solvable (the product *-release package)
-        jobs = [pool.Job(Solv::Job::SOLVER_SOLVABLE | Solv::Job::SOLVER_INSTALL, s.id)]
+        jobs = [pool.Job(Solv::Job::SOLVER_SOLVABLE |
+          Solv::Job::SOLVER_INSTALL, product_solvable.id)]
 
         if base
           # select the base product
@@ -52,14 +55,15 @@ module Y2Packager
         # run the solver to evaluate all dependencies
         problems = solver.solve(jobs)
 
-        # in case of problems, ignore the dependencies
+        # if the solver failed we cannot evaluate the dependencies,
+        # something is probably missing or there are conflicts
         if problems.empty?
           # find all repositories which have a product selected to install
-          solver.transaction.newsolvables.each do |n|
-            next if n == s
-            n.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |dep|
+          solver.transaction.newsolvables.each do |new_solvable|
+            next if new_solvable == product_solvable
+            new_solvable.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |dep|
               next unless dep.str.start_with?("product(")
-              required << n.repo.name
+              required << new_solvable.repo.name
             end
           end
 
@@ -68,17 +72,17 @@ module Y2Packager
         end
 
         ret = {
-          prod_dir:        s.repo.name,
-          product_package: s.name,
-          summary:         s.lookup_str(Solv::SOLVABLE_SUMMARY),
-          description:     s.lookup_str(Solv::SOLVABLE_DESCRIPTION),
+          prod_dir:        product_solvable.repo.name,
+          product_package: product_solvable.name,
+          summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY),
+          description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION),
           depends_on:      problems.empty? ? required : nil,
-          order:           display_order(s)
+          order:           display_order(product_solvable)
         }
 
         # in theory a release package might provide several products,
         # create an item for each of them
-        s.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |p|
+        product_solvable.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |p|
           next unless p.str =~ /\Aproduct\(\)\s*=\s*(\S+)/
           product_name = Regexp.last_match[1]
           product_data = {
@@ -93,6 +97,10 @@ module Y2Packager
 
   private
 
+    # special RPM "Provides" tags
+    SYSTEM_INSTALLATION_PROVIDES = "system-installation()".freeze
+    PRODUCT_PROVIDES = "product()".freeze
+
     #
     # Return the list of marked base products. A base product is defined
     # by the "system-installation() = <product>" provides.
@@ -100,7 +108,7 @@ module Y2Packager
     # @return [Array<String>] The base products
     #
     def base_product_tags
-      install_provides = pool.whatprovides(pool.str2id("system-installation()"))
+      install_provides = pool.whatprovides(pool.str2id(SYSTEM_INSTALLATION_PROVIDES))
 
       tags = install_provides.each_with_object([]) do |s, list|
         provides = s.lookup_deparray(Solv::SOLVABLE_PROVIDES)

@@ -1719,7 +1719,7 @@ module Yast
       # if there are multiple repositories on the medium we cannot initialize it now,
       # we do not know which base product (repository) will be used, it will be selected
       # by the user later in the workflow
-      if !meta_data_present(base_url, product_dir)
+      if !meta_data_present?(base_url, product_dir)
         log.info "Metadata not found at #{log_url}, postponing the repository initialization"
         return
       end
@@ -2759,7 +2759,7 @@ module Yast
 
     # repository metadata present at the url?
     # @return [Boolean] true if a repository metadata are present
-    def meta_data_present(url, product_dir)
+    def meta_data_present?(url, product_dir)
       # add a temporary repository for downloading the files via libzypp
       src = Pkg.RepositoryAdd("base_urls" => [url])
       META_DATA_FILES.any? do |f|
