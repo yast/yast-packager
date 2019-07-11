@@ -39,7 +39,7 @@ module Y2Packager
     attr_reader :description
     # @return [Integer,nil] Display order (nil if not specified)
     attr_reader :order
-    # @return [Boolean] Base product flag
+    # @return [Boolean] Base product flag (true if this is a base product)
     attr_reader :base
     # @return [Array<String>] The product dependencies, includes also the transitive
     #  (indirect) dependencies
