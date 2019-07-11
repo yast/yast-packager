@@ -137,7 +137,7 @@ module Y2Packager
         )
       end
 
-      # select the dependant products for the active selection
+      # select the dependent products for the active selection
       def select_dependent_products
         # select the dependent products
         new_selection = current_selection
@@ -145,7 +145,7 @@ module Y2Packager
         # the selection has not changed, nothing to do
         return if new_selection == selected_products
 
-        # add the dependant items to the selected list
+        # add the dependent items to the selected list
         selected_items = Yast::UI.QueryWidget(Id(:addon_repos), :SelectedItems)
         new_items = new_selection - selected_products
         new_items.each do |p|
@@ -219,7 +219,7 @@ module Y2Packager
         log.info "Loading ERB template #{erb_file}"
         erb = ERB.new(File.read(erb_file))
 
-        # compute the dependant products
+        # compute the dependent products
         dependencies = []
         if product.depends_on
           product.depends_on.each do |p|

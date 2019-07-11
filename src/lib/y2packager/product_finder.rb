@@ -39,7 +39,7 @@ module Y2Packager
       pool.whatprovides(pool.str2id(PRODUCT_PROVIDES))
           .each_with_object([]) do |product_solvable, list|
 
-        # the dependant repositories, includes also the transient dependencies
+        # the dependent repositories, includes also the transient dependencies
         required = []
         solver = pool.Solver
         # select this product solvable (the product *-release package)

@@ -1047,7 +1047,7 @@ module Yast
       deep_copy(ret)
     end
 
-    # Compute board (vendor) dependant packages
+    # Compute board (vendor) dependent packages
     # @return [Array](string)
     def boardPackages
       probe = Convert.convert(
