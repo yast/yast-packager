@@ -10,7 +10,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # ------------------------------------------------------------------------------
 
-require "solv"
+require "y2packager/product_location"
+require "y2packager/product_location_details"
 
 module Y2Packager
   # This class finds products in a Solv pool
@@ -30,17 +31,30 @@ module Y2Packager
     #
     # @param selected_base [String] The name of the base product used for evaluating the
     #  dependencies.
+    # @param media_names [Array<Array<String,String>>] Product names
     #
     # @return [Array<Hash>] The list of found products
     #
-    def products(selected_base = nil)
+    def products(selected_base, media_names)
       marked_base_products = base_product_tags
       # evaluate all products
-      pool.whatprovides(pool.str2id(PRODUCT_PROVIDES))
-          .each_with_object([]) do |product_solvable, list|
+      ret = pool.whatprovides(pool.str2id(PRODUCT_PROVIDES))
+                .each_with_object([]) do |product_solvable, list|
 
-        list.concat(create_products(product_solvable, marked_base_products, selected_base))
+        list.concat(create_products(product_solvable, marked_base_products,
+          selected_base, media_names))
       end
+
+      # handle also subdirectories which do not contain any product
+      # (custom or 3rd party repositories)
+      media_names.each do |name, dir|
+        # a product was found in this directory?
+        next if ret.any? { |p| p.dir == dir }
+
+        ret << ProductLocation.new(name, dir)
+      end
+
+      ret
     end
 
   private
@@ -101,17 +115,8 @@ module Y2Packager
     #
     # @return [Array<Hash>] the found products
     #
-    def create_products(product_solvable, found_base_products, selected_base)
+    def create_products(product_solvable, found_base_products, selected_base, media_names)
       ret = []
-
-      data = {
-        prod_dir:        product_solvable.repo.name,
-        product_package: product_solvable.name,
-        summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY),
-        description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION),
-        depends_on:      find_dependencies(product_solvable, selected_base),
-        order:           display_order(product_solvable)
-      }
 
       # in theory a release package might provide several products,
       # create an item for each of them
@@ -119,12 +124,21 @@ module Y2Packager
         product_name = p.str[/\Aproduct\(\)\s*=\s*(\S+)/, 1]
         next unless product_name
 
-        product_data = {
-          product_name: product_name,
-          base:         found_base_products.include?(product_name)
-        }
+        details = ProductLocationDetails.new(
+          base:            found_base_products.include?(product_name),
+          depends_on:      find_dependencies(product_solvable, selected_base),
+          description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION),
+          order:           display_order(product_solvable),
+          product:         product_name,
+          product_package: product_solvable.name,
+          summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY)
+        )
 
-        ret << data.merge(product_data)
+        dir = product_solvable.repo.name
+        media_name_pair = media_names.find { |r| r[1] == dir }
+        media_name = media_name_pair ? media_name_pair.first : dir
+
+        ret << ProductLocation.new(media_name, dir, product: details)
       end
 
       ret

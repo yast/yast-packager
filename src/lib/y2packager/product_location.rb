@@ -15,7 +15,6 @@ require "yast"
 require "y2packager/repomd_downloader"
 require "y2packager/solvable_pool"
 require "y2packager/product_finder"
-require "y2packager/product_location_details"
 
 Yast.import "URL"
 
@@ -67,20 +66,7 @@ module Y2Packager
 
       finder = Y2Packager::ProductFinder.new(pool)
 
-      # TODO: handle also subdirectories which do not contain any product
-      # (custom or 3rd party repositories)
-      finder.products(base_product).map do |p|
-        media_name_pair = downloader.product_repos.find { |r| r[1] == p[:prod_dir] }
-        media_name = media_name_pair ? media_name_pair.first : p[:prod_dir]
-
-        if p[:product_name]
-          details = ProductLocationDetails.new(product: p[:product_name], summary: p[:summary],
-            description: p[:description], base: p[:base], order: p[:order],
-            depends_on: p[:depends_on], product_package: p[:product_package])
-        end
-
-        new(media_name, p[:prod_dir], product: details)
-      end
+      finder.products(base_product, downloader.product_repos)
     end
 
     # Constructor
