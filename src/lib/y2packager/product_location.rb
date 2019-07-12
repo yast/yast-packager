@@ -15,6 +15,7 @@ require "yast"
 require "y2packager/repomd_downloader"
 require "y2packager/solvable_pool"
 require "y2packager/product_finder"
+require "y2packager/product_location_details"
 
 Yast.import "URL"
 
@@ -29,21 +30,8 @@ module Y2Packager
     # @return [String] Path on the medium (relative to the medium root)
     attr_reader :dir
 
-    # @return [String] Product name (the zypp resolvable)
-    attr_reader :product_name
-    # @return [String] The product package (*-release RPM usually)
-    attr_reader :product_package
-    # @return [String] Product summary
-    attr_reader :summary
-    # @return [String] Product description
-    attr_reader :description
-    # @return [Integer,nil] Display order (nil if not specified)
-    attr_reader :order
-    # @return [Boolean] Base product flag (true if this is a base product)
-    attr_reader :base
-    # @return [Array<String>] The product dependencies, includes also the transitive
-    #  (indirect) dependencies
-    attr_reader :depends_on
+    # @return [Y2Packager::ProductLocationDetails] Product details
+    attr_reader :details
 
     #
     # Scan the URL for the available product subdirectories
@@ -84,10 +72,14 @@ module Y2Packager
       finder.products(base_product).map do |p|
         media_name_pair = downloader.product_repos.find { |r| r[1] == p[:prod_dir] }
         media_name = media_name_pair ? media_name_pair.first : p[:prod_dir]
-        new(media_name, p[:prod_dir],
-          product_name: p[:product_name], summary: p[:summary],
-          description: p[:description], base: p[:base], order: p[:order],
-          depends_on: p[:depends_on], product_package: p[:product_package])
+
+        if p[:product_name]
+          details = ProductLocationDetails.new(product: p[:product_name], summary: p[:summary],
+            description: p[:description], base: p[:base], order: p[:order],
+            depends_on: p[:depends_on], product_package: p[:product_package])
+        end
+
+        new(media_name, p[:prod_dir], product: details)
       end
     end
 
@@ -95,18 +87,10 @@ module Y2Packager
     #
     # @param name [String] Product name
     # @param dir [String] Location (path starting at the media root)
-    def initialize(name, dir, product_name: nil, summary: nil, product_package: nil,
-      order: nil, description: nil, base: nil, depends_on: nil)
+    def initialize(name, dir, product: nil)
       @name = name
       @dir = dir
-
-      @product_name = product_name
-      @summary = summary
-      @description = description
-      @order = order
-      @base = base
-      @depends_on = depends_on
-      @product_package = product_package
+      @details = product
     end
   end
 end
