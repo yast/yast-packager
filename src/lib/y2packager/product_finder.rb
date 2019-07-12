@@ -102,38 +102,14 @@ module Y2Packager
     # @return [Array<Hash>] the found products
     #
     def create_products(product_solvable, found_base_products, selected_base)
-      # the dependent repositories, includes also the transient dependencies
-      required = []
-      solver = pool.Solver
-      jobs = select_products(product_solvable, selected_base)
+      ret = []
 
-      # run the solver to evaluate all dependencies
-      problems = solver.solve(jobs)
-
-      # if the solver failed we cannot evaluate the dependencies,
-      # something is probably missing or there are conflicts
-      if problems.empty?
-        # find all repositories which have a product selected to install
-        solver.transaction.newsolvables.each do |new_solvable|
-          next if new_solvable == product_solvable
-          new_solvable.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |dep|
-            next unless dep.str.start_with?("product(")
-            required << new_solvable.repo.name
-          end
-        end
-
-        required.uniq!
-        required.sort!
-      end
-
-      list = []
-
-      ret = {
+      data = {
         prod_dir:        product_solvable.repo.name,
         product_package: product_solvable.name,
         summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY),
         description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION),
-        depends_on:      problems.empty? ? required : nil,
+        depends_on:      find_dependencies(product_solvable, selected_base),
         order:           display_order(product_solvable)
       }
 
@@ -148,10 +124,10 @@ module Y2Packager
           base:         found_base_products.include?(product_name)
         }
 
-        list << ret.merge(product_data)
+        ret << data.merge(product_data)
       end
 
-      list
+      ret
     end
 
     #
@@ -174,6 +150,40 @@ module Y2Packager
       end
 
       jobs
+    end
+
+    #
+    # Find dependencies for the product
+    #
+    # @param product_solvable [Solv] The input product
+    # @param selected_base [String,nil] The preferred base product
+    #
+    # @return [Array<String>] list of the dependant products (repository directories)
+    #
+    def find_dependencies(product_solvable, selected_base)
+      # the dependent repositories, includes also the transient dependencies
+      jobs = select_products(product_solvable, selected_base)
+      solver = pool.Solver
+
+      # run the solver to evaluate all dependencies
+      problems = solver.solve(jobs)
+
+      # if the solver failed we cannot evaluate the dependencies,
+      # something is probably missing or there are conflicts
+      return nil if !problems.empty?
+
+      ret = []
+      # find all repositories which have a product selected to install
+      solver.transaction.newsolvables.each do |new_solvable|
+        next if new_solvable == product_solvable
+        new_solvable.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |dep|
+          next unless dep.str.start_with?("product(")
+          ret << new_solvable.repo.name
+        end
+      end
+
+      ret.uniq!
+      ret.sort
     end
 
     attr_reader :pool
