@@ -84,7 +84,7 @@ module Y2Packager
       order = nil
       provides.each do |p|
         next unless p.str =~ /\Adisplayorder\(\s*([0-9]+)\s*\)\z/
-        order = Regexp.last_match[1].to_i if Regexp.last_match
+        order = Regexp.last_match[1].to_i
       end
 
       order
@@ -94,7 +94,10 @@ module Y2Packager
     # Evaluate the products
     #
     # @param product_solvable [Solv] the product solvable to create
-    # @param base_products [Array<String>] the found base products
+    # @param found_base_products [Array<String>] the found base products
+    # @param selected_base [String,nil] the preferred base product, if nil
+    #  the solver might select some base product automatically to satisfy the
+    #  dependencies.
     #
     # @return [Array<Hash>] the found products
     #
@@ -137,8 +140,9 @@ module Y2Packager
       # in theory a release package might provide several products,
       # create an item for each of them
       product_solvable.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |p|
-        next unless p.str =~ /\Aproduct\(\)\s*=\s*(\S+)/
-        product_name = Regexp.last_match[1]
+        product_name = p.str[/\Aproduct\(\)\s*=\s*(\S+)/, 1]
+        next unless product_name
+
         product_data = {
           product_name: product_name,
           base:         found_base_products.include?(product_name)

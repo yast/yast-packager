@@ -20,7 +20,7 @@ module Y2Packager
   # For multi-product repositories it downloads the files from all product
   # subdirectories.
   class RepomdDownloader
-    attr_reader :url, :product_repos
+    attr_reader :url
 
     #
     # Constructor
@@ -32,17 +32,36 @@ module Y2Packager
     end
 
     #
-    # Download the primary.xml file(s) from the repository.
+    # Scan the product directories at the URL
     #
-    # @return [Array<String>] List of paths pointing to the downloaded primary.xml files,
-    #   returns an empty list if the URL or the repository is not valid.
+    # @return [Array<Array<String,String>>] List of pairs [<product_name>, <directory>]
     #
-    def download
+    def product_repos
+      @product_repos if @product_repos
+
       # expand the URL and scan the repositories on the medium
       expanded_url = Yast::Pkg.ExpandedUrl(url)
       @product_repos = Yast::Pkg.RepositoryScan(expanded_url)
+    end
 
-      return [] if @product_repos.nil? || @product_repos.empty?
+    #
+    # Returns the downloaded primary.xml.gz file(s) from the repository.
+    #
+    # @note For remote repositories (http://, ftp://, ...) the files are downloaded
+    #  to a temporary directory (/var/tmp/...), but for the local repositories
+    #  or mountable repositories (dir://, dvd://) it directly points to the original files!
+    #  That means you should never try to modify the referenced files!
+    #
+    # @note The downloaded files are deleted automatically at exit (at the Pkg destructor)
+    #  or after calling the Yast::Pkg.SourceReleaseAll method. Because this method is called
+    #  several times during the installation it is recommended to either copy the files
+    #  elsewhere or to download them again if they are needed later.
+    #
+    # @return [Array<String>] List of paths pointing to the downloaded primary.xml.gz files,
+    #   returns an empty list if the URL or the repository is not valid.
+    #
+    def primary_xmls
+      return [] if product_repos.nil? || product_repos.empty?
 
       # add a temporary repository for downloading the files via libzypp
       src = Yast::Pkg.RepositoryAdd("base_urls" => [url])

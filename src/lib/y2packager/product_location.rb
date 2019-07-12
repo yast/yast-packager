@@ -62,7 +62,7 @@ module Y2Packager
       downloader = Y2Packager::RepomdDownloader.new(url)
       pool = Y2Packager::SolvablePool.new
 
-      repomd_files = downloader.download
+      repomd_files = downloader.primary_xmls
       return [] if repomd_files.empty?
 
       repomd_files.each do |repomd|
