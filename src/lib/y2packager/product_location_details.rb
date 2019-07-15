@@ -15,13 +15,14 @@ module Y2Packager
     # @return [Boolean] Base product flag (true if this is a base product)
     attr_reader :base
     # @return [Array<String>] The product dependencies, includes also the transitive
-    #  (indirect) dependencies
+    #  (indirect) dependencies, if the dependencies cannot be evaluated
+    #  (e.g. because of conflicts) then the value is `nil`
     attr_reader :depends_on
 
     # Constructor
     #
-    def initialize(product: nil, summary: nil, product_package: nil,
-      order: nil, description: nil, base: nil, depends_on: nil)
+    def initialize(product: nil, summary: "", product_package: nil,
+      order: nil, description: "", base: false, depends_on: nil)
       @product = product
       @summary = summary
       @description = description

@@ -127,11 +127,11 @@ module Y2Packager
         details = ProductLocationDetails.new(
           base:            found_base_products.include?(product_name),
           depends_on:      find_dependencies(product_solvable, selected_base),
-          description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION),
+          description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION) || "",
           order:           display_order(product_solvable),
           product:         product_name,
           product_package: product_solvable.name,
-          summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY)
+          summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || ""
         )
 
         dir = product_solvable.repo.name

@@ -14,7 +14,10 @@ textdomain "packager"
     <b><%= _("Product ID:") %></b> <%= h(details.product) %>
   <% end %>
 
-  <% if !dependencies.empty? %>
+  <% if dependencies.nil? %>
+    <%# TRANSLATORS: error message in a RichText summary %>
+    <p><em><%= _("Cannot evaluate the product dependencies.") %></em></p>
+  <% elsif !dependencies.empty? %>
     <%# TRANSLATORS: the RichText section header, followed by the names of the dependent products %>
     <h3><%= _("Dependencies") %></h3>
     <ul>
@@ -24,7 +27,7 @@ textdomain "packager"
     </ul>
   <% end %>
 
-  <% if details.description %>
+  <% if !details.description.empty? %>
     <%# TRANSLATORS: the RichText header, it is followed by an untranslated (English) product description %>
     <h3><%= _("Product Description (English Only)") %></h3>
     <%# no escaping, the description already *is* a rich text %>
