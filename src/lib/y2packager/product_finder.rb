@@ -112,8 +112,11 @@ module Y2Packager
     # @param selected_base [String,nil] the preferred base product, if nil
     #  the solver might select some base product automatically to satisfy the
     #  dependencies.
+    # @param media_names [Array<Array<String,String>>] The list of found
+    #  products on the medium, a list of pairs [<media_name>, <directory_name>]
+    #  as returned by the Yast::Pkg.RepositoryScan call
     #
-    # @return [Array<Hash>] the found products
+    # @return [Array<Y2Packager::ProductLocation>] the found products
     #
     def create_products(product_solvable, found_base_products, selected_base, media_names)
       ret = []
