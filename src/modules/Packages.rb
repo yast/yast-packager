@@ -1047,7 +1047,7 @@ module Yast
       deep_copy(ret)
     end
 
-    # Compute board (vendor) dependant packages
+    # Compute board (vendor) dependent packages
     # @return [Array](string)
     def boardPackages
       probe = Convert.convert(
@@ -1715,7 +1715,15 @@ module Yast
       Ops.greater_than(Builtins.size(@add_on_products_list), 0)
     end
 
-    def Initialize_StageInitial(show_popup, base_url, log_url)
+    def Initialize_StageInitial(show_popup, base_url, log_url, product_dir = "/")
+      # if there are multiple repositories on the medium we cannot initialize it now,
+      # we do not know which base product (repository) will be used, it will be selected
+      # by the user later in the workflow
+      if !meta_data_present?(base_url, product_dir)
+        log.info "Metadata not found at #{log_url}, postponing the repository initialization"
+        return
+      end
+
       initial_repository = nil
       ImportGPGKeys()
 
@@ -1729,7 +1737,7 @@ module Yast
       Pkg.SetZConfig("download_media_prefer_download" => false)
 
       while initial_repository.nil?
-        initial_repository = Pkg.SourceCreateBase(base_url, "/")
+        initial_repository = Pkg.SourceCreateBase(base_url, product_dir)
         next unless initial_repository == -1 || initial_repository.nil?
         Builtins.y2error("No repository in '%1'", log_url)
         base_url = UpdateSourceURL(base_url)
@@ -2740,6 +2748,26 @@ module Yast
         # fallback to the internal product name if not found
         new_product ? new_product.display_name : p
       end
+    end
+
+    META_DATA_FILES = [
+      # repo-md repository
+      "repodata/repomd.xml",
+      # SUSE-tags repository
+      "content"
+    ].freeze
+
+    # repository metadata present at the url?
+    # @return [Boolean] true if a repository metadata are present
+    def meta_data_present?(url, product_dir)
+      # add a temporary repository for downloading the files via libzypp
+      src = Pkg.RepositoryAdd("base_urls" => [url])
+      META_DATA_FILES.any? do |f|
+        Pkg.SourceProvideOptionalFile(src, 1, File.join(product_dir, f))
+      end
+    ensure
+      # remove the temporary repository
+      Pkg.SourceDelete(src) if src
     end
   end
 

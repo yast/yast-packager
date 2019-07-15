@@ -10,22 +10,73 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # ------------------------------------------------------------------------------
 
+require "yast"
+
+require "y2packager/repomd_downloader"
+require "y2packager/solvable_pool"
+require "y2packager/product_finder"
+
+Yast.import "URL"
+
 module Y2Packager
   # This class represents a product located on a multi-repository medium,
   # libzypp reads the available products from /medium.1/products file.
   class ProductLocation
-    # @return [String] Products on the medium
+    include Yast::Logger
+
+    # @return [String] Product name (user name from the /medium.1/products file)
     attr_reader :name
-    # @return [String] User selected products
+    # @return [String] Path on the medium (relative to the medium root)
     attr_reader :dir
+
+    # @return [Y2Packager::ProductLocationDetails] Product details
+    attr_reader :details
+
+    #
+    # Scan the URL for the available product subdirectories
+    # and their products.
+    #
+    # @param url [String] The base repository URL
+    # @param base_product [String,nil]  The base product used for evaluating the
+    #   product dependencies, if nil the solver can select any product to satisfy
+    #   the dependencies.
+    #
+    # @return [Array<Y2Packager::ProductLocation>] The found products
+    #
+    def self.scan(url, base_product = nil)
+      log.info "Scanning #{Yast::URL.HidePassword(url)} for products..."
+
+      downloader = Y2Packager::RepomdDownloader.new(url)
+      pool = Y2Packager::SolvablePool.new
+
+      repomd_files = downloader.primary_xmls
+      return [] if repomd_files.empty?
+
+      repomd_files.each do |repomd|
+        # Use the directory name as the repository name so we can easily map
+        # the found products to their directories on the medium.
+        # The repomd path looks like
+        #   /var/tmp/.../Module-Basesystem/repodata/*primary.xml.gz
+        # so the third component from the end is the repository subdirectory.
+        # The directories in the /media.1/products index file start with
+        # a slash, add it here as well so we can easily compare that data.
+        repo_name = "/" + repomd.split("/")[-3]
+        pool.add_rpmmd_repo(repomd, repo_name)
+      end
+
+      finder = Y2Packager::ProductFinder.new(pool)
+
+      finder.products(base_product, downloader.product_repos)
+    end
 
     # Constructor
     #
     # @param name [String] Product name
     # @param dir [String] Location (path starting at the media root)
-    def initialize(name, dir)
+    def initialize(name, dir, product: nil)
       @name = name
       @dir = dir
+      @details = product
     end
   end
 end
