@@ -37,7 +37,7 @@ module Y2Packager
     # @return [Array<Array<String,String>>] List of pairs [<product_name>, <directory>]
     #
     def product_repos
-      @product_repos if @product_repos
+      return @product_repos if @product_repos
 
       # expand the URL and scan the repositories on the medium
       expanded_url = Yast::Pkg.ExpandedUrl(url)
@@ -72,7 +72,7 @@ module Y2Packager
         # parse the index file and get the full name of the primary.xml.gz file
         doc = REXML::Document.new(File.read(repomd_file))
         primary_path = REXML::XPath.first(doc, "//data[@type='primary']/location")
-                                   .attribute("href").value
+          .attribute("href").value
 
         # download the primary.xml.gz file
         Yast::Pkg.SourceProvideFile(src, 1, File.join(dir, primary_path))

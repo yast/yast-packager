@@ -39,7 +39,7 @@ module Y2Packager
       marked_base_products = base_product_tags
       # evaluate all products
       ret = pool.whatprovides(pool.str2id(PRODUCT_PROVIDES))
-                .each_with_object([]) do |product_solvable, list|
+        .each_with_object([]) do |product_solvable, list|
 
         list.concat(create_products(product_solvable, marked_base_products,
           selected_base, media_names))
@@ -77,6 +77,7 @@ module Y2Packager
 
         provides.each do |p|
           next unless p.str =~ /system-installation\(\)\s*=\s*(\S+)/
+
           list << Regexp.last_match[1]
         end
       end
@@ -98,6 +99,7 @@ module Y2Packager
       order = nil
       provides.each do |p|
         next unless p.str =~ /\Adisplayorder\(\s*([0-9]+)\s*\)\z/
+
         order = Regexp.last_match[1].to_i
       end
 
@@ -193,8 +195,10 @@ module Y2Packager
       # find all repositories which have a product selected to install
       solver.transaction.newsolvables.each do |new_solvable|
         next if new_solvable == product_solvable
+
         new_solvable.lookup_deparray(Solv::SOLVABLE_PROVIDES).each do |dep|
           next unless dep.str.start_with?("product(")
+
           ret << new_solvable.repo.name
         end
       end

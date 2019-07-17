@@ -345,10 +345,9 @@ module Yast
       # use the selected base product during installation,
       # in installed system use the installed base product
       base_product = if Stage.initial
-        Y2Packager::Product.selected_base && Y2Packager::Product.selected_base.name
+        Y2Packager::Product.selected_base&.name
       else
-        Y2Packager::Product.installed_base_product &&
-          Y2Packager::Product.installed_base_product.name
+        Y2Packager::Product.installed_base_product&.name
       end
 
       log.info("Using base product: #{base_product}")

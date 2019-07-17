@@ -32,7 +32,7 @@ module Y2Packager
       repo.add_rpmmd(fd, nil, 0)
       pool.createwhatprovides
     ensure
-      gz.close if gz
+      gz&.close
     end
 
     attr_reader :pool
