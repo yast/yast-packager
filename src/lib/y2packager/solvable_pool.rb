@@ -30,8 +30,8 @@ module Y2Packager
       File.open(primary_xml) do |gz|
         fd = Solv.xfopen_fd(primary_xml, gz.fileno)
         repo.add_rpmmd(fd, nil, 0)
-        pool.createwhatprovides
       end
+      pool.createwhatprovides
     end
 
     attr_reader :pool
