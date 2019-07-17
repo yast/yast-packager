@@ -27,12 +27,11 @@ module Y2Packager
     # @param name [String] Name of the repository
     def add_rpmmd_repo(primary_xml, name)
       repo = pool.add_repo(name)
-      gz = open(primary_xml)
-      fd = Solv.xfopen_fd(primary_xml, gz.fileno)
-      repo.add_rpmmd(fd, nil, 0)
-      pool.createwhatprovides
-    ensure
-      gz&.close
+      File.open(primary_xml) do |gz|
+        fd = Solv.xfopen_fd(primary_xml, gz.fileno)
+        repo.add_rpmmd(fd, nil, 0)
+        pool.createwhatprovides
+      end
     end
 
     attr_reader :pool
