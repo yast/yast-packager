@@ -18,31 +18,37 @@ module PartiallyComparable
   def <(other)
     cmp = self.<=>(other)
     return nil if cmp.nil?
+
     cmp < 0
   end
 
   def >(other)
     cmp = self.<=>(other)
     return nil if cmp.nil?
+
     cmp > 0
   end
 
   def <=(other)
     cmp = self.<=>(other)
     return nil if cmp.nil?
+
     cmp <= 0
   end
 
   def >=(other)
     cmp = self.<=>(other)
     return nil if cmp.nil?
+
     cmp >= 0
   end
 
   def ==(other)
     return true if equal?(other) # object identity
+
     cmp = self.<=>(other)
     return nil if cmp.nil?
+
     cmp == 0
   end
 end
@@ -53,9 +59,9 @@ end
 class LanguageTag
   include Yast::Logger
 
-  # @param s [String]
-  def initialize(s)
-    @tag = s
+  # @param value [String]
+  def initialize(value)
+    @tag = value
   end
 
   def to_s
@@ -70,6 +76,7 @@ class LanguageTag
     return 0 if to_s == other.to_s
     return -1 if to_s.start_with?(other.to_s)
     return 1 if other.to_s.start_with?(to_s)
+
     nil
   end
 

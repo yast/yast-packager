@@ -73,6 +73,7 @@ module Y2Packager
       # @see Y2Packager::Product#license_confirmation
       def store
         return if product.license_confirmed? == value
+
         product.license_confirmation = value
         nil
       end

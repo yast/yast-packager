@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Client for checking media integrity
   class CheckmediaClient < Client

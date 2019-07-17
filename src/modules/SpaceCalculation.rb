@@ -1,10 +1,8 @@
-# encoding: utf-8
-
-# Module:		SpaceCalculation.ycp
+# Module:    SpaceCalculation.ycp
 #
-# Authors:		Klaus Kaempf (kkaempf@suse.de)
-#			Gabriele Strattner (gs@suse.de)
-#			Stefan Schubert (schubi@suse.de)
+# Authors:    Klaus Kaempf (kkaempf@suse.de)
+#      Gabriele Strattner (gs@suse.de)
+#      Stefan Schubert (schubi@suse.de)
 #
 #
 
@@ -96,7 +94,7 @@ module Yast
     #
     # @param [Fixnum] spare_percentage percentage of spare disk space, i.e. free space is increased
     # @return [Array] partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
-    #				     $["free":1974697, "name":"/usr", "used":4227733]]
+    #             $["free":1974697, "name":"/usr", "used":4227733]]
     #
     # @example EvaluateFreeSpace ( 5 );
     #
@@ -142,7 +140,7 @@ module Yast
             partName = mountName[target.size..-1]
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
-          end # target is "/"
+          end
         elsif mountName == "/"
           part_info["name"] = mountName
         # ignore some mount points
@@ -415,8 +413,8 @@ module Yast
     end
 
     # is the filesystem one of Ext2/3/4?
-    def ExtFs(fs)
-      fs == :ext2 || fs == :ext3 || fs == :ext4
+    def ExtFs(filesystem)
+      [:ext2, :ext3, :ext4].include?(filesystem)
     end
 
     # return estimated fs overhead
@@ -525,6 +523,7 @@ module Yast
           capacity = Pkg.TargetCapacity(name)
 
           next unless capacity.nonzero? # dont look at pseudo-devices (proc, shmfs, ...)
+
           used = Pkg.TargetUsed(name)
           growonly = false
 
@@ -549,7 +548,7 @@ module Yast
         Pkg.TargetInitDU(partitions)
         Builtins.y2milestone("get_partition_info: %1", partitions)
         return partitions
-      end # !Stage::initial ()
+      end
 
       # remove the previous failures
       @failed_mounts = []
@@ -722,24 +721,22 @@ module Yast
     # in "partition_info".
     #
     # @return list partition list, e.g.  [$["free":389318, "name":"/", "used":1487222],
-    #				     $["free":1974697, "name":"usr", "used":4227733]]
+    #             $["free":1974697, "name":"usr", "used":4227733]]
     #
     #
     # @example GetPartitionInfo();
     #
     # Will be called from Packages when re-doing proposal !!
     def GetPartitionInfo
-      partition = []
-
-      if Stage.cont
+      partition = if Stage.cont
         # free spare already checked during first part of installation
-        partition = EvaluateFreeSpace(0)
+        EvaluateFreeSpace(0)
       elsif Mode.update
-        partition = EvaluateFreeSpace(15) # 15% free spare for update/upgrade
+        EvaluateFreeSpace(15) # 15% free spare for update/upgrade
       elsif Mode.normal
-        partition = EvaluateFreeSpace(5) # 5% free spare for post installation # Stage::initial ()
+        EvaluateFreeSpace(5) # 5% free spare for post installation # Stage::initial ()
       else
-        partition = get_partition_info
+        get_partition_info
       end
       Builtins.y2milestone(
         "INIT done, SpaceCalculation - partitions: %1",
@@ -831,8 +828,8 @@ module Yast
       if Ops.greater_than(Builtins.size(message), 0)
         # dont ask user to deselect packages for imap server, product
         if ProductFeatures.GetFeature("software", "selection_type") == :auto
-          if Mode.update
-            message = Builtins.add(
+          message = if Mode.update
+            Builtins.add(
               message,
               "\n" +
                 # popup message
@@ -842,7 +839,7 @@ module Yast
                 )
             )
           else
-            message = Builtins.add(
+            Builtins.add(
               message,
               "\n" +
                 # popup message
@@ -1061,11 +1058,9 @@ module Yast
         # Check this only in the initial installation (as the non-fstab values
         # will be missing in "/mnt"), in installed system they will stay available
         # at "/". See bsc#1073696 for details.
-        if fs.mount_path
-          log.debug("Persistent #{fs.mount_path.inspect}: #{fs.persistent?}")
-        end
+        log.debug("Persistent #{fs.mount_path.inspect}: #{fs.persistent?}") if fs.mount_path
 
-        fs.mount_path && fs.mount_path.start_with?("/") && (!Stage.initial || fs.persistent?)
+        fs.mount_path&.start_with?("/") && (!Stage.initial || fs.persistent?)
       end
       filesystems.reject! { |fs| TARGET_FS_TYPES_TO_IGNORE.include?(fs.type) }
       filesystems
@@ -1080,6 +1075,7 @@ module Yast
       blk_device = filesystem.blk_devices[0]
       # Only for local fs, NFS not supported yet in libstorage-ng
       return 0 unless blk_device
+
       blk_device.size.to_i
     end
 

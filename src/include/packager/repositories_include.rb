@@ -1,4 +1,3 @@
-
 require "y2packager/product_location"
 require "y2packager/product"
 
@@ -73,7 +72,7 @@ module Yast
 
       if expanded_url.nil?
         # TRANSLATORS: Error message, %{url} is replaced by the real URL
-        Report.Error(_("Invalid URL:\n%{url}") % { url: url })
+        Report.Error(format(_("Invalid URL:\n%{url}"), url: url))
         return :again
       end
 
@@ -120,7 +119,8 @@ module Yast
 
       found_products.each do |product|
         next if enter_again
-        name = !preffered_name.nil? && preffered_name != "" ? preffered_name : product.name
+
+        name = (!preffered_name.nil? && preffered_name != "") ? preffered_name : product.name
         # probe repository type (do not probe plaindir repo)
         repo_type = plaindir ? PLAINDIR_TYPE : Pkg.RepositoryProbe(expanded_url, product.dir)
         log.info("Repository type (#{URL.HidePassword(url)},#{product.dir}): #{repo_type}")
@@ -276,7 +276,7 @@ module Yast
         )
         Builtins.y2milestone("Community Repositories returned: %1", commrepos)
 
-        if commrepos == :abort || commrepos == :cancel
+        if [:abort, :cancel].include?(commrepos)
           Builtins.y2milestone("Using CR have been canceled")
           return :back
         end
@@ -286,7 +286,7 @@ module Yast
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
 
-        return sccrepos == :abort || sccrepos == :cancel ? :back : :next
+        return [:abort, :cancel].include?(sccrepos) ? :back : :next
       end
 
       ret = createSource(url, plaindir, @download_meta, name)
@@ -345,10 +345,9 @@ module Yast
       # use the selected base product during installation,
       # in installed system use the installed base product
       base_product = if Stage.initial
-        Y2Packager::Product.selected_base && Y2Packager::Product.selected_base.name
+        Y2Packager::Product.selected_base&.name
       else
-        Y2Packager::Product.installed_base_product &&
-          Y2Packager::Product.installed_base_product.name
+        Y2Packager::Product.installed_base_product&.name
       end
 
       log.info("Using base product: #{base_product}")
@@ -491,11 +490,12 @@ module Yast
     # Check and install the packages needed for accessing the URL scheme.
     # @param scheme [String] URL scheme of the new repository
     def install_mount_package(scheme)
-      if scheme == "smb" && !File.exist?("/sbin/mount.cifs")
-        log.info("Installing missing 'cifs-mount' package...")
-        # install cifs-mount package
-        PackageSystem.CheckAndInstallPackages(["cifs-mount"])
-      end
+      return if scheme != "smb"
+      return if File.exist?("/sbin/mount.cifs")
+
+      log.info("Installing missing 'cifs-mount' package...")
+      # install cifs-mount package
+      PackageSystem.CheckAndInstallPackages(["cifs-mount"])
     end
 
     # Ask user whether to change the entered URL and try again

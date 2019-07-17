@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "yast"
 require "pathname"
 
@@ -32,7 +30,7 @@ module Yast
       @pkg_inprogress = ""
 
       # never show the disk space warning popup during autoinstallation
-      @ask_again = Mode.autoinst ? false : true
+      @ask_again = !Mode.autoinst
       # true == continue with the installtion
       @user_input = true
     end
@@ -46,7 +44,7 @@ module Yast
       button = UI.PollInput
 
       # in case of cancel ask user if he really wants to quit installation
-      if button == :abort || button == :cancel
+      if [:abort, :cancel].include?(button)
         if Mode.normal
           SlideShow.SetUserAbort(
             Popup.AnyQuestion(
@@ -159,9 +157,7 @@ module Yast
       input = UI.PollInput
       Builtins.y2milestone("input: %1", input)
 
-      return false if input == :abort || input == :close
-
-      true
+      [:abort, :close].include?(input)
     end
 
     def ScriptProblem(description)
@@ -404,13 +400,9 @@ module Yast
     def ProgressPackage(pkg_percent)
       HandleInput()
 
-      if !SlideShow.GetUserAbort
-        PackageSlideShow.UpdateCurrentPackageProgress(pkg_percent)
-      end
+      PackageSlideShow.UpdateCurrentPackageProgress(pkg_percent) if !SlideShow.GetUserAbort
 
-      if SlideShow.GetUserAbort
-        Builtins.y2milestone("Aborted at %1%%", pkg_percent)
-      end
+      Builtins.y2milestone("Aborted at %1%%", pkg_percent) if SlideShow.GetUserAbort
 
       !SlideShow.GetUserAbort
     end
@@ -419,6 +411,7 @@ module Yast
     # just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
     def DonePackage(error, reason)
       return "I" if SlideShow.GetUserAbort
+
       PackageSlideShow.UpdateCurrentPackageProgress(100)
 
       ret = ""

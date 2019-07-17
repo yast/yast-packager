@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "yast"
 
 # Yast namespace
@@ -82,18 +80,17 @@ module Yast
     def Process
       return if @process.nil?
 
+      # try to read whole lines
+      out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
       if @inprogress
-        # try to read whole lines
-        out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
-
+        # read progress status
+        buffer = Convert.to_string(SCR.Read(path(".process.read"), @process))
         if !out.nil?
           @output = Builtins.add(@output, out)
 
-          out = Convert.to_string(SCR.Read(path(".process.read"), @process))
-
-          if !out.nil?
+          if !buffer.nil?
             @output = Convert.convert(
-              Builtins.merge(@output, Builtins.splitstring(out, "\n")),
+              Builtins.merge(@output, Builtins.splitstring(buffer, "\n")),
               from: "list",
               to:   "list <string>"
             )
@@ -102,32 +99,23 @@ module Yast
           # finished
           @progress = 100
           @inprogress = false
-        else
-          # read progress status
-          buffer = Convert.to_string(SCR.Read(path(".process.read"), @process))
+        elsif !buffer.nil?
+          Builtins.y2debug("buffer: %1", buffer)
 
-          if !buffer.nil?
-            Builtins.y2debug("buffer: %1", buffer)
+          percent = Builtins.regexpsub(buffer, "([0-9]*)%.*$", "\\1")
 
-            percent = Builtins.regexpsub(buffer, "([0-9]*)%.*$", "\\1")
-
-            if !percent.nil?
-              @progress = Builtins.tointeger(percent)
-              Builtins.y2milestone("progress: %1%%", @progress)
-            end
+          if !percent.nil?
+            @progress = Builtins.tointeger(percent)
+            Builtins.y2milestone("progress: %1%%", @progress)
           end
         end
-      else
-        out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
+      elsif !out.nil?
+        @output = Builtins.add(@output, out)
 
-        if !out.nil?
-          @output = Builtins.add(@output, out)
-
-          # check whether we need to switch to progress mode
-          if Builtins.regexpmatch(out, "^ *pad: ")
-            @inprogress = true
-            Builtins.y2milestone("Switching into progress mode")
-          end
+        # check whether we need to switch to progress mode
+        if Builtins.regexpmatch(out, "^ *pad: ")
+          @inprogress = true
+          Builtins.y2milestone("Switching into progress mode")
         end
       end
 
@@ -165,19 +153,21 @@ module Yast
       instmode = Linuxrc.InstallInf("InstMode")
       Builtins.y2milestone("Installation mode: %1", instmode)
 
+      return [] unless ["cd", "dvd"].include?(instmode)
+
       readycddrives = []
 
-      if instmode == "cd" || instmode == "dvd"
-        # get CD device name
-        bootcd = Linuxrc.InstallInf("Cdrom")
+      # get CD device name
+      bootcd = Linuxrc.InstallInf("Cdrom")
 
-        if !bootcd.nil? && bootcd != ""
-          readycddrives = [Builtins.sformat("/dev/%1", bootcd)]
-        else
-          Builtins.y2milestone("CD device device is not known, probing...")
-          # booted from another location (network), test all CD drives
-          cds = DetectedCDDevices()
+      if !bootcd.nil? && bootcd != ""
+        readycddrives = [Builtins.sformat("/dev/%1", bootcd)]
+      else
+        Builtins.y2milestone("CD device device is not known, probing...")
+        # booted from another location (network), test all CD drives
+        cds = DetectedCDDevices()
 
+        if !cds.nil?
           Builtins.foreach(cds) do |cd|
             devname = Ops.get_string(cd, "dev_name", "")
             # check whether the CD is ready
@@ -185,11 +175,11 @@ module Yast
                 devname != ""
               readycddrives = Builtins.add(readycddrives, devname)
             end
-          end if !cds.nil?
+          end
         end
-
-        Builtins.y2milestone("Ready CD drives: %1", readycddrives)
       end
+
+      Builtins.y2milestone("Ready CD drives: %1", readycddrives)
 
       deep_copy(readycddrives)
     end

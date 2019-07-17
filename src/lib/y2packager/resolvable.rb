@@ -91,18 +91,28 @@ module Y2Packager
     def method_missing(method, *args)
       if instance_variable_defined?("@#{method}")
         raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
+
         return instance_variable_get("@#{method}")
       end
 
       # load a missing attribute
-      if UNIQUE_ATTRIBUTES.all? { |a| instance_variable_defined?("@#{a}") }
-        load_attribute(method)
-        super unless instance_variable_defined?("@#{method}")
-        raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
-        instance_variable_get("@#{method}")
-      else
+      if !UNIQUE_ATTRIBUTES.all? { |a| instance_variable_defined?("@#{a}") }
         raise "Missing attributes for identifying the resolvable."
       end
+
+      load_attribute(method)
+      super unless instance_variable_defined?("@#{method}")
+      raise ArgumentError, "Method #{method} does not accept arguments" unless args.empty?
+
+      instance_variable_get("@#{method}")
+    end
+
+    # defines for dynamic methods also respond_to?
+    def respond_to_missing?(method, _private)
+      return true if instance_variable_defined?("@#{method}")
+      return true if UNIQUE_ATTRIBUTES.include?(method.to_sym)
+
+      false
     end
 
   private
@@ -132,7 +142,8 @@ module Y2Packager
       log.warn("Found several resolvables: #{resolvables.inspect}") if resolvables.size > 1
 
       resolvable = resolvables.first
-      return unless resolvable && resolvable.key?(attr.to_s)
+      return unless resolvable&.key?(attr.to_s)
+
       instance_variable_set("@#{attr}", resolvable[attr.to_s])
     end
   end

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 # ------------------------------------------------------------------------------
 # Copyright (c) 2016 SUSE LLC
 #
@@ -63,6 +61,7 @@ module Y2Packager
         Yast::PackageCallbacks.RegisterEmptyProgressCallbacks
         Yast::Packages.InitializeCatalogs
         return false if Yast::Packages.InitFailed
+
         Yast::Packages.InitializeAddOnProducts
 
         # bnc#886608: Adjusting product name (for &product; macro) right after we
@@ -71,9 +70,7 @@ module Y2Packager
         Yast::PackageCallbacks.RestorePreviousProgressCallbacks
 
         # add extra addon repo built from the initial self update repository (bsc#1101016)
-        if Y2Packager::SelfUpdateAddonRepo.present?
-          Y2Packager::SelfUpdateAddonRepo.create_repo
-        end
+        Y2Packager::SelfUpdateAddonRepo.create_repo if Y2Packager::SelfUpdateAddonRepo.present?
 
         true
       end

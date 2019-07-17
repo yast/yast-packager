@@ -8,6 +8,7 @@ RSpec.shared_examples "Installation::ProposalClient" do
     it "contains 3 string keys (or is nil or {})" do
       d = subject.description
       next if d.nil?
+
       expect(d).to be_a Hash
       expect(d["id"]).to be_a String
       expect(d["menu_title"]).to be_a String

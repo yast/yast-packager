@@ -1,10 +1,8 @@
-# encoding: utf-8
-
-# File:	key_manager.ycp
+# File:  key_manager.ycp
 #
-# Author:	Ladislav Slezak <lslezak@novell.com>
+# Author:  Ladislav Slezak <lslezak@novell.com>
 #
-# Purpose:	Manages GPG keys in the package manager
+# Purpose:  Manages GPG keys in the package manager
 #
 # $Id$
 module Yast

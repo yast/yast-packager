@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Proposal function dispatcher - software.
   class SoftwareSimpleProposalClient < Client

@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Initialize the installation media.
   class MediaProposalClient < Client

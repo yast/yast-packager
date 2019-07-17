@@ -29,7 +29,7 @@ class ProductFactory
     # construct the internal product ID
     product_id = name[0..4]
     # service pack level
-    sp = rand(4) + 1
+    sp = rand(1..4)
 
     product["arch"] = attrs["arch"] || "x86_64"
     product["category"] = attrs["category"] || "addon"

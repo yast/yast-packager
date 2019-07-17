@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # A wrapper for SlideShowCallbacks:: module,
   # required for removing the cyclic import dependency
@@ -9,9 +8,7 @@ module Yast
       @param = []
 
       # get parameters if available
-      if Ops.greater_or_equal(Builtins.size(WFM.Args), 2)
-        @param = Convert.to_list(WFM.Args(1))
-      end
+      @param = Convert.to_list(WFM.Args(1)) if Ops.greater_or_equal(Builtins.size(WFM.Args), 2)
 
       @ret = nil
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 
 require "uri"
@@ -373,6 +372,7 @@ module Yast
 
       # empty iso is used when we adding new url
       return "" if url == "iso://"
+
       uri = URI(url)
       query = uri.query || ""
 
@@ -400,6 +400,7 @@ module Yast
     # @return [Boolean] true if URL is ISO image
     def PathIsISO(url)
       return false if Ops.less_than(Builtins.size(url), 4)
+
       Builtins.substring(url, Ops.subtract(Builtins.size(url), 4), 4) == ".iso"
     end
 
@@ -408,6 +409,7 @@ module Yast
     # @return [String] urlpart with leading slash
     def Slashed(urlpart)
       return urlpart if Builtins.substring(urlpart, 0, 1) == "/"
+
       Ops.add("/", urlpart)
     end
 
@@ -605,7 +607,7 @@ module Yast
 
       UI.ReplaceWidget(
         Id(:edit_content),
-        current_type == :edit_url_parts ? @nfs_details_content : @nfs_complete_content
+        (current_type == :edit_url_parts) ? @nfs_details_content : @nfs_complete_content
       )
 
       if current_type == :edit_url_parts
@@ -901,9 +903,7 @@ module Yast
         "path"   => Convert.to_string(UI.QueryWidget(Id(:dir), :Value))
       }
 
-      if Convert.to_boolean(UI.QueryWidget(Id(:ch_plain), :Value))
-        @_plaindir = true
-      end
+      @_plaindir = true if Convert.to_boolean(UI.QueryWidget(Id(:ch_plain), :Value))
 
       @_url = URL.Build(parsed)
 
@@ -1521,7 +1521,7 @@ module Yast
       Ops.set(parsed, "path", directory)
 
       # set HTTP/HTTPS port
-      if type == :http || type == :https
+      if [:http, :https].include?(type)
         Ops.set(
           parsed,
           "port",
@@ -1612,7 +1612,7 @@ module Yast
           HBox(
             # text entry
             InputField(Id(:server), Opt(:hstretch), _("Server &Name"), server),
-            if type == :http || type == :https
+            if [:http, :https].include?(type)
               HBox(
                 HSpacing(1),
                 HSquash(InputField(Id(:port), _("&Port"), port))
@@ -1702,9 +1702,7 @@ module Yast
         # update widget status
         UI.ChangeWidget(Id(:username), :Enabled, !anonymous)
         UI.ChangeWidget(Id(:password), :Enabled, !anonymous)
-        if UI.WidgetExists(Id(:workgroup))
-          UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous)
-        end
+        UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous) if UI.WidgetExists(Id(:workgroup))
 
         InitFocusServerInit(Convert.to_symbol(id))
 
@@ -1715,11 +1713,9 @@ module Yast
         anonymous = Convert.to_boolean(UI.QueryWidget(Id(:anonymous), :Value))
         UI.ChangeWidget(Id(:username), :Enabled, !anonymous)
         UI.ChangeWidget(Id(:password), :Enabled, !anonymous)
-        if UI.WidgetExists(Id(:workgroup))
-          UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous)
-        end
+        UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous) if UI.WidgetExists(Id(:workgroup))
         return nil
-      elsif (id == :edit_url_parts || id == :edit_complete_url) &&
+      elsif [:edit_url_parts, :edit_complete_url].include?(id) &&
           Ops.get_string(event, "EventReason", "") == "ValueChanged"
         Builtins.y2milestone("Changing dialog type")
 
@@ -1751,7 +1747,7 @@ module Yast
 
       UI.ReplaceWidget(
         Id(:edit_content),
-        current_type == :edit_url_parts ? @details_content : @complete_content
+        (current_type == :edit_url_parts) ? @details_content : @complete_content
       )
 
       if current_type == :edit_url_parts
@@ -1834,18 +1830,14 @@ module Yast
         if anonymous
           UI.ChangeWidget(Id(:username), :Enabled, false)
           UI.ChangeWidget(Id(:password), :Enabled, false)
-          if UI.WidgetExists(Id(:workgroup))
-            UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous)
-          end
+          UI.ChangeWidget(Id(:workgroup), :Enabled, !anonymous) if UI.WidgetExists(Id(:workgroup))
         end
 
         # set HTTP/HTTPS port if it's specified
-        if type == :http || type == :https
+        if [:http, :https].include?(type)
           port_num = Ops.get_string(parsed, "port", "")
 
-          if !port_num.nil? && port_num != ""
-            UI.ChangeWidget(Id(:port), :Value, port_num)
-          end
+          UI.ChangeWidget(Id(:port), :Value, port_num) if !port_num.nil? && port_num != ""
         end
 
         InitFocusServerInit(type)
@@ -2039,7 +2031,6 @@ module Yast
                   VSpacing(0.4),
                   Left(RadioButton(Id(:specify_url), _(WIDGET_LABELS[:specify_url]))),
                   VSpacing(0.4),
-
                   *[:ftp, :http, :https, :samba, :nfs, :cd, :dvd, :hd, :usb,
                     :local_dir, :local_iso].map do |id|
                     Left(RadioButton(Id(id), _(WIDGET_LABELS[id])))
@@ -2179,7 +2170,8 @@ module Yast
         Popup.Message(_("Select the media type"))
         return false
       end
-      if selected == :cd || selected == :dvd
+      case selected
+      when :cd, :dvd
         Pkg.SourceReleaseAll
         msg = if selected == :cd
           _("Insert the add-on product CD")
@@ -2199,7 +2191,7 @@ module Yast
           Builtins.y2milestone("Selected CD/DVD device: %1", cd_device)
           @cd_device_name = cd_device
         end
-      elsif selected == :usb
+      when :usb
         usb_disks = DetectUSBDisk()
 
         if Builtins.size(usb_disks).zero?
@@ -2275,40 +2267,41 @@ module Yast
         ],
         selected
       )
-        if selected == :ftp
+        case selected
+        when :ftp
           @_url = "ftp://"
-        elsif selected == :http
+        when :http
           @_url = "http://"
-        elsif selected == :https
+        when :https
           @_url = "https://"
-        elsif selected == :samba
+        when :samba
           @_url = "smb://"
-        elsif selected == :nfs
+        when :nfs
           @_url = "nfs://"
         # this case is specific, as it return complete path and not just
         # prefix as others
-        elsif selected == :cd || selected == :dvd
+        when :cd, :dvd
           # use three slashes as third slash means path
-          @_url = selected == :cd ? "cd:///" : "dvd:///"
+          @_url = (selected == :cd) ? "cd:///" : "dvd:///"
           if @cd_device_name != ""
             @_url = Ops.add(
               Ops.add(@_url, "?devices="),
               URLRecode.EscapeQuery(@cd_device_name)
             )
           end
-        elsif selected == :hd
+        when :hd
           @_url = "hd://"
-        elsif selected == :usb
+        when :usb
           @_url = "usb://"
-        elsif selected == :local_dir
+        when :local_dir
           @_url = "dir://"
-        elsif selected == :local_iso
+        when :local_iso
           @_url = "iso://"
-        elsif selected == :slp
+        when :slp
           @_url = "slp://"
-        elsif selected == :comm_repos
+        when :comm_repos
           @_url = "commrepos://"
-        elsif selected == :sccrepos
+        when :sccrepos
           @_url = "sccrepos://"
         end
       else
@@ -2622,9 +2615,9 @@ module Yast
       UI.CloseDialog
       ""
       #    if (ret == `ok)
-      # 	return GetURL ();
+      #   return GetURL ();
       #    else
-      # 	return "";
+      #   return "";
     end
 
     # Sample implementation of URL type selection dialog

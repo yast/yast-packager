@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 
 require "shellwords"
@@ -215,9 +214,7 @@ module Yast
 
       # check whether the key is already known
       Builtins.foreach(@known_keys) do |k|
-        if Ops.get_string(k, "id", "") == Ops.get_string(key, "id", "")
-          known = true
-        end
+        known = true if Ops.get_string(k, "id", "") == Ops.get_string(key, "id", "")
       end
 
       if known

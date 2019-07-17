@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 require "yast2/system_time"
 
@@ -89,7 +88,6 @@ module Yast
       @removed_packages = 0
       @total_downloaded = 0
       @total_installed = 0
-      #	avg_download_rate = 0;
 
       @installed_packages_list = []
       @updated_packages_list = []
@@ -125,7 +123,7 @@ module Yast
     # @param sizes [Array<Fixnum>] Sizes to sum
     # @return [Fixnum] Sizes sum
     def ListSum(sizes)
-      sizes.reduce(0) { |a, e| e == -1 ? a : a + e }
+      sizes.reduce(0) { |a, e| (e == -1) ? a : a + e }
     end
 
     # Sum up all positive list items, but cut off individual items at a maximum value.
@@ -148,9 +146,7 @@ module Yast
         end
       end
 
-      if Ops.greater_than(overflow, 0)
-        sum = Ops.multiply(Ops.unary_minus(overflow), max_cutoff)
-      end
+      sum = Ops.multiply(Ops.unary_minus(overflow), max_cutoff) if Ops.greater_than(overflow, 0)
 
       sum
     end
@@ -180,27 +176,23 @@ module Yast
     # absolute value is used.
     #
     def FormatTimeShowOverflow(seconds)
-      text = ""
-
       if Ops.less_than(seconds, 0) # Overflow (indicated by negative value)
         # When data throughput goes downhill (stalled network connection etc.),
         # cut off the predicted time at a reasonable maximum.
         # "%1" is a predefined maximum time.
 
-        text = Builtins.sformat(
+        Builtins.sformat(
           _(">%1"),
           String.FormatTime(Ops.unary_minus(seconds))
         )
       else
-        text = String.FormatTime(seconds)
+        String.FormatTime(seconds)
       end
-
-      text
     end
 
     # Format number of remaining bytes to be installed as string.
-    # @param [Fixnum] remaining		bytes remaining, -1 for 'done'
-    # @return			[String] human readable remaining time or byte / kB/ MB size
+    # @param [Fixnum] remaining    bytes remaining, -1 for 'done'
+    # @return      [String] human readable remaining time or byte / kB/ MB size
     #
     def FormatRemainingSize(remaining)
       if Ops.less_than(remaining, 0)
@@ -213,8 +205,8 @@ module Yast
     end
 
     # Format number of remaining packages to be installed as string.
-    # @param [Fixnum] remaining		bytes remaining, -1 for 'done'
-    # @return			[String] human readable remaining time or byte / kB/ MB size
+    # @param [Fixnum] remaining    bytes remaining, -1 for 'done'
+    # @return      [String] human readable remaining time or byte / kB/ MB size
     #
     def FormatRemainingCount(remaining)
       if Ops.less_than(remaining, 0)
@@ -237,12 +229,12 @@ module Yast
           Builtins.sformat(@media_type, Ops.add(@next_cd_no, 1))
         )
 
-        if @unit_is_seconds
+        text = if @unit_is_seconds
           # Status line informing about the next CD that will be used
           # %1: Media type ("CD" / "DVD", ???)
           # %2: Media name ("SuSE Linux Professional CD 2" )
           # %3: Time remaining until this media will be needed
-          text = Builtins.sformat(
+          Builtins.sformat(
             _("Next: %1 -- %2"),
             next_media_name,
             String.FormatTime(
@@ -260,7 +252,7 @@ module Yast
           # Status line informing about the next CD that will be used
           # %1: Media type ("CD" / "DVD", ???)
           # %2: Media name ("SuSE Linux Professional CD 2" )
-          text = Builtins.sformat(_("Next: %1"), next_media_name)
+          Builtins.sformat(_("Next: %1"), next_media_name)
         end
       end
 
@@ -272,8 +264,8 @@ module Yast
     # ***************************************************************************
 
     # Perform sanity check for correct initialzation etc.
-    # @param [Boolean] _silent	don't complain in log file
-    # @return		true if OK, false if any error
+    # @param [Boolean] _silent  don't complain in log file
+    # @return    true if OK, false if any error
     def SanityCheck(_silent)
       true # FIXME!
     end
@@ -409,8 +401,8 @@ module Yast
       ResetPackageSummary()
       # Reinititalize some globals (in case this is a second run)
       @total_size_installed = 0
-      # total_time_elapsed	= 0;
-      # start_time		= -1;
+      # total_time_elapsed  = 0;
+      # start_time    = -1;
       @current_src_no = -1 # 1..n
       @current_cd_no = -1 # 1..n
       @next_src_no = -1
@@ -583,9 +575,7 @@ module Yast
 
       elapsed = SlideShow.total_time_elapsed
 
-      if SlideShow.start_time >= 0
-        elapsed += Yast2::SystemTime.uptime - SlideShow.start_time
-      end
+      elapsed += Yast2::SystemTime.uptime - SlideShow.start_time if SlideShow.start_time >= 0
 
       if elapsed.zero?
         # Called too early - no calculation possible yet.
@@ -790,17 +780,15 @@ module Yast
 
     # update the overall progress value (download + installation)
     def UpdateTotalProgressValue
-      total_progress = 0
-
-      if @total_count_to_download.zero?
+      total_progress = if @total_count_to_download.zero?
         # no package to download, just use the install size
-        total_progress = Ops.divide(
+        Ops.divide(
           Ops.multiply(TotalInstalledSize(), 100),
           @total_size_to_install
         )
       else
         # compute the total progress (use both download and  installation size)
-        total_progress = Ops.add(
+        Ops.add(
           Ops.divide(
             Ops.multiply(@total_count_downloaded, @downloading_pct),
             @total_count_to_download
@@ -954,7 +942,7 @@ module Yast
     # Progress display update
     # This is called via the packager's progress callbacks.
     #
-    # @param [Fixnum] pkg_percent	package percentage
+    # @param [Fixnum] pkg_percent  package percentage
     #
     def UpdateCurrentPackageProgress(pkg_percent)
       SlideShow.SubProgress(pkg_percent, nil)
@@ -964,16 +952,14 @@ module Yast
 
     # update the download rate
     def UpdateCurrentPackageRateProgress(pkg_percent, bps_avg, bps_current)
-      #	avg_download_rate = bps_avg;
+      #  avg_download_rate = bps_avg;
 
       return if !SlideShow.ShowingDetails
 
       new_text = nil # no update of the label
       if Ops.greater_than(bps_current, 0)
         # do not show the average download rate if the space is limited
-        if SlideShow.textmode && Ops.less_than(SlideShow.display_width, 100)
-          bps_avg = -1
-        end
+        bps_avg = -1 if SlideShow.textmode && Ops.less_than(SlideShow.display_width, 100)
         new_text = String.FormatRateMessage(
           Ops.add(@provide_name, " - %1"),
           bps_avg,
@@ -1084,8 +1070,8 @@ module Yast
     # package start display update
     # - this is called at the end of a new package
     #
-    # @param [String] pkg_name		package name
-    # @param [Boolean] deleting		Flag: deleting (true) or installing (false) package?
+    # @param [String] pkg_name    package name
+    # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
     #
     def SlideDisplayDone(pkg_name, pkg_size, deleting)
       if !deleting
@@ -1141,11 +1127,11 @@ module Yast
     # package start display update
     # - this is called at the beginning of a new package
     #
-    # @param [String] pkg_name		package name
-    # @param [String] pkg_location	full path to a package
-    # @param [String] _pkg_summary	package summary (short description)
-    # @param [Integer] pkg_size		package size in bytes
-    # @param [Boolean] deleting		Flag: deleting (true) or installing (false) package?
+    # @param [String] pkg_name    package name
+    # @param [String] pkg_location  full path to a package
+    # @param [String] _pkg_summary  package summary (short description)
+    # @param [Integer] pkg_size    package size in bytes
+    # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
     #
     def SlideDisplayStart(pkg_name, pkg_location, _pkg_summary, pkg_size, deleting)
       return if !SanityCheck(false)
@@ -1213,7 +1199,7 @@ module Yast
       nil
     end
 
-    def SlideGenericProvideStart(pkg_name, sz, pattern, remote)
+    def SlideGenericProvideStart(pkg_name, size, pattern, remote)
       return if !SanityCheck(false)
       return if !SlideShow.ShowingDetails
 
@@ -1221,7 +1207,7 @@ module Yast
 
       if remote
         @provide_name = pkg_name
-        @provide_size = String.FormatSize(sz)
+        @provide_size = String.FormatSize(size)
 
         provide_msg = Builtins.sformat(
           _("Downloading %1 (download size %2)"),
@@ -1246,7 +1232,7 @@ module Yast
       # message in the installatino log, %1 is package name,
       # %2 is package size
       SlideShow.AppendMessageToInstLog(
-        Builtins.sformat(pattern, pkg_name, String.FormatSize(sz))
+        Builtins.sformat(pattern, pkg_name, String.FormatSize(size))
       )
 
       nil
@@ -1266,15 +1252,15 @@ module Yast
     end
 
     # Package providal start
-    def SlideProvideStart(pkg_name, sz, remote)
-      @current_provide_size = remote ? sz : 0
+    def SlideProvideStart(pkg_name, size, remote)
+      @current_provide_size = remote ? size : 0
 
       if remote
         # message in the installatino log, %1 is package name,
         # %2 is package size
         SlideGenericProvideStart(
           pkg_name,
-          sz,
+          size,
           _("Downloading %1 (download size %2)"),
           remote
         )

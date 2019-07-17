@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 require "y2firewall/firewalld"
 
@@ -24,9 +23,7 @@ module Yast
 
     def Icon(icon_name)
       ui_info = UI.GetDisplayInfo
-      if Ops.get_boolean(ui_info, "HasLocalImageSupport", false) == false
-        return Empty()
-      end
+      return Empty() if !Ops.get_boolean(ui_info, "HasLocalImageSupport", false)
 
       Image(icon_name, "[x]")
     end
@@ -326,9 +323,7 @@ module Yast
           next if !service_label.downcase.include?(filter_string.downcase)
         end
         # define an empty list if it is not defined at all
-        if Ops.get(inst_products, service_label).nil?
-          Ops.set(inst_products, service_label, [])
-        end
+        Ops.set(inst_products, service_label, []) if Ops.get(inst_products, service_label).nil?
         Ops.set(
           inst_products,
           service_label,
@@ -502,9 +497,7 @@ module Yast
         if service_url != "" && server_ip != ""
           attrs = SLP.GetUnicastAttrMap(service_url, server_ip)
 
-          if !attrs.nil? && attrs != {}
-            slp_service = Builtins.union(slp_service, attrs)
-          end
+          slp_service = Builtins.union(slp_service, attrs) if !attrs.nil? && attrs != {}
         end
         Ops.set(new_services, counter, slp_service)
       end

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 # ------------------------------------------------------------------------------
 # Copyright (c) 2017 SUSE LLC
 #
@@ -142,9 +140,7 @@ module Yast
 
       if Installation.dirinstall_installing_into_dir
         # check the target directory in dirinstall mode
-        if Packages.timestamp != Installation.dirinstall_target_time
-          changed = true
-        end
+        changed = true if Packages.timestamp != Installation.dirinstall_target_time
         # save information about target change time in module Packages
         Packages.timestamp = Installation.dirinstall_target_time
       else
@@ -174,7 +170,7 @@ module Yast
       end
       if !Builtins.contains(Pkg.GetAdditionalLocales, Language.language)
         # FIXME: this is temporary fix
-        #	    language_changed = true;
+        #      language_changed = true;
         Pkg.SetAdditionalLocales(
           Builtins.add(Pkg.GetAdditionalLocales, Language.language)
         )

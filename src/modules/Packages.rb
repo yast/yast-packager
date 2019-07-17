@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 
 # html_escape()
@@ -234,7 +233,7 @@ module Yast
       Builtins.foreach(repos) do |repo|
         url = Ops.get_string(Pkg.SourceGeneralData(repo), "url", "")
         scheme = Builtins.tolower(Ops.get_string(URL.Parse(url), "scheme", ""))
-        if scheme == "http" || scheme == "https" || scheme == "ftp"
+        if ["http", "https", "ftp"].include?(scheme)
           Builtins.y2milestone("Found remote repository %1: %2", repo, url)
           remote_repos = Builtins.add(remote_repos, repo)
         end
@@ -584,9 +583,8 @@ module Yast
     # @return [Hash] a map with proposal summary
     def Summary(flags, use_cache)
       flags = deep_copy(flags)
-      if !@init_error.nil?
-        return { "warning" => @init_error, "warning_level" => :blocker }
-      end
+      return { "warning" => @init_error, "warning_level" => :blocker } if !@init_error.nil?
+
       ret = {}
 
       if !CheckDiskSize(!use_cache)
@@ -714,9 +712,11 @@ module Yast
           _("Product <b>%s</b> will be updated") % h(old_product)
         else
           # product update: %{old_product} is an old product, %{new_product} is the new one
-          _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
-            old_product: h(old_product), new_product: h(new_product)
-          }
+          format(
+            _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>"),
+            old_product: h(old_product),
+            new_product: h(new_product)
+          )
         end
       end
 
@@ -746,9 +746,11 @@ module Yast
           new_products_str = new_product_names(obsolete).join(", ")
 
           # TRANSLATORS: Old product %{old_product} will be obsoleted by %{new_product} products.
-          re = _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>") % {
-            old_product: h(product_label(product)), new_product: h(new_products_str)
-          }
+          re = format(
+            _("Product <b>%{old_product}</b> will be updated to <b>%{new_product}</b>"),
+            old_product: h(product_label(product)),
+            new_product: h(new_products_str)
+          )
         end
         re
       end
@@ -1301,6 +1303,7 @@ module Yast
 
       Builtins.foreach([lang_long, lang_short, fallback_lang]) do |try_this_lang|
         next if try_this_lang.nil? || try_this_lang == ""
+
         test_dir = Builtins.sformat("%1/txt/%2", search_for_dir, try_this_lang)
         Builtins.y2milestone("Checking '%1'", test_dir)
         providedir = Pkg.SourceProvideSignedDirectory(
@@ -1739,6 +1742,7 @@ module Yast
       while initial_repository.nil?
         initial_repository = Pkg.SourceCreateBase(base_url, product_dir)
         next unless initial_repository == -1 || initial_repository.nil?
+
         Builtins.y2error("No repository in '%1'", log_url)
         base_url = UpdateSourceURL(base_url)
         if base_url != ""
@@ -1942,7 +1946,7 @@ module Yast
           log.info "Optional pattern #{pattern_name} does not exist, skipping..."
         when :skipped_by_user
           log.info "Skipping pattern #{pattern_name} deselected by user"
-        when :skipped_reselection
+        when :skipped_reselection # rubocop:disable Lint/EmptyWhen
           # not logged
         else
           raise ArgumentError, "Unhandled action #{action}"
@@ -1950,8 +1954,8 @@ module Yast
       end
 
       missing_patterns = pattern_actions
-                         .find_all { |_pn, action| action == :missing }
-                         .map(&:first)
+        .find_all { |_pn, action| action == :missing }
+        .map(&:first)
       report_missing_patterns(missing_patterns)
       nil
     end
@@ -1981,12 +1985,14 @@ module Yast
         )
       end
       res = Pkg.DoProvide(system_packages)
-      Builtins.foreach(res) do |s, a|
-        Builtins.y2warning("Pkg::DoProvide failed for %1: %2", s, a)
-      end if Ops.greater_than(
+      if Ops.greater_than(
         Builtins.size(res),
         0
       )
+        Builtins.foreach(res) do |s, a|
+          Builtins.y2warning("Pkg::DoProvide failed for %1: %2", s, a)
+        end
+      end
 
       nil
     end
@@ -2163,6 +2169,7 @@ module Yast
     # @see PackagesProposalChanged
     def proposal_for_update
       return unless PackagesProposalChanged()
+
       @old_packages_proposal = PackagesProposal.GetAllResolvablesForAllTypes
       Packages.SelectSystemPackages(false)
     end
@@ -2232,14 +2239,19 @@ module Yast
         # TRANSLATORS: error popup, use at most 70 characters per line
         # the %{fips_option} string is replaced by the FIPS boot option ("fips=1"),
         # the %{fips_pattern} is replaced by the FIPS pattern name ("fips").
-        Report.Error(_("The FIPS compliant mode has been enabled\n" \
-          "but the '%{fips_pattern}' pattern is not available to install.\n\n" \
-          "The installation will very likely fail and the installed system\n" \
-          "might not work properly.\n\n" \
-          "Either add an additional software repository providing\n" \
-          "the '%{fips_pattern}' pattern or reboot the installation\n"\
-          "without the '%{fips_option}' boot option.") %
-            { fips_option: FIPS_BOOT_OPTION, fips_pattern: FIPS_PATTERN })
+        Report.Error(
+          format(
+            _("The FIPS compliant mode has been enabled\n" \
+              "but the '%{fips_pattern}' pattern is not available to install.\n\n" \
+              "The installation will very likely fail and the installed system\n" \
+              "might not work properly.\n\n" \
+              "Either add an additional software repository providing\n" \
+              "the '%{fips_pattern}' pattern or reboot the installation\n"\
+              "without the '%{fips_option}' boot option."),
+            fips_option:  FIPS_BOOT_OPTION,
+            fips_pattern: FIPS_PATTERN
+          )
+        )
       else
         log.info "#{FIPS_BOOT_OPTION} boot option detected, adding '#{FIPS_PATTERN}' pattern"
         pattern_list << FIPS_PATTERN
@@ -2279,7 +2291,7 @@ module Yast
           next if changed_resolvables.empty?
 
           decided_resolvables = changed_resolvables
-                                .select { |r| LOG_RESOLVABLE_STATUS.include? r["status"] }
+            .select { |r| LOG_RESOLVABLE_STATUS.include? r["status"] }
           log_resolvables("Resolvables of type #{type} set by #{transact_by}:", decided_resolvables)
 
           locked_resolvables = changed_resolvables.select { |r| r["locked"] }
@@ -2470,9 +2482,7 @@ module Yast
       patterns = ComputeSystemPatternList().dup
 
       # autoinstallation has patterns specified in the profile
-      if !Mode.autoinst
-        (default_patterns | optional_default_patterns).inject(patterns, :<<)
-      end
+      (default_patterns | optional_default_patterns).inject(patterns, :<<) if !Mode.autoinst
 
       # preselect the default product patterns (FATE#320199)
       # note: must be called *after* selecting the products
@@ -2533,11 +2543,11 @@ module Yast
     #                         It returns nil if no provider is found.
     # @see find_providers
     def find_provider(tag)
-      providers = Pkg.PkgQueryProvides(tag).select { |pr| pr[1] != :NONE }
+      providers = Pkg.PkgQueryProvides(tag).reject { |pr| pr[1] == :NONE }
       filtered = providers.select { |pr| pr[1] == :BOTH }
       filtered = providers.select { |pr| pr[1] == :CAND } if filtered.empty?
       names = filtered.map(&:first)
-      provider = names.include?(tag) ? tag : names.sort.first
+      provider = names.include?(tag) ? tag : names.min
       if names.size > 1
         log.warn "More than one provider was found for '#{tag}': "\
           "#{names.join(", ")}. Selecting '#{provider}'."
@@ -2604,9 +2614,10 @@ module Yast
           if !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s["status"]) }
             next
           end
+
           missing[type] = [] unless missing[type]
           # use quoted "summary" value for patterns as they usually contain spaces
-          name = type == :pattern ? statuses.first["summary"].inspect : item
+          name = (type == :pattern) ? statuses.first["summary"].inspect : item
           missing[type] << name
         end
       end
@@ -2631,8 +2642,11 @@ module Yast
       else
         # TRANSLATORS: %{type} is a resolvable type, %{list} is a list of names
         # This is a fallback message for unknown types, normally it should not be displayed
-        _("These items (%{type}) need to be selected to install: %{list}") %
-          { type: type, list: list }
+        format(
+          _("These items (%{type}) need to be selected to install: %{list}"),
+          type: type,
+          list: list
+        )
       end
     end
 
@@ -2641,6 +2655,7 @@ module Yast
     def fs_dev_name(filesystem)
       blk_device = filesystem.blk_devices[0]
       return "" unless blk_device
+
       blk_device.name
     end
 
@@ -2707,6 +2722,7 @@ module Yast
       enabled_repos.each do |repo|
         url = Pkg.SourceGeneralData(repo)["url"]
         next if url.nil? || url.empty?
+
         scheme = URI(url).scheme
         all_local &= Pkg.UrlSchemeIsLocal(scheme)
         volatile_media += 1 if Pkg.UrlSchemeIsVolatile(scheme)

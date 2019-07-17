@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "yast"
 
 require "shellwords"
@@ -316,6 +315,7 @@ module Yast
         # Run through through all products that the add-on can replace
         Builtins.foreach(product_replaces) do |one_replaces|
           raise Break if already_found
+
           # Run through all installed (or selected) products
           Builtins.foreach(all_products) do |one_product|
             # checking the status
@@ -342,6 +342,7 @@ module Yast
                 Ops.get_string(one_replaces, "arch", "-B-")
               next
             end
+
             Builtins.y2milestone(
               "Found product matching update criteria: %1 -> %2",
               one_product,
@@ -441,6 +442,7 @@ module Yast
         str_offset = Ops.get(str_offset_l, 0)
 
         next unless !str_offset.nil? && Ops.greater_than(str_offset, 0)
+
         stringfirst = Builtins.substring(url, 0, str_offset)
         stringsecond = Builtins.substring(url, str_offset)
 
@@ -602,7 +604,7 @@ module Yast
       ret = WFM.CallFunction("sw_single", [args])
       Builtins.y2milestone("sw_single returned: %1", ret)
 
-      return :abort if ret == :abort || ret == :cancel || ret == :close
+      return :abort if [:abort, :cancel, :close].include?(ret)
 
       :register
     end
@@ -851,9 +853,9 @@ module Yast
       # Not needed here, license already shown in the workflow
       # boolean license_ret = AcceptedLicenseAndInfoFile(src_id);
       # if (license_ret != true) {
-      # 	y2milestone("Removing the current source ID %1", src_id);
-      # 	Pkg::SourceDelete(src_id);
-      # 	return nil;
+      #   y2milestone("Removing the current source ID %1", src_id);
+      #   Pkg::SourceDelete(src_id);
+      #   return nil;
       # }
 
       # FATE #301312
@@ -1042,6 +1044,7 @@ module Yast
 
       Builtins.foreach(products) do |p|
         next if p == ""
+
         elements = Builtins.splitstring(p, " \t")
         elements = Builtins.filter(elements) { |e| e != "" }
         url = Ops.get(elements, 0, "")
@@ -1073,6 +1076,7 @@ module Yast
       # filter those that are selected by default (without 'ask_user')
       selected_products = Builtins.filter(products) do |one_product|
         next true if Ops.get_boolean(one_product, "ask_user", false) == false
+
         # wrong definition, 'url' is mandatory
         if !Builtins.haskey(one_product, "url")
           Builtins.y2error("No 'url' defined: %1", one_product)
@@ -1082,14 +1086,14 @@ module Yast
         id_counter = Ops.add(id_counter, 1)
         # fill up internal map (used later when item selected)
         Ops.set(ask_user_products_map, id_counter, one_product)
-        if Builtins.haskey(one_product, "name")
-          visible_string = Builtins.sformat(
+        visible_string = if Builtins.haskey(one_product, "name")
+          Builtins.sformat(
             _("%1, URL: %2"),
             Ops.get_string(one_product, "name", ""),
             Ops.get_string(one_product, "url", "")
           )
         elsif Builtins.haskey(one_product, "install_products")
-          visible_string = Builtins.sformat(
+          Builtins.sformat(
             _("%1, URL: %2"),
             Builtins.mergestring(
               Ops.get_list(one_product, "install_products", []),
@@ -1099,13 +1103,13 @@ module Yast
           )
         elsif Builtins.haskey(one_product, "path") &&
             Ops.get_string(one_product, "path", "/") != "/"
-          visible_string = Builtins.sformat(
+          Builtins.sformat(
             _("URL: %1, Path: %2"),
             Ops.get_string(one_product, "url", ""),
             Ops.get_string(one_product, "path", "")
           )
         else
-          visible_string = Builtins.sformat(
+          Builtins.sformat(
             _("URL: %1"),
             Ops.get_string(one_product, "url", "")
           )
@@ -1220,9 +1224,7 @@ module Yast
             GetAbsoluteURL(base_url, Ops.get_string(one_prod, "url", ""))
           )
         end
-        if Ops.get_boolean(one_prod, "ask_user", false) == true
-          run_ask_user = true
-        end
+        run_ask_user = true if Ops.get_boolean(one_prod, "ask_user", false) == true
         products = Builtins.add(products, one_prod)
       end
 
@@ -1383,56 +1385,56 @@ module Yast
     #      Format of /add_on_products.xml file on media root:
     #      <?xml version="1.0"?>
     #      <add_on_products xmlns="http://www.suse.com/1.0/yast2ns"
-    #     	xmlns:config="http://www.suse.com/1.0/configns">
-    #     	<product_items config:type="list">
-    #     		<product_item>
-    #     			<!-- Product name visible in UI when offered to user (optional item) -->
-    #     			<name>Add-on Name to Display</name>
+    #       xmlns:config="http://www.suse.com/1.0/configns">
+    #       <product_items config:type="list">
+    #         <product_item>
+    #           <!-- Product name visible in UI when offered to user (optional item) -->
+    #           <name>Add-on Name to Display</name>
     #           <!--
     #             Check product's name (optional item). If set to false, <name> won't be checked
     #             against product's name found in the media (CD/DVD only).
     #           -->
     #           <check_name config:type="boolean">true</check_name>
-    #     			<!-- Product URL (mandatory item) -->
-    #     			<url>http://product.repository/url/</url>
-    #     			<!-- Product path, default is "/" (optional item) -->
-    #     			<path>/relative/product/path</path>
-    #     			<!--
-    #     				List of products to install from media, by default all products
-    #     				from media are installed (optional item)
-    #     			-->
-    #     			<install_products config:type="list">
-    #     				<!--
-    #     					Product to install - matching the metadata product 'name'
-    #     					(mandatory to fully define 'install_products')
-    #     				-->
-    #     				<product>Product-ID-From-Repository</product>
-    #     				<product>...</product>
-    #     			</install_products>
-    #     			<!--
-    #     				If set to 'true', user is asked whether to install this product,
-    #     				default is 'false' (optional)
-    #     			-->
-    #     			<ask_user config:type="boolean">true</ask_user>
-    #     			<!--
-    #     				Connected to 'ask_user', sets the default status of product,
-    #     				default is 'false' (optional)
-    #     			-->
-    #     			<selected config:type="boolean">true</selected>
-    #     			<!--
-    #     				Defines priority of the newly added repository (optional).
-    #     				Libzypp uses its default priority if not set.
-    #     			-->
-    #     			<priority config:type="integer">20</priority>
-    #     			<!--
-    #     				User has to accept license?
-    #     			-->
+    #           <!-- Product URL (mandatory item) -->
+    #           <url>http://product.repository/url/</url>
+    #           <!-- Product path, default is "/" (optional item) -->
+    #           <path>/relative/product/path</path>
+    #           <!--
+    #             List of products to install from media, by default all products
+    #             from media are installed (optional item)
+    #           -->
+    #           <install_products config:type="list">
+    #             <!--
+    #               Product to install - matching the metadata product 'name'
+    #               (mandatory to fully define 'install_products')
+    #             -->
+    #             <product>Product-ID-From-Repository</product>
+    #             <product>...</product>
+    #           </install_products>
+    #           <!--
+    #             If set to 'true', user is asked whether to install this product,
+    #             default is 'false' (optional)
+    #           -->
+    #           <ask_user config:type="boolean">true</ask_user>
+    #           <!--
+    #             Connected to 'ask_user', sets the default status of product,
+    #             default is 'false' (optional)
+    #           -->
+    #           <selected config:type="boolean">true</selected>
+    #           <!--
+    #             Defines priority of the newly added repository (optional).
+    #             Libzypp uses its default priority if not set.
+    #           -->
+    #           <priority config:type="integer">20</priority>
+    #           <!--
+    #             User has to accept license?
+    #           -->
     #                           <confirm_license config:type="boolean">true</confirm_license>
-    #     		</product_item>
-    #     		<product_item>
-    #     			...
-    #     		</product_item>
-    #     	</product_items>
+    #         </product_item>
+    #         <product_item>
+    #           ...
+    #         </product_item>
+    #       </product_items>
     #      </add_on_products>
     #
     #
@@ -1614,30 +1616,32 @@ module Yast
       settings = deep_copy(settings)
       @add_on_products = Ops.get_list(settings, "add_on_products", [])
       @modified = false
-      Builtins.foreach(@add_on_products) do |prod|
-        Builtins.y2milestone("Add-on product: %1", prod)
-        pth = Ops.get_string(prod, "product_dir", "/")
-        url = SetRepoUrlAlias(
-          Ops.get_string(prod, "media_url", ""),
-          Ops.get_string(prod, "alias", ""),
-          Ops.get_string(prod, "name", "")
-        )
-        src = Pkg.SourceCreate(url, pth)
-        if src != -1
-          if Ops.get_string(prod, "product", "") != ""
-            repo = {
-              "SrcId" => src,
-              "name"  => Ops.get_string(prod, "product", "")
-            }
-            if Ops.greater_than(Ops.get_integer(prod, "priority", -1), -1)
-              Ops.set(repo, "priority", Ops.get_integer(prod, "priority", -1))
+      if Mode.config
+        Builtins.foreach(@add_on_products) do |prod|
+          Builtins.y2milestone("Add-on product: %1", prod)
+          pth = Ops.get_string(prod, "product_dir", "/")
+          url = SetRepoUrlAlias(
+            Ops.get_string(prod, "media_url", ""),
+            Ops.get_string(prod, "alias", ""),
+            Ops.get_string(prod, "name", "")
+          )
+          src = Pkg.SourceCreate(url, pth)
+          if src != -1
+            if Ops.get_string(prod, "product", "") != ""
+              repo = {
+                "SrcId" => src,
+                "name"  => Ops.get_string(prod, "product", "")
+              }
+              if Ops.greater_than(Ops.get_integer(prod, "priority", -1), -1)
+                Ops.set(repo, "priority", Ops.get_integer(prod, "priority", -1))
+              end
+              Builtins.y2milestone("Setting new repo properties: %1", repo)
+              Pkg.SourceEditSet([repo])
             end
-            Builtins.y2milestone("Setting new repo properties: %1", repo)
-            Pkg.SourceEditSet([repo])
+            @mode_config_sources = Builtins.add(@mode_config_sources, src)
           end
-          @mode_config_sources = Builtins.add(@mode_config_sources, src)
         end
-      end if Mode.config
+      end
 
       true
     end
@@ -1853,6 +1857,7 @@ module Yast
       @current_addon = {}
       Builtins.foreach(@add_on_products) do |addon|
         next if Ops.get_string(addon, "product", "") != product
+
         @current_addon = deep_copy(addon) # remember the current addon for the Callbacks
         if Builtins.haskey(
           Ops.get_map(addon, "signature-handling", {}),
@@ -1956,6 +1961,7 @@ module Yast
     def add_rename(old_name, new_name)
       # already known
       return if renamed_externally?(old_name, new_name)
+
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
       self.external_product_renames = add_rename_to_hash(external_product_renames,
         old_name, new_name)
@@ -2054,6 +2060,7 @@ module Yast
     # @return [Boolean] +true+ if the product was renamed; otherwise, +false+.
     def renamed_at?(renames, old_name, new_name)
       return false unless renames[old_name]
+
       renames[old_name].include?(new_name)
     end
 
@@ -2067,7 +2074,7 @@ module Yast
       products = Pkg.ResolvableProperties("", :product, "")
       products.each do |product|
         renames = names_from_product_packages(product["product_package"])
-                  .reduce(renames) do |hash, rename|
+          .reduce(renames) do |hash, rename|
           add_rename_to_hash(hash, rename, product["name"])
         end
       end
@@ -2077,7 +2084,7 @@ module Yast
     # Regular expresion to extract the product name. It supports two different
     # formats: "product:NAME" and "product(NAME)"
     # @see product_name_from_dep
-    PRODUCTS_REGEXP = /\Aproduct(?::|\()([^\)\b]+)/
+    PRODUCTS_REGEXP = /\Aproduct(?::|\()([^\)\b]+)/.freeze
 
     # Extracts product's name from dependency
     #
@@ -2103,6 +2110,7 @@ module Yast
     # @see #add_rename
     def add_rename_to_hash(renames, old_name, new_name)
       return renames if old_name == new_name || renamed_at?(renames, old_name, new_name)
+
       log.info "Adding product rename: '#{old_name}' => '#{new_name}'"
       renames.merge(old_name => [new_name]) do |_key, old_val, new_val|
         old_val.nil? ? [new_val] : old_val + new_val
@@ -2120,8 +2128,10 @@ module Yast
       # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
       packages = Pkg.ResolvableDependencies(package_name, :package, "")
       return [] if packages.nil? || packages.empty?
+
       result = packages.each_with_object([]) do |package, names|
         next names unless package.key?("deps")
+
         # Get information from 'obsoletes' and 'provides' keys
         relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
         names.concat(relevant_deps.map { |d| product_name_from_dep(d) })
@@ -2149,8 +2159,10 @@ module Yast
         repo_id = AddRepo(current_url, pth, priority)
         if repo_id
           return repo_id if !check_name || prodname.empty?
+
           found_product = Pkg.SourceProductData(repo_id)
           return repo_id if found_product["label"] == prodname
+
           log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}," \
             "expected: #{prodname}")
           Pkg.SourceDelete(repo_id)

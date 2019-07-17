@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Yast
   # Load release notes from media
   module PackagerLoadReleaseNotesInclude

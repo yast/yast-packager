@@ -45,9 +45,7 @@ module Y2Packager
         @products = products
         # do not offer base products, they would conflict with the already selected base product,
         # allow a hidden way to force displaying them in some special cases
-        if !ENV["Y2_DISPLAY_BASE_PRODUCTS"] == "1"
-          @products.reject! { |p| p.details && p.details.base }
-        end
+        @products.reject! { |p| p.details&.base } if !ENV["Y2_DISPLAY_BASE_PRODUCTS"] == "1"
         @selected_products = []
       end
 
@@ -125,7 +123,6 @@ module Y2Packager
         VBox(
           # TRANSLATORS: Product selection label (above a multi-selection box)
           Left(Heading(_("Available Extensions and Modules"))),
-
           VWeight(60, MinHeight(8,
             MultiSelectionBox(
               Id(:addon_repos),
@@ -133,7 +130,6 @@ module Y2Packager
               "",
               selection_content
             ))),
-
           VSpacing(0.4),
           details_widget
         )
@@ -223,12 +219,10 @@ module Y2Packager
 
         # compute the dependent products
         dependencies = []
-        if product.depends_on
-          product.depends_on.each do |p|
-            # display the human readable product name instead of the product directory
-            prod = @products.find { |pr| pr.dir == p }
-            dependencies << (prod.summary || prod.name) if prod
-          end
+        product.depends_on&.each do |p|
+          # display the human readable product name instead of the product directory
+          prod = @products.find { |pr| pr.dir == p }
+          dependencies << (prod.summary || prod.name) if prod
         end
 
         # render the ERB template in the context of this object

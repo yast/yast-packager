@@ -51,6 +51,7 @@ module Y2Packager
       # @param new_language [String] New language code
       def translate(new_language)
         return if language == new_language
+
         self.language = new_language
         update_license_text
       end
@@ -81,7 +82,7 @@ module Y2Packager
       end
 
       # Regexp to determine whether the text is formatted as richtext
-      RICHTEXT_REGEXP = /<\/.*>/
+      RICHTEXT_REGEXP = /<\/.*>/.freeze
 
       # Return the license text
       #

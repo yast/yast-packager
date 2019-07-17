@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "yast"
 require "yast2/hw_detection"
 
@@ -57,7 +55,7 @@ module Yast
   #     <servers config:type="list">
   #       <item>
   #         <link>http://some.server/some_link.xml</link>
-  #	       <official config:type="boolean">true</official>
+  #         <official config:type="boolean">true</official>
   #         <installation_repo config:type="boolean">true</installation_repo>
   #       </item>
   #       <item>
@@ -158,9 +156,7 @@ module Yast
       end
 
       # useful when do not want to skip already used repos, but need to call it from another client
-      if @script_noncmdline_args["script_called_from_another"]
-        @script_called_from_another = true
-      end
+      @script_called_from_another = true if @script_noncmdline_args["script_called_from_another"]
 
       @main_link = ""
 
@@ -280,13 +276,11 @@ module Yast
 
       return false if ret != :abort
 
-      function_ret = false
-
       # `abort pressed
-      if Stage.initial
-        function_ret = Popup.ConfirmAbort(:painless)
+      function_ret = if Stage.initial
+        Popup.ConfirmAbort(:painless)
       else
-        function_ret = Popup.ContinueCancelHeadline(
+        Popup.ContinueCancelHeadline(
           # TRANSLATORS: popup header
           _("Aborting Configuration of Online Repository"),
           # TRANSLATORS: popup question
@@ -389,10 +383,10 @@ module Yast
     end
 
     def InitializeSources
-      #	if (Mode::installation()) {
-      #	    y2milestone ("Sources already initialized");
-      #	    return true;
-      #	}
+      #  if (Mode::installation()) {
+      #      y2milestone ("Sources already initialized");
+      #      return true;
+      #  }
 
       Builtins.y2milestone("Initializing...")
       return false if !PackageLock.Check
@@ -437,9 +431,7 @@ module Yast
       # Notably GetSection does not call ProductFeatures.Restore
       # which would overwrite the ProductControl data we've just read
       software_features = ProductFeatures.GetSection("software")
-      if !software_features.nil?
-        @main_link = software_features["external_sources_link"]
-      end
+      @main_link = software_features["external_sources_link"] if !software_features.nil?
       @main_link ||= ""
 
       if @main_link == ""
@@ -527,15 +519,17 @@ module Yast
 
       # bugzilla #293811
       # only installation_repo (trusted) links are used during installation
-      @list_of_servers = Builtins.filter(@list_of_servers) do |one_server|
-        next true if Ops.get_boolean(one_server, "installation_repo", false)
+      if Stage.initial
+        @list_of_servers = Builtins.filter(@list_of_servers) do |one_server|
+          next true if Ops.get_boolean(one_server, "installation_repo", false)
 
-        Builtins.y2milestone(
-          "Server %1 is not used during installation...",
-          one_server
-        )
-        false
-      end if Stage.initial
+          Builtins.y2milestone(
+            "Server %1 is not used during installation...",
+            one_server
+          )
+          false
+        end
+      end
 
       true
     end
@@ -567,9 +561,7 @@ module Yast
           Ops.get_string(one_repo, "path", "/")
         )
         # do not redefine already added one
-        if !Builtins.haskey(@list_of_repos, repo_id)
-          Ops.set(@list_of_repos, repo_id, one_repo)
-        end
+        Ops.set(@list_of_repos, repo_id, one_repo) if !Builtins.haskey(@list_of_repos, repo_id)
       end
 
       true
@@ -622,7 +614,7 @@ module Yast
     def GetCurrentLang
       ret = ENV["LANG"]
 
-      ret = nil if ret == "C" || ret == "" || ret == "POSIX"
+      ret = nil if ["C", "", "POSIX"].include?(ret)
 
       Builtins.y2milestone("Using lang: %1", ret)
       ret
@@ -753,15 +745,11 @@ module Yast
       @language_long = GetCurrentLang() if !Stage.initial
 
       # fallback if no LANG variable set
-      if @language_long.nil? || @language_long == ""
-        @language_long = Language.language
-      end
+      @language_long = Language.language if @language_long.nil? || @language_long == ""
 
       # de_DE.UTF-8 --> de_DE
       dot_pos = Builtins.search(@language_long, ".")
-      if !dot_pos.nil?
-        @language_long = Builtins.substring(@language_long, 0, dot_pos)
-      end
+      @language_long = Builtins.substring(@language_long, 0, dot_pos) if !dot_pos.nil?
 
       if !@language_long.nil?
         @language_short = if Ops.greater_or_equal(Builtins.size(@language_long), 2)
@@ -971,7 +959,7 @@ module Yast
       # used for recommended repos
       some_repo_already_selected = false
 
-      #	boolean current_item_is_listed = false;
+      #  boolean current_item_is_listed = false;
 
       Builtins.foreach(@list_of_repos) do |url, one_repo|
         repo_id = CreateRepoId(
@@ -1036,9 +1024,7 @@ module Yast
         # always fill-up this list -- later used for sorting using 'recommended' tag
         # Bugzilla #297628
         recommended = Ops.get_boolean(one_repo, "recommended", false)
-        if recommended
-          recommended_items = Builtins.add(recommended_items, repo_id)
-        end
+        recommended_items = Builtins.add(recommended_items, repo_id) if recommended
 
         Ops.set(items, counter, Item(Id(repo_id), localized_name, already_used))
         Ops.set(@repos_visible_now, counter, repo_id)
@@ -1070,7 +1056,7 @@ module Yast
       end
 
       # In the initial stage, repos are additionally sorted whether they are recommended or not
-      #	if (Stage::initial()) {
+      #  if (Stage::initial()) {
       items = Builtins.sort(items) do |one_item_a, one_item_b|
         Ops.greater_than(
           Builtins.contains(
@@ -1083,16 +1069,16 @@ module Yast
           )
         )
       end
-      #	}
+      #  }
 
       UI.ChangeWidget(Id("addon_repos"), :Items, items)
 
       # disabled
-      #	if (current_item_is_listed) {
-      #	    UI::ChangeWidget (`id ("addon_repos"), `CurrentItem, current_item);
-      #	} else if (size (items) > 0) {
-      #	    UI::ChangeWidget (`id ("addon_repos"), `CurrentItem, items[0,0,0]:"");
-      #	}
+      #  if (current_item_is_listed) {
+      #      UI::ChangeWidget (`id ("addon_repos"), `CurrentItem, current_item);
+      #  } else if (size (items) > 0) {
+      #      UI::ChangeWidget (`id ("addon_repos"), `CurrentItem, items[0,0,0]:"");
+      #  }
 
       PrintRepositoryDescription()
 
@@ -1417,14 +1403,10 @@ module Yast
 
         if repo_type.nil?
           error = Pkg.LastError
-          if Ops.greater_than(Builtins.size(error), 0)
-            error = Ops.add("\n\n", error)
-          end
+          error = Ops.add("\n\n", error) if Ops.greater_than(Builtins.size(error), 0)
 
           details = Pkg.LastErrorDetails
-          if Ops.greater_than(Builtins.size(details), 0)
-            details = Ops.add("\n\n", details)
-          end
+          details = Ops.add("\n\n", details) if Ops.greater_than(Builtins.size(details), 0)
         end
 
         Report.Error(
@@ -1434,7 +1416,7 @@ module Yast
                 # TRANSLATORS: pop-up error message
                 # %1 is replaced with a repository name or URL
                 _("Adding repository %1 failed."),
-                repo_name != "" ? repo_name : url
+                (repo_name != "") ? repo_name : url
               ),
               error
             ),
@@ -1458,7 +1440,7 @@ module Yast
                 # TRANSLATORS: pop-up error message
                 # %1 is replaced with a repository name or URL
                 _("Adding repository %1 failed."),
-                repo_name != "" ? repo_name : url
+                (repo_name != "") ? repo_name : url
               ),
               "\n"
             ),
@@ -1476,7 +1458,7 @@ module Yast
                 # TRANSLATORS: pop-up error message
                 # %1 is replaced with a repository name or URL
                 _("Adding repository %1 failed."),
-                repo_name != "" ? repo_name : url
+                (repo_name != "") ? repo_name : url
               ),
               "\n"
             ),
@@ -1532,19 +1514,21 @@ module Yast
       # Currently, Mode::normal doesn't show already used repos
       # (when 'skip_already_used_repos' is 'true')
       # and thus doesn't support removing them
-      Builtins.foreach(@repos_already_used) do |id_used, src_id|
-        # was used, but isn't anymore
-        if !Builtins.contains(@repos_to_be_used, id_used)
-          repos_to_be_deleted = Builtins.add(repos_to_be_deleted, src_id)
+      if @skip_already_used_repos != true
+        Builtins.foreach(@repos_already_used) do |id_used, src_id|
+          # was used, but isn't anymore
+          if !Builtins.contains(@repos_to_be_used, id_used)
+            repos_to_be_deleted = Builtins.add(repos_to_be_deleted, src_id)
 
-          # was used and remains used
-        else
-          Builtins.y2milestone("NotUsingAgain: %1", id_used)
-          @repos_to_be_used = Builtins.filter(@repos_to_be_used) do |id_already_used|
-            id_used != id_already_used
+            # was used and remains used
+          else
+            Builtins.y2milestone("NotUsingAgain: %1", id_used)
+            @repos_to_be_used = Builtins.filter(@repos_to_be_used) do |id_already_used|
+              id_used != id_already_used
+            end
           end
         end
-      end if @skip_already_used_repos != true
+      end
 
       # y2milestone ("WillBeDeleted: %1", repos_to_be_deleted);
       # y2milestone ("WillBeUsed: %1", repos_to_be_used);
@@ -1629,6 +1613,7 @@ module Yast
         # If not at once, call one stage per repository
         Progress.NextStage if !at_once
         next :abort if UserWantsToAbort()
+
         CreateSource(
           Ops.get_string(@list_of_repos, [repo_id, "url"], ""),
           Ops.get_string(@list_of_repos, [repo_id, "path"], "/"),
@@ -1812,5 +1797,6 @@ module Yast
 
       nil
     end
+    # rubocop:enable Style/ClassVars
   end
 end
