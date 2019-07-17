@@ -63,7 +63,7 @@ describe "PackagerRepositoriesIncludeInclude" do
       allow(Yast::Pkg).to receive(:SourceRefreshNow)
       allow(Yast::Pkg).to receive(:SourceGetCurrent).and_return([])
       allow(Yast::Mode).to receive(:auto).and_return(false)
-      allow(Yast::Pkg).to receive(:RepositoryScan).and_return([])
+      allow(Y2Packager::ProductLocation).to receive(:scan).and_return([])
       allow(Yast::Pkg).to receive(:RepositoryProbe).and_return("YUM")
       allow(Yast::AddOnProduct).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
       allow(Yast::Pkg).to receive(:SourceGeneralData).with(repo_id).and_return({})
@@ -111,13 +111,12 @@ describe "PackagerRepositoriesIncludeInclude" do
       expect(ret).to eq(:ok)
     end
 
-    it "returns :abort and removes the repository if license is rejected" do
+    it "removes the repository if license is rejected" do
       expect(Yast::AddOnProduct).to receive(:AcceptedLicenseAndInfoFile)
         .with(repo_id).and_return(false)
       expect(Yast::Pkg).to receive(:SourceDelete).with(repo_id)
 
-      ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
-      expect(ret).to eq(:abort)
+      RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
     end
 
     context "more products available on the medium" do
@@ -130,7 +129,12 @@ describe "PackagerRepositoriesIncludeInclude" do
       end
 
       before do
-        allow(Yast::Pkg).to receive(:RepositoryScan).and_return(products)
+        allow(Y2Packager::ProductLocation).to receive(:scan).and_return(
+          [
+            Y2Packager::ProductLocation.new(product1[0], product1[1]),
+            Y2Packager::ProductLocation.new(product2[0], product2[1])
+          ]
+        )
         allow_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
       end
 

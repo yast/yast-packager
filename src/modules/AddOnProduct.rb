@@ -561,7 +561,7 @@ module Yast
       ret = ProductLicense.AskAddOnLicenseAgreement(src_id)
       return nil if ret.nil?
 
-      if [:abort, :back].include?(ret)
+      if [:refused, :abort, :back].include?(ret)
         Builtins.y2milestone("License confirmation failed")
         return false
       end

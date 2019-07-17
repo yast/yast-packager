@@ -146,25 +146,53 @@ describe Yast::ProductLicense do
       end
 
       context "while some license(s) have not been accepted" do
-        it "returns symbol :abort, :accepted, :halt according to the third function parameter" do
+        let(:base_prod) { false }
+
+        before do
           expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(false)
             .at_least(:once)
           # :halt case
           allow(Yast::ProductLicense).to receive(:TimedOKCancel).and_return(true)
+        end
 
-          base_prod = false
-          expect(Yast::ProductLicense
-            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "abort"))
-            .to eq(:abort)
-          expect(Yast::ProductLicense
-            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "continue"))
-            .to eq(:accepted)
-          expect(Yast::ProductLicense
-            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "halt"))
-            .to eq(:halt)
-          expect(Yast::ProductLicense
-            .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "unknown"))
-            .to eq(:abort)
+        context "when cancel action is 'continue'" do
+          it "returns :accepted" do
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "continue"))
+              .to eq(:accepted)
+          end
+        end
+
+        context "when cancel action is 'refuse'" do
+          it "returns :refused" do
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "refuse"))
+              .to eq(:refused)
+          end
+        end
+
+        context "when cancel action is 'abort'" do
+          it "returns :abort" do
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "abort"))
+              .to eq(:abort)
+          end
+        end
+
+        context "when cancel action is 'halt'" do
+          it "returns :halt" do
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "halt"))
+              .to eq(:halt)
+          end
+        end
+
+        context "when cancel action is unknown" do
+          it "returns :abort" do
+            expect(Yast::ProductLicense
+              .send(:HandleLicenseDialogRet, licenses_ref, base_prod, "whaterver"))
+              .to eq(:abort)
+          end
         end
       end
     end
