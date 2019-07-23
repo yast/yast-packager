@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 23 10:25:51 UTC 2019 - José Iván López González <jlopez@suse.com>
+
+- Add method to get the summary of a product (bsc#1142414).
+- 4.2.19
+
+-------------------------------------------------------------------
 Mon Jul 15 14:02:57 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
 
 - Fixed the unit test for the previous change to work also on
