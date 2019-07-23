@@ -78,5 +78,14 @@ module Y2Packager
       @dir = dir
       @details = product
     end
+
+    # Product summary taken from its details
+    #
+    # @return [String, nil] nil if there is no details or details does not contain a summary
+    def summary
+      return nil if details.nil? || details.summary.empty?
+
+      details.summary
+    end
   end
 end
