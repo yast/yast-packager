@@ -84,6 +84,14 @@ describe Y2Packager::ProductLocation do
     context "when there is details" do
       let(:product) { instance_double(Y2Packager::ProductLocationDetails, summary: summary) }
 
+      context "and the summary is nil" do
+        let(:summary) { nil }
+
+        it "returns nil" do
+          expect(subject.summary).to be_nil
+        end
+      end
+
       context "and the summary is empty" do
         let(:summary) { "" }
 

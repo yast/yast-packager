@@ -83,7 +83,7 @@ module Y2Packager
     #
     # @return [String, nil] nil if there is no details or details does not contain a summary
     def summary
-      return nil if details.nil? || details.summary.empty?
+      return nil if !details&.summary || details.summary.empty?
 
       details.summary
     end
