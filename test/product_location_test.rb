@@ -109,44 +109,4 @@ describe Y2Packager::ProductLocation do
       end
     end
   end
-
-  describe "#depends_on" do
-    subject { described_class.new("foo", "/dir/foo", product: product) }
-
-    context "when there is no details" do
-      let(:product) { nil }
-
-      it "returns an empty list" do
-        expect(subject.depends_on).to eq([])
-      end
-    end
-
-    context "when there is details" do
-      let(:product) { instance_double(Y2Packager::ProductLocationDetails, depends_on: depends_on) }
-
-      context "and the dependencies list is nil" do
-        let(:depends_on) { nil }
-
-        it "returns an empty list" do
-          expect(subject.depends_on).to eq([])
-        end
-      end
-
-      context "and the dependencies list is an empty list" do
-        let(:depends_on) { [] }
-
-        it "returns an empty list" do
-          expect(subject.depends_on).to eq([])
-        end
-      end
-
-      context "and there is a not empty list of dependencies" do
-        let(:depends_on) { ["list", "of", "dependencies"] }
-
-        it "returns the dependencies list" do
-          expect(subject.depends_on).to eq(depends_on)
-        end
-      end
-    end
-  end
 end
