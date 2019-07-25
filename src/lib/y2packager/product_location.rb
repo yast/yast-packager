@@ -87,12 +87,5 @@ module Y2Packager
 
       details.summary
     end
-
-    # Product dependencies taken from its details
-    #
-    # @return [Array] empty list if there is no dependencies or the dependencies list
-    def depends_on
-      details&.depends_on || []
-    end
   end
 end

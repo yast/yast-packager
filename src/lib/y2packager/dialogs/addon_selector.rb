@@ -149,7 +149,8 @@ module Y2Packager
         new_items.each do |p|
           # the dependencies contain also the transitive (indirect) dependencies,
           # we do not need to recursively evaluate the list
-          selected_items.concat(p.depends_on)
+          dependencies = p&.details&.depends_on
+          selected_items.concat(dependencies) if dependencies
         end
 
         selected_items.uniq!
@@ -219,7 +220,7 @@ module Y2Packager
 
         # compute the dependent products
         dependencies = []
-        product.depends_on&.each do |p|
+        product&.details&.depends_on&.each do |p|
           # display the human readable product name instead of the product directory
           prod = @products.find { |pr| pr.dir == p }
           dependencies << (prod.summary || prod.name) if prod
