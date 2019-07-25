@@ -7,11 +7,14 @@ Yast.import "SourceManager"
 describe Yast::InstProductsourcesClient do
   subject(:client) { described_class.new }
 
+  let(:product_version) { "15.1" }
+
   describe "#main" do
     before do
       allow(Yast::Sequencer).to receive(:Run)
       allow(Yast::Wizard).to receive(:OpenDialog)
       allow(Yast::Wizard).to receive(:CloseDialog)
+      allow(Yast::Product).to receive(:version).and_return(product_version)
     end
 
     it "returns :auto if AddOnProduct is set to skip" do
@@ -45,6 +48,16 @@ describe Yast::InstProductsourcesClient do
       allow(Yast::Mode).to receive(:normal).and_return(true)
 
       client.main
+    end
+
+    it "sets the RELEASEVER_ENV to Product.version" do
+      stub_const("#{described_class}::RELEASEVER_ENV", "ZYPP_RELEASEVER_ENV")
+
+      expect(ENV[described_class::RELEASEVER_ENV]).to be_nil
+
+      client.main
+
+      expect(ENV[described_class::RELEASEVER_ENV]).to eq(product_version)
     end
   end
 
