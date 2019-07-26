@@ -17,6 +17,14 @@ describe Yast::InstProductsourcesClient do
       allow(Yast::Product).to receive(:version).and_return(product_version)
     end
 
+    around do |test|
+      previous_env = ENV.to_hash
+
+      test.run
+
+      ENV.replace(previous_env)
+    end
+
     it "returns :auto if AddOnProduct is set to skip" do
       allow(Yast::AddOnProduct).to receive(:skip_add_ons).and_return(true)
 
