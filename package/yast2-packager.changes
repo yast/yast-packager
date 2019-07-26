@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 25 16:31:05 UTC 2019 - David Diaz <dgonzalez@suse.com>
+
+- Set the proper release version for newly added repos always, not
+  only during upgrade (bsc#1132748).
+- 4.2.21
+
+-------------------------------------------------------------------
 Wed Jul 24 14:21:07 UTC 2019 - David Diaz <dgonzalez@suse.com>
 
 - Add method to get the dependencies of a product (bsc#1142535).
