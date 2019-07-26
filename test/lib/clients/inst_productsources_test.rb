@@ -50,14 +50,10 @@ describe Yast::InstProductsourcesClient do
       client.main
     end
 
-    it "sets the RELEASEVER_ENV to Product.version" do
-      stub_const("#{described_class}::RELEASEVER_ENV", "ZYPP_RELEASEVER_ENV")
-
-      expect(ENV[described_class::RELEASEVER_ENV]).to be_nil
+    it "sets the ZYPP_REPO_RELEASEVER environment variable to Product.version" do
+      expect(ENV).to receive(:[]=).with("ZYPP_REPO_RELEASEVER", "15.1")
 
       client.main
-
-      expect(ENV[described_class::RELEASEVER_ENV]).to eq(product_version)
     end
   end
 
