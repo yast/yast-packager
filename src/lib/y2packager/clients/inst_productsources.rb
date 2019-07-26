@@ -140,9 +140,9 @@ module Yast
         return :auto
       end
 
-      # set release version for update as for newly added repositories
+      # Set the proper release version for newly added repositories
       # we want to use new product and not old
-      ENV[RELEASEVER_ENV] = Product.version if Mode.update
+      ENV[RELEASEVER_ENV] = Product.version
 
       # (Applicable only in inst-sys)
       @preselect_recommended = true

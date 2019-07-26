@@ -7,11 +7,22 @@ Yast.import "SourceManager"
 describe Yast::InstProductsourcesClient do
   subject(:client) { described_class.new }
 
+  let(:product_version) { "15.1" }
+
   describe "#main" do
     before do
       allow(Yast::Sequencer).to receive(:Run)
       allow(Yast::Wizard).to receive(:OpenDialog)
       allow(Yast::Wizard).to receive(:CloseDialog)
+      allow(Yast::Product).to receive(:version).and_return(product_version)
+    end
+
+    around do |test|
+      previous_env = ENV.to_hash
+
+      test.run
+
+      ENV.replace(previous_env)
     end
 
     it "returns :auto if AddOnProduct is set to skip" do
@@ -43,6 +54,12 @@ describe Yast::InstProductsourcesClient do
       expect(Yast::Wizard).to receive(:CloseDialog)
 
       allow(Yast::Mode).to receive(:normal).and_return(true)
+
+      client.main
+    end
+
+    it "sets the ZYPP_REPO_RELEASEVER environment variable to Product.version" do
+      expect(ENV).to receive(:[]=).with("ZYPP_REPO_RELEASEVER", "15.1")
 
       client.main
     end
