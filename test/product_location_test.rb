@@ -68,6 +68,16 @@ describe Y2Packager::ProductLocation do
         ["/Module-Basesystem", "/Product-SLES"]
       )
     end
+
+    it "return empty list when there is only one repository" do
+      expect(Yast::Pkg).to receive(:RepositoryScan).and_return([["/", "Foo product"]])
+      expect(described_class.scan(REPO_URL)).to eq([])
+    end
+
+    it "return empty list when there is none repository found" do
+      expect(Yast::Pkg).to receive(:RepositoryScan).and_return([])
+      expect(described_class.scan(REPO_URL)).to eq([])
+    end
   end
 
   describe "#summary" do
