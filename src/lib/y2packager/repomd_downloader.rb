@@ -34,14 +34,15 @@ module Y2Packager
     #
     # Scan the product directories at the URL
     #
-    # @return [Array<Array<String,String>>] List of pairs [<product_name>, <directory>]
+    # @return [Array<Array<String,String>>] List of pairs [<product_name>, <directory>],
+    #   returns empty list if the repository scan fails
     #
     def product_repos
       return @product_repos if @product_repos
 
       # expand the URL and scan the repositories on the medium
       expanded_url = Yast::Pkg.ExpandedUrl(url)
-      @product_repos = Yast::Pkg.RepositoryScan(expanded_url)
+      @product_repos = Yast::Pkg.RepositoryScan(expanded_url) || []
     end
 
     #
@@ -61,7 +62,7 @@ module Y2Packager
     #   returns an empty list if the URL or the repository is not valid.
     #
     def primary_xmls
-      return [] if product_repos.nil? || product_repos.empty?
+      return [] if product_repos.empty?
 
       # add a temporary repository for downloading the files via libzypp
       src = Yast::Pkg.RepositoryAdd("base_urls" => [url])

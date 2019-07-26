@@ -33,8 +33,10 @@ module Y2Packager
     attr_reader :details
 
     #
-    # Scan the URL for the available product subdirectories
-    # and their products.
+    # Scan the URL for the available product subdirectories and their products.
+    # If there is none or only one repository at the URL it returns empty list.
+    # Scanning the product details is not needed because there is nothing to
+    # select from, that one repository will be used without asking.
     #
     # @param url [String] The base repository URL
     # @param base_product [String,nil]  The base product used for evaluating the
@@ -47,6 +49,10 @@ module Y2Packager
       log.info "Scanning #{Yast::URL.HidePassword(url)} for products..."
 
       downloader = Y2Packager::RepomdDownloader.new(url)
+      # Skip the scan if there is none or just one repository, the repository selection
+      # is displayed only when there are at least 2 repositories.
+      return [] if downloader.product_repos.size < 2
+
       pool = Y2Packager::SolvablePool.new
 
       repomd_files = downloader.primary_xmls
