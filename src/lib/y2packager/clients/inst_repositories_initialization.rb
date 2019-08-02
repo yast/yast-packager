@@ -88,7 +88,14 @@ module Y2Packager
       # @see https://github.com/yast/yast-packager/blob/7e1a0bbb90823b03c15d92f408036a560dca8aa3/src/modules/Packages.rb#L1876
       # @see https://github.com/yast/yast-packager/blob/fbc396df910e297915f9f785fc460e72e30d1948/src/modules/Packages.rb#L1905
       def adjust_base_product_selection
-        if products.size == 1
+        if forced_base_product
+          log.info("control.xml wants to force the #{forced_base_product.name} product")
+
+          forced_base_product.select
+          discarded_products = products.reject { |p| p == forced_base_product }
+
+          log.info("Ignoring the other products: #{discarded_products.map(&:name).join(", ")}")
+        elsif products.size == 1
           products.first.select
         else
           products.each(&:restore)
@@ -100,6 +107,13 @@ module Y2Packager
       # @return [Array<Y2Product>] Available base products
       def products
         @products ||= Y2Packager::Product.available_base_products
+      end
+
+      # Return the forced base product (if any)
+      #
+      # @return [Y2Product, nil]
+      def forced_base_product
+        @forced_base_product ||= Y2Packager::Product.forced_base_product
       end
     end
   end
