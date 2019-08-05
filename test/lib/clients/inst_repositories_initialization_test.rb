@@ -7,8 +7,8 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
   subject(:client) { described_class.new }
 
   let(:success) { true }
-  let(:prod1) { instance_double(Y2Packager::Product, select: nil) }
-  let(:prod2) { instance_double(Y2Packager::Product, select: nil) }
+  let(:prod1) { instance_double(Y2Packager::Product, name: "Prod1", select: nil) }
+  let(:prod2) { instance_double(Y2Packager::Product, name: "Prod2", select: nil) }
   let(:products) { [prod1] }
 
   describe "#main" do
@@ -16,6 +16,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       allow(Yast::Packages).to receive(:InitializeCatalogs)
       allow(Yast::Packages).to receive(:InitializeAddOnProducts)
       allow(Yast::Packages).to receive(:InitFailed).and_return(!success)
+      allow(Y2Packager::Product).to receive(:forced_base_product)
       allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
       allow(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(false)
     end
@@ -59,6 +60,19 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
 
       it "selects the product for installation" do
         expect(prod1).to receive(:select)
+        client.main
+      end
+    end
+
+    context "when a product is forced to be used" do
+      let(:products) { [prod1, prod2] }
+
+      before do
+        allow(Y2Packager::Product).to receive(:forced_base_product).and_return(prod2)
+      end
+
+      it "selects the product for installation" do
+        expect(prod2).to receive(:select)
         client.main
       end
     end
