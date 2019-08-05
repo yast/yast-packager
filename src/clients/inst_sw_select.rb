@@ -48,6 +48,9 @@ module Yast
             # from scratch. See BNC #436925.
             Packages.ResetProposalCache
 
+            # avoid selecting again the unselected patterns
+            Packages.RememberNotSelectedPatterns
+
             Packages.base_selection_modified = true
             @ret = :next
             Packages.solve_errors = 0 # all have been either solved

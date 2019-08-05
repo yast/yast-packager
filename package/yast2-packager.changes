@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug  5 18:36:42 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Better handle unselecting the default pre-selected patterns
+  by the user (bsc#1140735)
+- 3.3.2
+
+-------------------------------------------------------------------
 Tue Jun 21 08:59:39 UTC 2019 - David Diaz <dgonzalez@suse.com>
 
 - Better handling of license agreement dialog, allowing to

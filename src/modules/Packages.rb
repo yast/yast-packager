@@ -157,6 +157,8 @@ module Yast
       @base_source_id = nil
 
       @old_packages_proposal = nil
+
+      @not_selected_patterns = []
     end
 
     # summary functions
@@ -2079,6 +2081,8 @@ module Yast
             next
           elsif prop["status"] == :available && prop["transact_by"] == :user
             log.info "Skipping pattern #{pattern_name} deselected by user"
+          elsif @not_selected_patterns.include?(pattern_name)
+            log.info "Pattern #{pattern_name} was already deselected, skipping"
           else
             Pkg.ResolvableInstall(pattern_name, :pattern)
           end
@@ -2099,6 +2103,22 @@ module Yast
       end
 
       nil
+    end
+
+    # Remember the not selected patterns to avoid reselecting them again.
+    # The user (de)selection status might be lost (bsc#1140735#c11),
+    # we need to explicitly remember the not selected patterns.
+    def RememberNotSelectedPatterns
+      @not_selected_patterns.clear
+
+      all_patterns = Pkg.ResolvableProperties("", :pattern, "")
+      pattern_names = all_patterns.map{|p| p["name"]}
+      pattern_names.uniq!
+
+      pattern_names.each do |n|
+        next if all_patterns.any?{ |p| p["name"] == n && p["status"] == :selected }
+        @not_selected_patterns << n
+      end
     end
 
     # Select system packages
