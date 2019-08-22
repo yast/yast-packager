@@ -75,4 +75,37 @@ describe Y2Packager::MediumType do
       end
     end
   end
+
+  describe "#skip_step?" do
+    context "online installation medium" do
+      before do
+        allow(Y2Packager::MediumType).to receive(:type).and_return(:online)
+      end
+
+      it "returns true if the client args contain \"skip\" => \"online\"" do
+        allow(Yast::WFM).to receive(:Args).with(0).and_return("skip" => "online")
+        expect(Y2Packager::MediumType.skip_step?).to eq(true)
+      end
+      it "returns true if the client args contain \"skip\" => \"standard,online\"" do
+        allow(Yast::WFM).to receive(:Args).with(0).and_return("skip" => "standard,online")
+        expect(Y2Packager::MediumType.skip_step?).to eq(true)
+      end
+      it "returns false if the client args do not contain \"skip\" => \"online\"" do
+        allow(Yast::WFM).to receive(:Args).with(0).and_return({})
+        expect(Y2Packager::MediumType.skip_step?).to eq(false)
+      end
+      it "returns false if the client args contain \"only\" => \"online\"" do
+        allow(Yast::WFM).to receive(:Args).with(0).and_return("only" => "online")
+        expect(Y2Packager::MediumType.skip_step?).to eq(false)
+      end
+      it "returns false if the client args contain \"only\" => \"online,standard\"" do
+        allow(Yast::WFM).to receive(:Args).with(0).and_return("only" => "standard,online")
+        expect(Y2Packager::MediumType.skip_step?).to eq(false)
+      end
+      it "returns false if the client args do not contain \"only\" => \"online\"" do
+        allow(Yast::WFM).to receive(:Args).with(0).and_return({})
+        expect(Y2Packager::MediumType.skip_step?).to eq(false)
+      end
+    end
+  end
 end

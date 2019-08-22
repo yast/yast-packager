@@ -14,6 +14,7 @@
 require "yast"
 require "y2packager/product"
 require "y2packager/self_update_addon_repo"
+require "y2packager/medium_type"
 
 Yast.import "Packages"
 Yast.import "PackageCallbacks"
@@ -36,6 +37,11 @@ module Y2Packager
       def main
         textdomain "packager"
 
+        if Y2Packager::MediumType.skip_step?
+          log.info "Skipping the client on the #{Y2Packager::MediumType.type} medium"
+          return :auto
+        end
+
         if !init_installation_repositories
           Yast::Popup.Error(
             _("Failed to initialize the software repositories.\nAborting the installation.")
@@ -51,6 +57,11 @@ module Y2Packager
         end
 
         adjust_base_product_selection
+
+        # in an online installation and we need to additionally load and initialize
+        # the workflow for the registered base product
+        merge_and_run_workflow if Y2Packager::MediumType.online?
+
         :next
       end
 
@@ -59,7 +70,9 @@ module Y2Packager
       # Initialize installation repositories
       def init_installation_repositories
         Yast::PackageCallbacks.RegisterEmptyProgressCallbacks
-        Yast::Packages.InitializeCatalogs
+        # the online installation uses the repositories from the registration server,
+        # skip initializing the repository from the medium, it is missing there
+        Yast::Packages.InitializeCatalogs unless Y2Packager::MediumType.online?
         return false if Yast::Packages.InitFailed
 
         Yast::Packages.InitializeAddOnProducts
@@ -73,6 +86,15 @@ module Y2Packager
         Y2Packager::SelfUpdateAddonRepo.create_repo if Y2Packager::SelfUpdateAddonRepo.present?
 
         true
+      end
+
+      # Merge selected product's workflow and go to the next step
+      #
+      # @see Yast::WorkflowManager.merge_product_workflow
+      def merge_and_run_workflow
+        Yast::WorkflowManager.SetBaseWorkflow(false)
+        Yast::WorkflowManager.merge_product_workflow(Y2Packager::Product.selected_base)
+        Yast::ProductControl.RunFrom(Yast::ProductControl.CurrentStep + 1, true)
       end
 
       # Adjust product selection

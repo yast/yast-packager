@@ -58,6 +58,21 @@ module Y2Packager
         type == :standard
       end
 
+      # Helper method which evaluates the client arguments and the installation
+      # medium type and returns whether the client should be skipped.
+      #
+      # @return [Boolean] True if the client should be skipped.
+      #
+      def skip_step?
+        skip = Yast::WFM.Args(0) && Yast::WFM.Args(0)["skip"]
+        return true if skip&.split(",")&.include?(type.to_s)
+
+        only = Yast::WFM.Args(0) && Yast::WFM.Args(0)["only"]
+        return true if only && !only.split(",").include?(type.to_s)
+
+        false
+      end
+
     private
 
       #
