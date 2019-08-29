@@ -75,9 +75,17 @@ describe Yast::SoftwareProposalClient do
       end
 
       it "returns warning message if second stage is not possible" do
+        # Note that translated errors can be frozen strings
+        error_message1 = "first_error".freeze
+        error_message2 = "second_error".freeze
+
+        allow(Yast::Packages).to receive(:check_remote_installation_packages)
+          .and_return(error_message1)
+
         allow(Yast::AutoinstData).to receive(:autoyast_second_stage_error)
-          .and_return("second_error")
-        expect(subject.make_proposal({})["warning"]).to include("second_error")
+          .and_return(error_message2)
+
+        expect(subject.make_proposal({})["warning"]).to include(error_message2)
       end
 
       it "returns no warning if second stage is possible" do
