@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 29 11:11:05 UTC 2019 - José Iván López González <jlopez@suse.com>
+
+- Avoid error when generating some warnings (bsc#1148536).
+- 4.0.74
+
+-------------------------------------------------------------------
 Thu Mar  7 17:08:01 CET 2019 - schubi@suse.de
 
 - Bug fix: Changing repo URL has been ignored (bsc#1119564).
