@@ -125,11 +125,13 @@ module Yast
   private
 
     # @param msg [String] warning message to be added
+    #
+    # @note The message could be a frozen string (e.g., translated messages).
     def add_warning_if_needed(msg)
       return if msg.empty?
 
       if @ret.key?("warning")
-        @ret["warning"] << "\n#{msg}"
+        @ret["warning"] += "\n#{msg}"
       else
         @ret["warning"] = msg
       end
