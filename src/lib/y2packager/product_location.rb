@@ -42,16 +42,20 @@ module Y2Packager
     # @param base_product [String,nil]  The base product used for evaluating the
     #   product dependencies, if nil the solver can select any product to satisfy
     #   the dependencies.
+    # @param force_scan [Boolean] force evaluating the products (and their
+    #   dependencies) even when there is only one repository on the medium.
+    #   For the performance reasons the default is `false`, set `true` for
+    #   special cases.
     #
     # @return [Array<Y2Packager::ProductLocation>] The found products
     #
-    def self.scan(url, base_product = nil)
+    def self.scan(url, base_product = nil, force_scan = false)
       log.info "Scanning #{Yast::URL.HidePassword(url)} for products..."
 
       downloader = Y2Packager::RepomdDownloader.new(url)
       # Skip the scan if there is none or just one repository, the repository selection
       # is displayed only when there are at least 2 repositories.
-      return [] if downloader.product_repos.size < 2
+      return [] if downloader.product_repos.size < 2 && !force_scan
 
       pool = Y2Packager::SolvablePool.new
 
