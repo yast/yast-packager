@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 18 06:40:17 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Properly initialize the used base product name at upgrade
+  (bsc#1150856)
+- 4.2.26
+
+-------------------------------------------------------------------
 Wed Sep  4 14:32:20 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
 
 - Added Y2Packager::MediumType class for detecting the installation
