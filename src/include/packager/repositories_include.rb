@@ -343,8 +343,8 @@ module Yast
     # @return [Array<Y2Packager::ProductLocation>] Found products
     def scan_products(_expanded_url, original_url)
       # use the selected base product during installation,
-      # in installed system use the installed base product
-      base_product = if Stage.initial
+      # in installed system or during upgrade use the installed base product
+      base_product = if Stage.initial && !Mode.update
         Y2Packager::Product.selected_base&.name
       else
         Y2Packager::Product.installed_base_product&.name
