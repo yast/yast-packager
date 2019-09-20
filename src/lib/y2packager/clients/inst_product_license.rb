@@ -12,7 +12,9 @@
 
 require "yast"
 require "y2packager/dialogs/inst_product_license"
+require "y2packager/medium_type"
 require "y2packager/product"
+require "y2packager/product_control_product"
 Yast.import "Language"
 Yast.import "GetInstArgs"
 Yast.import "Mode"
@@ -57,7 +59,14 @@ module Y2Packager
       def product
         return @product if @product
 
-        @product = Y2Packager::Product.selected_base
+        @product = if Y2Packager::MediumType.online?
+          # in an online installation read the products from the control.xml
+          Y2Packager::ProductControlProduct.selected
+        else
+          # otherwise read the product from the medium
+          Y2Packager::Product.selected_base
+        end
+
         log.warn "No base product is selected for installation" unless @product
         @product
       end
@@ -68,7 +77,13 @@ module Y2Packager
       #
       # @return [Boolean]
       def multi_product_media?
-        Y2Packager::Product.available_base_products.size > 1
+        if Y2Packager::MediumType.online?
+          # in an online installation read the products from the control.xml
+          Y2Packager::ProductControlProduct.products.size > 1
+        else
+          # otherwise read the products from the medium
+          Y2Packager::Product.available_base_products.size > 1
+        end
       end
 
       # Determine whether the product's license should be shown

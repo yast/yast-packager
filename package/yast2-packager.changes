@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 18 11:28:23 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Support for the online installation medium (jsc#SLE-7214)
+- 4.2.27
+
+-------------------------------------------------------------------
 Wed Sep 18 06:40:17 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
 
 - Properly initialize the used base product name at upgrade

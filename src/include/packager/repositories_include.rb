@@ -22,6 +22,7 @@ module Yast
       Yast.import "PackageSystem"
       Yast.import "Popup"
       Yast.import "Label"
+      Yast.import "Mode"
       Yast.import "SourceDialogs"
       Yast.import "Report"
       Yast.import "Progress"
