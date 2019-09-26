@@ -32,6 +32,7 @@ describe Y2Packager::Clients::InstProductLicense do
     allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
     allow(Yast::Mode).to receive(:auto).and_return(auto)
     allow(Y2Packager::MediumType).to receive(:online?).and_return(false)
+    allow(Y2Packager::MediumType).to receive(:offline?).and_return(false)
     stub_const("Yast::Language", language)
   end
 

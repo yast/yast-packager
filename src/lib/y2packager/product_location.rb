@@ -97,5 +97,11 @@ module Y2Packager
 
       details.summary
     end
+
+    # Just forward to the details object to easily use the Y2Packager::PRODUCT_SORTER
+    # @return [Integer,nil] Product order, `nil` if not defined
+    def order
+      details&.order
+    end
   end
 end
