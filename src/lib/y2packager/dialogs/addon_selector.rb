@@ -45,7 +45,7 @@ module Y2Packager
         @products = products
         # do not offer base products, they would conflict with the already selected base product,
         # allow a hidden way to force displaying them in some special cases
-        @products.reject! { |p| p.details&.base } unless ENV["Y2_DISPLAY_BASE_PRODUCTS"] == "1"
+        @products.reject! { |p| p.details&.base } if ENV["Y2_DISPLAY_BASE_PRODUCTS"] != "1"
         @selected_products = []
       end
 
