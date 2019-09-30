@@ -20,6 +20,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
       allow(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(false)
       allow(Y2Packager::MediumType).to receive(:online?).and_return(false)
+      allow(Y2Packager::MediumType).to receive(:offline?).and_return(false)
     end
 
     it "initializes Packages subsystem" do

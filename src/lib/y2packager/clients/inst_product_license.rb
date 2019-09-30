@@ -80,6 +80,10 @@ module Y2Packager
         if Y2Packager::MediumType.online?
           # in an online installation read the products from the control.xml
           Y2Packager::ProductControlProduct.products.size > 1
+        elsif Y2Packager::MediumType.offline?
+          # the offline medium always contains several products, but they are
+          # in separate sub-repositories so we cannot see them in libzypp
+          true
         else
           # otherwise read the products from the medium
           Y2Packager::Product.available_base_products.size > 1
