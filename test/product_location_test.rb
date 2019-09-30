@@ -119,4 +119,38 @@ describe Y2Packager::ProductLocation do
       end
     end
   end
+
+  describe "#label" do
+    subject { described_class.new("foo", "/dir/foo", product: product) }
+    let(:product) { instance_double(Y2Packager::ProductLocationDetails, summary: "summary") }
+
+    it "returns the summary content" do
+      expect(subject.label).to eq("summary")
+    end
+  end
+
+  describe "#selected?" do
+    subject { described_class.new("foo", "/dir/foo", product: product) }
+    let(:product) { instance_double(Y2Packager::ProductLocationDetails, product: "product") }
+
+    before do
+      expect(Y2Packager::Resolvable).to receive(:any?)
+        .with(kind: :product, name: "product", status: :selected)
+        .and_return(product_selected)
+    end
+
+    context "product selected" do
+      let(:product_selected) { true }
+      it "returns true" do
+        expect(subject.selected?).to eq(true)
+      end
+    end
+
+    context "product not selected" do
+      let(:product_selected) { false }
+      it "returns false" do
+        expect(subject.selected?).to eq(false)
+      end
+    end
+  end
 end

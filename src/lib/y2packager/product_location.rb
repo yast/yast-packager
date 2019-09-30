@@ -15,6 +15,7 @@ require "yast"
 require "y2packager/repomd_downloader"
 require "y2packager/solvable_pool"
 require "y2packager/product_finder"
+require "y2packager/resolvable"
 
 Yast.import "URL"
 
@@ -98,10 +99,22 @@ module Y2Packager
       details.summary
     end
 
+    alias_method :label, :summary
+
     # Just forward to the details object to easily use the Y2Packager::PRODUCT_SORTER
     # @return [Integer,nil] Product order, `nil` if not defined
     def order
       details&.order
+    end
+
+    # Is the product selected to install?
+    #
+    # @return [Boolean,nil] `true` if the product is selected to install, `false` otherwise,
+    #   `nil` if the product name is not set
+    def selected?
+      return nil unless details
+
+      Y2Packager::Resolvable.any?(kind: :product, name: details.product, status: :selected)
     end
   end
 end
