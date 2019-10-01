@@ -7,6 +7,7 @@ require "uri"
 require "cgi"
 require "shellwords"
 
+require "y2packager/medium_type"
 require "y2packager/product_upgrade"
 require "y2packager/resolvable"
 
@@ -1724,6 +1725,11 @@ module Yast
       # by the user later in the workflow
       if !meta_data_present?(base_url, product_dir)
         log.info "Metadata not found at #{log_url}, postponing the repository initialization"
+        return
+      # TODO: the offline medium contains and empty repository in the root,
+      # that should be removed in the future, remove this workaround as well
+      elsif Y2Packager::MediumType.offline? && product_dir == "/"
+        log.info "Ignoring the root repository on the offline medium"
         return
       end
 
