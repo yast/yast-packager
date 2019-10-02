@@ -1726,7 +1726,7 @@ module Yast
       if !meta_data_present?(base_url, product_dir)
         log.info "Metadata not found at #{log_url}, postponing the repository initialization"
         return
-      # TODO: the offline medium contains and empty repository in the root,
+      # TODO: the offline medium contains an empty repository in the root,
       # that should be removed in the future, remove this workaround as well
       elsif Y2Packager::MediumType.offline? && product_dir == "/"
         log.info "Ignoring the root repository on the offline medium"
