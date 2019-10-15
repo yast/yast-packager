@@ -890,27 +890,11 @@ describe "Yast::Packages" do
     it "does not select previously unselected items" do
       allow(Yast::Pkg).to receive(:PkgApplReset)
 
-      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-        [product("name" => "p1", "status" => :selected), product("name" => "p2")]
-      )
+      allow(Y2Packager::Resolvable).to receive(:find)
+        .with(kind: :product, status: :selected, transact_by: :app_high)
+        .and_return([Y2Packager::Resolvable.new(product("name" => "p1"))])
 
       expect(Yast::Pkg).to receive(:ResolvableInstall).with("p1", :product)
-      expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p2", :product)
-
-      Yast::Packages.Reset([:product])
-    end
-
-    # When restoring the selected products ignore the items selected by solver
-    # (to not change their "transact_by" value). They will be selected again by
-    # solver if they are still needed.
-    it "does not restore items selected by solver" do
-      allow(Yast::Pkg).to receive(:PkgApplReset)
-
-      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-        [product("name" => "p1", "status" => :selected, "transact_by" => :solver)]
-      )
-
-      expect(Yast::Pkg).not_to receive(:ResolvableInstall).with("p1", :product)
 
       Yast::Packages.Reset([:product])
     end
