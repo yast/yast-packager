@@ -134,6 +134,7 @@ rake install DESTDIR="%{buildroot}"
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
 %{yast_libdir}/packager/cfa/*
+%{yast_libdir}/y2packager/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop
