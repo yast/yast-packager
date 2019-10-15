@@ -130,6 +130,7 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_yncludedir}/packager
 %dir %{yast_libdir}/packager
 %dir %{yast_libdir}/packager/cfa
+%dir %{yast_libdir}/y2packager
 %{yast_yncludedir}/checkmedia/*
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/packager/*
