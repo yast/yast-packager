@@ -64,7 +64,24 @@ module Yast
       # default (minimal) priority of a repository
       @default_priority = 99
 
-      @priority_label = _("&Priority")
+      # use a longer label in wide terminals, assume that in Qt the
+      # longer label always fits
+      @priority_label = if textmode && UI.GetDisplayInfo["Width"].to_i < 120
+        # TRANSLATORS: a widget label for repository priority
+        # (the short version for small screens)
+        _("&Priority")
+      else
+        # TRANSLATORS: a widget label for repository priority
+        # (the longer version for larger screens).
+        # The priority meaning is a bit misleading
+        # therefore display an extra hint for the users.
+        #
+        # NOTE: Still keep the label as short as possible, it's used for
+        # terminals wider than the usual 80x25 (width >= 120) but there still
+        # might not be enough space for a too long label, do not use more than
+        # about 50 characters.
+        _("&Priority (higher number = lower priority)")
+      end
 
       @keeppackages_label = _("Keep Downloaded Packages")
 
