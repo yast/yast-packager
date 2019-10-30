@@ -863,7 +863,7 @@ module Yast
       # by now (see bnc#504803, c#28). Language::Language does only
       # sysconfig reading, which is not too useful in cases like
       # 'LANG=foo_BAR yast repositories'
-      language = EnvLangToLangCode(Builtins.getenv("LANG"))
+      language = Language.language || EnvLangToLangCode(Builtins.getenv("LANG")) 
 
       # Preferencies how the client selects from available languages
       langs = [
