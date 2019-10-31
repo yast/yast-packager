@@ -3,6 +3,7 @@ require "yast"
 require "shellwords"
 
 require "packager/product_patterns"
+require "y2packager/resolvable"
 
 # Yast namespace
 module Yast
@@ -291,13 +292,13 @@ module Yast
     #
     # @param [Fixnum] source_id source ID
     def AddOnMode(source_id)
-      all_products = Pkg.ResolvableProperties("", :product, "")
+      all_products = Y2Packager::Resolvable.find(kind: :product)
 
-      check_add_on = {}
+      check_add_on = nil
 
       # Search for an add-on using source ID
       Builtins.foreach(all_products) do |one_product|
-        if Ops.get_integer(one_product, "source", -1) == source_id
+        if (one_product.source || -1) == source_id
           check_add_on = deep_copy(one_product)
           raise Break
         end
@@ -309,7 +310,7 @@ module Yast
       already_found = false
 
       # Found the
-      if check_add_on != {} && Builtins.haskey(check_add_on, "replaces")
+      if check_add_on != nil
         product_replaces = Ops.get_list(check_add_on, "replaces", [])
 
         # Run through through all products that the add-on can replace
@@ -570,7 +571,7 @@ module Yast
     end
 
     def AnyPatternInRepo
-      patterns = Pkg.ResolvableProperties("", :pattern, "")
+      patterns = Y2Packager::Resolvable.find(kind: :pattern)
 
       Builtins.y2milestone(
         "Total number of patterns: %1",
@@ -578,7 +579,7 @@ module Yast
       )
 
       patterns = Builtins.filter(patterns) do |pat|
-        Ops.get(pat, "source") == @src_id
+        pat.source == @src_id
       end
 
       Builtins.y2milestone("Found %1 add-on patterns", Builtins.size(patterns))
@@ -1263,10 +1264,10 @@ module Yast
 
         # install all products from the destination
       else
-        products = Pkg.ResolvableProperties("", :product, "")
+        products = Y2Packager::Resolvable.find(kind: :product)
         # only those that come from the new source
         products = Builtins.filter(products) do |p|
-          Ops.get_integer(p, "source", -1) == src
+          (p.source || -1) == src
         end
 
         Builtins.foreach(products) do |p|
@@ -2027,7 +2028,7 @@ module Yast
 
     # Determine whether a product was renamed using libzypp
     #
-    # libzypp (through #ResolvableProperties and #ResolvableDependencies method) is used
+    # libzypp (through Y2Packager::Resolvable methods) is used
     # to determine whether the product was renamed or not.
     #
     # @param old_name [String] Old product's name
@@ -2071,11 +2072,11 @@ module Yast
     def product_renames_from_libzypp
       renames = {}
       # Dependencies are not included in this call
-      products = Pkg.ResolvableProperties("", :product, "")
+      products = Y2Packager::Resolvable.find(kind: :product)
       products.each do |product|
-        renames = names_from_product_packages(product["product_package"])
+        renames = names_from_product_packages(product.product_package)
           .reduce(renames) do |hash, rename|
-          add_rename_to_hash(hash, rename, product["name"])
+          add_rename_to_hash(hash, rename, product.name)
         end
       end
       renames
@@ -2125,15 +2126,15 @@ module Yast
     #
     # @return [Array<String>] Old names
     def names_from_product_packages(package_name)
-      # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
-      packages = Pkg.ResolvableDependencies(package_name, :package, "")
+      # Get package dependencies
+      packages = Y2Packager::Resolvable.find(kind: :package, name: package_name)
       return [] if packages.nil? || packages.empty?
 
       result = packages.each_with_object([]) do |package, names|
-        next names unless package.key?("deps")
+        next names unless package.deps
 
         # Get information from 'obsoletes' and 'provides' keys
-        relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
+        relevant_deps = package.deps.map { |d| d["obsoletes"] || d["provides"] }.compact
         names.concat(relevant_deps.map { |d| product_name_from_dep(d) })
       end
       result.compact.uniq

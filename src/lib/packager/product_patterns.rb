@@ -13,6 +13,7 @@
 #
 
 require "yast"
+require "y2packager/resolvable"
 
 module Yast
   # Evaluate the default patterns for the currently selected products
@@ -53,9 +54,9 @@ module Yast
     # Find the default patterns for all selected products.
     # @return [Array<String>] pattern names
     def find
-      products = Yast::Pkg.ResolvableProperties("", :product, "")
+      products = Y2Packager::Resolvable.find(kind: :product)
       remove_unselected(products)
-      products.map! { |product| product["name"] }
+      products.map! { |product| product.name }
       log.info "Found selected products: #{products}"
 
       patterns = products.map { |p| product_patterns(p) }.flatten.uniq
@@ -81,19 +82,19 @@ module Yast
     def dependencies(product)
       product_dependencies = []
 
-      resolvables = Yast::Pkg.ResolvableProperties(product, :product, "")
+      resolvables = Y2Packager::Resolvable.find(kind: :product, name: product)
       remove_unselected(resolvables)
       remove_other_repos(resolvables) if src
 
       resolvables.each do |resolvable|
-        prod_pkg = resolvable["product_package"]
+        prod_pkg = resolvable.product_package
         next unless prod_pkg
 
-        release_resolvables = Yast::Pkg.ResolvableDependencies(prod_pkg, :package, "")
+        release_resolvables = Y2Packager::Resolvable.find(kind: :package, name: prod_pkg)
         remove_unselected(release_resolvables)
 
         release_resolvables.each do |release_resolvable|
-          deps = release_resolvable["deps"]
+          deps = release_resolvable.deps
           product_dependencies.concat(deps) if deps
         end
       end
@@ -107,14 +108,14 @@ module Yast
     # @param [Array<Hash>] resolvables only the Hashes where the key "status"
     #   maps to :selected value are kept, the rest is removed
     def remove_unselected(resolvables)
-      resolvables.select! { |p| p["status"] == :selected }
+      resolvables.select! { |p| p.status == :selected }
     end
 
     # Remove the resolvables from other repositories than in 'src'
     # @param [Array<Hash>] resolvables only the Hashes where the key "status"
     #   is equal to `src` are kept, the rest is removed
     def remove_other_repos(resolvables)
-      resolvables.select! { |p| p["source"] == src }
+      resolvables.select! { |p| p.source == src }
     end
 
     # Collect "provides" dependencies from the list.

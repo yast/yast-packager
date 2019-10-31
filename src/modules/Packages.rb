@@ -24,9 +24,6 @@ module Yast
     # All known types of resolvables
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language].freeze
 
-    # Key to sort by resolvable selection
-    RESOLVABLE_SORT_ORDER = { product: "source", pattern: "order" }.freeze
-
     # Minimum set of packages tags required to enable VNC server
     VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"].freeze
     # Additional packages tags needed to run second stage in graphical mode
@@ -170,11 +167,11 @@ module Yast
     # @param [String] format string format string to print summaries in
     # @return a list of selected resolvables
     def ListSelected(what, format)
-      selected = Pkg.ResolvableProperties("", what, "")
+      selected = Y2Packager::Resolvable.find(kind: what)
 
-      selected.select! { |r| r["status"] == :selected }
+      selected.select! { |r| r.status == :selected }
 
-      selected.select! { |r| r["user_visible"] } if what == :pattern
+      selected.select! { |r| r.user_visible } if what == :pattern
 
       sort_resolvable!(selected, what)
 
@@ -431,84 +428,8 @@ module Yast
     #
     # @param [Yast::ArgRef] ret reference to map MakeProposal->Summary
     def CheckOldAddOns(ret)
-      products = Pkg.ResolvableProperties("", :product, "")
-      products = Builtins.filter(products) do |one_product|
-        Ops.get_symbol(one_product, "status_detail", :unknown) == :S_AutoDel
-      end
-
-      # no such products
-      if Builtins.size(products).zero?
-        Builtins.y2milestone("No products marked for auto-removal")
+        Builtins.y2milestone("Currenly there is no check for old add ons")
         return
-      end
-
-      Builtins.y2warning("Product marked for auto-removal: %1", products)
-
-      warning = ""
-
-      Builtins.foreach(products) do |one_product|
-        warning = Ops.add(
-          Ops.add(
-            Ops.add(warning, "<li>"),
-            Ops.get_locale(
-              one_product,
-              "display_name",
-              Ops.get_locale(
-                one_product,
-                "name",
-                Ops.get_locale(one_product, "NCL", _("Unknown Product"))
-              )
-            )
-          ),
-          "</li>\n"
-        )
-      end
-
-      warning = Builtins.sformat(
-        _("These add-on products have been marked for auto-removal: %1"),
-        Ops.add(Ops.add("<ul>\n", warning), "</ul>\n")
-      )
-
-      # raising warning level if needed
-      if Ops.get(ret.value, "warning_level").nil? ||
-          Builtins.contains(
-            [:notice, :ok],
-            Ops.get_symbol(ret.value, "warning_level", :warning)
-          )
-        Ops.set(ret.value, "warning_level", :warning)
-      end
-
-      if Ops.greater_than(
-        Builtins.size(Ops.get_string(ret.value, "warning", "")),
-        0
-      )
-        Ops.set(
-          ret.value,
-          "warning",
-          Ops.add(
-            Ops.add(Ops.get_string(ret.value, "warning", ""), "<br>\n"),
-            if Ops.greater_than(Builtins.size(products), 1)
-              # Warning message when some add-ons are marked to be removed automatically
-              _(
-                "Contact the vendors of these add-ons to provide you with new installation media."
-              )
-            else
-              # Warning message when some add-ons are marked to be removed automatically
-              _(
-                "Contact the vendor of the add-on to provide you with a new installation media."
-              )
-            end
-          )
-        )
-      end
-
-      Ops.set(
-        ret.value,
-        "warning",
-        Ops.add(Ops.get_string(ret.value, "warning", ""), warning)
-      )
-
-      nil
     end
 
     def AddFailedMounts(summary)
@@ -1612,12 +1533,12 @@ module Yast
       end
 
       Builtins.y2milestone("Trying to get repository name from products")
-      all_products = Pkg.ResolvableProperties("", :product, "")
+      all_products = Y2Packager::Resolvable.find(kind: :product)
       new_name = nil
       Builtins.foreach(all_products) do |one_product|
         # source ID matches
-        if Ops.get_integer(one_product, "source", -1) == src_id
-          name = one_product["name"] || ""
+        if (one_product.source || -1) == src_id
+          name = one_product.name || ""
           if name != ""
             new_name = name
             Builtins.y2milestone("Product name found: %1", new_name)
@@ -1905,7 +1826,7 @@ module Yast
     def select_system_patterns_actions(pattern_names, reselect:)
       mandatory_patterns = nil
       pattern_names.map do |pattern_name|
-        props = Pkg.ResolvableProperties(pattern_name, :pattern, "")
+        props = Y2Packager::Resolvable.find(kind: :pattern, name: pattern_name)
         prop = props.first
         if props.empty?
           mandatory_patterns ||= default_patterns | resolvable_mandatory_patterns
@@ -1914,11 +1835,11 @@ module Yast
           else
             :missing_optional
           end
-        elsif !reselect && prop["status"] == :available && prop["transact_by"] == :user
+        elsif !reselect && prop.status == :available && prop.transact_by == :user
           action = :skipped_by_user
         elsif !reselect
           action = :install
-        elsif props.any? { |descr| descr["status"] == :selected }
+        elsif props.any? { |descr| descr.status == :selected }
           action = :reselect
         else
           action = :skipped_reselection
@@ -2231,8 +2152,7 @@ module Yast
       # 'laptop' selection if PCMCIA detected
       if Arch.is_laptop || Arch.has_pcmcia
         ["laptop", "Laptop"].each do |pat_name|
-          pat_list = Pkg.ResolvableProperties(pat_name, :pattern, "")
-          pattern_list << pat_name unless pat_list.empty?
+          pattern_list << pat_name if Y2Packager::Resolvable.any?(kind: :pattern, name: pat_name)
         end
       end
 
@@ -2241,7 +2161,7 @@ module Yast
 
       # install the FIPS pattern when the FIPS mode is enabled
       # see https://en.wikipedia.org/wiki/FIPS_140-2 for more details
-      if Pkg.ResolvableProperties(FIPS_PATTERN, :pattern, "").empty?
+      if !Y2Packager::Resolvable.any?(kind: :pattern, name: FIPS_PATTERN)
         # TRANSLATORS: error popup, use at most 70 characters per line
         # the %{fips_option} string is replaced by the FIPS boot option ("fips=1"),
         # the %{fips_pattern} is replaced by the FIPS pattern name ("fips").
@@ -2289,18 +2209,18 @@ module Yast
 
       # we do not log packages as it can be increase significantly memory usage (see bsc#1076768)
       [:product, :pattern].each do |type|
-        resolvables = Pkg.ResolvableProperties("", type, "")
-        resolvables.select! { |r| LOG_RESOLVABLE_TRANSACT_BY.include? r["transact_by"] }
+        resolvables = Y2Packager::Resolvable.find(kind: type)
+        resolvables.select! { |r| LOG_RESOLVABLE_TRANSACT_BY.include? r.transact_by }
 
         LOG_RESOLVABLE_TRANSACT_BY.each do |transact_by|
-          changed_resolvables = resolvables.select { |r| r["transact_by"] == transact_by }
+          changed_resolvables = resolvables.select { |r| r.transact_by == transact_by }
           next if changed_resolvables.empty?
 
           decided_resolvables = changed_resolvables
-            .select { |r| LOG_RESOLVABLE_STATUS.include? r["status"] }
+            .select { |r| LOG_RESOLVABLE_STATUS.include? r.status }
           log_resolvables("Resolvables of type #{type} set by #{transact_by}:", decided_resolvables)
 
-          locked_resolvables = changed_resolvables.select { |r| r["locked"] }
+          locked_resolvables = changed_resolvables.select { |r| r.locked }
           log_resolvables("Locked resolvables of type #{type} set by #{transact_by}:",
             locked_resolvables)
         end
@@ -2398,7 +2318,7 @@ module Yast
   private
 
     def fetch_selected(category)
-      items = Pkg.ResolvableProperties("", category, "").select { |i| i["status"] == :selected }
+      items = Y2Packager::Resolvable.find(kind: category).select { |i| i.status == :selected }
       items.map { |i| i["name"] }.sort
     end
 
@@ -2464,7 +2384,7 @@ module Yast
       format = "%1" if format == "" || format.nil?
 
       Builtins.maplist(selected) do |r|
-        disp = Ops.get_string(r, "summary", Ops.get_string(r, "name", ""))
+        disp = r.summary || r.name || ""
         Builtins.sformat(format, disp)
       end
     end
@@ -2478,9 +2398,11 @@ module Yast
     # @param [Symbol] what symbol specifying the type of resolvables to select
     # @see RESOLVABLE_SORT_ORDER
     def sort_resolvable!(selected, what)
-      order = RESOLVABLE_SORT_ORDER[what]
-
-      selected.sort_by! { |r| r[order].to_i } if order
+      if what == :pattern
+        selected.sort_by! { |r| r.order.to_i }
+      else
+        selected.sort_by! { |r| r.source.to_i }        
+      end
     end
 
     # Computes all patterns that are expected to be selected for default installation
@@ -2614,16 +2536,16 @@ module Yast
 
       proposed.each do |type, list|
         list.each do |item|
-          statuses = Pkg.ResolvableProperties(item, type, "")
+          statuses = Y2Packager::Resolvable.find(kind: type, name: item)
 
           # :selected = selected to install/update, :installed = keep installed (at upgrade)
-          if !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s["status"]) }
+          if !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s.status) }
             next
           end
 
           missing[type] = [] unless missing[type]
           # use quoted "summary" value for patterns as they usually contain spaces
-          name = (type == :pattern) ? statuses.first["summary"].inspect : item
+          name = (type == :pattern) ? statuses.first.summary.inspect : item
           missing[type] << name
         end
       end

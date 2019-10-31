@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 31 17:28:57 CET 2019 - schubi@suse.de
+
+- Using Y2Packager::Resolvable.any? and Y2Packager::Resolvable.find
+  in order to decrease the required memory (bsc#1132650).
+- 4.2.31
+
+-------------------------------------------------------------------
 Tue Oct  1 17:13:42 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
 
 - Do not add an empty repository from the offline medium root

@@ -5,6 +5,7 @@ require "shellwords"
 
 require "y2packager/product"
 require "y2packager/product_license"
+require "y2packager/resolvable"
 
 # Yast namespace
 module Yast
@@ -836,10 +837,10 @@ module Yast
     # @param src_id [Integer] Repository ID
     # @return [Y2Packager::Product,nil] Product or nil if it was not found
     def repository_product(src_id)
-      product_h = Yast::Pkg.ResolvableProperties("", :product, "").find do |properties|
-        properties["source"] == src_id
+      product_h = Y2Packager::Resolvable.find(kind: :product).find do |properties|
+        properties.source == src_id
       end
-      if product_h.nil?
+      if product_h.nil? || product_h.empty?
         log.error "No product found in the repository (#{src_id})"
         return
       end
@@ -1702,9 +1703,9 @@ module Yast
       Pkg.SourceLoad
       ::FileUtils.mkdir_p(tmpdir)
 
-      products = Pkg.ResolvableProperties("", :product, "")
-      products.select! { |p| p["source"] == id }
-      product_names = products.map { |p| p["name"] }.uniq
+      products = Y2Packager::Resolvable.find(kind: :product)
+      products.select! { |p| p.source == id }
+      product_names = products.map { |p| p.name }.uniq
       log.info("Found products from source #{id}: #{product_names.inspect}")
       found_license = false
 
