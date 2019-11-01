@@ -1711,6 +1711,7 @@ module Yast
       product_names.each do |product_name|
         locales = Pkg.PrdLicenseLocales(product_name)
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
+        next unless locales
 
         locales.each do |locale|
           license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
