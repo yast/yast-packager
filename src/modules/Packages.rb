@@ -2319,7 +2319,7 @@ module Yast
 
     def fetch_selected(category)
       items = Y2Packager::Resolvable.find(kind: category).select { |i| i.status == :selected }
-      items.map { |i| i["name"] }.sort
+      items.map { |i| i.name }.sort
     end
 
     # Current package, pattern, product, patch and language selection.
