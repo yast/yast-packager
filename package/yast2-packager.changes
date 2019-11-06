@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov  1 18:52:02 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Do not crash when the product licenses cannot be read
+  (bsc#1155454)
+- 4.2.31
+
+-------------------------------------------------------------------
 Tue Oct  1 17:13:42 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
 
 - Do not add an empty repository from the offline medium root
