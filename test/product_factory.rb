@@ -31,6 +31,7 @@ class ProductFactory
     # service pack level
     sp = rand(1..4)
 
+    product["kind"] = :product
     product["arch"] = attrs["arch"] || "x86_64"
     product["category"] = attrs["category"] || "addon"
     product["description"] = attrs["description"] || "SUSE Linux Enterprise #{product_name}."

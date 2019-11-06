@@ -1,4 +1,5 @@
 #! /usr/bin/env rspec
+# coding: utf-8
 
 require_relative "./test_helper"
 require_relative "product_factory"
@@ -9,12 +10,14 @@ describe Yast::AddOnProduct do
   subject { Yast::AddOnProduct }
 
   describe "#renamed?" do
-    let(:other_product) { ProductFactory.create_product }
+    let(:other_product) {
+      Y2Packager::Resolvable.new(
+        ProductFactory.create_product( "kind" => :product, "deps" => [])) }
     let(:products) { [other_product] }
 
     before do
       subject.main
-      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+      allow(Y2Packager::Resolvable).to receive(:find)
         .and_return(products)
     end
 
@@ -41,27 +44,44 @@ describe Yast::AddOnProduct do
       end
 
       let(:new_product) do
-        ProductFactory.create_product("name"            => "new_product",
-                                      "product_package" => "new_product-release")
+        Y2Packager::Resolvable.new(ProductFactory.create_product(
+          "kind"            => :product,
+          "name"            => "new_product",
+          "version"         => "1.0",
+          "arch"            => "x86_64",
+          "source"          => "1",
+          "product_package" => "new_product-release"))
       end
 
       let(:new_product_package) do
-        { "name" => "new_product-release", "deps" => deps }
+        Y2Packager::Resolvable.new(
+          { "kind"    => :package,
+            "name"    => "new_product-release",
+            "version" => "1.0",
+            "arch"    => "x86_64",
+            "source"  => "1",
+            "deps" => deps })
       end
 
       let(:installed_product_package) do
-        { "name" => "installed_product-release" }
+        Y2Packager::Resolvable.new(
+          { "kind" => :package,
+            "name" => "installed_product-release",
+            "version" => "1.0",
+            "arch"    => "x86_64",
+            "source"  => "1",
+            "deps" => []})
       end
 
       let(:products) { [new_product] }
 
       it "returns true" do
-        allow(Yast::Pkg).to receive(:ResolvableDependencies)
-          .with(new_product["product_package"], :package, "")
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(kind: :package ,name: new_product.product_package)
           .and_return([installed_product_package, new_product_package])
-        expect(subject.renamed?("old_product1", new_product["name"])).to eq(true)
-        expect(subject.renamed?("old_product2", new_product["name"])).to eq(true)
-        expect(subject.renamed?("old_name", new_product["name"])).to eq(true)
+        expect(subject.renamed?("old_product1", new_product.name)).to eq(true)
+        expect(subject.renamed?("old_product2", new_product.name)).to eq(true)
+        expect(subject.renamed?("old_name", new_product.name)).to eq(true)
       end
     end
   end
