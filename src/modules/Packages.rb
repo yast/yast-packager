@@ -2378,7 +2378,7 @@ module Yast
 
     # Prepares a list of formatted selected resolvables
     #
-    # @param [Array<Hash>] selected list of selected resolvables to format
+    # @param [Array<Y2Packager::Resolvable>] selected list of selected resolvables to format
     # @param [String] format string format to use
     def formatted_resolvables(selected, format)
       format = "%1" if format == "" || format.nil?
@@ -2394,7 +2394,7 @@ module Yast
     # :pattern resolvables are sorted by "order"
     # :product resolvables are sorted by "source"
     #
-    # @param [Array<Hash>] selected list of selected resolvables to sort
+    # @param [Array<Y2Packager::Resolvable>] selected list of selected resolvables to sort
     # @param [Symbol] what symbol specifying the type of resolvables to select
     # @see RESOLVABLE_SORT_ORDER
     def sort_resolvable!(selected, what)
