@@ -2371,7 +2371,7 @@ module Yast
       log.info text
 
       resolvables.each do |r|
-        r_info = { name: r["name"], version: r["version"], arch: r["arch"], status: r["status"] }
+        r_info = { name: r.name, version: r.version, arch: r.arch, status: r.status }
         log.info "- #{r_info}"
       end
     end
