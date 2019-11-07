@@ -180,7 +180,7 @@ describe Yast::Packages do
     "version"     => "1.0.0",
     "arch"        => "x86_64",
     "source"      => 1,
-    "summary"     => "summary string",
+    "summary"     => "",
     "status"      => :available,
     "transact_by" => :app_high
   }.freeze
@@ -195,7 +195,7 @@ describe Yast::Packages do
     "version"     => "1.0.0",
     "arch"        => "x86_64",
     "source"      => 1,
-    "summary"     => "summary string",    
+    "summary"     => "",
     "status"      => :available,
     "transact_by" => :app_high
   }.freeze
@@ -210,7 +210,7 @@ describe Yast::Packages do
     "version"     => "1.0.0",
     "arch"        => "x86_64",
     "source"      => 1,
-    "summary"     => "summary string",    
+    "summary"     => "",
     "status"      => :available,
     "transact_by" => :app_high
   }.freeze
@@ -1320,10 +1320,8 @@ describe Yast::Packages do
     end
 
     it "filters not selected resolvables from the list" do
-      expect(subject).to receive(:sort_resolvable!)
-        .with(filtered_products, :product)
-
-      subject.ListSelected(:product, "")
+      expect(subject.ListSelected(:product, "")).to
+        eq(filtered_products.map {|t| t.name}.sort)
     end
 
     it "filters not user visible resolvables from the list for type pattern" do

@@ -2384,7 +2384,8 @@ module Yast
       format = "%1" if format == "" || format.nil?
 
       Builtins.maplist(selected) do |r|
-        disp = r.summary || r.name || ""
+        disp = r.summary
+        disp = r.name || "" if !disp || disp.empty?
         Builtins.sformat(format, disp)
       end
     end
