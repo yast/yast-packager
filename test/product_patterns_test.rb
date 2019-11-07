@@ -10,26 +10,27 @@ Yast.import "Pkg"
 describe Yast::ProductPatterns do
   describe "#names" do
     it "returns empty list when there are no products" do
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([])
 
       expect(subject.names).to eq([])
     end
 
     it "returns empty list when there is no selected product" do
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
-        .and_return([ProductFactory.create_product])
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
+        .and_return([Y2Packager::Resolvable.new(ProductFactory.create_product)])
 
       expect(subject.names).to eq([])
     end
 
     it "returns empty list when the product release package is not found" do
-      product = ProductFactory.create_product("status"          => :selected,
-                                              "product_package" => nil)
+      product = Y2Packager::Resolvable.new(
+        ProductFactory.create_product("status"          => :selected,
+          "product_package" => nil))
 
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product])
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product["name"], :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product["name"], kind: :product)
         .and_return([product])
 
       expect(subject.names).to eq([])
@@ -39,11 +40,11 @@ describe Yast::ProductPatterns do
       pattern_name, package_name, package, product =
         ProductFactory.create_product_packages(product_name: "product1")
 
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product])
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product["name"], :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product["name"], kind: :product)
         .and_return([product])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name, :package, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name, kind: :package)
         .and_return([package])
 
       expect(subject.names).to eq([pattern_name])
@@ -56,15 +57,15 @@ describe Yast::ProductPatterns do
       pattern_name_second, package_name_second, package_second, product_second =
         ProductFactory.create_product_packages(product_name: "product_second")
 
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product_first, product_second])
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product_first["name"], :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_first["name"], kind: :product)
         .and_return([product_first])
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(product_second["name"], :product, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_second["name"], kind: :product)
         .and_return([product_second])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name_first, :package, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_first, kind: :package)
         .and_return([package_first])
-      expect(Yast::Pkg).to receive(:ResolvableDependencies).with(package_name_second, :package, "")
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_second, kind: :package)
         .and_return([package_second])
 
       expect(subject.names.sort).to eq([pattern_name_first, pattern_name_second].sort)
@@ -81,19 +82,19 @@ describe Yast::ProductPatterns do
         pattern_name_selected, package_name_selected, package_selected, product_selected =
           ProductFactory.create_product_packages(product_name: "product_selected", src: 2)
 
-        expect(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+        expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
           .and_return([product_other, product_selected])
-        expect(Yast::Pkg).to receive(:ResolvableProperties)
-          .with(product_other["name"], :product, "")
+        expect(Y2Packager::Resolvable).to receive(:find)
+          .with(name: product_other["name"], kind: :product)
           .and_return([product_other])
-        expect(Yast::Pkg).to receive(:ResolvableProperties)
-          .with(product_selected["name"], :product, "")
+        expect(Y2Packager::Resolvable).to receive(:find)
+          .with(name: product_selected["name"], kind: :product)
           .and_return([product_selected])
         # the product_other package should not be checked, it's in different repo
-        expect(Yast::Pkg).to_not receive(:ResolvableDependencies)
-          .with(package_name_other, :package, "")
-        expect(Yast::Pkg).to receive(:ResolvableDependencies)
-          .with(package_name_selected, :package, "")
+        expect(Y2Packager::Resolvable).to_not receive(:find)
+          .with(name: package_name_other, kind: :package)
+        expect(Y2Packager::Resolvable).to receive(:find)
+          .with(name: package_name_selected, kind: :package)
           .and_return([package_selected])
 
         expect(subject.names).to eq([pattern_name_selected])

@@ -83,11 +83,14 @@ class ProductFactory
   def self.create_product_packages(product_name: "product", src: nil)
     pattern_name = "#{product_name}_pattern"
     package_name = "#{product_name}-release"
-    package = { "name" => package_name, "status" => :selected,
+    package = Y2Packager::Resolvable.new(
+      {"kind" => :package,
+       "name" => package_name, "status" => :selected,
        "deps" => [{ "requires" => "foo" }, { "provides" => "bar" },
-                  { "provides" => "defaultpattern(#{pattern_name})" }] }
-    product = ProductFactory.create_product("status" => :selected,
-      "source" => src, "product_package" => package_name)
+                  { "provides" => "defaultpattern(#{pattern_name})" }] })
+    product = Y2Packager::Resolvable.new(
+      ProductFactory.create_product("status" => :selected,
+      "source" => src, "product_package" => package_name))
 
     [pattern_name, package_name, package, product]
   end
