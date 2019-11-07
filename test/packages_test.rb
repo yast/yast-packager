@@ -197,7 +197,8 @@ describe Yast::Packages do
     "source"      => 1,
     "summary"     => "",
     "status"      => :available,
-    "transact_by" => :app_high
+    "transact_by" => :app_high,
+    "product_package" => "product_package"
   }.freeze
 
   def product(properties = {})
