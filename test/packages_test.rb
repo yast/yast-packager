@@ -585,6 +585,11 @@ describe Yast::Packages do
           allow(Y2Packager::Resolvable).to receive(:find).with(name: prod_name, kind: :product)
             .and_return(suma_products.select { |p| p.name == prod_name })
         end
+
+        allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by)
+          .and_return(["new_product"])
+        allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: // )
+          .and_return([])
       end
 
       # the SLES12-SP3 is replaced by the SUMA base product,
