@@ -575,7 +575,7 @@ describe Yast::Packages do
     context "SUSE Manager 3.2 upgrade" do
       # upgrade SLES12-SP3 + SUMA-3.2 to SLE15-SP1 (actually SUMA 4.0)
       let(:suma_products_map) { load_zypp("products_update_suma.yml") }
-      let(:suma_products) { suma_products_map.map {|p| Y2Packager::Resolvable.new(p)} }
+      let(:suma_products) { suma_products_map.map {|p| product(p)} }
 
       before do
         allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
@@ -585,7 +585,6 @@ describe Yast::Packages do
           allow(Y2Packager::Resolvable).to receive(:find).with(name: prod_name, kind: :product)
             .and_return(suma_products.select { |p| p.name == prod_name })
         end
-
         allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by)
           .and_return(["new_product"])
         allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: // )
