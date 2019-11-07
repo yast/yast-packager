@@ -607,8 +607,8 @@ describe Yast::Packages do
     context "when fips pattern is available" do
       before do
         allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
-        allow(Y2Packager::Resolvable).to receive(:find)
-          .with(name: "fips", kind: :pattern).and_return([pattern({ "name" => "fips" })])
+        allow(Y2Packager::Resolvable).to receive(:any?)
+          .with(name: "fips", kind: :pattern).and_return(true)
       end
 
       it "adds 'fips' pattern if the FIPS mode is active" do
@@ -632,8 +632,8 @@ describe Yast::Packages do
     context "when fips pattern is not available" do
       before do
         allow_any_instance_of(Yast::ProductPatterns).to receive(:names).and_return([])
-        allow(Y2Packager::Resolvable).to receive(:find)
-          .with(name: "fips", kind: :pattern).and_return([])
+        allow(Y2Packager::Resolvable).to receive(:any?)
+          .with(name: "fips", kind: :pattern).and_return(false)
         allow(Yast::Report).to receive(:Error)
       end
 
