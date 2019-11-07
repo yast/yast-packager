@@ -472,8 +472,7 @@ describe Yast::Packages do
     let(:products) { load_zypp("products_update.yml") }
     let(:suma_products_map) { load_zypp("products_update_suma_branch_server.yml") }
     let(:suma_products) { suma_products_map.map do |p|
-                            p["kind"] = :product
-                            Y2Packager::Resolvable.new(p)
+                            product(p)
                           end }
 
     before do
@@ -515,7 +514,7 @@ describe Yast::Packages do
         .and_return(["SUSE-Manager-Retail-Branch-Server"])
       allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return(suma_products)
-      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: /sle/ )
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: // )
         .and_return([])
       allow(Y2Packager::Product).to receive(:with_status).with(:selected).and_return(
         suma_products_map.select { |p| p["status"] == :selected }
