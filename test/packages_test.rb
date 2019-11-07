@@ -318,7 +318,7 @@ describe Yast::Packages do
       allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
       allow(Yast::Packages).to receive(:default_patterns).and_return([])
       allow(Yast::Packages).to receive(:optional_default_patterns).and_return([])
-      allow(Y2Packager::Resolvable).to receive(:find).and_return([])
+      allow(Y2Packager::Resolvable).to receive(:find).and_return([pattern()])
 
       product_patterns = ["default_pattern_1", "default_pattern_2"]
       expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once)
@@ -1319,24 +1319,14 @@ describe Yast::Packages do
       subject.ListSelected(:product, "")
     end
 
-    it "filters not selected resolvables from the list" do
-      expect(subject.ListSelected(:product, "")).to
-        eq(filtered_products.map {|t| t.name}.sort)
+    it "filters and sorts not selected resolvables from the list" do
+      expect(subject.ListSelected(:product, "")).to eq(filtered_products.map {|t| t.name}.sort)
     end
 
-    it "filters not user visible resolvables from the list for type pattern" do
+    it "filters and sorts not user visible resolvables from the list for type pattern" do
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern)
         .and_return(unordered_patterns)
-      expect(subject).to receive(:sort_resolvable!)
-        .with(filtered_patterns, :pattern)
-
-      subject.ListSelected(:pattern, "")
-    end
-
-    it "sorts resultant list depending on resolvable type" do
-      expect(subject).to receive(:formatted_resolvables).with(ordered_products, "")
-
-      subject.ListSelected(:product, "")
+      expect(subject.ListSelected(:pattern, "")).to eq(filtered_patterns.map {|t| t.name}.sort)
     end
 
     it "returns an empty list if no resolvables selected" do
