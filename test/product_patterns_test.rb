@@ -30,7 +30,7 @@ describe Yast::ProductPatterns do
 
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: product["name"], kind: :product)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product.name, kind: :product)
         .and_return([product])
 
       expect(subject.names).to eq([])
@@ -42,7 +42,7 @@ describe Yast::ProductPatterns do
 
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: product["name"], kind: :product)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product.name, kind: :product)
         .and_return([product])
       expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name, kind: :package)
         .and_return([package])
@@ -59,9 +59,9 @@ describe Yast::ProductPatterns do
 
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product_first, product_second])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_first["name"], kind: :product)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_first.name, kind: :product)
         .and_return([product_first])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_second["name"], kind: :product)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_second.name, kind: :product)
         .and_return([product_second])
       expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_first, kind: :package)
         .and_return([package_first])
@@ -85,10 +85,10 @@ describe Yast::ProductPatterns do
         expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
           .and_return([product_other, product_selected])
         expect(Y2Packager::Resolvable).to receive(:find)
-          .with(name: product_other["name"], kind: :product)
+          .with(name: product_other.name, kind: :product)
           .and_return([product_other])
         expect(Y2Packager::Resolvable).to receive(:find)
-          .with(name: product_selected["name"], kind: :product)
+          .with(name: product_selected.name, kind: :product)
           .and_return([product_selected])
         # the product_other package should not be checked, it's in different repo
         expect(Y2Packager::Resolvable).to_not receive(:find)
