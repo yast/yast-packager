@@ -56,7 +56,7 @@ module Yast
     def find
       products = Y2Packager::Resolvable.find(kind: :product)
       remove_unselected(products)
-      products.map! { |product| product.name }
+      products.map!(&:name)
       log.info "Found selected products: #{products}"
 
       patterns = products.map { |p| product_patterns(p) }.flatten.uniq

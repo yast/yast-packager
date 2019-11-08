@@ -1873,7 +1873,7 @@ module Yast
           log.info "Optional pattern #{pattern_name} does not exist, skipping..."
         when :skipped_by_user
           log.info "Skipping pattern #{pattern_name} deselected by user"
-        when :skipped_reselection # rubocop:disable Lint/EmptyWhen
+        when :skipped_reselection
           # not logged
         else
           raise ArgumentError, "Unhandled action #{action}"

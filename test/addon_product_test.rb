@@ -1,5 +1,4 @@
 #! /usr/bin/env rspec
-# coding: utf-8
 
 require_relative "./test_helper"
 require_relative "product_factory"
