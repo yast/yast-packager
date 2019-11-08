@@ -171,7 +171,7 @@ module Yast
 
       selected.select! { |r| r.status == :selected }
 
-      selected.select! { |r| r.user_visible } if what == :pattern
+      selected.select!(&:user_visible) if what == :pattern
 
       sort_resolvable!(selected, what)
 
@@ -427,9 +427,8 @@ module Yast
     # the warning messages accordingly.
     #
     # @param [Yast::ArgRef] ret reference to map MakeProposal->Summary
-    def CheckOldAddOns(ret)
-        Builtins.y2milestone("Currenly there is no check for old add ons")
-        return
+    def CheckOldAddOns(_ret)
+      Builtins.y2milestone("Currenly there is no check for old add ons")
     end
 
     def AddFailedMounts(summary)
@@ -1874,7 +1873,7 @@ module Yast
         when :skipped_by_user
           log.info "Skipping pattern #{pattern_name} deselected by user"
         when :skipped_reselection
-          # not logged
+          log.info "Skipping pattern #{pattern_name} by reselection"
         else
           raise ArgumentError, "Unhandled action #{action}"
         end
@@ -2161,7 +2160,10 @@ module Yast
 
       # install the FIPS pattern when the FIPS mode is enabled
       # see https://en.wikipedia.org/wiki/FIPS_140-2 for more details
-      if !Y2Packager::Resolvable.any?(kind: :pattern, name: FIPS_PATTERN)
+      if Y2Packager::Resolvable.any?(kind: :pattern, name: FIPS_PATTERN)
+        log.info "#{FIPS_BOOT_OPTION} boot option detected, adding '#{FIPS_PATTERN}' pattern"
+        pattern_list << FIPS_PATTERN
+      else
         # TRANSLATORS: error popup, use at most 70 characters per line
         # the %{fips_option} string is replaced by the FIPS boot option ("fips=1"),
         # the %{fips_pattern} is replaced by the FIPS pattern name ("fips").
@@ -2178,9 +2180,6 @@ module Yast
             fips_pattern: FIPS_PATTERN
           )
         )
-      else
-        log.info "#{FIPS_BOOT_OPTION} boot option detected, adding '#{FIPS_PATTERN}' pattern"
-        pattern_list << FIPS_PATTERN
       end
 
       pattern_list
@@ -2220,7 +2219,7 @@ module Yast
             .select { |r| LOG_RESOLVABLE_STATUS.include? r.status }
           log_resolvables("Resolvables of type #{type} set by #{transact_by}:", decided_resolvables)
 
-          locked_resolvables = changed_resolvables.select { |r| r.locked }
+          locked_resolvables = changed_resolvables.select(&:locked)
           log_resolvables("Locked resolvables of type #{type} set by #{transact_by}:",
             locked_resolvables)
         end
@@ -2319,7 +2318,7 @@ module Yast
 
     def fetch_selected(category)
       items = Y2Packager::Resolvable.find(kind: category).select { |i| i.status == :selected }
-      items.map { |i| i.name }.sort
+      items.map(&:name).sort
     end
 
     # Current package, pattern, product, patch and language selection.
@@ -2402,7 +2401,7 @@ module Yast
       if what == :pattern
         selected.sort_by! { |r| r.order.to_i }
       else
-        selected.sort_by! { |r| r.source.to_i }        
+        selected.sort_by! { |r| r.source.to_i }
       end
     end
 
@@ -2540,9 +2539,7 @@ module Yast
           statuses = Y2Packager::Resolvable.find(kind: type, name: item)
 
           # :selected = selected to install/update, :installed = keep installed (at upgrade)
-          if !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s.status) }
-            next
-          end
+          next !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s.status) }
 
           missing[type] = [] unless missing[type]
           # use quoted "summary" value for patterns as they usually contain spaces
