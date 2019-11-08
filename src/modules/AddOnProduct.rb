@@ -310,7 +310,7 @@ module Yast
       already_found = false
 
       # Found the
-      if check_add_on != nil
+      if !check_add_on.nil?
         product_replaces = Ops.get_list(check_add_on, "replaces", [])
 
         # Run through through all products that the add-on can replace

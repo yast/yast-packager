@@ -45,14 +45,12 @@ describe Yast::AddOnProduct do
       end
 
       let(:new_product) do
-        Y2Packager::Resolvable.new(ProductFactory.create_product(
-                                     "kind"            => :product,
-                                     "name"            => "new_product",
-                                     "version"         => "1.0",
-                                     "arch"            => "x86_64",
-                                     "source"          => "1",
-                                     "product_package" => "new_product-release"
-        ))
+        Y2Packager::Resolvable.new(
+          ProductFactory.create_product("kind" => :product,
+           "name" => "new_product", "version" => "1.0",
+           "arch" => "x86_64", "source" => "1",
+           "product_package" => "new_product-release")
+        )
       end
 
       let(:new_product_package) do

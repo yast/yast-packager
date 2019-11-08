@@ -357,9 +357,9 @@ describe Yast::ProductLicense do
       allow(FileUtils).to receive(:mkdir_p)
       allow(Yast::Pkg).to receive(:SourceLoad)
       allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
-        .and_return([Y2Packager::Resolvable.new(ProductFactory.create_product(
-                                                  "name" => product, "source" => src
-        ))])
+        .and_return([Y2Packager::Resolvable.new(
+          ProductFactory.create_product("name" => product, "source" => src)
+        )])
       allow(Yast::Pkg).to receive(:SourceGeneralData).with(src)
         .and_return("product_dir" => "/test")
       allow(File).to receive(:write)
