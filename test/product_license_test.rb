@@ -358,7 +358,8 @@ describe Yast::ProductLicense do
       allow(Yast::Pkg).to receive(:SourceLoad)
       allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([Y2Packager::Resolvable.new(ProductFactory.create_product(
-          "name" => product, "source" => src))])
+                                                  "name" => product, "source" => src
+        ))])
       allow(Yast::Pkg).to receive(:SourceGeneralData).with(src)
         .and_return("product_dir" => "/test")
       allow(File).to receive(:write)
@@ -423,7 +424,9 @@ describe Yast::ProductLicense do
   describe "#repository_product" do
     before do
       allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, source: 2)
-        .and_return([Y2Packager::Resolvable.new(ProductFactory.create_product("name" => "SLES-SDK", "source" => 2 ))])
+        .and_return([Y2Packager::Resolvable.new(
+          ProductFactory.create_product("name" => "SLES-SDK", "source" => 2)
+        )])
       allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, source: 3)
         .and_return([])
     end

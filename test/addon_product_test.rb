@@ -10,9 +10,11 @@ describe Yast::AddOnProduct do
   subject { Yast::AddOnProduct }
 
   describe "#renamed?" do
-    let(:other_product) {
+    let(:other_product) do
       Y2Packager::Resolvable.new(
-        ProductFactory.create_product( "kind" => :product, "deps" => [])) }
+        ProductFactory.create_product("kind" => :product, "deps" => [])
+      )
+    end
     let(:products) { [other_product] }
 
     before do
@@ -45,39 +47,42 @@ describe Yast::AddOnProduct do
 
       let(:new_product) do
         Y2Packager::Resolvable.new(ProductFactory.create_product(
-          "kind"            => :product,
-          "name"            => "new_product",
-          "version"         => "1.0",
-          "arch"            => "x86_64",
-          "source"          => "1",
-          "product_package" => "new_product-release"))
+                                     "kind"            => :product,
+                                     "name"            => "new_product",
+                                     "version"         => "1.0",
+                                     "arch"            => "x86_64",
+                                     "source"          => "1",
+                                     "product_package" => "new_product-release"
+        ))
       end
 
       let(:new_product_package) do
         Y2Packager::Resolvable.new(
-          { "kind"    => :package,
-            "name"    => "new_product-release",
-            "version" => "1.0",
-            "arch"    => "x86_64",
-            "source"  => "1",
-            "deps" => deps })
+          "kind"    => :package,
+          "name"    => "new_product-release",
+          "version" => "1.0",
+          "arch"    => "x86_64",
+          "source"  => "1",
+          "deps"    => deps
+        )
       end
 
       let(:installed_product_package) do
         Y2Packager::Resolvable.new(
-          { "kind" => :package,
-            "name" => "installed_product-release",
-            "version" => "1.0",
-            "arch"    => "x86_64",
-            "source"  => "1",
-            "deps" => []})
+          "kind"    => :package,
+          "name"    => "installed_product-release",
+          "version" => "1.0",
+          "arch"    => "x86_64",
+          "source"  => "1",
+          "deps"    => []
+        )
       end
 
       let(:products) { [new_product] }
 
       it "returns true" do
         allow(Y2Packager::Resolvable).to receive(:find)
-          .with(kind: :package ,name: new_product.product_package)
+          .with(kind: :package, name: new_product.product_package)
           .and_return([installed_product_package, new_product_package])
         expect(subject.renamed?("old_product1", new_product.name)).to eq(true)
         expect(subject.renamed?("old_product2", new_product.name)).to eq(true)

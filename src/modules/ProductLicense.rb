@@ -843,14 +843,9 @@ module Yast
         return
       end
       product = products.first
-      Y2Packager::Product.new(
-        name:                 product.name,
-        short_name:           product.short_name,
-        display_name:         product.display_name,
-        version:              product.version,
-        arch:                 product.arch,
-        category:             product.category,
-        vendor:               product.vendor)
+      Y2Packager::Product.new( name: product.name, short_name: product.short_name,
+        display_name: product.display_name, version: product.version,
+        arch: product.arch, category: product.category, vendor: product.vendor)
     end
 
     # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]

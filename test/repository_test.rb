@@ -214,9 +214,12 @@ describe Y2Packager::Repository do
   describe "#products" do
     let(:products_data) { [product] }
     let(:product) do
-      Y2Packager::Resolvable.new(ProductFactory.create_product(
-        "arch" => "x86_64", "name" => "openSUSE", "category" => "addon",
-        "status" => :available, "source" => repo_id, "vendor" => "openSUSE"))
+      Y2Packager::Resolvable.new(
+        ProductFactory.create_product(
+          "arch" => "x86_64", "name" => "openSUSE", "category" => "addon",
+          "status" => :available, "source" => repo_id, "vendor" => "openSUSE"
+        )
+      )
     end
 
     it "returns products available in the repository" do
