@@ -60,13 +60,17 @@ describe Yast::ProductPatterns do
 
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product_first, product_second])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_first.name, kind: :product)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_first.name,
+                                                            kind: :product)
         .and_return([product_first])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_second.name, kind: :product)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: product_second.name,
+                                                            kind: :product)
         .and_return([product_second])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_first, kind: :package)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_first,
+                                                            kind: :package)
         .and_return([package_first])
-      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_second, kind: :package)
+      expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_second,
+                                                            kind: :package)
         .and_return([package_second])
 
       expect(subject.names.sort).to eq([pattern_name_first, pattern_name_second].sort)
