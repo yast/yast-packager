@@ -837,14 +837,20 @@ module Yast
     # @param src_id [Integer] Repository ID
     # @return [Y2Packager::Product,nil] Product or nil if it was not found
     def repository_product(src_id)
-      product_h = Y2Packager::Resolvable.find(kind: :product).find do |properties|
-        properties.source == src_id
-      end
-      if product_h.nil? || product_h.empty?
+      products = Y2Packager::Resolvable.find(kind: :product, source: src_id)
+      if products.nil? || products.empty?
         log.error "No product found in the repository (#{src_id})"
         return
       end
-      Y2Packager::Product.from_h(product_h)
+      product = products.first
+      Y2Packager::Product.new(
+        name:                 product.name,
+        short_name:           product.short_name,
+        display_name:         product.display_name,
+        version:              product.version,
+        arch:                 product.arch,
+        category:             product.category,
+        vendor:               product.vendor)
     end
 
     # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
