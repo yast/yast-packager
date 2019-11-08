@@ -1055,7 +1055,7 @@ describe Yast::Packages do
     let(:packages) { Yast::Packages.modePackages.sort.uniq }
     let(:vnc_packages) { ["some-vnc-packages"] }
     let(:remote_x11_packages) { ["some-x11-packages"] }
-    let(:ssh_packages) { ["openssh iproute2"] }
+    let(:ssh_packages) { ["openssh", "iproute2"] }
     let(:braille_packages) { ["sbl"] }
 
     context "on a boring local regular installation" do
@@ -1118,7 +1118,7 @@ describe Yast::Packages do
 
     let(:vnc_packages) { ["some-vnc-packages"] }
     let(:remote_x11_packages) { ["some-x11-packages"] }
-    let(:ssh_packages) { ["openssh iproute2"] }
+    let(:ssh_packages) { ["openssh", "iproute2"] }
     let(:braille_packages) { ["sbl"] }
 
     context "on a boring local regular installation" do
