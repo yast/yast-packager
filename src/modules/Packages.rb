@@ -2539,7 +2539,7 @@ module Yast
           statuses = Y2Packager::Resolvable.find(kind: type, name: item)
 
           # :selected = selected to install/update, :installed = keep installed (at upgrade)
-          next !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s.status) }
+          next if !statuses.nil? && statuses.find {|s|[:selected, :installed].include?(s.status)}
 
           missing[type] = [] unless missing[type]
           # use quoted "summary" value for patterns as they usually contain spaces
