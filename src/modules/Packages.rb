@@ -426,7 +426,7 @@ module Yast
     # Checks which products have been selected for removal and modifies
     # the warning messages accordingly.
     #
-    # @param [Yast::ArgRef] ret reference to map MakeProposal->Summary
+    # @param [Yast::ArgRef] _ret reference to map MakeProposal->Summary
     def CheckOldAddOns(_ret)
       Builtins.y2milestone("Currenly there is no check for old add ons")
     end
