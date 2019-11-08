@@ -29,7 +29,7 @@ def load_zypp(file_name)
 end
 
 def product_from_zypp
-  load_zypp("products.yml").map {|p| Y2Packager::Resolvable.new(p)}
+  load_zypp("products.yml").map { |p| Y2Packager::Resolvable.new(p) }
 end
 
 PRODUCTS_FROM_ZYPP = load_zypp("products.yml").freeze
@@ -190,14 +190,14 @@ describe Yast::Packages do
   end
 
   DEFAULT_PRODUCT = {
-    "kind"        => :product,
-    "name"        => "name",
-    "version"     => "1.0.0",
-    "arch"        => "x86_64",
-    "source"      => 1,
-    "summary"     => "",
-    "status"      => :available,
-    "transact_by" => :app_high,
+    "kind"            => :product,
+    "name"            => "name",
+    "version"         => "1.0.0",
+    "arch"            => "x86_64",
+    "source"          => 1,
+    "summary"         => "",
+    "status"          => :available,
+    "transact_by"     => :app_high,
     "product_package" => "product_package"
   }.freeze
 
@@ -319,7 +319,7 @@ describe Yast::Packages do
       allow(Yast::Packages).to receive(:ComputeSystemPatternList).and_return([])
       allow(Yast::Packages).to receive(:default_patterns).and_return([])
       allow(Yast::Packages).to receive(:optional_default_patterns).and_return([])
-      allow(Y2Packager::Resolvable).to receive(:find).and_return([pattern()])
+      allow(Y2Packager::Resolvable).to receive(:find).and_return([pattern])
 
       product_patterns = ["default_pattern_1", "default_pattern_2"]
       expect_any_instance_of(Yast::ProductPatterns).to receive(:names).at_least(:once)
@@ -471,9 +471,11 @@ describe Yast::Packages do
   describe "#product_update_summary" do
     let(:products) { load_zypp("products_update.yml") }
     let(:suma_products_map) { load_zypp("products_update_suma_branch_server.yml") }
-    let(:suma_products) { suma_products_map.map do |p|
-                            product(p)
-                          end }
+    let(:suma_products) do
+      suma_products_map.map do |p|
+        product(p)
+      end
+    end
 
     before do
       allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by).and_return([])
@@ -514,7 +516,7 @@ describe Yast::Packages do
         .and_return(["SUSE-Manager-Retail-Branch-Server"])
       allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return(suma_products)
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: // )
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: //)
         .and_return([])
       allow(Y2Packager::Product).to receive(:with_status).with(:selected).and_return(
         suma_products_map.select { |p| p["status"] == :selected }
@@ -575,19 +577,19 @@ describe Yast::Packages do
     context "SUSE Manager 3.2 upgrade" do
       # upgrade SLES12-SP3 + SUMA-3.2 to SLE15-SP1 (actually SUMA 4.0)
       let(:suma_products_map) { load_zypp("products_update_suma.yml") }
-      let(:suma_products) { suma_products_map.map {|p| product(p)} }
+      let(:suma_products) { suma_products_map.map { |p| product(p) } }
 
       before do
         allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
           .and_return(suma_products)
 
-        suma_products.map { |p| p.name }.uniq.each do |prod_name|
+        suma_products.map(&:name).uniq.each do |prod_name|
           allow(Y2Packager::Resolvable).to receive(:find).with(name: prod_name, kind: :product)
             .and_return(suma_products.select { |p| p.name == prod_name })
         end
         allow(Y2Packager::ProductUpgrade).to receive(:will_be_obsoleted_by)
           .and_return(["new_product"])
-        allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: // )
+        allow(Y2Packager::Resolvable).to receive(:find).with(kind: :package, name: //)
           .and_return([])
       end
 
@@ -1051,10 +1053,10 @@ describe Yast::Packages do
     end
 
     let(:packages) { Yast::Packages.modePackages.sort.uniq }
-    let(:vnc_packages) { %w[some-vnc-packages] }
-    let(:remote_x11_packages) { %w[some-x11-packages] }
-    let(:ssh_packages) { %w[openssh iproute2] }
-    let(:braille_packages) { %w[sbl] }
+    let(:vnc_packages) { %w(some-vnc-packages) }
+    let(:remote_x11_packages) { %w(some-x11-packages) }
+    let(:ssh_packages) { %w(openssh iproute2) }
+    let(:braille_packages) { %w(sbl) }
 
     context "on a boring local regular installation" do
       let(:vnc) { false }
@@ -1114,10 +1116,10 @@ describe Yast::Packages do
       allow(Yast::Packages).to receive(:braille_packages).and_return(braille_packages)
     end
 
-    let(:vnc_packages) { %w[some-vnc-packages] }
-    let(:remote_x11_packages) { %w[some-x11-packages] }
-    let(:ssh_packages) { %w[openssh iproute2] }
-    let(:braille_packages) { %w[sbl] }
+    let(:vnc_packages) { %w(some-vnc-packages) }
+    let(:remote_x11_packages) { %w(some-x11-packages) }
+    let(:ssh_packages) { %w(openssh iproute2) }
+    let(:braille_packages) { %w(sbl) }
 
     context "on a boring local regular installation" do
       let(:vnc) { false }
@@ -1329,13 +1331,13 @@ describe Yast::Packages do
     end
 
     it "filters and sorts not selected resolvables from the list" do
-      expect(subject.ListSelected(:product, "")).to eq(filtered_products.map {|t| t.name}.sort)
+      expect(subject.ListSelected(:product, "")).to eq(filtered_products.map(&:name).sort)
     end
 
     it "filters and sorts not user visible resolvables from the list for type pattern" do
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern)
         .and_return(unordered_patterns)
-      expect(subject.ListSelected(:pattern, "")).to eq(filtered_patterns.map {|t| t.name}.sort)
+      expect(subject.ListSelected(:pattern, "")).to eq(filtered_patterns.map(&:name).sort)
     end
 
     it "returns an empty list if no resolvables selected" do
@@ -1369,9 +1371,9 @@ describe Yast::Packages do
     context "YaST preselected items are deselected by user" do
       before do
         expect(Y2Packager::Resolvable).to receive(:find).with(name: "grub2", kind: :package)
-          .and_return([package({"status" => :available})])
+          .and_return([package("status" => :available)])
         expect(Y2Packager::Resolvable).to receive(:find).with(name: "kde", kind: :pattern)
-          .and_return([package({"status" => :available, "summary" => "KDE Desktop Environment"})])
+          .and_return([package("status" => :available, "summary" => "KDE Desktop Environment")])
       end
 
       it "Reports missing pre-selected packages" do
@@ -1393,9 +1395,9 @@ describe Yast::Packages do
     context "YaST preselected items are not deselected by user" do
       before do
         expect(Y2Packager::Resolvable).to receive(:find).with(name: "grub2", kind: :package)
-          .and_return([package({"status" => :selected})])
+          .and_return([package("status" => :selected)])
         expect(Y2Packager::Resolvable).to receive(:find).with(name: "kde", kind: :pattern)
-          .and_return([package({"status" => :selected})])
+          .and_return([package("status" => :selected)])
       end
 
       it "Does not report missing pre-selected packages" do
