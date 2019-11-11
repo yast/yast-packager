@@ -240,29 +240,10 @@ module Y2Packager
       def preselected_products
         return [] unless Yast::Mode.update
 
-        installed_addons = Y2Packager::Resolvable.find(
-          kind: :product, status: :installed, type: "add-on"
-        ).map(&:name) + Y2Packager::Resolvable.find(
-          kind: :product, status: :removed, type: "add-on"
-        ).map(&:name)
-
-        selected_addons = Y2Packager::Resolvable.find(
-          kind: :product, status: :selected, type: "add-on"
-        ).map(&:name)
-
-        # handle the product renames, if a renamed product was installed
-        # replace it with the new product so the new product is preselected
-        Yast::AddOnProductClass::DEFAULT_PRODUCT_RENAMES.each do |k, v|
-          next unless installed_addons.include?(k)
-
-          installed_addons.delete(k)
-          installed_addons.concat(v)
-        end
-
+        missing_products = Yast::AddOnProduct.missing_upgrades
         # installed but not selected yet products (to avoid duplicates)
         products.select do |p|
-          installed_addons.include?(p.details&.product) &&
-            !selected_addons.include?(p.details&.product)
+          missing_products.include?(p.details&.product)
         end
       end
     end
