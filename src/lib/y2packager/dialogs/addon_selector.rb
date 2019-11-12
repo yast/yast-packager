@@ -13,7 +13,10 @@
 require "yast"
 require "erb"
 require "ui/installation_dialog"
+require "y2packager/resolvable"
 
+Yast.import "AddOnProduct"
+Yast.import "Mode"
 Yast.import "Report"
 Yast.import "Stage"
 Yast.import "UI"
@@ -77,7 +80,7 @@ module Y2Packager
         "subdirectories. Select which products you want to install.</p>")
       end
 
-      # Handle changing the current item or chaging the selection
+      # Handle changing the current item or changing the selection
       def addon_repos_handler
         current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
         current_product = products.find { |p| p.dir == current_item }
@@ -113,7 +116,8 @@ module Y2Packager
       attr_writer :selected_products
 
       def selection_content
-        products.map { |p| Item(Id(p.dir), p.summary || p.name) }
+        defaults = preselected_products
+        products.map { |p| Item(Id(p.dir), p.summary || p.name, defaults.include?(p)) }
       end
 
       # Dialog content
@@ -228,6 +232,19 @@ module Y2Packager
 
         # render the ERB template in the context of this object
         erb.result(binding)
+      end
+
+      # return a list of the preselected products
+      # during upgrade we want to preselect the installed products
+      # @return [Array<Y2Packager::ProductLocation>] the products
+      def preselected_products
+        return [] unless Yast::Mode.update
+
+        missing_products = Yast::AddOnProduct.missing_upgrades
+        # installed but not selected yet products (to avoid duplicates)
+        products.select do |p|
+          missing_products.include?(p.details&.product)
+        end
       end
     end
   end
