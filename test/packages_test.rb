@@ -1815,15 +1815,15 @@ describe Yast::Packages do
 
   describe "#proposal_changed?" do
     before do
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :patch, :status=>:selected)
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :patch, status: :selected)
         .and_return([])
 
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern, :status=>:selected)
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern, status: :selected)
         .and_return(
           [pattern("name" => "minimal_base", "status" => :selected),
            pattern("name" => "base", "status" => :selected)]
         )
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, :status=>:selected)
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, status: :selected)
         .and_return([product("name" => "SLES", "status" => :selected)])
       allow(Yast::Pkg).to receive(:GetAdditionalLocales).and_return([])
       allow(Yast::Pkg).to receive(:GetPackageLocale).and_return("en_US")
