@@ -1711,7 +1711,9 @@ module Yast
       found_license = false
 
       product_names.each do |product_name|
-        locales = Pkg.PrdLicenseLocales(product_name)
+        # in some corner cases the repository might contain a broken product
+        # for which we get 'nil' locales (bsc#1155454)
+        locales = Pkg.PrdLicenseLocales(product_name) || []
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|

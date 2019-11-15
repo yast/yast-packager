@@ -1,8 +1,22 @@
 -------------------------------------------------------------------
-Thu Oct 31 17:28:57 CET 2019 - schubi@suse.de
+Fri Nov  8 19:28:57 UTC 2019 - schubi@suse.de
 
 - Using Y2Packager::Resolvable.any? and Y2Packager::Resolvable.find
   in order to decrease the required memory (bsc#1132650).
+- 4.2.33
+
+-------------------------------------------------------------------  
+Fri Nov  8 18:58:23 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Preselect the installed add-ons when upgrading from the Full
+  installation medium (related to jsc#SLE-7101)
+- 4.2.32
+
+-------------------------------------------------------------------
+Fri Nov  1 18:52:02 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Do not crash when the product licenses cannot be read
+  (bsc#1155454)
 - 4.2.31
 
 -------------------------------------------------------------------

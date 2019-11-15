@@ -1968,6 +1968,38 @@ module Yast
         old_name, new_name)
     end
 
+    # Return a list of the product add-ons which are installed but are not selected for upgrade.
+    # These add-ons should be additionally selected to install.
+    # It handles also the product renames, the returned list might contain different
+    # (new) names than the currently installed products.
+    # @return [Array<String>] the product names
+    def missing_upgrades
+      installed_addons = Y2Packager::Resolvable.find(
+        kind: :product, status: :installed, type: "addon"
+      ).map(&:name) + Y2Packager::Resolvable.find(
+        kind: :product, status: :removed, type: "addon"
+      ).map(&:name)
+
+      selected_addons = Y2Packager::Resolvable.find(
+        kind: :product, status: :selected, type: "addon"
+      ).map(&:name)
+
+      # handle the product renames, if a renamed product was installed
+      # replace it with the new product so the new product is preselected
+      DEFAULT_PRODUCT_RENAMES.each do |k, v|
+        next unless installed_addons.include?(k)
+
+        installed_addons.delete(k)
+        installed_addons.concat(v)
+      end
+
+      # installed but not selected
+      ret = installed_addons - selected_addons
+
+      log.info "Found missing product upgrades: #{ret}"
+      ret
+    end
+
     publish variable: :add_on_products, type: "list <map <string, any>>"
     publish variable: :src_id, type: "integer"
     publish variable: :last_ret, type: "symbol"
