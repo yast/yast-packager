@@ -2317,7 +2317,7 @@ module Yast
   private
 
     def fetch_selected(category)
-      items = Y2Packager::Resolvable.find(kind: category).select { |i| i.status == :selected }
+      items = Y2Packager::Resolvable.find(kind: category, status: :selected)
       items.map(&:name).sort
     end
 

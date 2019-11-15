@@ -147,9 +147,7 @@ module Y2Packager
       return @products unless @products.nil?
 
       # Filter products from this repository
-      candidates = Y2Packager::Resolvable.find(kind: :product).select do |pro|
-        pro.source == repo_id
-      end
+      candidates = Y2Packager::Resolvable.find(kind: :product, source: repo_id)
 
       # Build an array of Y2Packager::Product objects
       @products = candidates.map do |data|
