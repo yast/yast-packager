@@ -379,8 +379,8 @@ describe Yast::Packages do
     let(:product_hash) { load_zypp("products_update.yml").first }
 
     it "returns display_name if available" do
-      expect(Yast::Packages.product_label(product(product_hash))).to
-      eq("SUSE Linux Enterprise Server 12")
+      expect(Yast::Packages.product_label(product(product_hash)))
+        .to eq("SUSE Linux Enterprise Server 12")
     end
 
     it "return short_name if display_name is not available" do
