@@ -376,7 +376,7 @@ describe Yast::Packages do
   end
 
   describe "#product_label" do
-    let(:product) { load_zypp("products_update.yml").first }
+    let(:product) { product(load_zypp("products_update.yml").first) }
 
     it "returns display_name if available" do
       expect(Yast::Packages.product_label(product)).to eq("SUSE Linux Enterprise Server 12")
@@ -395,9 +395,9 @@ describe Yast::Packages do
   end
 
   describe "#group_products_by_status" do
-    let(:products) { load_zypp("products_update.yml") }
-    let(:products2) { load_zypp("products_update2.yml") }
-    let(:smt_products) { load_zypp("products_update_smt.yml") }
+    let(:products) { load_zypp("products_update.yml").map { |p| product(p) } }
+    let(:products2) { load_zypp("products_update2.yml").map { |p| product(p) } }
+    let(:smt_products) { load_zypp("products_update_smt.yml").map { |p| product(p) } }
 
     it "returns groups of the products" do
       status = Yast::Packages.group_products_by_status(products)
@@ -405,7 +405,7 @@ describe Yast::Packages do
       expect(status[:new]).to eq([])
 
       # no update replacement for SDK, it will be removed
-      expect(status[:removed].first["display_name"]).to \
+      expect(status[:removed].first.display_name).to \
         eq("SUSE Linux Enterprise Software Development Kit 11 SP3")
 
       expect(status[:kept]).to eq([])
@@ -413,13 +413,13 @@ describe Yast::Packages do
       # update from SLES11-SP3 to SLES12
       expect(status[:updated].size).to eq(1)
       old_product, new_product = status[:updated].first
-      expect(old_product["display_name"]).to eq("SUSE Linux Enterprise Server 11 SP3")
-      expect(new_product["display_name"]).to eq("SUSE Linux Enterprise Server 12")
+      expect(old_product.display_name).to eq("SUSE Linux Enterprise Server 11 SP3")
+      expect(new_product.display_name).to eq("SUSE Linux Enterprise Server 12")
     end
 
     it "returns updated product which has been renamed" do
-      hae = { "name" => "sle-hae", "status" => :removed }
-      ha = { "name" => "sle-ha", "status" => :selected }
+      hae = product("name" => "sle-hae", "status" => :removed)
+      ha = product("name" => "sle-ha", "status" => :selected)
       products = [hae, ha]
 
       status = Yast::Packages.group_products_by_status(products)
@@ -432,9 +432,9 @@ describe Yast::Packages do
     end
 
     it "returns updated products which have been merged" do
-      hae = { "name" => "sle-hae", "status" => :removed }
-      haegeo = { "name" => "sle-haegeo", "status" => :removed }
-      ha = { "name" => "sle-ha", "status" => :selected }
+      hae = product( "name" => "sle-hae", "status" => :removed )
+      haegeo = product( "name" => "sle-haegeo", "status" => :removed )
+      ha = product( "name" => "sle-ha", "status" => :selected )
       products = [hae, haegeo, ha]
 
       status = Yast::Packages.group_products_by_status(products)
