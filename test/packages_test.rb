@@ -469,7 +469,7 @@ describe Yast::Packages do
   end
 
   describe "#product_update_summary" do
-    let(:products) { load_zypp("products_update.yml") }
+    let(:products) { load_zypp("products_update.yml").map { |p| product(p) } }
     let(:suma_products_map) { load_zypp("products_update_suma_branch_server.yml") }
     let(:suma_products) do
       suma_products_map.map do |p|
@@ -494,7 +494,7 @@ describe Yast::Packages do
     end
 
     it "handles multiple products updated to a single product" do
-      smt_update = load_zypp("products_update_smt.yml")
+      smt_update = load_zypp("products_update_smt.yml").map { |p| product(p) }
       summary_string = Yast::Packages.product_update_summary(smt_update).to_s
 
       expect(summary_string).to match(
@@ -523,7 +523,7 @@ describe Yast::Packages do
         .map { |p| Y2Packager::Product.from_h(p) }
       )
 
-      summary_string = Yast::Packages.product_update_summary(suma_products_map).to_s
+      summary_string = Yast::Packages.product_update_summary(suma_products).to_s
 
       # just to make the lines shorter
       rbs = "SUSE Manager Retail Branch Server"
@@ -545,7 +545,8 @@ describe Yast::Packages do
   end
 
   describe "#product_update_warning" do
-    let(:products) { load_zypp("products_update.yml") }
+    let(:products_map) { load_zypp("products_update.yml") }
+    let(:products) { products_map.map { |p| product(p) } }
 
     context "product will be removed due an obsolete" do
       before do
@@ -569,7 +570,10 @@ describe Yast::Packages do
       end
 
       it "returns empty hash when there is no automatically removed product" do
-        products.each { |product| product["transact_by"] = :user }
+        products = products_map.map do |p|
+          p["transact_by"] = :user
+          product(p)
+        end
         expect(Yast::Packages.product_update_warning(products)).to eq({})
       end
     end
@@ -596,7 +600,7 @@ describe Yast::Packages do
       # the SLES12-SP3 is replaced by the SUMA base product,
       # do not complain for the automatic SLES removal
       it "does not report any upgrade problem" do
-        expect(Yast::Packages.product_update_warning(suma_products_map)).to eq({})
+        expect(Yast::Packages.product_update_warning(suma_products)).to eq({})
       end
     end
   end

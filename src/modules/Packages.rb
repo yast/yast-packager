@@ -583,7 +583,7 @@ module Yast
     end
 
     # group products according to the current state
-    # @param [Array<Hash>] products list of products (returned by Pkg.ResolvableProperties call)
+    # @param [Array<Y2Packager::Resolvable>] products list of products
     # @return [Hash<Symbol,Object>] grouped products
     #   the keys are :new, :removed, :kept, :updated
     #   For each key the value is a list of products, except for :updated
@@ -612,7 +612,7 @@ module Yast
     # create a product update summary (in rich text format)
     # usable in update proposal
     # @see #product_update_warning how to set and display possible issues
-    # @param [Array<Hash>] products list of products (returned by Pkg.ResolvableProperties call)
+    # @param [Array<Y2Packager::Resolvable>] products list of products
     # @return [Array<String>] list of rich text descriptions
     def product_update_summary(products)
       status = group_products_by_status(products)
@@ -647,10 +647,10 @@ module Yast
       end
 
       ret += status[:removed].map do |product|
-        obsolete = Y2Packager::ProductUpgrade.will_be_obsoleted_by(product["name"])
-        log.info "Product #{product["name"].inspect} will be obsoleted by #{obsolete.inspect}"
+        obsolete = Y2Packager::ProductUpgrade.will_be_obsoleted_by(product.name)
+        log.info "Product #{product.name} will be obsoleted by #{obsolete.inspect}"
         if obsolete.empty?
-          transact_by = product["transact_by"]
+          transact_by = product.transact_by
           log.warn "Product will be removed (by #{transact_by}): #{product}"
 
           # Removing another product might be an issue
@@ -683,14 +683,14 @@ module Yast
     # create a warning for product update summary (in rich text format) if
     # there is an update problem
     # @see #product_update_summary how to get the summary text
-    # @param [Array<Hash>] products list of products (returned by Pkg.ResolvableProperties call)
+    # @param [Array<Y2Packager::Resolvable>] products list of products
     # @return [Hash] hash with warning attributes or empty if there is no problem
     def product_update_warning(products)
       status = group_products_by_status(products)
 
       ret = status[:removed].all? do |product|
-        product["transact_by"] != :solver ||
-          !Y2Packager::ProductUpgrade.will_be_obsoleted_by(product["name"]).empty?
+        product.transact_by != :solver ||
+          !Y2Packager::ProductUpgrade.will_be_obsoleted_by(product.name).empty?
       end
 
       return {} if ret
@@ -713,16 +713,16 @@ module Yast
     end
 
     # return a printable name of product resolvable
-    # @param [Hash] product the product (returned by Pkg.ResolvableProperties call)
+    # @param [Y2Packager::Resolvable] product the product
     # @return [String] product name
     def product_label(product)
-      display_name = product["display_name"]
+      display_name = product.display_name
       return display_name if display_name && !display_name.empty?
 
-      short_name = product["short_name"]
+      short_name = product.short_name
       return short_name if short_name && !short_name.empty?
 
-      product["name"]
+      product.name
     end
 
     # proposal control functions
@@ -2196,10 +2196,10 @@ module Yast
     #   - if the FIPS mode is active "1\n" is read
     FIPS_FILE = "/proc/sys/crypto/fips_enabled".freeze
 
-    # Log only resolvables with resolvable["status"] matching these below
+    # Log only resolvables with resolvable.status matching these below
     LOG_RESOLVABLE_STATUS = [:selected, :removed].freeze
 
-    # Log only resolvables with resolvable["transact_by"] matching these below
+    # Log only resolvables with resolvable.transact_by matching these below
     LOG_RESOLVABLE_TRANSACT_BY = [:user, :app_high].freeze
 
     # Reads the current user selection and dumps it to log
@@ -2485,12 +2485,12 @@ module Yast
 
     # list of all products that will be installed (are selected)
     def products_to_install(products)
-      products.select { |product| product["status"] == :selected }
+      products.select { |product| product.status == :selected }
     end
 
     # list of all products that will be removed
     def products_to_remove(products)
-      products.select { |product| product["status"] == :removed }
+      products.select { |product| product.status == :removed }
     end
 
     def products_to_update(installed_products, removed_products)
@@ -2499,8 +2499,8 @@ module Yast
       updated_products = {}
       installed_products.each do |installed_product|
         removed = removed_products.select do |removed_product|
-          installed_name = installed_product["name"]
-          removed_name = removed_product["name"]
+          installed_name = installed_product.name
+          removed_name = removed_product.name
 
           # check the current product names or product renames
           removed_name == installed_name ||
@@ -2515,7 +2515,7 @@ module Yast
 
     # list of all products that will be unchanged (kept installed)
     def kept_products(products)
-      products.select { |product| product["status"] == :installed }
+      products.select { |product| product.status == :installed }
     end
 
     # Checks if a window manager is installed or selected for installation
