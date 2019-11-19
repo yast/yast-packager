@@ -379,7 +379,8 @@ describe Yast::Packages do
     let(:product_hash) { load_zypp("products_update.yml").first }
 
     it "returns display_name if available" do
-      expect(Yast::Packages.product_label(product(product_hash))).to eq("SUSE Linux Enterprise Server 12")
+      expect(Yast::Packages.product_label(product(product_hash))).to
+      eq("SUSE Linux Enterprise Server 12")
     end
 
     it "return short_name if display_name is not available" do
@@ -432,9 +433,9 @@ describe Yast::Packages do
     end
 
     it "returns updated products which have been merged" do
-      hae = product( "name" => "sle-hae", "status" => :removed )
-      haegeo = product( "name" => "sle-haegeo", "status" => :removed )
-      ha = product( "name" => "sle-ha", "status" => :selected )
+      hae = product("name" => "sle-hae", "status" => :removed)
+      haegeo = product("name" => "sle-haegeo", "status" => :removed)
+      ha = product("name" => "sle-ha", "status" => :selected)
       products = [hae, haegeo, ha]
 
       status = Yast::Packages.group_products_by_status(products)
