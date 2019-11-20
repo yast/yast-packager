@@ -1,6 +1,7 @@
 require "yast"
 
 require "shellwords"
+require "y2packager/resolvable"
 
 # Yast namespace
 module Yast
@@ -580,7 +581,7 @@ module Yast
           ret = Builtins.add(ret, url) # #180820#c26
 
           # is there any patch available?
-          patches = Pkg.ResolvableProperties("", :patch, "")
+          patches = Y2Packager::Resolvable.find(kind: :patch)
 
           if Ops.greater_than(Builtins.size(patches), 0)
             # loaded target is required to get list of applicable patches (#270919)

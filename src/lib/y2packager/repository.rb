@@ -141,7 +141,6 @@ module Y2Packager
     #
     # @return [Array<Y2Packager::Product>] Products in the repository
     #
-    # @see Yast::Pkg.ResolvableProperties
     # @see Y2Packager::Product
     def products
       return @products unless @products.nil?

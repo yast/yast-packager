@@ -18,6 +18,7 @@
 # find current contact information at www.suse.com.
 
 require "yast"
+require "y2packager/resolvable"
 
 Yast.import "Pkg"
 
@@ -57,8 +58,7 @@ module Y2Packager
       # but rather be safe than sorry...
 
       pkgs.select! do |pkg|
-        props = Yast::Pkg.ResolvableProperties(pkg, :package, "")
-        props.any? { |p| p["source"] == repo_id }
+        Y2Packager::Resolvable.any?(kind: :package, name: pkg, source: repo_id)
       end
 
       log.info "Found addon packages in the self update repository: #{pkgs}"
