@@ -85,7 +85,7 @@ module Y2Packager
       # set back the original solver flags
       Yast::Pkg.SetSolverFlags(original_solver_flags)
 
-      pkgs.map! { |p| p.name }
+      pkgs.map!(&:name)
       log.info "Found system packages: #{pkgs}"
 
       pkgs

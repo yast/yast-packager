@@ -406,7 +406,7 @@ module Yast
     # higher version. Otherwise we would forcefully reinstall it. #222757#c9
     def CanBeUpdated(package)
       props = Y2Packager::Resolvable.find(kind: :package, name: package)
-      
+
       # find maximum version and remember
       # if it is installed
       max_ver = "0"
