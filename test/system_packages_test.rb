@@ -22,13 +22,12 @@ describe Y2Packager::SystemPackages do
       allow(Yast::Pkg).to receive(:GetSolverFlags)
       allow(Yast::Pkg).to receive(:PkgSolve)
       allow(Yast::Pkg).to receive(:SetSolverFlags)
-      allow(Yast::Pkg).to receive(:ResolvableProperties).and_return(
-        [
+      allow(Y2Packager::Resolvable).to receive(:find).and_return(
+        [Y2Packager::Resolvable.new(kind: :package,
           "name"        => system_package,
           "source"      => source_id,
           "status"      => :selected,
-          "transact_by" => :solver
-        ]
+          "transact_by" => :solver)]
       )
 
       expect(subject.packages).to eq(["system_package"])
