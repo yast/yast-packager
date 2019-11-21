@@ -1536,10 +1536,9 @@ module Yast
       new_name = nil
       Builtins.foreach(all_products) do |one_product|
         # source ID matches
-        if (one_product.source || -1) == src_id
-          name = one_product.name || ""
-          if name != ""
-            new_name = name
+        if one_product.source == src_id
+          if one_product.name != ""
+            new_name = one_product.name
             Builtins.y2milestone("Product name found: %1", new_name)
             raise Break
           end
@@ -2384,7 +2383,7 @@ module Yast
 
       Builtins.maplist(selected) do |r|
         disp = r.summary
-        disp = r.name || "" if !disp || disp.empty?
+        disp = r.name if disp.empty?
         Builtins.sformat(format, disp)
       end
     end
@@ -2539,7 +2538,7 @@ module Yast
           statuses = Y2Packager::Resolvable.find(kind: type, name: item)
 
           # :selected = selected to install/update, :installed = keep installed (at upgrade)
-          next if !statuses.nil? && statuses.find { |s| [:selected, :installed].include?(s.status) }
+          next if statuses.find { |s| [:selected, :installed].include?(s.status) }
 
           missing[type] = [] unless missing[type]
           # use quoted "summary" value for patterns as they usually contain spaces

@@ -416,7 +416,7 @@ module Yast
         if VersionALtB(max_ver, cur_ver)
           max_ver = cur_ver
           # `installed or `selected is ok
-          max_is_installed = (prop.status || :available) != :available
+          max_is_installed = prop.status != :available
           Builtins.y2milestone("new max: installed: %1", max_is_installed)
         end
       end

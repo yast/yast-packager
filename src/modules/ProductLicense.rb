@@ -838,7 +838,7 @@ module Yast
     # @return [Y2Packager::Product,nil] Product or nil if it was not found
     def repository_product(src_id)
       products = Y2Packager::Resolvable.find(kind: :product, source: src_id)
-      if products.nil? || products.empty?
+      if products.empty?
         log.error "No product found in the repository (#{src_id})"
         return
       end
@@ -1704,7 +1704,7 @@ module Yast
       Pkg.SourceLoad
       ::FileUtils.mkdir_p(tmpdir)
 
-      products = Y2Packager::Resolvable.find(kind: :product)
+      products = Y2Packager::Resolvable.find(kind: :product, source: id)
       products.select! { |p| p.source == id }
       product_names = products.map(&:name).uniq
       log.info("Found products from source #{id}: #{product_names.inspect}")

@@ -298,7 +298,7 @@ module Yast
 
       # Search for an add-on using source ID
       Builtins.foreach(all_products) do |one_product|
-        if (one_product.source || -1) == source_id
+        if one_product.source == source_id
           check_add_on = deep_copy(one_product)
           raise Break
         end
@@ -1267,7 +1267,7 @@ module Yast
         products = Y2Packager::Resolvable.find(kind: :product)
         # only those that come from the new source
         products = Builtins.filter(products) do |p|
-          (p.source || -1) == src
+          p.source == src
         end
 
         Builtins.foreach(products) do |p|
