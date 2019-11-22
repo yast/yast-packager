@@ -1323,12 +1323,12 @@ describe Yast::Packages do
     end
 
     before do
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, :status=>:selected)
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, status: :selected)
         .and_return(unordered_products)
     end
 
     it "obtains a list of resolvables of the given type" do
-      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product, :status=>:selected)
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product, status: :selected)
 
       subject.ListSelected(:product, "")
     end
@@ -1338,13 +1338,13 @@ describe Yast::Packages do
     end
 
     it "filters and sorts not user visible resolvables from the list for type pattern" do
-      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern, :status=>:selected)
+      expect(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern, status: :selected)
         .and_return(unordered_patterns)
       expect(subject.ListSelected(:pattern, "")).to eq(filtered_patterns.map(&:name).sort)
     end
 
     it "returns an empty list if no resolvables selected" do
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, :status=>:selected)
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, status: :selected)
         .and_return([])
 
       expect(subject.ListSelected(:product, "Product: %1")).to eql([])
