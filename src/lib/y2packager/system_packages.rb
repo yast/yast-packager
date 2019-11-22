@@ -77,7 +77,8 @@ module Y2Packager
       ids = repo_ids(repositories)
 
       pkgs = Y2Packager::Resolvable.find(kind: :package,
-                                         transact_by: == :solver, status: == :selected)
+                                         transact_by: :solver,
+                                         status: :selected)
       pkgs.select! do |p|
         # the packages from the specified repositories
         ids.include?(p.source)
