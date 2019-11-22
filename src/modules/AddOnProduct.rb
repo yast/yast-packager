@@ -309,50 +309,49 @@ module Yast
       supported_statuses = [:installed, :selected]
       already_found = false
 
-      # Found the
-      if !check_add_on.nil?
-        product_replaces = Ops.get_list(check_add_on, "replaces", [])
+      return ret if check_add_on.nil?
 
-        # Run through through all products that the add-on can replace
-        Builtins.foreach(product_replaces) do |one_replaces|
-          raise Break if already_found
+      product_replaces = Ops.get_list(check_add_on, "replaces", [])
 
-          # Run through all installed (or selected) products
-          Builtins.foreach(all_products) do |one_product|
-            # checking the status
-            if !Builtins.contains(
-              supported_statuses,
-              Ops.get_symbol(one_product, "status", :unknown)
-            )
-              next
-            end
-            # ignore itself
-            next if Ops.get_integer(one_product, "source", -42) == source_id
-            # check name to replace
-            if Ops.get_string(one_product, "name", "-A-") !=
-                Ops.get_string(one_replaces, "name", "-B-")
-              next
-            end
-            # check version to replace
-            if Ops.get_string(one_product, "version", "-A-") !=
-                Ops.get_string(one_replaces, "version", "-B-")
-              next
-            end
-            # check version to replace
-            if Ops.get_string(one_product, "arch", "-A-") !=
-                Ops.get_string(one_replaces, "arch", "-B-")
-              next
-            end
+      # Run through through all products that the add-on can replace
+      Builtins.foreach(product_replaces) do |one_replaces|
+        raise Break if already_found
 
-            Builtins.y2milestone(
-              "Found product matching update criteria: %1 -> %2",
-              one_product,
-              check_add_on
-            )
-            ret = "update"
-            already_found = true
-            raise Break
+        # Run through all installed (or selected) products
+        Builtins.foreach(all_products) do |one_product|
+          # checking the status
+          if !Builtins.contains(
+            supported_statuses,
+            Ops.get_symbol(one_product, "status", :unknown)
+          )
+            next
           end
+          # ignore itself
+          next if Ops.get_integer(one_product, "source", -42) == source_id
+          # check name to replace
+          if Ops.get_string(one_product, "name", "-A-") !=
+              Ops.get_string(one_replaces, "name", "-B-")
+            next
+          end
+          # check version to replace
+          if Ops.get_string(one_product, "version", "-A-") !=
+              Ops.get_string(one_replaces, "version", "-B-")
+            next
+          end
+          # check version to replace
+          if Ops.get_string(one_product, "arch", "-A-") !=
+              Ops.get_string(one_replaces, "arch", "-B-")
+            next
+          end
+
+          Builtins.y2milestone(
+            "Found product matching update criteria: %1 -> %2",
+            one_product,
+            check_add_on
+          )
+          ret = "update"
+          already_found = true
+          raise Break
         end
       end
 
@@ -571,16 +570,7 @@ module Yast
     end
 
     def AnyPatternInRepo
-      patterns = Y2Packager::Resolvable.find(kind: :pattern)
-
-      Builtins.y2milestone(
-        "Total number of patterns: %1",
-        Builtins.size(patterns)
-      )
-
-      patterns = Builtins.filter(patterns) do |pat|
-        pat.source == @src_id
-      end
+      patterns = Y2Packager::Resolvable.find(kind: :pattern, source: @src_id)
 
       Builtins.y2milestone("Found %1 add-on patterns", Builtins.size(patterns))
       Builtins.y2debug("Found add-on patterns: %1", patterns)
@@ -1264,18 +1254,14 @@ module Yast
 
         # install all products from the destination
       else
-        products = Y2Packager::Resolvable.find(kind: :product)
-        # only those that come from the new source
-        products = Builtins.filter(products) do |p|
-          p.source == src
-        end
+        products = Y2Packager::Resolvable.find(kind: :product, source: src)
 
         Builtins.foreach(products) do |p|
           Builtins.y2milestone(
             "Selecting product '%1' for installation",
-            Ops.get_string(p, "name", "")
+            p.name
           )
-          one_prod = p["name"] || ""
+          one_prod = p.name
           Pkg.ResolvableInstall(one_prod, :product)
           @selected_installation_products << one_prod
         end

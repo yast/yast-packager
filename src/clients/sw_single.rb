@@ -364,6 +364,7 @@ module Yast
     # @param a_version [String] first version
     # @param b_version [String] second version
     # @return [Boolean] true if the second one is newer than the first one
+    # @deprecated Use {#Pkg.CompareVersions} instead.
     def VersionALtB(a_version, b_version)
       a_version_l = Builtins.filter(Builtins.splitstring(a_version, "-.")) do |s|
         Builtins.regexpmatch(s, "^[0123456789]+$")

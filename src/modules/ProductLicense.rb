@@ -1705,7 +1705,6 @@ module Yast
       ::FileUtils.mkdir_p(tmpdir)
 
       products = Y2Packager::Resolvable.find(kind: :product, source: id)
-      products.select! { |p| p.source == id }
       product_names = products.map(&:name).uniq
       log.info("Found products from source #{id}: #{product_names.inspect}")
       found_license = false

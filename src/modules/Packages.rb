@@ -167,9 +167,7 @@ module Yast
     # @param [String] format string format string to print summaries in
     # @return a list of selected resolvables
     def ListSelected(what, format)
-      selected = Y2Packager::Resolvable.find(kind: what)
-
-      selected.select! { |r| r.status == :selected }
+      selected = Y2Packager::Resolvable.find(kind: what, status: :selected)
 
       selected.select!(&:user_visible) if what == :pattern
 
