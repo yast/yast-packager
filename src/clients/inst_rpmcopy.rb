@@ -1,3 +1,5 @@
+require "y2packager/resolvable"
+
 module Yast
   # Install all the RPM packages the user has selected.
   # Show installation dialogue. Show progress bars.
@@ -322,8 +324,8 @@ module Yast
       failed = []
       patterns = deep_copy(AutoinstData.post_patterns)
       # set SoftLock to avoid the installation of recommended patterns (#159466)
-      Builtins.foreach(Pkg.ResolvableProperties("", :pattern, "")) do |p|
-        Pkg.ResolvableSetSoftLock(Ops.get_string(p, "name", ""), :pattern)
+      Y2Packager::Resolvable.find(kind: :pattern).each do |p|
+        Pkg.ResolvableSetSoftLock(p.name, :pattern)
       end
       Builtins.foreach(Builtins.toset(patterns)) do |p|
         failed = Builtins.add(failed, p) if !Pkg.ResolvableInstall(p, :pattern)

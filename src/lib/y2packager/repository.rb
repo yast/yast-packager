@@ -12,6 +12,7 @@
 
 require "uri"
 require "y2packager/product"
+require "y2packager/resolvable"
 
 module Y2Packager
   # This class represents a libzypp repository
@@ -140,20 +141,17 @@ module Y2Packager
     #
     # @return [Array<Y2Packager::Product>] Products in the repository
     #
-    # @see Yast::Pkg.ResolvableProperties
     # @see Y2Packager::Product
     def products
       return @products unless @products.nil?
 
       # Filter products from this repository
-      candidates = Yast::Pkg.ResolvableProperties("", :product, "").select do |pro|
-        pro["source"] == repo_id
-      end
+      candidates = Y2Packager::Resolvable.find(kind: :product, source: repo_id)
 
       # Build an array of Y2Packager::Product objects
       @products = candidates.map do |data|
-        Y2Packager::Product.new(name: data["name"], version: data["version"],
-          arch: data["arch"], category: data["category"], vendor: data["vendor"])
+        Y2Packager::Product.new(name: data.name, version: data.version,
+          arch: data.arch, category: data.category, vendor: data.vendor)
       end
     end
 

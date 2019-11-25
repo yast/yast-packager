@@ -11,6 +11,7 @@
 # ------------------------------------------------------------------------------
 
 require "yast"
+require "y2packager/resolvable"
 
 module Y2Packager
   # Preselect the system packages (drivers) from the specified repositories.
@@ -75,16 +76,18 @@ module Y2Packager
 
       ids = repo_ids(repositories)
 
-      pkgs = Yast::Pkg.ResolvableProperties("", :package, "")
-      pkgs = pkgs.select do |p|
-        # the packages from the specified repositories selected by the solver
-        p["status"] == :selected && ids.include?(p["source"]) && p["transact_by"] == :solver
+      pkgs = Y2Packager::Resolvable.find(kind:        :package,
+                                         transact_by: :solver,
+                                         status:      :selected)
+      pkgs.select! do |p|
+        # the packages from the specified repositories
+        ids.include?(p.source)
       end
 
       # set back the original solver flags
       Yast::Pkg.SetSolverFlags(original_solver_flags)
 
-      pkgs.map! { |p| p["name"] }
+      pkgs.map!(&:name)
       log.info "Found system packages: #{pkgs}"
 
       pkgs

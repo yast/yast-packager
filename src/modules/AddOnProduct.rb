@@ -3,6 +3,7 @@ require "yast"
 require "shellwords"
 
 require "packager/product_patterns"
+require "y2packager/resolvable"
 
 # Yast namespace
 module Yast
@@ -291,13 +292,13 @@ module Yast
     #
     # @param [Fixnum] source_id source ID
     def AddOnMode(source_id)
-      all_products = Pkg.ResolvableProperties("", :product, "")
+      all_products = Y2Packager::Resolvable.find(kind: :product)
 
-      check_add_on = {}
+      check_add_on = nil
 
       # Search for an add-on using source ID
       Builtins.foreach(all_products) do |one_product|
-        if Ops.get_integer(one_product, "source", -1) == source_id
+        if one_product.source == source_id
           check_add_on = deep_copy(one_product)
           raise Break
         end
@@ -308,50 +309,49 @@ module Yast
       supported_statuses = [:installed, :selected]
       already_found = false
 
-      # Found the
-      if check_add_on != {} && Builtins.haskey(check_add_on, "replaces")
-        product_replaces = Ops.get_list(check_add_on, "replaces", [])
+      return ret if check_add_on.nil?
 
-        # Run through through all products that the add-on can replace
-        Builtins.foreach(product_replaces) do |one_replaces|
-          raise Break if already_found
+      product_replaces = Ops.get_list(check_add_on, "replaces", [])
 
-          # Run through all installed (or selected) products
-          Builtins.foreach(all_products) do |one_product|
-            # checking the status
-            if !Builtins.contains(
-              supported_statuses,
-              Ops.get_symbol(one_product, "status", :unknown)
-            )
-              next
-            end
-            # ignore itself
-            next if Ops.get_integer(one_product, "source", -42) == source_id
-            # check name to replace
-            if Ops.get_string(one_product, "name", "-A-") !=
-                Ops.get_string(one_replaces, "name", "-B-")
-              next
-            end
-            # check version to replace
-            if Ops.get_string(one_product, "version", "-A-") !=
-                Ops.get_string(one_replaces, "version", "-B-")
-              next
-            end
-            # check version to replace
-            if Ops.get_string(one_product, "arch", "-A-") !=
-                Ops.get_string(one_replaces, "arch", "-B-")
-              next
-            end
+      # Run through through all products that the add-on can replace
+      Builtins.foreach(product_replaces) do |one_replaces|
+        raise Break if already_found
 
-            Builtins.y2milestone(
-              "Found product matching update criteria: %1 -> %2",
-              one_product,
-              check_add_on
-            )
-            ret = "update"
-            already_found = true
-            raise Break
+        # Run through all installed (or selected) products
+        Builtins.foreach(all_products) do |one_product|
+          # checking the status
+          if !Builtins.contains(
+            supported_statuses,
+            Ops.get_symbol(one_product, "status", :unknown)
+          )
+            next
           end
+          # ignore itself
+          next if Ops.get_integer(one_product, "source", -42) == source_id
+          # check name to replace
+          if Ops.get_string(one_product, "name", "-A-") !=
+              Ops.get_string(one_replaces, "name", "-B-")
+            next
+          end
+          # check version to replace
+          if Ops.get_string(one_product, "version", "-A-") !=
+              Ops.get_string(one_replaces, "version", "-B-")
+            next
+          end
+          # check version to replace
+          if Ops.get_string(one_product, "arch", "-A-") !=
+              Ops.get_string(one_replaces, "arch", "-B-")
+            next
+          end
+
+          Builtins.y2milestone(
+            "Found product matching update criteria: %1 -> %2",
+            one_product,
+            check_add_on
+          )
+          ret = "update"
+          already_found = true
+          raise Break
         end
       end
 
@@ -570,16 +570,7 @@ module Yast
     end
 
     def AnyPatternInRepo
-      patterns = Pkg.ResolvableProperties("", :pattern, "")
-
-      Builtins.y2milestone(
-        "Total number of patterns: %1",
-        Builtins.size(patterns)
-      )
-
-      patterns = Builtins.filter(patterns) do |pat|
-        Ops.get(pat, "source") == @src_id
-      end
+      patterns = Y2Packager::Resolvable.find(kind: :pattern, source: @src_id)
 
       Builtins.y2milestone("Found %1 add-on patterns", Builtins.size(patterns))
       Builtins.y2debug("Found add-on patterns: %1", patterns)
@@ -1263,18 +1254,14 @@ module Yast
 
         # install all products from the destination
       else
-        products = Pkg.ResolvableProperties("", :product, "")
-        # only those that come from the new source
-        products = Builtins.filter(products) do |p|
-          Ops.get_integer(p, "source", -1) == src
-        end
+        products = Y2Packager::Resolvable.find(kind: :product, source: src)
 
         Builtins.foreach(products) do |p|
           Builtins.y2milestone(
             "Selecting product '%1' for installation",
-            Ops.get_string(p, "name", "")
+            p.name
           )
-          one_prod = p["name"] || ""
+          one_prod = p.name
           Pkg.ResolvableInstall(one_prod, :product)
           @selected_installation_products << one_prod
         end
@@ -2059,7 +2046,7 @@ module Yast
 
     # Determine whether a product was renamed using libzypp
     #
-    # libzypp (through #ResolvableProperties and #ResolvableDependencies method) is used
+    # libzypp (through Y2Packager::Resolvable methods) is used
     # to determine whether the product was renamed or not.
     #
     # @param old_name [String] Old product's name
@@ -2103,11 +2090,11 @@ module Yast
     def product_renames_from_libzypp
       renames = {}
       # Dependencies are not included in this call
-      products = Pkg.ResolvableProperties("", :product, "")
+      products = Y2Packager::Resolvable.find(kind: :product)
       products.each do |product|
-        renames = names_from_product_packages(product["product_package"])
+        renames = names_from_product_packages(product.product_package)
           .reduce(renames) do |hash, rename|
-          add_rename_to_hash(hash, rename, product["name"])
+          add_rename_to_hash(hash, rename, product.name)
         end
       end
       renames
@@ -2157,15 +2144,15 @@ module Yast
     #
     # @return [Array<String>] Old names
     def names_from_product_packages(package_name)
-      # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
-      packages = Pkg.ResolvableDependencies(package_name, :package, "")
+      # Get package dependencies
+      packages = Y2Packager::Resolvable.find(kind: :package, name: package_name)
       return [] if packages.nil? || packages.empty?
 
       result = packages.each_with_object([]) do |package, names|
-        next names unless package.key?("deps")
+        next names unless package.deps
 
         # Get information from 'obsoletes' and 'provides' keys
-        relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
+        relevant_deps = package.deps.map { |d| d["obsoletes"] || d["provides"] }.compact
         names.concat(relevant_deps.map { |d| product_name_from_dep(d) })
       end
       result.compact.uniq

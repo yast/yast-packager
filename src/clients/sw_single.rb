@@ -7,6 +7,7 @@ require "shellwords"
 
 require "y2packager/known_repositories"
 require "y2packager/system_packages"
+require "y2packager/resolvable"
 
 module Yast
   # Purpose:     contains dialog loop for workflows:
@@ -363,6 +364,7 @@ module Yast
     # @param a_version [String] first version
     # @param b_version [String] second version
     # @return [Boolean] true if the second one is newer than the first one
+    # @deprecated Use {#Pkg.CompareVersions} instead.
     def VersionALtB(a_version, b_version)
       a_version_l = Builtins.filter(Builtins.splitstring(a_version, "-.")) do |s|
         Builtins.regexpmatch(s, "^[0123456789]+$")
@@ -404,21 +406,18 @@ module Yast
     # Check if there is an uninstalled package of the same name with a
     # higher version. Otherwise we would forcefully reinstall it. #222757#c9
     def CanBeUpdated(package)
-      props = Pkg.ResolvableProperties(
-        package, # any version
-        :package,
-        ""
-      )
+      props = Y2Packager::Resolvable.find(kind: :package, name: package)
+
       # find maximum version and remember
       # if it is installed
       max_ver = "0"
       max_is_installed = false
       Builtins.foreach(props) do |prop|
-        cur_ver = Ops.get_string(prop, "version", "0")
+        cur_ver = prop.version
         if VersionALtB(max_ver, cur_ver)
           max_ver = cur_ver
           # `installed or `selected is ok
-          max_is_installed = Ops.get_symbol(prop, "status", :available) != :available
+          max_is_installed = prop.status != :available
           Builtins.y2milestone("new max: installed: %1", max_is_installed)
         end
       end

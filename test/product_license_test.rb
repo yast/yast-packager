@@ -1,6 +1,7 @@
 #! /usr/bin/env rspec
 
 require_relative "./test_helper"
+require_relative "product_factory"
 
 Yast.import "ProductLicense"
 Yast.import "UI"
@@ -355,8 +356,11 @@ describe Yast::ProductLicense do
     before do
       allow(FileUtils).to receive(:mkdir_p)
       allow(Yast::Pkg).to receive(:SourceLoad)
-      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
-        .and_return([{ "name" => product, "source" => src }])
+      allow(Y2Packager::Resolvable).to receive(:find)
+        .with(kind: :product, source: src)
+        .and_return([Y2Packager::Resolvable.new(
+          ProductFactory.create_product("name" => product, "source" => src)
+        )])
       allow(Yast::Pkg).to receive(:SourceGeneralData).with(src)
         .and_return("product_dir" => "/test")
       allow(File).to receive(:write)
@@ -419,13 +423,13 @@ describe Yast::ProductLicense do
   end
 
   describe "#repository_product" do
-    let(:resolvable_properties) do
-      [{ "name" => "SLES-HA", "source" => 1 }, { "name" => "SLES-SDK", "source" => 2 }]
-    end
-
     before do
-      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
-        .and_return(resolvable_properties)
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, source: 2)
+        .and_return([Y2Packager::Resolvable.new(
+          ProductFactory.create_product("name" => "SLES-SDK", "source" => 2)
+        )])
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product, source: 3)
+        .and_return([])
     end
 
     context "when a product exists in the given repository" do

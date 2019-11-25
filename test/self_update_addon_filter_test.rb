@@ -34,8 +34,9 @@ describe Y2Packager::SelfUpdateAddonFilter do
     end
 
     it "returns packages providing 'system-installation()' from the required repository" do
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(anything, :package, "")
-        .and_return(["source" => pkg_src]).exactly(4).times
+      expect(Y2Packager::Resolvable).to receive(:any?)
+        .with(kind: :package, name: //, source: pkg_src)
+        .and_return(true).exactly(4).times
 
       expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to contain_exactly(
         "skelcd-control-SLED", "skelcd-control-SLES", "SLES-release", "system-role-server-default"
@@ -43,8 +44,9 @@ describe Y2Packager::SelfUpdateAddonFilter do
     end
 
     it "returns an empty list if the packages are not from the required repository" do
-      expect(Yast::Pkg).to receive(:ResolvableProperties).with(anything, :package, "")
-        .and_return(["source" => 999]).exactly(4).times
+      expect(Y2Packager::Resolvable).to receive(:any?)
+        .with(kind: :package, name: //, source: pkg_src)
+        .and_return(false).exactly(4).times
 
       expect(Y2Packager::SelfUpdateAddonFilter.packages(pkg_src)).to eq([])
     end
