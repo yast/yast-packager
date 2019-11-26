@@ -27,6 +27,7 @@ module Y2Packager
     class << self
       # Reads a file from the given path
       #
+      # @param file_path [String] File path to read
       # @return [InfoFile,nil] InfoFile if it was read or nil if it could not be read
       def read(file_path)
         content = Yast::SCR.Read(Yast::Path.new(".target.string"), file_path)
