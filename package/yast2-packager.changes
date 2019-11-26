@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 26 14:21:34 UTC 2019 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Show beta warning only once (bsc#1156629).
+- 4.2.34
+
+-------------------------------------------------------------------
 Fri Nov  8 19:28:57 UTC 2019 - schubi@suse.de
 
 - Using Y2Packager::Resolvable.any? and Y2Packager::Resolvable.find
