@@ -22,7 +22,7 @@ module Yast
     def show_info_txt(file_path)
       info_file = Y2Packager::InfoFile.read(file_path)
       if info_file.nil?
-        Builtins.y2milestone("No %1", info_file)
+        Builtins.y2milestone("No %1", file_path)
         return
       end
 
