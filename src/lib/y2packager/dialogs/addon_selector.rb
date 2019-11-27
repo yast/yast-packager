@@ -213,7 +213,7 @@ module Y2Packager
       # @return [String] translated text
       def description
         # TRANSLATORS: inline help text displayed below the product selection widget
-        _("Select a product to see it's description here. The dependent products " \
+        _("Select a product to see its description here. The dependent products " \
           "are selected automatically.")
       end
 
