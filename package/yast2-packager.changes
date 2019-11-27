@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov 27 11:12:43 UTC 2019 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Fix a typo in the "Extension and Module Selection" screen
+  (bsc#1157789).
+- 4.2.35
+
+-------------------------------------------------------------------
 Tue Nov 26 14:21:34 UTC 2019 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - Show beta warning only once (bsc#1156629).
