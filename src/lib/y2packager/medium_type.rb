@@ -35,7 +35,7 @@ module Y2Packager
 
       # Allows to overwrite detected medium type. Useful e.g. when upgrade of
       # registered system with Full medium should act like Online medium.
-      # @param type [Symbol] possible values are `:online`, `:offline` and `:standard`
+      # @return [Symbol] possible values are `:online`, `:offline` and `:standard`
       attr_writer :type
 
       # Is the medium an online installation medium? (SLE Online)
