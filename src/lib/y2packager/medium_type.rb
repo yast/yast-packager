@@ -39,7 +39,7 @@ module Y2Packager
       # Allows to overwrite detected medium type. Useful e.g. when upgrade of
       # registered system with Full medium should act like Online medium.
       # @param type [Symbol] possible values are `:online`, `:offline` and `:standard`
-      def type=
+      def type=(type)
         log.info "Overwritting medium to #{type}"
 
         if !POSSIBLE_TYPES.include?(type)
