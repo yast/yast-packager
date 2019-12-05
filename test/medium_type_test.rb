@@ -76,6 +76,17 @@ describe Y2Packager::MediumType do
     end
   end
 
+  describe "type=" do
+    it "sets type to given argument" do
+      described_class.type = :online
+      expect(described_class.type).to eq :online
+    end
+
+    it "raises ArgumentError for invalid value" do
+      expect { described_class.type = :invalid }.to raise_error(ArgumentError)
+    end
+  end
+
   describe "#skip_step?" do
     context "online installation medium" do
       before do
