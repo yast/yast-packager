@@ -43,7 +43,7 @@ module Y2Packager
         log.info "Overwritting medium to #{type}"
 
         if !POSSIBLE_TYPES.include?(type)
-          raise ArgumentError, "Not allows MediumType #{type.inspect}"
+          raise ArgumentError, "Not allowed MediumType #{type.inspect}"
         end
 
         @type = type
