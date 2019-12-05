@@ -33,6 +33,22 @@ module Y2Packager
         @type ||= detect_medium_type
       end
 
+      # Possible types for type value
+      POSSIBLE_TYPES = [:online, :offline, :standard].freeze
+
+      # Allows to overwrite detected medium type. Useful e.g. when upgrade of
+      # registered system with Full medium should act like Online medium.
+      # @param type [Symbol] possible values are `:online`, `:offline` and `:standard`
+      def type=(type)
+        log.info "Overwritting medium to #{type}"
+
+        if !POSSIBLE_TYPES.include?(type)
+          raise ArgumentError, "Not allowed MediumType #{type.inspect}"
+        end
+
+        @type = type
+      end
+
       # Is the medium an online installation medium? (SLE Online)
       # Raises an exception if the installation URL is not set (nil) or is empty.
       # The online installation medium contains no repository
