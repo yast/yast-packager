@@ -666,4 +666,24 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#Export" do
+    context "autoyast_product is defined" do
+      it "adds the repository" do
+        subject.add_on_products = {
+          "media"=>0, "product_dir"=>"/Module-Basesystem", "product"=>"sle-module-basesystem",
+          "autoyast_product"=>"base", "media_url"=>"cd:/?devices=/dev/cdrom/" }
+        expect(subject.Export).to eq({ "add_on_products"=>{
+          "product_dir"=>"/Module-Basesystem", "product"=>"base",
+          "media_url"=>"cd:/?devices=/dev/cdrom/"}})
+      end
+    end
+
+#    context "autoyast_product is not defined" do
+#      it "adds the repository" do
+#        subject.AddPreselectedAddOnProducts(filelist)
+#        expect(subject.add_on_products).to_not be_empty
+#      end
+    end
+  end
 end

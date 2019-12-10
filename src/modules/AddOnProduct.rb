@@ -1539,19 +1539,19 @@ module Yast
     #        </add_on_products>
     #      </add-on>
     def Export
-      Builtins.y2milestone("Add-Ons Input: %1", @add_on_products)
+      log.info("Add-Ons Input: #{@add_on_products}")
 
-      exp = Builtins.maplist(@add_on_products) do |p|
-        p = Builtins.remove(p, "media") if Builtins.haskey(p, "media")
+      exp = @add_on_products.map do |product|
+        p = deep_copy(product)
         # bugzilla #279893
-        if Builtins.haskey(p, "autoyast_product")
-          Ops.set(p, "product", Ops.get_string(p, "autoyast_product", ""))
-          p = Builtins.remove(p, "autoyast_product")
+        if !(p["autoyast_product"].nil? || p["autoyast_product"].empty?)
+          p["product"] = p["autoyast_product"]
         end
-        deep_copy(p)
+        p.delete("autoyast_product")
+        p.delete("media")
+        p
       end
-
-      Builtins.y2milestone("Add-Ons Output: %1", exp)
+      log.info("Add-Ons Output: #{exp}")
 
       { "add_on_products" => exp }
     end

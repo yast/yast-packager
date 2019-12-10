@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 10 11:58:43 CET 2019 - schubi@suse.de
+
+- AY Export: Exporting product_dir into the configuration file.
+  (bsc#1158450)
+- 4.2.38
+
+-------------------------------------------------------------------
 Thu Dec  5 16:48:56 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
 - Allow to override medium type to allow to upgrade registered
