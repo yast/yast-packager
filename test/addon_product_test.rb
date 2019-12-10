@@ -666,4 +666,33 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#Export" do
+    context "autoyast_product is defined" do
+      it "sets -product- value to -autoyast_product- value" do
+        subject.add_on_products = [{
+          "media" => 0, "product_dir" => "/Module-Basesystem", "product" => "sle-module-basesystem",
+          "autoyast_product" => "base", "media_url" => "cd:/?devices=/dev/cdrom/"
+        }]
+        expect(subject.Export).to eq("add_on_products" => [{
+                                       "product_dir" => "/Module-Basesystem", "product" => "base",
+          "media_url" => "cd:/?devices=/dev/cdrom/"
+                                     }])
+      end
+    end
+
+    context "autoyast_product is not defined" do
+      it "only removes -autoyast_product- and -media- entry" do
+        subject.add_on_products = [{
+          "media" => 0, "product_dir" => "/Module-Basesystem", "product" => "sle-module-basesystem",
+          "autoyast_product" => nil, "media_url" => "cd:/?devices=/dev/cdrom/"
+        }]
+        expect(subject.Export).to eq("add_on_products" => [{
+                                       "product_dir" => "/Module-Basesystem",
+                                       "product"     => "sle-module-basesystem",
+                                       "media_url"   => "cd:/?devices=/dev/cdrom/"
+                                     }])
+      end
+    end
+  end
 end
