@@ -46,6 +46,8 @@ module Y2Packager
     attr_reader :name
     # @return [URI::Generic] Repository URL
     attr_reader :url
+    # @return [String] Product directory
+    attr_reader :product_dir
 
     attr_writer :enabled
     private :enabled=
@@ -91,7 +93,7 @@ module Y2Packager
         raise NotFound if repo_data.nil?
         new(repo_id: repo_id, enabled: repo_data["enabled"],
           name: repo_data["name"], autorefresh: repo_data["autorefresh"],
-          url: URI(repo_data["url"]))
+          url: URI(repo_data["url"]), product_dir: repo_data["product_dir"])
       end
 
       # Add a repository
@@ -101,12 +103,15 @@ module Y2Packager
       # @param autorefresh [Boolean]      Is auto-refresh enabled for this repository?
       # @param url         [URI::Generic] Repository URL
       # @return [Y2Packager::Repository,nil] New repository or nil if creation failed
-      def create(name:, url:, enabled: true, autorefresh: true)
+      def create(name:, url:, product_dir: "", enabled: true, autorefresh: true)
         repo_id = Yast::Pkg.RepositoryAdd(
           "name" => name, "base_urls" => [url], "enabled" => enabled, "autorefresh" => autorefresh
         )
         return nil unless repo_id
-        new(repo_id: repo_id, name: name, url: URI(url), enabled: enabled, autorefresh: autorefresh)
+        new(
+          repo_id: repo_id, name: name, url: URI(url), enabled: enabled,
+          autorefresh: autorefresh, product_dir: product_dir
+        )
       end
     end
 
@@ -117,12 +122,14 @@ module Y2Packager
     # @param enabled     [Boolean]      Is the repository enabled?
     # @param autorefresh [Boolean]      Is auto-refresh enabled for this repository?
     # @param url         [URI::Generic] Repository URL
-    def initialize(repo_id:, name:, enabled:, autorefresh:, url:)
+    # @param product_dir [String]       Product directory
+    def initialize(repo_id:, name:, enabled:, autorefresh:, url:, product_dir: "/")
       @repo_id = repo_id
       @name    = name
       @enabled = enabled
       @autorefresh = autorefresh
       @url = url
+      @product_dir = product_dir
     end
 
     # Return repository scheme

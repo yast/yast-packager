@@ -74,7 +74,7 @@ describe Y2Packager::Repository do
     context "when a valid repo_id is given" do
       let(:repo_data) do
         { "enabled" => true, "autorefresh" => true, "url" => repo_url,
-          "name" => "Repo #1" }
+          "name" => "Repo #1", "product_dir" => "/product" }
       end
 
       it "returns a repository with the given repo_id" do
@@ -82,6 +82,7 @@ describe Y2Packager::Repository do
         expect(repo.repo_id).to eq(repo_id)
         expect(repo.enabled?).to eq(repo_data["enabled"])
         expect(repo.url).to eq(URI(repo_data["url"]))
+        expect(repo.product_dir).to eq("/product")
       end
     end
 
