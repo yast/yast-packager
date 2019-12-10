@@ -688,8 +688,9 @@ describe Yast::AddOnProduct do
           "autoyast_product" => nil, "media_url" => "cd:/?devices=/dev/cdrom/"
         }]
         expect(subject.Export).to eq("add_on_products" => [{
-                                       "product_dir" => "/Module-Basesystem", "product" => "sle-module-basesystem",
-          "media_url" => "cd:/?devices=/dev/cdrom/"
+                                       "product_dir" => "/Module-Basesystem",
+                                       "product"     => "sle-module-basesystem",
+                                       "media_url"   => "cd:/?devices=/dev/cdrom/"
                                      }])
       end
     end
