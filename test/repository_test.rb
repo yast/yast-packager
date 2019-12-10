@@ -24,7 +24,7 @@ describe Y2Packager::Repository do
 
   describe ".all" do
     before do
-      expect(Yast::Pkg).to receive(:SourceGetCurrent).with(false).and_return(repo_ids)
+      allow(Yast::Pkg).to receive(:SourceGetCurrent).with(false).and_return(repo_ids)
     end
 
     context "when no repository exist" do
@@ -42,6 +42,20 @@ describe Y2Packager::Repository do
       it "returns an array containing existing repositories" do
         expect(described_class).to receive(:find).with(repo_id).and_return(repo)
         expect(described_class.all).to eq([repo])
+      end
+    end
+
+    context "when asked only for enabled repositories" do
+      let(:repo_ids) { [repo_id] }
+      let(:repo) { double("repo") }
+
+      before do
+        allow(described_class).to receive(:find).with(repo_id).and_return(repo)
+      end
+
+      it "returns only enabled repositories" do
+        expect(Yast::Pkg).to receive(:SourceGetCurrent).with(true).and_return(repo_ids)
+        described_class.all(enabled_only: true)
       end
     end
   end

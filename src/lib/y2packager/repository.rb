@@ -58,12 +58,13 @@ module Y2Packager
     class << self
       # Return all registered repositories
       #
+      # @param enabled_only [Boolean] Returns only enabled repositories
       # @return [Array<Repository>] Array containing all repositories
       #
       # @see Yast::Pkg.SourceGetCurrent
       # @see Y2Packager::Repository.find
-      def all
-        Yast::Pkg.SourceGetCurrent(false).map do |repo_id|
+      def all(enabled_only: false)
+        Yast::Pkg.SourceGetCurrent(enabled_only).map do |repo_id|
           find(repo_id)
         end
       end
