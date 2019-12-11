@@ -2067,7 +2067,7 @@ module Yast
     # @see names_from_product_package
     # @see add_rename_to_hash
     def product_renames_from_libzypp
-      return @libzypp_product_renames if @libzypp_product_renames && !libzypp_repos_changed?
+      return @libzypp_product_renames if !libzypp_repos_changed? && @libzypp_product_renames
       @libzypp_product_renames = {}
       # Dependencies are not included in this call
       products = Pkg.ResolvableProperties("", :product, "")
