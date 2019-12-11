@@ -2,6 +2,7 @@
 
 require_relative "./test_helper"
 require_relative "product_factory"
+require "uri"
 
 Yast.import "AddOnProduct"
 
@@ -35,6 +36,17 @@ describe Yast::AddOnProduct do
     end
 
     context "when according to libzypp a product is renamed" do
+      before do
+        subject.main
+        allow(Y2Packager::Repository).to receive(:all).and_return([repo0])
+      end
+
+      let(:repo0) do
+        instance_double(
+          Y2Packager::Repository, repo_id: 0, url: URI("dvd:///?devices=/dev/sr0"),
+          product_dir: "/p0"
+        )
+      end
       let(:deps) do
         [
           { "obsoletes" => "product:old_product1" },
@@ -84,6 +96,68 @@ describe Yast::AddOnProduct do
         expect(subject.renamed?("old_product1", new_product.name)).to eq(true)
         expect(subject.renamed?("old_product2", new_product.name)).to eq(true)
         expect(subject.renamed?("old_name", new_product.name)).to eq(true)
+      end
+
+      context "when renames information has been already loaded" do
+        before do
+          subject.renamed?("old_name", new_product.name)
+        end
+
+        it "does not ask libzypp again" do
+          expect(Y2Packager::Resolvable).to_not receive(:find)
+          subject.renamed?("old_name", new_product.name)
+        end
+
+        context "but a new repo has been added" do
+          let(:repo1) do
+            instance_double(
+              Y2Packager::Repository, repo_id: 1, url: URI("dvd:///?devices=/dev/sr0"),
+              product_dir: "/p1"
+            )
+          end
+
+          before do
+            allow(Y2Packager::Repository).to receive(:all).and_return([repo0, repo1])
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product.name)
+          end
+        end
+
+        context "but the repo_id for a given repo has changed" do
+          before do
+            allow(repo0).to receive(:repo_id).and_return(1)
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product.name)
+          end
+        end
+
+        context "but the url for a given repo has changed" do
+          before do
+            allow(repo0).to receive(:url).and_return(URI("dvd:///?devices=/dev/sr2"))
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product.name)
+          end
+        end
+
+        context "but the product_dir for a given repo has changed" do
+          before do
+            allow(repo0).to receive(:product_dir).and_return("/another")
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product["name"])
+          end
+        end
       end
     end
   end
