@@ -2214,7 +2214,7 @@ module Yast
     # @return [Boolean]
     def libzypp_repos_changed?
       repos = Y2Packager::Repository.all(enabled_only: true).sort_by(&:repo_id).map do |repo|
-        File.join(repo.url.to_s, repo.product_dir.to_s)
+        [repo.repo_id, repo.url, repo.product_dir]
       end
       return false if @old_repos == repos
       @old_repos = repos
