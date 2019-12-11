@@ -4,6 +4,7 @@ require "yast"
 require "shellwords"
 
 require "packager/product_patterns"
+require "y2packager/repository"
 
 # Yast namespace
 module Yast
@@ -171,6 +172,10 @@ module Yast
       # E.g.: product:sle-module-basesystem-15-0.x86_64 has buddy
       # sle-module-basesystem-release-15-91.2.x86_64
       @selected_installation_products = [] # e.g.:  ["sle-module-basesystem"]
+
+      # Libzypp product renames cache. When loaded, it is supposed to be a Hash.
+      # @see #product_renames_from_libzypp
+      @libzypp_product_renames = nil
     end
 
     # Downloads a requested file, caches it and returns path to that cached file.
@@ -2062,16 +2067,18 @@ module Yast
     # @see names_from_product_package
     # @see add_rename_to_hash
     def product_renames_from_libzypp
-      renames = {}
+      return @libzypp_product_renames if !libzypp_repos_changed? && @libzypp_product_renames
+      @libzypp_product_renames = {}
       # Dependencies are not included in this call
       products = Pkg.ResolvableProperties("", :product, "")
       products.each do |product|
-        renames = names_from_product_packages(product["product_package"])
-                  .reduce(renames) do |hash, rename|
+        next unless product["product_package"]
+        @libzypp_product_renames = names_from_product_packages(product["product_package"])
+                                   .reduce(@libzypp_product_renames) do |hash, rename|
           add_rename_to_hash(hash, rename, product["name"])
         end
       end
-      renames
+      @libzypp_product_renames
     end
 
     # Regular expresion to extract the product name. It supports two different
@@ -2197,6 +2204,24 @@ module Yast
 
       log.info("Found y2update.tgz file from the installer extension package: #{y2update}")
       y2update
+    end
+
+    # Determines whether the repositories libzypp information might have change
+    #
+    # This method returns true when the list of enabled repositories has changed.
+    # Disabled repositories are not even considered.
+    #
+    # @return [Boolean]
+    def libzypp_repos_changed?
+      repos = Y2Packager::Repository.all(enabled_only: true).sort_by(&:repo_id).map do |repo|
+        "#{repo.repo_id}-#{repo.url}-#{repo.product_dir}"
+      end
+      if @old_repos == repos
+        false
+      else
+        @old_repos = repos
+        true
+      end
     end
   end
 
