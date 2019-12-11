@@ -39,7 +39,8 @@ describe Yast::AddOnProduct do
 
       let(:repo0) do
         instance_double(
-          Y2Packager::Repository, repo_id: 0, url: URI("dvd:///sr0"), product_dir: "/p0"
+          Y2Packager::Repository, repo_id: 0, url: URI("dvd:///?devices=/dev/sr0"),
+          product_dir: "/p0"
         )
       end
       let(:deps) do
@@ -88,7 +89,8 @@ describe Yast::AddOnProduct do
         context "but a new repo has been added" do
           let(:repo1) do
             instance_double(
-              Y2Packager::Repository, repo_id: 1, url: URI("dvd:///sr0"), product_dir: "/p1"
+              Y2Packager::Repository, repo_id: 1, url: URI("dvd:///?devices=/dev/sr0"),
+              product_dir: "/p1"
             )
           end
 
@@ -115,7 +117,7 @@ describe Yast::AddOnProduct do
 
         context "but the url for a given repo has changed" do
           before do
-            allow(repo0).to receive(:url).and_return(URI("dvd:///sr2"))
+            allow(repo0).to receive(:url).and_return(URI("dvd:///?devices=/dev/sr2"))
           end
 
           it "asks libzypp again" do
