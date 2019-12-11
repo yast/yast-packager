@@ -61,7 +61,8 @@ describe Yast::AddOnProduct do
           ProductFactory.create_product("kind" => :product,
            "name" => "new_product", "version" => "1.0",
            "arch" => "x86_64", "source" => "1",
-           "product_package" => "new_product-release")
+           "product_package" => "new_product-release",
+           "deps" => [])
         )
       end
 
