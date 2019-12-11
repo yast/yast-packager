@@ -124,7 +124,7 @@ module Y2Packager
     # @param autorefresh [Boolean]      Is auto-refresh enabled for this repository?
     # @param url         [URI::Generic] Repository URL
     # @param product_dir [String]       Product directory
-    def initialize(repo_id:, name:, enabled:, autorefresh:, url:, product_dir: "/")
+    def initialize(repo_id:, name:, enabled:, autorefresh:, url:, product_dir: "")
       @repo_id = repo_id
       @name    = name
       @enabled = enabled
