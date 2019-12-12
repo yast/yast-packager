@@ -102,9 +102,10 @@ module Y2Packager
       # Add a repository
       #
       # @param name        [String]       Name
+      # @param url         [URI::Generic] Repository URL
+      # @param product_dir [String]       Product directory
       # @param enabled     [Boolean]      Is the repository enabled?
       # @param autorefresh [Boolean]      Is auto-refresh enabled for this repository?
-      # @param url         [URI::Generic] Repository URL
       # @return [Y2Packager::Repository,nil] New repository or nil if creation failed
       def create(name:, url:, product_dir: "", enabled: true, autorefresh: true)
         repo_id = Yast::Pkg.RepositoryAdd(
@@ -123,11 +124,11 @@ module Y2Packager
     #
     # @param repo_id     [Fixnum]       Repository ID
     # @param name        [String]       Name
-    # @param enabled     [Boolean]      Is the repository enabled?
-    # @param autorefresh [Boolean]      Is auto-refresh enabled for this repository?
     # @param url         [URI::Generic] Repository URL
     # @param product_dir [String]       Product directory
-    def initialize(repo_id:, name:, enabled:, autorefresh:, url:, product_dir: "")
+    # @param enabled     [Boolean]      Is the repository enabled?
+    # @param autorefresh [Boolean]      Is auto-refresh enabled for this repository?
+    def initialize(repo_id:, name:, url:, product_dir: "", enabled:, autorefresh:)
       @repo_id = repo_id
       @name    = name
       @enabled = enabled
