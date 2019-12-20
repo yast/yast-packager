@@ -272,7 +272,7 @@ module Yast
 
       UI.CloseDialog if !Mode.commandline
 
-      if Builtins.size(@newSources).zero?
+      if @newSources.nil? || @newSources == -1 || @newSources.size.zero?
         message1 = Builtins.sformat(
           _("Unable to create repository\nfrom URL '%1'."),
           URL.HidePassword(url)
