@@ -272,7 +272,9 @@ module Yast
 
       UI.CloseDialog if !Mode.commandline
 
-      if @newSources.nil? || @newSources == -1 || @newSources.size.zero?
+      # Pkg.SourceScan can return Array with repos or -1 if failed. So be more
+      # paranoid here and accept only non empty list as success result.
+      if !@newSources.is_a?(::Array) || @newSources.empty?
         message1 = Builtins.sformat(
           _("Unable to create repository\nfrom URL '%1'."),
           URL.HidePassword(url)
