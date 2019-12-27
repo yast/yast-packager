@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Dec 27 11:13:55 UTC 2019 - David Diaz <dgonzalez@suse.com>
+
+- Do not fail when Packager.desktop file is invoked without a list
+  of files (bsc#1159419).
+- 4.2.41
+
+-------------------------------------------------------------------
 Fri Dec 20 10:51:24 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
 - do not crash when invalid URL is used in config mode
