@@ -8,8 +8,11 @@
 ARGS=""
 for ARG in "$@"
 do
-    QUOTED_ARG=$(printf %q "$ARG")
-    ARGS="$ARGS $QUOTED_ARG"
+    if [ "$ARG" != "%F" ]
+    then
+        QUOTED_ARG=$(printf %q "$ARG")
+        ARGS="$ARGS $QUOTED_ARG"
+    fi
 done
 
 xdg-su -c "/sbin/yast2 sw_single $ARGS"
