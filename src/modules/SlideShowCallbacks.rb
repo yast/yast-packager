@@ -157,7 +157,7 @@ module Yast
       input = UI.PollInput
       Builtins.y2milestone("input: %1", input)
 
-      [:abort, :close].include?(input)
+      ![:abort, :close].include?(input)
     end
 
     def ScriptProblem(description)

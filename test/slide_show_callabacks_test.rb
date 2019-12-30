@@ -70,4 +70,28 @@ describe Yast::SlideShowCallbacksClass do
       include_examples "free space check"
     end
   end
+
+  describe "ScriptProgress" do
+    let(:input) { nil }
+
+    before do
+      allow(Yast::UI).to receive(:PollInput).and_return(input)
+    end
+
+    context "user does not click anything" do
+      let(:input) { nil }
+
+      it "returns true" do
+        expect(subject.ScriptProgress(0, nil)).to eq true
+      end
+    end
+
+    context "user click on abort" do
+      let(:input) { :abort }
+
+      it "returns false" do
+        expect(subject.ScriptProgress(0, nil)).to eq false
+      end
+    end
+  end
 end
