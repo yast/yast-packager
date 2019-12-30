@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 30 15:46:03 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
+
+- Do not unexpectly end during slide show script progress
+  (bsc#1159461)
+- 4.2.41
+
+-------------------------------------------------------------------
 Fri Dec 20 10:51:24 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
 - do not crash when invalid URL is used in config mode
