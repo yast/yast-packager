@@ -340,7 +340,7 @@ module Yast
       end
       if Builtins.size(Pkg.SourceGetCurrent(enabled_only)).zero?
         Report.Warning(
-          _("No enabled repository found.\nOnly installed packages are displayed.")
+          _("No enabled repository configured.\nOnly installed packages are displayed.")
         )
       end
 
