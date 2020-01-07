@@ -19,6 +19,8 @@ module Yast
     PKG_COUNT_COLUMN_POSITION = 2
     # Column index for refreshing statistics: remaining time
     TIME_COLUMN_POSITION = 3
+    # Table padding
+    ITEM_PREFIX = " " * 4
 
     def main
       Yast.import "UI"
@@ -58,7 +60,6 @@ module Yast
       @bytes_per_second = 1
       @init_pkg_data_complete = false
 
-      @debug = false # more debugging info
       @provide_name = "" # currently downlaoded package name
       @provide_size = "" # currently downlaoded package size
 
@@ -324,14 +325,6 @@ module Yast
         )
       end
 
-      if @debug
-        Builtins.y2milestone(
-          "SubtractPackageSize( %1 ) -> %2",
-          pkg_size,
-          @remaining_sizes_per_cd_per_src
-        )
-      end
-
       nil
     end
 
@@ -497,24 +490,15 @@ module Yast
         )
 
         while Ops.less_than(@next_cd_no, Builtins.size(remaining_sizes))
-          if Ops.greater_than(Ops.get(remaining_sizes, @next_cd_no, 0), 0)
-            if @debug
-              Builtins.y2milestone(
-                "Next media: src: %1 CD: %2",
-                @next_src_no,
-                @next_cd_no
-              )
-            end
-            return
-          else
-            @next_cd_no = Ops.add(@next_cd_no, 1)
-          end
+          return if Ops.greater_than(Ops.get(remaining_sizes, @next_cd_no, 0), 0)
+
+          @next_cd_no += 1
         end
 
-        @next_src_no = Ops.add(@next_src_no, 1)
+        @next_src_no += 1
       end
 
-      Builtins.y2milestone("No next media - all done") if @debug
+      Builtins.y2milestone("No next media - all done")
 
       @next_src_no = -1
       @next_cd_no = -1
@@ -853,15 +837,12 @@ module Yast
         rem_time = FormatTimeShowOverflow(TotalRemainingTime())
       end
 
-      itemList = Builtins.add(
-        itemList,
-        SlideShow.TableItem(
-          "total",
-          caption,
-          Ops.add("   ", rem_size),
-          Ops.add("   ", rem_count),
-          Ops.add("   ", rem_time)
-        )
+      itemList << SlideShow.TableItem(
+        "total",
+        caption,
+        ITEM_PREFIX + rem_size,
+        ITEM_PREFIX + rem_count,
+        ITEM_PREFIX + rem_time
       )
 
       #
@@ -873,67 +854,48 @@ module Yast
       Builtins.foreach(@remaining_sizes_per_cd_per_src) do |inst_src|
         Builtins.y2milestone("src #%1: %2", src_no, inst_src)
         # Ignore repositories from where there is nothing is to install
-        if Ops.greater_than(ListSum(inst_src), 0)
-          # Add heading for this repository
-          itemList = Builtins.add(
-            itemList,
-            SlideShow.TableItem(
-              Builtins.sformat("src(%1)", src_no),
-              Ops.get(@inst_src_names, src_no, ""),
-              "",
-              "",
-              ""
+        next if ListSum(inst_src) < 1
+
+        cd_no = 0
+
+        Builtins.foreach(inst_src) do |src_remaining|
+          if Ops.greater_than(src_remaining, 0) ||
+              Ops.add(src_no, 1) == @current_src_no &&
+                  Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
+            caption = @inst_src_names[src_no] || _("Unknown Source")
+            # add "Medium 1" only if more cds available- column #0
+            caption += @media_type + (cd_no + 1).to_s unless @last_cd
+            rem_size = FormatRemainingSize(src_remaining) # column #1
+            rem_count = FormatRemainingCount(
+              Ops.get(@src_remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
             )
-          )
+            rem_time = ""
 
-          cd_no = 0
+            if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
+              src_remaining = Ops.divide(src_remaining, @bytes_per_second)
+              src_remaining = MIN_TIME_PER_CD if src_remaining < MIN_TIME_PER_CD
+              rem_time = String.FormatTime(src_remaining) # column #2
 
-          Builtins.foreach(inst_src) do |src_remaining|
-            if Ops.greater_than(src_remaining, 0) ||
-                Ops.add(src_no, 1) == @current_src_no &&
-                    Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
-              caption = Builtins.sformat(@media_type, Ops.add(cd_no, 1)) # "Medium 1" - column #0
-              rem_size = FormatRemainingSize(src_remaining) # column #1
-              rem_count = FormatRemainingCount(
-                Ops.get(@src_remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
-              )
-              rem_time = ""
-
-              if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
-                src_remaining = Ops.divide(src_remaining, @bytes_per_second)
-                src_remaining = MIN_TIME_PER_CD if src_remaining < MIN_TIME_PER_CD
-                rem_time = String.FormatTime(src_remaining) # column #2
-
-                if Ops.greater_than(src_remaining, MAX_TIME_PER_CD) # clip off at 2 hours
-                  # When data throughput goes downhill (stalled network connection etc.),
-                  # cut off the predicted time at a reasonable maximum.
-                  # "%1" is a predefined maximum time.
-                  rem_time = FormatTimeShowOverflow(
-                    Ops.unary_minus(MAX_TIME_PER_CD)
-                  )
-                end
+              if Ops.greater_than(src_remaining, MAX_TIME_PER_CD) # clip off at 2 hours
+                # When data throughput goes downhill (stalled network connection etc.),
+                # cut off the predicted time at a reasonable maximum.
+                # "%1" is a predefined maximum time.
+                rem_time = FormatTimeShowOverflow(-MAX_TIME_PER_CD)
               end
-
-              itemList = Builtins.add(
-                itemList,
-                SlideShow.TableItem(
-                  Builtins.sformat("cd(%1,%2)", src_no, cd_no), # ID
-                  caption,
-                  Ops.add("   ", rem_size),
-                  Ops.add("   ", rem_count),
-                  Ops.add("   ", rem_time)
-                )
-              )
             end
-            cd_no = Ops.add(cd_no, 1)
-          end
-        end
-        src_no = Ops.add(src_no, 1)
-      end
 
-      if @debug
-        Builtins.y2milestone("Remaining: %1", @remaining_sizes_per_cd_per_src)
-        Builtins.y2milestone("CD table item list:\n%1", itemList)
+            itemList <<
+              SlideShow.TableItem(
+                "cd(#{src_no},#{cd_no})", # ID
+                caption,
+                ITEM_PREFIX + rem_size,
+                ITEM_PREFIX + rem_count,
+                ITEM_PREFIX + rem_time
+              )
+          end
+          cd_no += 1
+        end
+        src_no += 1
       end
 
       deep_copy(itemList)
