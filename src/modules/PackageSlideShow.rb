@@ -867,7 +867,7 @@ module Yast
             caption += @media_type + (cd_no + 1).to_s unless @last_cd
             rem_size = FormatRemainingSize(src_remaining) # column #1
             rem_count = FormatRemainingCount(
-              Ops.get(@src_remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
+              Ops.get(@remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
             )
             rem_time = ""
 
