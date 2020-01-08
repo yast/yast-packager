@@ -62,8 +62,8 @@ module Yast
       @bytes_per_second = 1
       @init_pkg_data_complete = false
 
-      @provide_name = "" # currently downlaoded package name
-      @provide_size = "" # currently downlaoded package size
+      @provide_name = "" # currently downloaded package name
+      @provide_size = "" # currently downloaded package size
 
       # package summary
       # package counters
@@ -78,7 +78,6 @@ module Yast
       @installed_packages_list = []
       @updated_packages_list = []
       @removed_packages_list = []
-      #    integer avg_download_rate = 0;
 
       @current_provide_size = 0
       @current_install_size = 0
@@ -135,21 +134,20 @@ module Yast
     # (e.g. >2hour + >2hours + 1:13:20 => >4hours
     #
     def ListSumCutOff(sizes, max_cutoff)
-      sizes = deep_copy(sizes)
       overflow = 0
       sum = 0
 
-      Builtins.foreach(sizes) do |item|
-        if Ops.greater_than(item, 0)
-          if Ops.greater_than(item, max_cutoff)
-            overflow = Ops.add(overflow, 1)
-          else
-            sum = Ops.add(sum, item)
-          end
+      sizes.each do |item|
+        next if item <= 0
+
+        if item > max_cutoff
+          overflow += 1
+        else
+          sum += item
         end
       end
 
-      sum = Ops.multiply(Ops.unary_minus(overflow), max_cutoff) if Ops.greater_than(overflow, 0)
+      sum = -overflow * max_cutoff unless overflow.zero?
 
       sum
     end
@@ -173,20 +171,24 @@ module Yast
       Ops.subtract(@total_size_to_install, TotalRemainingSize())
     end
 
+    def show_remaining_time?
+      @unit_is_seconds
+    end
+
     # Format an integer seconds value with min:sec or hours:min:sec
     #
     # Negative values are interpreted as overflow - ">" is prepended and the
     # absolute value is used.
     #
     def FormatTimeShowOverflow(seconds)
-      if Ops.less_than(seconds, 0) # Overflow (indicated by negative value)
+      if seconds < 0 # Overflow (indicated by negative value)
         # When data throughput goes downhill (stalled network connection etc.),
         # cut off the predicted time at a reasonable maximum.
         # "%1" is a predefined maximum time.
 
         Builtins.sformat(
           _(">%1"),
-          String.FormatTime(Ops.unary_minus(seconds))
+          String.FormatTime(-seconds)
         )
       else
         String.FormatTime(seconds)
@@ -232,11 +234,10 @@ module Yast
           Builtins.sformat(@media_type, Ops.add(@next_cd_no, 1))
         )
 
-        text = if @unit_is_seconds
+        text = if show_remaining_time?
           # Status line informing about the next CD that will be used
-          # %1: Media type ("CD" / "DVD", ???)
-          # %2: Media name ("SuSE Linux Professional CD 2" )
-          # %3: Time remaining until this media will be needed
+          # %1: Media name ("SuSE Linux Professional CD 2" )
+          # %2: Time remaining until this media will be needed
           Builtins.sformat(
             _("Next: %1 -- %2"),
             next_media_name,
@@ -253,8 +254,7 @@ module Yast
           )
         else
           # Status line informing about the next CD that will be used
-          # %1: Media type ("CD" / "DVD", ???)
-          # %2: Media name ("SuSE Linux Professional CD 2" )
+          # %1: Media name ("SuSE Linux Professional CD 2" )
           Builtins.sformat(_("Next: %1"), next_media_name)
         end
       end
@@ -275,6 +275,7 @@ module Yast
 
     # Update internal bookkeeping: subtract size of one package from the
     # global list of remaining sizes per CD
+    # @param [String] pkg_size    package size in bytes
     #
     def SubtractPackageSize(pkg_size)
       remaining = Ops.get(
@@ -282,14 +283,12 @@ module Yast
         [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
         1
       )
-      remaining = Ops.subtract(remaining, pkg_size)
-      @total_size_installed = Ops.add(@total_size_installed, pkg_size)
+      remaining = remaining - pkg_size
+      @total_size_installed += pkg_size
 
-      if Ops.less_or_equal(remaining, 0)
-        # -1 is the indicator for "done with this CD" - not to be
-        # confused with 0 for "nothing to install from this CD".
-        remaining = -1
-      end
+      # -1 is the indicator for "done with this CD" - not to be
+      # confused with 0 for "nothing to install from this CD".
+      remaining = -1 if remaining <= 0
 
       Ops.set(
         @remaining_sizes_per_cd_per_src,
@@ -309,12 +308,11 @@ module Yast
         )
       )
 
-      if @unit_is_seconds
+      if show_remaining_time?
         seconds = 0
 
-        if Ops.greater_than(remaining, 0) &&
-            Ops.greater_than(@bytes_per_second, 0)
-          seconds = Ops.divide(remaining, @bytes_per_second)
+        if remaining > 0 && @bytes_per_second > 0
+          seconds = remaining / @bytes_per_second
         end
 
         seconds = MIN_TIME_PER_CD if seconds < MIN_TIME_PER_CD
@@ -601,7 +599,6 @@ module Yast
 
       Builtins.foreach(@remaining_sizes_per_cd_per_src) do |remaining_sizes_list|
         remaining_times_list = []
-        remaining_time = -1
 
         remaining_sizes_list.each do |remaining_size|
           remaining_time = remaining_size
@@ -641,11 +638,8 @@ module Yast
     # @return true if just switched from sizes to seconds, false otherwise
     #
     def SwitchToSecondsIfNecessary
-      if @unit_is_seconds ||
-          Ops.less_than(
-            Yast2::SystemTime.uptime,
-            Ops.add(SlideShow.start_time, SlideShow.initial_recalc_delay)
-          )
+      if show_remaining_time? ||
+          (Yast2::SystemTime.uptime - SlideShow.start_time) < SlideShow.initial_recalc_delay
         return false # no need to switch
       end
 
@@ -661,6 +655,7 @@ module Yast
 
     # Update progress widgets for the current CD: Label and ProgressBar.
     # Use global statistics variables for that.
+    # @param [Boolean] silent_check  don't complain in log file
     #
     def UpdateCurrentCdProgress(silent_check)
       return if !SanityCheck(silent_check)
@@ -681,8 +676,8 @@ module Yast
           :Item,
           Builtins.sformat(
             "cd(%1,%2)",
-            Ops.subtract(@current_src_no, 1),
-            Ops.subtract(@current_cd_no, 1)
+            @current_src_no - 1,
+            @current_cd_no - 1
           ),
           SIZE_COLUMN_POSITION
         ),
@@ -695,8 +690,8 @@ module Yast
           :Item,
           Builtins.sformat(
             "cd(%1,%2)",
-            Ops.subtract(@current_src_no, 1),
-            Ops.subtract(@current_cd_no, 1)
+            @current_src_no - 1,
+            @current_cd_no - 1
           ),
           PKG_COUNT_COLUMN_POSITION
         ),
@@ -709,18 +704,16 @@ module Yast
         )
       )
 
-      if @unit_is_seconds
+      if show_remaining_time?
         # Convert 'remaining' from size (bytes) to time (seconds)
 
         remaining = Ops.divide(remaining, @bytes_per_second)
 
-        remaining = 0 if Ops.less_or_equal(remaining, 0)
+        remaining = 0 if remaining < 0
 
-        if Ops.greater_than(remaining, MAX_TIME_PER_CD) # clip off at 2 hours
           # When data throughput goes downhill (stalled network connection etc.),
           # cut off the predicted time at a reasonable maximum.
-          remaining = Ops.unary_minus(MAX_TIME_PER_CD)
-        end
+        remaining = -MAX_TIME_PER_CD if remaining > MAX_TIME_PER_CD # clip off at 2 hours
 
         UI.ChangeWidget(
           Id(:cdStatisticsTable),
@@ -753,7 +746,7 @@ module Yast
         FormatRemainingCount(TotalRemainingPkgCount())
       )
 
-      if @unit_is_seconds
+      if show_remaining_time?
         UI.ChangeWidget(
           Id(:cdStatisticsTable),
           term(:Item, "total", TIME_COLUMN_POSITION),
@@ -835,7 +828,7 @@ module Yast
       rem_count = FormatRemainingCount(TotalRemainingPkgCount())
       rem_time = HOURGLASS
 
-      if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
+      if show_remaining_time? && Ops.greater_than(@bytes_per_second, 0)
         rem_time = FormatTimeShowOverflow(TotalRemainingTime())
       end
 
@@ -865,7 +858,7 @@ module Yast
               Ops.add(src_no, 1) == @current_src_no &&
                   Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
             caption = @inst_src_names[src_no] || _("Unknown Source")
-            # add "Medium 1" only if more cds available- column #0
+            # add "Medium 1" only if more cds available (bsc#1158498)
             caption += @media_type + (cd_no + 1).to_s unless @last_cd
             rem_size = FormatRemainingSize(src_remaining) # column #1
             rem_count = FormatRemainingCount(
@@ -873,7 +866,7 @@ module Yast
             )
             rem_time = HOURGLASS
 
-            if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
+            if show_remaining_time? && Ops.greater_than(@bytes_per_second, 0)
               src_remaining = Ops.divide(src_remaining, @bytes_per_second)
               src_remaining = MIN_TIME_PER_CD if src_remaining < MIN_TIME_PER_CD
               rem_time = String.FormatTime(src_remaining) # column #2
@@ -916,8 +909,6 @@ module Yast
 
     # update the download rate
     def UpdateCurrentPackageRateProgress(pkg_percent, bps_avg, bps_current)
-      #  avg_download_rate = bps_avg;
-
       return if !SlideShow.ShowingDetails
 
       new_text = nil # no update of the label
@@ -945,7 +936,7 @@ module Yast
       tot_rem_t = TotalRemainingTime()
 
       rem_string =
-        if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0) &&
+        if show_remaining_time? && Ops.greater_than(@bytes_per_second, 0) &&
             Ops.greater_than(tot_rem_t, 0)
           Builtins.sformat(
             "%1 / %2",
@@ -1016,7 +1007,7 @@ module Yast
     def UpdateAllCdProgress(silent_check)
       return if !SanityCheck(silent_check)
 
-      RecalcRemainingTimes(true) if @unit_is_seconds # force
+      RecalcRemainingTimes(true) if show_remaining_time? # force
 
       SlideShow.UpdateTable(CdStatisticsTableItems())
 
@@ -1035,6 +1026,7 @@ module Yast
     # - this is called at the end of a new package
     #
     # @param [String] pkg_name    package name
+    # @param [String] pkg_size    package size in bytes
     # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
     #
     def SlideDisplayDone(pkg_name, pkg_size, deleting)
