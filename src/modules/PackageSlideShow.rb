@@ -21,6 +21,8 @@ module Yast
     TIME_COLUMN_POSITION = 3
     # Table padding
     ITEM_PREFIX = " " * 4
+    # hourglass unicode char
+    HOURGLASS = "\u231B".freeze
 
     def main
       Yast.import "UI"
@@ -831,7 +833,7 @@ module Yast
       remaining = TotalRemainingSize()
       rem_size = FormatRemainingSize(remaining)
       rem_count = FormatRemainingCount(TotalRemainingPkgCount())
-      rem_time = ""
+      rem_time = HOURGLASS
 
       if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
         rem_time = FormatTimeShowOverflow(TotalRemainingTime())
@@ -869,7 +871,7 @@ module Yast
             rem_count = FormatRemainingCount(
               Ops.get(@remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
             )
-            rem_time = ""
+            rem_time = HOURGLASS
 
             if @unit_is_seconds && Ops.greater_than(@bytes_per_second, 0)
               src_remaining = Ops.divide(src_remaining, @bytes_per_second)
