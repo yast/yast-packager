@@ -54,7 +54,6 @@ module Yast
       @next_src_no = -1
       @next_cd_no = -1
       @last_cd = false
-      @total_cd_count = 0
       @unit_is_seconds = false # begin with package sizes
       @bytes_per_second = 1
       @init_pkg_data_complete = false
@@ -347,7 +346,7 @@ module Yast
     def packages_to_install(src_mapping)
       src_mapping = deep_copy(src_mapping)
       ret = ListSum(Builtins.flatten(src_mapping))
-      Builtins.y2milestone("Total number of packages to install: %1", ret)
+      log.info "Total number of packages to install: #{ret}"
       ret
     end
 
@@ -363,34 +362,27 @@ module Yast
       ResetPackageSummary()
       # Reinititalize some globals (in case this is a second run)
       @total_size_installed = 0
-      # total_time_elapsed  = 0;
-      # start_time    = -1;
       @current_src_no = -1 # 1..n
       @current_cd_no = -1 # 1..n
       @next_src_no = -1
       @next_cd_no = -1
       @last_cd = false
-      @unit_is_seconds = false # begin with package sizes
+      @unit_is_seconds = false # begin without showing time before it stabilize a bit
       @bytes_per_second = 1
 
       src_list = Pkg.PkgMediaNames
-      @inst_src_names = Builtins.maplist(src_list) do |src|
-        Ops.get_string(src, 0, "CD")
-      end
+      @inst_src_names = src_list.map { |src| src[0] || "CD" }
 
-      Builtins.y2milestone("Media names: %1", @inst_src_names)
+      log.info "Media names: #{@inst_src_names}"
 
       index = 0
 
       @srcid_to_current_src_no = Builtins.listmap(src_list) do |src|
-        index = Ops.add(index, 1)
+        index += 1
         { Ops.get_integer(src, 1, -1) => index }
       end
 
-      Builtins.y2milestone(
-        "Repository  mapping information: %1",
-        @srcid_to_current_src_no
-      )
+      log.info "Repository mapping information: #{@srcid_to_current_src_no.inspect}"
 
       @total_sizes_per_cd_per_src = Pkg.PkgMediaSizes
       @total_pkg_count_per_cd_per_src = Pkg.PkgMediaCount
@@ -398,16 +390,9 @@ module Yast
       @total_size_to_install = ListSum(
         Builtins.flatten(@total_sizes_per_cd_per_src)
       )
-      Builtins.y2milestone("total_size_to_install: %1", @total_size_to_install)
-      @remaining_sizes_per_cd_per_src = Builtins.eval(
-        @total_sizes_per_cd_per_src
-      )
-      @remaining_pkg_count_per_cd_per_src = Builtins.eval(
-        @total_pkg_count_per_cd_per_src
-      )
-      @total_cd_count = Builtins.size(
-        Builtins.flatten(@total_sizes_per_cd_per_src)
-      )
+      log.info "total_size_to_install: #{@total_size_to_install}"
+      @remaining_sizes_per_cd_per_src = deep_copy(@total_sizes_per_cd_per_src)
+      @remaining_pkg_count_per_cd_per_src = deep_copy(@total_pkg_count_per_cd_per_src)
       @total_count_to_download = packages_to_download(
         @total_pkg_count_per_cd_per_src
       )
@@ -415,26 +400,16 @@ module Yast
       total_count_to_install = packages_to_install(
         @total_pkg_count_per_cd_per_src
       )
-      total = Ops.add(total_count_to_install, @total_count_to_download)
-      @downloading_pct = Ops.divide(
-        Ops.multiply(total.zero? ? 0 : 100, @total_count_to_download),
-        total
-      )
+      total = total_count_to_install +  @total_count_to_download
+      @downloading_pct = 0
+      @downloading_pct = 100 * @total_count_to_download / total if total.nonzero?
       @init_pkg_data_complete = true
 
       # reset the history log
       SlideShow.inst_log = ""
 
-      Builtins.y2milestone(
-        "PackageSlideShow::InitPkgData() done; total_sizes_per_cd_per_src: %1",
-        @total_sizes_per_cd_per_src
-      )
-      Builtins.y2milestone(
-        "PackageSlideShow::InitPkgData(): pkg: %1",
-        @total_pkg_count_per_cd_per_src
-      )
-
-      nil
+      log.info "total_sizes_per_cd_per_src: #{@total_sizes_per_cd_per_src.inspect}"
+      log.info "total_pkg_count_per_cd_per_src #{@total_pkg_count_per_cd_per_src}"
     end
 
     # Try to figure out what media will be needed next
@@ -445,7 +420,7 @@ module Yast
       # but since this uses 1..n and we need 0..n-1
       # for array subscripts anyway, use it as it is.
       @next_cd_no = @current_cd_no
-      @next_src_no = Ops.subtract(@current_src_no, 1)
+      @next_src_no = @current_src_no - 1
       @last_cd = false
 
       while Ops.less_than(
@@ -482,14 +457,15 @@ module Yast
     #
     def SetCurrentCdNo(src_no, cd_no)
       if cd_no.zero?
-        Builtins.y2milestone("medium number 0, using medium number 1")
+        log.info "medium number 0, using medium number 1"
         cd_no = 1
       end
 
-      Builtins.y2milestone("SetCurrentCdNo() - src: %1 , CD: %2", src_no, cd_no)
+      log.info "SetCurrentCdNo() - src: #{src_no}, CD: #{cd_no}"
       @current_src_no = Ops.get(@srcid_to_current_src_no, src_no, -1)
       @current_cd_no = cd_no
 
+      # TODO: this should for sure not be here, but in SlideShow as single method
       SlideShow.CheckForSlides
       FindNextMedia()
 
@@ -623,20 +599,21 @@ module Yast
       # Update table entries for current CD
       #
 
+      # pair into array of array for time and size
+      source_pair = [@current_src_no - 1, @current_cd_no - 1]
       remaining = Ops.get(
         @remaining_sizes_per_cd_per_src,
-        [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
+        source_pair,
         0
       )
+
+      # collumn id for current CD
+      source_id = "cd(#{source_pair.join(",")})"
       UI.ChangeWidget(
         Id(:cdStatisticsTable),
         term(
           :Item,
-          Builtins.sformat(
-            "cd(%1,%2)",
-            @current_src_no - 1,
-            @current_cd_no - 1
-          ),
+          source_id,
           SIZE_COLUMN_POSITION
         ),
         FormatRemainingSize(remaining)
@@ -646,17 +623,13 @@ module Yast
         Id(:cdStatisticsTable),
         term(
           :Item,
-          Builtins.sformat(
-            "cd(%1,%2)",
-            @current_src_no - 1,
-            @current_cd_no - 1
-          ),
+          source_id,
           PKG_COUNT_COLUMN_POSITION
         ),
         FormatRemainingCount(
           Ops.get(
             @remaining_pkg_count_per_cd_per_src,
-            [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
+            source_pair,
             0
           )
         )
@@ -671,11 +644,7 @@ module Yast
           Id(:cdStatisticsTable),
           term(
             :Item,
-            Builtins.sformat(
-              "cd(%1,%2)",
-              Ops.subtract(@current_src_no, 1),
-              Ops.subtract(@current_cd_no, 1)
-            ),
+            source_id,
             TIME_COLUMN_POSITION
           ),
           FormatTimeShowOverflow(remaining)
@@ -705,42 +674,23 @@ module Yast
           FormatTimeShowOverflow(TotalRemainingTime())
         )
       end
-
-      nil
     end
 
     # update the overall progress value (download + installation)
     def UpdateTotalProgressValue
-      total_progress = if @total_count_to_download.zero?
+      total_progress = if @total_size_to_install.zero?
+        100 # nothing to install. Should not happen
+      elsif @total_count_to_download.zero?
         # no package to download, just use the install size
-        Ops.divide(
-          Ops.multiply(TotalInstalledSize(), 100),
-          @total_size_to_install
-        )
+        TotalInstalledSize() * 100 / @total_size_to_install
       else
         # compute the total progress (use both download and  installation size)
-        Ops.add(
-          Ops.divide(
-            Ops.multiply(@total_count_downloaded, @downloading_pct),
-            @total_count_to_download
-          ),
-          Ops.divide(
-            Ops.multiply(
-              TotalInstalledSize(),
-              Ops.subtract(100, @downloading_pct)
-            ),
-            @total_size_to_install
-          )
-        )
+        @total_count_downloaded * @downloading_pct / @total_count_to_download +
+          TotalInstalledSize() * (100 -  @downloading_pct) / @total_size_to_install
       end
 
-      Builtins.y2debug(
-        "Total package installation progress: %1%%",
-        total_progress
-      )
+      log.debug "Total package installation progress: #{total_progress}%"
       SlideShow.StageProgress(total_progress, nil)
-
-      nil
     end
 
     # Update progress widgets
@@ -767,8 +717,6 @@ module Yast
     # Returns a table widget item list for CD statistics
     #
     def CdStatisticsTableItems
-      itemList = []
-
       #
       # Add "Total" item - at the top so it is visible by default even if there are many items
       #
@@ -780,17 +728,17 @@ module Yast
       rem_count = FormatRemainingCount(TotalRemainingPkgCount())
       rem_time = HOURGLASS
 
-      if show_remaining_time? && Ops.greater_than(@bytes_per_second, 0)
+      if show_remaining_time? && @bytes_per_second > 0
         rem_time = FormatTimeShowOverflow(TotalRemainingTime())
       end
 
-      itemList << SlideShow.TableItem(
+      itemList = [SlideShow.TableItem(
         "total",
         caption,
         ITEM_PREFIX + rem_size,
         ITEM_PREFIX + rem_count,
         ITEM_PREFIX + rem_time
-      )
+      )]
 
       #
       # Now go through all repositories
@@ -806,9 +754,9 @@ module Yast
         cd_no = 0
 
         Builtins.foreach(inst_src) do |src_remaining|
-          if Ops.greater_than(src_remaining, 0) ||
-              Ops.add(src_no, 1) == @current_src_no &&
-                  Ops.add(cd_no, 1) == @current_cd_no # suppress current CD
+          if src_remaining > 0 ||
+              (src_no + 1) == @current_src_no &&
+                  (cd_no + 1) == @current_cd_no # suppress current CD
             caption = @inst_src_names[src_no] || _("Unknown Source")
             # add "Medium 1" only if more cds available (bsc#1158498)
             caption += @media_type + (cd_no + 1).to_s unless @last_cd
@@ -818,8 +766,8 @@ module Yast
             )
             rem_time = HOURGLASS
 
-            if show_remaining_time? && Ops.greater_than(@bytes_per_second, 0)
-              src_remaining = Ops.divide(src_remaining, @bytes_per_second)
+            if show_remaining_time? && @bytes_per_second > 0
+              src_remaining = src_remaining / @bytes_per_second
               rem_time = FormatTimeShowOverflow(src_remaining) # column #2
             end
 
@@ -837,7 +785,7 @@ module Yast
         src_no += 1
       end
 
-      deep_copy(itemList)
+      itemList
     end
 
     # Progress display update
@@ -847,8 +795,6 @@ module Yast
     #
     def UpdateCurrentPackageProgress(pkg_percent)
       SlideShow.SubProgress(pkg_percent, nil)
-
-      nil
     end
 
     # update the download rate
@@ -891,7 +837,7 @@ module Yast
           FormatRemainingSize(TotalRemainingSize())
         end
 
-      rem_string = Ops.add(rem_string, ", ") if rem_string != ""
+      rem_string += ", " unless rem_string.empty?
 
       SlideShow.SetGlobalProgressLabel(
         Ops.add(
@@ -907,39 +853,41 @@ module Yast
       nil
     end
 
+    # Callback when file is downloaded ( but not yet installed )
+    # @param error[Integer] error code
     def DoneProvide(error, _reason, _name)
-      if error.zero?
-        @total_downloaded = Ops.add(@total_downloaded, @current_provide_size)
+      return if error.nonzero?
 
-        @total_count_downloaded = Ops.add(@total_count_downloaded, 1)
-        Builtins.y2milestone(
-          "Downloaded %1/%2 packages",
-          @total_count_downloaded,
-          @total_count_to_download
-        )
+      @total_downloaded += @current_provide_size
 
-        # move the progress also for downloaded files
-        UpdateTotalProgressValue()
+      @total_count_downloaded += 1
+      Builtins.y2milestone(
+        "Downloaded %1/%2 packages",
+        @total_count_downloaded,
+        @total_count_to_download
+      )
 
-        d_mode = Ops.get_symbol(Pkg.CommitPolicy, "download_mode", :default)
+      # move the progress also for downloaded files
+      UpdateTotalProgressValue()
 
-        if d_mode == :download_in_advance ||
-            d_mode == :default && Mode.normal &&
-                !Installation.dirinstall_installing_into_dir
-          # display download progress in DownloadInAdvance mode
-          # translations: progress message (part1)
-          SlideShow.SetGlobalProgressLabel(
-            Ops.add(
-              _("Downloading Packages..."),
-              # progress message (part2)
-              Builtins.sformat(
-                _(" (Downloaded %1 of %2 packages)"),
-                @total_count_downloaded,
-                @total_count_to_download
-              )
+      d_mode = Ops.get_symbol(Pkg.CommitPolicy, "download_mode", :default)
+
+      if d_mode == :download_in_advance ||
+          d_mode == :default && Mode.normal &&
+              !Installation.dirinstall_installing_into_dir
+        # display download progress in DownloadInAdvance mode
+        # translations: progress message (part1)
+        SlideShow.SetGlobalProgressLabel(
+          Ops.add(
+            _("Downloading Packages..."),
+            # progress message (part2)
+            Builtins.sformat(
+              _(" (Downloaded %1 of %2 packages)"),
+              @total_count_downloaded,
+              @total_count_to_download
             )
           )
-        end
+        )
       end
 
       nil
@@ -947,6 +895,7 @@ module Yast
 
     # Update progress widgets for all CDs.
     # Uses global statistics variables.
+    # Redraw whole table, time consuming, but called only when all times recalculated.
     #
     def UpdateAllCdProgress(silent_check)
       return if !SanityCheck(silent_check)
@@ -1177,22 +1126,17 @@ module Yast
     publish variable: :downloading_pct, type: "integer"
     publish variable: :min_time_per_cd, type: "integer"
     publish variable: :max_time_per_cd, type: "integer"
-    publish variable: :size_column, type: "integer"
-    publish variable: :pkg_count_column, type: "integer"
-    publish variable: :time_column, type: "integer"
     publish variable: :current_src_no, type: "integer"
     publish variable: :current_cd_no, type: "integer"
     publish variable: :next_src_no, type: "integer"
     publish variable: :next_cd_no, type: "integer"
     publish variable: :last_cd, type: "boolean"
-    publish variable: :total_cd_count, type: "integer"
     publish variable: :unit_is_seconds, type: "boolean"
     publish variable: :bytes_per_second, type: "integer"
     publish variable: :init_pkg_data_complete, type: "boolean"
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
     publish function: :SetCurrentCdNo, type: "void (integer, integer)"
-    publish function: :UpdateCurrentCdProgress, type: "void (boolean)"
     publish function: :UpdateCurrentPackageProgress, type: "void (integer)"
     publish function: :UpdateCurrentPackageRateProgress, type: "void (integer, integer, integer)"
     publish function: :DisplayGlobalProgress, type: "void ()"
