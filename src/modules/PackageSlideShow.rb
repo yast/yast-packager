@@ -146,18 +146,15 @@ module Yast
 
     # Format an integer seconds value with min:sec or hours:min:sec
     #
-    # Negative values are interpreted as overflow - ">" is prepended and the
-    # absolute value is used.
+    # Values bigger then MAX_TIME_PER_CD are interpreted as overflow - ">" is prepended and the
+    # MAX_TIME_PER_CD is used.
     #
     def FormatTimeShowOverflow(seconds)
-      if seconds < 0 # Overflow (indicated by negative value)
-        # When data throughput goes downhill (stalled network connection etc.),
-        # cut off the predicted time at a reasonable maximum.
-        # "%1" is a predefined maximum time.
-
+      if seconds > MAX_TIME_PER_CD
+        # TRANSLATORS: "%1" is a predefined maximum time. Value used in table to indicate long time like ">2:00:00"
         Builtins.sformat(
           _(">%1"),
-          String.FormatTime(-seconds)
+          String.FormatTime(MAX_TIME_PER_CD)
         )
       else
         String.FormatTime(seconds)
