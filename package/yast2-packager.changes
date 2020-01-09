@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jan  9 17:03:31 CET 2020 - schubi@suse.de
+
+- Do not refresh package installation overview if the medium has
+  been changed and the user has switched to the release notes tab.
+  (bsc#1129426, bsc#1159367)
+- 4.2.43
+
+-------------------------------------------------------------------
 Thu Jan  2 16:29:45 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - Improve warning when all repositories are disabled (bsc#1158512)

@@ -540,6 +540,9 @@ module Yast
       SlideShow.CheckForSlides
       FindNextMedia()
 
+      # do not rebuild if the user reads the release notes
+      return if SlideShow.user_switched_to_release_notes
+
       if Slides.HaveSlides && Slides.HaveSlideSupport
         if !SlideShow.HaveSlideWidget
           # (true) : Showing release tab if needed
