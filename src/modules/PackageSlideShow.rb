@@ -8,10 +8,7 @@ module Yast
     include Yast::Logger
 
     # seconds to cut off predicted time
-    MAX_TIME_PER_CD = 7200
-
-    # minimum time displayed per CD if there is something to install
-    MIN_TIME_PER_CD = 5
+    MAX_TIME_PER_CD = 2 * 60 * 60 # 2 hours
 
     # Column index for refreshing statistics: remaining size
     SIZE_COLUMN_POSITION = 1
@@ -80,7 +77,6 @@ module Yast
       @removed_packages_list = []
 
       @current_provide_size = 0
-      @current_install_size = 0
       @updating = false
     end
 
@@ -97,7 +93,6 @@ module Yast
 
       # temporary values
       @current_provide_size = 0
-      @current_install_size = 0
       @updating = false
 
       nil
@@ -125,31 +120,7 @@ module Yast
     # @param sizes [Array<Fixnum>] Sizes to sum
     # @return [Fixnum] Sizes sum
     def ListSum(sizes)
-      sizes.reduce(0) { |a, e| (e == -1) ? a : a + e }
-    end
-
-    # Sum up all positive list items, but cut off individual items at a maximum value.
-    # Negative return values indicate overflow of any individual item at "max_cutoff".
-    # In this case, the absolute value of the return value is "max_cutoff" * number of overflows.
-    # (e.g. >2hour + >2hours + 1:13:20 => >4hours
-    #
-    def ListSumCutOff(sizes, max_cutoff)
-      overflow = 0
-      sum = 0
-
-      sizes.each do |item|
-        next if item <= 0
-
-        if item > max_cutoff
-          overflow += 1
-        else
-          sum += item
-        end
-      end
-
-      sum = -overflow * max_cutoff unless overflow.zero?
-
-      sum
+      sizes.reduce(0) { |a, e| (e < 0) ? a : a + e }
     end
 
     def TotalRemainingSize
@@ -157,9 +128,8 @@ module Yast
     end
 
     def TotalRemainingTime
-      ListSumCutOff(
-        Builtins.flatten(@remaining_times_per_cd_per_src),
-        MAX_TIME_PER_CD
+      ListSum(
+        Builtins.flatten(@remaining_times_per_cd_per_src)
       )
     end
 
@@ -315,7 +285,6 @@ module Yast
           seconds = remaining / @bytes_per_second
         end
 
-        seconds = MIN_TIME_PER_CD if seconds < MIN_TIME_PER_CD
         log.debug "Updating remaining time for source #{@current_src_no} " \
           "(medium #{@current_cd_no}): #{seconds}"
         Ops.set(
@@ -605,17 +574,6 @@ module Yast
 
           if remaining_size > 0
             remaining_time = (remaining_size.to_f / @bytes_per_second).round
-
-            if remaining_time < MIN_TIME_PER_CD
-              # It takes at least this long for the CD drive to spin up and
-              # for RPM to do _anything_. Times below this values are
-              # ridiculously unrealistic.
-              remaining_time = MIN_TIME_PER_CD
-            elsif remaining_time > MAX_TIME_PER_CD # clip off at 2 hours
-              # When data throughput goes downhill (stalled network connection etc.),
-              # cut off the predicted time at a reasonable maximum.
-              remaining_time = MAX_TIME_PER_CD
-            end
           end
 
           remaining_times_list << remaining_time
@@ -708,12 +666,6 @@ module Yast
         # Convert 'remaining' from size (bytes) to time (seconds)
 
         remaining = Ops.divide(remaining, @bytes_per_second)
-
-        remaining = 0 if remaining < 0
-
-          # When data throughput goes downhill (stalled network connection etc.),
-          # cut off the predicted time at a reasonable maximum.
-        remaining = -MAX_TIME_PER_CD if remaining > MAX_TIME_PER_CD # clip off at 2 hours
 
         UI.ChangeWidget(
           Id(:cdStatisticsTable),
@@ -868,15 +820,7 @@ module Yast
 
             if show_remaining_time? && Ops.greater_than(@bytes_per_second, 0)
               src_remaining = Ops.divide(src_remaining, @bytes_per_second)
-              src_remaining = MIN_TIME_PER_CD if src_remaining < MIN_TIME_PER_CD
-              rem_time = String.FormatTime(src_remaining) # column #2
-
-              if Ops.greater_than(src_remaining, MAX_TIME_PER_CD) # clip off at 2 hours
-                # When data throughput goes downhill (stalled network connection etc.),
-                # cut off the predicted time at a reasonable maximum.
-                # "%1" is a predefined maximum time.
-                rem_time = FormatTimeShowOverflow(-MAX_TIME_PER_CD)
-              end
+              rem_time = FormatTimeShowOverflow(src_remaining) # column #2
             end
 
             itemList <<
@@ -1027,7 +971,7 @@ module Yast
     #
     # @param [String] pkg_name    package name
     # @param [String] pkg_size    package size in bytes
-    # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
+    # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package
     #
     def SlideDisplayDone(pkg_name, pkg_size, deleting)
       if !deleting
@@ -1065,16 +1009,11 @@ module Yast
           end
         end
 
-        @total_installed = Ops.add(@total_installed, @current_install_size)
+        @total_installed = Ops.add(@total_installed, pkg_size)
       else
-        @removed_packages = Ops.add(@removed_packages, 1)
+        @removed_packages += 1
 
-        if Mode.normal
-          @removed_packages_list = Builtins.add(
-            @removed_packages_list,
-            pkg_name
-          )
-        end
+        @removed_packages_list << pkg_name if Mode.normal
       end
 
       nil
@@ -1130,8 +1069,6 @@ module Yast
           pkg_filename,
           String.FormatSize(pkg_size)
         )
-
-        @current_install_size = pkg_size
       end
 
       #
