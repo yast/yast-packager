@@ -96,10 +96,6 @@ module Yast
     #   list srcremaining, list update_messages ]
     def Commit(config)
       config = deep_copy(config)
-      if Mode.test
-        FakePackager([], "suse", false) # not deleting packages
-        return []
-      end
       # install packages from this media
 
       PackageSlideShow.InitPkgData(false)
@@ -214,58 +210,8 @@ module Yast
       Commit("medium_nr" => media_number)
     end
 
-    #
-    # Fake progress bars for Mode::test ()
-    #
-    # NOTE: This is currently completely broken.
-    # -- sh 2003-12-15
-    #
-    def FakePackager(packages, _inst_source, _deleting)
-      packages = deep_copy(packages)
-      disk_usage = 20
-      ret = nil
-      number = 0
-
-      Builtins.y2debug(
-        "FakePackager - handling %1 packages",
-        Builtins.size(packages)
-      )
-
-      Builtins.foreach(packages) do |_pac|
-        pkg_size = 42 * 1024
-        bytes_installed = 0
-        if Ops.less_than(pkg_size, 0)
-          # pkginfo doesn't know anything about the kernel RPM, so its
-          # size can't be obtained, e.g. pkg_size is -1. To make up for
-          # this, let's assume a negative starting size to keep things
-          # going for a while (this is test_mode only, anyway).
-          bytes_installed = -857 * 1024
-        end
-        while Ops.less_than(bytes_installed, pkg_size) && ret != :cancel &&
-            ret != :diskfull
-          Builtins.sleep(300) # millisec
-          bytes_installed = Ops.add(bytes_installed, 300 * 1024)
-        end
-        disk_usage = Ops.add(disk_usage, 1)
-        number = Ops.add(number, 1)
-      end
-
-      ret = case ret
-      when :cancel, :abort
-        :cancel
-      when :diskfull
-        :diskfull
-      else
-        :ok
-      end
-
-      Builtins.y2debug("FakePackager returning with %1", ret)
-      deep_copy(ret)
-    end
-
     publish function: :DownloadInAdvance, type: "boolean ()"
     publish function: :SetDownloadInAdvance, type: "void (boolean)"
-    publish function: :FakePackager, type: "any (list <list>, string, boolean)"
     publish function: :Commit, type: "list (map <string, any>)"
     publish function: :CommitPackages, type: "list (integer, integer)"
 
