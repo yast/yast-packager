@@ -35,7 +35,7 @@ BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
 BuildRequires:  yast2-storage-ng >= 4.0.141
 # break the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
-# SlideShow.user_switched_to_release_notes
+# SlideShow.Redraw
 BuildRequires:  yast2 >= 4.2.52
 # Pkg::Resolvables
 BuildRequires:  yast2-pkg-bindings >= 4.2.0
@@ -47,7 +47,7 @@ BuildRequires:  ruby-solv
 Requires:       yast2-country-data >= 2.16.3
 # Pkg::Resolvables
 Requires:       yast2-pkg-bindings >= 4.2.0
-# SlideShow.user_switched_to_release_notes
+# SlideShow.Redraw
 Requires:       yast2 >= 4.2.52
 # unzipping license file
 Requires:       unzip

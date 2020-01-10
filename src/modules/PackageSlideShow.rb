@@ -529,36 +529,16 @@ module Yast
     #
     def SetCurrentCdNo(src_no, cd_no)
       if cd_no.zero?
-        Builtins.y2milestone("medium number 0, using medium number 1")
+        log.info("medium number 0, using medium number 1")
         cd_no = 1
       end
 
-      Builtins.y2milestone("SetCurrentCdNo() - src: %1 , CD: %2", src_no, cd_no)
-      @current_src_no = Ops.get(@srcid_to_current_src_no, src_no, -1)
+      log.info("SetCurrentCdNo() - src: #{src_no} , CD: #{cd_no}")
+      @current_src_no = @srcid_to_current_src_no[src_no] || -1
       @current_cd_no = cd_no
-
-      SlideShow.CheckForSlides
       FindNextMedia()
 
-      # do not rebuild if the user reads the release notes
-      return if SlideShow.user_switched_to_release_notes
-
-      if Slides.HaveSlides && Slides.HaveSlideSupport
-        if !SlideShow.HaveSlideWidget
-          # (true) : Showing release tab if needed
-          SlideShow.RebuildDialog(true)
-
-          SlideShow.SwitchToDetailsView if SlideShow.user_switched_to_details
-        end
-
-        # Don't override explicit user request!
-        SlideShow.SwitchToSlideView if !SlideShow.user_switched_to_details
-      elsif !SlideShow.ShowingDetails
-        # (true) : Showing release tab if needed
-        SlideShow.RebuildDialog(true)
-      end
-
-      nil
+      SlideShow.Redraw() # Redrawing the complete slide show if needed.
     end
 
     # Recalculate remaining times per CD based on package sizes remaining

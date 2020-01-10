@@ -40,7 +40,6 @@ module Yast
     # @return true if user wishes to abort
     #
     def HandleInput
-      # any button = SlideShow::debug ? UI::PollInput() : UI::TimeoutUserInput( 10 );
       button = UI.PollInput
 
       # in case of cancel ask user if he really wants to quit installation
