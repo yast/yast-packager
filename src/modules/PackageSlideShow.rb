@@ -151,7 +151,8 @@ module Yast
     #
     def FormatTimeShowOverflow(seconds)
       if seconds > MAX_TIME_PER_CD
-        # TRANSLATORS: "%1" is a predefined maximum time. Value used in table to indicate long time like ">2:00:00"
+        # TRANSLATORS: "%1" is a predefined maximum time. Value used in table
+        # to indicate long time like ">2:00:00"
         Builtins.sformat(
           _(">%1"),
           String.FormatTime(MAX_TIME_PER_CD)
@@ -249,7 +250,7 @@ module Yast
         [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
         1
       )
-      remaining = remaining - pkg_size
+      remaining -= pkg_size
       @total_size_installed += pkg_size
 
       # -1 is the indicator for "done with this CD" - not to be
@@ -277,9 +278,7 @@ module Yast
       if show_remaining_time?
         seconds = 0
 
-        if remaining > 0 && @bytes_per_second > 0
-          seconds = remaining / @bytes_per_second
-        end
+        seconds = remaining / @bytes_per_second if remaining > 0 && @bytes_per_second > 0
 
         log.debug "Updating remaining time for source #{@current_src_no} " \
           "(medium #{@current_cd_no}): #{seconds}"
@@ -397,7 +396,7 @@ module Yast
       total_count_to_install = packages_to_install(
         @total_pkg_count_per_cd_per_src
       )
-      total = total_count_to_install +  @total_count_to_download
+      total = total_count_to_install + @total_count_to_download
       @downloading_pct = 0
       @downloading_pct = 100 * @total_count_to_download / total if total.nonzero?
       @init_pkg_data_complete = true
@@ -545,9 +544,7 @@ module Yast
         remaining_sizes_list.each do |remaining_size|
           remaining_time = remaining_size
 
-          if remaining_size > 0
-            remaining_time = (remaining_size.to_f / @bytes_per_second).round
-          end
+          remaining_time = (remaining_size.to_f / @bytes_per_second).round if remaining_size > 0
 
           remaining_times_list << remaining_time
         end
@@ -664,13 +661,13 @@ module Yast
         FormatRemainingCount(TotalRemainingPkgCount())
       )
 
-      if show_remaining_time?
-        UI.ChangeWidget(
-          Id(:cdStatisticsTable),
-          term(:Item, "total", TIME_COLUMN_POSITION),
-          FormatTimeShowOverflow(TotalRemainingTime())
-        )
-      end
+      return unless show_remaining_time?
+
+      UI.ChangeWidget(
+        Id(:cdStatisticsTable),
+        term(:Item, "total", TIME_COLUMN_POSITION),
+        FormatTimeShowOverflow(TotalRemainingTime())
+      )
     end
 
     # update the overall progress value (download + installation)
@@ -683,7 +680,7 @@ module Yast
       else
         # compute the total progress (use both download and  installation size)
         @total_count_downloaded * @downloading_pct / @total_count_to_download +
-          TotalInstalledSize() * (100 -  @downloading_pct) / @total_size_to_install
+          TotalInstalledSize() * (100 - @downloading_pct) / @total_size_to_install
       end
 
       log.debug "Total package installation progress: #{total_progress}%"
@@ -764,7 +761,7 @@ module Yast
             rem_time = HOURGLASS
 
             if show_remaining_time? && @bytes_per_second > 0
-              src_remaining = src_remaining / @bytes_per_second
+              src_remaining /= @bytes_per_second
               rem_time = FormatTimeShowOverflow(src_remaining) # column #2
             end
 

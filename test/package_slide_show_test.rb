@@ -71,18 +71,18 @@ describe Yast::PackageSlideShow do
     context "when deleting package" do
       it "increases removed counter in summary" do
         Yast::PackageSlideShow.main # to reset counter
-        expect{Yast::PackageSlideShow.SlideDisplayDone("test", 1, true)}.to(
-          change{Yast::PackageSlideShow.GetPackageSummary["removed"]}.from(0).to(1)
+        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, true) }.to(
+          change { Yast::PackageSlideShow.GetPackageSummary["removed"] }.from(0).to(1)
         )
       end
 
       it "adds name to removed_list in summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
         Yast::PackageSlideShow.main # to reset counter
-        expect{Yast::PackageSlideShow.SlideDisplayDone("test", 1, true)}.to(
-          change{Yast::PackageSlideShow.GetPackageSummary["removed_list"]}.
-            from([]).
-            to(["test"])
+        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, true) }.to(
+          change { Yast::PackageSlideShow.GetPackageSummary["removed_list"] }
+            .from([])
+            .to(["test"])
         )
       end
     end
@@ -93,25 +93,25 @@ describe Yast::PackageSlideShow do
       # TODO: updating non trivial amount of table
       it "increases installed counter in summary" do
         Yast::PackageSlideShow.main # to reset counter
-        expect{Yast::PackageSlideShow.SlideDisplayDone("test", 1, false)}.to(
-          change{Yast::PackageSlideShow.GetPackageSummary["installed"]}.from(0).to(1)
+        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, false) }.to(
+          change { Yast::PackageSlideShow.GetPackageSummary["installed"] }.from(0).to(1)
         )
       end
 
       it "adds name to installed_list in summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
         Yast::PackageSlideShow.main # to reset counter
-        expect{Yast::PackageSlideShow.SlideDisplayDone("test", 1, false)}.to(
-          change{Yast::PackageSlideShow.GetPackageSummary["installed_list"]}.
-            from([]).
-            to(["test"])
+        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, false) }.to(
+          change { Yast::PackageSlideShow.GetPackageSummary["installed_list"] }
+            .from([])
+            .to(["test"])
         )
       end
 
       it "adds its size to installed_bytes in summary" do
         Yast::PackageSlideShow.main # to reset counter
-        expect{Yast::PackageSlideShow.SlideDisplayDone("test", 502, false)}.to(
-          change{Yast::PackageSlideShow.GetPackageSummary["installed_bytes"]}.from(0).to(502)
+        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 502, false) }.to(
+          change { Yast::PackageSlideShow.GetPackageSummary["installed_bytes"] }.from(0).to(502)
         )
       end
 
