@@ -8,7 +8,7 @@ module Yast
     include Yast::Logger
 
     # seconds to cut off predicted time
-    MAX_TIME_PER_CD = 2 * 60 * 60 # 2 hours
+    MAX_TIME = 2 * 60 * 60 # 2 hours
 
     # Column index for refreshing statistics: remaining size
     SIZE_COLUMN_POSITION = 1
@@ -135,7 +135,7 @@ module Yast
     end
 
     def TotalInstalledSize
-      @total_size_to_install -  TotalRemainingSize()
+      @total_size_to_install - TotalRemainingSize()
     end
 
     def show_remaining_time?
@@ -144,16 +144,16 @@ module Yast
 
     # Format an integer seconds value with min:sec or hours:min:sec
     #
-    # Values bigger then MAX_TIME_PER_CD are interpreted as overflow - ">" is prepended and the
-    # MAX_TIME_PER_CD is used.
+    # Values bigger then MAX_TIME are interpreted as overflow - ">" is prepended and the
+    # MAX_TIME is used.
     #
     def FormatTimeShowOverflow(seconds)
-      if seconds > MAX_TIME_PER_CD
+      if seconds > MAX_TIME
         # TRANSLATORS: "%1" is a predefined maximum time. Value used in table
         # to indicate long time like ">2:00:00"
         Builtins.sformat(
           _(">%1"),
-          String.FormatTime(MAX_TIME_PER_CD)
+          String.FormatTime(MAX_TIME)
         )
       else
         String.FormatTime(seconds)

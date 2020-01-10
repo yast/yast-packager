@@ -20,17 +20,17 @@ describe Yast::PackageSlideShow do
   describe ".SwitchToSecondsIfNecessary" do
     context "remaining time is already shown" do
       before do
-        Yast::PackageSlideShow.unit_is_seconds = true
+        package_slide_show.unit_is_seconds = true
       end
 
       it "returns false" do
-        expect(Yast::PackageSlideShow.SwitchToSecondsIfNecessary).to eq false
+        expect(package_slide_show.SwitchToSecondsIfNecessary).to eq false
       end
     end
 
     context "remaining time is not yet shown" do
       before do
-        Yast::PackageSlideShow.unit_is_seconds = false
+        package_slide_show.unit_is_seconds = false
       end
 
       context "initial delay does not pass yet" do
@@ -41,7 +41,7 @@ describe Yast::PackageSlideShow do
         end
 
         it "returns false" do
-          expect(Yast::PackageSlideShow.SwitchToSecondsIfNecessary).to eq false
+          expect(package_slide_show.SwitchToSecondsIfNecessary).to eq false
         end
       end
 
@@ -53,19 +53,19 @@ describe Yast::PackageSlideShow do
         end
 
         it "returns false" do
-          expect(Yast::PackageSlideShow.SwitchToSecondsIfNecessary).to eq true
+          expect(package_slide_show.SwitchToSecondsIfNecessary).to eq true
         end
 
         it "sets to display remaining time" do
-          Yast::PackageSlideShow.SwitchToSecondsIfNecessary
+          package_slide_show.SwitchToSecondsIfNecessary
 
-          expect(Yast::PackageSlideShow.show_remaining_time?).to eq true
+          expect(package_slide_show.show_remaining_time?).to eq true
         end
 
         it "recalculates remaining time" do
-          expect(Yast::PackageSlideShow).to receive(:RecalcRemainingTimes)
+          expect(package_slide_show).to receive(:RecalcRemainingTimes)
 
-          Yast::PackageSlideShow.SwitchToSecondsIfNecessary
+          package_slide_show.SwitchToSecondsIfNecessary
         end
       end
     end
@@ -74,17 +74,17 @@ describe Yast::PackageSlideShow do
   describe ".SlideDisplayDone" do
     context "when deleting package" do
       it "increases removed counter in summary" do
-        Yast::PackageSlideShow.main # to reset counter
-        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, true) }.to(
-          change { Yast::PackageSlideShow.GetPackageSummary["removed"] }.from(0).to(1)
+        package_slide_show.main # to reset counter
+        expect { package_slide_show.SlideDisplayDone("test", 1, true) }.to(
+          change { package_slide_show.GetPackageSummary["removed"] }.from(0).to(1)
         )
       end
 
       it "adds name to removed_list in summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
-        Yast::PackageSlideShow.main # to reset counter
-        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, true) }.to(
-          change { Yast::PackageSlideShow.GetPackageSummary["removed_list"] }
+        package_slide_show.main # to reset counter
+        expect { package_slide_show.SlideDisplayDone("test", 1, true) }.to(
+          change { package_slide_show.GetPackageSummary["removed_list"] }
             .from([])
             .to(["test"])
         )
@@ -96,40 +96,59 @@ describe Yast::PackageSlideShow do
       # TODO: updating is also hard to test as it is set at start of package install
       # TODO: updating non trivial amount of table
       it "increases installed counter in summary" do
-        Yast::PackageSlideShow.main # to reset counter
-        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, false) }.to(
-          change { Yast::PackageSlideShow.GetPackageSummary["installed"] }.from(0).to(1)
+        package_slide_show.main # to reset counter
+        expect { package_slide_show.SlideDisplayDone("test", 1, false) }.to(
+          change { package_slide_show.GetPackageSummary["installed"] }.from(0).to(1)
         )
       end
 
       it "adds name to installed_list in summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
-        Yast::PackageSlideShow.main # to reset counter
-        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 1, false) }.to(
-          change { Yast::PackageSlideShow.GetPackageSummary["installed_list"] }
+        package_slide_show.main # to reset counter
+        expect { package_slide_show.SlideDisplayDone("test", 1, false) }.to(
+          change { package_slide_show.GetPackageSummary["installed_list"] }
             .from([])
             .to(["test"])
         )
       end
 
       it "adds its size to installed_bytes in summary" do
-        Yast::PackageSlideShow.main # to reset counter
-        expect { Yast::PackageSlideShow.SlideDisplayDone("test", 502, false) }.to(
-          change { Yast::PackageSlideShow.GetPackageSummary["installed_bytes"] }.from(0).to(502)
+        package_slide_show.main # to reset counter
+        expect { package_slide_show.SlideDisplayDone("test", 502, false) }.to(
+          change { package_slide_show.GetPackageSummary["installed_bytes"] }.from(0).to(502)
         )
       end
 
       it "sets global progress label in slide show" do
         expect(Yast::SlideShow).to receive(:SetGlobalProgressLabel)
 
-        Yast::PackageSlideShow.SlideDisplayDone("test", 502, false)
+        package_slide_show.SlideDisplayDone("test", 502, false)
       end
 
       it "updates stage progress" do
         expect(Yast::SlideShow).to receive(:StageProgress)
 
-        Yast::PackageSlideShow.SlideDisplayDone("test", 502, false)
+        package_slide_show.SlideDisplayDone("test", 502, false)
       end
+    end
+  end
+
+  describe ".FormatTimeShowOverflow" do
+    it "formats time" do
+      time = 1 * 3600 + 14 * 60 + 30
+      expect(package_slide_show.FormatTimeShowOverflow(time)).to eq "1:14:30"
+    end
+
+    it "shows >MAX_TIME if time exceed MAX_TIME" do
+      time = 14 * 60 + 30 + Yast::PackageSlideShowClass::MAX_TIME
+      expect(package_slide_show.FormatTimeShowOverflow(time)).to eq ">2:00:00"
+    end
+  end
+
+  describe ".CdStatisticsTableItems" do
+    it "returns array of table items" do
+      package_slide_show.main # to reset counter
+      expect(package_slide_show.CdStatisticsTableItems).to be_a(::Array)
     end
   end
 end
