@@ -11,6 +11,10 @@ describe Yast::PackageSlideShow do
     it "returns the sum skipping negative values" do
       expect(package_slide_show.ListSum([1, 2, 3, -1, -2, 4])).to eq(10)
     end
+
+    it "flattens list" do
+      expect(package_slide_show.ListSum([[1, 2], 3, -1, -2, [4]])).to eq(10)
+    end
   end
 
   describe ".SwitchToSecondsIfNecessary" do

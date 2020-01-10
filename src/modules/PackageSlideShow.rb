@@ -114,30 +114,28 @@ module Yast
     # **************  Formatting functions and helpers **************************
     # ***************************************************************************
 
-    # Sum up all list items
+    # Sum up all list items. Flatten list.
     #
-    # @param sizes [Array<Fixnum>] Sizes to sum
+    # @param sizes [Array<Fixnum|Array>] Sizes to sum
     # @return [Fixnum] Sizes sum
     def ListSum(sizes)
-      sizes.reduce(0) { |a, e| (e < 0) ? a : a + e }
+      sizes.flatten.reduce(0) { |a, e| (e < 0) ? a : a + e }
     end
 
     def TotalRemainingSize
-      ListSum(Builtins.flatten(@remaining_sizes_per_cd_per_src))
+      ListSum(@remaining_sizes_per_cd_per_src)
     end
 
     def TotalRemainingTime
-      ListSum(
-        Builtins.flatten(@remaining_times_per_cd_per_src)
-      )
+      ListSum(@remaining_times_per_cd_per_src)
     end
 
     def TotalRemainingPkgCount
-      ListSum(Builtins.flatten(@remaining_pkg_count_per_cd_per_src))
+      ListSum(@remaining_pkg_count_per_cd_per_src)
     end
 
     def TotalInstalledSize
-      Ops.subtract(@total_size_to_install, TotalRemainingSize())
+      @total_size_to_install -  TotalRemainingSize()
     end
 
     def show_remaining_time?
@@ -340,8 +338,7 @@ module Yast
     end
 
     def packages_to_install(src_mapping)
-      src_mapping = deep_copy(src_mapping)
-      ret = ListSum(Builtins.flatten(src_mapping))
+      ret = ListSum(src_mapping)
       log.info "Total number of packages to install: #{ret}"
       ret
     end
@@ -383,9 +380,7 @@ module Yast
       @total_sizes_per_cd_per_src = Pkg.PkgMediaSizes
       @total_pkg_count_per_cd_per_src = Pkg.PkgMediaCount
 
-      @total_size_to_install = ListSum(
-        Builtins.flatten(@total_sizes_per_cd_per_src)
-      )
+      @total_size_to_install = ListSum(@total_sizes_per_cd_per_src)
       log.info "total_size_to_install: #{@total_size_to_install}"
       @remaining_sizes_per_cd_per_src = deep_copy(@total_sizes_per_cd_per_src)
       @remaining_pkg_count_per_cd_per_src = deep_copy(@total_pkg_count_per_cd_per_src)
