@@ -610,7 +610,7 @@ module Yast
       if show_remaining_time?
         # Convert 'remaining' from size (bytes) to time (seconds)
 
-        remaining = @bytes_per_second.non_zero? ? remaining / @bytes_per_second : (MAX_TIME + 1)
+        remaining = @bytes_per_second.nonzero? ? remaining / @bytes_per_second : (MAX_TIME + 1)
 
         UI.ChangeWidget(
           Id(:cdStatisticsTable),
@@ -1077,6 +1077,7 @@ module Yast
       nil
     end
 
+    publish variable: :total_size_to_install, type: "integer" # Used in installation client
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
     publish function: :SetCurrentCdNo, type: "void (integer, integer)"
