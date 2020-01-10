@@ -114,12 +114,12 @@ module Yast
     # **************  Formatting functions and helpers **************************
     # ***************************************************************************
 
-    # Sum up all list items. Flatten list.
+    # Sum up all list items. It flattens list and also skip all negative values.
     #
     # @param sizes [Array<Fixnum|Array>] Sizes to sum
     # @return [Fixnum] Sizes sum
     def ListSum(sizes)
-      sizes.flatten.reduce(0) { |a, e| (e < 0) ? a : a + e }
+      sizes.flatten.select(&:positive?).reduce(0, :+)
     end
 
     def TotalRemainingSize
@@ -414,18 +414,11 @@ module Yast
       @next_src_no = @current_src_no - 1
       @last_cd = false
 
-      while Ops.less_than(
-        @next_src_no,
-        Builtins.size(@remaining_sizes_per_cd_per_src)
-      )
-        remaining_sizes = Ops.get(
-          @remaining_sizes_per_cd_per_src,
-          @next_src_no,
-          []
-        )
+      while @next_src_no < @remaining_sizes_per_cd_per_src.size
+        remaining_sizes = @remaining_sizes_per_cd_per_src[@next_src_no]
 
-        while Ops.less_than(@next_cd_no, Builtins.size(remaining_sizes))
-          return if Ops.greater_than(Ops.get(remaining_sizes, @next_cd_no, 0), 0)
+        while @next_cd_no < remaining_sizes.size
+          return if remaining_sizes[@next_cd_no] > 0
 
           @next_cd_no += 1
         end
@@ -433,7 +426,7 @@ module Yast
         @next_src_no += 1
       end
 
-      Builtins.y2milestone("No next media - all done")
+      log.info "No next media - all done"
 
       @next_src_no = -1
       @next_cd_no = -1
@@ -590,11 +583,7 @@ module Yast
 
       # pair into array of array for time and size
       source_pair = [@current_src_no - 1, @current_cd_no - 1]
-      remaining = Ops.get(
-        @remaining_sizes_per_cd_per_src,
-        source_pair,
-        0
-      )
+      remaining = @remaining_sizes_per_cd_per_src.dig(*source_pair) || 0
 
       # collumn id for current CD
       source_id = "cd(#{source_pair.join(",")})"
@@ -615,19 +604,13 @@ module Yast
           source_id,
           PKG_COUNT_COLUMN_POSITION
         ),
-        FormatRemainingCount(
-          Ops.get(
-            @remaining_pkg_count_per_cd_per_src,
-            source_pair,
-            0
-          )
-        )
+        FormatRemainingCount(@remaining_pkg_count_per_cd_per_src.dig(*source_pair) || 0)
       )
 
       if show_remaining_time?
         # Convert 'remaining' from size (bytes) to time (seconds)
 
-        remaining = Ops.divide(remaining, @bytes_per_second)
+        remaining = @bytes_per_second.non_zero? ? remaining / @bytes_per_second : (MAX_TIME + 1)
 
         UI.ChangeWidget(
           Id(:cdStatisticsTable),
@@ -735,14 +718,14 @@ module Yast
 
       src_no = 0
 
-      Builtins.foreach(@remaining_sizes_per_cd_per_src) do |inst_src|
-        Builtins.y2milestone("src #%1: %2", src_no, inst_src)
+      @remaining_sizes_per_cd_per_src.each do |inst_src|
+        log.info "src ##{src_no}: #{inst_src}"
         # Ignore repositories from where there is nothing is to install
         next if ListSum(inst_src) < 1
 
         cd_no = 0
 
-        Builtins.foreach(inst_src) do |src_remaining|
+        inst_src.each do |src_remaining|
           if src_remaining > 0 ||
               (src_no + 1) == @current_src_no &&
                   (cd_no + 1) == @current_cd_no # suppress current CD
@@ -751,7 +734,7 @@ module Yast
             caption += @media_type + (cd_no + 1).to_s unless @last_cd
             rem_size = FormatRemainingSize(src_remaining) # column #1
             rem_count = FormatRemainingCount(
-              Ops.get(@remaining_pkg_count_per_cd_per_src, [src_no, cd_no], 0)
+              @remaining_pkg_count_per_cd_per_src.dig(src_no, cd_no) || 0
             )
             rem_time = HOURGLASS
 
@@ -850,11 +833,7 @@ module Yast
       @total_downloaded += @current_provide_size
 
       @total_count_downloaded += 1
-      Builtins.y2milestone(
-        "Downloaded %1/%2 packages",
-        @total_count_downloaded,
-        @total_count_to_download
-      )
+      log.info "Downloaded #{@total_downloaded}/#{@total_count_to_download} packages"
 
       # move the progress also for downloaded files
       UpdateTotalProgressValue()
@@ -867,14 +846,12 @@ module Yast
         # display download progress in DownloadInAdvance mode
         # translations: progress message (part1)
         SlideShow.SetGlobalProgressLabel(
-          Ops.add(
-            _("Downloading Packages..."),
-            # progress message (part2)
-            Builtins.sformat(
-              _(" (Downloaded %1 of %2 packages)"),
-              @total_count_downloaded,
-              @total_count_to_download
-            )
+          _("Downloading Packages...") +
+          # progress message (part2)
+          Builtins.sformat(
+            _(" (Downloaded %1 of %2 packages)"),
+            @total_count_downloaded,
+            @total_count_to_download
           )
         )
       end

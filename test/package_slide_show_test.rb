@@ -18,10 +18,13 @@ describe Yast::PackageSlideShow do
   end
 
   describe ".SwitchToSecondsIfNecessary" do
+    before do
+      # set internal variable if showing time or not
+      package_slide_show.instance_variable_set(:@unit_is_seconds, show_time)
+    end
+
     context "remaining time is already shown" do
-      before do
-        package_slide_show.unit_is_seconds = true
-      end
+      let(:show_time) { true }
 
       it "returns false" do
         expect(package_slide_show.SwitchToSecondsIfNecessary).to eq false
@@ -29,9 +32,7 @@ describe Yast::PackageSlideShow do
     end
 
     context "remaining time is not yet shown" do
-      before do
-        package_slide_show.unit_is_seconds = false
-      end
+      let(:show_time) { false }
 
       context "initial delay does not pass yet" do
         before do
