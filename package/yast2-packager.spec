@@ -36,7 +36,7 @@ BuildRequires:  yast2-storage-ng >= 4.0.141
 # break the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
 # SlideShow.Redraw
-BuildRequires:  yast2 >= 4.2.52
+BuildRequires:  yast2 >= 4.2.54
 # Pkg::Resolvables
 BuildRequires:  yast2-pkg-bindings >= 4.2.0
 # Augeas lenses
@@ -48,7 +48,7 @@ Requires:       yast2-country-data >= 2.16.3
 # Pkg::Resolvables
 Requires:       yast2-pkg-bindings >= 4.2.0
 # SlideShow.Redraw
-Requires:       yast2 >= 4.2.52
+Requires:       yast2 >= 4.2.54
 # unzipping license file
 Requires:       unzip
 # HTTP, FTP, HTTPS modules (inst_productsources.ycp)
