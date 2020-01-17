@@ -456,8 +456,9 @@ module Yast
         end
       end
       repo_management = Mode.normal if repo_management.nil?
+      online_search = Mode.normal && Yast::WFM.ClientExists("online_search")
 
-      ret = { "mode" => mode, "enable_repo_mgr" => repo_management }
+      ret = { "mode" => mode, "enable_repo_mgr" => repo_management, "enable_online_search" => online_search }
 
       Builtins.y2milestone("PackagesUI::RunPackageSelector() options: %1", ret)
 
@@ -614,6 +615,9 @@ module Yast
                   cfg_result
                 )
               end
+              force_restart = true
+            elsif result == :online_search
+              WFM.CallFunction("online_search", [:sw_single_mode])
               force_restart = true
             elsif result == :webpin
               required_package = "yast2-packager-webpin"
