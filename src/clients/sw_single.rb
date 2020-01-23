@@ -456,7 +456,7 @@ module Yast
         end
       end
       repo_management = Mode.normal if repo_management.nil?
-      online_search = Mode.normal && Yast::WFM.ClientExists("online_search")
+      online_search = Mode.normal && registered?
 
       ret = {
         "mode" => mode, "enable_repo_mgr" => repo_management,
@@ -800,6 +800,18 @@ module Yast
       UI.CloseDialog
 
       result
+    end
+
+  private
+
+    # Determines whether the running system is registered or not
+    #
+    # @return [Booolean] true if the system is registered; false otherwise
+    def registered?
+      require "registration/registration"
+      ::Registration::Registration.is_registered?
+    rescue LoadError
+      false
     end
   end
 end
