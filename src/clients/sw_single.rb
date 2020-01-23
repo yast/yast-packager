@@ -456,8 +456,12 @@ module Yast
         end
       end
       repo_management = Mode.normal if repo_management.nil?
+      online_search = Mode.normal && registered?
 
-      ret = { "mode" => mode, "enable_repo_mgr" => repo_management }
+      ret = {
+        "mode" => mode, "enable_repo_mgr" => repo_management,
+        "enable_online_search" => online_search
+      }
 
       Builtins.y2milestone("PackagesUI::RunPackageSelector() options: %1", ret)
 
@@ -614,6 +618,9 @@ module Yast
                   cfg_result
                 )
               end
+              force_restart = true
+            elsif result == :online_search
+              WFM.CallFunction("online_search", [:sw_single_mode])
               force_restart = true
             elsif result == :webpin
               required_package = "yast2-packager-webpin"
@@ -793,6 +800,18 @@ module Yast
       UI.CloseDialog
 
       result
+    end
+
+  private
+
+    # Determines whether the running system is registered or not
+    #
+    # @return [Booolean] true if the system is registered; false otherwise
+    def registered?
+      require "registration/registration"
+      ::Registration::Registration.is_registered?
+    rescue LoadError
+      false
     end
   end
 end

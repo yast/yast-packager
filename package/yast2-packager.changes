@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 17 14:21:38 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Enable the online_search if system is registered (jsc#SLE-9109).
+- 4.2.45
+
+-------------------------------------------------------------------
 Thu Jan 10 15:03:31 UTC 2020 - schubi@suse.de
 
 - Do not refresh package installation overview if the medium has
