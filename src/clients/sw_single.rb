@@ -458,7 +458,10 @@ module Yast
       repo_management = Mode.normal if repo_management.nil?
       online_search = Mode.normal && Yast::WFM.ClientExists("online_search")
 
-      ret = { "mode" => mode, "enable_repo_mgr" => repo_management, "enable_online_search" => online_search }
+      ret = {
+        "mode" => mode, "enable_repo_mgr" => repo_management,
+        "enable_online_search" => online_search
+      }
 
       Builtins.y2milestone("PackagesUI::RunPackageSelector() options: %1", ret)
 
