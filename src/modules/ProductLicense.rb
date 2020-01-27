@@ -1515,7 +1515,7 @@ module Yast
       # 'LANG=foo_BAR yast repositories'
       language = EnvLangToLangCode(Builtins.getenv("LANG"))
 
-      # Preferencies how the client selects from available languages
+      # Preferences how the client selects from available languages
       langs = [
         language,
         Builtins.substring(language, 0, 2), # "it_IT" -> "it"
@@ -1539,7 +1539,7 @@ module Yast
         end
       end
 
-      Builtins.y2milestone("Preffered lang: %1", language)
+      Builtins.y2milestone("Preferred lang: %1", language)
       return :auto if Builtins.size(available_langs.value).zero? # no license available
 
       @lic_lang = Builtins.find(langs) { |l| Builtins.haskey(licenses.value, l) }
