@@ -88,17 +88,18 @@ describe Yast::PkgFinishClient do
 
       let(:local_repo) do
         Y2Packager::Repository.new(repo_id: 1, name: "SLE-12-SP2-0", enabled: true,
-          url: URI("hd:/?devices=/dev/sda"), autorefresh: false)
+          url: URI("hd:/?devices=/dev/sda"), autorefresh: false, repo_alias: "SLE-12-SP2-0")
       end
 
       let(:remote_repo) do
         Y2Packager::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
-          url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
+          url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true,
+          repo_alias: "SLE-12-SP2-Pool")
       end
 
       let(:local_dvd_repo) do
         Y2Packager::Repository.new(repo_id: 3, name: "SLE-15-SP1-0", enabled: true,
-          url: URI("dvd:///?devices=/dev/sr0"), autorefresh: false)
+          url: URI("dvd:///?devices=/dev/sr0"), autorefresh: false, repo_alias: "SLE-15-SP1-0")
       end
 
       let(:sles_product) do
@@ -229,12 +230,13 @@ describe Yast::PkgFinishClient do
 
       let(:fallback_repo) do
         Y2Packager::Repository.new(repo_id: 4, name: "dir-a1234", enabled: true,
-          url: URI("dir:///var/lib/fallback-repo"), autorefresh: false)
+          url: URI("dir:///var/lib/fallback-repo"), autorefresh: false, repo_alias: "dir-a1234")
       end
 
       let(:remote_repo) do
         Y2Packager::Repository.new(repo_id: 2, name: "SLE-12-SP2-Pool", enabled: true,
-          url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true)
+          url: URI("http://download.suse.com/sle-12-sp2"), autorefresh: true,
+          repo_alias: "SLE-12-SP2-Pool")
       end
 
       let(:sles_product) do
