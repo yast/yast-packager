@@ -1515,7 +1515,7 @@ module Yast
       # 'LANG=foo_BAR yast repositories'
       language = EnvLangToLangCode(Builtins.getenv("LANG"))
 
-      # Preferencies how the client selects from available languages
+      # Preferences how the client selects from available languages
       langs = [
         language,
         Builtins.substring(language, 0, 2), # "it_IT" -> "it"
@@ -1539,7 +1539,7 @@ module Yast
         end
       end
 
-      Builtins.y2milestone("Preffered lang: %1", language)
+      Builtins.y2milestone("Preferred lang: %1", language)
       return :auto if Builtins.size(available_langs.value).zero? # no license available
 
       @lic_lang = Builtins.find(langs) { |l| Builtins.haskey(licenses.value, l) }
@@ -1716,7 +1716,11 @@ module Yast
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|
-          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
+          # Pkg.PrdGetLicenseToConfirm returns the license in the installation
+          # language, not the default English license if the requested locale
+          # is an empty string (bsc#1160806)
+          license_locale = locale.empty? ? "en" : locale
+          license = Pkg.PrdGetLicenseToConfirm(product_name, license_locale)
           next if license.nil? || license.empty?
 
           found_license = true
