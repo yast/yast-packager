@@ -1716,7 +1716,11 @@ module Yast
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|
-          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
+          # Pkg.PrdGetLicenseToConfirm returns the license in the installation
+          # language, not the default English license if the requested locale
+          # is an empty string (bsc#1160806)
+          license_locale = locale.empty? ? "en" : locale
+          license = Pkg.PrdGetLicenseToConfirm(product_name, license_locale)
           next if license.nil? || license.empty?
 
           found_license = true
