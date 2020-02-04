@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb  4 14:09:29 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
+
+- Mark packager and repositories as WSL capable modules
+  (bsc#1162650)
+- 4.2.48
+
+-------------------------------------------------------------------
 Wed Jan 29 15:35:20 UTC 2020 - Stefan Hundhammer <shundhammer@suse.com>
 
 - Don't overwrite the default English license for add-on modules
