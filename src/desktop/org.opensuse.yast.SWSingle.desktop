@@ -14,6 +14,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=20
 X-SuSE-YaST-AutoInstResource=
 X-SuSE-YaST-Keywords=software,packages,rpm,repositories,installation,deletion
+X-SuSE-YaST-WSL=true
 
 Icon=yast-sw_single
 Exec=xdg-su -c "/sbin/yast2 sw_single"
