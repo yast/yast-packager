@@ -456,7 +456,7 @@ module Yast
         end
       end
       repo_management = Mode.normal if repo_management.nil?
-      online_search = Mode.normal && registered?
+      online_search = Mode.normal && online_search_available?
 
       ret = {
         "mode" => mode, "enable_repo_mgr" => repo_management,
@@ -804,14 +804,14 @@ module Yast
 
   private
 
-    # Determines whether the running system is registered or not
+    # Determines whether the online search can be used in the running system
     #
-    # @return [Booolean] true if the system is registered; false otherwise
-    def registered?
-      require "registration/registration"
-      ::Registration::Registration.is_registered?
-    rescue LoadError
-      false
+    # @note The online search feature is available in those systems that
+    #   can be installed. For the time being, we rely on the online_search
+    #   client being available (from `yast2-registration`).
+    # @return [Boolean]
+    def online_search_available?
+      Yast::WFM.ClientExists("online_search")
     end
   end
 end
