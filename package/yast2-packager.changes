@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  5 15:36:54 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Enable the "Search Online" menu entry for those systems that
+  are registered or that can be registered (jsc#SLE-9109).
+- 4.2.49
+
+-------------------------------------------------------------------
 Tue Feb  4 14:09:29 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - Mark packager and repositories as WSL capable modules
