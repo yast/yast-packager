@@ -417,6 +417,8 @@ module Yast
       while @next_src_no < @remaining_sizes_per_cd_per_src.size
         remaining_sizes = @remaining_sizes_per_cd_per_src[@next_src_no]
 
+        break if remaining_sizes.nil?
+
         while @next_cd_no < remaining_sizes.size
           return if remaining_sizes[@next_cd_no] > 0
 

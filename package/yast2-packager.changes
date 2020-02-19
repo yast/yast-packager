@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb 18 15:47:45 UTC 2020 - David Diaz <dgonzalez@suse.com>
+
+- Avoid crashing when changing a language and keyboard layout
+  (bsc#1161842).
+- 4.2.50
+
+-------------------------------------------------------------------
 Wed Feb  5 15:36:54 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - Enable the "Search Online" menu entry for those systems that
