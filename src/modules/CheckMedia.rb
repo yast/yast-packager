@@ -1,4 +1,25 @@
+# Copyright (c) [2013-2020] SUSE LLC
+#
+# All Rights Reserved.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of version 2 of the GNU General Public License as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, contact SUSE LLC.
+#
+# To contact SUSE LLC about this file by physical or electronic mail, you may
+# find current contact information at www.suse.com.
+
 require "yast"
+require "yast2/execute"
+require "shellwords"
 
 # Yast namespace
 module Yast
@@ -82,9 +103,11 @@ module Yast
 
       # try to read whole lines
       out = Convert.to_string(SCR.Read(path(".process.read_line"), @process))
+
       if @inprogress
         # read progress status
         buffer = Convert.to_string(SCR.Read(path(".process.read"), @process))
+
         if !out.nil?
           @output = Builtins.add(@output, out)
 
@@ -96,9 +119,11 @@ module Yast
             )
           end
 
-          # finished
-          @progress = 100
-          @inprogress = false
+          # finishing if there is no out and the progress was already started
+          if @progress > 0
+            @progress = 100
+            @inprogress = false
+          end
         elsif !buffer.nil?
           Builtins.y2debug("buffer: %1", buffer)
 
@@ -111,12 +136,10 @@ module Yast
         end
       elsif !out.nil?
         @output = Builtins.add(@output, out)
-
-        # check whether we need to switch to progress mode
-        if Builtins.regexpmatch(out, "^ *pad: ")
-          @inprogress = true
-          Builtins.y2milestone("Switching into progress mode")
-        end
+      else
+        Builtins.y2milestone("Switching into progress mode")
+        @inprogress = true
+        @progress = 0
       end
 
       nil
@@ -192,6 +215,15 @@ module Yast
       end
 
       nil
+    end
+
+    # Whether the medium inside the drive contains a checksum in the application area
+    #
+    # @return [Boolean]
+    def valid_checksum?(drive)
+      tagmedia = Execute.locally.stdout("tagmedia", drive.shellescape)
+
+      tagmedia.match?(/^(md5|sha.*)sum =/)
     end
 
     publish variable: :checkmedia, type: "const string"

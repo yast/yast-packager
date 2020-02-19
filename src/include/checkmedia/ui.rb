@@ -1,3 +1,22 @@
+# Copyright (c) [2013-2020] SUSE LLC
+#
+# All Rights Reserved.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of version 2 of the GNU General Public License as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, contact SUSE LLC.
+#
+# To contact SUSE LLC about this file by physical or electronic mail, you may
+# find current contact information at www.suse.com.
+
 require "shellwords"
 
 # encoding: utf-8
@@ -71,10 +90,11 @@ module Yast
 
       ret = []
 
-      Builtins.foreach(info) do |i|
-        parts = Builtins.splitstring(i, ":")
-        key = String.CutBlanks(Ops.get(parts, 0, ""))
-        val = String.CutBlanks(Ops.get(parts, 1, ""))
+      info.each do |i|
+        key, val = i.split(":").map(&:strip)
+
+        next unless key
+
         trasmap = {
           # rich text message, %1 = CD identification
           "app"        => Ops.add(
@@ -86,12 +106,16 @@ module Yast
             "<UL><LI>Medium: %1</LI></UL>"
           ),
           # rich text message, %1 = size of the medium
-          "size"       => _(
+          "iso size"   => _(
             "<UL><LI>Size: %1</LI></UL>"
           ),
           # rich text message, %1 = result of the check
-          "check"      => _(
+          "result"     => _(
             "<UL><LI>Result: %1</LI></UL>"
+          ),
+          # rich text message, %1 = signature check
+          "signature"  => _(
+            "<UL><LI>Signature: %1</LI></UL>"
           ),
           # rich text -  error message
           "not an iso" => "<FONT COLOR=red>" +
@@ -99,10 +123,10 @@ module Yast
               "The drive does not contain a medium or the ISO file system is broken."
             ) + "</FONT>"
         }
-        if key == "check"
+
+        if key == "result"
           # try to translate result string
-          # correct MD5
-          if val == "md5sum ok"
+          if val.match?(/ok/)
             # result of the check - success
             val = "<FONT COLOR=\"darkGreen\">" +
               _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>"
@@ -117,49 +141,24 @@ module Yast
             val = _(
               "<B>Unknown</B> -- The correct MD5 sum of the medium is unknown."
             )
-          # progress output
-          elsif Builtins.issubstring(val, "%\b\b\b\b")
-            key = ""
-            Builtins.y2milestone(
-              "Ignoring progress output: %1",
-              Builtins.mergestring(Builtins.splitstring(val, "\b"), "\\b")
-            )
           end
-        # don't print MD5 sum (it doesn't help user)
-        elsif key == "md5"
-          Builtins.y2milestone("Expected MD5 of the medium: %1", val)
-          key = ""
         end
-        newstr = Ops.get(trasmap, key, "")
-        if !newstr.nil? && newstr != ""
-          newstr = Builtins.sformat(newstr, val)
 
-          ret = Builtins.add(ret, newstr)
-        end
+        # don't print checksum (it doesn't help user)
+        Builtins.y2milestone("Expected checksum of the medium: %1", val) if key.match?(/md5|sha.*/)
+
+        newstr = Ops.get(trasmap, key, "")
+
+        next if newstr.nil? || newstr.empty?
+
+        newstr = Builtins.sformat(newstr, val)
+
+        ret = Builtins.add(ret, newstr)
       end
 
       Builtins.y2milestone("Translated info: %1", ret)
 
       deep_copy(ret)
-    end
-
-    # does the medium contain MD5 checksum in the application area?
-    def md5sumTagPresent(input)
-      command = "/usr/bin/dd if=#{input.shellescape} bs=1 skip=33651 count=512"
-
-      res = SCR.Execute(path(".target.bash_output"), command)
-
-      if Ops.get_integer(res, "exit", -1).nonzero?
-        Builtins.y2warning("command failed: %1", command)
-        return nil
-      end
-
-      Builtins.y2milestone(
-        "Read application area: %1",
-        Ops.get_string(res, "stdout", "")
-      )
-
-      Builtins.regexpmatch(Ops.get_string(res, "stdout", ""), "md5sum=")
     end
 
     # mount CD drive and check whether there is directory 'media.1' (the first medium)
@@ -447,17 +446,15 @@ module Yast
                 )
               )
             else
-              if md5sumTagPresent(selecteddrive) == false
-                if !Popup.ContinueCancel(
-                  _(
-                    "The medium does not contain a MD5 checksum.\n" \
-                      "The content of the medium cannot be verified.\n" \
-                      "\n" \
-                      "Only readability of the medium will be checked.\n"
-                  )
+              if !CheckMedia.valid_checksum?(selecteddrive)
+                continue_checking = Popup.ContinueCancel(
+                  _("The medium does not contain a valid checksum.\n" \
+                    "The content of the medium cannot be verified.\n" \
+                    "\n" \
+                    "Only readability of the medium will be checked.\n")
                 )
-                  next
-                end
+
+                next unless continue_checking
               end
 
               CheckMedia.Start(selecteddrive)
