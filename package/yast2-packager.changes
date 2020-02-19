@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Feb 19 15:34:23 UTC 2020 - José Iván López González <jlopez@suse.com>
+
+- Media checker does not complain because sha checksums
+  (bsc#1158432).
+- Media checker shows information about the signature.
+- 4.2.51
+
+-------------------------------------------------------------------
 Tue Feb 18 15:47:45 UTC 2020 - David Diaz <dgonzalez@suse.com>
 
 - Avoid crashing when changing a language and keyboard layout
