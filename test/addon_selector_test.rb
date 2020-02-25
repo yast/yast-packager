@@ -3,13 +3,24 @@
 require_relative "./test_helper"
 
 require "y2packager/product_location"
+require "y2packager/product_location_details"
 require "y2packager/dialogs/addon_selector"
 
 describe Y2Packager::Dialogs::AddonSelector do
   let(:media_products) do
-    prods = [["SLE-15-Module-Basesystem 15.0-0", "/Basesystem"],
-             ["SLE-15-Module-Legacy 15.0-0", "/Legacy"]]
-    prods.map { |r| Y2Packager::ProductLocation.new(r[0], r[1]) }
+    prods = [
+      [
+        "SLE-15-Module-Basesystem 15.0-0",
+        "/Basesystem",
+        Y2Packager::ProductLocationDetails.new(product: "sle-module-basesystem")
+      ],
+      [
+        "SLE-15-Module-Legacy 15.0-0",
+        "/Legacy",
+        Y2Packager::ProductLocationDetails.new(product: "sle-module-legacy")
+      ]
+    ]
+    prods.map { |r| Y2Packager::ProductLocation.new(r[0], r[1], product: r[2]) }
   end
 
   subject { described_class.new(media_products) }
@@ -84,6 +95,41 @@ describe Y2Packager::Dialogs::AddonSelector do
       it "returns nil if the popup is not confirmed" do
         expect(Yast::Popup).to receive(:ContinueCancel).with(/no product/i).and_return(false)
         expect(subject.next_handler).to be_nil
+      end
+    end
+  end
+
+  describe "#create_dialog" do
+    context "in installation" do
+      before do
+        allow(Yast::Stage).to receive(:initial).and_return(true)
+        allow(Yast::Mode).to receive(:installation).and_return(true)
+      end
+
+      it "preselects the default products from control.xml" do
+        # mock the control.xml default
+        expect(Yast::ProductFeatures).to receive(:GetFeature)
+          .with("software", "default_modules").and_return(["sle-module-basesystem"])
+
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(kind: :product, status: :selected).and_return([])
+
+        expect(Yast::Wizard).to receive(:SetContents) do |_title, content, _help, _back, _next|
+          # find the MultiSelectionBox term in the UI definition
+          term = content.nested_find do |t|
+            t.respond_to?(:value) && t.value == :MultiSelectionBox
+          end
+
+          # verify that the Basesystem module is preselected
+          expect(term.params[3][0].params[1]).to eq("SLE-15-Module-Basesystem 15.0-0")
+          expect(term.params[3][0].params[2]).to eq(true)
+
+          # verify that the Legacy module is NOT preselected
+          expect(term.params[3][1].params[1]).to eq("SLE-15-Module-Legacy 15.0-0")
+          expect(term.params[3][1].params[2]).to eq(false)
+        end
+
+        subject.create_dialog
       end
     end
   end

@@ -17,6 +17,7 @@ require "y2packager/resolvable"
 
 Yast.import "AddOnProduct"
 Yast.import "Mode"
+Yast.import "ProductFeatures"
 Yast.import "Report"
 Yast.import "Stage"
 Yast.import "UI"
@@ -234,16 +235,47 @@ module Y2Packager
         erb.result(binding)
       end
 
-      # return a list of the preselected products
-      # during upgrade we want to preselect the installed products
+      # return a list of the preselected products depending on the installation mode
       # @return [Array<Y2Packager::ProductLocation>] the products
       def preselected_products
-        return [] unless Yast::Mode.update
+        # at upgrade preselect the installed addons
+        return preselected_upgrade_products if Yast::Mode.update
+        # in installation preselect the defaults defined in the control.xml/installation.xml
+        return preselected_installation_products if Yast::Mode.installation
 
+        # in other modes (e.g. installed system) do not preselect anything
+        []
+      end
+
+      # return a list of the preselected products at upgrade,
+      # preselect the installed products
+      # @return [Array<Y2Packager::ProductLocation>] the products
+      def preselected_upgrade_products
         missing_products = Yast::AddOnProduct.missing_upgrades
         # installed but not selected yet products (to avoid duplicates)
         products.select do |p|
           missing_products.include?(p.details&.product)
+        end
+      end
+
+      # return a list of the preselected products at installation,
+      # preselect the default products specified in the control.xml/installation.xml,
+      # the already selected products are ignored
+      # @return [Array<Y2Packager::ProductLocation>] the products
+      def preselected_installation_products
+        default_modules = Yast::ProductFeatures.GetFeature("software", "default_modules")
+        return [] unless default_modules
+
+        log.info("Defined default modules: #{default_modules.inspect}")
+        # skip the already selected products (to avoid duplicates)
+        selected_products = Y2Packager::Resolvable.find(kind: :product, status: :selected)
+          .map(&:name)
+        default_modules -= selected_products
+        log.info("Using default modules: #{default_modules.inspect}")
+
+        # select the default products
+        products.select do |p|
+          default_modules.include?(p.details&.product)
         end
       end
     end
