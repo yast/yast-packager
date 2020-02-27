@@ -16,6 +16,7 @@ require "y2packager/product"
 require "y2packager/self_update_addon_repo"
 require "y2packager/medium_type"
 
+Yast.import "GetInstArgs"
 Yast.import "Packages"
 Yast.import "PackageCallbacks"
 Yast.import "Popup"
@@ -36,6 +37,9 @@ module Y2Packager
       # Client main method
       def main
         textdomain "packager"
+
+        # no changes if going back
+        return :back if Yast::GetInstArgs.going_back
 
         if Y2Packager::MediumType.skip_step?
           log.info "Skipping the client on the #{Y2Packager::MediumType.type} medium"
