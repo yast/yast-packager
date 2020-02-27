@@ -21,6 +21,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       allow(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(false)
       allow(Y2Packager::MediumType).to receive(:online?).and_return(false)
       allow(Y2Packager::MediumType).to receive(:offline?).and_return(false)
+      allow(Yast::GetInstArgs).to receive(:going_back).and_return(false)
     end
 
     it "initializes Packages subsystem" do
@@ -42,6 +43,21 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       expect(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(false)
       expect(Y2Packager::SelfUpdateAddonRepo).to_not receive(:create_repo)
       client.main
+    end
+
+    context "going back" do
+      before do
+        allow(Yast::GetInstArgs).to receive(:going_back).and_return(true)
+      end
+
+      it "does not initialize Packages subsystem" do
+        expect(Yast::Packages).to_not receive(:InitializeCatalogs)
+        client.main
+      end
+
+      it "returns :back" do
+        expect(client.main).to eq(:back)
+      end
     end
 
     context "when initialization fails" do
