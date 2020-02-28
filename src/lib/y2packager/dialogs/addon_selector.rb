@@ -108,7 +108,7 @@ module Y2Packager
         res = super
         Yast::Wizard.EnableNextButton
         Yast::Wizard.EnableBackButton
-
+        Yast::UI.SetFocus(Id(:addon_repos))
         res
       end
 
@@ -206,16 +206,17 @@ module Y2Packager
       # description widget
       # @return [Yast::Term] the addon details widget
       def details_widget
-        VWeight(40, RichText(Id(:details), Opt(:disabled), "<small>" +
-        description + "</small>"))
+        VWeight(
+          40,
+          RichText(Id(:details), Opt(:disabled), initial_description)
+        )
       end
 
       # extra help text
-      # @return [String] translated text
-      def description
-        # TRANSLATORS: inline help text displayed below the product selection widget
-        _("Select a product to see its description here. The dependent products " \
-          "are selected automatically.")
+      # @return [String] first product description
+      def initial_description
+        return "" if products.empty?
+        product_description(products.first)
       end
 
       def product_description(product)
