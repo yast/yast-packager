@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Feb 28 16:53:10 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Do not crash when the list of preselected modules is not defined
+  (related to jsc#SLE-8040, jsc#SLE-11455).
+- 4.2.54
+
+-------------------------------------------------------------------
 Thu Feb 27 13:44:18 UTC 2020 - Ladislav Slezák <lslezak@suse.cz>
 
 - Fixed going back (bsc#1163023)
