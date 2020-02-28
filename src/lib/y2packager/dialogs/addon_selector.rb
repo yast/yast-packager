@@ -264,7 +264,7 @@ module Y2Packager
       # @return [Array<Y2Packager::ProductLocation>] the products
       def preselected_installation_products
         default_modules = Yast::ProductFeatures.GetFeature("software", "default_modules")
-        return [] unless default_modules
+        return [] if default_modules == ""
 
         log.info("Defined default modules: #{default_modules.inspect}")
         # skip the already selected products (to avoid duplicates)
