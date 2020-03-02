@@ -281,7 +281,7 @@ module Y2Packager
 
       # Returns the current product (the one which has the focus in the addons list)
       #
-      # @param [Y2Packager::Product,nil]
+      # @return [Y2Packager::Product,nil]
       def find_current_product
         current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
         products.find { |p| p.dir == current_item }
