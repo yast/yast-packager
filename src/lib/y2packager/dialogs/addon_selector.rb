@@ -83,9 +83,7 @@ module Y2Packager
 
       # Handle changing the current item or changing the selection
       def addon_repos_handler
-        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
-        current_product = products.find { |p| p.dir == current_item }
-
+        current_product = find_current_product
         return unless current_product
 
         refresh_details(current_product)
@@ -279,6 +277,14 @@ module Y2Packager
         products.select do |p|
           default_modules.include?(p.details&.product)
         end
+      end
+
+      # Returns the current product (the one which has the focus in the addons list)
+      #
+      # @param [Y2Packager::Product,nil]
+      def find_current_product
+        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
+        products.find { |p| p.dir == current_item }
       end
     end
   end
