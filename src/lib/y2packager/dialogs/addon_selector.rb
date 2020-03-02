@@ -83,9 +83,7 @@ module Y2Packager
 
       # Handle changing the current item or changing the selection
       def addon_repos_handler
-        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
-        current_product = products.find { |p| p.dir == current_item }
-
+        current_product = find_current_product
         return unless current_product
 
         refresh_details(current_product)
@@ -108,7 +106,7 @@ module Y2Packager
         res = super
         Yast::Wizard.EnableNextButton
         Yast::Wizard.EnableBackButton
-
+        Yast::UI.SetFocus(Id(:addon_repos))
         res
       end
 
@@ -206,16 +204,18 @@ module Y2Packager
       # description widget
       # @return [Yast::Term] the addon details widget
       def details_widget
-        VWeight(40, RichText(Id(:details), Opt(:disabled), "<small>" +
-        description + "</small>"))
+        VWeight(
+          40,
+          RichText(Id(:details), Opt(:disabled), initial_description)
+        )
       end
 
       # extra help text
-      # @return [String] translated text
-      def description
-        # TRANSLATORS: inline help text displayed below the product selection widget
-        _("Select a product to see its description here. The dependent products " \
-          "are selected automatically.")
+      # @return [String] first product description
+      def initial_description
+        return "" if products.empty?
+
+        product_description(products.first)
       end
 
       def product_description(product)
@@ -277,6 +277,14 @@ module Y2Packager
         products.select do |p|
           default_modules.include?(p.details&.product)
         end
+      end
+
+      # Returns the current product (the one which has the focus in the addons list)
+      #
+      # @return [Y2Packager::Product,nil]
+      def find_current_product
+        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
+        products.find { |p| p.dir == current_item }
       end
     end
   end
