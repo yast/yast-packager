@@ -216,6 +216,7 @@ module Y2Packager
       # @return [String] first product description
       def initial_description
         return "" if products.empty?
+
         product_description(products.first)
       end
 
