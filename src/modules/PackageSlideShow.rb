@@ -700,16 +700,12 @@ module Yast
       # Now go through all repositories
       #
 
-      src_no = 0
-
-      @remaining_sizes_per_cd_per_src.each do |inst_src|
+      @remaining_sizes_per_cd_per_src.each_with_index do |inst_src, src_no|
         log.info "src ##{src_no}: #{inst_src}"
         # Ignore repositories from where there is nothing is to install
         next if ListSum(inst_src) < 1
 
-        cd_no = 0
-
-        inst_src.each do |src_remaining|
+        inst_src.each_with_index do |src_remaining, cd_no|
           if src_remaining > 0 ||
               (src_no + 1) == @current_src_no &&
                   (cd_no + 1) == @current_cd_no # suppress current CD
@@ -736,9 +732,7 @@ module Yast
                 ITEM_PREFIX + rem_time
               )
           end
-          cd_no += 1
         end
-        src_no += 1
       end
 
       itemList
