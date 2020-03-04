@@ -706,32 +706,32 @@ module Yast
         next if ListSum(inst_src) < 1
 
         inst_src.each_with_index do |src_remaining, cd_no|
-          if src_remaining > 0 ||
-              (src_no + 1) == @current_src_no &&
-                  (cd_no + 1) == @current_cd_no # suppress current CD
-            caption = @inst_src_names[src_no] || _("Unknown Source")
-            # add "Medium 1" only if more cds available (bsc#1158498)
-            caption += @media_type + (cd_no + 1).to_s unless @last_cd
-            rem_size = FormatRemainingSize(src_remaining) # column #1
-            rem_count = FormatRemainingCount(
-              @remaining_pkg_count_per_cd_per_src.dig(src_no, cd_no) || 0
-            )
-            rem_time = HOURGLASS
+          next unless src_remaining > 0 ||
+            (src_no + 1) == @current_src_no &&
+              (cd_no + 1) == @current_cd_no # suppress current CD
 
-            if show_remaining_time? && @bytes_per_second > 0
-              src_remaining /= @bytes_per_second
-              rem_time = FormatTimeShowOverflow(src_remaining) # column #2
-            end
+          caption = @inst_src_names[src_no] || _("Unknown Source")
+          # add "Medium 1" only if more cds available (bsc#1158498)
+          caption += @media_type + (cd_no + 1).to_s unless @last_cd
+          rem_size = FormatRemainingSize(src_remaining) # column #1
+          rem_count = FormatRemainingCount(
+            @remaining_pkg_count_per_cd_per_src.dig(src_no, cd_no) || 0
+          )
+          rem_time = HOURGLASS
 
-            itemList <<
-              SlideShow.TableItem(
-                "cd(#{src_no},#{cd_no})", # ID
-                caption,
-                ITEM_PREFIX + rem_size,
-                ITEM_PREFIX + rem_count,
-                ITEM_PREFIX + rem_time
-              )
+          if show_remaining_time? && @bytes_per_second > 0
+            src_remaining /= @bytes_per_second
+            rem_time = FormatTimeShowOverflow(src_remaining) # column #2
           end
+
+          itemList <<
+            SlideShow.TableItem(
+              "cd(#{src_no},#{cd_no})", # ID
+              caption,
+              ITEM_PREFIX + rem_size,
+              ITEM_PREFIX + rem_count,
+              ITEM_PREFIX + rem_time
+            )
         end
       end
 
