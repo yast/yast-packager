@@ -91,6 +91,36 @@ describe "PackagerRepositoriesIncludeInclude" do
       end
     end
 
+    context "when the repository cannot be created" do
+      before do
+        allow(Yast::Pkg).to receive(:RepositoryProbe).and_return(nil)
+      end
+
+      context "and the user accepts to edit the URL" do
+        before do
+          allow(Yast::Popup).to receive(:YesNo).and_return(true)
+        end
+
+        it "returns :again symbol" do
+          result = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+
+          expect(result).to eq(:again)
+        end
+      end
+
+      context "and the user does not accept to edit the URL" do
+        before do
+          allow(Yast::Popup).to receive(:YesNo).and_return(false)
+        end
+
+        it "returns :next symbol" do
+          result = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+
+          expect(result).to eq(:next)
+        end
+      end
+    end
+
     it "creates the repository" do
       repo_props = { "enabled"     => true,
                      "autorefresh" => false,
