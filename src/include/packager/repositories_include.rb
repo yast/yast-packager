@@ -53,10 +53,12 @@ module Yast
     #   with this alias already exists then it is overwritten, use empty string ""
     #   to generate an unique alias
     # @return [Symbol] the result
-    #   :ok => successfully added
-    #   :again => failed, but user wants to edit the URL and try again
+    #   :ok     => successfully added
+    #   :again  => failed, but user wants to edit the URL and try again
+    #   :next   => continue in the workflow
     #   :cancel => failed, don't retry
-    #   :abort => repository added successfully, but user rejected the license
+    #   :abort  => repository added successfully, but user rejected the license
+    #
     #   TODO: abort is problematic as abort is used to abort installation, for license
     #         should be own symbol. Now abort in addon view in upgrade proposal ask for abort
     #         properly, but then just go back to proposal instead of full abort.
@@ -185,7 +187,7 @@ module Yast
 
       if newSources.empty?
         log.error("Cannot add the repository")
-        try_again(url, scheme) ? :again : :cancel
+        try_again(url, scheme) ? :again : :next
       else
         Progress.NextStage
         Builtins.foreach(newSources) do |id|
