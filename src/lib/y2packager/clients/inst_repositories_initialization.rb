@@ -126,7 +126,7 @@ module Y2Packager
         elsif products.size == 1
           products.first.select
         else
-          products.each(&:restore)
+          products.each(&:restore) unless Y2Packager::MediumType.online?
         end
       end
 
