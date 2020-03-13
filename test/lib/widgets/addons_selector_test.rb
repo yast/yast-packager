@@ -68,6 +68,17 @@ describe Y2Packager::Widgets::AddonsSelector do
     end
   end
 
+  describe "#init" do
+    let(:first_item) { subject.items.first }
+
+    # Behavior introduced in version 4.2.55 (https://github.com/yast/yast-packager/pull/511)
+    it "displays the first item description" do
+      expect(details_area).to receive(:value=).with(first_item.description)
+
+      subject.init
+    end
+  end
+
   describe "#items" do
     it "returns a collection of items representing available products" do
       expect(subject.items.map(&:id)).to eq(products.map(&:dir))

@@ -44,6 +44,13 @@ module Y2Packager
         end
       end
 
+      def init
+        super
+
+        # Respect the behavior introduced in version 4.2.55
+        details_widget.value = items.first.description
+      end
+
       # (see CWM::AbstractWidget#contents)
       def contents
         VBox(
