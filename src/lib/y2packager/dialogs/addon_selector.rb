@@ -64,8 +64,9 @@ module Y2Packager
       # @see CWM::Dialog#run
       def run
         Yast::Wizard.OpenLeftTitleNextBackDialog if Yast::Stage.initial
-
         super
+      ensure
+        Yast::Wizard.CloseDialog if Yast::Stage.initial
       end
 
       # @see CWM::Dialog#title
