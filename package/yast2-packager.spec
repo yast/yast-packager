@@ -128,6 +128,5 @@ This package contains the libraries and modules for software management.
 %dir %{yast_docdir}
 %license COPYING
 %doc %{yast_docdir}/README.md
-%doc %{yast_docdir}/CONTRIBUTING.md
 
 %changelog
