@@ -46,6 +46,19 @@ module Y2Packager
           return :auto
         end
 
+        # for the Full medium we need to just add the self-update add-on
+        # repo to make the new roles work
+        if Y2Packager::MediumType.offline?
+          if Y2Packager::SelfUpdateAddonRepo.present?
+            log.info "Adding the self-update add-on repository..."
+            Y2Packager::SelfUpdateAddonRepo.create_repo
+          else
+            log.info "Self-update repository not found - finishing..."
+          end
+
+          return :auto
+        end
+
         if !init_installation_repositories
           Yast::Popup.Error(
             _("Failed to initialize the software repositories.\nAborting the installation.")
