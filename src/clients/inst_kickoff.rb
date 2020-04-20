@@ -167,7 +167,6 @@ module Yast
       # timestamp
       date = Builtins.timestring("%Y%m%d", ::Time.now.to_i, false)
 
-
       # do not backup logs on running system (bsc#1166174)
       if Installation.destdir != "/"
         Builtins.y2milestone("Creating backup of %1", Directory.logdir)
