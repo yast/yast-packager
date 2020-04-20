@@ -167,57 +167,62 @@ module Yast
       # timestamp
       date = Builtins.timestring("%Y%m%d", ::Time.now.to_i, false)
 
-      Builtins.y2milestone("Creating backup of %1", Directory.logdir)
 
-      filename = ""
-      num = 0
+      # do not backup logs on running system (bsc#1166174)
+      if Installation.destdir != "/"
+        Builtins.y2milestone("Creating backup of %1", Directory.logdir)
 
-      while Ops.less_than(num, 42)
-        filename = Ops.add(
-          Ops.add(
+        filename = ""
+        num = 0
+
+        while Ops.less_than(num, 42)
+          filename = Ops.add(
             Ops.add(
               Ops.add(
-                Ops.add(Installation.update_backup_path, "/YaST2-"),
-                date
+                Ops.add(
+                  Ops.add(Installation.update_backup_path, "/YaST2-"),
+                  date
+                ),
+                "-"
               ),
-              "-"
+              Builtins.sformat("%1", num)
             ),
-            Builtins.sformat("%1", num)
-          ),
-          ".tar.gz"
-        )
-        if SCR.Read(
-          path(".target.size"),
-          Ops.add(Installation.destdir, filename)
-        ) == -1
-          break
-        end
-        num = Ops.add(num, 1)
-      end
-
-      if SCR.Execute(
-        path(".target.bash"),
-        "cd #{Shellwords.escape(Installation.destdir)}; " \
-          "/bin/tar --ignore-failed-read -czf .#{Shellwords.escape(filename)} var/log/YaST2"
-      ).nonzero?
-        Builtins.y2error(
-          "backup of %1 to %2 failed",
-          Directory.logdir,
-          filename
-        )
-        # an error popup
-        Popup.Error(
-          Builtins.sformat(
-            _("Backup of %1 failed. See %2 for details."),
-            Directory.logdir,
-            Ops.add(Directory.logdir, "/y2log")
+            ".tar.gz"
           )
-        )
-      else
-        SCR.Execute(
+          if SCR.Read(
+            path(".target.size"),
+            Ops.add(Installation.destdir, filename)
+          ) == -1
+            break
+          end
+
+          num = Ops.add(num, 1)
+        end
+
+        if SCR.Execute(
           path(".target.bash"),
-          "cd #{Installation.destdir.shellescape}; /bin/rm -rf var/log/YaST2/*"
-        )
+          "cd #{Shellwords.escape(Installation.destdir)}; " \
+            "/bin/tar --ignore-failed-read -czf .#{Shellwords.escape(filename)} var/log/YaST2"
+        ).nonzero?
+          Builtins.y2error(
+            "backup of %1 to %2 failed",
+            Directory.logdir,
+            filename
+          )
+          # an error popup
+          Popup.Error(
+            Builtins.sformat(
+              _("Backup of %1 failed. See %2 for details."),
+              Directory.logdir,
+              Ops.add(Directory.logdir, "/y2log")
+            )
+          )
+        else
+          SCR.Execute(
+            path(".target.bash"),
+            "cd #{Installation.destdir.shellescape}; /bin/rm -rf var/log/YaST2/*"
+          )
+        end
       end
 
       if Installation.update_backup_sysconfig
