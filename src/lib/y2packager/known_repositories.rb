@@ -70,7 +70,18 @@ module Y2Packager
         return []
       end
 
-      status = YAML.load_file(status_file)
+      begin
+        status = YAML.load_file(status_file)
+      rescue Psych::SyntaxError => e
+        log.error("Status file #{status_file} is corrupted: #{e.message}")
+        return []
+      end
+
+      if !status
+        log.info("Status file #{status_file} is empty or its content is invalid")
+        return []
+      end
+
       # unify the file in case it was manually modified
       status.uniq!
       status.sort!
