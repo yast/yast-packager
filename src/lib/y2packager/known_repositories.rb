@@ -71,6 +71,12 @@ module Y2Packager
       end
 
       status = YAML.load_file(status_file)
+
+      if !status
+        log.info("Status file #{status_file} is empty or corrupted")
+        return []
+      end
+
       # unify the file in case it was manually modified
       status.uniq!
       status.sort!
