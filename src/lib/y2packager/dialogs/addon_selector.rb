@@ -129,7 +129,7 @@ module Y2Packager
           VWeight(60, MinHeight(8,
             MultiSelectionBox(
               Id(:addon_repos),
-              Opt(:notify, :immediate),
+              Opt(:notify),
               "",
               selection_content
             ))),
