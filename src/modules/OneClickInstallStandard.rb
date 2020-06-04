@@ -44,7 +44,6 @@ module Yast
     #              ],
     #      ]
     def GetRepositoriesFromXML(filename)
-
       if !::File.exist?(filename)
         log.error "File doesn't exist: #{filename}"
         return []
@@ -92,7 +91,7 @@ module Yast
       ret
     rescue Nokogiri::XML::SyntaxError => e
       log.error "syntax error in file #{filename}: #{e.message}"
-      return []
+      []
     end
 
     publish function: :GetRepositoriesFromXML, type: "list <map <string, any>> (string)"
