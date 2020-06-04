@@ -11,8 +11,6 @@ module Yast
 
     def main
       textdomain "packager"
-
-      Yast.import "FileUtils"
     end
 
     # Converts XML file to a list of maps with all repositories described in the XML content.
@@ -47,7 +45,7 @@ module Yast
     #      ]
     def GetRepositoriesFromXML(filename)
 
-      if !FileUtils.Exists(filename)
+      if !::File.exist?(filename)
         log.error "File doesn't exist: #{filename}"
         return []
       end
