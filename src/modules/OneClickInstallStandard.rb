@@ -1,14 +1,16 @@
 require "yast"
 
+require "nokogiri"
+
 # Yast namespace
 module Yast
   # Module for parsing One Click Install Standard
   # http://en.opensuse.org/Standards/One_Click_Install
   class OneClickInstallStandardClass < Module
+    include Yast::Logger
+
     def main
       textdomain "packager"
-
-      Yast.import "FileUtils"
     end
 
     # Converts XML file to a list of maps with all repositories described in the XML content.
@@ -42,85 +44,54 @@ module Yast
     #              ],
     #      ]
     def GetRepositoriesFromXML(filename)
+      if !::File.exist?(filename)
+        log.error "File doesn't exist: #{filename}"
+        return []
+      end
+
+      doc = Nokogiri::XML(File.read(filename), &:strict)
+      doc.remove_namespaces! # avoid fancy namespaces as it is not needed for this xml
+
       ret = []
-
-      if !FileUtils.Exists(filename)
-        Builtins.y2error("File doesn't exist: %1", filename)
-        return deep_copy(ret)
-      end
-
-      read_result = Convert.to_map(SCR.Read(path(".anyxml"), filename))
-
-      if read_result.nil?
-        Builtins.y2error("Cannot read file: %1", filename)
-        return deep_copy(ret)
-      elsif read_result == {}
-        Builtins.y2warning("File %1 is empty", filename)
-        return deep_copy(ret)
-      end
-
-      distversion = ""
-
-      one_repo_out = {}
+      groups = doc.root.xpath("/metapackage/group")
 
       # starting with <metapackage>-><group>
-      Builtins.foreach(
-        Ops.get_list(read_result, ["metapackage", 0, "group"], [])
-      ) do |one_group|
-        distversion = Ops.get_string(one_group, "distversion", "")
-        Builtins.foreach(
-          Ops.get_list(one_group, ["repositories", 0, "repository"], [])
-        ) do |repository|
-          # One repository (requierd keys)
-          one_repo_out = {
+      groups.each do |group|
+        distversion = group["distversion"] || ""
+        repositories = group.xpath("./repositories/repository")
+        repositories.each do |repository|
+          url = repository.xpath("./url")
+          url = url ? url.text : ""
+          # One repository (required keys)
+          repo_out = {
             "distversion" => distversion,
-            "url"         => Ops.get_string(
-              repository,
-              ["url", 0, "content"],
-              ""
-            ),
-            "format"      => Ops.get_string(repository, "format", ""),
+            "url"         => url,
+            "format"      => repository["format"] || "",
             "alias"       => repository["alias"],
-            "recommended" => Ops.get_string(repository, "recommended", "false") == "true"
+            "recommended" => repository["recommended"] == "true"
           }
           # Required + dynamic (localized) keys
-          Builtins.foreach(["name", "description", "summary"]) do |one_key|
-            loc_key = Ops.add("localized_", one_key)
-            Ops.set(one_repo_out, loc_key, {})
-            Builtins.foreach(Ops.get_list(repository, one_key, [])) do |one_item|
-              if Ops.get_string(one_item, "content", "") != ""
-                if Builtins.haskey(one_item, "xml:lang")
-                  Ops.set(
-                    one_repo_out,
-                    [loc_key, Ops.get_string(one_item, "xml:lang", "")],
-                    Ops.get_string(one_item, "content", "")
-                  )
-                else
-                  Ops.set(
-                    one_repo_out,
-                    one_key,
-                    Ops.get_string(one_item, "content", "")
-                  )
-                end
+          ["name", "description", "summary"].each do |key|
+            loc_key = "localized_" + key
+            repo_out[loc_key] = {}
+            elements = repository.xpath("./#{key}")
+            elements.each do |item|
+              if item["lang"]
+                repo_out[loc_key][item["lang"]] = item.text
+              else
+                repo_out[key] = item.text
               end
             end
           end
-          # Fallback
-          Builtins.foreach(["name", "description", "summary"]) do |one_key|
-            if Ops.is_map?(Ops.get(repository, one_key)) &&
-                Ops.get_string(repository, [one_key, "content"], "") != ""
-              Ops.set(
-                one_repo_out,
-                one_key,
-                Ops.get_string(repository, [one_key, "content"], "")
-              )
-            end
-          end
-          ret = Builtins.add(ret, one_repo_out)
+
+          ret << repo_out
         end
       end
 
-      deep_copy(ret)
+      ret
+    rescue Nokogiri::XML::SyntaxError => e
+      log.error "syntax error in file #{filename}: #{e.message}"
+      []
     end
 
     publish function: :GetRepositoriesFromXML, type: "list <map <string, any>> (string)"
