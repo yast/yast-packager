@@ -104,6 +104,14 @@ module Yast
     def main
       textdomain "packager"
 
+      # Set release version environment variable for zypp.
+      #
+      # Otherwise zypp might use the old version (update) resp. fail to find
+      # a product version at all (new installation).
+      #
+      # cf. bsc#1172870
+      ENV[RELEASEVER_ENV] = Product.version
+
       if AddOnProduct.skip_add_ons
         log.info("Skipping module (as requested before)")
         return :auto
@@ -137,10 +145,6 @@ module Yast
         CommandLine.Run("id" => "inst_productsources")
         return :auto
       end
-
-      # Set the proper release version for newly added repositories
-      # we want to use new product and not old
-      ENV[RELEASEVER_ENV] = Product.version
 
       # (Applicable only in inst-sys)
       @preselect_recommended = true
