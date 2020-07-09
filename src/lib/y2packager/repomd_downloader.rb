@@ -61,12 +61,18 @@ module Y2Packager
     # @return [Array<String>] List of paths pointing to the downloaded primary.xml.gz files,
     #   returns an empty list if the URL or the repository is not valid.
     #
-    def primary_xmls
-      return [] if product_repos.empty?
+    def primary_xmls(force = false)
+      repos = product_repos
+
+      if repos.empty?
+        return [] unless force
+
+        repos = { "" => "/" }
+      end
 
       # add a temporary repository for downloading the files via libzypp
       src = Yast::Pkg.RepositoryAdd("base_urls" => [url])
-      product_repos.map do |(_name, dir)|
+      repos.map do |(_name, dir)|
         # download the repository index file (repomd.xml)
         repomd_file = Yast::Pkg.SourceProvideFile(src, 1, File.join(dir, "repodata/repomd.xml"))
 
