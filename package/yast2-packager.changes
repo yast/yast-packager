@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jul 10 07:14:05 UTC 2020 - Ladislav Slezák <lslezak@suse.cz>
+
+- Improve medium type detection, do not report Online medium
+  when the /media.1/products file is missing in the repository,
+  SMT does not mirror this file (bsc#1173336)
+- 4.2.63
+
+-------------------------------------------------------------------
 Mon Apr 20 11:46:59 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - prevent race condition between log rotation and migration

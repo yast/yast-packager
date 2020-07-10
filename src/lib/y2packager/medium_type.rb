@@ -105,13 +105,6 @@ module Y2Packager
         downloader = Y2Packager::RepomdDownloader.new(url)
         product_repos = downloader.product_repos
 
-        # the online medium should not contain any repository
-        # TODO: how to detect an invalid installation URL or a broken medium??
-        if product_repos.empty?
-          log.info("Detected medium type: online (no repository on the medium)")
-          return :online
-        end
-
         # the offline medium contains several modules and extensions
         if product_repos.size > 1
           log.info("Detected medium type: offline (found #{product_repos.size} product repos)")

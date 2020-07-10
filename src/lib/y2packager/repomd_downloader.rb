@@ -48,6 +48,9 @@ module Y2Packager
     #
     # Returns the downloaded primary.xml.gz file(s) from the repository.
     #
+    # @param force [Boolean] Force scanning the repositories even when
+    #   the /media.1/products file is missing, default `false`
+    #
     # @note For remote repositories (http://, ftp://, ...) the files are downloaded
     #  to a temporary directory (/var/tmp/...), but for the local repositories
     #  or mountable repositories (dir://, dvd://) it directly points to the original files!
@@ -61,12 +64,21 @@ module Y2Packager
     # @return [Array<String>] List of paths pointing to the downloaded primary.xml.gz files,
     #   returns an empty list if the URL or the repository is not valid.
     #
-    def primary_xmls
-      return [] if product_repos.empty?
+    def primary_xmls(force = false)
+      # first check if there are any products defined in /media.1/products
+      repos = product_repos
+
+      if repos.empty?
+        return [] unless force
+
+        # if `force` is true then scan the repository at the root anyway,
+        # the repository name is ignored later so it can be any string
+        repos = { "Root Repository" => "/" }
+      end
 
       # add a temporary repository for downloading the files via libzypp
       src = Yast::Pkg.RepositoryAdd("base_urls" => [url])
-      product_repos.map do |(_name, dir)|
+      repos.map do |(_name, dir)|
         # download the repository index file (repomd.xml)
         repomd_file = Yast::Pkg.SourceProvideFile(src, 1, File.join(dir, "repodata/repomd.xml"))
 
