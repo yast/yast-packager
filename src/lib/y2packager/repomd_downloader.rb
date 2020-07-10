@@ -48,6 +48,9 @@ module Y2Packager
     #
     # Returns the downloaded primary.xml.gz file(s) from the repository.
     #
+    # @param force [Boolean] Force scanning the repositories even when
+    #   the /media.1/products file is missing, default `false`
+    #
     # @note For remote repositories (http://, ftp://, ...) the files are downloaded
     #  to a temporary directory (/var/tmp/...), but for the local repositories
     #  or mountable repositories (dir://, dvd://) it directly points to the original files!
@@ -62,11 +65,13 @@ module Y2Packager
     #   returns an empty list if the URL or the repository is not valid.
     #
     def primary_xmls(force = false)
+      # first check if there are any products defined in /media.1/products
       repos = product_repos
 
       if repos.empty?
         return [] unless force
 
+        # if `force` is true then scan the repository at the root anyway
         repos = { "" => "/" }
       end
 
