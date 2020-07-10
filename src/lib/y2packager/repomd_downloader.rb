@@ -71,8 +71,9 @@ module Y2Packager
       if repos.empty?
         return [] unless force
 
-        # if `force` is true then scan the repository at the root anyway
-        repos = { "" => "/" }
+        # if `force` is true then scan the repository at the root anyway,
+        # the repository name is ignored later so it can be any string
+        repos = { "Root Repository" => "/" }
       end
 
       # add a temporary repository for downloading the files via libzypp
