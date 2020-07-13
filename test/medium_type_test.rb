@@ -24,13 +24,6 @@ describe Y2Packager::MediumType do
       expect { described_class.type }.to raise_exception(/The installation URL is not set/)
     end
 
-    it "returns :online if no repository is found on the medium" do
-      expect_any_instance_of(Y2Packager::RepomdDownloader)
-        .to receive(:product_repos).and_return([])
-
-      expect(described_class.type).to eq(:online)
-    end
-
     it "returns :offline if at least two repositories are found on the medium" do
       expect_any_instance_of(Y2Packager::RepomdDownloader)
         .to receive(:product_repos).and_return(
@@ -41,6 +34,18 @@ describe Y2Packager::MediumType do
         )
 
       expect(described_class.type).to eq(:offline)
+    end
+
+    context "missing media.1/products on the installation medium" do
+      before do
+        expect_any_instance_of(Y2Packager::RepomdDownloader)
+          .to receive(:product_repos).and_return([])
+      end
+
+      it "returns :online if the repository does not contain any base product" do
+        expect(Y2Packager::ProductLocation).to receive(:scan).and_return([])
+        expect(described_class.type).to eq(:online)
+      end
     end
 
     context "only one repository on the installation medium" do
