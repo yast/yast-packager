@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.1.50
+Version:        4.1.51
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -47,8 +47,8 @@ BuildRequires:  augeas-lenses
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
 
-# Pkg::PrdLicenseLocales
-Requires:       yast2-pkg-bindings >= 4.0.8
+# raw_name
+Requires:       yast2-pkg-bindings >= 4.1.3
 
 # inst_rpmcopy.rb: SlideShow.RebuildDialog(true)
 Requires:       yast2 >= 4.1.71

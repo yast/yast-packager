@@ -46,8 +46,8 @@ module Yast
     # @param plaindir [Boolean] true to use "PlainDir" format (no repository
     #   metadata present at the URL)
     # @param download [Boolean] whether to refresh the repository or not
-    # @param preffered_name [String] (optional) preferred repository name, use
-    #   empty string "" to generate the name
+    # @param preferred_name [String] (optional) preferred repository raw_name, use
+    #   empty string "" to generate the raw_name
     # @param force_alias [String] alias for the new repository, if a repository
     #   with this alias already exists then it is overwritten, use empty string ""
     #   to generate an unique alias
@@ -59,9 +59,9 @@ module Yast
     #   TODO: abort is problematic as abort is used to abort installation, for license
     #         should be own symbol. Now abort in addon view in upgrade proposal ask for abort
     #         properly, but then just go back to proposal instead of full abort.
-    def createSourceImpl(url, plaindir, download, preffered_name, force_alias)
+    def createSourceImpl(url, plaindir, download, preferred_name, force_alias)
       log.info("createSource: #{URL.HidePassword(url)}, plaindir: #{plaindir}," \
-        "download: #{download}, name: #{preffered_name}, force_alias: #{force_alias}")
+        "download: #{download}, preferred_name: #{preferred_name}, force_alias: #{force_alias}")
 
       if url.nil? || url.empty?
         Builtins.y2error(-1, "Empty URL! Backtrace:")
@@ -92,7 +92,7 @@ module Yast
       # create a new service if a service is detected at the URL
       if ![nil, "NONE"].include?(service_type)
         Builtins.y2milestone("Adding a service of type %1...", service_type)
-        add_service(url, preffered_name)
+        add_service(url, preferred_name)
         return :ok
       end
 
@@ -119,7 +119,7 @@ module Yast
 
       found_products.each do |product|
         next if enter_again
-        name = !preffered_name.nil? && preffered_name != "" ? preffered_name : product.name
+        name = !preferred_name.nil? && preferred_name != "" ? preferred_name : product.name
         # probe repository type (do not probe plaindir repo)
         repo_type = plaindir ? PLAINDIR_TYPE : Pkg.RepositoryProbe(expanded_url, product.dir)
         log.info("Repository type (#{URL.HidePassword(url)},#{product.dir}): #{repo_type}")
@@ -142,12 +142,12 @@ module Yast
         alias_name = (force_alias == "") ? propose_alias(product.name) : force_alias
 
         # map with repository parameters: $[ "enabled" : boolean,
-        # "autorefresh" : boolean, "name" : string, "alias" : string,
+        # "autorefresh" : boolean, "raw_name" : string, "alias" : string,
         # "base_urls" : list<string>, "prod_dir" : string, "type" : string ]
         repo_prop = {
           "enabled"     => true,
           "autorefresh" => autorefresh_for?(url),
-          "name"        => name,
+          "raw_name"    => name,
           "prod_dir"    => product.dir,
           "alias"       => alias_name,
           "base_urls"   => [url],
@@ -192,13 +192,14 @@ module Yast
             Pkg.SourceDelete(id)
           else
             src_data = Pkg.SourceGeneralData(id)
-            log.info("Addded repository: #{src_data}")
+            log.info("Added repository: #{src_data}")
 
             sourceState = {
               "SrcId"       => id,
               "enabled"     => src_data["enabled"],
               "autorefresh" => src_data["autorefresh"],
               "name"        => src_data["name"],
+              "raw_name"    => src_data["raw_name"],
               "do_refresh"  => download
             }
             @sourceStatesOut << sourceState
@@ -208,20 +209,20 @@ module Yast
         :ok
       end
     ensure
-      # relese (unmount) the medium
+      # release (unmount) the medium
       Pkg.SourceReleaseAll
     end
 
     # start createSource() function in extra wizard dialog
-    def createSource(url, plaindir, download, preffered_name)
-      createSourceWithAlias(url, plaindir, download, preffered_name, "")
+    def createSource(url, plaindir, download, preferred_name)
+      createSourceWithAlias(url, plaindir, download, preferred_name, "")
     end
 
     # create source with alias
     # *IMPORTANT*: make sure the alias is unique!! Otherwise the repo will be overwritten!!
-    def createSourceWithAlias(url, plaindir, download, preffered_name, alias_name)
+    def createSourceWithAlias(url, plaindir, download, preferred_name, alias_name)
       Wizard.CreateDialog
-      ret = createSourceImpl(url, plaindir, download, preffered_name, alias_name)
+      ret = createSourceImpl(url, plaindir, download, preferred_name, alias_name)
       Wizard.CloseDialog
       ret
     end
@@ -428,8 +429,8 @@ module Yast
 
     # Add a new repository service.
     # @param url [String] service URL
-    # @param preffered_name [String] service name, empty string means generate it
-    def add_service(url, preffered_name)
+    # @param preferred_name [String] service name, empty string means generate it
+    def add_service(url, preferred_name)
       # all current aliases
       aliases = @serviceStatesOut.map { |s| s["alias"] }
 
@@ -443,13 +444,13 @@ module Yast
       end
 
       # use alias as the name if it's missing
-      preffered_name = alias_name if preffered_name.nil? || preffered_name == ""
+      preferred_name = alias_name if preferred_name.nil? || preferred_name == ""
 
       new_service = {
         "alias"       => alias_name,
         "autorefresh" => autorefresh_for?(url),
         "enabled"     => true,
-        "name"        => preffered_name,
+        "raw_name"    => preferred_name,
         "url"         => url
       }
 
