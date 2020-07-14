@@ -366,7 +366,8 @@ module Yast
         "\">&nbsp;&nbsp;&nbsp;"
       )
 
-      # TRANSLATORS: the raw name is the original repository name with unexpanded variables like "$releasever"
+      # TRANSLATORS: the raw name is the original repository name with unexpanded variables
+      # like "$releasever"
       name_string = name != raw_name ? _("Raw name: %s") % raw_name + "<BR>" : ""
 
       url = _("Unknown") if url == ""
