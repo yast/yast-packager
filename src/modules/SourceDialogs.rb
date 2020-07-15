@@ -7,7 +7,7 @@ Yast.import "NetworkService"
 
 # Yast namespace
 module Yast
-  # Displays possibilities to install from NFS, CD or partion
+  # Displays possibilities to install from NFS, CD or partition
   class SourceDialogsClass < Module
     # to use N_ in the class constant
     extend Yast::I18n
