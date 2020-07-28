@@ -1191,14 +1191,16 @@ module Yast
         return []
       end
 
-      xmlfile_products = XML.XMLToYCPFile(parse_file)
-
-      if xmlfile_products.nil?
+      begin
+        xmlfile_products = XML.XMLToYCPFile(parse_file)
+      rescue XMLDeserializationError => e
         # TRANSLATORS: error report
         Report.Error(_("Unable to use additional products."))
-        Builtins.y2error("Erroneous file %1", parse_file)
+        log.error "Erroneous file #{parse_file}: #{e.inspect}"
         return []
-      elsif Ops.get_list(xmlfile_products, "product_items", []) == []
+      end
+
+      if Ops.get_list(xmlfile_products, "product_items", []) == []
         Builtins.y2warning("Empty file %1", parse_file)
         return []
       end

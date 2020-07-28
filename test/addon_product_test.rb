@@ -770,4 +770,24 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#ParseXMLBasedAddOnProductsFile" do
+    context "Passed xml is not valid" do
+      before do
+        allow(Yast::FileUtils).to receive(:Exists).and_return(true)
+
+        allow(Yast::XML).to receive(:XMLToYCPFile).and_raise(Yast::XMLDeserializationError)
+      end
+
+      it "return empty array" do
+        expect(subject.ParseXMLBasedAddOnProductsFile("test", "test")).to eq []
+      end
+
+      it "shows error report" do
+        expect(Yast::Report).to receive(:Error)
+
+        subject.ParseXMLBasedAddOnProductsFile("test", "test")
+      end
+    end
+  end
 end

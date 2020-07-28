@@ -502,10 +502,10 @@ module Yast
         return false
       end
 
-      xml_file_content = XML.XMLToYCPFile(download_file)
-
-      if xml_file_content.nil?
-        Builtins.y2error("Reading file %1 failed", download_file)
+      begin
+        xml_file_content = XML.XMLToYCPFile(download_file)
+      rescue XMLDeserializationError => e
+        log.error "Reading file #{download_file} failed: #{e.inspect}"
         return false
       end
 
