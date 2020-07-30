@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Thu Jul 30 13:31:01 CEST 2020 - schubi@suse.de
 
-- AY: Calling of post-partitioning scripts form dropped inst_autoimage
-  to inst_kickoff (bsc#1140711).
+- AY: Calling of post-partitioning scripts moved from dropped
+  inst_autoimage to inst_kickoff (bsc#1140711).
 - 4.3.6
 
 -------------------------------------------------------------------
