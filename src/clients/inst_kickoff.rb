@@ -77,6 +77,13 @@ module Yast
         # call it always, it handles installation mode inside
         WFM.CallFunction("inst_bootloader", WFM.Args)
         #  }
+
+        # calling postpartitioning scripts in AY installation mode
+        if Mode.autoinst
+          Yast.import "AutoinstScripts"
+          AutoinstScripts.Write("postpartitioning-scripts", false)
+        end
+
       elsif Stage.normal
         Yast.import "Kernel"
         @kernel = Kernel.ComputePackage
