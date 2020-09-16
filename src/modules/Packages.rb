@@ -1550,7 +1550,7 @@ module Yast
         sources_set = []
         Builtins.foreach(sources_got) do |one_source|
           if Ops.get_integer(one_source, "SrcId", -1) == src_id
-            Ops.set(one_source, "name", new_name)
+            Ops.set(one_source, "raw_name", new_name)
           end
           sources_set = Builtins.add(sources_set, one_source)
         end
