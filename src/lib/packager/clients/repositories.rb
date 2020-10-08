@@ -1039,10 +1039,8 @@ module Yast
 
       exit = false
       begin
-        if !current.nil? && Ops.greater_or_equal(current, 0)
-          UI.ChangeWidget(Id(:table), :CurrentItem, current)
-          fillCurrentRepoInfo
-        end
+        current = -1 if current.nil?
+        fillCurrentRepoInfo if current >= 0
 
         current = -1
 
