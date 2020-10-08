@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct  8 17:00:20 UTC 2020 - Martin Vidner <mvidner@suse.com>
+
+- Fix random jumps when moving cursor in TUI repository table (bsc#1177145)
+- 4.2.66
+
+-------------------------------------------------------------------
 Wed Sep  2 14:49:09 UTC 2020 - Ladislav Slezák <lslezak@suse.cz>
 
 - Fixed name of the add-on repository (bsc#1175374, related
