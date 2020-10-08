@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct  8 21:18:15 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Do not try to install xorg-x11 when installation via VNC is
+  enabled (bsc#1177485).
+- 4.3.9
+
+-------------------------------------------------------------------
 Mon Sep 21 08:30:04 UTC 2020 - Ladislav Slezák <lslezak@suse.cz>
 
 - Fixed WFM.Args call to not produce an error message in the y2log
