@@ -54,4 +54,12 @@ describe Y2Packager::Dialogs::InstProductLicense do
       dialog.contents
     end
   end
+
+  describe "#abort_handler" do
+    it "returns true if user confirm abort" do
+      allow(Yast::Popup).to receive(:ConfirmAbort).and_return(true)
+
+      expect(subject.abort_handler).to eq true
+    end
+  end
 end
