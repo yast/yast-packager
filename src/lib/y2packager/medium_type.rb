@@ -80,6 +80,8 @@ module Y2Packager
       # @return [Boolean] True if the client should be skipped.
       #
       def skip_step?
+        return false if Yast::WFM.Args.empty?
+
         skip = Yast::WFM.Args(0) && Yast::WFM.Args(0)["skip"]
         return true if skip&.split(",")&.include?(type.to_s)
 

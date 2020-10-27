@@ -25,7 +25,7 @@ module Yast
     RESOLVABLE_TYPES = [:product, :patch, :package, :pattern, :language].freeze
 
     # Minimum set of packages tags required to enable VNC server
-    VNC_BASE_TAGS = ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"].freeze
+    VNC_BASE_TAGS = ["xorg-x11-Xvnc", "xorg-x11-fonts"].freeze
     # Additional packages tags needed to run second stage in graphical mode
     AUTOYAST_X11_TAGS = ["libyui-qt", "yast2-x11"].freeze
     # Default window manager for VNC if none is installed
@@ -1550,7 +1550,7 @@ module Yast
         sources_set = []
         Builtins.foreach(sources_got) do |one_source|
           if Ops.get_integer(one_source, "SrcId", -1) == src_id
-            Ops.set(one_source, "name", new_name)
+            Ops.set(one_source, "raw_name", new_name)
           end
           sources_set = Builtins.add(sources_set, one_source)
         end

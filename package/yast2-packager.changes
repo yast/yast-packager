@@ -2,6 +2,34 @@
 Mon Oct 26 21:01:37 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - Confirm abort in product license dialog (bsc#1178005)
+- 4.3.10
+
+-------------------------------------------------------------------
+Mon Oct 12 11:39:08 CEST 2020 - schubi@suse.de
+
+- VNC installation: Removed xorg-x11 package from the needed
+  package list (bsc#1172459).
+- 4.3.9
+
+-------------------------------------------------------------------
+Mon Sep 21 08:30:04 UTC 2020 - Ladislav Slezák <lslezak@suse.cz>
+
+- Fixed WFM.Args call to not produce an error message in the y2log
+  (bsc#1176653)
+- 4.3.8
+
+-------------------------------------------------------------------
+Wed Sep 16 12:17:07 UTC 2020 - Ladislav Slezák <lslezak@suse.cz>
+
+- Fixed name of the add-on repository (bsc#1175374, related
+  to bsc#1172477)
+- 4.3.7
+
+-------------------------------------------------------------------
+Thu Jul 30 13:31:01 CEST 2020 - schubi@suse.de
+
+- AY: Calling of post-partitioning scripts moved from dropped
+  inst_autoimage to inst_kickoff (bsc#1140711).
 - 4.3.6
 
 -------------------------------------------------------------------

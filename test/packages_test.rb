@@ -686,7 +686,7 @@ describe Yast::Packages do
 
   describe "#vnc_packages" do
     let(:packages) { Yast::Packages.vnc_packages.sort.uniq }
-    let(:base_packages) { ["xorg-x11", "xorg-x11-Xvnc", "xorg-x11-fonts"] }
+    let(:base_packages) { ["xorg-x11-Xvnc", "xorg-x11-fonts"] }
     let(:base_packages_and_wm) { ["icewm"] + base_packages }
     let(:autoyast_x11_packages) { ["libyui-qt6", "yast2-x11"] }
 
