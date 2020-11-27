@@ -1291,7 +1291,7 @@ module Yast
       msg = if product_name.nil? || product_name == ""
         # %1 is either "CD" or "DVD"
         Builtins.sformat(
-          _("Insert the addon %1 medium"),
+          _("Insert the add-on %1 medium"),
           Builtins.toupper(scheme)
         )
       else
