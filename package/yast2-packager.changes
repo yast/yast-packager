@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec  1 15:03:41 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
+
+- set zypp release version environment var at the correct place
+  (bsc#1172870, bsc#1173712)
+- 4.2.67
+
+-------------------------------------------------------------------
 Thu Oct  8 17:00:20 UTC 2020 - Martin Vidner <mvidner@suse.com>
 
 - Fix random jumps when moving cursor in TUI repository table (bsc#1177145)
