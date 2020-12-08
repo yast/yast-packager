@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec  8 22:47:19 UTC 2020 - Stefan Schubert <schubi@schubi.de>
+
+- Adding NFS repository: Checking user input e.g. white spaces in
+  server name (bsc#1168342).
+- 4.3.12
+
+-------------------------------------------------------------------
 Thu Nov 26 22:29:43 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - correct add-on spelling (jsc#SLE-14772)

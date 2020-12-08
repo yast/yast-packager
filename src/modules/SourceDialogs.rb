@@ -777,6 +777,11 @@ module Yast
         "init"          => fun_ref(method(:NFSInit), "void (string)"),
         "store"         => fun_ref(method(:NFSStore), "void (string, map)"),
         "handle"        => fun_ref(method(:NFSHandle), "symbol (string, map)"),
+        "validate_type"     => :function,
+        "validate_function" => fun_ref(
+          method(:ServerValidate),
+          "boolean (string, map)"
+        ),
         # help text
         "help"          => Ops.add(
           Ops.add(
