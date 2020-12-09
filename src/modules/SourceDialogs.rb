@@ -753,8 +753,8 @@ module Yast
     # @return widget description map
     def NFSWidget
       {
-        "widget"        => :custom,
-        "custom_widget" => VBox(
+        "widget"            => :custom,
+        "custom_widget"     => VBox(
           RadioButtonGroup(
             Id(:edit_type),
             HBox(
@@ -774,16 +774,16 @@ module Yast
           ),
           ReplacePoint(Id(:edit_content), Empty())
         ),
-        "init"          => fun_ref(method(:NFSInit), "void (string)"),
-        "store"         => fun_ref(method(:NFSStore), "void (string, map)"),
-        "handle"        => fun_ref(method(:NFSHandle), "symbol (string, map)"),
+        "init"              => fun_ref(method(:NFSInit), "void (string)"),
+        "store"             => fun_ref(method(:NFSStore), "void (string, map)"),
+        "handle"            => fun_ref(method(:NFSHandle), "symbol (string, map)"),
         "validate_type"     => :function,
         "validate_function" => fun_ref(
           method(:ServerValidate),
           "boolean (string, map)"
         ),
         # help text
-        "help"          => Ops.add(
+        "help"              => Ops.add(
           Ops.add(
             _(
               "<p><big><b>NFS Server</b></big><br>\n" \
