@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Jan 20 12:56:44 UTC 2021 - José Iván López González <jlopez@suse.com>
+
+- Backport of PR#521.
+- prevent race condition between log rotation and migration
+  log backup (bsc#1166174)
+- 4.1.52
+
+-------------------------------------------------------------------
 Tue Jul 14 10:41:22 CEST 2020 - aschnell@suse.com
 
 - Handle variable expansion in repository name (bsc#1172477)
