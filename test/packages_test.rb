@@ -1856,4 +1856,15 @@ describe Yast::Packages do
       end
     end
   end
+
+  describe "#check_missing_resolvables" do
+    it "does not crash for non available pattern" do
+      allow(Yast::PackagesProposal).to receive(:GetAllResolvablesForAllTypes)
+        .and_return(pattern: ["non-existing"])
+      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :pattern, name: "non-existing")
+        .and_return([])
+
+      expect(subject.send(:check_missing_resolvables)).to eq(pattern: ["non-existing"])
+    end
+  end
 end
