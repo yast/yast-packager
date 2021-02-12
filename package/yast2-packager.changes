@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Feb 12 20:38:23 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
+
+- Fix crash when installation proposal require pattern and such
+  pattern is not available in any repository (found during testing
+  jsc#SLE-17427)
+- 4.2.68
+
+-------------------------------------------------------------------
 Tue Dec  1 15:03:41 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - set zypp release version environment var at the correct place
