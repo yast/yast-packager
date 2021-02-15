@@ -125,7 +125,8 @@ describe Y2Packager::Widgets::ProductLicenseConfirmation do
       context "and license is still unconfirmed" do
         let(:license_confirmed?) { false }
 
-        it "returns false" do
+        it "returns false and Report it" do
+          expect(Yast::Report).to receive(:Message)
           expect(widget.validate).to eq(false)
         end
       end

@@ -22,6 +22,7 @@ describe Yast::ProductLicense do
     before do
       allow(Yast::Language).to receive(:GetLanguagesMap).and_return({})
       allow(Yast::Language).to receive(:supported_language?).and_return(true)
+      allow(Yast::Report).to receive(:Error) # partial test does not fully mock
     end
 
     it "works" do
