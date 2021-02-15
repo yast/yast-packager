@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 15 20:07:15 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
+
+- Adapted unit test to recent changes in Yast::Report (related to
+  bsc#1179893).
+- 4.3.13
+
+-------------------------------------------------------------------
 Fri Jan 15 12:11:32 UTC 2021 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - Proposal: fixed the logic to detect whether the partitioning has
