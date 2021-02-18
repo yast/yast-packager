@@ -302,6 +302,8 @@ describe Yast::AddOnProduct do
           expect(Yast::Package).to receive(:Install).with("yast2-registration").and_return(false)
           expect(Yast::WFM).to_not receive(:CallFunction)
             .with("inst_scc", ["register_media_addon", repo_id])
+          # also error is shown
+          expect(Yast::Report).to receive(:Error)
 
           Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
         end
@@ -470,6 +472,7 @@ describe Yast::AddOnProduct do
         allow(subject).to receive(:Integrate)
         allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
           .and_return(repo_id)
+        allow(Yast::Report).to receive(:Error)
       end
 
       it "adds the repository" do
@@ -777,6 +780,7 @@ describe Yast::AddOnProduct do
         allow(Yast::FileUtils).to receive(:Exists).and_return(true)
 
         allow(Yast::XML).to receive(:XMLToYCPFile).and_raise(Yast::XMLDeserializationError)
+        allow(Yast::Report).to receive(:Error)
       end
 
       it "return empty array" do
