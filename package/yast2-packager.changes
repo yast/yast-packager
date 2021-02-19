@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 19 13:21:25 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
+
+- Show correct number of downloaded packages in log (bsc#1180278)
+- 4.2.69
+
+-------------------------------------------------------------------
 Fri Feb 12 20:38:23 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - Fix crash when installation proposal require pattern and such
