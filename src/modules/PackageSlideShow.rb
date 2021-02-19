@@ -811,7 +811,7 @@ module Yast
       @total_downloaded += @current_provide_size
 
       @total_count_downloaded += 1
-      log.info "Downloaded #{@total_downloaded}/#{@total_count_to_download} packages"
+      log.info "Downloaded #{@total_count_downloaded}/#{@total_count_to_download} packages"
 
       # move the progress also for downloaded files
       UpdateTotalProgressValue()
