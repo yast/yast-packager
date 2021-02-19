@@ -2540,7 +2540,7 @@ module Yast
 
           missing[type] = [] unless missing[type]
           # use quoted "summary" value for patterns as they usually contain spaces
-          name = (type == :pattern) ? statuses.first.summary.inspect : item
+          name = (type == :pattern && !statuses.empty?) ? statuses.first.summary.inspect : item
           missing[type] << name
         end
       end
