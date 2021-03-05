@@ -1,3 +1,10 @@
+-------------------------------------------------------------------
+Fri Mar  5 10:41:42 UTC 2021 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- Support for configuring minimalistic DNF (bsc#1182849)
+  contributed by Sasi Olin (hel@lcp.world).
+- 4.3.15
+
 Fri Feb 19 14:07:15 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 -------------------------------------------------------------------
 
