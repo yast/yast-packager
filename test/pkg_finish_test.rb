@@ -344,7 +344,7 @@ describe Yast::PkgFinishClient do
         let(:destdir) { tmpdir }
 
         before do
-          conf_file = tmpdir.join(Yast::Packager::CFA::ZyppConf::PATH[1..-1])
+          conf_file = File.join(tmpdir, Yast::Packager::CFA::ZyppConf::PATH)
           FileUtils.mkdir_p(File.dirname(conf_file))
           FileUtils.touch(conf_file)
         end
