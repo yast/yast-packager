@@ -1725,11 +1725,9 @@ module Yast
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
       msg << _("Enabling the online repositories during installation\n" \
-               "gives you access to all openSUSE software that did not\n" \
-               "fit on the installation media anymore. At the same time,\n" \
-               "those repositories might contain updated software\n" \
-               "packages, so your new openSUSE system will be right\n" \
-               "at the most up-to-date stage.")
+               "gives you access to all software that does not fit on\n" \
+               "the installation media anymore. Additionally, those\n" \
+               "repositories might contain updated software packages.")
 
       if low_memory?
         msg << _("However, since the system has less than %d MiB memory,\n" \
