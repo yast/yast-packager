@@ -14,7 +14,6 @@
 require "yast"
 
 require "cwm"
-require "installation/console/menu_plugin"
 
 module Installation
   module Console
