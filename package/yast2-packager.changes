@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  9 09:15:41 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Added IBM tools product rename to the list (part of bsc#1182837)
+- 4.3.18
+
+-------------------------------------------------------------------
 Mon Mar  8 15:44:31 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - During installation, explain what "online repositories" are
