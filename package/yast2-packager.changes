@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar  8 15:44:31 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- During installation, explain what "online repositories" are
+  (bsc#1180707).
+- 4.3.17
+
+-------------------------------------------------------------------
 Mon Mar  8 14:31:30 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Extend the special installer configuration dialog with

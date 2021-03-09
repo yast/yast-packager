@@ -1724,15 +1724,17 @@ module Yast
       # Ask only once
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
-      msg << _("The system has an active network connection.\n" \
-              "Additional software is available online.")
+      msg << _("Enabling the online repositories during installation\n" \
+               "gives you access to all software that does not fit on\n" \
+               "the installation media anymore. Additionally, those\n" \
+               "repositories might contain updated software packages.")
 
       if low_memory?
-        msg << _("Since the system has less than %d MiB memory,\n"         \
+        msg << _("However, since the system has less than %d MiB memory,\n" \
                  "there is a significant risk of running out of memory,\n" \
-                 "and the installer may crash or freeze.\n"                \
-                 "\n"                                                      \
-                 "Using the online repositories later in the installed\n"  \
+                 "and the installer may crash or freeze.\n" \
+                 "\n" \
+                 "Using the online repositories later in the installed\n" \
                  "system is recommended.") % LOW_MEMORY_MIB
         @@posted_low_memory_warning = true
       end
@@ -1740,7 +1742,7 @@ module Yast
       msg << _("Activate online repositories now?")
 
       @@ask_activate_online_repos_result = Popup.AnyQuestion(
-        Popup.NoHeadline,
+        _("Online Repositories"),
         msg.join("\n\n"),
         Label.YesButton,
         Label.NoButton,
