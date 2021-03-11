@@ -4,6 +4,8 @@ require "shellwords"
 module Yast
   # Do various tasks before starting with installation of rpms.
   class InstKickoffClient < Client
+    include Yast::Logger
+
     def main
       Yast.import "Pkg"
       textdomain "packager"
@@ -44,16 +46,15 @@ module Yast
         )
       end
 
-      # copy the credential files, libzypp loads them from target
-      zypp_dir = "/etc/zypp"
-      credentials_d = zypp_dir + "/credentials.d"
+      # copy the credential files (libzypp loads them from target)
+      # and the repository cache to the target system
+      Pkg.SourceCacheCopyTo(Installation.destdir)
 
-      if File.exist?(credentials_d) && Installation.destdir != "/"
-        target_zypp = Installation.destdir + zypp_dir
-        Builtins.y2milestone("Copying libzypp credentials to #{target_zypp}...")
-        ::FileUtils.mkdir_p(target_zypp)
-        ::FileUtils.cp_r(credentials_d, target_zypp)
-      end
+      # symlink the cache from inst-sys to save same space (RAM!)
+      cache_path = Pkg.ZConfig()["repo_cache_path"] || "/var/cache/zypp"
+      log.info("Zypp cache size: #{`du -h -s #{cache_path.shellescape}`}")
+      ::FileUtils.rm_rf(cache_path)
+      File.symlink(File.join(Installation.destdir, cache_path), cache_path)
 
       # installation, for instance...
       if !Mode.update
