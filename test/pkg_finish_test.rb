@@ -68,7 +68,6 @@ describe Yast::PkgFinishClient do
       expect(Yast::Pkg).to receive(:SourceLoad)
       expect(Yast::Pkg).to receive(:SourceSaveAll)
       expect(Yast::Pkg).to receive(:TargetFinish)
-      expect(Yast::Pkg).to receive(:SourceCacheCopyTo).with(destdir)
       allow(Yast::WFM).to receive(:Execute)
       expect(client.run).to be_nil
     end
