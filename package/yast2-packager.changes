@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Thu Mar 11 15:01:58 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Move the libzypp cache to the installed system to save some
+  memory and avoid crashing because out of memory (bsc#1182928)
+- Improved "memsample" script handling
+    - Do not start it again if it is already running
+      (might happen if YaST is started again after crash)
+    - Stop it when YaST finishes
+- 4.3.19
+
+-------------------------------------------------------------------
 Tue Mar  9 09:15:41 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Added IBM tools product rename to the list (part of bsc#1182837)
