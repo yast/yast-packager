@@ -46,15 +46,18 @@ module Yast
         )
       end
 
-      # copy the credential files (libzypp loads them from target)
-      # and the repository cache to the target system
-      Pkg.SourceCacheCopyTo(Installation.destdir)
+      # copy the zypp cache to the target system (only when running in inst-sys!)
+      if Stage.initial
+        # copy the credential files (libzypp loads them from target)
+        # and the repository cache to the target system
+        Pkg.SourceCacheCopyTo(Installation.destdir)
 
-      # symlink the cache from inst-sys to save same space (RAM!)
-      cache_path = Pkg.ZConfig()["repo_cache_path"] || "/var/cache/zypp"
-      log.info("Zypp cache size: #{`du -h -s #{cache_path.shellescape}`}")
-      ::FileUtils.rm_rf(cache_path)
-      File.symlink(File.join(Installation.destdir, cache_path), cache_path)
+        # symlink the cache from inst-sys to save same space (RAM!)
+        cache_path = Pkg.ZConfig()["repo_cache_path"] || "/var/cache/zypp"
+        log.info("Zypp cache size: #{`du -h -s #{cache_path.shellescape}`}")
+        ::FileUtils.rm_rf(cache_path)
+        File.symlink(File.join(Installation.destdir, cache_path), cache_path)
+      end
 
       # installation, for instance...
       if !Mode.update
