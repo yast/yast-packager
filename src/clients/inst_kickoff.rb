@@ -132,6 +132,7 @@ module Yast
     end
 
     # copy the zypp cache to the target system (only when running in inst-sys!)
+    # to save some memory during installation
     def copy_zypp_cache
       return unless Stage.initial
 
