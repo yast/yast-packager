@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu Mar 18 16:33:19 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Do not create zypp cache symlink when running in installed
+  system, it would create /var/cache/zypp -> /var/cache/zypp
+  loop (bsc#1183683)
+- Remove the "Software Repositories" button from the YaST console,
+  users can easily break the installer with it. Added
+  "configure_repositories" command to the command line interface
+  for experts (bsc#1183687)
+- 4.3.20
+
+-------------------------------------------------------------------
 Thu Mar 11 15:01:58 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Move the libzypp cache to the installed system to save some
