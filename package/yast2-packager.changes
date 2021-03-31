@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 31 08:30:56 UTC 2021 - Fabian Vogt <fvogt@suse.com>
+
+- Delete zypp cache in the destination before overwriting it,
+  to avoid corrupting already open files (boo#1183711)
+- 4.3.21
+
+-------------------------------------------------------------------
 Thu Mar 18 16:33:19 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Do not create zypp cache symlink when running in installed

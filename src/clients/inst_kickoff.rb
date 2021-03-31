@@ -136,13 +136,18 @@ module Yast
     def copy_zypp_cache
       return unless Stage.initial
 
+      cache_path = Pkg.ZConfig()["repo_cache_path"] || "/var/cache/zypp"
+      log.info("Zypp cache size: #{`du -h -s #{cache_path.shellescape}`}")
+
+      # Delete the destination cache for consistency and to avoid that the copy
+      # below modifies opened files in place, leading to corruption.
+      ::FileUtils.rm_rf(File.join(Installation.destdir, cache_path))
+
       # copy the credential files (libzypp loads them from target)
       # and the repository cache to the target system
       Pkg.SourceCacheCopyTo(Installation.destdir)
 
       # symlink the cache from inst-sys to save same space (RAM!)
-      cache_path = Pkg.ZConfig()["repo_cache_path"] || "/var/cache/zypp"
-      log.info("Zypp cache size: #{`du -h -s #{cache_path.shellescape}`}")
       ::FileUtils.rm_rf(cache_path)
       File.symlink(File.join(Installation.destdir, cache_path), cache_path)
     end
