@@ -98,6 +98,10 @@ module Yast
       Pkg.SourceSaveAll
       Pkg.TargetFinish
 
+      # save repository metadata cache to the installed system
+      # (needs to be done _after_ saving repositories, see bnc#700881)
+      Pkg.SourceCacheCopyTo(Installation.destdir)
+
       # Patching /etc/zypp/zypp.conf in order not to install
       # recommended packages, doc-packages,...
       # (needed for products like CASP)
