@@ -337,16 +337,12 @@ module Yast
         end
 
         Builtins.y2milestone("User wants to setup the network")
-        # Call InstLan client
-        netret = WFM.call(
-          "inst_lan",
-          [GetInstArgs.argmap.merge("skip_detection" => true)]
-        )
 
-        if netret == :abort
-          Builtins.y2milestone("Aborting the network setup")
-          break
-        end
+        # Call InstLan client
+        WFM.call(
+          "inst_lan",
+          [GetInstArgs.argmap.merge("skip_detection" => true, "hide_abort_button" => true)]
+        )
       end
 
       ret
