@@ -33,6 +33,15 @@ module Y2Packager
         @type ||= detect_medium_type
       end
 
+      # Returns the cached medium type value. If the medium detection has not been
+      # called yet (via the `type` method) then it returns `nil`.
+      #
+      # @see .type
+      # @return [Symbol,nil] Symbol describing the medium or `nil`
+      def type_value
+        @type
+      end
+
       # Possible types for type value
       POSSIBLE_TYPES = [:online, :offline, :standard].freeze
 
