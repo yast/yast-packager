@@ -10,14 +10,18 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # ------------------------------------------------------------------------------
 
+require "etc"
 require "solv"
+require "yast"
 
 module Y2Packager
   # This is a wrapper for the Solv::Pool class
   class SolvablePool
+    include Yast::Logger
+
     def initialize
       @pool = Solv::Pool.new
-      @pool.setarch
+      @pool.setarch(arch)
     end
 
     #
@@ -35,5 +39,23 @@ module Y2Packager
     end
 
     attr_reader :pool
+
+  private
+
+    # detect the system architecture
+    # @return [String] the machine architecture, equivalent to "uname -m"
+    def arch
+      # get the machine architecture name ("uname -m")
+      arch = Etc.uname[:machine]
+      log.info "Detected system architecture: #{arch}"
+
+      # use "armv7hl" packages on "armv7l" (bsc#1183795)
+      if arch == "armv7l"
+        arch = "armv7hl"
+        log.info "Using #{arch} package architecture"
+      end
+
+      arch
+    end
   end
 end
