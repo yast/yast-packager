@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 27 07:43:27 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Use the "armv7hl" packages on the "armv7l" architecture
+  (bsc#1183795)
+- 4.3.22
+
+-------------------------------------------------------------------
 Tue Apr  6 13:06:27 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Revert copying the libzypp cache to the target system and
