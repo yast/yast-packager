@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 15 09:17:24 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Fix the Comment entry in the desktop file so the tooltip
+  in the control center is properly translated (bsc#1187270).
+- 4.2.70
+
+-------------------------------------------------------------------
 Fri Feb 19 13:21:25 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - Show correct number of downloaded packages in log (bsc#1180278)
