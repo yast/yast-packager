@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jun 17 15:47:33 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- When editing a repository display the repository alias as a
+  fallback if the repository name is not set, do not display
+  empty name (bsc#1184935)
+- 4.4.5
+
+-------------------------------------------------------------------
 Tue Jun 15 09:17:24 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - Fix the Comment entry in the desktop file so the tooltip
