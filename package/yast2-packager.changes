@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 18 08:39:06 UTC 2021 - Stefan Schubert <schubi@schubi.de>
+
+- Adding NFS repository: Checking user input e.g. white spaces in
+  server name (bsc#1168342).
+- 4.4.6
+
+-------------------------------------------------------------------
 Thu Jun 17 15:47:33 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - When editing a repository display the repository alias as a
