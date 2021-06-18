@@ -67,3 +67,13 @@ if ENV["COVERAGE"]
     ]
   end
 end
+
+# mock empty class to avoid build dependency on yast2-installation
+module Installation
+  module Console
+    module Plugins
+      class MenuPlugin
+      end
+    end
+  end
+end

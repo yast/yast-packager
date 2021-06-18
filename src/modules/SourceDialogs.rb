@@ -2222,7 +2222,10 @@ module Yast
         RefreshTypeWidgets()
         return nil
       when :network
-        Yast::WFM.CallFunction("inst_lan", [{ "skip_detection" => true }])
+        Yast::WFM.CallFunction(
+          "inst_lan",
+          [{ "skip_detection" => true, "hide_abort_button" => true }]
+        )
       end
 
       return nil if event["ID"] != :next && event["ID"] != :ok

@@ -106,6 +106,8 @@ describe Yast::InstProductsourcesClient do
     before do
       allow(Yast::Pkg).to receive(:RepositoryProbe).and_return("RPM-MD")
       allow(Yast::Pkg).to receive(:RepositoryAdd).and_return(1)
+      allow(Yast::Pkg).to receive(:SourceRefreshNow).and_return(true)
+      allow(Yast::Pkg).to receive(:SourceSetEnabled).and_return(true)
     end
 
     it "probes repo" do

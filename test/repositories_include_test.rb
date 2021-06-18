@@ -78,6 +78,7 @@ describe "PackagerRepositoriesIncludeInclude" do
       before do
         # URL expansion returns nil (bsc#1059744)
         allow(Yast::Pkg).to receive(:ExpandedUrl).with(url).and_return(nil)
+        allow(Yast::Report).to receive(:Error)
       end
 
       it "returns :again symbol" do

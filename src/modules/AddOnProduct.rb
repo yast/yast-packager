@@ -40,7 +40,9 @@ module Yast
       "sle-module-toolchain"              => ["sle-module-development-tools"],
       "sle-sdk"                           => ["sle-module-development-tools"],
       # openSUSE => SLES migration
-      "openSUSE"                          => ["SLES"]
+      "openSUSE"                          => ["SLES"],
+      # the IBM tools have been renamed in SLE12->SLE15 upgrade
+      "ibm-dlpar-utils"                   => ["ibm-power-tools"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method

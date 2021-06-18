@@ -1791,7 +1791,12 @@ module Yast
       old_url = url2
       plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
 
-      SourceDialogs.SetRepoName(source_state.fetch("raw_name", ""))
+      repo_name = source_state.fetch("raw_name", "")
+      # if the repository does not define a name then "raw_name" is empty,
+      # display "name" which contains the repository alias in that case
+      repo_name = source_state.fetch("name", "") if repo_name.empty?
+
+      SourceDialogs.SetRepoName(repo_name)
 
       begin
         url2 = SourceDialogs.EditPopupType(url2, plaindir)
