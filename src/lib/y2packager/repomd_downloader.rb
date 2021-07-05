@@ -78,9 +78,11 @@ module Y2Packager
 
       # add a temporary repository for downloading the files via libzypp
       src = Yast::Pkg.RepositoryAdd("base_urls" => [url])
-      repos.map do |(_name, dir)|
+      xml_paths = repos.map do |(_name, dir)|
         # download the repository index file (repomd.xml)
         repomd_file = Yast::Pkg.SourceProvideFile(src, 1, File.join(dir, "repodata/repomd.xml"))
+
+        next unless repomd_file
 
         # parse the index file and get the full name of the primary.xml.gz file
         doc = REXML::Document.new(File.read(repomd_file))
@@ -90,6 +92,8 @@ module Y2Packager
         # download the primary.xml.gz file
         Yast::Pkg.SourceProvideFile(src, 1, File.join(dir, primary_path))
       end
+
+      xml_paths.compact
     ensure
       # remove the temporary repository
       Yast::Pkg.SourceDelete(src) if src
