@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 12 13:28:52 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Adjusted memory check to display a low memory warning on RPi
+  (bsc#1139325)
+- 4.4.7
+
+-------------------------------------------------------------------
 Fri Jun 18 08:39:06 UTC 2021 - Stefan Schubert <schubi@schubi.de>
 
 - Adding NFS repository: Checking user input e.g. white spaces in
