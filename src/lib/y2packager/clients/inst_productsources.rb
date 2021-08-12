@@ -1697,7 +1697,7 @@ module Yast
     def low_memory?
       # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
       # rounding in hwinfo memory detection (bsc#1045915)
-      Yast2::HwDetection.memory < ((LOW_MEMORY_MIB - 64) << 20)
+      Yast2::HwDetection.memory <= ((LOW_MEMORY_MIB - 64) << 20)
     end
 
     # Ask the user if he wishes to activate online repos.
