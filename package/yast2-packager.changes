@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Aug 17 15:18:07 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Fixed evaluating module dependencies on the SLE Full medium
+  - Ignore soft dependencies (Recommends), use only hard
+    dependencies (Requires)
+  - Do not select "Python2" module for "Workstation Extensions"
+    (bsc#1188633)
+- 4.4.8
+
+-------------------------------------------------------------------
 Thu Aug 12 13:28:52 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Adjusted memory check to display a low memory warning on RPi
