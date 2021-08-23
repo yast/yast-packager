@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 23 13:31:34 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Include some hints in the "Priority" label in the repository
+  manager (if there is enough screen space) (bsc#1154693)
+- 4.4.9
+
+-------------------------------------------------------------------
 Tue Aug 17 15:18:07 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Fixed evaluating module dependencies on the SLE Full medium
