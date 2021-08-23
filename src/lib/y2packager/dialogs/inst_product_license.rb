@@ -17,6 +17,7 @@ require "y2packager/widgets/product_license_translations"
 require "y2packager/widgets/product_license_confirmation"
 
 Yast.import "Language"
+Yast.import "Popup"
 
 module Y2Packager
   module Dialogs
@@ -59,6 +60,11 @@ module Y2Packager
             HStretch()
           )
         )
+      end
+
+      # Overwrite abort handler to ask for confirmation
+      def abort_handler
+        Yast::Popup.ConfirmAbort(:painless)
       end
 
     private

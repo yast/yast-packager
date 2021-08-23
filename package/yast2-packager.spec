@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        4.2.31
+Version:        4.4.9
 Release:        0
 Summary:        YaST2 - Package Library
 License:        GPL-2.0-or-later
@@ -31,30 +31,29 @@ BuildRequires:  yast2-devtools >= 4.2.2
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:yast-rake)
+BuildRequires:  rubygem(%{rb_default_ruby_abi}:nokogiri)
 # Y2Storage::Device#exists_in_raw_probed
 BuildRequires:  yast2-storage-ng >= 4.0.141
 # break the yast2-packager -> yast2-storage-ng -> yast2-packager build cycle
 #!BuildIgnore: yast2-packager
-# Y2Packager::ProductControlProduct
-BuildRequires:  yast2 >= 4.2.22
-# Pkg::Resolvables
-BuildRequires:  yast2-pkg-bindings >= 4.2.0
+# Installation::InstallationInfo
+BuildRequires:  yast2 >= 4.4.4
+# raw_name
+BuildRequires:  yast2-pkg-bindings >= 4.2.8
 # Augeas lenses
 BuildRequires:  augeas-lenses
 BuildRequires:  ruby-solv
 
 # Newly added RPM
 Requires:       yast2-country-data >= 2.16.3
-# Pkg::Resolvables
-Requires:       yast2-pkg-bindings >= 4.2.0
-# Y2Packager::ProductControlProduct
-Requires:       yast2 >= 4.2.22
+# raw_name
+Requires:       yast2-pkg-bindings >= 4.2.8
+# Installation::InstallationInfo
+Requires:       yast2 >= 4.4.4
 # unzipping license file
 Requires:       unzip
 # HTTP, FTP, HTTPS modules (inst_productsources.ycp)
 Requires:       yast2-transfer
-# XML module (inst_productsources.ycp)
-Requires:       yast2-xml
 # Bugzilla #305503 - storing/checking MD5 of licenses
 Requires:       /usr/bin/md5sum
 # .process agent
@@ -65,6 +64,8 @@ Requires:       yast2-storage-ng >= 4.0.141
 Requires:       augeas-lenses
 # zypp.conf model and minimal modifications (bsc#1023204)
 Requires:       rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
+# parsing xml with repositories
+Requires:       rubygem(%{rb_default_ruby_abi}:nokogiri)
 # One of libyui-qt-pkg, libyui-ncurses-pkg, libyui-gtk-pkg
 Requires:       libyui_pkg
 Requires:       yast2-ruby-bindings >= 1.0.0
@@ -115,8 +116,8 @@ This package contains the libraries and modules for software management.
 %{yast_yncludedir}/packager/*
 %{yast_libdir}/language_tag.rb
 %{yast_libdir}/packager/*
-%{yast_libdir}/packager/cfa/*
 %{yast_libdir}/y2packager/*
+%{yast_libdir}/installation/*
 %{yast_clientdir}/*.rb
 %{yast_moduledir}/*
 %{yast_desktopdir}/*.desktop
@@ -128,6 +129,5 @@ This package contains the libraries and modules for software management.
 %dir %{yast_docdir}
 %license COPYING
 %doc %{yast_docdir}/README.md
-%doc %{yast_docdir}/CONTRIBUTING.md
 
 %changelog

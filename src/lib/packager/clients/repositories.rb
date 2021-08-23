@@ -311,6 +311,7 @@ module Yast
         "enabled"      => Ops.get_boolean(source, "enabled", true),
         "autorefresh"  => Ops.get_boolean(source, "autorefresh", true),
         "name"         => Ops.get_locale(source, "name", _("Unknown Name")),
+        "raw_name"     => source.fetch("raw_name", _("Unknown Name")),
         "url"          => Ops.get_string(generalData, "url", ""),
         "raw_url"      => Ops.get_string(generalData, "raw_url", ""),
         "type"         => Ops.get_string(generalData, "type", ""),
@@ -338,7 +339,7 @@ module Yast
 
       itemList = repo_mode ? deep_copy(@sourceStatesOut) : deep_copy(@serviceStatesOut)
 
-      # displaye only repositories from the selected service
+      # display only repositories from the selected service
       itemList = ReposFromService(service_name, itemList) if repo_mode && service_name != ""
 
       numItems = Builtins.size(itemList)
@@ -360,6 +361,8 @@ module Yast
     end
 
     def repoInfoRichText(name, category, info)
+      raw_name = info["raw_name"]
+
       url = info["url"]
       raw_url = info["raw_url"]
 
@@ -368,6 +371,10 @@ module Yast
       )
       icon = ["cd", "dvd", "iso"].include?(schema) ? "yast-cd_update" : "yast-http-server"
       icon_tag = "<IMG HEIGHT=\"22\" SRC=\"#{icon}\">&nbsp;&nbsp;&nbsp;"
+
+      # TRANSLATORS: the raw name is the original repository name with unexpanded variables
+      # like "$releasever"
+      name_string = (name != raw_name) ? _("Raw name: %s") % raw_name + "<BR>" : ""
 
       url = _("Unknown") if url == ""
       raw_url = _("Unknown") if raw_url == ""
@@ -381,9 +388,10 @@ module Yast
       end
 
       Builtins.sformat(
-        "<P>%1<B><BIG>%2</BIG></B></P><P>%3<BR>%4</P>",
+        "<P>%1<B><BIG>%2</BIG></B></P><P>%3%4<BR>%5</P>",
         icon_tag,
         name,
+        name_string,
         url_string,
         category
       )
@@ -1800,7 +1808,13 @@ module Yast
       old_url = url2
       plaindir = Ops.get_string(generalData, "type", "YaST") == @plaindir_type
 
-      SourceDialogs.SetRepoName(Ops.get_string(source_state, "name", ""))
+      repo_name = source_state.fetch("raw_name", "")
+      # if the repository does not define a name then "raw_name" is empty,
+      # display "name" which contains the repository alias in that case
+      repo_name = source_state.fetch("name", "") if repo_name.empty?
+
+      SourceDialogs.SetRepoName(repo_name)
+
       begin
         url2 = SourceDialogs.EditPopupType(url2, plaindir)
 
@@ -1918,12 +1932,11 @@ module Yast
               # remove the duplicate at the end
               @sourceStatesOut = Builtins.remove(@sourceStatesOut, idx)
 
+              new_raw_name = addedSource.fetch("raw_name", "")
+              new_name = Yast::Pkg.ExpandedName(new_raw_name)
+
               # refresh only the name and URL in the table
-              UI.ChangeWidget(
-                Id(:table),
-                Cell(global_current, 3),
-                Ops.get_string(addedSource, "name", "")
-              )
+              UI.ChangeWidget(Id(:table), Cell(global_current, 3), new_name)
               UI.ChangeWidget(Id(:table), Cell(global_current, 5), url2)
 
               fillCurrentRepoInfo
@@ -1934,19 +1947,18 @@ module Yast
             "URL is the same, not recreating the source"
           )
 
-          new_name = SourceDialogs.GetRepoName
-          if new_name != Ops.get_string(source_state, "name", "")
+          new_raw_name = SourceDialogs.GetRepoName
+          if new_raw_name != source_state.fetch("raw_name", "")
             warn_service_repository(source_state)
 
-            Ops.set(source_state, "name", new_name)
-            Ops.set(@sourceStatesOut, global_current, source_state)
+            new_name = Yast::Pkg.ExpandedName(new_raw_name)
+
+            source_state["name"] = new_name
+            source_state["raw_name"] = new_raw_name
+            @sourceStatesOut[global_current] = source_state
 
             # update only the name cell in the table
-            UI.ChangeWidget(
-              Id(:table),
-              Cell(global_current, 3),
-              new_name
-            )
+            UI.ChangeWidget(Id(:table), Cell(global_current, 3), new_name)
 
             fillCurrentRepoInfo
           else

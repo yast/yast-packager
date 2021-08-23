@@ -3,6 +3,8 @@ require "yast"
 require "shellwords"
 
 require "packager/product_patterns"
+require "y2packager/resolvable"
+require "y2packager/repository"
 
 # Yast namespace
 module Yast
@@ -38,7 +40,9 @@ module Yast
       "sle-module-toolchain"              => ["sle-module-development-tools"],
       "sle-sdk"                           => ["sle-module-development-tools"],
       # openSUSE => SLES migration
-      "openSUSE"                          => ["SLES"]
+      "openSUSE"                          => ["SLES"],
+      # the IBM tools have been renamed in SLE12->SLE15 upgrade
+      "ibm-dlpar-utils"                   => ["ibm-power-tools"]
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
@@ -170,6 +174,10 @@ module Yast
       # E.g.: product:sle-module-basesystem-15-0.x86_64 has buddy
       # sle-module-basesystem-release-15-91.2.x86_64
       @selected_installation_products = [] # e.g.:  ["sle-module-basesystem"]
+
+      # Libzypp product renames cache. When loaded, it is supposed to be a Hash.
+      # @see #product_renames_from_libzypp
+      @libzypp_product_renames = nil
     end
 
     # Downloads a requested file, caches it and returns path to that cached file.
@@ -291,13 +299,13 @@ module Yast
     #
     # @param [Fixnum] source_id source ID
     def AddOnMode(source_id)
-      all_products = Pkg.ResolvableProperties("", :product, "")
+      all_products = Y2Packager::Resolvable.find(kind: :product)
 
-      check_add_on = {}
+      check_add_on = nil
 
       # Search for an add-on using source ID
       Builtins.foreach(all_products) do |one_product|
-        if Ops.get_integer(one_product, "source", -1) == source_id
+        if one_product.source == source_id
           check_add_on = deep_copy(one_product)
           raise Break
         end
@@ -308,50 +316,49 @@ module Yast
       supported_statuses = [:installed, :selected]
       already_found = false
 
-      # Found the
-      if check_add_on != {} && Builtins.haskey(check_add_on, "replaces")
-        product_replaces = Ops.get_list(check_add_on, "replaces", [])
+      return ret if check_add_on.nil?
 
-        # Run through through all products that the add-on can replace
-        Builtins.foreach(product_replaces) do |one_replaces|
-          raise Break if already_found
+      product_replaces = Ops.get_list(check_add_on, "replaces", [])
 
-          # Run through all installed (or selected) products
-          Builtins.foreach(all_products) do |one_product|
-            # checking the status
-            if !Builtins.contains(
-              supported_statuses,
-              Ops.get_symbol(one_product, "status", :unknown)
-            )
-              next
-            end
-            # ignore itself
-            next if Ops.get_integer(one_product, "source", -42) == source_id
-            # check name to replace
-            if Ops.get_string(one_product, "name", "-A-") !=
-                Ops.get_string(one_replaces, "name", "-B-")
-              next
-            end
-            # check version to replace
-            if Ops.get_string(one_product, "version", "-A-") !=
-                Ops.get_string(one_replaces, "version", "-B-")
-              next
-            end
-            # check version to replace
-            if Ops.get_string(one_product, "arch", "-A-") !=
-                Ops.get_string(one_replaces, "arch", "-B-")
-              next
-            end
+      # Run through through all products that the add-on can replace
+      Builtins.foreach(product_replaces) do |one_replaces|
+        raise Break if already_found
 
-            Builtins.y2milestone(
-              "Found product matching update criteria: %1 -> %2",
-              one_product,
-              check_add_on
-            )
-            ret = "update"
-            already_found = true
-            raise Break
+        # Run through all installed (or selected) products
+        Builtins.foreach(all_products) do |one_product|
+          # checking the status
+          if !Builtins.contains(
+            supported_statuses,
+            Ops.get_symbol(one_product, "status", :unknown)
+          )
+            next
           end
+          # ignore itself
+          next if Ops.get_integer(one_product, "source", -42) == source_id
+          # check name to replace
+          if Ops.get_string(one_product, "name", "-A-") !=
+              Ops.get_string(one_replaces, "name", "-B-")
+            next
+          end
+          # check version to replace
+          if Ops.get_string(one_product, "version", "-A-") !=
+              Ops.get_string(one_replaces, "version", "-B-")
+            next
+          end
+          # check version to replace
+          if Ops.get_string(one_product, "arch", "-A-") !=
+              Ops.get_string(one_replaces, "arch", "-B-")
+            next
+          end
+
+          Builtins.y2milestone(
+            "Found product matching update criteria: %1 -> %2",
+            one_product,
+            check_add_on
+          )
+          ret = "update"
+          already_found = true
+          raise Break
         end
       end
 
@@ -570,16 +577,7 @@ module Yast
     end
 
     def AnyPatternInRepo
-      patterns = Pkg.ResolvableProperties("", :pattern, "")
-
-      Builtins.y2milestone(
-        "Total number of patterns: %1",
-        Builtins.size(patterns)
-      )
-
-      patterns = Builtins.filter(patterns) do |pat|
-        Ops.get(pat, "source") == @src_id
-      end
+      patterns = Y2Packager::Resolvable.find(kind: :pattern, source: @src_id)
 
       Builtins.y2milestone("Found %1 add-on patterns", Builtins.size(patterns))
       Builtins.y2debug("Found add-on patterns: %1", patterns)
@@ -1195,14 +1193,16 @@ module Yast
         return []
       end
 
-      xmlfile_products = XML.XMLToYCPFile(parse_file)
-
-      if xmlfile_products.nil?
+      begin
+        xmlfile_products = XML.XMLToYCPFile(parse_file)
+      rescue XMLDeserializationError => e
         # TRANSLATORS: error report
         Report.Error(_("Unable to use additional products."))
-        Builtins.y2error("Erroneous file %1", parse_file)
+        log.error "Erroneous file #{parse_file}: #{e.inspect}"
         return []
-      elsif Ops.get_list(xmlfile_products, "product_items", []) == []
+      end
+
+      if Ops.get_list(xmlfile_products, "product_items", []) == []
         Builtins.y2warning("Empty file %1", parse_file)
         return []
       end
@@ -1263,18 +1263,14 @@ module Yast
 
         # install all products from the destination
       else
-        products = Pkg.ResolvableProperties("", :product, "")
-        # only those that come from the new source
-        products = Builtins.filter(products) do |p|
-          Ops.get_integer(p, "source", -1) == src
-        end
+        products = Y2Packager::Resolvable.find(kind: :product, source: src)
 
         Builtins.foreach(products) do |p|
           Builtins.y2milestone(
             "Selecting product '%1' for installation",
-            Ops.get_string(p, "name", "")
+            p.name
           )
-          one_prod = p["name"] || ""
+          one_prod = p.name
           Pkg.ResolvableInstall(one_prod, :product)
           @selected_installation_products << one_prod
         end
@@ -1297,7 +1293,7 @@ module Yast
       msg = if product_name.nil? || product_name == ""
         # %1 is either "CD" or "DVD"
         Builtins.sformat(
-          _("Insert the addon %1 medium"),
+          _("Insert the add-on %1 medium"),
           Builtins.toupper(scheme)
         )
       else
@@ -1552,19 +1548,19 @@ module Yast
     #        </add_on_products>
     #      </add-on>
     def Export
-      Builtins.y2milestone("Add-Ons Input: %1", @add_on_products)
+      log.info("Add-Ons Input: #{@add_on_products}")
 
-      exp = Builtins.maplist(@add_on_products) do |p|
-        p = Builtins.remove(p, "media") if Builtins.haskey(p, "media")
+      exp = @add_on_products.map do |product|
+        p = deep_copy(product)
         # bugzilla #279893
-        if Builtins.haskey(p, "autoyast_product")
-          Ops.set(p, "product", Ops.get_string(p, "autoyast_product", ""))
-          p = Builtins.remove(p, "autoyast_product")
+        if !(p["autoyast_product"].nil? || p["autoyast_product"].empty?)
+          p["product"] = p["autoyast_product"]
         end
-        deep_copy(p)
+        p.delete("autoyast_product")
+        p.delete("media")
+        p
       end
-
-      Builtins.y2milestone("Add-Ons Output: %1", exp)
+      log.info("Add-Ons Output: #{exp}")
 
       { "add_on_products" => exp }
     end
@@ -1967,6 +1963,38 @@ module Yast
         old_name, new_name)
     end
 
+    # Return a list of the product add-ons which are installed but are not selected for upgrade.
+    # These add-ons should be additionally selected to install.
+    # It handles also the product renames, the returned list might contain different
+    # (new) names than the currently installed products.
+    # @return [Array<String>] the product names
+    def missing_upgrades
+      installed_addons = Y2Packager::Resolvable.find(
+        kind: :product, status: :installed, type: "addon"
+      ).map(&:name) + Y2Packager::Resolvable.find(
+        kind: :product, status: :removed, type: "addon"
+      ).map(&:name)
+
+      selected_addons = Y2Packager::Resolvable.find(
+        kind: :product, status: :selected, type: "addon"
+      ).map(&:name)
+
+      # handle the product renames, if a renamed product was installed
+      # replace it with the new product so the new product is preselected
+      DEFAULT_PRODUCT_RENAMES.each do |k, v|
+        next unless installed_addons.include?(k)
+
+        installed_addons.delete(k)
+        installed_addons.concat(v)
+      end
+
+      # installed but not selected
+      ret = installed_addons - selected_addons
+
+      log.info "Found missing product upgrades: #{ret}"
+      ret
+    end
+
     publish variable: :add_on_products, type: "list <map <string, any>>"
     publish variable: :src_id, type: "integer"
     publish variable: :last_ret, type: "symbol"
@@ -2027,7 +2055,7 @@ module Yast
 
     # Determine whether a product was renamed using libzypp
     #
-    # libzypp (through #ResolvableProperties and #ResolvableDependencies method) is used
+    # libzypp (through Y2Packager::Resolvable methods) is used
     # to determine whether the product was renamed or not.
     #
     # @param old_name [String] Old product's name
@@ -2069,16 +2097,20 @@ module Yast
     # @see names_from_product_package
     # @see add_rename_to_hash
     def product_renames_from_libzypp
-      renames = {}
+      return @libzypp_product_renames if !libzypp_repos_changed? && @libzypp_product_renames
+
+      @libzypp_product_renames = {}
       # Dependencies are not included in this call
-      products = Pkg.ResolvableProperties("", :product, "")
+      products = Y2Packager::Resolvable.find(kind: :product)
       products.each do |product|
-        renames = names_from_product_packages(product["product_package"])
-          .reduce(renames) do |hash, rename|
-          add_rename_to_hash(hash, rename, product["name"])
-        end
+        next unless product.product_package
+
+        @libzypp_product_renames = names_from_product_packages(product.product_package)
+          .reduce(@libzypp_product_renames) do |hash, rename|
+            add_rename_to_hash(hash, rename, product.name)
+          end
       end
-      renames
+      @libzypp_product_renames
     end
 
     # Regular expresion to extract the product name. It supports two different
@@ -2125,15 +2157,15 @@ module Yast
     #
     # @return [Array<String>] Old names
     def names_from_product_packages(package_name)
-      # Get package dependencies (not retrieved when using Pkg.ResolvableProperties)
-      packages = Pkg.ResolvableDependencies(package_name, :package, "")
+      # Get package dependencies
+      packages = Y2Packager::Resolvable.find(kind: :package, name: package_name)
       return [] if packages.nil? || packages.empty?
 
       result = packages.each_with_object([]) do |package, names|
-        next names unless package.key?("deps")
+        next names unless package.deps
 
         # Get information from 'obsoletes' and 'provides' keys
-        relevant_deps = package["deps"].map { |d| d["obsoletes"] || d["provides"] }.compact
+        relevant_deps = package.deps.map { |d| d["obsoletes"] || d["provides"] }.compact
         names.concat(relevant_deps.map { |d| product_name_from_dep(d) })
       end
       result.compact.uniq
@@ -2209,6 +2241,24 @@ module Yast
 
       log.info("Found y2update.tgz file from the installer extension package: #{y2update}")
       y2update
+    end
+
+    # Determines whether the repositories libzypp information might have change
+    #
+    # This method returns true when the list of enabled repositories has changed.
+    # Disabled repositories are not even considered.
+    #
+    # @return [Boolean]
+    def libzypp_repos_changed?
+      repos = Y2Packager::Repository.all(enabled_only: true).sort_by(&:repo_id).map do |repo|
+        "#{repo.repo_id}-#{repo.url}-#{repo.product_dir}"
+      end
+      if @old_repos == repos
+        false
+      else
+        @old_repos = repos
+        true
+      end
     end
   end
 

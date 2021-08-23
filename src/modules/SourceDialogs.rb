@@ -7,7 +7,7 @@ Yast.import "NetworkService"
 
 # Yast namespace
 module Yast
-  # Displays possibilities to install from NFS, CD or partion
+  # Displays possibilities to install from NFS, CD or partition
   class SourceDialogsClass < Module
     # to use N_ in the class constant
     extend Yast::I18n
@@ -753,8 +753,8 @@ module Yast
     # @return widget description map
     def NFSWidget
       {
-        "widget"        => :custom,
-        "custom_widget" => VBox(
+        "widget"            => :custom,
+        "custom_widget"     => VBox(
           RadioButtonGroup(
             Id(:edit_type),
             HBox(
@@ -774,11 +774,16 @@ module Yast
           ),
           ReplacePoint(Id(:edit_content), Empty())
         ),
-        "init"          => fun_ref(method(:NFSInit), "void (string)"),
-        "store"         => fun_ref(method(:NFSStore), "void (string, map)"),
-        "handle"        => fun_ref(method(:NFSHandle), "symbol (string, map)"),
+        "init"              => fun_ref(method(:NFSInit), "void (string)"),
+        "store"             => fun_ref(method(:NFSStore), "void (string, map)"),
+        "handle"            => fun_ref(method(:NFSHandle), "symbol (string, map)"),
+        "validate_type"     => :function,
+        "validate_function" => fun_ref(
+          method(:ServerValidate),
+          "boolean (string, map)"
+        ),
         # help text
-        "help"          => Ops.add(
+        "help"              => Ops.add(
           Ops.add(
             _(
               "<p><big><b>NFS Server</b></big><br>\n" \
@@ -2217,7 +2222,10 @@ module Yast
         RefreshTypeWidgets()
         return nil
       when :network
-        Yast::WFM.CallFunction("inst_lan", [{ "skip_detection" => true }])
+        Yast::WFM.CallFunction(
+          "inst_lan",
+          [{ "skip_detection" => true, "hide_abort_button" => true }]
+        )
       end
 
       return nil if event["ID"] != :next && event["ID"] != :ok

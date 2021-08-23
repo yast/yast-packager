@@ -1,4 +1,5 @@
 require "yast"
+require "y2packager/info_file"
 
 # Yast namespace
 module Yast
@@ -13,10 +14,24 @@ module Yast
 
       Yast.import "Report"
       Yast.import "Label"
+
+      @shown_info_files = []
     end
 
-    # @param [String] info_file path to be shown
-    def show_info_txt(info_file)
+    # @param file_path [String] path to be shown
+    def show_info_txt(file_path)
+      info_file = Y2Packager::InfoFile.read(file_path)
+      if info_file.nil?
+        Builtins.y2milestone("No %1", file_path)
+        return
+      end
+
+      if already_shown?(info_file)
+        Builtins.y2milestone("Info file with id #{info_file.id} was already shown")
+        return
+      end
+      register_as_shown(info_file)
+
       display_info = UI.GetDisplayInfo
       size_x = Builtins.tointeger(Ops.get_integer(display_info, "Width", 800))
       size_y = Builtins.tointeger(Ops.get_integer(display_info, "Height", 600))
@@ -27,13 +42,6 @@ module Yast
         size_x = 54
         size_y = 15
       end
-
-      if Ops.less_or_equal(SCR.Read(path(".target.size"), info_file), 0)
-        Builtins.y2milestone("No %1", info_file)
-        return
-      end
-
-      info_text = Convert.to_string(SCR.Read(path(".target.string"), info_file))
 
       report_settings = Report.Export
       message_settings = Ops.get_map(report_settings, "messages", {})
@@ -56,7 +64,7 @@ module Yast
 
       UI.OpenDialog(
         VBox(
-          MinSize(size_x, size_y, RichText(Opt(:plainText), info_text)),
+          MinSize(size_x, size_y, RichText(Opt(:plainText), info_file.content)),
           if use_timeout
             Label(Id(:timeout), Builtins.sformat("   %1   ", timeout_seconds))
           else
@@ -94,6 +102,25 @@ module Yast
     end
 
     publish function: :show_info_txt, type: "void (string)"
+
+  private
+
+    # Determines whether an info file was already shown
+    #
+    # @param info_file [InfoFile] Info file to check
+    # @return [Boolean] true if it was already shown; false otherwise
+    def already_shown?(info_file)
+      @shown_info_files.include?(info_file.id)
+    end
+
+    # Registers an info file as already shown
+    #
+    # When an info file is registered, it will not be shown again when calling {#show_info_txt}.
+    #
+    # @param info_file [InfoFile] Info file to register
+    def register_as_shown(info_file)
+      @shown_info_files << info_file.id
+    end
   end
 
   InstShowInfo = InstShowInfoClass.new

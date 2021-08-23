@@ -13,7 +13,11 @@
 require "yast"
 require "erb"
 require "ui/installation_dialog"
+require "y2packager/resolvable"
 
+Yast.import "AddOnProduct"
+Yast.import "Mode"
+Yast.import "ProductFeatures"
 Yast.import "Report"
 Yast.import "Stage"
 Yast.import "UI"
@@ -77,11 +81,9 @@ module Y2Packager
         "subdirectories. Select which products you want to install.</p>")
       end
 
-      # Handle changing the current item or chaging the selection
+      # Handle changing the current item or changing the selection
       def addon_repos_handler
-        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
-        current_product = products.find { |p| p.dir == current_item }
-
+        current_product = find_current_product
         return unless current_product
 
         refresh_details(current_product)
@@ -104,7 +106,7 @@ module Y2Packager
         res = super
         Yast::Wizard.EnableNextButton
         Yast::Wizard.EnableBackButton
-
+        Yast::UI.SetFocus(Id(:addon_repos))
         res
       end
 
@@ -113,7 +115,8 @@ module Y2Packager
       attr_writer :selected_products
 
       def selection_content
-        products.map { |p| Item(Id(p.dir), p.summary || p.name) }
+        defaults = preselected_products
+        products.map { |p| Item(Id(p.dir), p.summary || p.name, defaults.include?(p)) }
       end
 
       # Dialog content
@@ -126,7 +129,7 @@ module Y2Packager
           VWeight(60, MinHeight(8,
             MultiSelectionBox(
               Id(:addon_repos),
-              Opt(:notify, :immediate),
+              Opt(:notify),
               "",
               selection_content
             ))),
@@ -201,16 +204,18 @@ module Y2Packager
       # description widget
       # @return [Yast::Term] the addon details widget
       def details_widget
-        VWeight(40, RichText(Id(:details), Opt(:disabled), "<small>" +
-        description + "</small>"))
+        VWeight(
+          40,
+          RichText(Id(:details), Opt(:disabled), initial_description)
+        )
       end
 
       # extra help text
-      # @return [String] translated text
-      def description
-        # TRANSLATORS: inline help text displayed below the product selection widget
-        _("Select a product to see it's description here. The dependent products " \
-          "are selected automatically.")
+      # @return [String] first product description
+      def initial_description
+        return "" if products.empty?
+
+        product_description(products.first)
       end
 
       def product_description(product)
@@ -228,6 +233,58 @@ module Y2Packager
 
         # render the ERB template in the context of this object
         erb.result(binding)
+      end
+
+      # return a list of the preselected products depending on the installation mode
+      # @return [Array<Y2Packager::ProductLocation>] the products
+      def preselected_products
+        # at upgrade preselect the installed addons
+        return preselected_upgrade_products if Yast::Mode.update
+        # in installation preselect the defaults defined in the control.xml/installation.xml
+        return preselected_installation_products if Yast::Mode.installation
+
+        # in other modes (e.g. installed system) do not preselect anything
+        []
+      end
+
+      # return a list of the preselected products at upgrade,
+      # preselect the installed products
+      # @return [Array<Y2Packager::ProductLocation>] the products
+      def preselected_upgrade_products
+        missing_products = Yast::AddOnProduct.missing_upgrades
+        # installed but not selected yet products (to avoid duplicates)
+        products.select do |p|
+          missing_products.include?(p.details&.product)
+        end
+      end
+
+      # return a list of the preselected products at installation,
+      # preselect the default products specified in the control.xml/installation.xml,
+      # the already selected products are ignored
+      # @return [Array<Y2Packager::ProductLocation>] the products
+      def preselected_installation_products
+        default_modules = Yast::ProductFeatures.GetFeature("software", "default_modules")
+        return [] unless default_modules.is_a?(Array)
+
+        log.info("Defined default modules: #{default_modules.inspect}")
+        # skip the already selected products (to avoid duplicates)
+        selected_products = Y2Packager::Resolvable.find(kind: :product, status: :selected)
+          .map(&:name)
+        default_modules -= selected_products
+        log.info("Using default modules: #{default_modules.inspect}")
+
+        # select the default products
+        products.select do |p|
+          default_modules.include?(p.details&.product)
+        end
+      end
+
+      # Returns the current product (the one which has the focus in the addons list)
+      #
+      # @return [Y2Packager::Product,nil]
+      def find_current_product
+        current_item = Yast::UI.QueryWidget(Id(:addon_repos), :CurrentItem)
+        products.find { |p| p.dir == current_item }
       end
     end
   end

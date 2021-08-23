@@ -2,6 +2,7 @@
 
 require_relative "./test_helper"
 require_relative "product_factory"
+require "uri"
 
 Yast.import "AddOnProduct"
 
@@ -9,12 +10,16 @@ describe Yast::AddOnProduct do
   subject { Yast::AddOnProduct }
 
   describe "#renamed?" do
-    let(:other_product) { ProductFactory.create_product }
+    let(:other_product) do
+      Y2Packager::Resolvable.new(
+        ProductFactory.create_product("kind" => :product, "deps" => [])
+      )
+    end
     let(:products) { [other_product] }
 
     before do
       subject.main
-      allow(Yast::Pkg).to receive(:ResolvableProperties).with("", :product, "")
+      allow(Y2Packager::Resolvable).to receive(:find)
         .and_return(products)
     end
 
@@ -31,6 +36,17 @@ describe Yast::AddOnProduct do
     end
 
     context "when according to libzypp a product is renamed" do
+      before do
+        subject.main
+        allow(Y2Packager::Repository).to receive(:all).and_return([repo0])
+      end
+
+      let(:repo0) do
+        instance_double(
+          Y2Packager::Repository, repo_id: 0, url: URI("dvd:///?devices=/dev/sr0"),
+          product_dir: "/p0"
+        )
+      end
       let(:deps) do
         [
           { "obsoletes" => "product:old_product1" },
@@ -41,27 +57,108 @@ describe Yast::AddOnProduct do
       end
 
       let(:new_product) do
-        ProductFactory.create_product("name"            => "new_product",
-                                      "product_package" => "new_product-release")
+        Y2Packager::Resolvable.new(
+          ProductFactory.create_product("kind" => :product,
+           "name" => "new_product", "version" => "1.0",
+           "arch" => "x86_64", "source" => "1",
+           "product_package" => "new_product-release",
+           "deps" => [])
+        )
       end
 
       let(:new_product_package) do
-        { "name" => "new_product-release", "deps" => deps }
+        Y2Packager::Resolvable.new(
+          "kind"    => :package,
+          "name"    => "new_product-release",
+          "version" => "1.0",
+          "arch"    => "x86_64",
+          "source"  => "1",
+          "deps"    => deps
+        )
       end
 
       let(:installed_product_package) do
-        { "name" => "installed_product-release" }
+        Y2Packager::Resolvable.new(
+          "kind"    => :package,
+          "name"    => "installed_product-release",
+          "version" => "1.0",
+          "arch"    => "x86_64",
+          "source"  => "1",
+          "deps"    => []
+        )
       end
 
       let(:products) { [new_product] }
 
       it "returns true" do
-        allow(Yast::Pkg).to receive(:ResolvableDependencies)
-          .with(new_product["product_package"], :package, "")
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(kind: :package, name: new_product.product_package)
           .and_return([installed_product_package, new_product_package])
-        expect(subject.renamed?("old_product1", new_product["name"])).to eq(true)
-        expect(subject.renamed?("old_product2", new_product["name"])).to eq(true)
-        expect(subject.renamed?("old_name", new_product["name"])).to eq(true)
+        expect(subject.renamed?("old_product1", new_product.name)).to eq(true)
+        expect(subject.renamed?("old_product2", new_product.name)).to eq(true)
+        expect(subject.renamed?("old_name", new_product.name)).to eq(true)
+      end
+
+      context "when renames information has been already loaded" do
+        before do
+          subject.renamed?("old_name", new_product.name)
+        end
+
+        it "does not ask libzypp again" do
+          expect(Y2Packager::Resolvable).to_not receive(:find)
+          subject.renamed?("old_name", new_product.name)
+        end
+
+        context "but a new repo has been added" do
+          let(:repo1) do
+            instance_double(
+              Y2Packager::Repository, repo_id: 1, url: URI("dvd:///?devices=/dev/sr0"),
+              product_dir: "/p1"
+            )
+          end
+
+          before do
+            allow(Y2Packager::Repository).to receive(:all).and_return([repo0, repo1])
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product.name)
+          end
+        end
+
+        context "but the repo_id for a given repo has changed" do
+          before do
+            allow(repo0).to receive(:repo_id).and_return(1)
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product.name)
+          end
+        end
+
+        context "but the url for a given repo has changed" do
+          before do
+            allow(repo0).to receive(:url).and_return(URI("dvd:///?devices=/dev/sr2"))
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product.name)
+          end
+        end
+
+        context "but the product_dir for a given repo has changed" do
+          before do
+            allow(repo0).to receive(:product_dir).and_return("/another")
+          end
+
+          it "asks libzypp again" do
+            expect(Y2Packager::Resolvable).to receive(:find).and_return([])
+            subject.renamed?("old_name", new_product["name"])
+          end
+        end
       end
     end
   end
@@ -205,6 +302,8 @@ describe Yast::AddOnProduct do
           expect(Yast::Package).to receive(:Install).with("yast2-registration").and_return(false)
           expect(Yast::WFM).to_not receive(:CallFunction)
             .with("inst_scc", ["register_media_addon", repo_id])
+          # also error is shown
+          expect(Yast::Report).to receive(:Error)
 
           Yast::AddOnProduct.RegisterAddOnProduct(repo_id)
         end
@@ -373,6 +472,7 @@ describe Yast::AddOnProduct do
         allow(subject).to receive(:Integrate)
         allow(subject).to receive(:AddRepo).with(repo["url"], repo["path"], repo["priority"])
           .and_return(repo_id)
+        allow(Yast::Report).to receive(:Error)
       end
 
       it "adds the repository" do
@@ -641,6 +741,56 @@ describe Yast::AddOnProduct do
         expect(File).to receive(:exist?).with(/\/y2update\.tgz\z/).and_return(false)
         expect(Yast::SCR).to_not receive(:Execute)
         subject.IntegrateY2Update(src_id)
+      end
+    end
+  end
+
+  describe "#Export" do
+    context "autoyast_product is defined" do
+      it "sets -product- value to -autoyast_product- value" do
+        subject.add_on_products = [{
+          "media" => 0, "product_dir" => "/Module-Basesystem", "product" => "sle-module-basesystem",
+          "autoyast_product" => "base", "media_url" => "cd:/?devices=/dev/cdrom/"
+        }]
+        expect(subject.Export).to eq("add_on_products" => [{
+                                       "product_dir" => "/Module-Basesystem", "product" => "base",
+          "media_url" => "cd:/?devices=/dev/cdrom/"
+                                     }])
+      end
+    end
+
+    context "autoyast_product is not defined" do
+      it "only removes -autoyast_product- and -media- entry" do
+        subject.add_on_products = [{
+          "media" => 0, "product_dir" => "/Module-Basesystem", "product" => "sle-module-basesystem",
+          "autoyast_product" => nil, "media_url" => "cd:/?devices=/dev/cdrom/"
+        }]
+        expect(subject.Export).to eq("add_on_products" => [{
+                                       "product_dir" => "/Module-Basesystem",
+                                       "product"     => "sle-module-basesystem",
+                                       "media_url"   => "cd:/?devices=/dev/cdrom/"
+                                     }])
+      end
+    end
+  end
+
+  describe "#ParseXMLBasedAddOnProductsFile" do
+    context "Passed xml is not valid" do
+      before do
+        allow(Yast::FileUtils).to receive(:Exists).and_return(true)
+
+        allow(Yast::XML).to receive(:XMLToYCPFile).and_raise(Yast::XMLDeserializationError)
+        allow(Yast::Report).to receive(:Error)
+      end
+
+      it "return empty array" do
+        expect(subject.ParseXMLBasedAddOnProductsFile("test", "test")).to eq []
+      end
+
+      it "shows error report" do
+        expect(Yast::Report).to receive(:Error)
+
+        subject.ParseXMLBasedAddOnProductsFile("test", "test")
       end
     end
   end

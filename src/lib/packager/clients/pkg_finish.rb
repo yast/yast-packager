@@ -14,6 +14,7 @@
 require "installation/finish_client"
 require "y2packager/repository"
 require "packager/cfa/zypp_conf"
+require "packager/cfa/dnf_conf"
 
 Yast.import "InstURL"
 
@@ -32,6 +33,11 @@ module Yast
       "&& /bin/tar -czf '%<archive>s' '%<source>s'".freeze
     # Format of the timestamp to be used as repositories backup
     BACKUP_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S".freeze
+    # Map the CFAs to package managers
+    PKG_MAPPING = {
+      "dnf"     => Packager::CFA::DnfConf,
+      "libzypp" => Packager::CFA::ZyppConf
+    }.freeze
 
     # Constructor
     def initialize
@@ -100,7 +106,7 @@ module Yast
       # recommended packages, doc-packages,...
       # (needed for products like CASP)
       if ProductFeatures.GetBooleanFeature("software", "minimalistic_libzypp_config")
-        set_minimalistic_libzypp_conf
+        set_minimalistic_pkg_conf
       end
 
       # copy list of failed packages to installed system
@@ -284,15 +290,19 @@ module Yast
       Pkg.TargetInitialize(Installation.destdir)
     end
 
-    # Set libzypp configuration to install the minimal amount of packages
+    # Set package manager configuration to install the minimal amount of packages
     #
     # @see Yast::Packager::CFA::ZyppConf#set_minimalistic!
-    def set_minimalistic_libzypp_conf
-      log.info("Setting libzypp configuration as minimalistic")
-      config = Packager::CFA::ZyppConf.new
-      config.load
-      config.set_minimalistic!
-      config.save
+    def set_minimalistic_pkg_conf
+      PKG_MAPPING.each do |pkg, cfa|
+        next unless File.file?(File.join(Installation.destdir, cfa::PATH))
+
+        log.info("Setting #{pkg} configuration as minimalistic")
+        config = cfa.new
+        config.load
+        config.set_minimalistic!
+        config.save
+      end
     end
   end
 end

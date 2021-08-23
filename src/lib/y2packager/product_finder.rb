@@ -184,6 +184,9 @@ module Y2Packager
       jobs = select_products(product_solvable, selected_base)
       solver = pool.Solver
 
+      # disable soft dependencies (Recommends), use only the hard dependencies (Requires)
+      solver.set_flag(Solv::Solver::SOLVER_FLAG_IGNORE_RECOMMENDED, 1)
+
       # run the solver to evaluate all dependencies
       problems = solver.solve(jobs)
 

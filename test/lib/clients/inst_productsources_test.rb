@@ -2,6 +2,7 @@
 
 require_relative "../../test_helper"
 require "y2packager/clients/inst_productsources"
+require "tempfile"
 Yast.import "SourceManager"
 
 describe Yast::InstProductsourcesClient do
@@ -84,7 +85,10 @@ describe Yast::InstProductsourcesClient do
     end
 
     it "returns false if file is empty" do
-      expect(client.ParseListOfSources("/dev/zero", url)).to eq false
+      Tempfile.create do |f|
+        f.close
+        expect(client.ParseListOfSources(f.path, url)).to eq false
+      end
     end
 
     it "adds repos to list of repos" do
@@ -102,6 +106,8 @@ describe Yast::InstProductsourcesClient do
     before do
       allow(Yast::Pkg).to receive(:RepositoryProbe).and_return("RPM-MD")
       allow(Yast::Pkg).to receive(:RepositoryAdd).and_return(1)
+      allow(Yast::Pkg).to receive(:SourceRefreshNow).and_return(true)
+      allow(Yast::Pkg).to receive(:SourceSetEnabled).and_return(true)
     end
 
     it "probes repo" do

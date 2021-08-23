@@ -5,6 +5,7 @@ require "shellwords"
 
 require "y2packager/product"
 require "y2packager/product_license"
+require "y2packager/resolvable"
 
 # Yast namespace
 module Yast
@@ -836,14 +837,15 @@ module Yast
     # @param src_id [Integer] Repository ID
     # @return [Y2Packager::Product,nil] Product or nil if it was not found
     def repository_product(src_id)
-      product_h = Yast::Pkg.ResolvableProperties("", :product, "").find do |properties|
-        properties["source"] == src_id
-      end
-      if product_h.nil?
+      products = Y2Packager::Resolvable.find(kind: :product, source: src_id)
+      if products.empty?
         log.error "No product found in the repository (#{src_id})"
         return
       end
-      Y2Packager::Product.from_h(product_h)
+      product = products.first
+      Y2Packager::Product.new(name: product.name, short_name: product.short_name,
+        display_name: product.display_name, version: product.version,
+        arch: product.arch, category: product.category, vendor: product.vendor)
     end
 
     # @param licenses [ArgRef<Hash{String, String}>] a map $[ lang_code : filename ]
@@ -1513,7 +1515,7 @@ module Yast
       # 'LANG=foo_BAR yast repositories'
       language = EnvLangToLangCode(Builtins.getenv("LANG"))
 
-      # Preferencies how the client selects from available languages
+      # Preferences how the client selects from available languages
       langs = [
         language,
         Builtins.substring(language, 0, 2), # "it_IT" -> "it"
@@ -1537,7 +1539,7 @@ module Yast
         end
       end
 
-      Builtins.y2milestone("Preffered lang: %1", language)
+      Builtins.y2milestone("Preferred lang: %1", language)
       return :auto if Builtins.size(available_langs.value).zero? # no license available
 
       @lic_lang = Builtins.find(langs) { |l| Builtins.haskey(licenses.value, l) }
@@ -1702,18 +1704,23 @@ module Yast
       Pkg.SourceLoad
       ::FileUtils.mkdir_p(tmpdir)
 
-      products = Pkg.ResolvableProperties("", :product, "")
-      products.select! { |p| p["source"] == id }
-      product_names = products.map { |p| p["name"] }.uniq
+      products = Y2Packager::Resolvable.find(kind: :product, source: id)
+      product_names = products.map(&:name).uniq
       log.info("Found products from source #{id}: #{product_names.inspect}")
       found_license = false
 
       product_names.each do |product_name|
-        locales = Pkg.PrdLicenseLocales(product_name)
+        # in some corner cases the repository might contain a broken product
+        # for which we get 'nil' locales (bsc#1155454)
+        locales = Pkg.PrdLicenseLocales(product_name) || []
         log.info("License locales for product #{product_name.inspect}: #{locales.inspect}")
 
         locales.each do |locale|
-          license = Pkg.PrdGetLicenseToConfirm(product_name, locale)
+          # Pkg.PrdGetLicenseToConfirm returns the license in the installation
+          # language, not the default English license if the requested locale
+          # is an empty string (bsc#1160806)
+          license_locale = locale.empty? ? "en" : locale
+          license = Pkg.PrdGetLicenseToConfirm(product_name, license_locale)
           next if license.nil? || license.empty?
 
           found_license = true

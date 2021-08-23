@@ -104,6 +104,14 @@ module Yast
     def main
       textdomain "packager"
 
+      # Set release version environment variable for zypp.
+      #
+      # Otherwise zypp might use the old version (update) resp. fail to find
+      # a product version at all (new installation).
+      #
+      # cf. bsc#1172870
+      ENV[RELEASEVER_ENV] = Product.version
+
       if AddOnProduct.skip_add_ons
         log.info("Skipping module (as requested before)")
         return :auto
@@ -137,10 +145,6 @@ module Yast
         CommandLine.Run("id" => "inst_productsources")
         return :auto
       end
-
-      # Set the proper release version for newly added repositories
-      # we want to use new product and not old
-      ENV[RELEASEVER_ENV] = Product.version
 
       # (Applicable only in inst-sys)
       @preselect_recommended = true
@@ -333,16 +337,12 @@ module Yast
         end
 
         Builtins.y2milestone("User wants to setup the network")
-        # Call InstLan client
-        netret = WFM.call(
-          "inst_lan",
-          [GetInstArgs.argmap.merge("skip_detection" => true)]
-        )
 
-        if netret == :abort
-          Builtins.y2milestone("Aborting the network setup")
-          break
-        end
+        # Call InstLan client
+        WFM.call(
+          "inst_lan",
+          [GetInstArgs.argmap.merge("skip_detection" => true, "hide_abort_button" => true)]
+        )
       end
 
       ret
@@ -498,10 +498,10 @@ module Yast
         return false
       end
 
-      xml_file_content = XML.XMLToYCPFile(download_file)
-
-      if xml_file_content.nil?
-        Builtins.y2error("Reading file %1 failed", download_file)
+      begin
+        xml_file_content = XML.XMLToYCPFile(download_file)
+      rescue XMLDeserializationError => e
+        log.error "Reading file #{download_file} failed: #{e.inspect}"
         return false
       end
 
@@ -1697,7 +1697,7 @@ module Yast
     def low_memory?
       # less than LOW_MEMORY_MIB RAM, the 64MiB buffer is for possible
       # rounding in hwinfo memory detection (bsc#1045915)
-      Yast2::HwDetection.memory < ((LOW_MEMORY_MIB - 64) << 20)
+      Yast2::HwDetection.memory <= ((LOW_MEMORY_MIB - 64) << 20)
     end
 
     # Ask the user if he wishes to activate online repos.
@@ -1720,15 +1720,17 @@ module Yast
       # Ask only once
       return @@ask_activate_online_repos_result unless @@ask_activate_online_repos_result.nil?
 
-      msg << _("The system has an active network connection.\n" \
-              "Additional software is available online.")
+      msg << _("Enabling the online repositories during installation\n" \
+               "gives you access to all software that does not fit on\n" \
+               "the installation media anymore. Additionally, those\n" \
+               "repositories might contain updated software packages.")
 
       if low_memory?
-        msg << _("Since the system has less than %d MiB memory,\n"         \
+        msg << _("However, since the system has less than %d MiB memory,\n" \
                  "there is a significant risk of running out of memory,\n" \
-                 "and the installer may crash or freeze.\n"                \
-                 "\n"                                                      \
-                 "Using the online repositories later in the installed\n"  \
+                 "and the installer may crash or freeze.\n" \
+                 "\n" \
+                 "Using the online repositories later in the installed\n" \
                  "system is recommended.") % LOW_MEMORY_MIB
         @@posted_low_memory_warning = true
       end
@@ -1736,7 +1738,7 @@ module Yast
       msg << _("Activate online repositories now?")
 
       @@ask_activate_online_repos_result = Popup.AnyQuestion(
-        Popup.NoHeadline,
+        _("Online Repositories"),
         msg.join("\n\n"),
         Label.YesButton,
         Label.NoButton,

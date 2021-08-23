@@ -16,6 +16,7 @@ require "y2packager/product"
 require "y2packager/self_update_addon_repo"
 require "y2packager/medium_type"
 
+Yast.import "GetInstArgs"
 Yast.import "Packages"
 Yast.import "PackageCallbacks"
 Yast.import "Popup"
@@ -37,8 +38,24 @@ module Y2Packager
       def main
         textdomain "packager"
 
+        # no changes if going back
+        return :back if Yast::GetInstArgs.going_back
+
         if Y2Packager::MediumType.skip_step?
           log.info "Skipping the client on the #{Y2Packager::MediumType.type} medium"
+          return :auto
+        end
+
+        # for the Full medium we need to just add the self-update add-on
+        # repo to make the new roles work
+        if Y2Packager::MediumType.offline?
+          if Y2Packager::SelfUpdateAddonRepo.present?
+            log.info "Adding the self-update add-on repository..."
+            Y2Packager::SelfUpdateAddonRepo.create_repo
+          else
+            log.info "Self-update repository not found - finishing..."
+          end
+
           return :auto
         end
 
@@ -122,7 +139,7 @@ module Y2Packager
         elsif products.size == 1
           products.first.select
         else
-          products.each(&:restore)
+          products.each(&:restore) unless Y2Packager::MediumType.online?
         end
       end
 

@@ -33,6 +33,31 @@ module Y2Packager
         @type ||= detect_medium_type
       end
 
+      # Returns the cached medium type value. If the medium detection has not been
+      # called yet (via the `type` method) then it returns `nil`.
+      #
+      # @see .type
+      # @return [Symbol,nil] Symbol describing the medium or `nil`
+      def type_value
+        @type
+      end
+
+      # Possible types for type value
+      POSSIBLE_TYPES = [:online, :offline, :standard].freeze
+
+      # Allows to overwrite detected medium type. Useful e.g. when upgrade of
+      # registered system with Full medium should act like Online medium.
+      # @param type [Symbol] possible values are `:online`, `:offline` and `:standard`
+      def type=(type)
+        log.info "Overwritting medium to #{type}"
+
+        if !POSSIBLE_TYPES.include?(type)
+          raise ArgumentError, "Not allowed MediumType #{type.inspect}"
+        end
+
+        @type = type
+      end
+
       # Is the medium an online installation medium? (SLE Online)
       # Raises an exception if the installation URL is not set (nil) or is empty.
       # The online installation medium contains no repository
@@ -64,6 +89,8 @@ module Y2Packager
       # @return [Boolean] True if the client should be skipped.
       #
       def skip_step?
+        return false if Yast::WFM.Args.empty?
+
         skip = Yast::WFM.Args(0) && Yast::WFM.Args(0)["skip"]
         return true if skip&.split(",")&.include?(type.to_s)
 
@@ -88,13 +115,6 @@ module Y2Packager
         # scan the number of the products in the media.1/products file
         downloader = Y2Packager::RepomdDownloader.new(url)
         product_repos = downloader.product_repos
-
-        # the online medium should not contain any repository
-        # TODO: how to detect an invalid installation URL or a broken medium??
-        if product_repos.empty?
-          log.info("Detected medium type: online (no repository on the medium)")
-          return :online
-        end
 
         # the offline medium contains several modules and extensions
         if product_repos.size > 1

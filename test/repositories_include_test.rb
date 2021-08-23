@@ -47,7 +47,7 @@ describe "PackagerRepositoriesIncludeInclude" do
     let(:url) { "cd://" }
     let(:plaindir) { false }
     let(:download) { false }
-    let(:preffered_name) { "" }
+    let(:preferred_name) { "" }
     let(:repo_id) { 42 }
 
     before do
@@ -70,7 +70,7 @@ describe "PackagerRepositoriesIncludeInclude" do
     end
 
     it "returns :again symbol when URL is empty" do
-      ret = RepositoryIncludeTester.createSource("", plaindir, download, preffered_name)
+      ret = RepositoryIncludeTester.createSource("", plaindir, download, preferred_name)
       expect(ret).to eq(:again)
     end
 
@@ -78,23 +78,54 @@ describe "PackagerRepositoriesIncludeInclude" do
       before do
         # URL expansion returns nil (bsc#1059744)
         allow(Yast::Pkg).to receive(:ExpandedUrl).with(url).and_return(nil)
+        allow(Yast::Report).to receive(:Error)
       end
 
       it "returns :again symbol" do
-        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
         expect(ret).to eq(:again)
       end
 
       it "displays an error popup" do
         expect(Yast::Report).to receive(:Error).with(/Invalid URL/)
-        RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
+      end
+    end
+
+    context "when the repository cannot be created" do
+      before do
+        allow(Yast::Pkg).to receive(:RepositoryProbe).and_return(nil)
+      end
+
+      context "and the user accepts to edit the URL" do
+        before do
+          allow(Yast::Popup).to receive(:YesNo).and_return(true)
+        end
+
+        it "returns :again symbol" do
+          result = RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
+
+          expect(result).to eq(:again)
+        end
+      end
+
+      context "and the user does not accept to edit the URL" do
+        before do
+          allow(Yast::Popup).to receive(:YesNo).and_return(false)
+        end
+
+        it "returns :next symbol" do
+          result = RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
+
+          expect(result).to eq(:next)
+        end
       end
     end
 
     it "creates the repository" do
       repo_props = { "enabled"     => true,
                      "autorefresh" => false,
-                     "name"        => "Repository",
+                     "raw_name"    => "Repository",
                      "prod_dir"    => "/",
                      "alias"       => "Repository",
                      "base_urls"   => ["cd://"],
@@ -103,11 +134,11 @@ describe "PackagerRepositoriesIncludeInclude" do
       expect(Yast::Pkg).to receive(:RepositoryAdd).with(repo_props).and_return(repo_id)
       expect(Yast::Pkg).to_not receive(:SourceDelete)
 
-      RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+      RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
     end
 
     it "returns :ok symbol on success" do
-      ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+      ret = RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
       expect(ret).to eq(:ok)
     end
 
@@ -116,7 +147,7 @@ describe "PackagerRepositoriesIncludeInclude" do
         .with(repo_id).and_return(false)
       expect(Yast::Pkg).to receive(:SourceDelete).with(repo_id)
 
-      RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+      RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
     end
 
     context "more products available on the medium" do
@@ -140,7 +171,7 @@ describe "PackagerRepositoriesIncludeInclude" do
 
       it "displays a dialog for selecting the products to use" do
         expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
-        RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
       end
 
       it "adds only the repositories for the selected products" do
@@ -150,7 +181,7 @@ describe "PackagerRepositoriesIncludeInclude" do
           .and_return(selected_products)
         expect(Yast::Pkg).to receive(:RepositoryAdd)
           .with(hash_including("prod_dir" => product1[1]))
-        RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
       end
 
       it "returns :next if nothing is selected" do
@@ -158,14 +189,14 @@ describe "PackagerRepositoriesIncludeInclude" do
           .and_return([])
         expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
           .and_return(:next)
-        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
         expect(ret).to eq(:next)
       end
 
       it "returns :abort if product selection is aborted" do
         expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
           .and_return(:abort)
-        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preffered_name)
+        ret = RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
         expect(ret).to eq(:abort)
       end
     end

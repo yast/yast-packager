@@ -24,13 +24,6 @@ describe Y2Packager::MediumType do
       expect { described_class.type }.to raise_exception(/The installation URL is not set/)
     end
 
-    it "returns :online if no repository is found on the medium" do
-      expect_any_instance_of(Y2Packager::RepomdDownloader)
-        .to receive(:product_repos).and_return([])
-
-      expect(described_class.type).to eq(:online)
-    end
-
     it "returns :offline if at least two repositories are found on the medium" do
       expect_any_instance_of(Y2Packager::RepomdDownloader)
         .to receive(:product_repos).and_return(
@@ -41,6 +34,18 @@ describe Y2Packager::MediumType do
         )
 
       expect(described_class.type).to eq(:offline)
+    end
+
+    context "missing media.1/products on the installation medium" do
+      before do
+        expect_any_instance_of(Y2Packager::RepomdDownloader)
+          .to receive(:product_repos).and_return([])
+      end
+
+      it "returns :online if the repository does not contain any base product" do
+        expect(Y2Packager::ProductLocation).to receive(:scan).and_return([])
+        expect(described_class.type).to eq(:online)
+      end
     end
 
     context "only one repository on the installation medium" do
@@ -76,6 +81,22 @@ describe Y2Packager::MediumType do
     end
   end
 
+  describe "type=" do
+    it "sets type to given argument" do
+      described_class.type = :online
+      expect(described_class.type).to eq :online
+    end
+
+    it "raises ArgumentError for invalid value" do
+      expect { described_class.type = :invalid }.to raise_error(ArgumentError)
+    end
+  end
+
+  def mock_arguments(arg)
+    allow(Yast::WFM).to receive(:Args).and_return([arg])
+    allow(Yast::WFM).to receive(:Args).with(0).and_return(arg)
+  end
+
   describe "#skip_step?" do
     context "online installation medium" do
       before do
@@ -83,27 +104,31 @@ describe Y2Packager::MediumType do
       end
 
       it "returns true if the client args contain \"skip\" => \"online\"" do
-        allow(Yast::WFM).to receive(:Args).with(0).and_return("skip" => "online")
+        mock_arguments("skip" => "online")
         expect(Y2Packager::MediumType.skip_step?).to eq(true)
       end
       it "returns true if the client args contain \"skip\" => \"standard,online\"" do
-        allow(Yast::WFM).to receive(:Args).with(0).and_return("skip" => "standard,online")
+        mock_arguments("skip" => "standard,online")
         expect(Y2Packager::MediumType.skip_step?).to eq(true)
       end
       it "returns false if the client args do not contain \"skip\" => \"online\"" do
-        allow(Yast::WFM).to receive(:Args).with(0).and_return({})
+        mock_arguments({})
         expect(Y2Packager::MediumType.skip_step?).to eq(false)
       end
       it "returns false if the client args contain \"only\" => \"online\"" do
-        allow(Yast::WFM).to receive(:Args).with(0).and_return("only" => "online")
+        mock_arguments("only" => "online")
         expect(Y2Packager::MediumType.skip_step?).to eq(false)
       end
       it "returns false if the client args contain \"only\" => \"online,standard\"" do
-        allow(Yast::WFM).to receive(:Args).with(0).and_return("only" => "standard,online")
+        mock_arguments("only" => "standard,online")
         expect(Y2Packager::MediumType.skip_step?).to eq(false)
       end
       it "returns false if the client args do not contain \"only\" => \"online\"" do
-        allow(Yast::WFM).to receive(:Args).with(0).and_return({})
+        mock_arguments({})
+        expect(Y2Packager::MediumType.skip_step?).to eq(false)
+      end
+      it "returns false if the client args are empty" do
+        allow(Yast::WFM).to receive(:Args).and_return([])
         expect(Y2Packager::MediumType.skip_step?).to eq(false)
       end
     end
