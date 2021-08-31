@@ -82,7 +82,10 @@ module Y2Packager
         # download the repository index file (repomd.xml)
         repomd_file = Yast::Pkg.SourceProvideFile(src, 1, File.join(dir, "repodata/repomd.xml"))
 
-        next unless repomd_file
+        if !repomd_file
+          Yast::Report.Error(Yast::Pkg.LastError)
+          next
+        end
 
         # parse the index file and get the full name of the primary.xml.gz file
         doc = REXML::Document.new(File.read(repomd_file))
