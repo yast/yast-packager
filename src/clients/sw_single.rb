@@ -8,6 +8,7 @@ require "shellwords"
 require "y2packager/known_repositories"
 require "y2packager/system_packages"
 require "y2packager/resolvable"
+require "ui/ui_extension_checker"
 
 module Yast
   # Purpose:     contains dialog loop for workflows:
@@ -72,6 +73,9 @@ module Yast
 
         return CommandLine.Run(@cmdline_description)
       end
+
+      ui_extension_checker = UIExtensionChecker.new("pkg")
+      return unless ui_extension_checker.ok?
 
       StartSWSingle()
     end
