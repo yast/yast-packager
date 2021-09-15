@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Sep 15 12:35:42 UTC 2021 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Check if the "pkg" UI plug-in is available and if not, ask
+  the user if it should be installed
+  (jsc#SLE-20346, jsc#SLE-20462)
+- 4.4.10
+
+-------------------------------------------------------------------
 Mon Aug 23 13:31:34 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Include some hints in the "Priority" label in the repository
