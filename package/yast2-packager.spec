@@ -49,7 +49,7 @@ Requires:       yast2-country-data >= 2.16.3
 # raw_name
 Requires:       yast2-pkg-bindings >= 4.2.8
 # UIExtensionChecker
-Requires:       yast2 >= 4.4.18
+Requires:       yast2 >= 4.4.19
 # unzipping license file
 Requires:       unzip
 # HTTP, FTP, HTTPS modules (inst_productsources.ycp)
