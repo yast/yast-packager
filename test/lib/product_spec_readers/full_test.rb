@@ -21,16 +21,16 @@ require_relative "../../test_helper"
 require "uri"
 require "y2packager/product_spec_readers/full"
 
-# a helper method, find a specified product in the list
-def find_product(arr, product)
-  arr.find { |p| p.name == product }
-end
-
-# URL of the local testing repository
-REPO_URL = "dir://#{URI.escape(File.join(DATA_PATH, "zypp/test_offline_repo"))}".freeze
-
 describe Y2Packager::ProductSpecReaders::Full do
   subject(:reader) { described_class.new }
+
+  # a helper method, find a specified product in the list
+  def find_product(arr, product)
+    arr.find { |p| p.name == product }
+  end
+
+  # URL of the local testing repository
+  REPO_URL = "dir://#{URI.escape(File.join(DATA_PATH, "zypp/test_offline_repo"))}".freeze
 
   before do
     # the testing repository only contains the x86_64 packages/products
