@@ -243,11 +243,7 @@ module Yast
     # @param [String] pkg_size    package size in bytes
     #
     def SubtractPackageSize(pkg_size)
-      remaining = Ops.get(
-        @remaining_sizes_per_cd_per_src,
-        [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
-        1
-      )
+      remaining = @remaining_sizes_per_cd_per_src.dig(*source_pair) || 1
       remaining -= pkg_size
       @total_size_installed += pkg_size
 
@@ -255,23 +251,12 @@ module Yast
       # confused with 0 for "nothing to install from this CD".
       remaining = -1 if remaining <= 0
 
-      Ops.set(
-        @remaining_sizes_per_cd_per_src,
-        [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
-        remaining
-      )
-      Ops.set(
-        @remaining_pkg_count_per_cd_per_src,
-        [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
-        Ops.subtract(
-          Ops.get(
-            @remaining_pkg_count_per_cd_per_src,
-            [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
-            0
-          ),
-          1
-        )
-      )
+      src_no_index = @current_src_no
+      cd_no_index = @current_cd_no - 1
+
+      @remaining_sizes_per_cd_per_src[src_no_index][cd_no_index] = remaining
+
+      @remaining_pkg_count_per_cd_per_src[src_no_index][cd_no_index] -= 1
 
       if show_remaining_time?
         seconds = 0
@@ -280,11 +265,7 @@ module Yast
 
         log.debug "Updating remaining time for source #{@current_src_no} " \
           "(medium #{@current_cd_no}): #{seconds}"
-        Ops.set(
-          @remaining_times_per_cd_per_src,
-          [Ops.subtract(@current_src_no, 1), Ops.subtract(@current_cd_no, 1)],
-          seconds
-        )
+        @remaining_times_per_cd_per_src[src_no_index][cd_no_index] = seconds
       end
 
       nil
@@ -448,7 +429,7 @@ module Yast
       end
 
       log.info("SetCurrentCdNo() - src: #{src_no} , CD: #{cd_no}")
-      @current_src_no = @srcid_to_current_src_no[src_no] || -1
+      @current_src_no = src_no
       @current_cd_no = cd_no
       FindNextMedia()
 
@@ -549,6 +530,9 @@ module Yast
       true # just switched
     end
 
+    def source_pair
+      [@current_src_no, @current_cd_no-1]
+    end
     # ***************************************************************************
     # *****************  Callbacks and progress bars ****************************
     # ***************************************************************************
@@ -566,7 +550,6 @@ module Yast
       #
 
       # pair into array of array for time and size
-      source_pair = [@current_src_no - 1, @current_cd_no - 1]
       remaining = @remaining_sizes_per_cd_per_src.dig(*source_pair) || 0
 
       # collumn id for current CD
