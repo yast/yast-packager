@@ -18,7 +18,7 @@
 # find current contact information at www.suse.com.
 
 require "yast"
-require "y2packager/product_spec"
+require "y2packager/control_product_spec"
 
 Yast.import "Arch"
 Yast.import "Linuxrc"
@@ -49,7 +49,7 @@ module Y2Packager
         arch = REG_ARCH[Yast::Arch.architecture] || Yast::Arch.architecture
         linuxrc_products = (Yast::Linuxrc.InstallInf("specialproduct") || "").split(",").map(&:strip)
 
-        @products = control_products.each_with_object([]) do |p, array|
+        @products = control_products.each_with_object([]).each_with_index do |(p, array), idx|
           # a hidden product requested?
           if p["special_product"] && !linuxrc_products.include?(p["name"])
             log.info "Skipping special hidden product #{p["name"]}"
@@ -62,14 +62,14 @@ module Y2Packager
             next
           end
 
-          array << Y2Packager::ProductSpec.new(
+          array << Y2Packager::ControlProductSpec.new(
             name:            p["name"],
             version:         p["version"],
             arch:            arch,
             display_name:    p["display_name"],
             license_url:     p["license_url"],
-            # expand the "$arch" placeholder
-            register_target: (p["register_target"] || "").gsub("$arch", arch)
+            register_target: p["register_target"],
+            order:           idx
           )
         end
       end

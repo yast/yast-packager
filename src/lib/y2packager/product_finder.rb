@@ -10,7 +10,7 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # ------------------------------------------------------------------------------
 
-require "y2packager/product_spec"
+require "y2packager/repo_product_spec"
 
 module Y2Packager
   # This class finds products in a Solv pool
@@ -50,7 +50,8 @@ module Y2Packager
         # a product was found in this directory?
         next if ret.any? { |p| p.dir == dir }
 
-        ret << ProductSpec.new(name: name, dir: dir)
+        # FIXME: it won't work
+        ret << RepoProductSpec.new(name: name, dir: dir)
       end
 
       ret
@@ -132,7 +133,7 @@ module Y2Packager
         media_name_pair = media_names.find { |r| r[1] == dir }
         media_name = media_name_pair ? media_name_pair.first : dir
 
-        ret << ProductSpec.new(
+        ret << RepoProductSpec.new(
           media_name:   media_name,
           name:         product_name,
           display_name: product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || "",

@@ -18,6 +18,7 @@
 # find current contact information at www.suse.com.
 
 require_relative "../test_helper"
+require "y2packager/product_spec_reader"
 require "y2packager/product_spec"
 
 describe Y2Packager::ProductSpec do

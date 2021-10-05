@@ -51,7 +51,7 @@ describe Y2Packager::ProductSpecReaders::Control do
 
       products = reader.products
       expect(products).to_not be_empty
-      expect(products.first).to be_a(Y2Packager::ProductSpec)
+      expect(products.first).to be_a(Y2Packager::ControlProductSpec)
       expect(products.first.name).to eq("SLES")
     end
 

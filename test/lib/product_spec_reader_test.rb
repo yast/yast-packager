@@ -44,23 +44,27 @@ describe Y2Packager::ProductSpecReader do
       allow(Y2Packager::ProductSpecReaders::Full).to receive(:new).and_return(full_reader)
       allow(Y2Packager::ProductSpecReaders::Control).to receive(:new).and_return(control_reader)
       allow(Y2Packager::ProductSpecReaders::Libzypp).to receive(:new).and_return(libzypp_reader)
+      allow(Y2Packager::MediumType).to receive(:type).and_return(medium_type)
     end
 
-    it "returns products from the control file" do
-      expect(reader.products).to eq(control_products)
+    context "on an online medium" do
+      let(:medium_type) { :online }
+
+      it "returns products from the control file" do
+        expect(reader.products).to eq(control_products)
+      end
     end
 
-    context "when no online products are found" do
-      let(:control_products) { [] }
+    context "on an offline medium" do
+      let(:medium_type) { :offline }
 
       it "returns offline products" do
         expect(reader.products).to eq(full_products)
       end
     end
 
-    context "when no online nor offline products are found" do
-      let(:full_products) { [] }
-      let(:control_products) { [] }
+    context "on a standard medium" do
+      let(:medium_type) { :standard }
 
       it "returns the libzypp products" do
         expect(reader.products).to eq(libzypp_products)

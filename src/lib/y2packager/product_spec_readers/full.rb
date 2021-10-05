@@ -18,7 +18,7 @@
 # find current contact information at www.suse.com.
 
 require "yast"
-require "y2packager/product_spec"
+require "y2packager/repo_product_spec"
 require "y2packager/repomd_downloader"
 require "y2packager/solvable_pool"
 require "y2packager/product_finder"
