@@ -17,6 +17,8 @@
 # To contact SUSE LLC about this file by physical or electronic mail, you may
 # find current contact information at www.suse.com.
 
+require "y2packager/product_spec_reader"
+
 module Y2Packager
   # Describes a product that the user can select for installation
   #
@@ -64,6 +66,12 @@ module Y2Packager
     attr_reader :dir
 
     attr_reader :media_name
+
+    class << self
+      def base_products
+        Y2Packager::ProductSpecReader.new.products.select(&:base)
+      end
+    end
 
     # Constructor
     # @param name [String] product name (the identifier, e.g. "SLES")
