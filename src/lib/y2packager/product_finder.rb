@@ -143,7 +143,7 @@ module Y2Packager
           order:        display_order(product_solvable),
           dir:          dir,
           arch:         product_solvable.arch,
-          version:      product_solvable.evr.split("-").first,
+          version:      product_solvable.evr.split("-").first
         )
       end
 

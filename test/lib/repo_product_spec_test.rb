@@ -46,7 +46,7 @@ describe Y2Packager::RepoProductSpec do
 
     it "adds the repository and selects the product" do
       expect(Yast::Packages).to receive(:Initialize_StageInitial)
-       .with(true, url, url, product_spec.dir)
+        .with(true, url, url, product_spec.dir)
       expect(product).to receive(:select)
       product_spec.select
     end

@@ -22,6 +22,7 @@ require "y2packager/product_spec"
 
 module Y2Packager
   module ProductSpecReaders
+    # Reads product specifications from the control file
     class Libzypp
       def products
         Y2Packager::Product.available_base_products.map do |prod|

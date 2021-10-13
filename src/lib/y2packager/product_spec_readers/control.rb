@@ -26,6 +26,7 @@ Yast.import "ProductFeatures"
 
 module Y2Packager
   module ProductSpecReaders
+    # Reads product specifications from the control file
     class Control
       include Yast::Logger
 
@@ -47,7 +48,8 @@ module Y2Packager
         end
 
         arch = REG_ARCH[Yast::Arch.architecture] || Yast::Arch.architecture
-        linuxrc_products = (Yast::Linuxrc.InstallInf("specialproduct") || "").split(",").map(&:strip)
+        linuxrc_products = (Yast::Linuxrc.InstallInf("specialproduct") || "")
+          .split(",").map(&:strip)
 
         @products = control_products.each_with_object([]).each_with_index do |(p, array), idx|
           # a hidden product requested?

@@ -32,7 +32,7 @@ describe Y2Packager::ProductSpecReader do
   end
 
   let(:libzypp_reader) do
-   instance_double(Y2Packager::ProductSpecReaders::Libzypp, products: libzypp_products)
+    instance_double(Y2Packager::ProductSpecReaders::Libzypp, products: libzypp_products)
   end
 
   let(:full_products) { [instance_double(Y2Packager::ProductSpec, name: "SLES")] }

@@ -51,7 +51,7 @@ describe Y2Packager::ProductSpecReaders::Full do
       # there are 3 testing product repositories
       expect(scan_result.size).to eq(3)
       # match_array ignores the order of the items
-      expect(scan_result.map { |p| p.name }).to match_array(
+      expect(scan_result.map(&:name)).to match_array(
         ["SLES", "sle-module-basesystem", "sle-module-server-applications"]
       )
     end
@@ -62,13 +62,13 @@ describe Y2Packager::ProductSpecReaders::Full do
     end
 
     it "finds the base products" do
-      base_products = scan_result.select { |p| p.base }
+      base_products = scan_result.select(&:base)
       # there is only the SLES base product in the testing repository
       expect(base_products.map(&:name)).to eq(["SLES"])
     end
 
     it "finds the modules/extensions" do
-      modules = scan_result.reject { |p| p.base }
+      modules = scan_result.reject(&:base)
       # there are 2 modules in the testing repository
       expect(modules.map(&:name)).to match_array(
         ["sle-module-basesystem", "sle-module-server-applications"]

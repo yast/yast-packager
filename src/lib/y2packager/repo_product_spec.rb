@@ -45,7 +45,8 @@ module Y2Packager
     # @return [String,nil] Product description
     attr_reader :description
 
-    def initialize(name:, version:, arch:, display_name:, order:, base:, depends_on:, dir:, media_name:, description:)
+    def initialize(name:, version:, arch:, display_name:, order:, base:, depends_on:, dir:,
+      media_name:, description:)
       super(name: name, version: version, display_name: display_name, arch: arch,
             order: order, base: base)
 
