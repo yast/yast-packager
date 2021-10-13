@@ -46,11 +46,32 @@ module Y2Packager
     attr_reader :base
 
     class << self
-      def base_products
-        return @products if @products
+      # Returns the specs for the base products
+      #
+      # The found product specs are cached. Set the +reload+ param to +true+
+      # to force reading them again.
+      #
+      # @param reload [Boolean] Force reloading the list of products
+      # @return [Array<Y2Packager::ProductSpec>] List of product specs
+      # @see Y2Packager::ProductSpecReader
+      def base_products(reload: false)
+        return @products if @products && !reload
 
         require "y2packager/product_spec_reader"
         @products = Y2Packager::ProductSpecReader.new.products.select(&:base)
+      end
+
+      # Returns the selected base product spec
+      #
+      # @return [ProductSpec,nil] Returns the select base product spec. It returns nil
+      #   if no product is selected.
+      def selected_base
+        base_products.find(&:selected?)
+      end
+
+      # Resets the products cache
+      def reset
+        @products = nil
       end
     end
 
