@@ -84,10 +84,6 @@ module Y2Packager
     # @param version [String] version ("15.2")
     # @param arch [String] The architecture ("x86_64")
     # @param display_name [String] The user visible name ("SUSE Linux Enterprise Server 15 SP2")
-    # @param license_url [String] License URL
-    # @param register_target [String] The registration target name used
-    #   for registering the product, the $arch variable is replaced
-    #   by the current machine architecture
     def initialize(name:, version:, arch:, display_name:, order: 1, base: true)
       @name = name
       @version = version
