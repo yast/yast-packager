@@ -17,6 +17,8 @@
 # To contact SUSE LLC about this file by physical or electronic mail, you may
 # find current contact information at www.suse.com.
 
+require "y2packager/product_license_mixin"
+
 module Y2Packager
   # Describes a product that the user can select for installation
   #
@@ -27,6 +29,8 @@ module Y2Packager
   # Bear in mind that, once selected, the product is mapped to a proper Y2Packager::Product class,
   # backed by libzypp.
   class ProductSpec
+    include ProductLicenseMixin
+
     # @return [String] Name. It corresponds to the libzypp resolvable.
     attr_reader :name
 
