@@ -76,6 +76,27 @@ module Y2Packager
       # Resets the products cache
       def reset
         @products = nil
+        @forced_base_product = nil
+      end
+
+      # Returns, if any, the base product which must be selected
+      #
+      # A base product can be forced to be selected through the `select_product`
+      # element in the software section of the control.xml file (bsc#1124590,
+      # bsc#1143943).
+      #
+      # @return [Y2Packager::Product, nil] the forced base product or nil when
+      # either, it wasn't selected or the selected wasn't found among the
+      # available ones.
+      def forced_base_product
+        return @forced_base_product if @forced_base_product
+
+        Yast.import "ProductFeatures"
+
+        forced_product_name = Yast::ProductFeatures.GetStringFeature("software", "select_product")
+        return if forced_product_name.to_s.empty?
+
+        @forced_base_product = base_products.find { |p| p.name == forced_product_name }
       end
     end
 

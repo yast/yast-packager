@@ -67,4 +67,58 @@ describe Y2Packager::ProductSpec do
       end
     end
   end
+
+  describe ".forced_base_product" do
+    let(:select_product) { nil }
+
+    let(:opensuse) do
+      instance_double(Y2Packager::ProductSpec, name: "openSUSE")
+    end
+
+    let(:sle) do
+      instance_double(Y2Packager::ProductSpec, name: "SLE")
+    end
+
+    before do
+      described_class.reset
+
+      allow(described_class).to receive(:base_products).and_return([opensuse, sle])
+
+      allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+        .with("software", "select_product")
+        .and_return(select_product)
+    end
+
+    context "when the control file is not forcing to select a base product selected" do
+      it "returns nil" do
+        expect(described_class.forced_base_product).to be_nil
+      end
+    end
+
+    context "when the control file is not forcing to select a base product selected" do
+      context "and the product is available" do
+        let(:select_product) { "openSUSE" }
+
+        it "returns the prodcut" do
+          expect(described_class.forced_base_product).to eq(opensuse)
+        end
+      end
+
+      context "but none available base product name match" do
+        let(:select_product) { "Whatever product" }
+
+        it "returns nil" do
+          expect(described_class.forced_base_product).to be_nil
+        end
+      end
+
+      context "but is empty" do
+        let(:select_product) { "" }
+
+        it "returns nil" do
+          expect(described_class.forced_base_product).to be_nil
+        end
+      end
+    end
+  end
 end
