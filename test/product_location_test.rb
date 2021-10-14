@@ -13,7 +13,7 @@ end
 # URL of the local testing repository
 REPO_URL = "dir://#{URI.escape(File.join(DATA_PATH, "zypp/test_offline_repo"))}".freeze
 
-describe Y2Packager::ProductLocation do
+xdescribe Y2Packager::ProductLocation do
   let(:scan_result) { Y2Packager::ProductLocation.scan(REPO_URL) }
 
   before do

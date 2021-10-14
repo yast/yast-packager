@@ -10,8 +10,7 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # ------------------------------------------------------------------------------
 
-require "y2packager/product_location"
-require "y2packager/product_location_details"
+require "y2packager/repo_product_spec"
 
 module Y2Packager
   # This class finds products in a Solv pool
@@ -51,7 +50,8 @@ module Y2Packager
         # a product was found in this directory?
         next if ret.any? { |p| p.dir == dir }
 
-        ret << ProductLocation.new(name, dir)
+        # FIXME: it won't work
+        ret << RepoProductSpec.new(name: name, dir: dir)
       end
 
       ret
@@ -129,21 +129,22 @@ module Y2Packager
         product_name = p.str[/\Aproduct\(\)\s*=\s*(\S+)/, 1]
         next unless product_name
 
-        details = ProductLocationDetails.new(
-          base:            found_base_products.include?(product_name),
-          depends_on:      find_dependencies(product_solvable, selected_base),
-          description:     product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION) || "",
-          order:           display_order(product_solvable),
-          product:         product_name,
-          product_package: product_solvable.name,
-          summary:         product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || ""
-        )
-
         dir = product_solvable.repo.name
         media_name_pair = media_names.find { |r| r[1] == dir }
         media_name = media_name_pair ? media_name_pair.first : dir
 
-        ret << ProductLocation.new(media_name, dir, product: details)
+        ret << RepoProductSpec.new(
+          media_name:   media_name,
+          name:         product_name,
+          display_name: product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || "",
+          base:         found_base_products.include?(product_name),
+          description:  product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION) || "",
+          depends_on:   find_dependencies(product_solvable, selected_base),
+          order:        display_order(product_solvable),
+          dir:          dir,
+          arch:         product_solvable.arch,
+          version:      product_solvable.evr.split("-").first
+        )
       end
 
       ret
