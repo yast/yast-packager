@@ -22,12 +22,16 @@ describe Y2Packager::InstallationMedium do
   shared_examples(:check_inst_url) do |method|
     it "raises an exception when the installation URL is nil" do
       expect(Yast::InstURL).to receive(:installInf2Url).and_return(nil)
-      expect { described_class.public_send(method) }.to raise_exception(/The installation URL is not set/)
+      expect { described_class.public_send(method) }.to(
+        raise_exception(/The installation URL is not set/)
+      )
     end
 
     it "raises an exception when the installation URL is empty" do
       expect(Yast::InstURL).to receive(:installInf2Url).and_return("")
-      expect { described_class.public_send(method) }.to raise_exception(/The installation URL is not set/)
+      expect { described_class.public_send(method) }.to(
+        raise_exception(/The installation URL is not set/)
+      )
     end
   end
 
