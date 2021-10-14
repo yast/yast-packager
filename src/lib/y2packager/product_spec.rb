@@ -27,7 +27,7 @@ module Y2Packager
   # represents those products, read from different places.
   #
   # Bear in mind that, once selected, the product is mapped to a proper Y2Packager::Product class,
-  # backed by libzypp.
+  # backed by libzypp when available. The {ControlProductSpec} is an exception to this rule.
   class ProductSpec
     include ProductLicenseMixin
 
@@ -55,11 +55,11 @@ module Y2Packager
       # The found product specs are cached. Set the +reload+ param to +true+
       # to force reading them again.
       #
-      # @param reload [Boolean] Force reloading the list of products
+      # @param force [Boolean] Force reloading the list of products
       # @return [Array<Y2Packager::ProductSpec>] List of product specs
       # @see Y2Packager::ProductSpecReader
-      def base_products(reload: false)
-        return @products if @products && !reload
+      def base_products(force: false)
+        return @products if @products && !force
 
         require "y2packager/product_spec_reader"
         @products = Y2Packager::ProductSpecReader.new.products.select(&:base)
@@ -98,6 +98,11 @@ module Y2Packager
       @selected
     end
 
+    # Marks the product as selected for installation
+    #
+    # The subclasses are supposed to redefine this method is some additional
+    # steps are needed (like setting up a repository or selecting the libzypp
+    # package).
     def select
       @selected = true
     end

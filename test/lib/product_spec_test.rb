@@ -24,8 +24,6 @@ require "y2packager/product_spec"
 describe Y2Packager::ProductSpec do
   let(:reader) { Y2Packager::ProductSpecReader.new }
 
-  before { described_class.reset }
-
   let(:base) do
     Y2Packager::ProductSpec.new(
       name: "SLES", display_name: "SUSE Linux Enterprise Server", order: 1, version: "15.3",
@@ -47,12 +45,14 @@ describe Y2Packager::ProductSpec do
 
   describe ".base_products" do
     it "returns the base products" do
-      products = described_class.base_products(reload: true)
+      products = described_class.base_products(force: true)
       expect(products.map(&:name)).to eq(["SLES"])
     end
   end
 
   describe ".selected_base" do
+    before { described_class.reset }
+
     context "when a product was selected" do
       before { base.select }
 

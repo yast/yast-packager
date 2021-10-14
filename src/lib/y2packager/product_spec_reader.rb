@@ -37,7 +37,7 @@ module Y2Packager
       when :online
         products_from_control
       when :offline
-        products_from_offline
+        products_from_multi_repos
       else
         products_from_libzypp
       end
@@ -54,7 +54,7 @@ module Y2Packager
       control_products
     end
 
-    def products_from_offline
+    def products_from_multi_repos
       repo_products = Y2Packager::ProductSpecReaders::Full.new.products(
         Yast::InstURL.installInf2Url("")
       )

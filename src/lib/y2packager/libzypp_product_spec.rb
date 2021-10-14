@@ -27,9 +27,12 @@ module Y2Packager
   # Describes a product for installation that comes from the libzypp database
   class LibzyppProductSpec < ProductSpec
     def to_product
-      @to_product ||= Y2Packager::Product.available_base_products.find { |p| p.name == name }
+      @to_product ||= Y2Packager::Product.all_products.find { |p| p.name == name }
     end
 
+    # Select the product for installation
+    #
+    # Searches for the libzypp product and selects it for installation.
     def select
       super
 

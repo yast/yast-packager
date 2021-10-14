@@ -20,7 +20,7 @@
 require "y2packager/product_spec"
 
 module Y2Packager
-  # Describes a product for installation that comes from the XML definition
+  # Describes a product for installation that comes from the control file
   #
   # These products are not backed by a libzypp product at the beginning of the
   # installation. The corresponding product should become available as soon as

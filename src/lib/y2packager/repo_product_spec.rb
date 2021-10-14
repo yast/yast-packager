@@ -27,10 +27,11 @@ Yast.import "AddOnProduct"
 Yast.import "WorkflowManager"
 
 module Y2Packager
-  # Describes a product for installation that comes from a multi product DVD
+  # Describes a product that comes from an installation medium with multiple
+  # repositories
   #
   # These products are available in the installation media, in a dedicated
-  # directory.
+  # directory each one.
   class RepoProductSpec < ProductSpec
     # @return [Array<String>,nil] The product dependencies, includes also the transitive
     #  (indirect) dependencies, if the dependencies cannot be evaluated
@@ -56,6 +57,9 @@ module Y2Packager
       @description = description
     end
 
+    # Select the product for installation
+    #
+    # Sets up the repository, searches for the libzypp product and selects it for installation.
     def select
       super
 
