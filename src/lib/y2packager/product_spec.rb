@@ -106,5 +106,12 @@ module Y2Packager
     def select
       @selected = true
     end
+
+    # Returns the libzypp based product
+    #
+    # @return [Y2Packager::Product] Corresponding libzypp product
+    def to_product
+      @to_product ||= Y2Packager::Product.all.find { |p| p.name == name }
+    end
   end
 end
