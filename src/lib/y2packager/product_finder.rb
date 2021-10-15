@@ -50,8 +50,7 @@ module Y2Packager
         # a product was found in this directory?
         next if ret.any? { |p| p.dir == dir }
 
-        # FIXME: it won't work
-        ret << RepoProductSpec.new(name: name, dir: dir)
+        ret << RepoProductSpec.new(name: name, dir: dir, base: false)
       end
 
       ret

@@ -30,6 +30,24 @@ describe Y2Packager::RepoProductSpec do
     )
   end
 
+  describe ".new" do
+    before do
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+    end
+
+    context "when only name and dir are specified" do
+      it "sets default values" do
+        product_spec = described_class.new(name: "SLES", dir: "/SLES")
+        expect(product_spec.name).to eq("SLES")
+        expect(product_spec.dir).to eq("/SLES")
+        expect(product_spec.media_name).to eq("/SLES")
+        expect(product_spec.arch).to eq("x86_64")
+        expect(product_spec.version).to be_nil
+        expect(product_spec.order).to be_nil
+      end
+    end
+  end
+
   describe "#select" do
     let(:product) { instance_double(Y2Packager::Product, select: nil) }
     let(:url) { "http://example.com" }

@@ -20,6 +20,7 @@
 require "yast"
 require "y2packager/product_spec"
 
+Yast.import "Arch"
 Yast.import "Packages"
 Yast.import "InstURL"
 Yast.import "Pkg"
@@ -46,14 +47,20 @@ module Y2Packager
     # @return [String,nil] Product description
     attr_reader :description
 
-    def initialize(name:, version:, arch:, display_name:, order:, base:, depends_on:, dir:,
-      media_name:, description:)
-      super(name: name, version: version, display_name: display_name, arch: arch,
-            order: order, base: base)
+    def initialize(name:, version: nil, arch: nil, display_name: "", order: nil, base: true,
+      depends_on: [], dir:, media_name: nil, description: nil)
+      super(
+        name: name,
+        version: version,
+        display_name: display_name,
+        arch: arch || Yast::Arch.architecture,
+        order: order,
+        base: base
+      )
 
       @depends_on = depends_on
       @dir = dir
-      @media_name = media_name
+      @media_name = media_name || dir
       @description = description
     end
 

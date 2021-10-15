@@ -14,6 +14,12 @@ describe Y2Packager::MediumType do
   end
 
   describe "#type" do
+    let(:reader) { instance_double(Y2Packager::ProductSpecReaders::Full) }
+
+    before do
+      allow(Y2Packager::ProductSpecReaders::Full).to receive(:new).and_return(reader)
+    end
+
     it "raises an exception when the installation URL is nil" do
       expect(Yast::InstURL).to receive(:installInf2Url).and_return(nil)
       expect { described_class.type }.to raise_exception(/The installation URL is not set/)
@@ -43,7 +49,7 @@ describe Y2Packager::MediumType do
       end
 
       it "returns :online if the repository does not contain any base product" do
-        expect(Y2Packager::ProductLocation).to receive(:scan).and_return([])
+        expect(reader).to receive(:products).and_return([])
         expect(described_class.type).to eq(:online)
       end
     end
@@ -59,23 +65,16 @@ describe Y2Packager::MediumType do
       end
 
       it "returns :online if the repository does not contain any base product" do
-        expect(Y2Packager::ProductLocation).to receive(:scan).and_return([])
+        expect(reader).to receive(:products).and_return([])
         expect(described_class.type).to eq(:online)
       end
 
       it "returns :standard if the repository contains any base product" do
-        details = Y2Packager::ProductLocationDetails.new(
-          product:         "SLES",
-          summary:         "SUSE Linux Enterprise Server 15 SP1",
-          description:     "SUSE Linux Enterprise offers a comprehensive...",
-          order:           200,
-          base:            true,
-          depends_on:      [],
-          product_package: "sles-release"
+        prod = Y2Packager::RepoProductSpec.new(
+          name: "sles", dir: "/SLES", base: true
         )
-        prod = Y2Packager::ProductLocation.new("/", "/", product: details)
 
-        expect(Y2Packager::ProductLocation).to receive(:scan).and_return([prod])
+        expect(reader).to receive(:products).and_return([prod])
         expect(described_class.type).to eq(:standard)
       end
     end
