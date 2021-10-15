@@ -42,12 +42,13 @@ module Y2Packager
     # @return [String] Path on the medium (relative to the medium root)
     attr_reader :dir
 
-    attr_reader :media_name
-
     # @return [String,nil] Product description
     attr_reader :description
 
-    def initialize(name:, version: nil, arch: nil, display_name: "", order: nil, base: true,
+    # @return [String,nil] Media name (e.g., "Basesystem-Module 15.3-0")
+    attr_reader :media_name
+
+    def initialize(name:, version: nil, arch: nil, display_name: nil, order: nil, base: true,
       depends_on: [], dir:, media_name: nil, description: nil)
       super(
         name: name,

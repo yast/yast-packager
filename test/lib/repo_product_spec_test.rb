@@ -24,11 +24,11 @@ require "y2packager/product"
 describe Y2Packager::RepoProductSpec do
   subject(:product_spec) do
     described_class.new(
-      name: "sles", display_name: "SLES", arch: "x86_64", version: "15.3",
-      order: 1, base: true, depends_on: [], dir: "/SLES-15.3", media_name: "",
-      description: "SLES Description"
+      name: "sle-module-basesystem", display_name: "Basesystem Module", arch: "x86_64",
+      version: "15.3", order: 1, base: true, depends_on: [], dir: "/SLES-15.3",
+      media_name: "Basesystem-Module 15.3-0", description: "Basesystem Description"
     )
-  end
+    end
 
   describe ".new" do
     before do
@@ -37,10 +37,14 @@ describe Y2Packager::RepoProductSpec do
 
     context "when only name and dir are specified" do
       it "sets default values" do
-        product_spec = described_class.new(name: "SLES", dir: "/SLES")
-        expect(product_spec.name).to eq("SLES")
-        expect(product_spec.dir).to eq("/SLES")
-        expect(product_spec.media_name).to eq("/SLES")
+        product_spec = described_class.new(
+          name: "sle-module-basesystem",
+          dir: "/Basesystem-Module",
+          media_name: "Basesystem-Module 15.3-0"
+        )
+        expect(product_spec.name).to eq("sle-module-basesystem")
+        expect(product_spec.dir).to eq("/Basesystem-Module")
+        expect(product_spec.media_name).to eq("Basesystem-Module 15.3-0")
         expect(product_spec.arch).to eq("x86_64")
         expect(product_spec.version).to be_nil
         expect(product_spec.order).to be_nil

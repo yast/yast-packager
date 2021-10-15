@@ -133,8 +133,8 @@ module Y2Packager
         media_name = media_name_pair ? media_name_pair.first : dir
 
         ret << RepoProductSpec.new(
-          media_name:   media_name,
           name:         product_name,
+          media_name:   media_name,
           display_name: product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || "",
           base:         found_base_products.include?(product_name),
           description:  product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION) || "",
