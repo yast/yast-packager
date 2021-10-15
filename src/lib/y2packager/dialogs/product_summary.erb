@@ -5,32 +5,29 @@ textdomain "packager"
 <%# TRANSLATORS: the RichText header, followed by the name of the directory %>
 <b><%= _("Directory on the Media:") %></b> <%= h(product.dir) %><br>
 <%# TRANSLATORS: the RichText header, followed by the name of the medium %>
-<b><%= _("Media Name:") %></b> <%= h(product.name) %><br>
+<b><%= _("Media Name:") %></b> <%= h(product.media_name) %><br>
 
-<% details = product.details %>
-<% if details %>
-  <% if details.product %>
-    <%# TRANSLATORS: the RichText header, followed by the product identifier, e.g. "SLES" %>
-    <b><%= _("Product ID:") %></b> <%= h(details.product) %>
-  <% end %>
+<% if product.name %>
+  <%# TRANSLATORS: the RichText header, followed by the product identifier, e.g. "SLES" %>
+  <b><%= _("Product ID:") %></b> <%= h(product.name) %>
+<% end %>
 
-  <% if dependencies.nil? %>
-    <%# TRANSLATORS: error message in a RichText summary %>
-    <p><em><%= _("Cannot evaluate the product dependencies.") %></em></p>
-  <% elsif !dependencies.empty? %>
-    <%# TRANSLATORS: the RichText section header, followed by the names of the dependent products %>
-    <h3><%= _("Dependencies") %></h3>
-    <ul>
-      <% dependencies.each do |dep| %>
-        <li><%= h(dep) %></li>
-      <% end %>
-    </ul>
-  <% end %>
+<% if dependencies.nil? %>
+  <%# TRANSLATORS: error message in a RichText summary %>
+  <p><em><%= _("Cannot evaluate the product dependencies.") %></em></p>
+<% elsif !dependencies.empty? %>
+  <%# TRANSLATORS: the RichText section header, followed by the names of the dependent products %>
+  <h3><%= _("Dependencies") %></h3>
+  <ul>
+    <% dependencies.each do |dep| %>
+      <li><%= h(dep) %></li>
+    <% end %>
+  </ul>
+<% end %>
 
-  <% if !details.description.empty? %>
-    <%# TRANSLATORS: the RichText header, it is followed by an untranslated (English) product description %>
-    <h3><%= _("Product Description (English Only)") %></h3>
-    <%# no escaping, the description already *is* a rich text %>
-    <p><%= details.description %></p>
-  <% end %>
+<% if !product.description.to_s.empty? %>
+  <%# TRANSLATORS: the RichText header, it is followed by an untranslated (English) product description %>
+  <h3><%= _("Product Description (English Only)") %></h3>
+  <%# no escaping, the description already *is* a rich text %>
+  <p><%= product.description %></p>
 <% end %>

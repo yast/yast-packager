@@ -49,7 +49,7 @@ module Y2Packager
         @products = products
         # do not offer base products, they would conflict with the already selected base product,
         # allow a hidden way to force displaying them in some special cases
-        @products.reject! { |p| p.details&.base } if ENV["Y2_DISPLAY_BASE_PRODUCTS"] != "1"
+        @products.reject!(&:base) if ENV["Y2_DISPLAY_BASE_PRODUCTS"] != "1"
         @selected_products = []
       end
 
@@ -116,7 +116,7 @@ module Y2Packager
 
       def selection_content
         defaults = preselected_products
-        products.map { |p| Item(Id(p.dir), p.summary || p.name, defaults.include?(p)) }
+        products.map { |p| Item(Id(p.dir), p.display_name || p.name, defaults.include?(p)) }
       end
 
       # Dialog content
@@ -152,8 +152,7 @@ module Y2Packager
         new_items.each do |p|
           # the dependencies contain also the transitive (indirect) dependencies,
           # we do not need to recursively evaluate the list
-          dependencies = p&.details&.depends_on
-          selected_items.concat(dependencies) if dependencies
+          selected_items.concat(p.depends_on)
         end
 
         selected_items.uniq!
@@ -225,10 +224,10 @@ module Y2Packager
 
         # compute the dependent products
         dependencies = []
-        product&.details&.depends_on&.each do |p|
+        product.depends_on&.each do |p|
           # display the human readable product name instead of the product directory
           prod = @products.find { |pr| pr.dir == p }
-          dependencies << (prod.summary || prod.name) if prod
+          dependencies << (prod.display_name || prod.name) if prod
         end
 
         # render the ERB template in the context of this object
@@ -254,7 +253,7 @@ module Y2Packager
         missing_products = Yast::AddOnProduct.missing_upgrades
         # installed but not selected yet products (to avoid duplicates)
         products.select do |p|
-          missing_products.include?(p.details&.product)
+          missing_products.include?(p.name)
         end
       end
 
@@ -275,7 +274,7 @@ module Y2Packager
 
         # select the default products
         products.select do |p|
-          default_modules.include?(p.details&.product)
+          default_modules.include?(p.name)
         end
       end
 

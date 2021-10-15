@@ -8,19 +8,12 @@ require "y2packager/dialogs/addon_selector"
 
 describe Y2Packager::Dialogs::AddonSelector do
   let(:media_products) do
-    prods = [
-      [
-        "SLE-15-Module-Basesystem 15.0-0",
-        "/Basesystem",
-        Y2Packager::ProductLocationDetails.new(product: "sle-module-basesystem")
-      ],
-      [
-        "SLE-15-Module-Legacy 15.0-0",
-        "/Legacy",
-        Y2Packager::ProductLocationDetails.new(product: "sle-module-legacy")
-      ]
+    [
+      Y2Packager::RepoProductSpec.new(name: "SLE-15-Module-Basesystem 15.3-0",
+        dir: "/Basesystem", name: "sle-module-basesystem", base: false),
+      Y2Packager::RepoProductSpec.new(name: "SLE-15-Module-Legacy 15.3-0",
+        dir: "/Legacy", name: "sle-module-legacy", base: false)
     ]
-    prods.map { |r| Y2Packager::ProductLocation.new(r[0], r[1], product: r[2]) }
   end
 
   subject { described_class.new(media_products) }
