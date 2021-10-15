@@ -44,27 +44,31 @@ describe Y2Packager::ProductSpecReader do
       allow(Y2Packager::ProductSpecReaders::Full).to receive(:new).and_return(full_reader)
       allow(Y2Packager::ProductSpecReaders::Control).to receive(:new).and_return(control_reader)
       allow(Y2Packager::ProductSpecReaders::Libzypp).to receive(:new).and_return(libzypp_reader)
-      allow(Y2Packager::MediumType).to receive(:type).and_return(medium_type)
+      allow(Y2Packager::InstallationMedium).to receive(:contain_repo?).and_return(false)
+      allow(Y2Packager::InstallationMedium).to receive(:contain_multi_repos?).and_return(false)
     end
 
-    context "on an online medium" do
-      let(:medium_type) { :online }
-
+    context "when medium does not contain any repository" do
       it "returns products from the control file" do
         expect(reader.products).to eq(control_products)
       end
     end
 
-    context "on an offline medium" do
-      let(:medium_type) { :offline }
+    context "when medium contain multiple repositories" do
+      before do
+        allow(Y2Packager::InstallationMedium).to receive(:contain_repo?).and_return(true)
+        allow(Y2Packager::InstallationMedium).to receive(:contain_multi_repos?).and_return(true)
+      end
 
-      it "returns offline products" do
+      it "returns products from all repositories" do
         expect(reader.products).to eq(full_products)
       end
     end
 
-    context "on a standard medium" do
-      let(:medium_type) { :standard }
+    context "when medium contain single repository" do
+      before do
+        allow(Y2Packager::InstallationMedium).to receive(:contain_repo?).and_return(true)
+      end
 
       it "returns the libzypp products" do
         expect(reader.products).to eq(libzypp_products)

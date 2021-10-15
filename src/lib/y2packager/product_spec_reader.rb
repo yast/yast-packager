@@ -20,7 +20,7 @@
 require "y2packager/product_spec_readers/full"
 require "y2packager/product_spec_readers/libzypp"
 require "y2packager/product_spec_readers/control"
-require "y2packager/medium_type"
+require "y2packager/installation_medium"
 
 module Y2Packager
   # Reads product specification from different sources
@@ -33,13 +33,12 @@ module Y2Packager
     def products
       # products_from_control || products_from_offline || products_from_libzypp
 
-      case Y2Packager::MediumType.type
-      when :online
-        products_from_control
-      when :offline
+      if InstallationMedium.contain_multi_repos?
         products_from_multi_repos
-      else
+      elsif InstallationMedium.contain_repo?
         products_from_libzypp
+      else
+        products_from_control
       end
     end
 
