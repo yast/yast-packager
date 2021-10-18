@@ -117,7 +117,7 @@ module Y2Packager
     #  products on the medium, a list of pairs [<media_name>, <directory_name>]
     #  as returned by the Yast::Pkg.RepositoryScan call
     #
-    # @return [Array<Y2Packager::ProductLocation>] the found products
+    # @return [Array<Y2Packager::RepoProductSpec>] the found products
     #
     def create_products(product_solvable, found_base_products, selected_base, media_names)
       ret = []

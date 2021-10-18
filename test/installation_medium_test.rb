@@ -3,6 +3,9 @@ require "y2packager/installation_medium"
 
 describe Y2Packager::InstallationMedium do
   let(:repo_url) { "http://example.com/repo" }
+  let(:products_reader) do
+    instance_double(Y2Packager::ProductSpecReaders::Full, products: [])
+  end
 
   before do
     allow(Yast::InstURL).to receive(:installInf2Url).and_return(repo_url)
@@ -10,7 +13,7 @@ describe Y2Packager::InstallationMedium do
     allow_any_instance_of(Y2Packager::RepomdDownloader)
       .to receive(:product_repos).and_return([])
 
-    allow(Y2Packager::ProductLocation).to receive(:scan).and_return([])
+    allow(Y2Packager::ProductSpecReaders::Full).to receive(:new).and_return(products_reader)
   end
 
   after do
@@ -78,18 +81,8 @@ describe Y2Packager::InstallationMedium do
           ]
         )
 
-      details = Y2Packager::ProductLocationDetails.new(
-        product:         "SLES",
-        summary:         "SUSE Linux Enterprise Server 15 SP1",
-        description:     "SUSE Linux Enterprise offers a comprehensive...",
-        order:           200,
-        base:            true,
-        depends_on:      [],
-        product_package: "sles-release"
-      )
-      prod = Y2Packager::ProductLocation.new("/", "/", product: details)
-
-      expect(Y2Packager::ProductLocation).to receive(:scan).and_return([prod])
+      prod = Y2Packager::RepoProductSpec.new(name: "SLES", dir: "/", base: true)
+      allow(products_reader).to receive(:products).and_return([prod])
 
       expect(described_class.contain_repo?).to eq(true)
     end
