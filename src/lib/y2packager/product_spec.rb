@@ -47,6 +47,7 @@ module Y2Packager
     # @return [Integer] Order in which the product is shown
     attr_reader :order
 
+    # @return [Boolean] Determine whether it is a base product
     attr_reader :base
 
     class << self
