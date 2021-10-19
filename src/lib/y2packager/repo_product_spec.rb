@@ -21,7 +21,6 @@ require "yast"
 require "y2packager/product_spec"
 
 Yast.import "Arch"
-Yast.import "Packages"
 Yast.import "InstURL"
 Yast.import "Pkg"
 Yast.import "AddOnProduct"
@@ -70,6 +69,8 @@ module Y2Packager
     # Sets up the repository, searches for the libzypp product and selects it for installation.
     def select
       super
+      # Break circular dependency between y2packager/medium_type and Packages module.
+      Yast.import "Packages"
 
       # in offline installation add the repository with the selected base product
       show_popup = true
