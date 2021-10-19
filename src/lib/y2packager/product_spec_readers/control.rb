@@ -39,7 +39,7 @@ module Y2Packager
           return @products
         end
 
-        arch = Yast::Arch.registration_arch
+        arch = Yast::Arch.rpm_arch
         linuxrc_products = (Yast::Linuxrc.InstallInf("specialproduct") || "")
           .split(",").map(&:strip)
 
