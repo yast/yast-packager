@@ -46,16 +46,7 @@ module Y2Packager
           return :auto
         end
 
-        # for the Full medium we need to just add the self-update add-on
-        # repo to make the new roles work
         if Y2Packager::MediumType.offline?
-          if Y2Packager::SelfUpdateAddonRepo.present?
-            log.info "Adding the self-update add-on repository..."
-            Y2Packager::SelfUpdateAddonRepo.create_repo
-          else
-            log.info "Self-update repository not found - finishing..."
-          end
-
           return :auto
         end
 
@@ -74,10 +65,6 @@ module Y2Packager
         end
 
         adjust_base_product_selection
-
-        # in an online installation and we need to additionally load and initialize
-        # the workflow for the registered base product
-        merge_and_run_workflow if Y2Packager::MediumType.online?
 
         :next
       end
@@ -99,19 +86,7 @@ module Y2Packager
         # FIXME: UI.SetProductName(Product.name || "SUSE Linux")
         Yast::PackageCallbacks.RestorePreviousProgressCallbacks
 
-        # add extra addon repo built from the initial self update repository (bsc#1101016)
-        Y2Packager::SelfUpdateAddonRepo.create_repo if Y2Packager::SelfUpdateAddonRepo.present?
-
         true
-      end
-
-      # Merge selected product's workflow and go to the next step
-      #
-      # @see Yast::WorkflowManager.merge_product_workflow
-      def merge_and_run_workflow
-        Yast::WorkflowManager.SetBaseWorkflow(false)
-        Yast::WorkflowManager.merge_product_workflow(Y2Packager::Product.selected_base)
-        Yast::ProductControl.RunFrom(Yast::ProductControl.CurrentStep + 1, true)
       end
 
       # Adjust product selection
