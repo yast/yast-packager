@@ -145,7 +145,7 @@ module Y2Packager
 
       # Return base available products
       #
-      # @return [Array<Y2Packager::ProductSpec>] Available base products
+      # @return [Array<Y2Packager::Product>] Available base products
       def products
         @products ||= Y2Packager::ProductSpec.base_products.map(&:to_product)
       end
