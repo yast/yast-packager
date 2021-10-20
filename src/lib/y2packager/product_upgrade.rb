@@ -11,6 +11,7 @@
 # ------------------------------------------------------------------------------
 
 require "y2packager/product"
+require "y2packager/product_spec"
 
 module Y2Packager
   # Evaluate the installed and available products and find the new upgraded
@@ -89,7 +90,7 @@ module Y2Packager
       #
       # @return [Y2Packager::Product,nil] the new upgraded product
       def new_base_product
-        available = Y2Packager::Product.available_base_products
+        available = Y2Packager::ProductSpec.base_products
         return nil if available.empty?
 
         # just one product?

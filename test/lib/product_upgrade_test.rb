@@ -7,9 +7,15 @@ require "y2packager/product_upgrade"
 require "y2packager/product"
 
 describe Y2Packager::ProductUpgrade do
-  let(:product1) { Y2Packager::Product.new(name: "testing_product1") }
-  let(:product2) { Y2Packager::Product.new(name: "testing_product2") }
-  let(:product3) { Y2Packager::Product.new(name: "testing_product3") }
+  let(:product1) do
+    instance_double(Y2Packager::Product, name: "testing_product1")
+  end
+  let(:product2) do
+    instance_double(Y2Packager::Product, name: "testing_product2")
+  end
+  let(:product3) do
+    instance_double(Y2Packager::Product, name: "testing_product3")
+  end
   let(:sles) { Y2Packager::Product.new(name: "SLES") }
   let(:sles_hpc) { Y2Packager::Product.new(name: "SLE_HPC") }
   let(:hpc_module) { Y2Packager::Product.new(name: "sle-module-hpc") }
@@ -20,7 +26,7 @@ describe Y2Packager::ProductUpgrade do
   describe ".new_base_product" do
     context "no base product is available" do
       before do
-        expect(Y2Packager::Product).to receive(:available_base_products).and_return([])
+        expect(Y2Packager::ProductSpec).to receive(:base_products).and_return([])
       end
 
       it "returns nil" do
@@ -30,7 +36,7 @@ describe Y2Packager::ProductUpgrade do
 
     context "only one base product is available" do
       before do
-        expect(Y2Packager::Product).to receive(:available_base_products).and_return([product1])
+        expect(Y2Packager::ProductSpec).to receive(:base_products).and_return([product1])
         allow(Y2Packager::Resolvable).to receive(:find).and_return([])
       end
 
@@ -41,7 +47,7 @@ describe Y2Packager::ProductUpgrade do
 
     context "several base products are available" do
       before do
-        expect(Y2Packager::Product).to receive(:available_base_products)
+        expect(Y2Packager::ProductSpec).to receive(:base_products)
           .and_return([product1, product2, sles, sles_hpc]).at_least(:once)
       end
 
@@ -79,7 +85,7 @@ describe Y2Packager::ProductUpgrade do
       it "returns more matching installed products" do
         expect(Y2Packager::Product).to receive(:installed_products)
           .and_return([sles, suma_proxy, suma_branch_server])
-        expect(Y2Packager::Product).to receive(:available_base_products)
+        expect(Y2Packager::ProductSpec).to receive(:base_products)
           .and_return([sles, sles_hpc, suma_proxy, suma_branch_server])
 
         expect(described_class.new_base_product).to be(suma_branch_server)
