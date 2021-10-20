@@ -133,16 +133,20 @@ describe Y2Packager::ProductUpgrade do
     # upgrade from SLE12-SP3 + SUMA Proxy 3.2 + SUMA Branch Server 3.2
     # to SLE15-SP1 (actually to SUMA Branch Server 4.0)
     context "SUSE Manager Branch Retail Server 3.2 upgrade" do
-      let(:suma_hash) { YAML.load_file(File.join(__dir__, "../data/zypp/products_update_suma_branch_server.yml")) }
+      let(:suma_hash) do
+        YAML.load_file(File.join(__dir__, "../data/zypp/products_update_suma_branch_server.yml"))
+      end
 
       let(:suma_products) do
         suma_hash.map { |p| Y2Packager::Resolvable.new(p) }
       end
 
       before do
-        allow(Y2Packager::Resolvable).to receive(:find).with(name: "SLES", kind: :product)
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(name: "SLES", kind: :product)
           .and_return(suma_products.select { |p| p.name == "SLES" })
-        allow(Y2Packager::Resolvable).to receive(:find).with(name: "SUSE-Manager-Proxy", kind: :product)
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(name: "SUSE-Manager-Proxy", kind: :product)
           .and_return(suma_products.select { |p| p.name == "SUSE-Manager-Proxy" })
       end
 
@@ -167,14 +171,18 @@ describe Y2Packager::ProductUpgrade do
 
     context "SUSE Manager Proxy 3.2 upgrade" do
       let(:suma_products) do
-        suma_hash = YAML.load_file(File.join(__dir__, "../data/zypp/products_update_suma_proxy.yml"))
+        suma_hash = YAML.load_file(
+          File.join(__dir__, "../data/zypp/products_update_suma_proxy.yml")
+        )
         suma_hash.map { |p| Y2Packager::Resolvable.new(p) }
       end
 
       it "returns empty list" do
-        allow(Y2Packager::Resolvable).to receive(:find).with(name: "SUSE-Manager-Proxy", kind: :product)
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(name: "SUSE-Manager-Proxy", kind: :product)
           .and_return(suma_products.select { |p| p.name == "SUSE-Manager-Proxy" })
-        allow(Y2Packager::Resolvable).to receive(:find).with(name: "SLES", kind: :product)
+        allow(Y2Packager::Resolvable).to receive(:find)
+          .with(name: "SLES", kind: :product)
           .and_return(suma_products.select { |p| p.name == "SLES" })
         expect(described_class.obsolete_upgrades).to eq([])
       end

@@ -23,6 +23,7 @@ module Y2Packager
 
     # mapping with upgraded products to handle some corner cases,
     # maps installed products to a new available base product
+    # rubocop:disable Metrics/LineLength
     MAPPING = {
       # SLES12 + HPC module => SLESHPC15
       # (a bit tricky, the module became a new base product!)
@@ -59,6 +60,7 @@ module Y2Packager
       # and the SLES product to avoid automatic upgrade by the solver
       ["SLES", "SUSE-Manager-Proxy", "SUSE-Manager-Retail-Branch-Server"] => ["SLES", "SUSE-Manager-Proxy"]
     }.freeze
+    # rubocop:enable Metrics/LineLength
 
     class << self
       # Find a new available base product which upgrades the installed base product.
