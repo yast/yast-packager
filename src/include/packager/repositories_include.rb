@@ -388,7 +388,7 @@ module Yast
 
         found_products << Y2Packager::RepoProductSpec.new(
           name: url_path, # FIXME: how is this addon selected?
-          dir: "/"
+          dir:  "/"
         )
       end
 

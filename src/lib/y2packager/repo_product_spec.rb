@@ -50,12 +50,12 @@ module Y2Packager
     def initialize(name:, version: nil, arch: nil, display_name: nil, order: nil, base: true,
       depends_on: [], dir:, media_name: nil, description: nil)
       super(
-        name: name,
-        version: version,
+        name:         name,
+        version:      version,
         display_name: display_name,
-        arch: arch || Yast::Arch.architecture,
-        order: order,
-        base: base
+        arch:         arch || Yast::Arch.architecture,
+        order:        order,
+        base:         base
       )
 
       @depends_on = depends_on

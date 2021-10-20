@@ -110,7 +110,9 @@ module Y2Packager
       # @see Yast::WorkflowManager.merge_product_workflow
       def merge_and_run_workflow
         Yast::WorkflowManager.SetBaseWorkflow(false)
-        Yast::WorkflowManager.merge_product_workflow(Y2Packager::ProductSpec.selected_base.to_product)
+        Yast::WorkflowManager.merge_product_workflow(
+          Y2Packager::ProductSpec.selected_base.to_product
+        )
         Yast::ProductControl.RunFrom(Yast::ProductControl.CurrentStep + 1, true)
       end
 

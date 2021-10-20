@@ -8,10 +8,10 @@ require "y2packager/repo_product_spec"
 describe Y2Packager::Dialogs::AddonSelector do
   let(:media_products) do
     [
-      Y2Packager::RepoProductSpec.new(name: "SLE-15-Module-Basesystem 15.3-0",
-        dir: "/Basesystem", name: "sle-module-basesystem", base: false),
-      Y2Packager::RepoProductSpec.new(name: "SLE-15-Module-Legacy 15.3-0",
-        dir: "/Legacy", name: "sle-module-legacy", base: false)
+      Y2Packager::RepoProductSpec.new(name: "sle-module-basesystem", dir: "/Basesystem",
+        base: false, media_name: "SLE-15-Module-Basesystem 15.3-0"),
+      Y2Packager::RepoProductSpec.new(name: "sle-module-legacy", dir: "/Legacy",
+        base: false, media_name: "SLE-15-Module-Legacy 15.3-0")
     ]
   end
 
