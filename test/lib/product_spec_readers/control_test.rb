@@ -37,7 +37,7 @@ describe Y2Packager::ProductSpecReaders::Control do
       allow(Yast::Linuxrc).to receive(:InstallInf).with("specialproduct").and_return("")
       allow(Yast::ProductFeatures).to receive(:GetFeature)
         .with("software", "base_products").and_return([])
-      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+      allow(Yast::Arch).to receive(:rpm_arch).and_return("x86_64")
     end
 
     after do

@@ -30,14 +30,6 @@ module Y2Packager
     class Control
       include Yast::Logger
 
-      # map the Arch.architecture to the arch expected by SCC
-      REG_ARCH = {
-        "s390_32" => "s390",
-        "s390_64" => "s390x",
-        # ppc64le is the only supported PPC arch, we do not have to distinguish the BE/LE variants
-        "ppc64"   => "ppc64le"
-      }.freeze
-
       def products
         control_products = Yast::ProductFeatures.GetFeature("software", "base_products")
 
@@ -47,7 +39,7 @@ module Y2Packager
           return @products
         end
 
-        arch = REG_ARCH[Yast::Arch.architecture] || Yast::Arch.architecture
+        arch = Yast::Arch.rpm_arch
         linuxrc_products = (Yast::Linuxrc.InstallInf("specialproduct") || "")
           .split(",").map(&:strip)
 

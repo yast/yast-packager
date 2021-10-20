@@ -7,17 +7,19 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
   subject(:client) { described_class.new }
 
   let(:success) { true }
+  let(:prod1_spec) { instance_double(Y2Packager::ProductSpec, name: "Prod1", to_product: prod1) }
+  let(:prod2_spec) { instance_double(Y2Packager::ProductSpec, name: "Prod2", to_product: prod2) }
   let(:prod1) { instance_double(Y2Packager::Product, name: "Prod1", select: nil) }
   let(:prod2) { instance_double(Y2Packager::Product, name: "Prod2", select: nil) }
-  let(:products) { [prod1] }
+  let(:products) { [prod1_spec] }
 
   describe "#main" do
     before do
       allow(Yast::Packages).to receive(:InitializeCatalogs)
       allow(Yast::Packages).to receive(:InitializeAddOnProducts)
       allow(Yast::Packages).to receive(:InitFailed).and_return(!success)
-      allow(Y2Packager::Product).to receive(:forced_base_product)
-      allow(Y2Packager::Product).to receive(:available_base_products).and_return(products)
+      allow(Y2Packager::ProductSpec).to receive(:forced_base_product)
+      allow(Y2Packager::ProductSpec).to receive(:base_products).and_return(products)
       allow(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(false)
       allow(Y2Packager::MediumType).to receive(:online?).and_return(false)
       allow(Y2Packager::MediumType).to receive(:offline?).and_return(false)
@@ -74,7 +76,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
     end
 
     context "when only one product is available" do
-      let(:products) { [prod1] }
+      let(:products) { [prod1_spec] }
 
       it "selects the product for installation" do
         expect(prod1).to receive(:select)
@@ -83,10 +85,10 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
     end
 
     context "when a product is forced to be used" do
-      let(:products) { [prod1, prod2] }
+      let(:products) { [prod1_spec, prod2_spec] }
 
       before do
-        allow(Y2Packager::Product).to receive(:forced_base_product).and_return(prod2)
+        allow(Y2Packager::ProductSpec).to receive(:forced_base_product).and_return(prod2_spec)
       end
 
       it "selects the product for installation" do
@@ -96,7 +98,7 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
     end
 
     context "when more than one product is available" do
-      let(:products) { [prod1, prod2] }
+      let(:products) { [prod1_spec, prod2_spec] }
 
       it "unselects all products" do
         expect(prod1).to receive(:restore)

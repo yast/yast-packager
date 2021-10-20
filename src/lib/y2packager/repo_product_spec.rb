@@ -20,7 +20,7 @@
 require "yast"
 require "y2packager/product_spec"
 
-Yast.import "Packages"
+Yast.import "Arch"
 Yast.import "InstURL"
 Yast.import "Pkg"
 Yast.import "AddOnProduct"
@@ -41,19 +41,26 @@ module Y2Packager
     # @return [String] Path on the medium (relative to the medium root)
     attr_reader :dir
 
-    attr_reader :media_name
-
     # @return [String,nil] Product description
     attr_reader :description
 
-    def initialize(name:, version:, arch:, display_name:, order:, base:, depends_on:, dir:,
-      media_name:, description:)
-      super(name: name, version: version, display_name: display_name, arch: arch,
-            order: order, base: base)
+    # @return [String,nil] Media name (e.g., "Basesystem-Module 15.3-0")
+    attr_reader :media_name
+
+    def initialize(name:, version: nil, arch: nil, display_name: nil, order: nil, base: true,
+      depends_on: [], dir:, media_name: nil, description: nil)
+      super(
+        name:         name,
+        version:      version,
+        display_name: display_name,
+        arch:         arch || Yast::Arch.architecture,
+        order:        order,
+        base:         base
+      )
 
       @depends_on = depends_on
       @dir = dir
-      @media_name = media_name
+      @media_name = media_name || dir
       @description = description
     end
 
@@ -62,6 +69,8 @@ module Y2Packager
     # Sets up the repository, searches for the libzypp product and selects it for installation.
     def select
       super
+      # Break circular dependency between y2packager/medium_type and Packages module.
+      Yast.import "Packages"
 
       # in offline installation add the repository with the selected base product
       show_popup = true

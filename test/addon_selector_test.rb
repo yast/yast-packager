@@ -2,25 +2,17 @@
 
 require_relative "./test_helper"
 
-require "y2packager/product_location"
-require "y2packager/product_location_details"
 require "y2packager/dialogs/addon_selector"
+require "y2packager/repo_product_spec"
 
 describe Y2Packager::Dialogs::AddonSelector do
   let(:media_products) do
-    prods = [
-      [
-        "SLE-15-Module-Basesystem 15.0-0",
-        "/Basesystem",
-        Y2Packager::ProductLocationDetails.new(product: "sle-module-basesystem")
-      ],
-      [
-        "SLE-15-Module-Legacy 15.0-0",
-        "/Legacy",
-        Y2Packager::ProductLocationDetails.new(product: "sle-module-legacy")
-      ]
+    [
+      Y2Packager::RepoProductSpec.new(name: "sle-module-basesystem", dir: "/Basesystem",
+        base: false, media_name: "SLE-15-Module-Basesystem 15.3-0"),
+      Y2Packager::RepoProductSpec.new(name: "sle-module-legacy", dir: "/Legacy",
+        base: false, media_name: "SLE-15-Module-Legacy 15.3-0")
     ]
-    prods.map { |r| Y2Packager::ProductLocation.new(r[0], r[1], product: r[2]) }
   end
 
   subject { described_class.new(media_products) }
@@ -121,11 +113,11 @@ describe Y2Packager::Dialogs::AddonSelector do
           end
 
           # verify that the Basesystem module is preselected
-          expect(term.params[3][0].params[1]).to eq("SLE-15-Module-Basesystem 15.0-0")
+          expect(term.params[3][0].params[1]).to eq("sle-module-basesystem")
           expect(term.params[3][0].params[2]).to eq(true)
 
           # verify that the Legacy module is NOT preselected
-          expect(term.params[3][1].params[1]).to eq("SLE-15-Module-Legacy 15.0-0")
+          expect(term.params[3][1].params[1]).to eq("sle-module-legacy")
           expect(term.params[3][1].params[2]).to eq(false)
         end
 

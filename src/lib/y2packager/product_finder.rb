@@ -50,8 +50,7 @@ module Y2Packager
         # a product was found in this directory?
         next if ret.any? { |p| p.dir == dir }
 
-        # FIXME: it won't work
-        ret << RepoProductSpec.new(name: name, dir: dir)
+        ret << RepoProductSpec.new(name: name, dir: dir, base: false)
       end
 
       ret
@@ -118,7 +117,7 @@ module Y2Packager
     #  products on the medium, a list of pairs [<media_name>, <directory_name>]
     #  as returned by the Yast::Pkg.RepositoryScan call
     #
-    # @return [Array<Y2Packager::ProductLocation>] the found products
+    # @return [Array<Y2Packager::RepoProductSpec>] the found products
     #
     def create_products(product_solvable, found_base_products, selected_base, media_names)
       ret = []
@@ -134,8 +133,8 @@ module Y2Packager
         media_name = media_name_pair ? media_name_pair.first : dir
 
         ret << RepoProductSpec.new(
-          media_name:   media_name,
           name:         product_name,
+          media_name:   media_name,
           display_name: product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || "",
           base:         found_base_products.include?(product_name),
           description:  product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION) || "",
