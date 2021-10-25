@@ -46,9 +46,7 @@ module Y2Packager
           return :auto
         end
 
-        if Y2Packager::MediumType.offline?
-          return :auto
-        end
+        return :auto if Y2Packager::MediumType.offline?
 
         if !init_installation_repositories
           Yast::Popup.Error(
