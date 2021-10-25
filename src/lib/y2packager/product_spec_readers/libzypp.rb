@@ -18,7 +18,7 @@
 # find current contact information at www.suse.com.
 
 require "y2packager/product"
-require "y2packager/product_spec"
+require "y2packager/libzypp_product_spec"
 
 module Y2Packager
   module ProductSpecReaders
@@ -26,12 +26,12 @@ module Y2Packager
     class Libzypp
       def products
         Y2Packager::Product.available_base_products.map do |prod|
-          Y2Packager::ProductSpec.new(
+          Y2Packager::LibzyppProductSpec.new(
             name:         prod.name,
             display_name: prod.display_name,
             version:      prod.version,
             arch:         prod.arch&.to_sym, # TODO: use a symbol (?)
-            base:         prod.category == :base,
+            base:         true,
             order:        prod.order
           )
         end

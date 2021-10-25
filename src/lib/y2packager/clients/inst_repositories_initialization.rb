@@ -100,7 +100,7 @@ module Y2Packager
       # @see https://github.com/yast/yast-packager/blob/7e1a0bbb90823b03c15d92f408036a560dca8aa3/src/modules/Packages.rb#L1876
       # @see https://github.com/yast/yast-packager/blob/fbc396df910e297915f9f785fc460e72e30d1948/src/modules/Packages.rb#L1905
       def adjust_base_product_selection
-        forced_base_product = Y2Packager::Product.forced_base_product
+        forced_base_product = Y2Packager::ProductSpec.forced_base_product&.to_product
 
         if forced_base_product
           log.info("control.xml wants to force the #{forced_base_product.name} product")
@@ -118,9 +118,9 @@ module Y2Packager
 
       # Return base available products
       #
-      # @return [Array<Y2Product>] Available base products
+      # @return [Array<Y2Packager::Product>] Available base products
       def products
-        @products ||= Y2Packager::Product.available_base_products
+        @products ||= Y2Packager::ProductSpec.base_products.map(&:to_product)
       end
     end
   end

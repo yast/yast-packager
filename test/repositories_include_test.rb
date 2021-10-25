@@ -49,6 +49,10 @@ describe "PackagerRepositoriesIncludeInclude" do
     let(:download) { false }
     let(:preferred_name) { "" }
     let(:repo_id) { 42 }
+    let(:products_reader) do
+      instance_double(Y2Packager::ProductSpecReaders::Full, products: products)
+    end
+    let(:products) { [] }
 
     before do
       allow(Yast::Wizard).to receive(:CreateDialog)
@@ -63,7 +67,7 @@ describe "PackagerRepositoriesIncludeInclude" do
       allow(Yast::Pkg).to receive(:SourceRefreshNow)
       allow(Yast::Pkg).to receive(:SourceGetCurrent).and_return([])
       allow(Yast::Mode).to receive(:auto).and_return(false)
-      allow(Y2Packager::ProductLocation).to receive(:scan).and_return([])
+      allow(Y2Packager::ProductSpecReaders::Full).to receive(:new).and_return(products_reader)
       allow(Yast::Pkg).to receive(:RepositoryProbe).and_return("YUM")
       allow(Yast::AddOnProduct).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
       allow(Yast::Pkg).to receive(:SourceGeneralData).with(repo_id).and_return({})
@@ -151,21 +155,23 @@ describe "PackagerRepositoriesIncludeInclude" do
     end
 
     context "more products available on the medium" do
-      let(:product1) { ["SLE-15-Module-Basesystem 15.0-0", "/Basesystem"] }
-      let(:product2) { ["SLE-15-Module-Legacy 15.0-0", "/Legacy"] }
+      let(:product1) do
+        Y2Packager::RepoProductSpec.new(
+          name: "sle-basesystem-module", media_name: "SLE-15-Module-Basesystem 15.0-0",
+          dir: "/Basesystem"
+        )
+      end
+      let(:product2) do
+        Y2Packager::RepoProductSpec.new(
+          name: "sle-legacy-module", media_name: "SLE-15-Module-Legacy 15.0-0",
+          dir: "/Legacy"
+        )
+      end
       let(:products) { [product1, product2] }
 
-      let(:selected_products) do
-        [Y2Packager::ProductLocation.new(product1[0], product1[1])]
-      end
+      let(:selected_products) { [product1] }
 
       before do
-        allow(Y2Packager::ProductLocation).to receive(:scan).and_return(
-          [
-            Y2Packager::ProductLocation.new(product1[0], product1[1]),
-            Y2Packager::ProductLocation.new(product2[0], product2[1])
-          ]
-        )
         allow_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:run)
       end
 
@@ -180,7 +186,7 @@ describe "PackagerRepositoriesIncludeInclude" do
         expect_any_instance_of(Y2Packager::Dialogs::AddonSelector).to receive(:selected_products)
           .and_return(selected_products)
         expect(Yast::Pkg).to receive(:RepositoryAdd)
-          .with(hash_including("prod_dir" => product1[1]))
+          .with(hash_including("prod_dir" => product1.dir))
         RepositoryIncludeTester.createSource(url, plaindir, download, preferred_name)
       end
 
