@@ -1726,7 +1726,8 @@ module Yast
                "repositories might contain updated software packages.")
 
       if low_memory?
-        msg << _("However, since the system has less than %d MiB memory,\n" \
+        # TRANSLATORS: the %d is replaced by minimal memory required
+        msg << _("However, since the system does not have more than %d MiB memory,\n" \
                  "there is a significant risk of running out of memory,\n" \
                  "and the installer may crash or freeze.\n" \
                  "\n" \
