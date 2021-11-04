@@ -1664,7 +1664,11 @@ module Yast
 
       while initial_repository.nil?
         initial_repository = Pkg.SourceCreateBase(base_url, product_dir)
-        next unless initial_repository == -1 || initial_repository.nil?
+        if initial_repository && initial_repository >= 0
+          # make the repository known to libzypp so it does not delete it's cache later
+          Pkg.SourceSaveAll
+          next
+        end
 
         Builtins.y2error("No repository in '%1'", log_url)
         base_url = UpdateSourceURL(base_url)
