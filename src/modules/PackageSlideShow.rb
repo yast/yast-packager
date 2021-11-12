@@ -126,6 +126,8 @@ module Yast
       ResetPackageSummary()
       # Reinititalize some globals (in case this is a second run)
       @total_size_installed = 0
+      @updated_packages = 0
+      @installed_packages = 0
 
       total_sizes_per_cd_per_src = Pkg.PkgMediaSizes
       total_pkg_count_per_cd_per_src = Pkg.PkgMediaCount
@@ -210,7 +212,7 @@ module Yast
           Builtins.sformat(
             _(" (Remaining: %1%2 packages)"),
             rem_string,
-            @total_pkgs_to_install - @total_installed
+            @total_pkgs_to_install - @installed_packages - @updated_packages
           )
         )
       )
