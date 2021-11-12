@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Thu Nov  4 15:18:16 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Fixed missing license translations after going back in the
+  installation workflow (bsc#1186747)
+- 4.4.12
+
+-------------------------------------------------------------------
+Thu Nov  4 08:34:16 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Adjusted low memory message (bsc#1139325)
+- 4.4.11
+
+-------------------------------------------------------------------
 Wed Sep 15 12:35:42 UTC 2021 - Stefan Hundhammer <shundhammer@suse.com>
 
 - Check if the "pkg" UI plug-in is available and if not, ask
