@@ -35,18 +35,6 @@ describe Y2Packager::Clients::InstRepositoriesInitialization do
       expect(client.main).to eq(:next)
     end
 
-    it "adds the self update repo if it is present" do
-      expect(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(true)
-      expect(Y2Packager::SelfUpdateAddonRepo).to receive(:create_repo)
-      client.main
-    end
-
-    it "does not add the self update repo if it is missing" do
-      expect(Y2Packager::SelfUpdateAddonRepo).to receive(:present?).and_return(false)
-      expect(Y2Packager::SelfUpdateAddonRepo).to_not receive(:create_repo)
-      client.main
-    end
-
     context "going back" do
       before do
         allow(Yast::GetInstArgs).to receive(:going_back).and_return(true)
