@@ -1515,6 +1515,20 @@ module Yast
       true
     end
 
+    # Fallback repository name
+    # @return [String] translated name
+    def fallback_name
+      _("Repository")
+    end
+
+    # Is the repository name a fallback name?
+    # @param name [String] name of the repository
+    # @return [Boolean] true if it is a fallback name
+    def is_fallback_name?(name)
+      # to make the names unique a number might be appended at the end
+      name == fallback_name || name =~ /^#{Regexp.escape(fallback_name)}_\d+$/
+    end
+
     # Adjusts repository name according to a first product found on the media.
     #
     # @param [Fixnum] src_id repository ID
@@ -1527,6 +1541,13 @@ module Yast
       if src_id.nil? || Ops.less_than(src_id, 0)
         Builtins.y2error("Wrong source ID: %1", src_id)
         return nil
+      end
+
+      # change only the fallback name, otherwise the name already contains a product
+      repo_name = Pkg.SourceGeneralData(src_id)["raw_name"]
+      if !is_fallback_name?(repo_name)
+        log.info("Keeping repository name #{repo_name.inspect} unchanged")
+        return false
       end
 
       Builtins.y2milestone("Trying to get repository name from products")
@@ -1550,6 +1571,7 @@ module Yast
         sources_set = []
         Builtins.foreach(sources_got) do |one_source|
           if Ops.get_integer(one_source, "SrcId", -1) == src_id
+            log.info("Updating repository name from \"#{repo_name}\" to \"#{new_name}\"")
             Ops.set(one_source, "raw_name", new_name)
           end
           sources_set = Builtins.add(sources_set, one_source)

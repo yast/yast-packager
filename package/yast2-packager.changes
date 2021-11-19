@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 19 14:09:32 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Use consistent names for the Full medium repositories
+  (bsc#1191652)
+- 4.3.25
+
+-------------------------------------------------------------------
 Thu Jun 17 15:47:33 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - When editing a repository display the repository alias as a
