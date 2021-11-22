@@ -26,6 +26,7 @@ module Yast
       Yast.import "SourceDialogs"
       Yast.import "Report"
       Yast.import "Progress"
+      Yast.import "Packages"
 
       textdomain "packager"
 
@@ -364,7 +365,7 @@ module Yast
         url_path = URL.Parse(original_url)["path"]
         p_elems = url_path.split("/")
 
-        fallback = _("Repository")
+        fallback = Packages.fallback_name
 
         if p_elems.size > 1
           url_path = Ops.get(

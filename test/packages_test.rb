@@ -1867,4 +1867,83 @@ describe Yast::Packages do
       expect(subject.send(:check_missing_resolvables)).to eq(pattern: ["non-existing"])
     end
   end
+
+  describe "#AdjustSourcePropertiesAccordingToProduct" do
+    let(:repo_id) { 42 }
+    # shared part of the Pkg.SourceGeneralData response
+    let(:repo_partial_data) do
+      {
+        "alias"                => "Basesystem-Module_15.3-0",
+        "autorefresh"          => false,
+        "base_urls"            => ["cd:///"],
+        "enabled"              => true,
+        "is_update_repo"       => false,
+        "keeppackages"         => false,
+        "mirror_list"          => "",
+        "priority"             => 99,
+        "product_dir"          => "/Module-Basesystem",
+        "raw_url"              => "cd:///",
+        "service"              => "",
+        "type"                 => "YUM",
+        "url"                  => "cd:///",
+        "valid_repo_signature" => true
+      }
+    end
+
+    before do
+      allow(Yast::Pkg).to receive(:SourceGeneralData).with(repo_id).and_return(repo_data)
+      allow(Yast::Pkg).to receive(:SourceEditSet)
+    end
+
+    context "the repository uses the fallback name" do
+      let(:repo_data) do
+        repo_partial_data.merge(
+          "name"     => Yast::Packages.fallback_name,
+          "raw_name" => Yast::Packages.fallback_name
+        )
+      end
+
+      let(:product_name) { "SuperProduct!" }
+
+      it "changes the repository name to the product name" do
+        expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
+          .and_return([double("product", source: repo_id, name: product_name)])
+        expect(Yast::Pkg).to receive(:SourceEditGet).and_return(
+          [
+            "SrcId"        => repo_id,
+            "autorefresh"  => false,
+            "enabled"      => true,
+            "keeppackages" => false,
+            "name"         => Yast::Packages.fallback_name,
+            "priority"     => 99,
+            "raw_name"     => Yast::Packages.fallback_name,
+            "service"      => ""
+          ]
+        )
+        expect(Yast::Pkg).to receive(:SourceEditSet) do |list|
+          expect(list.first["raw_name"]).to eq(product_name)
+        end
+
+        subject.AdjustSourcePropertiesAccordingToProduct(repo_id)
+      end
+    end
+
+    context "the repository uses a product name" do
+      let(:repo_data) do
+        repo_partial_data.merge(
+          "name"     => "Basesystem-Module 15.3-0",
+          "raw_name" => "Basesystem-Module 15.3-0"
+        )
+      end
+
+      it "does not change the repository name" do
+        expect(Yast::Pkg).to_not receive(:SourceEditSet)
+        subject.AdjustSourcePropertiesAccordingToProduct(repo_id)
+      end
+
+      it "returns false" do
+        expect(subject.AdjustSourcePropertiesAccordingToProduct(repo_id)).to eq(false)
+      end
+    end
+  end
 end
