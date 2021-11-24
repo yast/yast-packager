@@ -12,8 +12,8 @@
 
 require "yast"
 
-require "y2packager/product_location"
 require "y2packager/repomd_downloader"
+require "y2packager/product_spec_readers/full"
 
 Yast.import "InstURL"
 
@@ -126,8 +126,9 @@ module Y2Packager
         base_product = nil
         # run the scan even when there is only one repository on the medium
         force_scan = true
-        base_products = Y2Packager::ProductLocation.scan(url, base_product, force_scan)
-          .select { |p| p.details&.base }
+        base_products = Y2Packager::ProductSpecReaders::Full.new
+          .products(url, base_product, force_scan)
+          .select(&:base)
 
         if base_products.empty?
           log.info("Detected medium type: online (no base product found on the medium)")

@@ -1,4 +1,4 @@
-require "y2packager/product_location"
+require "y2packager/product_spec_readers/full"
 require "y2packager/product"
 
 # encoding: utf-8
@@ -26,6 +26,7 @@ module Yast
       Yast.import "SourceDialogs"
       Yast.import "Report"
       Yast.import "Progress"
+      Yast.import "Packages"
 
       textdomain "packager"
 
@@ -344,7 +345,7 @@ module Yast
   private
 
     # scan the repository URL and return the available products
-    # @return [Array<Y2Packager::ProductLocation>] Found products
+    # @return [Array<Y2Packager::RepoProductSpec>] Found products
     def scan_products(_expanded_url, original_url)
       # use the selected base product during installation,
       # in installed system or during upgrade use the installed base product
@@ -355,7 +356,7 @@ module Yast
       end
 
       log.info("Using base product: #{base_product}")
-      found_products = Y2Packager::ProductLocation.scan(original_url, base_product)
+      found_products = Y2Packager::ProductSpecReaders::Full.new.products(original_url, base_product)
       log.info("Found products: #{found_products}")
 
       # add at least one product if the scan result is empty (no product info available)
@@ -364,7 +365,7 @@ module Yast
         url_path = URL.Parse(original_url)["path"]
         p_elems = url_path.split("/")
 
-        fallback = _("Repository")
+        fallback = Packages.fallback_name
 
         if p_elems.size > 1
           url_path = Ops.get(
@@ -386,7 +387,10 @@ module Yast
           url_path = fallback
         end
 
-        found_products << Y2Packager::ProductLocation.new(url_path, "/")
+        found_products << Y2Packager::RepoProductSpec.new(
+          name: url_path, # FIXME: how is this addon selected?
+          dir:  "/"
+        )
       end
 
       found_products

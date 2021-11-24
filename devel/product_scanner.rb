@@ -10,7 +10,7 @@ require "yast"
 # *after* calling require "yast"
 $LOAD_PATH.unshift(File.join(__dir__, "../src/lib"))
 
-require "y2packager/product_location"
+require "y2packager/product_spec_readers/full"
 
 url = ARGV[0]
 
@@ -29,4 +29,4 @@ end
 
 puts "Scanning #{url}..."
 
-pp Y2Packager::ProductLocation.scan(url, base_product)
+pp Y2Packager::ProductSpecReaders::Full.new.products(url, base_product)
