@@ -1,5 +1,6 @@
 require "y2packager/product_spec_readers/full"
 require "y2packager/product"
+require "cgi"
 
 # encoding: utf-8
 module Yast
@@ -100,7 +101,7 @@ module Yast
         return :ok
       end
 
-      found_products = scan_products(expanded_url, url)
+      found_products = scan_products(expanded_url, url, preferred_name)
       newSources = []
 
       enter_again = false
@@ -345,8 +346,11 @@ module Yast
   private
 
     # scan the repository URL and return the available products
-    # @return [Array<Y2Packager::RepoProductSpec>] Found products
-    def scan_products(_expanded_url, original_url)
+    # @param _expanded_url [String] expanded repository URL
+    # @param original_url [String] original repository URL
+    # @param preferred_name [String] user preferred name or empty string
+    # @return [Array<Y2Packager::ProductLocation>] Found products
+    def scan_products(_expanded_url, original_url, preferred_name)
       # use the selected base product during installation,
       # in installed system or during upgrade use the installed base product
       base_product = if Stage.initial && !Mode.update
@@ -362,38 +366,35 @@ module Yast
       # add at least one product if the scan result is empty (no product info available)
       # to try adding the repository at the root (/) of the medium
       if found_products.empty?
-        url_path = URL.Parse(original_url)["path"]
-        p_elems = url_path.split("/")
-
-        fallback = Packages.fallback_name
-
-        if p_elems.size > 1
-          url_path = Ops.get(
-            p_elems,
-            Ops.subtract(Builtins.size(p_elems), 1),
-            fallback
-          )
-
-          if url_path.nil? || url_path == ""
-            url_path = Ops.get(
-              p_elems,
-              Ops.subtract(Builtins.size(p_elems), 2),
-              fallback
-            )
-
-            url_path = fallback if url_path.nil? || url_path == ""
-          end
-        elsif url_path == "/"
-          url_path = fallback
-        end
-
+        name = propose_name(preferred_name, original_url)
         found_products << Y2Packager::RepoProductSpec.new(
-          name: url_path, # FIXME: how is this addon selected?
+          name: name, # FIXME: how is this addon selected?
           dir:  "/"
         )
       end
 
       found_products
+    end
+
+    # Propose a repository name
+    #   - use the user defined name if it is set
+    #   - otherwise use the last URL path element
+    #   - if it is empty then use the default fallback
+    # @param preferred_name [String] user entered name or empty string
+    # @param url [String] repository URL
+    # @return [String] repository name
+    def propose_name(preferred_name, url)
+      # if preferred name is set then use it
+      return preferred_name unless preferred_name.empty?
+
+      # otherwise use the last URL path element
+      path = URL.Parse(url)["path"].split("/").delete_if(&:empty?)
+      if path.empty?
+        # if it is empty then use the fallback
+        Packages.fallback_name
+      else
+        CGI.unescape(path.last)
+      end
     end
 
     # propose the repository alias (based on the product name)
