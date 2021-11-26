@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec  2 12:58:16 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
+
+- Properly set the custom repository name (#1191491)
+- 4.4.16
+
+-------------------------------------------------------------------
 Wed Dec  1 12:52:52 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - Add the register_target property to ProductSpec so it is
