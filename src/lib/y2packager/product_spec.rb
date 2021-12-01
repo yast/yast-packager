@@ -118,7 +118,7 @@ module Y2Packager
       @base = base
       @selected = false
 
-      @register_target = register_target || ""
+      @register_target = register_target
       # expand the "$arch" placeholder
       @register_target = @register_target.gsub("$arch", arch.to_s) if arch
     end
