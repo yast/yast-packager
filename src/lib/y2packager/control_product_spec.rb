@@ -28,8 +28,6 @@ module Y2Packager
   class ControlProductSpec < ProductSpec
     # @return [String] License URL
     attr_reader :license_url
-    # @return [String] Registration target name used for registering the product
-    attr_reader :register_target
 
     # @param register_target [String] The registration target name used
     #   for registering the product, the $arch variable is replaced
@@ -37,10 +35,8 @@ module Y2Packager
     # @param license_url [String] License URL
     def initialize(name:, version:, arch:, display_name:, order:, license_url:, register_target:)
       super(name: name, version: version, display_name: display_name, arch: arch,
-            order: order, base: true)
+            order: order, base: true, register_target: register_target)
 
-      # expand the "$arch" placeholder
-      @register_target = register_target&.gsub("$arch", arch) || ""
       @license_url = license_url
     end
   end
