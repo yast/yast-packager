@@ -194,7 +194,7 @@ module Yast
     def YesNoButtonBox
       yes_button = PushButton(Id(:yes), Opt(:key_F10), Label.YesButton)
       no_button = PushButton(
-        Id(:no_button),
+        Id(:no),
         Opt(:default, :key_F9),
         Label.NoButton
       )
