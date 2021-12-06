@@ -383,7 +383,8 @@ module Yast
       params = URI.decode_www_form(query.gsub(/%20/, "+")).to_h
 
       param_url = params.delete("url") || ""
-      processed = URI.parse(param_url)
+      puts "param url #{param_url.inspect} escaped #{CGI.escape(param_url).inspect}"
+      processed = URI.parse(CGI.escape(param_url))
       log.info "processed URI after escaping #{processed.inspect}"
       processed.scheme = "iso" if processed.scheme.casecmp("dir").zero?
       # we need to construct path from more potential sources, as url can look like
