@@ -334,8 +334,7 @@ module Yast
       # for a local ISO image (see https://bugzilla.suse.com/show_bug.cgi?id=919138
       # and https://en.opensuse.org/openSUSE:Libzypp_URIs#ISO_Images )
       new_url.scheme = "dir" if uri.scheme.casecmp("iso").zero?
-      # url can be already escaped, so unescape double escaping (bsc#954813)
-      params["url"] = CGI.unescape(new_url.to_s)
+      params["url"] = new_url.to_s
       log.info "unescaped url param #{params["url"].inspect}"
 
       processed = URI("")
@@ -383,8 +382,7 @@ module Yast
       params = URI.decode_www_form(query.gsub(/%20/, "+")).to_h
 
       param_url = params.delete("url") || ""
-      puts "param url #{param_url.inspect} escaped #{CGI.escape(param_url).inspect}"
-      processed = URI.parse(CGI.escape(param_url))
+      processed = URI.parse(param_url)
       log.info "processed URI after escaping #{processed.inspect}"
       processed.scheme = "iso" if processed.scheme.casecmp("dir").zero?
       # we need to construct path from more potential sources, as url can look like
