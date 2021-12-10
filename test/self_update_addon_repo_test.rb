@@ -34,6 +34,14 @@ describe Y2Packager::SelfUpdateAddonRepo do
         .with("dir://#{path}?alias=SelfUpdate0", "", "Plaindir")
       Y2Packager::SelfUpdateAddonRepo.create_repo(path)
     end
+
+    it "do proper escaping" do
+      path = "/home/j'O Donald/repo"
+      escaped_path = "/home/j'O%20Donald/repo"
+      expect(Yast::Pkg).to receive(:SourceCreateType)
+        .with("dir://#{escaped_path}?alias=SelfUpdate0", "", "Plaindir")
+      Y2Packager::SelfUpdateAddonRepo.create_repo(path)
+    end
   end
 
   describe ".copy_packages" do
