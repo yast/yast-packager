@@ -29,7 +29,7 @@ describe Y2Packager::ProductSpecReaders::Full do
     arr.find { |p| p.name == product }
   end
 
-  ESCAPED_DATA_PATH = DATA_PATH.to_s.split("/").map {|d| CGI.escape(d)}.join("/").freeze
+  ESCAPED_DATA_PATH = DATA_PATH.to_s.split("/").map { |d| CGI.escape(d) }.join("/").freeze
   # URL of the local testing repository
   REPO_URL = "dir://#{File.join(ESCAPED_DATA_PATH, "zypp/test_offline_repo")}".freeze
 

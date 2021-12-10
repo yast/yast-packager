@@ -88,8 +88,9 @@ module Y2Packager
     # @return [Boolean] true on success, false if failed
     #
     def self.create_repo(path = REPO_PATH)
-      ret = Yast::Pkg.SourceCreateType("dir://#{Yast::URLRecode.EscapePath(path)}?alias=SelfUpdate0",
-        "", "Plaindir")
+      ret = Yast::Pkg.SourceCreateType(
+        "dir://#{Yast::URLRecode.EscapePath(path)}?alias=SelfUpdate0", "", "Plaindir"
+      )
       log.info("Created self update addon repo: #{ret}")
       ret
     end

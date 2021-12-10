@@ -81,14 +81,16 @@ describe Yast::SourceDialogs do
 
     it "handles iso with part in url and part in path" do
       converted = "iso:/insta%20ll/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
-      url = "iso:/Duomenys%20600%20GB?iso=/openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finsta%2520ll%2F"
+      url = "iso:/Duomenys%20600%20GB?iso=/openSUSE-13.2-DVD-x86_64.iso" \
+        "&url=dir%3A%2Finsta%2520ll%2F"
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
 
     it "handles properly escaped spaces" do
       converted = "iso:/install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
-      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&" \
+        "url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
@@ -121,7 +123,8 @@ describe Yast::SourceDialogs do
 
     it "prevents double escaping if get already escaped string" do
       converted = "iso:///install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
-      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso" \
+        "&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
@@ -129,7 +132,8 @@ describe Yast::SourceDialogs do
 
   describe ".IsISOURL" do
     it "returns true for iso with spaces" do
-      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&" \
+        "url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
 
       expect(subject.IsISOURL(url)).to eq true
     end
