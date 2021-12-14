@@ -1,6 +1,7 @@
 require "yast"
 
 require "uri"
+require "cgi"
 require "shellwords"
 
 Yast.import "NetworkService"
@@ -333,8 +334,8 @@ module Yast
       # for a local ISO image (see https://bugzilla.suse.com/show_bug.cgi?id=919138
       # and https://en.opensuse.org/openSUSE:Libzypp_URIs#ISO_Images )
       new_url.scheme = "dir" if uri.scheme.casecmp("iso").zero?
-      # url can be already escaped, so unescape double escaping (bsc#954813)
-      params["url"] = URI.unescape(new_url.to_s)
+      params["url"] = new_url.to_s
+      log.info "unescaped url param #{params["url"].inspect}"
 
       processed = URI("")
       # libzypp do not use web encoding as in https://www.w3.org/TR/html5/forms.html#url-encoded-form-data
@@ -381,7 +382,8 @@ module Yast
       params = URI.decode_www_form(query.gsub(/%20/, "+")).to_h
 
       param_url = params.delete("url") || ""
-      processed = URI(URI.encode(param_url))
+      processed = URI.parse(param_url)
+      log.info "processed URI after escaping #{URL.HidePassword(processed.to_s)}"
       processed.scheme = "iso" if processed.scheme.casecmp("dir").zero?
       # we need to construct path from more potential sources, as url can look like
       # `iso:/subdir?iso=test.iso&path=dir%3A%2Finstall` resulting in
@@ -885,7 +887,8 @@ module Yast
     def IsoInit(_key)
       @_url = PreprocessISOURL(@_url)
       parsed = URI.parse(@_url)
-      path = URI.unescape(parsed.path)
+      path = CGI.unescape(parsed.path)
+      log.info "unescaped path #{path}"
 
       UI.ChangeWidget(Id(:dir), :Value, path)
       UI.SetFocus(:dir)
