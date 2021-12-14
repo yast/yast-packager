@@ -383,7 +383,7 @@ module Yast
 
       param_url = params.delete("url") || ""
       processed = URI.parse(param_url)
-      log.info "processed URI after escaping #{processed.inspect}"
+      log.info "processed URI after escaping #{URL.HidePassword(processed.to_s)}"
       processed.scheme = "iso" if processed.scheme.casecmp("dir").zero?
       # we need to construct path from more potential sources, as url can look like
       # `iso:/subdir?iso=test.iso&path=dir%3A%2Finstall` resulting in

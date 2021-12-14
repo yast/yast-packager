@@ -37,7 +37,6 @@ Yast.import "OneClickInstallStandard"
 Yast.import "Language"
 Yast.import "String"
 Yast.import "URL"
-# documentation cop is broken for this document, so lets disable it
 
 module Yast
   # This is a stand-alone YaST client that allows you to add suggested
@@ -355,7 +354,7 @@ module Yast
 
       # unescape it
       url_string = CGI.unescape(url_string)
-      log.info "unescaped url_string #{url_string.inspect}"
+      log.info "unescaped url_string #{Yast::URL.HidePassword(url_string)}"
 
       # removing all slashes at the end of the url
       url_string.sub(/(\/)+$/, "")
