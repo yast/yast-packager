@@ -59,10 +59,10 @@ describe Yast::AddOnProduct do
       let(:new_product) do
         Y2Packager::Resolvable.new(
           ProductFactory.create_product("kind" => :product,
-           "name" => "new_product", "version" => "1.0",
-           "arch" => "x86_64", "source" => "1",
-           "product_package" => "new_product-release",
-           "deps" => [])
+            "name" => "new_product", "version" => "1.0",
+            "arch" => "x86_64", "source" => "1",
+            "product_package" => "new_product-release",
+            "deps" => [])
         )
       end
 
@@ -392,7 +392,7 @@ describe Yast::AddOnProduct do
     context "when -confirm_license- is not set in add-on description" do
       let(:repo_id) { 1 }
       before do
-        allow(Yast::Pkg). to receive(:SourceProductData).with(repo_id)
+        allow(Yast::Pkg).to receive(:SourceProductData).with(repo_id)
         allow(subject).to receive(:InstallProductsFromRepository)
         allow(subject).to receive(:ReIntegrateFromScratch)
         allow(subject).to receive(:AddRepo).and_return(repo_id)
@@ -415,7 +415,7 @@ describe Yast::AddOnProduct do
     context "when -confirm_license- is defined in add-on description" do
       let(:repo_id) { 1 }
       before do
-        allow(Yast::Pkg). to receive(:SourceProductData).with(repo_id)
+        allow(Yast::Pkg).to receive(:SourceProductData).with(repo_id)
         allow(subject).to receive(:InstallProductsFromRepository)
         allow(subject).to receive(:ReIntegrateFromScratch)
         allow(subject).to receive(:AddRepo).and_return(repo_id)
@@ -503,7 +503,7 @@ describe Yast::AddOnProduct do
 
       before do
         allow(subject).to receive(:AcceptedLicenseAndInfoFile).and_return(true)
-        allow(Yast::Pkg). to receive(:SourceProductData).with(repo_id)
+        allow(Yast::Pkg).to receive(:SourceProductData).with(repo_id)
         allow(subject).to receive(:InstallProductsFromRepository)
         allow(subject).to receive(:ReIntegrateFromScratch)
         allow(subject).to receive(:Integrate)
@@ -753,9 +753,9 @@ describe Yast::AddOnProduct do
           "autoyast_product" => "base", "media_url" => "cd:/?devices=/dev/cdrom/"
         }]
         expect(subject.Export).to eq("add_on_products" => [{
-                                       "product_dir" => "/Module-Basesystem", "product" => "base",
+          "product_dir" => "/Module-Basesystem", "product" => "base",
           "media_url" => "cd:/?devices=/dev/cdrom/"
-                                     }])
+        }])
       end
     end
 
@@ -766,10 +766,10 @@ describe Yast::AddOnProduct do
           "autoyast_product" => nil, "media_url" => "cd:/?devices=/dev/cdrom/"
         }]
         expect(subject.Export).to eq("add_on_products" => [{
-                                       "product_dir" => "/Module-Basesystem",
-                                       "product"     => "sle-module-basesystem",
-                                       "media_url"   => "cd:/?devices=/dev/cdrom/"
-                                     }])
+          "product_dir" => "/Module-Basesystem",
+          "product"     => "sle-module-basesystem",
+          "media_url"   => "cd:/?devices=/dev/cdrom/"
+        }])
       end
     end
   end

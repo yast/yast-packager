@@ -100,7 +100,7 @@ module Yast
         "help"       => Builtins.sformat(
           _(
             "Installation Repositories - This module does not support the command line " \
-              "interface, use '%1' instead."
+            "interface, use '%1' instead."
           ),
           "zypper"
         ),
@@ -250,10 +250,10 @@ module Yast
         url += " (#{generalData["product_dir"]})"
       end
       service_alias = Ops.get_string(source, "service", "")
-      service_name = if service_alias != ""
-        Ops.get_string(Pkg.ServiceGet(service_alias), "name", "")
-      else
+      service_name = if service_alias == ""
         ""
+      else
+        Ops.get_string(Pkg.ServiceGet(service_alias), "name", "")
       end
 
       item = if repository_mode
@@ -374,7 +374,7 @@ module Yast
 
       # TRANSLATORS: the raw name is the original repository name with unexpanded variables
       # like "$releasever"
-      name_string = (name != raw_name) ? _("Raw name: %s") % raw_name + "<BR>" : ""
+      name_string = (name != raw_name) ? (_("Raw name: %s") % raw_name) + "<BR>" : ""
 
       url = _("Unknown") if url == ""
       raw_url = _("Unknown") if raw_url == ""
@@ -613,13 +613,13 @@ module Yast
           Builtins.y2milestone("Adding service %1", alias_name)
           new_url = Ops.get_string(s, "url", "")
 
-          if new_url != ""
+          if new_url == ""
+            Builtins.y2error("Empty URL for service %1", alias_name)
+          else
             Builtins.y2milestone("aliases: %1", Pkg.ServiceAliases)
             success &&= Pkg.ServiceAdd(alias_name, new_url)
             # set enabled and autorefresh flags
             success &&= Pkg.ServiceSet(alias_name, s)
-          else
-            Builtins.y2error("Empty URL for service %1", alias_name)
           end
         else
           Builtins.y2milestone("Modifying service %1", alias_name)
@@ -950,8 +950,8 @@ module Yast
         help_text,
         _(
           "<P>A <B>service</B> or <B>Repository Index Service (RIS) </B> is a protocol for " \
-            "package repository management. A service can offer one or more software " \
-            "repositories which can be dynamically changed by the service administrator.</P>"
+          "package repository management. A service can offer one or more software " \
+          "repositories which can be dynamically changed by the service administrator.</P>"
         )
       )
 
@@ -959,21 +959,10 @@ module Yast
         help_text,
         _(
           "<p>\n" \
-            "<b>Adding a new Repository or a Service</b><br>\n" \
-            "To add a new repository, use <b>Add</b> and specify the software repository or " \
-            "service.\n YaST will automatically detect whether a service or a repository is " \
-            "available at the entered location.\n</p>\n"
-        )
-      )
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
-        _(
-          "<p>\n" \
-            "To install packages from <b>CD</b>,\n" \
-            "have the CD set or the DVD available.\n" \
-            "</p>\n"
+          "<b>Adding a new Repository or a Service</b><br>\n" \
+          "To add a new repository, use <b>Add</b> and specify the software repository or " \
+          "service.\n YaST will automatically detect whether a service or a repository is " \
+          "available at the entered location.\n</p>\n"
         )
       )
 
@@ -982,13 +971,9 @@ module Yast
         help_text,
         _(
           "<p>\n" \
-            "The CDs can be copied to <b>hard disk</b>\n" \
-            "and then used as a repository.\n" \
-            "Insert the path name where the first\n" \
-            "CD is located, for example, /data1/<b>CD1</b>.\n" \
-            "Only the base path is required if all CDs are copied\n" \
-            "into one directory.\n" \
-            "</p>\n"
+          "To install packages from <b>CD</b>,\n" \
+          "have the CD set or the DVD available.\n" \
+          "</p>\n"
         )
       )
 
@@ -997,11 +982,26 @@ module Yast
         help_text,
         _(
           "<p>\n" \
-            "<b>Modifying Status of a Repository or a Service</b><br>\n" \
-            "To change a repository location, use <b>Edit</b>. To remove a repository, use\n" \
-            "<b>Delete</b>. To enable or disable the repository or to change the refresh status " \
-            "at initialization time, select the repository in the table and use the check boxes " \
-            "below.\n</p>\n"
+          "The CDs can be copied to <b>hard disk</b>\n" \
+          "and then used as a repository.\n" \
+          "Insert the path name where the first\n" \
+          "CD is located, for example, /data1/<b>CD1</b>.\n" \
+          "Only the base path is required if all CDs are copied\n" \
+          "into one directory.\n" \
+          "</p>\n"
+        )
+      )
+
+      # help, continued
+      help_text = Ops.add(
+        help_text,
+        _(
+          "<p>\n" \
+          "<b>Modifying Status of a Repository or a Service</b><br>\n" \
+          "To change a repository location, use <b>Edit</b>. To remove a repository, use\n" \
+          "<b>Delete</b>. To enable or disable the repository or to change the refresh status " \
+          "at initialization time, select the repository in the table and use the check boxes " \
+          "below.\n</p>\n"
         )
       )
 
@@ -1010,9 +1010,9 @@ module Yast
         help_text,
         _(
           "<P><B>Priority of a Repository</B><BR>\nPriority of a repository is " \
-            "an integer value between 0 (the highest priority) and 200 (the lowest priority). " \
-            "Default is 99. If a package is available in more repositories, " \
-            "the repository with the highest priority is used.</P>\n"
+          "an integer value between 0 (the highest priority) and 200 (the lowest priority). " \
+          "Default is 99. If a package is available in more repositories, " \
+          "the repository with the highest priority is used.</P>\n"
         )
       )
 
@@ -1021,7 +1021,7 @@ module Yast
         help_text,
         _(
           "<P>Select the appropriate option on top of the window for navigation in " \
-            "repositories and services.</P>"
+          "repositories and services.</P>"
         )
       )
       # help text, continued
@@ -1030,14 +1030,14 @@ module Yast
           help_text,
           _(
             "<P><B>Keep Downloaded Packages</B><BR>Check this option to keep downloaded\n" \
-              "packages in a local cache so they can be reused later when the packages are\n" \
-              "reinstalled. If not checked, the downloaded packages are deleted after " \
-              "installation.</P>"
+            "packages in a local cache so they can be reused later when the packages are\n" \
+            "reinstalled. If not checked, the downloaded packages are deleted after " \
+            "installation.</P>"
           )
         ),
         _(
           "<P>The default local cache is located in directory <B>/var/cache/zypp/packages</B>. " \
-            "Change the location in <B>/etc/zypp/zypp.conf</B> file.</P>"
+          "Change the location in <B>/etc/zypp/zypp.conf</B> file.</P>"
         )
       )
 
@@ -1077,7 +1077,9 @@ module Yast
         when :next
           # store the new state
           success = Write()
-          if !success
+          if success
+            exit = true
+          else
             # popup message part 1
             message1 = _(
               "Unable to save changes to the repository\nconfiguration."
@@ -1091,8 +1093,6 @@ module Yast
 
             tryagain = Popup.YesNo(Ops.add(Ops.add(message1, "\n"), message2))
             exit = true if !tryagain
-          else
-            exit = true
           end
         # Wizard::UserInput returns `back instead of `cancel when window is closed by WM
         when :abort, :cancel
@@ -1481,26 +1481,23 @@ module Yast
           url = SourceDialogs.GetURL
           occupied = url_occupied?(url)
 
-          if occupied
-            # popup question, %1 is repository URL
-            if !Popup.AnyQuestion(
-              "",
-              Builtins.sformat(
-                _(
-                  "Repository %1\n" \
-                    "has been already added. Each repository should be added only once.\n" \
-                    "\n" \
-                    "Really add the repository again?"
-                ),
-                URL.HidePassword(url)
+          if occupied && !Popup.AnyQuestion(
+            "",
+            Builtins.sformat(
+              _(
+                "Repository %1\n" \
+                "has been already added. Each repository should be added only once.\n" \
+                "\n" \
+                "Really add the repository again?"
               ),
-              Label.YesButton,
-              Label.NoButton,
-              :focus_no
-            )
-              # ask again
-              ret = nil
-            end
+              URL.HidePassword(url)
+            ),
+            Label.YesButton,
+            Label.NoButton,
+            :focus_no
+          )
+            # ask again
+            ret = nil
           end
         end
       end while ret.nil?
@@ -1842,16 +1839,15 @@ module Yast
           )
 
           # ignore cd:// <-> dvd:// changes if the path is not changed
-          if optical?(new_url_scheme) && optical?(old_url_scheme)
-            # compare only directories, ignore e.g. ?device=/dev/sr0 options
-            if Ops.get_string(new_url_parsed, "path", "") ==
-                Ops.get_string(old_url_parsed, "path", "")
-              Pkg.SourceChangeUrl(
-                Ops.get_integer(source_state, "SrcId", -1),
-                url2
-              )
-              same_url = true
-            end
+          if optical?(new_url_scheme) && optical?(old_url_scheme) && (Ops.get_string(
+            new_url_parsed, "path", ""
+          ) ==
+                Ops.get_string(old_url_parsed, "path", ""))
+            Pkg.SourceChangeUrl(
+              Ops.get_integer(source_state, "SrcId", -1),
+              url2
+            )
+            same_url = true
           end
         end
 
@@ -1900,7 +1896,7 @@ module Yast
               )
               Builtins.y2milestone(
                 "Restoring the original properties: enabled: %1, autorefresh: %2, " \
-                  "keeppackages: %3, priority: %4",
+                "keeppackages: %3, priority: %4",
                 enabled,
                 auto_refresh,
                 keeppackages,
@@ -1948,7 +1944,11 @@ module Yast
           )
 
           new_raw_name = SourceDialogs.GetRepoName
-          if new_raw_name != source_state.fetch("raw_name", "")
+          if new_raw_name == source_state.fetch("raw_name", "")
+            Builtins.y2milestone(
+              "The repository name has not been changed"
+            )
+          else
             warn_service_repository(source_state)
 
             new_name = Yast::Pkg.ExpandedName(new_raw_name)
@@ -1961,10 +1961,6 @@ module Yast
             UI.ChangeWidget(Id(:table), Cell(global_current, 3), new_name)
 
             fillCurrentRepoInfo
-          else
-            Builtins.y2milestone(
-              "The repository name has not been changed"
-            )
           end
 
           createResult = :ok
@@ -1992,7 +1988,36 @@ module Yast
 
         break if Builtins.size(url2).zero?
 
-        if url2 != old_url
+        if url2 == old_url
+          Builtins.y2milestone(
+            "URL is the same, not recreating the service"
+          )
+          entered_service_name = SourceDialogs.GetRepoName
+          old_service_name = Ops.get_string(service_info, "name", "")
+
+          if old_service_name != entered_service_name
+            Builtins.y2milestone(
+              "Updating name of the service to '%1'",
+              entered_service_name
+            )
+            Ops.set(service_info, "name", entered_service_name)
+            Ops.set(@serviceStatesOut, current, service_info)
+            fillTable(@repository_view, @displayed_service)
+            fillCurrentRepoInfo
+            createResult = :ok
+
+            # update the reference
+            @sourceStatesOut = Builtins.maplist(@sourceStatesOut) do |src_state|
+              if Ops.get_string(src_state, "service", "") == old_service_name
+                Ops.set(src_state, "service", entered_service_name)
+              end
+              deep_copy(src_state)
+            end
+
+            # refresh also the combobox widget
+            UpdateCombobox()
+          end
+        else
           Builtins.y2milestone(
             "URL of the service has been changed, recreating the service"
           )
@@ -2023,35 +2048,6 @@ module Yast
                 url2
               )
             )
-          end
-        else
-          Builtins.y2milestone(
-            "URL is the same, not recreating the service"
-          )
-          entered_service_name = SourceDialogs.GetRepoName
-          old_service_name = Ops.get_string(service_info, "name", "")
-
-          if old_service_name != entered_service_name
-            Builtins.y2milestone(
-              "Updating name of the service to '%1'",
-              entered_service_name
-            )
-            Ops.set(service_info, "name", entered_service_name)
-            Ops.set(@serviceStatesOut, current, service_info)
-            fillTable(@repository_view, @displayed_service)
-            fillCurrentRepoInfo
-            createResult = :ok
-
-            # update the reference
-            @sourceStatesOut = Builtins.maplist(@sourceStatesOut) do |src_state|
-              if Ops.get_string(src_state, "service", "") == old_service_name
-                Ops.set(src_state, "service", entered_service_name)
-              end
-              deep_copy(src_state)
-            end
-
-            # refresh also the combobox widget
-            UpdateCombobox()
           end
         end
       end while createResult == :again

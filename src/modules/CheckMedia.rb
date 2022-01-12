@@ -146,9 +146,7 @@ module Yast
     end
 
     def Running
-      ret = Convert.to_boolean(SCR.Read(path(".process.running"), @process))
-
-      ret
+      Convert.to_boolean(SCR.Read(path(".process.running"), @process))
     end
 
     # Return information printed by checkmedia utility

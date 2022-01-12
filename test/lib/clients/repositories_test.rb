@@ -64,7 +64,7 @@ describe Yast::RepositoriesClient do
       let(:url) { "http://pepa.suse.cz/repo1" }
 
       before do
-        client.instance_variable_set(:"@sourceStatesOut", [{ "SrcId" => "1" }])
+        client.instance_variable_set(:@sourceStatesOut, [{ "SrcId" => "1" }])
       end
 
       it "returns false if repository is multi product media" do

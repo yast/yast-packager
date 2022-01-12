@@ -128,8 +128,8 @@ describe Yast::InstProductsourcesClient do
     it "uses fallback alias when passed alias" do
       expect(Yast::Pkg).to receive(:RepositoryAdd)
         .with("enabled" => false, "name" => "main", "base_urls" => ["http://yast.rulezz.com"],
-              "prod_dir" => "/prod1", "alias" => "yast.rulezz.com",
-              "type" => "RPM-MD", "check_alias" => true)
+          "prod_dir" => "/prod1", "alias" => "yast.rulezz.com",
+          "type" => "RPM-MD", "check_alias" => true)
         .and_return(1)
 
       client.CreateSource("http://yast.rulezz.com", "/prod1", "main", nil)
@@ -184,13 +184,13 @@ describe Yast::InstProductsourcesClient do
     context "is already added" do
       it "handles the default and empty product directory correctly" do
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
-          "/debug/update/leap/15.1/non-oss/",
+                                             "/debug/update/leap/15.1/non-oss/",
           "/")).to eq(4)
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
-          "/debug/update/leap/15.1/non-oss/",
+                                             "/debug/update/leap/15.1/non-oss/",
           "")).to eq(4)
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org" \
-          "/debug/update/leap/15.1/non-oss/",
+                                             "/debug/update/leap/15.1/non-oss/",
           nil)).to eq(4)
       end
     end
@@ -206,11 +206,11 @@ describe Yast::InstProductsourcesClient do
       it "replaces $releasever and returns source id" do
         expect(Yast::Pkg).to receive(:ExpandedUrl)
           .with("http://download.opensuse.org/" \
-          "debug/update/leap/$releasever/non-oss")
+                "debug/update/leap/$releasever/non-oss")
           .and_return("http://download.opensuse.org/" \
-          "debug/update/leap/15.1/non-oss")
+                      "debug/update/leap/15.1/non-oss")
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/" \
-          "debug/update/leap/$releasever/non-oss/",
+                                             "debug/update/leap/$releasever/non-oss/",
           "/")).to eq(4)
       end
     end
@@ -222,7 +222,7 @@ describe Yast::InstProductsourcesClient do
 
       it "returns -1" do
         expect(client.IsAddOnAlreadySelected("http://download.opensuse.org/" \
-          "debug/distribution/leap/15.1/repo/non-oss/",
+                                             "debug/distribution/leap/15.1/repo/non-oss/",
           "/")).to eq(-1)
       end
     end

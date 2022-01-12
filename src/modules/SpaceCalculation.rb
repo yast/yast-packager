@@ -114,7 +114,7 @@ module Yast
       if Installation.dirinstall_installing_into_dir
         target = GetDirMountPoint(Installation.dirinstall_target, partitions)
         log.info "Installing into a directory, target directory: " \
-          "#{Installation.dirinstall_target}, target mount point: #{target}"
+                 "#{Installation.dirinstall_target}, target mount point: #{target}"
       end
 
       du_partitions = []
@@ -255,7 +255,7 @@ module Yast
           filesystem_dev_name(filesystem)
         )
       end
-      # Note: custom journal size cannot be entered in the partitioner
+      # NOTE: custom journal size cannot be entered in the partitioner
 
       Builtins.y2milestone(
         "Journal size for %1: %2kB",
@@ -379,7 +379,12 @@ module Yast
         mounted = String.FindMountPoint(dir, mount_points)
         Builtins.y2milestone("Dir %1 is mounted on %2", dir, mounted)
         part = Ops.get(mounts, mounted, {})
-        if part != {}
+        if part == {}
+          Builtins.y2warning(
+            "Cannot find partition for mount point %1, ignoring it",
+            mounted
+          )
+        else
           curr_used = Ops.get_integer(part, "used", 0)
           Builtins.y2milestone(
             "Adding %1kB to %2kB currently used",
@@ -396,11 +401,6 @@ module Yast
           )
 
           Ops.set(mounts, mounted, part)
-        else
-          Builtins.y2warning(
-            "Cannot find partition for mount point %1, ignoring it",
-            mounted
-          )
         end
       end
 
@@ -533,7 +533,7 @@ module Yast
             log.info "Snapshots detected: #{growonly}"
             new_used = btrfs_used_size(name) / 1024
             log.info "Updated the used size by 'btrfs' utility " \
-              "from #{used} to #{new_used} (diff: #{new_used - used})"
+                     "from #{used} to #{new_used} (diff: #{new_used - used})"
             used = new_used
           end
 
@@ -611,7 +611,7 @@ module Yast
           device = filesystem_dev_name(filesystem)
 
           mount_command = "/usr/bin/mount -o #{mount_options_str} " \
-            "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
+                          "#{Shellwords.escape(device)} #{Shellwords.escape(tmpdir)}"
 
           log.info "Executing mount command: #{mount_command}"
 
@@ -825,27 +825,25 @@ module Yast
 
       Builtins.y2debug("Total used space (kB): %1", used)
 
-      if Ops.greater_than(Builtins.size(message), 0)
-        # dont ask user to deselect packages for imap server, product
-        if ProductFeatures.GetFeature("software", "selection_type") == :auto
-          message = if Mode.update
-            Builtins.add(
-              message,
-              "\n" +
-                # popup message
-                _(
-                  "Deselect packages or delete data or temporary files\n" \
-                    "before updating the system.\n"
-                )
-            )
-          else
-            Builtins.add(
-              message,
-              "\n" +
-                # popup message
-                _("Deselect some packages.")
-            )
-          end
+      if Ops.greater_than(Builtins.size(message),
+        0) && (ProductFeatures.GetFeature("software", "selection_type") == :auto)
+        message = if Mode.update
+          Builtins.add(
+            message,
+            "\n" +
+              # popup message
+              _(
+                "Deselect packages or delete data or temporary files\n" \
+                "before updating the system.\n"
+              )
+          )
+        else
+          Builtins.add(
+            message,
+            "\n" +
+              # popup message
+              _("Deselect some packages.")
+          )
         end
       end
       deep_copy(message)
@@ -947,24 +945,23 @@ module Yast
           # ignore the partitions which were already full
           # and no files will be installed there (bnc#259493)
           if Ops.greater_than(used_future, used_now) &&
-              Ops.greater_than(current_free_size, 0)
-            if Ops.less_than(current_free_percent, free_percent) &&
-                Ops.less_than(current_free_size, max_unsufficient_free_size)
-              Builtins.y2warning(
-                "Partition %1: less than %2%% free space (%3%%, %4)",
-                dir,
-                free_percent,
-                current_free_percent,
-                current_free_size
-              )
+              Ops.greater_than(current_free_size,
+                0) && (Ops.less_than(current_free_percent, free_percent) &&
+                Ops.less_than(current_free_size, max_unsufficient_free_size))
+            Builtins.y2warning(
+              "Partition %1: less than %2%% free space (%3%%, %4)",
+              dir,
+              free_percent,
+              current_free_percent,
+              current_free_size
+            )
 
-              ret = Builtins.add(
-                ret,
-                "dir"          => dir,
-                "free_percent" => current_free_percent,
-                "free_size"    => current_free_size
-              )
-            end
+            ret = Builtins.add(
+              ret,
+              "dir"          => dir,
+              "free_percent" => current_free_percent,
+              "free_size"    => current_free_size
+            )
           end
         end
       end

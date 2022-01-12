@@ -304,24 +304,25 @@ module Yast
         # bugzilla #219759
         # service label can be empty (not defined)
         if service_label == ""
-          if Ops.get_string(one_service, "srvurl", "") != ""
+          if Ops.get_string(one_service, "srvurl", "") == ""
+            Builtins.y2error(
+              "Wrong service definition: %1, key \"srvurl\" must not be empty.",
+              one_service
+            )
+          else
             service_label = Builtins.sformat(
               "%1: %2",
               _("Repository URL"),
               Builtins.substring(Ops.get_string(one_service, "srvurl", ""), 21)
             )
-          else
-            Builtins.y2error(
-              "Wrong service definition: %1, key \"srvurl\" must not be empty.",
-              one_service
-            )
           end
         end
         # search works in "label" or in "srvurl" as a fallback
-        if !filter_string.nil?
+        if !filter_string.nil? && !service_label.downcase.include?(filter_string.downcase)
           # filter out all services that don't match the filter
-          next if !service_label.downcase.include?(filter_string.downcase)
+          next
         end
+
         # define an empty list if it is not defined at all
         Ops.set(inst_products, service_label, []) if Ops.get(inst_products, service_label).nil?
         Ops.set(
@@ -386,7 +387,7 @@ module Yast
         Report.Message(
           _(
             "Select one of the offered options.\n" \
-              "More repositories are available for this product.\n"
+            "More repositories are available for this product.\n"
           )
         )
 
@@ -539,8 +540,8 @@ module Yast
             # error popup
             _(
               "No SLP repositories have been found on your network.\n" \
-                "This could be caused by a running firewall,\n" \
-                "which probably blocks the network scanning."
+              "This could be caused by a running firewall,\n" \
+              "which probably blocks the network scanning."
             )
           )
         else

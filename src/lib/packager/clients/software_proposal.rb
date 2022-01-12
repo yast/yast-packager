@@ -60,16 +60,13 @@ module Yast
         ) # simple version
       end
 
-      if @language_changed && !@force_reset
-        # if the  language has changed the software proposal is reset to the default settings
-        if !Builtins.haskey(@ret, "warning")
-          # the language_changed flag has NOT been set by the NLD frame
-          @ret = Builtins.add(
-            @ret,
-            "warning",
-            _("The software proposal is reset to the default values.")
-          )
-        end
+      if @language_changed && !@force_reset && !Builtins.haskey(@ret, "warning")
+        # the language_changed flag has NOT been set by the NLD frame
+        @ret = Builtins.add(
+          @ret,
+          "warning",
+          _("The software proposal is reset to the default values.")
+        )
       end
       if Ops.greater_than(Packages.solve_errors, 0)
         # the proposal for the packages requires manual intervention
@@ -148,9 +145,9 @@ module Yast
         Packages.timestamp = Installation.dirinstall_target_time
       else
         # check the partitioning in installation
-        if Packages.timestamp != staging_revision
+        if Packages.timestamp != staging_revision && Packages.timestamp.nonzero?
           # don't set changed if it's the first "change"
-          changed = true if Packages.timestamp.nonzero?
+          changed = true
         end
         # save information about devicegraph revision in module Packages
         Packages.timestamp = staging_revision

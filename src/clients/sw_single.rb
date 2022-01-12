@@ -64,7 +64,7 @@ module Yast
           "help"       => Builtins.sformat(
             _(
               "Software Installation - This module does not support the command " \
-                "line interface, use '%1' instead."
+              "line interface, use '%1' instead."
             ),
             "zypper"
           ),
@@ -276,9 +276,9 @@ module Yast
                 Builtins.sformat(
                   _(
                     "Package %1 could not be installed.\n" \
-                      "\n" \
-                      "Details:\n" \
-                      "%2\n"
+                    "\n" \
+                    "Details:\n" \
+                    "%2\n"
                   ),
                   package,
                   Pkg.LastError
@@ -573,8 +573,8 @@ module Yast
             Popup.YesNo(
               _(
                 "During the last package installation\n" \
-                  "several packages failed to install.\n" \
-                  "Install them now?\n"
+                "several packages failed to install.\n" \
+                "Install them now?\n"
               )
             )
           Builtins.foreach(old_failed_packs) { |p| Pkg.PkgInstall(p) }
@@ -605,7 +605,7 @@ module Yast
                   Builtins.sformat(
                     _(
                       "Cannot configure online update repository \n" \
-                        "without having package %1 installed"
+                      "without having package %1 installed"
                     ),
                     required_package
                   )
@@ -629,20 +629,18 @@ module Yast
             elsif result == :webpin
               required_package = "yast2-packager-webpin"
 
-              if !PackageSystem.Installed(required_package)
-                if !PackageSystem.CheckAndInstallPackages([required_package])
-                  Report.Error(
+              if PackageSystem.Installed(required_package)
+                WFM.CallFunction("webpin_package_search", [])
+              elsif !PackageSystem.CheckAndInstallPackages([required_package])
+                Report.Error(
                     Builtins.sformat(
                       _(
                         "Cannot search packages in online repositories\n" \
-                          "without having package %1 installed"
+                        "without having package %1 installed"
                       ),
                       required_package
                     )
                   )
-                end
-              else
-                WFM.CallFunction("webpin_package_search", [])
               end
               force_restart = true
             end
@@ -672,7 +670,7 @@ module Yast
             ) do |package|
               if @action == :install ||
                   # TODO: `update: tell the user if already up to date
-                  @action == :update && CanBeUpdated(package)
+                  (@action == :update && CanBeUpdated(package))
                 # select package for installation
                 if !Pkg.PkgInstall(package)
                   # oops, package not found ? try capability

@@ -287,25 +287,25 @@ module Yast
         # help text - media check 2/8
         _(
           "<P>When you have a problem with\n" \
-            "the installation and you are using a CD or DVD installation medium, " \
-            "you should check\nwhether the medium is broken.</P>\n"
+          "the installation and you are using a CD or DVD installation medium, " \
+          "you should check\nwhether the medium is broken.</P>\n"
         ) +
         # help text - media check 3/8
         _(
           "<P>Select a drive, insert a medium into the drive and press <B>Start Check</B>\n" \
-            "or use <B>Check ISO File</B> and select an ISO file.\n" \
-            "The check can take several minutes depending on speed of the\n" \
-            "drive and size of the medium. The check verifies the MD5 checksum.</P> "
+          "or use <B>Check ISO File</B> and select an ISO file.\n" \
+          "The check can take several minutes depending on speed of the\n" \
+          "drive and size of the medium. The check verifies the MD5 checksum.</P> "
         ) +
         # help text - media check 4/8
         _(
           "<P>If the check of the medium fails, you should not continue the installation.\n" \
-            "It may fail or you may lose your data. Better replace the broken medium.</P>\n"
+          "It may fail or you may lose your data. Better replace the broken medium.</P>\n"
         ) +
         # help text - media check 5/8
         _(
           "After the check, insert the next medium and start the procedure again. \n" \
-            "The order of the media is irrelevant.\n"
+          "The order of the media is irrelevant.\n"
         ) +
         # help text - media check 6/8
         _(
@@ -314,19 +314,19 @@ module Yast
         # help text - media check 7/8
         _(
           "<P>To check media before the installation, " \
-            "use the media check item in the boot menu.</P>"
+          "use the media check item in the boot menu.</P>"
         ) +
         # help text - media check 8/8
         _(
           "<P>If you burn the media yourself, use the <B>pad</B> option in your recording\n" \
-            "software. It avoids read errors at the end of the media during the check.</P>\n"
+          "software. It avoids read errors at the end of the media during the check.</P>\n"
         )
 
       # advice check of the media
       # for translators: split the message to more lines if needed, use max. 50 characters per line
       label = _(
         "It is recommended to check all installation media\n" \
-          "to avoid installation problems. To skip this step press 'Next'"
+        "to avoid installation problems. To skip this step press 'Next'"
       )
 
       contents = VBox(

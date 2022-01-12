@@ -63,18 +63,18 @@ describe Yast::SourceDialogs do
   describe "#PreprocessISOURL" do
     it "keeps additional URL parameter (workgroup)" do
       url = "iso:///?iso=openSUSE-12.2-DVD-i586.iso&workgroup=WORKGROUP&url=" \
-        "smb://USERNAME:PASSWORD@192.168.1.66/install/images"
+            "smb://USERNAME:PASSWORD@192.168.1.66/install/images"
       converted = "smb://USERNAME:PASSWORD@192.168.1.66/install/images/" \
-        "openSUSE-12.2-DVD-i586.iso?workgroup=WORKGROUP"
+                  "openSUSE-12.2-DVD-i586.iso?workgroup=WORKGROUP"
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
 
     it "handles escaped URL parameter" do
       url = "iso:///?workgroup=WORKGROUP&iso=openSUSE-12.2-DVD-i586.iso&url=" \
-        "smb%3A%2F%2FUSERNAME%3APASSWORD%40192.168.1.66%2Finstall%2Fimages"
+            "smb%3A%2F%2FUSERNAME%3APASSWORD%40192.168.1.66%2Finstall%2Fimages"
       converted = "smb://USERNAME:PASSWORD@192.168.1.66/install/images/" \
-        "openSUSE-12.2-DVD-i586.iso?workgroup=WORKGROUP"
+                  "openSUSE-12.2-DVD-i586.iso?workgroup=WORKGROUP"
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
@@ -82,7 +82,7 @@ describe Yast::SourceDialogs do
     it "handles iso with part in url and part in path" do
       converted = "iso:/insta%20ll/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
       url = "iso:/Duomenys%20600%20GB?iso=/openSUSE-13.2-DVD-x86_64.iso" \
-        "&url=dir%3A%2Finsta%2520ll%2F"
+            "&url=dir%3A%2Finsta%2520ll%2F"
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
@@ -90,7 +90,7 @@ describe Yast::SourceDialogs do
     it "handles properly escaped spaces" do
       converted = "iso:/install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
       url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&" \
-        "url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+            "url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
 
       expect(subject.PreprocessISOURL(url)).to eq(converted)
     end
@@ -107,9 +107,9 @@ describe Yast::SourceDialogs do
   describe "#PostprocessISOURL" do
     it "keeps additional URL parameter (workgroup)" do
       converted = "smb://USERNAME:PASSWORD@192.168.1.66/install/images/" \
-        "openSUSE-12.2-DVD-i586.iso?workgroup=WORKGROUP"
+                  "openSUSE-12.2-DVD-i586.iso?workgroup=WORKGROUP"
       url = "iso:///?workgroup=WORKGROUP&iso=openSUSE-12.2-DVD-i586.iso&url=" \
-        "smb%3A%2F%2FUSERNAME%3APASSWORD%40192.168.1.66%2Finstall%2Fimages"
+            "smb%3A%2F%2FUSERNAME%3APASSWORD%40192.168.1.66%2Finstall%2Fimages"
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
@@ -124,7 +124,7 @@ describe Yast::SourceDialogs do
     it "prevents double escaping if get already escaped string" do
       converted = "iso:///install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
       url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso" \
-        "&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+            "&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
 
       expect(subject.PostprocessISOURL(converted)).to eq(url)
     end
@@ -133,7 +133,7 @@ describe Yast::SourceDialogs do
   describe ".IsISOURL" do
     it "returns true for iso with spaces" do
       url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&" \
-        "url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+            "url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
 
       expect(subject.IsISOURL(url)).to eq true
     end

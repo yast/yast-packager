@@ -38,7 +38,7 @@ module Yast
             # try unmounting the /mnt/dev directory before the cleanup, usually there
             # is a bind mount /dev -> /mnt/dev which would remove the files also from /dev
             "/usr/bin/umount %1/dev/; /bin/rm -rf %1/dev/ && /bin/mkdir -p %1/dev/ && " \
-              "/bin/mount -v --bind /dev/ %1/dev/",
+            "/bin/mount -v --bind /dev/ %1/dev/",
             Installation.destdir.shellescape
           )
         )
@@ -165,7 +165,7 @@ module Yast
         SCR.Execute(
           path(".target.bash"),
           "cd #{Installation.destdir.shellescape}; " \
-            "/bin/rm -f #{Installation.update_backup_path.shellescape}/*-*-*.tar.{gz,bz2}"
+          "/bin/rm -f #{Installation.update_backup_path.shellescape}/*-*-*.tar.{gz,bz2}"
         )
       end
 
@@ -206,7 +206,7 @@ module Yast
         if SCR.Execute(
           path(".target.bash"),
           "cd #{Shellwords.escape(Installation.destdir)}; " \
-            "/bin/tar --ignore-failed-read -czf .#{Shellwords.escape(filename)} var/log/YaST2"
+          "/bin/tar --ignore-failed-read -czf .#{Shellwords.escape(filename)} var/log/YaST2"
         ).nonzero?
           Builtins.y2error(
             "backup of %1 to %2 failed",
@@ -270,7 +270,7 @@ module Yast
           if SCR.Execute(
             path(".target.bash"),
             "cd #{Installation.destdir.shellescape}; " \
-              "/bin/tar czf .#{filename.shellescape} etc/sysconfig"
+            "/bin/tar czf .#{filename.shellescape} etc/sysconfig"
           ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",
@@ -333,7 +333,7 @@ module Yast
           if SCR.Execute(
             path(".target.bash"),
             "cd #{Installation.destdir.shellescape}; " \
-              "/bin/tar czf .#{filename} etc/rc.config etc/rc.config.d"
+            "/bin/tar czf .#{filename} etc/rc.config etc/rc.config.d"
           ).nonzero?
             Builtins.y2error(
               "backup of %1 to %2 failed",

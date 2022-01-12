@@ -46,21 +46,18 @@ module Yast
       # stop proceeding the script if they don't (Second stage)
       if Stage.cont && !Mode.live_installation && !Mode.autoinst
         InitRemainingPackages()
-        if SomePackagesAreRemainForInstallation() != true
+        if SomePackagesAreRemainForInstallation() == true
+          Builtins.y2milestone("Some packages need to be installed...")
+        else
           Builtins.y2milestone("No packages need to be installed, skipping...")
           return :auto
-        else
-          Builtins.y2milestone("Some packages need to be installed...")
         end
       end
 
       # start target, create new rpmdb if none is existing
       # FIXME error checking is missing all around here, initialization could actually fail!
-      if Pkg.TargetInitialize(Installation.destdir) != true
-        # continue-cancel popup
-        if Popup.ContinueCancel(_("Initializing the target directory failed.")) == false
-          return :abort
-        end
+      if Pkg.TargetInitialize(Installation.destdir) != true && (Popup.ContinueCancel(_("Initializing the target directory failed.")) == false)
+        return :abort
       end
 
       if Mode.update
@@ -155,11 +152,9 @@ module Yast
         SlideShow.CloseDialog
       end
 
-      if @result != :abort
-        if Stage.cont
-          # some new SCR asgents might have been installed
-          SCR.RegisterNewAgents
-        end
+      if @result != :abort && Stage.cont
+        # some new SCR asgents might have been installed
+        SCR.RegisterNewAgents
       end
 
       @result
@@ -387,11 +382,11 @@ module Yast
             Builtins.sformat(
               _(
                 "Installation failed.\n" \
-                  "\n" \
-                  "Details:\n" \
-                  "%1\n" \
-                  "\n" \
-                  "Package installation will be aborted.\n"
+                "\n" \
+                "Details:\n" \
+                "%1\n" \
+                "\n" \
+                "Package installation will be aborted.\n"
               ),
               Pkg.LastError
             )

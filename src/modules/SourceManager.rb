@@ -296,24 +296,23 @@ module Yast
           src_type = Ops.get_string(src_data, "type", "")
           src_type == "YaST"
         end
-        if Builtins.size(ul_sources).zero?
-          if !Popup.AnyQuestion(
-            Popup.NoHeadline,
-            # continue-back popup
-            _(
-              "There is no product information available at the given location.\n" \
-                "If you expected to to point a product, go back and enter\n" \
-                "the correct location.\n" \
-                "To make rpm packages located at the specified location available\n" \
-                "in the packages selection, continue.\n"
-            ),
-            Label.ContinueButton,
-            Label.BackButton,
-            :focus_yes
-          )
-            return :again
-          end
+        if Builtins.size(ul_sources).zero? && !Popup.AnyQuestion(
+          Popup.NoHeadline,
+          # continue-back popup
+          _(
+            "There is no product information available at the given location.\n" \
+            "If you expected to to point a product, go back and enter\n" \
+            "the correct location.\n" \
+            "To make rpm packages located at the specified location available\n" \
+            "in the packages selection, continue.\n"
+          ),
+          Label.ContinueButton,
+          Label.BackButton,
+          :focus_yes
+        )
+          return :again
         end
+
         Builtins.foreach(@newSources) do |id|
           sourceState = { "SrcId" => id, "enabled" => true }
           @sourceStatesOut = Builtins.add(@sourceStatesOut, sourceState)
@@ -374,11 +373,10 @@ module Yast
           Ops.get_locale(generalData, "type", _("unknown"))
         )
       )
-      sitem = Ops.add(
+      Ops.add(
         Ops.add(Ops.add(sitem, " ( "), Ops.get_string(generalData, "url", "")),
         ")"
       )
-      sitem
     end
 
     # Create Repository Item for Overview

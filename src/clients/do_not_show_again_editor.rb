@@ -65,8 +65,8 @@ module Yast
       # help text
       helptext = _(
         "<p>Remove entries by selecting them in the table and clicking the \n" \
-          "<b>Delete</b> button. The entries will be removed immediately from \n" \
-          "the current configuration.</p>\n"
+        "<b>Delete</b> button. The entries will be removed immediately from \n" \
+        "the current configuration.</p>\n"
       )
 
       contents = VBox(

@@ -148,7 +148,7 @@ module Yast
     #
     # @see SlideShow.next_recalc_time
     # @see Yast2::SystemTime.uptime
-    def RecalcRemainingTimes(force_recalc)
+    def RecalcRemainingTimes(_force_recalc)
       true
     end
 
@@ -167,8 +167,7 @@ module Yast
     # Use global statistics variables for that.
     # @param [Boolean] silent_check  don't complain in log file
     #
-    def UpdateCurrentCdProgress(silent_check)
-    end
+    def UpdateCurrentCdProgress(silent_check); end
 
     # update the overall progress value (download + installation)
     def UpdateTotalProgressValue
@@ -184,7 +183,7 @@ module Yast
 
     # Update progress widgets
     #
-    def UpdateTotalProgress(silent_check)
+    def UpdateTotalProgress(_silent_check)
       # update the overall progress value (download + installation)
       UpdateTotalProgressValue()
     end
@@ -194,11 +193,10 @@ module Yast
     #
     # @param [Fixnum] pkg_percent  package percentage
     #
-    def UpdateCurrentPackageProgress(pkg_percent)
-    end
+    def UpdateCurrentPackageProgress(pkg_percent); end
 
     # update the download rate
-    def UpdateCurrentPackageRateProgress(pkg_percent, bps_avg, bps_current)
+    def UpdateCurrentPackageRateProgress(_pkg_percent, _bps_avg, _bps_current)
       nil
     end
 
@@ -235,7 +233,7 @@ module Yast
     # Uses global statistics variables.
     # Redraw whole table, time consuming, but called only when all times recalculated.
     #
-    def UpdateAllCdProgress(silent_check)
+    def UpdateAllCdProgress(_silent_check)
       nil
     end
 
@@ -255,7 +253,11 @@ module Yast
     # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package
     #
     def SlideDisplayDone(pkg_name, pkg_size, deleting)
-      if !deleting
+      if deleting
+        @removed_packages += 1
+
+        @removed_packages_list << pkg_name if Mode.normal
+      else
         @total_size_installed += pkg_size
 
         UpdateTotalProgress(false)
@@ -284,10 +286,6 @@ module Yast
         end
 
         @total_installed = Ops.add(@total_installed, pkg_size)
-      else
-        @removed_packages += 1
-
-        @removed_packages_list << pkg_name if Mode.normal
       end
 
       nil
@@ -302,7 +300,7 @@ module Yast
     # @param [Integer] pkg_size    package size in bytes
     # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
     #
-    def SlideDisplayStart(pkg_name, pkg_location, _pkg_summary, pkg_size, deleting)
+    def SlideDisplayStart(pkg_name, _pkg_location, _pkg_summary, _pkg_size, deleting)
       @updating = Pkg.PkgInstalled(pkg_name) if !deleting
       # Update global progress bar
       DisplayGlobalProgress()
@@ -310,15 +308,14 @@ module Yast
       nil
     end
 
-    def SlideGenericProvideStart(pkg_name, size, pattern, remote)
-    end
+    def SlideGenericProvideStart(pkg_name, size, pattern, remote); end
 
-    def SlideDeltaApplyStart(pkg_name)
+    def SlideDeltaApplyStart(_pkg_name)
       nil
     end
 
     # Package providal start
-    def SlideProvideStart(pkg_name, size, remote)
+    def SlideProvideStart(_pkg_name, _size, _remote)
       nil
     end
 
