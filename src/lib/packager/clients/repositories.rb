@@ -51,6 +51,7 @@ module Yast
     end
 
     def initialize
+      super
       textdomain "packager"
 
       @full_mode = false

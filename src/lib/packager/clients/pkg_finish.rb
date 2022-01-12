@@ -41,6 +41,7 @@ module Yast
 
     # Constructor
     def initialize
+      super
       textdomain "packager"
 
       Yast.import "Pkg"

@@ -38,6 +38,7 @@ module Y2Packager
       # @param languages [Array<String>] List of languages to display (en_US, de_DE, etc.)
       # @param default   [String]        Default language code
       def initialize(languages, default)
+        super()
         textdomain "packager"
         @languages = languages
         @default = default

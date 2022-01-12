@@ -24,6 +24,7 @@ module Yast
   # Software installation proposal
   class SoftwareProposalClient < ::Installation::ProposalClient
     def initialize
+      super
       Yast.import "Pkg"
       textdomain "packager"
 

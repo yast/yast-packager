@@ -32,6 +32,7 @@ module Y2Packager
       #
       # @param product [Y2Packager::Product] Product to ask for the license
       def initialize(product, language: nil, skip_validation: false)
+        super()
         textdomain "packager"
         @product = product
         @language = language || Yast::Language.language

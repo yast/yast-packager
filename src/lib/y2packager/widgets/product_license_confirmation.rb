@@ -31,6 +31,7 @@ module Y2Packager
       #
       # @param product [Y2Packager::Product] Product to confirm license
       def initialize(product, skip_validation: false)
+        super()
         textdomain "packager"
         @product = product
         @skip_validation = skip_validation
