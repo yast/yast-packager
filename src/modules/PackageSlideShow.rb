@@ -31,6 +31,7 @@ module Yast
 
       @total_downloaded = 0
       @total_installed = 0
+      @total_pkgs_to_install = 0
 
       # package list (only used in installed system)
       @installed_packages_list = []
