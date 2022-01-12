@@ -399,8 +399,6 @@ module Yast
     def ProgressPackage(pkg_percent)
       HandleInput()
 
-      PackageSlideShow.UpdateCurrentPackageProgress(pkg_percent) if !SlideShow.GetUserAbort
-
       Builtins.y2milestone("Aborted at %1%%", pkg_percent) if SlideShow.GetUserAbort
 
       !SlideShow.GetUserAbort
@@ -410,8 +408,6 @@ module Yast
     # just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
     def DonePackage(error, reason)
       return "I" if SlideShow.GetUserAbort
-
-      PackageSlideShow.UpdateCurrentPackageProgress(100)
 
       ret = ""
       if error.nonzero?
@@ -454,8 +450,6 @@ module Yast
 
     # during file providal
     def ProgressDeltaApply(percent)
-      PackageSlideShow.UpdateCurrentPackageProgress(percent)
-
       nil
     end
 
@@ -488,9 +482,6 @@ module Yast
     #
     def CallbackSourceChange(source, media)
       PackageCallbacks.SourceChange(source, media) # inform PackageCallbacks about the change
-      PackageSlideShow.SetCurrentCdNo(source, media)
-      PackageSlideShow.UpdateCurrentPackageProgress(0)
-      PackageSlideShow.UpdateAllCdProgress(false)
 
       # display remaining packages
       PackageSlideShow.DisplayGlobalProgress
@@ -501,7 +492,6 @@ module Yast
     def MediaChange(error_code, error, url, product, current, current_label,
       wanted, wanted_label, double_sided, devices, current_device)
       devices = deep_copy(devices)
-      SlideShow.StopTimer if !Mode.normal
 
       ret = PackageCallbacks.MediaChange(
         error_code,
@@ -516,19 +506,6 @@ module Yast
         devices,
         current_device
       )
-
-      if !Mode.normal
-        SlideShow.StartTimer
-
-        # moved from PackageCallbacks
-        # skip it when there is a popup at the top (see bnc#622286)
-        if (ret == "" || URL.Check(ret)) && UI.WidgetExists(:contents)
-          PackageSlideShow.SetCurrentCdNo(
-            PackageCallbacks._current_source,
-            wanted
-          )
-        end
-      end
 
       ret
     end

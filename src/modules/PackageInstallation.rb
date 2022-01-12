@@ -14,7 +14,6 @@ module Yast
       Yast.import "Installation"
       Yast.import "Directory"
       Yast.import "Packages"
-      Yast.import "SlideShow"
       Yast.import "PackageSlideShow"
       Yast.import "PackagesUI"
 
@@ -103,29 +102,11 @@ module Yast
       # structure: [ ["source_name", id] ]
       src_list = Pkg.PkgMediaNames
 
-      # get ID of the first repository
-      first_source = Ops.get_integer(src_list, [0, 1], 1)
-
-      Builtins.y2milestone("ID of the first repository: %1", first_source)
-
-      if Ops.get_integer(config, "medium_nr", 0).zero?
-        PackageSlideShow.SetCurrentCdNo(first_source, 1)
-      else
-        PackageSlideShow.SetCurrentCdNo(
-          first_source,
-          Ops.get_integer(config, "medium_nr", 0)
-        )
-      end
-      PackageSlideShow.UpdateAllCdProgress(false)
-      SlideShow.StartTimer
-
       start_time = Yast2::SystemTime.uptime
 
       # returns [ int successful, list failed, list remaining, list srcremaining ]
       Builtins.y2milestone("Calling Pkg::Commit (%1)", config)
       commit_result = Pkg.Commit(config)
-
-      SlideShow.StopTimer
 
       if commit_result.nil?
         Builtins.y2error("Commit failed: %1", Pkg.LastError)
@@ -178,7 +159,7 @@ module Yast
         Ops.set(summary, "time_seconds", installation_time)
         Ops.set(summary, "success", Builtins.size(errpacks).zero?)
         Ops.set(summary, "remaining", package_names(commit_result[2] || []))
-        Ops.set(summary, "install_log", SlideShow.inst_log)
+        Ops.set(summary, "install_log", "")
 
         if Ops.greater_than(Builtins.size(errpacks), 0)
           Ops.set(summary, "error", Pkg.LastError)

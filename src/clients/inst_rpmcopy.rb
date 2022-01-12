@@ -118,9 +118,6 @@ module Yast
       end
       @get_setup = nil
 
-      # we want the table
-      SlideShow.ShowTable
-
       # Do not open a new SlideShow widget, reuse the old one instead
       @required_to_open_sl_dialog = !SlideShow.HaveSlideWidget
 
@@ -164,10 +161,6 @@ module Yast
           SCR.RegisterNewAgents
         end
       end
-
-      # clear the installation log for the next run, save some memory
-      Builtins.y2milestone("Resetting SlideShow installation log")
-      SlideShow.inst_log = ""
 
       @result
     end
