@@ -143,7 +143,7 @@ module Yast
     # and data rate so far. Recalculation is only done each 'recalc_interval'
     # seconds unless 'force_recalc' is set to 'true'.
     #
-    # @param [Boolean] force_recalc force recalculation even if timeout not reached yet
+    # @param [Boolean] _force_recalc force recalculation even if timeout not reached yet
     # @return true if recalculated, false if not
     #
     # @see SlideShow.next_recalc_time
@@ -295,9 +295,9 @@ module Yast
     # - this is called at the beginning of a new package
     #
     # @param [String] pkg_name    package name
-    # @param [String] pkg_location  full path to a package
+    # @param [String] _pkg_location  full path to a package
     # @param [String] _pkg_summary  package summary (short description)
-    # @param [Integer] pkg_size    package size in bytes
+    # @param [Integer] _pkg_size    package size in bytes
     # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
     #
     def SlideDisplayStart(pkg_name, _pkg_location, _pkg_summary, _pkg_size, deleting)
