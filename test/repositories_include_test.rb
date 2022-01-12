@@ -207,4 +207,54 @@ describe "PackagerRepositoriesIncludeInclude" do
       end
     end
   end
+
+  # the "propose_name" method is private so use send() in the tests
+  describe ".propose_name" do
+    context "user provided a repository name" do
+      it "returns the name provided by user" do
+        preferred_name = "my repository"
+        url = "http://example.com"
+        ret = RepositoryIncludeTester.send(:propose_name, preferred_name, url)
+        expect(ret).to eq(preferred_name)
+      end
+    end
+
+    context "no user provided repository name" do
+      it "returns a name created from the last URL path element" do
+        preferred_name = ""
+        url = "http://example.com/Leap-15.3"
+        ret = RepositoryIncludeTester.send(:propose_name, preferred_name, url)
+        expect(ret).to eq("Leap-15.3")
+      end
+
+      it "returns a name created from the last non-empty URL path element" do
+        preferred_name = ""
+        url = "http://example.com/Leap-15.3/"
+        ret = RepositoryIncludeTester.send(:propose_name, preferred_name, url)
+        expect(ret).to eq("Leap-15.3")
+      end
+
+      it "returns an unescaped URL path" do
+        preferred_name = ""
+        url = "http://example.com/Leap%2015.3/"
+        ret = RepositoryIncludeTester.send(:propose_name, preferred_name, url)
+        # %20 (0x20) => " "
+        expect(ret).to eq("Leap 15.3")
+      end
+
+      it "returns the fallback name if the path is root" do
+        preferred_name = ""
+        url = "http://example.com/"
+        ret = RepositoryIncludeTester.send(:propose_name, preferred_name, url)
+        expect(ret).to eq(Yast::Packages.fallback_name)
+      end
+
+      it "returns the fallback name if the path is empty" do
+        preferred_name = ""
+        url = "http://example.com"
+        ret = RepositoryIncludeTester.send(:propose_name, preferred_name, url)
+        expect(ret).to eq(Yast::Packages.fallback_name)
+      end
+    end
+  end
 end

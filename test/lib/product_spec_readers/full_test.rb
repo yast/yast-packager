@@ -18,7 +18,7 @@
 # find current contact information at www.suse.com.
 
 require_relative "../../test_helper"
-require "uri"
+require "cgi"
 require "y2packager/product_spec_readers/full"
 
 describe Y2Packager::ProductSpecReaders::Full do
@@ -29,8 +29,9 @@ describe Y2Packager::ProductSpecReaders::Full do
     arr.find { |p| p.name == product }
   end
 
+  ESCAPED_DATA_PATH = DATA_PATH.to_s.split("/").map { |d| CGI.escape(d) }.join("/").freeze
   # URL of the local testing repository
-  REPO_URL = "dir://#{URI.escape(File.join(DATA_PATH, "zypp/test_offline_repo"))}".freeze
+  REPO_URL = "dir://#{File.join(ESCAPED_DATA_PATH, "zypp/test_offline_repo")}".freeze
 
   before do
     # the testing repository only contains the x86_64 packages/products

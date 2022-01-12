@@ -50,6 +50,9 @@ module Y2Packager
     # @return [Boolean] Determine whether it is a base product
     attr_reader :base
 
+    # @return [String] Registration target name used for registering the product
+    attr_reader :register_target
+
     class << self
       # Returns the specs for the base products
       #
@@ -106,7 +109,7 @@ module Y2Packager
     # @param version [String] version ("15.2")
     # @param arch [String] The architecture ("x86_64")
     # @param display_name [String] The user visible name ("SUSE Linux Enterprise Server 15 SP2")
-    def initialize(name:, version:, arch:, display_name:, order: 1, base: true)
+    def initialize(name:, version:, arch:, display_name:, order: 1, base: true, register_target: "")
       @name = name
       @version = version
       @arch = arch
@@ -114,6 +117,10 @@ module Y2Packager
       @order = order
       @base = base
       @selected = false
+
+      @register_target = register_target
+      # expand the "$arch" placeholder
+      @register_target = @register_target.gsub("$arch", arch.to_s) if arch
     end
 
     def selected?

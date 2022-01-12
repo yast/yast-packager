@@ -126,7 +126,7 @@ describe Y2Packager::ProductUpgrade do
 
   describe ".obsolete_upgrades" do
     before do
-      allow(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
+      allow(Y2Packager::Resolvable).to receive(:find).with({ kind: :product }, [:register_target])
         .and_return(suma_products)
     end
 
