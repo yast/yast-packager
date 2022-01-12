@@ -96,7 +96,8 @@ describe "Yast::OneClickInstallStandard" do
     it "fills description to repository hash" do
       expect(subject.GetRepositoriesFromXML(file).first).to(
         include("description" => "The big Open Source Software (OSS) repository for openSUSE " \
-                                 "Leap, giving you access to thousands of packages maintained by the openSUSE community.")
+                                 "Leap, giving you access to thousands of packages maintained " \
+                                 "by the openSUSE community.")
       )
     end
   end

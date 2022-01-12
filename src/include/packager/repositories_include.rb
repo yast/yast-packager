@@ -66,7 +66,8 @@ module Yast
     #         properly, but then just go back to proposal instead of full abort.
     def createSourceImpl(url, plaindir, download, preferred_name, force_alias)
       log.info("createSource: #{URL.HidePassword(url)}, plaindir: #{plaindir}," \
-               "download: #{download}, preferred_name: #{preferred_name}, force_alias: #{force_alias}")
+               "download: #{download}, preferred_name: #{preferred_name}, " \
+               "force_alias: #{force_alias}")
 
       if url.nil? || url.empty?
         Builtins.y2error(-1, "Empty URL! Backtrace:")

@@ -56,7 +56,8 @@ module Yast
 
       # start target, create new rpmdb if none is existing
       # FIXME error checking is missing all around here, initialization could actually fail!
-      if Pkg.TargetInitialize(Installation.destdir) != true && (Popup.ContinueCancel(_("Initializing the target directory failed.")) == false)
+      if !Pkg.TargetInitialize(Installation.destdir) &&
+          !Popup.ContinueCancel(_("Initializing the target directory failed."))
         return :abort
       end
 
