@@ -791,14 +791,11 @@ module Yast
         ) # usedfuture - total
         if Ops.greater_than(needed, 0)
           # Warning message, e.g.: Partition /usr needs 35 MB more disk space
-          message = Builtins.add(
-            message,
-            Builtins.sformat(
-              _("Partition \"%1\" needs %2 more disk space."),
-              # needed is in kB
-              dir,
-              String.FormatSize(Ops.multiply(needed, 1024))
-            )
+          message << Builtins.sformat(
+            _("Partition \"%1\" needs %2 more disk space."),
+            # needed is in kB
+            dir,
+            String.FormatSize(Ops.multiply(needed, 1024))
           )
         end
         used = Ops.add(used, Ops.get_integer(sizelist, 2, 0))
@@ -806,28 +803,22 @@ module Yast
 
       Builtins.y2debug("Total used space (kB): %1", used)
 
-      if Ops.greater_than(Builtins.size(message),
-        0) && (ProductFeatures.GetFeature("software", "selection_type") == :auto)
-        message = if Mode.update
-          Builtins.add(
-            message,
-            "\n" +
-              # popup message
-              _(
-                "Deselect packages or delete data or temporary files\n" \
-                "before updating the system.\n"
-              )
-          )
+      if !message.empty? && ProductFeatures.GetFeature("software", "selection_type") == :auto
+        message << if Mode.update
+          "\n" +
+            # popup message
+            _(
+              "Deselect packages or delete data or temporary files\n" \
+              "before updating the system.\n"
+            )
         else
-          Builtins.add(
-            message,
-            "\n" +
-              # popup message
-              _("Deselect some packages.")
-          )
+          "\n" +
+            # popup message
+            _("Deselect some packages.")
         end
       end
-      deep_copy(message)
+
+      message
     end
 
     #
