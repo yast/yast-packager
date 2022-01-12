@@ -1312,14 +1312,13 @@ module Yast
             elsif Popup.ConfirmAbort(:painless)
               break
             end
-          elsif @script_called_from_another
-            break
-          elsif Popup.ContinueCancelHeadline(
-            # TRANSLATORS: popup header
-            _("Aborting Configuration of Online Repository"),
-            # TRANSLATORS: popup question
-            _("Are you sure you want to abort the configuration?")
-          )
+          elsif @script_called_from_another ||
+              Popup.ContinueCancelHeadline(
+                # TRANSLATORS: popup header
+                _("Aborting Configuration of Online Repository"),
+                # TRANSLATORS: popup question
+                _("Are you sure you want to abort the configuration?")
+              )
             break
           end
         when "addon_repos"

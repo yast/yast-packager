@@ -1434,16 +1434,7 @@ module Yast
     end
 
     def InitFocusServerInit(server_type)
-      case server_type
-      when :ftp
-        UI.SetFocus(:server)
-      when :http
-        UI.SetFocus(:server)
-      when :https
-        UI.SetFocus(:server)
-      when :samba
-        UI.SetFocus(:server)
-      end
+      UI.SetFocus(:server) if [:ftp, :http, :https, :samba].include?(server_type)
 
       nil
     end
@@ -2332,9 +2323,7 @@ module Yast
         current = :https
       when "smb://"
         current = :samba
-      when "nfs://"
-        current = :nfs
-      when "nfs4://"
+      when "nfs://", "nfs4://"
         current = :nfs
       when "cd://"
         current = :cd
