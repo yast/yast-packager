@@ -126,17 +126,18 @@ module Yast
 
         if key == "result"
           # try to translate result string
-          if val.match?(/ok/)
+          case val
+          when /ok/
             # result of the check - success
             val = "<FONT COLOR=\"darkGreen\">" +
               _("<B>OK</B> -- The medium has been successfully verified.") + "</FONT>"
-          elsif val == "md5sum wrong"
+          when "md5sum wrong"
             # wrong MD5
             val = "<FONT COLOR=red>" +
               _(
                 "<B>Error</B> -- MD5 sum does not match<BR>This medium should not be used."
               ) + "</FONT>"
-          elsif val == "md5sum not checked"
+          when "md5sum not checked"
             # the correct MD5 is unknown
             val = _(
               "<B>Unknown</B> -- The correct MD5 sum of the medium is unknown."

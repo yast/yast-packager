@@ -239,7 +239,8 @@ module Yast
       plaindir = SourceDialogs.IsPlainDir
 
       # special case, bugzilla #238680
-      if url == "slp://"
+      case url
+      when "slp://"
         required_package = "yast2-slp"
         installed_before = PackageSystem.Installed(required_package)
 
@@ -275,7 +276,7 @@ module Yast
         else
           url = service
         end
-      elsif url == "commrepos://"
+      when "commrepos://"
         commrepos = WFM.call(
           "inst_productsources",
           [{ "skip_already_used_repos" => true }]
@@ -288,7 +289,7 @@ module Yast
         end
 
         return :next
-      elsif url == "sccrepos://"
+      when "sccrepos://"
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
 

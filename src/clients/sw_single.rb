@@ -98,11 +98,12 @@ module Yast
           @test_popup = true
         elsif Ops.is_string?(WFM.Args(arg_n))
           s = Builtins.tostring(WFM.Args(arg_n))
-          if s == "--install"
+          case s
+          when "--install"
             @action = :install
-          elsif s == "--remove"
+          when "--remove"
             @action = :remove
-          elsif s == "--update"
+          when "--update"
             @action = :update
           else
             arg_list = Builtins.add(arg_list, s)
@@ -587,16 +588,17 @@ module Yast
 
             result = PackagesUI.RunPackageSelector(opts) # No: ask user via package selection widget
             Builtins.y2milestone("Package selector retured: %1", result)
-            if result == :accept
+            case result
+            when :accept
               result = :next
             # start the repository manager
-            elsif result == :repo_mgr
+            when :repo_mgr
               save_known_repositories
               WFM.CallFunction("repositories", [:sw_single_mode])
               # preselect the driver packages from new repositories
               preselect_system_packages
               force_restart = true
-            elsif result == :online_update_configuration
+            when :online_update_configuration
               required_package = "yast2-online-update-configuration"
 
               if !PackageSystem.Installed(required_package) &&
@@ -623,10 +625,10 @@ module Yast
                 )
               end
               force_restart = true
-            elsif result == :online_search
+            when :online_search
               WFM.CallFunction("online_search", [:sw_single_mode])
               force_restart = true
-            elsif result == :webpin
+            when :webpin
               required_package = "yast2-packager-webpin"
 
               if PackageSystem.Installed(required_package)

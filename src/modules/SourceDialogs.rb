@@ -1462,13 +1462,14 @@ module Yast
         "scheme"   => "",
         "user"     => ""
       }
-      if type == :ftp
+      case type
+      when :ftp
         Ops.set(parsed, "scheme", "ftp")
-      elsif type == :http
+      when :http
         Ops.set(parsed, "scheme", "http")
-      elsif type == :https
+      when :https
         Ops.set(parsed, "scheme", "https")
-      elsif type == :samba
+      when :samba
         Ops.set(parsed, "scheme", "smb")
       end
 
@@ -1792,11 +1793,12 @@ module Yast
         @_url = PreprocessISOURL(@_url) if iso
         parsed = URL.Parse(@_url)
         type = :ftp
-        if Ops.get_string(parsed, "scheme", "") == "http"
+        case Ops.get_string(parsed, "scheme", "")
+        when "http"
           type = :http
-        elsif Ops.get_string(parsed, "scheme", "") == "https"
+        when "https"
           type = :https
-        elsif Ops.get_string(parsed, "scheme", "") == "smb"
+        when "smb"
           type = :samba
         end
         UI.ChangeWidget(Id(:rb_type), :CurrentButton, type)
@@ -2321,35 +2323,36 @@ module Yast
     def SelectInit(_key)
       current = nil
 
-      if @_url == "ftp://"
+      case @_url
+      when "ftp://"
         current = :ftp
-      elsif @_url == "http://"
+      when "http://"
         current = :http
-      elsif @_url == "https://"
+      when "https://"
         current = :https
-      elsif @_url == "smb://"
+      when "smb://"
         current = :samba
-      elsif @_url == "nfs://"
+      when "nfs://"
         current = :nfs
-      elsif @_url == "nfs4://"
+      when "nfs4://"
         current = :nfs
-      elsif @_url == "cd://"
+      when "cd://"
         current = :cd
-      elsif @_url == "dvd://"
+      when "dvd://"
         current = :dvd
-      elsif @_url == "hd://"
+      when "hd://"
         current = :hd
-      elsif @_url == "usb://"
+      when "usb://"
         current = :usb
-      elsif @_url == "dir://" || @_url == "file://"
+      when "dir://", "file://"
         current = :local_dir
-      elsif @_url == "iso://"
+      when "iso://"
         current = :local_iso
-      elsif @_url == "slp://"
+      when "slp://"
         current = :slp
-      elsif @_url == "commrepos://"
+      when "commrepos://"
         current = :comm_repos
-      elsif @_url == "sccrepos://"
+      when "sccrepos://"
         current = :sccrepos
       else
         Builtins.y2warning("Unknown URL scheme '%1'", @_url)
@@ -2368,7 +2371,7 @@ module Yast
 
       enabled = UI.QueryWidget(Id(:add_addon), :Value)
 
-      WIDGET_LABELS.keys.each do |widget|
+      WIDGET_LABELS.each_key do |widget|
         UI.ChangeWidget(Id(widget), :Enabled, enabled) if UI.WidgetExists(widget)
       end
       UI.ChangeWidget(Id(:type), :Enabled, enabled) if UI.WidgetExists(:type)

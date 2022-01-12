@@ -221,14 +221,15 @@ module Yast
 
       optional = true if optional.nil?
 
-      if sod == "signed"
+      case sod
+      when "signed"
         provided_file = Pkg.SourceProvideSignedFile(
           src_id,
           media,
           filename,
           optional
         )
-      elsif sod == "digested"
+      when "digested"
         provided_file = Pkg.SourceProvideDigestedFile(
           src_id,
           media,

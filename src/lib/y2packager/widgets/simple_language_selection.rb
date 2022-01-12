@@ -95,7 +95,7 @@ module Y2Packager
         @items = languages.map do |lang|
           [lang, LanguageTag.new(lang).name(lang_map_cache: lmap)]
         end
-        @items.reject! { |_lang, name| name.nil? }
+        @items.compact!
         @items.uniq!
         @items.sort_by!(&:last)
       end

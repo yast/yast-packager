@@ -276,7 +276,7 @@ module Yast
         tmp = Convert.to_string(
           SCR.Read(path(".proc.cpuinfo.value.\"0\".\"flags\""))
         )
-        flags = tmp.empty? ? [] : tmp.split(" ")
+        flags = tmp.split
 
         # this depends on the cpu (lm = long mode)
         if Builtins.contains(flags, "lm")
@@ -948,10 +948,11 @@ module Yast
       option = options.grep(/^biosdevname=/i).first if options
       value = (option[/^biosdevname=(\d+)/i, 1] if option)
 
-      if value == "1"
+      case value
+      when "1"
         Builtins.y2milestone("Biosdevname explicitly enabled")
         add_biosdevname = true
-      elsif value == "0"
+      when "0"
         Builtins.y2milestone("Biosdevname explicitly disabled")
         add_biosdevname = false
       else
@@ -2070,13 +2071,14 @@ module Yast
         Pkg.SetAdditionalLocales([Language.language])
       end
 
-      if ProductFeatures.GetFeature("software", "selection_type") == :auto
+      case ProductFeatures.GetFeature("software", "selection_type")
+      when :auto
         Builtins.y2milestone("Doing pattern-based software selection")
 
         SelectSystemPackages(@system_packages_selected && !initial_run)
         SelectSystemPatterns(@system_packages_selected && !initial_run)
         @system_packages_selected = true
-      elsif ProductFeatures.GetFeature("software", "selection_type") == :fixed
+      when :fixed
         Builtins.y2milestone("Selection type: fixed")
       else
         Builtins.y2error(

@@ -21,9 +21,10 @@ module Yast
       Yast.import "SlideShowCallbacks"
 
       # call the required function
-      if @func == "InstallSlideShowCallbacks"
+      case @func
+      when "InstallSlideShowCallbacks"
         @ret = SlideShowCallbacks.InstallSlideShowCallbacks
-      elsif @func == "RemoveSlideShowCallbacks"
+      when "RemoveSlideShowCallbacks"
         @ret = SlideShowCallbacks.RemoveSlideShowCallbacks
       else
         # the required function is not known

@@ -428,10 +428,11 @@ module Yast
       loop do
         ret = UI.UserInput
 
-        if ret == :cancel
+        case ret
+        when :cancel
           dialog_ret = nil
           break
-        elsif ret == :ok
+        when :ok
           dialog_ret = (
             services_ref = arg_ref(services.value)
             result = GetCurrentlySelectedURL(
@@ -442,16 +443,16 @@ module Yast
           )
           Builtins.y2milestone("Selected URL: '%1'", dialog_ret)
           break if dialog_ret != "" && !dialog_ret.nil?
-        elsif ret == :tree_of_services
+        when :tree_of_services
           InitDetailsButton()
-        elsif ret == :filter
+        when :filter
           filter_string = UI.QueryWidget(Id(:filter_text), :Value)
           Builtins.y2milestone("filter_string: %1", filter_string)
 
           services_ref = arg_ref(services.value)
           InitSLPListFoundDialog(services_ref, filter_string)
           services.value = services_ref.value
-        elsif ret == :details
+        when :details
           services_ref = arg_ref(services.value)
           ShowDetailsDialog(services_ref)
           services.value = services_ref.value
