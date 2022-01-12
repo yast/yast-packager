@@ -47,7 +47,7 @@ module Y2Packager
       #   special cases.
       #
       # @return [Array<Y2Packager::ProductSpec>] The found products
-      #
+      # rubocop:disable Style/OptionalBooleanParameter It is stable API
       def products(url, base_product = nil, force_scan = false)
         log.info "Scanning #{Yast::URL.HidePassword(url)} for products..."
 
@@ -58,7 +58,7 @@ module Y2Packager
 
         pool = Y2Packager::SolvablePool.new
 
-        repomd_files = downloader.primary_xmls(force_scan)
+        repomd_files = downloader.primary_xmls(force: force_scan)
         return [] if repomd_files.empty?
 
         repomd_files.each do |repomd|
@@ -77,6 +77,7 @@ module Y2Packager
 
         finder.products(base_product, downloader.product_repos)
       end
+      # rubocop:enable Style/OptionalBooleanParameter
     end
   end
 end
