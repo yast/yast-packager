@@ -2117,44 +2117,29 @@ module Yast
 
     def SelectWidgetHelp
       # help text
-      help_text = _(
+      _(
         "<p><big><b>Media Type</b></big><br>\n" \
         "The software repository can be located on CD, on a network server,\n" \
         "or on the hard disk.</p>"
-      )
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
+      ) +
         _(
           "<p>\n" \
           "To add  <b>CD</b> or <b>DVD</b>,\n" \
           "have the product CD set or the DVD available.</p>"
-        )
-      )
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
+        ) +
         _(
           "<p>\n" \
           "The product CDs can be copied to the hard disk.\n" \
           "Enter the path to the first CD, for example, /data1/<b>CD1</b>.\n" \
           "Only the base path is required if all CDs are copied\n" \
           "into the same directory.</p>\n"
-        )
-      )
-
-      # help, continued
-      Ops.add(
-        help_text,
+        ) +
         _(
           "<p>\n" \
           "Network installation requires a working network connection.\n" \
           "Specify the directory in which the packages from\n" \
           "the first CD are located, such as /data1/CD1.</p>\n"
         )
-      )
     end
 
     def SelectValidate(_key, _event)
