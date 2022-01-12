@@ -628,23 +628,6 @@ module Yast
             when :online_search
               WFM.CallFunction("online_search", [:sw_single_mode])
               force_restart = true
-            when :webpin
-              required_package = "yast2-packager-webpin"
-
-              if PackageSystem.Installed(required_package)
-                WFM.CallFunction("webpin_package_search", [])
-              elsif !PackageSystem.CheckAndInstallPackages([required_package])
-                Report.Error(
-                    Builtins.sformat(
-                      _(
-                        "Cannot search packages in online repositories\n" \
-                        "without having package %1 installed"
-                      ),
-                      required_package
-                    )
-                  )
-              end
-              force_restart = true
             end
           else
             nonexisting = Builtins.filter(@packagelist) do |p|
