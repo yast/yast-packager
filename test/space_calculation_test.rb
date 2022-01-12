@@ -270,7 +270,6 @@ describe Yast::SpaceCalculation do
 
     before do
       expect(Yast::Installation).to receive(:destdir).and_return(destdir)
-      allow(Yast::Installation).to receive(:dirinstall_installing_into_dir)
     end
 
     it "Reads current disk usage and reserves extra free space" do

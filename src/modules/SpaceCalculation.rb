@@ -110,46 +110,27 @@ module Yast
 
       log.info "df result: #{partitions}"
 
-      # TODO: FIXME dirinstall has been dropped, probably drop this block completely
-      if Installation.dirinstall_installing_into_dir
-        target = GetDirMountPoint(Installation.dirinstall_target, partitions)
-        log.info "Installing into a directory, target directory: " \
-                 "#{Installation.dirinstall_target}, target mount point: #{target}"
-      end
-
       du_partitions = []
 
       partitions.each do |part|
         part_info = {}
         mountName = part["name"] || ""
 
-        # TODO: FIXME dirinstall has been dropped, probably drop this block completely?
-        if Installation.dirinstall_installing_into_dir
-          mountName.prepend("/") unless mountName.start_with?("/")
-          dir_target = Installation.dirinstall_target
-
-          log.debug "mountName: #{mountName}, dir_target: #{dir_target}"
-
-          if mountName.start_with?(dir_target)
-            part_info["name"] = mountName
-          elsif mountName == target
-            part_info["name"] = "/"
-          end
-        elsif target != "/"
+        if target != "/"
           if mountName.start_with?(target)
             partName = mountName[target.size..-1]
             # nothing left, it was target root itself
             part_info["name"] = partName.empty? ? "/" : partName
           end
-        elsif mountName == "/"
-          part_info["name"] = mountName
-        # ignore some mount points
-        elsif mountName != Installation.sourcedir && mountName != "/cdrom" &&
-            mountName != "/dev/shm" &&
-            part["spec"] != "udev" &&
-            !mountName.start_with?("/media/") &&
-            !mountName.start_with?("/run/media/") &&
-            !mountName.start_with?("/var/adm/mount/")
+        # root itself or ignore some mount points
+        elsif mountName == "/" || (
+              mountName != Installation.sourcedir && mountName != "/cdrom" &&
+              mountName != "/dev/shm" &&
+              part["spec"] != "udev" &&
+              !mountName.start_with?("/media/") &&
+              !mountName.start_with?("/run/media/") &&
+              !mountName.start_with?("/var/adm/mount/")
+            )
           part_info["name"] = mountName
         end
 

@@ -2027,10 +2027,6 @@ module Yast
         )
       end
 
-      if Installation.dirinstall_installing_into_dir && !force_reset && @init_called
-        return Summary([:product, :pattern, :size, :desktop], false)
-      end
-
       UI.OpenDialog(
         Opt(:decorated),
         # popup label

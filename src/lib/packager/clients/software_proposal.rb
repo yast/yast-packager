@@ -138,20 +138,13 @@ module Yast
     def partitioning_changed?
       changed = false
 
-      if Installation.dirinstall_installing_into_dir
-        # check the target directory in dirinstall mode
-        changed = true if Packages.timestamp != Installation.dirinstall_target_time
-        # save information about target change time in module Packages
-        Packages.timestamp = Installation.dirinstall_target_time
-      else
-        # check the partitioning in installation
-        if Packages.timestamp != staging_revision && Packages.timestamp.nonzero?
-          # don't set changed if it's the first "change"
-          changed = true
-        end
-        # save information about devicegraph revision in module Packages
-        Packages.timestamp = staging_revision
+      # check the partitioning in installation
+      if Packages.timestamp != staging_revision && Packages.timestamp.nonzero?
+        # don't set changed if it's the first "change"
+        changed = true
       end
+      # save information about devicegraph revision in module Packages
+      Packages.timestamp = staging_revision
 
       log.info "partitioning_changed? - #{changed}"
       changed

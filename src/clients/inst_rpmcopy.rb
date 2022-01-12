@@ -526,15 +526,6 @@ module Yast
           Ops.get(ret, "current_cd_no"),
           Ops.get(ret, "maxnumbercds")
         )
-      elsif Installation.dirinstall_installing_into_dir
-        # All in one
-        Ops.set(ret, "current_cd_no", 0) # was 1
-        Ops.set(ret, "maxnumbercds", 0) # was 10
-        Builtins.y2milestone(
-          "StartingAndMaxMediaNumber: Dir install %1/%2",
-          Ops.get(ret, "current_cd_no"),
-          Ops.get(ret, "maxnumbercds")
-        )
       end
 
       deep_copy(ret)
