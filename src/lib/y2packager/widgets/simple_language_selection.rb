@@ -96,7 +96,7 @@ module Y2Packager
         @items = languages.map do |lang|
           [lang, LanguageTag.new(lang).name(lang_map_cache: lmap)]
         end
-        @items.compact!
+        @items.reject! { |_lang, name| name.nil? } # rubocop:disable Style/CollectionCompact
         @items.uniq!
         @items.sort_by!(&:last)
       end
