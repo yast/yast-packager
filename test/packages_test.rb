@@ -366,8 +366,8 @@ describe Yast::Packages do
 
       expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
         expect(msg).to match(
-          /(transaction\sstatus\s[begin|d]|(locked)?resolvables\s
-           of\stype\s.*\sset\sby\s.*|:name=>.*:version=>)/ix
+          /transaction\sstatus\s(begin|end)|resolvables\s
+           of\stype\s.*\sset\sby\s.*|:name=>.*:version=>/ix
         )
       end.exactly(8).times
 
