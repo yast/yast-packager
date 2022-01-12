@@ -1553,7 +1553,7 @@ module Yast
       new_name = nil
       Builtins.foreach(all_products) do |one_product|
         # source ID matches
-        if one_product.source == src_id && (one_product.name != "")
+        if one_product.source == src_id && one_product.name != ""
           new_name = one_product.name
           Builtins.y2milestone("Product name found: %1", new_name)
           raise Break
