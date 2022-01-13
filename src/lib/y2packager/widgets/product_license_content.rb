@@ -27,6 +27,7 @@ module Y2Packager
       # @param product  [Y2Packager::Product] Product
       # @param language [String]              Default language (en_US, es_ES, etc.).
       def initialize(product, language)
+        super()
         textdomain "packager"
         @product = product
         @language = language

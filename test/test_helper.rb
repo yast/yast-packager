@@ -73,6 +73,9 @@ module Installation
   module Console
     module Plugins
       class MenuPlugin
+        def inspect
+          "Stubbed MenuPlugin from tests"
+        end
       end
     end
   end

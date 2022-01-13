@@ -366,8 +366,8 @@ describe Yast::Packages do
 
       expect(Yast::Y2Logger.instance).to receive(:info) do |msg|
         expect(msg).to match(
-          /(transaction\sstatus\s[begin|end]|(locked)?resolvables\s
-           of\stype\s.*\sset\sby\s.*|:name=>.*:version=>)/ix
+          /transaction\sstatus\s(begin|end)|resolvables\s
+           of\stype\s.*\sset\sby\s.*|:name=>.*:version=>/ix
         )
       end.exactly(8).times
 
@@ -826,7 +826,7 @@ describe Yast::Packages do
         it "includes the tag as package name and logs a message" do
           expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
-                 "prov1, #{package}. Selecting '#{package}'.")
+                  "prov1, #{package}. Selecting '#{package}'.")
           expect(subject.vnc_packages).to include(package)
         end
       end
@@ -837,7 +837,7 @@ describe Yast::Packages do
         it "includes the first provider (according to alphabetic order) and logs a message" do
           expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
-                 "prov2, prov1. Selecting 'prov1'.")
+                  "prov2, prov1. Selecting 'prov1'.")
           expect(subject.vnc_packages).to include("prov1")
         end
       end
@@ -980,7 +980,7 @@ describe Yast::Packages do
         it "includes the tag as package name and logs a message" do
           expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
-                 "prov1, #{package}. Selecting '#{package}'.")
+                  "prov1, #{package}. Selecting '#{package}'.")
           expect(subject.remote_x11_packages).to include(package)
         end
       end
@@ -991,7 +991,7 @@ describe Yast::Packages do
         it "includes the first provider (according to alphabetic order) and logs a message" do
           expect(Yast::Packages.log).to receive(:warn)
             .with("More than one provider was found for '#{package}': " \
-                 "prov2, prov1. Selecting 'prov1'.")
+                  "prov2, prov1. Selecting 'prov1'.")
           expect(subject.remote_x11_packages).to include("prov1")
         end
       end

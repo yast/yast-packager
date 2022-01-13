@@ -30,7 +30,7 @@ module Yast
     FAILED_PKGS_PATH = "/var/lib/YaST2/failed_packages".freeze
     # Command to create a tar.gz to back-up old repositories
     TAR_CMD = "/usr/bin/mkdir -p '%<target>s' && cd '%<target>s' "\
-      "&& /bin/tar -czf '%<archive>s' '%<source>s'".freeze
+              "&& /bin/tar -czf '%<archive>s' '%<source>s'".freeze
     # Format of the timestamp to be used as repositories backup
     BACKUP_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S".freeze
     # Map the CFAs to package managers
@@ -41,6 +41,7 @@ module Yast
 
     # Constructor
     def initialize
+      super
       textdomain "packager"
 
       Yast.import "Pkg"
@@ -201,11 +202,11 @@ module Yast
           true
         elsif uncovered.empty?
           log.info("Repo #{repo.repo_id} (#{repo.name}) will be disabled because products " \
-          "are present in other repositories")
+                   "are present in other repositories")
           true
         else
           log.info("Repo #{repo.repo_id} (#{repo.name}) cannot be disabled because these " \
-          "products are not available through other repos: #{uncovered.map(&:name)}")
+                   "products are not available through other repos: #{uncovered.map(&:name)}")
           false
         end
 
@@ -263,11 +264,11 @@ module Yast
         archive: archive_name,
         source:  String.Quote(source))
       cmd = SCR.Execute(path(".target.bash_output"), compress_cmd)
-      if !cmd["exit"].zero?
+      if cmd["exit"].zero?
+        archive_name
+      else
         log.error("Unable to backup current repos; Command >#{compress_cmd}< returned: #{cmd}")
         nil
-      else
-        archive_name
       end
     end
 

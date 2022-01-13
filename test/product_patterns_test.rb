@@ -26,7 +26,7 @@ describe Yast::ProductPatterns do
     it "returns empty list when the product release package is not found" do
       product = Y2Packager::Resolvable.new(
         ProductFactory.create_product("status"          => :selected,
-                                      "product_package" => nil)
+          "product_package" => nil)
       )
 
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
@@ -61,16 +61,16 @@ describe Yast::ProductPatterns do
       expect(Y2Packager::Resolvable).to receive(:find).with(kind: :product)
         .and_return([product_first, product_second])
       expect(Y2Packager::Resolvable).to receive(:find).with(name: product_first.name,
-                                                            kind: :product)
+        kind: :product)
         .and_return([product_first])
       expect(Y2Packager::Resolvable).to receive(:find).with(name: product_second.name,
-                                                            kind: :product)
+        kind: :product)
         .and_return([product_second])
       expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_first,
-                                                            kind: :package)
+        kind: :package)
         .and_return([package_first])
       expect(Y2Packager::Resolvable).to receive(:find).with(name: package_name_second,
-                                                            kind: :package)
+        kind: :package)
         .and_return([package_second])
 
       expect(subject.names.sort).to eq([pattern_name_first, pattern_name_second].sort)

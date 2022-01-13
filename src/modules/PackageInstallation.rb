@@ -99,9 +99,6 @@ module Yast
 
       PackageSlideShow.InitPkgData(false)
 
-      # structure: [ ["source_name", id] ]
-      src_list = Pkg.PkgMediaNames
-
       start_time = Yast2::SystemTime.uptime
 
       # returns [ int successful, list failed, list remaining, list srcremaining ]

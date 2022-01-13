@@ -208,9 +208,9 @@ module Yast
         help_text,
         _(
           "<p>\n" \
-            "<b>Adding a New GPG Key</b><br>\n" \
-            "To add a new GPG key, specify the path to the key file.\n" \
-            "</p>\n"
+          "<b>Adding a New GPG Key</b><br>\n" \
+          "To add a new GPG key, specify the path to the key file.\n" \
+          "</p>\n"
         )
       )
 
@@ -223,7 +223,8 @@ module Yast
 
         Builtins.y2debug("UserInput: %1", ret)
 
-        if ret == :browse
+        case ret
+        when :browse
           currentfile = Convert.to_string(UI.QueryWidget(Id(:file), :Value))
           # header in file selection popup
           newfile = UI.AskForExistingFile(
@@ -236,14 +237,14 @@ module Yast
             UI.ChangeWidget(Id(:file), :Value, newfile)
             refreshNewKeyDetails(newfile)
           end
-        elsif ret == :file
+        when :file
           keyfile = Convert.to_string(UI.QueryWidget(Id(:file), :Value))
 
           Builtins.y2debug("The file has changed: %1", keyfile)
 
           # refresh the information
           refreshNewKeyDetails(keyfile)
-        elsif ret == :next
+        when :next
           # validate the entered file
           keyfile = Convert.to_string(UI.QueryWidget(Id(:file), :Value))
           Builtins.y2milestone("Selected file: %1", keyfile)
@@ -281,9 +282,9 @@ module Yast
         help_text,
         _(
           "<p>\n" \
-            "<b>Adding a New GPG Key</b><br>\n" \
-            "To add a new GPG key, use <b>Add</b> and specify the path to the key file.\n" \
-            "</p>"
+          "<b>Adding a New GPG Key</b><br>\n" \
+          "To add a new GPG key, use <b>Add</b> and specify the path to the key file.\n" \
+          "</p>"
         )
       )
 
@@ -292,10 +293,10 @@ module Yast
         help_text,
         _(
           "<p>\n" \
-            "<b>Modifying a GPG Key Status</b>\n" \
-            "To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use\n" \
-            "<b>Delete</b>.\n" \
-            "</p>\n"
+          "<b>Modifying a GPG Key Status</b>\n" \
+          "To modify the trusted flag, use <b>Edit</b>. To remove a GPG key, use\n" \
+          "<b>Delete</b>.\n" \
+          "</p>\n"
         )
       )
 
@@ -369,9 +370,7 @@ module Yast
         "Starting the key management sequence (standalone: %1)",
         standalone
       )
-      ret = Sequencer.Run(aliases, sequence)
-
-      ret
+      Sequencer.Run(aliases, sequence)
     end
   end
 end

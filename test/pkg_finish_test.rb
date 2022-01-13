@@ -39,8 +39,8 @@ describe Yast::PkgFinishClient do
     it "returns a hash describing the client" do
       allow(client).to receive(:_).and_return("title")
       expect(client.run).to eq("steps" => 1,
-                               "title" => "title",
-                               "when"  => [:installation, :update, :autoinst])
+        "title" => "title",
+        "when"  => [:installation, :update, :autoinst])
     end
   end
 

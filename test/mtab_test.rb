@@ -13,8 +13,8 @@ describe Yast::Mtab do
   subject(:mtab) { Yast::Mtab }
 
   describe "#clone_to_target" do
-    let(:org_mtab) { File.open(File.join(DATA_PATH, "org_mtab"), "rb", &:read) }
-    let(:patched_mtab) { File.open(File.join(DATA_PATH, "patched_mtab"), "rb", &:read) }
+    let(:org_mtab) { File.binread(File.join(DATA_PATH, "org_mtab")) }
+    let(:patched_mtab) { File.binread(File.join(DATA_PATH, "patched_mtab")) }
 
     before do
       expect(Yast::WFM).to receive(:Read)

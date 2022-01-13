@@ -224,8 +224,8 @@ module Yast
           Builtins.sformat(
             _(
               "Key '%1'\n" \
-                "'%2'\n" \
-                "is already known, it cannot be added again."
+              "'%2'\n" \
+              "is already known, it cannot be added again."
             ),
             Ops.get_string(key, "id", ""),
             Ops.get_string(key, "name", "")

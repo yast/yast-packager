@@ -276,14 +276,14 @@ module Yast
         tmp = Convert.to_string(
           SCR.Read(path(".proc.cpuinfo.value.\"0\".\"flags\""))
         )
-        flags = tmp.empty? ? [] : tmp.split(" ")
+        flags = tmp.split
 
         # this depends on the cpu (lm = long mode)
         if Builtins.contains(flags, "lm")
           # warning text
           return _(
             "Your computer is a 64-bit x86-64 system, " \
-              "but you are trying to install a 32-bit distribution."
+            "but you are trying to install a 32-bit distribution."
           )
         end
       end
@@ -300,7 +300,7 @@ module Yast
           ret,
           _(
             "<P>The pattern list states which functionality will be available " \
-              "after installing the system.</P>"
+            "after installing the system.</P>"
           )
         )
       end
@@ -313,17 +313,17 @@ module Yast
             # translators: help text for software proposal
             _(
               "<P>The proposal reports the total size of files which will be installed " \
-                "to the system. However, the system will contain some other files " \
-                "(temporary and working files) so the used space will be slightly larger " \
-                "than the proposed value. Therefore it is a good idea to have at least " \
-                "25% (or about 300MB) free space before starting the installation.</P>"
+              "to the system. However, the system will contain some other files " \
+              "(temporary and working files) so the used space will be slightly larger " \
+              "than the proposed value. Therefore it is a good idea to have at least " \
+              "25% (or about 300MB) free space before starting the installation.</P>"
             )
           ),
           # help text for software proposal
           _(
             "<P>The total 'size to download' is the size of the packages which will be\n" \
-              "downloaded from remote (network) repositories. This value is important if " \
-              "the connection is slow or if there is a data limit for downloading.</P>\n"
+            "downloaded from remote (network) repositories. This value is important if " \
+            "the connection is slow or if there is a data limit for downloading.</P>\n"
           )
         )
       end
@@ -453,7 +453,7 @@ module Yast
               Builtins.sformat(
                 _(
                   "Error: Cannot check free space in basic directory %1 (device %2), " \
-                    "cannot start installation."
+                  "cannot start installation."
                 ),
                 failed_mount.mount_path,
                 fs_dev_name(failed_mount)
@@ -506,22 +506,7 @@ module Yast
 
       ret = {}
 
-      if !CheckDiskSize(!use_cache)
-        fixed_selection = ProductFeatures.GetFeature("software", "selection_type") == :fixed
-        ret = {
-          "warning"       => if fixed_selection
-                               # summary warning
-                               _("Not enough disk space.")
-                             else
-                               # summary warning
-                               _(
-                                 "Not enough disk space. Remove some packages " \
-                                   "in the single selection."
-                               )
-                             end,
-          "warning_level" => Mode.update ? :error : :blocker
-        }
-      else
+      if CheckDiskSize(!use_cache)
         # check available free space (less than 25% and less than 750MB) (see bnc#178357)
         free_space = SpaceCalculation.CheckDiskFreeSpace(25, 750 * 1024)
 
@@ -550,6 +535,21 @@ module Yast
             Ops.set(ret, "warning_level", :warning)
           end
         end
+      else
+        fixed_selection = ProductFeatures.GetFeature("software", "selection_type") == :fixed
+        ret = {
+          "warning"       => if fixed_selection
+                               # summary warning
+                               _("Not enough disk space.")
+                             else
+                               # summary warning
+                               _(
+                                 "Not enough disk space. Remove some packages " \
+                                 "in the single selection."
+                               )
+                             end,
+          "warning_level" => Mode.update ? :error : :blocker
+        }
       end
 
       # Check the YaST required packages.
@@ -701,11 +701,11 @@ module Yast
         # it is part of a package name (like "sles-release")
         "warning"       => _(
           "<ul><li><b>Some products are marked for automatic removal.</b></li>\n" \
-            "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
-            "installation media</li><li>Or select the appropriate online extension or module\n" \
-            "in the registration step</li><li>Or to continue with product upgrade go to the\n" \
-            "software selection and mark the product (the -release package) for removal.\n" \
-            "</li></ul></li></ul>"
+          "<ul><li>Contact the vendor of the removed add-on to provide you with a new\n" \
+          "installation media</li><li>Or select the appropriate online extension or module\n" \
+          "in the registration step</li><li>Or to continue with product upgrade go to the\n" \
+          "software selection and mark the product (the -release package) for removal.\n" \
+          "</li></ul></li></ul>"
         )
       }
     end
@@ -829,15 +829,15 @@ module Yast
       missing_remote_packages.flatten!
       unless missing_remote_packages.empty?
         error_string = format(_("Cannot support %s remote access in the installed system" \
-          " due to missing packages \n%s. \nIt will be disabled."),
+                                " due to missing packages \n%s. \nIt will be disabled."),
           @missing_remote_kind.join(", "), @missing_remote_packages.join(", "))
         if Mode.auto
           error_string << " \n"
           error_string << _("But the AutoYaST installation will be still finished automatically " \
-            "without any user interaction.")
+                            "without any user interaction.")
         end
         log.warn("Cannot support #{@missing_remote_kind} remote access in the " \
-          "installed system due missing packages #{@missing_remote_packages}")
+                 "installed system due missing packages #{@missing_remote_packages}")
         return error_string
       end
       ""
@@ -898,11 +898,8 @@ module Yast
         end
       end
 
-      if Arch.ia64
-        # install fpswa if the firmware has an older version
-        if SCR.Execute(path(".target.bash"), "/sbin/fpswa_check_version").nonzero?
-          packages = Builtins.add(packages, "fpswa")
-        end
+      if Arch.ia64 && SCR.Execute(path(".target.bash"), "/sbin/fpswa_check_version").nonzero?
+        packages = Builtins.add(packages, "fpswa")
       end
 
       if Arch.is_xenU
@@ -951,10 +948,11 @@ module Yast
       option = options.grep(/^biosdevname=/i).first if options
       value = (option[/^biosdevname=(\d+)/i, 1] if option)
 
-      if value == "1"
+      case value
+      when "1"
         Builtins.y2milestone("Biosdevname explicitly enabled")
         add_biosdevname = true
-      elsif value == "0"
+      when "0"
         Builtins.y2milestone("Biosdevname explicitly disabled")
         add_biosdevname = false
       else
@@ -1090,7 +1088,7 @@ module Yast
 
       if !@additional_packages.empty?
         log.warn("Additional packages are still in use, please, " \
-          "change it to use PackagesProposal API")
+                 "change it to use PackagesProposal API")
         log.info("Additional packages: #{@additional_packages}")
         install_list.concat(@additional_packages)
       end
@@ -1272,7 +1270,9 @@ module Yast
         true
       )
 
-      if !imagesdir.nil?
+      if imagesdir.nil?
+        Builtins.y2error("No such dir: %1", imagesdir)
+      else
         # where images should be cached
         our_imagesdir = File.join(our_slidedir, "pic/")
         ::FileUtils.mkdir_p(our_imagesdir)
@@ -1283,8 +1283,6 @@ module Yast
 
         Builtins.y2milestone("Copying: %1", copy_command)
         WFM.Execute(path(".local.bash"), copy_command)
-      else
-        Builtins.y2error("No such dir: %1", imagesdir)
       end
 
       true
@@ -1407,8 +1405,8 @@ module Yast
         SlideShow.relnotes = Ops.add(
           _(
             "<p><b>The release notes for the initial release are part of the installation\n" \
-              "media. If an Internet connection is available during configuration, you can\n" \
-              "download updated release notes from the SUSE Linux Web server.</b></p>\n"
+            "media. If an Internet connection is available during configuration, you can\n" \
+            "download updated release notes from the SUSE Linux Web server.</b></p>\n"
           ),
           @media_text
         )
@@ -1555,12 +1553,10 @@ module Yast
       new_name = nil
       Builtins.foreach(all_products) do |one_product|
         # source ID matches
-        if one_product.source == src_id
-          if one_product.name != ""
-            new_name = one_product.name
-            Builtins.y2milestone("Product name found: %1", new_name)
-            raise Break
-          end
+        if one_product.source == src_id && one_product.name != ""
+          new_name = one_product.name
+          Builtins.y2milestone("Product name found: %1", new_name)
+          raise Break
         end
       end
 
@@ -1577,12 +1573,12 @@ module Yast
           sources_set = Builtins.add(sources_set, one_source)
         end
 
-        return Pkg.SourceEditSet(sources_set)
+        Pkg.SourceEditSet(sources_set)
         # Bad luck, nothing useful found
       else
         Builtins.y2warning("No name found")
 
-        return false
+        false
       end
     end
 
@@ -1694,11 +1690,11 @@ module Yast
 
         Builtins.y2error("No repository in '%1'", log_url)
         base_url = UpdateSourceURL(base_url)
-        if base_url != ""
-          initial_repository = nil
-        else
+        if base_url == ""
           @init_in_progress = false
           return
+        else
+          initial_repository = nil
         end
       end
 
@@ -1801,7 +1797,7 @@ module Yast
               Builtins.sformat(
                 _(
                   "Error while initializing package descriptions.\n" \
-                    "Check the log file %1 for more details."
+                  "Check the log file %1 for more details."
                 ),
                 Ops.add(Directory.logdir, "/y2log")
               ),
@@ -1913,9 +1909,7 @@ module Yast
     # @param [Boolean] reselect boolean true to select only those which are alrady selected
     def SelectSystemPackages(reselect)
       system_packages = ComputeSystemPackageList()
-      if !reselect
-        Builtins.y2milestone("Selecting system packages %1", system_packages)
-      else
+      if reselect
         Builtins.y2milestone(
           "Re-selecting new versions of system packages %1",
           system_packages
@@ -1932,6 +1926,8 @@ module Yast
           "System packages to be reselected: %1",
           system_packages
         )
+      else
+        Builtins.y2milestone("Selecting system packages %1", system_packages)
       end
       res = Pkg.DoProvide(system_packages)
       if Ops.greater_than(
@@ -2021,7 +2017,7 @@ module Yast
           Report.Message(
             _(
               "The software selection has been changed externally.\n" \
-                "Software proposal will be called again."
+              "Software proposal will be called again."
             )
           )
         end
@@ -2029,10 +2025,6 @@ module Yast
         Builtins.y2milestone(
           "the cached proposal is empty or reset is required"
         )
-      end
-
-      if Installation.dirinstall_installing_into_dir && !force_reset && @init_called
-        return Summary([:product, :pattern, :size, :desktop], false)
       end
 
       UI.OpenDialog(
@@ -2069,19 +2061,20 @@ module Yast
         return Summary([], false)
       end
 
-      if initial_run
+      if initial_run && !Mode.autoinst
         # autoyast can configure AdditionalLocales
         # we don't want to overwrite this
-        Pkg.SetAdditionalLocales([Language.language]) if !Mode.autoinst
+        Pkg.SetAdditionalLocales([Language.language])
       end
 
-      if ProductFeatures.GetFeature("software", "selection_type") == :auto
+      case ProductFeatures.GetFeature("software", "selection_type")
+      when :auto
         Builtins.y2milestone("Doing pattern-based software selection")
 
         SelectSystemPackages(@system_packages_selected && !initial_run)
         SelectSystemPatterns(@system_packages_selected && !initial_run)
         @system_packages_selected = true
-      elsif ProductFeatures.GetFeature("software", "selection_type") == :fixed
+      when :fixed
         Builtins.y2milestone("Selection type: fixed")
       else
         Builtins.y2error(
@@ -2227,7 +2220,7 @@ module Yast
 
     # Reads the current user selection and dumps it to log
     def log_software_selection
-      log.info "-" * 10 << " Transaction Status Begin " << "-" * 10
+      log.info ("-" * 10) << " Transaction Status Begin " << ("-" * 10)
 
       # we do not log packages as it can be increase significantly memory usage (see bsc#1076768)
       [:product, :pattern].each do |type|
@@ -2248,7 +2241,7 @@ module Yast
         end
       end
 
-      log.info "-" * 10 << " Transaction Status End " << "-" * 10
+      log.info ("-" * 10) << " Transaction Status End " << ("-" * 10)
       nil
     end
 
@@ -2501,7 +2494,7 @@ module Yast
       provider = names.include?(tag) ? tag : names.min
       if names.size > 1
         log.warn "More than one provider was found for '#{tag}': "\
-          "#{names.join(", ")}. Selecting '#{provider}'."
+                 "#{names.join(", ")}. Selecting '#{provider}'."
       end
       provider
     end

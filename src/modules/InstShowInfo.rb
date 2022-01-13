@@ -82,14 +82,15 @@ module Yast
           use_timeout ? UI.TimeoutUserInput(1000) : UI.UserInput
         )
 
-        if button == :timeout
+        case button
+        when :timeout
           timeout_seconds = Ops.subtract(timeout_seconds, 1)
           UI.ChangeWidget(
             :timeout,
             :Value,
             Builtins.sformat("%1", timeout_seconds)
           )
-        elsif button == :stop
+        when :stop
           use_timeout = false
           UI.ChangeWidget(:stop, :Enabled, false)
           UI.ChangeWidget(:timeout, :Value, "")

@@ -18,7 +18,8 @@ module Yast
       @param = Convert.to_map(WFM.Args(1))
       @ret = {}
 
-      if @func == "MakeProposal"
+      case @func
+      when "MakeProposal"
         @force_reset = Ops.get_boolean(@param, "force_reset", false)
         @language_changed = Ops.get_boolean(@param, "language_changed", false)
 
@@ -51,7 +52,7 @@ module Yast
 
           @ret = { "preformatted_proposal" => HTML.List(@tmp) }
         end
-      elsif @func == "AskUser"
+      when "AskUser"
         @has_next = Ops.get_boolean(@param, "has_next", false)
 
         # call some function that displays a user dialog
@@ -66,7 +67,7 @@ module Yast
         # Fill return map
 
         @ret = { "workflow_sequence" => @result }
-      elsif @func == "Description"
+      when "Description"
         # Fill return map.
         #
         # Static values do just nicely here, no need to call a function.

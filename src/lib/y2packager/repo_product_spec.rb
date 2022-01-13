@@ -47,8 +47,8 @@ module Y2Packager
     # @return [String,nil] Media name (e.g., "Basesystem-Module 15.3-0")
     attr_reader :media_name
 
-    def initialize(name:, version: nil, arch: nil, display_name: nil, order: nil, base: true,
-      depends_on: [], dir:, media_name: nil, description: nil)
+    def initialize(name:, dir:, version: nil, arch: nil, display_name: nil, order: nil, base: true,
+      depends_on: [], media_name: nil, description: nil)
       super(
         name:         name,
         version:      version,

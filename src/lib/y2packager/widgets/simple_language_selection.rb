@@ -38,6 +38,7 @@ module Y2Packager
       # @param languages [Array<String>] List of languages to display (en_US, de_DE, etc.)
       # @param default   [String]        Default language code
       def initialize(languages, default)
+        super()
         textdomain "packager"
         @languages = languages
         @default = default
@@ -95,7 +96,7 @@ module Y2Packager
         @items = languages.map do |lang|
           [lang, LanguageTag.new(lang).name(lang_map_cache: lmap)]
         end
-        @items.reject! { |_lang, name| name.nil? }
+        @items.reject! { |_lang, name| name.nil? } # rubocop:disable Style/CollectionCompact
         @items.uniq!
         @items.sort_by!(&:last)
       end

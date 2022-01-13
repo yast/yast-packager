@@ -46,21 +46,19 @@ module Yast
       # stop proceeding the script if they don't (Second stage)
       if Stage.cont && !Mode.live_installation && !Mode.autoinst
         InitRemainingPackages()
-        if SomePackagesAreRemainForInstallation() != true
+        if SomePackagesAreRemainForInstallation() == true
+          Builtins.y2milestone("Some packages need to be installed...")
+        else
           Builtins.y2milestone("No packages need to be installed, skipping...")
           return :auto
-        else
-          Builtins.y2milestone("Some packages need to be installed...")
         end
       end
 
       # start target, create new rpmdb if none is existing
       # FIXME error checking is missing all around here, initialization could actually fail!
-      if Pkg.TargetInitialize(Installation.destdir) != true
-        # continue-cancel popup
-        if Popup.ContinueCancel(_("Initializing the target directory failed.")) == false
-          return :abort
-        end
+      if !Pkg.TargetInitialize(Installation.destdir) &&
+          !Popup.ContinueCancel(_("Initializing the target directory failed."))
+        return :abort
       end
 
       if Mode.update
@@ -155,11 +153,9 @@ module Yast
         SlideShow.CloseDialog
       end
 
-      if @result != :abort
-        if Stage.cont
-          # some new SCR asgents might have been installed
-          SCR.RegisterNewAgents
-        end
+      if @result != :abort && Stage.cont
+        # some new SCR asgents might have been installed
+        SCR.RegisterNewAgents
       end
 
       @result
@@ -387,11 +383,11 @@ module Yast
             Builtins.sformat(
               _(
                 "Installation failed.\n" \
-                  "\n" \
-                  "Details:\n" \
-                  "%1\n" \
-                  "\n" \
-                  "Package installation will be aborted.\n"
+                "\n" \
+                "Details:\n" \
+                "%1\n" \
+                "\n" \
+                "Package installation will be aborted.\n"
               ),
               Pkg.LastError
             )
@@ -528,15 +524,6 @@ module Yast
         Ops.set(ret, "maxnumbercds", 0)
         Builtins.y2milestone(
           "StartingAndMaxMediaNumber: Stage cont %1/%2",
-          Ops.get(ret, "current_cd_no"),
-          Ops.get(ret, "maxnumbercds")
-        )
-      elsif Installation.dirinstall_installing_into_dir
-        # All in one
-        Ops.set(ret, "current_cd_no", 0) # was 1
-        Ops.set(ret, "maxnumbercds", 0) # was 10
-        Builtins.y2milestone(
-          "StartingAndMaxMediaNumber: Dir install %1/%2",
           Ops.get(ret, "current_cd_no"),
           Ops.get(ret, "maxnumbercds")
         )

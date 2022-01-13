@@ -117,7 +117,7 @@ module Yast
       # Help text suffix for some types of the media
       @multi_cd_help = _(
         "<p>If the repository is on multiple media,\n" \
-          "set the location of the first media of the set.</p>\n"
+        "set the location of the first media of the set.</p>\n"
       )
 
       # Belongs to a constant, but can't be there because of `fun_ref`
@@ -419,8 +419,7 @@ module Yast
     # @param [String] host string original host name
     # @return [String] host without leading and trailing spaces
     def NormalizeHost(host)
-      host = Builtins.deletechars(host, " \t")
-      host
+      Builtins.deletechars(host, " \t")
     end
 
     # Return an HBox with ok and cancel buttons for use by other dialogs.
@@ -506,8 +505,8 @@ module Yast
         # help text
         "help"              => _(
           "<p><big><b>Repository Name</b></big><br>\nUse <b>Repository Name</b> " \
-            "to specify the name of the repository. If it is empty, " \
-            "YaST will use the product name (if available) or the URL as the name.</p>\n"
+          "to specify the name of the repository. If it is empty, " \
+          "YaST will use the product name (if available) or the URL as the name.</p>\n"
         )
       }
     end
@@ -530,8 +529,8 @@ module Yast
         "help",
         _(
           "<p><big><b>Service Name</b></big><br>\n" \
-            "Use <b>Service Name</b> to specify the name of the service. " \
-            "If it is empty, YaST will use part of the service URL as the name.</p>\n"
+          "Use <b>Service Name</b> to specify the name of the service. " \
+          "If it is empty, YaST will use part of the service URL as the name.</p>\n"
         )
       )
 
@@ -593,7 +592,7 @@ module Yast
         "help"              => Ops.add(
           _(
             "<p><big><b>Repository URL</b></big><br>\n" \
-              "Use <b>URL</b> to specify the URL of the repository.</p>"
+            "Use <b>URL</b> to specify the URL of the repository.</p>"
           ),
           @multi_cd_help
         )
@@ -789,17 +788,17 @@ module Yast
           Ops.add(
             _(
               "<p><big><b>NFS Server</b></big><br>\n" \
-                "Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>\n" \
-                "to specify the NFS server host name and path on the server.</p>"
+              "Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>\n" \
+              "to specify the NFS server host name and path on the server.</p>"
             ),
             @multi_cd_help
           ),
           _(
             "<p><big><b>Mount Options</b></big><br>\n" \
-              "You can specify extra options used for mounting the NFS volume.\n" \
-              "This is an expert option, keeping the default value is recommened. " \
-              "See <b>man 5 nfs</b>\n" \
-              "for details and the list of supported options."
+            "You can specify extra options used for mounting the NFS volume.\n" \
+            "This is an expert option, keeping the default value is recommened. " \
+            "See <b>man 5 nfs</b>\n" \
+            "for details and the list of supported options."
           )
         )
       }
@@ -858,7 +857,7 @@ module Yast
         "store"         => fun_ref(method(:CDStore), "void (string, map)"),
         "help"          => _(
           "<p><big><b>CD or DVD Media</b></big><br>\n" \
-            "Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"
+          "Set <b>CD-ROM</b> or <b>DVD-ROM</b> to specify the type of media.</p>"
         )
       }
     end
@@ -1030,8 +1029,8 @@ module Yast
             Builtins.sformat(
               _(
                 "File '%1'\n" \
-                  "does not seem to be an ISO image.\n" \
-                  "Use it anyway?\n"
+                "does not seem to be an ISO image.\n" \
+                "Use it anyway?\n"
               ),
               s
             )
@@ -1075,10 +1074,10 @@ module Yast
         "help"              => Ops.add(
           _(
             "<p><big><b>Local Directory</b></big><br>\n" \
-              "Use <b>Path to Directory</b> to specify the path to the\n" \
-              "directory. If the directory contains only RPM packages without\n" \
-              "any metadata (i.e. there is no product information), then check option\n" \
-              "<b>Plain RPM Directory</b>.</p>\n"
+            "Use <b>Path to Directory</b> to specify the path to the\n" \
+            "directory. If the directory contains only RPM packages without\n" \
+            "any metadata (i.e. there is no product information), then check option\n" \
+            "<b>Plain RPM Directory</b>.</p>\n"
           ),
           @multi_cd_help
         )
@@ -1132,8 +1131,8 @@ module Yast
       Builtins.y2debug("Detected disks: %1", disks)
 
       disks = Builtins.filter(disks) do |disk|
-        Ops.get_string(disk, "driver", "") == "usb-storage" && usb_only ||
-          Ops.get_string(disk, "driver", "") != "usb-storage" && !usb_only
+        (Ops.get_string(disk, "driver", "") == "usb-storage" && usb_only) ||
+          (Ops.get_string(disk, "driver", "") != "usb-storage" && !usb_only)
       end
 
       Builtins.y2milestone("Found disks: %1", disks)
@@ -1316,18 +1315,18 @@ module Yast
         "store"         => fun_ref(method(:USBStore), "void (string, map)"),
         "help"          => _(
           "<p><big><b>USB Stick or Disk</b></big><br>\n" \
-            "Select the USB device on which the repository is located.\n" \
-            "Use <b>Path to Directory</b> to specify the directory of the repository.\n" \
-            "If the path is omitted, the system will use the root directory of the disk.\n" \
-            "If the directory contains only RPM packages without\n" \
-            "any metadata (i.e. there is no product information), then check option\n" \
-            "<b>Plain RPM Directory</b>.</p>\n"
+          "Select the USB device on which the repository is located.\n" \
+          "Use <b>Path to Directory</b> to specify the directory of the repository.\n" \
+          "If the path is omitted, the system will use the root directory of the disk.\n" \
+          "If the directory contains only RPM packages without\n" \
+          "any metadata (i.e. there is no product information), then check option\n" \
+          "<b>Plain RPM Directory</b>.</p>\n"
         ) +
           # 'auto' is a value in the combo box widget, do not translate it!
           _(
             "<p>The file system used on the device will be detected automatically\n" \
-              "if you select file system 'auto'. If the detection fails or you\n" \
-              "want to use a certain file system, select it from the list.</p>\n"
+            "if you select file system 'auto'. If the detection fails or you\n" \
+            "want to use a certain file system, select it from the list.</p>\n"
           )
       }
     end
@@ -1382,18 +1381,18 @@ module Yast
         "store"         => fun_ref(method(:DiskStore), "void (string, map)"),
         "help"          => _(
           "<p><big><b>Disk</b></big><br>\n" \
-            "Select the disk on which the repository is located.\n" \
-            "Use <b>Path to Directory</b> to specify the directory of the repository.\n" \
-            "If the path is omitted, the system will use the root directory of the disk.\n" \
-            "If the directory contains only RPM packages without\n" \
-            "any metadata (i.e. there is no product information), then check option\n" \
-            "<b>Plain RPM Directory</b>.</p>\n"
+          "Select the disk on which the repository is located.\n" \
+          "Use <b>Path to Directory</b> to specify the directory of the repository.\n" \
+          "If the path is omitted, the system will use the root directory of the disk.\n" \
+          "If the directory contains only RPM packages without\n" \
+          "any metadata (i.e. there is no product information), then check option\n" \
+          "<b>Plain RPM Directory</b>.</p>\n"
         ) +
           # 'auto' is a value in the combo box widget, do not translate it!
           _(
             "<p>The file system used on the device will be detected automatically\n" \
-              "if you select file system 'auto'. If the detection fails or you\n" \
-              "want to use a certain file system, select it from the list.</p>\n"
+            "if you select file system 'auto'. If the detection fails or you\n" \
+            "want to use a certain file system, select it from the list.</p>\n"
           )
       }
     end
@@ -1428,23 +1427,14 @@ module Yast
         ),
         "help"              => _(
           "<p><big><b>Local ISO Image</b></big><br>\n" \
-            "Use <b>Path to ISO Image</b> to specify the path to the\n" \
-            "ISO image file.</p>"
+          "Use <b>Path to ISO Image</b> to specify the path to the\n" \
+          "ISO image file.</p>"
         )
       }
     end
 
     def InitFocusServerInit(server_type)
-      case server_type
-      when :ftp
-        UI.SetFocus(:server)
-      when :http
-        UI.SetFocus(:server)
-      when :https
-        UI.SetFocus(:server)
-      when :samba
-        UI.SetFocus(:server)
-      end
+      UI.SetFocus(:server) if [:ftp, :http, :https, :samba].include?(server_type)
 
       nil
     end
@@ -1463,13 +1453,14 @@ module Yast
         "scheme"   => "",
         "user"     => ""
       }
-      if type == :ftp
+      case type
+      when :ftp
         Ops.set(parsed, "scheme", "ftp")
-      elsif type == :http
+      when :http
         Ops.set(parsed, "scheme", "http")
-      elsif type == :https
+      when :https
         Ops.set(parsed, "scheme", "https")
-      elsif type == :samba
+      when :samba
         Ops.set(parsed, "scheme", "smb")
       end
 
@@ -1793,11 +1784,12 @@ module Yast
         @_url = PreprocessISOURL(@_url) if iso
         parsed = URL.Parse(@_url)
         type = :ftp
-        if Ops.get_string(parsed, "scheme", "") == "http"
+        case Ops.get_string(parsed, "scheme", "")
+        when "http"
           type = :http
-        elsif Ops.get_string(parsed, "scheme", "") == "https"
+        when "https"
           type = :https
-        elsif Ops.get_string(parsed, "scheme", "") == "smb"
+        when "smb"
           type = :samba
         end
         UI.ChangeWidget(Id(:rb_type), :CurrentButton, type)
@@ -1864,14 +1856,12 @@ module Yast
         host = NormalizeHost(
           Convert.to_string(UI.QueryWidget(Id(:server), :Value))
         )
-        if !Hostname.CheckFQ(host)
-          if !IP.Check(host)
-            UI.SetFocus(:server)
-            Popup.Error(
-              Builtins.sformat("%1\n\n%2", Hostname.ValidFQ, IP.Valid4)
-            )
-            return false
-          end
+        if !Hostname.CheckFQ(host) && !IP.Check(host)
+          UI.SetFocus(:server)
+          Popup.Error(
+            Builtins.sformat("%1\n\n%2", Hostname.ValidFQ, IP.Valid4)
+          )
+          return false
         end
       else
         url = UI.QueryWidget(Id(:complete_url), :Value)
@@ -1943,20 +1933,20 @@ module Yast
         "help"              => Ops.add(
           _(
             "<p><big><b>Server and Directory</b></big><br>\n" \
-              "Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>\n" \
-              "to specify the NFS server host name and path on the server.\n" \
-              "To enable authentication, uncheck <b>Anonymous</b> and specify the\n" \
-              "<b>User Name</b> and the <b>Password</b>.</p>\n" \
-              "<p>\n" \
-              "For the SMB/CIFS repository, specify <b>Share</b> name and <b>Path to Directory\n" \
-              "or ISO Image</b>. \n" \
-              "If the location is a file holding an ISO image\n" \
-              "of the media, set <b>ISO Image</b>.</p>\n"
+            "Use <b>Server Name</b> and <b>Path to Directory or ISO Image</b>\n" \
+            "to specify the NFS server host name and path on the server.\n" \
+            "To enable authentication, uncheck <b>Anonymous</b> and specify the\n" \
+            "<b>User Name</b> and the <b>Password</b>.</p>\n" \
+            "<p>\n" \
+            "For the SMB/CIFS repository, specify <b>Share</b> name and <b>Path to Directory\n" \
+            "or ISO Image</b>. \n" \
+            "If the location is a file holding an ISO image\n" \
+            "of the media, set <b>ISO Image</b>.</p>\n"
           ) +
             # help text - server dialog, there is a "Port" widget
             _(
               "<p>It is possible to set the <b>Port</b> number for a HTTP/HTTPS repository.\n" \
-                "Leave it empty to use the default port.</p>\n"
+              "Leave it empty to use the default port.</p>\n"
             ),
           @multi_cd_help
         )
@@ -2065,7 +2055,11 @@ module Yast
         ),
         HStretch()
       )
-      if !NetworkService.isNetworkRunning
+      if NetworkService.isNetworkRunning
+        Builtins.y2milestone(
+          "Network is available, allowing Network-related options..."
+        )
+      else
         Builtins.y2milestone(
           "Network is not available, skipping all Network-related options..."
         )
@@ -2109,10 +2103,6 @@ module Yast
           ),
           HStretch()
         )
-      else
-        Builtins.y2milestone(
-          "Network is available, allowing Network-related options..."
-        )
       end
       deep_copy(contents)
     end
@@ -2127,45 +2117,29 @@ module Yast
 
     def SelectWidgetHelp
       # help text
-      help_text = _(
+      _(
         "<p><big><b>Media Type</b></big><br>\n" \
-          "The software repository can be located on CD, on a network server,\n" \
-          "or on the hard disk.</p>"
-      )
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
+        "The software repository can be located on CD, on a network server,\n" \
+        "or on the hard disk.</p>"
+      ) +
         _(
           "<p>\n" \
-            "To add  <b>CD</b> or <b>DVD</b>,\n" \
-            "have the product CD set or the DVD available.</p>"
-        )
-      )
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
+          "To add  <b>CD</b> or <b>DVD</b>,\n" \
+          "have the product CD set or the DVD available.</p>"
+        ) +
         _(
           "<p>\n" \
-            "The product CDs can be copied to the hard disk.\n" \
-            "Enter the path to the first CD, for example, /data1/<b>CD1</b>.\n" \
-            "Only the base path is required if all CDs are copied\n" \
-            "into the same directory.</p>\n"
-        )
-      )
-
-      # help, continued
-      help_text = Ops.add(
-        help_text,
+          "The product CDs can be copied to the hard disk.\n" \
+          "Enter the path to the first CD, for example, /data1/<b>CD1</b>.\n" \
+          "Only the base path is required if all CDs are copied\n" \
+          "into the same directory.</p>\n"
+        ) +
         _(
           "<p>\n" \
-            "Network installation requires a working network connection.\n" \
-            "Specify the directory in which the packages from\n" \
-            "the first CD are located, such as /data1/CD1.</p>\n"
+          "Network installation requires a working network connection.\n" \
+          "Specify the directory in which the packages from\n" \
+          "the first CD are located, such as /data1/CD1.</p>\n"
         )
-      )
-      help_text
     end
 
     def SelectValidate(_key, _event)
@@ -2325,35 +2299,34 @@ module Yast
     def SelectInit(_key)
       current = nil
 
-      if @_url == "ftp://"
+      case @_url
+      when "ftp://"
         current = :ftp
-      elsif @_url == "http://"
+      when "http://"
         current = :http
-      elsif @_url == "https://"
+      when "https://"
         current = :https
-      elsif @_url == "smb://"
+      when "smb://"
         current = :samba
-      elsif @_url == "nfs://"
+      when "nfs://", "nfs4://"
         current = :nfs
-      elsif @_url == "nfs4://"
-        current = :nfs
-      elsif @_url == "cd://"
+      when "cd://"
         current = :cd
-      elsif @_url == "dvd://"
+      when "dvd://"
         current = :dvd
-      elsif @_url == "hd://"
+      when "hd://"
         current = :hd
-      elsif @_url == "usb://"
+      when "usb://"
         current = :usb
-      elsif @_url == "dir://" || @_url == "file://"
+      when "dir://", "file://"
         current = :local_dir
-      elsif @_url == "iso://"
+      when "iso://"
         current = :local_iso
-      elsif @_url == "slp://"
+      when "slp://"
         current = :slp
-      elsif @_url == "commrepos://"
+      when "commrepos://"
         current = :comm_repos
-      elsif @_url == "sccrepos://"
+      when "sccrepos://"
         current = :sccrepos
       else
         Builtins.y2warning("Unknown URL scheme '%1'", @_url)
@@ -2372,7 +2345,7 @@ module Yast
 
       enabled = UI.QueryWidget(Id(:add_addon), :Value)
 
-      WIDGET_LABELS.keys.each do |widget|
+      WIDGET_LABELS.each_key do |widget|
         UI.ChangeWidget(Id(widget), :Enabled, enabled) if UI.WidgetExists(widget)
       end
       UI.ChangeWidget(Id(:type), :Enabled, enabled) if UI.WidgetExists(:type)
@@ -2424,10 +2397,10 @@ module Yast
     def SelectWidgetHelpDl
       _(
         "<p><b>Download Files</b><br>\n" \
-          "Each repository has description files which describe the content of the\n" \
-          "repository. Check <b>Download repository description files</b> to download the\n" \
-          "files when closing this YaST module. If the option is unchecked, YaST will\n" \
-          "automatically download the files when it needs them later. </p>\n"
+        "Each repository has description files which describe the content of the\n" \
+        "repository. Check <b>Download repository description files</b> to download the\n" \
+        "files when closing this YaST module. If the option is unchecked, YaST will\n" \
+        "automatically download the files when it needs them later. </p>\n"
       )
     end
 

@@ -64,7 +64,7 @@ module Yast
           "help"       => Builtins.sformat(
             _(
               "Software Installation - This module does not support the command " \
-                "line interface, use '%1' instead."
+              "line interface, use '%1' instead."
             ),
             "zypper"
           ),
@@ -98,11 +98,12 @@ module Yast
           @test_popup = true
         elsif Ops.is_string?(WFM.Args(arg_n))
           s = Builtins.tostring(WFM.Args(arg_n))
-          if s == "--install"
+          case s
+          when "--install"
             @action = :install
-          elsif s == "--remove"
+          when "--remove"
             @action = :remove
-          elsif s == "--update"
+          when "--update"
             @action = :update
           else
             arg_list = Builtins.add(arg_list, s)
@@ -276,9 +277,9 @@ module Yast
                 Builtins.sformat(
                   _(
                     "Package %1 could not be installed.\n" \
-                      "\n" \
-                      "Details:\n" \
-                      "%2\n"
+                    "\n" \
+                    "Details:\n" \
+                    "%2\n"
                   ),
                   package,
                   Pkg.LastError
@@ -573,8 +574,8 @@ module Yast
             Popup.YesNo(
               _(
                 "During the last package installation\n" \
-                  "several packages failed to install.\n" \
-                  "Install them now?\n"
+                "several packages failed to install.\n" \
+                "Install them now?\n"
               )
             )
           Builtins.foreach(old_failed_packs) { |p| Pkg.PkgInstall(p) }
@@ -587,16 +588,17 @@ module Yast
 
             result = PackagesUI.RunPackageSelector(opts) # No: ask user via package selection widget
             Builtins.y2milestone("Package selector retured: %1", result)
-            if result == :accept
+            case result
+            when :accept
               result = :next
             # start the repository manager
-            elsif result == :repo_mgr
+            when :repo_mgr
               save_known_repositories
               WFM.CallFunction("repositories", [:sw_single_mode])
               # preselect the driver packages from new repositories
               preselect_system_packages
               force_restart = true
-            elsif result == :online_update_configuration
+            when :online_update_configuration
               required_package = "yast2-online-update-configuration"
 
               if !PackageSystem.Installed(required_package) &&
@@ -605,7 +607,7 @@ module Yast
                   Builtins.sformat(
                     _(
                       "Cannot configure online update repository \n" \
-                        "without having package %1 installed"
+                      "without having package %1 installed"
                     ),
                     required_package
                   )
@@ -623,27 +625,8 @@ module Yast
                 )
               end
               force_restart = true
-            elsif result == :online_search
+            when :online_search
               WFM.CallFunction("online_search", [:sw_single_mode])
-              force_restart = true
-            elsif result == :webpin
-              required_package = "yast2-packager-webpin"
-
-              if !PackageSystem.Installed(required_package)
-                if !PackageSystem.CheckAndInstallPackages([required_package])
-                  Report.Error(
-                    Builtins.sformat(
-                      _(
-                        "Cannot search packages in online repositories\n" \
-                          "without having package %1 installed"
-                      ),
-                      required_package
-                    )
-                  )
-                end
-              else
-                WFM.CallFunction("webpin_package_search", [])
-              end
               force_restart = true
             end
           else
@@ -672,7 +655,7 @@ module Yast
             ) do |package|
               if @action == :install ||
                   # TODO: `update: tell the user if already up to date
-                  @action == :update && CanBeUpdated(package)
+                  (@action == :update && CanBeUpdated(package))
                 # select package for installation
                 if !Pkg.PkgInstall(package)
                   # oops, package not found ? try capability

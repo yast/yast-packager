@@ -257,7 +257,7 @@ module Yast
       CleanUpLicense(@tmpdir)
 
       # bugzilla #303922
-      Wizard.CloseDialog if created_new_dialog || !Stage.initial && !src_id.nil?
+      Wizard.CloseDialog if created_new_dialog || (!Stage.initial && !src_id.nil?)
 
       CleanUp()
 
@@ -628,7 +628,7 @@ module Yast
             # text changed due to bug #162499
             # TRANSLATORS: text asking whether to refuse a license (Yes-No popup)
             refuse_popup_text = _("Refusing the license agreement cancels the add-on\n" \
-              "product installation. Really refuse the agreement?")
+                                  "product installation. Really refuse the agreement?")
             next unless Popup.YesNo(refuse_popup_text)
           end
 
@@ -717,15 +717,15 @@ module Yast
       # help text
       _(
         "<p>Read the license agreement carefully and select\n" \
-          "one of the available options. If you do not agree to the license agreement,\n" \
-          "the configuration will be aborted.</p>\n"
+        "one of the available options. If you do not agree to the license agreement,\n" \
+        "the configuration will be aborted.</p>\n"
       )
     end
 
     publish function: :AcceptanceNeeded, type: "boolean (string)"
     publish function: :AskLicenseAgreement,
-            type:     "symbol (integer, string, list <string>, string, " \
-             "boolean, boolean, boolean, string)"
+      type:     "symbol (integer, string, list <string>, string, " \
+                "boolean, boolean, boolean, string)"
     publish function: :AskAddOnLicenseAgreement, type: "symbol (integer)"
     publish function: :AskFirstStageLicenseAgreement, type: "symbol (integer, string)"
     publish function: :ShowFullScreenLicenseInInstallation, type: "boolean (any, integer)"
@@ -867,7 +867,7 @@ module Yast
             Builtins.sformat(_("Cannot read license file %1"), license_file),
             _(
               "To show the product license properly, put the license.tar.gz file to " \
-                "the root of the live media when building the image."
+              "the root of the live media when building the image."
             )
           )
         else
@@ -1114,7 +1114,9 @@ module Yast
               arg_ref(licenses.value),
               id
             ),
-            if !@license_file_print.nil?
+            if @license_file_print.nil?
+              Empty()
+            else
               Left(
                 # FATE #302018
                 ReplacePoint(
@@ -1134,8 +1136,6 @@ module Yast
                   )
                 )
               )
-            else
-              Empty()
             end,
             # BNC #448598
             # yes/no buttons exist only if needed
@@ -1190,20 +1190,20 @@ module Yast
       return {} if files.nil?
 
       Builtins.foreach(patterns) do |p|
-        if !Builtins.issubstring(p, "%")
-          Builtins.foreach(files) do |file|
-            # Possible license file names are regexp patterns
-            # (see list <string> license_patterns)
-            # so we should treat them as such (bnc#533026)
-            Ops.set(ret, "", Ops.add(Ops.add(dir, "/"), file)) if Builtins.regexpmatch(file, p)
-          end
-        else
+        if Builtins.issubstring(p, "%")
           regpat = Builtins.sformat(p, "(.+)")
           Builtins.foreach(files) do |file|
             if Builtins.regexpmatch(file, regpat)
               key = Builtins.regexpsub(file, regpat, "\\1")
               Ops.set(ret, key, Ops.add(Ops.add(dir, "/"), file))
             end
+          end
+        else
+          Builtins.foreach(files) do |file|
+            # Possible license file names are regexp patterns
+            # (see list <string> license_patterns)
+            # so we should treat them as such (bnc#533026)
+            Ops.set(ret, "", Ops.add(Ops.add(dir, "/"), file)) if Builtins.regexpmatch(file, p)
           end
         end
       end
@@ -1218,7 +1218,7 @@ module Yast
           path(".target.bash_output"),
           Builtins.sformat(
             "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && " \
-              "/usr/bin/tar -xzf #{unpack_file.shellescape}\n",
+            "/usr/bin/tar -xzf #{unpack_file.shellescape}\n",
             to_directory.shellescape
           )
         )
@@ -1400,7 +1400,7 @@ module Yast
           path(".target.bash_output"),
           Builtins.sformat(
             "\n/usr/bin/rm -rf %1 && /usr/bin/mkdir -p %1 && cd %1 && " \
-              "/usr/bin/unzip -qqo #{license_file.shellescape}\n",
+            "/usr/bin/unzip -qqo #{license_file.shellescape}\n",
             @tmpdir.shellescape
           )
         )

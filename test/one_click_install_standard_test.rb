@@ -6,7 +6,7 @@ require "tempfile"
 
 Yast.import "OneClickInstallStandard"
 
-# note partially covered also by test/lib/clients/inst_productsources_test.rb
+# NOTE: partially covered also by test/lib/clients/inst_productsources_test.rb
 describe "Yast::OneClickInstallStandard" do
   subject { Yast::OneClickInstallStandard }
 
@@ -77,7 +77,7 @@ describe "Yast::OneClickInstallStandard" do
     it "fills localized description to repository hash" do
       expect(subject.GetRepositoriesFromXML(file).first["localized_description"]).to(
         include("cs" => "Velký repozitář s Open source softwarem pro openSUSE Leap, který " \
-          "vám zpřístupní tisíce balíčků spravovaných komunitou openSUSE.")
+                        "vám zpřístupní tisíce balíčků spravovaných komunitou openSUSE.")
       )
     end
 
@@ -96,7 +96,8 @@ describe "Yast::OneClickInstallStandard" do
     it "fills description to repository hash" do
       expect(subject.GetRepositoriesFromXML(file).first).to(
         include("description" => "The big Open Source Software (OSS) repository for openSUSE " \
-          "Leap, giving you access to thousands of packages maintained by the openSUSE community.")
+                                 "Leap, giving you access to thousands of packages maintained " \
+                                 "by the openSUSE community.")
       )
     end
   end

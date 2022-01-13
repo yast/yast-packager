@@ -40,7 +40,7 @@ module Y2Packager
           # TRANSLATORS: An error message, the package solver could not find
           # any product to upgrade in the selected partition.
           Yast::Report.Error(_("Error: Cannot find any product to upgrade.\n" \
-            "Make sure the selected partition contains an upgradable product."))
+                               "Make sure the selected partition contains an upgradable product."))
           return :back
         end
 

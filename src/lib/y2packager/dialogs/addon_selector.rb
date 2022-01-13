@@ -78,7 +78,7 @@ module Y2Packager
       def help_text
         # TRANSLATORS: help text
         _("<p>The selected repository contains several products in independent " \
-        "subdirectories. Select which products you want to install.</p>")
+          "subdirectories. Select which products you want to install.</p>")
       end
 
       # Handle changing the current item or changing the selection

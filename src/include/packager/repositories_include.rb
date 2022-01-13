@@ -66,7 +66,8 @@ module Yast
     #         properly, but then just go back to proposal instead of full abort.
     def createSourceImpl(url, plaindir, download, preferred_name, force_alias)
       log.info("createSource: #{URL.HidePassword(url)}, plaindir: #{plaindir}," \
-        "download: #{download}, preferred_name: #{preferred_name}, force_alias: #{force_alias}")
+               "download: #{download}, preferred_name: #{preferred_name}, " \
+               "force_alias: #{force_alias}")
 
       if url.nil? || url.empty?
         Builtins.y2error(-1, "Empty URL! Backtrace:")
@@ -193,10 +194,7 @@ module Yast
       else
         Progress.NextStage
         Builtins.foreach(newSources) do |id|
-          if !LicenseAccepted(id)
-            log.info("License NOT accepted, removing the source")
-            Pkg.SourceDelete(id)
-          else
+          if LicenseAccepted(id)
             src_data = Pkg.SourceGeneralData(id)
             log.info("Added repository: #{src_data}")
 
@@ -209,6 +207,9 @@ module Yast
               "do_refresh"  => download
             }
             @sourceStatesOut << sourceState
+          else
+            log.info("License NOT accepted, removing the source")
+            Pkg.SourceDelete(id)
           end
         end
 
@@ -239,7 +240,8 @@ module Yast
       plaindir = SourceDialogs.IsPlainDir
 
       # special case, bugzilla #238680
-      if url == "slp://"
+      case url
+      when "slp://"
         required_package = "yast2-slp"
         installed_before = PackageSystem.Installed(required_package)
 
@@ -275,7 +277,7 @@ module Yast
         else
           url = service
         end
-      elsif url == "commrepos://"
+      when "commrepos://"
         commrepos = WFM.call(
           "inst_productsources",
           [{ "skip_already_used_repos" => true }]
@@ -288,7 +290,7 @@ module Yast
         end
 
         return :next
-      elsif url == "sccrepos://"
+      when "sccrepos://"
         sccrepos = WFM.call("inst_scc", ["select_extensions"])
         Builtins.y2milestone("Registration Repositories returned: %1", sccrepos)
 
@@ -485,10 +487,10 @@ module Yast
         # continue-back popup
         _(
           "There is no product information available at the given location.\n" \
-            "If you expected to to point a product, go back and enter\n" \
-            "the correct location.\n" \
-            "To make rpm packages located at the specified location available\n" \
-            "in the packages selection, continue.\n"
+          "If you expected to to point a product, go back and enter\n" \
+          "the correct location.\n" \
+          "To make rpm packages located at the specified location available\n" \
+          "in the packages selection, continue.\n"
         ),
         Label.ContinueButton,
         Label.BackButton,
@@ -522,7 +524,7 @@ module Yast
         # TRANSLATORS: error message (2/3)
         msgs << _(
           "Using an ISO image over ftp or http protocol is not possible.\n" \
-              "Change the protocol or unpack the ISO image on the server side."
+          "Change the protocol or unpack the ISO image on the server side."
         )
       end
 

@@ -11,13 +11,11 @@ module Yast
     # source is disk. See bugzilla 208222 for more details.
     def ReleaseHDDUsedAsInstallationSource
       install_src_partition = SourceManager.InstallationSourceOnPartition
-      if install_src_partition != ""
-        if !Builtins.regexpmatch(install_src_partition, "/dev/")
-          install_src_partition = Builtins.sformat(
-            "/dev/%1",
-            install_src_partition
-          )
-        end
+      if install_src_partition != "" && !Builtins.regexpmatch(install_src_partition, "/dev/")
+        install_src_partition = Builtins.sformat(
+          "/dev/%1",
+          install_src_partition
+        )
       end
 
       Builtins.y2milestone "install src partition #{install_src_partition}"

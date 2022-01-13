@@ -22,7 +22,7 @@ if url.nil?
   warn "Usage: #{$PROGRAM_NAME} <URL> [base_product]"
   warn "Example: #{$PROGRAM_NAME} \"dir://path/to/media\" SLES"
   warn "Example: #{$PROGRAM_NAME} \"iso:/?iso=DVD.iso&url=dir://path/to/media\" "\
-    "(requires root permissions for mounting)"
+       "(requires root permissions for mounting)"
   warn "See \"Supported URI formats\" section in \"man zypper\"."
   exit 1
 end

@@ -221,14 +221,15 @@ module Yast
 
       optional = true if optional.nil?
 
-      if sod == "signed"
+      case sod
+      when "signed"
         provided_file = Pkg.SourceProvideSignedFile(
           src_id,
           media,
           filename,
           optional
         )
-      elsif sod == "digested"
+      when "digested"
         provided_file = Pkg.SourceProvideDigestedFile(
           src_id,
           media,
@@ -251,7 +252,7 @@ module Yast
         cached_file = Builtins.sformat("%1%2", @filecachedir, @filecachecounter)
 
         cmd = "/usr/bin/mkdir -p #{@filecachedir.shellescape}; " \
-          "/usr/bin/cp #{provided_file.shellescape} #{cached_file.shellescape}"
+              "/usr/bin/cp #{provided_file.shellescape} #{cached_file.shellescape}"
         cmd_run = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
 
         # Unable to cache a file, the original file will be returned
@@ -516,10 +517,10 @@ module Yast
         path(".target.bash_output"),
         Builtins.sformat(
           "\n" \
-            "/usr/bin/mkdir %1;\n" \
-            "cd %1;\n" \
-            "/bin/tar -xvf %2;\n" \
-            "/sbin/adddir %1 /;\n",
+          "/usr/bin/mkdir %1;\n" \
+          "cd %1;\n" \
+          "/bin/tar -xvf %2;\n" \
+          "/sbin/adddir %1 /;\n",
           tmpdir.shellescape,
           filename.shellescape
         )
@@ -622,20 +623,22 @@ module Yast
       binaries ||= y2update_path(src_id)
 
       # File /y2update.tgz exists
-      if !binaries.nil?
+      if binaries.nil?
+        Builtins.y2milestone("File /y2update.tgz not provided")
+      else
         # Try to extract files from the archive
         out = Convert.to_map(
           SCR.Execute(
             path(".target.bash_output"),
             Builtins.sformat(
               "\n" \
-                "/usr/bin/test -d /y2update && /usr/bin/rm -rf /y2update;\n" \
-                "/bin/mkdir -p /y2update/all;\n" \
-                "cd /y2update/all;\n" \
-                "/bin/tar -xvf %1;\n" \
-                "cd /y2update;\n" \
-                "/usr/bin/ln -s all/usr/share/YaST2/* .;\n" \
-                "/usr/bin/ln -s all/usr/lib/YaST2/* .;\n",
+              "/usr/bin/test -d /y2update && /usr/bin/rm -rf /y2update;\n" \
+              "/bin/mkdir -p /y2update/all;\n" \
+              "cd /y2update/all;\n" \
+              "/bin/tar -xvf %1;\n" \
+              "cd /y2update;\n" \
+              "/usr/bin/ln -s all/usr/share/YaST2/* .;\n" \
+              "/usr/bin/ln -s all/usr/lib/YaST2/* .;\n",
               binaries.shellescape
             )
           )
@@ -653,8 +656,6 @@ module Yast
           # bugzilla #239055
           RereadAllSCRAgents()
         end
-      else
-        Builtins.y2milestone("File /y2update.tgz not provided")
       end
 
       true
@@ -822,7 +823,7 @@ module Yast
 
           if !package_installed
             Report.Error(_("Package '%s' is not installed.\n" \
-              "The add-on product cannot be registered.") % "yast2-registration")
+                           "The add-on product cannot be registered.") % "yast2-registration")
             return nil
           end
         end
@@ -1138,7 +1139,7 @@ module Yast
             Label(
               _(
                 "The installation repository also contains the listed additional repositories.\n" \
-                  "Select the ones you want to use.\n"
+                "Select the ones you want to use.\n"
               )
             )
           ),
@@ -1250,14 +1251,14 @@ module Yast
             "Selecting product '%1' for installation",
             one_prod
           )
-          if !Pkg.ResolvableInstall(one_prod, :product)
+          if Pkg.ResolvableInstall(one_prod, :product)
+            @selected_installation_products << one_prod
+          else
             Report.Error(
               # TRANSLATORS: Product cannot be set for installation.
               # %1 is the product name.
               Builtins.sformat(_("Product %1 not found on media."), one_prod)
             )
-          else
-            @selected_installation_products << one_prod
           end
         end
 
@@ -1577,7 +1578,7 @@ module Yast
       end
 
       # set repository alias to product name or alias if specified
-      if !name.nil? && name != "" || !alias_name.nil? && alias_name != ""
+      if (!name.nil? && name != "") || (!alias_name.nil? && alias_name != "")
         url_p = URL.Parse(url)
         params = URL.MakeMapFromParams(Ops.get_string(url_p, "query", ""))
         new_alias = ""
@@ -1677,7 +1678,10 @@ module Yast
           configuration_from_disk
         )
 
-        if !configuration_from_disk.nil?
+        if configuration_from_disk.nil?
+          Builtins.y2error("Reading %1 file returned nil result!", tmp_filename)
+          false
+        else
           Import(configuration_from_disk)
           if already_in_configuration != [] && !already_in_configuration.nil?
             @add_on_products = Convert.convert(
@@ -1686,14 +1690,11 @@ module Yast
               to:   "list <map <string, any>>"
             )
           end
-          return true
-        else
-          Builtins.y2error("Reading %1 file returned nil result!", tmp_filename)
-          return false
+          true
         end
       else
         Builtins.y2warning("File %1 doesn't exists, skipping...", tmp_filename)
-        return true
+        true
       end
     end
 
@@ -2004,7 +2005,7 @@ module Yast
     publish variable: :low_memory_already_reported, type: "boolean"
     publish variable: :skip_add_ons, type: "boolean"
     publish function: :GetCachedFileFromSource,
-            type:     "string (integer, integer, string, string, boolean)"
+      type:     "string (integer, integer, string, string, boolean)"
     publish function: :AddOnMode, type: "string (integer)"
     publish function: :SetBaseProductURL, type: "void (string)"
     publish function: :GetBaseProductURL, type: "string ()"
@@ -2049,7 +2050,7 @@ module Yast
     # @see #renamed_at?
     def renamed_externally?(old_name, new_name)
       log.info "Search #{old_name} -> #{new_name} rename in added renames map: " \
-        "#{external_product_renames.inspect}"
+               "#{external_product_renames.inspect}"
       renamed_at?(external_product_renames, old_name, new_name)
     end
 
@@ -2066,7 +2067,7 @@ module Yast
     def renamed_by_libzypp?(old_name, new_name)
       renames = product_renames_from_libzypp
       log.info "Search #{old_name} -> #{new_name} rename in libzypp: " \
-        "#{renames.inspect}"
+               "#{renames.inspect}"
       renamed_at?(renames, old_name, new_name)
     end
 
@@ -2076,7 +2077,7 @@ module Yast
     # @see #renamed_at?
     def renamed_by_default?(old_name, new_name)
       log.info "Search #{old_name} -> #{new_name} rename in default map: " \
-        "#{DEFAULT_PRODUCT_RENAMES.inspect}"
+               "#{DEFAULT_PRODUCT_RENAMES.inspect}"
       renamed_at?(DEFAULT_PRODUCT_RENAMES, old_name, new_name)
     end
 
@@ -2116,7 +2117,7 @@ module Yast
     # Regular expresion to extract the product name. It supports two different
     # formats: "product:NAME" and "product(NAME)"
     # @see product_name_from_dep
-    PRODUCTS_REGEXP = /\Aproduct(?::|\()([^\)\b]+)/.freeze
+    PRODUCTS_REGEXP = /\Aproduct(?::|\()([^)\b]+)/.freeze
 
     # Extracts product's name from dependency
     #
@@ -2196,7 +2197,7 @@ module Yast
           return repo_id if found_product["label"] == prodname
 
           log.info("Removing repo #{repo_id}: Add-on found #{found_product["label"]}," \
-            "expected: #{prodname}")
+                   "expected: #{prodname}")
           Pkg.SourceDelete(repo_id)
         end
 

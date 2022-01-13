@@ -74,12 +74,12 @@ module Yast
 
     def probeSource(url)
       ret = SourceManager.createSource(url)
-      if ret != :ok
-        Builtins.y2error("no repositories available on media")
-        return false
-      else
+      if ret == :ok
         SourceManager.CommitSources
-        return true
+        true
+      else
+        Builtins.y2error("no repositories available on media")
+        false
       end
     end
   end

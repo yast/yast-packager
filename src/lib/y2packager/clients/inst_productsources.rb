@@ -303,11 +303,9 @@ module Yast
       ret = false
 
       # bnc #327519
-      if Mode.normal
-        if !NetworkService.isNetworkRunning
-          Builtins.y2warning("No network is running...")
-          return false
-        end
+      if Mode.normal && !NetworkService.isNetworkRunning
+        Builtins.y2warning("No network is running...")
+        return false
       end
 
       loop do
@@ -323,8 +321,8 @@ module Yast
           # TRANSLATORS: popup question
           _(
             "Online sources defined by product require an Internet connection.\n" \
-              "\n" \
-              "Would you like to configure it?"
+            "\n" \
+            "Would you like to configure it?"
           ),
           Label.YesButton,
           Label.NoButton,
@@ -666,7 +664,7 @@ module Yast
         # TRANSLATORS: dialog help
         _(
           "<p>The packager is being initialized and \n" \
-            "the list of servers downloaded from the Web.</p>\n"
+          "the list of servers downloaded from the Web.</p>\n"
         ),
         [icons_for_progress]
       )
@@ -914,12 +912,12 @@ module Yast
         # %5 is replaced with an emty string or "Recommended: Yes" (*4)
         _(
           "<p>\n" \
-            "<b>URL:</b> %1<br>\n" \
-            "<b>Linked from:</b> %2<br>\n" \
-            "<b>Summary:</b> %3<br>\n" \
-            "<b>Description:</b> %4<br>\n" \
-            "%5\n" \
-            "</p>"
+          "<b>URL:</b> %1<br>\n" \
+          "<b>Linked from:</b> %2<br>\n" \
+          "<b>Summary:</b> %3<br>\n" \
+          "<b>Description:</b> %4<br>\n" \
+          "%5\n" \
+          "</p>"
         ),
         url_string,
         Ops.get_string(@list_of_repos, [current_id, "url_from"], ""),
@@ -1006,16 +1004,14 @@ module Yast
         # filter works with localized names
         localized_name = GetLocalizedString(repo_id, ["name", "url"])
         # do filter (filter after some_repo_already_selected is set)
-        if filter_string != ""
-          # neither "url" nor "name" matching
-          if !Builtins.regexpmatch(
-            Ops.get_string(one_repo, "url", ""),
-            filter_string
-          ) &&
-              !Builtins.regexpmatch(localized_name, filter_string)
-            next
-          end
+        if filter_string != "" && (!Builtins.regexpmatch(
+          Ops.get_string(one_repo, "url", ""),
+          filter_string
+        ) &&
+              !Builtins.regexpmatch(localized_name, filter_string))
+          next
         end
+
         counter = Ops.add(counter, 1)
         if url == ""
           Builtins.y2error("Repository %1 has no 'url'", one_repo)
@@ -1264,16 +1260,7 @@ module Yast
       )
       Wizard.SetTitleIcon("yast-sw_source")
 
-      if !Stage.initial
-        Wizard.DisableBackButton
-
-        if @script_called_from_another
-          Wizard.SetAbortButton(:cancel, Label.CancelButton)
-          Wizard.SetNextButton(:next, Label.OKButton)
-        else
-          Wizard.SetNextButton(:next, Label.FinishButton)
-        end
-      else
+      if Stage.initial
         # Next button must be always enabled
         # bnc #392111
         Wizard.RestoreNextButton
@@ -1284,6 +1271,15 @@ module Yast
           Wizard.SetAbortButton(:cancel, Label.CancelButton)
         else
           Wizard.RestoreAbortButton
+        end
+      else
+        Wizard.DisableBackButton
+
+        if @script_called_from_another
+          Wizard.SetAbortButton(:cancel, Label.CancelButton)
+          Wizard.SetNextButton(:next, Label.OKButton)
+        else
+          Wizard.SetNextButton(:next, Label.FinishButton)
         end
       end
 
@@ -1316,14 +1312,13 @@ module Yast
             elsif Popup.ConfirmAbort(:painless)
               break
             end
-          elsif @script_called_from_another
-            break
-          elsif Popup.ContinueCancelHeadline(
-            # TRANSLATORS: popup header
-            _("Aborting Configuration of Online Repository"),
-            # TRANSLATORS: popup question
-            _("Are you sure you want to abort the configuration?")
-          )
+          elsif @script_called_from_another ||
+              Popup.ContinueCancelHeadline(
+                # TRANSLATORS: popup header
+                _("Aborting Configuration of Online Repository"),
+                # TRANSLATORS: popup question
+                _("Are you sure you want to abort the configuration?")
+              )
             break
           end
         when "addon_repos"
@@ -1517,15 +1512,15 @@ module Yast
       if @skip_already_used_repos != true
         Builtins.foreach(@repos_already_used) do |id_used, src_id|
           # was used, but isn't anymore
-          if !Builtins.contains(@repos_to_be_used, id_used)
-            repos_to_be_deleted = Builtins.add(repos_to_be_deleted, src_id)
-
-            # was used and remains used
-          else
+          if Builtins.contains(@repos_to_be_used, id_used)
             Builtins.y2milestone("NotUsingAgain: %1", id_used)
             @repos_to_be_used = Builtins.filter(@repos_to_be_used) do |id_already_used|
               id_used != id_already_used
             end
+          else
+            repos_to_be_deleted = Builtins.add(repos_to_be_deleted, src_id)
+
+            # was used and remains used
           end
         end
       end
@@ -1682,12 +1677,12 @@ module Yast
 
       @@posted_low_memory_warning = true
       Report.Warning(_("Low memory detected.\n\nUsing online repositories " \
-            "during initial installation with less than\n" \
-            "%d MiB system memory is not recommended.\n\n" \
-            "The installer may crash or freeze if the additional package data\n" \
-            "need too much memory.\n\n" \
-            "Using the online repositories later in the installed system is\n" \
-            "recommended in this case.") % LOW_MEMORY_MIB)
+                       "during initial installation with less than\n" \
+                       "%d MiB system memory is not recommended.\n\n" \
+                       "The installer may crash or freeze if the additional package data\n" \
+                       "need too much memory.\n\n" \
+                       "Using the online repositories later in the installed system is\n" \
+                       "recommended in this case.") % LOW_MEMORY_MIB)
     end
 
     # Return 'true' if running on a system with low memory, 'false' if not.
@@ -1727,12 +1722,12 @@ module Yast
 
       if low_memory?
         # TRANSLATORS: the %d is replaced by minimal memory required
-        msg << _("However, since the system does not have more than %d MiB memory,\n" \
-                 "there is a significant risk of running out of memory,\n" \
-                 "and the installer may crash or freeze.\n" \
-                 "\n" \
-                 "Using the online repositories later in the installed\n" \
-                 "system is recommended.") % LOW_MEMORY_MIB
+        msg << (_("However, since the system does not have more than %d MiB memory,\n" \
+                  "there is a significant risk of running out of memory,\n" \
+                  "and the installer may crash or freeze.\n" \
+                  "\n" \
+                  "Using the online repositories later in the installed\n" \
+                  "system is recommended.") % LOW_MEMORY_MIB)
         @@posted_low_memory_warning = true
       end
 

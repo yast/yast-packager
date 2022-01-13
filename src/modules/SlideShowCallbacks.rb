@@ -275,7 +275,38 @@ module Yast
 
         Builtins.y2debug("PkgDU(%1): %2", @pkg_inprogress, pkgdu)
 
-        if !pkgdu.nil?
+        if pkgdu.nil?
+          # disk usage for each partition is not known
+          # assume that all files will be installed into the root directory,
+          # this is the current free space (in bytes)
+          disk_available = Pkg.TargetAvailable(Installation.destdir)
+
+          Builtins.y2milestone(
+            "Available space (%1): %2",
+            Installation.destdir,
+            disk_available
+          )
+
+          if disk_available < 0
+            log.debug("Data overflow, too much free space available, skipping the check")
+          elsif disk_available < pkg_size
+            Builtins.y2warning(
+              "Not enough free space in %1: available: %2, required: %3",
+              Installation.destdir,
+              disk_available,
+              pkg_size
+            )
+
+            cont = YesNoAgainWarning(
+              # yes-no popup
+              _(
+                "The disk space is nearly exhausted.\nContinue with the installation?"
+              )
+            )
+
+            SlideShow.SetUserAbort(true) if !cont
+          end
+        else
           # check each mount point
           Builtins.foreach(pkgdu) do |part, data|
             # disk sizes from libzypp, in KiB!
@@ -334,7 +365,7 @@ module Yast
                 Builtins.sformat(
                   _(
                     "The disk space in partition %1 is nearly exhausted.\n" \
-                      "Continue with the installation?"
+                    "Continue with the installation?"
                   ),
                   part
                 )
@@ -345,37 +376,6 @@ module Yast
               # don't check the other partitions
               raise Break
             end
-          end
-        else
-          # disk usage for each partition is not known
-          # assume that all files will be installed into the root directory,
-          # this is the current free space (in bytes)
-          disk_available = Pkg.TargetAvailable(Installation.destdir)
-
-          Builtins.y2milestone(
-            "Available space (%1): %2",
-            Installation.destdir,
-            disk_available
-          )
-
-          if disk_available < 0
-            log.debug("Data overflow, too much free space available, skipping the check")
-          elsif disk_available < pkg_size
-            Builtins.y2warning(
-              "Not enough free space in %1: available: %2, required: %3",
-              Installation.destdir,
-              disk_available,
-              pkg_size
-            )
-
-            cont = YesNoAgainWarning(
-              # yes-no popup
-              _(
-                "The disk space is nearly exhausted.\nContinue with the installation?"
-              )
-            )
-
-            SlideShow.SetUserAbort(true) if !cont
           end
         end
       end
@@ -449,7 +449,7 @@ module Yast
     end
 
     # during file providal
-    def ProgressDeltaApply(percent)
+    def ProgressDeltaApply(_percent)
       nil
     end
 
@@ -493,7 +493,7 @@ module Yast
       wanted, wanted_label, double_sided, devices, current_device)
       devices = deep_copy(devices)
 
-      ret = PackageCallbacks.MediaChange(
+      PackageCallbacks.MediaChange(
         error_code,
         error,
         url,
@@ -506,8 +506,6 @@ module Yast
         devices,
         current_device
       )
-
-      ret
     end
 
     # Install callbacks for slideshow.
@@ -595,7 +593,7 @@ module Yast
         fun_ref(
           method(:MediaChange),
           "string (string, string, string, string, integer, string, integer, " \
-            "string, boolean, list <string>, integer)"
+          "string, boolean, list <string>, integer)"
         )
       )
 
@@ -657,8 +655,8 @@ module Yast
     publish function: :ProblemDeltaApply, type: "void (string)"
     publish function: :CallbackSourceChange, type: "void (integer, integer)"
     publish function: :MediaChange,
-            type:     "string (string, string, string, string, integer, string, integer, " \
-        "string, boolean, list <string>, integer)"
+      type:     "string (string, string, string, string, integer, string, integer, " \
+                "string, boolean, list <string>, integer)"
     publish function: :InstallSlideShowCallbacks, type: "void ()"
     publish function: :RemoveSlideShowCallbacks, type: "void ()"
   end

@@ -64,7 +64,7 @@ module Y2Packager
     # @return [Array<String>] List of paths pointing to the downloaded primary.xml.gz files,
     #   returns an empty list if the URL or the repository is not valid.
     #
-    def primary_xmls(force = false)
+    def primary_xmls(force: false)
       # first check if there are any products defined in /media.1/products
       repos = product_repos
 

@@ -23,7 +23,7 @@ module Installation
 
       def configure_repositories_description
         "Run the repository manager. Be careful when using it,\n" \
-        "you might easily break the installer when wrongly used!"
+          "you might easily break the installer when wrongly used!"
       end
     end
   end
