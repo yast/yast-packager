@@ -63,7 +63,8 @@ describe Y2Packager::Dialogs::AddonSelector do
       end
 
       it "does not display any popup" do
-        expect(Yast::Popup).to_not receive(:anything)
+        # stub empty Yast::Popup so any method call would raise an exception
+        stub_const("Yast::Popup", double)
         subject.next_handler
       end
     end

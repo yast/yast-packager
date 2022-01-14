@@ -322,7 +322,6 @@ module Yast
     publish variable: :total_size_to_install, type: "integer" # Used in installation client
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
-    publish function: :SetCurrentCdNo, type: "void (integer, integer)"
     publish function: :UpdateCurrentPackageProgress, type: "void (integer)"
     publish function: :UpdateCurrentPackageRateProgress, type: "void (integer, integer, integer)"
     publish function: :DisplayGlobalProgress, type: "void ()"

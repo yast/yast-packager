@@ -154,7 +154,7 @@ describe Yast::ProductLicense do
           expect(Yast::ProductLicense).to receive(:AllLicensesAccepted).and_return(false)
             .at_least(:once)
           # :halt case
-          allow(Yast::ProductLicense).to receive(:TimedOKCancel).and_return(true)
+          allow(Yast::Popup).to receive(:TimedOKCancel).and_return(true)
         end
 
         context "when cancel action is 'continue'" do

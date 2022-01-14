@@ -18,6 +18,11 @@ SCR_BASH_PATH = Yast::Path.new(".target.bash")
 RSpec.configure do |config|
   config.extend Yast::I18n  # available in context/describe
   config.include Yast::I18n # available in it/let/before/...
+
+  config.mock_with :rspec do |c|
+    # https://relishapp.com/rspec/rspec-mocks/v/3-0/docs/verifying-doubles/partial-doubles
+    c.verify_partial_doubles = true
+  end
 end
 
 RSpec::Matchers.define :array_not_including do |x|
@@ -34,12 +39,57 @@ def stub_module(name)
   Yast.const_set(name.to_sym, Class.new { def self.fake_method; end })
 end
 
-stub_module("Language")
+# these are not used in the tests so we can just use an empty implementation
 stub_module("Proxy")
 stub_module("FTP")
 stub_module("HTTP")
 stub_module("NtpClient")
-stub_module("InstFunctions")
+
+# helper for defining missing YaST modules
+def define_if_missing(name, &block)
+  # try loading the module, it might be present in the system (running locally
+  # or in GitHub Actions), mock it only when missing (e.g. in OBS build)
+  Yast.import name
+  puts "Found module Yast::#{name}"
+rescue NameError
+  warn "Mocking the Yast::#{name} module completely"
+  block.call
+end
+
+# define missing modules with an API, these are used in the tests and need to
+# implement the *same* API as the real modules
+
+define_if_missing("InstFunctions") do
+  # see modules/InstFunctions.rb in yast2-installation
+  module Yast
+    class InstFunctionsClass < Module
+      # @return [Boolean]
+      def second_stage_required?; end
+    end
+
+    InstFunctions = InstFunctionsClass.new
+  end
+end
+
+define_if_missing("Language") do
+  # see modules/Language.rb in yast2-country
+  module Yast
+    class LanguageClass < Module
+      # @return [String]
+      def language; end
+
+      # @param _lang [String]
+      # @return [Boolean]
+      def supported_language?(_lang); end
+
+      # @param _force [Boolean]
+      # @return [Hash<String,Array>]
+      def GetLanguagesMap(_force); end
+    end
+
+    Language = LanguageClass.new
+  end
+end
 
 if ENV["COVERAGE"]
   require "simplecov"
