@@ -33,18 +33,6 @@ RSpec::Matchers.define :array_not_including do |x|
   end
 end
 
-# stub module to prevent its Import
-# Useful for modules from different yast packages, to avoid build dependencies
-def stub_module(name)
-  Yast.const_set(name.to_sym, Class.new { def self.fake_method; end })
-end
-
-# these are not used in the tests so we can just use an empty implementation
-stub_module("Proxy")
-stub_module("FTP")
-stub_module("HTTP")
-stub_module("NtpClient")
-
 if ENV["COVERAGE"]
   require "simplecov"
   SimpleCov.start do
@@ -72,23 +60,18 @@ if ENV["COVERAGE"]
   end
 end
 
-# helper for defining missing YaST modules,
-# these needs to be done *after* calling SimpleCov.start so the coverage
-# of the imported modules is correctly counted
-def define_if_missing(name, &block)
-  # try loading the module, it might be present in the system (running locally
-  # or in GitHub Actions), mock it only when missing (e.g. in OBS build)
-  Yast.import name
-  puts "Found module Yast::#{name}"
-rescue NameError
-  warn "Mocking the Yast::#{name} module completely"
-  block.call
-end
+# stub missing YaST modules from different yast packages to avoid build dependencies
+
+# these are not used in the tests so we can just use an empty implementation
+Yast::RSpec::Helpers.define_yast_module("Proxy")
+Yast::RSpec::Helpers.define_yast_module("FTP")
+Yast::RSpec::Helpers.define_yast_module("HTTP")
+Yast::RSpec::Helpers.define_yast_module("NtpClient")
 
 # define missing modules with an API, these are used in the tests and need to
 # implement the *same* API as the real modules
 
-define_if_missing("InstFunctions") do
+Yast::RSpec::Helpers.define_yast_module("InstFunctions") do
   # see modules/InstFunctions.rb in yast2-installation
   module Yast
     class InstFunctionsClass < Module
@@ -100,7 +83,7 @@ define_if_missing("InstFunctions") do
   end
 end
 
-define_if_missing("Language") do
+Yast::RSpec::Helpers.define_yast_module("Language") do
   # see modules/Language.rb in yast2-country
   module Yast
     class LanguageClass < Module
