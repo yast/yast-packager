@@ -63,10 +63,10 @@ end
 # stub missing YaST modules from different yast packages to avoid build dependencies
 
 # these are not used in the tests so we can just use an empty implementation
-Yast::RSpec::Helpers.define_yast_module("Proxy")
 Yast::RSpec::Helpers.define_yast_module("FTP")
 Yast::RSpec::Helpers.define_yast_module("HTTP")
 Yast::RSpec::Helpers.define_yast_module("NtpClient")
+Yast::RSpec::Helpers.define_yast_module("Proxy")
 
 # define missing modules with an API, these are used in the tests and need to
 # implement the *same* API as the real modules
