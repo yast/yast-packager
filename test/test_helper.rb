@@ -71,36 +71,16 @@ Yast::RSpec::Helpers.define_yast_module("NtpClient")
 # define missing modules with an API, these are used in the tests and need to
 # implement the *same* API as the real modules
 
-Yast::RSpec::Helpers.define_yast_module("InstFunctions") do
-  # see modules/InstFunctions.rb in yast2-installation
-  module Yast
-    class InstFunctionsClass < Module
-      # @return [Boolean]
-      def second_stage_required?; end
-    end
+Yast::RSpec::Helpers.define_yast_module("InstFunctions", methods: [:second_stage_required?])
 
-    InstFunctions = InstFunctionsClass.new
-  end
-end
+Yast::RSpec::Helpers.define_yast_module("Language", methods: [:language]) do
+  # @param _lang [String]
+  # @return [Boolean]
+  def supported_language?(_lang); end
 
-Yast::RSpec::Helpers.define_yast_module("Language") do
-  # see modules/Language.rb in yast2-country
-  module Yast
-    class LanguageClass < Module
-      # @return [String]
-      def language; end
-
-      # @param _lang [String]
-      # @return [Boolean]
-      def supported_language?(_lang); end
-
-      # @param _force [Boolean]
-      # @return [Hash<String,Array>]
-      def GetLanguagesMap(_force); end
-    end
-
-    Language = LanguageClass.new
-  end
+  # @param _force [Boolean]
+  # @return [Hash<String,Array>]
+  def GetLanguagesMap(_force); end
 end
 
 # mock empty class to avoid build dependency on yast2-installation
