@@ -73,15 +73,8 @@ Yast::RSpec::Helpers.define_yast_module("Proxy")
 
 Yast::RSpec::Helpers.define_yast_module("InstFunctions", methods: [:second_stage_required?])
 
-Yast::RSpec::Helpers.define_yast_module("Language", methods: [:language]) do
-  # @param _lang [String]
-  # @return [Boolean]
-  def supported_language?(_lang); end
-
-  # @param _force [Boolean]
-  # @return [Hash<String,Array>]
-  def GetLanguagesMap(_force); end
-end
+Yast::RSpec::Helpers.define_yast_module("Language",
+  methods: [:language, :supported_language?, :GetLanguagesMap])
 
 # mock empty class to avoid build dependency on yast2-installation
 module Installation
