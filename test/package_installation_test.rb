@@ -12,7 +12,6 @@ describe Yast::PackageInstallation do
     let(:result) { [1, [], [], [], []] }
 
     before do
-      allow(Yast::PackageSlideShow).to receive(:SetCurrentCdNo)
       allow(Yast::Pkg).to receive(:Commit).with(config)
         .and_return(result)
       allow(Yast::PackagesUI).to receive(:show_update_messages)

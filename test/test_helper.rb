@@ -18,6 +18,11 @@ SCR_BASH_PATH = Yast::Path.new(".target.bash")
 RSpec.configure do |config|
   config.extend Yast::I18n  # available in context/describe
   config.include Yast::I18n # available in it/let/before/...
+
+  config.mock_with :rspec do |c|
+    # https://relishapp.com/rspec/rspec-mocks/v/3-0/docs/verifying-doubles/partial-doubles
+    c.verify_partial_doubles = true
+  end
 end
 
 RSpec::Matchers.define :array_not_including do |x|
@@ -27,19 +32,6 @@ RSpec::Matchers.define :array_not_including do |x|
     !actual.include?(x)
   end
 end
-
-# stub module to prevent its Import
-# Useful for modules from different yast packages, to avoid build dependencies
-def stub_module(name)
-  Yast.const_set(name.to_sym, Class.new { def self.fake_method; end })
-end
-
-stub_module("Language")
-stub_module("Proxy")
-stub_module("FTP")
-stub_module("HTTP")
-stub_module("NtpClient")
-stub_module("InstFunctions")
 
 if ENV["COVERAGE"]
   require "simplecov"
@@ -67,6 +59,22 @@ if ENV["COVERAGE"]
     ]
   end
 end
+
+# stub missing YaST modules from different yast packages to avoid build dependencies
+
+# these are not used in the tests so we can just use an empty implementation
+Yast::RSpec::Helpers.define_yast_module("FTP")
+Yast::RSpec::Helpers.define_yast_module("HTTP")
+Yast::RSpec::Helpers.define_yast_module("NtpClient")
+Yast::RSpec::Helpers.define_yast_module("Proxy")
+
+# define missing modules with an API, these are used in the tests and need to
+# implement the *same* API as the real modules
+
+Yast::RSpec::Helpers.define_yast_module("InstFunctions", methods: [:second_stage_required?])
+
+Yast::RSpec::Helpers.define_yast_module("Language",
+  methods: [:language, :supported_language?, :GetLanguagesMap])
 
 # mock empty class to avoid build dependency on yast2-installation
 module Installation

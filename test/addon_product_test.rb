@@ -697,7 +697,6 @@ describe Yast::AddOnProduct do
 
     before do
       allow(subject).to receive(:GetCachedFileFromSource)
-      allow(subject).to receive(:IntegrateReleaseNotes)
       allow(Yast::WorkflowManager).to receive(:GetCachedWorkflowFilename)
       allow(Yast::WorkflowManager).to receive(:AddWorkflow)
     end

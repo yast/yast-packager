@@ -41,12 +41,7 @@ describe Yast::Packages do
   end
 
   describe "#kernelCmdLinePackages" do
-    before(:each) do
-      # default value
-      allow(Yast::Product).to receive(:Product).and_return nil
-    end
-
-    context "when biosdevname behavior explicitly defined on the Kenel command line" do
+    context "when biosdevname behavior explicitly defined on the Kernel command line" do
       context "when biosdevname=1" do
         around do |example|
           root = File.join(DATA_PATH, "cmdline-biosdevname_1")
