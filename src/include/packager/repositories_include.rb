@@ -20,7 +20,7 @@ module Yast
       Yast.import "Wizard"
       Yast.import "AddOnProduct"
       Yast.import "URL"
-      Yast.import "PackageSystem"
+      Yast.import "Package"
       Yast.import "Popup"
       Yast.import "Label"
       Yast.import "Mode"
@@ -243,14 +243,14 @@ module Yast
       case url
       when "slp://"
         required_package = "yast2-slp"
-        installed_before = PackageSystem.Installed(required_package)
+        installed_before = Package.Installed(required_package)
 
         if !Stage.initial && !installed_before
           # Tries to Check and Install packages
-          if !PackageSystem.CheckAndInstallPackagesInteractive(
+          if !Package.CheckAndInstallPackagesInteractive(
             [required_package]
           ) ||
-              !PackageSystem.Installed(required_package)
+              !Package.Installed(required_package)
             Report.Error(
               Builtins.sformat(
                 # popup error message, %1 is the package name
@@ -506,7 +506,7 @@ module Yast
 
       log.info("Installing missing 'cifs-mount' package...")
       # install cifs-mount package
-      PackageSystem.CheckAndInstallPackages(["cifs-mount"])
+      Package.CheckAndInstallPackages(["cifs-mount"])
     end
 
     # Ask user whether to change the entered URL and try again
