@@ -37,7 +37,7 @@ module Yast
       Yast.import "Sequencer"
       Yast.import "String"
       Yast.import "Stage"
-      Yast.import "PackageSystem"
+      Yast.import "Package"
       Yast.import "GetInstArgs"
       Yast.import "Directory"
 
@@ -259,7 +259,7 @@ module Yast
       req_package = "checkmedia"
 
       if Ops.less_than(SCR.Read(path(".target.size"), CheckMedia.checkmedia), 0) &&
-          !PackageSystem.CheckAndInstallPackagesInteractive([req_package])
+          !Package.CheckAndInstallPackagesInteractive([req_package])
         return :abort
       end
 

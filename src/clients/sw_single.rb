@@ -35,7 +35,7 @@ module Yast
       Yast.import "Wizard"
       Yast.import "Popup"
       Yast.import "GetInstArgs"
-      Yast.import "PackageSystem"
+      Yast.import "Package"
       Yast.import "Report"
       Yast.import "FileUtils"
       Yast.import "PackagesUI"
@@ -150,7 +150,7 @@ module Yast
       # If the first argument is a package ending with .rpm call Pkg::TargetInstall for
       # each arg.
       if Builtins.regexpmatch(first_arg, "\\.rpm$") # package name given
-        PackageSystem.EnsureSourceInit
+        Package.EnsureSourceInit
 
         # if sw_single is called with an absolute package-pathname, there is no need to
         # mount the source medium or check SuSE version or dependencies
@@ -601,8 +601,8 @@ module Yast
             when :online_update_configuration
               required_package = "yast2-online-update-configuration"
 
-              if !PackageSystem.Installed(required_package) &&
-                  !PackageSystem.CheckAndInstallPackages([required_package])
+              if !Package.Installed(required_package) &&
+                  !Package.CheckAndInstallPackages([required_package])
                 Report.Error(
                   Builtins.sformat(
                     _(
