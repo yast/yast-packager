@@ -36,6 +36,7 @@ module Yast
       Yast.import "Popup"
       Yast.import "GetInstArgs"
       Yast.import "Package"
+      Yast.import "PackageSystem"
       Yast.import "Report"
       Yast.import "FileUtils"
       Yast.import "PackagesUI"
@@ -150,7 +151,7 @@ module Yast
       # If the first argument is a package ending with .rpm call Pkg::TargetInstall for
       # each arg.
       if Builtins.regexpmatch(first_arg, "\\.rpm$") # package name given
-        Package.EnsureSourceInit
+        PackageSystem.EnsureSourceInit
 
         # if sw_single is called with an absolute package-pathname, there is no need to
         # mount the source medium or check SuSE version or dependencies
