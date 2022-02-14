@@ -97,6 +97,7 @@ module Yast
 
       # save all repositories and finish target
       Pkg.SourceSaveAll
+      remove_duplicates
       Pkg.TargetFinish
 
       # save repository metadata cache to the installed system
@@ -304,6 +305,28 @@ module Yast
         config.set_minimalistic!
         config.save
       end
+    end
+
+    # Remove duplicate repositories. If a repository with the same alias
+    # already exists libzypp saves it with suffix ".repo_1".
+    # The duplicate repositories comes from an RPM package
+    # @see bsc#1194546
+    def remove_duplicates
+      # all repositories, including the disabled ones
+      repos = Pkg.SourceGetCurrent(false)
+
+      to_delete = repos.select do |repo|
+        Yast::Pkg.SourceGeneralData(repo)["file"]&.match?(/\.repo_\d+\z/)
+      end
+
+      return if to_delete.empty?
+
+      to_delete.each do |repo|
+        log.info("Deleting duplicate repository #{Yast::Pkg.SourceGeneralData(repo)["file"]}")
+        Pkg.SourceDelete(repo)
+      end
+
+      Pkg.SourceSaveAll
     end
   end
 end

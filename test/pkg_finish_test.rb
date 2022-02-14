@@ -56,6 +56,9 @@ describe Yast::PkgFinishClient do
       allow(Yast::Mode).to receive(:update).and_return(update)
       allow(Yast::Stage).to receive(:initial).and_return(true)
       allow(Yast::Pkg).to receive(:SourceLoad)
+      allow(Yast::Pkg).to receive(:SourceDelete)
+      allow(Yast::Pkg).to receive(:SourceSaveAll)
+      allow(Yast::Pkg).to receive(:SourceGetCurrent).and_return([])
       allow(File).to receive(:exist?).and_call_original
       allow(File).to receive(:exist?).with(FAILED_PKGS_PATH).and_return(false)
       allow(Yast::Packager::CFA::ZyppConf)
@@ -79,6 +82,19 @@ describe Yast::PkgFinishClient do
         .and_return(true)
       expect(FileUtils).to receive(:cp)
         .with(FAILED_PKGS_PATH, "#{destdir}#{FAILED_PKGS_PATH}", preserve: true)
+      client.run
+    end
+
+    it "removes duplicate repositories" do
+      # the repositories stored in the *.repo_1 files are deleted
+      expect(Yast::Pkg).to receive(:SourceGetCurrent).and_return([42, 43])
+      expect(Yast::Pkg).to receive(:SourceGeneralData).with(42) \
+        .and_return("file" => "/etc/zypp/repos.d/test.repo")
+      expect(Yast::Pkg).to receive(:SourceGeneralData).with(43) \
+        .and_return("file" => "/etc/zypp/repos.d/test.repo_1").twice
+      expect(Yast::Pkg).to receive(:SourceDelete).with(43)
+      expect(Yast::Pkg).to receive(:SourceSaveAll)
+
       client.run
     end
 
