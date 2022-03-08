@@ -146,7 +146,15 @@ module Yast
           next
         end
 
-        alias_name = (force_alias == "") ? propose_alias(product.name) : force_alias
+        alias_name = if force_alias != ""
+          force_alias
+        elsif product.media_name && !product.media_name.empty?
+          propose_alias(product.media_name)
+        elsif product.name && !product.name.empty?
+          propose_alias(product.name)
+        end
+
+        alias_name = propose_alias(Packages.fallback_name) if alias_name.empty?
 
         # map with repository parameters: $[ "enabled" : boolean,
         # "autorefresh" : boolean, "raw_name" : string, "alias" : string,
