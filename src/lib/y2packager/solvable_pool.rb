@@ -34,6 +34,9 @@ module Y2Packager
       File.open(primary_xml) do |gz|
         fd = Solv.xfopen_fd(primary_xml, gz.fileno)
         repo.add_rpmmd(fd, nil, 0)
+        # Explicitly close the file, do not rely on garbage collection to do
+        # it in a timely manner (bsc#1196061).
+        fd.close
       end
       pool.createwhatprovides
     end
