@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 15 12:50:30 UTC 2022 - Steffen Winterfeldt <snwint@suse.com>
+
+- do not keep file handle to repo metadata open accidentally (bsc#1196061)
+- 4.3.26
+
+-------------------------------------------------------------------
 Fri Nov 19 14:09:32 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - Use consistent names for the Full medium repositories
