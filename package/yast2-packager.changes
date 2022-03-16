@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 15 17:20:53 UTC 2022 - Steffen Winterfeldt <snwint@suse.com>
+
+- do not keep file handle to repo metadata open accidentally (bsc#1196061)
+- 4.4.25
+
+-------------------------------------------------------------------
 Tue Mar  8 13:37:35 UTC 2022 - Ladislav Slezák <lslezak@suse.cz>
 
 - Properly set the repository alias for the Full medium add-ons
