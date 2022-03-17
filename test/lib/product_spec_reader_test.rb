@@ -46,6 +46,7 @@ describe Y2Packager::ProductSpecReader do
       allow(Y2Packager::ProductSpecReaders::Libzypp).to receive(:new).and_return(libzypp_reader)
       allow(Y2Packager::InstallationMedium).to receive(:contain_repo?).and_return(false)
       allow(Y2Packager::InstallationMedium).to receive(:contain_multi_repos?).and_return(false)
+      allow(Yast::Mode).to receive(:normal).and_return(false)
     end
 
     context "when medium does not contain any repository" do
@@ -68,6 +69,16 @@ describe Y2Packager::ProductSpecReader do
     context "when medium contain single repository" do
       before do
         allow(Y2Packager::InstallationMedium).to receive(:contain_repo?).and_return(true)
+      end
+
+      it "returns the libzypp products" do
+        expect(reader.products).to eq(libzypp_products)
+      end
+    end
+
+    context "in installed system" do
+      before do
+        allow(Yast::Mode).to receive(:normal).and_return(true)
       end
 
       it "returns the libzypp products" do

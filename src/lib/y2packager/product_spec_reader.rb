@@ -26,12 +26,16 @@ module Y2Packager
   # Reads product specification from different sources
   class ProductSpecReader
     include Yast::Logger
+    Yast.import "Mode"
 
     # Returns the list of product specifications.
     #
     # @return [Y2Packager::ProductSpec] List of product specifications
     def products
       # products_from_control || products_from_offline || products_from_libzypp
+
+      # online migration (in installed system)
+      return products_from_libzypp if Yast::Mode.normal
 
       if InstallationMedium.contain_multi_repos?
         products_from_multi_repos
