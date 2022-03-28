@@ -15,7 +15,7 @@ describe Yast::SlideShowCallbacksClass do
     let(:deleting) { false }
 
     before do
-      allow(Yast::PackageSlideShow).to receive(:SlideDisplayStart)
+      allow(Yast::PackageSlideShow).to receive(:PkgInstallStart)
       allow(subject).to receive(:HandleInput)
       allow(Yast::Installation).to receive(:destdir).and_return("/")
       allow(File).to receive(:exist?).and_return(true)

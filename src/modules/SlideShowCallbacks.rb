@@ -25,7 +25,7 @@ module Yast
       Yast.import "Directory"
       Yast.import "URL"
 
-      @_remote_provide = false
+      @remote_provide = false
 
       @pkg_inprogress = ""
 
@@ -72,37 +72,34 @@ module Yast
     #  at start of file providal
     def StartProvide(name, archivesize, remote)
       @pkg_inprogress = name
-      @_remote_provide = remote
+      @remote_provide = remote
 
-      PackageSlideShow.SlideProvideStart(name, archivesize, remote)
-
+      PackageSlideShow.DownloadStart(name, archivesize) if @remote_provide
       nil
     end
 
     # during file providal
     def ProgressProvide(percent)
-      PackageSlideShow.UpdateCurrentPackageProgress(percent) if @_remote_provide
+      PackageSlideShow.DownloadProgress(percent) if @remote_provide
       HandleInput()
       !SlideShow.GetUserAbort
     end
 
-    def ProgressDownload(percent, bps_avg, bps_current)
-      PackageSlideShow.UpdateCurrentPackageRateProgress(
-        percent,
-        bps_avg,
-        bps_current
-      )
-
+    # Update during package download: Percent, average and current bytes per second.
+    def ProgressDownload(percent, _bps_avg, _bps_current)
       HandleInput()
       !SlideShow.GetUserAbort
     end
 
     # during file providal
     def DoneProvide(error, reason, name)
-      if @_remote_provide
-        PackageSlideShow.UpdateCurrentPackageProgress(100)
-        PackageSlideShow.DoneProvide(error, reason, name)
-        @_remote_provide = false
+      if @remote_provide
+        if error.zero?
+          PackageSlideShow.DownloadEnd(name)
+        else
+          PackageSlideShow.DownloadError(error, reason, name)
+        end
+        @remote_provide = false
       end
       return "C" if SlideShow.GetUserAbort
       return PackageCallbacks.DoneProvide(error, reason, name) if error.nonzero?
@@ -260,7 +257,7 @@ module Yast
     # and pass the "deleting" flag as appropriate.
     #
     def DisplayStartInstall(pkg_name, pkg_location, pkg_description, pkg_size, deleting)
-      PackageSlideShow.SlideDisplayStart(
+      PackageSlideShow.PkgInstallStart(
         pkg_name,
         pkg_location,
         pkg_description,
@@ -383,7 +380,7 @@ module Yast
       nil
     end
 
-    #  at start of package install
+    # Notification that a package starts being installed, updated or removed.
     def StartPackage(name, location, summary, install_size, is_delete)
       PackageCallbacks._package_name = name
       PackageCallbacks._package_size = install_size
@@ -394,9 +391,9 @@ module Yast
       nil
     end
 
-    # ProgressPackage percent
-    #
+    # Progress while a package is being installed, updated or removed.
     def ProgressPackage(pkg_percent)
+      PackageSlideShow.PkgInstallProgress(pkg_percent)
       HandleInput()
 
       Builtins.y2milestone("Aborted at %1%%", pkg_percent) if SlideShow.GetUserAbort
@@ -404,7 +401,8 @@ module Yast
       !SlideShow.GetUserAbort
     end
 
-    # at end of install
+    # Notification that a package is finished being installed, updated or removed.
+    #
     # just to override the PackageCallbacks default (which does a 'CloseDialog' :-})
     def DonePackage(error, reason)
       return "I" if SlideShow.GetUserAbort
@@ -420,7 +418,7 @@ module Yast
 
       if Builtins.size(ret).zero? ||
           Builtins.tolower(Builtins.substring(ret, 0, 1)) != "r"
-        PackageSlideShow.SlideDisplayDone(
+        PackageSlideShow.PkgInstallDone(
           PackageCallbacks._package_name,
           PackageCallbacks._package_size,
           PackageCallbacks._deleting_package
@@ -430,21 +428,12 @@ module Yast
     end
 
     #  at start of file providal
-    def StartDeltaProvide(name, archivesize)
-      PackageSlideShow.SlideGenericProvideStart(
-        name, # remote
-        archivesize,
-        _("Downloading delta RPM %1 (download size %2)"),
-        true
-      )
-
+    def StartDeltaProvide(_name, _archivesize)
       nil
     end
 
     #  at start of file providal
-    def StartDeltaApply(name)
-      PackageSlideShow.SlideDeltaApplyStart(name)
-
+    def StartDeltaApply(_name)
       nil
     end
 

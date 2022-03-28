@@ -16,6 +16,7 @@ module Yast
       Yast.import "SlideShow"
       Yast.import "String"
       Yast.import "Mode"
+      Yast.import "Packages"
 
       @inst_src_names = [] # a list of strings identifying each repository
       @total_size_installed = 0
@@ -33,6 +34,10 @@ module Yast
       @total_installed = 0
       @total_pkgs_to_install = 0
 
+      @expected_total_download_size = 0
+      @finished_total_download_size = 0
+      @current_pkg_download_percent = 0
+
       # package list (only used in installed system)
       @installed_packages_list = []
       @updated_packages_list = []
@@ -47,6 +52,11 @@ module Yast
       @removed_packages = 0
       @total_downloaded = 0
       @total_installed = 0
+      @expected_total_download_size = 0
+      @finished_total_download_size = 0
+      @current_pkg_download_size = 0
+      @current_pkg_download_percent = 0
+      @current_pkg_name = ""
 
       @installed_packages_list = []
       @updated_packages_list = []
@@ -75,7 +85,7 @@ module Yast
     # **************  Formatting functions and helpers **************************
     # ***************************************************************************
 
-    # Sum up all list items. It flattens list and also skip all negative values.
+    # Sum up all list items. It flattens the list and also skips all negative values.
     #
     # @param sizes [Array<Fixnum|Array>] Sizes to sum
     # @return [Fixnum] Sizes sum
@@ -83,16 +93,22 @@ module Yast
       sizes.flatten.select(&:positive?).reduce(0, :+)
     end
 
+    # The total size in bytes to install.
+    def TotalSizeToInstall
+      @total_size_to_install
+    end
+
+    # The current size in bytes that is already installed.
     def TotalInstalledSize
       @total_size_installed
     end
 
     # Format number of remaining bytes to be installed as string.
     # @param [Fixnum] remaining    bytes remaining, -1 for 'done'
-    # @return      [String] human readable remaining time or byte / kB/ MB size
+    # @return [String] human readable remaining time or byte / kB/ MB size
     #
     def FormatRemainingSize(remaining)
-      if Ops.less_than(remaining, 0)
+      if remaining < 0
         # Nothing more to install from this CD (very concise - little space!!)
         return _("Done.")
       end
@@ -103,10 +119,10 @@ module Yast
 
     # Format number of remaining packages to be installed as string.
     # @param [Fixnum] remaining    bytes remaining, -1 for 'done'
-    # @return      [String] human readable remaining time or byte / kB/ MB size
+    # @return [String] human readable remaining time or byte / kB/ MB size
     #
     def FormatRemainingCount(remaining)
-      if Ops.less_than(remaining, 0)
+      if remaining < 0
         # Nothing more to install from this CD (very concise - little space!!)
         return _("Done.")
       end
@@ -134,51 +150,46 @@ module Yast
       total_pkg_count_per_cd_per_src = Pkg.PkgMediaCount
 
       @total_size_to_install = ListSum(total_sizes_per_cd_per_src)
-      log.info "total_size_to_install: #{@total_size_to_install}"
       @total_pkgs_to_install = ListSum(total_pkg_count_per_cd_per_src)
       @init_pkg_data_complete = true
+      @expected_total_download_size = Packages.CountSizeToBeDownloaded unless parallel_download?
+      log.info "Total size to install: #{@total_size_to_install}"
+      log.info "Expected total download size: #{@expected_total_download_size}"
+      nil
     end
 
-    # Recalculate remaining times per CD based on package sizes remaining
-    # and data rate so far. Recalculation is only done each 'recalc_interval'
-    # seconds unless 'force_recalc' is set to 'true'.
-    #
-    # @param [Boolean] _force_recalc force recalculation even if timeout not reached yet
-    # @return true if recalculated, false if not
-    #
-    # @see SlideShow.next_recalc_time
-    # @see Yast2::SystemTime.uptime
-    def RecalcRemainingTimes(_force_recalc)
-      true
-    end
-
-    # Switch unit to seconds if necessary and recalc everything accordingly.
-    # @return true if just switched from sizes to seconds, false otherwise
-    #
-    def SwitchToSecondsIfNecessary
-      false
+    # Check if package are downloaded in parallel to being installed.
+    def parallel_download?
+      # 15.4: Not in the installed system, only during system installation
+      !Mode.normal
     end
 
     # ***************************************************************************
     # *****************  Callbacks and progress bars ****************************
     # ***************************************************************************
 
-    # Update progress widgets for the current CD: Label and ProgressBar.
-    # Use global statistics variables for that.
-    # @param [Boolean] silent_check  don't complain in log file
-    #
-    def UpdateCurrentCdProgress(silent_check); end
-
-    # update the overall progress value (download + installation)
+    # Update the overall progress value (download + installation)
     def UpdateTotalProgressValue
-      total_progress = if @total_size_to_install.zero?
-        100 # nothing to install. Should not happen
+      total_size = @total_size_to_install
+      total_size += @expected_total_download_size unless parallel_download?
+
+      if total_size.zero?
+        total_progress = 100.0 # Nothing to install. Should not happen.
       else
-        TotalInstalledSize() * 100 / @total_size_to_install
+        current = TotalInstalledSize()
+        current += CurrentDownloadSize() unless parallel_download?
+        log.debug "Current: #{current} of #{total_size}"
+        total_progress = (100.0 * current / total_size).round
       end
 
-      log.debug "Total package installation progress: #{total_progress}%"
+      log.info "Total progress: #{total_progress}%"
       SlideShow.StageProgress(total_progress, nil)
+    end
+
+    # Calculate the size of the current downloads
+    def CurrentDownloadSize
+      current_pkg = @current_pkg_download_size * @current_pkg_download_percent / 100
+      @finished_total_download_size + current_pkg
     end
 
     # Update progress widgets
@@ -188,74 +199,100 @@ module Yast
       UpdateTotalProgressValue()
     end
 
-    # Progress display update
-    # This is called via the packager's progress callbacks.
-    #
-    # @param [Fixnum] pkg_percent  package percentage
-    #
-    def UpdateCurrentPackageProgress(pkg_percent); end
-
-    # update the download rate
-    def UpdateCurrentPackageRateProgress(_pkg_percent, _bps_avg, _bps_current)
-      nil
-    end
-
     def DisplayGlobalProgress
-      rem_string = FormatRemainingSize(@total_size_to_install - @total_size_installed)
-
-      rem_string += ", " unless rem_string.empty?
+      remaining_string = FormatRemainingSize(@total_size_to_install - @total_size_installed)
+      remaining_string += ", " unless remaining_string.empty?
 
       SlideShow.SetGlobalProgressLabel(
-        Ops.add(
-          SlideShow.CurrentStageDescription,
-          Builtins.sformat(
+          SlideShow.CurrentStageDescription
+          + Builtins.sformat(
             _(" (Remaining: %1%2 packages)"),
-            rem_string,
+            remaining_string,
             @total_pkgs_to_install - @installed_packages - @updated_packages
           )
-        )
       )
 
       nil
     end
 
-    # Callback when file is downloaded ( but not yet installed )
-    # @param error[Integer] error code
-    def DoneProvide(error, _reason, _name)
-      return if error.nonzero?
-
-      # move the progress also for downloaded files
+    # Notification when download of a package starts
+    def DownloadStart(pkg_name, download_size)
+      log.info "DownloadStart #{pkg_name} size: #{download_size}"
+      @current_pkg_name = pkg_name
+      @current_pkg_download_size = download_size
+      @current_pkg_download_percent = 0
       UpdateTotalProgressValue()
       nil
     end
 
-    # Update progress widgets for all CDs.
-    # Uses global statistics variables.
-    # Redraw whole table, time consuming, but called only when all times recalculated.
-    #
-    def UpdateAllCdProgress(_silent_check)
+    # Update the download progress for the current package
+    def DownloadProgress(pkg_percent)
+      log.info "#{@current_pkg_name}: #{pkg_percent}%"
+      @current_pkg_download_percent = pkg_percent
+      UpdateTotalProgressValue()
       nil
     end
 
-    # Return a CD's progress bar ID
-    # @param [Fixnum] src_no number of the repository (from 0 on)
-    # @param [Fixnum] cd_no number of the CD within that repository (from 0 on)
-    #
-    def CdProgressId(src_no, cd_no)
-      Builtins.sformat("Src %1 CD %2", src_no, cd_no)
+    # Notification when download of a package is finished
+    def DownloadEnd(pkg_name)
+      log.info("Downloading #{pkg_name} finished")
+      CurrentDownloadFinished()
+      UpdateTotalProgressValue()
+      nil
     end
 
-    # package start display update
-    # - this is called at the end of a new package
+    # Notification about a download error.
+    # @param [Integer] error   Numeric error code
+    # @param [String]  reason
+    # @param [String]  pkg_name
+    def DownloadError(error, reason, pkg_name)
+      log.error("Download error #{error} for #{pkg_name}: #{reason}")
+      CurrentDownloadFinished()
+      UpdateTotalProgressValue()
+      nil
+    end
+
+    # Finalize the sums for the current download
+    def CurrentDownloadFinished
+      @finished_total_download_size += @current_pkg_download_size
+      @current_pkg_download_size = 0
+      @current_pkg_download_percent = 0
+      @current_pkg_name = ""
+    end
+
+    # Notification that a package starts being installed, updated or removed.
+    # Not to be confused with DownloadStart.
+    #
+    # @param [String]  pkg_name      package name
+    # @param [String]  _pkg_location full path to a package
+    # @param [String]  _pkg_summary  package summary (short description)
+    # @param [Integer] _pkg_size     installed package size in bytes
+    # @param [Boolean] deleting      Flag: deleting (true) or installing (false) package?
+    #
+    def PkgInstallStart(pkg_name, _pkg_location, _pkg_summary, _pkg_size, deleting)
+      @updating = Pkg.PkgInstalled(pkg_name) if !deleting
+      # Update global progress bar
+      DisplayGlobalProgress()
+
+      nil
+    end
+
+    # Progress notification while a package is finished being installed, updated or removed.
+    #
+    # @param [Integer] percent of progress of this package
+    def PkgInstallProgress(_pkg_percent)
+      nil
+    end
+
+    # Notification that a package is finished being installed, updated or removed.
     #
     # @param [String] pkg_name    package name
     # @param [String] pkg_size    package size in bytes
     # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package
     #
-    def SlideDisplayDone(pkg_name, pkg_size, deleting)
+    def PkgInstallDone(pkg_name, pkg_size, deleting)
       if deleting
         @removed_packages += 1
-
         @removed_packages_list << pkg_name if Mode.normal
       else
         @total_size_installed += pkg_size
@@ -266,72 +303,31 @@ module Yast
         DisplayGlobalProgress()
 
         if @updating
-          @updated_packages = Ops.add(@updated_packages, 1)
-
-          if Mode.normal
-            @updated_packages_list = Builtins.add(
-              @updated_packages_list,
-              pkg_name
-            )
-          end
+          @updated_packages += 1
+          @updated_packages_list << pkg_name if Mode.normal
         else
-          @installed_packages = Ops.add(@installed_packages, 1)
-
-          if Mode.normal
-            @installed_packages_list = Builtins.add(
-              @installed_packages_list,
-              pkg_name
-            )
-          end
+          @installed_packages += 1
+          @installed_packages_list << pkg_name if Mode.normal
         end
 
-        @total_installed = Ops.add(@total_installed, pkg_size)
+        @total_installed += pkg_size
       end
 
       nil
     end
 
-    # package start display update
-    # - this is called at the beginning of a new package
-    #
-    # @param [String] pkg_name    package name
-    # @param [String] _pkg_location  full path to a package
-    # @param [String] _pkg_summary  package summary (short description)
-    # @param [Integer] _pkg_size    package size in bytes
-    # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package?
-    #
-    def SlideDisplayStart(pkg_name, _pkg_location, _pkg_summary, _pkg_size, deleting)
-      @updating = Pkg.PkgInstalled(pkg_name) if !deleting
-      # Update global progress bar
-      DisplayGlobalProgress()
-
-      nil
-    end
-
-    def SlideGenericProvideStart(pkg_name, size, pattern, remote); end
-
-    def SlideDeltaApplyStart(_pkg_name)
-      nil
-    end
-
-    # Package providal start
-    def SlideProvideStart(_pkg_name, _size, _remote)
-      nil
-    end
-
     publish variable: :total_size_to_install, type: "integer" # Used in installation client
+    publish function: :TotalSizeToInstall, type: "integer ()" # Better substitute for the above
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
-    publish function: :UpdateCurrentPackageProgress, type: "void (integer)"
-    publish function: :UpdateCurrentPackageRateProgress, type: "void (integer, integer, integer)"
     publish function: :DisplayGlobalProgress, type: "void ()"
-    publish function: :DoneProvide, type: "void (integer, string, string)"
-    publish function: :UpdateAllCdProgress, type: "void (boolean)"
-    publish function: :SlideDisplayDone, type: "void (string, integer, boolean)"
-    publish function: :SlideDisplayStart, type: "void (string, string, string, integer, boolean)"
-    publish function: :SlideGenericProvideStart, type: "void (string, integer, string, boolean)"
-    publish function: :SlideDeltaApplyStart, type: "void (string)"
-    publish function: :SlideProvideStart, type: "void (string, integer, boolean)"
+    publish function: :DownloadStart, type: "void (string, integer)"
+    publish function: :DownloadProgress, type: "void (integer)"
+    publish function: :DownloadEnd, type: "void (string)"
+    publish function: :DownloadError, type: "void (integer, string, string)"
+    publish function: :PkgInstallStart, type: "void (string, integer, string, boolean)"
+    publish function: :PkgInstallProgress, type: "void (integer)"
+    publish function: :PkgInstallDone, type: "void (string, integer, boolean)"
   end
 
   PackageSlideShow = PackageSlideShowClass.new

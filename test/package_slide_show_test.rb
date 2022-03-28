@@ -17,11 +17,11 @@ describe Yast::PackageSlideShow do
     end
   end
 
-  describe ".SlideDisplayDone" do
+  describe ".PkgInstallDone" do
     context "when deleting package" do
       it "increases removed counter in summary" do
         package_slide_show.main # to reset counter
-        expect { package_slide_show.SlideDisplayDone("test", 1, true) }.to(
+        expect { package_slide_show.PkgInstallDone("test", 1, true) }.to(
           change { package_slide_show.GetPackageSummary["removed"] }.from(0).to(1)
         )
       end
@@ -29,7 +29,7 @@ describe Yast::PackageSlideShow do
       it "adds name to removed_list in summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
         package_slide_show.main # to reset counter
-        expect { package_slide_show.SlideDisplayDone("test", 1, true) }.to(
+        expect { package_slide_show.PkgInstallDone("test", 1, true) }.to(
           change { package_slide_show.GetPackageSummary["removed_list"] }
             .from([])
             .to(["test"])
@@ -43,7 +43,7 @@ describe Yast::PackageSlideShow do
       # TODO: updating non trivial amount of table
       it "increases installed counter in summary" do
         package_slide_show.main # to reset counter
-        expect { package_slide_show.SlideDisplayDone("test", 1, false) }.to(
+        expect { package_slide_show.PkgInstallDone("test", 1, false) }.to(
           change { package_slide_show.GetPackageSummary["installed"] }.from(0).to(1)
         )
       end
@@ -51,7 +51,7 @@ describe Yast::PackageSlideShow do
       it "adds name to installed_list in summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
         package_slide_show.main # to reset counter
-        expect { package_slide_show.SlideDisplayDone("test", 1, false) }.to(
+        expect { package_slide_show.PkgInstallDone("test", 1, false) }.to(
           change { package_slide_show.GetPackageSummary["installed_list"] }
             .from([])
             .to(["test"])
@@ -60,7 +60,7 @@ describe Yast::PackageSlideShow do
 
       it "adds its size to installed_bytes in summary" do
         package_slide_show.main # to reset counter
-        expect { package_slide_show.SlideDisplayDone("test", 502, false) }.to(
+        expect { package_slide_show.PkgInstallDone("test", 502, false) }.to(
           change { package_slide_show.GetPackageSummary["installed_bytes"] }.from(0).to(502)
         )
       end
@@ -68,13 +68,13 @@ describe Yast::PackageSlideShow do
       it "sets global progress label in slide show" do
         expect(Yast::SlideShow).to receive(:SetGlobalProgressLabel)
 
-        package_slide_show.SlideDisplayDone("test", 502, false)
+        package_slide_show.PkgInstallDone("test", 502, false)
       end
 
       it "updates stage progress" do
         expect(Yast::SlideShow).to receive(:StageProgress)
 
-        package_slide_show.SlideDisplayDone("test", 502, false)
+        package_slide_show.PkgInstallDone("test", 502, false)
       end
     end
   end
