@@ -28,11 +28,16 @@ module Yast
       @total_size_to_install = 0 # also used in one click installer
       @expected_total_download_size = 0
       @finished_total_download_size = 0
-      @current_pkg_download_size = 0
-      @current_pkg_download_percent = 0
-      @current_pkg_name = ""
+
       @active_downloads = 0
       @detected_parallel_download = false
+
+      # Those @current_pkg_... variables keep track of the most recent current
+      # download. Avoid using them if parallel downloads are in effect.
+
+      @current_download_pkg_size = 0 # RPM size, not installed size
+      @current_download_pkg_percent = 0
+      @current_download_pkg_name = ""
 
       @installed_pkg_list = []
       @updated_pkg_list = []
@@ -201,7 +206,7 @@ module Yast
     # the installed system (e.g. kernel updates).
     #
     def CurrentDownloadSize
-      current_pkg = @current_pkg_download_size * @current_pkg_download_percent / 100
+      current_pkg = @current_download_pkg_size * @current_download_pkg_percent / 100
       @finished_total_download_size + current_pkg
     end
 
@@ -250,9 +255,9 @@ module Yast
       @active_downloads += 1
       log.info "DownloadStart #{pkg_name} size: #{download_size}"
       log.info "active downloads: #{@active_downloads}" if @active_downloads > 1
-      @current_pkg_name = pkg_name
-      @current_pkg_download_size = download_size
-      @current_pkg_download_percent = 0
+      @current_download_pkg_name = pkg_name
+      @current_download_pkg_size = download_size
+      @current_download_pkg_percent = 0
       return if parallel_download?
 
       # Update the progress text since it may change from "Installing..." to
@@ -264,8 +269,8 @@ module Yast
 
     # Update the download progress for the current package
     def DownloadProgress(pkg_percent)
-      log.info "#{@current_pkg_name}: #{pkg_percent}%"
-      @current_pkg_download_percent = pkg_percent
+      log.info "#{@current_download_pkg_name}: #{pkg_percent}%"
+      @current_download_pkg_percent = pkg_percent
       return if parallel_download?
 
       UpdateTotalProgressValue()
@@ -299,10 +304,10 @@ module Yast
     # Finalize the sums for the current download
     def CurrentDownloadFinished
       @active_downloads -= 1 if @active_downloads > 0
-      @finished_total_download_size += @current_pkg_download_size
-      @current_pkg_download_size = 0
-      @current_pkg_download_percent = 0
-      @current_pkg_name = ""
+      @finished_total_download_size += @current_download_pkg_size
+      @current_download_pkg_size = 0
+      @current_download_pkg_percent = 0
+      @current_download_pkg_name = ""
     end
 
     # Notification that a package starts being installed, updated or removed.
