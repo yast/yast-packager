@@ -18,53 +18,38 @@ module Yast
       Yast.import "Mode"
       Yast.import "Packages"
 
-      @inst_src_names = [] # a list of strings identifying each repository
-      @total_size_installed = 0
-      @total_size_to_install = 0
-
-      @init_pkg_data_complete = false
-
-      # package summary
-      # package counters
-      @installed_packages = 0
-      @updated_packages = 0
-      @removed_packages = 0
-
-      @total_downloaded = 0
-      @total_installed = 0
-      @total_pkgs_to_install = 0
-
-      @expected_total_download_size = 0
-      @finished_total_download_size = 0
-      @current_pkg_download_percent = 0
-
-      # package list (only used in installed system)
-      @installed_packages_list = []
-      @updated_packages_list = []
-      @removed_packages_list = []
-
-      @updating = false
+      init_member_vars
     end
 
-    def ResetPackageSummary
+    def init_member_vars
+      @init_pkg_data_complete = false
+
       @installed_packages = 0
       @updated_packages = 0
       @removed_packages = 0
-      @total_downloaded = 0
       @total_installed = 0
+      @total_size_to_install = 0
+      @total_size_installed = 0
+
+      @total_downloaded = 0
       @expected_total_download_size = 0
       @finished_total_download_size = 0
       @current_pkg_download_size = 0
       @current_pkg_download_percent = 0
       @current_pkg_name = ""
+      @active_downloads = 0
+      @detected_parallel_download = false
 
       @installed_packages_list = []
       @updated_packages_list = []
       @removed_packages_list = []
 
-      # temporary values
       @updating = false
+      nil
+    end
 
+    def ResetPackageSummary
+      init_member_vars
       nil
     end
 
@@ -80,10 +65,6 @@ module Yast
         "installed_bytes"  => @total_installed
       }
     end
-
-    # ***************************************************************************
-    # **************  Formatting functions and helpers **************************
-    # ***************************************************************************
 
     # Sum up all list items. It flattens the list and also skips all negative values.
     #
@@ -141,40 +122,71 @@ module Yast
       return if @init_pkg_data_complete && !force
 
       ResetPackageSummary()
-      # Reinititalize some globals (in case this is a second run)
-      @total_size_installed = 0
-      @updated_packages = 0
-      @installed_packages = 0
 
       total_sizes_per_cd_per_src = Pkg.PkgMediaSizes
       total_pkg_count_per_cd_per_src = Pkg.PkgMediaCount
 
       @total_size_to_install = ListSum(total_sizes_per_cd_per_src)
       @total_pkgs_to_install = ListSum(total_pkg_count_per_cd_per_src)
+      @expected_total_download_size = Packages.CountSizeToBeDownloaded
       @init_pkg_data_complete = true
-      @expected_total_download_size = Packages.CountSizeToBeDownloaded unless parallel_download?
+
       log.info "Total size to install: #{@total_size_to_install}"
       log.info "Expected total download size: #{@expected_total_download_size}"
+      log.info "Parallel download (initial): #{parallel_download?}"
       nil
     end
 
     # Check if package are downloaded in parallel to being installed.
     def parallel_download?
+      # Did the callbacks here clearly detect parallel operation?
+      return true if @detected_parallel_download
+
+      # Use heuristics based on installation modes
+      #
       # 15.4: Not in the installed system, only during system installation
+      # (and upgrade / autoinstallation (?)).
       !Mode.normal
     end
 
-    # ***************************************************************************
-    # *****************  Callbacks and progress bars ****************************
-    # ***************************************************************************
-
-    # Update the overall progress value (download + installation)
+    # Update the overall progress value of the progress bar.
+    #
+    # If libzypp is downloading and installing in parallel, keep this simple
+    # and only use the installed package size for both the total and the
+    # current progress, disregarding the download size since the downloads are
+    # not causing additional delays.
+    #
+    # Otherwise, take the download into account so the progress bar doesn't
+    # appear to be stuck at zero while libzypp downloads a whole lot of
+    # packages and waits for that to finish before starting installing any of
+    # them.
+    #
+    # In that case, use the download size plus the installed (unpacked) package
+    # size for both the total and the current progress.
+    #
+    # Caveat 1: Of course the time to download a package cannot really be
+    # compared to the time it takes to install it after it is downloaded; it
+    # depends on the network (Internet or LAN) speed. Normally, the download
+    # takes longer than the installation. But that only means that the progress
+    # will speed up once the download phase is over. If that surprises the
+    # user, it will be a pleasant surprise, not an annoyance (which it would be
+    # if it would slow down).
+    #
+    # This progress reporting is not meant to be a prediction of remaining time
+    # (much less an accurate one); that would only be wild guessing whenever
+    # network operations are involved.
+    #
+    # Caveat 2: Only real downloads are considered, not using packages that are
+    # directly available from a local repo (installation media or local
+    # directories) since that causes no noticeable delay, so it's irrelevant
+    # for progress reporting.
+    #
     def UpdateTotalProgressValue
       total_size = @total_size_to_install
       total_size += @expected_total_download_size unless parallel_download?
 
-      if total_size.zero?
-        total_progress = 100.0 # Nothing to install. Should not happen.
+      if total_size.zero? # Prevent division by zero
+        total_progress = 100 # Nothing to install. Should not happen.
       else
         current = TotalInstalledSize()
         current += CurrentDownloadSize() unless parallel_download?
@@ -186,7 +198,14 @@ module Yast
       SlideShow.StageProgress(total_progress, nil)
     end
 
-    # Calculate the size of the current downloads
+    # Calculate the size of the current downloads from finished downloads and
+    # the percentage of the current download.
+    #
+    # A partial download of the current package is relevant if there are only
+    # very few packages to download, or if the current one is very large in
+    # comparison to the total expected download; which is a common scenario in
+    # the installed system (e.g. kernel updates).
+    #
     def CurrentDownloadSize
       current_pkg = @current_pkg_download_size * @current_pkg_download_percent / 100
       @finished_total_download_size + current_pkg
@@ -199,17 +218,32 @@ module Yast
       UpdateTotalProgressValue()
     end
 
+    # For backwards compatibility:
+    # Update the total progress text.
     def DisplayGlobalProgress
+      UpdateTotalProgressText()
+    end
+
+    # Update the total progress text (not the value!).
+    #
+    def UpdateTotalProgressText
+      action =
+        if @active_downloads > 0 && !parallel_download?
+          _("Downloading...")
+        else
+          SlideShow.CurrentStageDescription
+        end
+
       remaining_string = FormatRemainingSize(@total_size_to_install - @total_size_installed)
       remaining_string += ", " unless remaining_string.empty?
 
       SlideShow.SetGlobalProgressLabel(
-          SlideShow.CurrentStageDescription
-          + Builtins.sformat(
-            _(" (Remaining: %1%2 packages)"),
-            remaining_string,
-            @total_pkgs_to_install - @installed_packages - @updated_packages
-          )
+        action +
+        Builtins.sformat(
+          _(" (Remaining: %1%2 packages)"),
+          remaining_string,
+          @total_pkgs_to_install - @installed_packages - @updated_packages
+        )
       )
 
       nil
@@ -217,10 +251,17 @@ module Yast
 
     # Notification when download of a package starts
     def DownloadStart(pkg_name, download_size)
+      @active_downloads += 1
       log.info "DownloadStart #{pkg_name} size: #{download_size}"
+      log.info "active downloads: #{@active_downloads}" if @active_downloads > 1
       @current_pkg_name = pkg_name
       @current_pkg_download_size = download_size
       @current_pkg_download_percent = 0
+      return if parallel_download?
+
+      # Update the progress text since it may change from "Installing..." to
+      # "Downloading...".
+      UpdateTotalProgressText()
       UpdateTotalProgressValue()
       nil
     end
@@ -229,24 +270,31 @@ module Yast
     def DownloadProgress(pkg_percent)
       log.info "#{@current_pkg_name}: #{pkg_percent}%"
       @current_pkg_download_percent = pkg_percent
+      return if parallel_download?
+
       UpdateTotalProgressValue()
       nil
     end
 
     # Notification when download of a package is finished
     def DownloadEnd(pkg_name)
-      log.info("Downloading #{pkg_name} finished")
+      log.info "Downloading #{pkg_name} finished"
+      return if parallel_download?
+
       CurrentDownloadFinished()
       UpdateTotalProgressValue()
       nil
     end
 
-    # Notification about a download error.
+    # Notification about a download error
+    #
     # @param [Integer] error   Numeric error code
     # @param [String]  reason
     # @param [String]  pkg_name
     def DownloadError(error, reason, pkg_name)
-      log.error("Download error #{error} for #{pkg_name}: #{reason}")
+      log.error "Download error #{error} for #{pkg_name}: #{reason}"
+      return if parallel_download?
+
       CurrentDownloadFinished()
       UpdateTotalProgressValue()
       nil
@@ -254,6 +302,7 @@ module Yast
 
     # Finalize the sums for the current download
     def CurrentDownloadFinished
+      @active_downloads -= 1 if @active_downloads > 0
       @finished_total_download_size += @current_pkg_download_size
       @current_pkg_download_size = 0
       @current_pkg_download_percent = 0
@@ -270,17 +319,28 @@ module Yast
     # @param [Boolean] deleting      Flag: deleting (true) or installing (false) package?
     #
     def PkgInstallStart(pkg_name, _pkg_location, _pkg_summary, _pkg_size, deleting)
-      @updating = Pkg.PkgInstalled(pkg_name) if !deleting
-      # Update global progress bar
-      DisplayGlobalProgress()
+      if @active_downloads > 0 && !@detected_parallel_download
+        @detected_parallel_download = true
+        log.info "Detected parallel download and installation"
+      end
+
+      @updating = Pkg.PkgInstalled(pkg_name) unless deleting
+      UpdateTotalProgressText()
+
+      # Don't update the progress value since it cannot have changed right now:
+      # Only fully installed packages are taken into account, and this one has
+      # just begun.
 
       nil
     end
 
     # Progress notification while a package is finished being installed, updated or removed.
     #
-    # @param [Integer] percent of progress of this package
+    # @param [Integer] _pkg_percent percent of progress of this package
+    #
     def PkgInstallProgress(_pkg_percent)
+      # Not doing anything here since we only take the fully installed packages
+      # into account for progress reporting.
       nil
     end
 
@@ -297,10 +357,8 @@ module Yast
       else
         @total_size_installed += pkg_size
 
-        UpdateTotalProgress(false)
-
-        # Update global progress bar
-        DisplayGlobalProgress()
+        UpdateTotalProgressValue()
+        UpdateTotalProgressText()
 
         if @updating
           @updated_packages += 1

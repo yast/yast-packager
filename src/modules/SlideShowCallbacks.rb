@@ -86,7 +86,7 @@ module Yast
     end
 
     # Update during package download: Percent, average and current bytes per second.
-    def ProgressDownload(percent, _bps_avg, _bps_current)
+    def ProgressDownload(_percent, _bps_avg, _bps_current)
       HandleInput()
       !SlideShow.GetUserAbort
     end
