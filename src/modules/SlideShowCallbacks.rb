@@ -69,7 +69,12 @@ module Yast
       nil
     end
 
-    #  at start of file providal
+    # Start of file providal.
+    #
+    # This can be a download (if the package is provided by a remote
+    # repository) or simply accessing a local repo, e.g. on the currently
+    # mounted installation media.
+    #
     def StartProvide(name, archivesize, remote)
       @pkg_inprogress = name
       @remote_provide = remote
@@ -78,7 +83,10 @@ module Yast
       nil
     end
 
-    # during file providal
+    # Update progress during file providal.
+    #
+    # This is meant to update a progress bar for the download percent.
+    #
     def ProgressProvide(percent)
       PackageSlideShow.DownloadProgress(percent) if @remote_provide
       HandleInput()
@@ -86,12 +94,22 @@ module Yast
     end
 
     # Update during package download: Percent, average and current bytes per second.
+    #
+    # Notice that there is also ProgressProvide for only the percentage value;
+    # this callback is meant to update a display of the current data rate and
+    # possibly predictions about the remaining time based on the data rate.
+    #
     def ProgressDownload(_percent, _bps_avg, _bps_current)
       HandleInput()
       !SlideShow.GetUserAbort
     end
 
-    # during file providal
+    # End of file providal; used both for success (error == 0) and error (error
+    # != 0).
+    #
+    # If this was a download from a remote repo, this means that the download
+    # is now finished.
+    #
     def DoneProvide(error, reason, name)
       if @remote_provide
         if error.zero?
@@ -107,6 +125,8 @@ module Yast
       ""
     end
 
+    # A pre- or post-install/uninstall script is started.
+    #
     def ScriptStart(patch_name, patch_version, patch_arch, script_path)
       patch_full_name = PackageCallbacks.FormatPatchName(
         patch_name,
@@ -133,6 +153,12 @@ module Yast
       nil
     end
 
+    # Progress during a pre- or post-install/uninstall script.
+    #
+    # Since there is no way to find out how far the execution of this script
+    # has progressed, this is only a "ping" notification, not reporting
+    # percents.
+    #
     def ScriptProgress(ping, output)
       Builtins.y2milestone("ScriptProgress: ping:%1, output: %2", ping, output)
 
@@ -156,11 +182,15 @@ module Yast
       ![:abort, :close].include?(input)
     end
 
+    # Error reporting during execution of a pre- or post-install/uninstall script.
+    #
     def ScriptProblem(description)
       # display Abort/Retry/Ignore popup
       PackageCallbacks.ScriptProblem(description)
     end
 
+    # A pre- or post-install/uninstall script has finished.
+    #
     def ScriptFinish
       Builtins.y2milestone("ScriptFinish")
 
