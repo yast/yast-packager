@@ -130,8 +130,8 @@ module Yast
       @expected_total_download_size = Packages.CountSizeToBeDownloaded
       @init_pkg_data_complete = true
 
-      log.info "Total size to install: #{@total_size_to_install}"
-      log.info "Expected total download size: #{@expected_total_download_size}"
+      log.info "Total size to install: #{String.FormatSize(@total_size_to_install)}"
+      log.info "Expected download size: #{String.FormatSize(@expected_total_download_size)}"
       log.info "Parallel download (initial): #{parallel_download?}"
       nil
     end
@@ -189,12 +189,12 @@ module Yast
       else
         current = TotalInstalledSize()
         current += CurrentDownloadSize() unless parallel_download?
-        log.debug "Current: #{current} of #{total_size}"
-        total_progress = (100.0 * current / total_size).round
+        log.debug "Current: #{String.FormatSize(current)} of #{String.FormatSize(total_size)}"
+        total_progress = 100.0 * current / total_size
       end
 
-      log.info "Total progress: #{total_progress}%"
-      SlideShow.StageProgress(total_progress, nil)
+      log.debug "Total progress: #{total_progress.round(2)}%"
+      SlideShow.StageProgress(total_progress.round, nil)
     end
 
     # Calculate the size of the current downloads from finished downloads and
@@ -253,7 +253,7 @@ module Yast
     # Notification when download of a package starts
     def DownloadStart(pkg_name, download_size)
       @active_downloads += 1
-      log.info "DownloadStart #{pkg_name} size: #{download_size}"
+      log.info "Starting download of #{pkg_name} (#{String.FormatSize(download_size)})"
       log.info "active downloads: #{@active_downloads}" if @active_downloads > 1
       @current_download_pkg_name = pkg_name
       @current_download_pkg_size = download_size
@@ -269,7 +269,7 @@ module Yast
 
     # Update the download progress for the current package
     def DownloadProgress(pkg_percent)
-      log.info "#{@current_download_pkg_name}: #{pkg_percent}%"
+      log.debug "#{@current_download_pkg_name}: #{pkg_percent}%"
       @current_download_pkg_percent = pkg_percent
       return if parallel_download?
 
@@ -354,18 +354,19 @@ module Yast
     def PkgInstallDone(pkg_name, pkg_size, deleting)
       if deleting
         @removed_pkg_list << pkg_name if Mode.normal
+        log.info "Uninstalled package #{pkg_name}"
       else # installing or updating
         @total_installed_size += pkg_size
 
         UpdateTotalProgressValue()
         UpdateTotalProgressText()
 
-        if Mode.normal
-          if @updating
-            @updated_pkg_list << pkg_name
-          else
-            @installed_pkg_list << pkg_name
-          end
+        if @updating
+          @updated_pkg_list << pkg_name if Mode.normal
+          log.info "Updated package #{pkg_name}"
+        else
+          @installed_pkg_list << pkg_name if Mode.normal
+          log.info "Installed package #{pkg_name}"
         end
       end
 
