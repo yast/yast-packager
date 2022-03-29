@@ -165,18 +165,15 @@ module Yast
     #
     # Caveat 1: Of course the time to download a package cannot really be
     # compared to the time it takes to install it after it is downloaded; it
-    # depends on the network (Internet or LAN) speed. Normally, the download
-    # takes longer than the installation. But that only means that the progress
-    # will speed up once the download phase is over. If that surprises the
-    # user, it will be a pleasant surprise, not an annoyance (which it would be
-    # if it would slow down).
+    # depends on the network (Internet or LAN) speed. It may be faster, or it
+    # may be slower than installing the package.
     #
-    # This progress reporting is not meant to be a prediction of remaining time
-    # (much less an accurate one); that would only be wild guessing whenever
-    # network operations are involved.
+    # This progress reporting is not meant to be an accurate prediction of the
+    # remaining time; that would only be wild guessing whenever network
+    # operations are involved.
     #
-    # Caveat 2: Only real downloads are considered, not using packages that are
-    # directly available from a local repo (installation media or local
+    # Caveat 2: Only real downloads are considered, not getting packages that
+    # are directly available from a local repo (installation media or local
     # directories) since that causes no noticeable delay, so it's irrelevant
     # for progress reporting.
     #
@@ -217,29 +214,53 @@ module Yast
       UpdateTotalProgressValue()
     end
 
-    # For backwards compatibility:
-    # Update the total progress text.
+    # For API backwards compatibility. DEPRECATED.
+    #
     def DisplayGlobalProgress
+      log.warning "DEPRECATED. Use UpdateTotalProgressText() instead."
       UpdateTotalProgressText()
     end
 
     # Update the total progress text (not the value!).
     #
     def UpdateTotalProgressText
-      action =
-        if @active_downloads > 0 && !parallel_download?
-          _("Downloading...")
-        else
-          SlideShow.CurrentStageDescription
-        end
+      if @active_downloads > 0 && !parallel_download?
+        UpdateDownloadProgressText()
+      else
+        UpdateInstallationProgressText()
+      end
+    end
 
+    # Update the total progress text for downloading.
+    # This should only be used if parallel download + installation is not in effect.
+    #
+    def UpdateDownloadProgressText
+      SlideShow.SetGlobalProgressLabel(
+        _("Downloading...") +
+        Builtins.sformat(
+          # TRANSLATORS: This is about a remaining download size.
+          # %1 is the remaining size with a unit (kiB, MiB, GiB etc.),
+          # %2 the total download size, also with a unit.
+          _(" (Remaining: %1 of %2)" ),
+          String.FormatSize(@expected_total_download_size - CurrentDownloadSize()),
+          String.FormatSize(@expected_total_download_size)
+        )
+      )
+
+      nil
+    end
+
+    # Update the total progress text for installing / updating / removing
+    # packages; or, for parallel download + installation, also for downloading.
+    #
+    def UpdateInstallationProgressText
       installed_pkg = @installed_pkg_list.size
       updated_pkg = @updated_pkg_list.size
       remaining_string = FormatRemainingSize(@total_size_to_install - @total_installed_size)
       remaining_string += ", " unless remaining_string.empty?
 
       SlideShow.SetGlobalProgressLabel(
-        action +
+        SlideShow.CurrentStageDescription +
         Builtins.sformat(
           _(" (Remaining: %1%2 packages)"),
           remaining_string,
@@ -373,11 +394,12 @@ module Yast
       nil
     end
 
-    publish variable: :total_size_to_install, type: "integer" # Used in one click installer client
+    publish variable: :total_size_to_install, type: "integer" # Deprecated; used in one click installer client
     publish function: :TotalSizeToInstall, type: "integer ()" # Better substitute for the above
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
-    publish function: :DisplayGlobalProgress, type: "void ()"
+    publish function: :DisplayGlobalProgress, type: "void ()" # Deprecated
+    publish function: :UpdateTotalProgressText, type: "void ()" # Better substitute for the above
     publish function: :DownloadStart, type: "void (string, integer)"
     publish function: :DownloadProgress, type: "void (integer)"
     publish function: :DownloadEnd, type: "void (string)"

@@ -503,7 +503,7 @@ module Yast
       PackageCallbacks.SourceChange(source, media) # inform PackageCallbacks about the change
 
       # display remaining packages
-      PackageSlideShow.DisplayGlobalProgress
+      PackageSlideShow.UpdateTotalProgressText
 
       nil
     end
