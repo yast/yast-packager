@@ -241,7 +241,7 @@ module Yast
           # TRANSLATORS: This is about a remaining download size.
           # %1 is the remaining size with a unit (kiB, MiB, GiB etc.),
           # %2 the total download size, also with a unit.
-          _(" (Remaining: %1 of %2)" ),
+          _(" (Remaining: %1 of %2)"),
           String.FormatSize(@expected_total_download_size - CurrentDownloadSize()),
           String.FormatSize(@expected_total_download_size)
         )
@@ -394,7 +394,9 @@ module Yast
       nil
     end
 
-    publish variable: :total_size_to_install, type: "integer" # Deprecated; used in one click installer client
+    # rubocop:disable Layout/LineLength
+    #
+    publish variable: :total_size_to_install, type: "integer" # Deprecated; used in one click installer
     publish function: :TotalSizeToInstall, type: "integer ()" # Better substitute for the above
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
@@ -407,6 +409,8 @@ module Yast
     publish function: :PkgInstallStart, type: "void (string, integer, string, boolean)"
     publish function: :PkgInstallProgress, type: "void (integer)"
     publish function: :PkgInstallDone, type: "void (string, integer, boolean)"
+    #
+    # rubocop:enable Layout/LineLength
   end
 
   PackageSlideShow = PackageSlideShowClass.new
