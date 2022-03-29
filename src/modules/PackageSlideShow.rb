@@ -24,14 +24,8 @@ module Yast
     def init_member_vars
       @init_pkg_data_complete = false
 
-      @installed_packages = 0
-      @updated_packages = 0
-      @removed_packages = 0
-      @total_installed = 0
-      @total_size_to_install = 0
-      @total_size_installed = 0
-
-      @total_downloaded = 0
+      @total_installed_size = 0
+      @total_size_to_install = 0 # also used in one click installer
       @expected_total_download_size = 0
       @finished_total_download_size = 0
       @current_pkg_download_size = 0
@@ -40,9 +34,9 @@ module Yast
       @active_downloads = 0
       @detected_parallel_download = false
 
-      @installed_packages_list = []
-      @updated_packages_list = []
-      @removed_packages_list = []
+      @installed_pkg_list = []
+      @updated_pkg_list = []
+      @removed_pkg_list = []
 
       @updating = false
       nil
@@ -55,14 +49,14 @@ module Yast
 
     def GetPackageSummary
       {
-        "installed"        => @installed_packages,
-        "updated"          => @updated_packages,
-        "removed"          => @removed_packages,
-        "installed_list"   => @installed_packages_list,
-        "updated_list"     => @updated_packages_list,
-        "removed_list"     => @removed_packages_list,
-        "downloaded_bytes" => @total_downloaded,
-        "installed_bytes"  => @total_installed
+        "installed"        => @installed_pkg_list.size,
+        "updated"          => @updated_pkg_list.size,
+        "removed"          => @removed_pkg_list.size,
+        "installed_list"   => @installed_pkg_list,
+        "updated_list"     => @updated_pkg_list,
+        "removed_list"     => @removed_pkg_list,
+        "downloaded_bytes" => @finished_total_download_size,
+        "installed_bytes"  => @total_installed_size
       }
     end
 
@@ -81,7 +75,7 @@ module Yast
 
     # The current size in bytes that is already installed.
     def TotalInstalledSize
-      @total_size_installed
+      @total_installed_size
     end
 
     # Format number of remaining bytes to be installed as string.
@@ -234,7 +228,9 @@ module Yast
           SlideShow.CurrentStageDescription
         end
 
-      remaining_string = FormatRemainingSize(@total_size_to_install - @total_size_installed)
+      installed_pkg = @installed_pkg_list.size
+      updated_pkg = @updated_pkg_list.size
+      remaining_string = FormatRemainingSize(@total_size_to_install - @total_installed_size)
       remaining_string += ", " unless remaining_string.empty?
 
       SlideShow.SetGlobalProgressLabel(
@@ -242,7 +238,7 @@ module Yast
         Builtins.sformat(
           _(" (Remaining: %1%2 packages)"),
           remaining_string,
-          @total_pkgs_to_install - @installed_packages - @updated_packages
+          @total_pkgs_to_install - installed_pkg - updated_pkg
         )
       )
 
@@ -348,33 +344,30 @@ module Yast
     #
     # @param [String] pkg_name    package name
     # @param [String] pkg_size    package size in bytes
-    # @param [Boolean] deleting    Flag: deleting (true) or installing (false) package
+    # @param [Boolean] deleting   Flag: deleting (true) or installing (false) package
     #
     def PkgInstallDone(pkg_name, pkg_size, deleting)
       if deleting
-        @removed_packages += 1
-        @removed_packages_list << pkg_name if Mode.normal
-      else
-        @total_size_installed += pkg_size
+        @removed_pkg_list << pkg_name if Mode.normal
+      else # installing or updating
+        @total_installed_size += pkg_size
 
         UpdateTotalProgressValue()
         UpdateTotalProgressText()
 
-        if @updating
-          @updated_packages += 1
-          @updated_packages_list << pkg_name if Mode.normal
-        else
-          @installed_packages += 1
-          @installed_packages_list << pkg_name if Mode.normal
+        if Mode.normal
+          if @updating
+            @updated_pkg_list << pkg_name
+          else
+            @installed_pkg_list << pkg_name
+          end
         end
-
-        @total_installed += pkg_size
       end
 
       nil
     end
 
-    publish variable: :total_size_to_install, type: "integer" # Used in installation client
+    publish variable: :total_size_to_install, type: "integer" # Used in one click installer client
     publish function: :TotalSizeToInstall, type: "integer ()" # Better substitute for the above
     publish function: :GetPackageSummary, type: "map <string, any> ()"
     publish function: :InitPkgData, type: "void (boolean)"
