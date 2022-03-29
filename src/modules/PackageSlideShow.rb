@@ -146,9 +146,9 @@ module Yast
     # Update the overall progress value of the progress bar.
     #
     # If libzypp is downloading and installing in parallel, keep this simple
-    # and only use the installed package size for both the total and the
-    # current progress, disregarding the download size since the downloads are
-    # not causing additional delays.
+    # and only use the installed package size for the total vs. the current
+    # progress, disregarding the download size since the downloads are not
+    # causing additional delays.
     #
     # Otherwise, take the download into account so the progress bar doesn't
     # appear to be stuck at zero while libzypp downloads a whole lot of
@@ -156,7 +156,7 @@ module Yast
     # them.
     #
     # In that case, use the download size plus the installed (unpacked) package
-    # size for both the total and the current progress.
+    # size for the total vs. the current progress.
     #
     # Caveat 1: Of course the time to download a package cannot really be
     # compared to the time it takes to install it after it is downloaded; it
