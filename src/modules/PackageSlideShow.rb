@@ -24,25 +24,30 @@ module Yast
     def init_member_vars
       @init_pkg_data_complete = false
 
+      @total_size_to_install = 0 # directly accessed in one click installer :-(
       @total_installed_size = 0
-      @total_size_to_install = 0 # also used in one click installer
       @expected_total_download_size = 0
       @finished_total_download_size = 0
 
-      @active_downloads = 0
+      @active_downloads = 0 # Number of pkg downloads currently going on
       @detected_parallel_download = false
 
-      # Those @current_pkg_... variables keep track of the most recent current
-      # download. Avoid using them if parallel downloads are in effect.
+      # Those @current_download_pkg_... variables keep track of the most recent
+      # current download. Avoid using them if parallel downloads are in effect.
 
       @current_download_pkg_size = 0 # RPM size, not installed size
       @current_download_pkg_percent = 0
       @current_download_pkg_name = ""
 
+      # Lists of package names that were installed / updated / removed
+      # (after that operation is finished)
+
       @installed_pkg_list = []
       @updated_pkg_list = []
       @removed_pkg_list = []
 
+      # This is a kludge to pass information from one callback that gets the
+      # needed information (the pkg name) to another that doesn't.
       @updating = false
       nil
     end
@@ -165,12 +170,12 @@ module Yast
     #
     # Caveat 1: Of course the time to download a package cannot really be
     # compared to the time it takes to install it after it is downloaded; it
-    # depends on the network (Internet or LAN) speed. It may be faster, or it
-    # may be slower than installing the package.
+    # depends on the network (Internet or LAN) speed. It may be slower, or it
+    # may even be faster than installing the package.
     #
     # This progress reporting is not meant to be an accurate prediction of the
-    # remaining time; that would only be wild guessing whenever network
-    # operations are involved.
+    # remaining time; that would only be wild guessing anyway since network
+    # operations with wildly unpredictable time behavior are involved.
     #
     # Caveat 2: Only real downloads are considered, not getting packages that
     # are directly available from a local repo (installation media or local
@@ -214,7 +219,7 @@ module Yast
       UpdateTotalProgressValue()
     end
 
-    # For API backwards compatibility. DEPRECATED.
+    # @deprecated Misleading method name. For API backwards compatibility.
     #
     def DisplayGlobalProgress
       log.warning "DEPRECATED. Use UpdateTotalProgressText() instead."
@@ -361,8 +366,11 @@ module Yast
     # @param [Integer] _pkg_percent percent of progress of this package
     #
     def PkgInstallProgress(_pkg_percent)
-      # Not doing anything here since we only take the fully installed packages
-      # into account for progress reporting.
+      # For future use and to mirror the callbacks one call level above
+      # (SlideShowCallbacks).
+      #
+      # Right now, not doing anything here since we only take the fully
+      # installed packages into account for progress reporting.
       nil
     end
 
