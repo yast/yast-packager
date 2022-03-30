@@ -24,6 +24,7 @@ module Yast
     def init_member_vars
       @init_pkg_data_complete = false
 
+      @total_pkgs_to_install = 0
       @total_size_to_install = 0 # directly accessed in one click installer :-(
       @total_installed_size = 0
       @expected_total_download_size = 0

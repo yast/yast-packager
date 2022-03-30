@@ -18,7 +18,7 @@ describe Yast::PackageSlideShow do
   end
 
   describe ".PkgInstallDone" do
-    context "when deleting package" do
+    context "when deleting a package" do
       it "increases removed counter in summary" do
         package_slide_show.main # to reset counter
         expect { package_slide_show.PkgInstallDone("test", 1, true) }.to(
@@ -26,7 +26,7 @@ describe Yast::PackageSlideShow do
         )
       end
 
-      it "adds name to removed_list in summary in normal mode" do
+      it "adds the name to the removed_list in the summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
         package_slide_show.main # to reset counter
         expect { package_slide_show.PkgInstallDone("test", 1, true) }.to(
@@ -37,8 +37,7 @@ describe Yast::PackageSlideShow do
       end
     end
 
-    context "when installing package" do
-      # TODO: lot of internal variables changes in size and time estimation that is hard to test
+    context "when installing a package" do
       # TODO: updating is also hard to test as it is set at start of package install
       # TODO: updating non trivial amount of table
       it "increases installed counter in summary" do
@@ -48,7 +47,7 @@ describe Yast::PackageSlideShow do
         )
       end
 
-      it "adds name to installed_list in summary in normal mode" do
+      it "adds the name to the installed_list in the summary in normal mode" do
         allow(Yast::Mode).to receive(:normal).and_return(true)
         package_slide_show.main # to reset counter
         expect { package_slide_show.PkgInstallDone("test", 1, false) }.to(
