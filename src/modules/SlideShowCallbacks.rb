@@ -139,8 +139,11 @@ module Yast
         script_path
       )
 
+      # FIXME: maybe use a DelayedProgressPopup here?
+
       # reset the progressbar
       if UI.WidgetExists(:progressCurrentPackage)
+        # FIXME: This widget does not exist anymore.
         UI.ChangeWidget(:progressCurrentPackage, :Label, patch_full_name)
         UI.ChangeWidget(:progressCurrentPackage, :Value, 0)
       end
@@ -161,6 +164,7 @@ module Yast
     #
     def ScriptProgress(ping, output)
       Builtins.y2milestone("ScriptProgress: ping:%1, output: %2", ping, output)
+      # FIXME: maybe use a DelayedProgressPopup here?
 
       if !output.nil? && output != ""
         # remove the trailing new line character
