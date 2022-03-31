@@ -148,7 +148,7 @@ module Yast
 
         alias_name = if force_alias != ""
           force_alias
-        elsif product.media_name && !product.media_name.empty?
+        elsif product.media_name && !product.media_name.empty? && product.media_name != "/"
           propose_alias(product.media_name)
         elsif product.name && !product.name.empty?
           propose_alias(product.name)
