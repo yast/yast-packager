@@ -223,7 +223,7 @@ module Yast
     # @deprecated Misleading method name. For API backwards compatibility.
     #
     def DisplayGlobalProgress
-      log.warning "DEPRECATED. Use UpdateTotalProgressText() instead."
+      log.warn "DEPRECATED. Use UpdateTotalProgressText() instead."
       UpdateTotalProgressText()
     end
 
