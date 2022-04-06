@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Thu Mar 31 15:52:11 UTC 2022 - Ladislav Slezák <lslezak@suse.cz>
 
-- Fixed regression in repository alias name for add-ons (jsc#1193214)
+- Fixed regression in repository alias name for add-ons (bsc#1193214)
 - 4.4.27
 
 -------------------------------------------------------------------
