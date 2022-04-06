@@ -415,7 +415,7 @@ module Yast
     publish function: :DownloadProgress, type: "void (integer)"
     publish function: :DownloadEnd, type: "void (string)"
     publish function: :DownloadError, type: "void (integer, string, string)"
-    publish function: :PkgInstallStart, type: "void (string, integer, string, boolean)"
+    publish function: :PkgInstallStart, type: "void (string, string, string, integer, boolean)"
     publish function: :PkgInstallProgress, type: "void (integer)"
     publish function: :PkgInstallDone, type: "void (string, integer, boolean)"
     #
