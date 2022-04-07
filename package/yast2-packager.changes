@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Apr  6 14:00:54 UTC 2022 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Show package downloads in the global progress bar during package
+  installation (bsc#1195608)
+  PR: https://github.com/yast/yast-packager/pull/609
+- 4.4.28
+
+-------------------------------------------------------------------
 Thu Mar 31 15:52:11 UTC 2022 - Ladislav Slezák <lslezak@suse.cz>
 
 - Fixed regression in repository alias name for add-ons (bsc#1193214)
