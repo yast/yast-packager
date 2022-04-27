@@ -27,6 +27,7 @@ module Y2Packager
   class ProductSpecReader
     include Yast::Logger
     Yast.import "Mode"
+    Yast.import "Linuxrc"
 
     # Returns the list of product specifications.
     #
@@ -35,7 +36,7 @@ module Y2Packager
       # products_from_control || products_from_offline || products_from_libzypp
 
       # online migration (in installed system)
-      return products_from_libzypp if Yast::Mode.normal
+      return products_from_libzypp if Yast::Mode.normal || !install_inf?
 
       if InstallationMedium.contain_multi_repos?
         products_from_multi_repos
@@ -69,6 +70,13 @@ module Y2Packager
       libzypp_products = Y2Packager::ProductSpecReaders::Libzypp.new.products
       log.info "Products from libzypp: #{libzypp_products.map(&:name).join(", ")}"
       libzypp_products
+    end
+
+    # Is information from an install.inf file available?
+    #
+    # @return [Boolean]
+    def install_inf?
+      !Yast::Linuxrc.keys.empty?
     end
   end
 end
