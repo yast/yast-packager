@@ -41,8 +41,14 @@ module Yast
       "sle-sdk"                           => ["sle-module-development-tools"],
       # openSUSE => SLES migration
       "openSUSE"                          => ["SLES"],
+      # openSUSE 15.3+ => SLES migration
+      "Leap"                              => ["SLES"],
       # the IBM tools have been renamed in SLE12->SLE15 upgrade
       "ibm-dlpar-utils"                   => ["ibm-power-tools"]
+
+      # NOTE: if you change anything here then check
+      # https://github.com/yast/yast-packager/blob/master/src/lib/y2packager/product_upgrade.rb#L27
+      # maybe it needs an update as well...
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method

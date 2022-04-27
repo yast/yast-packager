@@ -38,6 +38,9 @@ describe Y2Packager::ProductSpecReader do
   let(:full_products) { [instance_double(Y2Packager::ProductSpec, name: "SLES")] }
   let(:control_products) { [instance_double(Y2Packager::ProductSpec, name: "SLED")] }
   let(:libzypp_products) { [instance_double(Y2Packager::ProductSpec, name: "SLE-HA")] }
+  let(:linuxrc_fake) { { foo: "bar" } }
+  let(:linuxrc_empty) { {} }
+  let(:linuxrc_keys) { linuxrc_fake }
 
   describe "#products" do
     before do
@@ -47,6 +50,7 @@ describe Y2Packager::ProductSpecReader do
       allow(Y2Packager::InstallationMedium).to receive(:contain_repo?).and_return(false)
       allow(Y2Packager::InstallationMedium).to receive(:contain_multi_repos?).and_return(false)
       allow(Yast::Mode).to receive(:normal).and_return(false)
+      allow(Yast::Linuxrc).to receive(:keys).and_return(linuxrc_keys)
     end
 
     context "when medium does not contain any repository" do
@@ -79,6 +83,17 @@ describe Y2Packager::ProductSpecReader do
     context "in installed system" do
       before do
         allow(Yast::Mode).to receive(:normal).and_return(true)
+      end
+
+      it "returns the libzypp products" do
+        expect(reader.products).to eq(libzypp_products)
+      end
+    end
+
+    context "without /etc/install.inf" do
+      let(:linuxrc_keys) { linuxrc_empty }
+      before do
+        allow(Yast::Mode).to receive(:normal).and_return(false)
       end
 
       it "returns the libzypp products" do
