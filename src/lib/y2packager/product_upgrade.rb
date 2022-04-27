@@ -47,6 +47,9 @@ module Y2Packager
       # (installed) openSUSE Leap => (available) SLES,
       # same as above, in 15.3+ the product has been renamed from "openSUSE" to "Leap"
       ["Leap"]                                                            => "SLES"
+
+      # NOTE: if you change anything here then check the DEFAULT_PRODUCT_RENAMES value
+      # in the src/modules/AddOnProduct.rb file, maybe it needs an update as well...
     }.freeze
 
     # This maps uses a list of installed products as the key and the removed products as a value.
