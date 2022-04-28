@@ -46,9 +46,8 @@ module Yast
       # the IBM tools have been renamed in SLE12->SLE15 upgrade
       "ibm-dlpar-utils"                   => ["ibm-power-tools"]
 
-      # NOTE: if you change anything here then check
-      # https://github.com/yast/yast-packager/blob/master/src/lib/y2packager/product_upgrade.rb#L27
-      # maybe it needs an update as well...
+      # NOTE: if you change anything here then check the MAPPING value
+      # in the src/lib/y2packager/product_upgrade.rb file, maybe it needs an update as well...
     }.freeze
 
     # @return [Hash] Product renames added externally through the #add_rename method
