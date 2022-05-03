@@ -1939,6 +1939,9 @@ module Yast
         end
       end
 
+      # update the dependendcies
+      Pkg.PkgSolve(false)
+
       nil
     end
 
