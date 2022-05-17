@@ -47,6 +47,11 @@ module Yast
       @updated_pkg_list = []
       @removed_pkg_list = []
 
+      # Keep counters for installed, updated and removed packages
+      @installed_pkg_count = 0
+      @updated_pkg_count = 0
+      @removed_pkg_count = 0
+
       # This is a kludge to pass information from one callback that gets the
       # needed information (the pkg name) to another that doesn't.
       @updating = false
@@ -60,9 +65,9 @@ module Yast
 
     def GetPackageSummary
       {
-        "installed"        => @installed_pkg_list.size,
-        "updated"          => @updated_pkg_list.size,
-        "removed"          => @removed_pkg_list.size,
+        "installed"        => @installed_pkg_count,
+        "updated"          => @updated_pkg_count,
+        "removed"          => @removed_pkg_count,
         "installed_list"   => @installed_pkg_list,
         "updated_list"     => @updated_pkg_list,
         "removed_list"     => @removed_pkg_list,
@@ -260,8 +265,6 @@ module Yast
     # packages; or, for parallel download + installation, also for downloading.
     #
     def UpdateInstallationProgressText
-      installed_pkg = @installed_pkg_list.size
-      updated_pkg = @updated_pkg_list.size
       remaining_string = FormatRemainingSize(@total_size_to_install - @total_installed_size)
       remaining_string += ", " unless remaining_string.empty?
 
@@ -270,7 +273,7 @@ module Yast
         Builtins.sformat(
           _(" (Remaining: %1%2 packages)"),
           remaining_string,
-          @total_pkgs_to_install - installed_pkg - updated_pkg
+          @total_pkgs_to_install - @installed_pkg_count - @updated_pkg_count
         )
       )
 
@@ -384,6 +387,7 @@ module Yast
     def PkgInstallDone(pkg_name, pkg_size, deleting)
       if deleting
         @removed_pkg_list << pkg_name if Mode.normal
+        @removed_pkg_count += 1
         log.info "Uninstalled package #{pkg_name}"
       else # installing or updating
         @total_installed_size += pkg_size
@@ -393,9 +397,11 @@ module Yast
 
         if @updating
           @updated_pkg_list << pkg_name if Mode.normal
+          @updated_pkg_count += 1
           log.info "Updated package #{pkg_name}"
         else
           @installed_pkg_list << pkg_name if Mode.normal
+          @installed_pkg_count += 1
           log.info "Installed package #{pkg_name}"
         end
       end
