@@ -25,6 +25,7 @@ Yast.import "SourceManager"
 Yast.import "SourceDialogs"
 Yast.import "Wizard"
 
+Yast.import "Installation"
 Yast.import "Label"
 Yast.import "Popup"
 Yast.import "Sequencer"
@@ -1527,7 +1528,7 @@ module Yast
       if !@full_mode
         # dialog caption
         Wizard.SetContents(_("Initializing..."), Empty(), "", false, true)
-        Pkg.TargetInit("/", true)
+        Pkg.TargetInit(Installation.destdir, true)
       end
 
       Wizard.SetDesktopTitleAndIcon("org.opensuse.yast.SWSource")

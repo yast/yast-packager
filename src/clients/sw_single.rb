@@ -135,7 +135,7 @@ module Yast
 
     def CheckWhichPackages(arg_list)
       arg_list = deep_copy(arg_list)
-      if !Pkg.TargetInit("/", false)
+      if !Pkg.TargetInit(Installation.destdir, false)
         # error message
         Report.Error("Cannot read the list of installed packages.")
         return :failed
