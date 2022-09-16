@@ -31,7 +31,7 @@ module Yast
 
       # never show the disk space warning popup during autoinstallation
       @ask_again = !Mode.autoinst
-      # true == continue with the installtion
+      # true == continue with the installation
       @user_input = true
     end
 
@@ -451,7 +451,7 @@ module Yast
       end
 
       if Builtins.size(ret).zero? ||
-          Builtins.tolower(Builtins.substring(ret, 0, 1)) != "r"
+          Builtins.tolower(Builtins.substring(ret, 0, 1)) == "i"
         PackageSlideShow.PkgInstallDone(
           PackageCallbacks._package_name,
           PackageCallbacks._package_size,
