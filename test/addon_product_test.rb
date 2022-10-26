@@ -793,4 +793,46 @@ describe Yast::AddOnProduct do
       end
     end
   end
+
+  describe "#GetAbsoluteURL" do
+    it "resolves a relurl with .." do
+      base = "http://www.example.org/some%20dir/another%20dir"
+      rel = "relurl://../AnotherProduct/"
+      expect(subject.GetAbsoluteURL(base, rel))
+        .to eq "http://www.example.org/some%20dir/AnotherProduct/"
+    end
+
+    it "resolves a relurl, with a misleading non-ftp base" do
+      # scheme: username
+      # opaque: password@ftp://www.example.org/dir/
+      base = "username:password@ftp://www.example.org/dir/"
+      rel = "relurl://./Product_CD1/"
+      expect(subject.GetAbsoluteURL(base, rel))
+        .to eq "username:password@ftp://www.example.org/dir/Product_CD1/"
+    end
+
+    it "resolves a relurl, preserving user:pass" do
+      base = "ftp://username:password@www.example.org/dir/"
+      rel = "relurl://./Product_CD1/"
+      expect(subject.GetAbsoluteURL(base, rel))
+        .to eq "ftp://username:password@www.example.org/dir/Product_CD1/"
+    end
+
+    it "resolves a repo:, ignoring base_url, using InstURL, masking password" do
+      base = "urn:whatever"
+      rel = "repo:/foo.xml"
+      inst_url = "ftp://username:password@www.example.org/dir/"
+      expected = "ftp://username:password@www.example.org/dir/foo.xml"
+
+      expect(Yast::InstURL).to receive(:installInf2Url).with("").and_return(inst_url)
+
+      expect(Yast2::RelURL).to receive(:from_installation_repository)
+        .with("relurl:/foo.xml")
+        .and_return(double(absolute_url: expected))
+      expect(subject.log).to receive(:info).with(/base url.*PASSWORD/)
+      expect(subject.log).to receive(:info).with(/absolute url.*PASSWORD/)
+      expect(subject.GetAbsoluteURL(base, rel))
+        .to eq expected
+    end
+  end
 end
