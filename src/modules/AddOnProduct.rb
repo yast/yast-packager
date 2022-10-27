@@ -5,6 +5,8 @@ require "shellwords"
 require "packager/product_patterns"
 require "y2packager/resolvable"
 require "y2packager/repository"
+require "uri"
+require "yast2/rel_url"
 
 # Yast namespace
 module Yast
@@ -388,23 +390,49 @@ module Yast
     end
 
     # Returns an absolute URL from base + relative url.
-    # Relative URL needs to start with 'reulrl://' othewise
-    # it is not considered being relative and it's returned
-    # as it is (just the relative_url parameter).
+    #
+    # Relative URL needs to start with 'relurl://' or 'repo:/', otherwise it
+    # is not considered being relative and it's returned as it is (just the
+    # relative_url parameter).
+    #
+    # 'repo' URLs are resolved relative to the installation medium, not base_url.
     #
     # @param [String] base_url
-    # @param [String] url URL relative to the base
+    # @param [String] url URL relative to base_url resp. installation medium
     #
     # @example
     #   AddOnProduct::GetAbsoluteURL (
     #     "http://www.example.org/some%20dir/another%20dir",
     #     "relurl://../AnotherProduct/"
     #   ) -> "http://www.example.org/some%20dir/AnotherProduct/"
+    #
     #   AddOnProduct::GetAbsoluteURL (
-    #     "username:password@ftp://www.example.org/dir/",
+    #     "ftp://username:password@www.example.org/dir/",
     #     "relurl://./Product_CD1/"
-    #   ) -> "username:password@ftp://www.example.org/dir/Product_CD1/"
+    #   ) -> "ftp://username:password@www.example.org/dir/Product_CD1/"
+    #
+    #   with /etc/install.inf containing the line 'ZyppRepoURL: hd:/?device=/dev/sda'
+    #   AddOnProduct::GetAbsoluteURL (
+    #     "ftp://username:password@www.example.org/dir/",
+    #     "repo:/Product_CD1"
+    #   ) -> "hd:/Product_CD1?device=/dev/sda"
     def GetAbsoluteURL(base_url, url)
+      url_parsed = URI(url)
+
+      if url_parsed.scheme == "repo"
+        base_url = InstURL.installInf2Url("")
+        if base_url.empty?
+          log.error "no ZyppRepoURL in /etc/install.inf"
+        else
+          rel_url = "relurl:" + url_parsed.path
+          url = Yast2::RelURL.from_installation_repository(rel_url).absolute_url.to_s
+          log.info("base url + relative path: #{URL.HidePassword(base_url)} + #{url_parsed.path}")
+          log.info("absolute url: #{URL.HidePassword(url)}")
+        end
+
+        return url
+      end
+
       if !Builtins.regexpmatch(url, "^relurl://")
         Builtins.y2debug("Not a relative URL: %1", URL.HidePassword(url))
         return url
