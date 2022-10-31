@@ -660,15 +660,17 @@ describe Yast::AddOnProduct do
       end
 
       it "returns the new repository id" do
+        options = { "enabled" => true, "base_urls" => [url], "prod_dir" => pth, "priority" => prio }
         expect(Yast::Pkg).to receive(:RepositoryAdd)
-          .with("enabled" => true, "base_urls" => [url], "prod_dir" => pth, "priority" => prio)
+          .with(options)
           .and_return(repo_id)
         expect(subject.AddRepo(url, pth, prio)).to eq(repo_id)
       end
 
       it "sets priority if it is greater than -1" do
+        options = { "enabled" => true, "base_urls" => [url], "prod_dir" => pth }
         expect(Yast::Pkg).to receive(:RepositoryAdd)
-          .with("enabled" => true, "base_urls" => [url], "prod_dir" => pth)
+          .with(options)
           .and_return(repo_id)
         expect(subject.AddRepo(url, pth, -2)).to eq(repo_id)
       end
