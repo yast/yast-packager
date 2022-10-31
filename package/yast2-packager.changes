@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 20 08:12:08 UTC 2022 - Ladislav Slezák <lslezak@suse.com>
+
+- Do not fail when the installation URL contains a space
+  (bsc#1201816)
+- 4.4.34
+
+-------------------------------------------------------------------
 Wed Nov  2 12:35:52 UTC 2022 - Ladislav Slezák <lslezak@suse.cz>
 
 - Do not add an empty repository to the system when upgrading
