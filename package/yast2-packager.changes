@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 31 15:44:55 UTC 2022 - Martin Vidner <mvidner@suse.com>
+
+- Fix hash vs keyword arguments in RSpec expectations (bsc#1204871)
+- 4.5.7
+
+-------------------------------------------------------------------
 Tue Oct 25 10:20:48 UTC 2022 - Steffen Winterfeldt <snwint@suse.com>
 
 - support 'repo' scheme for add-ons (jsc#SLE-22578, jsc#SLE-24584)
