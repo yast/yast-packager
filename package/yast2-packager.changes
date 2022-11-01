@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Nov  2 12:35:52 UTC 2022 - Ladislav Slezák <lslezak@suse.cz>
+
+- Do not add an empty repository to the system when upgrading
+  a registered system using the Full installation medium
+  (bsc#1204399)
+- 4.4.33
+
+-------------------------------------------------------------------
 Tue May 17 20:49:27 UTC 2022 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - Fix package counters in the installation slideshow 
