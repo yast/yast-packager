@@ -11,6 +11,7 @@ describe Y2Packager::MediumType do
   after do
     # the computed value is cached, we need to reset it manually for the next test
     described_class.instance_variable_set(:@type, nil)
+    described_class.instance_variable_set(:@detected_type, nil)
   end
 
   describe "#type" do
