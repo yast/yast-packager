@@ -28,9 +28,9 @@ module Y2Packager
       # URL is not set (nil) or is empty.
       #
       # @return [Symbol] Symbol describing the medium, one of `:offline`,
-      # `:online` or `:standard`
+      #   `:online` or `:standard`
       def type
-        @type ||= detect_medium_type
+        @type ||= detected_type
       end
 
       # Returns the cached medium type value. If the medium detection has not been
@@ -42,6 +42,17 @@ module Y2Packager
         @type
       end
 
+      # Similar to {.type} method, but returns the cached original value of the
+      # detected medium type. Useful after changing the type via `type=` method.
+      # Raises an exception if the installation URL is not set (`nil`) or is empty.
+      #
+      # @see .type
+      # @return [Symbol] Symbol describing the medium, one of `:offline`,
+      #   `:online` or `:standard`
+      def detected_type
+        @detected_type ||= detect_medium_type
+      end
+
       # Possible types for type value
       POSSIBLE_TYPES = [:online, :offline, :standard].freeze
 
@@ -49,7 +60,7 @@ module Y2Packager
       # registered system with Full medium should act like Online medium.
       # @param type [Symbol] possible values are `:online`, `:offline` and `:standard`
       def type=(type)
-        log.info "Overwritting medium to #{type}"
+        log.info "Overriding the medium type from #{@type.inspect} to #{type.inspect}"
 
         if !POSSIBLE_TYPES.include?(type)
           raise ArgumentError, "Not allowed MediumType #{type.inspect}"
@@ -106,7 +117,7 @@ module Y2Packager
       # Detect the medium type.
       #
       # @return [Symbol] Symbol describing the medium, one of `:offline`,
-      # `:online` or `:standard`
+      #   `:online` or `:standard`
       def detect_medium_type
         url = Yast::InstURL.installInf2Url("")
 

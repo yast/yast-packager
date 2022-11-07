@@ -1663,7 +1663,7 @@ module Yast
         return
       # TODO: the offline medium contains an empty repository in the root,
       # that should be removed in the future, remove this workaround as well
-      elsif Y2Packager::MediumType.offline? && product_dir == "/"
+      elsif Y2Packager::MediumType.detected_type == :offline && product_dir == "/"
         log.info "Ignoring the root repository on the offline medium"
         return
       end
