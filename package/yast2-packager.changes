@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 15 17:50:12 UTC 2022 - Ladislav Slezák <lslezak@suse.com>
+
+- Do not fail when the installation URL contains a space
+  (bsc#1201816)
+- 3.3.5
+
+-------------------------------------------------------------------
 Wed Oct 30 18:45:05 UTC 2019 - Christopher Hofmann <cwh@suse.com>
 
 - Aligned the language of the license text shown with the selected

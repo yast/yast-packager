@@ -157,6 +157,9 @@ module Yast
       @installInf2Url = add_extra_dir_to_url(@installInf2Url, extra_dir) unless extra_dir.empty?
       @installInf2Url = add_ssl_verify_no_to_url(@installInf2Url) unless SSLVerificationEnabled()
 
+      # escape spaces otherwise it would be invalid and rejected by libzypp
+      @installInf2Url.gsub!(" ", "%20")
+
       log.info "Using install URL: #{URL.HidePassword(@installInf2Url)}"
       @installInf2Url
     end
