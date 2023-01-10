@@ -42,7 +42,9 @@ module Yast
       Yast.import "Directory"
 
       # selected input file (used when checking a file instead of physical CD/DVD medium)
-      @iso_filename = ""
+      # when running in a container start browsing the files from the host root directory,
+      # not from the container root
+      @iso_filename = (ENV["YAST_SCR_TARGET"]).to_s
 
       # checking file (ISO image) instead of a medium is in progress
       @checking_file = false
@@ -426,27 +428,7 @@ module Yast
               selecteddrive
             )
 
-            # try to read one byte from the medium
-            res = SCR.Execute(
-              path(".target.bash"),
-              "/usr/bin/head -c 1 #{selecteddrive.shellescape} > /dev/null"
-            )
-            if res.nonzero?
-              # TRANSLATORS: error message: the medium cannot be read or no medium in the
-              # drive; %1 = drive, e.g. /dev/hdc
-              LogLine(
-                Ops.add(
-                  Ops.add(
-                    "<FONT COLOR=red>",
-                    Builtins.sformat(
-                      _("Cannot read medium in drive %1."),
-                      selecteddrive
-                    )
-                  ),
-                  "</FONT>"
-                )
-              )
-            else
+            if medium_readable?(selecteddrive)
               if !CheckMedia.valid_checksum?(selecteddrive)
                 continue_checking = Popup.ContinueCancel(
                   _("The medium does not contain a valid checksum.\n" \
@@ -509,6 +491,21 @@ module Yast
                   )
                 )
               end
+            else
+              # TRANSLATORS: error message: the medium cannot be read or no medium in the
+              # drive; %1 = drive, e.g. /dev/hdc
+              LogLine(
+                Ops.add(
+                  Ops.add(
+                    "<FONT COLOR=red>",
+                    Builtins.sformat(
+                      _("Cannot read medium in drive %1."),
+                      selecteddrive
+                    )
+                  ),
+                  "</FONT>"
+                )
+              )
             end
 
             # process remaining output
@@ -553,6 +550,18 @@ module Yast
       end
 
       ret
+    end
+
+    # try to read one byte from the medium to check whether it is readable
+    # @param file [String] file path
+    # @return [Boolean] returns `true` if the file is readable, `false` otherwise
+    def file_readable?(file)
+      File.open(file) do |f|
+        f.read(1)
+      end
+      true
+    rescue StandardError
+      false
     end
 
     # Main workflow of the idedma configuration
