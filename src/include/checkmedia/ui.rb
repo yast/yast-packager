@@ -23,6 +23,8 @@ require "shellwords"
 module Yast
   # All user interface functions.
   module CheckmediaUiInclude
+    include Yast::Logger
+
     def initialize_checkmedia_ui(_include_target)
       Yast.import "Pkg"
       Yast.import "UI"
@@ -555,12 +557,11 @@ module Yast
     # try to read one byte from the medium to check whether it is readable
     # @param file [String] file path
     # @return [Boolean] returns `true` if the file is readable, `false` otherwise
-    def file_readable?(file)
-      File.open(file) do |f|
-        f.read(1)
-      end
+    def medium_readable?(file)
+      File.read(file, 1)
       true
-    rescue StandardError
+    rescue StandardError => e
+      log.info("Cannot read #{file}: #{e}")
       false
     end
 
