@@ -34,6 +34,8 @@ module Yast
     REMOTE_X11_BASE_TAGS = ["xorg-x11-server", "xorg-x11-fonts", "icewm"].freeze
     # Graphical packages for VNC installation
     GRAPHIC_PACKAGES = ["xorg-x11-server", "xorg-x11-server-glx", "libusb", "yast2-x11"].freeze
+    # Package needed by NBFT installation (jsc#PED-967)
+    NBFT_PACKAGES = ["wicked-nbft"].freeze
 
     BASE_PRODUCT_FILE = "/etc/products.d/baseproduct".freeze
 
@@ -1118,6 +1120,7 @@ module Yast
       end
 
       install_list.concat(kernelCmdLinePackages)
+      install_list.concat(NBFT_PACKAGES) if Linuxrc.InstallInf("UseNBFT") == "1"
 
       install_list.concat(boardPackages)
 
