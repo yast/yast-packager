@@ -11,6 +11,7 @@
 # ------------------------------------------------------------------------------
 
 require "y2packager/repo_product_spec"
+require "uri"
 
 module Y2Packager
   # This class finds products in a Solv pool
@@ -131,6 +132,10 @@ module Y2Packager
         dir = product_solvable.repo.name
         media_name_pair = media_names.find { |r| r[1] == dir }
         media_name = media_name_pair ? media_name_pair.first : dir
+
+        # the product name can be a percent encoded string like
+        # "sle%2Dmodule%2Dweb%2Dscripting"
+        product_name = URI::Parser.new.unescape(product_name)
 
         ret << RepoProductSpec.new(
           name:         product_name,
