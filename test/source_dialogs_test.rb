@@ -116,17 +116,22 @@ describe Yast::SourceDialogs do
 
     it "uses dir url scheme parameter for local ISO files" do
       converted = "iso:///install/openSUSE-13.2-DVD-x86_64.iso"
-      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall"
+      url_old = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2Finstall"
+      url_new = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso&url=dir%3A%2F%2F%2Finstall"
 
-      expect(subject.PostprocessISOURL(converted)).to eq(url)
+      # Since Ruby 3.2, URI("dir:///foo").to_s no longer returns "dir:/foo"
+      # It's OK with Zypp, it understands both forms
+      expect([url_old, url_new]).to include(subject.PostprocessISOURL(converted))
     end
 
     it "prevents double escaping if get already escaped string" do
       converted = "iso:///install/Duomenys%20600%20GB/openSUSE-13.2-DVD-x86_64.iso"
-      url = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso" \
-            "&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+      url_old = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso" \
+                "&url=dir%3A%2Finstall%2FDuomenys%2520600%2520GB"
+      url_new = "iso:///?iso=openSUSE-13.2-DVD-x86_64.iso" \
+                "&url=dir%3A%2F%2F%2Finstall%2FDuomenys%2520600%2520GB"
 
-      expect(subject.PostprocessISOURL(converted)).to eq(url)
+      expect([url_old, url_new]).to include(subject.PostprocessISOURL(converted))
     end
   end
 
