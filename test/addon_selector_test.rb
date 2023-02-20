@@ -11,7 +11,9 @@ describe Y2Packager::Dialogs::AddonSelector do
       Y2Packager::RepoProductSpec.new(name: "sle-module-basesystem", dir: "/Basesystem",
         base: false, media_name: "SLE-15-Module-Basesystem 15.3-0"),
       Y2Packager::RepoProductSpec.new(name: "sle-module-legacy", dir: "/Legacy",
-        base: false, media_name: "SLE-15-Module-Legacy 15.3-0")
+        base: false, media_name: "SLE-15-Module-Legacy 15.3-0"),
+      Y2Packager::RepoProductSpec.new(name: "sle-module-ha", dir: "/HA",
+        base: false, media_name: "SLE-15-Module-HA 15.3-0", depends_on: ["/Basesystem"])
     ]
   end
 
@@ -124,6 +126,28 @@ describe Y2Packager::Dialogs::AddonSelector do
 
         subject.create_dialog
       end
+    end
+  end
+
+  describe "#addon_repos_handler" do
+    it "selects the dependant products" do
+      # the product which just has been selected
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:addon_repos), :CurrentItem)
+        .and_return("/HA")
+      # all currently selected products
+      allow(Yast::UI).to receive(:QueryWidget).with(Id(:addon_repos), :SelectedItems)
+        .and_return(["/HA"])
+      # refreshing the details
+      allow(Yast::UI).to receive(:ChangeWidget)
+
+      # the dependant products are selected
+      expect(Yast::UI).to receive(:ChangeWidget) do |id, what, list|
+        if id == :addon_repos && what == :SelectedItems
+          expect(list).to include("/HA", "/Basesystem")
+        end
+      end
+
+      subject.addon_repos_handler
     end
   end
 end

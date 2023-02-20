@@ -155,7 +155,8 @@ module Y2Packager
           selected_items.concat(p&.depends_on)
         end
 
-        selected_items.uniq!.compact!
+        selected_items.uniq!
+        selected_items.compact!
 
         Yast::UI.ChangeWidget(:addon_repos, :SelectedItems, selected_items)
       end
