@@ -99,7 +99,6 @@ module Yast
         end
       end
 
-
       # commented out block debug call until issue is fixed: https://github.com/yast/yast-ruby-bindings/issues/290
       # log.debug { "Product #{product} depependencies: #{product_dependencies}" }
 
