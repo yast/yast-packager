@@ -66,7 +66,8 @@ describe Y2Packager::Dialogs::AddonSelector do
 
       it "does not display any popup" do
         # stub empty Yast::Popup so any method call would raise an exception
-        stub_const("Yast::Popup", double)
+        # at least one public method is mandatory, otherwise import init it again
+        stub_const("Yast::Popup", double({ do_not_import_again: true }))
         subject.next_handler
       end
     end

@@ -99,7 +99,8 @@ module Yast
         end
       end
 
-      log.debug "Product #{product} depependencies: #{product_dependencies}"
+      # commented out block debug call until issue is fixed: https://github.com/yast/yast-ruby-bindings/issues/290
+      # log.debug { "Product #{product} depependencies: #{product_dependencies}" }
 
       product_dependencies
     end
@@ -131,7 +132,8 @@ module Yast
         provides << prov if prov
       end
 
-      log.debug "Collected provides dependencies: #{provides.inspect}"
+      # commented out block debug call until issue is fixed: https://github.com/yast/yast-ruby-bindings/issues/290
+      # log.debug { "Collected provides dependencies: #{provides.inspect}" }
 
       provides
     end
