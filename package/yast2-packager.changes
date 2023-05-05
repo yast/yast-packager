@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May  5 08:34:49 UTC 2023 - Ladislav Slezák <lslezak@suse.com>
+
+- Fixed crash when selecting incompatible modules/extensions from
+  the Full medium in SLED (bsc#1210668)
+- 4.5.17
+
+-------------------------------------------------------------------
 Mon Feb 20 14:25:37 UTC 2023 - Ladislav Slezák <lslezak@suse.com>
 
 - Fixed a crash when selecting depending products (bsc#1208421)
