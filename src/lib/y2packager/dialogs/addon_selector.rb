@@ -152,7 +152,7 @@ module Y2Packager
         new_items.each do |p|
           # the dependencies contain also the transitive (indirect) dependencies,
           # we do not need to recursively evaluate the list
-          selected_items.concat(p&.depends_on)
+          selected_items.concat(p&.depends_on || [])
         end
 
         selected_items.uniq!
