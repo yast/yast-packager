@@ -14,6 +14,7 @@ require "yast"
 require "erb"
 require "ui/installation_dialog"
 require "y2packager/resolvable"
+require "yast2/popup"
 
 Yast.import "AddOnProduct"
 Yast.import "Mode"
@@ -50,7 +51,7 @@ module Y2Packager
         # do not offer base products, they would conflict with the already selected base product,
         # allow a hidden way to force displaying them in some special cases
         @products.reject!(&:base) if ENV["Y2_DISPLAY_BASE_PRODUCTS"] != "1"
-        @selected_products = []
+        @selected_products = preselected_products
       end
 
       # Handler for the :next action
@@ -86,9 +87,29 @@ module Y2Packager
         current_product = find_current_product
         return unless current_product
 
+        selected_product = (current_selection - selected_products).first
+        # incompatible product (dependency problems)
+        if selected_product.respond_to?(:depends_on) && selected_product.depends_on.nil?
+          message = _("Cannot compute dependencies of the selected product.\n\n" \
+                      "This product is probably not compatible with the installed\n" \
+                      "product, using it will very likely cause dependency\n" \
+                      "problems later.\n\n" \
+                      "Do you really want to use this product?")
+          action = Yast2::Popup.show(message, buttons: :yes_no, focus: :no)
+          if action != :yes
+            # deselect the product
+            selected_items = Yast::UI.QueryWidget(Id(:addon_repos), :SelectedItems)
+            selected_items.reject! { |i| i == selected_product.dir }
+            Yast::UI.ChangeWidget(:addon_repos, :SelectedItems, selected_items)
+            return
+          end
+        end
+
         refresh_details(current_product)
 
         select_dependent_products
+        # remember the current selection
+        read_user_selection
       end
 
       # Display the the dialog title on the left side at installation
@@ -152,7 +173,7 @@ module Y2Packager
         new_items.each do |p|
           # the dependencies contain also the transitive (indirect) dependencies,
           # we do not need to recursively evaluate the list
-          selected_items.concat(p&.depends_on)
+          selected_items.concat(p&.depends_on || [])
         end
 
         selected_items.uniq!
