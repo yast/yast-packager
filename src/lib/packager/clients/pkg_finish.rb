@@ -17,6 +17,7 @@ require "packager/cfa/zypp_conf"
 require "packager/cfa/dnf_conf"
 
 Yast.import "InstURL"
+Yast.import "Pkg"
 
 module Yast
   # Finish client for packager
@@ -44,7 +45,6 @@ module Yast
       super
       textdomain "packager"
 
-      Yast.import "Pkg"
       Yast.import "Installation"
       Yast.import "Mode"
       Yast.import "Stage"
