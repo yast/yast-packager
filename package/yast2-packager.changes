@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 30 20:16:10 UTC 2023 - Josef Reidinger <jreidinger@suse.cz>
+
+- 5.0.0 (#bsc1185510)
+
+-------------------------------------------------------------------
 Tue Aug  8 11:22:18 UTC 2023 - Ladislav Slezák <lslezak@suse.com>
 
 - Move loading the Pkg module to fix a failing unit test (bsc#1214069)
