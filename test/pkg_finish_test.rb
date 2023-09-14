@@ -357,7 +357,7 @@ describe Yast::PkgFinishClient do
 
       context "if libzypp's minimalistic configuration is enabled" do
         let(:minimalistic_libzypp_config) { true }
-        let(:destdir) { tmpdir }
+        let(:destdir) { tmpdir.to_s }
 
         before do
           conf_file = File.join(tmpdir, Yast::Packager::CFA::ZyppConf::PATH)

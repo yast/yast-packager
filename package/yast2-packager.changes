@@ -2,14 +2,19 @@
 Fri Sep 01 19:57:03 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
 
 - Branch package for SP6 (bsc#1208913)
+- backport from TW:
+-- Move loading the Pkg module to fix a failing unit test (bsc#1214069)
+-- Adapt test to changes in ruby-bindings when detecting Yast
+   modules using public only methods (related to bsc#1210051)
+-- Comment out expensive debug calls to improve performance
+   (bsc#1210051)
+- 4.6.3
 
 -------------------------------------------------------------------
 Fri May  5 08:34:49 UTC 2023 - Ladislav Slezák <lslezak@suse.com>
-
 - Fixed crash when selecting incompatible modules/extensions from
   the Full medium in SLED (bsc#1210668)
 - 4.5.17
-
 -------------------------------------------------------------------
 Mon Feb 20 14:25:37 UTC 2023 - Ladislav Slezák <lslezak@suse.com>
 
