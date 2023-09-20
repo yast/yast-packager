@@ -1854,6 +1854,8 @@ module Yast
         end
 
         if !same_url || plaindir != SourceDialogs.IsPlainDir
+          warn_service_repository(source_state)
+
           Builtins.y2milestone(
             "URL or plaindir flag changed, recreating the source"
           )
@@ -1896,13 +1898,15 @@ module Yast
                 "priority",
                 @default_priority
               )
+              service = source_state["service"] || ""
               Builtins.y2milestone(
                 "Restoring the original properties: enabled: %1, autorefresh: %2, " \
-                "keeppackages: %3, priority: %4",
+                "keeppackages: %3, priority: %4, service: %5",
                 enabled,
                 auto_refresh,
                 keeppackages,
-                priority
+                priority,
+                service
               )
 
               # set the original properties
@@ -1910,6 +1914,7 @@ module Yast
               Ops.set(addedSource, "keeppackages", keeppackages)
               Ops.set(addedSource, "enabled", enabled)
               Ops.set(addedSource, "priority", priority)
+              Ops.set(addedSource, "service", service)
 
               # get the ID of the old repo and mark it for removal
               srcid = Ops.get_integer(
