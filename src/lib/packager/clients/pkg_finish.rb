@@ -13,6 +13,7 @@
 
 require "installation/finish_client"
 require "y2packager/repository"
+require "y2packager/resolvable"
 require "packager/cfa/zypp_conf"
 require "packager/cfa/dnf_conf"
 
@@ -192,7 +193,10 @@ module Yast
       log.info "Not installed base products: #{non_installed_base.map(&:name)} "
 
       local_repos.each_with_object([]) do |repo, disabled|
-        if repo.products.empty?
+        # No product but the repository is not empty => most likely a 3rd party
+        # repository, do not touch it.
+        # The empty repository on the SLE Online medium is disabled by the code below.
+        if repo.products.empty? && Y2Packager::Resolvable.any?(kind: :package, source: repo.repo_id)
           log.info("Repo #{repo.repo_id} (#{repo.name}) does not have products; ignored")
           next
         end
