@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan  9 13:39:32 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- After installation disable the empty installation repository
+  from the SLE15 Online medium (bsc#1182303)
+- 4.5.18
+
+-------------------------------------------------------------------
 Fri May  5 08:34:49 UTC 2023 - Ladislav Slezák <lslezak@suse.com>
 
 - Fixed crash when selecting incompatible modules/extensions from
