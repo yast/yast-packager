@@ -184,6 +184,7 @@ describe Yast::PkgFinishClient do
             .to receive(:GetBooleanFeature)
             .with("software", "disable_media_repo")
             .and_return(true)
+          allow(Y2Packager::Resolvable).to receive(:any?).and_return(false)
         end
 
         context "dvd repo is disabled even if base products aren't available using other repos" do
@@ -226,9 +227,10 @@ describe Yast::PkgFinishClient do
         end
       end
 
-      context "if does not contain any product" do
+      context "if does not contain any product but is not empty" do
         before do
           allow(local_repo).to receive(:products).and_return([])
+          allow(Y2Packager::Resolvable).to receive(:any?).and_return(true)
         end
 
         it "does not disable the local repository" do
