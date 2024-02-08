@@ -219,7 +219,18 @@ module Y2Packager
       end
 
       def product_description(product)
+        # first try the relative path
         erb_file = File.join(__dir__, "product_summary.erb")
+
+        # in self update mode the some files might be updated and placed in
+        # a different directory and symlinked, but as Ruby uses absolute path
+        # for __dir__ then the relative file might not be found
+        if !File.exist?(erb_file)
+          log.info "ERB template #{erb_file} not found"
+          # use the absolute path as a fallback
+          erb_file = "/usr/share/YaST2/lib/y2packager/dialogs/product_summary.erb"
+        end
+
         log.info "Loading ERB template #{erb_file}"
         erb = ERB.new(File.read(erb_file))
 
