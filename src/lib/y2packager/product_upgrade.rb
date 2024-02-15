@@ -25,14 +25,12 @@ module Y2Packager
     # maps installed products to a new available base product
     # rubocop:disable Layout/LineLength
     MAPPING = {
-      # SLES12 + HPC module => SLESHPC15
-      # (a bit tricky, the module became a new base product!)
-      ["SLES", "sle-module-hpc"]                                          => "SLE_HPC",
       ["SLES", "SUSE-Manager-Proxy"]                                      => "SUSE-Manager-Proxy",
       ["SLES", "SUSE-Manager-Server"]                                     => "SUSE-Manager-Server",
       ["SLES", "SUSE-Manager-Proxy", "SUSE-Manager-Retail-Branch-Server"] => "SUSE-Manager-Retail-Branch-Server",
-      # this is an internal product so far...
-      ["SLE-HPC"]                                                         => "SLE_HPC",
+      # SLE HPC is not a base product anymore, it is SLES + HPC module now
+      ["SLE-HPC"]                                                         => "SLES",
+      ["SLE_HPC"]                                                         => "SLES",
       # SLES11 => SLES15
       ["SUSE_SLES"]                                                       => "SLES",
       # SLED11 => SLED15
