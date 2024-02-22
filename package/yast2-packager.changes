@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 22 09:34:54 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Display a better product summary for the SLE_HPC => SLES upgrade
+  (jsc#PED-7841)
+- 4.6.8
+
+-------------------------------------------------------------------
 Tue Feb 13 16:40:17 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - SLE HPC is not a base product anymore, it is replaced by

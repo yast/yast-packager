@@ -28,9 +28,9 @@ module Yast
       # SLE12 HA GEO is now included in SLE15 HA
       "sle-ha-geo"                        => ["sle-ha"],
       "SUSE_SLES_SAP"                     => ["SLES_SAP"],
-      # SLE HPC is not a base product anymore, it is SLES + HPC module now
-      "SLE-HPC"                           => ["SLES", "sle-module-hpc"],
-      "SLE_HPC"                           => ["SLES", "sle-module-hpc"],
+      # SLE HPC is not a base product anymore, it is SLES (+ HPC module) now
+      "SLE-HPC"                           => ["SLES"],
+      "SLE_HPC"                           => ["SLES"],
       # SMT is now integrated into the base SLES
       "sle-smt"                           => ["SLES"],
       # Live patching is a module now (bsc#1074154)
