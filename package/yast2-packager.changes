@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Mar 11 08:06:42 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Reimplemented the hardcoded product mapping to support also the
+  migration from SLE_HPC to SLES SP6+ (with the HPC module)
+  (bsc#1220567)
+- 4.4.35
+
+-------------------------------------------------------------------
 Tue Dec 20 08:12:08 UTC 2022 - Ladislav Slezák <lslezak@suse.com>
 
 - Do not fail when the installation URL contains a space
