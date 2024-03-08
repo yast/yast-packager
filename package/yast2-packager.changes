@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Mar 11 15:36:54 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Reimplemented the hardcoded product mapping to support also the
+  migration from SLE_HPC to SLES SP6+ (with the HPC module)
+  (bsc#1220567)
+- 4.3.27
+
+-------------------------------------------------------------------
 Tue Mar 15 12:50:30 UTC 2022 - Steffen Winterfeldt <snwint@suse.com>
 
 - do not keep file handle to repo metadata open accidentally (bsc#1196061)
