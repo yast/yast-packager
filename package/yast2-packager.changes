@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Mar  8 14:08:48 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Reimplemented the hardcoded product mapping to support also the
+  migration from SLE_HPC to SLES SP6+ (with the HPC module)
+  (bsc#1220567)
+- 4.5.20
+
+-------------------------------------------------------------------
 Thu Feb  8 13:49:00 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Fixed ERB template loading in self update, if the template
