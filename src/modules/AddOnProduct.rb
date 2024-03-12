@@ -26,10 +26,6 @@ module Yast
       # SLE12 HA GEO is now included in SLE15 HA
       "sle-ha-geo"                        => ["sle-ha"],
       "SUSE_SLES_SAP"                     => ["SLES_SAP"],
-      # SLES-12 with HPC module can be replaced by SLE_HPC-15
-      "SLES"                              => ["SLE_HPC"],
-      # this is an internal product so far...
-      "SLE-HPC"                           => ["SLE_HPC"],
       # SMT is now integrated into the base SLES
       "sle-smt"                           => ["SLES"],
       # Live patching is a module now (bsc#1074154)
@@ -41,9 +37,34 @@ module Yast
       "sle-sdk"                           => ["sle-module-development-tools"],
       # openSUSE => SLES migration
       "openSUSE"                          => ["SLES"],
+      # openSUSE 15.3+ => SLES migration
+      "Leap"                              => ["SLES"],
       # the IBM tools have been renamed in SLE12->SLE15 upgrade
       "ibm-dlpar-utils"                   => ["ibm-power-tools"]
     }.freeze
+
+    private_constant :DEFAULT_PRODUCT_RENAMES
+
+    attr_accessor :new_renames
+
+    def default_product_renames
+      # special handling for the HPC product
+      product_mapping = if new_renames
+        {
+          # in SLE15-SP6+ SLE_HPC is replaced by SLES + HPC module
+          "SLE-HPC" => ["SLES"],
+          "SLE_HPC" => ["SLES"]
+        }
+      else
+        {
+          # in SLE15 SP5 (or older) the SLES + HPC module is upgraded to SLE_HPC
+          "SLES"    => ["SLE_HPC"],
+          "SLE-HPC" => ["SLE_HPC"]
+        }
+      end
+
+      product_mapping.merge!(DEFAULT_PRODUCT_RENAMES)
+    end
 
     # @return [Hash] Product renames added externally through the #add_rename method
     attr_accessor :external_product_renames
@@ -1981,7 +2002,7 @@ module Yast
 
       # handle the product renames, if a renamed product was installed
       # replace it with the new product so the new product is preselected
-      DEFAULT_PRODUCT_RENAMES.each do |k, v|
+      default_product_renames.each do |k, v|
         next unless installed_addons.include?(k)
 
         installed_addons.delete(k)
@@ -2072,12 +2093,12 @@ module Yast
 
     # Determine whether a product rename is included in the fallback map
     #
-    # @see DEFAULT_PRODUCT_RENAMES
+    # @see default_product_renames
     # @see #renamed_at?
     def renamed_by_default?(old_name, new_name)
       log.info "Search #{old_name} -> #{new_name} rename in default map: " \
-        "#{DEFAULT_PRODUCT_RENAMES.inspect}"
-      renamed_at?(DEFAULT_PRODUCT_RENAMES, old_name, new_name)
+               "#{default_product_renames.inspect}"
+      renamed_at?(default_product_renames, old_name, new_name)
     end
 
     # Determine whether a product rename is present on a given hash
