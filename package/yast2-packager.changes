@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 12 13:43:26 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Change the product mapping API to be the same as in SP5 and older
+  (related to bsc#1220567)
+- 4.6.9
+
+-------------------------------------------------------------------
 Thu Feb 22 09:34:54 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Display a better product summary for the SLE_HPC => SLES upgrade
