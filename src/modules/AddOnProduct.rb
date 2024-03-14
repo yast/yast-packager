@@ -28,9 +28,9 @@ module Yast
       # SLE12 HA GEO is now included in SLE15 HA
       "sle-ha-geo"                        => ["sle-ha"],
       "SUSE_SLES_SAP"                     => ["SLES_SAP"],
-      # SLE HPC is not a base product anymore, it is SLES + HPC module now
-      "SLE-HPC"                           => ["SLES", "sle-module-hpc"],
-      "SLE_HPC"                           => ["SLES", "sle-module-hpc"],
+      # SLE HPC is not a base product anymore, it is SLES (+ HPC module) now
+      "SLE-HPC"                           => ["SLES"],
+      "SLE_HPC"                           => ["SLES"],
       # SMT is now integrated into the base SLES
       "sle-smt"                           => ["SLES"],
       # Live patching is a module now (bsc#1074154)
@@ -50,6 +50,17 @@ module Yast
       # NOTE: if you change anything here then check the MAPPING value
       # in the src/lib/y2packager/product_upgrade.rb file, maybe it needs an update as well...
     }.freeze
+
+    private_constant :DEFAULT_PRODUCT_RENAMES
+
+    # flag for using old or new product mapping, not used in SLE15-SP6+
+    attr_accessor :new_renames
+
+    def default_product_renames
+      # no special handling, the product renames is a static map in SLE15-SP6+,
+      # in SLE15-SP5 it is dynamic depending on the installed version
+      DEFAULT_PRODUCT_RENAMES
+    end
 
     # @return [Hash] Product renames added externally through the #add_rename method
     attr_accessor :external_product_renames
@@ -2014,7 +2025,7 @@ module Yast
 
       # handle the product renames, if a renamed product was installed
       # replace it with the new product so the new product is preselected
-      DEFAULT_PRODUCT_RENAMES.each do |k, v|
+      default_product_renames.each do |k, v|
         next unless installed_addons.include?(k)
 
         installed_addons.delete(k)
@@ -2105,12 +2116,12 @@ module Yast
 
     # Determine whether a product rename is included in the fallback map
     #
-    # @see DEFAULT_PRODUCT_RENAMES
+    # @see default_product_renames
     # @see #renamed_at?
     def renamed_by_default?(old_name, new_name)
       log.info "Search #{old_name} -> #{new_name} rename in default map: " \
-               "#{DEFAULT_PRODUCT_RENAMES.inspect}"
-      renamed_at?(DEFAULT_PRODUCT_RENAMES, old_name, new_name)
+               "#{default_product_renames.inspect}"
+      renamed_at?(default_product_renames, old_name, new_name)
     end
 
     # Determine whether a product rename is present on a given hash
