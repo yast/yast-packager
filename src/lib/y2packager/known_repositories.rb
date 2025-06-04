@@ -95,6 +95,7 @@ module Y2Packager
       repo_ids = Yast::Pkg.SourceGetCurrent(true)
 
       urls = repo_ids.map { |r| Yast::Pkg.SourceGeneralData(r)["url"] }
+      urls.compact! # bsc#1244040: mirrorlist instead of baseurl
       urls.uniq!
       urls.sort
     end
