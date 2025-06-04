@@ -55,7 +55,7 @@ describe Y2Packager::KnownRepositories do
   end
 
   describe "#update" do
-    it "add the current repositories to the known repositories" do
+    it "adds the current repositories to the known repositories" do
       allow(subject).to receive(:repositories).and_return(repos)
 
       allow(Yast::Pkg).to receive(:SourceGetCurrent).with(true).and_return([source_id])
@@ -64,6 +64,17 @@ describe Y2Packager::KnownRepositories do
 
       subject.update
       expect(repos).to eq(["http://example.com/repo", "http://new.example.com"])
+    end
+
+    it "survives a repo without a baseurl (bsc#1244040)" do
+      allow(subject).to receive(:repositories).and_return(repos)
+
+      allow(Yast::Pkg).to receive(:SourceGetCurrent).with(true).and_return([source_id])
+      allow(Yast::Pkg).to receive(:SourceGeneralData).with(source_id)
+        .and_return("url" => nil)
+
+      subject.update
+      expect(repos).to eq(["http://example.com/repo"])
     end
   end
 
