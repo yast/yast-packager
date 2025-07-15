@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 15 14:57:19 UTC 2025 - Martin Vidner <mvidner@suse.com>
+
+- Fix Internal Error: Encoding::CompatibilityError when
+  adding SLE-HA as add-on product (bsc#1245555)
+- 4.6.10
+
+-------------------------------------------------------------------
 Tue Mar 12 13:43:26 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Change the product mapping API to be the same as in SP5 and older
