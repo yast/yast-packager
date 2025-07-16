@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 15 14:57:19 UTC 2025 - Martin Vidner <mvidner@suse.com>
+
+- Fix Internal Error: Encoding::CompatibilityError when
+  adding SLE-HA as add-on product (bsc#1245555)
+- 4.7.1
+
+-------------------------------------------------------------------
 Thu Sep 05 15:53:10 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Branch package for SP7 (bsc#1230201)
@@ -434,8 +441,8 @@ Fri Mar  5 10:41:42 UTC 2021 - Ancor Gonzalez Sosa <ancor@suse.com>
   contributed by Sasi Olin (hel@lcp.world).
 - 4.3.15
 
-Fri Feb 19 14:07:15 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 -------------------------------------------------------------------
+Fri Feb 19 14:07:15 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - Show correct number of downloaded packages in log (bsc#1180278)
 - Fix crash when installation proposal require pattern and such
@@ -2247,7 +2254,6 @@ Mon Apr  4 09:15:27 CEST 2016 - schubi@suse.de
 - 3.1.93
 
 -------------------------------------------------------------------
-
 Fri Apr  1 12:37:51 UTC 2016 - knut.anderssen@suse.com
 
 - Added [Network Configuration] button to Source Dialog for
