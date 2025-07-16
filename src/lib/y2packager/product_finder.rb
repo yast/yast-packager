@@ -106,6 +106,20 @@ module Y2Packager
       order
     end
 
+    # solvable.lookup_str, but make the result UTF-8
+    #
+    # SWIG bindings always set the string encoding to ASCII_8BIT (BINARY)
+    # https://github.com/swig/swig/issues/2035
+    # but combining those with UTF_8 strings such as non-English UI texts
+    # would raise Encoding::CompatibilityError
+    #
+    # See bsc#1245555 (here, libsolv, solv-ruby) and bsc#1096758 (libstorage-ng)
+    def lookup_str(solvable, key)
+      s = solvable.lookup_str(key) || ""
+      s.force_encoding(Encoding::UTF_8)
+      s
+    end
+
     #
     # Evaluate the products
     #
@@ -140,9 +154,9 @@ module Y2Packager
         ret << RepoProductSpec.new(
           name:         product_name,
           media_name:   media_name,
-          display_name: product_solvable.lookup_str(Solv::SOLVABLE_SUMMARY) || "",
+          display_name: lookup_str(product_solvable, Solv::SOLVABLE_SUMMARY),
           base:         found_base_products.include?(product_name),
-          description:  product_solvable.lookup_str(Solv::SOLVABLE_DESCRIPTION) || "",
+          description:  lookup_str(product_solvable, Solv::SOLVABLE_DESCRIPTION),
           depends_on:   find_dependencies(product_solvable, selected_base),
           order:        display_order(product_solvable),
           dir:          dir,
