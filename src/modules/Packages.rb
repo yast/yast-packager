@@ -931,43 +931,6 @@ module Yast
       packages
     end
 
-    # CHeck whether this is a Dell system
-    def DellSystem
-      command = "/usr/sbin/hwinfo --bios | /usr/bin/grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'"
-      Builtins.y2milestone("Executing: %1", command)
-
-      ret = SCR.Execute(path(".target.bash"), command).zero?
-      Builtins.y2milestone("Detected a Dell system") if ret
-
-      ret
-    end
-
-    def kernelCmdLinePackages
-      ret = []
-
-      add_biosdevname = false
-      options = SCR.Read(path(".proc.cmdline"))
-      option = options.grep(/^biosdevname=/i).first if options
-      value = (option[/^biosdevname=(\d+)/i, 1] if option)
-
-      case value
-      when "1"
-        Builtins.y2milestone("Biosdevname explicitly enabled")
-        add_biosdevname = true
-      when "0"
-        Builtins.y2milestone("Biosdevname explicitly disabled")
-        add_biosdevname = false
-      else
-        Builtins.y2milestone("Missing biosdevname option, autodetecting...")
-        add_biosdevname = true if DellSystem()
-      end
-      ret << "biosdevname" if add_biosdevname
-
-      Builtins.y2milestone("Packages added by kernel command line: %1", ret)
-
-      deep_copy(ret)
-    end
-
     # Compute board (vendor) dependent packages
     # @return [Array](string)
     def boardPackages
@@ -1119,7 +1082,6 @@ module Yast
         install_list.concat(GRAPHIC_PACKAGES)
       end
 
-      install_list.concat(kernelCmdLinePackages)
       install_list.concat(NBFT_PACKAGES) if Linuxrc.InstallInf("UseNBFT") == "1"
 
       install_list.concat(boardPackages)
