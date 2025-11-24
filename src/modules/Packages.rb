@@ -931,17 +931,6 @@ module Yast
       packages
     end
 
-    # CHeck whether this is a Dell system
-    def DellSystem
-      command = "/usr/sbin/hwinfo --bios | /usr/bin/grep -q '^[[:space:]]*Vendor:.*Dell Inc\\.'"
-      Builtins.y2milestone("Executing: %1", command)
-
-      ret = SCR.Execute(path(".target.bash"), command).zero?
-      Builtins.y2milestone("Detected a Dell system") if ret
-
-      ret
-    end
-
     # Compute board (vendor) dependent packages
     # @return [Array](string)
     def boardPackages
