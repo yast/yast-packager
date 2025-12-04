@@ -4,7 +4,7 @@ require "yast"
 require "erb"
 require "fileutils"
 require "uri"
-require "cgi"
+require "cgi/core"
 require "shellwords"
 
 require "y2packager/medium_type"
