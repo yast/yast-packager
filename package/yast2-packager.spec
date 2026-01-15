@@ -17,7 +17,7 @@
 
 
 Name:           yast2-packager
-Version:        5.0.10
+Version:        5.0.11
 Release:        0
 Summary:        YaST2 - Package Library
 License:        GPL-2.0-or-later
@@ -72,8 +72,13 @@ Requires:       rubygem(%{rb_default_ruby_abi}:cfa) >= 0.5.0
 Requires:       rubygem(%{rb_default_ruby_abi}:nokogiri)
 # parsing URI
 Requires:       rubygem(%{rb_default_ruby_abi}:cgi)
+
+# require a libyui-pkg package only in openSUSE Tumbleweed or Leap
+%if 0%{?suse_version} == 1699 || 0%{?is_opensuse}
 # One of libyui-qt-pkg, libyui-ncurses-pkg, libyui-gtk-pkg
 Requires:       libyui_pkg
+%endif
+
 Requires:       yast2-ruby-bindings >= 1.0.0
 Requires:       ruby-solv
 
